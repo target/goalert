@@ -1,0 +1,8 @@
+{
+  "id": "56aef1e6-b665-4619-a52d-ac77e2b0fefc",
+  "name": "Cypress User Admin",
+  "email": "cy-smoketest-admin@example.com",
+  "role": "admin",
+  "username": "cysmoketestadmin",
+  "password": "hunter2"
+}

@@ -1,0 +1,755 @@
+type Query {
+  # Returns the user with the given ID. If no ID is specified,
+  # the current user is implied.
+  user(id: ID): User
+
+  # Returns a list of users who's name or email match search string.
+  users(
+    input: UserSearchOptions
+    first: Int = 15
+    after: String = ""
+    search: String = ""
+  ): UserConnection!
+
+  # Returns a single alert with the given ID.
+  alert(id: Int!): Alert
+
+  # Returns a paginated list of alerts.
+  alerts(input: AlertSearchOptions): AlertConnection!
+
+  # Returns a single service with the given ID.
+  service(id: ID!): Service
+
+  # Returns a single integration key with the given ID.
+  integrationKey(id: ID!): IntegrationKey
+
+  # Returns a paginated list of services.
+  services(input: ServiceSearchOptions): ServiceConnection!
+
+  # Returns a single rotation with the given ID.
+  rotation(id: ID!): Rotation
+
+  # Returns a paginated list of rotations.
+  rotations(input: RotationSearchOptions): RotationConnection!
+
+  # Returns a single schedule with the given ID.
+  schedule(id: ID!): Schedule
+
+  # Returns a paginated list of schedules.
+  schedules(input: ScheduleSearchOptions): ScheduleConnection!
+
+  # Returns a single escalation policy with the given ID.
+  escalationPolicy(id: ID!): EscalationPolicy
+
+  # Returns a paginated list of escalation policies.
+  escalationPolicies(
+    input: EscalationPolicySearchOptions
+  ): EscalationPolicyConnection!
+
+  # Returns the list of auth subjects for the given provider ID.
+  authSubjectsForProvider(
+    first: Int = 15
+    after: String = ""
+    providerID: ID!
+  ): AuthSubjectConnection!
+
+  # Returns a paginated list of time zones.
+  timeZones(input: TimeZoneSearchOptions): TimeZoneConnection!
+
+  # Allows searching for assigned labels.
+  labels(input: LabelSearchOptions): LabelConnection!
+
+  # Allows searching for user overrides.
+  userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
+
+  # Returns a single user override with the given ID.
+  userOverride(id: ID!): UserOverride
+
+  # Returns public server configuration values. If all is set to true,
+  # then all values are returned (must be admin).
+  config(all: Boolean): [ConfigValue!]!
+
+  # Returns a contact method with the given ID.
+  userContactMethod(id: ID!): UserContactMethod
+
+  # Returns the list of Slack channels available to the current user.
+  slackChannels(input: SlackChannelSearchOptions): SlackChannelConnection!
+
+  # Returns a Slack channel with the given ID.
+  slackChannel(id: ID!): SlackChannel
+}
+
+input SlackChannelSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type SlackChannel {
+  id: ID!
+  name: String!
+}
+
+type SlackChannelConnection {
+  nodes: [SlackChannel!]!
+  pageInfo: PageInfo!
+}
+
+type ConfigValue {
+  id: String!
+  description: String!
+  value: String!
+  type: ConfigType!
+  password: Boolean!
+}
+enum ConfigType {
+  string
+  stringList
+  integer
+  boolean
+}
+
+input UserOverrideSearchOptions {
+  first: Int = 15
+  after: String = ""
+  omit: [ID!]
+
+  scheduleID: ID # limit search to a single schedule
+  filterAddUserID: [ID!] # only return overrides where the provided users have been added to a schedule (add or replace types).
+  filterRemoveUserID: [ID!] # only return overrides where the provided users have been removed from a schedule (remove or replace types).
+  filterAnyUserID: [ID!] # only return overrides that add/remove/replace at least one of the provided user IDs.
+  start: ISOTimestamp # start of the window to search for.
+  end: ISOTimestamp # end of the window to search for.
+}
+
+type UserOverrideConnection {
+  nodes: [UserOverride!]!
+  pageInfo: PageInfo!
+}
+type UserOverride {
+  id: ID!
+
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  addUserID: ID!
+  removeUserID: ID!
+
+  addUser: User
+  removeUser: User
+
+  target: Target!
+}
+input LabelSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  uniqueKeys: Boolean = false
+  omit: [ID!]
+}
+
+type LabelConnection {
+  nodes: [Label!]!
+  pageInfo: PageInfo!
+}
+
+type Mutation {
+  addAuthSubject(input: AuthSubjectInput!): Boolean!
+  deleteAuthSubject(input: AuthSubjectInput!): Boolean!
+  updateUser(input: UpdateUserInput!): Boolean!
+
+  testContactMethod(id: ID!): Boolean!
+
+  # Updates the status for multiple alerts given the list of alertIDs and the status they want to be updated to.
+  updateAlerts(input: UpdateAlertsInput!): [Alert!]
+
+  # Updates the fields for a rotation given the rotationID, also updates ordering of and number of users for the rotation.
+  updateRotation(input: UpdateRotationInput!): Boolean!
+
+  # Escalates multiple alerts given the list of alertIDs.
+  escalateAlerts(input: [Int!]): [Alert!]
+
+  # Updates the favorite status of a target.
+  setFavorite(input: SetFavoriteInput!): Boolean!
+
+  updateService(input: UpdateServiceInput!): Boolean!
+  updateEscalationPolicy(input: UpdateEscalationPolicyInput!): Boolean!
+  updateEscalationPolicyStep(input: UpdateEscalationPolicyStepInput!): Boolean!
+
+  deleteAll(input: [TargetInput!]): Boolean!
+
+  createService(input: CreateServiceInput!): Service
+  createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
+  createEscalationPolicyStep(
+    input: CreateEscalationPolicyStepInput!
+  ): EscalationPolicyStep
+  createRotation(input: CreateRotationInput!): Rotation
+
+  createIntegrationKey(input: CreateIntegrationKeyInput!): IntegrationKey
+
+  setLabel(input: SetLabelInput!): Boolean!
+
+  createSchedule(input: CreateScheduleInput!): Schedule
+  updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
+  createUserOverride(input: CreateUserOverrideInput!): UserOverride
+
+  createUserContactMethod(
+    input: CreateUserContactMethodInput!
+  ): UserContactMethod
+  createUserNotificationRule(
+    input: CreateUserNotificationRuleInput!
+  ): UserNotificationRule
+  updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
+
+  updateSchedule(input: UpdateScheduleInput!): Boolean!
+  updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
+
+  setConfig(input: [ConfigValueInput!]): Boolean!
+}
+
+input ConfigValueInput {
+  id: String!
+  value: String!
+}
+
+input UpdateUserOverrideInput {
+  id: ID!
+
+  start: ISOTimestamp
+  end: ISOTimestamp
+
+  addUserID: ID
+  removeUserID: ID
+}
+
+input CreateUserOverrideInput {
+  scheduleID: ID!
+
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  addUserID: ID
+  removeUserID: ID
+}
+
+input CreateScheduleInput {
+  name: String!
+  description: String
+  timeZone: String!
+
+  targets: [ScheduleTargetInput!]
+}
+
+input ScheduleTargetInput {
+  scheduleID: ID
+  target: TargetInput
+  newRotation: CreateRotationInput
+  rules: [ScheduleRuleInput!]!
+}
+
+input ScheduleRuleInput {
+  id: ID
+  start: ClockTime
+  end: ClockTime
+
+  # weekdayFilter is a 7-item array that indicates if the rule
+  # is active on each weekday, starting with Sunday.
+  weekdayFilter: [Boolean!]
+}
+
+input SetLabelInput {
+  target: TargetInput
+  key: String!
+
+  # If value is empty, the label is removed.
+  value: String!
+}
+
+input TimeZoneSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+type TimeZoneConnection {
+  nodes: [TimeZone!]!
+  pageInfo: PageInfo!
+}
+
+type TimeZone {
+  id: String!
+}
+
+input CreateServiceInput {
+  name: String!
+  description: String = ""
+
+  escalationPolicyID: ID
+  newEscalationPolicy: CreateEscalationPolicyInput
+  newIntegrationKeys: [CreateIntegrationKeyInput!]
+  labels: [SetLabelInput!]
+}
+
+input CreateEscalationPolicyInput {
+  name: String!
+  description: String = ""
+  repeat: Int = 3
+
+  steps: [CreateEscalationPolicyStepInput!]
+}
+
+input CreateEscalationPolicyStepInput {
+  escalationPolicyID: ID
+
+  delayMinutes: Int!
+
+  targets: [TargetInput!]
+  newRotation: CreateRotationInput
+  newSchedule: CreateScheduleInput
+}
+
+type EscalationPolicyStep {
+  id: ID!
+  stepNumber: Int!
+  delayMinutes: Int!
+  targets: [Target!]!
+  escalationPolicy: EscalationPolicy
+}
+
+input UpdateScheduleInput {
+  id: ID!
+  name: String
+  description: String
+  timeZone: String
+}
+
+input UpdateServiceInput {
+  id: ID!
+  name: String
+  description: String
+  escalationPolicyID: ID
+}
+
+input UpdateEscalationPolicyInput {
+  id: ID!
+  name: String
+  description: String
+  repeat: Int
+  stepIDs: [String!]
+}
+
+input UpdateEscalationPolicyStepInput {
+  id: ID!
+  delayMinutes: Int
+  targets: [TargetInput!]
+}
+
+input SetFavoriteInput {
+  target: TargetInput!
+  favorite: Boolean!
+}
+
+type EscalationPolicyConnection {
+  nodes: [EscalationPolicy!]!
+  pageInfo: PageInfo!
+}
+
+type AlertConnection {
+  nodes: [Alert!]!
+  pageInfo: PageInfo!
+}
+
+type ScheduleConnection {
+  nodes: [Schedule!]!
+  pageInfo: PageInfo!
+}
+
+type Schedule {
+  id: ID!
+  name: String!
+  description: String!
+  timeZone: String!
+
+  assignedTo: [Target!]!
+  shifts(start: ISOTimestamp!, end: ISOTimestamp!): [OnCallShift!]!
+
+  targets: [ScheduleTarget!]!
+  target(input: TargetInput!): ScheduleTarget
+}
+
+type OnCallShift {
+  userID: ID!
+  user: User
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+  truncated: Boolean!
+}
+
+type ScheduleTarget {
+  scheduleID: ID!
+  target: Target!
+  rules: [ScheduleRule!]!
+}
+
+type ScheduleRule {
+  id: ID!
+  scheduleID: ID!
+
+  start: ClockTime!
+  end: ClockTime!
+
+  # weekdayFilter is a 7-item array that indicates if the rule
+  # is active on each weekday, starting with Sunday.
+  weekdayFilter: [Boolean!]!
+
+  target: Target!
+}
+
+type RotationConnection {
+  nodes: [Rotation!]!
+  pageInfo: PageInfo!
+}
+
+input CreateRotationInput {
+  name: String!
+  description: String
+
+  timeZone: String!
+  start: ISOTimestamp!
+
+  type: RotationType!
+  shiftLength: Int = 1
+
+  userIDs: [ID!]
+}
+
+type Rotation {
+  id: ID!
+  name: String!
+  description: String!
+
+  start: ISOTimestamp!
+  timeZone: String!
+
+  type: RotationType!
+  shiftLength: Int!
+
+  activeUserIndex: Int!
+
+  userIDs: [ID!]!
+  users: [User!]!
+
+  nextHandoffTimes(num: Int): [ISOTimestamp!]!
+}
+
+enum RotationType {
+  weekly
+  daily
+  hourly
+}
+
+input UpdateAlertsInput {
+  # List of alertIDs.
+  alertIDs: [Int!]!
+
+  newStatus: AlertStatus!
+}
+
+input UpdateRotationInput {
+  id: ID!
+
+  name: String
+  description: String
+  timeZone: String
+  start: ISOTimestamp
+  type: RotationType
+  shiftLength: Int
+
+  activeUserIndex: Int
+
+  # activeUserIndex will not be changed, as the index will remain the same.
+  # On call user may change since whatever index is put into activeUserIndex will be on call.
+  userIDs: [ID!]
+}
+
+input RotationSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+input EscalationPolicySearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+input ScheduleSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+input ServiceSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+
+  # Include only favorited services in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite services first.
+  favoritesFirst: Boolean = false
+}
+
+input UserSearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [ID!]
+}
+
+input AlertSearchOptions {
+  filterByStatus: [AlertStatus!]
+  filterByServiceID: [ID!]
+  search: String = ""
+  first: Int = 15
+  after: String = ""
+  favoritesOnly: Boolean = false
+  omit: [Int!]
+}
+
+# An ISOTimestamp is an RFC3339-formatted timestamp string.
+scalar ISOTimestamp
+
+# ClockTime is a 24-hour time in the format 00:00
+scalar ClockTime
+
+type Alert {
+  id: ID!
+  alertID: Int!
+  status: AlertStatus!
+  summary: String!
+  details: String!
+  createdAt: ISOTimestamp!
+  serviceID: ID!
+  service: Service
+
+  # Escalation Policy State for the alert.
+  state: AlertState
+}
+
+# The escalation policy state details for the alert.
+type AlertState {
+  lastEscalation: ISOTimestamp!
+  stepNumber: Int!
+  repeatCount: Int!
+}
+
+type Service {
+  id: ID!
+  name: String!
+  description: String!
+  escalationPolicyID: ID!
+  escalationPolicy: EscalationPolicy
+  isFavorite: Boolean!
+
+  onCallUsers: [ServiceOnCallUser!]!
+  integrationKeys: [IntegrationKey!]!
+  labels: [Label!]!
+}
+
+input CreateIntegrationKeyInput {
+  serviceID: ID
+  type: IntegrationKeyType!
+  name: String!
+}
+
+type Label {
+  key: String!
+  value: String!
+}
+
+type IntegrationKey {
+  id: ID!
+  serviceID: ID!
+  type: IntegrationKeyType!
+  name: String!
+  href: String!
+}
+
+enum IntegrationKeyType {
+  generic
+  grafana
+  email
+}
+
+type ServiceOnCallUser {
+  userID: ID!
+  userName: String!
+  stepNumber: Int!
+}
+
+type EscalationPolicy {
+  id: ID!
+  name: String!
+  description: String!
+  repeat: Int!
+
+  assignedTo: [Target!]!
+  steps: [EscalationPolicyStep!]!
+}
+
+# Different Alert Status.
+enum AlertStatus {
+  StatusAcknowledged
+  StatusClosed
+  StatusUnacknowledged
+}
+
+type Target {
+  id: ID!
+  type: TargetType!
+  name: String
+}
+
+input TargetInput {
+  id: ID!
+  type: TargetType!
+}
+
+enum TargetType {
+  escalationPolicy
+  notificationChannel
+  slackChannel
+  notificationPolicy
+  rotation
+  service
+  schedule
+  user
+  integrationKey
+  userOverride
+  notificationRule
+  contactMethod
+}
+
+type ServiceConnection {
+  nodes: [Service!]!
+  pageInfo: PageInfo!
+}
+
+type UserConnection {
+  nodes: [User!]!
+  pageInfo: PageInfo!
+}
+
+type AuthSubjectConnection {
+  nodes: [AuthSubject!]!
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+input UpdateUserInput {
+  id: ID!
+  name: String
+  email: String
+  role: UserRole
+
+  statusUpdateContactMethodID: ID
+}
+
+input AuthSubjectInput {
+  userID: ID!
+  providerID: ID!
+  subjectID: ID!
+}
+
+enum UserRole {
+  unknown
+  user
+  admin
+}
+
+type User {
+  id: ID!
+
+  role: UserRole!
+
+  # The user's configured name.
+  name: String!
+
+  # Email of the user.
+  email: String!
+
+  contactMethods: [UserContactMethod!]!
+  notificationRules: [UserNotificationRule!]!
+
+  statusUpdateContactMethodID: ID!
+
+  authSubjects: [AuthSubject!]!
+
+  onCallSteps: [EscalationPolicyStep!]!
+}
+
+type UserNotificationRule {
+  id: ID!
+  delayMinutes: Int!
+
+  contactMethodID: ID!
+  contactMethod: UserContactMethod
+}
+
+enum ContactMethodType {
+  SMS
+  VOICE
+}
+
+# A method of contacting a user.
+type UserContactMethod {
+  id: ID!
+
+  type: ContactMethodType
+
+  # User-defined label for this contact method.
+  name: String!
+
+  value: String!
+}
+
+input CreateUserContactMethodInput {
+  userID: ID!
+
+  type: ContactMethodType!
+  name: String!
+  value: String!
+  newUserNotificationRule: CreateUserNotificationRuleInput
+}
+
+input CreateUserNotificationRuleInput {
+  userID: ID
+  contactMethodID: ID
+  delayMinutes: Int!
+}
+
+input UpdateUserContactMethodInput {
+  id: ID!
+
+  name: String
+  value: String
+}
+
+type AuthSubject {
+  providerID: ID!
+  subjectID: ID!
+  userID: ID!
+}

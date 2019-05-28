@@ -1,0 +1,170 @@
+.PHONY: stop start build-docker lint tools regendb resetdb
+.PHONY: smoketest generate check all test test-long install install-race
+.PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
+.PHONY: config.json.bak jest new-migration
+.SUFFIXES:
+
+GOFILES = $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print | grep -v web/inline_data_gen.go) go.sum
+INLINER = devtools/inliner/*.go
+CFGPARAMS = devtools/configparams/*.go
+DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
+
+LOG_DIR=
+GOPATH=$(shell go env GOPATH)
+BIN_DIR=bin
+
+GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo 'dev')
+GIT_COMMIT=$(shell git rev-parse HEAD || echo '?')
+GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
+BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+LD_FLAGS+=-X github.com/target/goalert/app.gitCommit=$(GIT_COMMIT)
+LD_FLAGS+=-X github.com/target/goalert/app.gitVersion=$(GIT_VERSION)
+LD_FLAGS+=-X github.com/target/goalert/app.gitTreeState=$(GIT_TREE)
+LD_FLAGS+=-X github.com/target/goalert/app.buildDate=$(BUILD_DATE)
+
+
+ifdef LOG_DIR
+RUNJSON_ARGS += -logs=$(LOG_DIR)
+endif
+
+export CGO_ENABLED = 0
+export PATH := $(PWD)/bin:$(PATH)
+export GOOS = $(shell go env GOOS)
+
+ifdef BUNDLE
+	GOFILES += web/inline_data_gen.go
+endif
+
+all: test install
+
+$(BIN_DIR)/runjson: go.sum devtools/runjson/*.go
+	go build -o $@ ./devtools/$(@F)
+$(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
+	go build -o $@ ./devtools/$(@F)
+$(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
+	go build -o $@ ./devtools/$(@F)
+$(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
+	go build -o $@ ./devtools/mockslack/cmd/mockslack
+$(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
+	go build -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+
+install: $(GOFILES)
+	go install -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
+
+cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert web/src/node_modules
+	web/src/node_modules/.bin/cypress install
+
+cy-wide: cypress web/src/build/vendorPackages.dll.js
+	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
+cy-mobile: cypress web/src/build/vendorPackages.dll.js
+	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
+cy-wide-prod: web/inline_data_gen.go cypress
+	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress-prod.json
+cy-mobile-prod: web/inline_data_gen.go cypress
+	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress-prod.json
+
+start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson
+	# force rebuild to ensure build-flags are set
+	touch cmd/goalert/main.go
+	make bin/goalert BUILD_TAGS+=sql_highlight
+	bin/runjson <devtools/runjson/localdev.json
+
+jest: web/src/node_modules
+	cd web/src && node_modules/.bin/jest $(JEST_ARGS)
+
+test: web/src/node_modules jest
+	go test -short ./...
+
+check: generate web/src/node_modules
+	# go run devtools/ordermigrations/main.go -check
+	go vet ./...
+	go run github.com/gordonklaus/ineffassign .
+	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
+	(cd web/src && yarn fmt)
+	./devtools/ci/tasks/scripts/codecheck.sh
+
+
+migrate/inline_data_gen.go: migrate/migrations migrate/migrations/*.sql $(INLINER)
+	go generate ./migrate
+
+graphql2/mapconfig.go: $(CFGPARAMS) config/config.go
+	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && goimports -w ./mapconfig.go) || go generate ./graphql2
+
+graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml
+	go generate ./graphql2
+
+generate:
+	go generate ./...
+
+smoketest: generate bin/goalert
+	(cd smoketest && go test -timeout 20m)
+
+test-migrations: migrate/inline_data_gen.go bin/goalert
+	(cd smoketest && go test -run TestMigrations)
+
+tools:
+	go get -u golang.org/x/tools/cmd/gorename
+	go get -u golang.org/x/tools/cmd/present
+	go get -u golang.org/x/tools/cmd/bundle
+	go get -u golang.org/x/tools/cmd/gomvpkg
+	go get -u github.com/golang/lint/golint
+	go get -u golang.org/x/tools/cmd/goimports
+	go get -u github.com/gordonklaus/ineffassign
+	go get -u honnef.co/go/tools/cmd/staticcheck
+	go get -u golang.org/x/tools/cmd/stringer
+
+web/src/yarn.lock: web/src/package.json
+	(cd web/src && yarn --no-progress --silent && touch yarn.lock)
+
+web/src/node_modules: web/src/node_modules/.bin/cypress
+	touch web/src/node_modules
+
+web/src/node_modules/.bin/cypress: web/src/yarn.lock
+	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
+
+web/src/build/index.html: web/src/webpack.prod.config.js web/src/node_modules $(shell find ./web/src/app -type f )
+	(cd web/src && node_modules/.bin/webpack --config webpack.prod.config.js)
+	echo "" >>web/src/build/index.html
+	echo "<!-- Version: $(GIT_VERSION) -->" >>web/src/build/index.html
+	echo "<!-- GitCommit: $(GIT_COMMIT) ($(GIT_TREE)) -->" >>web/src/build/index.html
+	echo "<!-- BuildDate: $(BUILD_DATE) -->" >>web/src/build/index.html
+
+web/inline_data_gen.go: web/src/build/index.html $(CFGPARAMS) $(INLINER)
+	go generate ./web
+
+web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
+	(cd web/src && node_modules/.bin/webpack --config ./webpack.dll.config.js --progress)
+
+config.json.bak: bin/goalert
+	(bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || echo '{"Auth":{"RefererURLs":["http://localhost:3030", "http://[::]:3030", "http://127.0.0.1:3030"]}}' >config.json.new) && mv config.json.new config.json.bak
+
+postgres:
+	docker run -d \
+		--restart=always \
+		-e POSTGRES_USER=goalert \
+		--name goalert-postgres \
+		-p 5432:5432 \
+		postgres:11-alpine
+
+regendb: bin/goalert migrate/inline_data_gen.go config.json.bak
+	go run ./devtools/resetdb --with-rand-data
+	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
+	bin/goalert add-user --admin --email admin@example.com --user admin --pass admin123 "--db-url=$(DB_URL)"
+
+resetdb: migrate/inline_data_gen.go config.json.bak
+	go run ./devtools/resetdb --no-migrate
+
+clean:
+	git clean -xdf ./web ./bin ./vendor ./smoketest
+
+build-docker: bin/goalert bin/mockslack
+
+lint: $(GOFILES)
+	go run github.com/golang/lint/golint $(shell go list ./...)
+
+new-migration:
+	@test "$(NAME)" != "" || (echo "NAME is required" && false)
+	@test ! -f migrate/migrations/*-$(NAME).sql || (echo "Migration already exists with the name $(NAME)." && false)
+	@echo "-- +migrate up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
+	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"

@@ -1,0 +1,57 @@
+*.log
+/setup.cfg
+/setup.pid
+/config.json.bak
+
+# Created by .ignore support plugin (hsz.mobi)
+### Go template
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+*.out
+*.pid
+.env
+.ready
+/run.sh
+/config.json*
+
+# Folders
+_obj
+_test
+temp
+bin
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+*.prof
+
+# IDE
+.idea
+*.iml
+*.ipr
+.vscode
+debug
+
+# glide
+vendor
+vendor.orig
+
+# MacOS
+.DS_Store
+
+ngrok.log
+
+smoketest_db_dump

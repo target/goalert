@@ -1,0 +1,24 @@
+platform: linux
+inputs:
+- name: goalert
+- name: db-dumps
+- name: videos
+- name: screenshots
+outputs:
+- name: build-debug
+image_resource:
+  type: registry-image
+  source:
+    repository: alpine
+run:
+  path: sh
+  args:
+    - -c
+    - |
+      mkdir skip_vids
+      mv videos/* skip_vids/
+      for dir in screenshots/*
+      do
+        mv skip_vids/$(basename "$dir").mp4 videos/
+      done
+      tar czf build-debug/build-debug-$(cat goalert/.git/short_ref || date +%F_%H-%M-%S).tgz db-dumps videos screenshots

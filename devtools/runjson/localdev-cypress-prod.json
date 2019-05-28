@@ -1,0 +1,101 @@
+[
+  {
+    "Name": "Build-BE",
+    "Command": ["make", "-s", "bin/goalert", "BUNDLE=1"],
+    "Restart": true,
+    "Quiet": true,
+    "IgnoreErrors": true
+  },
+  {
+    "Name": "Backend",
+    "Command": [
+      "bin/goalert",
+      "-l=localhost:3042",
+      "--db-url=postgres://postgres@localhost:5433/postgres?sslmode=disable",
+      "--slack-base-url=http://localhost:3040/slack"
+    ],
+    "Dir": "web/src",
+    "Restart": true,
+    "IgnoreErrors": true,
+    "Watch": true,
+    "Before": {
+      "Name": "Prep",
+      "Before": {
+        "Name": "PG Wait",
+        "Command": [
+          "bin/waitfor",
+          "postgres://postgres@localhost:5433/postgres?sslmode=disable"
+        ]
+      },
+      "Dir": "web/src",
+      "Command": ["./scripts/smoketest-prep.sh"],
+      "Env": [
+        "DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable",
+        "GOALERT=../../bin/goalert",
+        "BASE_URL=http://localhost:3040"
+      ]
+    }
+  },
+  {
+    "Name": "Slack",
+    "Restart": true,
+    "Watch": true,
+    "Command": [
+      "bin/mockslack",
+      "-client-id=555449060693.555449060694",
+      "-client-secret=52fdfc072182654f163f5f0f9a621d72",
+      "-access-token=xoxp-555449060693-555449060694-587071460694-9566c74d10037c4d7bbb0407d1e2c649",
+      "-prefix=/slack",
+      "-single-user=bob",
+      "-addr=localhost:3046"
+    ]
+  },
+  {
+    "Name": "Proxy",
+    "Command": [
+      "bin/simpleproxy",
+      "-addr=localhost:3040",
+      "/slack/=http://localhost:3046",
+      "http://localhost:3042"
+    ]
+  },
+  {
+    "Name": "Postgres",
+    "Before": {
+      "Name": "PG Cleanup",
+      "Command": ["docker", "rm", "-f", "smoketest-postgres"],
+      "IgnoreErrors": true
+    },
+    "After": {
+      "Name": "PG Cleanup",
+      "Command": ["docker", "rm", "-f", "smoketest-postgres"],
+      "IgnoreErrors": true
+    },
+    "Command": [
+      "docker",
+      "run",
+      "--rm",
+      "--name=smoketest-postgres",
+      "-p=5433:5432",
+      "postgres:11-alpine"
+    ]
+  },
+  {
+    "Name": "Cypress",
+    "Before": {
+      "Name": "BE Wait",
+      "Command": ["bin/waitfor", "http://localhost:3042"]
+    },
+    "Command": [
+      "./node_modules/.bin/cypress",
+      "open",
+      "--config",
+      "baseUrl=http://localhost:3040"
+    ],
+    "Env": [
+      "CYPRESS_DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable"
+    ],
+    "Dir": "web/src",
+    "ExitAfter": true
+  }
+]

@@ -1,0 +1,53 @@
+import React from 'react'
+import gql from 'graphql-tag'
+import { Switch, Route } from 'react-router-dom'
+import { PageNotFound } from '../error-pages/Errors'
+import RotationDetails from './RotationDetails'
+import RotationCreateDialog from './RotationCreateDialog'
+import SimpleListPage from '../lists/SimpleListPage'
+
+const query = gql`
+  query rotationsQuery($input: RotationSearchOptions) {
+    data: rotations(input: $input) {
+      nodes {
+        id
+        name
+        description
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`
+
+export default class RotationRouter extends React.PureComponent {
+  render() {
+    return (
+      <Switch>
+        <Route exact path='/rotations' component={this.renderList} />
+        <Route
+          exact
+          path='/rotations/:rotationID'
+          render={({ match }) => (
+            <RotationDetails rotationID={match.params.rotationID} />
+          )}
+        />
+        <Route component={PageNotFound} />
+      </Switch>
+    )
+  }
+
+  renderList = () => (
+    <SimpleListPage
+      query={query}
+      mapDataNode={n => ({
+        title: n.name,
+        subText: n.description,
+        url: n.id,
+      })}
+      createForm={<RotationCreateDialog />}
+    />
+  )
+}

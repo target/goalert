@@ -1,0 +1,64 @@
+schema: ./schema.graphql
+exec:
+  filename: generated.go
+model:
+  filename: models_gen.go
+models:
+  AuthSubject:
+    model: github.com/target/goalert/user.AuthSubject
+  AuthSubjectInput:
+    model: github.com/target/goalert/user.AuthSubject
+  User:
+    model: github.com/target/goalert/user.User
+    fields:
+      statusUpdateContactMethodID:
+        fieldName: AlertStatusCMID
+  UserContactMethod:
+    model: github.com/target/goalert/user/contactmethod.ContactMethod
+  UserNotificationRule:
+    model: github.com/target/goalert/user/notificationrule.NotificationRule
+  Target:
+    model: github.com/target/goalert/assignment.RawTarget
+    fields:
+      name:
+        resolver: true
+  TargetInput:
+    model: github.com/target/goalert/assignment.RawTarget
+  TargetType:
+    model: github.com/target/goalert/assignment.TargetType
+  Alert:
+    model: github.com/target/goalert/alert.Alert
+  AlertState:
+    model: github.com/target/goalert/alert.State
+  Service:
+    model: github.com/target/goalert/service.Service
+  ISOTimestamp:
+    model: github.com/target/goalert/graphql2.ISOTimestamp
+  EscalationPolicy:
+    model: github.com/target/goalert/escalation.Policy
+  Rotation:
+    model: github.com/target/goalert/schedule/rotation.Rotation
+  Schedule:
+    model: github.com/target/goalert/schedule.Schedule
+  ServiceOnCallUser:
+    model: github.com/target/goalert/oncall.ServiceOnCallUser
+  EscalationPolicyStep:
+    model: github.com/target/goalert/escalation.Step
+  RotationType:
+    model: github.com/target/goalert/schedule/rotation.Type
+  IntegrationKey:
+    model: github.com/target/goalert/integrationkey.IntegrationKey
+  Label:
+    model: github.com/target/goalert/label.Label
+  ClockTime:
+    model: github.com/target/goalert/graphql2.ClockTime
+  ScheduleRule:
+    model: github.com/target/goalert/schedule/rule.Rule
+  UserOverride:
+    model: github.com/target/goalert/override.UserOverride
+  OnCallShift:
+    model: github.com/target/goalert/oncall.Shift
+  ContactMethodType:
+    model: github.com/target/goalert/graphql2.ContactMethodType
+  SlackChannel:
+    model: github.com/target/goalert/notification/slack.Channel

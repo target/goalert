@@ -1,0 +1,44 @@
+Simplifying Logging
+
+There's Gotta Be A Better Way
+
+* Using a Single Value
+
+Currently we pass an error, and a message in a lot of places.
+
+    if httpError(w, err, "was doing something") {
+        return
+    }
+    log.WithError(err).Errorln("was doing something")
+
+Instead, we can just use `errors.Wrap`, which returns nil if err is nil.
+
+    if httpError(w, errors.Wrap(err, "do something")) {
+        return
+    }
+
+* Adding Context
+
+Having context when logging allows us to do things like:
+- Enable debugging per-request, or per-subsystem
+- Log a RequestID so we see all errors associated with a request
+
+    if httpError(ctx, w, errors.Wrap(err, "do something")) {
+        return
+    }
+
+* A Simple Interface
+
+The `httpError` example earlier, would call some type of logger.
+Let's define what that could look like.
+
+We care about 2 things:
+- Logging things we always need to know (errors, requests)
+- Logging things when debugging
+
+So the simplest interface could be:
+
+    Log(ctx, err)
+    Debug(ctx, err)
+
+* 
