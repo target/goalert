@@ -22,40 +22,39 @@ func getIntKey(ctx context.Context) string {
 	return ""
 }
 func (cfg conReqLimit) Middleware(next http.Handler) http.Handler {
-	usrLim := newConcurrencyLimiter(cfg.perUser)
+	userLim := newConcurrencyLimiter(cfg.perUser)
 	svcLim := newConcurrencyLimiter(cfg.perService)
 	intLim := newConcurrencyLimiter(cfg.perIntKey)
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
-		var lim *concurrencyLimiter
-		var id string
-		if key := getIntKey(ctx); key != "" {
-			err := intLim.Lock(ctx, key)
+
+		if id := getIntKey(ctx); id != "" {
+			err := intLim.Lock(ctx, id)
 			if err != nil {
 				log.Debug(ctx, err)
 				return
 			}
-			defer intLim.Unlock(key)
-		}
-		if svc := permission.ServiceID(ctx); svc != "" {
-			lim, id = svcLim, svc
-		}
-		if uid := permission.UserID(ctx); uid != "" {
-			lim, id = usrLim, uid
+			defer intLim.Unlock(id)
 		}
 
-		if lim == nil {
-			next.ServeHTTP(w, req)
-			return
+		if id := permission.ServiceID(ctx); id != "" {
+			err := svcLim.Lock(ctx, id)
+			if err != nil {
+				log.Debug(ctx, err)
+				return
+			}
+			defer svcLim.Unlock(id)
 		}
 
-		err := lim.Lock(ctx, id)
-		if err != nil {
-			// context canceled
-			log.Debug(ctx, err)
-			return
+		if id := permission.UserID(ctx); id != "" {
+			err := userLim.Lock(ctx, id)
+			if err != nil {
+				log.Debug(ctx, err)
+				return
+			}
+			defer userLim.Unlock(id)
 		}
-		defer lim.Unlock(id)
+
 		next.ServeHTTP(w, req)
 	})
 }
