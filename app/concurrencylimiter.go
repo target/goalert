@@ -1,12 +1,5 @@
 package app
 
-import (
-	"context"
-	"sync"
-)
-
-// concurrencyLimiter is a locking mechanism that allows setting a limit
-// on the number of simultaneous locks for a given arbitrary ID.
 type concurrencyLimiter struct {
 	max     int
 	count   map[string]int
@@ -23,8 +16,6 @@ func newConcurrencyLimiter(max int) *concurrencyLimiter {
 	}
 }
 
-// Lock will acquire a lock for the given ID. It may return an err
-// if the context expires before the lock is given.
 func (l *concurrencyLimiter) Lock(ctx context.Context, id string) error {
 	for {
 		l.mx.Lock()
@@ -49,16 +40,10 @@ func (l *concurrencyLimiter) Lock(ctx context.Context, id string) error {
 	}
 }
 
-// Unlock releases a lock for the given ID. It panics
-// if there are no remaining locks.
 func (l *concurrencyLimiter) Unlock(id string) {
 	l.mx.Lock()
-	defer l.mx.Unlock()
 	n := l.count[id]
 	n--
-	if n < 0 {
-		panic("not locked: " + id)
-	}
 	if n == 0 {
 		delete(l.count, id)
 	} else {
@@ -69,4 +54,5 @@ func (l *concurrencyLimiter) Unlock(id string) {
 		delete(l.pending, id)
 		close(ch)
 	}
+	l.mx.Unlock()
 }
