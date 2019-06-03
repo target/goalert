@@ -19,7 +19,6 @@ import (
 )
 
 func (app *App) initHTTP(ctx context.Context) error {
-
 	var traceMiddleware func(next http.Handler) http.Handler
 	if app.cfg.StackdriverProjectID != "" {
 		traceMiddleware = func(next http.Handler) http.Handler {
@@ -95,6 +94,12 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 		// add auth info to request logs
 		logRequestAuth,
+
+		conReqLimit{
+			perIntKey:  1,
+			perService: 2,
+			perUser:    3,
+		}.Middleware,
 
 		wrapGzip,
 	}
