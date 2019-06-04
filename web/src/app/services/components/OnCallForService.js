@@ -6,6 +6,7 @@ import CardHeader from '@material-ui/core/CardHeader'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import Typography from '@material-ui/core/Typography'
 import { UserAvatar } from '../../util/avatar'
 import { Link } from 'react-router-dom'
 import Spinner from '../../loading/components/Spinner'
@@ -63,6 +64,15 @@ export default class OnCallForService extends Component {
 
   renderUsers() {
     const usersDict = this.getUsersDict(this.props.onCallUsers)
+
+    if (!Object.keys(usersDict).length) {
+      return (
+        <Typography variant='caption'>
+          No users on call for this service
+        </Typography>
+      )
+    }
+
     return (
       <List>
         {Object.keys(usersDict).map(id => {
@@ -84,6 +94,7 @@ export default class OnCallForService extends Component {
 
   render() {
     let content = this.props.loading ? <Spinner /> : this.renderUsers()
+
     return (
       <Card>
         <CardHeader title='On Call Users' />

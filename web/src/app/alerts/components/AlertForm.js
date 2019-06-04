@@ -64,7 +64,7 @@ export default class AlertForm extends Component {
     super(props)
 
     let sid
-    if (props.service) sid = props.service.id
+    if (props.serviceID) sid = props.serviceID
 
     this.state = {
       sid,
@@ -127,36 +127,27 @@ export default class AlertForm extends Component {
   }
 
   renderServiceField() {
-    if (this.props.service) {
-      return (
-        <TextField
-          style={{ width: '100%' }}
-          aria-label='Select Service'
-          label='Select Service'
-          disabled
-          value={this.props.service.name}
-        />
-      )
-    }
+    const { serviceID } = this.props
+    const { readOnly, sid } = this.state
 
     return (
       <ServiceSelect
-        value={this.state.sid || ''}
+        value={sid || ''}
         onChange={value => this.setState({ sid: value })}
         label='Select Service'
         name='service'
         errorMessage={this.validateService()}
-        disabled={this.state.readOnly}
+        disabled={readOnly || Boolean(serviceID)}
       />
     )
   }
 
   resetForm = () => {
-    const { service } = this.props
+    const { serviceID } = this.props
 
     // Reset the form when we open it.
     this.setState({
-      sid: service ? service.id : null,
+      sid: serviceID,
       errorMessage: '',
       submitted: false,
       summary: '',
@@ -198,6 +189,7 @@ export default class AlertForm extends Component {
               onChange={event => this.setState({ details: event.target.value })}
             />
           </FormControl>
+          <FormHelperText />
         </Grid>
         <Grid item xs={12}>
           {this.renderServiceField()}
