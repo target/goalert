@@ -47,7 +47,6 @@ const escalateAlerts = gql`
 const stickyBase = {
   backgroundColor: 'lightgrey', // same color as background
   boxShadow: '0px 0px 0px 3px rgba(211,211,211, 1)', // shadow to overlap list shadow
-  marginBottom: '0.75em', // push list down below box shadow
   marginTop: -48, // height between checkbox and toolbar
   paddingTop: '0.5em', // from sidebar.js wrapper padding
   position: 'sticky', // stop moving while scrolling
@@ -79,14 +78,17 @@ const styles = theme => ({
   },
   stickySmall: {
     ...stickyBase,
+    marginBottom: '2.5em', // push list down below box shadow
     top: 56, // toolbar height on small devices
   },
   stickyMedium: {
     ...stickyBase,
+    marginBottom: '2.5em', // push list down below box shadow
     top: 64, // toolbar height on medium devices
   },
   stickyLarge: {
     ...stickyBase,
+    marginBottom: '0.75em', // push list down below box shadow
     marginTop: '-1em',
     top: 64,
   },
