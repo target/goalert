@@ -5,8 +5,19 @@ export const SET_ALERTS_ACTION_COMPLETE = 'SET_ALERTS_ACTION_COMPLETE'
 
 // setAlertsStatusFilter will set the current alert status filter.
 // A falsy value will result in the default (active) being set.
+// active: null
+// unacknowledged
+// acknowledged
+// closed
+// all
 export function setAlertsStatusFilter(type) {
-  return setURLParam('filter', type && type !== 'active' ? type : null)
+  let val = null
+  if (type && type !== 'active') {
+    // active is the default, so when type is null it will show the "active" tab
+    val = type
+  }
+
+  return setURLParam('filter', val)
 }
 
 // setAlertsAllServicesFilter will set the alert list to include all services.
