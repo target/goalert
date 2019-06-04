@@ -491,7 +491,7 @@ func recreateDB() error {
 	}
 	defer db.Close()
 
-	_, err = db.Exec("drop database goalert")
+	_, err = db.Exec("drop database if exists goalert")
 	if err != nil {
 		return err
 	}
