@@ -4,15 +4,16 @@
 
 ### Params can be in query params or body (body takes precedence):
 
-| Name      |              | Description                                                |
-| --------- | ------------ | ---------------------------------------------------------  |
-| `token`   | **Required** | The integration key to use.                                |
-| `summary` | **Required** | Short description of the alert sent as SMS and voice.      |
-| `details` | _optional_   | Additional information about the alert, supports markdown. |
-| `action`  | _optional_   | If set to `close`, it will close any matching alerts.      |
+| Name      |              | Description                                                                                                                                                         |
+| --------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `token`   | **Required** | The integration key to use.                                                                                                                                         |
+| `summary` | **Required** | Short description of the alert sent as SMS and voice.                                                                                                               |
+| `details` | _optional_   | Additional information about the alert, supports markdown.                                                                                                          |
+| `action`  | _optional_   | If set to `close`, it will close any matching alerts.                                                                                                               |
 | `dedup`   | _optional_   | All calls for the same service with the same `dedup` string will update the same alert (if open) or create a new one. Defaults to using summary & details together. |
 
 ### Examples:
+
 ```bash
 curl -XPOST https://<example.goalert.me>/api/v2/generic/incoming?token=key-here&summary=test&details=test
 curl -XPOST https://<example.goalert.me>/api/v2/generic/incoming?token=key-here&summary=test&dedup=disk-check
