@@ -1,18 +1,20 @@
 import React from 'react'
 import p from 'prop-types'
 import ReactMarkdown from 'react-markdown'
-
 import { safeURL } from './safeURL'
 
 export default class Markdown extends React.PureComponent {
   static propTypes = {
     value: p.string,
   }
+
   render() {
     const { value, ...rest } = this.props
     if (!value) return null
+
     return (
       <ReactMarkdown
+        className='react-markdown'
         source={value}
         allowNode={node => {
           if (node.type !== 'link') return true

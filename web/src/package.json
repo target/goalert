@@ -103,7 +103,6 @@
     "lint-staged": "^8.0.4",
     "lodash-es": "^4.17.10",
     "luxon": "1.11.4",
-    "markdown-react-js": "^1.0.0",
     "material-ui-pickers": "2.2.1",
     "mdi-material-ui": "^5.4.0",
     "moment-timezone": "^0.5.17",
