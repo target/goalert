@@ -69,11 +69,11 @@ export default class ServiceDetails extends React.PureComponent {
       }
     }
 
-    let titleFooter = 'Escalation Policy:'
+    let titleFooter = null
     if (data.service.ep) {
       titleFooter = (
         <div>
-          Escalation Policy:
+          Escalation Policy:&nbsp;
           <Link to={`/escalation-policies/${data.service.ep.id}`}>
             {data.service.ep.name}
           </Link>
