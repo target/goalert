@@ -1,22 +1,9 @@
 import React, { Component } from 'react'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
-import MDReactComponent from 'markdown-react-js'
+import Typography from '@material-ui/core/Typography'
 import markdownText from '../IntegrationKeys.md'
-
-const handleIterate = (Tag, props, children, level) => {
-  if (Tag === 'h2') {
-    props = {
-      ...props,
-      id:
-        typeof children[0] === 'string'
-          ? children[0].replace(' ', '_')
-          : children,
-    }
-  }
-
-  return <Tag {...props}>{children}</Tag>
-}
+import Markdown from '../../util/Markdown'
 
 function replaceAll(target, search, replacement) {
   return target.split(search).join(replacement)
@@ -37,7 +24,9 @@ export default class IntegrationKeyAPI extends Component {
     return (
       <Card>
         <CardContent>
-          <MDReactComponent text={finalText} onIterate={handleIterate} />
+          <Typography name='details' variant='subtitle1'>
+            <Markdown value={finalText} />
+          </Typography>
         </CardContent>
       </Card>
     )

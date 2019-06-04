@@ -40,7 +40,7 @@ const styles = theme => ({
 @withStyles(styles)
 export default class CreateAlertFab extends Component {
   static propTypes = {
-    service: p.object, // used for alert form if on a service details page
+    serviceID: p.string, // used for alert form if on a service details page
     transition: p.bool, // bool to transition fab up or down from snackbar notification
   }
 
@@ -80,7 +80,7 @@ export default class CreateAlertFab extends Component {
         key='alert-form'
         open={this.state.showForm}
         handleRequestClose={() => this.handleShowForm(false)}
-        service={this.props.service}
+        serviceID={this.props.serviceID}
       />,
     ]
   }

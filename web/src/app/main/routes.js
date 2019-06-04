@@ -9,6 +9,7 @@ import ServiceRouter from '../services/ServiceRouter'
 import UserRouter from '../users/UserRouter'
 import AdminRouter from '../admin/AdminRouter'
 import WizardRouter from '../wizard/WizardRouter'
+import IntegrationKeyAPI from '../documentation/components/IntegrationKeyAPI'
 
 export const getPath = p => (Array.isArray(p.path) ? p.path[0] : p.path)
 
@@ -111,5 +112,11 @@ export default [
     title: 'Admin',
     path: '/admin',
     component: AdminRouter,
+  },
+  {
+    nav: false,
+    title: 'Documentation',
+    path: '/docs',
+    component: IntegrationKeyAPI,
   },
 ]
