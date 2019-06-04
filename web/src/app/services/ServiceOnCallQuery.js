@@ -17,7 +17,7 @@ const query = gql`
   }
 `
 
-export default class ServiceOnCallDisplay extends React.PureComponent {
+export default class ServiceOnCallQuery extends React.PureComponent {
   static propTyps = {
     serviceID: p.string.isRequired,
   }
