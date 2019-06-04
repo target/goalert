@@ -23,8 +23,8 @@ export function resetURLParams(...keys) {
 }
 
 const sanitizeParam = value => {
-  if (value === true) value = '1'
-  if (value === false) value = ''
+  if (value === true) value = '1' // explicitly true
+  if (!value) value = '' // any falsey value
   if (!Array.isArray(value)) return value.trim()
 
   let filtered = value.filter(v => v)

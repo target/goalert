@@ -21,9 +21,12 @@ const tabs = ['active', 'unacknowledged', 'acknowledged', 'closed', 'all']
 )
 export default class AlertsListControls extends React.PureComponent {
   render() {
+    let currTab = tabs.indexOf(this.props.filter)
+    if (currTab === -1) currTab = 0 // handle jargon input from url params
+
     return (
       <Tabs
-        value={tabs.indexOf(this.props.filter)}
+        value={currTab}
         onChange={(e, idx) => this.props.setAlertsStatusFilter(tabs[idx])}
         centered
         indicatorColor='primary'
