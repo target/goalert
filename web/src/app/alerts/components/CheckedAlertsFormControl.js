@@ -85,7 +85,7 @@ const styles = theme => ({
   },
   stickyLarge: {
     ...stickyBase,
-    marginBottom: '0.75em', // push list down below box shadow
+    marginBottom: '0.5em', // push list down below box shadow
     marginTop: '-1em',
     top: 64,
   },
