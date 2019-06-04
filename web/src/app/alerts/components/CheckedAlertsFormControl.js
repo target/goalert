@@ -47,7 +47,6 @@ const escalateAlerts = gql`
 const stickyBase = {
   backgroundColor: 'lightgrey', // same color as background
   boxShadow: '0px 0px 0px 3px rgba(211,211,211, 1)', // shadow to overlap list shadow
-  marginBottom: '0.75em', // push list down below box shadow
   marginTop: -48, // height between checkbox and toolbar
   paddingTop: '0.5em', // from sidebar.js wrapper padding
   position: 'sticky', // stop moving while scrolling
@@ -69,24 +68,24 @@ const styles = theme => ({
     opacity: 1,
   },
   whitespace: {
-    width: 27,
-  },
-  whitespaceXs: {
-    width: 19,
+    width: 11,
   },
   hidden: {
     visibility: 'hidden',
   },
   stickySmall: {
     ...stickyBase,
+    marginBottom: '2.5em', // push list down below box shadow
     top: 56, // toolbar height on small devices
   },
   stickyMedium: {
     ...stickyBase,
+    marginBottom: '2.5em', // push list down below box shadow
     top: 64, // toolbar height on medium devices
   },
   stickyLarge: {
     ...stickyBase,
+    marginBottom: '0.5em', // push list down below box shadow
     marginTop: '-1em',
     top: 64,
   },
@@ -362,10 +361,7 @@ export default class CheckedAlertsFormControl extends Component {
         updateMessage={updateMessage}
       />,
       <Grid key='form-control' item container className={containerClass}>
-        <Grid
-          item
-          className={width === 'xs' ? classes.whitespaceXs : classes.whitespace}
-        />
+        <Grid item className={classes.whitespace} />
         <Grid item>
           <Checkbox
             checked={!this.areNoneChecked()}
