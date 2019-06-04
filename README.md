@@ -1,52 +1,43 @@
 # GoAlert
 
-GoAlert is an on-call alerting platform written in Go.
+GoAlert provides on-call scheduling, automated escalation, and notifications via SMS and voice to automatically engage the right person, the right way, and at the right time.  
+These features allow people to promptly respond to any critical issue so that customer impact is prevented or minimized.
 
-## All-In-One (demo) Container
+**SCREENSHOT**
 
-The quickest way to explore GoAlert is by using the GoAlert [all-in-one container](https://hub.docker.com/r/goalert/all-in-one).
+- Alerts page, alert text indicating triggered by sensu and/or grafana
+- admin user so that admin link is visible
+- desktop & mobile
+- desktop, calendar
 
-- Ensure you have Docker Desktop installed ([Mac](https://docs.docker.com/docker-for-mac/release-notes/) / [Windows](https://docs.docker.com/docker-for-windows/release-notes/))
-- `docker run -it --rm --name goalert-demo -p 8081:8081 goalert/all-in-one`
+## Installation
 
-Using a web browser, navigate to `http://localhost:8081` and log in with user `admin` and password `admin123`.
+GoAlert is distributed as a single binary with release notes available from the [GitHub Releases](https://github.com/target/goalert/releases) page.
 
-## Development
+See our [Getting Started Guide](./docs/getting-started.md) for running GoAlert in a production environment.
 
-Ensure you have docker, Go, node (and yarn), and make installed.
+### Quick Start
 
-- If you do not have Postgres installed/configured, first run `make postgres`, GoAlert is built and tested against Postgres 11.
-- For the first start, run `make regendb` to migrate and add test data into the DB. This includes an admin user `admin/admin123`.
-- To start GoAlert in development mode run `make start`.
-- To build the GoAlert binary run `make bin/goalert BUNDLE=1`.
+```bash
+docker run -it --rm -p 8081:8081 goalert/all-in-one
+```
 
-### Automated Browser Tests
+GoAlert will be running at [127.0.0.1:8081](http://127.0.0.1:8081). You can login with `admin/admin123`.
 
-To run automated browser tests, you can start Cypress in one of the following modes:
+## Contributing
 
-- `make cy-wide` Widescreen format, in dev mode.
-- `make cy-mobile` Mobile format, in dev mode.
-- `make cy-wide-prod` Widescreen format, production build.
-- `make cy-mobile-prod` Mobile format, production build.
+If you'd like to contribute to GoAlert, please see our [Contributing Guidelines](./CONTRIBUTING.md) and the [Development Setup Guide](./docs/development-setup.md).
 
-### Running Smoketests
+Please also see our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
-A suite of functional/behavioral tests are maintained for the backend code. These test various APIs and behaviors
-of the GoAlert server component.
+## Contact Us
 
-Run the full suite with `make smoketest`.
+If you need help or have a question, visit the [#GoAlert](https://gophers.slack.com/messages/CJQGZPYLV/) channel on [Gophers Slack](https://gophers.slack.com/) (use the [invite app](https://invite.slack.golangbridge.org/) for access).
 
-### Running Unit Tests
+- Vote on existing [Feature Requests](https://github.com/target/goalert/issues?q=is%3Aopen+label%3Afeature-request+sort%3Areactions-%2B1-desc) or submit [a new one](https://github.com/target/goalert/issues/new)
+- File a [bug report](https://github.com/target/goalert/issues)
+- Report security issues to security@goalert.me
 
-All unit tests can be run with `make test`.
+## License
 
-UI Unit tests are found under the directory of the file being tested, with the same file name, appended with `.test.js`. They can be run independently with `make jest`. Watch mode can be enabled with `make jest JEST_ARGS=--watch`.
-
-### Setup Postgres
-
-By default, the development code expects a postgres server configured on port `5432`, with the user and DB `goalert`.
-
-Alternatively, you can run `make postgres` to configure one in a docker container.
-
-- You can reset the dev database with `make resetdb`
-- You can reset and generate random data with `make regendb`, this includes generating an admin user `admin/admin123`
+GoAlert is licensed under the [Apache License, Version 2.0](./LICENSE.md).

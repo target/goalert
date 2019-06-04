@@ -36,4 +36,4 @@ Be sure to run `make check` before opening a PR to catch common errors.
 
 - Use unit tests as a tool to validate complex logic
 - New functionality should have a behavioral smoketest at a minimum. For [example](./smoketest/simplenotification_test.go). Documentation on our smoketest framework can be found [here](./smoketest/README.md).
-- New Go code should pass `golint`, exported functions/methods should be commented, etc..
+- Go code should follow best practices, exported functions/methods should be commented, etc..
