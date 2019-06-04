@@ -3,12 +3,7 @@
 GoAlert provides on-call scheduling, automated escalation, and notifications via SMS and voice to automatically engage the right person, the right way, and at the right time.  
 These features allow people to promptly respond to any critical issue so that customer impact is prevented or minimized.
 
-**SCREENSHOT**
-
-- Alerts page, alert text indicating triggered by sensu and/or grafana
-- admin user so that admin link is visible
-- desktop & mobile
-- desktop, calendar
+![image](https://user-images.githubusercontent.com/23565500/58896528-c1cdb100-86bb-11e9-96f1-a57198ece062.png)
 
 ## Installation
 
