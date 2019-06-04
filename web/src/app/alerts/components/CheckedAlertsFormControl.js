@@ -68,10 +68,7 @@ const styles = theme => ({
     opacity: 1,
   },
   whitespace: {
-    width: 27,
-  },
-  whitespaceXs: {
-    width: 19,
+    width: 11,
   },
   hidden: {
     visibility: 'hidden',
@@ -364,10 +361,7 @@ export default class CheckedAlertsFormControl extends Component {
         updateMessage={updateMessage}
       />,
       <Grid key='form-control' item container className={containerClass}>
-        <Grid
-          item
-          className={width === 'xs' ? classes.whitespaceXs : classes.whitespace}
-        />
+        <Grid item className={classes.whitespace} />
         <Grid item>
           <Checkbox
             checked={!this.areNoneChecked()}
