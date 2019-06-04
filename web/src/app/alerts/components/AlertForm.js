@@ -114,9 +114,7 @@ export default class AlertForm extends Component {
 
   validateService(submitted = this.state.submitted) {
     if (!submitted) return ''
-    if (!this.state.sid) {
-      return 'A service must be selected'
-    }
+    if (!this.state.sid) return 'A service must be selected'
     return ''
   }
 
