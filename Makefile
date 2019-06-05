@@ -18,6 +18,8 @@ GIT_COMMIT=$(shell git rev-parse HEAD || echo '?')
 GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+DEFAULT_CONFIG='{"Auth":{"RefererURLs":["http://localhost:3030", "http://[::]:3030", "http://127.0.0.1:3030"]}}'
+
 LD_FLAGS+=-X github.com/target/goalert/app.gitCommit=$(GIT_COMMIT)
 LD_FLAGS+=-X github.com/target/goalert/app.gitVersion=$(GIT_VERSION)
 LD_FLAGS+=-X github.com/target/goalert/app.gitTreeState=$(GIT_TREE)
@@ -137,7 +139,9 @@ web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.co
 	(cd web/src && node_modules/.bin/webpack --config ./webpack.dll.config.js --progress)
 
 config.json.bak: bin/goalert
-	(bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || echo '{"Auth":{"RefererURLs":["http://localhost:3030", "http://[::]:3030", "http://127.0.0.1:3030"]}}' >config.json.new) && mv config.json.new config.json.bak
+	@echo Backing up config to config.json.bak
+	@(bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || echo $(DEFAULT_CONFIG) >config.json.new) && mv config.json.new config.json.bak
+	@(if [ "`cat config.json.bak`" = "{}" ]; then echo $(DEFAULT_CONFIG) >config.json.bak; fi)
 
 postgres:
 	docker run -d \
