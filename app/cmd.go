@@ -527,7 +527,7 @@ func init() {
 	RootCmd.Flags().Int("db-max-open", 15, "Max open DB connections.")
 	RootCmd.Flags().Int("db-max-idle", 5, "Max idle DB connections.")
 
-	RootCmd.Flags().Int64("max-request-body-bytes", 32768, "Max body size for all incoming requests (in bytes). Set to 0 to disable limit.")
+	RootCmd.Flags().Int64("max-request-body-bytes", 256*1024, "Max body size for all incoming requests (in bytes). Set to 0 to disable limit.")
 	RootCmd.Flags().Int("max-request-header-bytes", 4096, "Max header size for all incoming requests (in bytes). Set to 0 to disable limit.")
 
 	RootCmd.Flags().String("github-base-url", "", "Base URL for GitHub auth and API calls.")
