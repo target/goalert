@@ -85,10 +85,11 @@ GoAlert supports GitHub's OAuth as an authentication method with the optional ab
 Follow [GitHub's documentation on creating an OAuth App](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/).
 
 Using following as examples for required fields:
-| Field | Example Value |
-| --- | --- |
-| Application name | `GoAlert` |
-| Homepage URL | `<General.Public URL>` |
+
+| Field                      | Example Value                                                    |
+| -------------------------- | ---------------------------------------------------------------- |
+| Application name           | `GoAlert`                                                        |
+| Homepage URL               | `<General.Public URL>`                                           |
 | Authorization callback URL | `<General.Public URL>/api/v2/identity/providers/github/callback` |
 
 Document **Client ID** and **Client Secret** after creation and input into appropriate fields in GoAlert's Admin page.
@@ -104,11 +105,12 @@ GoAlert supports [OpenID Connect](https://openid.net/connect/) as an authenticat
 You should be able to use any OIDC-compliant system as an authentication provider, but we'll use [Google Identity Platform using OAuth 2.0](https://developers.google.com/identity/protocols/OpenIDConnect) as an example following the **Setting up OAuth 2.0** instructions.
 
 When creating the **user consent screen**, use the following as examples for required fields:
-| Field | Example Value |
-| --- | --- |
-| Application name | `GoAlert` |
-| Authorized domains | `<General.Public URL>` |
-| Application Homepage link | `<General.Public URL>` |
+
+| Field                           | Example Value          |
+| ------------------------------- | ---------------------- |
+| Application name                | `GoAlert`              |
+| Authorized domains              | `<General.Public URL>` |
+| Application Homepage link       | `<General.Public URL>` |
 | Application Privacy Policy link | `<General.Public URL>` |
 
 When creating the **OAuth client ID**, use the following as examples for required fields:
