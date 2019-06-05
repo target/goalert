@@ -410,6 +410,12 @@ func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val
 }
 
 func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next http.Handler) bool {
+	err := req.ParseMultipartForm(32 << 20) // 32<<20 (32MiB) value is the `defaultMaxMemory` used in the net/http package when `req.FormValue` is called
+	if err != nil && err != http.ErrNotMultipart {
+		http.Error(w, err.Error(), 400)
+		return true
+	}
+
 	tok := GetToken(req)
 	if tok == "" {
 		return false
@@ -417,7 +423,6 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 
 	// TODO: update once scopes are implemented
 	ctx := req.Context()
-	var err error
 	switch req.URL.Path {
 	case "/v1/api/alerts", "/api/v2/generic/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeGeneric)
@@ -441,6 +446,13 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 // Updating and clearing the session cookie is automatically handled.
 func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == "/api/v2/mailgun/incoming" || req.URL.Path == "/v1/webhooks/mailgun" {
+			// Mailgun handles it's own auth and has special
+			// requirements on status codes, so we pass it through
+			// untouched.
+			wrapped.ServeHTTP(w, req)
+			return
+		}
 		if h.authWithToken(w, req, wrapped) {
 			return
 		}
