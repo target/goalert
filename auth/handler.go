@@ -410,7 +410,7 @@ func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val
 }
 
 func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next http.Handler) bool {
-	err := req.ParseMultipartForm(32 << 20)
+	err := req.ParseMultipartForm(32 << 20) // 32<<20 (32MiB) value is the `defaultMaxMemory` used in the net/http package when `req.FormValue` is called
 	if err != nil && err != http.ErrNotMultipart {
 		http.Error(w, err.Error(), 400)
 		return true
