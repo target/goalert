@@ -131,6 +131,8 @@ Be sure to **Enable** OIDC authentication and **New Users** using the toggles.
 
 ### Mailgun
 
+GoAlert supports creating alerts by email via Mailgun integration.
+
 TODO
 
 ### Slack
