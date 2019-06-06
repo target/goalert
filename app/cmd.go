@@ -476,6 +476,8 @@ func getConfig() (appConfig, error) {
 		MaxReqBodyBytes:   viper.GetInt64("max-request-body-bytes"),
 		MaxReqHeaderBytes: viper.GetInt("max-request-header-bytes"),
 
+		DisableHTTPSRedirect: viper.GetBool("disable-https-redirect"),
+
 		ListenAddr: viper.GetString("listen"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
@@ -563,6 +565,7 @@ func init() {
 	RootCmd.PersistentFlags().Bool("json", false, "Log in JSON format.")
 
 	RootCmd.Flags().String("ui-url", "", "Proxy UI requests to an alternate host. Default is to serve bundled assets from memory.")
+	RootCmd.Flags().Bool("disable-https-redirect", false, "Disable automatic HTTPS redirects.")
 
 	migrateCmd.Flags().String("up", "", "Target UP migration to apply.")
 	migrateCmd.Flags().String("down", "", "Target DOWN migration to roll back to.")

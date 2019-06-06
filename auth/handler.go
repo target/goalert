@@ -247,7 +247,6 @@ func (h *Handler) canCreateUser(ctx context.Context, providerID string) bool {
 func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	sp := trace.FromContext(ctx)
-	cfg := config.FromContext(ctx)
 
 	var route RouteInfo
 	route.RelativePath = strings.TrimPrefix(req.URL.Path, "/v1/identity/providers/"+id)
@@ -256,8 +255,10 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		route.RelativePath = "/"
 	}
 
-	urlBase := cfg.AuthReferer(refU.String())
-	route.CurrentURL = strings.TrimSuffix(urlBase, "/") + req.URL.Path
+	var u url.URL
+	u = *req.URL
+	u.RawQuery = "" // strip query params
+	route.CurrentURL = u.String()
 
 	sub, err := p.ExtractIdentity(&route, w, req)
 	if r, ok := err.(Redirector); ok {
@@ -573,7 +574,7 @@ func (h *Handler) refererURL(w http.ResponseWriter, req *http.Request) (*url.URL
 		return nil, false
 	}
 
-	if cfg.AuthReferer(ref) == "" {
+	if !cfg.ValidReferer(req.URL.String(), ref) {
 		err := validation.NewFieldError("referer", "wrong host/path")
 		ctx = log.WithFields(ctx, log.Fields{
 			"AuthRefererURLs": cfg.Auth.RefererURLs,

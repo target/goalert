@@ -56,17 +56,31 @@ func (app *App) initHTTP(ctx context.Context) error {
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				fwdProto := req.Header.Get("x-forwarded-proto")
+				if fwdProto != "" {
+					req.URL.Scheme = fwdProto
+				} else if req.URL.Scheme == "" {
+					if req.TLS == nil {
+						req.URL.Scheme = "http"
+					} else {
+						req.URL.Scheme = "https"
+					}
+				}
+
+				req.URL.Host = req.Host
 				cfg := config.FromContext(req.Context())
-				if strings.HasPrefix(cfg.General.PublicURL, "https:") && ((fwdProto == "http") || (fwdProto == "" && req.URL.Scheme == "http")) {
-					var u url.URL
-					u.Host = req.Host
-					u.Host = u.Hostname() // strip non-standard port if necessary
-					u.Scheme = "https"
-					u.Path = req.URL.Path
-					u.RawQuery = req.URL.RawQuery
+
+				if app.cfg.DisableHTTPSRedirect || cfg.ValidReferer(req.URL.String(), req.URL.String()) {
+					next.ServeHTTP(w, req)
+					return
+				}
+				var u url.URL
+				u = *req.URL
+				u.Scheme = "https"
+				if cfg.ValidReferer(req.URL.String(), u.String()) {
 					http.Redirect(w, req, u.String(), http.StatusTemporaryRedirect)
 					return
 				}
+
 				next.ServeHTTP(w, req)
 			})
 		},

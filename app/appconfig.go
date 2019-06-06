@@ -19,6 +19,8 @@ type appConfig struct {
 	MaxReqBodyBytes   int64
 	MaxReqHeaderBytes int
 
+	DisableHTTPSRedirect bool
+
 	TwilioBaseURL string
 	SlackBaseURL  string
 
