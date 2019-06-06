@@ -151,7 +151,7 @@ function testAdmin(screen: ScreenFormat) {
       const domain2 = 'http://' + c.domain()
       const domain3 = cfg.General.PublicURL
 
-      cy.get('input[name="Auth.RefererURLs-0"]')
+      cy.get('input[name="Auth.RefererURLs-new-item"]')
         .clear()
         .type(domain1)
       cy.get('input[name="Auth.RefererURLs-new-item"]')

@@ -33,7 +33,6 @@ module.exports = {
       'react-redux',
       'material-ui-pickers',
       'mdi-material-ui',
-      'markdown-react-js',
       '@date-io/luxon',
       '@date-io/moment',
       'classnames',
