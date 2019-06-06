@@ -1,6 +1,19 @@
 # Getting Started
 
-GoAlert requires a Postgres database with the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION 'pgcrypto'`).
+This guide will walk through configuring GoAlert for use and integration with services for things like sending SMS messages,
+making voice calls, triggering alerts by email, and authentication.
+
+Most options in GoAlert are configured through the UI in the Admin page. In this guide, when configuring external services,
+those options will be referenced in the format: `<Section.Option Name>` where `Section` is the section/header within the admin page and
+`Option Name` refers to the label of the individual option being referenced.
+
+The only hard requirement for GoAlert is a running Postgres instance/database and it's associated connection URL.
+
+## Database
+
+We recommend using Postgres 11 for new installations as newer features will be used in the future.
+
+GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION 'pgcrypto'`).
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
 in your setup.
 
@@ -25,6 +38,13 @@ docker run -p 8081:8081 -e GOALERT_DB_URL=postgres://goalert@localhost/goalert -
 ```
 
 You should see migrations applied followed by a `Listening.` message and an engine cycle start and end.
+
+### API Only Mode
+
+When running multiple instances of GoAlert (e.g. in a kubernetes cluster) it is recommended to run a single instance in the default mode, and the rest with the `--api-only` flag set.
+
+While it is safe to run multiple "engine" instances simultaneously, it is generally unecessary and can cause unwanted contention. It is useful, however, to run an "engine" instance
+in separate geographic regions or availability zones. If messages fail to send from one (e.g. network outage), they may be retried in the other this way.
 
 ## First Time Login
 
