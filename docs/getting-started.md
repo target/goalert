@@ -133,7 +133,18 @@ Be sure to **Enable** OIDC authentication and **New Users** using the toggles.
 
 GoAlert supports creating alerts by email via Mailgun integration.
 
-TODO
+From the Admin page in GoAlert, under the `Mailgun` section, set your **Email Domain** and **API Key**.
+The **API Key** may be found under the **Security** section in the Mailgun website (click your name in the top bar and select it from the drop down) it is labeled as **Private API Key**.
+
+To configure Mailgun to forward to GoAlert:
+
+1. Go to **Routes**
+1. Click **Create Route**
+1. Set **Expression Type** to `Match Recipient`
+1. Set **Recipient** to `*@<Mailgun.Email Domain>`
+1. Check **Forward**
+1. In the forward box, enter `<General.Public URL>/api/v2/mailgun/incoming`
+1. Click **Create Route**
 
 ### Slack
 
