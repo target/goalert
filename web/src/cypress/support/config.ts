@@ -126,7 +126,6 @@ function resetConfig(): Cypress.Chainable<Config> {
 
   return setConfig({
     General: { PublicURL: base },
-    Auth: { RefererURLs: [base] },
     Slack: {
       Enable: true,
       ClientID: '555449060693.555449060694',

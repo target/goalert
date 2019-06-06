@@ -122,9 +122,31 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
-// AuthSecure returns true if the auth referer URLs are HTTPS.
-func (cfg Config) AuthSecure() bool {
-	return strings.HasPrefix(cfg.authReferers()[0], "https://")
+// ValidReferer returns true if the URL is an allowed referer source.
+func (cfg Config) ValidReferer(reqURL, ref string) bool {
+	pubURL := cfg.PublicURL()
+	if pubURL != "" && strings.HasPrefix(ref, pubURL) {
+		return true
+	}
+
+	if len(cfg.Auth.RefererURLs) == 0 {
+		u, err := url.Parse(reqURL)
+		if err != nil {
+			return false
+		}
+		// just ensure ref is same host/scheme as req
+		u.Path = ""
+		u.RawQuery = ""
+		return strings.HasPrefix(ref, u.String())
+	}
+
+	for _, u := range cfg.Auth.RefererURLs {
+		if strings.HasPrefix(ref, u) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // PublicURL will return the General.PublicURL or a fallback address (i.e. the app listening port).
@@ -134,25 +156,6 @@ func (cfg Config) PublicURL() string {
 	}
 
 	return strings.TrimSuffix(cfg.General.PublicURL, "/")
-}
-
-func (cfg Config) authReferers() []string {
-	if len(cfg.Auth.RefererURLs) == 0 {
-		return []string{cfg.PublicURL()}
-	}
-	return cfg.Auth.RefererURLs
-}
-
-// AuthReferer will return the configured referer URL matching ref. If there
-// are no matches, an empty string is returned.
-func (cfg Config) AuthReferer(ref string) string {
-	for _, u := range cfg.authReferers() {
-		if strings.HasPrefix(ref, u) {
-			return u
-		}
-	}
-
-	return ""
 }
 
 var (
@@ -288,22 +291,12 @@ func (cfg Config) Validate() error {
 		)
 	}
 
-	var schema string
 	for i, urlStr := range cfg.Auth.RefererURLs {
 		field := fmt.Sprintf("Auth.RefererURLs[%d]", i)
 		err = validate.Many(
 			err,
 			validate.AbsoluteURL(field, urlStr),
 		)
-		if schema == "" {
-			schema = strings.SplitN(urlStr, ":", 2)[0]
-		} else {
-			newSchema := strings.SplitN(urlStr, ":", 2)[0]
-
-			if newSchema != schema {
-				err = validate.Many(err, validation.NewFieldError(field, "Refusing to accept both secure and insecure referers."))
-			}
-		}
 	}
 
 	return err

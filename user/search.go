@@ -3,10 +3,11 @@ package user
 import (
 	"context"
 	"database/sql"
+	"text/template"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
-	"text/template"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -67,7 +68,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.ManyUUID("Omit", opts.Omit, 50),
 	)
 	if opts.After.Name != "" {
-		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
+		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
 	}
 
 	return &opts, err

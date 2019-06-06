@@ -3,8 +3,6 @@ package auth
 import (
 	"net/http"
 	"time"
-
-	"github.com/target/goalert/config"
 )
 
 // SetCookie will set a cookie value for all API prefixes, respecting the current config parameters.
@@ -14,10 +12,9 @@ func SetCookie(w http.ResponseWriter, req *http.Request, name, value string) {
 
 // SetCookieAge behaves like SetCookie but also sets the MaxAge.
 func SetCookieAge(w http.ResponseWriter, req *http.Request, name, value string, age time.Duration) {
-	cfg := config.FromContext(req.Context())
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
-		Secure:   cfg.AuthSecure(),
+		Secure:   req.URL.Scheme == "https",
 		Name:     name,
 
 		// Until we can finish removing /v1 from all UI calls

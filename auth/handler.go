@@ -247,7 +247,6 @@ func (h *Handler) canCreateUser(ctx context.Context, providerID string) bool {
 func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	sp := trace.FromContext(ctx)
-	cfg := config.FromContext(ctx)
 
 	var route RouteInfo
 	route.RelativePath = strings.TrimPrefix(req.URL.Path, "/v1/identity/providers/"+id)
@@ -256,8 +255,10 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		route.RelativePath = "/"
 	}
 
-	urlBase := cfg.AuthReferer(refU.String())
-	route.CurrentURL = strings.TrimSuffix(urlBase, "/") + req.URL.Path
+	var u url.URL
+	u = *req.URL
+	u.RawQuery = "" // strip query params
+	route.CurrentURL = u.String()
 
 	sub, err := p.ExtractIdentity(&route, w, req)
 	if r, ok := err.(Redirector); ok {
@@ -410,6 +411,12 @@ func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val
 }
 
 func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next http.Handler) bool {
+	err := req.ParseMultipartForm(32 << 20) // 32<<20 (32MiB) value is the `defaultMaxMemory` used in the net/http package when `req.FormValue` is called
+	if err != nil && err != http.ErrNotMultipart {
+		http.Error(w, err.Error(), 400)
+		return true
+	}
+
 	tok := GetToken(req)
 	if tok == "" {
 		return false
@@ -417,7 +424,6 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 
 	// TODO: update once scopes are implemented
 	ctx := req.Context()
-	var err error
 	switch req.URL.Path {
 	case "/v1/api/alerts", "/api/v2/generic/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeGeneric)
@@ -441,6 +447,13 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 // Updating and clearing the session cookie is automatically handled.
 func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == "/api/v2/mailgun/incoming" || req.URL.Path == "/v1/webhooks/mailgun" {
+			// Mailgun handles it's own auth and has special
+			// requirements on status codes, so we pass it through
+			// untouched.
+			wrapped.ServeHTTP(w, req)
+			return
+		}
 		if h.authWithToken(w, req, wrapped) {
 			return
 		}
@@ -561,7 +574,7 @@ func (h *Handler) refererURL(w http.ResponseWriter, req *http.Request) (*url.URL
 		return nil, false
 	}
 
-	if cfg.AuthReferer(ref) == "" {
+	if !cfg.ValidReferer(req.URL.String(), ref) {
 		err := validation.NewFieldError("referer", "wrong host/path")
 		ctx = log.WithFields(ctx, log.Fields{
 			"AuthRefererURLs": cfg.Auth.RefererURLs,

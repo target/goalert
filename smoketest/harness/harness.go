@@ -67,6 +67,8 @@ type Harness struct {
 	tw  *twServer
 	twS *httptest.Server
 
+	cfg config.Config
+
 	slack     *slackServer
 	slackS    *httptest.Server
 	slackApp  mockslack.AppInfo
@@ -98,6 +100,10 @@ type Harness struct {
 	sessToken string
 	sessKey   keyring.Keyring
 	authH     *auth.Handler
+}
+
+func (h *Harness) Config() config.Config {
+	return h.cfg
 }
 
 func runCmd(t *testing.T, c *exec.Cmd) {
@@ -134,6 +140,7 @@ func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
 const (
 	twilioAuthToken  = "11111111111111111111111111111111"
 	twilioAccountSID = "AC00000000000000000000000000000000"
+	mailgunApiKey    = "key-00000000000000000000000000000000"
 )
 
 // NewStoppedHarness will create a NewHarness, but will not call Start.
@@ -222,6 +229,11 @@ func (h *Harness) Start() {
 	cfg.Twilio.AccountSID = twilioAccountSID
 	cfg.Twilio.AuthToken = twilioAuthToken
 	cfg.Twilio.FromNumber = h.phoneG.Get("twilio")
+
+	cfg.Mailgun.Enable = true
+	cfg.Mailgun.APIKey = mailgunApiKey
+	cfg.Mailgun.EmailDomain = "smoketest.example.com"
+	h.cfg = cfg
 	data, err := json.Marshal(cfg)
 	if err != nil {
 		h.t.Fatalf("failed to marshal config: %v", err)

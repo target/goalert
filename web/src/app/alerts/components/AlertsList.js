@@ -98,7 +98,7 @@ const mapStateToProps = state => {
         ...filterToOmit(props.filter),
         sort_by: getParameterByName('sortBy') || 'status', // status, id, created_at, summary, or service
         favorites_first: true,
-        favorites_only: true,
+        favorites_only: !props.serviceID,
         services_limit: 1,
         services_search: '',
       },
@@ -198,7 +198,7 @@ export default class AlertsList extends Component {
       ...filterToOmit(this.props.filter),
       sort_by: getParameterByName('sortBy') || 'status',
       favorites_first: true,
-      favorites_only: true,
+      favorites_only: !this.props.serviceID,
       services_limit: 1,
       services_search: '',
       ...extraProps,
@@ -254,8 +254,7 @@ export default class AlertsList extends Component {
       onServicePage,
       isFirstLogin,
       loadMore,
-      service,
-      onServicesPage,
+      serviceID,
     } = this.props
     const { snackbarOpen } = this.state
 
@@ -280,7 +279,7 @@ export default class AlertsList extends Component {
       data.services2 &&
       data.services2.items &&
       data.services2.items.length === 0 &&
-      !onServicesPage
+      !serviceID
 
     let content = null
     if (data.error) content = this.renderError(data)
@@ -300,11 +299,8 @@ export default class AlertsList extends Component {
     }
 
     const showFavoritesWarning =
-      snackbarOpen &&
-      noFavorites &&
-      !allServices &&
-      !onServicesPage &&
-      !isFirstLogin
+      snackbarOpen && noFavorites && !allServices && !serviceID && !isFirstLogin
+
     return [
       <CheckedAlertsFormControl
         key='alerts-form-control'
@@ -336,20 +332,15 @@ export default class AlertsList extends Component {
       <CreateAlertFab
         key='create-alert'
         showFavoritesWarning={showFavoritesWarning}
-        service={service}
+        serviceID={serviceID}
         transition={fullScreen && (showFavoritesWarning || actionComplete)}
       />,
       <Grid item container key='content'>
         <Grid item container>
           <Card key='data-card' style={{ width: '100%' }}>
             <Hidden mdDown>
-              <AlertsListControls
-                key='alerts-controls'
-                hideServiceColumn={!!service}
-                service={service}
-              />
+              <AlertsListControls />
             </Hidden>
-
             <List id='alerts-list' style={{ padding: 0 }} data-cy='alerts-list'>
               <InfiniteScroll
                 next={() => loadMore(this.getQueryData(offset))}

@@ -6,7 +6,7 @@ import PageActions from '../util/PageActions'
 import Query from '../util/Query'
 import OtherActions from '../util/OtherActions'
 import DetailsPage from '../details/DetailsPage'
-import ServiceOnCallDisplay from './ServiceOnCallDisplay'
+import ServiceOnCallQuery from './ServiceOnCallQuery'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
 import SetFavoriteButton from './components/SetFavoriteButton'
@@ -69,11 +69,11 @@ export default class ServiceDetails extends React.PureComponent {
       }
     }
 
-    let titleFooter = 'Escalation Policy:'
+    let titleFooter = null
     if (data.service.ep) {
       titleFooter = (
         <div>
-          Escalation Policy:
+          Escalation Policy:&nbsp;
           <Link to={`/escalation-policies/${data.service.ep.id}`}>
             {data.service.ep.name}
           </Link>
@@ -116,7 +116,7 @@ export default class ServiceDetails extends React.PureComponent {
               url: 'labels',
             },
           ]}
-          pageFooter={<ServiceOnCallDisplay serviceID={this.props.serviceID} />}
+          pageFooter={<ServiceOnCallQuery serviceID={this.props.serviceID} />}
         />
         {this.state.edit && (
           <ServiceEditDialog

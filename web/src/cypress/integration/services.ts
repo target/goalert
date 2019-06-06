@@ -299,7 +299,6 @@ function testServices(screen: ScreenFormat) {
       const details = c.word({ length: 10 })
       cy.get('input[name=summary]').type(summary)
       cy.get('textarea[name=details]').type(details)
-      cy.get('input[name=service]').selectByLabel(svc.name)
 
       cy.get('*[role=dialog]')
         .contains('button', 'Submit')
