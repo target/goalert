@@ -69,7 +69,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 				req.URL.Host = req.Host
 				cfg := config.FromContext(req.Context())
 
-				if cfg.ValidReferer(req.URL.String(), req.URL.String()) {
+				if app.cfg.DisableHTTPSRedirect || cfg.ValidReferer(req.URL.String(), req.URL.String()) {
 					next.ServeHTTP(w, req)
 					return
 				}
