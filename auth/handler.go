@@ -255,7 +255,10 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		route.RelativePath = "/"
 	}
 
-	route.CurrentURL = req.URL.String()
+	var u url.URL
+	u = *req.URL
+	u.RawQuery = "" // strip query params
+	route.CurrentURL = u.String()
 
 	sub, err := p.ExtractIdentity(&route, w, req)
 	if r, ok := err.(Redirector); ok {
