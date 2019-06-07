@@ -146,7 +146,7 @@ postgres:
 		-e POSTGRES_USER=goalert \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		postgres:11-alpine
+		postgres:11-alpine || docker start goalert-postgres
 
 regendb: bin/goalert migrate/inline_data_gen.go config.json.bak
 	go run ./devtools/resetdb --with-rand-data
