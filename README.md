@@ -30,7 +30,7 @@ If you need help or have a question, the `#goalert` Slack channel is available o
 
 To access Gophers Slack and the `#goalert` channel, you will need an invitation. You request one through the automated process here: https://invite.slack.golangbridge.org/
 
-- Vote on existing [Feature Requests](https://github.com/target/goalert/issues?q=is%3Aopen+label%3Afeature-request+sort%3Areactions-%2B1-desc) or submit [a new one](https://github.com/target/goalert/issues/new)
+- Vote on existing [Feature Requests](https://github.com/target/goalert/issues?q=is%3Aopen+label%3Aenhancement+sort%3Areactions-%2B1-desc) or submit [a new one](https://github.com/target/goalert/issues/new)
 - File a [bug report](https://github.com/target/goalert/issues)
 - Report security issues to security@goalert.me
 
