@@ -1,7 +1,6 @@
 # Getting Started
 
-This guide will walk through configuring GoAlert for use and integration with services for things like sending SMS messages,
-making voice calls, triggering alerts by email, and authentication.
+This guide will walk through configuring GoAlert for general production use cases.
 
 Most options in GoAlert are configured through the UI in the Admin page. In this guide, when configuring external services,
 those options will be referenced in the format: `<Section.Option Name>` where `Section` is the section/header within the admin page and
