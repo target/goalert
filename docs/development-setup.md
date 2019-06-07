@@ -2,9 +2,9 @@
 
 This guide assumes you have the commands `docker`, `go`, `node`, `yarn`, and `make` installed/available.
 
-## Postgres
+## Database (PostgreSQL)
 
-GoAlert is built and tested against Postgres 11. 9.6 should still work as of this writing, but is not recomended as future versions may begin using newer features.
+GoAlert is built and tested against Postgres 11. Version 9.6 should still work as of this writing, but is not recomended as future versions may begin using newer features.
 
 The easiest way to setup Postgres for development is to run `make postgres`.
 This will start a docker container with the correct configuration for the dev environment.
