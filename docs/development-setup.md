@@ -36,12 +36,16 @@ To run automated browser tests, you can start Cypress in one of the following mo
 
 The Cypress UI should start automatically.
 
+More information about browser tests can be found [here](../web/src/cypress/README.md).
+
 ### Running Smoketests
 
 A suite of functional/behavioral tests are maintained for the backend code. These test various APIs and behaviors
 of the GoAlert server component.
 
 Run the full suite with `make smoketest`.
+
+More information about smoketests can be found [here](../smoketest/README.md).
 
 ### Running Unit Tests
 
