@@ -4,13 +4,13 @@ We welcome feature requests, bug reports and contributions for code and document
 
 ## Reporting Issues
 
-Reporting bugs can be done in the GitHub [issue tracker](https://github.com/target/goalert/issues). Please search for a possible pre-existing issue first to help prevent duplicates.
+Reporting bugs can be done in the GitHub [issue tracker](https://github.com/target/goalert/issues). Please search for existing issues first to help prevent duplicates.
 
 Please include the version (`goalert version`) with new bug reports.
 
 ## Code Contribution
 
-GoAlert is already used in production environments, so any new changes/features/functionality must (where possible):
+GoAlert is already used in production environments, so any new changes/features/functionality must, where possible:
 
 - Not alter existing behavior without an explicit config change
 - Co-exist with older versions without disruption
@@ -24,7 +24,7 @@ As an example, things like DB changes/migrations should preserve behavior across
 
 Patches are welcome, but we ask that any significant change start as an [issue](https://github.com/target/goalert/issues/new) in the tracker, prefereably before work is started.
 
-Be sure to run `make check` before opening a PR to catch common errors.
+Be sure to run `make check` and tests before opening a PR to catch common errors.
 
 ### UI Change Guidelines
 
@@ -34,6 +34,6 @@ Be sure to run `make check` before opening a PR to catch common errors.
 
 ### Backend Change Guidelines
 
-- Use unit tests as a tool to validate complex logic
+- Use unit tests as a tool to validate complex logic. For [example](./schedule/rule/weekdayfilter_test.go).
 - New functionality should have a behavioral smoketest at a minimum. For [example](./smoketest/simplenotification_test.go). Documentation on our smoketest framework can be found [here](./smoketest/README.md).
-- New Go code should pass `golint`, exported functions/methods should be commented, etc..
+- Go code should [follow best practices](https://golang.org/doc/effective_go.html), exported functions/methods should be commented, etc..
