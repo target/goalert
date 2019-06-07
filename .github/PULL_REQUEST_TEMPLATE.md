@@ -23,10 +23,13 @@ Usage: `Fixes #<issue number>`, or `Fixes (paste link of issue)`.
 Include any out of scope items here.
 
 **Screenshots:**
+If applicable, add some screenshots here.
 
 **Describe any introduced user-facing changes:**
+If introducing any user-facing changes, provide a clear description of them.
 
 **Describe any introduced API changes:**
+If introducing any API changes, provide a clear description of them.
 
 **Additional Info:**
 Any additional information or context.
