@@ -6,13 +6,13 @@ Most options in GoAlert are configured through the UI in the Admin page. In this
 those options will be referenced in the format: `<Section.Option Name>` where `Section` is the section/header within the admin page and
 `Option Name` refers to the label of the individual option being referenced.
 
-The only hard requirement for GoAlert is a running Postgres instance/database and it's associated connection URL.
+The only hard requirement for GoAlert is a running Postgres instance/database.
 
 ## Database
 
 We recommend using Postgres 11 for new installations as newer features will be used in the future.
 
-GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION 'pgcrypto'`).
+GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION 'pgcrypto';`).
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
 in your setup.
 
@@ -23,6 +23,8 @@ It is also recomended to set the `--data-encryption-key` which is used to encryp
 To run GoAlert you can start the binary or the docker container. You will need to specify the `--db-url` and `--data-encryption-key` you plan to use.
 
 The following examples use `postgres://goalert@localhost/goalert` and `super-awesome-secret-key` respectively.
+
+More information on Postgres connection strings can be found [here](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING).
 
 Binary:
 
