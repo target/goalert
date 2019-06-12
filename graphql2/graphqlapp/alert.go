@@ -4,7 +4,6 @@ import (
 	context "context"
 	"fmt"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
@@ -130,28 +129,6 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	return conn, nil
 }
 
-func (a *Alert) Logs(ctx context.Context, obj *alert.Alert) ([]alert.Log, error) {
-	var s alertlog.SearchOptions
-	s.AlertID = obj.ID
-	s.Limit = 15
-	s.SortDesc = true
-
-	entries, _, err := a.LogStore.Search(ctx, &s)
-	if err != nil {
-		return nil, err
-	}
-
-	logs := make([]alert.Log, len(entries))
-	for i, e := range entries {
-		var l alert.Log
-		l.Timestamp = e.Timestamp()
-		l.Message = e.String()
-		l.Event = alert.LogEvent(e.Type())
-		logs[i] = l
-	}
-
-	return logs, nil
-}
 
 func (a *Alert) ID(ctx context.Context, raw *alert.Alert) (string, error) {
 	return fmt.Sprintf("Alert(%d)", raw.ID), nil
