@@ -8,9 +8,9 @@ import (
 	"cloud.google.com/go/compute/metadata"
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"contrib.go.opencensus.io/exporter/stackdriver/monitoredresource"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
-	"google.golang.org/genproto/googleapis/api/monitoredres"
 )
 
 func configTracing(ctx context.Context, c appConfig) ([]trace.Exporter, error) {
@@ -44,19 +44,14 @@ func configTracing(ctx context.Context, c appConfig) ([]trace.Exporter, error) {
 				log.Log(ctx, errors.Wrap(err, "get zone"))
 				zone = "unknown"
 			}
-			opts.Resource = &monitoredres.MonitoredResource{
-				Type: "gke_container",
-				Labels: map[string]string{
-					"project_id":   c.StackdriverProjectID,
-					"cluster_name": c.TracingClusterName,
-					"instance_id":  instanceID,
-					"zone":         zone,
-
-					// See: https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/
-					"namespace_id":   c.TracingPodNamespace,
-					"pod_id":         c.TracingPodName,
-					"container_name": c.TracingContainerName,
-				},
+			opts.MonitoredResource = &monitoredresource.GKEContainer{
+				ProjectID:     c.StackdriverProjectID,
+				InstanceID:    instanceID,
+				ClusterName:   c.TracingClusterName,
+				ContainerName: c.TracingContainerName,
+				NamespaceID:   c.TracingPodNamespace,
+				PodID:         c.TracingPodName,
+				Zone:          zone,
 			}
 		}
 		exporter, err := stackdriver.NewExporter(opts)
