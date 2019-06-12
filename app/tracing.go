@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
+
 	"github.com/target/goalert/util/log"
 
 	"cloud.google.com/go/compute/metadata"
+	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/pkg/errors"
-	"go.opencensus.io/exporter/jaeger"
 	"go.opencensus.io/trace"
 	"google.golang.org/genproto/googleapis/api/monitoredres"
 )
