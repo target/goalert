@@ -111,7 +111,7 @@ export default class AlertsListFilter extends Component {
     }
 
     const content = (
-      <Grid container spacing={16} className={gridClasses}>
+      <Grid container spacing={2} className={gridClasses}>
         <Grid item xs={12} className={classes.gridItem}>
           <FormControl>
             {favoritesFilter}

@@ -17,7 +17,7 @@ export default class UserForm extends React.Component {
   render() {
     return (
       <FormContainer {...this.props}>
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           <FormField
             component={UserSelect}
             disabled={false}

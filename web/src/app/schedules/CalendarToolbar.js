@@ -120,7 +120,7 @@ export default class CalendarToolbar extends React.PureComponent {
     const { classes, label, onOverrideClick, view } = this.props
 
     return (
-      <Grid container spacing={16} className={classes.container}>
+      <Grid container spacing={2} className={classes.container}>
         <Grid item>
           <Button
             data-cy='show-today'

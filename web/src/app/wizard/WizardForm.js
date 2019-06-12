@@ -52,7 +52,7 @@ export default class WizardForm extends React.PureComponent {
 
     return (
       <FormContainer optionalLabels {...this.props}>
-        <Grid container spacing={24}>
+        <Grid container spacing={3}>
           <Grid item className={classes.stepItem}>
             <StepIcon icon='1' />
           </Grid>

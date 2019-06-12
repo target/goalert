@@ -108,7 +108,7 @@ export default class VerificationForm extends Component {
     const { code, loading, readOnly } = this.state
 
     return (
-      <Grid container spacing={16}>
+      <Grid container spacing={2}>
         <Grid item style={{ display: 'flex', alignItems: 'center' }}>
           <Mutation
             mutation={sendContactMethodVerificationMutation}

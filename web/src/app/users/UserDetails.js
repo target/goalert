@@ -142,7 +142,7 @@ export default class UserDetails extends React.PureComponent {
             )
           }
           pageFooter={
-            <Grid container spacing={16}>
+            <Grid container spacing={2}>
               <UserContactMethodList
                 userID={this.props.userID}
                 readOnly={this.props.readOnly}
