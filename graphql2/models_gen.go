@@ -27,6 +27,24 @@ type AlertConnection struct {
 	PageInfo PageInfo      `json:"pageInfo"`
 }
 
+type AlertLogConnection struct {
+	Nodes    []alert.Log `json:"nodes"`
+	PageInfo PageInfo    `json:"pageInfo"`
+}
+
+type AlertLogSearchOptions struct {
+	First                    *int       `json:"first"`
+	After                    *string    `json:"after"`
+	FilterByAlertID          *int       `json:"filterByAlertID"`
+	FilterByServiceID        *string    `json:"filterByServiceID"`
+	FilterByUserID           *string    `json:"filterByUserID"`
+	FilterByIntegrationKeyID *string    `json:"filterByIntegrationKeyID"`
+	Start                    *time.Time `json:"start"`
+	End                      *time.Time `json:"end"`
+	Event                    *Event     `json:"event"`
+	SortDesc                 *bool      `json:"sortDesc"`
+}
+
 type AlertSearchOptions struct {
 	FilterByStatus    []AlertStatus `json:"filterByStatus"`
 	FilterByServiceID []string      `json:"filterByServiceID"`
@@ -432,6 +450,59 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type Event string
+
+const (
+	EventCreated             Event = "created"
+	EventClosed              Event = "closed"
+	EventNotificationSent    Event = "notificationSent"
+	EventEscalated           Event = "escalated"
+	EventAcknowledged        Event = "acknowledged"
+	EventPolicyUpdated       Event = "policyUpdated"
+	EventDuplicateSuppressed Event = "duplicateSuppressed"
+	EventEscalationRequest   Event = "escalationRequest"
+)
+
+var AllEvent = []Event{
+	EventCreated,
+	EventClosed,
+	EventNotificationSent,
+	EventEscalated,
+	EventAcknowledged,
+	EventPolicyUpdated,
+	EventDuplicateSuppressed,
+	EventEscalationRequest,
+}
+
+func (e Event) IsValid() bool {
+	switch e {
+	case EventCreated, EventClosed, EventNotificationSent, EventEscalated, EventAcknowledged, EventPolicyUpdated, EventDuplicateSuppressed, EventEscalationRequest:
+		return true
+	}
+	return false
+}
+
+func (e Event) String() string {
+	return string(e)
+}
+
+func (e *Event) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Event(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Event", str)
+	}
+	return nil
+}
+
+func (e Event) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
