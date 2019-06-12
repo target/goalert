@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -73,8 +72,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 					next.ServeHTTP(w, req)
 					return
 				}
-				var u url.URL
-				u = *req.URL
+				u := *req.URL
 				u.Scheme = "https"
 				if cfg.ValidReferer(req.URL.String(), u.String()) {
 					http.Redirect(w, req, u.String(), http.StatusTemporaryRedirect)
