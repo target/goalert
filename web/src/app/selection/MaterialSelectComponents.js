@@ -126,7 +126,7 @@ export const ValueContainer = props => (
 
 export const SingleValue = props => (
   <Typography
-    color={props.isDisabled ? 'textSecondary' : 'default'}
+    color={props.isDisabled ? 'textSecondary' : 'initial'}
     className={props.selectProps.classes.singleValue}
     {...props.innerProps}
   >
