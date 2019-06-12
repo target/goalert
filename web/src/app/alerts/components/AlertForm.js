@@ -160,7 +160,7 @@ export default class AlertForm extends Component {
     const { open } = this.props
 
     const formFields = (
-      <Grid container spacing={16}>
+      <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormControl
             error={!!this.validateSummary()}

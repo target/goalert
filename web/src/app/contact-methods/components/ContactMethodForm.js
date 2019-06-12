@@ -274,7 +274,7 @@ class ContactMethodForm extends Component {
     )
 
     return (
-      <Grid container spacing={16}>
+      <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
           <FormControl style={fieldStyle} error={!!this.getNameError()}>
             <TextField

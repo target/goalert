@@ -2,14 +2,14 @@ import React from 'react'
 import Fade from '@material-ui/core/Fade'
 import Slide from '@material-ui/core/Slide'
 
-export function DefaultTransition(props) {
-  return <Fade {...props} />
-}
+export const DefaultTransition = React.forwardRef((props, ref) => (
+  <Fade {...props} ref={ref} />
+))
 
-export function FullscreenTransition(props) {
-  return <Slide direction='left' {...props} />
-}
+export const FullscreenTransition = React.forwardRef((props, ref) => (
+  <Slide direction='left' {...props} ref={ref} />
+))
 
-export function FullscreenExpansion(props) {
-  return <Slide direction='right' {...props} />
-}
+export const FullscreenExpansion = React.forwardRef((props, ref) => (
+  <Slide direction='right' {...props} ref={ref} />
+))

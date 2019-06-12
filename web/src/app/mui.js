@@ -22,8 +22,5 @@ export const theme = createMuiTheme({
     secondary: grey,
     error: red,
   },
-  typography: {
-    useNextVariants: true,
-  },
   ...testOverrides,
 })

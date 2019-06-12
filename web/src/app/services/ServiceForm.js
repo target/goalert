@@ -48,7 +48,7 @@ export default class ServiceForm extends React.PureComponent {
 
     return (
       <FormContainer {...containerProps} optionalLabels={this.props.epRequired}>
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           <Grid item xs={12}>
             <FormField
               fullWidth

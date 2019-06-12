@@ -47,7 +47,7 @@ export default class RotationForm extends React.PureComponent {
   render() {
     return (
       <FormContainer optionalLabels {...this.props}>
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           <Grid item xs={12}>
             <FormField
               fullWidth
