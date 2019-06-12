@@ -42,7 +42,7 @@ const styles = theme => ({
   snackbarIcon: {
     fontSize: 20,
     opacity: 0.9,
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(1),
   },
   snackbarMessage: {
     display: 'flex',
