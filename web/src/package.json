@@ -113,7 +113,7 @@
     "react": "16.8.6",
     "react-beautiful-dnd": "10.0.1",
     "react-count-down": "^1.1.0",
-    "react-dom": "16.7",
+    "react-dom": "16.8.6",
     "react-ga": "^2.5.0",
     "react-hot-loader": "^4.6.3",
     "react-infinite-scroll-component": "^4.2.0",
