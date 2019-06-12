@@ -3017,7 +3017,8 @@ type AuthSubject {
   providerID: ID!
   subjectID: ID!
   userID: ID!
-}`},
+}
+`},
 )
 
 // endregion ************************** generated!.gotpl **************************
