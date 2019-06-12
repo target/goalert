@@ -73,11 +73,13 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 			go func() {
 				defer pw.Close()
 				defer bw.Flush()
-				errCh <- errors.Wrap(txSrc.CopyToWriter(pw, fmt.Sprintf(`copy %s to stdout`, t.SafeName())), "read from src")
+				_, err := txSrc.CopyToWriter(pw, fmt.Sprintf(`copy %s to stdout`, t.SafeName()))
+				errCh <- errors.Wrap(err, "read from src")
 			}()
 			go func() {
 				r := io.TeeReader(br, &progWrite{inc1: tBar.IncrBy, inc2: bars[i].IncrBy})
-				errCh <- errors.Wrap(txDst.CopyFromReader(r, fmt.Sprintf(`copy %s from stdin`, t.SafeName())), "write to dst")
+				_, err := txDst.CopyFromReader(r, fmt.Sprintf(`copy %s from stdin`, t.SafeName()))
+				errCh <- errors.Wrap(err, "write to dst")
 			}()
 			err = <-errCh
 			if err != nil {

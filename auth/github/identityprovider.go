@@ -191,7 +191,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 
 		CheckTeams:
 			for {
-				tm, resp, err := g.Organizations.ListUserTeams(ctx, opt)
+				tm, resp, err := g.Teams.ListUserTeams(ctx, opt)
 				if err != nil {
 					log.Log(ctx, errors.Wrap(err, "fetch GitHub teams"))
 					return nil, auth.Error("Failed to read GitHub team membership")
