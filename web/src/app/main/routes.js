@@ -53,7 +53,7 @@ export function renderRoutes(routeConfig = []) {
     routes.push(
       <Route
         key={'route_' + idx}
-        component={cfg.component}
+        render={() => <cfg.component />}
         path={path}
         exact={cfg.exact}
       />,
