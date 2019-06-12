@@ -129,7 +129,6 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	return conn, nil
 }
 
-
 func (a *Alert) ID(ctx context.Context, raw *alert.Alert) (string, error) {
 	return fmt.Sprintf("Alert(%d)", raw.ID), nil
 }
