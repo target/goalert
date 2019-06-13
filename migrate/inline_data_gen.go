@@ -549,8 +549,8 @@ dKOXMZVgeA-Y6Z1ss12X_tAnnV8_Z3cfi-LT7fXVbx2NTQ0s-F6f7DZ7EQnLjPoBiHr56hW8qcbDjqYb
 VYy5MkKnmrCiditKv05f7wn895Loz32aNH0G9Dl81Bed21U6_8SoE01njVwJ2spzCNODjoR0DtMXaNxN
 D0u5R8XSzT838UMDRYmj3_n1tw4_I8EvzIwwiTjxcSb2LSnUp6LF5kBl9wPltON-8H1VpX3LnAsU4lo2
 eN8Iej6JfWWTfdhk24_4NQHV68UL-E_RYdJ_k-ls_OY9-fb7-wJeCt8zaS-5tG-DvIjnXG5FxyfynuR9
-2D8s5NeNxsYtN2lwmuvvRVAFe-l50AlMdZ8-zj4dMQjOMAfoafV77Ptdovs_2IVNzLfgONutJQ8xdEN6
-6RPZCjE35n2QrRq6J1xp_BTXtxVDh6WmatZStw_2Maqc_i8AAP__4SYQW8DiAwA=
+2D8s5NeNxsYtN2lwmuvvRVAFe-l50AlMdZ8-zj4dMQjOMAfoafV77Ptdovs_bIeFuuDgzMgRX4njPLhW
+S4gJHNJYn-JW8LmxIoI81tBx4WTj57u-rRg6YDVVszYB-8gfo8rp_wIAAP__peya6NriAwA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -566,7 +566,7 @@ eN8Iej6JfWWTfdhk24_4NQHV68UL-E_RYdJ_k-ls_OY9-fb7-wJeCt8zaS-5tG-DvIjnXG5FxyfynuR9
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(43319)
+				buf.Grow(43327)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -760,7 +760,7 @@ eN8Iej6JfWWTfdhk24_4NQHV68UL-E_RYdJ_k-ls_OY9-fb7-wJeCt8zaS-5tG-DvIjnXG5FxyfynuR9
 		{Data: dataRange(253205, 253408), Name: "migrations/20190313125552-slack-user-link.sql"},
 		{Data: dataRange(253408, 253724), Name: "migrations/20190404105850-nc-no-meta.sql"},
 		{Data: dataRange(253724, 254211), Name: "migrations/20190517144224-trigger-config-sync.sql"},
-		{Data: dataRange(254211, 254363), Name: "migrations/20190613111645-add-rotation-favorite.sql"},
-		{Data: dataRange(254363, 254656), Name: "migrations/20190613111707-user-favorites-drop-constraint.sql"},
+		{Data: dataRange(254211, 254389), Name: "migrations/20190613111645-add-rotation-favorite.sql"},
+		{Data: dataRange(254389, 254682), Name: "migrations/20190613111707-user-favorites-drop-constraint.sql"},
 	}
 }
