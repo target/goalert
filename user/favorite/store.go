@@ -42,8 +42,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		delete: p.P(`
 			DELETE FROM user_favorites
-			WHERE user_id = $1 and
-			tgt_service_id = $2
+			WHERE user_id = $1 AND
+			tgt_service_id = $2 OR
+			tgt_schedule_id = $3
 		`),
 		findAll: p.P(`
 			SELECT tgt_service_id
@@ -86,7 +87,6 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 
 	return nil
 }
-
 // Unset will remove the target as a favorite of the given user. Must be authorized as System or the same user.
 func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.MatchUser(userID))
@@ -103,8 +103,17 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	if err != nil {
 		return err
 	}
-
-	_, err = db.delete.ExecContext(ctx, userID, tgt.TargetID())
+	var scheduleID sql.NullString
+	var serviceID sql.NullString
+	switch tgt.TargetType(){
+		case assignment.TargetTypeService:
+			serviceID.Valid = true
+			serviceID.String = tgt.TargetID()
+		case assignment.TargetTypeSchedule:
+			scheduleID.Valid = true
+			scheduleID.String = tgt.TargetID()
+	}
+	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID)
 	if err == sql.ErrNoRows {
 		// ignoring since it is safe to unset favorite (with retries)
 		err = nil

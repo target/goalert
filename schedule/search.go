@@ -16,6 +16,16 @@ import (
 // SearchOptions allow filtering and paginating the list of schedules.
 type SearchOptions struct {
 	Search string       `json:"s,omitempty"`
+
+	// FavoritesUserID specifies the UserID whose favorite services want to be displayed.
+	FavoritesUserID string `json:"u,omitempty"`
+
+	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
+	FavoritesOnly bool `json:"o,omitempty"`
+	
+	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
+	FavoritesFirst bool `json:"f,omitempty"`
+
 	After  SearchCursor `json:"a,omitempty"`
 
 	// Omit specifies a list of schedule IDs to exclude from the results.
@@ -31,8 +41,11 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		id, name, description, time_zone
+		sched.id, sched.name, sched.description, sched.time_zone, fav notnull
 	FROM schedules sched
+	{{if not .FavoritesOnly }}
+		LEFT {{end}}JOIN user_favorites fav ON sched.id = fav.tgt_schedule_id 
+		AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
 		AND not id = any(:omit)
@@ -70,6 +83,12 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
 	}
+	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
+		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	return &opts, err
 }
@@ -79,16 +98,21 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", pq.StringArray(opts.Omit)),
+		sql.Named("favUserID", opts.FavoritesUserID),
 	}
 }
 
 func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Schedule, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
-	if err != nil {
-		return nil, err
-	}
 	if opts == nil {
 		opts = &SearchOptions{}
+	}
+	userCheck := permission.User
+	if opts.FavoritesUserID != "" {
+		userCheck = permission.MatchUser(opts.FavoritesUserID)
+	}
+	err := permission.LimitCheckAny(ctx, permission.System, userCheck)
+	if err != nil {
+		return nil, err
 	}
 	data, err := (*renderData)(opts).Normalize()
 	if err != nil {
@@ -112,7 +136,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Schedule, erro
 	var s Schedule
 	var tz string
 	for rows.Next() {
-		err = rows.Scan(&s.ID, &s.Name, &s.Description, &tz)
+		err = rows.Scan(&s.ID, &s.Name, &s.Description, &tz, &s.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}

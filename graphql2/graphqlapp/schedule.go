@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/oncall"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/search"
@@ -206,10 +207,16 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 	if opts == nil {
 		opts = &graphql2.ScheduleSearchOptions{}
 	}
-
 	var searchOpts schedule.SearchOptions
+	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
+	}
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
+	}
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	searchOpts.Omit = opts.Omit
 	if opts.After != nil && *opts.After != "" {
@@ -247,4 +254,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 	}
 	conn.Nodes = scheds
 	return conn, err
+}
+func (s *Schedule) IsFavorite(ctx context.Context, raw *schedule.Schedule) (bool, error) {
+	return raw.IsUserFavorite(), nil
 }
