@@ -106,7 +106,7 @@ export default class PolicyStep extends Component {
     })
 
     return (
-      <Grid container spacing={8}>
+      <Grid container spacing={1}>
         {items}
       </Grid>
     )
@@ -158,7 +158,7 @@ export default class PolicyStep extends Component {
     return (
       <React.Fragment key={step.id}>
         <ListItem id={index}>
-          <Grid container spacing={16}>
+          <Grid container spacing={2}>
             <Grid item className={classes.centerFlex}>
               <Typography variant='subtitle1'>
                 <strong>Step #{this.getStepNumber(step.id)}:</strong>

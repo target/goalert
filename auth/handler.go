@@ -255,8 +255,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		route.RelativePath = "/"
 	}
 
-	var u url.URL
-	u = *req.URL
+	u := *req.URL
 	u.RawQuery = "" // strip query params
 	route.CurrentURL = u.String()
 

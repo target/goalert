@@ -132,7 +132,7 @@ export default class CalendarEventWrapper extends Component {
     }
 
     return (
-      <Grid container spacing={8}>
+      <Grid container spacing={1}>
         <Grid item xs={12}>
           {moment(event.start).format('LLL')}
           {' – '}

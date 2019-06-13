@@ -11,7 +11,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 export const StringListInput = props => {
   const value = props.value ? props.value.split('\n').concat('') : ['']
   return (
-    <Grid container spacing={8}>
+    <Grid container spacing={1}>
       {value.map((val, idx) => (
         <Grid key={idx} item xs={12}>
           <StringInput

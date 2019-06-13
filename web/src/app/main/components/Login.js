@@ -180,7 +180,7 @@ export default class Login extends Component {
     let form = null
     if (fields && fields.length) {
       form = (
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           {fields.map(field => this.renderField(field))}
           <Grid item xs={12}>
             {loginButton}
@@ -241,7 +241,7 @@ export default class Login extends Component {
           <div className={classes.center}>
             <Card className={classes.card}>
               <CardContent>
-                <Grid container spacing={16} className={classes.gridContainer}>
+                <Grid container spacing={2} className={classes.gridContainer}>
                   <Grid item xs={12}>
                     {logo}
                   </Grid>
@@ -256,7 +256,7 @@ export default class Login extends Component {
         </Hidden>
         <Hidden mdUp>
           <div className={classes.center}>
-            <Grid container spacing={16} className={classes.gridContainer}>
+            <Grid container spacing={2} className={classes.gridContainer}>
               <Grid item xs={12}>
                 {logo}
               </Grid>
