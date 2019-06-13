@@ -14,6 +14,13 @@ type Rotation struct {
 	Type        Type      `json:"type"`
 	Start       time.Time `json:"start"`
 	ShiftLength int       `json:"shift_length"`
+	isUserFavorite bool
+}
+
+
+// IsUserFavorite returns a boolean value based on if the rotation is a favorite of the user or not.
+func (r Rotation) IsUserFavorite() bool {
+	return r.isUserFavorite
 }
 
 func addHours(t time.Time, n int) time.Time {
