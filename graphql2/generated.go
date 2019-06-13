@@ -243,6 +243,7 @@ type ComplexityRoot struct {
 		AssignedTo  func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
+		IsFavorite  func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Shifts      func(childComplexity int, start time.Time, end time.Time) int
 		Target      func(childComplexity int, input assignment.RawTarget) int
@@ -456,6 +457,7 @@ type ScheduleResolver interface {
 	Shifts(ctx context.Context, obj *schedule.Schedule, start time.Time, end time.Time) ([]oncall.Shift, error)
 	Targets(ctx context.Context, obj *schedule.Schedule) ([]ScheduleTarget, error)
 	Target(ctx context.Context, obj *schedule.Schedule, input assignment.RawTarget) (*ScheduleTarget, error)
+	IsFavorite(ctx context.Context, obj *schedule.Schedule) (bool, error)
 }
 type ScheduleRuleResolver interface {
 	WeekdayFilter(ctx context.Context, obj *rule.Rule) ([]bool, error)
@@ -1580,6 +1582,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Schedule.ID(childComplexity), true
 
+	case "Schedule.IsFavorite":
+		if e.complexity.Schedule.IsFavorite == nil {
+			break
+		}
+
+		return e.complexity.Schedule.IsFavorite(childComplexity), true
+
 	case "Schedule.Name":
 		if e.complexity.Schedule.Name == nil {
 			break
@@ -2529,6 +2538,7 @@ type Schedule {
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
+  isFavorite: Boolean!
 }
 
 type OnCallShift {
@@ -2645,6 +2655,12 @@ input ScheduleSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited services in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite services first.
+  favoritesFirst: Boolean = false
 }
 
 input ServiceSearchOptions {
@@ -7393,6 +7409,33 @@ func (ec *executionContext) _Schedule_target(ctx context.Context, field graphql.
 	return ec.marshalOScheduleTarget2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐScheduleTarget(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Schedule_isFavorite(ctx context.Context, field graphql.CollectedField, obj *schedule.Schedule) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Schedule",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Schedule().IsFavorite(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ScheduleConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ScheduleConnection) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -10610,6 +10653,18 @@ func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
+		case "favoritesOnly":
+			var err error
+			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favoritesFirst":
+			var err error
+			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -12666,6 +12721,20 @@ func (ec *executionContext) _Schedule(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Schedule_target(ctx, field, obj)
+				return res
+			})
+		case "isFavorite":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Schedule_isFavorite(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
 				return res
 			})
 		default:
