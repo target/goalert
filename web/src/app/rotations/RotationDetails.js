@@ -11,6 +11,7 @@ import RotationEditDialog from './RotationEditDialog'
 import RotationDeleteDialog from './RotationDeleteDialog'
 import RotationUserList from './RotationUserList'
 import RotationAddUserDialog from './RotationAddUserDialog'
+import SetFavoriteButton from './components/SetFavoriteButton'
 
 const query = gql`
   query rotationDetails($rotationID: ID!) {
@@ -66,6 +67,7 @@ export default class RotationDetails extends React.PureComponent {
     return (
       <React.Fragment>
         <PageActions>
+          <SetFavoriteButton rotationID={data.rotation.id} />
           <OtherActions
             actions={[
               {
