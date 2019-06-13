@@ -62,6 +62,10 @@ func (r *Rotation) TimeZone(ctx context.Context, rot *rotation.Rotation) (string
 	return rot.Start.Location().String(), nil
 }
 
+func (r *Rotation) IsFavorite(ctx context.Context, rot *rotation.Rotation) (bool, error) {
+	return rot.IsUserFavorite(), nil
+}
+
 func (r *Rotation) NextHandoffTimes(ctx context.Context, rot *rotation.Rotation, num *int) ([]time.Time, error) {
 	var n int
 	if num != nil {
