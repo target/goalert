@@ -32,6 +32,10 @@ const styles = {
   title: {
     padding: '0 4px 0 4px',
     flex: 1, // pushes toolbar actions to the right
+    fontWeight: 500,
+    lineHeight: 1.6,
+    fontSize: '1.25rem',
+    letterSpacing: '0.0075em',
   },
 }
 
@@ -95,7 +99,7 @@ export default class ToolbarTitle extends React.Component {
         className={this.props.classes.title}
         color='inherit'
         noWrap
-        variant='h6'
+        variant='h1'
       >
         {title.replace('On Call', 'On-Call')}
       </Typography>
