@@ -161,10 +161,12 @@ type RotationConnection struct {
 }
 
 type RotationSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First          *int     `json:"first"`
+	After          *string  `json:"after"`
+	Search         *string  `json:"search"`
+	Omit           []string `json:"omit"`
+	FavoritesOnly  *bool    `json:"favoritesOnly"`
+	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
 type ScheduleConnection struct {

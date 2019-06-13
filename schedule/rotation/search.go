@@ -3,6 +3,7 @@ package rotation
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
@@ -22,6 +23,16 @@ type SearchOptions struct {
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
+
+
+	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
+	FavoritesOnly bool `json:"o,omitempty"`
+
+
+	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
+	FavoritesFirst bool `json:"f,omitempty"`
+
+	FavoritesUserID string `json:"u,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -31,8 +42,9 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		id, name, description, type, start_time, shift_length, time_zone
+		rot.id, rot.name, rot.description, rot.type, rot.start_time, rot.shift_length, rot.time_zone, fav notnull
 	FROM rotations rot
+		{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON rot.id = fav.tgt_rotation_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
 		AND not id = any(:omit)
@@ -40,8 +52,10 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .SearchStr}}
 		AND (rot.name ILIKE :search OR rot.description ILIKE :search)
 	{{end}}
+
 	{{if .After.Name}}
-		AND lower(rot.name) > lower(:afterName)
+			AND lower(rot.name) > lower(:afterName)
+
 	{{end}}
 	ORDER BY lower(rot.name)
 	LIMIT {{.Limit}}
@@ -71,6 +85,14 @@ func (opts renderData) Normalize() (*renderData, error) {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
 	}
 
+	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
+		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &opts, err
 }
 
@@ -79,11 +101,22 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", pq.StringArray(opts.Omit)),
+		sql.Named("favUserID", opts.FavoritesUserID),
 	}
 }
 
 func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
+
+	if opts == nil {
+		opts = &SearchOptions{}
+	}
+
+	userCheck := permission.User
+	if opts.FavoritesUserID != "" {
+		userCheck = permission.MatchUser(opts.FavoritesUserID)
+	}
+
+	err := permission.LimitCheckAny(ctx, permission.System, userCheck)
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +132,10 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 		return nil, errors.Wrap(err, "render query")
 	}
 
+
+
+	fmt.Println(opts.FavoritesUserID)
+
 	rows, err := db.db.QueryContext(ctx, query, args...)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -112,7 +149,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 	var r Rotation
 	var tz string
 	for rows.Next() {
-		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz)
+		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz, &r.isUserFavorite )
 		if err != nil {
 			return nil, err
 		}
@@ -123,6 +160,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 		r.Start = r.Start.In(loc)
 		result = append(result, r)
 	}
+
 
 	return result, nil
 }

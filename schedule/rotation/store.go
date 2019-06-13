@@ -3,6 +3,7 @@ package rotation
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -13,6 +14,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
+
 )
 
 // ErrNoState is returned when there is no state information available for a rotation.
@@ -125,7 +127,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		findRotationForUpdate: p.P(`SELECT id, name, description, type, start_time, shift_length, time_zone FROM rotations WHERE id = $1 FOR UPDATE`),
 		deleteRotation:        p.P(`DELETE FROM rotations WHERE id = ANY($1)`),
 
-		findMany: p.P(`SELECT id, name, description, type, start_time, shift_length, time_zone FROM rotations WHERE id = any($1)`),
+		findMany: p.P(`SELECT r.id, r.name, r.description, r.type, r.start_time, r.shift_length, r.time_zone,
+									u is distinct from null FROM rotations r 
+									LEFT JOIN user_favorites u ON u.tgt_rotation_id = r.id AND u.user_id = $2 
+									WHERE r.id = any($1)`),
 
 		partRotID: p.P(`SELECT rotation_id FROM rotation_participants WHERE id = $1`),
 
@@ -334,6 +339,7 @@ func (db *DB) StateTx(ctx context.Context, tx *sql.Tx, id string) (*State, error
 }
 
 func (db *DB) FindAllStateByScheduleID(ctx context.Context, scheduleID string) ([]State, error) {
+	fmt.Print("finallbyscheudleid")
 	err := validate.UUID("ScheduleID", scheduleID)
 	if err != nil {
 		return nil, err
@@ -424,6 +430,7 @@ func (db *DB) UpdateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) err
 	return err
 }
 func (db *DB) FindAllRotations(ctx context.Context) ([]Rotation, error) {
+	fmt.Print("findAllRotations")
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -454,6 +461,9 @@ func (db *DB) FindAllRotations(ctx context.Context) ([]Rotation, error) {
 }
 
 func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
+
+
+
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -463,7 +473,9 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 		return nil, err
 	}
 
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids))
+	userID := permission.UserID(ctx)
+
+	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids), userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -476,7 +488,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 	var tz string
 	result := make([]Rotation, 0, len(ids))
 	for rows.Next() {
-		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz)
+		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz, &r.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}
@@ -492,6 +504,8 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 }
 
 func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
+
+
 	err := validate.UUID("RotationID", id)
 	if err != nil {
 		return nil, err
@@ -501,10 +515,12 @@ func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
 		return nil, err
 	}
 
-	row := db.findRotation.QueryRowContext(ctx, id)
+	userID := permission.UserID(ctx)
+
+	row := db.findRotation.QueryRowContext(ctx, id, userID)
 	var r Rotation
 	var tz string
-	err = row.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz)
+	err = row.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz, &r.isUserFavorite)
 	if err != nil {
 		return nil, err
 	}
@@ -513,6 +529,8 @@ func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
 		return nil, err
 	}
 	r.Start = r.Start.In(loc)
+
+
 	return &r, nil
 }
 

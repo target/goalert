@@ -43,7 +43,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		delete: p.P(`
 			DELETE FROM user_favorites
 			WHERE user_id = $1 and
-			tgt_service_id = $2
+			tgt_service_id  = $2 OR tgt_rotation_id = $3
+			
 		`),
 		findAll: p.P(`
 			SELECT tgt_service_id
@@ -114,7 +115,22 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		return err
 	}
 
-	_, err = db.delete.ExecContext(ctx, userID, tgt.TargetID())
+	var rotationID, serviceID sql.NullString
+
+
+	switch tgt.TargetType() {
+	case assignment.TargetTypeRotation:
+		rotationID.Valid = true
+		rotationID.String = tgt.TargetID()
+
+	case assignment.TargetTypeService:
+		serviceID.Valid = true
+		serviceID.String = tgt.TargetID()
+
+	}
+
+
+	_, err = db.delete.ExecContext(ctx, userID, serviceID, rotationID)
 	if err == sql.ErrNoRows {
 		// ignoring since it is safe to unset favorite (with retries)
 		err = nil

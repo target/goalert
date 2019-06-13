@@ -2643,6 +2643,12 @@ input RotationSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited services in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite services first.
+  favoritesFirst: Boolean = false
 }
 
 input EscalationPolicySearchOptions {
@@ -10576,6 +10582,18 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 		case "omit":
 			var err error
 			it.Omit, err = ec.unmarshalOID2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favoritesOnly":
+			var err error
+			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favoritesFirst":
+			var err error
+			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
