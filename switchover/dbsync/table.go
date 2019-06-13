@@ -17,6 +17,10 @@ var ignoreTables = []string{
 	"gorp_migrations",
 }
 
+func ignoreTable(name string) bool {
+	return contains(ignoreTables, name)
+}
+
 type Table struct {
 	Name    string
 	Columns []Column

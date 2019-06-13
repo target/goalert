@@ -5,18 +5,17 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"github.com/target/goalert/migrate"
-	"github.com/target/goalert/switchover"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/vbauerster/mpb"
-	"github.com/vbauerster/mpb/decor"
-
 	"github.com/abiosoft/ishell"
 	_ "github.com/jackc/pgx/stdlib" // load PGX driver
 	"github.com/pkg/errors"
+	"github.com/target/goalert/migrate"
+	"github.com/target/goalert/switchover"
+	"github.com/vbauerster/mpb"
+	"github.com/vbauerster/mpb/decor"
 )
 
 // RunShell will start the switchover shell.
@@ -130,16 +129,9 @@ func RunShell(oldURL, newURL string) error {
 		Name: "enable",
 		Help: "Enable change_log",
 		Func: func(ctx context.Context, sh *ishell.Context) error {
-			res, err := db.ExecContext(ctx, `update switchover_state set current_state = 'in_progress' where current_state = 'idle'`)
+			err := s.ChangeLogEnable(ctx, sh)
 			if err != nil {
 				return err
-			}
-			r, err := res.RowsAffected()
-			if err != nil {
-				return err
-			}
-			if r != 1 {
-				return errors.New("not idle")
 			}
 
 			status, err := s.status(ctx)
@@ -153,19 +145,48 @@ func RunShell(oldURL, newURL string) error {
 		},
 	})
 	sh.AddCmd(ctxCmd{
+		Name: "reset-dest",
+		Help: "Reset the destination DB (!deletes data!)",
+		Func: func(ctx context.Context, sh *ishell.Context) error {
+			var stat string
+			err = s.oldDB.QueryRowContext(ctx, `select current_state from switchover_state`).Scan(&stat)
+			if err != nil {
+				return errors.Wrap(err, "lookup switchover state")
+			}
+			if stat != "idle" {
+				return errors.New("must be idle")
+			}
+
+			for _, t := range s.tables {
+				if ignoreTable(t.Name) {
+					continue
+				}
+				_, err = s.newDB.ExecContext(ctx, fmt.Sprintf("truncate table %s cascade", t.SafeName()))
+				if err != nil {
+					return errors.Wrapf(err, "truncate %s", t.Name)
+				}
+			}
+			_, err = s.newDB.ExecContext(ctx, "drop table if exists change_log")
+			if err != nil {
+				return errors.Wrap(err, "drop dest change_log")
+			}
+
+			status, err := s.status(ctx)
+			if err != nil {
+				return err
+			}
+			sh.Println(status)
+			sh.Println("change_log disabled")
+			return nil
+		},
+	})
+	sh.AddCmd(ctxCmd{
 		Name: "disable",
 		Help: "Enable change_log",
 		Func: func(ctx context.Context, sh *ishell.Context) error {
-			res, err := db.ExecContext(ctx, `update switchover_state set current_state = 'idle' where current_state = 'in_progress'`)
+			err := s.ChangeLogDisable(ctx, sh)
 			if err != nil {
 				return err
-			}
-			r, err := res.RowsAffected()
-			if err != nil {
-				return err
-			}
-			if r != 1 {
-				return errors.New("not in_progress")
 			}
 
 			status, err := s.status(ctx)

@@ -86,6 +86,9 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 	}
 
 	fmt.Fprintln(buf, "Switchover state:", stat)
+	if stat == "idle" {
+		return buf.String(), nil
+	}
 
 	var changeMax int
 	err = s.oldDB.QueryRowContext(ctx, `select coalesce(max(id),0) from change_log`).Scan(&changeMax)
