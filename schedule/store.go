@@ -54,10 +54,21 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		update:  p.P(`UPDATE schedules SET name = $2, description = $3, time_zone = $4 WHERE id = $1`),
 		findAll: p.P(`SELECT id, name, description, time_zone FROM schedules`),
 		findOne: p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = $1`),
-
 		findOneUp: p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = $1 FOR UPDATE`),
 
-		findMany: p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = any($1)`),
+		findMany: p.P(`
+			SELECT 
+				s.id, 
+				s.name, 
+				s.description, 
+				s.time_zone,
+				u is distinct from null
+			FROM schedules s
+			LEFT JOIN user_favorites u
+			ON u.tgt_schedule_id = s.id
+			AND u.user_id = $2
+			WHERE s.id = any($1)
+		`),
 
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),
 	}, p.Err
@@ -71,8 +82,8 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids))
+	userID := permission.UserID(ctx)
+	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids), userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -85,7 +96,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
 	var s Schedule
 	var tz string
 	for rows.Next() {
-		err = rows.Scan(&s.ID, &s.Name, &s.Description, &tz)
+		err = rows.Scan(&s.ID, &s.Name, &s.Description, &tz, &s.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}
@@ -225,7 +236,6 @@ func (db *DB) FindOne(ctx context.Context, id string) (*Schedule, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	row := db.findOne.QueryRowContext(ctx, id)
 	var s Schedule
 	var tz string
@@ -241,7 +251,9 @@ func (db *DB) FindOne(ctx context.Context, id string) (*Schedule, error) {
 
 	return &s, nil
 }
-
+func scanFrom(s *Schedule, f func(args ...interface{}) error) error {
+	return f(&s.ID, &s.Name, &s.Description, &s.isUserFavorite)
+}
 func (db *DB) Delete(ctx context.Context, id string) error {
 	return db.DeleteTx(ctx, nil, id)
 }
