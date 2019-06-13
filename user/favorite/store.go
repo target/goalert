@@ -36,8 +36,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		db: db,
 		insert: p.P(`
-			INSERT INTO user_favorites (user_id, tgt_service_id)
-			VALUES ($1, $2)
+			INSERT INTO user_favorites (user_id, tgt_service_id, tgt_rotation_id)
+			VALUES ($1, $2, $3)
 			ON CONFLICT DO NOTHING
 		`),
 		delete: p.P(`
@@ -63,16 +63,35 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,  assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
 	)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.insert.ExecContext(ctx, userID, tgt.TargetID())
+	var rotationID, serviceID sql.NullString
+
+
+
+	switch tgt.TargetType() {
+	case assignment.TargetTypeRotation:
+		rotationID.Valid = true
+		rotationID.String = tgt.TargetID()
+
+	case assignment.TargetTypeService:
+		serviceID.Valid = true
+		serviceID.String = tgt.TargetID()
+
+	}
+
+	_, err = db.insert.ExecContext(ctx, userID, serviceID, rotationID)
 	if err != nil {
 		return errors.Wrap(err, "set favorite")
 	}
+
+
+
+
 
 	return nil
 }
@@ -84,10 +103,12 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		return err
 	}
 
+
+
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService),
+		validate.OneOf("TargetType", tgt.TargetType(),  assignment.TargetTypeService, assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
 	)
 	if err != nil {
 		return err
@@ -126,6 +147,8 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 		for _, f := range filter {
 			switch f {
 			case assignment.TargetTypeService:
+				allowServices = true
+			case assignment.TargetTypeRotation:
 				allowServices = true
 			}
 		}
