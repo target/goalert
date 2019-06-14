@@ -37,11 +37,12 @@ type SearchOptions struct {
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
 	Name string `json:"n,omitempty"`
+	IsFavorite bool `json:"f"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		rot.id, rot.name, rot.description, rot.type, rot.start_time, rot.shift_length, rot.time_zone, fav notnull
+		rot.id, rot.name, rot.description, rot.type, rot.start_time, rot.shift_length, rot.time_zone, fav IS DISTINCT FROM NULL
 	FROM rotations rot
 		{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON rot.id = fav.tgt_rotation_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
