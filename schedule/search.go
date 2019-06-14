@@ -41,7 +41,11 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		sched.id, sched.name, sched.description, sched.time_zone, fav notnull
+		sched.id,
+		sched.name,
+		sched.description,
+		sched.time_zone,
+		fav IS DISTINCT FROM NULL
 	FROM schedules sched
 	{{if not .FavoritesOnly }}
 		LEFT {{end}}JOIN user_favorites fav ON sched.id = fav.tgt_schedule_id 

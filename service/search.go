@@ -47,7 +47,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		svc.name,
 		svc.description,
 		svc.escalation_policy_id,
-		fav notnull
+		fav IS DISTINCT FROM NULL
 	FROM services svc
 	{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON svc.id = fav.tgt_service_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	{{if and .LabelKey (not .LabelNegate)}}
