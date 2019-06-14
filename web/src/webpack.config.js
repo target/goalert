@@ -29,10 +29,6 @@ module.exports = {
       'react-dom': '@hot-loader/react-dom',
     },
   },
-  node: {
-    fs: 'empty',
-    net: 'empty',
-  },
   // Loaders for processing different file types
   module: {
     rules: [
