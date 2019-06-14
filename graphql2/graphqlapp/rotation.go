@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"time"
+	"github.com/target/goalert/permission"
 
 	"github.com/pkg/errors"
 )
@@ -171,7 +172,11 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 		opts = &graphql2.RotationSearchOptions{}
 	}
 
+
+
 	var searchOpts rotation.SearchOptions
+
+	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
 	}
@@ -187,6 +192,14 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	}
 	if searchOpts.Limit == 0 {
 		searchOpts.Limit = 15
+	}
+
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
+	}
+
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
 	}
 
 	searchOpts.Limit++
