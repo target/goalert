@@ -8,7 +8,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 	"text/template"
-
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
@@ -37,6 +36,7 @@ type SearchOptions struct {
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
 	Name string `json:"n,omitempty"`
+	IsFavorite bool   `json:"f"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
@@ -54,13 +54,27 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		AND (sched.name ILIKE :search OR sched.description ILIKE :search)
 	{{end}}
 	{{if .After.Name}}
-		AND lower(sched.name) > lower(:afterName)
+		AND
+		{{if not .FavoritesFirst}}
+			lower(sched.name) > lower(:afterName)
+		{{else if .After.IsFavorite}}
+			((fav notnull AND lower(sched.name) > lower(:afterName)) OR fav isnull)
+		{{else}}
+			(fav isnull AND lower(sched.name) > lower(:afterName))
+		{{end}}
 	{{end}}
-	ORDER BY lower(sched.name)
+	ORDER BY {{ .OrderBy }}
 	LIMIT {{.Limit}}
 `))
 
 type renderData SearchOptions
+
+func (opts renderData) OrderBy() string {
+	if opts.FavoritesFirst {
+		return "fav, lower(sched.name)"
+	}
+	return "lower(sched.name)"
+}
 
 func (opts renderData) SearchStr() string {
 	if opts.Search == "" {
@@ -83,9 +97,11 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
 	}
+
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
 	}
+
 	if err != nil {
 		return nil, err
 	}
