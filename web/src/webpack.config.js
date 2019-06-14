@@ -31,6 +31,7 @@ module.exports = {
   },
   node: {
     fs: 'empty',
+    net: 'empty',
   },
   // Loaders for processing different file types
   module: {

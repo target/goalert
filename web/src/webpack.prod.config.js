@@ -28,6 +28,7 @@ module.exports = {
   },
   node: {
     fs: 'empty',
+    net: 'empty',
   },
   module: {
     rules: [
