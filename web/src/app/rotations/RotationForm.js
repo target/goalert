@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import { TimePicker } from 'material-ui-pickers'
+import { TimePicker } from '@material-ui/pickers'
 import { TimeZoneSelect } from '../selection'
 import { TextField, Grid, MenuItem } from '@material-ui/core'
 import { startCase } from 'lodash-es'
