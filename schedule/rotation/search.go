@@ -3,7 +3,6 @@ package rotation
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
@@ -54,14 +53,34 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{end}}
 
 	{{if .After.Name}}
-			AND lower(rot.name) > lower(:afterName)
+		AND
+		{{if not .FavoritesFirst}}
+			lower(rot.name) > lower(:afterName)
+		{{else if .After.IsFavorite}}
+			((fav notnull AND lower(rot.name) > lower(:afterName)) OR fav isnull)
+		{{else}}
+			(fav isnull AND lower(rot.name) > lower(:afterName))
+		{{end}}
 
 	{{end}}
-	ORDER BY lower(rot.name)
+	ORDER BY {{ .OrderBy }}
 	LIMIT {{.Limit}}
 `))
 
+
+
+
+
 type renderData SearchOptions
+
+
+func (opts renderData) OrderBy() string {
+	if opts.FavoritesFirst {
+		return "fav, lower(rot.name)"
+	}
+
+	return "lower(rot.name)"
+}
 
 func (opts renderData) SearchStr() string {
 	if opts.Search == "" {
@@ -70,6 +89,8 @@ func (opts renderData) SearchStr() string {
 
 	return "%" + search.Escape(opts.Search) + "%"
 }
+
+
 
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
@@ -84,6 +105,8 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
 	}
+
+
 
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
@@ -120,9 +143,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 	if err != nil {
 		return nil, err
 	}
-	if opts == nil {
-		opts = &SearchOptions{}
-	}
+
 	data, err := (*renderData)(opts).Normalize()
 	if err != nil {
 		return nil, err
@@ -134,7 +155,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 
 
 
-	fmt.Println(opts.FavoritesUserID)
+
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
 	if err == sql.ErrNoRows {
