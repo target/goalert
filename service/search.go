@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
@@ -47,7 +48,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		svc.name,
 		svc.description,
 		svc.escalation_policy_id,
-		fav notnull
+		fav IS DISTINCT FROM NULL
 	FROM services svc
 	{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON svc.id = fav.tgt_service_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	{{if and .LabelKey (not .LabelNegate)}}
@@ -209,15 +210,20 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 	}
 	defer rows.Close()
 
+
+
 	var result []Service
 	for rows.Next() {
 		var s Service
+		fmt.Println("s", &s)
 		err = rows.Scan(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}
 
 		result = append(result, s)
+
+		fmt.Println("resultsssssssss",result)
 	}
 
 	return result, nil
