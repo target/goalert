@@ -55,6 +55,17 @@ function testSchedules(screen: ScreenFormat) {
         })
     })
 
+    it('should allow setting and unsetting as a favorite schedule', () => {
+      // test setting as favorite
+      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
+      cy.reload()
+      // aria label should change and should be set as a favorite, test unsetting
+      cy.get('button[aria-label="Unset as a Favorite schedule"').click()
+      cy.reload()
+      // check that unset
+      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
+    })
+
     it('should delete a schedule', () => {
       cy.pageAction('Delete Schedule')
       cy.get('button')
