@@ -31,6 +31,7 @@ endif
 export CGO_ENABLED = 0
 export PATH := $(PWD)/bin:$(PATH)
 export GOOS = $(shell go env GOOS)
+export GOALERT_DB_URL_NEXT = $(DB_URL_NEXT)
 
 ifdef BUNDLE
 	GOFILES += web/inline_data_gen.go
