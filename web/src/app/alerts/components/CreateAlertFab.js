@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
-import Button from '@material-ui/core/Button'
+import Fab from '@material-ui/core/Fab'
 import AddIcon from '@material-ui/icons/Add'
 import classnames from 'classnames'
 
@@ -66,16 +66,15 @@ export default class CreateAlertFab extends Component {
     const transitionClass = transition ? fabOpen : classes.fabClose
 
     return [
-      <Button
+      <Fab
         key='create-button'
         data-cy='page-fab'
         className={classnames(classes.fab, transitionClass)}
-        variant='fab'
         color='primary'
         onClick={() => this.handleShowForm(true)}
       >
         <AddIcon />
-      </Button>,
+      </Fab>,
       <AlertForm
         key='alert-form'
         open={this.state.showForm}

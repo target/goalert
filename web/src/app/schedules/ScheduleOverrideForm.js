@@ -12,7 +12,7 @@ import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateRange, ChevronRight, ChevronLeft } from '@material-ui/icons'
-import { DateTimePicker } from 'material-ui-pickers'
+import { DateTimePicker } from '@material-ui/pickers'
 import { DateTime } from 'luxon'
 import { UserSelect } from '../selection'
 import Query from '../util/Query'
@@ -102,7 +102,7 @@ export default class ScheduleOverrideForm extends React.PureComponent {
         value={value}
         {...formProps}
       >
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           <Grid
             item
             xs={12}

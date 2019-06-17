@@ -434,12 +434,12 @@ export default class AlertDetails extends Component {
       options.length > 0 ? <Options options={options} /> : null
 
     return (
-      <Grid container spacing={16}>
+      <Grid container spacing={2}>
         <PageActions>{optionsMenu}</PageActions>
         <Grid item xs={12} className={classes.cardContainer}>
           <Card className={this.getCardClassName()}>
             <CardContent data-cy='alert-summary'>
-              <Grid container spacing={8}>
+              <Grid container spacing={1}>
                 <Grid item xs={12}>
                   <Typography variant='body1'>
                     {ServiceLink(alert.service)}

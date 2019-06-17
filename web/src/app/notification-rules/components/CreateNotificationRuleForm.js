@@ -143,7 +143,7 @@ class CreateNotificationRuleForm extends Component {
   renderFields = () => {
     const opts = this.contactOptions()
     return (
-      <Grid container spacing={16}>
+      <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormControl error={!!this.cmError()} style={{ width: '100%' }}>
             <TextField

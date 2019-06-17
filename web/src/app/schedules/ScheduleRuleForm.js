@@ -19,7 +19,7 @@ import {
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash-es'
 import { Add, Trash } from '../icons'
-import { TimePicker } from 'material-ui-pickers'
+import { TimePicker } from '@material-ui/pickers'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { oneOfShape } from '../util/propTypes'
 import Query from '../util/Query'
@@ -181,7 +181,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
         mapValue={mapValue}
         mapOnChangeValue={mapOnChangeValue}
       >
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
             <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
               Times and weekdays shown in{' '}

@@ -38,7 +38,7 @@ export default class IntegrationKeyForm extends React.PureComponent {
     const { classes, ...formProps } = this.props
     return (
       <FormContainer {...formProps} optionalLabels>
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           <Grid item style={{ flexGrow: 1 }} xs={12}>
             <FormField
               fullWidth

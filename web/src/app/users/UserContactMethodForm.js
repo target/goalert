@@ -35,7 +35,7 @@ export default class UserContactMethodForm extends React.PureComponent {
   render() {
     return (
       <FormContainer {...this.props} optionalLabels>
-        <Grid container spacing={16}>
+        <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={6}>
             <FormField fullWidth name='name' required component={TextField} />
           </Grid>
