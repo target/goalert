@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/switchover"
-	"github.com/vbauerster/mpb"
-	"github.com/vbauerster/mpb/decor"
+	"github.com/vbauerster/mpb/v4"
+	"github.com/vbauerster/mpb/v4/decor"
 )
 
 // RunShell will start the switchover shell.
@@ -270,6 +270,15 @@ func RunShell(oldURL, newURL string) error {
 		HasFlags: true,
 		Help:     "Execute the switchover procedure.",
 		Func: func(ctx context.Context, sh *ishell.Context) error {
+			var stat string
+			err = s.oldDB.QueryRowContext(ctx, `select current_state from switchover_state`).Scan(&stat)
+			if err != nil {
+				return errors.Wrap(err, "lookup switchover state")
+			}
+			if stat != "in_progress" {
+				return errors.New("must be in_progress")
+			}
+
 			cfg := switchover.DefaultConfig()
 			fset := flag.NewFlagSet("execute", flag.ContinueOnError)
 			fset.BoolVar(&cfg.NoPauseAPI, "allow-api", cfg.NoPauseAPI, "Allow API requests during pause phase (DB calls will still pause during final sync).")
@@ -341,7 +350,7 @@ func RunShell(oldURL, newURL string) error {
 				}
 			}
 
-			p := mpb.New()
+			p := mpb.NewWithContext(ctx)
 			var done bool
 			abort := func() {
 				if !done {
@@ -378,7 +387,7 @@ func RunShell(oldURL, newURL string) error {
 			defer cCancel()
 			err = s.NodeStateWait(cCtx, n, cBar, switchover.StateArmed, switchover.StateArmWait)
 			if err != nil {
-				p.Abort(cBar, false)
+				cBar.Abort(false)
 				p.Wait()
 				return errors.Wrap(err, "wait for consensus")
 			}
@@ -403,7 +412,7 @@ func RunShell(oldURL, newURL string) error {
 				}
 			}
 
-			p = mpb.New()
+			p = mpb.NewWithContext(ctx)
 			pBar := p.AddBar(int64(n),
 				mpb.PrependDecorators(decor.Name("STW Pause", decor.WCSyncSpaceR)),
 				mpb.BarClearOnComplete(),
@@ -415,7 +424,7 @@ func RunShell(oldURL, newURL string) error {
 			defer pCancel()
 			err = s.NodeStateWait(pCtx, n, pBar, switchover.StatePaused, switchover.StatePauseWait)
 			if err != nil {
-				p.Abort(pBar, false)
+				pBar.Abort(false)
 				p.Wait()
 				return errors.Wrap(err, "wait for pause")
 			}

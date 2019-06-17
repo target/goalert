@@ -8,12 +8,12 @@ import (
 
 	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
-	"github.com/vbauerster/mpb"
-	"github.com/vbauerster/mpb/decor"
+	"github.com/vbauerster/mpb/v4"
+	"github.com/vbauerster/mpb/v4/decor"
 )
 
 func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
-	p := mpb.New()
+	p := mpb.NewWithContext(ctx)
 	var err error
 	var totalRows int64
 	var bars []*mpb.Bar
@@ -56,9 +56,9 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 	)
 	abort := func(i int) {
 		for ; i < len(toSync); i++ {
-			p.Abort(bars[i], false)
+			bars[i].Abort(false)
 		}
-		p.Abort(tBar, false)
+		tBar.Abort(false)
 		p.Wait()
 	}
 

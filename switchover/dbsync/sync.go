@@ -5,8 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/target/goalert/lock"
-	"github.com/target/goalert/switchover"
 	"sort"
 	"strconv"
 	"sync"
@@ -15,7 +13,9 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
 	"github.com/pkg/errors"
-	"github.com/vbauerster/mpb"
+	"github.com/target/goalert/lock"
+	"github.com/target/goalert/switchover"
+	"github.com/vbauerster/mpb/v4"
 )
 
 type Sync struct {
