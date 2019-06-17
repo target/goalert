@@ -215,7 +215,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 	var result []Service
 	for rows.Next() {
 		var s Service
-		fmt.Println("s", &s)
 		err = rows.Scan(&s.ID, &s.Name, &s.Description, &s.EscalationPolicyID, &s.isUserFavorite)
 		if err != nil {
 			return nil, err
@@ -223,7 +222,8 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 
 		result = append(result, s)
 
-		fmt.Println("resultsssssssss",result)
+
+
 	}
 
 	return result, nil
