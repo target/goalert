@@ -77,7 +77,15 @@ func noTrigger(name string) bool {
 
 // ChangeLogEnable will instrument the database for the sync operation.
 func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
-	var err error
+	var stat string
+	err := s.oldDB.QueryRowContext(ctx, `select current_state from switchover_state`).Scan(&stat)
+	if err != nil {
+		return errors.Wrap(err, "lookup switchover state")
+	}
+	if stat != "idle" {
+		return errors.New("must be idle")
+	}
+
 	run := func(name, stmt string) {
 		if err != nil {
 			return
@@ -97,6 +105,7 @@ func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
 	run("clear change_log", changeLogTableDel)
 	run("configure change_log", changeLogTableDef)
 	run("define change hook", changeLogFuncDef)
+	run("create initial entry", `insert into change_log (op, table_name, row_id) values ('INIT', '', '')`)
 
 	sh.Println("Instrumenting tables...")
 	for _, t := range s.tables {
