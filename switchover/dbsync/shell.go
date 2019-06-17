@@ -281,13 +281,13 @@ func RunShell(oldURL, newURL string) error {
 
 			cfg := switchover.DefaultConfig()
 			fset := flag.NewFlagSet("execute", flag.ContinueOnError)
-			fset.BoolVar(&cfg.NoPauseAPI, "allow-api", cfg.NoPauseAPI, "Allow API requests during pause phase (DB calls will still pause during final sync).")
+			pauseAPI := fset.Bool("pause-api", !cfg.NoPauseAPI, "Pause API requests during pause phase (DB calls will still pause during final sync).")
 			fset.DurationVar(&cfg.ConsensusTimeout, "consensus-timeout", cfg.ConsensusTimeout, "Timeout to reach consensus.")
 			fset.DurationVar(&cfg.PauseDelay, "pause-delay", cfg.PauseDelay, "Delay from start until global pause begins.")
 			fset.DurationVar(&cfg.PauseTimeout, "pause-timeout", cfg.PauseTimeout, "Timeout to achieve global pause.")
 			fset.DurationVar(&cfg.MaxPause, "max-pause", cfg.MaxPause, "Maximum duration for any pause/delay/impact during switchover.")
-			extraSync := fset.Bool("extra-sync", false, "Do a second sync after pausing, immediately before the final sync (useful with -allow-api).")
-			noSwitch := fset.Bool("no-switch", false, "Run the entire procedure, but omit the final use_next_db update.")
+			noExtraSync := fset.Bool("no-extra-sync", false, "Skip the second sync after pausing (immediately before the final sync).")
+			noSwitch := fset.Bool("no-switch", false, "Run the entire procedure, but don't actually switch DB at the end.")
 			err := fset.Parse(sh.Args)
 			if err != nil {
 				if err == flag.ErrHelp {
@@ -295,6 +295,7 @@ func RunShell(oldURL, newURL string) error {
 				}
 				return err
 			}
+			cfg.NoPauseAPI = !*pauseAPI
 
 			status, err := s.status(ctx)
 			if err != nil {
@@ -303,13 +304,13 @@ func RunShell(oldURL, newURL string) error {
 
 			details := new(strings.Builder)
 
-			pauseAPI := "yes"
+			pauseAPIStr := "yes"
 			if cfg.NoPauseAPI {
-				pauseAPI = "no"
+				pauseAPIStr = "no"
 			}
 			fmt.Fprintln(details, status)
 			fmt.Fprintln(details, "Switch-Over Details")
-			fmt.Fprintln(details, "  Pause API Requests:", pauseAPI)
+			fmt.Fprintln(details, "  Pause API Requests:", pauseAPIStr)
 			fmt.Fprintln(details, "  Consensus Timeout :", cfg.ConsensusTimeout)
 			fmt.Fprintln(details, "  Pause Starts After:", cfg.PauseDelay)
 			fmt.Fprintln(details, "  Pause Timeout     :", cfg.PauseTimeout)
@@ -430,7 +431,7 @@ func RunShell(oldURL, newURL string) error {
 			}
 			p.Wait()
 
-			if *extraSync {
+			if !*noExtraSync {
 				start = time.Now()
 				err = s.Sync(ctx, false, false)
 				if err != nil {
