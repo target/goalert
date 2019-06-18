@@ -47,7 +47,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON rot.id = fav.tgt_rotation_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
-		AND not id = any(:omit)
+		AND NOT rot.id = any(:omit)
 	{{end}}
 	{{if .SearchStr}}
 		AND (rot.name ILIKE :search OR rot.description ILIKE :search)
@@ -130,6 +130,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 }
 
 func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, error) {
+
 
 	if opts == nil {
 		opts = &SearchOptions{}

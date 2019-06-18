@@ -3,7 +3,6 @@ package rotation
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -339,7 +338,7 @@ func (db *DB) StateTx(ctx context.Context, tx *sql.Tx, id string) (*State, error
 }
 
 func (db *DB) FindAllStateByScheduleID(ctx context.Context, scheduleID string) ([]State, error) {
-	fmt.Print("finallbyscheudleid")
+
 	err := validate.UUID("ScheduleID", scheduleID)
 	if err != nil {
 		return nil, err
@@ -374,6 +373,7 @@ func (db *DB) FindAllStateByScheduleID(ctx context.Context, scheduleID string) (
 }
 
 func (db *DB) CreateRotation(ctx context.Context, r *Rotation) (*Rotation, error) {
+
 	return db.CreateRotationTx(ctx, nil, r)
 }
 
@@ -430,7 +430,7 @@ func (db *DB) UpdateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) err
 	return err
 }
 func (db *DB) FindAllRotations(ctx context.Context) ([]Rotation, error) {
-	fmt.Print("findAllRotations")
+
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
