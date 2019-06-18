@@ -162,8 +162,8 @@ function testSchedules(screen: ScreenFormat) {
     let sched: Schedule
     before(() => {
       cy.visit('/schedules')
-      // create at least 15 schedules (the max amount for one page)
-      for (let i = 0; i < 15; i++) {
+      // create at least 20 schedules (15 max amount for one page in browser)
+      for (let i = 0; i < 20; i++) {
         cy.createSchedule()
       }
       cy.createSchedule().then(s => {
