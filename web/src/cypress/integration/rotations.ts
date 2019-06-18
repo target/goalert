@@ -103,6 +103,22 @@ function testRotations(screen: ScreenFormat) {
       }),
     )
 
+    it('should allow setting and unsetting as a favorite rotation', () => {
+      // test setting as favorite
+      cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
+      cy.reload()
+      // aria label should change and should be set as a favorite, test unsetting
+      cy.get('button[aria-label="Unset as a Favorite Rotation"').click()
+      cy.reload()
+      // check that unset
+      cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
+    })
+
+    // it('should have favored rotations move to first on rotation list', ()=>{
+    //   cy.pageSearch('Customer model Mobility Rotation')
+    //
+    // })
+
     it('should display users correctly', () => {
       cy.get('ul[data-cy=users]')
         .find('li')
@@ -252,7 +268,9 @@ function testRotations(screen: ScreenFormat) {
         .clear()
         .type('5')
 
-      cy.get('button[type=submit]').click()
+      cy.get('button[type=submit]')
+        .eq(1)
+        .click()
       cy.get('body')
         .should('contain', newName)
         .should('contain', newDesc)
