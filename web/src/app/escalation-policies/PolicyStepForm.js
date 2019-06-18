@@ -259,9 +259,7 @@ export default class PolicyStepForm extends React.Component {
               hint={
                 value.delayMinutes === '0'
                   ? 'This will cause the step to immediately escalate'
-                  : `This will cause the step to escalate after ${
-                      value.delayMinutes
-                    }m`
+                  : `This will cause the step to escalate after ${value.delayMinutes}m`
               }
             />
           </Grid>

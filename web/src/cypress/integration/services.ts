@@ -430,7 +430,7 @@ function testServices(screen: ScreenFormat) {
     })
 
     it('should not be able to create a label when DisableLabelCreation is true', () => {
-      const randomWord = c.word({ min: 5, max: 10 })
+      const randomWord = c.word({ length: 7 })
       cy.pageFab()
       cy.get('input[name=key]').findByLabel(`Create "${randomWord}"`)
 
