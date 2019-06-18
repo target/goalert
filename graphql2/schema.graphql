@@ -418,7 +418,7 @@ input CreateRotationInput {
 
   timeZone: String!
   start: ISOTimestamp!
-  isFavorite: Boolean!
+  isFavorite: Boolean
 
   type: RotationType!
   shiftLength: Int = 1
