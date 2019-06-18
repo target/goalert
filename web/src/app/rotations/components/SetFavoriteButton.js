@@ -41,7 +41,7 @@ export default class SetFavoriteButton extends React.PureComponent {
             query,
             variables,
           })
-
+          console.log(variables, rotation)
           // update service
           cache.writeQuery({
             query,
