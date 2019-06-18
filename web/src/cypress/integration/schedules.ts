@@ -55,17 +55,6 @@ function testSchedules(screen: ScreenFormat) {
         })
     })
 
-    it('should allow setting and unsetting as a favorite schedule', () => {
-      // test setting as favorite
-      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
-      cy.reload()
-      // aria label should change and should be set as a favorite, test unsetting
-      cy.get('button[aria-label="Unset as a Favorite schedule"').click()
-      cy.reload()
-      // check that unset
-      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
-    })
-
     it('should delete a schedule', () => {
       cy.pageAction('Delete Schedule')
       cy.get('button')
@@ -165,6 +154,36 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('h6').should('contain', 'Tomorrow')
         cy.get('p').should('contain', 'Showing shifts')
       })
+    })
+  })
+
+  //Grab schedule on a page that's not the first, favorite it and check to make sure it's on page 1
+  describe('Setting a favorite', () => {
+    let sched: Schedule
+    before(() => {
+      cy.visit('/schedules')
+      // create at least 15 schedules (the max amount for one page)
+      for (let i = 0; i < 15; i++) {
+        cy.createSchedule()
+      }
+      cy.createSchedule().then(s => {
+        sched = s
+        return cy.visit('/schedules/' + sched.id)
+      })
+    })
+    it('should allow setting and unsetting as a favorite schedule', () => {
+      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
+      cy.reload()
+      cy.get('button[aria-label="Unset as a Favorite schedule"').click()
+      cy.reload()
+      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
+    })
+    it('should check to make sure the schedule is on the first page', () => {
+      cy.visit('/schedules')
+      cy.get('#app').contains(sched.name)
+      /*cy.get("ul").within(() => {
+        cy.get("#app")
+      }).contains(sched.name)*/
     })
   })
 
