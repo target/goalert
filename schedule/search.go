@@ -52,7 +52,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
-		AND not id = any(:omit)
+		AND NOT sched.id = any(:omit)
 	{{end}}
 	{{if .SearchStr}}
 		AND (sched.name ILIKE :search OR sched.description ILIKE :search)
