@@ -6,6 +6,7 @@ import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
+import { withRouter } from 'react-router-dom'
 import { setShowNewUserForm } from '../../actions'
 
 const ID_QUERY = gql`
@@ -39,9 +40,9 @@ const mapDispatchToProps = dispatch =>
   mapStateToProps,
   mapDispatchToProps,
 )
+@withRouter
 export default class NewUserSetup extends Component {
   static contextTypes = {
-    router: p.object,
     isFirstLogin: p.bool,
     setShowNewUserForm: p.func,
   }
@@ -52,7 +53,7 @@ export default class NewUserSetup extends Component {
    */
   onNewUserDialogClose = (successful, clickaway) => {
     const newUrl = clearParameter('isFirstLogin')
-    this.context.router.history.replace(window.location.pathname + newUrl)
+    this.props.history.replace(window.location.pathname + newUrl)
     if (clickaway) return
     this.props.setShowNewUserForm()
   }

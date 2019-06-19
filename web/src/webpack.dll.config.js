@@ -44,7 +44,6 @@ module.exports = {
       'react-apollo',
       'react-swipeable-views',
       'react-count-down',
-      'react-sortable-hoc',
       'connected-react-router',
       'chance',
       '@hot-loader/react-dom',
