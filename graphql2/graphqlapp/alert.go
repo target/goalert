@@ -21,7 +21,7 @@ type AlertLogEntry App
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
 
-func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a)}
+func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
@@ -182,16 +182,16 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	}
 
 	var s alertlog.SearchOptions
-	
+
 	if opts.Limit != nil {
 		s.Limit = *opts.Limit
-	}				
+	}
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
 
 	aID, err := a.AlertID(ctx, obj)
-	if err!= nil {
+	if err != nil {
 		return nil, err
 	}
 

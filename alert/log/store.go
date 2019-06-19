@@ -9,12 +9,12 @@ import (
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/search"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation/validate"
 	"github.com/target/goalert/validation"
-	"github.com/target/goalert/search"
+	"github.com/target/goalert/validation/validate"
 	"strings"
 	"time"
 
@@ -97,7 +97,7 @@ type SearchOptions struct {
 }
 
 type SearchCursor struct {
-	ID     int    `json:"i,omitempty"`
+	ID int `json:"i,omitempty"`
 }
 
 // SortBy describes the possible primary sort options for alert logs.
@@ -596,7 +596,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Entry, int, er
 
 	err = validate.Many(
 		err,
-		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
+		validate.Range("Limit", opts.Limit, 1, search.MaxResults),
 		validate.Range("Offset", opts.Offset, 0, 1000000),
 		validate.OneOf("SortBy", opts.SortBy,
 			SortByAlertID,
