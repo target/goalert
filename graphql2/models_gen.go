@@ -446,6 +446,59 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type Event string
+
+const (
+	EventCreated             Event = "created"
+	EventClosed              Event = "closed"
+	EventNotificationSent    Event = "notificationSent"
+	EventEscalated           Event = "escalated"
+	EventAcknowledged        Event = "acknowledged"
+	EventPolicyUpdated       Event = "policyUpdated"
+	EventDuplicateSuppressed Event = "duplicateSuppressed"
+	EventEscalationRequest   Event = "escalationRequest"
+)
+
+var AllEvent = []Event{
+	EventCreated,
+	EventClosed,
+	EventNotificationSent,
+	EventEscalated,
+	EventAcknowledged,
+	EventPolicyUpdated,
+	EventDuplicateSuppressed,
+	EventEscalationRequest,
+}
+
+func (e Event) IsValid() bool {
+	switch e {
+	case EventCreated, EventClosed, EventNotificationSent, EventEscalated, EventAcknowledged, EventPolicyUpdated, EventDuplicateSuppressed, EventEscalationRequest:
+		return true
+	}
+	return false
+}
+
+func (e Event) String() string {
+	return string(e)
+}
+
+func (e *Event) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Event(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Event", str)
+	}
+	return nil
+}
+
+func (e Event) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type IntegrationKeyType string
 
 const (

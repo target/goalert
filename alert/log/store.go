@@ -1,7 +1,6 @@
 package alertlog
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -12,11 +11,9 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"github.com/target/goalert/search"
 	"strings"
-	"time"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"

@@ -211,6 +211,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Alert                   func(childComplexity int, id int) int
+		Alertlogs               func(childComplexity int, input *AlertLogSearchOptions) int
 		Alerts                  func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider func(childComplexity int, first *int, after *string, providerID string) int
 		Config                  func(childComplexity int, all *bool) int
@@ -393,6 +394,11 @@ type AlertLogEntryResolver interface {
 	Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error)
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
 }
+type AlertLogResolver interface {
+	AlertID(ctx context.Context, obj *alert.Log) (int, error)
+
+	Event(ctx context.Context, obj *alert.Log) (Event, error)
+}
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
 	Steps(ctx context.Context, obj *escalation.Policy) ([]escalation.Step, error)
@@ -443,6 +449,7 @@ type QueryResolver interface {
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
 	Alert(ctx context.Context, id int) (*alert.Alert, error)
 	Alerts(ctx context.Context, input *AlertSearchOptions) (*AlertConnection, error)
+	Alertlogs(ctx context.Context, input *AlertLogSearchOptions) (*AlertLogConnection, error)
 	Service(ctx context.Context, id string) (*service.Service, error)
 	IntegrationKey(ctx context.Context, id string) (*integrationkey.IntegrationKey, error)
 	Services(ctx context.Context, input *ServiceSearchOptions) (*ServiceConnection, error)
@@ -1277,6 +1284,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Alert(childComplexity, args["id"].(int)), true
+
+	case "Query.Alertlogs":
+		if e.complexity.Query.Alertlogs == nil {
+			break
+		}
+
+		args, err := ec.field_Query_alertlogs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Alertlogs(childComplexity, args["input"].(*AlertLogSearchOptions)), true
 
 	case "Query.Alerts":
 		if e.complexity.Query.Alerts == nil {
@@ -2236,6 +2255,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
   # Returns a paginated list of alerts.
   alerts(input: AlertSearchOptions): AlertConnection!
 
+  # Returns a paginated list of alert logs.
+  alertlogs(input: AlertLogSearchOptions): AlertLogConnection!
+
   # Returns a single service with the given ID.
   service(id: ID!): Service
 
@@ -2580,6 +2602,11 @@ type AlertConnection {
   pageInfo: PageInfo!
 }
 
+type AlertLogConnection {
+	nodes: [AlertLog!]
+	pageInfo: PageInfo!
+}
+
 type ScheduleConnection {
   nodes: [Schedule!]!
   pageInfo: PageInfo!
@@ -2744,6 +2771,19 @@ input AlertSearchOptions {
   omit: [Int!]
 }
 
+input AlertLogSearchOptions {
+	first: Int = 15
+	after: String = ""
+	filterByAlertID: Int
+	filterByServiceID: String
+	filterByUserID: String
+	filterByIntegrationKeyID: String
+	start: ISOTimestamp
+	end: ISOTimestamp
+	event: Event
+	sortDesc: Boolean = true
+}
+
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp
 
@@ -2781,6 +2821,24 @@ type AlertLogEntry {
 	id: Int!
 	timestamp: ISOTimestamp!
 	message: String!
+}
+
+type AlertLog {
+	alertID: Int!
+	timestamp: ISOTimestamp!
+	event: Event!
+	message: String!
+}
+
+enum Event {
+	created
+	closed
+	notificationSent
+	escalated
+	acknowledged
+	policyUpdated
+	duplicateSuppressed
+	escalationRequest
 }
 
 # The escalation policy state details for the alert.
@@ -3415,6 +3473,20 @@ func (ec *executionContext) field_Query_alert_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_alertlogs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *AlertLogSearchOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOAlertLogSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogSearchOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -6432,6 +6504,40 @@ func (ec *executionContext) _Query_alerts(ctx context.Context, field graphql.Col
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNAlertConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_alertlogs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_alertlogs_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Alertlogs(rctx, args["input"].(*AlertLogSearchOptions))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*AlertLogConnection)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNAlertLogConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_service(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -12585,6 +12691,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "alertlogs":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_alertlogs(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "service":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -14577,6 +14697,15 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 	return ret
 }
 
+func (ec *executionContext) unmarshalNEvent2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐEvent(ctx context.Context, v interface{}) (Event, error) {
+	var res Event
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNEvent2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐEvent(ctx context.Context, sel ast.SelectionSet, v Event) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	return graphql.UnmarshalIntID(v)
 }
@@ -16208,6 +16337,30 @@ func (ec *executionContext) marshalOEscalationPolicyStep2ᚖgithubᚗcomᚋtarge
 		return graphql.Null
 	}
 	return ec._EscalationPolicyStep(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOEvent2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐEvent(ctx context.Context, v interface{}) (Event, error) {
+	var res Event
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOEvent2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐEvent(ctx context.Context, sel ast.SelectionSet, v Event) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOEvent2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐEvent(ctx context.Context, v interface{}) (*Event, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOEvent2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐEvent(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOEvent2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐEvent(ctx context.Context, sel ast.SelectionSet, v *Event) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {

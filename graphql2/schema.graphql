@@ -17,6 +17,9 @@ type Query {
   # Returns a paginated list of alerts.
   alerts(input: AlertSearchOptions): AlertConnection!
 
+  # Returns a paginated list of alert logs.
+  alertlogs(input: AlertLogSearchOptions): AlertLogConnection!
+
   # Returns a single service with the given ID.
   service(id: ID!): Service
 
@@ -361,6 +364,11 @@ type AlertConnection {
   pageInfo: PageInfo!
 }
 
+type AlertLogConnection {
+	nodes: [AlertLog!]
+	pageInfo: PageInfo!
+}
+
 type ScheduleConnection {
   nodes: [Schedule!]!
   pageInfo: PageInfo!
@@ -525,6 +533,19 @@ input AlertSearchOptions {
   omit: [Int!]
 }
 
+input AlertLogSearchOptions {
+	first: Int = 15
+	after: String = ""
+	filterByAlertID: Int
+	filterByServiceID: String
+	filterByUserID: String
+	filterByIntegrationKeyID: String
+	start: ISOTimestamp
+	end: ISOTimestamp
+	event: Event
+	sortDesc: Boolean = true
+}
+
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp
 
@@ -562,6 +583,24 @@ type AlertLogEntry {
 	id: Int!
 	timestamp: ISOTimestamp!
 	message: String!
+}
+
+type AlertLog {
+	alertID: Int!
+	timestamp: ISOTimestamp!
+	event: Event!
+	message: String!
+}
+
+enum Event {
+	created
+	closed
+	notificationSent
+	escalated
+	acknowledged
+	policyUpdated
+	duplicateSuppressed
+	escalationRequest
 }
 
 # The escalation policy state details for the alert.
