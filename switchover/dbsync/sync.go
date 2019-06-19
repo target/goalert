@@ -31,12 +31,17 @@ type Sync struct {
 	oldDBID, newDBID string
 }
 
-func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, error) {
-	tables, err := Tables(ctx, oldDB)
+func (s *Sync) RefreshTables(ctx context.Context) error {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	t, err := Tables(ctx, s.oldDB)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
+	s.tables = t
+	return nil
+}
+func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, error) {
 	oldOffset, err := switchover.CalcDBOffset(ctx, oldDB)
 	if err != nil {
 		return nil, err
@@ -53,12 +58,17 @@ func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, e
 		oldDBID:    newDBID(),
 		newDBID:    newDBID(),
 		newURL:     newURL,
-		tables:     tables,
 		oldOffset:  oldOffset,
 		newOffset:  newOffset,
 		nodeStatus: make(map[string]switchover.Status),
 		statChange: make(chan struct{}),
 	}
+
+	err = s.RefreshTables(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	go s.listen()
 
 	return s, nil

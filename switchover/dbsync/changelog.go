@@ -67,16 +67,6 @@ func changeLogTrigDef(tableName string) string {
 		pq.QuoteIdentifier(changeLogTrigName(tableName)), pq.QuoteIdentifier(tableName))
 }
 
-func noTrigger(name string) bool {
-	ignored := []string{"gorp_migrations", "change_log", "switchover_state"}
-	for _, i := range ignored {
-		if name == i {
-			return true
-		}
-	}
-	return false
-}
-
 // ChangeLogEnable will instrument the database for the sync operation.
 func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
 	var stat string
@@ -110,25 +100,21 @@ func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
 	run("create initial entry", `insert into change_log (op, table_name, row_id) values ('INIT', '', '')`)
 
 	p := mpb.NewWithContext(ctx)
-	n := 0
+	process := make([]Table, 0, len(s.tables))
 	for _, t := range s.tables {
-		if noTrigger(t.Name) {
+		if contains(ignoreTriggerTables, t.Name) {
 			continue
 		}
-		n++
+		process = append(process, t)
 	}
-	bar := p.AddBar(int64(n),
+	bar := p.AddBar(int64(len(process)),
 		mpb.BarClearOnComplete(),
 		mpb.PrependDecorators(
 			decor.OnComplete(
 				decor.StaticName("Adding triggers..."),
 				"Instrumented all tables.")),
 	)
-	for _, t := range s.tables {
-		if noTrigger(t.Name) {
-			continue
-		}
-
+	for _, t := range process {
 		run("clear prev. trigger for "+t.SafeName(), changeLogTrigDel(t.Name))
 		run("set trigger for "+t.SafeName(), changeLogTrigDef(t.Name))
 		bar.IncrBy(1)

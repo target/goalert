@@ -13,8 +13,12 @@ import (
 )
 
 func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
+	err := s.RefreshTables(ctx)
+	if err != nil {
+		return err
+	}
+
 	p := mpb.NewWithContext(ctx)
-	var err error
 	var totalRows int64
 	var bars []*mpb.Bar
 	var toSync []Table
@@ -26,7 +30,6 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 		),
 	)
 	for _, t := range s.tables {
-
 		var rowCount int64
 		err := txSrc.QueryRowEx(ctx, `select count(*) from `+t.SafeName(), nil).Scan(&rowCount)
 		if err != nil {

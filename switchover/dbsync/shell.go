@@ -164,7 +164,7 @@ func RunShell(oldURL, newURL string) error {
 			p := mpb.NewWithContext(ctx)
 			process := make([]Table, 0, len(s.tables))
 			for _, t := range s.tables {
-				if ignoreTable(t.Name) {
+				if contains(ignoreSyncTables, t.Name) {
 					continue
 				}
 				process = append(process, t)
