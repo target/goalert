@@ -33,6 +33,8 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 		var rowCount int64
 		err := txSrc.QueryRowEx(ctx, `select count(*) from `+t.SafeName(), nil).Scan(&rowCount)
 		if err != nil {
+			scanBar.Abort(false)
+			p.Wait()
 			return err
 		}
 		scanBar.Increment()
@@ -72,7 +74,13 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 			pr, pw := io.Pipe()
 			bw := bufio.NewWriter(pw)
 			br := bufio.NewReader(pr)
-			errCh := make(chan error, 2)
+			errCh := make(chan error, 3)
+			go func() {
+				<-ctx.Done()
+				go pw.CloseWithError(ctx.Err())
+				go pr.CloseWithError(ctx.Err())
+				errCh <- ctx.Err()
+			}()
 			go func() {
 				defer pw.Close()
 				defer bw.Flush()

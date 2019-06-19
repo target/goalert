@@ -293,7 +293,7 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 		if err != nil {
 			return errors.Wrap(err, "disable triggers")
 		}
-		fmt.Println("Disabled triggers in", time.Since(start))
+		fmt.Println("Disabled destination triggers in", time.Since(start))
 	}
 
 	if dstLastChange == 0 {
