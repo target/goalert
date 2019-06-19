@@ -2783,17 +2783,6 @@ type AlertLogEntry {
 	message: String!
 }
 
-enum Event {
-	created
-	closed
-	notificationSent
-	escalated
-	acknowledged
-	policyUpdated
-	duplicateSuppressed
-	escalationRequest
-}
-
 # The escalation policy state details for the alert.
 type AlertState {
   lastEscalation: ISOTimestamp!
