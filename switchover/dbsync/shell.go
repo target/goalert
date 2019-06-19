@@ -337,6 +337,8 @@ func RunShell(oldURL, newURL string) error {
 			if cfg.NoPauseAPI {
 				pauseAPIStr = "no"
 			}
+
+			maxSync := cfg.MaxPause - 2*time.Second
 			fmt.Fprintln(details, status)
 			fmt.Fprintln(details, "Switch-Over Details")
 			fmt.Fprintln(details, "  Pause API Requests:", pauseAPIStr)
@@ -344,7 +346,7 @@ func RunShell(oldURL, newURL string) error {
 			fmt.Fprintln(details, "  Pause Starts After:", cfg.PauseDelay)
 			fmt.Fprintln(details, "  Pause Timeout     :", cfg.PauseTimeout)
 			fmt.Fprintln(details, "  Absolute Max Pause:", cfg.MaxPause)
-			fmt.Fprintln(details, "  Avail. Sync Time  :", cfg.MaxPause-2*time.Second-cfg.PauseTimeout, "-", cfg.MaxPause-2*time.Second)
+			fmt.Fprintln(details, "  Avail. Sync Time  :", cfg.MaxPause-2*time.Second-cfg.PauseTimeout, "-", maxSync)
 			fmt.Fprintln(details, "  Max Alloted Time  :", cfg.PauseDelay+cfg.MaxPause)
 			fmt.Fprintln(details)
 			fmt.Fprintln(details, "Ready?")
@@ -354,12 +356,19 @@ func RunShell(oldURL, newURL string) error {
 				return nil
 			}
 
-			start := time.Now()
-			err = s.Sync(ctx, false, false)
-			if err != nil {
-				return err
+			for {
+				start := time.Now()
+				err = s.Sync(ctx, false, false)
+				if err != nil {
+					return err
+				}
+				dur := time.Since(start).Truncate(time.Second / 10)
+				sh.Printf("Completed sync in %s\n", dur.String())
+				if dur < maxSync {
+					break
+				}
+				sh.Println("Took longer than max sync time, re-syncing")
 			}
-			sh.Printf("Completed sync in %s\n", time.Since(start).Truncate(time.Second/10).String())
 
 			nodes := s.NodeStatus()
 			n := len(nodes)
@@ -461,7 +470,7 @@ func RunShell(oldURL, newURL string) error {
 			p.Wait()
 
 			if !*noExtraSync {
-				start = time.Now()
+				start := time.Now()
 				err = s.Sync(ctx, false, false)
 				if err != nil {
 					return err
