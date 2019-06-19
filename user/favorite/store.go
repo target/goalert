@@ -64,15 +64,13 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,  assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
 	)
 	if err != nil {
 		return err
 	}
 
 	var rotationID, serviceID sql.NullString
-
-
 
 	switch tgt.TargetType() {
 	case assignment.TargetTypeRotation:
@@ -90,10 +88,6 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 		return errors.Wrap(err, "set favorite")
 	}
 
-
-
-
-
 	return nil
 }
 
@@ -104,19 +98,16 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		return err
 	}
 
-
-
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(),  assignment.TargetTypeService, assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
 	)
 	if err != nil {
 		return err
 	}
 
 	var rotationID, serviceID sql.NullString
-
 
 	switch tgt.TargetType() {
 	case assignment.TargetTypeRotation:
@@ -128,7 +119,6 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		serviceID.String = tgt.TargetID()
 
 	}
-
 
 	_, err = db.delete.ExecContext(ctx, userID, serviceID, rotationID)
 	if err == sql.ErrNoRows {
