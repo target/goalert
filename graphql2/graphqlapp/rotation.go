@@ -4,6 +4,7 @@ import (
 	context "context"
 	"database/sql"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/user"
@@ -11,7 +12,6 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"time"
-	"github.com/target/goalert/permission"
 
 	"github.com/pkg/errors"
 )
@@ -171,8 +171,6 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	if opts == nil {
 		opts = &graphql2.RotationSearchOptions{}
 	}
-
-
 
 	var searchOpts rotation.SearchOptions
 
