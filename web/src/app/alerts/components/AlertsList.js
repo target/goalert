@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
 import InfoIcon from '@material-ui/icons/Info'
 import List from '@material-ui/core/List'
@@ -143,10 +142,6 @@ const mapStateToProps = state => {
 @isFullScreen()
 @withRouter
 export default class AlertsList extends Component {
-  static contextTypes = {
-    router: p.object,
-  }
-
   state = {
     snackbarOpen: true, // always open unless clicked away from or there are services present
   }

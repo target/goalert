@@ -1,17 +1,13 @@
 import React, { Component } from 'react'
-import p from 'prop-types'
-import { Switch, Route } from 'react-router-dom'
+import { Switch, Route, withRouter } from 'react-router-dom'
 import Hidden from '@material-ui/core/Hidden'
 import IconButton from '@material-ui/core/IconButton'
 import { Menu as MenuIcon, ChevronLeft } from '@material-ui/icons'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth'
 
 @withWidth()
+@withRouter
 export default class ToolbarAction extends Component {
-  static contextTypes = {
-    router: p.object,
-  }
-
   removeLastPartOfPath = path => {
     let parts = path.split('/')
     parts.pop()
@@ -29,7 +25,7 @@ export default class ToolbarAction extends Component {
         aria-label='Back a Page'
         color='inherit'
         data-cy='nav-back-icon'
-        onClick={() => this.context.router.history.replace(route)}
+        onClick={() => this.props.history.replace(route)}
       >
         <ChevronLeft />
       </IconButton>

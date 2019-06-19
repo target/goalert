@@ -8,6 +8,7 @@ import Typography from '@material-ui/core/Typography'
 import moment from 'moment'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
+import { withRouter } from 'react-router-dom'
 import { setCheckedAlerts } from '../../actions'
 import { bindActionCreators } from 'redux'
 import statusStyles from '../../util/statusStyles'
@@ -46,11 +47,8 @@ const mapDispatchToProps = dispatch =>
   mapStateToProps,
   mapDispatchToProps,
 )
+@withRouter
 export default class AlertsListDataWrapper extends Component {
-  static contextTypes = {
-    router: p.object,
-  }
-
   static propTypes = {
     alert: p.object.isRequired,
     onServicePage: p.bool,
@@ -100,7 +98,7 @@ export default class AlertsListDataWrapper extends Component {
   }
 
   render() {
-    const { alert, checkedAlerts, classes, onServicePage } = this.props
+    const { alert, checkedAlerts, classes, history, onServicePage } = this.props
 
     const checkbox = (
       <Checkbox
@@ -137,9 +135,7 @@ export default class AlertsListDataWrapper extends Component {
         {checkbox}
         <div
           className={classes.listItem}
-          onClick={() =>
-            this.context.router.history.push(`/alerts/${alert.number}`)
-          }
+          onClick={() => history.push(`/alerts/${alert.number}`)}
         >
           <ListItemText disableTypography style={{ paddingRight: '2.75em' }}>
             <Typography>
