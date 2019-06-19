@@ -180,9 +180,7 @@ export function mergeFields(doc, newQuery) {
   }
   if (newQuery.definitions.length > 1) {
     throw new Error(
-      `found ${
-        newQuery.definitions.length
-      } query definitions in newQuery, but expected 1`,
+      `found ${newQuery.definitions.length} query definitions in newQuery, but expected 1`,
     )
   }
 

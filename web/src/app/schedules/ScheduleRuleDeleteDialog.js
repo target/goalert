@@ -69,9 +69,7 @@ export default class ScheduleRuleDeleteDialog extends React.PureComponent {
       <FormDialog
         onClose={this.props.onClose}
         title={`Remove ${startCase(this.props.target.type)} From Schedule?`}
-        subTitle={`This will remove all rules, as well as end any active or future on-call shifts on this schedule for ${
-          this.props.target.type
-        }: ${data.target.name}.`}
+        subTitle={`This will remove all rules, as well as end any active or future on-call shifts on this schedule for ${this.props.target.type}: ${data.target.name}.`}
         caption='Overrides will not be affected.'
         confirm
         errors={nonFieldErrors(status.error)}

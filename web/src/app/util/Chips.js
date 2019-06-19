@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
-
 import Chip from '@material-ui/core/Chip'
+import { withRouter } from 'react-router-dom'
 
 import {
   Layers as PolicyIcon,
@@ -13,6 +13,7 @@ import Avatar from '@material-ui/core/Avatar'
 import { UserAvatar } from './avatar'
 import { SlackBW } from '../icons'
 
+@withRouter
 export class ServiceChip extends Component {
   static propTypes = {
     id: p.string.isRequired,
@@ -21,12 +22,8 @@ export class ServiceChip extends Component {
     onDelete: p.func,
   }
 
-  static contextTypes = {
-    router: p.object,
-  }
-
   render() {
-    const { id, name, onDelete, style } = this.props
+    const { id, history, name, onDelete, style } = this.props
 
     return (
       <Chip
@@ -38,13 +35,14 @@ export class ServiceChip extends Component {
         }
         style={style}
         onDelete={onDelete}
-        onClick={() => this.context.router.history.push(`/services/${id}`)}
+        onClick={() => history.push(`/services/${id}`)}
         label={name}
       />
     )
   }
 }
 
+@withRouter
 export class UserChip extends Component {
   static propTypes = {
     id: p.string.isRequired,
@@ -54,14 +52,10 @@ export class UserChip extends Component {
     style: p.object,
   }
 
-  static contextTypes = {
-    router: p.object,
-  }
-
   render() {
-    const { id, name, onDelete, onClick, style } = this.props
+    const { id, history, name, onDelete, onClick, style } = this.props
 
-    let localOnClick = () => this.context.router.history.push(`/users/${id}`)
+    let localOnClick = () => history.push(`/users/${id}`)
     if (onClick) {
       localOnClick = onClick
     }
@@ -79,6 +73,7 @@ export class UserChip extends Component {
   }
 }
 
+@withRouter
 export class RotationChip extends Component {
   static propTypes = {
     id: p.string.isRequired,
@@ -87,12 +82,8 @@ export class RotationChip extends Component {
     onDelete: p.func,
   }
 
-  static contextTypes = {
-    router: p.object,
-  }
-
   render() {
-    const { id, name, onDelete, style } = this.props
+    const { id, history, name, onDelete, style } = this.props
 
     return (
       <Chip
@@ -103,7 +94,7 @@ export class RotationChip extends Component {
           </Avatar>
         }
         onDelete={onDelete}
-        onClick={() => this.context.router.history.push(`/rotations/${id}`)}
+        onClick={() => history.push(`/rotations/${id}`)}
         label={name}
         style={style}
       />
@@ -128,6 +119,7 @@ const formatPolicyName = (name, stepNum) => {
   )
 }
 
+@withRouter
 export class PolicyChip extends Component {
   static propTypes = {
     id: p.string.isRequired,
@@ -137,12 +129,8 @@ export class PolicyChip extends Component {
     onDelete: p.func,
   }
 
-  static contextTypes = {
-    router: p.object,
-  }
-
   render() {
-    const { id, name, stepNum, onDelete, style } = this.props
+    const { id, history, name, stepNum, onDelete, style } = this.props
 
     return (
       <Chip
@@ -153,9 +141,7 @@ export class PolicyChip extends Component {
           </Avatar>
         }
         onDelete={onDelete}
-        onClick={() =>
-          this.context.router.history.push(`/escalation-policies/${id}`)
-        }
+        onClick={() => history.push(`/escalation-policies/${id}`)}
         label={formatPolicyName(name, stepNum)}
         style={style}
       />
@@ -163,6 +149,7 @@ export class PolicyChip extends Component {
   }
 }
 
+@withRouter
 export class ScheduleChip extends Component {
   static propTypes = {
     id: p.string.isRequired,
@@ -171,12 +158,8 @@ export class ScheduleChip extends Component {
     onDelete: p.func,
   }
 
-  static contextTypes = {
-    router: p.object,
-  }
-
   render() {
-    const { id, name, onDelete, style } = this.props
+    const { id, history, name, onDelete, style } = this.props
 
     return (
       <Chip
@@ -187,7 +170,7 @@ export class ScheduleChip extends Component {
           </Avatar>
         }
         onDelete={onDelete}
-        onClick={() => this.context.router.history.push(`/schedules/${id}`)}
+        onClick={() => history.push(`/schedules/${id}`)}
         label={name}
         style={style}
       />

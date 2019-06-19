@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
-import { PropTypes as p } from 'prop-types'
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import gql from 'graphql-tag'
+import { withRouter } from 'react-router-dom'
 import { ServiceSelect } from '../../selection'
 import ApolloFormDialog from '../../dialogs/components/ApolloFormDialog'
 
@@ -55,11 +55,8 @@ const mutation = gql`
   }
 `
 
+@withRouter
 export default class AlertForm extends Component {
-  static contextTypes = {
-    router: p.object,
-  }
-
   constructor(props) {
     super(props)
 
@@ -95,7 +92,7 @@ export default class AlertForm extends Component {
     const alertPage = '/alerts/' + encodeURIComponent(alert.number)
 
     // Redirect to created alert's page
-    this.context.router.history.push(alertPage)
+    this.props.history.push(alertPage)
   }
 
   getVariables = () => {
