@@ -55,6 +55,7 @@ declare global {
     name: string
     description: string
     timeZone: string
+    isFavorite: boolean
   }
 
   interface ScheduleOptions {
@@ -110,6 +111,7 @@ function setScheduleTarget(
       name
       description
       timeZone
+      isFavorite
       target(input: $tgt) {
         target {id, name, type}
         rules {

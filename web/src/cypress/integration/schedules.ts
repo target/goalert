@@ -181,10 +181,8 @@ function testSchedules(screen: ScreenFormat) {
     it('should check to make sure the schedule is on the first page', () => {
       cy.visit('/schedules')
       cy.get('#app').contains(sched.name)
-      /*cy.get("ul").within(() => {
-        cy.get("#app")
-      }).contains(sched.name)*/
     })
+    // test in escalationPolicySteps to determine if favorites appear in the dropdown list
   })
 
   describe('Schedule Assignments', () => {
