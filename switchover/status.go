@@ -46,17 +46,6 @@ func ParseStatus(str string) (*Status, error) {
 	return s, nil
 }
 
-func stripAppName(urlStr string) string {
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		panic(err)
-	}
-	q := u.Query()
-	q.Del("application_name")
-	u.RawQuery = q.Encode()
-	return u.String()
-}
-
 func (s Status) serialize() string {
 	v := make(url.Values)
 	v.Set("NodeID", s.NodeID)
