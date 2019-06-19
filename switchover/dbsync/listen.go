@@ -2,6 +2,7 @@ package dbsync
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -9,15 +10,15 @@ import (
 	"github.com/target/goalert/switchover"
 )
 
-func (s *Sync) listen() {
+func (s *Sync) listen(db *sql.DB) {
 	for {
 		// ignoring errors (will reconnect)
 		err := func() error {
-			c, err := stdlib.AcquireConn(s.oldDB)
+			c, err := stdlib.AcquireConn(db)
 			if err != nil {
 				return err
 			}
-			defer stdlib.ReleaseConn(s.oldDB, c)
+			defer stdlib.ReleaseConn(db, c)
 
 			err = c.Listen(switchover.StateChannel)
 			if err != nil {

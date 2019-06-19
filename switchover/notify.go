@@ -33,6 +33,11 @@ func (h *Handler) initNewDBListen(name string) error {
 		l.Close()
 		return err
 	}
+	err = l.Listen(StateChannel)
+	if err != nil {
+		l.Close()
+		return err
+	}
 
 	go func() {
 		for n := range l.NotificationChannel() {
@@ -45,6 +50,16 @@ func (h *Handler) initNewDBListen(name string) error {
 				h.mx.Lock()
 				h.dbNextID = n.Extra
 				h.mx.Unlock()
+			case StateChannel:
+				s, err := ParseStatus(n.Extra)
+				if err != nil {
+					log.Log(context.Background(), errors.Wrap(err, "parse Status string"))
+					continue
+				}
+				if s.State == StateAbort {
+					go h.pushState(StateAbort)
+				}
+				h.statusCh <- s
 			}
 		}
 	}()
