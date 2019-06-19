@@ -13,7 +13,7 @@ import (
 
 func (s *Sync) status(ctx context.Context) (string, error) {
 	rows, err := s.oldDB.QueryContext(ctx, `
-		select count(*), application_name, usename
+		select count(*), coalesce(application_name, ''), coalesce(usename, '')
 		from pg_stat_activity
 		where datname=current_database()
 		group by application_name, usename
