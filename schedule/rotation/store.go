@@ -13,7 +13,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
-
 )
 
 // ErrNoState is returned when there is no state information available for a rotation.
@@ -462,8 +461,6 @@ func (db *DB) FindAllRotations(ctx context.Context) ([]Rotation, error) {
 
 func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 
-
-
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -505,7 +502,6 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 
 func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
 
-
 	err := validate.UUID("RotationID", id)
 	if err != nil {
 		return nil, err
@@ -529,7 +525,6 @@ func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
 		return nil, err
 	}
 	r.Start = r.Start.In(loc)
-
 
 	return &r, nil
 }

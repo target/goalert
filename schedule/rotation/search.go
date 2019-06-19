@@ -23,10 +23,8 @@ type SearchOptions struct {
 
 	Limit int `json:"-"`
 
-
 	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
-	FavoritesOnly bool `json:"o,omitempty"`
-
+	FavoritesOnly bool `json:"b,omitempty"`
 
 	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
@@ -36,8 +34,8 @@ type SearchOptions struct {
 
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
-	Name string `json:"n,omitempty"`
-	IsFavorite bool `json:"f"`
+	Name       string `json:"n,omitempty"`
+	IsFavorite bool   `json:"f"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
@@ -68,12 +66,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	LIMIT {{.Limit}}
 `))
 
-
-
-
-
 type renderData SearchOptions
-
 
 func (opts renderData) OrderBy() string {
 	if opts.FavoritesFirst {
@@ -91,8 +84,6 @@ func (opts renderData) SearchStr() string {
 	return "%" + search.Escape(opts.Search) + "%"
 }
 
-
-
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
 		opts.Limit = search.DefaultMaxResults
@@ -106,8 +97,6 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
 	}
-
-
 
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
@@ -130,7 +119,6 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 }
 
 func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, error) {
-
 
 	if opts == nil {
 		opts = &SearchOptions{}
@@ -155,10 +143,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 		return nil, errors.Wrap(err, "render query")
 	}
 
-
-
-
-
 	rows, err := db.db.QueryContext(ctx, query, args...)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -172,7 +156,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 	var r Rotation
 	var tz string
 	for rows.Next() {
-		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz, &r.isUserFavorite )
+		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz, &r.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}
@@ -183,7 +167,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 		r.Start = r.Start.In(loc)
 		result = append(result, r)
 	}
-
 
 	return result, nil
 }
