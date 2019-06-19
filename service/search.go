@@ -209,8 +209,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 	}
 	defer rows.Close()
 
-
-
 	var result []Service
 	for rows.Next() {
 		var s Service
@@ -220,8 +218,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 		}
 
 		result = append(result, s)
-
-
 
 	}
 
