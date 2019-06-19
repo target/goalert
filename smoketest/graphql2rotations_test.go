@@ -23,7 +23,7 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 		({{uuid "r2"}}, 'test2', 'test2', 'daily', now(), 'UTC');
 `
 
-	h := harness.NewHarness(t, sql, "user-favorites-drop-constraint")
+	h := harness.NewHarness(t, sql, "add-rotation-favorite")
 	defer h.Close()
 
 	doQL := func(t *testing.T, query string, res interface{}) {
