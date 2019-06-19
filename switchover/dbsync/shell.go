@@ -161,15 +161,31 @@ func RunShell(oldURL, newURL string) error {
 				return errors.New("must be idle")
 			}
 
+			p := mpb.NewWithContext(ctx)
+			process := make([]Table, 0, len(s.tables))
 			for _, t := range s.tables {
 				if ignoreTable(t.Name) {
 					continue
 				}
+				process = append(process, t)
+			}
+			bar := p.AddBar(int64(len(process)),
+				mpb.BarClearOnComplete(),
+				mpb.PrependDecorators(
+					decor.OnComplete(
+						decor.StaticName("Truncating tables..."),
+						"Truncated all destination tables.")),
+			)
+			for _, t := range process {
 				_, err = s.newDB.ExecContext(ctx, fmt.Sprintf("truncate table %s cascade", t.SafeName()))
 				if err != nil {
+					bar.Abort(false)
+					p.Wait()
 					return errors.Wrapf(err, "truncate %s", t.Name)
 				}
+				bar.IncrBy(1)
 			}
+			p.Wait()
 			_, err = s.newDB.ExecContext(ctx, "drop table if exists change_log")
 			if err != nil {
 				return errors.Wrap(err, "drop dest change_log")

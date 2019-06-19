@@ -7,6 +7,8 @@ import (
 	"github.com/abiosoft/ishell"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"github.com/vbauerster/mpb/v4"
+	"github.com/vbauerster/mpb/v4/decor"
 )
 
 const (
@@ -107,7 +109,21 @@ func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
 	run("define change hook", changeLogFuncDef)
 	run("create initial entry", `insert into change_log (op, table_name, row_id) values ('INIT', '', '')`)
 
-	sh.Println("Instrumenting tables...")
+	p := mpb.NewWithContext(ctx)
+	n := 0
+	for _, t := range s.tables {
+		if noTrigger(t.Name) {
+			continue
+		}
+		n++
+	}
+	bar := p.AddBar(int64(n),
+		mpb.BarClearOnComplete(),
+		mpb.PrependDecorators(
+			decor.OnComplete(
+				decor.StaticName("Adding triggers..."),
+				"Instrumented all tables.")),
+	)
 	for _, t := range s.tables {
 		if noTrigger(t.Name) {
 			continue
@@ -115,7 +131,9 @@ func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
 
 		run("clear prev. trigger for "+t.SafeName(), changeLogTrigDel(t.Name))
 		run("set trigger for "+t.SafeName(), changeLogTrigDef(t.Name))
+		bar.IncrBy(1)
 	}
+	p.Wait()
 	if err != nil {
 		return err
 	}
@@ -157,10 +175,21 @@ func (s *Sync) ChangeLogDisable(ctx context.Context, sh *ishell.Context) error {
 		_, err = s.oldDB.ExecContext(ctx, stmt)
 		err = errors.Wrap(err, name)
 	}
-	sh.Println("Removing triggers...")
+
+	p := mpb.NewWithContext(ctx)
+	bar := p.AddBar(int64(len(s.tables)),
+		mpb.BarClearOnComplete(),
+		mpb.PrependDecorators(
+			decor.OnComplete(
+				decor.StaticName("Removing triggers..."),
+				"Removed all triggers."),
+		),
+	)
 	for _, t := range s.tables {
 		run("clear trigger for "+t.SafeName(), changeLogTrigDel(t.Name))
+		bar.IncrBy(1)
 	}
+	p.Wait()
 
 	sh.Println("Resetting change log...")
 	run("remove change hook", changeLogFuncDel)
