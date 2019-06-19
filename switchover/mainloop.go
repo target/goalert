@@ -31,10 +31,9 @@ func (h *Handler) setState(ctx context.Context, newState State) {
 
 	h.mx.Lock()
 	h.state = newState
-	h.dbID = ""
-	h.dbNextID = ""
-	_, err := h.sendNotification.ExecContext(ctx, StateChannel, h.status().serialize())
 	h.mx.Unlock()
+
+	_, err := h.sendNotification.ExecContext(ctx, StateChannel, h.Status().serialize())
 	if err != nil {
 		log.Log(ctx, err)
 	}
@@ -61,10 +60,6 @@ func (h *Handler) allNodes(state ...State) bool {
 func (h *Handler) CheckDBID(id string) bool {
 	h.mx.Lock()
 	defer h.mx.Unlock()
-	if h.dbID == "" {
-		h.dbID = id
-		return true
-	}
 
 	return h.dbID == id
 }
@@ -74,20 +69,15 @@ func (h *Handler) CheckDBID(id string) bool {
 func (h *Handler) CheckDBNextID(id string) bool {
 	h.mx.Lock()
 	defer h.mx.Unlock()
-	if h.dbNextID == "" {
-		h.dbNextID = id
-		return true
-	}
 
 	return h.dbNextID == id
 }
 func (h *Handler) updateNodeStatus(ctx context.Context, s *Status) bool {
-	curStat := h.Status()
-	if curStat.DBID != s.DBID {
+	if !h.CheckDBID(s.DBID) {
 		log.Logf(ctx, "Switch-Over Abort: NodeID="+s.NodeID+" has mismatched DB ID")
 		h.setState(ctx, StateAbort)
 	}
-	if curStat.DBNextID != s.DBNextID {
+	if !h.CheckDBNextID(s.DBNextID) {
 		log.Logf(ctx, "Switch-Over Abort: NodeID="+s.NodeID+" has mismatched DB Next ID")
 		h.setState(ctx, StateAbort)
 	}

@@ -3,10 +3,10 @@ package dbsync
 import (
 	"context"
 	"fmt"
-	"github.com/target/goalert/switchover"
 	"time"
 
 	"github.com/jackc/pgx/stdlib"
+	"github.com/target/goalert/switchover"
 )
 
 func (s *Sync) listen() {

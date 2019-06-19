@@ -81,6 +81,10 @@ func NewHandler(ctx context.Context, oldC, newC driver.Connector, oldURL, newURL
 	if err != nil {
 		return nil, errors.Wrap(err, "init DB listener")
 	}
+	err = h.initNewDBListen(newURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "init DB-next listener")
+	}
 
 	go h.loop()
 	return h, nil

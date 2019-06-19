@@ -72,6 +72,10 @@ func RunShell(oldURL, newURL string) error {
 	if err != nil {
 		return errors.Wrap(err, "prepare notify statement")
 	}
+	sendNotifNew, err := dbNew.PrepareContext(ctx, `select pg_notify($1, $2)`)
+	if err != nil {
+		return errors.Wrap(err, "prepare notify statement (next db)")
+	}
 
 	s, err := NewSync(ctx, db, dbNew, newURL)
 	if err != nil {
@@ -208,10 +212,19 @@ func RunShell(oldURL, newURL string) error {
 				delete(s.nodeStatus, key)
 			}
 			s.mx.Unlock()
+
+			_, err = sendNotif.ExecContext(ctx, switchover.DBIDChannel, s.oldDBID)
+			if err != nil {
+				return err
+			}
+			_, err = sendNotifNew.ExecContext(ctx, switchover.DBIDChannel, s.newDBID)
+			if err != nil {
+				return err
+			}
+
 			_, err := sendNotif.ExecContext(ctx, switchover.ControlChannel, "reset")
 			if err != nil {
 				return err
-
 			}
 
 			status, err := s.status(ctx)
@@ -343,7 +356,7 @@ func RunShell(oldURL, newURL string) error {
 			}
 
 			for _, stat := range nodes {
-				if !stat.MatchDBNext(newURL) {
+				if s.oldDBID != stat.DBID || s.newDBID != stat.DBNextID {
 					return errors.New("one or more nodes (or this shell) have mismatched config, check db-url-next")
 				}
 				if stat.At.Before(time.Now().Add(-5 * time.Second)) {

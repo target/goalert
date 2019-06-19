@@ -63,7 +63,7 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 	nodes := s.NodeStatus()
 	for _, stat := range nodes {
 		cfg := "Valid"
-		if !stat.MatchDBNext(s.newURL) {
+		if s.oldDBID != stat.DBID || s.newDBID != stat.DBNextID {
 			cfg = "Invalid"
 		}
 		table.Body.Cells = append(table.Body.Cells, []*simpletable.Cell{

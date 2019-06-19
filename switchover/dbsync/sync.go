@@ -27,6 +27,8 @@ type Sync struct {
 	nodeStatus   map[string]switchover.Status
 	mx           sync.Mutex
 	statChange   chan struct{}
+
+	oldDBID, newDBID string
 }
 
 func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, error) {
@@ -48,6 +50,8 @@ func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, e
 	s := &Sync{
 		oldDB:      oldDB,
 		newDB:      newDB,
+		oldDBID:    newDBID(),
+		newDBID:    newDBID(),
 		newURL:     newURL,
 		tables:     tables,
 		oldOffset:  oldOffset,
