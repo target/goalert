@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
+	"github.com/target/goalert/search"
 	"strings"
 	"time"
 
@@ -91,6 +92,12 @@ type SearchOptions struct {
 	// Limit restricts the maximum number of rows returned. Default is 25. Maximum is 50.
 	// Note: Limit is applied AFTER Offset is taken into account.
 	Limit int
+
+	After SearchCursor `json:"a,omitempty"`
+}
+
+type SearchCursor struct {
+	ID     int    `json:"i,omitempty"`
 }
 
 // SortBy describes the possible primary sort options for alert logs.
@@ -589,7 +596,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Entry, int, er
 
 	err = validate.Many(
 		err,
-		validate.Range("Limit", opts.Limit, 1, 50),
+		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.Range("Offset", opts.Offset, 0, 1000000),
 		validate.OneOf("SortBy", opts.SortBy,
 			SortByAlertID,
@@ -637,7 +644,8 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Entry, int, er
 	(coalesce(a.timestamp < cast($4 as timestamp with time zone), true)) and
 	($5 = '' or a.event = $5::enum_alert_log_event)and
 	($6 = '' or a.sub_user_id = cast($6 as UUID)) and 
-	($7 = '' or a.sub_integration_key_id = cast($7 as UUID))`
+	($7 = '' or a.sub_integration_key_id = cast($7 as UUID)) and
+	($8 = '0' OR a.id < $8 :: int)`
 
 	fetchQueryStr := fmt.Sprintf(`
 		SELECT
@@ -700,6 +708,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Entry, int, er
 		opts.Event,
 		opts.UserID,
 		opts.IntegrationKeyID,
+		opts.After.ID,
 	).Scan(&total)
 	if err != nil {
 		return nil, 0, errors.Wrap(err, "get total results")
@@ -713,6 +722,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Entry, int, er
 		opts.Event,
 		opts.UserID,
 		opts.IntegrationKeyID,
+		opts.After.ID,
 	)
 	if err != nil {
 		return nil, 0, err
