@@ -69,6 +69,7 @@ export default class UserContactMethodForm extends React.PureComponent {
             >
               <MenuItem value='+1'>+1 (USA)</MenuItem>
               <MenuItem value='+91'>+91 (India)</MenuItem>
+              <MenuItem value='+44'>+44 (UK)</MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
