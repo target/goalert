@@ -182,21 +182,13 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	}
 
 	var s alertlog.SearchOptions
-
 	if opts.Limit != nil {
 		s.Limit = *opts.Limit
 	}
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
-
-	aID, err := a.AlertID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	s.AlertID = aID
-	err = validate.Many(
+	err := validate.Many(
 		validate.Range("Limit", s.Limit, 15, search.MaxResults),
 	)
 	if err != nil {
@@ -210,9 +202,15 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 		}
 	}
 
+	aID, err := a.AlertID(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	s.AlertID = aID
 	s.SortDesc = true
 
 	s.Limit++
+
 	logs, _, err := a.AlertLogStore.Search(ctx, &s)
 	if err != nil {
 		return nil, err
