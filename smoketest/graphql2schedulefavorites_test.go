@@ -74,7 +74,7 @@ func TestGraphQL2ScheduleFavorites(t *testing.T) {
 	if s.Schedule.IsUserFav != true {
 		t.Fatalf("ERROR: ScheduleID %s IsUserFavorite=%t; want true", h.UUID("schedId"), s.Schedule.IsUserFav)
 	}
-	
+
 	// test unsetting the favorite
 	doQL(t, fmt.Sprintf(`
 	mutation {
