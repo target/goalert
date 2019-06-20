@@ -2768,8 +2768,8 @@ type Alert {
 }
 
 input AlertRecentEventsOptions {
-	limit: Int = 50
-	after: String = "" 
+  limit: Int = 50
+  after: String = "" 
 }
 
 type AlertLogEntryConnection {
@@ -2778,9 +2778,9 @@ type AlertLogEntryConnection {
 }
 
 type AlertLogEntry {
-	id: Int!
-	timestamp: ISOTimestamp!
-	message: String!
+  id: Int!
+  timestamp: ISOTimestamp!
+  message: String!
 }
 
 # The escalation policy state details for the alert.
