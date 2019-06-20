@@ -121,17 +121,39 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		createRotation:   p.P(`INSERT INTO rotations (id, name, description, type, start_time, shift_length, time_zone) VALUES ($1, $2, $3, $4, $5, $6, $7)`),
 		updateRotation:   p.P(`UPDATE rotations SET name = $2, description = $3, type = $4, start_time = $5, shift_length = $6, time_zone = $7 WHERE id = $1`),
 		findAllRotations: p.P(`SELECT id, name, description, type, start_time, shift_length, time_zone FROM rotations`),
-		findRotation: p.P(`SELECT r.id, r.name, r.description, r.type, r.start_time, r.shift_length, r.time_zone,
-									u is distinct from null FROM rotations r 
-									LEFT JOIN user_favorites u ON u.tgt_rotation_id = r.id AND u.user_id = $2 
-									WHERE r.id = $1`),
+		findRotation: p.P(`
+			SELECT 
+				r.id, 
+				r.name, 
+				r.description, 
+				r.type, 
+				r.start_time, 
+				r.shift_length, 
+				r.time_zone, 
+				u IS DISTINCT FROM NULL 
+			FROM rotations r 
+			LEFT JOIN user_favorites u ON u.tgt_rotation_id = r.id 
+			AND u.user_id = $2 
+			WHERE r.id = $1
+		`),
 		findRotationForUpdate: p.P(`SELECT id, name, description, type, start_time, shift_length, time_zone FROM rotations WHERE id = $1 FOR UPDATE`),
 		deleteRotation:        p.P(`DELETE FROM rotations WHERE id = ANY($1)`),
 
-		findMany: p.P(`SELECT r.id, r.name, r.description, r.type, r.start_time, r.shift_length, r.time_zone,
-									u is distinct from null FROM rotations r 
-									LEFT JOIN user_favorites u ON u.tgt_rotation_id = r.id AND u.user_id = $2 
-									WHERE r.id = any($1)`),
+		findMany: p.P(`
+			SELECT 
+				r.id, 
+				r.name, 
+				r.description, 
+				r.type, 
+				r.start_time, 
+				r.shift_length, 
+				r.time_zone,
+				u IS DISTINCT FROM NULL 
+			FROM rotations r 
+			LEFT JOIN user_favorites u ON u.tgt_rotation_id = r.id 
+			AND u.user_id = $2 
+			WHERE r.id = ANY($1)
+		`),
 
 		partRotID: p.P(`SELECT rotation_id FROM rotation_participants WHERE id = $1`),
 
@@ -317,12 +339,10 @@ func (db *DB) StateTx(ctx context.Context, tx *sql.Tx, id string) (*State, error
 	if err != nil {
 		return nil, err
 	}
-
 	stmt := db.state
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-
 	row := stmt.QueryRowContext(ctx, id)
 	var s State
 	var part sql.NullString
@@ -340,7 +360,6 @@ func (db *DB) StateTx(ctx context.Context, tx *sql.Tx, id string) (*State, error
 }
 
 func (db *DB) FindAllStateByScheduleID(ctx context.Context, scheduleID string) ([]State, error) {
-
 	err := validate.UUID("ScheduleID", scheduleID)
 	if err != nil {
 		return nil, err
@@ -375,7 +394,6 @@ func (db *DB) FindAllStateByScheduleID(ctx context.Context, scheduleID string) (
 }
 
 func (db *DB) CreateRotation(ctx context.Context, r *Rotation) (*Rotation, error) {
-
 	return db.CreateRotationTx(ctx, nil, r)
 }
 
@@ -432,7 +450,6 @@ func (db *DB) UpdateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) err
 	return err
 }
 func (db *DB) FindAllRotations(ctx context.Context) ([]Rotation, error) {
-
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -473,7 +490,6 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 	}
 
 	userID := permission.UserID(ctx)
-
 	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids), userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -503,7 +519,6 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 }
 
 func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
-
 	err := validate.UUID("RotationID", id)
 	if err != nil {
 		return nil, err
@@ -514,7 +529,6 @@ func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
 	}
 
 	userID := permission.UserID(ctx)
-
 	row := db.findRotation.QueryRowContext(ctx, id, userID)
 	var r Rotation
 	var tz string
@@ -527,7 +541,6 @@ func (db *DB) FindRotation(ctx context.Context, id string) (*Rotation, error) {
 		return nil, err
 	}
 	r.Start = r.Start.In(loc)
-
 	return &r, nil
 }
 

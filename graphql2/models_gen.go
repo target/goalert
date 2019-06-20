@@ -81,7 +81,6 @@ type CreateRotationInput struct {
 	Description *string       `json:"description"`
 	TimeZone    string        `json:"timeZone"`
 	Start       time.Time     `json:"start"`
-	IsFavorite  *bool         `json:"isFavorite"`
 	Type        rotation.Type `json:"type"`
 	ShiftLength *int          `json:"shiftLength"`
 	UserIDs     []string      `json:"userIDs"`

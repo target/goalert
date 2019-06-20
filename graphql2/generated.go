@@ -2580,7 +2580,6 @@ input CreateRotationInput {
 
   timeZone: String!
   start: ISOTimestamp!
-  isFavorite: Boolean
 
   type: RotationType!
   shiftLength: Int = 1
@@ -10234,12 +10233,6 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 		case "start":
 			var err error
 			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "isFavorite":
-			var err error
-			it.IsFavorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

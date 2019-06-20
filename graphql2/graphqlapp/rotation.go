@@ -173,7 +173,6 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	}
 
 	var searchOpts rotation.SearchOptions
-
 	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search

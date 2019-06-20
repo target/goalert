@@ -64,7 +64,7 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation),
 	)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation, assignment.TargetTypeSchedule),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation),
 	)
 	if err != nil {
 		return err
@@ -117,7 +117,6 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	case assignment.TargetTypeService:
 		serviceID.Valid = true
 		serviceID.String = tgt.TargetID()
-
 	}
 
 	_, err = db.delete.ExecContext(ctx, userID, serviceID, rotationID)

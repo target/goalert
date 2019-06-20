@@ -9,9 +9,6 @@ import (
 
 func TestGraphQL2RotationsFavorite(t *testing.T) {
 	t.Parallel()
-
-	//insert user and rotation
-
 	sql := `
 	insert into users (id, name, email, role) 
 	values 
@@ -22,7 +19,6 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 		({{uuid "r1"}}, 'test', 'test', 'daily', now(), 'UTC'),
 		({{uuid "r2"}}, 'test2', 'test2', 'daily', now(), 'UTC');
 `
-
 	h := harness.NewHarness(t, sql, "add-rotation-favorite")
 	defer h.Close()
 
@@ -47,15 +43,14 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 
 	doQL(t, fmt.Sprintf(`
 	mutation {
-   		setFavorite(input:{
-			target:{
-				id:"%s", 
+   		setFavorite (input: {
+			target: {
+				id: "%s", 
 				type: rotation
-				}, 
+			}, 
 			favorite: true})
-  }
+  		}
 	`, h.UUID("r1")), nil)
-
 	var r struct {
 		Rotation struct {
 			IsUserFav bool `json:"isFavorite"`
@@ -71,23 +66,19 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 	`, h.UUID("r1")), &r)
 
 	if r.Rotation.IsUserFav != true {
-		t.Fatalf("ERROR: RotationID %s IsUserFavorite=%t; want true", h.UUID("r1"), r.Rotation.IsUserFav)
+		t.Fatalf("ERROR: RotationID %s isFavorite=%t; want true", h.UUID("r1"), r.Rotation.IsUserFav)
 	}
-
-	//mutate to false
 
 	doQL(t, fmt.Sprintf(`
 	mutation {
-   		setFavorite(input:{
-			target:{
-				id:"%s", 
+   		setFavorite (input: {
+			target: {
+				id: "%s", 
 				type: rotation
-				}, 
+			}, 
 			favorite: false})
-  }
+  		}
 	`, h.UUID("r1")), nil)
-
-	//check to make sure its true
 
 	doQL(t, fmt.Sprintf(`
 		query {
@@ -101,8 +92,6 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want true", h.UUID("r1"), r.Rotation.IsUserFav)
 	}
 
-	//Check to make sure second is false
-
 	doQL(t, fmt.Sprintf(`
 		query {
 			rotation(id: "%s") { 
@@ -115,20 +104,16 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want false", h.UUID("r2"), r.Rotation.IsUserFav)
 	}
 
-	//mutate second to true
-
 	doQL(t, fmt.Sprintf(`
 	mutation {
-   		setFavorite(input:{
-			target:{
-				id:"%s", 
+   		setFavorite (input: {
+			target: {
+				id: "%s", 
 				type: rotation
-				}, 
+			}, 
 			favorite: true})
-  }
+  		}
 	`, h.UUID("r2")), nil)
-
-	//check to make sure its true
 
 	doQL(t, fmt.Sprintf(`
 		query {
@@ -142,20 +127,16 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want true", h.UUID("r2"), r.Rotation.IsUserFav)
 	}
 
-	//mutate second to false
-
 	doQL(t, fmt.Sprintf(`
 	mutation {
-   		setFavorite(input:{
-			target:{
-				id:"%s", 
+   		setFavorite (input: {
+			target: {
+				id: "%s", 
 				type: rotation
-				}, 
+			}, 
 			favorite: false})
-  }
-	`, h.UUID("r2")), nil)
-
-	//check to make sure its false
+  		}
+	`, h.UUID("r1")), nil)
 
 	doQL(t, fmt.Sprintf(`
 		query {

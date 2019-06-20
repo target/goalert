@@ -218,7 +218,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 		}
 
 		result = append(result, s)
-
 	}
 
 	return result, nil

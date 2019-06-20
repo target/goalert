@@ -29,6 +29,7 @@ type SearchOptions struct {
 	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
 
+	//FavoritesUserID is the userID associated with the rotation favorite
 	FavoritesUserID string `json:"u,omitempty"`
 }
 
@@ -40,9 +41,16 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		rot.id, rot.name, rot.description, rot.type, rot.start_time, rot.shift_length, rot.time_zone, fav IS DISTINCT FROM NULL
+		rot.id, 
+		rot.name, 
+		rot.description, 
+		rot.type, 
+		rot.start_time, 
+		rot.shift_length, 
+		rot.time_zone, 
+		fav IS DISTINCT FROM NULL
 	FROM rotations rot
-		{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON rot.id = fav.tgt_rotation_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
+	{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON rot.id = fav.tgt_rotation_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
 		AND NOT rot.id = any(:omit)
@@ -50,7 +58,6 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .SearchStr}}
 		AND (rot.name ILIKE :search OR rot.description ILIKE :search)
 	{{end}}
-
 	{{if .After.Name}}
 		AND
 		{{if not .FavoritesFirst}}
@@ -60,7 +67,6 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		{{else}}
 			(fav isnull AND lower(rot.name) > lower(:afterName))
 		{{end}}
-
 	{{end}}
 	ORDER BY {{ .OrderBy }}
 	LIMIT {{.Limit}}
@@ -72,7 +78,6 @@ func (opts renderData) OrderBy() string {
 	if opts.FavoritesFirst {
 		return "fav, lower(rot.name)"
 	}
-
 	return "lower(rot.name)"
 }
 
@@ -101,7 +106,6 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
 	}
-
 	if err != nil {
 		return nil, err
 	}

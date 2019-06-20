@@ -114,11 +114,6 @@ function testRotations(screen: ScreenFormat) {
       cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
     })
 
-    // it('should have favored rotations move to first on rotation list', ()=>{
-    //   cy.pageSearch('Customer model Mobility Rotation')
-    //
-    // })
-
     it('should display users correctly', () => {
       cy.get('ul[data-cy=users]')
         .find('li')
