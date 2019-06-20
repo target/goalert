@@ -49,6 +49,11 @@ const countryCodeOptions = [
     value: '+91',
     length: 10,
   },
+  {
+    label: '+44 (United Kingdom)',
+    value: '+44',
+    length: 10,
+  },
 ]
 
 const fieldStyle = {

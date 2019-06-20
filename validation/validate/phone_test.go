@@ -25,6 +25,7 @@ func TestPhone(t *testing.T) {
 		"+919632040000",
 		"+17734562190",
 		"+916301210000",
+		"+447480809090",
 	}
 	for _, number := range valid {
 		check(number, true)
@@ -33,6 +34,7 @@ func TestPhone(t *testing.T) {
 	invalid := []string{
 		"+10633453456",
 		"+15555555555",
+		"+4474808090",
 	}
 	for _, number := range invalid {
 		check(number, false)
