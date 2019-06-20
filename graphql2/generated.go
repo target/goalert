@@ -336,10 +336,11 @@ type ComplexityRoot struct {
 	}
 
 	UserContactMethod struct {
-		ID    func(childComplexity int) int
-		Name  func(childComplexity int) int
-		Type  func(childComplexity int) int
-		Value func(childComplexity int) int
+		Disabled func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Type     func(childComplexity int) int
+		Value    func(childComplexity int) int
 	}
 
 	UserNotificationRule struct {
@@ -1947,6 +1948,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserConnection.PageInfo(childComplexity), true
 
+	case "UserContactMethod.Disabled":
+		if e.complexity.UserContactMethod.Disabled == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.Disabled(childComplexity), true
+
 	case "UserContactMethod.ID":
 		if e.complexity.UserContactMethod.ID == nil {
 			break
@@ -2869,13 +2877,12 @@ enum ContactMethodType {
 # A method of contacting a user.
 type UserContactMethod {
   id: ID!
-
   type: ContactMethodType
 
   # User-defined label for this contact method.
   name: String!
-
   value: String!
+  disabled: Boolean!
 }
 
 input CreateUserContactMethodInput {
@@ -8734,6 +8741,33 @@ func (ec *executionContext) _UserContactMethod_value(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserContactMethod_disabled(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Disabled, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -13331,6 +13365,11 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			}
 		case "value":
 			out.Values[i] = ec._UserContactMethod_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "disabled":
+			out.Values[i] = ec._UserContactMethod_disabled(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
