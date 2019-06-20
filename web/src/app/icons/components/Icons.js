@@ -26,7 +26,7 @@ export class Trash extends Component {
 @withStyles(styles)
 export class Warning extends Component {
   render() {
-    const { classes, details } = this.props
+    const { classes, tooltip } = this.props
 
     const warningIcon = (
       <WarningIcon
@@ -35,12 +35,12 @@ export class Warning extends Component {
       />
     )
 
-    if (!details) {
+    if (!tooltip) {
       return warningIcon
     }
 
     return (
-      <Tooltip title={details} placement='right'>
+      <Tooltip title={tooltip} placement='right'>
         {warningIcon}
       </Tooltip>
     )
