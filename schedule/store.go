@@ -49,11 +49,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &DB{
-		db:      db,
-		create:  p.P(`INSERT INTO schedules (id, name, description, time_zone) VALUES (DEFAULT, $1, $2, $3) RETURNING id`),
-		update:  p.P(`UPDATE schedules SET name = $2, description = $3, time_zone = $4 WHERE id = $1`),
-		findAll: p.P(`SELECT id, name, description, time_zone FROM schedules`),
-		findOne: p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = $1`),
+		db:        db,
+		create:    p.P(`INSERT INTO schedules (id, name, description, time_zone) VALUES (DEFAULT, $1, $2, $3) RETURNING id`),
+		update:    p.P(`UPDATE schedules SET name = $2, description = $3, time_zone = $4 WHERE id = $1`),
+		findAll:   p.P(`SELECT id, name, description, time_zone FROM schedules`),
+		findOne:   p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = $1`),
 		findOneUp: p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = $1 FOR UPDATE`),
 
 		findMany: p.P(`
@@ -250,9 +250,6 @@ func (db *DB) FindOne(ctx context.Context, id string) (*Schedule, error) {
 	}
 
 	return &s, nil
-}
-func scanFrom(s *Schedule, f func(args ...interface{}) error) error {
-	return f(&s.ID, &s.Name, &s.Description, &s.isUserFavorite)
 }
 func (db *DB) Delete(ctx context.Context, id string) error {
 	return db.DeleteTx(ctx, nil, id)

@@ -3,29 +3,29 @@ package schedule
 import (
 	"context"
 	"database/sql"
+	"github.com/lib/pq"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 	"text/template"
-	"github.com/lib/pq"
-	"github.com/pkg/errors"
 )
 
 // SearchOptions allow filtering and paginating the list of schedules.
 type SearchOptions struct {
-	Search string       `json:"s,omitempty"`
+	Search string `json:"s,omitempty"`
 
 	// FavoritesUserID specifies the UserID whose favorite services want to be displayed.
 	FavoritesUserID string `json:"u,omitempty"`
 
 	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
-	FavoritesOnly bool `json:"o,omitempty"`
-	
+	FavoritesOnly bool `json:"g,omitempty"`
+
 	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
 
-	After  SearchCursor `json:"a,omitempty"`
+	After SearchCursor `json:"a,omitempty"`
 
 	// Omit specifies a list of schedule IDs to exclude from the results.
 	Omit []string `json:"o,omitempty"`
@@ -35,7 +35,7 @@ type SearchOptions struct {
 
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
-	Name string `json:"n,omitempty"`
+	Name       string `json:"n,omitempty"`
 	IsFavorite bool   `json:"f"`
 }
 

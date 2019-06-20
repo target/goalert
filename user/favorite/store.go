@@ -72,13 +72,13 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 	}
 	var scheduleID sql.NullString
 	var serviceID sql.NullString
-	switch tgt.TargetType(){
-		case assignment.TargetTypeService:
-			serviceID.Valid = true
-			serviceID.String = tgt.TargetID()
-		case assignment.TargetTypeSchedule:
-			scheduleID.Valid = true
-			scheduleID.String = tgt.TargetID()
+	switch tgt.TargetType() {
+	case assignment.TargetTypeService:
+		serviceID.Valid = true
+		serviceID.String = tgt.TargetID()
+	case assignment.TargetTypeSchedule:
+		scheduleID.Valid = true
+		scheduleID.String = tgt.TargetID()
 	}
 	_, err = db.insert.ExecContext(ctx, userID, serviceID, scheduleID)
 	if err != nil {
@@ -87,6 +87,7 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 
 	return nil
 }
+
 // Unset will remove the target as a favorite of the given user. Must be authorized as System or the same user.
 func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.MatchUser(userID))
@@ -105,13 +106,13 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	}
 	var scheduleID sql.NullString
 	var serviceID sql.NullString
-	switch tgt.TargetType(){
-		case assignment.TargetTypeService:
-			serviceID.Valid = true
-			serviceID.String = tgt.TargetID()
-		case assignment.TargetTypeSchedule:
-			scheduleID.Valid = true
-			scheduleID.String = tgt.TargetID()
+	switch tgt.TargetType() {
+	case assignment.TargetTypeService:
+		serviceID.Valid = true
+		serviceID.String = tgt.TargetID()
+	case assignment.TargetTypeSchedule:
+		scheduleID.Valid = true
+		scheduleID.String = tgt.TargetID()
 	}
 	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID)
 	if err == sql.ErrNoRows {
