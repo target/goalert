@@ -171,12 +171,10 @@ function testSchedules(screen: ScreenFormat) {
       })
     })
     it('should allow setting and unsetting as a favorite schedule', () => {
-      cy.get('button[aria-label="Set as a Favorite schedule"]')
-        .click()
-        .reload()
-      cy.get('button[aria-label="Unset as a Favorite schedule"')
-        .click()
-        .reload()
+      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
+      cy.reload()
+      cy.get('button[aria-label="Unset as a Favorite schedule"').click()
+      cy.reload()
       cy.get('button[aria-label="Set as a Favorite schedule"]').click()
     })
     it('should check to make sure the schedule is on the first page', () => {
