@@ -103,8 +103,7 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	if err != nil {
 		return err
 	}
-	var scheduleID sql.NullString
-	var serviceID sql.NullString
+	var serviceID, scheduleID sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeService:
 		serviceID.Valid = true
