@@ -56,8 +56,6 @@ function testSteps(screen: ScreenFormat) {
           .click()
           .then(() => {
             cy.focused().type('{enter}', { force: true })
-            // TODO verify that the schedule selected is a favorite
-            // set s1 = schedule selected
           })
 
         cy.get('button[data-cy="users-step"]').click()
@@ -75,12 +73,11 @@ function testSteps(screen: ScreenFormat) {
         // confirm dialog closes
         cy.get('@dialog').should('not.exist')
 
-        // verify data integrity TODO uncomment s1 line when s1 == schedule selected
+        // verify data integrity
         cy.get('body').should('contain', 'Notify the following:')
         cy.get('body').should('contain', 'Step #1:')
         cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
         cy.get('div[data-cy=rotation-chip]').should('contain', r2.name)
-        //cy.get('div[data-cy=schedule-chip]').should('contain', s1.name)
         cy.get('div[data-cy=schedule-chip]').should('contain', s2.name)
         cy.get('div[data-cy=user-chip]').should('contain', u1.name)
         cy.get('div[data-cy=user-chip]').should('contain', u2.name)

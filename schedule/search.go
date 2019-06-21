@@ -92,7 +92,6 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {
 		opts.Limit = search.DefaultMaxResults
 	}
-
 	err := validate.Many(
 		validate.Text("Search", opts.Search, 0, search.MaxQueryLen),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
@@ -101,15 +100,13 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
 	}
-
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
 	}
-
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return &opts, err
 }
 

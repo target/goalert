@@ -11,7 +11,6 @@ import (
 func TestGraphQL2ScheduleFavorites(t *testing.T) {
 	t.Parallel()
 
-	//Insert one user and one schedule
 	sql := `
 	INSERT INTO users (id, name, email) 
 	VALUES 

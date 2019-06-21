@@ -30,7 +30,7 @@ func (s Schedule) Normalize() (*Schedule, error) {
 	return &s, nil
 }
 
-// IsUserFavorite returns a boolean value based on if the schedule is a favorite of the user or not.
+// IsUserFavorite returns a boolean value based on if the schedule is a user favorite
 func (s Schedule) IsUserFavorite() bool {
 	return s.isUserFavorite
 }
