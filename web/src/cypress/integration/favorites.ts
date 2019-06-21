@@ -15,7 +15,7 @@ function testFavorites(screen: ScreenFormat) {
         .visit('/rotations')
     })
 
-    it('should have favored rotations move to first on rotation list', () => {
+    it('should have favorited rotations move to first on rotation list', () => {
       cy.pageSearch(rot.name)
       cy.get('#app')
         .contains(rot.name)
@@ -26,7 +26,7 @@ function testFavorites(screen: ScreenFormat) {
       cy.get('#app').contains(rot.name)
     })
 
-    it('should have favorites first in RotationSelect on escaltion policy steps', () => {
+    it('should have favorites first in RotationSelect on escalation policy steps', () => {
       cy.pageSearch(rot.name)
       cy.get('#app')
         .contains(rot.name)
