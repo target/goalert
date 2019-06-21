@@ -8,17 +8,16 @@ import LoadingButton from '../loading/components/LoadingButton'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { makeStyles } from '@material-ui/core/styles'
+import { graphql2Client } from '../apollo'
 
 /*
  * Triggers sending a verification code to the specified cm
  */
 const sendContactMethodVerificationMutation = gql`
-  mutation SendContactMethodVerificationMutation(
-    $input: SendContactMethodVerificationInput
+  mutation sendContactMethodVerification(
+    $input: SendContactMethodVerificationInput!
   ) {
-    sendContactMethodVerification(input: $input) {
-      id
-    }
+    sendContactMethodVerification(input: $input)
   }
 `
 
@@ -51,6 +50,7 @@ export default function ContactMethodVerificationForm(props) {
     <Grid container spacing={2}>
       <Grid item className={classes.sendGridItem}>
         <Mutation
+          client={graphql2Client}
           mutation={sendContactMethodVerificationMutation}
           onError={() =>
             props.setSendError('Too many messages! Try again after some time.')
@@ -68,7 +68,7 @@ export default function ContactMethodVerificationForm(props) {
                 commit({
                   variables: {
                     input: {
-                      contact_method_id: props.contactMethodID,
+                      contactMethodID: props.contactMethodID,
                     },
                   },
                 })

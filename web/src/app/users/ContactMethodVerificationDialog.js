@@ -6,15 +6,14 @@ import { Mutation } from 'react-apollo'
 import Query from '../util/Query'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import ContactMethodVerificationForm from './ContactMethodVerificationForm'
+import { graphql2Client } from '../apollo'
 
 /*
  * Reactivates a cm if disabled and the verification code matches
  */
 const verifyContactMethodMutation = gql`
-  mutation VerifyContactMethodMutation($input: VerifyContactMethodInput) {
-    verifyContactMethod(input: $input) {
-      contact_method_ids
-    }
+  mutation verifyContactMethod($input: VerifyContactMethodInput!) {
+    verifyContactMethod(input: $input)
   }
 `
 
@@ -63,14 +62,14 @@ export default function ContactMethodVerificationDialog(props) {
         title={`Verify Contact Method by ${cm.type}`}
         subtitle={`Verifying "${cm.name}" at ${formatNumber(cm.value)}`}
         loading={loading}
-        errors={sendError || nonFieldErrors(error)}
+        errors={nonFieldErrors(error) || [{ message: sendError }]}
         onClose={props.onClose}
         onSubmit={() =>
           commit({
             variables: {
               input: {
-                contact_method_id: cm.id,
-                verification_code: parseInt(value),
+                contactMethodID: cm.id,
+                verificationCode: parseInt(value),
               },
             },
           })
@@ -93,9 +92,10 @@ export default function ContactMethodVerificationDialog(props) {
   function renderMutation(cm) {
     return (
       <Mutation
+        client={graphql2Client}
         mutation={verifyContactMethodMutation}
-        // todo: awaitRefetchQueries
-        // todo: refetchQueries={['cmList']}
+        awaitRefetchQueries
+        refetchQueries={['cmList']}
         onCompleted={props.onClose}
       >
         {(commit, status) => renderDialog(commit, status, cm)}
