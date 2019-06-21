@@ -37,6 +37,9 @@ function formatNumber(n) {
   }
   if (n.startsWith('+91')) {
     return `+91-${n.slice(3, 5)}-${n.slice(5, 8)}-${n.slice(8)}`
+  }
+  if (n.startsWith('+44')) {
+    return `+44 ${n.slice(3, 7)} ${n.slice(7)}`
   } else {
     return <span>{n}</span>
   }
