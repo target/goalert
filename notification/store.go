@@ -22,7 +22,7 @@ const minTimeBetweenTests = time.Minute
 type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
 	SendContactMethodVerification(ctx context.Context, cmID string, resend bool) error
-	VerifyContactMethod(ctx context.Context, cmID string, code int) ([]string, error)
+	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	CodeExpiration(ctx context.Context, cmID string) (*time.Time, error)
 	Code(ctx context.Context, id string) (int, error)
 }
@@ -266,41 +266,31 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 	return tx.Commit()
 }
 
-func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) ([]string, error) {
+func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
 	userID, err := db.cmUserID(ctx, cmID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	tx, err := db.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer tx.Rollback()
 
 	var cmValue string
 	err = db.verifyVerificationCode.QueryRowContext(ctx, cmID, code).Scan(&cmValue)
 	if err == sql.ErrNoRows {
-		return nil, validation.NewFieldError("Code", "unrecognized code")
+		return validation.NewFieldError("Code", "unrecognized code")
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	rows, err := db.enableContactMethods.QueryContext(ctx, userID, cmValue)
+	_, err = db.enableContactMethods.QueryContext(ctx, userID, cmValue)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer rows.Close()
-	var result []string
 
-	for rows.Next() {
-		var id string
-		err = rows.Scan(&id)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, id)
-	}
-	return result, tx.Commit()
+	return tx.Commit()
 }

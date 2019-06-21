@@ -45,6 +45,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 	return cm, nil
 }
+
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cm, err := m.CMStore.FindOneTx(ctx, tx, input.ID)
@@ -58,6 +59,25 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			cm.Value = *input.Value
 		}
 		return m.CMStore.UpdateTx(ctx, tx, cm)
+	})
+	return err == nil, err
+}
+
+func (m *Mutation) SendContactMethodVerification(ctx context.Context, input graphql2.SendContactMethodVerificationInput) (bool, error) {
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		var resend = false
+		if input.Resend != nil {
+			resend = *input.Resend
+		}
+
+		return m.NotificationStore.SendContactMethodVerification(ctx, input.ContactMethodID, resend)
+	})
+	return err == nil, err
+}
+
+func (m *Mutation) VerifyContactMethod(ctx context.Context, input graphql2.VerifyContactMethodInput) (bool, error) {
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return m.NotificationStore.VerifyContactMethod(ctx, input.ContactMethodID, input.VerificationCode)
 	})
 	return err == nil, err
 }

@@ -201,6 +201,9 @@ type Mutation {
     input: CreateUserNotificationRuleInput!
   ): UserNotificationRule
   updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
+  sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
+  verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
+
 
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
@@ -745,6 +748,16 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+}
+
+input SendContactMethodVerificationInput {
+  contactMethodID: ID!
+  resend: Boolean
+}
+
+input VerifyContactMethodInput {
+  contactMethodID: ID!
+  verificationCode: Int!
 }
 
 type AuthSubject {

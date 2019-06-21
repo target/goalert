@@ -153,33 +153,35 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAuthSubject             func(childComplexity int, input user.AuthSubject) int
-		CreateEscalationPolicy     func(childComplexity int, input CreateEscalationPolicyInput) int
-		CreateEscalationPolicyStep func(childComplexity int, input CreateEscalationPolicyStepInput) int
-		CreateIntegrationKey       func(childComplexity int, input CreateIntegrationKeyInput) int
-		CreateRotation             func(childComplexity int, input CreateRotationInput) int
-		CreateSchedule             func(childComplexity int, input CreateScheduleInput) int
-		CreateService              func(childComplexity int, input CreateServiceInput) int
-		CreateUserContactMethod    func(childComplexity int, input CreateUserContactMethodInput) int
-		CreateUserNotificationRule func(childComplexity int, input CreateUserNotificationRuleInput) int
-		CreateUserOverride         func(childComplexity int, input CreateUserOverrideInput) int
-		DeleteAll                  func(childComplexity int, input []assignment.RawTarget) int
-		DeleteAuthSubject          func(childComplexity int, input user.AuthSubject) int
-		EscalateAlerts             func(childComplexity int, input []int) int
-		SetConfig                  func(childComplexity int, input []ConfigValueInput) int
-		SetFavorite                func(childComplexity int, input SetFavoriteInput) int
-		SetLabel                   func(childComplexity int, input SetLabelInput) int
-		TestContactMethod          func(childComplexity int, id string) int
-		UpdateAlerts               func(childComplexity int, input UpdateAlertsInput) int
-		UpdateEscalationPolicy     func(childComplexity int, input UpdateEscalationPolicyInput) int
-		UpdateEscalationPolicyStep func(childComplexity int, input UpdateEscalationPolicyStepInput) int
-		UpdateRotation             func(childComplexity int, input UpdateRotationInput) int
-		UpdateSchedule             func(childComplexity int, input UpdateScheduleInput) int
-		UpdateScheduleTarget       func(childComplexity int, input ScheduleTargetInput) int
-		UpdateService              func(childComplexity int, input UpdateServiceInput) int
-		UpdateUser                 func(childComplexity int, input UpdateUserInput) int
-		UpdateUserContactMethod    func(childComplexity int, input UpdateUserContactMethodInput) int
-		UpdateUserOverride         func(childComplexity int, input UpdateUserOverrideInput) int
+		AddAuthSubject                func(childComplexity int, input user.AuthSubject) int
+		CreateEscalationPolicy        func(childComplexity int, input CreateEscalationPolicyInput) int
+		CreateEscalationPolicyStep    func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateIntegrationKey          func(childComplexity int, input CreateIntegrationKeyInput) int
+		CreateRotation                func(childComplexity int, input CreateRotationInput) int
+		CreateSchedule                func(childComplexity int, input CreateScheduleInput) int
+		CreateService                 func(childComplexity int, input CreateServiceInput) int
+		CreateUserContactMethod       func(childComplexity int, input CreateUserContactMethodInput) int
+		CreateUserNotificationRule    func(childComplexity int, input CreateUserNotificationRuleInput) int
+		CreateUserOverride            func(childComplexity int, input CreateUserOverrideInput) int
+		DeleteAll                     func(childComplexity int, input []assignment.RawTarget) int
+		DeleteAuthSubject             func(childComplexity int, input user.AuthSubject) int
+		EscalateAlerts                func(childComplexity int, input []int) int
+		SendContactMethodVerification func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetConfig                     func(childComplexity int, input []ConfigValueInput) int
+		SetFavorite                   func(childComplexity int, input SetFavoriteInput) int
+		SetLabel                      func(childComplexity int, input SetLabelInput) int
+		TestContactMethod             func(childComplexity int, id string) int
+		UpdateAlerts                  func(childComplexity int, input UpdateAlertsInput) int
+		UpdateEscalationPolicy        func(childComplexity int, input UpdateEscalationPolicyInput) int
+		UpdateEscalationPolicyStep    func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateRotation                func(childComplexity int, input UpdateRotationInput) int
+		UpdateSchedule                func(childComplexity int, input UpdateScheduleInput) int
+		UpdateScheduleTarget          func(childComplexity int, input ScheduleTargetInput) int
+		UpdateService                 func(childComplexity int, input UpdateServiceInput) int
+		UpdateUser                    func(childComplexity int, input UpdateUserInput) int
+		UpdateUserContactMethod       func(childComplexity int, input UpdateUserContactMethodInput) int
+		UpdateUserOverride            func(childComplexity int, input UpdateUserOverrideInput) int
+		VerifyContactMethod           func(childComplexity int, input VerifyContactMethodInput) int
 	}
 
 	OnCallShift struct {
@@ -412,6 +414,8 @@ type MutationResolver interface {
 	CreateUserContactMethod(ctx context.Context, input CreateUserContactMethodInput) (*contactmethod.ContactMethod, error)
 	CreateUserNotificationRule(ctx context.Context, input CreateUserNotificationRuleInput) (*notificationrule.NotificationRule, error)
 	UpdateUserContactMethod(ctx context.Context, input UpdateUserContactMethodInput) (bool, error)
+	SendContactMethodVerification(ctx context.Context, input SendContactMethodVerificationInput) (bool, error)
+	VerifyContactMethod(ctx context.Context, input VerifyContactMethodInput) (bool, error)
 	UpdateSchedule(ctx context.Context, input UpdateScheduleInput) (bool, error)
 	UpdateUserOverride(ctx context.Context, input UpdateUserOverrideInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
@@ -983,6 +987,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EscalateAlerts(childComplexity, args["input"].([]int)), true
 
+	case "Mutation.SendContactMethodVerification":
+		if e.complexity.Mutation.SendContactMethodVerification == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sendContactMethodVerification_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SendContactMethodVerification(childComplexity, args["input"].(SendContactMethodVerificationInput)), true
+
 	case "Mutation.SetConfig":
 		if e.complexity.Mutation.SetConfig == nil {
 			break
@@ -1150,6 +1166,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUserOverride(childComplexity, args["input"].(UpdateUserOverrideInput)), true
+
+	case "Mutation.VerifyContactMethod":
+		if e.complexity.Mutation.VerifyContactMethod == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyContactMethod_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyContactMethod(childComplexity, args["input"].(VerifyContactMethodInput)), true
 
 	case "OnCallShift.End":
 		if e.complexity.OnCallShift.End == nil {
@@ -2361,6 +2389,9 @@ type Mutation {
     input: CreateUserNotificationRuleInput!
   ): UserNotificationRule
   updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
+  sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
+  verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
+
 
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
@@ -2907,6 +2938,16 @@ input UpdateUserContactMethodInput {
   value: String
 }
 
+input SendContactMethodVerificationInput {
+  contactMethodID: ID!
+  resend: Boolean
+}
+
+input VerifyContactMethodInput {
+  contactMethodID: ID!
+  verificationCode: Int!
+}
+
 type AuthSubject {
   providerID: ID!
   subjectID: ID!
@@ -3093,6 +3134,20 @@ func (ec *executionContext) field_Mutation_escalateAlerts_args(ctx context.Conte
 	var arg0 []int
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚕint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sendContactMethodVerification_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 SendContactMethodVerificationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSendContactMethodVerificationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSendContactMethodVerificationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3289,6 +3344,20 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 	var arg0 UpdateUserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateUserInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyContactMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 VerifyContactMethodInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNVerifyContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyContactMethodInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5744,6 +5813,74 @@ func (ec *executionContext) _Mutation_updateUserContactMethod(ctx context.Contex
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateUserContactMethod(rctx, args["input"].(UpdateUserContactMethodInput))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_sendContactMethodVerification(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_sendContactMethodVerification_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SendContactMethodVerification(rctx, args["input"].(SendContactMethodVerificationInput))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_verifyContactMethod(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_verifyContactMethod_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifyContactMethod(rctx, args["input"].(VerifyContactMethodInput))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -10686,6 +10823,30 @@ func (ec *executionContext) unmarshalInputScheduleTargetInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx context.Context, v interface{}) (SendContactMethodVerificationInput, error) {
+	var it SendContactMethodVerificationInput
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "contactMethodID":
+			var err error
+			it.ContactMethodID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "resend":
+			var err error
+			it.Resend, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputServiceSearchOptions(ctx context.Context, v interface{}) (ServiceSearchOptions, error) {
 	var it ServiceSearchOptions
 	var asMap = v.(map[string]interface{})
@@ -11345,6 +11506,30 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 		case "omit":
 			var err error
 			it.Omit, err = ec.unmarshalOID2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.Context, v interface{}) (VerifyContactMethodInput, error) {
+	var it VerifyContactMethodInput
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "contactMethodID":
+			var err error
+			it.ContactMethodID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "verificationCode":
+			var err error
+			it.VerificationCode, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12036,6 +12221,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createUserNotificationRule(ctx, field)
 		case "updateUserContactMethod":
 			out.Values[i] = ec._Mutation_updateUserContactMethod(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "sendContactMethodVerification":
+			out.Values[i] = ec._Mutation_sendContactMethodVerification(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "verifyContactMethod":
+			out.Values[i] = ec._Mutation_verifyContactMethod(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -14658,6 +14853,10 @@ func (ec *executionContext) unmarshalNScheduleTargetInput2githubᚗcomᚋtarget�
 	return ec.unmarshalInputScheduleTargetInput(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNSendContactMethodVerificationInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSendContactMethodVerificationInput(ctx context.Context, v interface{}) (SendContactMethodVerificationInput, error) {
+	return ec.unmarshalInputSendContactMethodVerificationInput(ctx, v)
+}
+
 func (ec *executionContext) marshalNService2githubᚗcomᚋtargetᚋgoalertᚋserviceᚐService(ctx context.Context, sel ast.SelectionSet, v service.Service) graphql.Marshaler {
 	return ec._Service(ctx, sel, &v)
 }
@@ -15179,6 +15378,10 @@ func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋtargetᚋgoalert�
 
 func (ec *executionContext) marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx context.Context, sel ast.SelectionSet, v UserRole) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyContactMethodInput(ctx context.Context, v interface{}) (VerifyContactMethodInput, error) {
+	return ec.unmarshalInputVerifyContactMethodInput(ctx, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
