@@ -48,8 +48,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		a.meta
 	FROM alert_logs a
 	{{if .FilterAlertIDs }}
-		LEFT JOIN alerts ON
-			alerts.id = a.alert_id
+		LEFT JOIN alerts ON alerts.id = a.alert_id
 	{{end}}
 	LEFT JOIN users u ON u.id = a.sub_user_id
 	LEFT JOIN integration_keys i ON i.id = a.sub_integration_key_id
@@ -62,15 +61,11 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{- if .After.ID}}
 		AND (a.id < :afterID)
 	{{- end}}
-	ORDER BY {{ .OrderBy }}
+	ORDER BY a.id DESC
 	LIMIT {{.Limit}}
 `))
 
 type renderData SearchOptions
-
-func (opts renderData) OrderBy() string {
-	return "a.id DESC"
-}
 
 func (opts renderData) Normalize() (*renderData, error) {
 	if opts.Limit == 0 {

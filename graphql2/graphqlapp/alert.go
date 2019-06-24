@@ -199,7 +199,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	aID, err := a.AlertID(ctx, obj)
 	if err != nil {
 		return nil, err
-	}	
+	}
 	s.FilterAlertIDs = append(s.FilterAlertIDs, aID)
 
 	s.Limit++
