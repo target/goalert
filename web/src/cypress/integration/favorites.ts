@@ -30,7 +30,7 @@ function testFavorites(screen: ScreenFormat) {
       cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
     })
 
-    it.only('should have favorited rotations move to first on rotation list', () => {
+    it('should have favorited rotations move to first on rotation list', () => {
       cy.pageSearch(rot.name)
       cy.get('#app')
         .contains(rot.name)
