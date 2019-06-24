@@ -256,7 +256,7 @@ export class PaginatedList extends React.PureComponent {
       favIcon = (
         <ListItemSecondaryAction>
           <Avatar className={classes.favoriteIcon}>
-            <FavoriteIcon />
+            <FavoriteIcon data-cy={'fav-icon'} />
           </Avatar>
         </ListItemSecondaryAction>
       )
