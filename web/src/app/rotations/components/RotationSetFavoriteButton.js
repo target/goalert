@@ -4,7 +4,7 @@ import gql from 'graphql-tag'
 import { graphql2Client } from '../../apollo'
 import Query from '../../util/Query'
 import { Mutation } from 'react-apollo'
-import SetFavoriteButton from '../../util/SetFavoriteButton'
+import { SetFavoriteButton } from '../../util/SetFavoriteButton'
 
 const query = gql`
   query favQuery($id: ID!) {
@@ -21,57 +21,52 @@ const mutation = gql`
   }
 `
 
-export default class RotationSetFavoriteButton extends React.PureComponent {
-  static propTypes = {
-    rotationID: p.string.isRequired,
-  }
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.rotationID }}
-        render={({ data }) => {
-          if (!data || !data.rotation) return null
+export function RotationSetFavoriteButton(props) {
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.rotationID }}
+      render={({ data }) => {
+        if (!data || !data.rotation) return null
 
-          return this.renderMutation(
-            data && data.rotation && data.rotation.isFavorite,
-          )
-        }}
-      />
-    )
-  }
+        return renderMutation(data.rotation.isFavorite, props.rotationID)
+      }}
+    />
+  )
+}
 
-  renderMutation(isFavorite) {
-    return (
-      <Mutation
-        key='main'
-        mutation={mutation}
-        client={graphql2Client}
-        awaitRefetchQueries
-        refetchQueries={['favQuery']}
-      >
-        {mutation => this.renderSetFavButton(isFavorite, mutation)}
-      </Mutation>
-    )
-  }
+function renderMutation(isFavorite, id) {
+  return (
+    <Mutation
+      mutation={mutation}
+      client={graphql2Client}
+      awaitRefetchQueries
+      refetchQueries={['favQuery']}
+    >
+      {mutation => renderSetFavButton(isFavorite, mutation, id)}
+    </Mutation>
+  )
+}
 
-  renderSetFavButton(isFavorite, mutation) {
-    const { rotationID: id } = this.props
-    return (
-      <SetFavoriteButton
-        type={'rotation'}
-        isFavorite={isFavorite}
-        onSubmit={() => {
-          return mutation({
-            variables: {
-              input: {
-                target: { id, type: 'rotation' },
-                favorite: !isFavorite,
-              },
+function renderSetFavButton(isFavorite, mutation, id) {
+  return (
+    <SetFavoriteButton
+      type={'rotation'}
+      isFavorite={isFavorite}
+      onSubmit={() => {
+        return mutation({
+          variables: {
+            input: {
+              target: { id, type: 'rotation' },
+              favorite: !isFavorite,
             },
-          })
-        }}
-      />
-    )
-  }
+          },
+        })
+      }}
+    />
+  )
+}
+
+RotationSetFavoriteButton.propTypes = {
+  rotationID: p.string.isRequired,
 }

@@ -11,7 +11,7 @@ import RotationEditDialog from './RotationEditDialog'
 import RotationDeleteDialog from './RotationDeleteDialog'
 import RotationUserList from './RotationUserList'
 import RotationAddUserDialog from './RotationAddUserDialog'
-import RotationSetFavoriteButton from './components/RotationSetFavoriteButton'
+import { RotationSetFavoriteButton } from './components/RotationSetFavoriteButton'
 
 const query = gql`
   query rotationDetails($rotationID: ID!) {
