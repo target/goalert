@@ -6,12 +6,13 @@ module.exports = {
   parserOptions: {
     ecmaFeatures: { legacyDecorators: true },
   },
-  plugins: ['cypress', 'prettier'],
+  plugins: ['cypress', 'prettier', 'jsx-a11y'],
   extends: [
     'standard',
     'standard-jsx',
     'plugin:cypress/recommended',
     'plugin:prettier/recommended',
+    'plugin:jsx-a11y/recommended',
   ],
   rules: {
     'prettier/prettier': 'error',
