@@ -67,11 +67,11 @@ export default class UserContactMethodList extends React.PureComponent {
         label: 'Verify/Reactivate',
         onClick: () => this.setState({ isVerifyDialogOpen: true }),
       }
-    }
-
-    return {
-      label: 'Send Test',
-      onClick: () => commit(),
+    } else {
+      return {
+        label: 'Send Test',
+        onClick: () => commit(),
+      }
     }
   }
 

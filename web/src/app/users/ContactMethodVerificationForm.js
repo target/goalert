@@ -41,6 +41,7 @@ export default function ContactMethodVerificationForm(props) {
       return 'Send Code'
     }
   }
+
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
