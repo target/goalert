@@ -2768,7 +2768,7 @@ type Alert {
 }
 
 input AlertRecentEventsOptions {
-  limit: Int = 50
+  limit: Int
   after: String = "" 
 }
 
@@ -10206,10 +10206,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.Context, v interface{}) (AlertRecentEventsOptions, error) {
 	var it AlertRecentEventsOptions
 	var asMap = v.(map[string]interface{})
-
-	if _, present := asMap["limit"]; !present {
-		asMap["limit"] = 50
-	}
 
 	for k, v := range asMap {
 		switch k {

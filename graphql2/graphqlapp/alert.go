@@ -188,15 +188,9 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
-	err := validate.Many(
-		validate.Range("Limit", s.Limit, 15, search.MaxResults),
-	)
-	if err != nil {
-		return nil, err
-	}
 
 	if opts.After != nil && *opts.After != "" {
-		err = search.ParseCursor(*opts.After, &s)
+		err := search.ParseCursor(*opts.After, &s)
 		if err != nil {
 			return nil, err
 		}

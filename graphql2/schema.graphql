@@ -549,7 +549,7 @@ type Alert {
 }
 
 input AlertRecentEventsOptions {
-  limit: Int = 50
+  limit: Int
   after: String = "" 
 }
 
