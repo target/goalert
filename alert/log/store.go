@@ -28,7 +28,7 @@ type Store interface {
 	LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error
 	FindLatestByType(ctx context.Context, alertID int, status Type) (Entry, error)
 	LegacySearch(ctx context.Context, opt *LegacySearchOptions) ([]Entry, int, error)
-	Search(ctx context.Context, opt *SearchOptions) ([]Entry, int, error)
+	Search(ctx context.Context, opt *SearchOptions) ([]Entry, error)
 
 	MustLog(ctx context.Context, alertID int, _type Type, meta interface{})
 	MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{})
@@ -52,17 +52,6 @@ type DB struct {
 	lookupNCTypeName   *sql.Stmt
 	lookupHBInterval   *sql.Stmt
 }
-
-// SortBy describes the possible primary sort options for alert logs.
-type SortBy int
-
-// Configurable sort columns.
-const (
-	SortByTimestamp SortBy = iota
-	SortByAlertID
-	SortByEventType
-	SortByUserName
-)
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}

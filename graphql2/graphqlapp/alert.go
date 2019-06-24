@@ -182,13 +182,6 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	}
 
 	var s alertlog.SearchOptions
-	if opts.Limit != nil {
-		s.Limit = *opts.Limit
-	}
-	if s.Limit == 0 {
-		s.Limit = search.DefaultMaxResults
-	}
-
 	if opts.After != nil && *opts.After != "" {
 		err := search.ParseCursor(*opts.After, &s)
 		if err != nil {
@@ -196,16 +189,22 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 		}
 	}
 
+	if opts.Limit != nil {
+		s.Limit = *opts.Limit
+	}
+	if s.Limit == 0 {
+		s.Limit = search.DefaultMaxResults
+	}
+
 	aID, err := a.AlertID(ctx, obj)
 	if err != nil {
 		return nil, err
-	}
-	s.AlertID = aID
-	s.SortDesc = true
+	}	
+	s.FilterAlertIDs = append(s.FilterAlertIDs, aID)
 
 	s.Limit++
 
-	logs, _, err := a.AlertLogStore.Search(ctx, &s)
+	logs, err := a.AlertLogStore.Search(ctx, &s)
 	if err != nil {
 		return nil, err
 	}

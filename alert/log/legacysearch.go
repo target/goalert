@@ -17,7 +17,7 @@ import (
 
 // LegacySearchOptions contains criteria for filtering alert logs. At a minimum, at least one of AlertID or ServiceID must be specified.
 type LegacySearchOptions struct {
-	/// AlertID, if specified, will restrict alert logs to those with a matching AlertID.
+	// AlertID, if specified, will restrict alert logs to those with a matching AlertID.
 	AlertID int
 
 	// ServiceID, if specified, will restrict alert logs to those alerts which map to this particular ServiceID.
@@ -52,6 +52,17 @@ type LegacySearchOptions struct {
 	// Note: Limit is applied AFTER Offset is taken into account.
 	Limit int
 }
+
+// SortBy describes the possible primary sort options for alert logs.
+type SortBy int
+
+// Configurable sort columns.
+const (
+	SortByTimestamp SortBy = iota
+	SortByAlertID
+	SortByEventType
+	SortByUserName
+)
 
 // LegacySearch will return a list of matching log entries.
 func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Entry, int, error) {
