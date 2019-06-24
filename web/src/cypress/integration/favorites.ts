@@ -15,7 +15,22 @@ function testFavorites(screen: ScreenFormat) {
         .visit('/rotations')
     })
 
-    it('should have favorited rotations move to first on rotation list', () => {
+    it('should allow setting and unsetting as a favorite rotation', () => {
+      cy.pageSearch(rot.name)
+      cy.get('#app')
+        .contains(rot.name)
+        .click()
+      // test setting as favorite
+      cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
+      cy.reload()
+      // aria label should change and should be set as a favorite, test unsetting
+      cy.get('button[aria-label="Unset as a Favorite Rotation"').click()
+      cy.reload()
+      // check that unset
+      cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
+    })
+
+    it.only('should have favorited rotations move to first on rotation list', () => {
       cy.pageSearch(rot.name)
       cy.get('#app')
         .contains(rot.name)
@@ -23,7 +38,10 @@ function testFavorites(screen: ScreenFormat) {
       cy.get('button[aria-label="Set as a Favorite Rotation"]')
         .click()
         .visit('/rotations')
-      cy.get('#app').contains(rot.name)
+      cy.get('#app')
+        .contains(rot.name)
+        .siblings()
+        .find('svg[data-cy=fav-icon]')
     })
 
     it('should have favorites first in RotationSelect on escalation policy steps', () => {
@@ -35,35 +53,12 @@ function testFavorites(screen: ScreenFormat) {
         .click()
         .visit('/escalation-policies')
 
-      cy.pageFab()
-
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog').should('contain', 'Create Escalation Policy')
-
-      const name = 'SM EP ' + c.word({ length: 8 })
-      const description = c.word({ length: 10 })
-      const repeat = c.integer({ min: 0, max: 5 }).toString()
-
-      cy.get('@dialog')
-        .find('input[name=name]')
-        .type(name)
-
-      cy.get('@dialog')
-        .find('textarea[name=description]')
-        .type(description)
-
-      cy.get('@dialog')
-        .find('input[name=repeat]')
-        .selectByLabel(repeat)
-
-      cy.get('@dialog')
-        .contains('button', 'Submit')
-        .click()
-
-      // should be on details page
-      cy.get('body')
-        .should('contain', name)
-        .should('contain', description)
+      let ep = null
+      cy.createEP().then(e => {
+        ep = e
+        cy.visit(`/escalation-policies/${ep.id}`)
+        cy.reload()
+      })
 
       cy.get('button[data-cy=page-fab]').click()
 
@@ -76,22 +71,14 @@ function testFavorites(screen: ScreenFormat) {
       cy.get('#app')
         .contains(rot.name)
         .click()
-      cy.get('button[aria-label="Set as a Favorite Rotation"]')
-        .click()
-        .visit('/schedules')
+      cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
 
-      const name = c.word({ length: 8 })
-      const description = c.sentence({ words: 5 })
-
-      cy.pageFab()
-      cy.get('input[name=name]').type(name)
-
-      cy.get('textarea[name=description]')
-        .clear()
-        .type(description)
-      cy.get('button')
-        .contains('Submit')
-        .click()
+      let sch = null
+      cy.createSchedule().then(s => {
+        sch = s
+        cy.visit(`/schedules/${sch.id}`)
+        cy.reload()
+      })
 
       cy.get('a[role=button]')
         .eq(0)
@@ -102,6 +89,27 @@ function testFavorites(screen: ScreenFormat) {
 
       cy.get('[data-cy=search-select-input]').click()
       cy.get('[data-cy=select-dropdown]').contains(rot.name)
+    })
+  })
+
+  describe('Service Favorites', () => {
+    let svc: Service
+    beforeEach(() =>
+      cy.createService().then(s => {
+        svc = s
+        return cy.visit(`/services/${s.id}`)
+      }),
+    )
+
+    it('should allow setting and unsetting as a favorite service', () => {
+      // test setting as favorite
+      cy.get('button[aria-label="Set as a Favorite Service"]').click()
+      cy.reload()
+      // aria label should change and should be set as a favorite, test unsetting
+      cy.get('button[aria-label="Unset as a Favorite Service"').click()
+      cy.reload()
+      // check that unset
+      cy.get('button[aria-label="Set as a Favorite Service"]').click()
     })
   })
 }

@@ -103,17 +103,6 @@ function testRotations(screen: ScreenFormat) {
       }),
     )
 
-    it('should allow setting and unsetting as a favorite rotation', () => {
-      // test setting as favorite
-      cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
-      cy.reload()
-      // aria label should change and should be set as a favorite, test unsetting
-      cy.get('button[aria-label="Unset as a Favorite Rotation"').click()
-      cy.reload()
-      // check that unset
-      cy.get('button[aria-label="Set as a Favorite Rotation"]').click()
-    })
-
     it('should display users correctly', () => {
       cy.get('ul[data-cy=users]')
         .find('li')
@@ -264,7 +253,7 @@ function testRotations(screen: ScreenFormat) {
         .type('5')
 
       cy.get('button[type=submit]')
-        .eq(1)
+        .not('[data-cy=set-fav]')
         .click()
       cy.get('body')
         .should('contain', newName)
