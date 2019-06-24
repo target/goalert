@@ -229,7 +229,7 @@ function testRotations(screen: ScreenFormat) {
     })
   })
 
-  it('should allow editing a rotation', () => {
+  it.only('should allow editing a rotation', () => {
     cy.createRotation({ shiftLength: 3, type: 'daily' }).then(r => {
       const newName = c.word({ length: 15 })
       const newDesc = c.sentence({ words: 3 })
@@ -252,9 +252,7 @@ function testRotations(screen: ScreenFormat) {
         .clear()
         .type('5')
 
-      cy.get('button[type=submit]')
-        .not('[data-cy=set-fav]')
-        .click()
+      cy.get('button[data-cy=loading-button]').click()
       cy.get('body')
         .should('contain', newName)
         .should('contain', newDesc)
