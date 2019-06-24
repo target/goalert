@@ -26,7 +26,7 @@ export const styles = theme => ({
     display: 'inline-block',
   },
   cancelButton: {
-    color: theme.palette.secondary['500'],
+    color: 'rgba(0,0,0, 0.54)',
   },
   defaultFlex: {
     flex: '0 1 auto',
