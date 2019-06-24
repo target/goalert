@@ -49,13 +49,15 @@ function formatNumber(n) {
 }
 
 export default function ContactMethodVerificationDialog(props) {
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState({
+    code: '',
+  })
   const [sendError, setSendError] = useState('')
 
   // dialog rendered that handles rendering the verification form
   function renderDialog(commit, status, cm) {
     const { loading, error } = status
-    const fieldErr = fieldErrors(error)
+    const fieldErrs = fieldErrors(error)
 
     return (
       <FormDialog
@@ -69,7 +71,7 @@ export default function ContactMethodVerificationDialog(props) {
             variables: {
               input: {
                 contactMethodID: cm.id,
-                verificationCode: parseInt(value),
+                verificationCode: value.code,
               },
             },
           })
@@ -77,7 +79,7 @@ export default function ContactMethodVerificationDialog(props) {
         form={
           <ContactMethodVerificationForm
             contactMethodID={cm.id}
-            error={fieldErr}
+            errors={fieldErrs}
             setSendError={setSendError}
             disabled={loading}
             value={value}

@@ -354,7 +354,7 @@ type UserSearchOptions struct {
 
 type VerifyContactMethodInput struct {
 	ContactMethodID  string `json:"contactMethodID"`
-	VerificationCode int    `json:"verificationCode"`
+	VerificationCode string `json:"verificationCode"`
 }
 
 type AlertStatus string

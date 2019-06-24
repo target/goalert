@@ -2945,7 +2945,7 @@ input SendContactMethodVerificationInput {
 
 input VerifyContactMethodInput {
   contactMethodID: ID!
-  verificationCode: Int!
+  verificationCode: String!
 }
 
 type AuthSubject {
@@ -11529,7 +11529,7 @@ func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.C
 			}
 		case "verificationCode":
 			var err error
-			it.VerificationCode, err = ec.unmarshalNInt2int(ctx, v)
+			it.VerificationCode, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -757,7 +757,7 @@ input SendContactMethodVerificationInput {
 
 input VerifyContactMethodInput {
   contactMethodID: ID!
-  verificationCode: Int!
+  verificationCode: String!
 }
 
 type AuthSubject {

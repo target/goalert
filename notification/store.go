@@ -11,6 +11,8 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"math/rand"
+	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -22,7 +24,7 @@ const minTimeBetweenTests = time.Minute
 type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
 	SendContactMethodVerification(ctx context.Context, cmID string, resend bool) error
-	VerifyContactMethod(ctx context.Context, cmID string, code int) error
+	VerifyContactMethod(ctx context.Context, cmID string, code string) error
 	CodeExpiration(ctx context.Context, cmID string) (*time.Time, error)
 	Code(ctx context.Context, id string) (int, error)
 }
@@ -266,10 +268,20 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 	return tx.Commit()
 }
 
-func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
+func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, _code string) error {
 	userID, err := db.cmUserID(ctx, cmID)
 	if err != nil {
 		return err
+	}
+
+	code, err := strconv.ParseInt(_code, 10, 64)
+	if err != nil {
+		return validation.NewFieldError("Code", "must contain only digits")
+	}
+
+	matched, _ := regexp.MatchString(`^\d{6}$`, _code)
+	if !matched {
+		return validation.NewFieldError("Code", "must be 6 digits")
 	}
 
 	tx, err := db.db.BeginTx(ctx, nil)

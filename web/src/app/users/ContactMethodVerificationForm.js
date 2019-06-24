@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import FormControl from '@material-ui/core/FormControl'
-import FormHelperText from '@material-ui/core/FormHelperText'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -9,6 +7,7 @@ import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { makeStyles } from '@material-ui/core/styles'
 import { graphql2Client } from '../apollo'
+import { FormContainer, FormField } from '../forms'
 
 /*
  * Triggers sending a verification code to the specified cm
@@ -24,9 +23,6 @@ const sendContactMethodVerificationMutation = gql`
 const useStyles = makeStyles({
   fieldGridItem: {
     flexGrow: 1,
-  },
-  fieldStyle: {
-    width: '100%',
   },
   sendGridItem: {
     display: 'flex',
@@ -45,66 +41,66 @@ export default function ContactMethodVerificationForm(props) {
       return 'Send Code'
     }
   }
-
   return (
-    <Grid container spacing={2}>
-      <Grid item className={classes.sendGridItem}>
-        <Mutation
-          client={graphql2Client}
-          mutation={sendContactMethodVerificationMutation}
-          onError={() =>
-            props.setSendError('Too many messages! Try again after some time.')
-          }
-        >
-          {(commit, status) => (
-            <LoadingButton
-              color='primary'
-              loading={status.loading}
-              disabled={props.disabled}
-              buttonText={getTitle()}
-              onClick={() => {
-                setSendAttempted(true)
+    <FormContainer optionalLabels {...props}>
+      <Grid container spacing={2}>
+        <Grid item className={classes.sendGridItem}>
+          <Mutation
+            client={graphql2Client}
+            mutation={sendContactMethodVerificationMutation}
+            onError={() =>
+              props.setSendError(
+                'Too many messages! Try again after some time.',
+              )
+            }
+          >
+            {(commit, status) => (
+              <LoadingButton
+                color='primary'
+                loading={status.loading}
+                disabled={props.disabled}
+                buttonText={getTitle()}
+                onClick={() => {
+                  setSendAttempted(true) // changes text of send button to "resend"
 
-                commit({
-                  variables: {
-                    input: {
-                      contactMethodID: props.contactMethodID,
+                  commit({
+                    variables: {
+                      input: {
+                        contactMethodID: props.contactMethodID,
+                      },
                     },
-                  },
-                })
-              }}
-            />
-          )}
-        </Mutation>
-      </Grid>
-      <Grid item className={classes.fieldGridItem}>
-        <FormControl
-          className={classes.fieldStyle}
-          disabled={props.disabled}
-          error={!!props.error.length}
-        >
-          <TextField
-            aria-label='Code'
-            disabled={props.disabled}
-            error={!!props.error.length}
-            label='Verification Code'
+                  })
+                }}
+              />
+            )}
+          </Mutation>
+        </Grid>
+        <Grid item className={classes.fieldGridItem}>
+          <FormField
+            fullWidth
             name='code'
-            onChange={e => props.onChange(e.target.value)}
-            placeholder='Enter the verification code received'
-            value={props.value}
+            label='Verification Code'
+            required
+            component={TextField}
           />
-          <FormHelperText>{props.error[0]}</FormHelperText>
-        </FormControl>
+        </Grid>
       </Grid>
-    </Grid>
+    </FormContainer>
   )
 }
 
 ContactMethodVerificationForm.propTypes = {
   contactMethodID: p.string.isRequired,
   disabled: p.bool.isRequired,
-  error: p.array.isRequired,
+  errors: p.arrayOf(
+    p.shape({
+      field: p.oneOf(['code']).isRequired,
+      message: p.string.isRequired,
+    }),
+  ),
   onChange: p.func.isRequired,
   setSendError: p.func.isRequired,
-  value: p.string.isRequired,
+  value: p.shape({
+    code: p.string.isRequired,
+  }).isRequired,
 }
