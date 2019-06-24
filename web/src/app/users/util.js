@@ -20,6 +20,9 @@ export function formatPhoneNumber(n) {
   if (n.startsWith('+91')) {
     return `+91 ${n.slice(3, 5)} ${n.slice(5, 9)} ${n.slice(9)}`
   }
+  if (n.startsWith('+44')) {
+    return `+44 ${n.slice(3, 7)} ${n.slice(7)}`
+  }
 
   return n
 }
@@ -48,7 +51,7 @@ export function sortContactMethods(cm) {
 }
 
 export function getCountryCode(phone) {
-  return ['+1', '+91'].find(cc => phone.startsWith(cc))
+  return ['+1', '+91', '+44'].find(cc => phone.startsWith(cc))
 }
 
 export function stripCountryCode(phone) {
