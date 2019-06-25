@@ -5,8 +5,16 @@ const c = new Chance()
 testScreen('Favorites', testFavorites)
 
 function testFavorites(screen: ScreenFormat) {
-  check('Service', 'services', (name: string, favorite: boolean) =>
-    cy.createService({ name, favorite }).then(s => s.id),
+  check(
+    'Service',
+    'services',
+    (name: string, favorite: boolean) =>
+      cy.createService({ name, favorite }).then(s => s.id),
+    () =>
+      cy
+        .visit(`/alerts`)
+        .pageFab()
+        .get('input[name=service]'),
   )
 }
 
@@ -14,6 +22,7 @@ function check(
   typeName: string,
   urlPrefix: string,
   createFunc: (name: string, fav: boolean) => Cypress.Chainable<string>,
+  getSearchSelectFunc?: () => Cypress.Chainable<JQuery<HTMLElement>>,
 ) {
   describe(typeName + ' Favorites', () => {
     it('should allow setting and unsetting as a favorite from details page ', () => {
@@ -49,5 +58,28 @@ function check(
         .last()
         .should('contain', name1)
     })
+    if (getSearchSelectFunc) {
+      it('should sort favorites-first in a search-select', () => {
+        const prefix = c.word({ length: 12 })
+        const name1 = prefix + 'A'
+        const name2 = prefix + 'Z'
+        createFunc(name1, false)
+        createFunc(name2, true)
+
+        getSearchSelectFunc()
+          .findByLabel(prefix)
+          .parent()
+          .children()
+          .should('have.length', 2)
+          .as('items')
+
+        cy.get('@items')
+          .first()
+          .should('contain', name2)
+        cy.get('@items')
+          .last()
+          .should('contain', name1)
+      })
+    }
   })
 }
