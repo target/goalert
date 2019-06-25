@@ -90,11 +90,22 @@ func envRep(r io.Reader) io.Reader {
 func main() {
 	flag.StringVar(&logDir, "logs", "", "Directory to store copies of all logs. Overwritten on each start.")
 	rep := flag.Bool("replace", false, "Replace env vars specified with $VAR with the current value.")
+	file := flag.String("file", "-", "File to load config from.")
 	flag.Parse()
 	log.SetFlags(log.Lshortfile)
 
 	var tasks []Task
-	in := io.Reader(os.Stdin)
+	var in io.Reader
+	if *file == "-" {
+		in = io.Reader(os.Stdin)
+	} else {
+		fd, err := os.Open(*file)
+		if err != nil {
+			log.Fatal("open file:", err)
+		}
+		defer fd.Close()
+		in = fd
+	}
 	if *rep {
 		in = envRep(in)
 	}
