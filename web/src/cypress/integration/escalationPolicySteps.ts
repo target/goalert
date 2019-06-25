@@ -38,11 +38,6 @@ function testSteps(screen: ScreenFormat) {
         const u1 = users[0]
         const u2 = users[1]
 
-        // navigate to s1 details and set its favorite icon before creating a new step
-        cy.visit('/schedules/' + s1.id)
-        cy.get('button[aria-label="Set as a Favorite schedule"]').click()
-        cy.visit(`/escalation-policies/${ep.id}`)
-
         cy.pageFab()
         cy.get('div[role=dialog]').as('dialog')
         cy.get('@dialog').should('contain', 'Create Step')
@@ -51,12 +46,8 @@ function testSteps(screen: ScreenFormat) {
         cy.get('input[name=rotations]').selectByLabel(r2.name)
 
         cy.get('button[data-cy="schedules-step"]').click()
+        cy.get('input[name=schedules]').selectByLabel(s1.name)
         cy.get('input[name=schedules]').selectByLabel(s2.name)
-        cy.get('[data-cy=search-select-input]')
-          .click()
-          .then(() => {
-            cy.focused().type('{enter}', { force: true })
-          })
 
         cy.get('button[data-cy="users-step"]').click()
         cy.get('input[name=users]').selectByLabel(u1.name)
@@ -78,6 +69,7 @@ function testSteps(screen: ScreenFormat) {
         cy.get('body').should('contain', 'Step #1:')
         cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
         cy.get('div[data-cy=rotation-chip]').should('contain', r2.name)
+        cy.get('div[data-cy=schedule-chip]').should('contain', s1.name)
         cy.get('div[data-cy=schedule-chip]').should('contain', s2.name)
         cy.get('div[data-cy=user-chip]').should('contain', u1.name)
         cy.get('div[data-cy=user-chip]').should('contain', u2.name)

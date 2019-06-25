@@ -106,7 +106,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &opts, err
 }
 

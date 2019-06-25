@@ -157,29 +157,34 @@ function testSchedules(screen: ScreenFormat) {
     })
   })
 
-  //Grab schedule on a page that's not the first, favorite it and check to make sure it's on page 1
   describe('Setting a favorite', () => {
-    let sched: Schedule
-    before(() => {
-      // create at least 20 schedules (15 max amount for one page in browser)
-      for (let i = 0; i < 20; i++) {
-        cy.createSchedule()
-      }
-      cy.createSchedule().then(s => {
-        sched = s
-        return cy.visit('/schedules/' + sched.id)
-      })
+    it('should confirm that the unfavorite schedules are listed correctly', () => {
+      const favSuffix = c.word({ length: 10 })
+      const sched1Name = 'A' + favSuffix
+      const sched2Name = 'Z' + favSuffix
+      cy.createSchedule({ name: sched1Name })
+      cy.createSchedule({ name: sched2Name, isFavorite: true })
+      cy.visit(`/schedules?search=${encodeURIComponent(favSuffix)}`)
+      cy.get('ul[data-cy=apollo-list] a')
+        .should('have.length', 2)
+        .first()
+        .contains(sched2Name)
+
+      // confirm that the favorites icon is showing in the UI for the favorite
+      cy.get('div[data-cy=fav-icon]').should('exist')
+      cy.get('ul[data-cy=apollo-list] a')
+        .last()
+        .contains(sched1Name)
     })
     it('should allow setting and unsetting as a favorite schedule', () => {
-      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
-      cy.reload()
-      cy.get('button[aria-label="Unset as a Favorite schedule"').click()
-      cy.reload()
-      cy.get('button[aria-label="Set as a Favorite schedule"]').click()
-    })
-    it('should check to make sure the schedule is on the first page', () => {
-      cy.visit('/schedules')
-      cy.get('#app').contains(sched.name)
+      cy.createSchedule().then(sched => {
+        cy.visit(`/schedules/${sched.id}`)
+        cy.get('button[aria-label="Set as a Favorite schedule"]').click()
+        cy.reload()
+        cy.get('button[aria-label="Unset as a Favorite schedule"').click()
+        cy.reload()
+        cy.get('button[aria-label="Set as a Favorite schedule"]').click()
+      })
     })
   })
 
