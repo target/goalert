@@ -1,0 +1,31 @@
+{
+  "Env": [
+    "DB_URL=postgres://$DB_HOST/$_NAME1?sslmode=disable",
+    "DB_NAME=$_NAME1",
+    "SLACK_PORT=$_PORT1",
+    "PROXY_PORT=$_PORT2",
+    "GOALERT_PORT=$_PORT3",
+    "CYPRESS_testFiles=$_ARG"
+  ],
+
+  "Variants": [
+    {
+      "Prefix": "Widescreen",
+      "Env": [
+        "CYPRESS_viewportWidth=1440",
+        "CYPRESS_viewportHeight=900",
+        "CYPRESS_screenshotsFolder=screens/wide/$_BASENAME",
+        "CYPRESS_videosFolder=videos/wide/$_BASENAME"
+      ]
+    },
+    {
+      "Prefix": "Mobile",
+      "Env": [
+        "CYPRESS_viewportWidth=375",
+        "CYPRESS_viewportHeight=667",
+        "CYPRESS_screenshotsFolder=screens/mobile/$_BASENAME",
+        "CYPRESS_videosFolder=videos/mobile/$_BASENAME"
+      ]
+    }
+  ]
+}
