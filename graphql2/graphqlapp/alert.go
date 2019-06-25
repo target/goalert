@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
@@ -11,8 +12,6 @@ import (
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 	"time"
 )
 
@@ -196,11 +195,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 		s.Limit = search.DefaultMaxResults
 	}
 
-	aID, err := a.AlertID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-	s.FilterAlertIDs = append(s.FilterAlertIDs, aID)
+	s.FilterAlertIDs = append(s.FilterAlertIDs, obj.ID)
 
 	s.Limit++
 
