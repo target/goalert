@@ -229,7 +229,7 @@ function testRotations(screen: ScreenFormat) {
     })
   })
 
-  it.only('should allow editing a rotation', () => {
+  it('should allow editing a rotation', () => {
     cy.createRotation({ shiftLength: 3, type: 'daily' }).then(r => {
       const newName = c.word({ length: 15 })
       const newDesc = c.sentence({ words: 3 })
