@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
-	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"text/template"
 
@@ -70,7 +69,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 	}
 
 	err := validate.Many(
-		validate.Range("FilterAlertIDs", opts.FilterAlertIDs, 0, 50),
+		validate.Range("FilterAlertIDs", len(opts.FilterAlertIDs), 0, 50),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 	)
 	if err != nil {
