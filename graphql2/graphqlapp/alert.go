@@ -155,6 +155,26 @@ func (a *Alert) Service(ctx context.Context, raw *alert.Alert) (*service.Service
 	return (*App)(a).FindOneService(ctx, raw.ServiceID)
 }
 
+func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertInput) (*alert.Alert, error) {	
+	a := &alert.Alert{
+		ServiceID: input.ServiceID,
+		Summary:   input.Summary,
+	}
+
+	if input.Details != nil {
+		a.Details = *input.Details
+	}
+	// An alert when created will always have triggered status
+	a.Status = alert.StatusTriggered
+
+ 	result, err := m.AlertStore.Create(ctx, a)
+	if err != nil {
+		return nil, err
+	}
+
+ 	return result, err
+}
+
 func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert, error) {
 	ids, err := m.AlertStore.EscalateMany(ctx, ids)
 	if err != nil {
