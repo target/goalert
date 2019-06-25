@@ -38,7 +38,7 @@ declare global {
     description?: string
     epID?: string
     ep?: EPOptions
-    isFavorite?: boolean
+    favorite?: boolean
   }
 
   interface Label {
@@ -109,7 +109,7 @@ function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
         name: svc.name || 'SM Svc ' + c.word({ length: 8 }),
         description: svc.description || c.sentence(),
         escalationPolicyID: svc.epID,
-        favorite: Boolean(svc.isFavorite),
+        favorite: Boolean(svc.favorite),
       },
     })
     .then(res => res.createService)
