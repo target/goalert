@@ -26,7 +26,7 @@ type SearchOptions struct {
 	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
 	FavoritesOnly bool `json:"b,omitempty"`
 
-	// FavoritesFirst indicates that services marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
+	// FavoritesFirst indicates that rotations marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
 	FavoritesFirst bool `json:"f,omitempty"`
 
 	//FavoritesUserID is the userID associated with the rotation favorite

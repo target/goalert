@@ -62,42 +62,6 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('not.contain', 'No results') // mock alerts should show again
     })
 
-    it('should filter through alerts, active, unacknowledged, acknowledged, closed, and all', () => {
-      cy.visit('/alerts')
-      cy.get('body').should('contain', 'No results')
-      cy.get('button[aria-label="Filter Alerts"]').click()
-      cy.get('span[data-cy=toggle-favorites]').click()
-      cy.get('body').should('not.contain', 'No results') // mock alerts should show again
-      cy.get('button')
-        .contains('Done')
-        .click()
-      cy.get(`[data-cy=alert-${alert.number}]`)
-      cy.get('button[aria-label="Filter Alerts"]').click()
-      cy.get('input[value=unacknowledged]').click()
-      cy.get('button')
-        .contains('Done')
-        .click()
-      cy.get(`[data-cy=alert-${alert.number}]`)
-      cy.get('button[aria-label="Filter Alerts"]').click()
-      cy.get('input[value=acknowledged]').click()
-      cy.get('button')
-        .contains('Done')
-        .click()
-      cy.get('body').should('not.contain', 'No results') // mock alerts should show again
-      cy.get('button[aria-label="Filter Alerts"]').click()
-      cy.get('input[value=closed]').click()
-      cy.get('button')
-        .contains('Done')
-        .click()
-      cy.get('body').should('not.contain', 'No results') // mock alerts should show again
-      cy.get('button[aria-label="Filter Alerts"]').click()
-      cy.get('input[value=all]').click()
-      cy.get('button')
-        .contains('Done')
-        .click()
-      cy.get(`[data-cy=alert-${alert.number}]`)
-    })
-
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.number.toString()))
       it('should link to the details page', () => {

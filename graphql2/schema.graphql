@@ -481,10 +481,10 @@ input RotationSearchOptions {
   search: String = ""
   omit: [ID!]
 
-  # Include only favorited services in the results.
+  # Include only favorited rotations in the results.
   favoritesOnly: Boolean = false
 
-  # Sort favorite services first.
+  # Sort favorite rotations first.
   favoritesFirst: Boolean = false
 }
 

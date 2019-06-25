@@ -549,8 +549,8 @@ hV7GVMLBe8CO3sk223XpD33S-fVzdvexKD7dXl_91tHY1OAE3-uT3WYvImHZoX4Aql6-egVvqvGwo9lG
 DWOujNCuJmyoXYuyr9PXWwL_vST6c58lTe8BfQ4f9UXndpXOPzHqRNNZI2eCNvMcwvSgIyGdw_AFGnfT
 w1LuUbFs849NfNNAUeLod379rcP3SPALO0aYRJx4PxP7lhTkqWqxOFDd_UA5bbsffF9Vqd86zgUKcSsb
 vG8EO5_EurLJPmyy7Uf8moDa9eIF_KfoMOm_yXQ2fvOefPv9fQEvhe-Ztpdc27dBXsRzrrei4xN5T_I2
-7B8W8utGY-GWizQ4zfX3IpiCvfQ86ASGus8eZ52O6ASnmwP0tPo99v0u0f0ftsNCXXCUskSb49CKEDeG
-bYkanDlaJe-QfjK-RevbrYAdYsTn7A5hb6DSsM1GRI5pTH3MbI_B_wIAAP__eLndUeTiAwA=
+7B8W8utGY-GWizQ4zfX3IpiCvfQ86ASGus8eZ52O6ASnmwP0tPo99v0u0f0ftsNCXXDQqd4Xm2JNWouq
+tsZmkANa5eKQbi--4-rbRsGGL-LrdId_t6zm_qnBKW1VW9JY-zz_vwAAAP__FZd4QYLiAwA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -760,6 +760,6 @@ bYkanDlaJe-QfjK-RevbrYAdYsTn7A5hb6DSsM1GRI5pTH3MbI_B_wIAAP__eLndUeTiAwA=
 		{Data: dataRange(253205, 253408), Name: "migrations/20190313125552-slack-user-link.sql"},
 		{Data: dataRange(253408, 253724), Name: "migrations/20190404105850-nc-no-meta.sql"},
 		{Data: dataRange(253724, 254211), Name: "migrations/20190517144224-trigger-config-sync.sql"},
-		{Data: dataRange(254211, 254692), Name: "migrations/20190613111645-add-rotation-favorite.sql"},
+		{Data: dataRange(254211, 254594), Name: "migrations/20190613111645-add-rotation-favorite.sql"},
 	}
 }
