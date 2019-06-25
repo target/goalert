@@ -147,7 +147,7 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
       input: {
         target: {
           type: 'service',
-          id: label.svcID,
+          id: svcID,
         },
         key,
         value,
