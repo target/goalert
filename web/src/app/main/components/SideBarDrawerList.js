@@ -160,7 +160,7 @@ export default class SideBarDrawerList extends React.PureComponent {
             className={classes.logo}
             height={32}
             src={require('../../public/goalert-alt-logo-scaled.png')}
-            alt={''}
+            alt=''
           />
         </div>
         <Divider />

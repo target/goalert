@@ -63,7 +63,7 @@ export class Slack extends Component {
         {...except(this.props, 'classes')}
         width={20}
         height={20}
-        alt={'Slack'}
+        alt='Slack'
       />
     )
   }
@@ -77,7 +77,7 @@ export class SlackBW extends Component {
         {...except(this.props, 'classes')}
         width={20}
         height={20}
-        alt={'Slack'}
+        alt='Slack'
       />
     )
   }
