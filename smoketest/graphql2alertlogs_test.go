@@ -114,7 +114,7 @@ func TestGraphQL2AlertLogs(t *testing.T) {
 		}
 	`, 1), &logs)
 
-	if len(logs.Alert.RecentEvents.Nodes) < 5 {
-			t.Fatalf("ERROR: retrieved length of log entries=%d; want at least %d", len(logs.Alert.RecentEvents.Nodes), 5)
+	if len(logs.Alert.RecentEvents.Nodes) < 4 {
+			t.Fatalf("ERROR: retrieved length of log entries=%d; want at least %d", len(logs.Alert.RecentEvents.Nodes), 4)
 	}
 }
