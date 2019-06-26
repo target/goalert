@@ -39,10 +39,13 @@ export default class OtherActions extends React.PureComponent {
 
   state = {
     anchorEl: null,
+    ariaExpanded: false,
   }
 
   render() {
-    const onClose = cancelable(() => this.setState({ anchorEl: null }))
+    const onClose = cancelable(() =>
+      this.setState({ anchorEl: null, ariaExpanded: !this.state.ariaExpanded }),
+    )
     return (
       <React.Fragment>
         <span ref={this.ref}>
@@ -50,9 +53,13 @@ export default class OtherActions extends React.PureComponent {
             'aria-label': 'Other Actions',
             'data-cy': 'other-actions',
             color: 'inherit',
+            'aria-expanded': this.state.ariaExpanded,
             onClick: e => {
               onClose.cancel()
-              this.setState({ anchorEl: e.currentTarget })
+              this.setState({
+                anchorEl: e.currentTarget,
+                ariaExpanded: !this.state.ariaExpanded,
+              })
             },
           })}
         </span>

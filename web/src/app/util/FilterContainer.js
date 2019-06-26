@@ -31,6 +31,7 @@ const style = theme => {
 export default class FilterContainer extends React.PureComponent {
   state = {
     anchorEl: null,
+    ariaExpanded: false,
   }
 
   renderContent() {
@@ -49,7 +50,14 @@ export default class FilterContainer extends React.PureComponent {
           {this.props.onReset && (
             <Button onClick={this.props.onReset}>Reset</Button>
           )}
-          <Button onClick={() => this.setState({ anchorEl: null })}>
+          <Button
+            onClick={() =>
+              this.setState({
+                anchorEl: null,
+                ariaExpanded: !this.state.ariaExpanded,
+              })
+            }
+          >
             Done
           </Button>
         </Grid>
@@ -62,7 +70,14 @@ export default class FilterContainer extends React.PureComponent {
       <React.Fragment>
         <IconButton
           color='inherit'
-          onClick={e => this.setState({ anchorEl: e.target })}
+          onClick={e =>
+            this.setState({
+              anchorEl: e.target,
+              ariaExpanded: !this.state.ariaExpanded,
+            })
+          }
+          title='filter'
+          aria-expanded={this.state.ariaExpanded}
         >
           <FilterList />
         </IconButton>
@@ -73,7 +88,12 @@ export default class FilterContainer extends React.PureComponent {
               paper: classes.overflow,
             }}
             open={!!this.state.anchorEl}
-            onClose={() => this.setState({ anchorEl: null })}
+            onClose={() =>
+              this.setState({
+                anchorEl: null,
+                ariaExpanded: !this.state.ariaExpanded,
+              })
+            }
             anchorOrigin={{
               vertical: 'bottom',
               horizontal: 'right',
@@ -95,7 +115,12 @@ export default class FilterContainer extends React.PureComponent {
             disableDiscovery
             disableSwipeToOpen
             open={!!this.state.anchorEl}
-            onClose={() => this.setState({ anchorEl: null })}
+            onClose={() =>
+              this.setState({
+                anchorEl: null,
+                ariaExpanded: !this.state.ariaExpanded,
+              })
+            }
             onOpen={() => {}}
           >
             {this.renderContent()}
