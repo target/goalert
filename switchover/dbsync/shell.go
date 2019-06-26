@@ -202,7 +202,7 @@ func RunShell(oldURL, newURL string) error {
 	})
 	sh.AddCmd(ctxCmd{
 		Name: "disable",
-		Help: "Enable change_log",
+		Help: "Disable change_log",
 		Func: func(ctx context.Context, sh *ishell.Context) error {
 			err := s.ChangeLogDisable(ctx, sh)
 			if err != nil {
