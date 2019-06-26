@@ -65,7 +65,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 				contactMethodID: "%s"
 			})
 		}
-		`, cm1))
+	`, cm1))
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
@@ -86,7 +86,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 				verificationCode: "%s"
 			})
 		}
-		`, cm1, code))
+	`, cm1, code))
 
 	h.FastForward(time.Minute)
 
