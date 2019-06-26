@@ -14,6 +14,7 @@ describe('wizard tests', () => {
     expect(getService(usersSchedules)).toEqual({
       name: 'Test Service',
       description,
+      favorite: true,
       newIntegrationKeys: [
         {
           type: usersSchedules.key.value,
