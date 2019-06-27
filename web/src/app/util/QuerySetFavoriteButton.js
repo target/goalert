@@ -5,6 +5,7 @@ import { graphql2Client } from '../apollo'
 import Query from '../util/Query'
 import { Mutation } from 'react-apollo'
 import { SetFavoriteButton } from './SetFavoriteButton'
+import { oneOfShape } from '../util/propTypes'
 
 const queries = {
   service: gql`
@@ -32,19 +33,23 @@ const mutation = gql`
 `
 
 export function QuerySetFavoriteButton(props) {
+  let typeName = ''
+  let id = ''
+  if (props.rotationID) {
+    typeName = 'rotation'
+    id = props.rotationID
+  } else if (props.serviceID) {
+    typeName = 'service'
+    id = props.serviceID
+  }
   return (
     <Query
-      query={queries[props.typeName]}
-      variables={{ id: props.id }}
+      query={queries[typeName]}
+      variables={{ id: id }}
       render={({ data }) => {
-        if (!data || !data[props.typeName]) return null
+        if (!data || !data[typeName]) return null
 
-        return renderMutation(
-          data[props.typeName].isFavorite,
-          props.id,
-          queries[props.typeName],
-          props.typeName,
-        )
+        return renderMutation(data[typeName].isFavorite, id, typeName)
       }}
     />
   )
@@ -83,6 +88,5 @@ function renderSetFavButton(isFavorite, mutation, id, typeName) {
 }
 
 QuerySetFavoriteButton.propTypes = {
-  id: p.string.isRequired,
-  typeName: p.oneOf(['rotation', 'service']),
+  id: oneOfShape({ serviceID: p.string, rotationID: p.string }),
 }

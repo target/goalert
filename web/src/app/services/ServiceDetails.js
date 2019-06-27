@@ -83,7 +83,7 @@ export default class ServiceDetails extends React.PureComponent {
     return (
       <React.Fragment>
         <PageActions>
-          <QuerySetFavoriteButton id={data.service.id} typeName={'service'} />
+          <QuerySetFavoriteButton serviceID={data.service.id} />
           <OtherActions
             actions={[
               {

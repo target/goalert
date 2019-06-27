@@ -67,7 +67,7 @@ export default class RotationDetails extends React.PureComponent {
     return (
       <React.Fragment>
         <PageActions>
-          <QuerySetFavoriteButton id={data.rotation.id} typeName={'rotation'} />
+          <QuerySetFavoriteButton rotationID={data.rotation.id} />
           <OtherActions
             actions={[
               {
