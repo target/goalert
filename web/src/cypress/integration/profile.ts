@@ -31,7 +31,7 @@ function testProfile(screen: ScreenFormat) {
     )
   })
   describe('Contact Methods', () => {
-    it.only('should allow creating', () => {
+    it('should allow creating', () => {
       const value = '763' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'SM CM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
