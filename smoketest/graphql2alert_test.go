@@ -3,8 +3,9 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQL2Alert tests the createAlert mutation in gql2.
@@ -35,7 +36,7 @@ func TestGraphQL2Alert(t *testing.T) {
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 	`
-	
+
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 

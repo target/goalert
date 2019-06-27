@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"fmt"
+
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
