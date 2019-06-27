@@ -65,7 +65,7 @@ func (p *Engine) sendMessage(ctx context.Context, msgID string, destType notific
 }
 
 func (p *Engine) sendStatusUpdate(ctx context.Context, msgID string, alertLogID int, destType notification.DestType, destID string) (*notification.MessageStatus, error) {
-	e, err := p.cfg.AlertlogStore.FindOne(ctx, alertLogID)
+	e, err := p.cfg.AlertLogStore.FindOne(ctx, alertLogID)
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup alert log entry")
 	}
@@ -93,7 +93,7 @@ func (p *Engine) sendNotification(ctx context.Context, msgID string, alertID int
 			CallbackID: msgID,
 		}
 	}, func(ctx context.Context) {
-		p.cfg.AlertlogStore.MustLog(ctx, alertID, alertlog.TypeNotificationSent, nil)
+		p.cfg.AlertLogStore.MustLog(ctx, alertID, alertlog.TypeNotificationSent, nil)
 	})
 }
 func (p *Engine) sendTestNotification(ctx context.Context, msgID string, destType notification.DestType, destID string) (*notification.MessageStatus, error) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
@@ -181,6 +182,8 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	}
 
 	var s alertlog.SearchOptions
+	s.FilterAlertIDs = append(s.FilterAlertIDs, obj.ID)
+
 	if opts.After != nil && *opts.After != "" {
 		err := search.ParseCursor(*opts.After, &s)
 		if err != nil {
@@ -194,8 +197,6 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
-
-	s.FilterAlertIDs = append(s.FilterAlertIDs, obj.ID)
 
 	s.Limit++
 
