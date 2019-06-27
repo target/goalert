@@ -22,6 +22,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 			Type:   input.Type,
 			UserID: input.UserID,
 			Value:  input.Value,
+			Disabled: true,
 		})
 		if err != nil {
 			return err
