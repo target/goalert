@@ -3,6 +3,8 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"strconv"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
@@ -14,7 +16,6 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"strconv"
 )
 
 const tempUUID = "00000000-0000-0000-0000-000000000000"
@@ -137,6 +138,13 @@ func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServi
 		result, err = m.ServiceStore.CreateServiceTx(ctx, tx, svc)
 		if err != nil {
 			return err
+		}
+
+		if input.Favorite != nil && *input.Favorite {
+			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.ServiceTarget(result.ID))
+			if err != nil {
+				return err
+			}
 		}
 
 		err = validate.Many(

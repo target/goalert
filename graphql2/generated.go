@@ -2505,6 +2505,8 @@ input CreateServiceInput {
   name: String!
   description: String = ""
 
+  favorite: Boolean
+
   escalationPolicyID: ID
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
@@ -10560,6 +10562,12 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 		case "description":
 			var err error
 			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favorite":
+			var err error
+			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

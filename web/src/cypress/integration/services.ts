@@ -165,17 +165,6 @@ function testServices(screen: ScreenFormat) {
       })
     })
 
-    it('should allow setting and unsetting as a favorite service', () => {
-      // test setting as favorite
-      cy.get('button[aria-label="Set as a Favorite Service"]').click()
-      cy.reload()
-      // aria label should change and should be set as a favorite, test unsetting
-      cy.get('button[aria-label="Unset as a Favorite Service"').click()
-      cy.reload()
-      // check that unset
-      cy.get('button[aria-label="Set as a Favorite Service"]').click()
-    })
-
     it('should navigate to and from alerts', () => {
       cy.navigateToAndFrom(
         screen,
