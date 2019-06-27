@@ -31,7 +31,7 @@ function testProfile(screen: ScreenFormat) {
     )
   })
   describe('Contact Methods', () => {
-    it('should allow creating', () => {
+    it.only('should allow creating', () => {
       const value = '763' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'SM CM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
@@ -41,6 +41,16 @@ function testProfile(screen: ScreenFormat) {
       cy.get('input[name=type]').selectByLabel(type)
       cy.get('input[name=value]').type(value)
       cy.get('button[type=submit]').click()
+
+      // TODO: twilio mock server verification pending
+      cy.get('button[type=button]')
+        .contains('Cancel')
+        .click()
+      cy.get('div')
+        .contains(`${name} (${type})`)
+        .parent()
+        .parent()
+        .find('svg[data-cy="cm-disabled"]')
 
       cy.get('body').should('contain', `${name} (${type})`)
     })
