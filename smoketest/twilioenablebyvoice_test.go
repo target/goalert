@@ -26,7 +26,7 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -40,38 +40,29 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			verifyContactMethod(input: {
-				contact_method_id: "%s",
-				verification_code: %d,
-			}) {
-			  contact_method_ids
-			}
-		  }
-		`, cm2, 123456))
+			verifyContactMethod(input:{
+				contactMethodID:  "%s",
+				verificationCode: "%s"
+			})
+		}
+	`, cm2, "123456"))
 
 	// All contact methods that have same value and of the same user should be enabled now.
 	doQL(fmt.Sprintf(`
-				mutation {
-					sendContactMethodTest(input:{
-						contact_method_id:  "%s",
-					}){
-						id
-					}
-				}
-				`, cm1))
+		mutation {
+			testContactMethod(id: "%s")
+		}
+	`, cm1))
+
 	d1 := h.Twilio().Device(h.Phone("1"))
 	d1.ExpectSMS("test")
 	h.Twilio().WaitAndAssert()
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			sendContactMethodTest(input:{
-				contact_method_id:  "%s",
-			}){
-				id
-			}
+			testContactMethod(id: "%s")
 		}
-		`, cm2))
+	`, cm2))
 
 	d1.ExpectVoice("test")
 }

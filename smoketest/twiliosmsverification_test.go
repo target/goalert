@@ -48,7 +48,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -62,12 +62,10 @@ func TestTwilioSMSVerification(t *testing.T) {
 	doQL(fmt.Sprintf(`
 		mutation {
 			sendContactMethodVerification(input:{
-				contact_method_id:  "%s",
-			}){
-				id
-			}
+				contactMethodID: "%s"
+			})
 		}
-		`, cm1))
+	`, cm1))
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
@@ -84,13 +82,11 @@ func TestTwilioSMSVerification(t *testing.T) {
 	doQL(fmt.Sprintf(`
 		mutation {
 			verifyContactMethod(input:{
-				contact_method_id:  "%s",
-				verification_code: %s
-			}){
-				contact_method_ids
-			}
+				contactMethodID:  "%s",
+				verificationCode: "%s"
+			})
 		}
-		`, cm1, code))
+	`, cm1, code))
 
 	h.FastForward(time.Minute)
 
