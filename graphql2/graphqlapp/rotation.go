@@ -185,6 +185,13 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
 	}
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
+	}
+
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
+	}
 	searchOpts.Omit = opts.Omit
 	if opts.After != nil && *opts.After != "" {
 		err = search.ParseCursor(*opts.After, &searchOpts)
@@ -197,14 +204,6 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	}
 	if searchOpts.Limit == 0 {
 		searchOpts.Limit = 15
-	}
-
-	if opts.FavoritesFirst != nil {
-		searchOpts.FavoritesFirst = *opts.FavoritesFirst
-	}
-
-	if opts.FavoritesOnly != nil {
-		searchOpts.FavoritesOnly = *opts.FavoritesOnly
 	}
 
 	searchOpts.Limit++

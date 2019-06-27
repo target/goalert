@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestGraphQL2RotationsFavorite(t *testing.T) {
+func TestGraphQLFavoriteRotations(t *testing.T) {
 	t.Parallel()
 	sql := `
 	insert into users (id, name, email, role) 
@@ -16,8 +16,7 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 
 	insert into rotations (id, name, description, type, start_time, time_zone)
 	values
-		({{uuid "r1"}}, 'test', 'test', 'daily', now(), 'UTC'),
-		({{uuid "r2"}}, 'test2', 'test2', 'daily', now(), 'UTC');
+		({{uuid "r1"}}, 'test', 'test', 'daily', now(), 'UTC');
 `
 	h := harness.NewHarness(t, sql, "add-rotation-favorite")
 	defer h.Close()
@@ -91,63 +90,4 @@ func TestGraphQL2RotationsFavorite(t *testing.T) {
 	if r.Rotation.IsUserFav != false {
 		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want true", h.UUID("r1"), r.Rotation.IsUserFav)
 	}
-
-	doQL(t, fmt.Sprintf(`
-		query {
-			rotation(id: "%s") { 
-				isFavorite			
-			}	
-		}
-	`, h.UUID("r2")), &r)
-
-	if r.Rotation.IsUserFav != false {
-		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want false", h.UUID("r2"), r.Rotation.IsUserFav)
-	}
-
-	doQL(t, fmt.Sprintf(`
-	mutation {
-   		setFavorite (input: {
-			target: {
-				id: "%s", 
-				type: rotation
-			}, 
-			favorite: true})
-  		}
-	`, h.UUID("r2")), nil)
-
-	doQL(t, fmt.Sprintf(`
-		query {
-			rotation(id: "%s") { 
-				isFavorite 
-			}	
-		}
-	`, h.UUID("r2")), &r)
-
-	if r.Rotation.IsUserFav != true {
-		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want true", h.UUID("r2"), r.Rotation.IsUserFav)
-	}
-
-	doQL(t, fmt.Sprintf(`
-	mutation {
-   		setFavorite (input: {
-			target: {
-				id: "%s", 
-				type: rotation
-			}, 
-			favorite: false})
-  		}
-	`, h.UUID("r1")), nil)
-
-	doQL(t, fmt.Sprintf(`
-		query {
-			rotation(id: "%s") { 
-				isFavorite 
-			}	
-		}
-	`, h.UUID("r2")), &r)
-
-	if r.Rotation.IsUserFav != false {
-		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want false", h.UUID("r2"), r.Rotation.IsUserFav)
-	}
-
 }

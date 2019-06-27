@@ -78,7 +78,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		{{if not .FavoritesFirst}}
 			lower(svc.name) > lower(:afterName)
 		{{else if .After.IsFavorite}}
-			((fav NOTNULL AND lower(svc.name) > lower(:afterName)) OR fav isnull)
+			((fav IS DISTINCT FROM NULL AND lower(svc.name) > lower(:afterName)) OR fav isnull)
 		{{else}}
 			(fav isnull AND lower(svc.name) > lower(:afterName))
 		{{end}}

@@ -48,7 +48,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		delete: p.P(`
 			DELETE FROM user_favorites
 			WHERE user_id = $1 and
-			tgt_service_id  = $2 OR tgt_rotation_id = $3
+			tgt_service_id = $2 OR tgt_rotation_id = $3
 			
 		`),
 		findAll: p.P(`
@@ -120,16 +120,16 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		return err
 	}
 
-	var rotationID, serviceID sql.NullString
+	var serviceID, rotationID sql.NullString
 
 	switch tgt.TargetType() {
-	case assignment.TargetTypeRotation:
-		rotationID.Valid = true
-		rotationID.String = tgt.TargetID()
-
 	case assignment.TargetTypeService:
 		serviceID.Valid = true
 		serviceID.String = tgt.TargetID()
+
+	case assignment.TargetTypeRotation:
+		rotationID.Valid = true
+		rotationID.String = tgt.TargetID()
 	}
 
 	_, err = db.delete.ExecContext(ctx, userID, serviceID, rotationID)
@@ -159,6 +159,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 	}
 
 	var allowServices bool
+	var allowRotations bool
 	if len(filter) == 0 {
 		allowServices = true
 	} else {
@@ -167,12 +168,12 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 			case assignment.TargetTypeService:
 				allowServices = true
 			case assignment.TargetTypeRotation:
-				allowServices = true
+				allowRotations = true
 			}
 		}
 	}
 
-	rows, err := db.findAll.QueryContext(ctx, userID, allowServices)
+	rows, err := db.findAll.QueryContext(ctx, userID, allowServices, allowRotations)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
