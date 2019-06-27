@@ -3,13 +3,13 @@ package switchover
 import (
 	"context"
 	"fmt"
-	"github.com/target/goalert/app/lifecycle"
-	"github.com/target/goalert/util/log"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/util/log"
 )
 
 func (h *Handler) setState(ctx context.Context, newState State) {
@@ -29,8 +29,11 @@ func (h *Handler) setState(ctx context.Context, newState State) {
 		return
 	}
 
+	h.mx.Lock()
 	h.state = newState
-	_, err := h.sendNotification.ExecContext(ctx, StateChannel, h.status().serialize())
+	h.mx.Unlock()
+
+	_, err := h.sendNotification.ExecContext(ctx, StateChannel, h.Status().serialize())
 	if err != nil {
 		log.Log(ctx, err)
 	}
@@ -51,9 +54,31 @@ func (h *Handler) allNodes(state ...State) bool {
 	}
 	return true
 }
+
+// CheckDBID will return true if the ID matches the current
+// db-next ID. If there is no current ID, then it is set and returns true.
+func (h *Handler) CheckDBID(id string) bool {
+	h.mx.Lock()
+	defer h.mx.Unlock()
+
+	return h.dbID == id
+}
+
+// CheckDBNextID will return true if the ID matches the current
+// db-next ID. If there is no current ID, then it is set and returns true.
+func (h *Handler) CheckDBNextID(id string) bool {
+	h.mx.Lock()
+	defer h.mx.Unlock()
+
+	return h.dbNextID == id
+}
 func (h *Handler) updateNodeStatus(ctx context.Context, s *Status) bool {
-	if !s.MatchDBNext(h.dbNextURL) {
-		log.Logf(ctx, "Switch-Over Abort: NodeID="+s.NodeID+" has mismatched db-next-url")
+	if !h.CheckDBID(s.DBID) {
+		log.Logf(ctx, "Switch-Over Abort: NodeID="+s.NodeID+" has mismatched DB ID")
+		h.setState(ctx, StateAbort)
+	}
+	if !h.CheckDBNextID(s.DBNextID) {
+		log.Logf(ctx, "Switch-Over Abort: NodeID="+s.NodeID+" has mismatched DB Next ID")
 		h.setState(ctx, StateAbort)
 	}
 
@@ -166,7 +191,7 @@ func (h *Handler) loop() {
 				continue
 			}
 
-			_, err := h.sendNotification.ExecContext(ctx, StateChannel, h.status().serialize())
+			_, err := h.sendNotification.ExecContext(ctx, StateChannel, h.Status().serialize())
 			if err != nil {
 				log.Log(ctx, err)
 			}
