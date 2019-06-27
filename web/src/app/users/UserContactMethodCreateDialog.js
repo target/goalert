@@ -17,6 +17,11 @@ const createMutation = gql`
     }
   }
 `
+const verifyContactMethodMutation = gql`
+  mutation verifyContactMethod($input: VerifyContactMethodInput!) {
+    verifyContactMethod(input: $input)
+  }
+`
 
 export default class UserContactMethodCreateDialog extends React.PureComponent {
   static propTypes = {
@@ -41,12 +46,37 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
   }
 
   onComplete = data => {
-    if (!this.state.contactMethodID) {
+    if (this.state.contactMethodID) {
+      this.props.onClose()
+    } else {
       this.setState({
         contactMethodID: data.createUserContactMethod.id, // output from create mutation
       })
+    }
+  }
+
+  getInputVariables() {
+    if (this.state.contactMethodID) {
+      return {
+        variables: {
+          input: {
+            contactMethodID: this.state.contactMethodID,
+            verificationCode: this.state.verValue.code,
+          },
+        },
+      }
     } else {
-      this.props.onClose()
+      return {
+        variables: {
+          input: {
+            ...this.state.cmValue,
+            userID: this.props.userID,
+            newUserNotificationRule: {
+              delayMinutes: 0,
+            },
+          },
+        },
+      }
     }
   }
 
@@ -54,7 +84,11 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
     return (
       <Mutation
         client={graphql2Client}
-        mutation={createMutation}
+        mutation={
+          this.state.contactMethodID
+            ? verifyContactMethodMutation
+            : createMutation
+        }
         awaitRefetchQueries
         refetchQueries={['nrList', 'cmList']}
         onCompleted={this.onComplete}
@@ -66,7 +100,7 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
 
   renderDialog(commit, status) {
     const { loading, error } = status
-    const { contactMethodID, cmValue } = this.state
+    const { contactMethodID } = this.state
 
     return (
       <FormDialog
@@ -76,17 +110,8 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
         errors={nonFieldErrors(error)}
         onClose={this.props.onClose}
         onSubmit={() => {
-          return commit({
-            variables: {
-              input: {
-                ...cmValue,
-                userID: this.props.userID,
-                newUserNotificationRule: {
-                  delayMinutes: 0,
-                },
-              },
-            },
-          })
+          const input = this.getInputVariables()
+          return commit(input)
         }}
         form={this.renderForm(status)}
       />
