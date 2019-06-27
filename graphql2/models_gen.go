@@ -96,6 +96,7 @@ type CreateScheduleInput struct {
 type CreateServiceInput struct {
 	Name                string                       `json:"name"`
 	Description         *string                      `json:"description"`
+	Favorite            *bool                        `json:"favorite"`
 	EscalationPolicyID  *string                      `json:"escalationPolicyID"`
 	NewEscalationPolicy *CreateEscalationPolicyInput `json:"newEscalationPolicy"`
 	NewIntegrationKeys  []CreateIntegrationKeyInput  `json:"newIntegrationKeys"`

@@ -24,7 +24,7 @@ declare global {
     id: string
     name: string
     description: string
-    is_user_favorite: boolean
+    isFavorite: boolean
 
     /** The escalation policy ID for this Service. */
     epID: string
@@ -38,6 +38,7 @@ declare global {
     description?: string
     epID?: string
     ep?: EPOptions
+    favorite?: boolean
   }
 
   interface Label {
@@ -57,14 +58,14 @@ declare global {
 
 function getService(svcID: string) {
   const query = `
-    query GetService($id: String!) {
+    query GetService($id: ID!) {
       service(id: $id) {
         id
         name
         description
-        is_user_favorite
-        epID: escalation_policy_id,
-        ep: escalation_policy {
+        isFavorite
+        epID: escalationPolicyID,
+        ep: escalationPolicy {
           id
           name
           description
@@ -73,20 +74,20 @@ function getService(svcID: string) {
       }
     }
   `
-  return cy.graphql(query, { id: svcID }).then(res => res.service)
+  return cy.graphql2(query, { id: svcID }).then(res => res.service)
 }
 
 function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
   if (!svc) svc = {}
   const query = `
-    mutation CreateService($input: CreateServiceInput){
+    mutation CreateService($input: CreateServiceInput!){
       createService(input: $input) {
         id
         name
         description
-        is_user_favorite
-        epID: escalation_policy_id,
-        ep: escalation_policy {
+        isFavorite
+        epID: escalationPolicyID,
+        ep: escalationPolicy {
           id
           name
           description
@@ -103,11 +104,12 @@ function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
   }
 
   return cy
-    .graphql(query, {
+    .graphql2(query, {
       input: {
         name: svc.name || 'SM Svc ' + c.word({ length: 8 }),
         description: svc.description || c.sentence(),
-        escalation_policy_id: svc.epID,
+        escalationPolicyID: svc.epID,
+        favorite: Boolean(svc.favorite),
       },
     })
     .then(res => res.createService)
@@ -119,8 +121,7 @@ function deleteService(id: string): Cypress.Chainable<void> {
       deleteService(input: $input) { id }
     }
   `
-
-  return cy.graphql(query, { input: { id } })
+  return cy.graphql2(query, { input: { id } })
 }
 
 function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
@@ -132,7 +133,7 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
   }
 
   const query = `
-    mutation SetLabel($input: SetLabelInput) {
+    mutation SetLabel($input: SetLabelInput!) {
       setLabel(input: $input)
     }
   `
@@ -142,10 +143,12 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
   const svcID = label.svcID
 
   return cy
-    .graphql(query, {
+    .graphql2(query, {
       input: {
-        target_id: label.svcID,
-        target_type: 'service',
+        target: {
+          type: 'service',
+          id: svcID,
+        },
         key,
         value,
       },
