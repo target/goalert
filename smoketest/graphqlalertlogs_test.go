@@ -7,8 +7,8 @@ import (
 	"testing"
 )
 
-// TestGraphQL2AlertLogs tests that logs are properly generated for an alert.
-func TestGraphQL2AlertLogs(t *testing.T) {
+// TestGraphQLAlertLogs tests that logs are properly generated for an alert.
+func TestGraphQLAlertLogs(t *testing.T) {
 	t.Parallel()
 
 	const sql = `
