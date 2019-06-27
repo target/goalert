@@ -250,8 +250,7 @@ export class PaginatedList extends React.PureComponent {
 
   renderItem = (item, idx) => {
     const { classes, width, absURL } = this.props
-
-    let favIcon = null
+    let favIcon = <ListItemSecondaryAction />
     if (item.isFavorite) {
       favIcon = (
         <ListItemSecondaryAction>
@@ -261,6 +260,7 @@ export class PaginatedList extends React.PureComponent {
         </ListItemSecondaryAction>
       )
     }
+
     return (
       <ListItem
         dense={isWidthUp('md', width)}
