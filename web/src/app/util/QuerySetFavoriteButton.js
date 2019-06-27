@@ -50,7 +50,7 @@ export function QuerySetFavoriteButton(props) {
   )
 }
 
-function renderMutation(isFavorite, id, query, typeName) {
+function renderMutation(isFavorite, id, typeName) {
   return (
     <Mutation
       mutation={mutation}
