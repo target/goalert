@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
@@ -45,6 +46,13 @@ func (m *Mutation) CreateRotation(ctx context.Context, input graphql2.CreateRota
 		result, err = m.RotationStore.CreateRotationTx(ctx, tx, rot)
 		if err != nil {
 			return err
+		}
+
+		if input.Favorite != nil && *input.Favorite {
+			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.RotationTarget(result.ID))
+			if err != nil {
+				return err
+			}
 		}
 
 		if input.UserIDs != nil {

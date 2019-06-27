@@ -107,7 +107,6 @@ function testRotations(screen: ScreenFormat) {
       cy.get('ul[data-cy=users]')
         .find('li')
         .as('parts')
-
       cy.get('@parts')
         .eq(1)
         .should('contain', rot.users[0].name)
@@ -218,7 +217,7 @@ function testRotations(screen: ScreenFormat) {
         .should('not.contain', 'Active')
     })
 
-    it('should allow deleting the rotation', () => {
+    it.only('should allow deleting the rotation', () => {
       cy.pageAction('Delete')
       cy.get('*[role=dialog]')
         .contains('button', 'Confirm')

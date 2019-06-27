@@ -2582,6 +2582,7 @@ input CreateRotationInput {
 
   timeZone: String!
   start: ISOTimestamp!
+  favorite: Boolean
 
   type: RotationType!
   shiftLength: Int = 1
@@ -2645,10 +2646,10 @@ input RotationSearchOptions {
   search: String = ""
   omit: [ID!]
 
-  # Include only favorited services in the results.
+  # Include only favorited rotations in the results.
   favoritesOnly: Boolean = false
 
-  # Sort favorite services first.
+  # Sort favorite rotations first.
   favoritesFirst: Boolean = false
 }
 
@@ -10235,6 +10236,12 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 		case "start":
 			var err error
 			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favorite":
+			var err error
+			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

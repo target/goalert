@@ -33,6 +33,7 @@ export default class RotationCreateDialog extends React.PureComponent {
         .startOf('hour')
         .toISO(),
       shiftLength: 1,
+      favorite: true,
     },
   }
 
