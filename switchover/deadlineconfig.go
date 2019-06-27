@@ -29,6 +29,7 @@ func DefaultConfig() DeadlineConfig {
 		PauseDelay:       5 * time.Second,
 		PauseTimeout:     10 * time.Second,
 		MaxPause:         13 * time.Second,
+		NoPauseAPI:       true,
 	}
 }
 
