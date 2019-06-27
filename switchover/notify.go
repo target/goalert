@@ -2,14 +2,17 @@ package switchover
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/version"
 )
 
+// Postgres channel names
 const (
 	StateChannel   = "goalert_switchover_state"
 	ControlChannel = "goalert_switchover_control"
@@ -22,7 +25,7 @@ func (h *Handler) initNewDBListen(name string) error {
 		return errors.Wrap(err, "parse db URL")
 	}
 	q := u.Query()
-	q.Set("application_name", "GoAlert Switch-Over Listener")
+	q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion()))
 	u.RawQuery = q.Encode()
 	name = u.String()
 
@@ -72,7 +75,7 @@ func (h *Handler) initListen(name string) error {
 		return errors.Wrap(err, "parse db URL")
 	}
 	q := u.Query()
-	q.Set("application_name", "GoAlert Switch-Over Listener")
+	q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion()))
 	u.RawQuery = q.Encode()
 	name = u.String()
 

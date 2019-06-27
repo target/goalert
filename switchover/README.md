@@ -62,8 +62,8 @@ From the switchover shell:
 
 1. Run `reset` and wait for all nodes to be ready (use `status` or `status -w`)
 1. Using `status`:
-   - Validate that all GoAlert connections are in `(Switch-Over Mode)`.
-   - Check that Config is Valid for all detected nodes
+   - Validate that all GoAlert connections are in `(S/O Mode)` as indicated by the Application name in the first table.
+   - Check that all nodes indicate `Valid` under the `Config` column.
 1. Enable change tracking (for logical replication) with `enable`
 1. Optionally run `sync` (it will be run as part of execute)
 1. Run `execute` and confirm to perform the switchover

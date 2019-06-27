@@ -13,6 +13,7 @@ import (
 	_ "github.com/jackc/pgx/stdlib" // load PGX driver
 	"github.com/pkg/errors"
 	"github.com/target/goalert/migrate"
+	"github.com/target/goalert/version"
 	"github.com/target/goalert/switchover"
 	"github.com/vbauerster/mpb/v4"
 	"github.com/vbauerster/mpb/v4/decor"
@@ -26,7 +27,7 @@ func RunShell(oldURL, newURL string) error {
 		return errors.Wrap(err, "parse old URL")
 	}
 	q := u.Query()
-	q.Set("application_name", "GoAlert Switch-Over Shell")
+	q.Set("application_name",fmt.Sprintf("GoAlert %s (S/O Shell)", version.GitVersion()))
 	u.RawQuery = q.Encode()
 	oldURL = u.String()
 
@@ -35,7 +36,7 @@ func RunShell(oldURL, newURL string) error {
 		return errors.Wrap(err, "parse new URL")
 	}
 	q = u.Query()
-	q.Set("application_name", "GoAlert Switch-Over Shell")
+	q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Shell)", version.GitVersion()))
 	u.RawQuery = q.Encode()
 	newURL = u.String()
 
