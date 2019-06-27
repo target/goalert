@@ -7,7 +7,6 @@ require (
 	contrib.go.opencensus.io/exporter/jaeger v0.1.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.1
 	github.com/99designs/gqlgen v0.8.3
-	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.0.2 // indirect
@@ -29,7 +28,6 @@ require (
 	github.com/golang/mock v1.3.1
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/google/pprof v0.0.0-20190515194954-54271f7e092f // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2 // indirect
@@ -38,7 +36,6 @@ require (
 	github.com/jackc/pgx v3.4.0+incompatible
 	github.com/joho/godotenv v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/kr/pty v1.1.5 // indirect
 	github.com/lib/pq v1.1.1
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-colorable v0.1.2
@@ -53,25 +50,19 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.4.0
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.0.1
-	github.com/vbauerster/mpb v3.4.0+incompatible
+	github.com/vbauerster/mpb/v4 v4.8.4
 	github.com/vektah/gqlparser v1.1.2
 	go.opencensus.io v0.22.0
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
-	golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522 // indirect
-	golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff // indirect
-	golang.org/x/mobile v0.0.0-20190607214518-6fa95d984e88 // indirect
-	golang.org/x/mod v0.1.0 // indirect
 	golang.org/x/net v0.0.0-20190611141213-3f473d35a33a
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sys v0.0.0-20190610200419-93c9922d18ae // indirect
 	golang.org/x/tools v0.0.0-20190612180059-59534d075a87
 	google.golang.org/appengine v1.6.1 // indirect
-	google.golang.org/genproto v0.0.0-20190611190212-a7e196e89fd3
+	google.golang.org/genproto v0.0.0-20190611190212-a7e196e89fd3 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
-	honnef.co/go/tools v0.0.0-20190607181801-497c8f037f5a // indirect
 )

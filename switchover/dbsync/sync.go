@@ -5,8 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/target/goalert/lock"
-	"github.com/target/goalert/switchover"
 	"sort"
 	"strconv"
 	"sync"
@@ -15,7 +13,9 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
 	"github.com/pkg/errors"
-	"github.com/vbauerster/mpb"
+	"github.com/target/goalert/lock"
+	"github.com/target/goalert/switchover"
+	"github.com/vbauerster/mpb/v4"
 )
 
 type Sync struct {
@@ -27,14 +27,21 @@ type Sync struct {
 	nodeStatus   map[string]switchover.Status
 	mx           sync.Mutex
 	statChange   chan struct{}
+
+	oldDBID, newDBID string
 }
 
-func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, error) {
-	tables, err := Tables(ctx, oldDB)
+func (s *Sync) RefreshTables(ctx context.Context) error {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	t, err := Tables(ctx, s.oldDB)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
+	s.tables = t
+	return nil
+}
+func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, error) {
 	oldOffset, err := switchover.CalcDBOffset(ctx, oldDB)
 	if err != nil {
 		return nil, err
@@ -48,14 +55,22 @@ func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, e
 	s := &Sync{
 		oldDB:      oldDB,
 		newDB:      newDB,
+		oldDBID:    newDBID(),
+		newDBID:    newDBID(),
 		newURL:     newURL,
-		tables:     tables,
 		oldOffset:  oldOffset,
 		newOffset:  newOffset,
 		nodeStatus: make(map[string]switchover.Status),
 		statChange: make(chan struct{}),
 	}
-	go s.listen()
+
+	err = s.RefreshTables(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	go s.listen(s.oldDB)
+	go s.listen(s.newDB)
 
 	return s, nil
 }
@@ -279,7 +294,7 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 		if err != nil {
 			return errors.Wrap(err, "disable triggers")
 		}
-		fmt.Println("Disabled triggers in", time.Since(start))
+		fmt.Println("Disabled destination triggers in", time.Since(start))
 	}
 
 	if dstLastChange == 0 {

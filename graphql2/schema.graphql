@@ -294,6 +294,8 @@ input CreateServiceInput {
   name: String!
   description: String = ""
 
+  favorite: Boolean
+
   escalationPolicyID: ID
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
