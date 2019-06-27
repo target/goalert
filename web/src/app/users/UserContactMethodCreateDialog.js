@@ -8,6 +8,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
+import ContactMethodVerificationForm from './ContactMethodVerificationForm'
 
 const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
@@ -24,23 +25,31 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
   }
 
   state = {
-    value: {
+    // values for contact method form
+    cmValue: {
       name: '',
       type: 'SMS',
       value: '+1',
     },
+    // value for verification form
+    verValue: {
+      code: '',
+    },
+    sendError: '', // error if verification code send fails
     errors: [],
-    cmCreated: false,
+    contactMethodID: null, // used for verification mutation
   }
 
-  // cmCreated is false by default until verification is complete
-  onComplete() {
-    if (!this.state.cmCreated) {
-      this.setState({ cmCreated: true })
+  onComplete = data => {
+    if (!this.state.contactMethodID) {
+      this.setState({
+        contactMethodID: data.createUserContactMethod.id, // output from create mutation
+      })
     } else {
       this.props.onClose()
     }
   }
+
   render() {
     return (
       <Mutation
@@ -57,13 +66,12 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
 
   renderDialog(commit, status) {
     const { loading, error } = status
+    const { contactMethodID, cmValue } = this.state
 
     return (
       <FormDialog
         title='Create New Contact Method'
-        subtitle={
-          this.state.cmCreated ? 'Verify contact menthod to continue' : null
-        }
+        subTitle={contactMethodID ? 'Verify contact method to continue' : null}
         loading={loading}
         errors={nonFieldErrors(error)}
         onClose={this.props.onClose}
@@ -71,7 +79,7 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
           return commit({
             variables: {
               input: {
-                ...this.state.value,
+                ...cmValue,
                 userID: this.props.userID,
                 newUserNotificationRule: {
                   delayMinutes: 0,
@@ -86,19 +94,29 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
   }
 
   renderForm(status) {
+    // these values are different depending on which
+    // mutation wraps the dialog
     const { loading, error } = status
     const fieldErrs = fieldErrors(error)
 
-    if (this.state.cmCreated) {
-      // return
-      return console.log('submitted')
+    if (this.state.contactMethodID) {
+      return (
+        <ContactMethodVerificationForm
+          contactMethodID={this.state.contactMethodID}
+          disabled={loading}
+          errors={fieldErrs}
+          onChange={verValue => this.setState({ verValue })}
+          setSendError={sendError => this.setState({ sendError })}
+          value={this.state.verValue}
+        />
+      )
     } else {
       return (
         <UserContactMethodForm
-          errors={fieldErrs}
           disabled={loading}
-          value={this.state.value}
-          onChange={value => this.setState({ value })}
+          errors={fieldErrs}
+          onChange={cmValue => this.setState({ cmValue })}
+          value={this.state.cmValue}
         />
       )
     }
