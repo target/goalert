@@ -30,8 +30,17 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
       value: '+1',
     },
     errors: [],
+    cmCreated: false,
   }
 
+  // cmCreated is false by default until verification is complete
+  onComplete() {
+    if (!this.state.cmCreated) {
+      this.setState({ cmCreated: true })
+    } else {
+      this.props.onClose()
+    }
+  }
   render() {
     return (
       <Mutation
@@ -39,7 +48,7 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
         mutation={createMutation}
         awaitRefetchQueries
         refetchQueries={['nrList', 'cmList']}
-        onCompleted={this.props.onClose}
+        onCompleted={this.onComplete}
       >
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
@@ -49,11 +58,12 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
   renderDialog(commit, status) {
     const { loading, error } = status
 
-    const fieldErrs = fieldErrors(error)
-
     return (
       <FormDialog
         title='Create New Contact Method'
+        subtitle={
+          this.state.cmCreated ? 'Verify contact menthod to continue' : null
+        }
         loading={loading}
         errors={nonFieldErrors(error)}
         onClose={this.props.onClose}
@@ -70,15 +80,27 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
             },
           })
         }}
-        form={
-          <UserContactMethodForm
-            errors={fieldErrs}
-            disabled={loading}
-            value={this.state.value}
-            onChange={value => this.setState({ value })}
-          />
-        }
+        form={this.renderForm(status)}
       />
     )
+  }
+
+  renderForm(status) {
+    const { loading, error } = status
+    const fieldErrs = fieldErrors(error)
+
+    if (this.state.cmCreated) {
+      // return
+      return console.log('submitted')
+    } else {
+      return (
+        <UserContactMethodForm
+          errors={fieldErrs}
+          disabled={loading}
+          value={this.state.value}
+          onChange={value => this.setState({ value })}
+        />
+      )
+    }
   }
 }
