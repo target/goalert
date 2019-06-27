@@ -217,7 +217,7 @@ function testRotations(screen: ScreenFormat) {
         .should('not.contain', 'Active')
     })
 
-    it.only('should allow deleting the rotation', () => {
+    it('should allow deleting the rotation', () => {
       cy.pageAction('Delete')
       cy.get('*[role=dialog]')
         .contains('button', 'Confirm')
