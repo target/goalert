@@ -3,6 +3,7 @@ package favorite
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -15,6 +16,10 @@ import (
 type Store interface {
 	// Set will set a target as a favorite for the given userID. It is safe to call multiple times.
 	Set(ctx context.Context, userID string, tgt assignment.Target) error
+
+	// SetTx will set a target as a favorite for the given userID. It is safe to call multiple times.
+	SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignment.Target) error
+
 	// Unset will unset a target as a favorite for the given userID. It is safe to call multiple times.
 	Unset(ctx context.Context, userID string, tgt assignment.Target) error
 
@@ -36,15 +41,14 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		db: db,
 		insert: p.P(`
-			INSERT INTO user_favorites (user_id, tgt_service_id, tgt_schedule_id)
-			VALUES ($1, $2, $3)
+			INSERT INTO user_favorites (user_id, tgt_service_id)
+			VALUES ($1, $2)
 			ON CONFLICT DO NOTHING
 		`),
 		delete: p.P(`
 			DELETE FROM user_favorites
-			WHERE user_id = $1 AND
-			tgt_service_id = $2 OR
-			tgt_schedule_id = $3
+			WHERE user_id = $1 and
+			tgt_service_id = $2
 		`),
 		findAll: p.P(`
 			SELECT tgt_service_id
@@ -57,6 +61,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 // Set will store the target as a favorite of the given user. Must be authorized as System or the same user.
 func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) error {
+	return db.SetTx(ctx, nil, userID, tgt)
+}
+
+// SetTx will store the target as a favorite of the given user. Must be authorized as System or the same user.
+func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignment.Target) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.MatchUser(userID))
 	if err != nil {
 		return err
@@ -64,22 +73,24 @@ func (db *DB) Set(ctx context.Context, userID string, tgt assignment.Target) err
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,
-			assignment.TargetTypeSchedule),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService),
 	)
 	if err != nil {
 		return err
 	}
-	var serviceID, scheduleID sql.NullString
+
+	stmt := db.insert
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+	var serviceID sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeService:
-		serviceID.Valid = true
 		serviceID.String = tgt.TargetID()
-	case assignment.TargetTypeSchedule:
-		scheduleID.Valid = true
-		scheduleID.String = tgt.TargetID()
+		serviceID.Valid = true
 	}
-	_, err = db.insert.ExecContext(ctx, userID, serviceID, scheduleID)
+
+	_, err = stmt.ExecContext(ctx, userID, serviceID)
 	if err != nil {
 		return errors.Wrap(err, "set favorite")
 	}
@@ -97,22 +108,13 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,
-			assignment.TargetTypeSchedule),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService),
 	)
 	if err != nil {
 		return err
 	}
-	var serviceID, scheduleID sql.NullString
-	switch tgt.TargetType() {
-	case assignment.TargetTypeService:
-		serviceID.Valid = true
-		serviceID.String = tgt.TargetID()
-	case assignment.TargetTypeSchedule:
-		scheduleID.Valid = true
-		scheduleID.String = tgt.TargetID()
-	}
-	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID)
+
+	_, err = db.delete.ExecContext(ctx, userID, tgt.TargetID())
 	if err == sql.ErrNoRows {
 		// ignoring since it is safe to unset favorite (with retries)
 		err = nil
