@@ -3,16 +3,16 @@ package graphqlapp
 import (
 	context "context"
 	"fmt"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/validation/validate"
-	"time"
 )
 
 type Alert App

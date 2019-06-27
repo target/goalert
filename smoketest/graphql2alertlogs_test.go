@@ -72,7 +72,6 @@ func TestGraphQL2AlertLogs(t *testing.T) {
 		}
 	`, 1), nil)
 
-
 	// Escalating alert
 	doQL(fmt.Sprintf(`
 		mutation {
@@ -97,7 +96,7 @@ func TestGraphQL2AlertLogs(t *testing.T) {
 				Nodes []struct {
 					Message string `json:"message"`
 				} `json:"nodes"`
-			} `json:"recentEvents"`	
+			} `json:"recentEvents"`
 		} `json:"alert"`
 	}
 
@@ -115,6 +114,6 @@ func TestGraphQL2AlertLogs(t *testing.T) {
 	`, 1), &logs)
 
 	if len(logs.Alert.RecentEvents.Nodes) < 4 {
-			t.Fatalf("ERROR: retrieved length of log entries=%d; want at least %d", len(logs.Alert.RecentEvents.Nodes), 4)
+		t.Fatalf("ERROR: retrieved length of log entries=%d; want at least %d", len(logs.Alert.RecentEvents.Nodes), 4)
 	}
 }
