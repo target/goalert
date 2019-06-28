@@ -11,11 +11,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ignoreTables = []string{
-	"switchover_state",
-	"engine_processing_versions",
-	"gorp_migrations",
-}
+var (
+	ignoreSyncTables = []string{
+		"switchover_state",
+		"engine_processing_versions",
+		"gorp_migrations",
+	}
+
+	ignoreTriggerTables = append([]string{"change_log"}, ignoreSyncTables...)
+)
 
 type Table struct {
 	Name    string
@@ -63,7 +67,7 @@ func Tables(ctx context.Context, db *sql.DB) ([]Table, error) {
 		if err != nil {
 			return nil, err
 		}
-		if contains(ignoreTables, name) {
+		if contains(ignoreSyncTables, name) {
 			continue
 		}
 		tbl := t[name]

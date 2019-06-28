@@ -6,17 +6,18 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"github.com/target/goalert/lock"
-	"github.com/target/goalert/util/log"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
+	"github.com/target/goalert/lock"
+	"github.com/target/goalert/util/log"
 )
 
 // Names will return all AssetNames without the timestamps and extensions
@@ -112,7 +113,11 @@ func ensureTableQuery(ctx context.Context, db *sql.DB, fn func() error) error {
 	}
 	// 42P01 is undefined_table
 	// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-	if pErr, ok := err.(*pq.Error); !ok || pErr.Code != "42P01" {
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "42P01" {
+		// continue
+	} else if pgxErr, ok := err.(pgx.PgError); ok && pgxErr.Code == "42P01" {
+		// continue
+	} else {
 		return err
 	}
 

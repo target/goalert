@@ -27,6 +27,7 @@ const inputVars = ({ name, description, escalationPolicyID }, attempt = 0) => {
     name,
     description,
     escalationPolicyID,
+    favorite: true,
   }
   if (!vars.escalationPolicyID) {
     vars.newEscalationPolicy = {

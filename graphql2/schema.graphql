@@ -289,6 +289,8 @@ input CreateServiceInput {
   name: String!
   description: String = ""
 
+  favorite: Boolean
+
   escalationPolicyID: ID
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
@@ -546,6 +548,25 @@ type Alert {
 
   # Escalation Policy State for the alert.
   state: AlertState
+
+  # Recent log entries for the alert.
+  recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+}
+
+input AlertRecentEventsOptions {
+  limit: Int
+  after: String = ""
+}
+
+type AlertLogEntryConnection {
+  nodes: [AlertLogEntry!]!
+  pageInfo: PageInfo!
+}
+
+type AlertLogEntry {
+  id: Int!
+  timestamp: ISOTimestamp!
+  message: String!
 }
 
 # The escalation policy state details for the alert.

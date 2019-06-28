@@ -77,15 +77,15 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init session keyring")
 	}
 
-	if app.AlertlogStore == nil {
-		app.AlertlogStore, err = alertlog.NewDB(ctx, app.db)
+	if app.AlertLogStore == nil {
+		app.AlertLogStore, err = alertlog.NewDB(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alertlog store")
 	}
 
 	if app.AlertStore == nil {
-		app.AlertStore, err = alert.NewDB(ctx, app.db, app.AlertlogStore)
+		app.AlertStore, err = alert.NewDB(ctx, app.db, app.AlertLogStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alert store")
@@ -140,7 +140,7 @@ func (app *App) initStores(ctx context.Context) error {
 
 	if app.EscalationStore == nil {
 		app.EscalationStore, err = escalation.NewDB(ctx, app.db, escalation.Config{
-			LogStore: app.AlertlogStore,
+			LogStore: app.AlertLogStore,
 			NCStore:  app.NCStore,
 			SlackLookupFunc: func(ctx context.Context, channelID string) (*slack.Channel, error) {
 				return app.slackChan.Channel(ctx, channelID)
