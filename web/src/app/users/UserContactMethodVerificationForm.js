@@ -30,7 +30,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ContactMethodVerificationForm(props) {
+export default function UserContactMethodVerificationForm(props) {
   const [sendAttempted, setSendAttempted] = useState(false)
   const classes = useStyles()
 
@@ -90,7 +90,7 @@ export default function ContactMethodVerificationForm(props) {
   )
 }
 
-ContactMethodVerificationForm.propTypes = {
+UserContactMethodVerificationForm.propTypes = {
   contactMethodID: p.string.isRequired,
   disabled: p.bool.isRequired,
   errors: p.arrayOf(

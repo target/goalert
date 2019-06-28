@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import Query from '../util/Query'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import ContactMethodVerificationForm from './ContactMethodVerificationForm'
+import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
 import { graphql2Client } from '../apollo'
 
 /*
@@ -48,7 +48,7 @@ function formatNumber(n) {
   }
 }
 
-export default function ContactMethodVerificationDialog(props) {
+export default function UserContactMethodVerificationDialog(props) {
   const [value, setValue] = useState({
     code: '',
   })
@@ -77,7 +77,7 @@ export default function ContactMethodVerificationDialog(props) {
           })
         }
         form={
-          <ContactMethodVerificationForm
+          <UserContactMethodVerificationForm
             contactMethodID={cm.id}
             errors={fieldErrs}
             setSendError={setSendError}
@@ -116,7 +116,7 @@ export default function ContactMethodVerificationDialog(props) {
   )
 }
 
-ContactMethodVerificationDialog.propTypes = {
+UserContactMethodVerificationDialog.propTypes = {
   onClose: p.func.isRequired,
   contactMethodID: p.string.isRequired,
 }

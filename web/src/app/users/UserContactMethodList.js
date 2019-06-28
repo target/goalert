@@ -14,7 +14,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import { Config } from '../util/RequireConfig'
 import { Warning } from '../icons'
-import ContactMethodVerificationDialog from './ContactMethodVerificationDialog'
+import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -93,7 +93,7 @@ export default class UserContactMethodList extends React.PureComponent {
               ]}
             />
             {this.state.isVerifyDialogOpen && (
-              <ContactMethodVerificationDialog
+              <UserContactMethodVerificationDialog
                 onClose={() => this.setState({ isVerifyDialogOpen: false })}
                 contactMethodID={id}
               />
