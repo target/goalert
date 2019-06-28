@@ -133,10 +133,9 @@ function testSteps(screen: ScreenFormat) {
       )
     })
 
-it('should add and then remove a slack channel', () => {
-    cy.updateConfig({ Slack: { Enable: true } })
-    cy.reload()
+    it('should add and then remove a slack channel', () => {
       cy.updateConfig({ Slack: { Enable: true } })
+      cy.reload()
 
       cy.pageFab()
       cy.get('div[role=dialog]').as('dialog')
