@@ -9,7 +9,6 @@ import (
 )
 
 // TestGraphQL2Alert tests the createAlert mutation in gql2.
-
 func TestGraphQL2Alert(t *testing.T) {
 	t.Parallel()
 
@@ -60,10 +59,12 @@ func TestGraphQL2Alert(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			createAlert(input:{
+			createAlert (input: {
 				summary: "foobar",
-				serviceID: "%s"
-			}){alertID}
+				serviceID: "%s",
+			}) {
+				alertID
+			}
 		}
 	`, h.UUID("sid")), nil)
 
