@@ -34,7 +34,7 @@ type DB struct {
 	getCMUserID            *sql.Stmt
 	setVerificationCode    *sql.Stmt
 	verifyVerificationCode *sql.Stmt
-	enableContactMethods   *sql.Stmt
+	enableContactMethod   *sql.Stmt
 	insertTestNotification *sql.Stmt
 	updateLastSendTime     *sql.Stmt
 	codeExpiration         *sql.Stmt
@@ -103,10 +103,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			returning cm.value
 		`),
 
-		enableContactMethods: p.P(`
+		enableContactMethod: p.P(`
 			update user_contact_methods
 			set disabled = false
-			where user_id = $1 and value = $2
+			where id = $1
 			returning id
 		`),
 
@@ -267,19 +267,16 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 }
 
 func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
-	userID, err := db.cmUserID(ctx, cmID)
-	if err != nil {
-		return err
-	}
-
 	tx, err := db.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
+
+	// TODO: don't need cmValue, switch to QueryContext?
 	var cmValue string
-	err = db.verifyVerificationCode.QueryRowContext(ctx, cmID, code).Scan(&cmValue)
+	err = tx.StmtContext(ctx, db.verifyVerificationCode).QueryRowContext(ctx, cmID, code).Scan(&cmValue)
 	if err == sql.ErrNoRows {
 		return validation.NewFieldError("Code", "unrecognized code")
 	}
@@ -287,7 +284,7 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 		return err
 	}
 
-	_, err = db.enableContactMethods.QueryContext(ctx, userID, cmValue)
+	_, err = tx.StmtContext(ctx, db.enableContactMethod).QueryContext(ctx, cmID)
 	if err != nil {
 		return err
 	}
