@@ -37,7 +37,8 @@ const testCM = gql`
   }
 `
 
-const DISABLED_CM_TOOLTIP = `Number disabled. See contact method's options to reactivate`
+const DISABLED_CM_TOOLTIP =
+  'Contact method disabled. See its options to reactivate.'
 
 export default class UserContactMethodList extends React.PureComponent {
   static propTypes = {
