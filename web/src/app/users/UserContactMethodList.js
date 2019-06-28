@@ -116,7 +116,7 @@ export default class UserContactMethodList extends React.PureComponent {
               subText: formatCMValue(cm.type, cm.value),
               action: this.props.readOnly ? null : this.renderActions(cm),
               icon: cm.disabled ? (
-                <Warning tooltip={DISABLED_CM_TOOLTIP} />
+                <Warning message={DISABLED_CM_TOOLTIP} />
               ) : null,
             }))}
             emptyMessage='No contact methods'
