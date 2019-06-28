@@ -13,6 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/integrationkey"
@@ -50,6 +51,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Alert() AlertResolver
+	AlertLogEntry() AlertLogEntryResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
 	IntegrationKey() IntegrationKeyResolver
@@ -71,18 +73,30 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Alert struct {
-		AlertID   func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		Details   func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Service   func(childComplexity int) int
-		ServiceID func(childComplexity int) int
-		State     func(childComplexity int) int
-		Status    func(childComplexity int) int
-		Summary   func(childComplexity int) int
+		AlertID      func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		Details      func(childComplexity int) int
+		ID           func(childComplexity int) int
+		RecentEvents func(childComplexity int, input *AlertRecentEventsOptions) int
+		Service      func(childComplexity int) int
+		ServiceID    func(childComplexity int) int
+		State        func(childComplexity int) int
+		Status       func(childComplexity int) int
+		Summary      func(childComplexity int) int
 	}
 
 	AlertConnection struct {
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	AlertLogEntry struct {
+		ID        func(childComplexity int) int
+		Message   func(childComplexity int) int
+		Timestamp func(childComplexity int) int
+	}
+
+	AlertLogEntryConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
@@ -372,6 +386,12 @@ type AlertResolver interface {
 
 	Service(ctx context.Context, obj *alert.Alert) (*service.Service, error)
 	State(ctx context.Context, obj *alert.Alert) (*alert.State, error)
+	RecentEvents(ctx context.Context, obj *alert.Alert, input *AlertRecentEventsOptions) (*AlertLogEntryConnection, error)
+}
+type AlertLogEntryResolver interface {
+	ID(ctx context.Context, obj *alertlog.Entry) (int, error)
+	Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error)
+	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
 }
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
@@ -532,6 +552,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Alert.ID(childComplexity), true
 
+	case "Alert.RecentEvents":
+		if e.complexity.Alert.RecentEvents == nil {
+			break
+		}
+
+		args, err := ec.field_Alert_recentEvents_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Alert.RecentEvents(childComplexity, args["input"].(*AlertRecentEventsOptions)), true
+
 	case "Alert.Service":
 		if e.complexity.Alert.Service == nil {
 			break
@@ -580,6 +612,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertConnection.PageInfo(childComplexity), true
+
+	case "AlertLogEntry.ID":
+		if e.complexity.AlertLogEntry.ID == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntry.ID(childComplexity), true
+
+	case "AlertLogEntry.Message":
+		if e.complexity.AlertLogEntry.Message == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntry.Message(childComplexity), true
+
+	case "AlertLogEntry.Timestamp":
+		if e.complexity.AlertLogEntry.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntry.Timestamp(childComplexity), true
+
+	case "AlertLogEntryConnection.Nodes":
+		if e.complexity.AlertLogEntryConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntryConnection.Nodes(childComplexity), true
+
+	case "AlertLogEntryConnection.PageInfo":
+		if e.complexity.AlertLogEntryConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
 
 	case "AlertState.LastEscalation":
 		if e.complexity.AlertState.LastEscalation == nil {
@@ -2697,6 +2764,25 @@ type Alert {
 
   # Escalation Policy State for the alert.
   state: AlertState
+
+  # recent log entries for the alert.	
+  recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+}
+
+input AlertRecentEventsOptions {
+  limit: Int
+  after: String = "" 
+}
+
+type AlertLogEntryConnection {
+  nodes: [AlertLogEntry!]!
+  pageInfo: PageInfo!
+}
+
+type AlertLogEntry {
+  id: Int!
+  timestamp: ISOTimestamp!
+  message: String!
 }
 
 # The escalation policy state details for the alert.
@@ -2913,6 +2999,20 @@ type AuthSubject {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Alert_recentEvents_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *AlertRecentEventsOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_addAuthSubject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -3973,6 +4073,40 @@ func (ec *executionContext) _Alert_state(ctx context.Context, field graphql.Coll
 	return ec.marshalOAlertState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋalertᚐState(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Alert_recentEvents(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Alert",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Alert_recentEvents_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Alert().RecentEvents(rctx, obj, args["input"].(*AlertRecentEventsOptions))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*AlertLogEntryConnection)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _AlertConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertConnection) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -4005,6 +4139,141 @@ func (ec *executionContext) _AlertConnection_pageInfo(ctx context.Context, field
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object:   "AlertConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(PageInfo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPageInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntry_id(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntry",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AlertLogEntry().ID(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntry_timestamp(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntry",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AlertLogEntry().Timestamp(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNISOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntry_message(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntry",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AlertLogEntry().Message(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntryConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntryConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]alertlog.Entry)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntryConnection",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -9936,6 +10205,30 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAlertRecentEventsOptions(ctx context.Context, v interface{}) (AlertRecentEventsOptions, error) {
+	var it AlertRecentEventsOptions
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "limit":
+			var err error
+			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "after":
+			var err error
+			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context, v interface{}) (AlertSearchOptions, error) {
 	var it AlertSearchOptions
 	var asMap = v.(map[string]interface{})
@@ -11422,6 +11715,20 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 				res = ec._Alert_state(ctx, field, obj)
 				return res
 			})
+		case "recentEvents":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alert_recentEvents(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11451,6 +11758,102 @@ func (ec *executionContext) _AlertConnection(ctx context.Context, sel ast.Select
 			}
 		case "pageInfo":
 			out.Values[i] = ec._AlertConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var alertLogEntryImplementors = []string{"AlertLogEntry"}
+
+func (ec *executionContext) _AlertLogEntry(ctx context.Context, sel ast.SelectionSet, obj *alertlog.Entry) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, alertLogEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertLogEntry")
+		case "id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AlertLogEntry_id(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
+		case "timestamp":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AlertLogEntry_timestamp(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
+		case "message":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AlertLogEntry_message(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var alertLogEntryConnectionImplementors = []string{"AlertLogEntryConnection"}
+
+func (ec *executionContext) _AlertLogEntryConnection(ctx context.Context, sel ast.SelectionSet, obj *AlertLogEntryConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, alertLogEntryConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertLogEntryConnection")
+		case "nodes":
+			out.Values[i] = ec._AlertLogEntryConnection_nodes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "pageInfo":
+			out.Values[i] = ec._AlertLogEntryConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -13816,6 +14219,61 @@ func (ec *executionContext) marshalNAlertConnection2ᚖgithubᚗcomᚋtargetᚋg
 	return ec._AlertConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNAlertLogEntry2githubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntry(ctx context.Context, sel ast.SelectionSet, v alertlog.Entry) graphql.Marshaler {
+	return ec._AlertLogEntry(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertLogEntry2ᚕgithubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntry(ctx context.Context, sel ast.SelectionSet, v []alertlog.Entry) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAlertLogEntry2githubᚗcomᚋtargetᚋgoalertᚋalertᚋlogᚐEntry(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNAlertLogEntryConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection(ctx context.Context, sel ast.SelectionSet, v AlertLogEntryConnection) graphql.Marshaler {
+	return ec._AlertLogEntryConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertLogEntryConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryConnection(ctx context.Context, sel ast.SelectionSet, v *AlertLogEntryConnection) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AlertLogEntryConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx context.Context, v interface{}) (AlertStatus, error) {
 	var res AlertStatus
 	return res, res.UnmarshalGQL(v)
@@ -14209,6 +14667,24 @@ func (ec *executionContext) marshalNISOTimestamp2ᚕtimeᚐTime(ctx context.Cont
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNISOTimestamp2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalNISOTimestamp2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -15413,6 +15889,18 @@ func (ec *executionContext) marshalOAlert2ᚖgithubᚗcomᚋtargetᚋgoalertᚋa
 		return graphql.Null
 	}
 	return ec._Alert(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOAlertRecentEventsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (AlertRecentEventsOptions, error) {
+	return ec.unmarshalInputAlertRecentEventsOptions(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOAlertRecentEventsOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (*AlertRecentEventsOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAlertRecentEventsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOAlertSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchOptions(ctx context.Context, v interface{}) (AlertSearchOptions, error) {

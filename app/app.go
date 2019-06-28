@@ -71,7 +71,7 @@ type App struct {
 	ConfigStore *config.Store
 
 	AlertStore    alert.Store
-	AlertlogStore alertlog.Store
+	AlertLogStore alertlog.Store
 
 	UserStore             user.Store
 	ContactMethodStore    contactmethod.Store
