@@ -212,7 +212,6 @@ type ScheduleTargetInput struct {
 
 type SendContactMethodVerificationInput struct {
 	ContactMethodID string `json:"contactMethodID"`
-	Resend          *bool  `json:"resend"`
 }
 
 type ServiceConnection struct {
@@ -365,8 +364,8 @@ type UserSearchOptions struct {
 }
 
 type VerifyContactMethodInput struct {
-	ContactMethodID  string `json:"contactMethodID"`
-	VerificationCode string `json:"verificationCode"`
+	ContactMethodID string `json:"contactMethodID"`
+	Code            int    `json:"code"`
 }
 
 type AlertStatus string

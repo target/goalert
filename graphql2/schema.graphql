@@ -204,7 +204,6 @@ type Mutation {
   sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
   verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
 
-
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
 
@@ -773,12 +772,11 @@ input UpdateUserContactMethodInput {
 
 input SendContactMethodVerificationInput {
   contactMethodID: ID!
-  resend: Boolean
 }
 
 input VerifyContactMethodInput {
   contactMethodID: ID!
-  verificationCode: String!
+  code: Int!
 }
 
 type AuthSubject {

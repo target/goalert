@@ -2459,7 +2459,6 @@ type Mutation {
   sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
   verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
 
-
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
 
@@ -2804,13 +2803,13 @@ type Alert {
   # Escalation Policy State for the alert.
   state: AlertState
 
-  # recent log entries for the alert.	
+  # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 }
 
 input AlertRecentEventsOptions {
   limit: Int
-  after: String = "" 
+  after: String = ""
 }
 
 type AlertLogEntryConnection {
@@ -3028,12 +3027,11 @@ input UpdateUserContactMethodInput {
 
 input SendContactMethodVerificationInput {
   contactMethodID: ID!
-  resend: Boolean
 }
 
 input VerifyContactMethodInput {
   contactMethodID: ID!
-  verificationCode: String!
+  code: Int!
 }
 
 type AuthSubject {
@@ -11136,12 +11134,6 @@ func (ec *executionContext) unmarshalInputSendContactMethodVerificationInput(ctx
 			if err != nil {
 				return it, err
 			}
-		case "resend":
-			var err error
-			it.Resend, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -11828,9 +11820,9 @@ func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.C
 			if err != nil {
 				return it, err
 			}
-		case "verificationCode":
+		case "code":
 			var err error
-			it.VerificationCode, err = ec.unmarshalNString2string(ctx, v)
+			it.Code, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
