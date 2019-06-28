@@ -11,8 +11,6 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"math/rand"
-	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -23,8 +21,8 @@ const minTimeBetweenTests = time.Minute
 
 type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
-	SendContactMethodVerification(ctx context.Context, cmID string, resend bool) error
-	VerifyContactMethod(ctx context.Context, cmID string, code string) error
+	SendContactMethodVerification(ctx context.Context, cmID string) error
+	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	CodeExpiration(ctx context.Context, cmID string) (*time.Time, error)
 	Code(ctx context.Context, id string) (int, error)
 }
@@ -91,8 +89,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			on conflict (user_id, contact_method_value) do update
 			set
 				send_to = $2,
-				expires_at = case when $5 then user_verification_codes.expires_at else EXCLUDED.expires_at end,
-				code = case when $5 then user_verification_codes.code else EXCLUDED.code end
+				expires_at = EXCLUDED.expires_at,
+				code = EXCLUDED.code
 		`),
 		verifyVerificationCode: p.P(`
 			delete from user_verification_codes v
@@ -260,7 +258,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 
 	vID := uuid.NewV4().String()
 	code := db.rand.Intn(900000) + 100000
-	_, err = tx.Stmt(db.setVerificationCode).ExecContext(ctx, vID, id, code, fmt.Sprintf("%f seconds", (15*time.Minute).Seconds()), resend)
+	_, err = tx.Stmt(db.setVerificationCode).ExecContext(ctx, vID, id, code, fmt.Sprintf("%f seconds", (15*time.Minute).Seconds()))
 	if err != nil {
 		return errors.Wrap(err, "set verification code")
 	}
@@ -268,20 +266,10 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 	return tx.Commit()
 }
 
-func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, _code string) error {
+func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
 	userID, err := db.cmUserID(ctx, cmID)
 	if err != nil {
 		return err
-	}
-
-	code, err := strconv.ParseInt(_code, 10, 64)
-	if err != nil {
-		return validation.NewFieldError("Code", "must contain only digits")
-	}
-
-	matched, _ := regexp.MatchString(`^\d{6}$`, _code)
-	if !matched {
-		return validation.NewFieldError("Code", "must be 6 digits")
 	}
 
 	tx, err := db.db.BeginTx(ctx, nil)
