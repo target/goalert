@@ -12,6 +12,7 @@ export function getService(value) {
         name: value.key.label + ' Integration Key',
       },
     ],
+    favorite: true,
   }
 }
 

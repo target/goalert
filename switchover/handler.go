@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"io"
+	"sync"
+
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/util/log"
-	"io"
-	"sync"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -20,6 +21,8 @@ type Handler struct {
 	old, new  *dbState
 	id        string
 	dbNextURL string
+
+	dbID, dbNextID string
 
 	sendNotification *sql.Stmt
 
@@ -78,6 +81,10 @@ func NewHandler(ctx context.Context, oldC, newC driver.Connector, oldURL, newURL
 	if err != nil {
 		return nil, errors.Wrap(err, "init DB listener")
 	}
+	err = h.initNewDBListen(newURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "init DB-next listener")
+	}
 
 	go h.loop()
 	return h, nil
@@ -94,10 +101,11 @@ func (h *Handler) Status() *Status {
 }
 func (h *Handler) status() *Status {
 	return &Status{
-		State:  h.state,
-		NodeID: h.id,
-		Offset: h.old.timeOffset,
-		dbNext: dbNext(h.id, h.dbNextURL),
+		State:    h.state,
+		NodeID:   h.id,
+		Offset:   h.old.timeOffset,
+		DBID:     h.dbID,
+		DBNextID: h.dbNextID,
 	}
 }
 

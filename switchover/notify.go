@@ -2,26 +2,80 @@ package switchover
 
 import (
 	"context"
-	"github.com/target/goalert/util/log"
+	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/version"
 )
 
+// Postgres channel names
 const (
 	StateChannel   = "goalert_switchover_state"
 	ControlChannel = "goalert_switchover_control"
+	DBIDChannel    = "goalert_switchover_db_id"
 )
 
+func (h *Handler) initNewDBListen(name string) error {
+	u, err := url.Parse(name)
+	if err != nil {
+		return errors.Wrap(err, "parse db URL")
+	}
+	q := u.Query()
+	q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion()))
+	u.RawQuery = q.Encode()
+	name = u.String()
+
+	l := pq.NewListener(name, 0, time.Second, h.listenEvent)
+
+	err = l.Listen(DBIDChannel)
+	if err != nil {
+		l.Close()
+		return err
+	}
+	err = l.Listen(StateChannel)
+	if err != nil {
+		l.Close()
+		return err
+	}
+
+	go func() {
+		for n := range l.NotificationChannel() {
+			if n == nil {
+				// nil can be sent, ignore
+				continue
+			}
+			switch n.Channel {
+			case DBIDChannel:
+				h.mx.Lock()
+				h.dbNextID = n.Extra
+				h.mx.Unlock()
+			case StateChannel:
+				s, err := ParseStatus(n.Extra)
+				if err != nil {
+					log.Log(context.Background(), errors.Wrap(err, "parse Status string"))
+					continue
+				}
+				if s.State == StateAbort {
+					go h.pushState(StateAbort)
+				}
+				h.statusCh <- s
+			}
+		}
+	}()
+
+	return nil
+}
 func (h *Handler) initListen(name string) error {
 	u, err := url.Parse(name)
 	if err != nil {
 		return errors.Wrap(err, "parse db URL")
 	}
 	q := u.Query()
-	q.Set("application_name", "GoAlert Switch-Over Listener")
+	q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion()))
 	u.RawQuery = q.Encode()
 	name = u.String()
 
@@ -33,6 +87,11 @@ func (h *Handler) initListen(name string) error {
 		return err
 	}
 	err = h.l.Listen(ControlChannel)
+	if err != nil {
+		h.l.Close()
+		return err
+	}
+	err = h.l.Listen(DBIDChannel)
 	if err != nil {
 		h.l.Close()
 		return err
@@ -53,6 +112,10 @@ func (h *Handler) listenLoop() {
 			continue
 		}
 		switch n.Channel {
+		case DBIDChannel:
+			h.mx.Lock()
+			h.dbID = n.Extra
+			h.mx.Unlock()
 		case StateChannel:
 			s, err := ParseStatus(n.Extra)
 			if err != nil {

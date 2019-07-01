@@ -29,6 +29,7 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/version"
 	"go.opencensus.io/trace"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -89,9 +90,9 @@ var RootCmd = &cobra.Command{
 		}
 		q := u.Query()
 		if cfg.DBURLNext != "" {
-			q.Set("application_name", "GoAlert (Switch-Over Mode)")
+			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
 		} else {
-			q.Set("application_name", "GoAlert")
+			q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
 		}
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
@@ -108,7 +109,7 @@ var RootCmd = &cobra.Command{
 				return errors.Wrap(err, "parse next URL")
 			}
 			q := u.Query()
-			q.Set("application_name", "GoAlert (Switch-Over Mode)")
+			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
 			u.RawQuery = q.Encode()
 			cfg.DBURLNext = u.String()
 
@@ -179,12 +180,6 @@ var (
 		Short: "Output the current version.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			date := buildDate
-			t, err := time.Parse(time.RFC3339, date)
-			if err == nil {
-				date = t.Local().Format(time.RFC3339)
-			}
-
 			migrations := migrate.Names()
 
 			fmt.Printf(`Version:   %s
@@ -193,9 +188,9 @@ BuildDate: %s
 GoVersion: %s (%s)
 Platform:  %s/%s
 Migration: %s (#%d)
-`, gitVersion,
-				gitCommit, gitTreeState,
-				date,
+`, version.GitVersion(),
+				version.GitCommit(), version.GitTreeState(),
+				version.BuildDate().Local().Format(time.RFC3339),
 				runtime.Version(), runtime.Compiler,
 				runtime.GOOS, runtime.GOARCH,
 				migrations[len(migrations)-1], len(migrations),

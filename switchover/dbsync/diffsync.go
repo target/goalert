@@ -7,23 +7,11 @@ import (
 
 	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
-	"github.com/vbauerster/mpb"
-	"github.com/vbauerster/mpb/decor"
+	"github.com/vbauerster/mpb/v4"
+	"github.com/vbauerster/mpb/v4/decor"
 )
 
 const batchSize = 100
-
-type decorElapsedDone time.Time
-
-func (d decorElapsedDone) Decor(stats *decor.Statistics) string {
-	if !stats.Completed {
-		return ""
-	}
-	return " in " + time.Since(time.Time(d)).String()
-}
-func (d decorElapsedDone) Syncable() (bool, chan int) {
-	return false, nil
-}
 
 func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int) error {
 	start := time.Now()
@@ -72,6 +60,8 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int
 		name := c.OP + ":" + c.Table
 		var query string
 		switch c.OP {
+		case "INIT":
+			continue
 		case "DELETE":
 			query = s.table(c.Table).DeleteOneRow()
 		case "INSERT":
@@ -94,14 +84,14 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int
 	}
 	fmt.Println("Prepared statements in", time.Since(start))
 
-	p := mpb.New()
+	p := mpb.NewWithContext(ctx)
 	bar := p.AddBar(int64(len(changes)),
 		mpb.BarClearOnComplete(),
 		mpb.PrependDecorators(
 			decor.CountersNoUnit("Synced %d of %d changes"),
 		),
 		mpb.AppendDecorators(
-			decorElapsedDone(time.Now()),
+			decor.OnComplete(decor.Elapsed(decor.ET_STYLE_GO), ""),
 		),
 	)
 
@@ -125,7 +115,7 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int
 			}
 			err = b.Close()
 			if err != nil {
-				p.Abort(bar, false)
+				bar.Abort(false)
 				p.Wait()
 				fmt.Println("SYNC", c.ID)
 				return err
@@ -142,7 +132,7 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int
 		}
 		err = b.Close()
 		if err != nil {
-			p.Abort(bar, false)
+			bar.Abort(false)
 			p.Wait()
 			return errors.Wrap(err, "sync")
 		}

@@ -128,10 +128,10 @@ function resetConfig(): Cypress.Chainable<Config> {
     General: { PublicURL: base },
     Slack: {
       Enable: true,
-      ClientID: '555449060693.555449060694',
-      ClientSecret: '52fdfc072182654f163f5f0f9a621d72',
+      ClientID: '000000000000.000000000000',
+      ClientSecret: '00000000000000000000000000000000',
       AccessToken:
-        'xoxp-555449060693-555449060694-587071460694-9566c74d10037c4d7bbb0407d1e2c649',
+        'xoxp-000000000000-000000000000-000000000000-00000000000000000000000000000000',
     },
   })
 }
