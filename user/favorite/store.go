@@ -52,10 +52,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			
 		`),
 		findAll: p.P(`
-			SELECT tgt_service_id
+			SELECT tgt_service_id, tgt_rotation_id
 			FROM user_favorites
 			WHERE user_id = $1 
-			AND tgt_service_id NOTNULL = $2
+			AND ((tgt_service_id NOTNULL AND $2) OR (tgt_rotation_id NOTNULL AND $3))
+			
 		`),
 	}, p.Err
 }
@@ -158,8 +159,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 		return nil, err
 	}
 
-	var allowServices bool
-	var allowRotations bool
+	var allowServices, allowRotations bool
 	if len(filter) == 0 {
 		allowServices = true
 	} else {
@@ -185,7 +185,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 	var targets []assignment.Target
 
 	for rows.Next() {
-		var svc sql.NullString
+		var svc, rot sql.NullString
 		err = rows.Scan(&svc)
 		if err != nil {
 			return nil, err
@@ -193,6 +193,8 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 		switch {
 		case svc.Valid:
 			targets = append(targets, assignment.ServiceTarget(svc.String))
+		case rot.Valid:
+			targets = append(targets, assignment.RotationTarget(rot.String))
 		}
 	}
 	return targets, nil

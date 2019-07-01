@@ -88,6 +88,6 @@ func TestGraphQLFavoriteRotations(t *testing.T) {
 	`, h.UUID("r1")), &r)
 
 	if r.Rotation.IsUserFav != false {
-		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want true", h.UUID("r1"), r.Rotation.IsUserFav)
+		t.Fatalf("ERROR: rotationID %s IsUserFavorite=%t; want false", h.UUID("r1"), r.Rotation.IsUserFav)
 	}
 }

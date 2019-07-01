@@ -130,10 +130,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				r.start_time, 
 				r.shift_length, 
 				r.time_zone, 
-				u IS DISTINCT FROM NULL 
+				fav IS DISTINCT FROM NULL 
 			FROM rotations r 
-			LEFT JOIN user_favorites u ON u.tgt_rotation_id = r.id 
-			AND u.user_id = $2 
+			LEFT JOIN user_favorites fav ON fav.tgt_rotation_id = r.id 
+			AND fav.user_id = $2 
 			WHERE r.id = $1
 		`),
 		findRotationForUpdate: p.P(`SELECT id, name, description, type, start_time, shift_length, time_zone FROM rotations WHERE id = $1 FOR UPDATE`),
@@ -148,10 +148,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				r.start_time, 
 				r.shift_length, 
 				r.time_zone,
-				u IS DISTINCT FROM NULL 
+				fav IS DISTINCT FROM NULL 
 			FROM rotations r 
-			LEFT JOIN user_favorites u ON u.tgt_rotation_id = r.id 
-			AND u.user_id = $2 
+			LEFT JOIN user_favorites fav ON fav.tgt_rotation_id = r.id 
+			AND fav.user_id = $2 
 			WHERE r.id = ANY($1)
 		`),
 
