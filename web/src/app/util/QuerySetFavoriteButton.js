@@ -41,6 +41,8 @@ export function QuerySetFavoriteButton(props) {
   } else if (props.serviceID) {
     typeName = 'service'
     id = props.serviceID
+  } else {
+    return null
   }
   return (
     <Query
