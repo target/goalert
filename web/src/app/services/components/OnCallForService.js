@@ -97,7 +97,11 @@ export default class OnCallForService extends Component {
 
     return (
       <Card>
-        <CardHeader title='On Call Users' />
+        <CardHeader
+          style={{ margin: 0 }}
+          component='h3'
+          title='On Call Users'
+        />
         <CardContent>{content}</CardContent>
       </Card>
     )

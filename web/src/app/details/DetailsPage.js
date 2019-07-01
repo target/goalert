@@ -145,7 +145,7 @@ export default class DetailsPage extends React.PureComponent {
               {titleFooter && (
                 <Typography
                   variant='subtitle1'
-                  variantMapping={{ subtitle1: 'p' }}
+                  variantMapping={{ subtitle1: 'div' }}
                 >
                   {titleFooter}
                 </Typography>

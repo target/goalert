@@ -50,7 +50,7 @@ export default class RotationUserList extends React.PureComponent {
     return (
       <React.Fragment>
         <Card>
-          <CardHeader style={{ margin: 0 }} component='h3' title='Users' />
+          <CardHeader style={{ margin: 0 }} component='h3' title='Users ' />
           <CardContent>
             <Query
               query={rotationUsersQuery}
