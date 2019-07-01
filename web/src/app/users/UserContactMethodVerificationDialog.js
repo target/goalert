@@ -71,7 +71,7 @@ export default function UserContactMethodVerificationDialog(props) {
             variables: {
               input: {
                 contactMethodID: cm.id,
-                verificationCode: value.code,
+                code: value.code,
               },
             },
           })
