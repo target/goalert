@@ -50,7 +50,11 @@ export default class UserNotificationRuleList extends React.PureComponent {
     return (
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Notification Rules' />
+          <CardHeader
+            style={{ margin: 0 }}
+            component='h3'
+            title='Notification Rules'
+          />
           <FlatList
             data-cy='notification-rules'
             items={sortNotificationRules(notificationRules).map(nr => ({

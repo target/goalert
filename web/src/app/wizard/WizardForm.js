@@ -57,7 +57,9 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='1' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Team Details</Typography>
+            <Typography variant='h6' variantMapping={{ h6: 'h2' }}>
+              Team Details
+            </Typography>
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>
@@ -76,14 +78,18 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='2' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Primary Schedule</Typography>
+            <Typography variant='h6' variantMapping={{ h6: 'h2' }}>
+              Primary Schedule
+            </Typography>
           </Grid>
           <WizardScheduleForm onChange={onChange} value={value} />
           <Grid item className={classes.stepItem}>
             <StepIcon icon='3' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Secondary Schedule</Typography>
+            <Typography variant='h6' variantMapping={{ h6: 'h2' }}>
+              Secondary Schedule
+            </Typography>
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>
@@ -122,7 +128,9 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='4' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Escalation Policy</Typography>
+            <Typography variant='h6' variantMapping={{ h6: 'h2' }}>
+              Escalation Policy
+            </Typography>
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>
@@ -160,7 +168,9 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='5' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Service</Typography>
+            <Typography variant='h6' variantMapping={{ h6: 'h2' }}>
+              Service
+            </Typography>
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>

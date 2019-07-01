@@ -75,7 +75,11 @@ export default class UserContactMethodList extends React.PureComponent {
     return (
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Contact Methods' />
+          <CardHeader
+            style={{ margin: 0 }}
+            component='h3'
+            title='Contact Methods'
+          />
           <FlatList
             data-cy='contact-methods'
             items={sortContactMethods(contactMethods).map(cm => ({
