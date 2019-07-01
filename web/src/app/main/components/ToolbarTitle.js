@@ -45,11 +45,11 @@ const mapSingular = {
 
 const nameQuery = typeName => gql`
   query($id: ID!) {
-  data: ${typeName}(id: $id) {
-  id
-  name
-  }
-  }
+    data: ${typeName}(id: $id) {
+        id
+        name
+        }
+    }
 `
 
 class NameLoader extends React.PureComponent {
