@@ -30,7 +30,7 @@ const useStyles = makeStyles({
   },
 })
 
-export function SkipToContentLink(props) {
+export function SkipToContentLink() {
   const classes = useStyles()
   return (
     <Link className={classes.skipLink} href='#content'>
