@@ -57,11 +57,16 @@ export default class DialogTitleWrapper extends Component {
     }
 
     if (fullScreen) {
+      console.log('hey')
       return (
         <AppBar position='sticky' style={{ marginBottom: '1em' }}>
           <Toolbar>
             {closeButton}
-            <Typography color='inherit' style={{ fontSize: '1.2em', flex: 1 }}>
+            <Typography
+              component='h2'
+              color='inherit'
+              style={{ fontSize: '1.2em', flex: 1 }}
+            >
               {title}
             </Typography>
             {toolbarItems}
@@ -70,9 +75,14 @@ export default class DialogTitleWrapper extends Component {
         </AppBar>
       )
     } else {
+      console.log('hey2')
       return (
         <React.Fragment>
-          <DialogTitle key='title'>{title}</DialogTitle>
+          <DialogTitle disableTypography key='title'>
+            <Typography variant='h6' variantMapping={{ h6: 'h2' }}>
+              {title}
+            </Typography>
+          </DialogTitle>
           {menu}
         </React.Fragment>
       )
