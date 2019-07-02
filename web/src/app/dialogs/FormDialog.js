@@ -97,6 +97,7 @@ export default class FormDialog extends React.PureComponent {
       maxWidth,
       onClose,
       onSubmit,
+      submitDisabled, // can't be used in dialogProps spread
       subTitle, // can't be used in dialogProps spread
       title,
       width,
@@ -123,6 +124,7 @@ export default class FormDialog extends React.PureComponent {
           fullScreen={!isWideScreen && !confirm && !alert}
           onClose={onClose}
           title={title}
+          subTitle={subTitle}
         />
         <Form
           className={classes.formContainer}
@@ -141,28 +143,17 @@ export default class FormDialog extends React.PureComponent {
   }
 
   renderForm = () => {
-    const { classes, disableGutters, form, subTitle } = this.props
+    const { classes, disableGutters, form } = this.props
 
     // don't render empty space
-    if (!form && !subTitle) {
+    if (!form) {
       return null
     }
 
     let Component = DialogContent
     if (disableGutters) Component = 'div'
 
-    return (
-      <Component className={classes.form}>
-        {this.renderSubtitle()}
-        {form}
-      </Component>
-    )
-  }
-
-  renderSubtitle = () => {
-    if (!this.props.subTitle) return null
-
-    return <Typography variant='subtitle1'>{this.props.subTitle}</Typography>
+    return <Component className={classes.form}>{form}</Component>
   }
 
   renderCaption = () => {

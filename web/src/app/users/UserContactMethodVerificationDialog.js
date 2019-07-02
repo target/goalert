@@ -46,8 +46,10 @@ export default function UserContactMethodVerificationDialog(props) {
 
     return (
       <FormDialog
-        title={`Verify Contact Method by ${cm.type}`}
-        subtitle={`Verifying "${cm.name}" at ${formatPhoneNumber(cm.value)}`}
+        title='Verify Contact Method'
+        subTitle={`Send the verification code to ${formatPhoneNumber(
+          cm.value,
+        )} (${cm.type})`}
         loading={loading}
         errors={nonFieldErrors(error) || [{ message: sendError }]}
         onClose={props.onClose}
