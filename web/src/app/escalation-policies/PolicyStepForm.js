@@ -221,7 +221,9 @@ export default class PolicyStepForm extends React.Component {
                       data-cy='users-step'
                       icon={<UsersIcon />}
                       optional={optionalText}
-                      onClick={this.handleStepChange(3)}
+                      onClick={this.handleStepChange(
+                        cfg['Slack.Enable'] ? 3 : 2,
+                      )}
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('user')(value.targets).length,
