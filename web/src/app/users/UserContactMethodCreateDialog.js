@@ -8,7 +8,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
-import ContactMethodVerificationForm from './ContactMethodVerificationForm'
+import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
 
 const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
@@ -61,7 +61,7 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
         variables: {
           input: {
             contactMethodID: this.state.contactMethodID,
-            verificationCode: this.state.verValue.code,
+            code: this.state.verValue.code,
           },
         },
       }
@@ -126,7 +126,7 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
 
     if (this.state.contactMethodID) {
       return (
-        <ContactMethodVerificationForm
+        <UserContactMethodVerificationForm
           contactMethodID={this.state.contactMethodID}
           disabled={loading}
           errors={fieldErrs}
