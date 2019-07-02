@@ -286,6 +286,8 @@ input CreateServiceInput {
   name: String!
   description: String = ""
 
+  favorite: Boolean
+
   escalationPolicyID: ID
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
@@ -419,6 +421,7 @@ input CreateRotationInput {
 
   timeZone: String!
   start: ISOTimestamp!
+  favorite: Boolean
 
   type: RotationType!
   shiftLength: Int = 1
@@ -430,6 +433,7 @@ type Rotation {
   id: ID!
   name: String!
   description: String!
+  isFavorite: Boolean!
 
   start: ISOTimestamp!
   timeZone: String!
@@ -480,6 +484,12 @@ input RotationSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited rotations in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite rotations first.
+  favoritesFirst: Boolean = false
 }
 
 input EscalationPolicySearchOptions {
@@ -550,6 +560,25 @@ type Alert {
 
   # Escalation Policy State for the alert.
   state: AlertState
+
+  # Recent log entries for the alert.
+  recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+}
+
+input AlertRecentEventsOptions {
+  limit: Int
+  after: String = ""
+}
+
+type AlertLogEntryConnection {
+  nodes: [AlertLogEntry!]!
+  pageInfo: PageInfo!
+}
+
+type AlertLogEntry {
+  id: Int!
+  timestamp: ISOTimestamp!
+  message: String!
 }
 
 # The escalation policy state details for the alert.

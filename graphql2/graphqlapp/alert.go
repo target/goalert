@@ -3,20 +3,41 @@ package graphqlapp
 import (
 	context "context"
 	"fmt"
+	"time"
+
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 type Alert App
+type AlertLogEntry App
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
+
+func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
+
+func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
+	e := *obj
+	return e.ID(), nil
+}
+
+func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*time.Time, error) {
+	e := *obj
+	t := e.Timestamp()
+	return &t, nil
+}
+
+func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (string, error) {
+	e := *obj
+	return e.String(), nil
+}
 
 func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
 	return (*App)(q).FindOneAlert(ctx, alertID)
@@ -153,6 +174,52 @@ func (a *Alert) State(ctx context.Context, raw *alert.Alert) (*alert.State, erro
 
 func (a *Alert) Service(ctx context.Context, raw *alert.Alert) (*service.Service, error) {
 	return (*App)(a).FindOneService(ctx, raw.ServiceID)
+}
+
+func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
+	if opts == nil {
+		opts = new(graphql2.AlertRecentEventsOptions)
+	}
+
+	var s alertlog.SearchOptions
+	s.FilterAlertIDs = append(s.FilterAlertIDs, obj.ID)
+
+	if opts.After != nil && *opts.After != "" {
+		err := search.ParseCursor(*opts.After, &s)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if opts.Limit != nil {
+		s.Limit = *opts.Limit
+	}
+	if s.Limit == 0 {
+		s.Limit = search.DefaultMaxResults
+	}
+
+	s.Limit++
+
+	logs, err := a.AlertLogStore.Search(ctx, &s)
+	if err != nil {
+		return nil, err
+	}
+	conn := new(graphql2.AlertLogEntryConnection)
+	if len(logs) == s.Limit {
+		logs = logs[:len(logs)-1]
+		conn.PageInfo.HasNextPage = true
+	}
+	if len(logs) > 0 {
+		last := logs[len(logs)-1]
+		s.After.ID = last.ID()
+		cur, err := search.Cursor(s)
+		if err != nil {
+			return nil, err
+		}
+		conn.PageInfo.EndCursor = &cur
+	}
+	conn.Nodes = logs
+	return conn, err
 }
 
 func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert, error) {

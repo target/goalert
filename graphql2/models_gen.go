@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/label"
@@ -25,6 +26,16 @@ import (
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo PageInfo      `json:"pageInfo"`
+}
+
+type AlertLogEntryConnection struct {
+	Nodes    []alertlog.Entry `json:"nodes"`
+	PageInfo PageInfo         `json:"pageInfo"`
+}
+
+type AlertRecentEventsOptions struct {
+	Limit *int    `json:"limit"`
+	After *string `json:"after"`
 }
 
 type AlertSearchOptions struct {
@@ -81,6 +92,7 @@ type CreateRotationInput struct {
 	Description *string       `json:"description"`
 	TimeZone    string        `json:"timeZone"`
 	Start       time.Time     `json:"start"`
+	Favorite    *bool         `json:"favorite"`
 	Type        rotation.Type `json:"type"`
 	ShiftLength *int          `json:"shiftLength"`
 	UserIDs     []string      `json:"userIDs"`
@@ -96,6 +108,7 @@ type CreateScheduleInput struct {
 type CreateServiceInput struct {
 	Name                string                       `json:"name"`
 	Description         *string                      `json:"description"`
+	Favorite            *bool                        `json:"favorite"`
 	EscalationPolicyID  *string                      `json:"escalationPolicyID"`
 	NewEscalationPolicy *CreateEscalationPolicyInput `json:"newEscalationPolicy"`
 	NewIntegrationKeys  []CreateIntegrationKeyInput  `json:"newIntegrationKeys"`
@@ -160,10 +173,12 @@ type RotationConnection struct {
 }
 
 type RotationSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First          *int     `json:"first"`
+	After          *string  `json:"after"`
+	Search         *string  `json:"search"`
+	Omit           []string `json:"omit"`
+	FavoritesOnly  *bool    `json:"favoritesOnly"`
+	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
 type ScheduleConnection struct {

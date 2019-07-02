@@ -27,6 +27,7 @@ export default class LoadingButton extends Component {
     return (
       <div style={{ position: 'relative', ...style }}>
         <Button
+          data-cy='loading-button'
           variant='contained'
           color={color || 'primary'}
           onClick={onClick}
