@@ -168,6 +168,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAuthSubject             func(childComplexity int, input user.AuthSubject) int
+		CreateAlert                func(childComplexity int, input CreateAlertInput) int
 		CreateEscalationPolicy     func(childComplexity int, input CreateEscalationPolicyInput) int
 		CreateEscalationPolicyStep func(childComplexity int, input CreateEscalationPolicyStepInput) int
 		CreateIntegrationKey       func(childComplexity int, input CreateIntegrationKeyInput) int
@@ -420,6 +421,7 @@ type MutationResolver interface {
 	UpdateEscalationPolicy(ctx context.Context, input UpdateEscalationPolicyInput) (bool, error)
 	UpdateEscalationPolicyStep(ctx context.Context, input UpdateEscalationPolicyStepInput) (bool, error)
 	DeleteAll(ctx context.Context, input []assignment.RawTarget) (bool, error)
+	CreateAlert(ctx context.Context, input CreateAlertInput) (*alert.Alert, error)
 	CreateService(ctx context.Context, input CreateServiceInput) (*service.Service, error)
 	CreateEscalationPolicy(ctx context.Context, input CreateEscalationPolicyInput) (*escalation.Policy, error)
 	CreateEscalationPolicyStep(ctx context.Context, input CreateEscalationPolicyStepInput) (*escalation.Step, error)
@@ -907,6 +909,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddAuthSubject(childComplexity, args["input"].(user.AuthSubject)), true
+
+	case "Mutation.CreateAlert":
+		if e.complexity.Mutation.CreateAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAlert_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAlert(childComplexity, args["input"].(CreateAlertInput)), true
 
 	case "Mutation.CreateEscalationPolicy":
 		if e.complexity.Mutation.CreateEscalationPolicy == nil {
@@ -2408,6 +2422,8 @@ type Mutation {
 
   deleteAll(input: [TargetInput!]): Boolean!
 
+  createAlert(input: CreateAlertInput!): Alert
+
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
   createEscalationPolicyStep(
@@ -2435,6 +2451,12 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+}
+
+input CreateAlertInput {
+  summary: String!
+  details: String
+  serviceID: ID!
 }
 
 input ConfigValueInput {
@@ -2783,13 +2805,13 @@ type Alert {
   # Escalation Policy State for the alert.
   state: AlertState
 
-  # recent log entries for the alert.	
+  # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 }
 
 input AlertRecentEventsOptions {
   limit: Int
-  after: String = "" 
+  after: String = ""
 }
 
 type AlertLogEntryConnection {
@@ -3038,6 +3060,20 @@ func (ec *executionContext) field_Mutation_addAuthSubject_args(ctx context.Conte
 	var arg0 user.AuthSubject
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNAuthSubjectInput2githubᚗcomᚋtargetᚋgoalertᚋuserᚐAuthSubject(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateAlertInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNCreateAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateAlertInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5656,6 +5692,37 @@ func (ec *executionContext) _Mutation_deleteAll(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createAlert(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createAlert_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAlert(rctx, args["input"].(CreateAlertInput))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*alert.Alert)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOAlert2ᚖgithubᚗcomᚋtargetᚋgoalertᚋalertᚐAlert(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createService(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -10386,6 +10453,36 @@ func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, v interface{}) (CreateAlertInput, error) {
+	var it CreateAlertInput
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "summary":
+			var err error
+			it.Summary, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "details":
+			var err error
+			it.Details, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviceID":
+			var err error
+			it.ServiceID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx context.Context, v interface{}) (CreateEscalationPolicyInput, error) {
 	var it CreateEscalationPolicyInput
 	var asMap = v.(map[string]interface{})
@@ -12446,6 +12543,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "createAlert":
+			out.Values[i] = ec._Mutation_createAlert(ctx, field)
 		case "createService":
 			out.Values[i] = ec._Mutation_createService(ctx, field)
 		case "createEscalationPolicy":
@@ -14524,6 +14623,10 @@ func (ec *executionContext) unmarshalNContactMethodType2githubᚗcomᚋtargetᚋ
 
 func (ec *executionContext) marshalNContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, sel ast.SelectionSet, v contactmethod.Type) graphql.Marshaler {
 	return MarshalContactMethodType(v)
+}
+
+func (ec *executionContext) unmarshalNCreateAlertInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateAlertInput(ctx context.Context, v interface{}) (CreateAlertInput, error) {
+	return ec.unmarshalInputCreateAlertInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNCreateEscalationPolicyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyInput(ctx context.Context, v interface{}) (CreateEscalationPolicyInput, error) {

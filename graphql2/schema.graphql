@@ -179,6 +179,8 @@ type Mutation {
 
   deleteAll(input: [TargetInput!]): Boolean!
 
+  createAlert(input: CreateAlertInput!): Alert
+
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
   createEscalationPolicyStep(
@@ -206,6 +208,12 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+}
+
+input CreateAlertInput {
+  summary: String!
+  details: String
+  serviceID: ID!
 }
 
 input ConfigValueInput {
