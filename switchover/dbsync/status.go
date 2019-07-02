@@ -9,11 +9,12 @@ import (
 
 	"github.com/alexeyco/simpletable"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/switchover"
 )
 
 func (s *Sync) status(ctx context.Context) (string, error) {
 	rows, err := s.oldDB.QueryContext(ctx, `
-		select count(*), application_name, usename
+		select count(*), coalesce(application_name, ''), coalesce(usename, '')
 		from pg_stat_activity
 		where datname=current_database()
 		group by application_name, usename
@@ -31,6 +32,8 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 			{Text: "Connections"},
 		},
 	}
+
+	var issues []string
 	for rows.Next() {
 		var num int
 		var name string
@@ -38,6 +41,9 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 		err = rows.Scan(&num, &name, &user)
 		if err != nil {
 			return "", errors.Wrap(err, "scan query results")
+		}
+		if strings.Contains(name, "GoAlert") && !strings.Contains(name, "S/O") {
+			issues = append(issues, "Non-switchover GoAlert connection: "+name)
 		}
 		table.Body.Cells = append(table.Body.Cells, []*simpletable.Cell{
 			{Text: name},
@@ -61,21 +67,38 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 		},
 	}
 	nodes := s.NodeStatus()
+
 	for _, stat := range nodes {
 		cfg := "Valid"
-		if !stat.MatchDBNext(s.newURL) {
+		if s.oldDBID != stat.DBID || s.newDBID != stat.DBNextID {
 			cfg = "Invalid"
+			issues = append(issues, fmt.Sprintf("Node[%s] has invalid config (try `reset` or checking db urls)", stat.NodeID))
 		}
+		since := time.Since(stat.At).Truncate(time.Millisecond)
+		if since > 3*time.Second {
+			issues = append(issues, fmt.Sprintf("Node[%s] has not been seen for >3 seconds (try `reset`)", stat.NodeID))
+		}
+
+		if stat.State == switchover.StateAbort {
+			issues = append(issues, fmt.Sprintf("Node[%s] has aborted (try `reset`)", stat.NodeID))
+		} else if stat.State != switchover.StateReady {
+			issues = append(issues, fmt.Sprintf("Node[%s] is not ready", stat.NodeID))
+		}
+
 		table.Body.Cells = append(table.Body.Cells, []*simpletable.Cell{
 			{Text: stat.NodeID},
 			{Text: string(stat.State)},
 			{Text: stat.Offset.String()},
 			{Text: cfg},
-			{Text: time.Since(stat.At).Truncate(time.Millisecond).String()},
+			{Text: since.String()},
 			{Text: strconv.Itoa(stat.ActiveRequests)},
 		})
 	}
 	buf.WriteString(table.String() + "\n\n")
+
+	if len(nodes) == 0 {
+		issues = append(issues, "No nodes detected.")
+	}
 
 	fmt.Fprintf(buf, "Node Count: %d\n", len(nodes))
 	fmt.Fprintln(buf, "Local offset:", s.Offset())
@@ -86,6 +109,11 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 	}
 
 	fmt.Fprintln(buf, "Switchover state:", stat)
+	if stat == "idle" {
+		return buf.String(), nil
+	} else if stat == "use_next_db" {
+		issues = append(issues, "Switchover has already been completed")
+	}
 
 	var changeMax int
 	err = s.oldDB.QueryRowContext(ctx, `select coalesce(max(id),0) from change_log`).Scan(&changeMax)
@@ -99,6 +127,15 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 		return "", errors.Wrap(err, "lookup change id (new)")
 	}
 	fmt.Fprintln(buf, "Max change_log ID (next DB):", changeMax)
+
+	if len(issues) > 0 {
+		fmt.Fprintln(buf, "\nPotential Problems Found:")
+		for _, s := range issues {
+			fmt.Fprintln(buf, "- "+s)
+		}
+	} else {
+		fmt.Fprintln(buf, "\nNo Problems Found")
+	}
 
 	return buf.String(), nil
 }

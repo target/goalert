@@ -11,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
@@ -45,6 +46,7 @@ type App struct {
 	NRStore       notificationrule.Store
 	NCStore       notificationchannel.Store
 	AlertStore    alert.Store
+	AlertLogStore alertlog.Store
 	ServiceStore  service.Store
 	FavoriteStore favorite.Store
 	PolicyStore   escalation.Store

@@ -32,7 +32,7 @@ func (app *App) initEngine(ctx context.Context) error {
 
 	app.engine, err = engine.NewEngine(ctx, app.db, &engine.Config{
 		AlertStore:         app.AlertStore,
-		AlertlogStore:      app.AlertlogStore,
+		AlertLogStore:      app.AlertLogStore,
 		ContactMethodStore: app.ContactMethodStore,
 		NotificationSender: app.notificationManager,
 		UserStore:          app.UserStore,

@@ -28,6 +28,8 @@ models:
     model: github.com/target/goalert/assignment.TargetType
   Alert:
     model: github.com/target/goalert/alert.Alert
+  AlertLogEntry:
+    model: github.com/target/goalert/alert/log.Entry  
   AlertState:
     model: github.com/target/goalert/alert.State
   Service:
