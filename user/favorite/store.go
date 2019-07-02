@@ -56,7 +56,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			FROM user_favorites
 			WHERE user_id = $1 
 			AND ((tgt_service_id NOTNULL AND $2) OR (tgt_rotation_id NOTNULL AND $3))
-			
 		`),
 	}, p.Err
 }
