@@ -16,7 +16,7 @@ import ScheduleCalendarQuery from './ScheduleCalendarQuery'
 import { urlParamSelector } from '../selectors'
 import { resetURLParams, setURLParam } from '../actions'
 import { connect } from 'react-redux'
-import SetFavoriteButton from './components/SetFavoriteButton'
+import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 
 const query = gql`
   query($id: ID!) {
@@ -34,6 +34,7 @@ const partialQuery = gql`
       id
       name
       description
+      isFavorite
     }
   }
 `
@@ -83,7 +84,7 @@ export default class ScheduleDetails extends React.PureComponent {
     return (
       <React.Fragment>
         <PageActions>
-          <SetFavoriteButton scheduleID={data.id} />
+          <QuerySetFavoriteButton scheduleID={data.id} />
           <FilterContainer onReset={() => this.props.resetFilter()}>
             <Grid item xs={12}>
               <FormControlLabel

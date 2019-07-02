@@ -24,6 +24,14 @@ const queries = {
       }
     }
   `,
+  schedule: gql`
+    query scheduleFavQuery($id: ID!) {
+      schedule(id: $id) {
+        id
+        isFavorite
+      }
+    }
+  `,
 }
 
 const mutation = gql`
@@ -35,7 +43,23 @@ const mutation = gql`
 export function QuerySetFavoriteButton(props) {
   let typeName = ''
   let id = ''
-  if (props.rotationID) {
+  switch (props) {
+    case props.rotationID:
+      typeName = 'rotation'
+      id = props.rotationID
+      break
+    case props.serviceID:
+      typeName = 'service'
+      id = props.serviceID
+      break
+    case props.scheduleID:
+      typeName = 'schedule'
+      id = props.scheduleID
+      break
+    default:
+      return null
+  }
+  /* if (props.rotationID) {
     typeName = 'rotation'
     id = props.rotationID
   } else if (props.serviceID) {
@@ -43,7 +67,7 @@ export function QuerySetFavoriteButton(props) {
     id = props.serviceID
   } else {
     return null
-  }
+  } */
   return (
     <Query
       query={queries[typeName]}
@@ -90,5 +114,9 @@ function renderSetFavButton(isFavorite, mutation, id, typeName) {
 }
 
 QuerySetFavoriteButton.propTypes = {
-  id: oneOfShape({ serviceID: p.string, rotationID: p.string }),
+  id: oneOfShape({
+    serviceID: p.string,
+    rotationID: p.string,
+    scheduleID: p.string,
+  }),
 }
