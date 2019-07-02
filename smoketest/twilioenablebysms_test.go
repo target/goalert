@@ -42,7 +42,7 @@ func TestTwilioEnableBySMS(t *testing.T) {
 		mutation {
 			verifyContactMethod(input:{
 				contactMethodID:  "%s",
-				verificationCode: "%s"
+				code: "%s"
 			})
 		}
 	`, cm1, "123456"))

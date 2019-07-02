@@ -81,6 +81,23 @@ function testSteps(screen: ScreenFormat) {
       })
     })
 
+    it('should add users when slack is disabled', () => {
+      cy.updateConfig({ Slack: { Enable: false } })
+      cy.reload()
+      cy.fixture('users').then(users => {
+        const u1 = users[0]
+        const u2 = users[1]
+
+        cy.pageFab()
+        cy.get('div[role=dialog]').as('dialog')
+        cy.get('@dialog').should('contain', 'Create Step')
+
+        cy.get('button[data-cy="users-step"]').click()
+        cy.get('input[name=users]').selectByLabel(u1.name)
+        cy.get('input[name=users]').selectByLabel(u2.name)
+      })
+    })
+
     it('should edit a step', () => {
       cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
       cy.get('ul[data-cy=steps-list]')
@@ -117,6 +134,9 @@ function testSteps(screen: ScreenFormat) {
     })
 
     it('should add and then remove a slack channel', () => {
+      cy.updateConfig({ Slack: { Enable: true } })
+      cy.reload()
+
       cy.pageFab()
       cy.get('div[role=dialog]').as('dialog')
       cy.get('@dialog').should('contain', 'Create Step')
