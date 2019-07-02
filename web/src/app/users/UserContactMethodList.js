@@ -14,7 +14,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import { Config } from '../util/RequireConfig'
 import { Warning } from '../icons'
-import ContactMethodVerificationDialog from './ContactMethodVerificationDialog'
+import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -37,7 +37,8 @@ const testCM = gql`
   }
 `
 
-const DISABLED_CM_TOOLTIP = `Number disabled. See contact method's options to reactivate`
+const DISABLED_CM_TOOLTIP =
+  'Contact method disabled. See its options to reactivate.'
 
 export default class UserContactMethodList extends React.PureComponent {
   static propTypes = {
@@ -93,7 +94,7 @@ export default class UserContactMethodList extends React.PureComponent {
               ]}
             />
             {this.state.isVerifyDialogOpen && (
-              <ContactMethodVerificationDialog
+              <UserContactMethodVerificationDialog
                 onClose={() => this.setState({ isVerifyDialogOpen: false })}
                 contactMethodID={id}
               />
@@ -116,7 +117,7 @@ export default class UserContactMethodList extends React.PureComponent {
               subText: formatCMValue(cm.type, cm.value),
               action: this.props.readOnly ? null : this.renderActions(cm),
               icon: cm.disabled ? (
-                <Warning tooltip={DISABLED_CM_TOOLTIP} data-cy='cm-disabled' />
+                <Warning message={DISABLED_CM_TOOLTIP} data-cy='cm-disabled' />
               ) : null,
             }))}
             emptyMessage='No contact methods'

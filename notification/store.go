@@ -11,8 +11,6 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"math/rand"
-	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -23,8 +21,8 @@ const minTimeBetweenTests = time.Minute
 
 type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
-	SendContactMethodVerification(ctx context.Context, cmID string, resend bool) error
-	VerifyContactMethod(ctx context.Context, cmID string, code string) error
+	SendContactMethodVerification(ctx context.Context, cmID string) error
+	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	CodeExpiration(ctx context.Context, cmID string) (*time.Time, error)
 	Code(ctx context.Context, id string) (int, error)
 }
@@ -35,8 +33,7 @@ type DB struct {
 	db                     *sql.DB
 	getCMUserID            *sql.Stmt
 	setVerificationCode    *sql.Stmt
-	verifyVerificationCode *sql.Stmt
-	enableContactMethods   *sql.Stmt
+	verifyAndEnableContactMethod   *sql.Stmt
 	insertTestNotification *sql.Stmt
 	updateLastSendTime     *sql.Stmt
 	codeExpiration         *sql.Stmt
@@ -72,44 +69,32 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		codeExpiration: p.P(`
 			select expires_at
-			from user_verification_codes v
-			join user_contact_methods cm on cm.id = $1
-			where v.user_id = cm.user_id and v.contact_method_value = cm.value
+			from user_verification_codes
+			where contact_method_id = $1
 		`),
 
+		// should result in sending a verification code to the specified contact method
 		setVerificationCode: p.P(`
-			insert into user_verification_codes (id, user_id, contact_method_value, code, expires_at, send_to)
-			select
-				$1,
-				cm.user_id,
-				cm.value,
-				$3,
-				now() + cast($4 as interval),
-				$2
-			from user_contact_methods cm
-			where id = $2
-			on conflict (user_id, contact_method_value) do update
+			insert into user_verification_codes (id, contact_method_id, code, expires_at)
+			values ($1, $2, $3, NOW() + '15 minutes'::interval)
+			on conflict (contact_method_id) do update
 			set
-				send_to = $2,
-				expires_at = case when $5 then user_verification_codes.expires_at else EXCLUDED.expires_at end,
-				code = case when $5 then user_verification_codes.code else EXCLUDED.code end
-		`),
-		verifyVerificationCode: p.P(`
-			delete from user_verification_codes v
-			using user_contact_methods cm
-			where
-				cm.id = $1 and
-				v.contact_method_value = cm.value and
-				v.user_id = cm.user_id and
-				v.code = $2
-			returning cm.value
+				sent = false,
+				expires_at = NOW() + '15 minutes'::interval
 		`),
 
-		enableContactMethods: p.P(`
-			update user_contact_methods
+		// should reactivate a contact method if specified code matches what was set
+		verifyAndEnableContactMethod: p.P(`
+			with v as (
+				delete from user_verification_codes
+				where contact_method_id = $1 and code = $2
+				returning contact_method_id id
+			)
+			update user_contact_methods cm
 			set disabled = false
-			where user_id = $1 and value = $2
-			returning id
+			from v
+			where cm.id = v.id
+			returning cm.id
 		`),
 
 		updateLastSendTime: p.P(`
@@ -234,8 +219,8 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	return tx.Commit()
 }
 
-func (db *DB) SendContactMethodVerification(ctx context.Context, id string, resend bool) error {
-	_, err := db.cmUserID(ctx, id)
+func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) error {
+	_, err := db.cmUserID(ctx, cmID)
 	if err != nil {
 		return err
 	}
@@ -246,7 +231,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 	}
 	defer tx.Rollback()
 
-	r, err := tx.Stmt(db.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	r, err := tx.Stmt(db.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -258,9 +243,9 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 		return validation.NewFieldError("ContactMethod", "test message rate-limit exceeded")
 	}
 
-	vID := uuid.NewV4().String()
+	vcID := uuid.NewV4().String()
 	code := db.rand.Intn(900000) + 100000
-	_, err = tx.Stmt(db.setVerificationCode).ExecContext(ctx, vID, id, code, fmt.Sprintf("%f seconds", (15*time.Minute).Seconds()), resend)
+	_, err = tx.Stmt(db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {
 		return errors.Wrap(err, "set verification code")
 	}
@@ -268,41 +253,32 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 	return tx.Commit()
 }
 
-func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, _code string) error {
-	userID, err := db.cmUserID(ctx, cmID)
+func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
+	uID, err := db.cmUserID(ctx, cmID)
 	if err != nil {
 		return err
 	}
 
-	code, err := strconv.ParseInt(_code, 10, 64)
-	if err != nil {
-		return validation.NewFieldError("Code", "must contain only digits")
-	}
-
-	matched, _ := regexp.MatchString(`^\d{6}$`, _code)
-	if !matched {
-		return validation.NewFieldError("Code", "must be 6 digits")
-	}
-
-	tx, err := db.db.BeginTx(ctx, nil)
+	err = permission.LimitCheckAny(ctx, permission.MatchUser(uID))
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
 
-	var cmValue string
-	err = db.verifyVerificationCode.QueryRowContext(ctx, cmID, code).Scan(&cmValue)
-	if err == sql.ErrNoRows {
-		return validation.NewFieldError("Code", "unrecognized code")
+	res, err := db.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
+	if err == sql.ErrNoRows  {
+		return validation.NewFieldError("code", "invalid code")
 	}
 	if err != nil {
 		return err
 	}
 
-	_, err = db.enableContactMethods.QueryContext(ctx, userID, cmValue)
+	num, err := res.RowsAffected()
 	if err != nil {
 		return err
 	}
+	if num != 1  {
+		return validation.NewFieldError("code", "invalid code")
+	}
 
-	return tx.Commit()
+	return nil
 }

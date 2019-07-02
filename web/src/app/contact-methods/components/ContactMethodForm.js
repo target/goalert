@@ -11,7 +11,7 @@ import gql from 'graphql-tag'
 import { withApollo } from 'react-apollo'
 import ApolloFormDialog from '../../dialogs/components/ApolloFormDialog'
 import { createNotificationRuleMutation } from '../../notification-rules/components/CreateNotificationRuleForm'
-import ContactMethodVerificationDialog from '../../users/ContactMethodVerificationDialog'
+import UserContactMethodVerificationDialog from '../../users/UserContactMethodVerificationDialog'
 
 const createContactMethodMutation = gql`
   mutation CreateContactMethodMutation($input: CreateContactMethodInput) {
@@ -193,7 +193,7 @@ class ContactMethodForm extends Component {
 
   renderVerificationForm = () =>
     this.state.showVerifyForm && (
-      <ContactMethodVerificationDialog
+      <UserContactMethodVerificationDialog
         key='verify-dialog'
         onClose={() => this.setState({ showVerifyForm: false })}
         contactMethodID={this.state.contactMethod.id}

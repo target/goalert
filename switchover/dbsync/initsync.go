@@ -8,13 +8,17 @@ import (
 
 	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
-	"github.com/vbauerster/mpb"
-	"github.com/vbauerster/mpb/decor"
+	"github.com/vbauerster/mpb/v4"
+	"github.com/vbauerster/mpb/v4/decor"
 )
 
 func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
-	p := mpb.New()
-	var err error
+	err := s.RefreshTables(ctx)
+	if err != nil {
+		return err
+	}
+
+	p := mpb.NewWithContext(ctx)
 	var totalRows int64
 	var bars []*mpb.Bar
 	var toSync []Table
@@ -26,10 +30,11 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 		),
 	)
 	for _, t := range s.tables {
-
 		var rowCount int64
 		err := txSrc.QueryRowEx(ctx, `select count(*) from `+t.SafeName(), nil).Scan(&rowCount)
 		if err != nil {
+			scanBar.Abort(false)
+			p.Wait()
 			return err
 		}
 		scanBar.Increment()
@@ -56,9 +61,9 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 	)
 	abort := func(i int) {
 		for ; i < len(toSync); i++ {
-			p.Abort(bars[i], false)
+			bars[i].Abort(false)
 		}
-		p.Abort(tBar, false)
+		tBar.Abort(false)
 		p.Wait()
 	}
 
@@ -69,7 +74,13 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 			pr, pw := io.Pipe()
 			bw := bufio.NewWriter(pw)
 			br := bufio.NewReader(pr)
-			errCh := make(chan error, 2)
+			errCh := make(chan error, 3)
+			go func() {
+				<-ctx.Done()
+				go pw.CloseWithError(ctx.Err())
+				go pr.CloseWithError(ctx.Err())
+				errCh <- ctx.Err()
+			}()
 			go func() {
 				defer pw.Close()
 				defer bw.Flush()

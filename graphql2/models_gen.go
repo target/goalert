@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/label"
@@ -25,6 +26,16 @@ import (
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo PageInfo      `json:"pageInfo"`
+}
+
+type AlertLogEntryConnection struct {
+	Nodes    []alertlog.Entry `json:"nodes"`
+	PageInfo PageInfo         `json:"pageInfo"`
+}
+
+type AlertRecentEventsOptions struct {
+	Limit *int    `json:"limit"`
+	After *string `json:"after"`
 }
 
 type AlertSearchOptions struct {
@@ -96,6 +107,7 @@ type CreateScheduleInput struct {
 type CreateServiceInput struct {
 	Name                string                       `json:"name"`
 	Description         *string                      `json:"description"`
+	Favorite            *bool                        `json:"favorite"`
 	EscalationPolicyID  *string                      `json:"escalationPolicyID"`
 	NewEscalationPolicy *CreateEscalationPolicyInput `json:"newEscalationPolicy"`
 	NewIntegrationKeys  []CreateIntegrationKeyInput  `json:"newIntegrationKeys"`
@@ -200,7 +212,6 @@ type ScheduleTargetInput struct {
 
 type SendContactMethodVerificationInput struct {
 	ContactMethodID string `json:"contactMethodID"`
-	Resend          *bool  `json:"resend"`
 }
 
 type ServiceConnection struct {
@@ -353,8 +364,8 @@ type UserSearchOptions struct {
 }
 
 type VerifyContactMethodInput struct {
-	ContactMethodID  string `json:"contactMethodID"`
-	VerificationCode string `json:"verificationCode"`
+	ContactMethodID string `json:"contactMethodID"`
+	Code            int    `json:"code"`
 }
 
 type AlertStatus string

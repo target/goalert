@@ -204,7 +204,6 @@ type Mutation {
   sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
   verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
 
-
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
 
@@ -288,6 +287,8 @@ type TimeZone {
 input CreateServiceInput {
   name: String!
   description: String = ""
+
+  favorite: Boolean
 
   escalationPolicyID: ID
   newEscalationPolicy: CreateEscalationPolicyInput
@@ -546,6 +547,25 @@ type Alert {
 
   # Escalation Policy State for the alert.
   state: AlertState
+
+  # Recent log entries for the alert.
+  recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+}
+
+input AlertRecentEventsOptions {
+  limit: Int
+  after: String = ""
+}
+
+type AlertLogEntryConnection {
+  nodes: [AlertLogEntry!]!
+  pageInfo: PageInfo!
+}
+
+type AlertLogEntry {
+  id: Int!
+  timestamp: ISOTimestamp!
+  message: String!
 }
 
 # The escalation policy state details for the alert.
@@ -752,12 +772,11 @@ input UpdateUserContactMethodInput {
 
 input SendContactMethodVerificationInput {
   contactMethodID: ID!
-  resend: Boolean
 }
 
 input VerifyContactMethodInput {
   contactMethodID: ID!
-  verificationCode: String!
+  code: Int!
 }
 
 type AuthSubject {
