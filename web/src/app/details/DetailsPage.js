@@ -145,6 +145,7 @@ export default class DetailsPage extends React.PureComponent {
               {titleFooter && (
                 <Typography
                   variant='subtitle1'
+                  data-cy='time-zone'
                   variantMapping={{ subtitle1: 'div' }}
                 >
                   {titleFooter}
