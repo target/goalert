@@ -43,14 +43,40 @@ const mapSingular = {
   Services: 'Service',
 }
 
-const nameQuery = typeName => gql`
-  query($id: ID!) {
-    data: ${typeName}(id: $id) {
-      id
-      name
+const queries = {
+  users: gql`
+    query($id: ID!) {
+      data: user(id: $id) {
+        id
+        name
+      }
     }
-  }
-`
+  `,
+  services: gql`
+    query($id: ID!) {
+      data: service(id: $id) {
+        id
+        name
+      }
+    }
+  `,
+  schedules: gql`
+    query($id: ID!) {
+      data: schedule(id: $id) {
+        id
+        name
+      }
+    }
+  `,
+  'escalation-policies': gql`
+    query($id: ID!) {
+      data: escalationPolicy(id: $id) {
+        id
+        name
+      }
+    }
+  `,
+}
 
 class NameLoader extends React.PureComponent {
   static propTypes = {
@@ -109,22 +135,7 @@ export default class ToolbarTitle extends React.Component {
       // mobile, only render current title
       return this.renderTitle(sub)
     }
-
-    let query
-    switch (match.params.type) {
-      case 'users':
-        query = nameQuery('user')
-        break
-      case 'services':
-        query = nameQuery('service')
-        break
-      case 'schedules':
-        query = nameQuery('schedule')
-        break
-      case 'escalation-policies':
-        query = nameQuery('escalationPolicy')
-        break
-    }
+    const query = queries[match.params.type]
 
     return (
       <div className={this.props.classes.div}>

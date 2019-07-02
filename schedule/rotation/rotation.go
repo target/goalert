@@ -11,9 +11,14 @@ type Rotation struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 
-	Type        Type      `json:"type"`
-	Start       time.Time `json:"start"`
-	ShiftLength int       `json:"shift_length"`
+	Type           Type      `json:"type"`
+	Start          time.Time `json:"start"`
+	ShiftLength    int       `json:"shift_length"`
+	isUserFavorite bool
+}
+
+func (r Rotation) IsUserFavorite() bool {
+	return r.isUserFavorite
 }
 
 func addHours(t time.Time, n int) time.Time {
