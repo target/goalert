@@ -2765,13 +2765,13 @@ type Alert {
   # Escalation Policy State for the alert.
   state: AlertState
 
-  # recent log entries for the alert.	
+  # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
 }
 
 input AlertRecentEventsOptions {
   limit: Int
-  after: String = "" 
+  after: String = ""
 }
 
 type AlertLogEntryConnection {
