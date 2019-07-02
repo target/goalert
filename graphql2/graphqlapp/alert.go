@@ -178,24 +178,18 @@ func (a *Alert) Service(ctx context.Context, raw *alert.Alert) (*service.Service
 }
 
 func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertInput) (*alert.Alert, error) {
+	// An alert when created will always have triggered status
 	a := &alert.Alert{
 		ServiceID: input.ServiceID,
 		Summary:   input.Summary,
+		Status:    alert.StatusTriggered,
 	}
 
 	if input.Details != nil {
 		a.Details = *input.Details
 	}
-	// An alert when created will always have triggered status
-	a.Status = alert.StatusTriggered
 
-	result, err := m.AlertStore.Create(ctx, a)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, err
-
+	return m.AlertStore.Create(ctx, a)
 }
 
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
