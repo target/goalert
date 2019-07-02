@@ -22,8 +22,8 @@ function testSchedules(screen: ScreenFormat) {
         .click()
 
       // verify on details by content headers
-      cy.get('h5').contains(name)
-      cy.get('h6').contains(description)
+      cy.get('h2').contains(name)
+      cy.get('div[name=details]').contains(description)
     })
   })
 
@@ -89,9 +89,9 @@ function testSchedules(screen: ScreenFormat) {
 
       // verify changes occurred
       cy.reload()
-      cy.get('h5').contains(newName)
-      cy.get('h6').contains(newDesc)
-      cy.get('h6').contains(newTz)
+      cy.get('h2').contains(newName)
+      cy.get('div[name=details]').contains(newDesc)
+      cy.get('[data-cy=time-zone]').contains(newTz)
     })
 
     it('should navigate to and from assignments', () => {
