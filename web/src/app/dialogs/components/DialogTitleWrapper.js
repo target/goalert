@@ -57,7 +57,6 @@ export default class DialogTitleWrapper extends Component {
     }
 
     if (fullScreen) {
-      console.log('hey')
       return (
         <AppBar position='sticky' style={{ marginBottom: '1em' }}>
           <Toolbar>
@@ -75,7 +74,6 @@ export default class DialogTitleWrapper extends Component {
         </AppBar>
       )
     } else {
-      console.log('hey2')
       return (
         <React.Fragment>
           <DialogTitle disableTypography key='title'>
