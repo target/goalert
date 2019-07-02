@@ -90,7 +90,7 @@ check: generate web/src/node_modules
 	(cd web/src && yarn fmt)
 	./devtools/ci/tasks/scripts/codecheck.sh
 
-check-all: check smoketest cy-wide-prod-run cy-mobile-prod-run
+check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 
 migrate/inline_data_gen.go: migrate/migrations migrate/migrations/*.sql $(INLINER)
 	go generate ./migrate
