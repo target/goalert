@@ -1,7 +1,7 @@
 import { Chance } from 'chance'
-const c = new Chance()
 
 import { testScreen } from '../support'
+const c = new Chance()
 
 testScreen('Alerts', testAlerts)
 

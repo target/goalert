@@ -238,6 +238,7 @@ type ComplexityRoot struct {
 		ActiveUserIndex  func(childComplexity int) int
 		Description      func(childComplexity int) int
 		ID               func(childComplexity int) int
+		IsFavorite       func(childComplexity int) int
 		Name             func(childComplexity int) int
 		NextHandoffTimes func(childComplexity int, num *int) int
 		ShiftLength      func(childComplexity int) int
@@ -463,6 +464,8 @@ type QueryResolver interface {
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
 }
 type RotationResolver interface {
+	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
+
 	TimeZone(ctx context.Context, obj *rotation.Rotation) (string, error)
 
 	ActiveUserIndex(ctx context.Context, obj *rotation.Rotation) (int, error)
@@ -1550,6 +1553,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Rotation.ID(childComplexity), true
+
+	case "Rotation.IsFavorite":
+		if e.complexity.Rotation.IsFavorite == nil {
+			break
+		}
+
+		return e.complexity.Rotation.IsFavorite(childComplexity), true
 
 	case "Rotation.Name":
 		if e.complexity.Rotation.Name == nil {
@@ -2639,6 +2649,7 @@ input CreateRotationInput {
 
   timeZone: String!
   start: ISOTimestamp!
+  favorite: Boolean
 
   type: RotationType!
   shiftLength: Int = 1
@@ -2650,6 +2661,7 @@ type Rotation {
   id: ID!
   name: String!
   description: String!
+  isFavorite: Boolean!
 
   start: ISOTimestamp!
   timeZone: String!
@@ -2700,6 +2712,12 @@ input RotationSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited rotations in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite rotations first.
+  favoritesFirst: Boolean = false
 }
 
 input EscalationPolicySearchOptions {
@@ -7160,6 +7178,33 @@ func (ec *executionContext) _Rotation_description(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Rotation_isFavorite(ctx context.Context, field graphql.CollectedField, obj *rotation.Rotation) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Rotation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Rotation().IsFavorite(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Rotation_start(ctx context.Context, field graphql.CollectedField, obj *rotation.Rotation) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -10487,6 +10532,12 @@ func (ec *executionContext) unmarshalInputCreateRotationInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "favorite":
+			var err error
+			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "type":
 			var err error
 			it.Type, err = ec.unmarshalNRotationType2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐType(ctx, v)
@@ -10832,6 +10883,18 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 		case "omit":
 			var err error
 			it.Omit, err = ec.unmarshalOID2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favoritesOnly":
+			var err error
+			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favoritesFirst":
+			var err error
+			it.FavoritesFirst, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12858,6 +12921,20 @@ func (ec *executionContext) _Rotation(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "isFavorite":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Rotation_isFavorite(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "start":
 			out.Values[i] = ec._Rotation_start(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

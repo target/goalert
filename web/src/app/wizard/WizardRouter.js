@@ -72,6 +72,7 @@ export default class WizardRouter extends React.PureComponent {
             .startOf('day')
             .toISO(),
           type: 'never',
+          favorite: true,
         },
         followTheSunRotation: {
           enable: 'no',
@@ -88,6 +89,7 @@ export default class WizardRouter extends React.PureComponent {
             .startOf('day')
             .toISO(),
           type: 'never',
+          favorite: true,
         },
         followTheSunRotation: {
           enable: 'no',
