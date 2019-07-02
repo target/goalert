@@ -16,6 +16,21 @@ function testFavorites(screen: ScreenFormat) {
         .pageFab()
         .get('input[name=service]'),
   )
+
+  check(
+    'Rotation',
+    'rotations',
+    (name: string, favorite: boolean) =>
+      cy.createRotation({ name, favorite }).then(r => r.id),
+    () =>
+      cy
+        .createEP()
+        .then(e => {
+          return cy.visit(`/escalation-policies/${e.id}`)
+        })
+        .pageFab()
+        .get('input[name=rotations]'),
+  )
 }
 
 function check(
@@ -28,7 +43,7 @@ function check(
     it('should allow setting and unsetting as a favorite from details page ', () => {
       createFunc('', false).then(id => {
         cy.visit(`/${urlPrefix}/${id}`)
-
+        typeName = typeName.toLowerCase()
         // test setting as favorite
         cy.get(`button[aria-label="Set as a Favorite ${typeName}"]`).click()
         cy.reload()
