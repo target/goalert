@@ -91,7 +91,9 @@
       "./node_modules/.bin/cypress",
       "$CY_ACTION",
       "--config",
-      "baseUrl=http://localhost:3040"
+      "baseUrl=http://localhost:3040",
+      "--browser",
+      "$CY_BROWSER"
     ],
     "Env": [
       "CYPRESS_DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable"

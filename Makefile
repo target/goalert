@@ -23,7 +23,8 @@ LD_FLAGS+=-X github.com/target/goalert/version.gitVersion=$(GIT_VERSION)
 LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
 LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
-CY_ACTION=open
+export CY_ACTION = open
+export CY_BROWSER = chrome
 
 ifdef LOG_DIR
 RUNJSON_ARGS += -logs=$(LOG_DIR)
