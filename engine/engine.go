@@ -97,7 +97,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "schedule management backend")
 	}
-	epMgr, err := escalationmanager.NewDB(ctx, db, c.AlertlogStore)
+	epMgr, err := escalationmanager.NewDB(ctx, db, c.AlertLogStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "alert escalation backend")
 	}

@@ -248,10 +248,10 @@ func (h *Handler) alertFields() g.Fields {
 				if err != nil {
 					return nil, err
 				}
-				var opts alertlog.SearchOptions
+				var opts alertlog.LegacySearchOptions
 				opts.AlertID = a.ID
 				opts.Limit = 50
-				entries, _, err := h.c.AlertLogStore.Search(p.Context, &opts)
+				entries, _, err := h.c.AlertLogStore.LegacySearch(p.Context, &opts)
 				if err != nil {
 					return newScrubber(p.Context).scrub(nil, err)
 				}
@@ -275,9 +275,9 @@ func (h *Handler) alertFields() g.Fields {
 					return nil, err
 				}
 
-				var opts alertlog.SearchOptions
+				var opts alertlog.LegacySearchOptions
 				opts.AlertID = a.ID
-				entries, _, err := h.c.AlertLogStore.Search(p.Context, &opts)
+				entries, _, err := h.c.AlertLogStore.LegacySearch(p.Context, &opts)
 				if err != nil {
 					return newScrubber(p.Context).scrub(nil, err)
 				}
@@ -725,7 +725,7 @@ func (h *Handler) searchAlertLogsField() *g.Field {
 				Total int                    `json:"total_count"`
 			}
 
-			var opts alertlog.SearchOptions
+			var opts alertlog.LegacySearchOptions
 			m, ok := p.Args["input"].(map[string]interface{})
 			if !ok {
 				return nil, errors.New("invalid input type")
@@ -743,7 +743,7 @@ func (h *Handler) searchAlertLogsField() *g.Field {
 			opts.Limit, _ = m["limit"].(int)
 			opts.Offset, _ = m["offset"].(int)
 
-			entries, total, err := h.c.AlertLogStore.Search(p.Context, &opts)
+			entries, total, err := h.c.AlertLogStore.LegacySearch(p.Context, &opts)
 			if err != nil {
 				return newScrubber(p.Context).scrub(nil, err)
 			}
