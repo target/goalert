@@ -77,16 +77,18 @@ export class GracefulUnmounterProvider extends React.PureComponent {
   }
 
   render() {
-    return [
-      ReactDOM.createPortal(
-        this.renderItems(),
-        document.getElementById('graceful-unmount'),
-        'container',
-      ),
-      <GracefulUnmountContext.Provider key='provider' value={this.value}>
-        {this.props.children}
-      </GracefulUnmountContext.Provider>,
-    ]
+    return (
+      <React.Fragment>
+        {ReactDOM.createPortal(
+          this.renderItems(),
+          document.getElementById('graceful-unmount'),
+          'container',
+        )}
+        <GracefulUnmountContext.Provider value={this.value}>
+          {this.props.children}
+        </GracefulUnmountContext.Provider>
+      </React.Fragment>
+    )
   }
 }
 

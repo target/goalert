@@ -194,9 +194,9 @@ class ContactMethodForm extends Component {
   renderVerificationForm() {
     if (!this.state.showVerifyForm) return null
     const { contactMethod, showVerifyForm } = this.state
+
     return (
       <VerificationForm
-        key='Verify code for Contact Method '
         id={contactMethod.id}
         name={contactMethod.name}
         value={contactMethod.value}
@@ -387,27 +387,28 @@ class ContactMethodForm extends Component {
       title = 'Edit Contact Method'
     }
 
-    return [
-      <ApolloFormDialog
-        key='Create Contact Method'
-        allowEdits={() => this.setState({ readOnly: false })}
-        caption={newUser ? newUserCaption : null}
-        disableCancel={newUser}
-        fields={this.renderFields()}
-        getVariables={this.getVariables}
-        mutation={
-          id ? updateContactmethodMutation : createContactMethodMutation
-        }
-        onRequestClose={this.props.handleRequestClose}
-        onSuccess={this.onCreateCMSuccess}
-        open={open}
-        resetForm={this.resetForm}
-        shouldSubmit={this.shouldSubmit}
-        subtitle={newUser ? newUserText : null}
-        title={title}
-      />,
-      this.renderVerificationForm(),
-    ]
+    return (
+      <React.Fragment>
+        <ApolloFormDialog
+          allowEdits={() => this.setState({ readOnly: false })}
+          caption={newUser ? newUserCaption : null}
+          disableCancel={newUser}
+          fields={this.renderFields()}
+          getVariables={this.getVariables}
+          mutation={
+            id ? updateContactmethodMutation : createContactMethodMutation
+          }
+          onRequestClose={this.props.handleRequestClose}
+          onSuccess={this.onCreateCMSuccess}
+          open={open}
+          resetForm={this.resetForm}
+          shouldSubmit={this.shouldSubmit}
+          subtitle={newUser ? newUserText : null}
+          title={title}
+        />
+        {this.renderVerificationForm()}
+      </React.Fragment>
+    )
   }
 }
 

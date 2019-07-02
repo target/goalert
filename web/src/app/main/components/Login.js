@@ -132,7 +132,7 @@ export default class Login extends Component {
 
     if (idx + 1 < len) {
       return (
-        <Grid key={`${idx}-hasnext`} item xs={12} className={classes.hasNext}>
+        <Grid item xs={12} className={classes.hasNext}>
           <Divider className={classes.divider} />
           <Typography className={classes.or}>or</Typography>
           <Divider className={classes.divider} />
@@ -191,14 +191,16 @@ export default class Login extends Component {
       form = loginButton
     }
 
-    return [
-      <Grid key={id} item xs={12}>
-        <form action={url} method='post' id={'auth-' + id}>
-          {form}
-        </form>
-      </Grid>,
-      this.renderHasNextDivider(idx, len),
-    ]
+    return (
+      <React.Fragment>
+        <Grid item xs={12}>
+          <form action={url} method='post' id={'auth-' + id}>
+            {form}
+          </form>
+        </Grid>
+        {this.renderHasNextDivider(idx, len)}
+      </React.Fragment>
+    )
   }
 
   render() {
