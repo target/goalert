@@ -218,6 +218,7 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	}
 	if len(rots) > 0 {
 		last := rots[len(rots)-1]
+		searchOpts.After.IsFavorite = last.IsUserFavorite()
 		searchOpts.After.Name = last.Name
 
 		cur, err := search.Cursor(searchOpts)
