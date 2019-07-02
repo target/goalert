@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	context "context"
 	"fmt"
-
 	"time"
 
 	"github.com/pkg/errors"
