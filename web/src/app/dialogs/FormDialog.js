@@ -160,7 +160,7 @@ export default class FormDialog extends React.PureComponent {
     if (!this.props.caption) return null
 
     return (
-      <DialogContent key='caption'>
+      <DialogContent>
         <Typography variant='caption'>{this.props.caption}</Typography>
       </DialogContent>
     )

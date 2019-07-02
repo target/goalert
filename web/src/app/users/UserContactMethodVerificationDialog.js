@@ -8,6 +8,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
 import { graphql2Client } from '../apollo'
 import { formatPhoneNumber } from './util'
+import { Config } from '../util/RequireConfig'
 
 /*
  * Reactivates a cm if disabled and the verification code matches
@@ -45,38 +46,54 @@ export default function UserContactMethodVerificationDialog(props) {
     const fieldErrs = fieldErrors(error)
 
     return (
-      <FormDialog
-        title='Verify Contact Method'
-        subTitle={`Send the verification code to ${formatPhoneNumber(
-          cm.value,
-        )} (${cm.type})`}
-        loading={loading}
-        errors={nonFieldErrors(error) || [{ message: sendError }]}
-        onClose={props.onClose}
-        onSubmit={() =>
-          commit({
-            variables: {
-              input: {
-                contactMethodID: cm.id,
-                code: value.code,
-              },
-            },
-          })
-        }
-        submitDisabled={!sendAttempted}
-        form={
-          <UserContactMethodVerificationForm
-            contactMethodID={cm.id}
-            errors={fieldErrs}
-            setSendError={setSendError}
-            sendAttempted={sendAttempted}
-            setSendAttempted={setSendAttempted}
-            disabled={loading}
-            value={value}
-            onChange={value => setValue(value)}
-          />
-        }
-      />
+      <Config>
+        {config => {
+          const fromNumber = config['Twilio.FromNumber']
+
+          let caption = null
+          if (fromNumber) {
+            caption = `If you do not receive a code, try sending UNSTOP to ${formatPhoneNumber(
+              fromNumber,
+            )} before resending.`
+          }
+
+          return (
+            <FormDialog
+              title='Verify Contact Method'
+              subTitle={`Send the verification code to ${formatPhoneNumber(
+                cm.value,
+              )} (${cm.type})`}
+              caption={caption}
+              loading={loading}
+              errors={nonFieldErrors(error) || [{ message: sendError }]}
+              onClose={props.onClose}
+              onSubmit={() =>
+                commit({
+                  variables: {
+                    input: {
+                      contactMethodID: cm.id,
+                      code: value.code,
+                    },
+                  },
+                })
+              }
+              submitDisabled={!sendAttempted}
+              form={
+                <UserContactMethodVerificationForm
+                  contactMethodID={cm.id}
+                  errors={fieldErrs}
+                  setSendError={setSendError}
+                  sendAttempted={sendAttempted}
+                  setSendAttempted={setSendAttempted}
+                  disabled={loading}
+                  value={value}
+                  onChange={value => setValue(value)}
+                />
+              }
+            />
+          )
+        }}
+      </Config>
     )
   }
 
