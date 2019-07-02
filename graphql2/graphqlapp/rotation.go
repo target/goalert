@@ -3,7 +3,9 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/user"
@@ -46,6 +48,13 @@ func (m *Mutation) CreateRotation(ctx context.Context, input graphql2.CreateRota
 			return err
 		}
 
+		if input.Favorite != nil && *input.Favorite {
+			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.RotationTarget(result.ID))
+			if err != nil {
+				return err
+			}
+		}
+
 		if input.UserIDs != nil {
 			err := m.RotationStore.AddRotationUsersTx(ctx, tx, result.ID, input.UserIDs)
 			if err != nil {
@@ -60,6 +69,10 @@ func (m *Mutation) CreateRotation(ctx context.Context, input graphql2.CreateRota
 
 func (r *Rotation) TimeZone(ctx context.Context, rot *rotation.Rotation) (string, error) {
 	return rot.Start.Location().String(), nil
+}
+
+func (r *Rotation) IsFavorite(ctx context.Context, rot *rotation.Rotation) (bool, error) {
+	return rot.IsUserFavorite(), nil
 }
 
 func (r *Rotation) NextHandoffTimes(ctx context.Context, rot *rotation.Rotation, num *int) ([]time.Time, error) {
@@ -168,8 +181,16 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	}
 
 	var searchOpts rotation.SearchOptions
+	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
+	}
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
+	}
+
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
 	}
 	searchOpts.Omit = opts.Omit
 	if opts.After != nil && *opts.After != "" {
@@ -197,6 +218,7 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 	}
 	if len(rots) > 0 {
 		last := rots[len(rots)-1]
+		searchOpts.After.IsFavorite = last.IsUserFavorite()
 		searchOpts.After.Name = last.Name
 
 		cur, err := search.Cursor(searchOpts)
