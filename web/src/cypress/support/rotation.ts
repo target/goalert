@@ -71,7 +71,7 @@ function createRotation(rot?: RotationOptions): Cypress.Chainable<Rotation> {
 
   return cy.fixture('users').then(users => {
     if (!rot) rot = {}
-    const ids = users.map((user: any) => user.id)
+    const ids = c.pickset(users, rot.count).map((usr: any) => usr.id)
 
     return cy
       .graphql2(query, {
