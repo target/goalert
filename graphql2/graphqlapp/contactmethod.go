@@ -19,10 +19,10 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		cm, err = m.CMStore.CreateTx(ctx, tx, &contactmethod.ContactMethod{
-			Name:   input.Name,
-			Type:   input.Type,
-			UserID: input.UserID,
-			Value:  input.Value,
+			Name:     input.Name,
+			Type:     input.Type,
+			UserID:   input.UserID,
+			Value:    input.Value,
 			Disabled: true,
 		})
 		if err != nil {
