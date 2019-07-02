@@ -83,7 +83,7 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		mutation {
 			verifyContactMethod(input:{
 				contactMethodID:  "%s",
-				verificationCode: "%s"
+				code: "%s"
 			})
 		}
 	`, cm2, code))
