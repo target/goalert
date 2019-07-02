@@ -43,31 +43,18 @@ const mutation = gql`
 export function QuerySetFavoriteButton(props) {
   let typeName = ''
   let id = ''
-  switch (props) {
-    case props.rotationID:
-      typeName = 'rotation'
-      id = props.rotationID
-      break
-    case props.serviceID:
-      typeName = 'service'
-      id = props.serviceID
-      break
-    case props.scheduleID:
-      typeName = 'schedule'
-      id = props.scheduleID
-      break
-    default:
-      return null
-  }
-  /* if (props.rotationID) {
+  if (props.rotationID) {
     typeName = 'rotation'
     id = props.rotationID
   } else if (props.serviceID) {
     typeName = 'service'
     id = props.serviceID
+  } else if (props.scheduleID) {
+    typeName = 'schedule'
+    id = props.scheduleID
   } else {
     return null
-  } */
+  }
   return (
     <Query
       query={queries[typeName]}

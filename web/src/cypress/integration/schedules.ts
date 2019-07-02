@@ -157,37 +157,6 @@ function testSchedules(screen: ScreenFormat) {
     })
   })
 
-  describe('Setting a favorite', () => {
-    it('should confirm that the unfavorite schedules are listed correctly', () => {
-      const favSuffix = c.word({ length: 10 })
-      const sched1Name = 'A' + favSuffix
-      const sched2Name = 'Z' + favSuffix
-      cy.createSchedule({ name: sched1Name })
-      cy.createSchedule({ name: sched2Name, isFavorite: true })
-      cy.visit(`/schedules?search=${encodeURIComponent(favSuffix)}`)
-      cy.get('ul[data-cy=apollo-list] a')
-        .should('have.length', 2)
-        .first()
-        .contains(sched2Name)
-
-      // confirm that the favorites icon is showing in the UI for the favorite
-      cy.get('div[data-cy=fav-icon]').should('exist')
-      cy.get('ul[data-cy=apollo-list] a')
-        .last()
-        .contains(sched1Name)
-    })
-    it('should allow setting and unsetting as a favorite schedule', () => {
-      cy.createSchedule().then(sched => {
-        cy.visit(`/schedules/${sched.id}`)
-        cy.get('button[aria-label="Set as a Favorite schedule"]').click()
-        cy.reload()
-        cy.get('button[aria-label="Unset as a Favorite schedule"').click()
-        cy.reload()
-        cy.get('button[aria-label="Set as a Favorite schedule"]').click()
-      })
-    })
-  })
-
   describe('Schedule Assignments', () => {
     let rot: Rotation
     let sched: ScheduleTarget

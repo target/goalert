@@ -91,12 +91,12 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 	)
 	if err != nil {
 		return err
-  }
-  stmt := db.insert
+	}
+	stmt := db.insert
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
-  }
-  
+	}
+
 	var serviceID, scheduleID, rotationID sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeService:
@@ -105,11 +105,11 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 	case assignment.TargetTypeSchedule:
 		scheduleID.Valid = true
 		scheduleID.String = tgt.TargetID()
-  case assignment.TargetTypeRotation:
+	case assignment.TargetTypeRotation:
 		rotationID.Valid = true
 		rotationID.String = tgt.TargetID()
 	}
-	_, err = db.insert.ExecContext(ctx, userID, serviceID, scheduleID, rotationID)
+	_, err = stmt.ExecContext(ctx, userID, serviceID, scheduleID, rotationID)
 	if err != nil {
 		return errors.Wrap(err, "set favorite")
 	}
