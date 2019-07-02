@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
@@ -31,11 +31,10 @@ const useStyles = makeStyles({
 })
 
 export default function UserContactMethodVerificationForm(props) {
-  const [sendAttempted, setSendAttempted] = useState(false)
   const classes = useStyles()
 
   function getTitle() {
-    if (sendAttempted) {
+    if (props.sendAttempted) {
       return 'Resend Code'
     } else {
       return 'Send Code'
@@ -62,7 +61,7 @@ export default function UserContactMethodVerificationForm(props) {
                 disabled={props.disabled}
                 buttonText={getTitle()}
                 onClick={() => {
-                  setSendAttempted(true) // changes text of send button to "resend"
+                  props.setSendAttempted(true) // changes text of send button to "resend"
 
                   commit({
                     variables: {
@@ -104,6 +103,8 @@ UserContactMethodVerificationForm.propTypes = {
   ),
   onChange: p.func.isRequired,
   setSendError: p.func.isRequired,
+  sendAttempted: p.bool.isRequired,
+  setSendAttempted: p.func.isRequired,
   value: p.shape({
     code: p.string.isRequired,
   }).isRequired,

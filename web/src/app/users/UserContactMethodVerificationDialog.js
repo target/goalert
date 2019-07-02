@@ -53,6 +53,7 @@ export default function UserContactMethodVerificationDialog(props) {
     code: '',
   })
   const [sendError, setSendError] = useState('')
+  const [sendAttempted, setSendAttempted] = useState(false)
 
   // dialog rendered that handles rendering the verification form
   function renderDialog(commit, status, cm) {
@@ -76,11 +77,14 @@ export default function UserContactMethodVerificationDialog(props) {
             },
           })
         }
+        submitDisabled={!sendAttempted}
         form={
           <UserContactMethodVerificationForm
             contactMethodID={cm.id}
             errors={fieldErrs}
             setSendError={setSendError}
+            sendAttempted={sendAttempted}
+            setSendAttempted={setSendAttempted}
             disabled={loading}
             value={value}
             onChange={value => setValue(value)}
