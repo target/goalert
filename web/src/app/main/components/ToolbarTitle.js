@@ -44,7 +44,7 @@ const mapSingular = {
 }
 
 const queries = {
-  user: gql`
+  users: gql`
     query($id: ID!) {
       data: user(id: $id) {
         id
@@ -52,7 +52,7 @@ const queries = {
       }
     }
   `,
-  service: gql`
+  services: gql`
     query($id: ID!) {
       data: service(id: $id) {
         id
@@ -60,7 +60,7 @@ const queries = {
       }
     }
   `,
-  schedule: gql`
+  schedules: gql`
     query($id: ID!) {
       data: schedule(id: $id) {
         id
@@ -68,7 +68,7 @@ const queries = {
       }
     }
   `,
-  escalationPolicy: gql`
+  'escalation-policies': gql`
     query($id: ID!) {
       data: escalationPolicy(id: $id) {
         id
@@ -135,22 +135,7 @@ export default class ToolbarTitle extends React.Component {
       // mobile, only render current title
       return this.renderTitle(sub)
     }
-
-    let query
-    switch (match.params.type) {
-      case 'users':
-        query = queries['users']
-        break
-      case 'services':
-        query = queries['service']
-        break
-      case 'schedules':
-        query = queries['schedule']
-        break
-      case 'escalation-policies':
-        query = queries['escalationPolicy']
-        break
-    }
+    const query = queries[match.params.type]
 
     return (
       <div className={this.props.classes.div}>
