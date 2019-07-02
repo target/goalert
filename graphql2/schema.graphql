@@ -179,6 +179,8 @@ type Mutation {
 
   deleteAll(input: [TargetInput!]): Boolean!
 
+  createAlert(input: CreateAlertInput!): Alert
+
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
   createEscalationPolicyStep(
@@ -208,6 +210,12 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+}
+
+input CreateAlertInput {
+  summary: String!
+  details: String
+  serviceID: ID!
 }
 
 input ConfigValueInput {
@@ -422,6 +430,7 @@ input CreateRotationInput {
 
   timeZone: String!
   start: ISOTimestamp!
+  favorite: Boolean
 
   type: RotationType!
   shiftLength: Int = 1
@@ -433,6 +442,7 @@ type Rotation {
   id: ID!
   name: String!
   description: String!
+  isFavorite: Boolean!
 
   start: ISOTimestamp!
   timeZone: String!
@@ -483,6 +493,12 @@ input RotationSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited rotations in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite rotations first.
+  favoritesFirst: Boolean = false
 }
 
 input EscalationPolicySearchOptions {

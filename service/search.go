@@ -47,7 +47,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		svc.name,
 		svc.description,
 		svc.escalation_policy_id,
-		fav notnull
+		fav IS DISTINCT FROM NULL
 	FROM services svc
 	{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON svc.id = fav.tgt_service_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	{{if and .LabelKey (not .LabelNegate)}}
@@ -78,7 +78,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		{{if not .FavoritesFirst}}
 			lower(svc.name) > lower(:afterName)
 		{{else if .After.IsFavorite}}
-			((fav notnull AND lower(svc.name) > lower(:afterName)) OR fav isnull)
+			((fav IS DISTINCT FROM NULL AND lower(svc.name) > lower(:afterName)) OR fav isnull)
 		{{else}}
 			(fav isnull AND lower(svc.name) > lower(:afterName))
 		{{end}}
@@ -91,7 +91,7 @@ type renderData SearchOptions
 
 func (opts renderData) OrderBy() string {
 	if opts.FavoritesFirst {
-		return "fav, lower(svc.name)"
+		return "fav isnull, lower(svc.name)"
 	}
 
 	return "lower(svc.name)"

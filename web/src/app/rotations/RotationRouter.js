@@ -13,6 +13,7 @@ const query = gql`
         id
         name
         description
+        isFavorite
       }
       pageInfo {
         hasNextPage
@@ -42,10 +43,12 @@ export default class RotationRouter extends React.PureComponent {
   renderList = () => (
     <SimpleListPage
       query={query}
+      variables={{ input: { favoritesFirst: true } }}
       mapDataNode={n => ({
         title: n.name,
         subText: n.description,
         url: n.id,
+        isFavorite: n.isFavorite,
       })}
       createForm={<RotationCreateDialog />}
     />

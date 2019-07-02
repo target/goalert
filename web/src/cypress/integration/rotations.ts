@@ -107,7 +107,6 @@ function testRotations(screen: ScreenFormat) {
       cy.get('ul[data-cy=users]')
         .find('li')
         .as('parts')
-
       cy.get('@parts')
         .eq(1)
         .should('contain', rot.users[0].name)
@@ -252,7 +251,7 @@ function testRotations(screen: ScreenFormat) {
         .clear()
         .type('5')
 
-      cy.get('button[type=submit]').click()
+      cy.get('button[data-cy=loading-button]').click()
       cy.get('body')
         .should('contain', newName)
         .should('contain', newDesc)
