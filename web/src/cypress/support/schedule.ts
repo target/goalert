@@ -155,12 +155,6 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
       }
     }`
 
-  const favQuery = `mutation ($input: SetFavoriteInput!){
-    setFavorite(
-      input: $input
-    )
-  }`
-
   if (!sched) sched = {}
 
   return cy
@@ -169,24 +163,10 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
         name: sched.name || 'SM Sched ' + c.word({ length: 8 }),
         description: sched.description || c.sentence(),
         timeZone: sched.timeZone || 'America/Chicago',
+        favorite: sched.isFavorite,
       },
     })
     .then(res => res.createSchedule)
-    .then(res => {
-      if (!sched || !sched.isFavorite) return res
-      res.isFavorite = true
-      return cy
-        .graphql2(favQuery, {
-          input: {
-            target: {
-              type: 'schedule',
-              id: res.id,
-            },
-            favorite: true,
-          },
-        })
-        .then(() => res)
-    })
 }
 
 const fmtTime = (str: any) => {

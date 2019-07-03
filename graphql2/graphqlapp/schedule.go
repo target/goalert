@@ -171,7 +171,12 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 		if err != nil {
 			return err
 		}
-
+		if input.Favorite != nil && *input.Favorite {
+			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
+			if err != nil {
+				return err
+			}
+		}
 		for i := range input.Targets {
 			if input.Targets[i].NewRotation == nil {
 				continue

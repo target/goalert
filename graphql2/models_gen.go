@@ -102,6 +102,7 @@ type CreateScheduleInput struct {
 	Name        string                `json:"name"`
 	Description *string               `json:"description"`
 	TimeZone    string                `json:"timeZone"`
+	Favorite    *bool                 `json:"favorite"`
 	Targets     []ScheduleTargetInput `json:"targets"`
 }
 

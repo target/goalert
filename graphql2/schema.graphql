@@ -237,6 +237,7 @@ input CreateScheduleInput {
   name: String!
   description: String
   timeZone: String!
+  favorite: Boolean
 
   targets: [ScheduleTargetInput!]
 }

@@ -2475,6 +2475,7 @@ input CreateScheduleInput {
   name: String!
   description: String
   timeZone: String!
+  favorite: Boolean
 
   targets: [ScheduleTargetInput!]
 }
@@ -10626,6 +10627,12 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 		case "timeZone":
 			var err error
 			it.TimeZone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favorite":
+			var err error
+			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
