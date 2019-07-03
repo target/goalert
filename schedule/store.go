@@ -61,9 +61,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
                 s.time_zone,
                 fav IS DISTINCT FROM NULL
             FROM schedules s
-            LEFT JOIN user_favorites fav
-            ON fav.tgt_schedule_id = s.id AND fav.user_id = $2
-            WHERE s.id = $1 
+            	LEFT JOIN user_favorites fav
+            	ON fav.tgt_schedule_id = s.id AND fav.user_id = $2
+            	WHERE s.id = $1 
         `),
 		findOneUp: p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = $1 FOR UPDATE`),
 
@@ -75,10 +75,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				s.time_zone,
 				fav is distinct from null
 			FROM schedules s
-			LEFT JOIN user_favorites fav
-			ON fav.tgt_schedule_id = s.id
-			AND fav.user_id = $2
-			WHERE s.id = any($1)
+				LEFT JOIN user_favorites fav
+				ON fav.tgt_schedule_id = s.id
+				AND fav.user_id = $2
+				WHERE s.id = any($1)
 		`),
 
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),

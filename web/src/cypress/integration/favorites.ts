@@ -1,6 +1,5 @@
 import { testScreen } from '../support'
 import { Chance } from 'chance'
-import { cyan } from '@material-ui/core/colors'
 const c = new Chance()
 
 testScreen('Favorites', testFavorites)

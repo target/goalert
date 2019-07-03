@@ -62,7 +62,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		{{if not .FavoritesFirst}}
 			lower(sched.name) > lower(:afterName)
 		{{else if .After.IsFavorite}}
-			((fav notnull AND lower(sched.name) > lower(:afterName)) OR fav isnull)
+			((fav IS DISTINCT FROM NULL AND lower(sched.name) > lower(:afterName)) OR fav isnull)
 		{{else}}
 			(fav isnull AND lower(sched.name) > lower(:afterName))
 		{{end}}
@@ -75,7 +75,7 @@ type renderData SearchOptions
 
 func (opts renderData) OrderBy() string {
 	if opts.FavoritesFirst {
-		return "fav, lower(sched.name)"
+		return "fav isnull, lower(sched.name)"
 	}
 	return "lower(sched.name)"
 }
