@@ -15,10 +15,10 @@ export function formatCMValue(type, value) {
 // See JavaScript demo
 export function formatPhoneNumber(n) {
   if (n.startsWith('+1')) {
-    return `+1 ${n.slice(2, 5)}-${n.slice(5, 8)}-${n.slice(8)}`
+    return `+1 (${n.slice(2, 5)}) ${n.slice(5, 8)}-${n.slice(8)}`
   }
   if (n.startsWith('+91')) {
-    return `+91 ${n.slice(3, 5)} ${n.slice(5, 9)} ${n.slice(9)}`
+    return `+91 ${n.slice(3, 7)} ${n.slice(7, 10)} ${n.slice(10)}`
   }
   if (n.startsWith('+44')) {
     return `+44 ${n.slice(3, 7)} ${n.slice(7)}`

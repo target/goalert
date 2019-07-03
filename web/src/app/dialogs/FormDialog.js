@@ -64,6 +64,9 @@ export default class FormDialog extends React.PureComponent {
     onClose: p.func,
     onSubmit: p.func,
 
+    // disables form submit button
+    submitDisabled: p.bool,
+
     // provided by gracefulUnmount()
     isUnmounting: p.bool,
     onExited: p.func,
@@ -94,6 +97,7 @@ export default class FormDialog extends React.PureComponent {
       maxWidth,
       onClose,
       onSubmit,
+      submitDisabled, // can't be used in dialogProps spread
       subTitle, // can't be used in dialogProps spread
       title,
       width,
@@ -120,6 +124,7 @@ export default class FormDialog extends React.PureComponent {
           fullScreen={!isWideScreen && !confirm && !alert}
           onClose={onClose}
           title={title}
+          subTitle={subTitle}
         />
         <Form
           className={classes.formContainer}
@@ -138,35 +143,24 @@ export default class FormDialog extends React.PureComponent {
   }
 
   renderForm = () => {
-    const { classes, disableGutters, form, subTitle } = this.props
+    const { classes, disableGutters, form } = this.props
 
     // don't render empty space
-    if (!form && !subTitle) {
+    if (!form) {
       return null
     }
 
     let Component = DialogContent
     if (disableGutters) Component = 'div'
 
-    return (
-      <Component className={classes.form}>
-        {this.renderSubtitle()}
-        {form}
-      </Component>
-    )
-  }
-
-  renderSubtitle = () => {
-    if (!this.props.subTitle) return null
-
-    return <Typography variant='subtitle1'>{this.props.subTitle}</Typography>
+    return <Component className={classes.form}>{form}</Component>
   }
 
   renderCaption = () => {
     if (!this.props.caption) return null
 
     return (
-      <DialogContent key='caption'>
+      <DialogContent>
         <Typography variant='caption'>{this.props.caption}</Typography>
       </DialogContent>
     )
@@ -184,7 +178,15 @@ export default class FormDialog extends React.PureComponent {
   }
 
   renderActions = () => {
-    const { alert, confirm, classes, errors, loading, onClose } = this.props
+    const {
+      alert,
+      confirm,
+      classes,
+      errors,
+      loading,
+      onClose,
+      submitDisabled,
+    } = this.props
 
     if (alert) {
       return (
@@ -209,6 +211,7 @@ export default class FormDialog extends React.PureComponent {
           attemptCount={errors.length ? 1 : 0}
           buttonText={confirm ? 'Confirm' : 'Submit'}
           color='primary'
+          disabled={submitDisabled}
           loading={loading}
           type='submit'
         />

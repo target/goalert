@@ -9,7 +9,7 @@ import DetailsPage from '../details/DetailsPage'
 import ServiceOnCallQuery from './ServiceOnCallQuery'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
-import SetFavoriteButton from './components/SetFavoriteButton'
+import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 
 const query = gql`
   query serviceDetailsQuery($serviceID: ID!) {
@@ -83,7 +83,7 @@ export default class ServiceDetails extends React.PureComponent {
     return (
       <React.Fragment>
         <PageActions>
-          <SetFavoriteButton serviceID={data.service.id} />
+          <QuerySetFavoriteButton serviceID={data.service.id} />
           <OtherActions
             actions={[
               {
