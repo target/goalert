@@ -161,10 +161,10 @@ func (cfg Config) PublicURL() string {
 var (
 	mailgunKeyRx = regexp.MustCompile(`^key-[0-9a-f]{32}$`)
 
-	slackClientIDRx        = regexp.MustCompile(`^[0-9]{12}\.[0-9]{12}$`)
+	slackClientIDRx        = regexp.MustCompile(`^[0-9]{10,12}\.[0-9]{10,12}$`)
 	slackClientSecretRx    = regexp.MustCompile(`^[0-9a-f]{32}$`)
-	slackUserAccessTokenRx = regexp.MustCompile(`^xoxp-[0-9]{12}-[0-9]{12}-[0-9]{12}-[0-9a-f]{32}$`)
-	slackBotAccessTokenRx  = regexp.MustCompile(`^xoxb-[0-9]{12}-[0-9]{12}-[0-9A-Za-z]{24}$`)
+	slackUserAccessTokenRx = regexp.MustCompile(`^xoxp-[0-9]{10,12}-[0-9]{10,12}-[0-9]{10,12}-[0-9a-f]{32}$`)
+	slackBotAccessTokenRx  = regexp.MustCompile(`^xoxb-[0-9]{10,12}-[0-9]{10,12}-[0-9A-Za-z]{24}$`)
 
 	twilioAccountSIDRx = regexp.MustCompile(`^AC[0-9a-f]{32}$`)
 	twilioAuthTokenRx  = regexp.MustCompile(`^[0-9a-f]{32}$`)
