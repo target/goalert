@@ -14,6 +14,7 @@ type ContactMethod struct {
 	Value    string `json:"value"`
 	Disabled bool   `json:"disabled"`
 	UserID   string `json:"-"`
+	FormattedValue string `json:"formattedValue"`
 }
 
 // Normalize will validate and 'normalize' the ContactMethod -- such as making email lower-case

@@ -27,10 +27,35 @@ func TestContactMethod_Normalize(t *testing.T) {
 	invalid := []ContactMethod{
 		{Name: "abcd", Type: TypeSMS, Value: "+15555555555"},
 	}
+	validIndia := []ContactMethod{
+		{Name: "validIndia", Type: TypeSMS, Value: "+918105554545"},
+	}
+	invalidIndia := []ContactMethod{
+		{Name: "validIndia", Type: TypeSMS, Value: "+918105554545a"},
+	}
+	validUK := []ContactMethod{
+		{Name: "validUK", Type: TypeSMS, Value: "+447911123456"},
+	}
+	invalidUK := []ContactMethod{
+		{Name: "validUK", Type: TypeSMS, Value: "+448105554545"},
+	}
+
 	for _, cm := range valid {
 		test(true, cm)
 	}
 	for _, cm := range invalid {
+		test(false, cm)
+	}
+	for _, cm := range validIndia {
+		test(true, cm)
+	}
+	for _, cm := range invalidIndia {
+		test(false, cm)
+	}
+	for _, cm := range validUK {
+		test(true, cm)
+	}
+	for _, cm := range invalidUK {
 		test(false, cm)
 	}
 }

@@ -35,11 +35,12 @@ function testProfile(screen: ScreenFormat) {
       const value = '763' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'SM CM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
+      const usCountryCode = '+1'
 
       cy.pageFab('Contact')
       cy.get('input[name=name]').type(name)
       cy.get('input[name=type]').selectByLabel(type)
-      cy.get('input[name=value]').type(value)
+      cy.get('input[name=value]').type(usCountryCode + value)
       cy.get('button[type=submit]').click()
 
       cy.get('body').should('contain', `${name} (${type})`)
@@ -91,6 +92,45 @@ function testProfile(screen: ScreenFormat) {
       })
       cy.reload()
       cy.get('body').should('not.contain', sentence)
+    })
+    it('should handle India Phone Number', () => {
+      const value = '810' + c.integer({ min: 3000000, max: 3999999 })
+      const name = 'CM SM ' + c.word({ length: 8 })
+      const type = c.pickone(['SMS', 'VOICE'])
+      const indiaCountryCode = '+94'
+
+      cy.pageFab('Contact')
+      cy.get('input[name=name]').type(name)
+      cy.get('input[name=type]').selectByLabel(type)
+      cy.get('input[name=value]').type(indiaCountryCode + value)
+      cy.get('button[type=submit]').click()
+    })
+    it('should handle UK Phone Number', () => {
+      const value = '7911123456'
+      const name = 'CM SM ' + c.word({ length: 8 })
+      const type = c.pickone(['SMS', 'VOICE'])
+      const ukCountryCode = '+44'
+
+      cy.pageFab('Contact')
+      cy.get('input[name=name]').type(name)
+      cy.get('input[name=type]').selectByLabel(type)
+      cy.get('input[name=value]').type(ukCountryCode + value)
+      cy.get('button[type=submit]').click()
+    })
+    it.only('should not allow fake country codes', () => {
+      const value = '810' + c.integer({ min: 3000000, max: 3999999 })
+      const name = 'CM SM ' + c.word({ length: 8 })
+      const type = c.pickone(['SMS', 'VOICE'])
+      const fakeCountryCode = '+555'
+
+      cy.pageFab('Contact')
+      cy.get('input[name=name]').type(name)
+      cy.get('input[name=type]').selectByLabel(type)
+      cy.get('input[name=value]').type(fakeCountryCode + value)
+      cy.get('button[type=submit]').click()
+      cy.get('[aria-labelledby=countryCodeIndicator]')
+        .siblings()
+        .contains('Must be a valid number')
     })
   })
   describe('Notification Rules', () => {

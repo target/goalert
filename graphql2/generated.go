@@ -64,6 +64,7 @@ type ResolverRoot interface {
 	Service() ServiceResolver
 	Target() TargetResolver
 	User() UserResolver
+	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
 }
@@ -352,10 +353,11 @@ type ComplexityRoot struct {
 	}
 
 	UserContactMethod struct {
-		ID    func(childComplexity int) int
-		Name  func(childComplexity int) int
-		Type  func(childComplexity int) int
-		Value func(childComplexity int) int
+		FormattedValue func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		Type           func(childComplexity int) int
+		Value          func(childComplexity int) int
 	}
 
 	UserNotificationRule struct {
@@ -504,6 +506,9 @@ type UserResolver interface {
 
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
+}
+type UserContactMethodResolver interface {
+	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (*string, error)
 }
 type UserNotificationRuleResolver interface {
 	ContactMethod(ctx context.Context, obj *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error)
@@ -2038,6 +2043,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserConnection.PageInfo(childComplexity), true
 
+	case "UserContactMethod.FormattedValue":
+		if e.complexity.UserContactMethod.FormattedValue == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.FormattedValue(childComplexity), true
+
 	case "UserContactMethod.ID":
 		if e.complexity.UserContactMethod.ID == nil {
 			break
@@ -3004,6 +3016,7 @@ type UserContactMethod {
   name: String!
 
   value: String!
+  formattedValue: String
 }
 
 input CreateUserContactMethodInput {
@@ -9117,6 +9130,30 @@ func (ec *executionContext) _UserContactMethod_value(ctx context.Context, field 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserContactMethod_formattedValue(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().FormattedValue(rctx, obj)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -13921,6 +13958,17 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "formattedValue":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_formattedValue(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

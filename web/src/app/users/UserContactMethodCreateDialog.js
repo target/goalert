@@ -27,7 +27,7 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
     value: {
       name: '',
       type: 'SMS',
-      value: '+1',
+      value: '',
     },
     errors: [],
   }
