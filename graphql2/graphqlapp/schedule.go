@@ -244,6 +244,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 	}
 	if len(scheds) > 0 {
 		last := scheds[len(scheds)-1]
+		searchOpts.After.IsFavorite = last.IsUserFavorite()
 		searchOpts.After.Name = last.Name
 
 		cur, err := search.Cursor(searchOpts)
