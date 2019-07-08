@@ -566,12 +566,12 @@ yHUBRfavcElptN1ld7skz3ugvqD8qFHVF7x5E83foRHq0WnQ0zRHZa0ReThk26HUs0PWj0Paa0PWVYMC
 hiuQkNKG6OZNREZYNDt_OxnSWDZMzG-Rk8EwwFCrZcTI6Q-olF-8WTwMjCebQj1R1tCrVfVhMbqCGjGb
 _OJuBE4Qb1ap9KB8NvllYLYJ7jH-I3nkW0mVzyEYou5HdTWV_d0-kpWrdKkpYct0PdJW3g5rUX2gp8ZA
 yF-x7WaSGZFWtehT8lhom7E0Q73-4DvZEjZ0CRX_6gA66mqicnZK9JwaEUYie4BH9pJ_sVyiNPmM4mx9
-2KS5SY65YzCEAg1VKn3UgEdEMoBoBxpC2HmS7tFtlq2TRVo8jH99fnk9UWtNJQZO8TRGH7IdShbxR14f
-RAsiLR9w5mybIKKMzjUYcqpMkpMYWxlXb2OfJ6OxI3QxP7-cXF9M-izH0BSnN7OR5d9UFeP5aK9Zo-Ix
-XfaXkug9UzWlGoFkQyBJPbm6kuvr6zVk7daUmFxI8tDnU9KUBVQLIoIXZipOpTljSO-oKmlGmlKhtIpa
-8SUh0cTMqjCNuDQQNHlIqDNjlkBMon3ysIfmExnKPhNTL0pdCIHjCF8RoerAqzSUciCUSmyE8fnJmRqh
-ePNSGWcgIySZNMw4GSP80ZrQTTsZVGSbTuRJ8BYDGEST2fhETCd9QYs3PFTF5iWboRpAxalk4IDTZQ_M
-A1hUsGy6UNrUGfO_AAAA__-Mwkp_CyMEAA==
+2KS5SY65YzCEAg1VKmPYgGdEeASxPjW0sfMk3aPbLFsni7R4K__6_PJ6ojaEqg6c4pmNPmQ7lCzij7yK
+iBZNyBhwMm37IiKWzmUZcipWkpOwWxkXdGNfLKP9I3QxP7-cXF9M-izH0NSrN7ORL4IpNMbz0Y60Bspj
+Uu0vJR18JnRKZQPJHkFSf3L1Lpfc12vI2q2JM7mQ5NnAZ6mpFKgWRDQwzFScSnMSkd5RhdOMNKXaaRXl
+40uipInJVmFmcbUgaDqR6GfGLIGYRPvkYQ_NJzKUfaaqXpS6NgInFL5IQtWBF24o5UCIl9gI4_OTMzVC
+8ealMs5ARkgyaZhxMkZ4FZrQfTwZVGTnThRL8K4DGEST2fhETCd9iYs3PHrF5iWboRpAxalk4IDTZQ_M
+A1hnsGy6UNrUGfO_AAAA__8SgXIqHiMEAA==
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -784,6 +784,6 @@ A1hUsGy6UNrUGfO_AAAA__-Mwkp_CyMEAA==
 		{Data: dataRange(254211, 267892), Name: "migrations/20190613114217-remove-switchover-triggers.sql"},
 		{Data: dataRange(267892, 268985), Name: "migrations/20190613120345-drop-switchover-resources.sql"},
 		{Data: dataRange(268985, 269442), Name: "migrations/20190701111645-add-rotation-favorite.sql"},
-		{Data: dataRange(269442, 271115), Name: "migrations/20190701130233-verification-codes-update.sql"},
+		{Data: dataRange(269442, 271134), Name: "migrations/20190701130233-verification-codes-update.sql"},
 	}
 }
