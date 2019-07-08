@@ -1,7 +1,11 @@
 import React from 'react'
 import p from 'prop-types'
+import Avatar from '@material-ui/core/Avatar'
+import Grid from '@material-ui/core/Grid'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
+import ListItemAvatar from '@material-ui/core/ListItemAvatar'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
@@ -12,16 +16,20 @@ import { Link } from 'react-router-dom'
 import { absURLSelector } from '../selectors'
 import { connect } from 'react-redux'
 
-const styles = theme => ({
+const styles = {
+  actionGrid: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  background: { backgroundColor: 'white' },
   highlightedItem: {
     borderLeft: '6px solid #93ed94',
     background: '#defadf',
   },
-  background: { backgroundColor: 'white' },
   participantDragging: {
     backgroundColor: '#ebebeb',
   },
-})
+}
 
 const mapStateToProps = state => {
   return {
@@ -46,8 +54,10 @@ export default class FlatList extends React.PureComponent {
           title: p.node.isRequired,
           subText: p.node,
           action: p.element,
+          button: p.element, // a secondary button element to be placed to the left of the action
           url: p.string,
-          icon: p.element,
+          icon: p.element, // renders a list item icon
+          avatar: p.element, // renders a list item avatar with a backdrop
           id: p.string, // required for drag and drop
         }),
         p.shape({
@@ -90,6 +100,19 @@ export default class FlatList extends React.PureComponent {
         button: true,
       }
     }
+
+    // if both are sent, avatar takes precedent
+    let symbol = null
+    if (item.avatar) {
+      symbol = (
+        <ListItemAvatar>
+          <Avatar>{item.avatar}</Avatar>
+        </ListItemAvatar>
+      )
+    } else if (item.icon) {
+      symbol = <ListItemIcon>{item.icon}</ListItemIcon>
+    }
+
     return (
       <ListItem
         key={idx}
@@ -97,14 +120,23 @@ export default class FlatList extends React.PureComponent {
         style={{ width: '100%' }}
         className={item.highlight ? this.props.classes.highlightedItem : null}
       >
-        {item.icon}
+        {symbol}
         <ListItemText
           primary={item.title}
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
         />
-        {item.action && (
-          <ListItemSecondaryAction>{item.action}</ListItemSecondaryAction>
+        {(item.action || item.button) && (
+          <ListItemSecondaryAction>
+            <Grid
+              container
+              spacing={2}
+              className={this.props.classes.actionGrid}
+            >
+              {item.button && <Grid item>{item.button}</Grid>}
+              {item.action && <Grid item>{item.action}</Grid>}
+            </Grid>
+          </ListItemSecondaryAction>
         )}
       </ListItem>
     )
