@@ -34,6 +34,12 @@ func EnableStacks() {
 func EnableJSON() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 }
+
+// ErrorsOnly will disable all log output except errors.
+func ErrorsOnly() {
+	logrus.SetLevel(logrus.ErrorLevel)
+}
+
 func init() {
 	if terminal.IsTerminal(int(os.Stderr.Fd())) {
 		logrus.SetFormatter(&terminalFormatter{})

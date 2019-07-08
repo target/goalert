@@ -66,6 +66,12 @@ type ConfigValueInput struct {
 	Value string `json:"value"`
 }
 
+type CreateAlertInput struct {
+	Summary   string  `json:"summary"`
+	Details   *string `json:"details"`
+	ServiceID string  `json:"serviceID"`
+}
+
 type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description"`
