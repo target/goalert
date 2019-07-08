@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useMutation } from 'react-apollo-hooks'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import gql from 'graphql-tag'
@@ -9,6 +10,18 @@ import UserContactMethodVerificationForm from './UserContactMethodVerificationFo
 import { graphql2Client } from '../apollo'
 import { formatPhoneNumber } from './util'
 import { Config } from '../util/RequireConfig'
+
+/*
+ * Triggers sending a verification code to the specified cm
+ * when the dialog is first opened
+ */
+export const sendVerificationCodeMutation = gql`
+  mutation sendContactMethodVerification(
+    $input: SendContactMethodVerificationInput!
+  ) {
+    sendContactMethodVerification(input: $input)
+  }
+`
 
 /*
  * Reactivates a cm if disabled and the verification code matches
@@ -40,6 +53,22 @@ export default function UserContactMethodVerificationDialog(props) {
   const [sendError, setSendError] = useState('')
   const [sendAttempted, setSendAttempted] = useState(false)
 
+  const sendCode = useMutation(sendVerificationCodeMutation, {
+    variables: {
+      input: {
+        contactMethodID: props.contactMethodID,
+      },
+    },
+  })
+
+  // componentDidMount
+  useEffect(() => {
+    sendCode()
+      // if send errors out, don't show button as Resend
+      .then(() => setSendAttempted(true))
+      .catch(err => setSendError(err.message))
+  })
+
   // dialog rendered that handles rendering the verification form
   function renderDialog(commit, status, cm) {
     const { loading, error } = status
@@ -60,12 +89,14 @@ export default function UserContactMethodVerificationDialog(props) {
           return (
             <FormDialog
               title='Verify Contact Method'
-              subTitle={`Send the verification code to ${formatPhoneNumber(
+              subTitle={`A verification code has been sent to ${formatPhoneNumber(
                 cm.value,
               )} (${cm.type})`}
               caption={caption}
               loading={loading}
-              errors={nonFieldErrors(error) || [{ message: sendError }]}
+              errors={
+                sendError ? [{ message: sendError }] : nonFieldErrors(error)
+              }
               onClose={props.onClose}
               onSubmit={() =>
                 commit({
