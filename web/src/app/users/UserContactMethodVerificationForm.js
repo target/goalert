@@ -3,22 +3,11 @@ import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
-import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { makeStyles } from '@material-ui/core/styles'
 import { graphql2Client } from '../apollo'
 import { FormContainer, FormField } from '../forms'
-
-/*
- * Triggers sending a verification code to the specified cm
- */
-const sendContactMethodVerificationMutation = gql`
-  mutation sendContactMethodVerification(
-    $input: SendContactMethodVerificationInput!
-  ) {
-    sendContactMethodVerification(input: $input)
-  }
-`
+import { sendVerificationCodeMutation } from './UserContactMethodVerificationDialog'
 
 const useStyles = makeStyles({
   fieldGridItem: {
@@ -47,7 +36,7 @@ export default function UserContactMethodVerificationForm(props) {
         <Grid item className={classes.sendGridItem}>
           <Mutation
             client={graphql2Client}
-            mutation={sendContactMethodVerificationMutation}
+            mutation={sendVerificationCodeMutation}
             onError={() =>
               props.setSendError(
                 'Too many messages! Try again after some time.',

@@ -3,7 +3,7 @@ import p from 'prop-types'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
-import { Grid, Card, CardHeader } from '@material-ui/core'
+import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
 import { formatCMValue, sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import { Mutation } from 'react-apollo'
@@ -36,9 +36,6 @@ const testCM = gql`
     testContactMethod(id: $id)
   }
 `
-
-const DISABLED_CM_TOOLTIP =
-  'Contact method disabled. See its options to reactivate.'
 
 export default class UserContactMethodList extends React.PureComponent {
   static propTypes = {
@@ -75,8 +72,19 @@ export default class UserContactMethodList extends React.PureComponent {
               action: this.props.readOnly ? null : (
                 <Actions contactMethod={cm} />
               ),
+              button: this.props.readOnly ? null : (
+                <ReactivateButton
+                  ButtonComponent={Button}
+                  buttonChild='Reactivate'
+                  contactMethodID={cm.id}
+                />
+              ),
               icon: cm.disabled ? (
-                <Warning message={DISABLED_CM_TOOLTIP} data-cy='cm-disabled' />
+                <ReactivateButton
+                  ButtonComponent={IconButton}
+                  buttonChild={<Warning aria-label='Contact method disabled' />}
+                  contactMethodID={cm.id}
+                />
               ) : null,
             }))}
             emptyMessage='No contact methods'
@@ -99,40 +107,64 @@ export default class UserContactMethodList extends React.PureComponent {
   }
 }
 
+function ReactivateButton(props) {
+  const [showVerifyDialog, setShowVerifyDialog] = useState(false)
+
+  return (
+    <React.Fragment>
+      <props.ButtonComponent
+        aria-label='Reactivate contact method'
+        onClick={() => setShowVerifyDialog(true)}
+        variant='contained'
+        color='primary'
+      >
+        {props.buttonChild}
+      </props.ButtonComponent>
+      {showVerifyDialog && (
+        <UserContactMethodVerificationDialog
+          contactMethodID={props.contactMethodID}
+          onClose={() => setShowVerifyDialog(false)}
+        />
+      )}
+    </React.Fragment>
+  )
+}
+
+ReactivateButton.propTypes = {
+  contactMethodID: p.string.isRequired,
+  ButtonComponent: p.object.isRequired,
+  buttonChild: p.node.isRequired,
+}
+
 function Actions(props) {
   const { disabled, id } = props.contactMethod
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [showVerifyDialog, setShowVerifyDialog] = useState(false)
 
-  function getTestOrVerifyAction(commit, disabled) {
-    if (disabled) {
-      return {
-        label: 'Verify/Reactivate',
-        onClick: () => setShowVerifyDialog(true),
-      }
-    } else {
-      return {
+  function getActions(commit) {
+    let actions = [
+      { label: 'Edit', onClick: () => setShowEditDialog(true) },
+      {
+        label: 'Delete',
+        onClick: () => setShowDeleteDialog(true),
+      },
+    ]
+
+    if (!disabled) {
+      actions.push({
         label: 'Send Test',
         onClick: () => commit(),
-      }
+      })
     }
+
+    return actions
   }
 
   return (
     <Mutation mutation={testCM} client={graphql2Client} variables={{ id }}>
       {commit => (
         <React.Fragment>
-          <OtherActions
-            actions={[
-              { label: 'Edit', onClick: () => setShowEditDialog(true) },
-              {
-                label: 'Delete',
-                onClick: () => setShowDeleteDialog(true),
-              },
-              getTestOrVerifyAction(commit, disabled),
-            ]}
-          />
+          <OtherActions actions={getActions(commit)} />
           {showEditDialog && (
             <UserContactMethodEditDialog
               contactMethodID={id}
@@ -143,12 +175,6 @@ function Actions(props) {
             <UserContactMethodDeleteDialog
               contactMethodID={id}
               onClose={() => setShowDeleteDialog(false)}
-            />
-          )}
-          {showVerifyDialog && (
-            <UserContactMethodVerificationDialog
-              contactMethodID={id}
-              onClose={() => setShowVerifyDialog(false)}
             />
           )}
         </React.Fragment>

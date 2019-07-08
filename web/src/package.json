@@ -89,6 +89,7 @@
     "moment": "^2.22.2",
     "react": "16.8.6",
     "react-apollo": "2.5.6",
+    "react-apollo-hooks": "^0.4.5",
     "react-beautiful-dnd": "11.0.4",
     "react-big-calendar": "0.21.0",
     "react-count-down": "^1.1.0",
