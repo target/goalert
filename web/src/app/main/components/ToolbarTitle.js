@@ -120,6 +120,7 @@ const mapStateToProps = state => {
 @connect(mapStateToProps)
 export default class ToolbarTitle extends React.Component {
   renderTitle = title => {
+    document.title = `Go Alert || ${title}`
     return (
       <Typography
         className={this.props.classes.title}
