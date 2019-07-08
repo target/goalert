@@ -62,7 +62,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				tgt_schedule_id,
 				tgt_rotation_id
 			FROM user_favorites
-				WHERE user_id = $1
+			WHERE user_id = $1
 				AND (
 					(tgt_service_id NOTNULL AND $2) OR
 					(tgt_schedule_id NOTNULL AND $3) OR
