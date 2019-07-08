@@ -60,6 +60,8 @@ export default class UserContactMethodList extends React.PureComponent {
   }
 
   renderList(contactMethods) {
+    const { readOnly } = this.props
+
     return (
       <Grid item xs={12}>
         <Card>
@@ -69,23 +71,25 @@ export default class UserContactMethodList extends React.PureComponent {
             items={sortContactMethods(contactMethods).map(cm => ({
               title: `${cm.name} (${cm.type})`,
               subText: formatCMValue(cm.type, cm.value),
-              action: this.props.readOnly ? null : (
-                <Actions contactMethod={cm} />
-              ),
-              button: this.props.readOnly ? null : (
-                <ReactivateButton
-                  ButtonComponent={Button}
-                  buttonChild='Reactivate'
-                  contactMethodID={cm.id}
-                />
-              ),
-              icon: cm.disabled ? (
-                <ReactivateButton
-                  ButtonComponent={IconButton}
-                  buttonChild={<Warning aria-label='Contact method disabled' />}
-                  contactMethodID={cm.id}
-                />
-              ) : null,
+              action: readOnly ? null : <Actions contactMethod={cm} />,
+              button:
+                cm.disabled && !readOnly ? (
+                  <ReactivateButton
+                    ButtonComponent={Button}
+                    buttonChild='Reactivate'
+                    contactMethodID={cm.id}
+                  />
+                ) : null,
+              icon:
+                cm.disabled && !readOnly ? (
+                  <ReactivateButton
+                    ButtonComponent={IconButton}
+                    buttonChild={
+                      <Warning aria-label='Contact method disabled' />
+                    }
+                    contactMethodID={cm.id}
+                  />
+                ) : null,
             }))}
             emptyMessage='No contact methods'
           />
