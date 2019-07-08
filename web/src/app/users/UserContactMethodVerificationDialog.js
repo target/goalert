@@ -47,6 +47,7 @@ const contactMethodQuery = gql`
 `
 
 export default function UserContactMethodVerificationDialog(props) {
+  // state initialization
   const [value, setValue] = useState({
     code: '',
   })
@@ -54,6 +55,7 @@ export default function UserContactMethodVerificationDialog(props) {
   const [sendAttempted, setSendAttempted] = useState(false)
 
   const sendCode = useMutation(sendVerificationCodeMutation, {
+    // mutation options
     variables: {
       input: {
         contactMethodID: props.contactMethodID,
@@ -67,7 +69,7 @@ export default function UserContactMethodVerificationDialog(props) {
       // if send errors out, don't show button as Resend
       .then(() => setSendAttempted(true))
       .catch(err => setSendError(err.message))
-  })
+  }, [])
 
   // dialog rendered that handles rendering the verification form
   function renderDialog(commit, status, cm) {
