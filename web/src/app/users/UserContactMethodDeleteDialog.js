@@ -14,6 +14,7 @@ const mutation = gql`
 export default class UserContactMethodDeleteDialog extends React.PureComponent {
   static propTypes = {
     contactMethodID: p.string.isRequired,
+    onClose: p.func.isRequired, // passed to FormDialog
   }
 
   render() {
