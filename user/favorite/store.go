@@ -4,12 +4,11 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // Store allows the lookup and management of Favorites.
@@ -42,32 +41,33 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db: db,
 		insert: p.P(`
 			INSERT INTO user_favorites (
-      			user_id, tgt_service_id, 
-      			tgt_schedule_id, 
-      			tgt_rotation_id
-      		)
+				user_id, tgt_service_id,
+				tgt_schedule_id,
+				tgt_rotation_id
+			)
 			VALUES ($1, $2, $3, $4)
 			ON CONFLICT DO NOTHING
 		`),
 		delete: p.P(`
 			DELETE FROM user_favorites
-				WHERE user_id = $1 AND
+			WHERE
+				user_id = $1 AND
 				tgt_service_id = $2 OR
 				tgt_schedule_id = $3 OR
-      			tgt_rotation_id = $4
+				tgt_rotation_id = $4
 		`),
 		findAll: p.P(`
-			SELECT 
-        		tgt_service_id, 
-        		tgt_schedule_id, 
-       			tgt_rotation_id
+			SELECT
+				tgt_service_id,
+				tgt_schedule_id,
+				tgt_rotation_id
 			FROM user_favorites
-				WHERE user_id = $1 
+				WHERE user_id = $1
 				AND (
-        		(tgt_service_id NOTNULL AND $2) OR 
-        		(tgt_schedule_id NOTNULL AND $3) OR
-        		(tgt_rotation_id NOTNULL AND $4)
-      		)
+					(tgt_service_id NOTNULL AND $2) OR
+					(tgt_schedule_id NOTNULL AND $3) OR
+					(tgt_rotation_id NOTNULL AND $4)
+				)
 		`),
 	}, p.Err
 }

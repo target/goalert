@@ -3,13 +3,14 @@ package schedule
 import (
 	"context"
 	"database/sql"
+	"text/template"
+
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
-	"text/template"
 )
 
 // SearchOptions allow filtering and paginating the list of schedules.
@@ -48,8 +49,8 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		fav IS DISTINCT FROM NULL
 	FROM schedules sched
 	{{if not .FavoritesOnly }}
-		LEFT {{end}}JOIN user_favorites fav ON sched.id = fav.tgt_schedule_id 
-		AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
+		LEFT {{end}}JOIN user_favorites fav ON sched.id = fav.tgt_schedule_id
+			AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
 		AND NOT sched.id = any(:omit)

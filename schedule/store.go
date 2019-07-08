@@ -3,13 +3,12 @@ package schedule
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/lib/pq"
-
-	"github.com/pkg/errors"
 )
 
 type Store interface {
@@ -54,31 +53,30 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		update:  p.P(`UPDATE schedules SET name = $2, description = $3, time_zone = $4 WHERE id = $1`),
 		findAll: p.P(`SELECT id, name, description, time_zone FROM schedules`),
 		findOne: p.P(`
-            SELECT 
-                s.id, 
-                s.name, 
-                s.description, 
-                s.time_zone,
-                fav IS DISTINCT FROM NULL
-            FROM schedules s
-            	LEFT JOIN user_favorites fav
-            	ON fav.tgt_schedule_id = s.id AND fav.user_id = $2
-            	WHERE s.id = $1 
-        `),
+			SELECT
+				s.id,
+				s.name,
+				s.description,
+				s.time_zone,
+				fav IS DISTINCT FROM NULL
+			FROM schedules s
+			LEFT JOIN user_favorites fav ON
+				fav.tgt_schedule_id = s.id AND fav.user_id = $2
+			WHERE s.id = $1
+		`),
 		findOneUp: p.P(`SELECT id, name, description, time_zone FROM schedules WHERE id = $1 FOR UPDATE`),
 
 		findMany: p.P(`
-			SELECT 
-				s.id, 
-				s.name, 
-				s.description, 
+			SELECT
+				s.id,
+				s.name,
+				s.description,
 				s.time_zone,
 				fav is distinct from null
 			FROM schedules s
-				LEFT JOIN user_favorites fav
-				ON fav.tgt_schedule_id = s.id
-				AND fav.user_id = $2
-				WHERE s.id = any($1)
+			LEFT JOIN user_favorites fav ON
+				fav.tgt_schedule_id = s.id AND fav.user_id = $2
+			WHERE s.id = any($1)
 		`),
 
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),
