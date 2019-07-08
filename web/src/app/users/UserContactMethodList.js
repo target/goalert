@@ -176,10 +176,7 @@ function Actions(props) {
             />
           )}
           {showDeleteDialog && (
-            <UserContactMethodDeleteDialog
-              contactMethodID={id}
-              onClose={() => setShowDeleteDialog(false)}
-            />
+            <UserContactMethodDeleteDialog contactMethodID={id} />
           )}
         </React.Fragment>
       )}
