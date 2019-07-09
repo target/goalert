@@ -39,7 +39,7 @@ class UserList extends React.PureComponent {
           title: n.name,
           subText: n.email,
           url: n.id,
-          icon: <UserAvatar userID={n.id} />,
+          avatar: <UserAvatar userID={n.id} />,
         })}
       />,
     ]
