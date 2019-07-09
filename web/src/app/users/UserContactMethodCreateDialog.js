@@ -36,10 +36,6 @@ export default function UserContactMethodCreateDialog(props) {
   const [sendError, setSendError] = useState('') // error if verification code send fails
   const [contactMethodID, setContactMethodID] = useState(null) // used for verification mutation
 
-  const onComplete = data => {
-    setContactMethodID(data.createUserContactMethod.id) // output from create mutation
-  }
-
   function getInputVariables() {
     return {
       variables: {
@@ -53,7 +49,6 @@ export default function UserContactMethodCreateDialog(props) {
       },
     }
   }
-
   const sendCode = useMutation(sendVerificationCodeMutation, {
     // mutation options
     variables: {
@@ -118,7 +113,7 @@ export default function UserContactMethodCreateDialog(props) {
       mutation={contactMethodID ? verifyContactMethodMutation : createMutation}
       awaitRefetchQueries
       refetchQueries={['nrList', 'cmList']}
-      onCompleted={onComplete}
+      onCompleted={data => setContactMethodID(data.createUserContactMethod.id)}
     >
       {(commit, status) => renderDialog(commit, status)}
     </Mutation>
