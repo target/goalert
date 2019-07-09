@@ -52,7 +52,6 @@ export default function UserContactMethodVerificationDialog(props) {
     code: '',
   })
   const [sendError, setSendError] = useState('')
-  const [sendAttempted, setSendAttempted] = useState(false)
 
   const sendCode = useMutation(sendVerificationCodeMutation, {
     // mutation options
@@ -65,10 +64,7 @@ export default function UserContactMethodVerificationDialog(props) {
 
   // componentDidMount
   useEffect(() => {
-    sendCode()
-      // if send errors out, don't show button as Resend
-      .then(() => setSendAttempted(true))
-      .catch(err => setSendError(err.message))
+    sendCode().catch(err => setSendError(err.message))
   }, [])
 
   // dialog rendered that handles rendering the verification form
@@ -110,14 +106,11 @@ export default function UserContactMethodVerificationDialog(props) {
                   },
                 })
               }
-              submitDisabled={!sendAttempted}
               form={
                 <UserContactMethodVerificationForm
                   contactMethodID={cm.id}
                   errors={fieldErrs}
                   setSendError={setSendError}
-                  sendAttempted={sendAttempted}
-                  setSendAttempted={setSendAttempted}
                   disabled={loading}
                   value={value}
                   onChange={value => setValue(value)}
