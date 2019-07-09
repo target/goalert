@@ -62,7 +62,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 	}
 
 	err := validate.Many(
-		validate.Text("Search", opts.Search, 0, search.MaxQueryLen),
+		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.ManyUUID("Omit", opts.Omit, 50),
 	)
@@ -91,6 +91,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Policy, error)
 	}
 	data, err := (*renderData)(opts).Normalize()
 	if err != nil {
+		// Failing here
 		return nil, err
 	}
 	query, args, err := search.RenderQuery(ctx, searchTemplate, data)
