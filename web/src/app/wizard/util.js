@@ -34,6 +34,7 @@ export function getSchedule(key, value) {
       'Schedule',
     description: DESC,
     timeZone: s.timeZone,
+    favorite: true,
   }
 }
 
