@@ -34,9 +34,7 @@ export default function UserContactMethodCreateDialog(props) {
   // value for verification form
   const [verValue, setVerValue] = useState({ code: '' })
   const [sendError, setSendError] = useState('') // error if verification code send fails
-  // const [errors, setErrors] = useState([])
   const [contactMethodID, setContactMethodID] = useState(null) // used for verification mutation
-  // const [sendAttempted, setSendAttempted] = useState(false)
 
   const onComplete = data => {
     setContactMethodID(data.createUserContactMethod.id) // output from create mutation
@@ -77,10 +75,7 @@ export default function UserContactMethodCreateDialog(props) {
         onSubmit={() => {
           const input = getInputVariables()
           return commit(input).then(() =>
-            sendCode()
-              // if send errors out, don't show button as Resend
-              // .then(() => setSendAttempted(true))
-              .catch(err => setSendError(err.message)),
+            sendCode().catch(err => setSendError(err.message)),
           )
         }}
         form={renderForm(status)}
