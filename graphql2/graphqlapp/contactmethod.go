@@ -66,21 +66,17 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 }
 
 func (m *Mutation) SendContactMethodVerification(ctx context.Context, input graphql2.SendContactMethodVerificationInput) (bool, error) {
-	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		return m.NotificationStore.SendContactMethodVerification(ctx, input.ContactMethodID)
-	})
+	err := m.NotificationStore.SendContactMethodVerification(ctx, input.ContactMethodID)
 	return err == nil, err
 }
 
 func (m *Mutation) VerifyContactMethod(ctx context.Context, input graphql2.VerifyContactMethodInput) (bool, error) {
-	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		err := validate.Range("Code", input.Code, 100000, 999999)
-		if err != nil {
-			// return "must be 6 digits" error as we care about # of digits, not the code's actual value
-			return validation.NewFieldError("Code", "must be 6 digits")
-		}
+	err := validate.Range("Code", input.Code, 100000, 999999)
+	if err != nil {
+		// return "must be 6 digits" error as we care about # of digits, not the code's actual value
+		return false, validation.NewFieldError("Code", "must be 6 digits")
+	}
 
-		return m.NotificationStore.VerifyContactMethod(ctx, input.ContactMethodID, input.Code)
-	})
+	err = m.NotificationStore.VerifyContactMethod(ctx, input.ContactMethodID, input.Code)
 	return err == nil, err
 }

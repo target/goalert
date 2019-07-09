@@ -22,14 +22,6 @@ const useStyles = makeStyles({
 export default function UserContactMethodVerificationForm(props) {
   const classes = useStyles()
 
-  function getTitle() {
-    if (props.sendAttempted) {
-      return 'Resend Code'
-    } else {
-      return 'Send Code'
-    }
-  }
-
   return (
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
@@ -48,10 +40,8 @@ export default function UserContactMethodVerificationForm(props) {
                 color='primary'
                 loading={status.loading}
                 disabled={props.disabled}
-                buttonText={getTitle()}
-                onClick={() => {
-                  props.setSendAttempted(true) // changes text of send button to "resend"
-
+                buttonText={'Resend Code'}
+                onClick={() =>
                   commit({
                     variables: {
                       input: {
@@ -59,7 +49,7 @@ export default function UserContactMethodVerificationForm(props) {
                       },
                     },
                   })
-                }}
+                }
               />
             )}
           </Mutation>
@@ -92,8 +82,6 @@ UserContactMethodVerificationForm.propTypes = {
   ),
   onChange: p.func.isRequired,
   setSendError: p.func.isRequired,
-  sendAttempted: p.bool.isRequired,
-  setSendAttempted: p.func.isRequired,
   value: p.shape({
     code: p.string.isRequired,
   }).isRequired,
