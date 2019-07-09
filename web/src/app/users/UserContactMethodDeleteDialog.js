@@ -14,6 +14,7 @@ const mutation = gql`
 export default class UserContactMethodDeleteDialog extends React.PureComponent {
   static propTypes = {
     contactMethodID: p.string.isRequired,
+    onClose: p.func.isRequired, // passed to FormDialog
   }
 
   render() {
@@ -23,7 +24,6 @@ export default class UserContactMethodDeleteDialog extends React.PureComponent {
         client={graphql2Client}
         awaitRefetchQueries
         refetchQueries={['nrList', 'cmList']}
-        onCompleted={this.props.onClose}
       >
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
