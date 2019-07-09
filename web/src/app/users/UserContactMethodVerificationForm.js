@@ -1,13 +1,26 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import { Mutation } from 'react-apollo'
+import gql from 'graphql-tag'
 import { makeStyles } from '@material-ui/core/styles'
 import { graphql2Client } from '../apollo'
 import { FormContainer, FormField } from '../forms'
-import { sendVerificationCodeMutation } from './UserContactMethodVerificationDialog'
+import { useMutation } from 'react-apollo-hooks'
+
+/*
+ * Triggers sending a verification code to the specified cm
+ * when the dialog is first opened
+ */
+const sendVerificationCodeMutation = gql`
+  mutation sendContactMethodVerification(
+    $input: SendContactMethodVerificationInput!
+  ) {
+    sendContactMethodVerification(input: $input)
+  }
+`
 
 const useStyles = makeStyles({
   fieldGridItem: {
@@ -21,6 +34,20 @@ const useStyles = makeStyles({
 
 export default function UserContactMethodVerificationForm(props) {
   const classes = useStyles()
+
+  const sendCode = useMutation(sendVerificationCodeMutation, {
+    // mutation options
+    variables: {
+      input: {
+        contactMethodID: props.contactMethodID,
+      },
+    },
+  })
+
+  // componentDidMount
+  useEffect(() => {
+    sendCode().catch(err => props.setSendError(err.message))
+  }, [])
 
   return (
     <FormContainer optionalLabels {...props}>
