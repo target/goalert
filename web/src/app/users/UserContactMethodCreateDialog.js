@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { useMutation } from 'react-apollo-hooks'
 import p from 'prop-types'
 
 import { graphql2Client } from '../apollo'
@@ -9,6 +10,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
+import { sendVerificationCodeMutation } from './UserContactMethodVerificationDialog'
 
 const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
@@ -22,7 +24,118 @@ const verifyContactMethodMutation = gql`
     verifyContactMethod(input: $input)
   }
 `
+export default function UserContactMethodCreateDialog(props) {
+  // values for contact method form
+  const [cmValue, setCmValue] = useState({
+    name: '',
+    type: 'SMS',
+    value: '+1',
+  })
+  // value for verification form
+  const [verValue, setVerValue] = useState({ code: '' })
+  const [sendError, setSendError] = useState('') // error if verification code send fails
+  // const [errors, setErrors] = useState([])
+  const [contactMethodID, setContactMethodID] = useState(null) // used for verification mutation
+  // const [sendAttempted, setSendAttempted] = useState(false)
 
+  const onComplete = data => {
+    setContactMethodID(data.createUserContactMethod.id) // output from create mutation
+  }
+
+  function getInputVariables() {
+    return {
+      variables: {
+        input: {
+          ...cmValue,
+          userID: props.userID,
+          newUserNotificationRule: {
+            delayMinutes: 0,
+          },
+        },
+      },
+    }
+  }
+
+  const sendCode = useMutation(sendVerificationCodeMutation, {
+    // mutation options
+    variables: {
+      input: {
+        contactMethodID: contactMethodID,
+      },
+    },
+  })
+
+  function renderDialog(commit, status) {
+    const { loading, error } = status
+    return (
+      <FormDialog
+        title='Create New Contact Method'
+        subTitle={contactMethodID ? 'Verify contact method to continue' : null}
+        loading={loading}
+        errors={sendError ? [{ message: sendError }] : nonFieldErrors(error)}
+        onClose={props.onClose}
+        onSubmit={() => {
+          const input = getInputVariables()
+          return commit(input).then(() =>
+            sendCode()
+              // if send errors out, don't show button as Resend
+              // .then(() => setSendAttempted(true))
+              .catch(err => setSendError(err.message)),
+          )
+        }}
+        form={renderForm(status)}
+      />
+    )
+  }
+
+  function renderForm(status) {
+    // these values are different depending on which
+    // mutation wraps the dialog
+    const { loading, error } = status
+    const fieldErrs = fieldErrors(error)
+
+    if (contactMethodID) {
+      return (
+        <UserContactMethodVerificationForm
+          contactMethodID={contactMethodID}
+          disabled={loading}
+          errors={fieldErrs}
+          onChange={verValue => setVerValue({ verValue })}
+          setSendError={setSendError}
+          value={verValue}
+        />
+      )
+    } else {
+      return (
+        <UserContactMethodForm
+          disabled={loading}
+          errors={fieldErrs}
+          onChange={cmValue => setCmValue(cmValue)}
+          value={cmValue}
+        />
+      )
+    }
+  }
+
+  return (
+    <Mutation
+      client={graphql2Client}
+      mutation={contactMethodID ? verifyContactMethodMutation : createMutation}
+      awaitRefetchQueries
+      refetchQueries={['nrList', 'cmList']}
+      onCompleted={onComplete}
+    >
+      {(commit, status) => renderDialog(commit, status)}
+    </Mutation>
+  )
+}
+
+UserContactMethodCreateDialog.propTypes = {
+  userID: p.string.isRequired,
+  onClose: p.func,
+}
+
+/*
 export default class UserContactMethodCreateDialog extends React.PureComponent {
   static propTypes = {
     userID: p.string.isRequired,
@@ -147,3 +260,4 @@ export default class UserContactMethodCreateDialog extends React.PureComponent {
     }
   }
 }
+*/
