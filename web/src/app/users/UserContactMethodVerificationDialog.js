@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { useMutation } from 'react-apollo-hooks'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import gql from 'graphql-tag'
@@ -10,18 +9,6 @@ import UserContactMethodVerificationForm from './UserContactMethodVerificationFo
 import { graphql2Client } from '../apollo'
 import { formatPhoneNumber } from './util'
 import { Config } from '../util/RequireConfig'
-
-/*
- * Triggers sending a verification code to the specified cm
- * when the dialog is first opened
- */
-export const sendVerificationCodeMutation = gql`
-  mutation sendContactMethodVerification(
-    $input: SendContactMethodVerificationInput!
-  ) {
-    sendContactMethodVerification(input: $input)
-  }
-`
 
 /*
  * Reactivates a cm if disabled and the verification code matches
@@ -52,20 +39,6 @@ export default function UserContactMethodVerificationDialog(props) {
     code: '',
   })
   const [sendError, setSendError] = useState('')
-
-  const sendCode = useMutation(sendVerificationCodeMutation, {
-    // mutation options
-    variables: {
-      input: {
-        contactMethodID: props.contactMethodID,
-      },
-    },
-  })
-
-  // componentDidMount
-  useEffect(() => {
-    sendCode().catch(err => setSendError(err.message))
-  }, [])
 
   // dialog rendered that handles rendering the verification form
   function renderDialog(commit, status, cm) {
