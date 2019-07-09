@@ -245,6 +245,7 @@ input CreateScheduleInput {
   name: String!
   description: String
   timeZone: String!
+  favorite: Boolean
 
   targets: [ScheduleTargetInput!]
 }
@@ -387,6 +388,7 @@ type Schedule {
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
+  isFavorite: Boolean!
 }
 
 type OnCallShift {
@@ -511,6 +513,12 @@ input ScheduleSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited services in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite services first.
+  favoritesFirst: Boolean = false
 }
 
 input ServiceSearchOptions {

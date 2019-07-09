@@ -9,6 +9,7 @@ const query = gql`
       nodes {
         id
         name
+        isFavorite
       }
     }
   }
@@ -19,11 +20,20 @@ const valueQuery = gql`
     schedule(id: $id) {
       id
       name
+      isFavorite
     }
   }
 `
 export class ScheduleSelect extends React.PureComponent {
   render() {
-    return <QuerySelect {...this.props} query={query} valueQuery={valueQuery} />
+    return (
+      <QuerySelect
+        {...this.props}
+        variables={{ input: { favoritesFirst: true } }}
+        defaultQueryVariables={{ input: { favoritesOnly: true } }}
+        query={query}
+        valueQuery={valueQuery}
+      />
+    )
   }
 }

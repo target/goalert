@@ -24,6 +24,7 @@ export default class ScheduleCreateDialog extends React.PureComponent {
       name: '',
       description: '',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      favorite: true,
     },
   }
   render() {
