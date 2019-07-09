@@ -16,6 +16,7 @@ export const styles = theme => ({
   // Used to reduce padding between header and content
   cardHeader: {
     paddingBottom: 0,
+    margin: 0,
   },
   asLink: {
     color: 'blue',

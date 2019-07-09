@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core'
 
 const useStyles = makeStyles({
   skipLink: {
-    position: 'absolute !important',
+    position: 'absolute',
     height: '1px',
     width: '1px',
     overflow: 'hidden',

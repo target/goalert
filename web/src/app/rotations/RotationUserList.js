@@ -15,6 +15,8 @@ import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { DateTime } from 'luxon'
 import { UserAvatar } from '../util/avatar'
+import { withStyles } from '@material-ui/core'
+import { styles } from '../styles/materialStyles'
 
 const rotationUsersQuery = gql`
   query rotationUsers($id: ID!) {
@@ -36,6 +38,7 @@ const mutation = gql`
   }
 `
 
+@withStyles(styles)
 export default class RotationUserList extends React.PureComponent {
   static propTypes = {
     rotationID: p.string.isRequired,
@@ -47,10 +50,15 @@ export default class RotationUserList extends React.PureComponent {
   }
 
   render() {
+    const { classes } = this.props
     return (
       <React.Fragment>
         <Card>
-          <CardHeader style={{ margin: 0 }} component='h3' title='Users ' />
+          <CardHeader
+            className={classes.cardHeader}
+            component='h3'
+            title='Users '
+          />
           <CardContent>
             <Query
               query={rotationUsersQuery}
