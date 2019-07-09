@@ -91,7 +91,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Policy, error)
 	}
 	data, err := (*renderData)(opts).Normalize()
 	if err != nil {
-		// Failing here
 		return nil, err
 	}
 	query, args, err := search.RenderQuery(ctx, searchTemplate, data)
