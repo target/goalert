@@ -1,11 +1,12 @@
 package validate
 
 import (
-	"github.com/target/goalert/validation"
 	"unicode"
+
+	"github.com/target/goalert/validation"
 )
 
-// Search will validate a search body. It ensures that the field 
+// Search will validate a search body. It ensures that the field
 // consists of valid unicode code-points, and does not exceed max of 255 characters.
 // If body is empty, the input is considered valid.
 func Search(fname, body string) error {
