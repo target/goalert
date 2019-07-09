@@ -82,7 +82,7 @@ export default function UserContactMethodVerificationDialog(props) {
           const fromNumber = config['Twilio.FromNumber']
 
           let caption = null
-          if (fromNumber) {
+          if (fromNumber && cm.type === 'SMS') {
             caption = `If you do not receive a code, try sending UNSTOP to ${formatPhoneNumber(
               fromNumber,
             )} before resending.`
