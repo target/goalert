@@ -155,7 +155,7 @@ export default class SideBarDrawerList extends React.PureComponent {
     const { classes } = this.props
 
     return (
-      <div>
+      <React.Fragment>
         <div aria-hidden className={classes.logoDiv}>
           <img
             className={classes.logo}
@@ -206,7 +206,7 @@ export default class SideBarDrawerList extends React.PureComponent {
           )}
           {this.renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
         </List>
-      </div>
+      </React.Fragment>
     )
   }
 }
