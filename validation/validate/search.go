@@ -15,12 +15,8 @@ func Search(fname, body string) error {
 	}
 
 	r := []rune(body)
-	l := len(r)
 
-	if l == 0 {
-		return nil
-	}
-	if l > 255 {
+	if len(r) > 255 {
 		return validation.NewFieldError(fname, "cannot exceed 255 characters")
 	}
 
