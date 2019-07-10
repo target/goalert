@@ -51,8 +51,8 @@ export default class FlatList extends React.PureComponent {
           highlight: p.bool,
           title: p.node.isRequired,
           subText: p.node,
-          action: p.element,
-          button: p.element, // a secondary button element to be placed to the left of the action
+          secondaryAction: p.element,
+          tertiaryAction: p.element, // an element to be placed to the left of the secondary action
           url: p.string,
           icon: p.element, // renders a list item icon (or avatar)
           id: p.string, // required for drag and drop
@@ -111,15 +111,15 @@ export default class FlatList extends React.PureComponent {
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
         />
-        {(item.action || item.button) && (
+        {(item.secondaryAction || item.tertiaryAction) && (
           <ListItemSecondaryAction>
             <Grid
               container
               spacing={2}
               className={this.props.classes.actionGrid}
             >
-              {item.button && <Grid item>{item.button}</Grid>}
-              {item.action && <Grid item>{item.action}</Grid>}
+              {item.tertiaryAction && <Grid item>{item.tertiaryAction}</Grid>}
+              {item.secondaryAction && <Grid item>{item.secondaryAction}</Grid>}
             </Grid>
           </ListItemSecondaryAction>
         )}

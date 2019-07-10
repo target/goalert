@@ -71,8 +71,8 @@ export default class UserContactMethodList extends React.PureComponent {
             items={sortContactMethods(contactMethods).map(cm => ({
               title: `${cm.name} (${cm.type})`,
               subText: formatCMValue(cm.type, cm.value),
-              action: readOnly ? null : <Actions contactMethod={cm} />,
-              button:
+              secondaryAction: readOnly ? null : <Actions contactMethod={cm} />,
+              tertiaryAction:
                 cm.disabled && !readOnly ? (
                   <ReactivateButton
                     ButtonComponent={Button}
