@@ -63,7 +63,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 	}
 
 	err := validate.Many(
-		validate.Text("Search", opts.Search, 0, search.MaxQueryLen),
+		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
 	)
