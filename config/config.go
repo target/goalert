@@ -3,13 +3,11 @@ package config
 import (
 	"fmt"
 	"net/url"
-	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // SchemaVersion indicates the current config struct version.
@@ -70,7 +68,9 @@ type Config struct {
 		ClientID     string
 		ClientSecret string `password:"true"`
 
-		AccessToken string `password:"true" info:"Slack app OAuth access token."`
+		// The `xoxb-` prefix is documented by Slack.
+		// https://api.slack.com/docs/token-types#bot
+		AccessToken string `password:"true" info:"Slack app bot user OAuth access token (should start with xoxb-)."`
 	}
 
 	Twilio struct {
@@ -158,32 +158,6 @@ func (cfg Config) PublicURL() string {
 	return strings.TrimSuffix(cfg.General.PublicURL, "/")
 }
 
-var (
-	mailgunKeyRx = regexp.MustCompile(`^key-[0-9a-f]{32}$`)
-
-	slackClientIDRx        = regexp.MustCompile(`^[0-9]{10,12}\.[0-9]{10,12}$`)
-	slackClientSecretRx    = regexp.MustCompile(`^[0-9a-f]{32}$`)
-	slackUserAccessTokenRx = regexp.MustCompile(`^xoxp-[0-9]{10,12}-[0-9]{10,12}-[0-9]{10,12}-[0-9a-f]{32}$`)
-	slackBotAccessTokenRx  = regexp.MustCompile(`^xoxb-[0-9]{10,12}-[0-9]{10,12}-[0-9A-Za-z]{24}$`)
-
-	twilioAccountSIDRx = regexp.MustCompile(`^AC[0-9a-f]{32}$`)
-	twilioAuthTokenRx  = regexp.MustCompile(`^[0-9a-f]{32}$`)
-
-	githubClientIDRx     = regexp.MustCompile(`^[0-9a-f]{20}$`)
-	githubClientSecretRx = regexp.MustCompile(`^[0-9a-f]{40}$`)
-)
-
-func validateRx(field string, rx *regexp.Regexp, value, msg string) error {
-	if value == "" {
-		return nil
-	}
-
-	if !rx.MatchString(value) {
-		return validation.NewFieldError(field, msg)
-	}
-
-	return nil
-}
 func validateEnable(prefix string, isEnabled bool, vals ...string) error {
 	if !isEnabled {
 		return nil
@@ -214,31 +188,20 @@ func (cfg Config) Validate() error {
 		)
 	}
 
+	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }
+
 	err = validate.Many(
 		err,
 		validate.Text("General.NotificationDisclaimer", cfg.General.NotificationDisclaimer, 0, 500),
-
-		validateRx("Mailgun.APIKey", mailgunKeyRx, cfg.Mailgun.APIKey, "should be of the format: 'key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'"),
-
-		validateRx("Slack.ClientID", slackClientIDRx, cfg.Slack.ClientID, "should be of the format: '############.############'"),
-		validateRx("Slack.ClientSecret", slackClientSecretRx, cfg.Slack.ClientSecret, "should be of the format: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'"),
-
-		validateRx("Twilio.AccountSID", twilioAccountSIDRx, cfg.Twilio.AccountSID, "should be of the format: 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'"),
-		validateRx("Twilio.AuthToken", twilioAuthTokenRx, cfg.Twilio.AuthToken, "should be of the format: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'"),
-
-		validateRx("GitHub.ClientID", githubClientIDRx, cfg.GitHub.ClientID, "should be of the format: 'xxxxxxxxxxxxxxxxxxxx'"),
-		validateRx("GitHub.ClientSecret", githubClientSecretRx, cfg.GitHub.ClientSecret, "should be of the format: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'"),
+		validateKey("Mailgun.APIKey", cfg.Mailgun.APIKey),
+		validateKey("Slack.ClientID", cfg.Slack.ClientID),
+		validateKey("Slack.ClientSecret", cfg.Slack.ClientSecret),
+		validateKey("Twilio.AccountSID", cfg.Twilio.AccountSID),
+		validateKey("Twilio.AuthToken", cfg.Twilio.AuthToken),
+		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
+		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
+		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 	)
-
-	if strings.HasPrefix(cfg.Slack.AccessToken, "xoxp") {
-		err = validate.Many(err,
-			validateRx("Slack.AccessToken", slackUserAccessTokenRx, cfg.Slack.AccessToken, "should be of the format: 'xoxb-############-############-zzzzzzzzzzzzzzzzzzzzzzzz'"),
-		)
-	} else {
-		err = validate.Many(err,
-			validateRx("Slack.AccessToken", slackBotAccessTokenRx, cfg.Slack.AccessToken, "should be of the format: 'xoxb-############-############-zzzzzzzzzzzzzzzzzzzzzzzz'"),
-		)
-	}
 
 	if cfg.OIDC.IssuerURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("OIDC.IssuerURL", cfg.OIDC.IssuerURL))
