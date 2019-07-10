@@ -23,7 +23,7 @@ function testSchedules(screen: ScreenFormat) {
 
       // verify on details by content headers
       cy.get('[data-cy=details-heading]').contains(name)
-      cy.get('div[data-cy=details]').contains(description)
+      cy.get('[data-cy=details]').contains(description)
     })
   })
 
