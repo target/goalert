@@ -94,7 +94,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		opts.Limit = search.DefaultMaxResults
 	}
 	err := validate.Many(
-		validate.Text("Search", opts.Search, 0, search.MaxQueryLen),
+		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.ManyUUID("Omit", opts.Omit, 50),
 	)
