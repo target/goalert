@@ -9,20 +9,25 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Typography from '@material-ui/core/Typography'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
-const useStyles = makeStyles({
-  subMenu: {
-    backgroundColor: '#616161',
-  },
-  link: {
-    textDecoration: 'none',
-    color: '#fff',
-    '&:hover': {
-      textDecoration: 'none',
+const useStyles = makeStyles(theme => {
+  return {
+    subMenu: {
+      backgroundColor: '#616161',
     },
-  },
-  parentItem: {
-    color: '#000',
-  },
+    link: {
+      textDecoration: 'none',
+      color: '#fff',
+      '&:hover': {
+        textDecoration: 'none',
+      },
+    },
+    parentItem: {
+      color: theme.palette.primary['500'],
+    },
+    subMenuLinkText: {
+      paddingLeft: '3rem',
+    },
+  }
 })
 
 export default function NavSubMenu(props) {
@@ -44,15 +49,16 @@ export default function NavSubMenu(props) {
 
   function renderParentLink(IconComponent, label) {
     return (
-      <ListItem button tabIndex={-1}>
+      <ListItem>
         <ListItemIcon>
           <IconComponent />
         </ListItemIcon>
         <ListItemText
+          className={classes.parentItem}
           disableTypography
           primary={<Typography variant='subtitle1'>{label}</Typography>}
         />
-        <ArrowDropDownIcon />
+        <ArrowDropDownIcon className={classes.parentItem} />
       </ListItem>
     )
   }
@@ -62,7 +68,9 @@ export default function NavSubMenu(props) {
       return (
         <NavLink key={key} className={classes.link} to={route.path}>
           <ListItem>
-            <ListItemText>{route.title}</ListItemText>
+            <ListItemText className={classes.subMenuLinkText}>
+              {route.title}
+            </ListItemText>
           </ListItem>
         </NavLink>
       )
