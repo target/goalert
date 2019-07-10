@@ -8,7 +8,7 @@ import (
 )
 
 func TestConcurrencyLimiter(t *testing.T) {
-	lim := newConcurrencyLimiter(2)
+	lim := newConcurrencyLimiter(2, 10)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	err := lim.Lock(ctx, "foo")
