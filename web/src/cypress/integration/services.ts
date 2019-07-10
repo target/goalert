@@ -36,11 +36,6 @@ function testServices(screen: ScreenFormat) {
       cy.get('body')
         .should('not.contain', svc.name)
         .should('not.contain', svc.description)
-      // but there will be results for substring of svc name with a space (that is already a part of the name)
-      cy.pageSearch(svc.name.substring(0, svc.name.indexOf(' ')) + ' ')
-      cy.get('body')
-        .should('contain', svc.name)
-        .should('contain', svc.description)
     })
 
     it('should link to details page', () => {
