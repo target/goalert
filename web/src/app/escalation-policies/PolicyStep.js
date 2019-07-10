@@ -160,10 +160,7 @@ export default class PolicyStep extends Component {
         <ListItem id={index}>
           <Grid container spacing={2}>
             <Grid item className={classes.centerFlex}>
-              <Typography
-                variant='subtitle1'
-                variantMapping={{ subtitle1: 'h4' }}
-              >
+              <Typography variant='subtitle1'>
                 <b>Step #{this.getStepNumber(step.id)}:</b>
               </Typography>
             </Grid>
