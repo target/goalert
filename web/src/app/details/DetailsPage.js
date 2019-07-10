@@ -30,6 +30,20 @@ const styles = theme => ({
     [theme.breakpoints.up('md')]: { float: 'left' },
     margin: 20,
   },
+  detailsTopHeader: {
+    fontSize: '1.5rem',
+    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+    fontWeight: 400,
+    lineHeight: 1.33,
+    letterSpacing: '0em',
+  },
+  detailsSubtitle: {
+    fontSize: '1rem',
+    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+    fontWeight: 400,
+    lineHeight: 1.75,
+    letterSpacing: '0.00938em',
+  },
 })
 
 const mapStateToProps = state => {
@@ -125,12 +139,20 @@ export default class DetailsPage extends React.PureComponent {
           <Card>
             <CardContent>
               {icon && <div className={classes.iconContainer}>{icon}</div>}
-              <Typography variant='h5'>{title}</Typography>
-              <Typography name='details' variant='subtitle1'>
+              <Typography variant='h2' className={classes.detailsTopHeader}>
+                {title}
+              </Typography>
+              <Typography
+                data-cy='details'
+                component='div'
+                className={classes.detailsSubtitle}
+              >
                 <Markdown value={details} />
               </Typography>
               {titleFooter && (
-                <Typography variant='subtitle1'>{titleFooter}</Typography>
+                <Typography className={classes.detailsSubtitle}>
+                  {titleFooter}
+                </Typography>
               )}
             </CardContent>
           </Card>
