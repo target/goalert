@@ -43,12 +43,6 @@ export default class UserContactMethodList extends React.PureComponent {
     readOnly: p.bool,
   }
 
-  state = {
-    edit: null,
-    delete: null,
-    isVerifyDialogOpen: false,
-  }
-
   render() {
     return (
       <Query
