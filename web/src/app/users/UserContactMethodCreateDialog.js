@@ -72,6 +72,7 @@ export default function UserContactMethodCreateDialog(props) {
     const { loading, error } = status
     return (
       <FormDialog
+        data-cy={contactMethodID ? 'verify-form' : 'create-form'}
         title='Create New Contact Method'
         subTitle={
           contactMethodID

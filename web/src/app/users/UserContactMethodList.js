@@ -117,6 +117,7 @@ function ReactivateButton(props) {
   return (
     <React.Fragment>
       <props.ButtonComponent
+        data-cy='cm-disabled'
         aria-label='Reactivate contact method'
         onClick={() => setShowVerifyDialog(true)}
         variant='contained'
