@@ -5,6 +5,9 @@ import List from '@material-ui/core/List'
 import { makeStyles } from '@material-ui/styles'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import Typography from '@material-ui/core/Typography'
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 
 const useStyles = makeStyles({
   subMenu: {
@@ -17,22 +20,41 @@ const useStyles = makeStyles({
       textDecoration: 'none',
     },
   },
+  parentItem: {
+    color: '#000',
+  },
 })
 
 export default function NavSubMenu(props) {
   const {
+    parentIcon,
+    parentTitle,
     unActiveClass,
     activeClass,
     path,
     key,
     subMenuRoutes,
-    children,
   } = props
   const [open, setOpen] = useState(false)
   const classes = useStyles()
 
   function handleClick(bool) {
     setOpen(bool)
+  }
+
+  function renderParentLink(IconComponent, label) {
+    return (
+      <ListItem button tabIndex={-1}>
+        <ListItemIcon>
+          <IconComponent />
+        </ListItemIcon>
+        <ListItemText
+          disableTypography
+          primary={<Typography variant='subtitle1'>{label}</Typography>}
+        />
+        <ArrowDropDownIcon />
+      </ListItem>
+    )
   }
 
   function renderSubMenu(subMenuRoutes) {
@@ -66,7 +88,7 @@ export default function NavSubMenu(props) {
         activeClassName={activeClass}
         isActive={activeLink}
       >
-        {children}
+        {renderParentLink(parentIcon, parentTitle)}
       </NavLink>
       <Collapse in={open} timeout='auto' unmountOnExit>
         <List className={classes.subMenu}>{renderSubMenu(subMenuRoutes)}</List>

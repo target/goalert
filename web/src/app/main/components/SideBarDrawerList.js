@@ -133,6 +133,8 @@ export default class SideBarDrawerList extends React.PureComponent {
 
     return (
       <NavSubMenu
+        parentIcon={navIcons[cfg.title]}
+        parentTitle={cfg.title}
         unActiveClass={null}
         activeClass={null}
         path={getPath(cfg)}
