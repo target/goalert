@@ -1,10 +1,8 @@
 import React from 'react'
 import p from 'prop-types'
-import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
-import ListItemAvatar from '@material-ui/core/ListItemAvatar'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListItemText from '@material-ui/core/ListItemText'
@@ -53,11 +51,10 @@ export default class FlatList extends React.PureComponent {
           highlight: p.bool,
           title: p.node.isRequired,
           subText: p.node,
-          action: p.element,
-          button: p.element, // a secondary button element to be placed to the left of the action
+          secondaryAction: p.element,
+          tertiaryAction: p.element, // an element to be placed to the left of the secondary action
           url: p.string,
-          icon: p.element, // renders a list item icon
-          avatar: p.element, // renders a list item avatar with a backdrop
+          icon: p.element, // renders a list item icon (or avatar)
           id: p.string, // required for drag and drop
         }),
         p.shape({
@@ -101,18 +98,6 @@ export default class FlatList extends React.PureComponent {
       }
     }
 
-    // if both are sent, avatar takes precedent
-    let symbol = null
-    if (item.avatar) {
-      symbol = (
-        <ListItemAvatar>
-          <Avatar>{item.avatar}</Avatar>
-        </ListItemAvatar>
-      )
-    } else if (item.icon) {
-      symbol = <ListItemIcon>{item.icon}</ListItemIcon>
-    }
-
     return (
       <ListItem
         key={idx}
@@ -120,21 +105,21 @@ export default class FlatList extends React.PureComponent {
         style={{ width: '100%' }}
         className={item.highlight ? this.props.classes.highlightedItem : null}
       >
-        {symbol}
+        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText
           primary={item.title}
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
         />
-        {(item.action || item.button) && (
+        {(item.secondaryAction || item.tertiaryAction) && (
           <ListItemSecondaryAction>
             <Grid
               container
               spacing={2}
               className={this.props.classes.actionGrid}
             >
-              {item.button && <Grid item>{item.button}</Grid>}
-              {item.action && <Grid item>{item.action}</Grid>}
+              {item.tertiaryAction && <Grid item>{item.tertiaryAction}</Grid>}
+              {item.secondaryAction && <Grid item>{item.secondaryAction}</Grid>}
             </Grid>
           </ListItemSecondaryAction>
         )}
