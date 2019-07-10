@@ -64,9 +64,6 @@ export default class FormDialog extends React.PureComponent {
     onClose: p.func,
     onSubmit: p.func,
 
-    // disables form submit button
-    submitDisabled: p.bool,
-
     // provided by gracefulUnmount()
     isUnmounting: p.bool,
     onExited: p.func,
@@ -97,7 +94,6 @@ export default class FormDialog extends React.PureComponent {
       maxWidth,
       onClose,
       onSubmit,
-      submitDisabled, // can't be used in dialogProps spread
       subTitle, // can't be used in dialogProps spread
       title,
       width,
@@ -178,15 +174,7 @@ export default class FormDialog extends React.PureComponent {
   }
 
   renderActions = () => {
-    const {
-      alert,
-      confirm,
-      classes,
-      errors,
-      loading,
-      onClose,
-      submitDisabled,
-    } = this.props
+    const { alert, confirm, classes, errors, loading, onClose } = this.props
 
     if (alert) {
       return (
@@ -211,7 +199,6 @@ export default class FormDialog extends React.PureComponent {
           attemptCount={errors.length ? 1 : 0}
           buttonText={confirm ? 'Confirm' : 'Submit'}
           color='primary'
-          disabled={submitDisabled}
           loading={loading}
           type='submit'
         />
