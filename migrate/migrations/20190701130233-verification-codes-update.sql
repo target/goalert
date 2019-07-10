@@ -5,7 +5,7 @@ WHERE type_id = 'verify';
 
 -- add new columns
 ALTER TABLE user_verification_codes
-    ADD COLUMN contact_method_id  UUID REFERENCES user_contact_methods (id) ON DELETE CASCADE UNIQUE,
+    ADD COLUMN contact_method_id UUID REFERENCES user_contact_methods (id) ON DELETE CASCADE UNIQUE,
     ADD COLUMN sent boolean DEFAULT FALSE;
 
 -- add new data (1 row for each contact method type)
