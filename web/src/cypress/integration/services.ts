@@ -29,8 +29,15 @@ function testServices(screen: ScreenFormat) {
 
     it('should handle searching with leading and trailing spaces', () => {
       cy.get('ul[data-cy=apollo-list]').should('exist')
-      // by name with spaces before and after
+      // by name with spaces before and after,
+      // since search looks for literally the search string typed in,
+      // there would be no results for leading space + search string
       cy.pageSearch(' ' + svc.name + '  ')
+      cy.get('body')
+        .should('not.contain', svc.name)
+        .should('not.contain', svc.description)
+      // but there will be results for substring of svc name with a space (that is already a part of the name)
+      cy.pageSearch(svc.name.substring(0, svc.name.indexOf(' ')) + ' ')
       cy.get('body')
         .should('contain', svc.name)
         .should('contain', svc.description)
