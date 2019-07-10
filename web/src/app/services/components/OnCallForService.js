@@ -11,7 +11,15 @@ import { UserAvatar } from '../../util/avatar'
 import { Link } from 'react-router-dom'
 import Spinner from '../../loading/components/Spinner'
 import { withStyles } from '@material-ui/core'
-import { styles } from '../../styles/materialStyles'
+import { styles as globalStyles } from '../../styles/materialStyles'
+
+const styles = theme => {
+  const { cardHeader } = globalStyles(theme)
+
+  return {
+    cardHeader,
+  }
+}
 
 @withStyles(styles)
 export default class OnCallForService extends Component {

@@ -14,7 +14,7 @@ import { formatNotificationRule, sortNotificationRules } from './util'
 import { Delete } from '@material-ui/icons'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
 
-import { styles } from '../styles/materialStyles'
+import { styles as globalStyles } from '../styles/materialStyles'
 
 const query = gql`
   query nrList($id: ID!) {
@@ -33,6 +33,14 @@ const query = gql`
     }
   }
 `
+
+const styles = theme => {
+  const { cardHeader } = globalStyles(theme)
+
+  return {
+    cardHeader,
+  }
+}
 
 @withStyles(styles)
 export default class UserNotificationRuleList extends React.PureComponent {

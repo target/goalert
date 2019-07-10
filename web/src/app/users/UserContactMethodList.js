@@ -14,7 +14,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import { Config } from '../util/RequireConfig'
 
-import { styles } from '../styles/materialStyles'
+import { styles as globalStyles } from '../styles/materialStyles'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -35,6 +35,14 @@ const testCM = gql`
     testContactMethod(id: $id)
   }
 `
+
+const styles = theme => {
+  const { cardHeader } = globalStyles(theme)
+
+  return {
+    cardHeader,
+  }
+}
 
 @withStyles(styles)
 export default class UserContactMethodList extends React.PureComponent {

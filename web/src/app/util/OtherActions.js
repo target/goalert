@@ -44,7 +44,10 @@ export default class OtherActions extends React.PureComponent {
 
   render() {
     const onClose = cancelable(() =>
-      this.setState({ anchorEl: null, ariaExpanded: !this.state.ariaExpanded }),
+      this.setState({
+        anchorEl: null,
+        ariaExpanded: Boolean(!this.state.anchorEl),
+      }),
     )
     return (
       <React.Fragment>
@@ -58,7 +61,7 @@ export default class OtherActions extends React.PureComponent {
               onClose.cancel()
               this.setState({
                 anchorEl: e.currentTarget,
-                ariaExpanded: !this.state.ariaExpanded,
+                ariaExpanded: Boolean(!this.state.anchorEl),
               })
             },
           })}

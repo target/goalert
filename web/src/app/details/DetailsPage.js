@@ -132,11 +132,15 @@ export default class DetailsPage extends React.PureComponent {
           <Card>
             <CardContent>
               {icon && <div className={classes.iconContainer}>{icon}</div>}
-              <Typography className={classes.mainHeading} variant='h2'>
+              <Typography
+                data-cy='details-heading'
+                className={classes.mainHeading}
+                variant='h2'
+              >
                 {title}
               </Typography>
               <Typography
-                name='details'
+                data-cy='details'
                 variant='subtitle1'
                 variantMapping={{ subtitle1: 'div' }}
               >

@@ -22,8 +22,8 @@ function testSchedules(screen: ScreenFormat) {
         .click()
 
       // verify on details by content headers
-      cy.get('h2').contains(name)
-      cy.get('div[name=details]').contains(description)
+      cy.get('[data-cy=details-heading]').contains(name)
+      cy.get('div[data-cy=details]').contains(description)
     })
   })
 

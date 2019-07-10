@@ -52,21 +52,21 @@ export default class Options extends Component {
     this.setState({
       anchorEl: event.currentTarget,
       show: true,
-      ariaExpanded: !this.state.ariaExpanded,
+      ariaExpanded: true,
     })
   }
 
   handleCloseMenu = () => {
     this.setState({
       show: false,
-      ariaExpanded: !this.state.ariaExpanded,
+      ariaExpanded: false,
     })
   }
 
   handleShowOptions = bool => {
     this.setState({
       showOptions: bool,
-      ariaExpanded: !this.state.ariaExpanded,
+      ariaExpanded: Boolean(!this.state.showOptions),
     })
   }
 
