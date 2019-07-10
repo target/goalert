@@ -38,7 +38,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},
 		{ID: "Slack.ClientSecret", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientSecret, Password: true},
-		{ID: "Slack.AccessToken", Type: ConfigTypeString, Description: "Slack app OAuth access token.", Value: cfg.Slack.AccessToken, Password: true},
+		{ID: "Slack.AccessToken", Type: ConfigTypeString, Description: "Slack app bot user OAuth access token (should start with xoxb-).", Value: cfg.Slack.AccessToken, Password: true},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.AccountSID", Type: ConfigTypeString, Description: "", Value: cfg.Twilio.AccountSID},
 		{ID: "Twilio.AuthToken", Type: ConfigTypeString, Description: "The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation.", Value: cfg.Twilio.AuthToken, Password: true},
