@@ -56,11 +56,7 @@ export default function UserContactMethodVerificationForm(props) {
           <Mutation
             client={graphql2Client}
             mutation={sendVerificationCodeMutation}
-            onError={() =>
-              props.setSendError(
-                'Too many messages! Try again after some time.',
-              )
-            }
+            onError={err => props.setSendError(err.message)}
           >
             {(commit, status) => (
               <LoadingButton
