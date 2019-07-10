@@ -26,6 +26,59 @@ type pendingReq struct {
 }
 type pendingList struct{ head, tail *pendingReq }
 
+func (list *pendingList) newReq() *pendingReq {
+	req := &pendingReq{
+		lockCh: make(chan bool),
+		prev:   list.tail,
+	}
+
+	if list.head == nil {
+		list.head, list.tail = req, req
+	} else {
+		list.tail.next, list.tail = req, req
+	}
+
+	return req
+}
+func (list *pendingList) remove(req *pendingReq) bool {
+	if list.head == req {
+		list.head = req.next
+		return true
+	}
+
+	if list.tail == req {
+		list.tail = req.prev
+		if req.prev != nil {
+			req.prev.next = nil
+		}
+		return true
+	}
+
+	if req.next != nil {
+		req.next.prev = req.prev
+	}
+	if req.prev != nil {
+		req.prev.next = req.next
+		return true
+	}
+
+	return false
+}
+
+func (list *pendingList) pop() *pendingReq {
+	if list == nil || list.head == nil {
+		return nil
+	}
+
+	req := list.head
+	list.head, req.next = req.next, nil
+	if list.head != nil {
+		list.head.prev = nil
+	}
+
+	return req
+}
+
 func newConcurrencyLimiter(maxLock, maxQueue int) *concurrencyLimiter {
 	return &concurrencyLimiter{
 		maxLock:    maxLock,
@@ -59,40 +112,18 @@ func (l *concurrencyLimiter) Lock(ctx context.Context, id string) (err error) {
 	}
 
 	// need to queue
-	req := &pendingReq{
-		lockCh: make(chan bool),
-		prev:   list.tail,
-	}
-	if list.head == nil {
-		list.head, list.tail = req, req
-	} else {
-		list.tail.next = req
-		list.tail = req
-	}
+	req := list.newReq()
 	l.queueCount[id]++
 	l.mx.Unlock()
 
-	cancel := func() {
-		close(req.lockCh)
-		l.mx.Lock()
-		if req.prev != nil {
-			req.prev.next = req.next
-		}
-		if req.next != nil {
-			l.queueCount[id]--
-			req.next.prev = req.prev
-		}
-		if list.head == req {
-			list.head = req.next
-		}
-		if list.tail == req {
-			list.tail = req.prev
-		}
-		l.mx.Unlock()
-	}
 	select {
 	case <-ctx.Done():
-		cancel()
+		close(req.lockCh)
+		l.mx.Lock()
+		if list.remove(req) {
+			l.queueCount[id]--
+		}
+		l.mx.Unlock()
 		return ctx.Err()
 	case req.lockCh <- true:
 	}
@@ -109,19 +140,13 @@ func (l *concurrencyLimiter) Unlock(id string) {
 		panic("not locked")
 	}
 	list := l.pending[id]
-	if list == nil || list.head == nil {
-		l.lockCount[id]--
-		l.mx.Unlock()
-		return
-	}
-
-	for list.head != nil {
-		head := list.head
-		list.head = head.next
-		list.head.prev = nil
-		head.next = nil
+	for {
+		req := list.pop()
+		if req == nil {
+			break
+		}
 		l.queueCount[id]--
-		if <-head.lockCh {
+		if <-req.lockCh {
 			// keep lock count
 			l.mx.Unlock()
 			return
