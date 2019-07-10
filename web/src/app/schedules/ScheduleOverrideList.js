@@ -142,7 +142,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
             mapDataNode={n => ({
               title: n.addUser ? n.addUser.name : n.removeUser.name,
               subText: subText(n),
-              avatar: (
+              icon: (
                 <UserAvatar
                   userID={n.addUser ? n.addUser.id : n.removeUser.id}
                 />
