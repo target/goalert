@@ -55,12 +55,14 @@ declare global {
     name: string
     description: string
     timeZone: string
+    isFavorite: boolean
   }
 
   interface ScheduleOptions {
     name?: string
     description?: string
     timeZone?: string
+    isFavorite?: boolean
   }
 }
 
@@ -110,6 +112,7 @@ function setScheduleTarget(
       name
       description
       timeZone
+      isFavorite
       target(input: $tgt) {
         target {id, name, type}
         rules {
@@ -142,32 +145,28 @@ function setScheduleTarget(
 }
 
 function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
-  const query = `mutation createSchedule($input: CreateAllInput!){
-          createAll(input: $input) {
-            schedules {
-              id
-              name
-              description
-              timeZone: time_zone
-            }
-          }
-      }`
+  const query = `mutation createSchedule($input: CreateScheduleInput!){
+      createSchedule(input: $input) {
+        id
+        name
+        description
+        timeZone
+        isFavorite
+      }
+    }`
 
   if (!sched) sched = {}
 
   return cy
-    .graphql(query, {
+    .graphql2(query, {
       input: {
-        schedules: [
-          {
-            name: sched.name || 'SM Sched ' + c.word({ length: 8 }),
-            description: sched.description || c.sentence(),
-            time_zone: sched.timeZone || 'America/Chicago',
-          },
-        ],
+        name: sched.name || 'SM Sched ' + c.word({ length: 8 }),
+        description: sched.description || c.sentence(),
+        timeZone: sched.timeZone || 'America/Chicago',
+        favorite: sched.isFavorite,
       },
     })
-    .then(res => res.createAll.schedules[0])
+    .then(res => res.createSchedule)
 }
 
 const fmtTime = (str: any) => {

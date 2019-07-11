@@ -83,7 +83,7 @@
     "graphql": "^14.3.1",
     "graphql-tag": "2.10.1",
     "history": "^4.7.2",
-    "lodash-es": "^4.17.10",
+    "lodash-es": "4.17.14",
     "luxon": "1.16.0",
     "mdi-material-ui": "6.0.0",
     "moment": "^2.22.2",
