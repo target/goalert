@@ -149,7 +149,6 @@ export class PaginatedList extends React.PureComponent {
         subText: p.string,
         isFavorite: p.bool,
         icon: p.element, // renders a list item icon (or avatar)
-        avatar: p.element, // renders a list item avatar with a backdrop
         action: p.element,
       }),
     ),
