@@ -12,7 +12,8 @@
       "bin/goalert",
       "-l=localhost:3042",
       "--db-url=postgres://postgres@localhost:5433/postgres?sslmode=disable",
-      "--slack-base-url=http://localhost:3040/slack"
+      "--slack-base-url=http://localhost:3040/slack",
+      "--log-errors-only"
     ],
     "Dir": "web/src",
     "Restart": true,
@@ -88,9 +89,11 @@
     },
     "Command": [
       "./node_modules/.bin/cypress",
-      "open",
+      "$CY_ACTION",
       "--config",
-      "baseUrl=http://localhost:3040"
+      "baseUrl=http://localhost:3040",
+      "--browser",
+      "$CY_BROWSER"
     ],
     "Env": [
       "CYPRESS_DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable"

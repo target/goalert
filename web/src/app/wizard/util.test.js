@@ -37,6 +37,7 @@ describe('wizard tests', () => {
       name: 'Test Primary Schedule',
       description,
       timeZone: usersSchedules.primarySchedule.timeZone,
+      favorite: true,
     })
   })
 
@@ -45,6 +46,7 @@ describe('wizard tests', () => {
       name: 'Test Secondary Schedule',
       description,
       timeZone: usersSchedules.secondarySchedule.timeZone,
+      favorite: true,
     })
   })
 

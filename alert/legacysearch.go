@@ -87,7 +87,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Al
 		validate.Range("Limit", opts.Limit, 15, 50),
 		validate.Range("Offset", opts.Offset, 0, 1000000),
 		validate.OneOf("SortBy", opts.SortBy, SortByID, SortByStatus, SortByCreatedTime, SortBySummary, SortByServiceName),
-		validate.Text("Search", opts.Search, 0, 250),
+		validate.Search("Search", opts.Search),
 	)
 	if opts.FavoriteServicesOnlyUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoriteServicesOnlyUserID", opts.FavoriteServicesOnlyUserID))
