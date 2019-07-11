@@ -61,7 +61,11 @@ export default class DialogTitleWrapper extends Component {
         <AppBar position='sticky' style={{ marginBottom: '1em' }}>
           <Toolbar>
             {closeButton}
-            <Typography color='inherit' style={{ fontSize: '1.2em', flex: 1 }}>
+            <Typography
+              component='h2'
+              color='inherit'
+              style={{ fontSize: '1.2em', flex: 1 }}
+            >
               {title}
             </Typography>
             {toolbarItems}
@@ -72,7 +76,11 @@ export default class DialogTitleWrapper extends Component {
     } else {
       return (
         <React.Fragment>
-          <DialogTitle key='title'>{title}</DialogTitle>
+          <DialogTitle disableTypography key='title'>
+            <Typography component='h2' className={classes.dialogTitle}>
+              {title}
+            </Typography>
+          </DialogTitle>
           {menu}
         </React.Fragment>
       )

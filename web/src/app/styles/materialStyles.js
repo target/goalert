@@ -115,4 +115,11 @@ export const styles = theme => ({
   mobileGridSpacing: {
     marginBottom: '1em',
   },
+  dialogTitle: {
+    fontSize: '1.25rem',
+    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+    fontWeight: 500,
+    lineHeight: 1.6,
+    letterSpacing: '0.0075em',
+  },
 })
