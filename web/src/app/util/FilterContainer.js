@@ -53,7 +53,6 @@ export default class FilterContainer extends React.PureComponent {
             onClick={() =>
               this.setState({
                 anchorEl: null,
-                ariaExpanded: Boolean(!this.state.anchorEl),
               })
             }
           >
@@ -72,7 +71,6 @@ export default class FilterContainer extends React.PureComponent {
           onClick={e =>
             this.setState({
               anchorEl: e.target,
-              ariaExpanded: Boolean(!this.state.anchorEl),
             })
           }
           title='filter'
@@ -90,7 +88,6 @@ export default class FilterContainer extends React.PureComponent {
             onClose={() =>
               this.setState({
                 anchorEl: null,
-                ariaExpanded: Boolean(!this.state.anchorEl),
               })
             }
             anchorOrigin={{
@@ -117,7 +114,6 @@ export default class FilterContainer extends React.PureComponent {
             onClose={() =>
               this.setState({
                 anchorEl: null,
-                ariaExpanded: Boolean(!this.state.anchorEl),
               })
             }
             onOpen={() => {}}

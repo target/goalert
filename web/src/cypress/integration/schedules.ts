@@ -89,8 +89,8 @@ function testSchedules(screen: ScreenFormat) {
 
       // verify changes occurred
       cy.reload()
-      cy.get('h2').contains(newName)
-      cy.get('div[data-cy=details]').contains(newDesc)
+      cy.get('[data-cy=details-heading]').contains(newName)
+      cy.get('[data-cy=details]').contains(newDesc)
       cy.get('[data-cy=time-zone]').contains(newTz)
     })
 
