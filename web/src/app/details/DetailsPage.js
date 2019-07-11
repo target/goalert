@@ -37,13 +37,6 @@ const styles = theme => ({
     lineHeight: 1.33,
     letterSpacing: '0em',
   },
-  detailsSubtitle: {
-    fontSize: '1rem',
-    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: 400,
-    lineHeight: 1.75,
-    letterSpacing: '0.00938em',
-  },
 })
 
 const mapStateToProps = state => {
@@ -145,12 +138,12 @@ export default class DetailsPage extends React.PureComponent {
               <Typography
                 data-cy='details'
                 component='div'
-                className={classes.detailsSubtitle}
+                className={classes.smallestSubtitle}
               >
                 <Markdown value={details} />
               </Typography>
               {titleFooter && (
-                <Typography className={classes.detailsSubtitle}>
+                <Typography className={classes.smallestSubtitle}>
                   {titleFooter}
                 </Typography>
               )}

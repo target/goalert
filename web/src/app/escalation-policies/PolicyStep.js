@@ -34,6 +34,13 @@ const styles = {
     alignItems: 'center',
     height: 'fit-content',
   },
+  policyStepSubtitle: {
+    fontSize: '1rem',
+    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+    fontWeight: 400,
+    lineHeight: 1.75,
+    letterSpacing: '0.00938em',
+  },
 }
 
 @connect(
@@ -117,7 +124,7 @@ export default class PolicyStep extends Component {
    * repeats, and if the message is rendering on the last step
    */
   renderDelayMessage = () => {
-    const { repeat, step, steps } = this.props
+    const { repeat, step, steps, classes } = this.props
     const len = steps.length
     const isLastStep = this.getStepNumber(step.id) === len
 
@@ -142,7 +149,11 @@ export default class PolicyStep extends Component {
       } minute${pluralizer(step.delayMinutes)}`
     }
 
-    return <Typography variant='caption'>{repeatText}</Typography>
+    return (
+      <Typography className={classes.policyStepSubtitle}>
+        {repeatText}
+      </Typography>
+    )
   }
 
   render() {
@@ -160,8 +171,8 @@ export default class PolicyStep extends Component {
         <ListItem id={index}>
           <Grid container spacing={2}>
             <Grid item className={classes.centerFlex}>
-              <Typography variant='subtitle1'>
-                <strong>Step #{this.getStepNumber(step.id)}:</strong>
+              <Typography variant='h4' className={classes.policyStepSubtitle}>
+                <b>Step #{this.getStepNumber(step.id)}:</b>
               </Typography>
             </Grid>
             <Grid item xs={10}>
