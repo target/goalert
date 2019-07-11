@@ -56,6 +56,21 @@ export default class UserContactMethodList extends React.PureComponent {
   renderList(contactMethods) {
     const { readOnly } = this.props
 
+    const getIcon = cm => {
+      if (cm.disabled && readOnly) {
+        return <Warning title='Contact method disabled' />
+      } else if (cm.disabled && !readOnly) {
+        return (
+          <ReactivateButton
+            ButtonComponent={IconButton}
+            buttonChild={<Warning title='Contact method disabled' />}
+            contactMethodID={cm.id}
+            disabled={readOnly}
+          />
+        )
+      }
+    }
+
     return (
       <Grid item xs={12}>
         <Card>
@@ -63,7 +78,9 @@ export default class UserContactMethodList extends React.PureComponent {
           <FlatList
             data-cy='contact-methods'
             items={sortContactMethods(contactMethods).map(cm => ({
-              title: `${cm.name} (${cm.type})`,
+              title: `${cm.name} (${cm.type})${
+                cm.disabled ? ' - Disabled' : ''
+              }`,
               subText: formatCMValue(cm.type, cm.value),
               secondaryAction: readOnly ? null : <Actions contactMethod={cm} />,
               tertiaryAction:
@@ -74,16 +91,7 @@ export default class UserContactMethodList extends React.PureComponent {
                     contactMethodID={cm.id}
                   />
                 ) : null,
-              icon:
-                cm.disabled && !readOnly ? (
-                  <ReactivateButton
-                    ButtonComponent={IconButton}
-                    buttonChild={
-                      <Warning aria-label='Contact method disabled' />
-                    }
-                    contactMethodID={cm.id}
-                  />
-                ) : null,
+              icon: getIcon(cm),
             }))}
             emptyMessage='No contact methods'
           />
@@ -106,22 +114,24 @@ export default class UserContactMethodList extends React.PureComponent {
 }
 
 function ReactivateButton(props) {
+  const { contactMethodID, ButtonComponent, buttonChild, ...rest } = props
   const [showVerifyDialog, setShowVerifyDialog] = useState(false)
 
   return (
     <React.Fragment>
-      <props.ButtonComponent
+      <ButtonComponent
         data-cy='cm-disabled'
         aria-label='Reactivate contact method'
         onClick={() => setShowVerifyDialog(true)}
         variant='contained'
         color='primary'
+        {...rest}
       >
-        {props.buttonChild}
-      </props.ButtonComponent>
+        {buttonChild}
+      </ButtonComponent>
       {showVerifyDialog && (
         <UserContactMethodVerificationDialog
-          contactMethodID={props.contactMethodID}
+          contactMethodID={contactMethodID}
           onClose={() => setShowVerifyDialog(false)}
         />
       )}
