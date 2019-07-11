@@ -571,7 +571,8 @@ iBZNuBhwLm3bIqKVzlUZcqpVkpOoWxnXc2MfLKP5I3QxP7-cXF9M-izH0JSrN7ORD4KpM8bz0X60xslj
 Su0vJRl8pnNKVQPJFkESf3J1Llfc12vI2q1pM7mQ5MnAJ6kpFKgWRCQwzFScSnMOkd5RddOMNKXSaRXV
 40uCpIm5VmFicbEgaDqR4GfGLIGYRPvkYQ_NJzKUfaaqXpS6NAIHFL5GQtWB120o5UBol9gI4_OTMzVC
 8ealMs5ARkgyaZhxMkZ4FZrQbTwZVGTjTgRL8KYDGEST2fhETCd9iYs3PHjF5iWboRpAxalk4IDTZQ_M
-A1hmsGy6UNrUGfO_AAAA__9VDOr7HSMEAA==
+A1hmsGy6UNrUGVNrjyGrZupDsLjecW4xvPcMUlHS2FO3DFKaI28ZtNrAWwYp0dn_AgAA__-r0F9hhCQE
+AA==
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -587,7 +588,7 @@ A1hmsGy6UNrUGfO_AAAA__9VDOr7HSMEAA==
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(44992)
+				buf.Grow(45041)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -785,5 +786,6 @@ A1hmsGy6UNrUGfO_AAAA__9VDOr7HSMEAA==
 		{Data: dataRange(267892, 268985), Name: "migrations/20190613120345-drop-switchover-resources.sql"},
 		{Data: dataRange(268985, 269442), Name: "migrations/20190701111645-add-rotation-favorite.sql"},
 		{Data: dataRange(269442, 271133), Name: "migrations/20190701130233-verification-codes-update.sql"},
+		{Data: dataRange(271133, 271492), Name: "migrations/20190702161722-add-schedule-favorites.sql"},
 	}
 }

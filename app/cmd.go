@@ -53,6 +53,9 @@ var RootCmd = &cobra.Command{
 		if viper.GetBool("verbose") {
 			log.EnableVerbose()
 		}
+		if viper.GetBool("log-errors-only") {
+			log.ErrorsOnly()
+		}
 
 		err := viper.ReadInConfig()
 		// ignore file not found error
@@ -558,6 +561,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose logging.")
 	RootCmd.Flags().Bool("log-requests", false, "Log all HTTP requests. If false, requests will be logged for debug/trace contexts only.")
 	RootCmd.PersistentFlags().Bool("json", false, "Log in JSON format.")
+	RootCmd.PersistentFlags().Bool("log-errors-only", false, "Only log errors (superseeds other flags).")
 
 	RootCmd.Flags().String("ui-url", "", "Proxy UI requests to an alternate host. Default is to serve bundled assets from memory.")
 	RootCmd.Flags().Bool("disable-https-redirect", false, "Disable automatic HTTPS redirects.")

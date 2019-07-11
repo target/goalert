@@ -31,6 +31,23 @@ function testFavorites(screen: ScreenFormat) {
         .pageFab()
         .get('input[name=rotations]'),
   )
+
+  check(
+    'Schedule',
+    'schedules',
+    (name: string, isFavorite: boolean) =>
+      cy.createSchedule({ name, isFavorite }).then(sched => sched.id),
+    () =>
+      cy
+        .createEP()
+        .then(e => {
+          return cy.visit(`/escalation-policies/${e.id}`)
+        })
+        .pageFab()
+        .get('[data-cy="schedules-step"]')
+        .click()
+        .get('input[name=schedules]'),
+  )
 }
 
 function check(

@@ -77,7 +77,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]Se
 		return nil, err
 	}
 
-	err = validate.Text("Search", opts.Search, 0, 250)
+	err = validate.Search("Search", opts.Search)
 	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
 		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
 	}

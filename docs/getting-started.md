@@ -159,10 +159,10 @@ The **API Key** may be found under the **Security** section in the Mailgun websi
 
 To configure Mailgun to forward to GoAlert:
 
-1. Go to **Routes**
+1. Go to **Receiving**
 1. Click **Create Route**
 1. Set **Expression Type** to `Match Recipient`
-1. Set **Recipient** to `*@<Mailgun.Email Domain>`
+1. Set **Recipient** to `.*@<Mailgun.Email Domain>`
 1. Check **Forward**
 1. In the forward box, enter `<General.Public URL>/api/v2/mailgun/incoming`
 1. Click **Create Route**
