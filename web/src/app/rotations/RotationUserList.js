@@ -65,7 +65,7 @@ export default class RotationUserList extends React.PureComponent {
           <CardHeader
             className={classes.cardHeader}
             component='h3'
-            title='Users '
+            title='Users'
           />
           <CardContent>
             <Query
