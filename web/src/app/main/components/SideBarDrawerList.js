@@ -29,7 +29,6 @@ import { authLogout } from '../../actions'
 import { connect } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
-import adminSubRoutes from '../../admin/routes'
 
 const navIcons = {
   Alerts: AlertsIcon,
@@ -136,10 +135,10 @@ export default class SideBarDrawerList extends React.PureComponent {
         parentIcon={navIcons[cfg.title]}
         parentTitle={cfg.title}
         unActiveClass={null}
-        activeClass={null}
+        activeClass={this.props.classes.navSelected}
         path={getPath(cfg)}
         key={null}
-        subMenuRoutes={adminSubRoutes}
+        subMenuRoutes={cfg.subRoutes}
       >
         {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
       </NavSubMenu>
