@@ -40,17 +40,31 @@ func (list *pendingList) newReq() *pendingReq {
 
 	return req
 }
+
 func (list *pendingList) remove(req *pendingReq) bool {
+	if req == nil || list == nil {
+		return false
+	}
+
+	defer func() { req.prev, req.next = nil, nil }()
+
 	if list.head == req {
 		list.head = req.next
+		if list.head != nil {
+			list.head.prev = nil
+		}
+		if list.tail == req {
+			list.tail = nil
+		}
 		return true
 	}
 
 	if list.tail == req {
 		list.tail = req.prev
-		if req.prev != nil {
-			req.prev.next = nil
+		if list.tail != nil {
+			list.tail.next = nil
 		}
+
 		return true
 	}
 
@@ -66,15 +80,12 @@ func (list *pendingList) remove(req *pendingReq) bool {
 }
 
 func (list *pendingList) pop() *pendingReq {
-	if list == nil || list.head == nil {
+	if list == nil {
 		return nil
 	}
 
 	req := list.head
-	list.head, req.next = req.next, nil
-	if list.head != nil {
-		list.head.prev = nil
-	}
+	list.remove(req)
 
 	return req
 }

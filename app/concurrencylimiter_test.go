@@ -8,6 +8,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPendingList(t *testing.T) {
+	list := &pendingList{}
+
+	r1 := list.newReq()
+	assert.Equal(t, r1, list.pop())
+
+	r2 := list.newReq()
+	assert.Equal(t, r2, list.pop())
+	assert.Nil(t, list.head)
+	assert.Nil(t, list.tail)
+
+	assert.Nil(t, list.pop())
+
+	r3 := list.newReq()
+	r4 := list.newReq()
+	r5 := list.newReq()
+
+	assert.True(t, list.remove(r4))
+	assert.Nil(t, r4.prev)
+	assert.Nil(t, r4.next)
+	assert.False(t, list.remove(r4))
+
+	assert.Equal(t, r3, list.pop())
+	assert.Equal(t, r5, list.pop())
+	assert.Nil(t, list.head)
+	assert.Nil(t, list.tail)
+}
+
 func TestConcurrencyLimiter(t *testing.T) {
 	t.Run("lock count", func(t *testing.T) {
 		lim := newConcurrencyLimiter(2, 10)
