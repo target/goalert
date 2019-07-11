@@ -45,28 +45,24 @@ export default class Options extends Component {
     errorMessage: '',
     showErrorDialog: false,
     showOptions: false,
-    ariaExpanded: false,
   }
 
   handleOpenMenu = event => {
     this.setState({
       anchorEl: event.currentTarget,
       show: true,
-      ariaExpanded: true,
     })
   }
 
   handleCloseMenu = () => {
     this.setState({
       show: false,
-      ariaExpanded: false,
     })
   }
 
   handleShowOptions = bool => {
     this.setState({
       showOptions: bool,
-      ariaExpanded: Boolean(!this.state.showOptions),
     })
   }
 
@@ -136,7 +132,7 @@ export default class Options extends Component {
           data-cy='other-actions'
           color='inherit'
           onClick={onClick}
-          aria-expanded={this.state.ariaExpanded}
+          aria-expanded={this.state.show || this.state.showOptions}
           {...iconProps}
         />
       )
@@ -147,7 +143,7 @@ export default class Options extends Component {
           data-cy='other-actions'
           color='inherit'
           onClick={onClick}
-          aria-expanded={this.state.ariaExpanded}
+          aria-expanded={this.state.show || this.state.showOptions}
           {...iconProps}
         >
           {Icon || <OptionsIcon />}

@@ -39,7 +39,6 @@ export default class OtherActions extends React.PureComponent {
 
   state = {
     anchorEl: null,
-    ariaExpanded: false,
   }
 
   render() {
@@ -56,7 +55,7 @@ export default class OtherActions extends React.PureComponent {
             'aria-label': 'Other Actions',
             'data-cy': 'other-actions',
             color: 'inherit',
-            'aria-expanded': this.state.ariaExpanded,
+            'aria-expanded': Boolean(this.state.anchorEl),
             onClick: e => {
               onClose.cancel()
               this.setState({

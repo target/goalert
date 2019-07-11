@@ -31,7 +31,6 @@ const style = theme => {
 export default class FilterContainer extends React.PureComponent {
   state = {
     anchorEl: null,
-    ariaExpanded: false,
   }
 
   renderContent() {
@@ -54,7 +53,7 @@ export default class FilterContainer extends React.PureComponent {
             onClick={() =>
               this.setState({
                 anchorEl: null,
-                ariaExpanded: !this.state.ariaExpanded,
+                ariaExpanded: Boolean(!this.state.anchorEl),
               })
             }
           >
@@ -77,7 +76,7 @@ export default class FilterContainer extends React.PureComponent {
             })
           }
           title='filter'
-          aria-expanded={this.state.ariaExpanded}
+          aria-expanded={Boolean(this.state.anchorEl)}
         >
           <FilterList />
         </IconButton>
