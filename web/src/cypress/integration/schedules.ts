@@ -91,7 +91,7 @@ function testSchedules(screen: ScreenFormat) {
       cy.reload()
       cy.get('[data-cy=details-heading]').contains(newName)
       cy.get('[data-cy=details]').contains(newDesc)
-      cy.get('[data-cy=time-zone]').contains(newTz)
+      cy.get('[data-cy=title-footer]').contains(newTz)
     })
 
     it('should navigate to and from assignments', () => {

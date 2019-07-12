@@ -25,7 +25,6 @@ const useStyles = makeStyles({
       color: '#CD1931',
       backgroundColor: '#ffffff',
       borderRadius: '3px',
-      boxShadow: '0 0 2px 2px rgba(0, 0, 0, 0.6)',
     },
   },
 })
