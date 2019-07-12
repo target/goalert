@@ -18,7 +18,6 @@ import (
 )
 
 const minTimeBetweenTests = time.Minute
-const minTimeBetweenTestsFmt = "1 minute"
 
 type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
@@ -241,7 +240,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 		return err
 	}
 	if rows != 1 {
-		return validation.NewFieldError("ContactMethod", fmt.Sprintf("Too many messages! Please try again in %s.", minTimeBetweenTestsFmt))
+		return validation.NewFieldError("ContactMethod", fmt.Sprintf("Too many messages! Please try again in %.0f minute(s)", minTimeBetweenTests.Minutes()))
 	}
 
 	vcID := uuid.NewV4().String()

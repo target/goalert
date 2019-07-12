@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
@@ -6,8 +6,6 @@ import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
 import { formatCMValue, sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
-import { Mutation } from 'react-apollo'
-import { graphql2Client } from '../apollo'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import ListItem from '@material-ui/core/ListItem'
@@ -15,6 +13,8 @@ import ListItemText from '@material-ui/core/ListItemText'
 import { Config } from '../util/RequireConfig'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
+import { makeStyles } from '@material-ui/core/styles'
+import { useMutation } from '@apollo/react-hooks'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -37,40 +37,96 @@ const testCM = gql`
   }
 `
 
-export default class UserContactMethodList extends React.PureComponent {
-  static propTypes = {
-    userID: p.string.isRequired,
-    readOnly: p.bool,
+const useStyles = makeStyles({
+  actionGrid: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+})
+
+export default function UserContactMethodList(props) {
+  const classes = useStyles()
+
+  const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
+  const [showEditDialogByID, setShowEditDialogByID] = useState(null)
+  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
+  const [testID, setTestID] = useState(null)
+
+  const [sendTest] = useMutation(testCM, {
+    variables: {
+      id: testID,
+    },
+  })
+
+  // send test to CM after testID is set
+  useEffect(() => {
+    if (testID) {
+      sendTest().catch(err => console.error(err.message))
+    }
+  }, [testID])
+
+  const getIcon = cm => {
+    if (cm.disabled && props.readOnly) {
+      return <Warning title='Contact method disabled' />
+    } else if (cm.disabled && !props.readOnly) {
+      return (
+        <IconButton
+          aria-label='Reactivate contact method'
+          onClick={() => setShowVerifyDialogByID(cm.id)}
+          variant='contained'
+          color='primary'
+          disabled={props.readOnly}
+        >
+          <Warning title='Contact method disabled' />
+        </IconButton>
+      )
+    }
   }
 
-  render() {
+  function getActionMenuItems(cm) {
+    let actions = [
+      { label: 'Edit', onClick: () => setShowEditDialogByID(cm.id) },
+      {
+        label: 'Delete',
+        onClick: () => setShowDeleteDialogByID(cm.id),
+      },
+    ]
+
+    if (!cm.disabled) {
+      actions.push({
+        label: 'Send Test',
+        onClick: () => setTestID(cm.id),
+      })
+    }
+
+    return actions
+  }
+
+  const getSecondaryAction = cm => {
     return (
-      <Query
-        query={query}
-        variables={{ id: this.props.userID }}
-        render={({ data }) => this.renderList(data.user.contactMethods)}
-      />
+      <Grid container spacing={2} className={classes.actionGrid}>
+        {cm.disabled && !props.readOnly && (
+          <Grid item>
+            <Button
+              aria-label='Reactivate contact method'
+              onClick={() => setShowVerifyDialogByID(cm.id)}
+              variant='contained'
+              color='primary'
+            >
+              Reactivate
+            </Button>
+          </Grid>
+        )}
+        {!props.readOnly && (
+          <Grid item>
+            <OtherActions actions={getActionMenuItems(cm)} />
+          </Grid>
+        )}
+      </Grid>
     )
   }
 
-  renderList(contactMethods) {
-    const { readOnly } = this.props
-
-    const getIcon = cm => {
-      if (cm.disabled && readOnly) {
-        return <Warning title='Contact method disabled' />
-      } else if (cm.disabled && !readOnly) {
-        return (
-          <ReactivateButton
-            ButtonComponent={IconButton}
-            buttonChild={<Warning title='Contact method disabled' />}
-            contactMethodID={cm.id}
-            disabled={readOnly}
-          />
-        )
-      }
-    }
-
+  function renderList(contactMethods) {
     return (
       <Grid item xs={12}>
         <Card>
@@ -82,22 +138,32 @@ export default class UserContactMethodList extends React.PureComponent {
                 cm.disabled ? ' - Disabled' : ''
               }`,
               subText: formatCMValue(cm.type, cm.value),
-              secondaryAction: readOnly ? null : <Actions contactMethod={cm} />,
-              tertiaryAction:
-                cm.disabled && !readOnly ? (
-                  <ReactivateButton
-                    ButtonComponent={Button}
-                    buttonChild='Reactivate'
-                    contactMethodID={cm.id}
-                  />
-                ) : null,
+              secondaryAction: getSecondaryAction(cm),
               icon: getIcon(cm),
             }))}
             emptyMessage='No contact methods'
           />
+          {showVerifyDialogByID && (
+            <UserContactMethodVerificationDialog
+              contactMethodID={showVerifyDialogByID}
+              onClose={() => setShowVerifyDialogByID(null)}
+            />
+          )}
+          {showEditDialogByID && (
+            <UserContactMethodEditDialog
+              contactMethodID={showEditDialogByID}
+              onClose={() => setShowEditDialogByID(null)}
+            />
+          )}
+          {showDeleteDialogByID && (
+            <UserContactMethodDeleteDialog
+              contactMethodID={showDeleteDialogByID}
+              onClose={() => setShowDeleteDialogByID(null)}
+            />
+          )}
           <Config>
             {cfg =>
-              !this.props.readOnly &&
+              !props.readOnly &&
               cfg['General.NotificationDisclaimer'] && (
                 <ListItem>
                   <ListItemText
@@ -111,90 +177,17 @@ export default class UserContactMethodList extends React.PureComponent {
       </Grid>
     )
   }
-}
-
-function ReactivateButton(props) {
-  const { contactMethodID, ButtonComponent, buttonChild, ...rest } = props
-  const [showVerifyDialog, setShowVerifyDialog] = useState(false)
 
   return (
-    <React.Fragment>
-      <ButtonComponent
-        data-cy='cm-disabled'
-        aria-label='Reactivate contact method'
-        onClick={() => setShowVerifyDialog(true)}
-        variant='contained'
-        color='primary'
-        {...rest}
-      >
-        {buttonChild}
-      </ButtonComponent>
-      {showVerifyDialog && (
-        <UserContactMethodVerificationDialog
-          contactMethodID={contactMethodID}
-          onClose={() => setShowVerifyDialog(false)}
-        />
-      )}
-    </React.Fragment>
+    <Query
+      query={query}
+      variables={{ id: props.userID }}
+      render={({ data }) => renderList(data.user.contactMethods)}
+    />
   )
 }
 
-ReactivateButton.propTypes = {
-  contactMethodID: p.string.isRequired,
-  ButtonComponent: p.object.isRequired,
-  buttonChild: p.node.isRequired,
-}
-
-function Actions(props) {
-  const { disabled, id } = props.contactMethod
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-
-  function getActions(commit) {
-    let actions = [
-      { label: 'Edit', onClick: () => setShowEditDialog(true) },
-      {
-        label: 'Delete',
-        onClick: () => setShowDeleteDialog(true),
-      },
-    ]
-
-    if (!disabled) {
-      actions.push({
-        label: 'Send Test',
-        onClick: () => commit(),
-      })
-    }
-
-    return actions
-  }
-
-  return (
-    <Mutation mutation={testCM} client={graphql2Client} variables={{ id }}>
-      {commit => (
-        <React.Fragment>
-          <OtherActions actions={getActions(commit)} />
-          {showEditDialog && (
-            <UserContactMethodEditDialog
-              contactMethodID={id}
-              onClose={() => setShowEditDialog(false)}
-            />
-          )}
-          {showDeleteDialog && (
-            <UserContactMethodDeleteDialog
-              contactMethodID={id}
-              onClose={() => setShowDeleteDialog(false)}
-            />
-          )}
-        </React.Fragment>
-      )}
-    </Mutation>
-  )
-}
-
-Actions.propTypes = {
-  contactMethod: p.shape({
-    id: p.string.isRequired,
-    disabled: p.bool.isRequired,
-  }).isRequired,
+UserContactMethodList.propTypes = {
+  userID: p.string.isRequired,
+  readOnly: p.bool,
 }

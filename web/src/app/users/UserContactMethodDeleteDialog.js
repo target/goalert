@@ -22,6 +22,7 @@ export default class UserContactMethodDeleteDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         client={graphql2Client}
+        onCompleted={this.props.onClose}
         awaitRefetchQueries
         refetchQueries={['nrList', 'cmList']}
       >
