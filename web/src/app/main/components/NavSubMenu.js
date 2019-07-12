@@ -15,7 +15,8 @@ const useStyles = makeStyles(theme => {
   return {
     nav,
     subMenu: {
-      backgroundColor: '#616161',
+      backgroundColor: theme.palette.primary['500'],
+      padding: '0',
     },
     link: {
       textDecoration: 'none',
@@ -31,10 +32,6 @@ const useStyles = makeStyles(theme => {
     subMenuLinkText: {
       paddingLeft: '3rem',
     },
-    navSelected: {
-      backgroundColor: '#ebebeb',
-      borderRight: '3px solid ' + theme.palette.primary['500'],
-    },
     subMenuSelected: {
       color: '#616161',
       backgroundColor: '#ebebeb',
@@ -44,7 +41,7 @@ const useStyles = makeStyles(theme => {
 })
 
 export default function NavSubMenu(props) {
-  const { parentIcon, parentTitle, path, key, subMenuRoutes } = props
+  const { parentIcon, parentTitle, path, subMenuRoutes } = props
   const [open, setOpen] = useState(false)
   const classes = useStyles()
 
@@ -99,13 +96,7 @@ export default function NavSubMenu(props) {
   }
   return (
     <React.Fragment>
-      <NavLink
-        key={key}
-        to={path}
-        className={classes.nav}
-        activeClassName={classes.navSelected}
-        isActive={activeLink}
-      >
+      <NavLink to={path} className={classes.nav} isActive={activeLink}>
         {renderParentLink(parentIcon, parentTitle)}
       </NavLink>
       <Collapse in={open} timeout='auto' unmountOnExit>

@@ -134,10 +134,7 @@ export default class SideBarDrawerList extends React.PureComponent {
       <NavSubMenu
         parentIcon={navIcons[cfg.title]}
         parentTitle={cfg.title}
-        unActiveClass={null}
-        activeClass={this.props.classes.navSelected}
         path={getPath(cfg)}
-        key={null}
         subMenuRoutes={cfg.subRoutes}
       >
         {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
@@ -174,14 +171,29 @@ export default class SideBarDrawerList extends React.PureComponent {
 
         {routeConfig
           .filter(cfg => cfg.nav !== false)
-          .map((cfg, idx) =>
-            this.renderSidebarNavLink(
-              navIcons[cfg.title],
-              getPath(cfg),
-              cfg.title,
-              idx,
-            ),
-          )}
+          .map((cfg, idx) => {
+            if (cfg.subRoutes) {
+              return (
+                <React.Fragment key={idx}>
+                  <NavSubMenu
+                    parentIcon={navIcons[cfg.title]}
+                    parentTitle={cfg.title}
+                    path={getPath(cfg)}
+                    subMenuRoutes={cfg.subRoutes}
+                  >
+                    {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
+                  </NavSubMenu>
+                </React.Fragment>
+              )
+            } else {
+              return this.renderSidebarNavLink(
+                navIcons[cfg.title],
+                getPath(cfg),
+                cfg.title,
+                idx,
+              )
+            }
+          })}
 
         <RequireConfig isAdmin>
           <Divider />
