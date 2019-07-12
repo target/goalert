@@ -15,6 +15,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import { Config } from '../util/RequireConfig'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
+import withStyles from '@material-ui/core/styles/withStyles'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -37,6 +38,14 @@ const testCM = gql`
   }
 `
 
+const styles = {
+  actionGrid: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+}
+
+@withStyles(styles)
 export default class UserContactMethodList extends React.PureComponent {
   static propTypes = {
     userID: p.string.isRequired,
@@ -71,6 +80,27 @@ export default class UserContactMethodList extends React.PureComponent {
       }
     }
 
+    const getSecondaryAction = cm => {
+      return (
+        <Grid container spacing={2} className={this.props.classes.actionGrid}>
+          {cm.disabled && !readOnly && (
+            <Grid item>
+              <ReactivateButton
+                ButtonComponent={Button}
+                buttonChild='Reactivate'
+                contactMethodID={cm.id}
+              />
+            </Grid>
+          )}
+          {!readOnly && (
+            <Grid item>
+              <Actions contactMethod={cm} />
+            </Grid>
+          )}
+        </Grid>
+      )
+    }
+
     return (
       <Grid item xs={12}>
         <Card>
@@ -82,15 +112,7 @@ export default class UserContactMethodList extends React.PureComponent {
                 cm.disabled ? ' - Disabled' : ''
               }`,
               subText: formatCMValue(cm.type, cm.value),
-              secondaryAction: readOnly ? null : <Actions contactMethod={cm} />,
-              tertiaryAction:
-                cm.disabled && !readOnly ? (
-                  <ReactivateButton
-                    ButtonComponent={Button}
-                    buttonChild='Reactivate'
-                    contactMethodID={cm.id}
-                  />
-                ) : null,
+              secondaryAction: getSecondaryAction(cm),
               icon: getIcon(cm),
             }))}
             emptyMessage='No contact methods'

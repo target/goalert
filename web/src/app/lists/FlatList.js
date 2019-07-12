@@ -1,6 +1,5 @@
 import React from 'react'
 import p from 'prop-types'
-import Grid from '@material-ui/core/Grid'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -15,10 +14,6 @@ import { absURLSelector } from '../selectors'
 import { connect } from 'react-redux'
 
 const styles = {
-  actionGrid: {
-    display: 'flex',
-    alignItems: 'center',
-  },
   background: { backgroundColor: 'white' },
   highlightedItem: {
     borderLeft: '6px solid #93ed94',
@@ -52,7 +47,6 @@ export default class FlatList extends React.PureComponent {
           title: p.node.isRequired,
           subText: p.node,
           secondaryAction: p.element,
-          tertiaryAction: p.element, // an element to be placed to the left of the secondary action
           url: p.string,
           icon: p.element, // renders a list item icon (or avatar)
           id: p.string, // required for drag and drop
@@ -111,16 +105,9 @@ export default class FlatList extends React.PureComponent {
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
         />
-        {(item.secondaryAction || item.tertiaryAction) && (
+        {item.secondaryAction && (
           <ListItemSecondaryAction>
-            <Grid
-              container
-              spacing={2}
-              className={this.props.classes.actionGrid}
-            >
-              {item.tertiaryAction && <Grid item>{item.tertiaryAction}</Grid>}
-              {item.secondaryAction && <Grid item>{item.secondaryAction}</Grid>}
-            </Grid>
+            {item.secondaryAction}
           </ListItemSecondaryAction>
         )}
       </ListItem>
