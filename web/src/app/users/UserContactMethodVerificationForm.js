@@ -55,6 +55,7 @@ export default function UserContactMethodVerificationForm(props) {
             loading={status.loading}
             disabled={props.disabled}
             buttonText={'Resend Code'}
+            noSubmit
             onClick={() =>
               sendCode().catch(err => props.setSendError(err.message))
             }
