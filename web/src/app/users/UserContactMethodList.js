@@ -52,6 +52,10 @@ export default class UserContactMethodList extends React.PureComponent {
     readOnly: p.bool,
   }
 
+  state = {
+    showVerifyDialogByID: null,
+  }
+
   render() {
     return (
       <Query
@@ -70,12 +74,15 @@ export default class UserContactMethodList extends React.PureComponent {
         return <Warning title='Contact method disabled' />
       } else if (cm.disabled && !readOnly) {
         return (
-          <ReactivateButton
-            ButtonComponent={IconButton}
-            buttonChild={<Warning title='Contact method disabled' />}
-            contactMethodID={cm.id}
+          <IconButton
+            aria-label='Reactivate contact method'
+            onClick={() => this.setState({ showVerifyDialogByID: cm.id })}
+            variant='contained'
+            color='primary'
             disabled={readOnly}
-          />
+          >
+            <Warning title='Contact method disabled' />
+          </IconButton>
         )
       }
     }
@@ -85,11 +92,14 @@ export default class UserContactMethodList extends React.PureComponent {
         <Grid container spacing={2} className={this.props.classes.actionGrid}>
           {cm.disabled && !readOnly && (
             <Grid item>
-              <ReactivateButton
-                ButtonComponent={Button}
-                buttonChild='Reactivate'
-                contactMethodID={cm.id}
-              />
+              <Button
+                aria-label='Reactivate contact method'
+                onClick={() => this.setState({ showVerifyDialogByID: cm.id })}
+                variant='contained'
+                color='primary'
+              >
+                Reactivate
+              </Button>
             </Grid>
           )}
           {!readOnly && (
@@ -117,6 +127,12 @@ export default class UserContactMethodList extends React.PureComponent {
             }))}
             emptyMessage='No contact methods'
           />
+          {this.state.showVerifyDialogByID && (
+            <UserContactMethodVerificationDialog
+              contactMethodID={this.state.showVerifyDialogByID}
+              onClose={() => this.setState({ showVerifyDialogByID: null })}
+            />
+          )}
           <Config>
             {cfg =>
               !this.props.readOnly &&
@@ -133,37 +149,6 @@ export default class UserContactMethodList extends React.PureComponent {
       </Grid>
     )
   }
-}
-
-function ReactivateButton(props) {
-  const { contactMethodID, ButtonComponent, buttonChild, ...rest } = props
-  const [showVerifyDialog, setShowVerifyDialog] = useState(false)
-
-  return (
-    <React.Fragment>
-      <ButtonComponent
-        aria-label='Reactivate contact method'
-        onClick={() => setShowVerifyDialog(true)}
-        variant='contained'
-        color='primary'
-        {...rest}
-      >
-        {buttonChild}
-      </ButtonComponent>
-      {showVerifyDialog && (
-        <UserContactMethodVerificationDialog
-          contactMethodID={contactMethodID}
-          onClose={() => setShowVerifyDialog(false)}
-        />
-      )}
-    </React.Fragment>
-  )
-}
-
-ReactivateButton.propTypes = {
-  contactMethodID: p.string.isRequired,
-  ButtonComponent: p.object.isRequired,
-  buttonChild: p.node.isRequired,
 }
 
 function Actions(props) {
