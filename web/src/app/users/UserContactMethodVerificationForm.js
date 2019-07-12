@@ -8,7 +8,7 @@ import gql from 'graphql-tag'
 import { makeStyles } from '@material-ui/core/styles'
 import { graphql2Client } from '../apollo'
 import { FormContainer, FormField } from '../forms'
-import { useMutation } from 'react-apollo-hooks'
+import { useMutation } from '@apollo/react-hooks'
 
 /*
  * Triggers sending a verification code to the specified cm
@@ -35,7 +35,7 @@ const useStyles = makeStyles({
 export default function UserContactMethodVerificationForm(props) {
   const classes = useStyles()
 
-  const sendCode = useMutation(sendVerificationCodeMutation, {
+  const [sendCode] = useMutation(sendVerificationCodeMutation, {
     // mutation options
     variables: {
       input: {
