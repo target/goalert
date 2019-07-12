@@ -3,10 +3,8 @@ import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
-import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
 import { makeStyles } from '@material-ui/core/styles'
-import { graphql2Client } from '../apollo'
 import { FormContainer, FormField } from '../forms'
 import { useMutation } from '@apollo/react-hooks'
 
@@ -36,7 +34,6 @@ export default function UserContactMethodVerificationForm(props) {
   const classes = useStyles()
 
   const [sendCode] = useMutation(sendVerificationCodeMutation, {
-    // mutation options
     variables: {
       input: {
         contactMethodID: props.contactMethodID,
@@ -53,29 +50,15 @@ export default function UserContactMethodVerificationForm(props) {
     <FormContainer optionalLabels {...props}>
       <Grid container spacing={2}>
         <Grid item className={classes.sendGridItem}>
-          <Mutation
-            client={graphql2Client}
-            mutation={sendVerificationCodeMutation}
-            onError={err => props.setSendError(err.message)}
-          >
-            {(commit, status) => (
-              <LoadingButton
-                color='primary'
-                loading={status.loading}
-                disabled={props.disabled}
-                buttonText={'Resend Code'}
-                onClick={() =>
-                  commit({
-                    variables: {
-                      input: {
-                        contactMethodID: props.contactMethodID,
-                      },
-                    },
-                  })
-                }
-              />
-            )}
-          </Mutation>
+          <LoadingButton
+            color='primary'
+            loading={status.loading}
+            disabled={props.disabled}
+            buttonText={'Resend Code'}
+            onClick={() =>
+              sendCode().catch(err => props.setSendError(err.message))
+            }
+          />
         </Grid>
         <Grid item className={classes.fieldGridItem}>
           <FormField
