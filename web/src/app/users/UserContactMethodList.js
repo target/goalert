@@ -76,6 +76,7 @@ export default function UserContactMethodList(props) {
           variant='contained'
           color='primary'
           disabled={props.readOnly}
+          data-cy='cm-disabled'
         >
           <Warning title='Contact method disabled' />
         </IconButton>
