@@ -29,14 +29,14 @@ type Store interface {
 var _ Store = &DB{}
 
 type DB struct {
-	db                     *sql.DB
-	getCMUserID            *sql.Stmt
-	setVerificationCode    *sql.Stmt
-	verifyAndEnableContactMethod   *sql.Stmt
-	insertTestNotification *sql.Stmt
-	updateLastSendTime     *sql.Stmt
-	getCode                *sql.Stmt
-	sendTestLock           *sql.Stmt
+	db                           *sql.DB
+	getCMUserID                  *sql.Stmt
+	setVerificationCode          *sql.Stmt
+	verifyAndEnableContactMethod *sql.Stmt
+	insertTestNotification       *sql.Stmt
+	updateLastSendTime           *sql.Stmt
+	getCode                      *sql.Stmt
+	sendTestLock                 *sql.Stmt
 
 	rand *rand.Rand
 }
