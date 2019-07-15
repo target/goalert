@@ -206,7 +206,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 	}
 	defer tx.Rollback()
 
-	r, err := tx.Stmt(db.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	r, err := tx.StmtContext(ctx, db.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 
 	vcID := uuid.NewV4().String()
 	code := db.rand.Intn(900000) + 100000
-	_, err = tx.Stmt(db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
+	_, err = tx.StmtContext(ctx, db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {
 		return errors.Wrap(err, "set verification code")
 	}
