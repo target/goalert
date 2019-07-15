@@ -11,17 +11,18 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 	t.Parallel()
 
 	sqlQuery := `
-	insert into users (id, name, email) 
-	values 
-		({{uuid "user"}}, 'bob', 'joe');
-	insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-	values
-		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
-		({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
-	insert into user_verification_codes (id, user_id, contact_method_value, code, expires_at)
-	values 
-		({{uuid "id"}}, {{uuid "user"}}, {{phone "1"}}, 123456, now() + '15 minutes'::interval)
-`
+		insert into users (id, name, email) 
+		values 
+			({{uuid "user"}}, 'bob', 'joe');
+		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
+		values
+			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
+			({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
+		insert into user_verification_codes (id, user_id, contact_method_value, code, expires_at)
+		values 
+			({{uuid "id"}}, {{uuid "user"}}, {{phone "1"}}, 123456, now() + '15 minutes'::interval)
+	`
+
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 

@@ -14,37 +14,38 @@ func TestTwilioSMSVerification(t *testing.T) {
 	t.Parallel()
 
 	sqlQuery := `
-	insert into users (id, name, email) 
-	values 
-		({{uuid "user"}}, 'bob', 'joe');
-	insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-	values
-		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
-		({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
-	insert into user_notification_rules (id, user_id, delay_minutes, contact_method_id)
-	values
-		({{uuid "nr1"}}, {{uuid "user"}}, 0, {{uuid "cm1"}}),
-		({{uuid "nr2"}}, {{uuid "user"}}, 0, {{uuid "cm2"}}),
-		({{uuid "nr3"}}, {{uuid "user"}}, 1, {{uuid "cm1"}}),
-		({{uuid "nr4"}}, {{uuid "user"}}, 1, {{uuid "cm2"}});
-	insert into escalation_policies (id, name) 
-	values
-		({{uuid "eid"}}, 'esc policy');
-	insert into escalation_policy_steps (id, escalation_policy_id) 
-	values
-		({{uuid "esid"}}, {{uuid "eid"}});
-	insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
-	values 
-		({{uuid "esid"}}, {{uuid "user"}});
+		insert into users (id, name, email) 
+		values 
+			({{uuid "user"}}, 'bob', 'joe');
+		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
+		values
+			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
+			({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
+		insert into user_notification_rules (id, user_id, delay_minutes, contact_method_id)
+		values
+			({{uuid "nr1"}}, {{uuid "user"}}, 0, {{uuid "cm1"}}),
+			({{uuid "nr2"}}, {{uuid "user"}}, 0, {{uuid "cm2"}}),
+			({{uuid "nr3"}}, {{uuid "user"}}, 1, {{uuid "cm1"}}),
+			({{uuid "nr4"}}, {{uuid "user"}}, 1, {{uuid "cm2"}});
+		insert into escalation_policies (id, name) 
+		values
+			({{uuid "eid"}}, 'esc policy');
+		insert into escalation_policy_steps (id, escalation_policy_id) 
+		values
+			({{uuid "esid"}}, {{uuid "eid"}});
+		insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
+		values 
+			({{uuid "esid"}}, {{uuid "user"}});
+	
+		insert into services (id, escalation_policy_id, name) 
+		values
+			({{uuid "sid"}}, {{uuid "eid"}}, 'service');
+	
+		insert into alerts (service_id, description) 
+		values
+			({{uuid "sid"}}, 'testing');
+	`
 
-	insert into services (id, escalation_policy_id, name) 
-	values
-		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
-
-	insert into alerts (service_id, description) 
-	values
-		({{uuid "sid"}}, 'testing');
-`
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 
