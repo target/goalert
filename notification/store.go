@@ -72,7 +72,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			on conflict (contact_method_id) do update
 			set
 				sent = false,
-				expires_at = NOW() + '15 minutes'::interval
+				expires_at = EXCLUDED.expires_at
 		`),
 
 		// should reactivate a contact method if specified code matches what was set
