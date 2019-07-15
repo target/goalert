@@ -41,9 +41,13 @@ export default function UserContactMethodVerificationForm(props) {
     },
   })
 
+  function sendAndCatch() {
+    sendCode().catch(err => props.setSendError(err.message))
+  }
+
   // componentDidMount
   useEffect(() => {
-    sendCode().catch(err => props.setSendError(err.message))
+    sendAndCatch()
   }, [])
 
   return (
@@ -56,9 +60,7 @@ export default function UserContactMethodVerificationForm(props) {
             disabled={props.disabled}
             buttonText={'Resend Code'}
             noSubmit
-            onClick={() =>
-              sendCode().catch(err => props.setSendError(err.message))
-            }
+            onClick={() => sendAndCatch()}
           />
         </Grid>
         <Grid item className={classes.fieldGridItem}>
