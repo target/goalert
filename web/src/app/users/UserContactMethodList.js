@@ -102,7 +102,7 @@ export default function UserContactMethodList(props) {
     return actions
   }
 
-  const getSecondaryAction = cm => {
+  function getSecondaryAction(cm) {
     return (
       <Grid container spacing={2} className={classes.actionGrid}>
         {cm.disabled && !props.readOnly && (
