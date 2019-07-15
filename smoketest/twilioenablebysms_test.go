@@ -42,10 +42,10 @@ func TestTwilioEnableBySMS(t *testing.T) {
 		mutation {
 			verifyContactMethod(input:{
 				contactMethodID:  "%s",
-				code: "%s"
+				code: %d
 			})
 		}
-	`, cm1, "123456"))
+	`, cm1, 123456))
 
 	// All contact methods that have same value and of the same user should be enabled now.
 	doQL(fmt.Sprintf(`
