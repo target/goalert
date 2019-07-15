@@ -93,8 +93,8 @@ function testProfile(screen: ScreenFormat) {
       cy.reload()
       cy.get('body').should('not.contain', sentence)
     })
-    countryCodeCheck('India', '1234567890', '+91 1234 567 890')
-    countryCodeCheck('UK', '7911123456', '+44 7911 123456')
+    countryCodeCheck('India', '+91', '1234567890', '+91 1234 567 890')
+    countryCodeCheck('UK', '+44', '7911123456', '+44 7911 123456')
 
     it('should not allow fake country codes', () => {
       const value = '810' + c.integer({ min: 3000000, max: 3999999 })
@@ -176,17 +176,18 @@ function testProfile(screen: ScreenFormat) {
 
 function countryCodeCheck(
   country: string,
+  countryCode: string,
   value: string,
   formattedValue: string,
 ) {
-  it(`should handle ${country} Phone Number`, () => {
+  it(`should handle ${country} phone number`, () => {
     const name = 'CM SM ' + c.word({ length: 8 })
     const type = c.pickone(['SMS', 'VOICE'])
 
     cy.pageFab('Contact')
     cy.get('input[name=name]').type(name)
     cy.get('input[name=type]').selectByLabel(type)
-    cy.get('input[name=value]').type(formattedValue)
+    cy.get('input[name=value]').type(countryCode + value)
     cy.get('button[type=submit]').click()
     cy.get('body').should('contain', formattedValue)
   })
