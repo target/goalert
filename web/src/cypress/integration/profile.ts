@@ -62,6 +62,7 @@ function testProfile(screen: ScreenFormat) {
     })
     it('should allow editing', () => {
       const name = 'SM CM ' + c.word({ length: 8 })
+      const value = '763' + c.integer({ min: 3000000, max: 3999999 })
       cy.get('ul[data-cy=contact-methods]')
         .contains('li', cm.name)
         .find('button[data-cy=other-actions]')
@@ -70,12 +71,20 @@ function testProfile(screen: ScreenFormat) {
       cy.get('input[name=name]')
         .clear()
         .type(name)
+      cy.get('input[name=value]')
+        .clear()
+        .type(value)
       cy.get('button[type=submit]').click()
 
       cy.get('ul[data-cy=contact-methods]').should(
         'contain',
         `${name} (${cm.type})`,
       )
+      cy.get('ul[data-cy="contact-methods"] li')
+        .contains(`${name} (${cm.type})`)
+        .parent()
+        .parent()
+        .find(`button[data-cy='cm-disabled']`)
     })
     it('should allow deleting', () => {
       cy.get('ul[data-cy=contact-methods]')
