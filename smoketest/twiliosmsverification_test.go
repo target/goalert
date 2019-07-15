@@ -3,6 +3,7 @@ package smoketest
 import (
 	"fmt"
 	"github.com/target/goalert/smoketest/harness"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -72,18 +73,20 @@ func TestTwilioSMSVerification(t *testing.T) {
 	msg := d1.ExpectSMS("verification")
 	tw.WaitAndAssert() // wait for code, and ensure no notifications went out
 
-	code := strings.Map(func(r rune) rune {
+	codeStr := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
 			return r
 		}
 		return -1
 	}, msg.Body())
 
+	code, _ := strconv.Atoi(codeStr)
+
 	doQL(fmt.Sprintf(`
 		mutation {
 			verifyContactMethod(input:{
 				contactMethodID:  "%s",
-				code: "%s"
+				code: %d
 			})
 		}
 	`, cm1, code))
