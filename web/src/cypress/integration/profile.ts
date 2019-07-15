@@ -93,34 +93,9 @@ function testProfile(screen: ScreenFormat) {
       cy.reload()
       cy.get('body').should('not.contain', sentence)
     })
-    it('should handle India Phone Number', () => {
-      const value = '1234567890'
-      const name = 'CM SM ' + c.word({ length: 8 })
-      const type = c.pickone(['SMS', 'VOICE'])
-      const indiaCountryCode = '+91'
-      const formatted = `${indiaCountryCode} 1234 567 890`
+    countryCodeCheck('India', '1234567890', '+91 1234 567 890')
+    countryCodeCheck('UK', '7911123456', '+44 7911 123456')
 
-      cy.pageFab('Contact')
-      cy.get('input[name=name]').type(name)
-      cy.get('input[name=type]').selectByLabel(type)
-      cy.get('input[name=value]').type(indiaCountryCode + value)
-      cy.get('button[type=submit]').click()
-      cy.get('body').should('contain', formatted)
-    })
-    it('should handle UK Phone Number', () => {
-      const value = '7911123456'
-      const name = 'CM SM ' + c.word({ length: 8 })
-      const type = c.pickone(['SMS', 'VOICE'])
-      const ukCountryCode = '+44'
-      const formatted = `${ukCountryCode} 7911 123456`
-
-      cy.pageFab('Contact')
-      cy.get('input[name=name]').type(name)
-      cy.get('input[name=type]').selectByLabel(type)
-      cy.get('input[name=value]').type(ukCountryCode + value)
-      cy.get('button[type=submit]').click()
-      cy.get('body').should('contain', formatted)
-    })
     it('should not allow fake country codes', () => {
       const value = '810' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'CM SM ' + c.word({ length: 8 })
@@ -196,5 +171,23 @@ function testProfile(screen: ScreenFormat) {
 
       cy.get('body').should('contain', 'No notification rules')
     })
+  })
+}
+
+function countryCodeCheck(
+  country: string,
+  value: string,
+  formattedValue: string,
+) {
+  it(`should handle ${country} Phone Number`, () => {
+    const name = 'CM SM ' + c.word({ length: 8 })
+    const type = c.pickone(['SMS', 'VOICE'])
+
+    cy.pageFab('Contact')
+    cy.get('input[name=name]').type(name)
+    cy.get('input[name=type]').selectByLabel(type)
+    cy.get('input[name=value]').type(formattedValue)
+    cy.get('button[type=submit]').click()
+    cy.get('body').should('contain', formattedValue)
   })
 }
