@@ -45,7 +45,6 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		values
 			({{uuid "sid"}}, 'testing');
 	`
-
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 
