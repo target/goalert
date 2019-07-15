@@ -271,7 +271,7 @@ export class PaginatedList extends React.PureComponent {
         to={absURL(item.url)}
         button={Boolean(item.url)}
       >
-        <ListItemIcon>{item.icon}</ListItemIcon>
+        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText primary={item.title} secondary={item.subText} />
         {favIcon}
         {item.action && (
