@@ -66,21 +66,22 @@ export default function UserContactMethodList(props) {
   }, [testID])
 
   const getIcon = cm => {
-    if (cm.disabled && props.readOnly) {
+    if (!cm.disabled) return null
+    if (props.readOnly) {
       return <Warning title='Contact method disabled' />
-    } else if (cm.disabled && !props.readOnly) {
-      return (
-        <IconButton
-          aria-label='Reactivate contact method'
-          onClick={() => setShowVerifyDialogByID(cm.id)}
-          variant='contained'
-          color='primary'
-          disabled={props.readOnly}
-        >
-          <Warning title='Contact method disabled' />
-        </IconButton>
-      )
     }
+
+    return (
+      <IconButton
+        aria-label='Reactivate contact method'
+        onClick={() => setShowVerifyDialogByID(cm.id)}
+        variant='contained'
+        color='primary'
+        disabled={props.readOnly}
+      >
+        <Warning title='Contact method disabled' />
+      </IconButton>
+    )
   }
 
   function getActionMenuItems(cm) {
