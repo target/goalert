@@ -89,13 +89,6 @@ export default [
     title: 'Services',
     path: '/services',
     component: ServiceRouter,
-    subRoutes: [
-      {
-        title: 'Test',
-        path: '/services/test',
-        component: null,
-      },
-    ],
   },
   {
     title: 'Users',
@@ -124,24 +117,6 @@ export default [
         nav: false,
         title: 'Config',
         path: '/admin/config',
-        component: AdminRouter,
-      },
-      {
-        nav: false,
-        title: 'User Management',
-        path: '/admin/user-management',
-        component: AdminRouter,
-      },
-      {
-        nav: false,
-        title: 'System',
-        path: '/admin/system',
-        component: AdminRouter,
-      },
-      {
-        nav: false,
-        title: 'Reports',
-        path: '/admin/reports',
         component: AdminRouter,
       },
     ],
