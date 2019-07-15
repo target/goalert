@@ -3,10 +3,18 @@ import p from 'prop-types'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
-import { Grid, Card, CardHeader, IconButton } from '@material-ui/core'
+import {
+  Grid,
+  Card,
+  CardHeader,
+  IconButton,
+  withStyles,
+} from '@material-ui/core'
 import { formatNotificationRule, sortNotificationRules } from './util'
 import { Delete } from '@material-ui/icons'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
+
+import { styles as globalStyles } from '../styles/materialStyles'
 
 const query = gql`
   query nrList($id: ID!) {
@@ -26,6 +34,15 @@ const query = gql`
   }
 `
 
+const styles = theme => {
+  const { cardHeader } = globalStyles(theme)
+
+  return {
+    cardHeader,
+  }
+}
+
+@withStyles(styles)
 export default class UserNotificationRuleList extends React.PureComponent {
   static propTypes = {
     userID: p.string.isRequired,
@@ -47,10 +64,15 @@ export default class UserNotificationRuleList extends React.PureComponent {
   }
 
   renderList(notificationRules) {
+    const { classes } = this.props
     return (
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Notification Rules' />
+          <CardHeader
+            className={classes.cardHeader}
+            component='h3'
+            title='Notification Rules'
+          />
           <FlatList
             data-cy='notification-rules'
             items={sortNotificationRules(notificationRules).map(nr => ({

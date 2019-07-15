@@ -565,7 +565,8 @@ _6qh3nTABUOk6RDGhy0zZBEti93Dch_f4UmG_frTAHWWCxICRdxHZGJ5RLhDALB4SJLGG5Hg0CHpXUSu
 Cyiyf4VLSqPNNrvdJrtdB9QXlC81qvqCs7fR9D0aoA4dBh1Nc1TWGpG7Q7bpSy3bZ-3Yp63WZ03Vy2G4
 AgkprY9mbyPSw6LJ-btRn8ayYWJ-8x3pDD0MtVxEjJxuj0r5xev5Y8-4sinUE2UNvUpV7-e9K-glJqNf
 3S-BE8TrZSpdKJ-Mfu2Z7wS3GH9ILvmWUuVzCIao61FdTWV_u49k5SpdakrYMl2XtJW7w1pUH-iqMRDy
-Vyy7mWRGpFUt-pw85dpmLE1frz94T7aADV1Cxb86gI66mqiYHV3P6X8BAAD__wO3nLmCHAQA
+Vyy7mWRGpFUt-pw85dpmLE1frz94T7aADV1Cxb86gI66mqiYnQI9p7CGlKXJ9IbMbWjOdvRuGKkoqWHU
+dpHSHLldtNrA7SIlOvtfAAAA__80AwSB6R0EAA==
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -581,7 +582,7 @@ Vyy7mWRGpFUt-pw85dpmLE1frz94T7aADV1Cxb86gI66mqiYHV3P6X8BAAD__wO3nLmCHAQA
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(44542)
+				buf.Grow(44591)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -778,5 +779,6 @@ Vyy7mWRGpFUt-pw85dpmLE1frz94T7aADV1Cxb86gI66mqiYHV3P6X8BAAD__wO3nLmCHAQA
 		{Data: dataRange(254211, 267892), Name: "migrations/20190613114217-remove-switchover-triggers.sql"},
 		{Data: dataRange(267892, 268985), Name: "migrations/20190613120345-drop-switchover-resources.sql"},
 		{Data: dataRange(268985, 269442), Name: "migrations/20190701111645-add-rotation-favorite.sql"},
+		{Data: dataRange(269442, 269801), Name: "migrations/20190702161722-add-schedule-favorites.sql"},
 	}
 }

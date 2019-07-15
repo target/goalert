@@ -4,12 +4,11 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // Store allows the lookup and management of Favorites.
@@ -41,21 +40,34 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		db: db,
 		insert: p.P(`
-			INSERT INTO user_favorites (user_id, tgt_service_id, tgt_rotation_id)
-			VALUES ($1, $2, $3)
+			INSERT INTO user_favorites (
+				user_id, tgt_service_id,
+				tgt_schedule_id,
+				tgt_rotation_id
+			)
+			VALUES ($1, $2, $3, $4)
 			ON CONFLICT DO NOTHING
 		`),
 		delete: p.P(`
 			DELETE FROM user_favorites
-			WHERE user_id = $1 and
-			tgt_service_id = $2 OR tgt_rotation_id = $3
-			
+			WHERE
+				user_id = $1 AND
+				tgt_service_id = $2 OR
+				tgt_schedule_id = $3 OR
+				tgt_rotation_id = $4
 		`),
 		findAll: p.P(`
-			SELECT tgt_service_id, tgt_rotation_id
+			SELECT
+				tgt_service_id,
+				tgt_schedule_id,
+				tgt_rotation_id
 			FROM user_favorites
-			WHERE user_id = $1 
-			AND ((tgt_service_id NOTNULL AND $2) OR (tgt_rotation_id NOTNULL AND $3))
+			WHERE user_id = $1
+				AND (
+					(tgt_service_id NOTNULL AND $2) OR
+					(tgt_schedule_id NOTNULL AND $3) OR
+					(tgt_rotation_id NOTNULL AND $4)
+				)
 		`),
 	}, p.Err
 }
@@ -74,29 +86,30 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,
+			assignment.TargetTypeSchedule, assignment.TargetTypeRotation),
 	)
 	if err != nil {
 		return err
 	}
-
 	stmt := db.insert
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	var serviceID, rotationID sql.NullString
+
+	var serviceID, scheduleID, rotationID sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeService:
-		serviceID.String = tgt.TargetID()
 		serviceID.Valid = true
-
+		serviceID.String = tgt.TargetID()
+	case assignment.TargetTypeSchedule:
+		scheduleID.Valid = true
+		scheduleID.String = tgt.TargetID()
 	case assignment.TargetTypeRotation:
 		rotationID.Valid = true
 		rotationID.String = tgt.TargetID()
 	}
-
-	_, err = stmt.ExecContext(ctx, userID, serviceID, rotationID)
-
+	_, err = stmt.ExecContext(ctx, userID, serviceID, scheduleID, rotationID)
 	if err != nil {
 		return errors.Wrap(err, "set favorite")
 	}
@@ -114,25 +127,25 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	err = validate.Many(
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
-		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService, assignment.TargetTypeRotation),
+		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,
+			assignment.TargetTypeSchedule, assignment.TargetTypeRotation),
 	)
 	if err != nil {
 		return err
 	}
-
-	var serviceID, rotationID sql.NullString
-
+	var serviceID, scheduleID, rotationID sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeService:
 		serviceID.Valid = true
 		serviceID.String = tgt.TargetID()
-
+	case assignment.TargetTypeSchedule:
+		scheduleID.Valid = true
+		scheduleID.String = tgt.TargetID()
 	case assignment.TargetTypeRotation:
 		rotationID.Valid = true
 		rotationID.String = tgt.TargetID()
 	}
-
-	_, err = db.delete.ExecContext(ctx, userID, serviceID, rotationID)
+	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID, rotationID)
 	if err == sql.ErrNoRows {
 		// ignoring since it is safe to unset favorite (with retries)
 		err = nil
