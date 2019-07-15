@@ -6,12 +6,12 @@ import {
 } from './util'
 
 test('formatPhoneNumber', () => {
-  expect(formatPhoneNumber('+17635550100')).toBe('+1 (763) 555-0100')
-  expect(formatPhoneNumber('+12085550105')).toBe('+1 (208) 555-0105')
-  expect(formatPhoneNumber('+15165550184')).toBe('+1 (516) 555-0184')
-  expect(formatPhoneNumber('+911400000000')).toBe('+91 1400 000 000')
-  expect(formatPhoneNumber('+911401234567')).toBe('+91 1401 234 567')
-  expect(formatPhoneNumber('+911409876543')).toBe('+91 1409 876 543')
+  expect(formatPhoneNumber('+17635550100')).toBe('+1 763-555-0100')
+  expect(formatPhoneNumber('+12085550105')).toBe('+1 208-555-0105')
+  expect(formatPhoneNumber('+15165550184')).toBe('+1 516-555-0184')
+  expect(formatPhoneNumber('+911400000000')).toBe('+91 140 000 0000')
+  expect(formatPhoneNumber('+911401234567')).toBe('+91 140 123 4567')
+  expect(formatPhoneNumber('+911409876543')).toBe('+91 140 987 6543')
   expect(formatPhoneNumber('+447700000000')).toBe('+44 7700 000000')
   expect(formatPhoneNumber('+447701234567')).toBe('+44 7701 234567')
   expect(formatPhoneNumber('+447709876543')).toBe('+44 7709 876543')
@@ -24,28 +24,28 @@ test('formatNotificationRule', () => {
       name: 'test',
       value: '+17635550100',
     }),
-  ).toBe('Immediately notify me via SMS at +1 (763) 555-0100 (test)')
+  ).toBe('Immediately notify me via SMS at +1 763-555-0100 (test)')
   expect(
     formatNotificationRule(0, {
       type: 'VOICE',
       name: 'cell',
       value: '+12085550105',
     }),
-  ).toBe('Immediately notify me via VOICE at +1 (208) 555-0105 (cell)')
+  ).toBe('Immediately notify me via VOICE at +1 208-555-0105 (cell)')
   expect(
     formatNotificationRule(10, {
       type: 'VOICE',
       name: 'phone',
       value: '+15165550184',
     }),
-  ).toBe('After 10 minutes notify me via VOICE at +1 (516) 555-0184 (phone)')
+  ).toBe('After 10 minutes notify me via VOICE at +1 516-555-0184 (phone)')
   expect(
     formatNotificationRule(1, {
       type: 'VOICE',
       name: 'myPhone',
       value: '+911400000000',
     }),
-  ).toBe('After 1 minute notify me via VOICE at +91 1400 000 000 (myPhone)')
+  ).toBe('After 1 minute notify me via VOICE at +91 140 000 0000 (myPhone)')
   expect(
     formatNotificationRule(5, {
       type: 'VOICE',
