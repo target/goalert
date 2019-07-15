@@ -565,13 +565,13 @@ nv5PDfWuAx4YIk2HMD7smCGLaFnkn1f7-CNeZNhffxyh3mpJQqCI94hMLI8IdwgAFg9J0ngjEhw6JH2L
 yHUBRfavcElptN1ld7skz3ugvqD8qFHVF7x5E83foRHq0WnQ0zRHZa0ReThk26HUs0PWj0Paa0PWVYMC
 hiuQkNKG6OZNREZYNDt_OxnSWDZMzG-Rk8EwwFCrZcTI6Q-olF-8WTwMjCebQj1R1tCrVfVhMbqCGjGb
 _OJuBE4Qb1ap9KB8NvllYLYJ7jH-I3nkW0mVzyEYou5HdTWV_d0-kpWrdKkpYct0PdJW3g5rUX2gp8ZA
-yF-x7WaSGZFWtehT8lhom7E0Q73-4DvZEjZ0CRX_6gA66mqicnZK9JwaEUYie4BH9pJ_sVyiNPmM4mx9
-2KS5SY65YzCEAg1VKn3UgEdEeACxLjWksfMk3aPbLFsni7R4Kv_6_PJ6oraDig6c4omNPmQ7lCzij7yG
-iBZNuBhwLm3bIqKVzlUZcqpVkpOoWxnXc2MfLKP5I3QxP7-cXF9M-izH0JSrN7ORD4KpM8bz0X60xslj
-Su0vJRl8pnNKVQPJFkESf3J1Llfc12vI2q1pM7mQ5MnAJ6kpFKgWRCQwzFScSnMOkd5RddOMNKXSaRXV
-40uCpIm5VmFicbEgaDqR4GfGLIGYRPvkYQ_NJzKUfaaqXpS6NAIHFL5GQtWB120o5UBol9gI4_OTMzVC
-8ealMs5ARkgyaZhxMkZ4FZrQbTwZVGTjTgRL8KYDGEST2fhETCd9iYs3PHjF5iWboRpAxalk4IDTZQ_M
-A1hmsGy6UNrUGVNrjyGrZupDsLjecW4xvPcMUlHS2FO3DFKaI28ZtNrAWwYp0dn_AgAA__-r0F9hhCQE
+yF-x7WaSGZFWtehT8lhom7E0Q73-4DvZEjZ0CRX_6gA66mqicnZK9JzCOlKWJtM7srChOfvRu2OkoqSO
+UftFSnPkftFqA_eLlOisUjiAEv0pstV6ZIIJi-USpclnFGfrwybNzbaaGzNDj9EQ_9L7FDyJw_3LOshQ
+IM-TdI9us2ydLNJCkeD1-eX1RG0H1XY4xesn-pDtULKIP_IaIlo04WLAubTtPokkPRe_yKkkTE6Cm2Vc
+No_tC4zmj9DF_Pxycn0x6bMcQzMqgJmNfHdNOTeej_ajNRwhE8R_KUUbYHKyVJyR7MQkjS1X5_LABnoN
+Wbs1CSwXkjy2-Zwz9RjVgojSiJmKU2kuVaR3VHk6I02pQl1Fkf6SWHRirlWYWFyTCZpOZHk0ZgnEJNon
+D3toPpGh7DNV9aLUlQ44B_IlD6oO_HmEUg6ERIyNMD4_OVMjFG9eKuMMZIQkk4YZJ2OEV6EJPS2RQUXO
+R0QXBu_tgEE0mY1PxHTSl7h4w2OEbF6yGaoBVJxKBg44XfbAPIDVHMumC6VNnTH_CwAA___Nbz8RhCQE
 AA==
 `
 	dataRange := func(start, end int) func() []byte {
@@ -785,7 +785,7 @@ AA==
 		{Data: dataRange(254211, 267892), Name: "migrations/20190613114217-remove-switchover-triggers.sql"},
 		{Data: dataRange(267892, 268985), Name: "migrations/20190613120345-drop-switchover-resources.sql"},
 		{Data: dataRange(268985, 269442), Name: "migrations/20190701111645-add-rotation-favorite.sql"},
-		{Data: dataRange(269442, 271133), Name: "migrations/20190701130233-verification-codes-update.sql"},
-		{Data: dataRange(271133, 271492), Name: "migrations/20190702161722-add-schedule-favorites.sql"},
+		{Data: dataRange(269442, 269801), Name: "migrations/20190702161722-add-schedule-favorites.sql"},
+		{Data: dataRange(269801, 271492), Name: "migrations/20190715130233-verification-codes-update.sql"},
 	}
 }

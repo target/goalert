@@ -23,22 +23,20 @@ type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
 	SendContactMethodVerification(ctx context.Context, cmID string) error
 	VerifyContactMethod(ctx context.Context, cmID string, code int) error
-	CodeExpiration(ctx context.Context, cmID string) (*time.Time, error)
 	Code(ctx context.Context, id string) (int, error)
 }
 
 var _ Store = &DB{}
 
 type DB struct {
-	db                           *sql.DB
-	getCMUserID                  *sql.Stmt
-	setVerificationCode          *sql.Stmt
-	verifyAndEnableContactMethod *sql.Stmt
-	insertTestNotification       *sql.Stmt
-	updateLastSendTime           *sql.Stmt
-	codeExpiration               *sql.Stmt
-	getCode                      *sql.Stmt
-	sendTestLock                 *sql.Stmt
+	db                     *sql.DB
+	getCMUserID            *sql.Stmt
+	setVerificationCode    *sql.Stmt
+	verifyAndEnableContactMethod   *sql.Stmt
+	insertTestNotification *sql.Stmt
+	updateLastSendTime     *sql.Stmt
+	getCode                *sql.Stmt
+	sendTestLock           *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -67,12 +65,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			where id = $1
 		`),
 
-		codeExpiration: p.P(`
-			select expires_at
-			from user_verification_codes
-			where contact_method_id = $1
-		`),
-
 		// should result in sending a verification code to the specified contact method
 		setVerificationCode: p.P(`
 			insert into user_verification_codes (id, contact_method_id, code, expires_at)
@@ -80,7 +72,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			on conflict (contact_method_id) do update
 			set
 				sent = false,
-				expires_at = NOW() + '15 minutes'::interval
+				expires_at = EXCLUDED.expires_at
 		`),
 
 		// should reactivate a contact method if specified code matches what was set
@@ -163,23 +155,6 @@ func (db *DB) Code(ctx context.Context, id string) (int, error) {
 	return code, err
 }
 
-func (db *DB) CodeExpiration(ctx context.Context, id string) (t *time.Time, err error) {
-	_, err = db.cmUserID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.codeExpiration.QueryRowContext(ctx, id).Scan(&t)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return t, nil
-}
-
 func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	_, err := db.cmUserID(ctx, id)
 	if err != nil {
@@ -231,7 +206,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 	}
 	defer tx.Rollback()
 
-	r, err := tx.Stmt(db.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	r, err := tx.StmtContext(ctx, db.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -245,7 +220,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 
 	vcID := uuid.NewV4().String()
 	code := db.rand.Intn(900000) + 100000
-	_, err = tx.Stmt(db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
+	_, err = tx.StmtContext(ctx, db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {
 		return errors.Wrap(err, "set verification code")
 	}
@@ -254,16 +229,6 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 }
 
 func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
-	uID, err := db.cmUserID(ctx, cmID)
-	if err != nil {
-		return err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.MatchUser(uID))
-	if err != nil {
-		return err
-	}
-
 	res, err := db.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
 	if err == sql.ErrNoRows {
 		return validation.NewFieldError("code", "invalid code")

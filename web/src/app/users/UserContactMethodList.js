@@ -61,27 +61,27 @@ export default function UserContactMethodList(props) {
   // send test to CM after testID is set
   useEffect(() => {
     if (testID) {
-      sendTest().catch(err => console.error(err.message))
+      sendTest() // todo: show dialog with error if test message fails to send
     }
   }, [testID])
 
   const getIcon = cm => {
-    if (cm.disabled && props.readOnly) {
+    if (!cm.disabled) return null
+    if (props.readOnly) {
       return <Warning title='Contact method disabled' />
-    } else if (cm.disabled && !props.readOnly) {
-      return (
-        <IconButton
-          aria-label='Reactivate contact method'
-          onClick={() => setShowVerifyDialogByID(cm.id)}
-          variant='contained'
-          color='primary'
-          disabled={props.readOnly}
-          data-cy='cm-disabled'
-        >
-          <Warning title='Contact method disabled' />
-        </IconButton>
-      )
     }
+    return (
+      <IconButton
+        data-cy='cm-disabled'
+        aria-label='Reactivate contact method'
+        onClick={() => setShowVerifyDialogByID(cm.id)}
+        variant='contained'
+        color='primary'
+        disabled={props.readOnly}
+      >
+        <Warning title='Contact method disabled' />
+      </IconButton>
+    )
   }
 
   function getActionMenuItems(cm) {
@@ -103,7 +103,7 @@ export default function UserContactMethodList(props) {
     return actions
   }
 
-  const getSecondaryAction = cm => {
+  function getSecondaryAction(cm) {
     return (
       <Grid container spacing={2} className={classes.actionGrid}>
         {cm.disabled && !props.readOnly && (

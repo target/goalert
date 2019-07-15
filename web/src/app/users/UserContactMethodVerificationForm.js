@@ -33,7 +33,7 @@ const useStyles = makeStyles({
 export default function UserContactMethodVerificationForm(props) {
   const classes = useStyles()
 
-  const [sendCode] = useMutation(sendVerificationCodeMutation, {
+  const [sendCode, sendCodeStatus] = useMutation(sendVerificationCodeMutation, {
     variables: {
       input: {
         contactMethodID: props.contactMethodID,
@@ -41,9 +41,13 @@ export default function UserContactMethodVerificationForm(props) {
     },
   })
 
+  function sendAndCatch() {
+    sendCode().catch(err => props.setSendError(err.message))
+  }
+
   // componentDidMount
   useEffect(() => {
-    sendCode().catch(err => props.setSendError(err.message))
+    sendAndCatch()
   }, [])
 
   return (
@@ -52,13 +56,11 @@ export default function UserContactMethodVerificationForm(props) {
         <Grid item className={classes.sendGridItem}>
           <LoadingButton
             color='primary'
-            loading={status.loading}
+            loading={sendCodeStatus.loading}
             disabled={props.disabled}
             buttonText={'Resend Code'}
             noSubmit
-            onClick={() =>
-              sendCode().catch(err => props.setSendError(err.message))
-            }
+            onClick={() => sendAndCatch()}
           />
         </Grid>
         <Grid item className={classes.fieldGridItem}>
