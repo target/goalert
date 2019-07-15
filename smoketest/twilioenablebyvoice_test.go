@@ -22,7 +22,6 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 		values 
 			({{uuid "id"}}, {{uuid "user"}}, {{phone "1"}}, 123456, now() + '15 minutes'::interval)
 	`
-
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 
