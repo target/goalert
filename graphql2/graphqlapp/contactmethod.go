@@ -58,7 +58,7 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			cm.Name = *input.Name
 		}
 		if input.Value != nil {
-			if(*input.Value != cm.Value){
+			if *input.Value != cm.Value {
 				cm.Disabled = true
 			}
 			cm.Value = *input.Value
