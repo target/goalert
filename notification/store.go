@@ -23,7 +23,6 @@ type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
 	SendContactMethodVerification(ctx context.Context, cmID string) error
 	VerifyContactMethod(ctx context.Context, cmID string, code int) error
-	CodeExpiration(ctx context.Context, cmID string) (*time.Time, error)
 	Code(ctx context.Context, id string) (int, error)
 }
 
@@ -36,7 +35,6 @@ type DB struct {
 	verifyAndEnableContactMethod   *sql.Stmt
 	insertTestNotification *sql.Stmt
 	updateLastSendTime     *sql.Stmt
-	codeExpiration         *sql.Stmt
 	getCode                *sql.Stmt
 	sendTestLock           *sql.Stmt
 
@@ -65,12 +63,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			select code
 			from user_verification_codes
 			where id = $1
-		`),
-
-		codeExpiration: p.P(`
-			select expires_at
-			from user_verification_codes
-			where contact_method_id = $1
 		`),
 
 		// should result in sending a verification code to the specified contact method
@@ -161,23 +153,6 @@ func (db *DB) Code(ctx context.Context, id string) (int, error) {
 	var code int
 	err = db.getCode.QueryRowContext(ctx, id).Scan(&code)
 	return code, err
-}
-
-func (db *DB) CodeExpiration(ctx context.Context, id string) (t *time.Time, err error) {
-	_, err = db.cmUserID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.codeExpiration.QueryRowContext(ctx, id).Scan(&t)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return t, nil
 }
 
 func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
