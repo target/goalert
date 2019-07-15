@@ -229,16 +229,6 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) er
 }
 
 func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
-	uID, err := db.cmUserID(ctx, cmID)
-	if err != nil {
-		return err
-	}
-
-	err = permission.LimitCheckAny(ctx, permission.MatchUser(uID))
-	if err != nil {
-		return err
-	}
-
 	res, err := db.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
 	if err == sql.ErrNoRows  {
 		return validation.NewFieldError("code", "invalid code")
