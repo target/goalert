@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
@@ -50,20 +50,8 @@ export default function UserContactMethodList(props) {
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
-  const [testID, setTestID] = useState(null)
 
-  const [sendTest] = useMutation(testCM, {
-    variables: {
-      id: testID,
-    },
-  })
-
-  // send test to CM after testID is set
-  useEffect(() => {
-    if (testID) {
-      sendTest() // todo: show dialog with error if test message fails to send
-    }
-  }, [testID])
+  const [sendTest] = useMutation(testCM)
 
   const getIcon = cm => {
     if (!cm.disabled) return null
@@ -96,7 +84,13 @@ export default function UserContactMethodList(props) {
     if (!cm.disabled) {
       actions.push({
         label: 'Send Test',
-        onClick: () => setTestID(cm.id),
+        // todo: show dialog with error if test message fails to send
+        onClick: () =>
+          sendTest({
+            variables: {
+              id: cm.id,
+            },
+          }),
       })
     }
 
