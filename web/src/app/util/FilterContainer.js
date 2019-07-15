@@ -49,7 +49,13 @@ export default class FilterContainer extends React.PureComponent {
           {this.props.onReset && (
             <Button onClick={this.props.onReset}>Reset</Button>
           )}
-          <Button onClick={() => this.setState({ anchorEl: null })}>
+          <Button
+            onClick={() =>
+              this.setState({
+                anchorEl: null,
+              })
+            }
+          >
             Done
           </Button>
         </Grid>
@@ -62,7 +68,13 @@ export default class FilterContainer extends React.PureComponent {
       <React.Fragment>
         <IconButton
           color='inherit'
-          onClick={e => this.setState({ anchorEl: e.target })}
+          onClick={e =>
+            this.setState({
+              anchorEl: e.target,
+            })
+          }
+          title='filter'
+          aria-expanded={Boolean(this.state.anchorEl)}
         >
           <FilterList />
         </IconButton>
@@ -73,7 +85,11 @@ export default class FilterContainer extends React.PureComponent {
               paper: classes.overflow,
             }}
             open={!!this.state.anchorEl}
-            onClose={() => this.setState({ anchorEl: null })}
+            onClose={() =>
+              this.setState({
+                anchorEl: null,
+              })
+            }
             anchorOrigin={{
               vertical: 'bottom',
               horizontal: 'right',
@@ -95,7 +111,11 @@ export default class FilterContainer extends React.PureComponent {
             disableDiscovery
             disableSwipeToOpen
             open={!!this.state.anchorEl}
-            onClose={() => this.setState({ anchorEl: null })}
+            onClose={() =>
+              this.setState({
+                anchorEl: null,
+              })
+            }
             onOpen={() => {}}
           >
             {this.renderContent()}

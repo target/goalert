@@ -161,7 +161,7 @@ export default class PolicyStep extends Component {
           <Grid container spacing={2}>
             <Grid item className={classes.centerFlex}>
               <Typography variant='subtitle1'>
-                <strong>Step #{this.getStepNumber(step.id)}:</strong>
+                <b>Step #{this.getStepNumber(step.id)}:</b>
               </Typography>
             </Grid>
             <Grid item xs={10}>

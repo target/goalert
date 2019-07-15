@@ -3,7 +3,7 @@ import p from 'prop-types'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
-import { Grid, Card, CardHeader } from '@material-ui/core'
+import { Grid, Card, CardHeader, withStyles } from '@material-ui/core'
 import { formatCMValue, sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import { Mutation } from 'react-apollo'
@@ -13,6 +13,8 @@ import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import { Config } from '../util/RequireConfig'
+
+import { styles as globalStyles } from '../styles/materialStyles'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -34,6 +36,15 @@ const testCM = gql`
   }
 `
 
+const styles = theme => {
+  const { cardHeader } = globalStyles(theme)
+
+  return {
+    cardHeader,
+  }
+}
+
+@withStyles(styles)
 export default class UserContactMethodList extends React.PureComponent {
   static propTypes = {
     userID: p.string.isRequired,
@@ -72,10 +83,15 @@ export default class UserContactMethodList extends React.PureComponent {
   }
 
   renderList(contactMethods) {
+    const { classes } = this.props
     return (
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Contact Methods' />
+          <CardHeader
+            className={classes.cardHeader}
+            component='h3'
+            title='Contact Methods'
+          />
           <FlatList
             data-cy='contact-methods'
             items={sortContactMethods(contactMethods).map(cm => ({
