@@ -61,7 +61,7 @@ export default function UserContactMethodList(props) {
   // send test to CM after testID is set
   useEffect(() => {
     if (testID) {
-      sendTest().catch(err => console.error(err.message))
+      sendTest() // todo: show dialog with error if test message fails to send
     }
   }, [testID])
 
