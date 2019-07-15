@@ -73,7 +73,6 @@ export default class UserContactMethodList extends React.PureComponent {
   }
 
   renderList(contactMethods) {
-    console.log(contactMethods)
     return (
       <Grid item xs={12}>
         <Card>
