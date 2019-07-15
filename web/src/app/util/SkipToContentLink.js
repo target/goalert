@@ -5,22 +5,18 @@ import Typography from '@material-ui/core/Typography'
 
 const useStyles = makeStyles({
   skipLink: {
-    position: 'absolute',
+    position: 'static',
     height: '1px',
     width: '1px',
     overflow: 'hidden',
     clip: 'rect(1px, 1px, 1px, 1px)',
-    '&:hover, &:focus, &:active': {
-      top: '5px',
-      right: '5px',
-      zIndex: 100000,
+    '&:focus, &:active': {
       clip: 'auto !important',
       display: 'block',
       width: 'auto',
       height: 'auto',
       padding: '15px 23px 14px',
       backgroundColor: '#ffffff',
-      borderRadius: '3px',
     },
   },
 })
