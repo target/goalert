@@ -32,6 +32,7 @@ const styles = {
   title: {
     padding: '0 4px 0 4px',
     flex: 1, // pushes toolbar actions to the right
+    fontSize: '1.25rem',
   },
 }
 
@@ -116,12 +117,13 @@ const mapStateToProps = state => {
 @connect(mapStateToProps)
 export default class ToolbarTitle extends React.Component {
   renderTitle = title => {
+    document.title = `Go Alert - ${title}`
     return (
       <Typography
         className={this.props.classes.title}
         color='inherit'
         noWrap
-        variant='h6'
+        component='h1'
       >
         {title.replace('On Call', 'On-Call')}
       </Typography>

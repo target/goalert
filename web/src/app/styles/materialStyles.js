@@ -16,6 +16,7 @@ export const styles = theme => ({
   // Used to reduce padding between header and content
   cardHeader: {
     paddingBottom: 0,
+    margin: 0,
   },
   asLink: {
     color: 'blue',
@@ -26,7 +27,7 @@ export const styles = theme => ({
     display: 'inline-block',
   },
   cancelButton: {
-    color: theme.palette.secondary['500'],
+    color: 'rgba(0,0,0, 0.54)',
   },
   defaultFlex: {
     flex: '0 1 auto',
