@@ -14,6 +14,7 @@ import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
+import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 
 const styles = theme => ({
   profileImage: {
@@ -62,6 +63,7 @@ export default class UserDetails extends React.PureComponent {
   state = {
     createCM: false,
     createNR: false,
+    verifyCMID: null,
   }
 
   render() {
@@ -98,7 +100,22 @@ export default class UserDetails extends React.PureComponent {
         {this.state.createCM && (
           <UserContactMethodCreateDialog
             userID={this.props.userID}
-            onClose={() => this.setState({ createCM: false })}
+            onClose={result => {
+              console.log(result)
+              this.setState({
+                createCM: false,
+                verifyCMID:
+                  result && result.contactMethodID
+                    ? result.contactMethodID
+                    : null,
+              })
+            }}
+          />
+        )}
+        {this.state.verifyCMID && (
+          <UserContactMethodVerificationDialog
+            contactMethodID={this.state.verifyCMID}
+            onClose={() => this.setState({ verifyCMID: null })}
           />
         )}
         {this.state.createNR && (
