@@ -9,6 +9,7 @@ export class UserAvatar extends BaseAvatar {
   renderFallback() {
     return <Person />
   }
+
   srcURL(props) {
     return props.userID && `/api/v2/user-avatar/${props.userID}`
   }

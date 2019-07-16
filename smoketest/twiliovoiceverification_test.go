@@ -3,6 +3,7 @@ package smoketest
 import (
 	"fmt"
 	"github.com/target/goalert/smoketest/harness"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -13,42 +14,39 @@ func TestTwilioVoiceVerification(t *testing.T) {
 	t.Parallel()
 
 	sqlQuery := `
-	insert into users (id, name, email) 
-	values 
-		({{uuid "user"}}, 'bob', 'joe');
-	insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-	values
-		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
-		({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
-	insert into user_notification_rules (id, user_id, delay_minutes, contact_method_id)
-	values
-		({{uuid "nr1"}}, {{uuid "user"}}, 0, {{uuid "cm1"}}),
-		({{uuid "nr2"}}, {{uuid "user"}}, 0, {{uuid "cm2"}}),
-		({{uuid "nr3"}}, {{uuid "user"}}, 1, {{uuid "cm1"}}),
-		({{uuid "nr4"}}, {{uuid "user"}}, 1, {{uuid "cm2"}});
-	insert into escalation_policies (id, name) 
-	values
-		({{uuid "eid"}}, 'esc policy');
-	insert into escalation_policy_steps (id, escalation_policy_id) 
-	values
-		({{uuid "esid"}}, {{uuid "eid"}});
-	insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
-	values 
-		({{uuid "esid"}}, {{uuid "user"}});
+		insert into users (id, name, email) 
+		values 
+			({{uuid "user"}}, 'bob', 'joe');
+		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
+		values
+			({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
+		insert into user_notification_rules (id, user_id, delay_minutes, contact_method_id)
+		values
+			({{uuid "nr2"}}, {{uuid "user"}}, 0, {{uuid "cm2"}});
+		insert into escalation_policies (id, name) 
+		values
+			({{uuid "eid"}}, 'esc policy');
+		insert into escalation_policy_steps (id, escalation_policy_id) 
+		values
+			({{uuid "esid"}}, {{uuid "eid"}});
+		insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
+		values 
+			({{uuid "esid"}}, {{uuid "user"}});
+	
+		insert into services (id, escalation_policy_id, name) 
+		values
+			({{uuid "sid"}}, {{uuid "eid"}}, 'service');
+	
+		insert into alerts (service_id, description) 
+		values
+			({{uuid "sid"}}, 'testing');
+	`
 
-	insert into services (id, escalation_policy_id, name) 
-	values
-		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
-
-	insert into alerts (service_id, description) 
-	values
-		({{uuid "sid"}}, 'testing');
-`
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -57,44 +55,47 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		}
 	}
 
-	cm2 := h.UUID("cm2")
+	voiceID := h.UUID("cm2")
 
 	doQL(fmt.Sprintf(`
 		mutation {
 			sendContactMethodVerification(input:{
-				contact_method_id:  "%s",
-			}){
-				id
-			}
+				contactMethodID: "%s"
+			})
 		}
-		`, cm2))
+	`, voiceID))
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
 	msg := d1.ExpectVoice("verification")
 	tw.WaitAndAssert() // wait for code, and ensure no notifications went out
 
-	code := strings.Map(func(r rune) rune {
+	codeStr := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
 			return r
 		}
 		return -1
 	}, msg.Body())
 
+	code, _ := strconv.Atoi(codeStr)
+
 	doQL(fmt.Sprintf(`
 		mutation {
 			verifyContactMethod(input:{
-				contact_method_id:  "%s",
-				verification_code: %s
-			}){
-				contact_method_ids
-			}
+				contactMethodID:  "%s",
+				code: %d
+			})
 		}
-		`, cm2, code))
+	`, voiceID, code))
 
 	h.FastForward(time.Minute)
 
-	// both CM's for the given number should be enabled
-	d1.ExpectSMS("testing")
-	d1.ExpectVoice("testing")
+	doQL(fmt.Sprintf(`
+		mutation {
+			testContactMethod(id: "%s")
+		}
+	`, voiceID))
+
+	// voice for the given number should be enabled
+	d1.ExpectVoice("test")
 }

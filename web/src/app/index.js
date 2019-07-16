@@ -7,9 +7,10 @@ import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ConnectedRouter } from 'connected-react-router'
 import { ApolloProvider } from 'react-apollo'
+import { ApolloProvider as ApolloProviderHooks } from '@apollo/react-hooks'
 import MuiThemeProvider from '@material-ui/core/styles/MuiThemeProvider'
 import { theme } from './mui'
-import { graphql1Client } from './apollo'
+import { graphql1Client, graphql2Client } from './apollo'
 import './styles'
 import App from './main/NewApp'
 import MuiPickersUtilsProvider from './mui-pickers'
@@ -39,24 +40,26 @@ const LazyGARouteTracker = React.memo(props => {
 ReactDOM.render(
   <MuiThemeProvider theme={theme}>
     <ApolloProvider client={graphql1Client}>
-      <ReduxProvider store={store}>
-        <ConnectedRouter history={history}>
-          <MuiPickersUtilsProvider>
-            <ConfigProvider>
-              <Config>
-                {config => (
-                  <LazyGARouteTracker
-                    trackingID={config['General.GoogleAnalyticsID']}
-                  />
-                )}
-              </Config>
-              <GracefulUnmounterProvider>
-                <App />
-              </GracefulUnmounterProvider>
-            </ConfigProvider>
-          </MuiPickersUtilsProvider>
-        </ConnectedRouter>
-      </ReduxProvider>
+      <ApolloProviderHooks client={graphql2Client}>
+        <ReduxProvider store={store}>
+          <ConnectedRouter history={history}>
+            <MuiPickersUtilsProvider>
+              <ConfigProvider>
+                <Config>
+                  {config => (
+                    <LazyGARouteTracker
+                      trackingID={config['General.GoogleAnalyticsID']}
+                    />
+                  )}
+                </Config>
+                <GracefulUnmounterProvider>
+                  <App />
+                </GracefulUnmounterProvider>
+              </ConfigProvider>
+            </MuiPickersUtilsProvider>
+          </ConnectedRouter>
+        </ReduxProvider>
+      </ApolloProviderHooks>
     </ApolloProvider>
   </MuiThemeProvider>,
   document.getElementById('app'),
