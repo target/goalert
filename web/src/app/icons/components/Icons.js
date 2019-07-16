@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { PropTypes as p } from 'prop-types'
 import Tooltip from '@material-ui/core/Tooltip'
 import withStyles from '@material-ui/core/styles/withStyles'
 import AddIcon from '@material-ui/icons/Add'
@@ -25,8 +26,12 @@ export class Trash extends Component {
 
 @withStyles(styles)
 export class Warning extends Component {
+  static propTypes = {
+    message: p.string,
+  }
+
   render() {
-    const { classes, details } = this.props
+    const { classes, message } = this.props
 
     const warningIcon = (
       <WarningIcon
@@ -35,12 +40,12 @@ export class Warning extends Component {
       />
     )
 
-    if (!details) {
+    if (!message) {
       return warningIcon
     }
 
     return (
-      <Tooltip title={details} placement='right'>
+      <Tooltip title={message} placement='right'>
         {warningIcon}
       </Tooltip>
     )

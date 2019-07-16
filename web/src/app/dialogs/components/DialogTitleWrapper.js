@@ -9,6 +9,7 @@ import withStyles from '@material-ui/core/styles/withStyles'
 import CloseIcon from '@material-ui/icons/Close'
 import DropDownMenu from '../../dialogs/components/DropDownMenu'
 import { styles } from '../../styles/materialStyles'
+import { DialogContent } from '@material-ui/core'
 
 /**
  * Renders a fullscreen dialog with an app bar if on a small
@@ -21,6 +22,7 @@ export default class DialogTitleWrapper extends Component {
     closeIcon: p.object,
     toolbarItems: p.array, // list of JSX items to display on the toolbar
     title: p.string.isRequired,
+    subTitle: p.string,
     onClose: p.func,
     options: p.array, // list of options to display as list items from option icon
   }
@@ -33,6 +35,7 @@ export default class DialogTitleWrapper extends Component {
       toolbarItems,
       onClose,
       options,
+      subTitle,
       title,
     } = this.props
 
@@ -58,21 +61,32 @@ export default class DialogTitleWrapper extends Component {
 
     if (fullScreen) {
       return (
-        <AppBar position='sticky' style={{ marginBottom: '1em' }}>
-          <Toolbar>
-            {closeButton}
-            <Typography color='inherit' style={{ fontSize: '1.2em', flex: 1 }}>
-              {title}
-            </Typography>
-            {toolbarItems}
-            {menu}
-          </Toolbar>
-        </AppBar>
+        <React.Fragment>
+          <AppBar position='sticky' style={{ marginBottom: '1em' }}>
+            <Toolbar>
+              {closeButton}
+              <Typography
+                color='inherit'
+                style={{ fontSize: '1.2em', flex: 1 }}
+              >
+                {title}
+              </Typography>
+              {toolbarItems}
+              {menu}
+            </Toolbar>
+          </AppBar>
+          <DialogContent style={{ overflowY: 'unset' }}>
+            <Typography variant='subtitle1'>{subTitle}</Typography>
+          </DialogContent>
+        </React.Fragment>
       )
     } else {
       return (
         <React.Fragment>
-          <DialogTitle key='title'>{title}</DialogTitle>
+          <DialogTitle disableTypography>
+            <Typography variant='h6'>{title}</Typography>
+            <Typography variant='subtitle1'>{subTitle}</Typography>
+          </DialogTitle>
           {menu}
         </React.Fragment>
       )

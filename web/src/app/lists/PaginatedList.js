@@ -22,6 +22,7 @@ import { connect } from 'react-redux'
 
 import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
 
 // gray boxes on load
 // disable overflow
@@ -149,7 +150,7 @@ export class PaginatedList extends React.PureComponent {
         title: p.string.isRequired,
         subText: p.string,
         isFavorite: p.bool,
-        icon: p.element,
+        icon: p.element, // renders a list item icon (or avatar)
         action: p.element,
       }),
     ),
@@ -252,6 +253,7 @@ export class PaginatedList extends React.PureComponent {
 
   renderItem = (item, idx) => {
     const { classes, width, absURL } = this.props
+
     let favIcon = <ListItemSecondaryAction />
     if (item.isFavorite) {
       favIcon = (
@@ -271,7 +273,7 @@ export class PaginatedList extends React.PureComponent {
         to={absURL(item.url)}
         button={Boolean(item.url)}
       >
-        {item.icon}
+        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText primary={item.title} secondary={item.subText} />
         {favIcon}
         {item.action && (

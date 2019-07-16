@@ -153,7 +153,7 @@ export default class RotationUserList extends React.PureComponent {
           highlight: index === activeUserIndex,
           icon: <UserAvatar userID={u.id} />,
           subText: handoff[index],
-          action: (
+          secondaryAction: (
             <OtherActions
               actions={[
                 {

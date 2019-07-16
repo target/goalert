@@ -5,6 +5,7 @@ import CardContent from '@material-ui/core/CardContent'
 import CardHeader from '@material-ui/core/CardHeader'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
+import ListItemAvatar from '@material-ui/core/ListItemAvatar'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import { UserAvatar } from '../../util/avatar'
@@ -91,7 +92,9 @@ export default class OnCallForService extends Component {
 
           return (
             <ListItem key={id} button component={Link} to={`/users/${id}`}>
-              <UserAvatar userID={id} />
+              <ListItemAvatar>
+                <UserAvatar userID={id} />
+              </ListItemAvatar>
               <ListItemText
                 primary={usersDict[id]['name']}
                 secondary={`${step} ${this.stepsText(usersDict[id]['steps'])}`}

@@ -203,6 +203,8 @@ type Mutation {
     input: CreateUserNotificationRuleInput!
   ): UserNotificationRule
   updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
+  sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
+  verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
 
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
@@ -762,13 +764,12 @@ enum ContactMethodType {
 # A method of contacting a user.
 type UserContactMethod {
   id: ID!
-
   type: ContactMethodType
 
   # User-defined label for this contact method.
   name: String!
-
   value: String!
+  disabled: Boolean!
 }
 
 input CreateUserContactMethodInput {
@@ -791,6 +792,15 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+}
+
+input SendContactMethodVerificationInput {
+  contactMethodID: ID!
+}
+
+input VerifyContactMethodInput {
+  contactMethodID: ID!
+  code: Int!
 }
 
 type AuthSubject {

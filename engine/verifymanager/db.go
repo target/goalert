@@ -22,7 +22,7 @@ func (db *DB) Name() string { return "Engine.VerificationManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeVerify,
-		Version: 1,
+		Version: 2,
 	})
 	if err != nil {
 		return nil, err
@@ -34,15 +34,16 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		insertMessages: p.P(`
 			with rows as (
 				insert into outgoing_messages (message_type, contact_method_id, user_id, user_verification_code_id)
-				select 'verification_message', send_to, user_id, code.id
+				select 'verification_message', contact_method_id, cm.user_id, code.id
 				from user_verification_codes code
-				where send_to notnull and now() < expires_at
+				join user_contact_methods cm on cm.id = contact_method_id
+				where not sent and now() < expires_at
 				limit 100
 				for update skip locked
 				returning user_verification_code_id id
 			)
 			update user_verification_codes code
-			set send_to = null
+			set sent = true
 			from rows
 			where code.id = rows.id
 		`),
