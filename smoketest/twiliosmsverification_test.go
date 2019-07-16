@@ -19,18 +19,14 @@ func TestTwilioSMSVerification(t *testing.T) {
 			({{uuid "user"}}, 'bob', 'joe');
 		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
 		values
-			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
-			({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
+			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true);
 		insert into user_notification_rules (id, user_id, delay_minutes, contact_method_id)
 		values
-			({{uuid "nr1"}}, {{uuid "user"}}, 0, {{uuid "cm1"}}),
-			({{uuid "nr2"}}, {{uuid "user"}}, 0, {{uuid "cm2"}}),
-			({{uuid "nr3"}}, {{uuid "user"}}, 1, {{uuid "cm1"}}),
-			({{uuid "nr4"}}, {{uuid "user"}}, 1, {{uuid "cm2"}});
+			({{uuid "nr1"}}, {{uuid "user"}}, 0, {{uuid "cm1"}});
 		insert into escalation_policies (id, name) 
 		values
 			({{uuid "eid"}}, 'esc policy');
-		insert into escalation_policy_steps (id, escalation_policy_id) 
+		insert into escalation_policy_steps (id, escalation_policy_id)
 		values
 			({{uuid "esid"}}, {{uuid "eid"}});
 		insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
@@ -59,7 +55,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 		}
 	}
 
-	cm1 := h.UUID("cm1")
+	smsID := h.UUID("cm1")
 
 	doQL(fmt.Sprintf(`
 		mutation {
@@ -67,7 +63,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 				contactMethodID: "%s"
 			})
 		}
-	`, cm1))
+	`, smsID))
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
@@ -90,11 +86,16 @@ func TestTwilioSMSVerification(t *testing.T) {
 				code: %d
 			})
 		}
-	`, cm1, code))
+	`, smsID, code))
 
 	h.FastForward(time.Minute)
 
-	// both CM's for the given number should be enabled
-	d1.ExpectSMS("testing")
-	d1.ExpectVoice("testing")
+	doQL(fmt.Sprintf(`
+		mutation {
+			testContactMethod(id: "%s")
+		}
+	`, smsID))
+
+	// sms for the given number should be enabled
+	d1.ExpectSMS("test")
 }
