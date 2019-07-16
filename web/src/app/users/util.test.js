@@ -9,9 +9,9 @@ test('formatPhoneNumber', () => {
   expect(formatPhoneNumber('+17635550100')).toBe('+1 763-555-0100')
   expect(formatPhoneNumber('+12085550105')).toBe('+1 208-555-0105')
   expect(formatPhoneNumber('+15165550184')).toBe('+1 516-555-0184')
-  expect(formatPhoneNumber('+911400000000')).toBe('+91 14 0000 0000')
-  expect(formatPhoneNumber('+911401234567')).toBe('+91 14 0123 4567')
-  expect(formatPhoneNumber('+911409876543')).toBe('+91 14 0987 6543')
+  expect(formatPhoneNumber('+911400000000')).toBe('+91 140 000 0000')
+  expect(formatPhoneNumber('+911401234567')).toBe('+91 140 123 4567')
+  expect(formatPhoneNumber('+911409876543')).toBe('+91 140 987 6543')
   expect(formatPhoneNumber('+447700000000')).toBe('+44 7700 000000')
   expect(formatPhoneNumber('+447701234567')).toBe('+44 7701 234567')
   expect(formatPhoneNumber('+447709876543')).toBe('+44 7709 876543')
@@ -45,7 +45,7 @@ test('formatNotificationRule', () => {
       name: 'myPhone',
       value: '+911400000000',
     }),
-  ).toBe('After 1 minute notify me via VOICE at +91 14 0000 0000 (myPhone)')
+  ).toBe('After 1 minute notify me via VOICE at +91 140 000 0000 (myPhone)')
   expect(
     formatNotificationRule(5, {
       type: 'VOICE',

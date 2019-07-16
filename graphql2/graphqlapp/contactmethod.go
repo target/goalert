@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/validation/validate"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/user/contactmethod"
@@ -45,6 +46,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 
 	return cm, nil
 }
+
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cm, err := m.CMStore.FindOneTx(ctx, tx, input.ID)
@@ -59,5 +61,21 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 		}
 		return m.CMStore.UpdateTx(ctx, tx, cm)
 	})
+	return err == nil, err
+}
+
+func (m *Mutation) SendContactMethodVerification(ctx context.Context, input graphql2.SendContactMethodVerificationInput) (bool, error) {
+	err := m.NotificationStore.SendContactMethodVerification(ctx, input.ContactMethodID)
+	return err == nil, err
+}
+
+func (m *Mutation) VerifyContactMethod(ctx context.Context, input graphql2.VerifyContactMethodInput) (bool, error) {
+	err := validate.Range("Code", input.Code, 100000, 999999)
+	if err != nil {
+		// return "must be 6 digits" error as we care about # of digits, not the code's actual value
+		return false, validation.NewFieldError("Code", "must be 6 digits")
+	}
+
+	err = m.NotificationStore.VerifyContactMethod(ctx, input.ContactMethodID, input.Code)
 	return err == nil, err
 }

@@ -10,6 +10,7 @@ export default class LoadingButton extends Component {
     color: p.string,
     disabled: p.bool,
     loading: p.bool,
+    noSubmit: p.bool,
     onClick: p.func,
   }
 
@@ -20,6 +21,7 @@ export default class LoadingButton extends Component {
       color,
       disabled,
       loading,
+      noSubmit,
       onClick,
       style,
     } = this.props
@@ -32,7 +34,7 @@ export default class LoadingButton extends Component {
           color={color || 'primary'}
           onClick={onClick}
           disabled={loading || disabled}
-          type='submit'
+          type={noSubmit ? 'button' : 'submit'}
         >
           {!attemptCount ? buttonText || 'Confirm' : 'Retry'}
         </Button>

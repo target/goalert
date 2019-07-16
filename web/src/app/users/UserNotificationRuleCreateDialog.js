@@ -47,7 +47,6 @@ export default class UserNotificationRuleCreateDialog extends React.PureComponen
 
   renderDialog(commit, status) {
     const { loading, error } = status
-
     const fieldErrs = fieldErrors(error)
 
     return (

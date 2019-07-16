@@ -187,7 +187,7 @@ export default class IntegrationKeyList extends React.PureComponent {
             classes={this.props.classes}
           />
         ),
-        action: (
+        secondaryAction: (
           <IconButton onClick={() => this.setState({ delete: key.id })}>
             <Trash />
           </IconButton>
