@@ -51,7 +51,7 @@ export default class HeartbeatCreateDialog extends React.PureComponent {
         client={graphql2Client}
         mutation={mutation}
         onCompleted={this.props.onClose}
-        update={(cache, { data: { createIntegrationKey } }) => {
+        update={(cache, { data: { createHeartbeat } }) => {
           const { service } = cache.readQuery({
             query,
             variables: { serviceID: this.props.serviceID },
@@ -62,9 +62,7 @@ export default class HeartbeatCreateDialog extends React.PureComponent {
             data: {
               service: {
                 ...service,
-                integrationKeys: (service.integrationKeys || []).concat(
-                  createIntegrationKey,
-                ),
+                heartbeats: (service.heartbeats || []).concat(createHeartbeat),
               },
             },
           })
