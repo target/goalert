@@ -55,7 +55,7 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		}
 	}
 
-	voice := h.UUID("cm2")
+	voiceID := h.UUID("cm2")
 
 	doQL(fmt.Sprintf(`
 		mutation {
@@ -63,7 +63,7 @@ func TestTwilioVoiceVerification(t *testing.T) {
 				contactMethodID: "%s"
 			})
 		}
-	`, voice))
+	`, voiceID))
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
@@ -86,7 +86,7 @@ func TestTwilioVoiceVerification(t *testing.T) {
 				code: %d
 			})
 		}
-	`, voice, code))
+	`, voiceID, code))
 
 	h.FastForward(time.Minute)
 
@@ -94,7 +94,7 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		mutation {
 			testContactMethod(id: "%s")
 		}
-	`, voice))
+	`, voiceID))
 
 	// voice for the given number should be enabled
 	d1.ExpectVoice("test")

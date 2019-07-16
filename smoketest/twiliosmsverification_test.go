@@ -55,7 +55,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 		}
 	}
 
-	sms := h.UUID("cm1")
+	smsID := h.UUID("cm1")
 
 	doQL(fmt.Sprintf(`
 		mutation {
@@ -63,7 +63,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 				contactMethodID: "%s"
 			})
 		}
-	`, sms))
+	`, smsID))
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
@@ -86,7 +86,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 				code: %d
 			})
 		}
-	`, sms, code))
+	`, smsID, code))
 
 	h.FastForward(time.Minute)
 
@@ -94,7 +94,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 		mutation {
 			testContactMethod(id: "%s")
 		}
-	`, sms))
+	`, smsID))
 
 	// sms for the given number should be enabled
 	d1.ExpectSMS("test")

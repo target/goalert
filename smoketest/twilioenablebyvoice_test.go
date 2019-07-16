@@ -45,8 +45,8 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 		}
 	}
 
-	sms := h.UUID("cm1")
-	voice := h.UUID("cm2")
+	smsID := h.UUID("cm1")
+	voiceID := h.UUID("cm2")
 
 	doQL(fmt.Sprintf(`
 		mutation {
@@ -55,14 +55,14 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 				code: %d
 			})
 		}
-	`, voice, 123456), false)
+	`, voiceID, 123456), false)
 
 	// SMS should still be disabled - expect error
 	doQL(fmt.Sprintf(`
 		mutation {
 			testContactMethod(id: "%s")
 		}
-	`, sms), true)
+	`, smsID), true)
 
 	d1 := h.Twilio().Device(h.Phone("1"))
 
@@ -71,7 +71,7 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 		mutation {
 			testContactMethod(id: "%s")
 		}
-	`, voice), false)
+	`, voiceID), false)
 
 	d1.ExpectVoice("test")
 }
