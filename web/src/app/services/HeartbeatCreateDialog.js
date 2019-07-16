@@ -2,20 +2,21 @@ import React from 'react'
 import p from 'prop-types'
 
 import { graphql2Client } from '../apollo'
-// import gql from 'graphql-tag'
+import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
-import HearbeatForm from './HearbeatForm'
+import HearbeatForm from './HeartbeatForm'
 
-/* const mutation = gql`
-  mutation($input: CreateIntegrationKeyInput!) {
-    createIntegrationKey(input: $input) {
+const mutation = gql`
+  mutation($input: CreateHeartbeatInput!) {
+    createHeartbeat(input: $input) {
       id
+      serviceID
       name
-      type
-      href
+      heartbeatInterval
+      lastState
     }
   }
 `
@@ -23,15 +24,15 @@ const query = gql`
   query($serviceID: ID!) {
     service(id: $serviceID) {
       id
-      integrationKeys {
+      heartbeats {
         id
         name
-        type
-        href
+        heartbeatInterval
+        lastState
       }
     }
   }
-` */
+`
 
 export default class HeartbeatCreateDialog extends React.PureComponent {
   static propTypes = {
@@ -40,15 +41,11 @@ export default class HeartbeatCreateDialog extends React.PureComponent {
   }
 
   state = {
-    value: { name: '', type: 'generic' },
+    value: { name: '' },
     errors: [],
   }
 
   render() {
-    // TODO, THEN REMOVE THESE
-    let query = null
-    let mutation = null
-    // ----
     return (
       <Mutation
         client={graphql2Client}
@@ -83,7 +80,7 @@ export default class HeartbeatCreateDialog extends React.PureComponent {
     return (
       <FormDialog
         maxWidth='sm'
-        title='Create New Integration Key'
+        title='Create New Heartbeat'
         loading={loading}
         errors={nonFieldErrors(error)}
         onClose={this.props.onClose}

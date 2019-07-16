@@ -4,28 +4,28 @@ import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import withStyles from '@material-ui/core/styles/withStyles'
-// import gql from 'graphql-tag'
+import gql from 'graphql-tag'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
-// import Query from '../util/Query'
+import Query from '../util/Query'
 import IconButton from '@material-ui/core/IconButton'
 import { Trash } from '../icons'
 import HeartbeatCreateDialog from './HeartbeatCreateDialog'
 import HeartbeatDeleteDialog from './HeartbeatDeleteDialog'
 
-/* const query = gql`
+const query = gql`
   query($serviceID: ID!) {
     service(id: $serviceID) {
       id # need to tie the result to the correct record
-      heartbeatMonitors {
+      heartbeats {
         id
-        type
         name
-        href
+        heartbeatInterval
+        lastState
       }
     }
   }
-` */
+`
 
 const styles = {
   text: {
@@ -49,6 +49,7 @@ const sortItems = (a, b) => {
 @withStyles(styles)
 class HeartbeatDetails extends React.PureComponent {
   static propTypes = {
+    interval: p.int.isRequired,
     lastState: p.string.isRequired,
     lastHeartbeatMins: p.int.isRequired,
     // provided by withStyles
@@ -58,8 +59,12 @@ class HeartbeatDetails extends React.PureComponent {
   render() {
     return (
       <React.Fragment>
-        Last known state: {this.props.lastState}
-        Last report time: {this.props.lastHeartbeatMins},
+        <div>
+          Sends an alert if no beat is received within
+          {this.props.interval} minutes.
+        </div>
+        <div>Last known state: {this.props.lastState}</div>
+        <div>Last report time: {this.props.lastHeartbeatMins}</div>
       </React.Fragment>
     )
   }
@@ -81,7 +86,7 @@ export default class HeartbeatsList extends React.PureComponent {
       <React.Fragment>
         <Grid item xs={12} className={this.props.classes.spacing}>
           <Card>
-            <CardContent>{}</CardContent>
+            <CardContent>{this.renderQuery()}</CardContent>
           </Card>
         </Grid>
         <CreateFAB onClick={() => this.setState({ create: true })} />
@@ -101,7 +106,7 @@ export default class HeartbeatsList extends React.PureComponent {
     )
   }
 
-  /* renderQuery() {
+  renderQuery() {
     return (
       <Query
         query={query}
@@ -109,7 +114,7 @@ export default class HeartbeatsList extends React.PureComponent {
         render={({ data }) => this.renderList(data.service.heartbeats)}
       />
     )
-  } */
+  }
 
   renderList(beats) {
     const items = (beats || [])
@@ -119,6 +124,7 @@ export default class HeartbeatsList extends React.PureComponent {
         title: beat.name,
         subText: (
           <HeartbeatDetails
+            interval={beat.interval}
             lastState={beat.lastState}
             lastHeartbeatMins={beat.lastHeartbeatMins}
             classes={this.props.classes}
@@ -133,7 +139,7 @@ export default class HeartbeatsList extends React.PureComponent {
 
     return (
       <FlatList
-        data-cy='int-beats'
+        data-cy='beats'
         emptyMessage='No heartbeats exist for this service.'
         items={items}
       />

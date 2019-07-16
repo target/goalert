@@ -1,20 +1,19 @@
 import React from 'react'
 import p from 'prop-types'
 
-// import { graphql2Client } from '../apollo'
-// import gql from 'graphql-tag'
-// import { Mutation } from 'react-apollo'
+import { graphql2Client } from '../apollo'
+import gql from 'graphql-tag'
+import { Mutation } from 'react-apollo'
 import { nonFieldErrors } from '../util/errutil'
-// import Query from '../util/Query'
+import Query from '../util/Query'
 
 import FormDialog from '../dialogs/FormDialog'
 
-/* const query = gql`
+const query = gql`
   query($id: ID!) {
-    integrationKey(id: $id) {
+    heartbeat(id: $id) {
       id
       name
-      serviceID
     }
   }
 `
@@ -22,7 +21,7 @@ const updateQuery = gql`
   query($id: ID!) {
     service(id: $id) {
       id
-      integrationKeys {
+      heartbeats {
         id
         name
       }
@@ -34,15 +33,15 @@ const mutation = gql`
   mutation($input: [TargetInput!]!) {
     deleteAll(input: $input)
   }
-` */
+`
 
 export default class HearbeatDeleteDialog extends React.PureComponent {
   static propTypes = {
-    integrationKeyID: p.string.isRequired,
+    heartbeatID: p.number.isRequired,
     onClose: p.func,
   }
 
-  /* renderQuery() {
+  renderQuery() {
     return (
       <Query
         noPoll
@@ -51,9 +50,9 @@ export default class HearbeatDeleteDialog extends React.PureComponent {
         render={({ data }) => this.renderMutation(data.heartbeat)}
       />
     )
-  } */
+  }
 
-  /* renderMutation(data) {
+  renderMutation(data) {
     return (
       <Mutation
         client={graphql2Client}
@@ -70,8 +69,8 @@ export default class HearbeatDeleteDialog extends React.PureComponent {
             data: {
               service: {
                 ...service,
-                integrationKeys: (service.integrationKeys || []).filter(
-                  key => key.id !== this.props.integrationKeyID,
+                heartbeats: (service.heartbeats || []).filter(
+                  beat => beat.id !== this.props.heartbeatID,
                 ),
               },
             },
@@ -81,7 +80,7 @@ export default class HearbeatDeleteDialog extends React.PureComponent {
         {(commit, status) => this.renderDialog(data, commit, status)}
       </Mutation>
     )
-  } */
+  }
 
   renderDialog(data, commit, mutStatus) {
     const { loading, error } = mutStatus
