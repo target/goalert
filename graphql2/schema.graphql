@@ -23,6 +23,9 @@ type Query {
   # Returns a single integration key with the given ID.
   integrationKey(id: ID!): IntegrationKey
 
+  # Returns a heartbeat with the given ID
+  heartbeat(id: ID!): Heartbeat
+
   # Returns a paginated list of services.
   services(input: ServiceSearchOptions): ServiceConnection!
 
@@ -190,6 +193,8 @@ type Mutation {
 
   createIntegrationKey(input: CreateIntegrationKeyInput!): IntegrationKey
 
+  createHeartbeat(input: CreateHeartbeatInput!): Heartbeat
+
   setLabel(input: SetLabelInput!): Boolean!
 
   createSchedule(input: CreateScheduleInput!): Schedule
@@ -301,6 +306,7 @@ input CreateServiceInput {
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
   labels: [SetLabelInput!]
+  newHeartbeat: CreateHeartbeatInput
 }
 
 input CreateEscalationPolicyInput {
@@ -608,12 +614,28 @@ type Service {
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
+  heartbeats: [Heartbeat]
 }
 
 input CreateIntegrationKeyInput {
   serviceID: ID
   type: IntegrationKeyType!
   name: String!
+}
+
+input CreateHeartbeatInput {
+  id: ID!
+  serviceID: ID
+  name: String!
+  heartbeatInterval: Int!
+  lastState: HeartbeatState!
+  lastHeartbeat: ISOTimestamp
+}
+
+enum HeartbeatState {
+  inactive
+  healthy
+  unhealthy
 }
 
 type Label {
