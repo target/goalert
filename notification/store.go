@@ -37,6 +37,7 @@ type DB struct {
 	insertTestNotification       *sql.Stmt
 	updateLastSendTime           *sql.Stmt
 	getCode                      *sql.Stmt
+	isDisabled                   *sql.Stmt
 	sendTestLock                 *sql.Stmt
 
 	rand *rand.Rand
