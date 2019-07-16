@@ -42,16 +42,3 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 
 	return &c, nil
 }
-
-//func (c ContactMethod) FormattedValue() (string, error)  {
-//	switch c.Type {
-//	case TypeSMS, TypeVoice:
-//		num, err := libphonenumber.Parse(c.Value, "")
-//		if err != nil {
-//			log.Println(err)
-//			return c.Value, nil
-//		}
-//		c.Value = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
-//	}
-//	return c.Value, nil
-//}
