@@ -29,15 +29,15 @@ type Store interface {
 var _ Store = &DB{}
 
 type DB struct {
-	db                     *sql.DB
-	getCMUserID            *sql.Stmt
-	setVerificationCode    *sql.Stmt
-	verifyAndEnableContactMethod   *sql.Stmt
-	insertTestNotification *sql.Stmt
-	updateLastSendTime     *sql.Stmt
-	getCode                *sql.Stmt
-	isDisabled				*sql.Stmt
-	sendTestLock           *sql.Stmt
+	db                           *sql.DB
+	getCMUserID                  *sql.Stmt
+	setVerificationCode          *sql.Stmt
+	verifyAndEnableContactMethod *sql.Stmt
+	insertTestNotification       *sql.Stmt
+	updateLastSendTime           *sql.Stmt
+	getCode                      *sql.Stmt
+	isDisabled                   *sql.Stmt
+	sendTestLock                 *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -251,7 +251,7 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	}
 
 	res, err := db.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
-	if err == sql.ErrNoRows  {
+	if err == sql.ErrNoRows {
 		return validation.NewFieldError("code", "invalid code")
 	}
 	if err != nil {
@@ -262,7 +262,7 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	if err != nil {
 		return err
 	}
-	if num != 1  {
+	if num != 1 {
 		return validation.NewFieldError("code", "invalid code")
 	}
 
