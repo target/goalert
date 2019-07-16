@@ -2,8 +2,9 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioEnableBySMS checks that all contact methods with the same value and of the same user are enabled when the user responds via SMS with the correct code.

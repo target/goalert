@@ -67,6 +67,7 @@ class PaginationControls extends React.PureComponent {
         <Grid container item justify='flex-end' className={classes.controls}>
           <Grid item>
             <IconButton
+              title='back page'
               data-cy='back-button'
               disabled={!onBack}
               onClick={() => {
@@ -79,6 +80,7 @@ class PaginationControls extends React.PureComponent {
           </Grid>
           <Grid item>
             <IconButton
+              title='next page'
               data-cy='next-button'
               disabled={!onNext}
               onClick={() => {

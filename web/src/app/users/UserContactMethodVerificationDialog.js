@@ -79,7 +79,10 @@ export default function UserContactMethodVerificationDialog(props) {
                 sendError ? [{ message: sendError }] : nonFieldErrors(error)
               }
               onClose={props.onClose}
-              onSubmit={() => submitVerify()}
+              onSubmit={() => {
+                setSendError('')
+                return submitVerify()
+              }}
               form={
                 <UserContactMethodVerificationForm
                   contactMethodID={cm.id}

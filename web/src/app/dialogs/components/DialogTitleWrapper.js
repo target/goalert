@@ -80,16 +80,16 @@ export default class DialogTitleWrapper extends Component {
           </DialogContent>
         </React.Fragment>
       )
+    } else {
+      return (
+        <React.Fragment>
+          <DialogTitle disableTypography>
+            <Typography variant='h6'>{title}</Typography>
+            <Typography variant='subtitle1'>{subTitle}</Typography>
+          </DialogTitle>
+          {menu}
+        </React.Fragment>
+      )
     }
-
-    return (
-      <React.Fragment>
-        <DialogTitle disableTypography>
-          <Typography variant='h6'>{title}</Typography>
-          <Typography variant='subtitle1'>{subTitle}</Typography>
-        </DialogTitle>
-        {menu}
-      </React.Fragment>
-    )
   }
 }
