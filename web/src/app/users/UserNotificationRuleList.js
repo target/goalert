@@ -77,7 +77,7 @@ export default class UserNotificationRuleList extends React.PureComponent {
             data-cy='notification-rules'
             items={sortNotificationRules(notificationRules).map(nr => ({
               title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
-              action: this.props.readOnly ? null : (
+              secondaryAction: this.props.readOnly ? null : (
                 <IconButton
                   aria-label='Delete notification rule'
                   onClick={() => this.setState({ delete: nr.id })}
