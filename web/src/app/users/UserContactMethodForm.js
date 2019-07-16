@@ -53,7 +53,7 @@ export default class UserContactMethodForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12} sm={12}>
             <FormField
-              placeholder={'+1 123-456-7891'}
+              placeholder={'+11235550123'}
               aria-labelledby={'countryCodeIndicator'}
               fullWidth
               name='value'
