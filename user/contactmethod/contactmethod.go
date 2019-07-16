@@ -8,12 +8,12 @@ import (
 
 // ContactMethod stores the information for contacting a user.
 type ContactMethod struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Type     Type   `json:"type"`
-	Value    string `json:"value"`
-	Disabled bool   `json:"disabled"`
-	UserID   string `json:"-"`
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	Type           Type   `json:"type"`
+	Value          string `json:"value"`
+	Disabled       bool   `json:"disabled"`
+	UserID         string `json:"-"`
 	FormattedValue string `json:"formattedValue"`
 }
 

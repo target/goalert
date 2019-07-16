@@ -3,13 +3,12 @@ package contactmethod
 import (
 	"context"
 	"database/sql"
+	"github.com/lib/pq"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"github.com/ttacon/libphonenumber"
-
-	"github.com/lib/pq"
 )
 
 // Store allows the lookup and management of ContactMethods.
@@ -254,7 +253,7 @@ func (db *DB) FindOne(ctx context.Context, id string) (*ContactMethod, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.FormattedValue = libphonenumber.Format(num,libphonenumber.INTERNATIONAL)
+	c.FormattedValue = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
 
 	return &c, nil
 }
@@ -343,7 +342,7 @@ func scanAll(rows *sql.Rows) ([]ContactMethod, error) {
 		if err != nil {
 			return nil, err
 		}
-		c.FormattedValue = libphonenumber.Format(num,libphonenumber.INTERNATIONAL)
+		c.FormattedValue = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
 		contactMethods = append(contactMethods, c)
 	}
 	return contactMethods, nil
