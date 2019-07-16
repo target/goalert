@@ -1,20 +1,18 @@
 package contactmethod
 
 import (
-	"github.com/target/goalert/validation/validate"
-
 	uuid "github.com/satori/go.uuid"
+	"github.com/target/goalert/validation/validate"
 )
 
 // ContactMethod stores the information for contacting a user.
 type ContactMethod struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	Type           Type   `json:"type"`
-	Value          string `json:"value"`
-	Disabled       bool   `json:"disabled"`
-	UserID         string `json:"-"`
-	FormattedValue string `json:"formattedValue"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Type     Type   `json:"type"`
+	Value    string `json:"value"`
+	Disabled bool   `json:"disabled"`
+	UserID   string `json:"-"`
 }
 
 // Normalize will validate and 'normalize' the ContactMethod -- such as making email lower-case
@@ -44,3 +42,16 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 
 	return &c, nil
 }
+
+//func (c ContactMethod) FormattedValue() (string, error)  {
+//	switch c.Type {
+//	case TypeSMS, TypeVoice:
+//		num, err := libphonenumber.Parse(c.Value, "")
+//		if err != nil {
+//			log.Println(err)
+//			return c.Value, nil
+//		}
+//		c.Value = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
+//	}
+//	return c.Value, nil
+//}

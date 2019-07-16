@@ -769,7 +769,7 @@ type UserContactMethod {
   name: String!
 
   value: String!
-  formattedValue: String
+  formattedValue: String!
 }
 
 input CreateUserContactMethodInput {
