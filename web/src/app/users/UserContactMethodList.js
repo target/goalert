@@ -13,8 +13,9 @@ import ListItemText from '@material-ui/core/ListItemText'
 import { Config } from '../util/RequireConfig'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles, createStyles } from '@material-ui/core/styles'
 import { useMutation } from '@apollo/react-hooks'
+import { styles as globalStyles } from '../styles/materialStyles'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -37,11 +38,16 @@ const testCM = gql`
   }
 `
 
-const useStyles = makeStyles({
-  actionGrid: {
-    display: 'flex',
-    alignItems: 'center',
-  },
+const useStyles = makeStyles(theme => {
+  const { cardHeader } = globalStyles(theme)
+
+  return createStyles({
+    actionGrid: {
+      display: 'flex',
+      alignItems: 'center',
+    },
+    cardHeader,
+  })
 })
 
 export default function UserContactMethodList(props) {
@@ -125,7 +131,11 @@ export default function UserContactMethodList(props) {
     return (
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Contact Methods' />
+          <CardHeader
+            className={classes.cardHeader}
+            component='h3'
+            title='Contact Methods'
+          />
           <FlatList
             data-cy='contact-methods'
             items={sortContactMethods(contactMethods).map(cm => ({

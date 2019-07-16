@@ -11,7 +11,18 @@ import Typography from '@material-ui/core/Typography'
 import { UserAvatar } from '../../util/avatar'
 import { Link } from 'react-router-dom'
 import Spinner from '../../loading/components/Spinner'
+import { withStyles } from '@material-ui/core'
+import { styles as globalStyles } from '../../styles/materialStyles'
 
+const styles = theme => {
+  const { cardHeader } = globalStyles(theme)
+
+  return {
+    cardHeader,
+  }
+}
+
+@withStyles(styles)
 export default class OnCallForService extends Component {
   static propTypes = {
     onCallUsers: p.arrayOf(
@@ -97,10 +108,15 @@ export default class OnCallForService extends Component {
 
   render() {
     let content = this.props.loading ? <Spinner /> : this.renderUsers()
+    let { classes } = this.props
 
     return (
       <Card>
-        <CardHeader title='On Call Users' />
+        <CardHeader
+          className={classes.cardHeader}
+          component='h3'
+          title='On Call Users'
+        />
         <CardContent>{content}</CardContent>
       </Card>
     )
