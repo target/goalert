@@ -22,32 +22,64 @@ type SearchOptions struct {
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
+
+	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
+	FavoritesOnly bool `json:"b,omitempty"`
+
+	// FavoritesFirst indicates that rotations marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
+	FavoritesFirst bool `json:"f,omitempty"`
+
+	//FavoritesUserID is the userID associated with the rotation favorite
+	FavoritesUserID string `json:"u,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
-	Name string `json:"n,omitempty"`
+	Name       string `json:"n,omitempty"`
+	IsFavorite bool   `json:"f,omitempty"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		id, name, description, type, start_time, shift_length, time_zone
+		rot.id, 
+		rot.name, 
+		rot.description, 
+		rot.type, 
+		rot.start_time, 
+		rot.shift_length, 
+		rot.time_zone, 
+		fav IS DISTINCT FROM NULL
 	FROM rotations rot
+	{{if not .FavoritesOnly }}LEFT {{end}}JOIN user_favorites fav ON rot.id = fav.tgt_rotation_id AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
-		AND not id = any(:omit)
+		AND NOT rot.id = any(:omit)
 	{{end}}
 	{{if .SearchStr}}
 		AND (rot.name ILIKE :search OR rot.description ILIKE :search)
 	{{end}}
 	{{if .After.Name}}
-		AND lower(rot.name) > lower(:afterName)
+		AND
+		{{if not .FavoritesFirst}}
+			lower(rot.name) > lower(:afterName)
+		{{else if .After.IsFavorite}}
+			((fav IS DISTINCT FROM NULL AND lower(rot.name) > lower(:afterName)) OR fav isnull)
+		{{else}}
+			(fav isnull AND lower(rot.name) > lower(:afterName))
+		{{end}}
 	{{end}}
-	ORDER BY lower(rot.name)
+	ORDER BY {{ .OrderBy }}
 	LIMIT {{.Limit}}
 `))
 
 type renderData SearchOptions
+
+func (opts renderData) OrderBy() string {
+	if opts.FavoritesFirst {
+		return "fav isnull, lower(rot.name)"
+	}
+	return "lower(rot.name)"
+}
 
 func (opts renderData) SearchStr() string {
 	if opts.Search == "" {
@@ -63,12 +95,19 @@ func (opts renderData) Normalize() (*renderData, error) {
 	}
 
 	err := validate.Many(
-		validate.Text("Search", opts.Search, 0, search.MaxQueryLen),
+		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.ManyUUID("Omit", opts.Omit, 50),
 	)
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
+	}
+
+	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
+		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	return &opts, err
@@ -79,17 +118,26 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", pq.StringArray(opts.Omit)),
+		sql.Named("favUserID", opts.FavoritesUserID),
 	}
 }
 
 func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
-	if err != nil {
-		return nil, err
-	}
+
 	if opts == nil {
 		opts = &SearchOptions{}
 	}
+
+	userCheck := permission.User
+	if opts.FavoritesUserID != "" {
+		userCheck = permission.MatchUser(opts.FavoritesUserID)
+	}
+
+	err := permission.LimitCheckAny(ctx, permission.System, userCheck)
+	if err != nil {
+		return nil, err
+	}
+
 	data, err := (*renderData)(opts).Normalize()
 	if err != nil {
 		return nil, err
@@ -112,7 +160,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Rotation, erro
 	var r Rotation
 	var tz string
 	for rows.Next() {
-		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz)
+		err = rows.Scan(&r.ID, &r.Name, &r.Description, &r.Type, &r.Start, &r.ShiftLength, &tz, &r.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}

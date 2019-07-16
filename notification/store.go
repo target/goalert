@@ -21,25 +21,23 @@ const minTimeBetweenTests = time.Minute
 
 type Store interface {
 	SendContactMethodTest(ctx context.Context, cmID string) error
-	SendContactMethodVerification(ctx context.Context, cmID string, resend bool) error
-	VerifyContactMethod(ctx context.Context, cmID string, code int) ([]string, error)
-	CodeExpiration(ctx context.Context, cmID string) (*time.Time, error)
+	SendContactMethodVerification(ctx context.Context, cmID string) error
+	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	Code(ctx context.Context, id string) (int, error)
 }
 
 var _ Store = &DB{}
 
 type DB struct {
-	db                     *sql.DB
-	getCMUserID            *sql.Stmt
-	setVerificationCode    *sql.Stmt
-	verifyVerificationCode *sql.Stmt
-	enableContactMethods   *sql.Stmt
-	insertTestNotification *sql.Stmt
-	updateLastSendTime     *sql.Stmt
-	codeExpiration         *sql.Stmt
-	getCode                *sql.Stmt
-	sendTestLock           *sql.Stmt
+	db                           *sql.DB
+	getCMUserID                  *sql.Stmt
+	setVerificationCode          *sql.Stmt
+	verifyAndEnableContactMethod *sql.Stmt
+	insertTestNotification       *sql.Stmt
+	updateLastSendTime           *sql.Stmt
+	getCode                      *sql.Stmt
+	isDisabled                   *sql.Stmt
+	sendTestLock                 *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -68,46 +66,34 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			where id = $1
 		`),
 
-		codeExpiration: p.P(`
-			select expires_at
-			from user_verification_codes v
-			join user_contact_methods cm on cm.id = $1
-			where v.user_id = cm.user_id and v.contact_method_value = cm.value
+		isDisabled: p.P(`
+			select disabled
+			from user_contact_methods
+			where id = $1
 		`),
 
+		// should result in sending a verification code to the specified contact method
 		setVerificationCode: p.P(`
-			insert into user_verification_codes (id, user_id, contact_method_value, code, expires_at, send_to)
-			select
-				$1,
-				cm.user_id,
-				cm.value,
-				$3,
-				now() + cast($4 as interval),
-				$2
-			from user_contact_methods cm
-			where id = $2
-			on conflict (user_id, contact_method_value) do update
+			insert into user_verification_codes (id, contact_method_id, code, expires_at)
+			values ($1, $2, $3, NOW() + '15 minutes'::interval)
+			on conflict (contact_method_id) do update
 			set
-				send_to = $2,
-				expires_at = case when $5 then user_verification_codes.expires_at else EXCLUDED.expires_at end,
-				code = case when $5 then user_verification_codes.code else EXCLUDED.code end
-		`),
-		verifyVerificationCode: p.P(`
-			delete from user_verification_codes v
-			using user_contact_methods cm
-			where
-				cm.id = $1 and
-				v.contact_method_value = cm.value and
-				v.user_id = cm.user_id and
-				v.code = $2
-			returning cm.value
+				sent = false,
+				expires_at = EXCLUDED.expires_at
 		`),
 
-		enableContactMethods: p.P(`
-			update user_contact_methods
+		// should reactivate a contact method if specified code matches what was set
+		verifyAndEnableContactMethod: p.P(`
+			with v as (
+				delete from user_verification_codes
+				where contact_method_id = $1 and code = $2
+				returning contact_method_id id
+			)
+			update user_contact_methods cm
 			set disabled = false
-			where user_id = $1 and value = $2
-			returning id
+			from v
+			where cm.id = v.id
+			returning cm.id
 		`),
 
 		updateLastSendTime: p.P(`
@@ -176,23 +162,6 @@ func (db *DB) Code(ctx context.Context, id string) (int, error) {
 	return code, err
 }
 
-func (db *DB) CodeExpiration(ctx context.Context, id string) (t *time.Time, err error) {
-	_, err = db.cmUserID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.codeExpiration.QueryRowContext(ctx, id).Scan(&t)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return t, nil
-}
-
 func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	_, err := db.cmUserID(ctx, id)
 	if err != nil {
@@ -206,12 +175,21 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 
 	// Lock outgoing_messages first, before we modify user_contact methods
 	// to prevent deadlock.
-	_, err = tx.Stmt(db.sendTestLock).ExecContext(ctx)
+	_, err = tx.StmtContext(ctx, db.sendTestLock).ExecContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	r, err := tx.Stmt(db.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	var isDisabled bool
+	err = tx.StmtContext(ctx, db.isDisabled).QueryRowContext(ctx, id).Scan(&isDisabled)
+	if err != nil {
+		return err
+	}
+	if isDisabled {
+		return validation.NewFieldError("ContactMethod", "contact method disabled")
+	}
+
+	r, err := tx.StmtContext(ctx, db.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -224,7 +202,7 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	}
 
 	vID := uuid.NewV4().String()
-	_, err = tx.Stmt(db.insertTestNotification).ExecContext(ctx, vID, id)
+	_, err = tx.StmtContext(ctx, db.insertTestNotification).ExecContext(ctx, vID, id)
 	if err != nil {
 		return err
 	}
@@ -232,8 +210,8 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	return tx.Commit()
 }
 
-func (db *DB) SendContactMethodVerification(ctx context.Context, id string, resend bool) error {
-	_, err := db.cmUserID(ctx, id)
+func (db *DB) SendContactMethodVerification(ctx context.Context, cmID string) error {
+	_, err := db.cmUserID(ctx, cmID)
 	if err != nil {
 		return err
 	}
@@ -244,7 +222,7 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 	}
 	defer tx.Rollback()
 
-	r, err := tx.Stmt(db.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	r, err := tx.StmtContext(ctx, db.updateLastSendTime).ExecContext(ctx, cmID, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -253,12 +231,12 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 		return err
 	}
 	if rows != 1 {
-		return validation.NewFieldError("ContactMethod", "test message rate-limit exceeded")
+		return validation.NewFieldError("ContactMethod", fmt.Sprintf("Too many messages! Please try again in %.0f minute(s)", minTimeBetweenTests.Minutes()))
 	}
 
-	vID := uuid.NewV4().String()
+	vcID := uuid.NewV4().String()
 	code := db.rand.Intn(900000) + 100000
-	_, err = tx.Stmt(db.setVerificationCode).ExecContext(ctx, vID, id, code, fmt.Sprintf("%f seconds", (15*time.Minute).Seconds()), resend)
+	_, err = tx.StmtContext(ctx, db.setVerificationCode).ExecContext(ctx, vcID, cmID, code)
 	if err != nil {
 		return errors.Wrap(err, "set verification code")
 	}
@@ -266,41 +244,27 @@ func (db *DB) SendContactMethodVerification(ctx context.Context, id string, rese
 	return tx.Commit()
 }
 
-func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) ([]string, error) {
-	userID, err := db.cmUserID(ctx, cmID)
+func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) error {
+	_, err := db.cmUserID(ctx, cmID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	tx, err := db.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	var cmValue string
-	err = db.verifyVerificationCode.QueryRowContext(ctx, cmID, code).Scan(&cmValue)
+	res, err := db.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
 	if err == sql.ErrNoRows {
-		return nil, validation.NewFieldError("Code", "unrecognized code")
+		return validation.NewFieldError("code", "invalid code")
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	rows, err := db.enableContactMethods.QueryContext(ctx, userID, cmValue)
+	num, err := res.RowsAffected()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer rows.Close()
-	var result []string
+	if num != 1 {
+		return validation.NewFieldError("code", "invalid code")
+	}
 
-	for rows.Next() {
-		var id string
-		err = rows.Scan(&id)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, id)
-	}
-	return result, tx.Commit()
+	return nil
 }

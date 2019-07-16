@@ -66,7 +66,7 @@ export default class ServiceLabelList extends React.PureComponent {
       .map(label => ({
         title: label.key,
         subText: label.value,
-        action: (
+        secondaryAction: (
           <OtherActions
             actions={[
               {

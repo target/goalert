@@ -57,11 +57,11 @@ export default class BaseAvatar extends Component {
     const { userID, fallback, ...props } = this.props
 
     if (this.state.valid) {
-      return <Avatar src={this._image.src} {...props} />
+      return <Avatar alt='' src={this._image.src} {...props} />
     }
 
     return (
-      <Avatar data-cy='avatar-fallback' {...props}>
+      <Avatar alt='' data-cy='avatar-fallback' {...props}>
         {this.renderFallback()}
       </Avatar>
     )

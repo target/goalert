@@ -160,7 +160,7 @@ export default class Login extends Component {
     // create login button
     let loginButton = null
     const loginIcon = logoUrl ? (
-      <img src={logoUrl} className={classes.loginIcon} />
+      <img alt='GoAlert' src={logoUrl} className={classes.loginIcon} />
     ) : null
     if (fields) {
       loginButton = (

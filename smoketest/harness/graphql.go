@@ -45,7 +45,7 @@ func (h *Harness) GraphQLQuery(query string) *QLResponse {
 // handling authentication. Queries are performed with Admin role.
 func (h *Harness) GraphQLQuery2(query string) *QLResponse {
 	h.t.Helper()
-	return h.GraphQLQueryT(h.t, query, "/v1/graphql2")
+	return h.GraphQLQueryT(h.t, query, "/api/graphql")
 }
 
 // GraphQLQueryT will perform a GraphQL query against the backend, internally

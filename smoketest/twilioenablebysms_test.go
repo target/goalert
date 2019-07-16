@@ -11,22 +11,32 @@ func TestTwilioEnableBySMS(t *testing.T) {
 	t.Parallel()
 
 	sqlQuery := `
-	insert into users (id, name, email) 
-	values 
-		({{uuid "user"}}, 'bob', 'joe');
-	insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-	values
-		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
-		({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
-	insert into user_verification_codes (id, user_id, contact_method_value, code, expires_at)
-	values 
-		({{uuid "id"}}, {{uuid "user"}}, {{phone "1"}}, 123456, now() + '15 minutes'::interval)
-`
+		insert into users (id, name, email) 
+		values 
+			({{uuid "user"}}, 'bob', 'joe');
+		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
+		values
+			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, true),
+			({{uuid "cm2"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}}, true);
+		insert into user_verification_codes (id, user_id, contact_method_value, code, expires_at)
+		values 
+			({{uuid "id"}}, {{uuid "user"}}, {{phone "1"}}, 123456, now() + '15 minutes'::interval);
+		insert into outgoing_messages (message_type, contact_method_id, last_status, sent_at, user_id, user_verification_code_id)
+		values
+			('verification_message', {{uuid "cm1"}}, 'delivered', now(), {{uuid "user"}}, {{uuid "id"}});
+	`
+
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 
-	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+	doQL := func(query string, expectErr bool) {
+		g := h.GraphQLQuery2(query)
+		if expectErr {
+			if len(g.Errors) == 0 {
+				t.Fatal("expected error")
+			}
+			return
+		}
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -35,43 +45,32 @@ func TestTwilioEnableBySMS(t *testing.T) {
 		}
 	}
 
-	cm1 := h.UUID("cm1")
-	cm2 := h.UUID("cm2")
+	smsID := h.UUID("cm1")
+	voiceID := h.UUID("cm2")
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			verifyContactMethod(input: {
-				contact_method_id: "%s",
-				verification_code: %d,
-			}) {
-			  contact_method_ids
-			}
-		  }
-		`, cm1, 123456))
+			verifyContactMethod(input:{
+				contactMethodID:  "%s",
+				code: %d
+			})
+		}
+	`, smsID, 123456), false)
 
-	// All contact methods that have same value and of the same user should be enabled now.
+	// Voice should still be disabled - expect error
 	doQL(fmt.Sprintf(`
-				mutation {
-					sendContactMethodTest(input:{
-						contact_method_id:  "%s",
-					}){
-						id
-					}
-				}
-				`, cm1))
+		mutation {
+			testContactMethod(id: "%s")
+		}
+	`, voiceID), true)
 
 	d1 := h.Twilio().Device(h.Phone("1"))
-	d1.ExpectSMS("test")
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			sendContactMethodTest(input:{
-				contact_method_id:  "%s",
-			}){
-				id
-			}
+			testContactMethod(id: "%s")
 		}
-		`, cm2))
+	`, smsID), false)
 
-	d1.ExpectVoice("test")
+	d1.ExpectSMS("test")
 }

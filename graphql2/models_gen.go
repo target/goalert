@@ -66,6 +66,12 @@ type ConfigValueInput struct {
 	Value string `json:"value"`
 }
 
+type CreateAlertInput struct {
+	Summary   string  `json:"summary"`
+	Details   *string `json:"details"`
+	ServiceID string  `json:"serviceID"`
+}
+
 type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description"`
@@ -92,6 +98,7 @@ type CreateRotationInput struct {
 	Description *string       `json:"description"`
 	TimeZone    string        `json:"timeZone"`
 	Start       time.Time     `json:"start"`
+	Favorite    *bool         `json:"favorite"`
 	Type        rotation.Type `json:"type"`
 	ShiftLength *int          `json:"shiftLength"`
 	UserIDs     []string      `json:"userIDs"`
@@ -101,6 +108,7 @@ type CreateScheduleInput struct {
 	Name        string                `json:"name"`
 	Description *string               `json:"description"`
 	TimeZone    string                `json:"timeZone"`
+	Favorite    *bool                 `json:"favorite"`
 	Targets     []ScheduleTargetInput `json:"targets"`
 }
 
@@ -172,10 +180,12 @@ type RotationConnection struct {
 }
 
 type RotationSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First          *int     `json:"first"`
+	After          *string  `json:"after"`
+	Search         *string  `json:"search"`
+	Omit           []string `json:"omit"`
+	FavoritesOnly  *bool    `json:"favoritesOnly"`
+	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
 type ScheduleConnection struct {
@@ -191,10 +201,12 @@ type ScheduleRuleInput struct {
 }
 
 type ScheduleSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First          *int     `json:"first"`
+	After          *string  `json:"after"`
+	Search         *string  `json:"search"`
+	Omit           []string `json:"omit"`
+	FavoritesOnly  *bool    `json:"favoritesOnly"`
+	FavoritesFirst *bool    `json:"favoritesFirst"`
 }
 
 type ScheduleTarget struct {
@@ -208,6 +220,10 @@ type ScheduleTargetInput struct {
 	Target      *assignment.RawTarget `json:"target"`
 	NewRotation *CreateRotationInput  `json:"newRotation"`
 	Rules       []ScheduleRuleInput   `json:"rules"`
+}
+
+type SendContactMethodVerificationInput struct {
+	ContactMethodID string `json:"contactMethodID"`
 }
 
 type ServiceConnection struct {
@@ -357,6 +373,11 @@ type UserSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type VerifyContactMethodInput struct {
+	ContactMethodID string `json:"contactMethodID"`
+	Code            int    `json:"code"`
 }
 
 type AlertStatus string

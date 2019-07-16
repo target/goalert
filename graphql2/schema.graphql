@@ -179,6 +179,8 @@ type Mutation {
 
   deleteAll(input: [TargetInput!]): Boolean!
 
+  createAlert(input: CreateAlertInput!): Alert
+
   createService(input: CreateServiceInput!): Service
   createEscalationPolicy(input: CreateEscalationPolicyInput!): EscalationPolicy
   createEscalationPolicyStep(
@@ -201,11 +203,19 @@ type Mutation {
     input: CreateUserNotificationRuleInput!
   ): UserNotificationRule
   updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
+  sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
+  verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
 
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+}
+
+input CreateAlertInput {
+  summary: String!
+  details: String
+  serviceID: ID!
 }
 
 input ConfigValueInput {
@@ -237,6 +247,7 @@ input CreateScheduleInput {
   name: String!
   description: String
   timeZone: String!
+  favorite: Boolean
 
   targets: [ScheduleTargetInput!]
 }
@@ -379,6 +390,7 @@ type Schedule {
 
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
+  isFavorite: Boolean!
 }
 
 type OnCallShift {
@@ -420,6 +432,7 @@ input CreateRotationInput {
 
   timeZone: String!
   start: ISOTimestamp!
+  favorite: Boolean
 
   type: RotationType!
   shiftLength: Int = 1
@@ -431,6 +444,7 @@ type Rotation {
   id: ID!
   name: String!
   description: String!
+  isFavorite: Boolean!
 
   start: ISOTimestamp!
   timeZone: String!
@@ -481,6 +495,12 @@ input RotationSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited rotations in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite rotations first.
+  favoritesFirst: Boolean = false
 }
 
 input EscalationPolicySearchOptions {
@@ -495,6 +515,12 @@ input ScheduleSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+
+  # Include only favorited services in the results.
+  favoritesOnly: Boolean = false
+
+  # Sort favorite services first.
+  favoritesFirst: Boolean = false
 }
 
 input ServiceSearchOptions {
@@ -738,13 +764,12 @@ enum ContactMethodType {
 # A method of contacting a user.
 type UserContactMethod {
   id: ID!
-
   type: ContactMethodType
 
   # User-defined label for this contact method.
   name: String!
-
   value: String!
+  disabled: Boolean!
 }
 
 input CreateUserContactMethodInput {
@@ -767,6 +792,15 @@ input UpdateUserContactMethodInput {
 
   name: String
   value: String
+}
+
+input SendContactMethodVerificationInput {
+  contactMethodID: ID!
+}
+
+input VerifyContactMethodInput {
+  contactMethodID: ID!
+  code: Int!
 }
 
 type AuthSubject {
