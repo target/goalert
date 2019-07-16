@@ -36,6 +36,7 @@ type DB struct {
 	insertTestNotification *sql.Stmt
 	updateLastSendTime     *sql.Stmt
 	getCode                *sql.Stmt
+	isDisabled				*sql.Stmt
 	sendTestLock           *sql.Stmt
 
 	rand *rand.Rand
@@ -62,6 +63,12 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		getCode: p.P(`
 			select code
 			from user_verification_codes
+			where id = $1
+		`),
+
+		isDisabled: p.P(`
+			select disabled
+			from user_contact_methods
 			where id = $1
 		`),
 
@@ -168,12 +175,21 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 
 	// Lock outgoing_messages first, before we modify user_contact methods
 	// to prevent deadlock.
-	_, err = tx.Stmt(db.sendTestLock).ExecContext(ctx)
+	_, err = tx.StmtContext(ctx, db.sendTestLock).ExecContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	r, err := tx.Stmt(db.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
+	var isDisabled bool
+	err = tx.StmtContext(ctx, db.isDisabled).QueryRowContext(ctx, id).Scan(&isDisabled)
+	if err != nil {
+		return err
+	}
+	if isDisabled {
+		return validation.NewFieldError("ContactMethod", "contact method disabled")
+	}
+
+	r, err := tx.StmtContext(ctx, db.updateLastSendTime).ExecContext(ctx, id, fmt.Sprintf("%f seconds", minTimeBetweenTests.Seconds()))
 	if err != nil {
 		return err
 	}
@@ -186,7 +202,7 @@ func (db *DB) SendContactMethodTest(ctx context.Context, id string) error {
 	}
 
 	vID := uuid.NewV4().String()
-	_, err = tx.Stmt(db.insertTestNotification).ExecContext(ctx, vID, id)
+	_, err = tx.StmtContext(ctx, db.insertTestNotification).ExecContext(ctx, vID, id)
 	if err != nil {
 		return err
 	}
