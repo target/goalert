@@ -360,7 +360,7 @@ export default class CheckedAlertsFormControl extends Component {
           open={actionComplete}
           updateMessage={updateMessage}
         />
-        <Grid item container className={containerClass}>
+        <Grid container className={containerClass}>
           <Grid item className={classes.whitespace} />
           <Grid item>
             <Checkbox

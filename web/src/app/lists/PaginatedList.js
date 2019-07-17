@@ -64,7 +64,7 @@ class PaginationControls extends React.PureComponent {
 
     return (
       <React.Fragment>
-        <Grid container item justify='flex-end' className={classes.controls}>
+        <Grid container justify='flex-end' className={classes.controls}>
           <Grid item>
             <IconButton
               title='back page'

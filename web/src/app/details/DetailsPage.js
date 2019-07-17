@@ -123,7 +123,7 @@ export default class DetailsPage extends React.PureComponent {
       classes,
     } = this.props
     return (
-      <Grid item container>
+      <Grid container>
         <Grid item xs={12} className={classes.spacing}>
           <Card>
             <CardContent>

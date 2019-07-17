@@ -24,33 +24,35 @@ export default class ScheduleForm extends React.PureComponent {
   render() {
     return (
       <FormContainer optionalLabels {...this.props}>
-        <Grid item container>
-          <FormField
-            fullWidth
-            component={TextField}
-            name='name'
-            label='Name'
-            required
-          />
-        </Grid>
-        <Grid item container>
-          <FormField
-            fullWidth
-            component={TextField}
-            multiline
-            name='description'
-            label='Description'
-          />
-        </Grid>
-        <Grid item container>
-          <FormField
-            fullWidth
-            component={TimeZoneSelect}
-            name='time-zone'
-            fieldName='timeZone'
-            label='Time Zone'
-            required
-          />
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              component={TextField}
+              name='name'
+              label='Name'
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              component={TextField}
+              multiline
+              name='description'
+              label='Description'
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              component={TimeZoneSelect}
+              name='time-zone'
+              fieldName='timeZone'
+              label='Time Zone'
+              required
+            />
+          </Grid>
         </Grid>
       </FormContainer>
     )
