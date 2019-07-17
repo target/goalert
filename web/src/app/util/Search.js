@@ -5,7 +5,6 @@ import Hidden from '@material-ui/core/Hidden'
 import IconButton from '@material-ui/core/IconButton'
 import Slide from '@material-ui/core/Slide'
 import TextField from '@material-ui/core/TextField'
-import FormLabel from '@material-ui/core/FormLabel'
 import Toolbar from '@material-ui/core/Toolbar'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { Close as CloseIcon, Search as SearchIcon } from '@material-ui/icons'
@@ -65,12 +64,7 @@ export default class Search extends Component {
 
     return (
       <React.Fragment>
-        <FormLabel className={classes.srOnly} htmlFor='search'>
-          Search
-        </FormLabel>
         <TextField
-          id='search'
-          name='search'
           key={search}
           InputProps={{
             disableUnderline: true,
