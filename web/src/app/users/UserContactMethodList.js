@@ -68,6 +68,7 @@ export default function UserContactMethodList(props) {
 
     return (
       <IconButton
+        data-cy='cm-disabled'
         aria-label='Reactivate contact method'
         onClick={() => setShowVerifyDialogByID(cm.id)}
         variant='contained'

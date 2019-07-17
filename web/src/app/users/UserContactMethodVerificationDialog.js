@@ -78,6 +78,7 @@ export default function UserContactMethodVerificationDialog(props) {
               errors={
                 sendError ? [{ message: sendError }] : nonFieldErrors(error)
               }
+              data-cy='verify-form'
               onClose={props.onClose}
               onSubmit={() => {
                 setSendError('')

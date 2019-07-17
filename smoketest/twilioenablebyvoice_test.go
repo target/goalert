@@ -2,8 +2,9 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioEnablebyVoice checks that all contact methods with the same value and of the same user are enabled when the user responds via Voice with the correct code.
@@ -25,7 +26,6 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 		values
 			('verification_message', {{uuid "cm2"}}, 'delivered', now(), {{uuid "user"}}, {{uuid "id"}});
 	`
-
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 
