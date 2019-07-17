@@ -50,7 +50,7 @@ export function setURLParam(name, _value, _default) {
     if (_value === _default) {
       _value = ''
     }
-    const value = sanitizeParam(_value)
+    const value = name === 'search' ? _value : sanitizeParam(_value)
 
     const q = new URLSearchParams(state.router.location.search)
     if (Array.isArray(value)) {

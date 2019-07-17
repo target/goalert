@@ -7,11 +7,11 @@ import InputLabel from '@material-ui/core/InputLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
 import TextField from '@material-ui/core/TextField'
-import VerificationForm from './VerificationForm'
 import gql from 'graphql-tag'
 import { withApollo } from 'react-apollo'
 import ApolloFormDialog from '../../dialogs/components/ApolloFormDialog'
 import { createNotificationRuleMutation } from '../../notification-rules/components/CreateNotificationRuleForm'
+import UserContactMethodVerificationDialog from '../../users/UserContactMethodVerificationDialog'
 
 const createContactMethodMutation = gql`
   mutation CreateContactMethodMutation($input: CreateContactMethodInput) {
@@ -191,23 +191,13 @@ class ContactMethodForm extends Component {
     this.createNotificationRule(this.state.contactMethod)
   }
 
-  renderVerificationForm() {
-    if (!this.state.showVerifyForm) return null
-    const { contactMethod, showVerifyForm } = this.state
-    return (
-      <VerificationForm
-        key='Verify code for Contact Method '
-        id={contactMethod.id}
-        name={contactMethod.name}
-        value={contactMethod.value}
-        type={contactMethod.type}
-        open={showVerifyForm}
-        userId={this.props.userId}
-        handleRequestClose={() => this.setState({ showVerifyForm: false })}
-        onSuccess={() => this.onVerificationSuccess()}
+  renderVerificationForm = () =>
+    this.state.showVerifyForm && (
+      <UserContactMethodVerificationDialog
+        onClose={() => this.setState({ showVerifyForm: false })}
+        contactMethodID={this.state.contactMethod.id}
       />
     )
-  }
 
   getValue() {
     switch (this.state.type) {
@@ -387,27 +377,28 @@ class ContactMethodForm extends Component {
       title = 'Edit Contact Method'
     }
 
-    return [
-      <ApolloFormDialog
-        key='Create Contact Method'
-        allowEdits={() => this.setState({ readOnly: false })}
-        caption={newUser ? newUserCaption : null}
-        disableCancel={newUser}
-        fields={this.renderFields()}
-        getVariables={this.getVariables}
-        mutation={
-          id ? updateContactmethodMutation : createContactMethodMutation
-        }
-        onRequestClose={this.props.handleRequestClose}
-        onSuccess={this.onCreateCMSuccess}
-        open={open}
-        resetForm={this.resetForm}
-        shouldSubmit={this.shouldSubmit}
-        subtitle={newUser ? newUserText : null}
-        title={title}
-      />,
-      this.renderVerificationForm(),
-    ]
+    return (
+      <React.Fragment>
+        <ApolloFormDialog
+          allowEdits={() => this.setState({ readOnly: false })}
+          caption={newUser ? newUserCaption : null}
+          disableCancel={newUser}
+          fields={this.renderFields()}
+          getVariables={this.getVariables}
+          mutation={
+            id ? updateContactmethodMutation : createContactMethodMutation
+          }
+          onRequestClose={this.props.handleRequestClose}
+          onSuccess={this.onCreateCMSuccess}
+          open={open}
+          resetForm={this.resetForm}
+          shouldSubmit={this.shouldSubmit}
+          subtitle={newUser ? newUserText : null}
+          title={title}
+        />
+        {this.renderVerificationForm()}
+      </React.Fragment>
+    )
   }
 }
 

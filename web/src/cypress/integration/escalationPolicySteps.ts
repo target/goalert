@@ -52,7 +52,6 @@ function testSteps(screen: ScreenFormat) {
         cy.get('button[data-cy="users-step"]').click()
         cy.get('input[name=users]').selectByLabel(u1.name)
         cy.get('input[name=users]').selectByLabel(u2.name)
-
         const del = c.integer({ min: 1, max: 9000 })
         const delStr = del.toString()
         cy.get('input[name=delayMinutes]')

@@ -157,37 +157,39 @@ export default class AlertsListFilter extends Component {
     )
 
     // renders a popover on desktop, and a swipeable drawer on mobile devices
-    return [
-      <Hidden key='desktop-filter' smDown>
-        <Popover
-          anchorEl={() => this.state.anchorEl}
-          open={!!this.state.anchorEl && this.state.show}
-          onClose={this.handleCloseFilters}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-        >
-          {content}
-        </Popover>
-      </Hidden>,
-      <Hidden key='mobile-filter' mdUp>
-        <SwipeableDrawer
-          anchor='top'
-          disableDiscovery
-          disableSwipeToOpen
-          open={this.state.show}
-          onClose={this.handleCloseFilters}
-          onOpen={this.handleOpenFilters}
-        >
-          {content}
-        </SwipeableDrawer>
-      </Hidden>,
-    ]
+    return (
+      <React.Fragment>
+        <Hidden smDown>
+          <Popover
+            anchorEl={() => this.state.anchorEl}
+            open={!!this.state.anchorEl && this.state.show}
+            onClose={this.handleCloseFilters}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            {content}
+          </Popover>
+        </Hidden>
+        <Hidden mdUp>
+          <SwipeableDrawer
+            anchor='top'
+            disableDiscovery
+            disableSwipeToOpen
+            open={this.state.show}
+            onClose={this.handleCloseFilters}
+            onOpen={this.handleOpenFilters}
+          >
+            {content}
+          </SwipeableDrawer>
+        </Hidden>
+      </React.Fragment>
+    )
   }
 
   /*
@@ -197,9 +199,8 @@ export default class AlertsListFilter extends Component {
    */
   render() {
     return (
-      <div>
+      <React.Fragment>
         <IconButton
-          key='filter'
           aria-label='Filter Alerts'
           color='inherit'
           onClick={this.handleOpenFilters}
@@ -207,7 +208,7 @@ export default class AlertsListFilter extends Component {
           <FilterList />
         </IconButton>
         {this.renderFilters()}
-      </div>
+      </React.Fragment>
     )
   }
 }

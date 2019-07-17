@@ -13,7 +13,8 @@ const mutation = gql`
 `
 export default class UserContactMethodDeleteDialog extends React.PureComponent {
   static propTypes = {
-    cmID: p.string.isRequired,
+    contactMethodID: p.string.isRequired,
+    onClose: p.func.isRequired, // passed to FormDialog
   }
 
   render() {
@@ -21,9 +22,9 @@ export default class UserContactMethodDeleteDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         client={graphql2Client}
+        onCompleted={this.props.onClose}
         awaitRefetchQueries
         refetchQueries={['nrList', 'cmList']}
-        onCompleted={this.props.onClose}
       >
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
@@ -31,7 +32,7 @@ export default class UserContactMethodDeleteDialog extends React.PureComponent {
   }
 
   renderDialog(commit, { loading, error }) {
-    const { cmID, ...rest } = this.props
+    const { contactMethodID, ...rest } = this.props
     return (
       <FormDialog
         title='Are you sure?'
@@ -40,7 +41,7 @@ export default class UserContactMethodDeleteDialog extends React.PureComponent {
         errors={nonFieldErrors(error)}
         subTitle='This will delete the contact method.'
         caption='This will also delete any notification rules associated with this contact method.'
-        onSubmit={() => commit({ variables: { id: cmID } })}
+        onSubmit={() => commit({ variables: { id: contactMethodID } })}
         {...rest}
       />
     )
