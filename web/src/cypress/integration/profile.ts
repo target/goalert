@@ -47,13 +47,10 @@ function testProfile(screen: ScreenFormat) {
         .get('button[type=submit]')
         .click()
       cy.get(`[data-cy='verify-form']`)
-        .find('button[type=button]')
-        .contains('Cancel')
+        .contains('button[type=button]', 'Cancel')
         .click()
-      cy.get('ul[data-cy="contact-methods"] li')
-        .contains(`${name} (${type})`)
-        .parent()
-        .parent()
+      cy.get('ul[data-cy="contact-methods"]')
+        .contains('li', `${name} (${type})`)
         .find(`button[data-cy='cm-disabled']`)
 
       // TODO: twilio mock server verification pending
@@ -80,10 +77,8 @@ function testProfile(screen: ScreenFormat) {
         'contain',
         `${name} (${cm.type})`,
       )
-      cy.get('ul[data-cy="contact-methods"] li')
-        .contains(`${name} (${cm.type})`)
-        .parent()
-        .parent()
+      cy.get('ul[data-cy="contact-methods"]')
+        .contains('li', `${name} (${cm.type})`)
         .find(`button[data-cy='cm-disabled']`)
     })
     it('should allow deleting', () => {

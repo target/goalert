@@ -101,7 +101,6 @@ export default class UserDetails extends React.PureComponent {
           <UserContactMethodCreateDialog
             userID={this.props.userID}
             onClose={result => {
-              console.log(result)
               this.setState({
                 createCM: false,
                 showVerifyDialogByID:
