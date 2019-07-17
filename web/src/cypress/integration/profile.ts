@@ -37,15 +37,29 @@ function testProfile(screen: ScreenFormat) {
       const type = c.pickone(['SMS', 'VOICE'])
 
       cy.pageFab('Contact')
-      cy.get('input[name=name]').type(name)
-      cy.get('input[name=type]').selectByLabel(type)
-      cy.get('input[name=value]').type(value)
-      cy.get('button[type=submit]').click()
+      cy.get(`[data-cy='create-form']`)
+        .get('input[name=name]')
+        .type(name)
+        .get('input[name=type]')
+        .selectByLabel(type)
+        .get('input[name=value]')
+        .type(value)
+        .get('button[type=submit]')
+        .click()
+      cy.get(`[data-cy='verify-form']`)
+        .contains('button[type=button]', 'Cancel')
+        .click()
+      cy.get('ul[data-cy="contact-methods"]')
+        .contains('li', `${name} (${type})`)
+        .find(`button[data-cy='cm-disabled']`)
+
+      // TODO: twilio mock server verification pending
 
       cy.get('body').should('contain', `${name} (${type})`)
     })
     it('should allow editing', () => {
       const name = 'SM CM ' + c.word({ length: 8 })
+      const value = '763' + c.integer({ min: 3000000, max: 3999999 })
       cy.get('ul[data-cy=contact-methods]')
         .contains('li', cm.name)
         .find('button[data-cy=other-actions]')
@@ -54,12 +68,18 @@ function testProfile(screen: ScreenFormat) {
       cy.get('input[name=name]')
         .clear()
         .type(name)
+      cy.get('input[name=value]')
+        .clear()
+        .type(value)
       cy.get('button[type=submit]').click()
 
       cy.get('ul[data-cy=contact-methods]').should(
         'contain',
         `${name} (${cm.type})`,
       )
+      cy.get('ul[data-cy="contact-methods"]')
+        .contains('li', `${name} (${cm.type})`)
+        .find(`button[data-cy='cm-disabled']`)
     })
     it('should allow deleting', () => {
       cy.get('ul[data-cy=contact-methods]')
