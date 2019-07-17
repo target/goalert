@@ -154,56 +154,58 @@ export default class SideBarDrawerList extends React.PureComponent {
     const { classes } = this.props
 
     return (
-      <List className={classes.list} data-cy='nav-list'>
-        <div className={classes.logoDiv}>
+      <React.Fragment>
+        <div aria-hidden className={classes.logoDiv}>
           <img
             className={classes.logo}
             height={32}
             src={require('../../public/goalert-alt-logo-scaled.png')}
+            alt=''
           />
         </div>
         <Divider />
+        <List role='navigation' className={classes.list} data-cy='nav-list'>
+          {routeConfig
+            .filter(cfg => cfg.nav !== false)
+            .map((cfg, idx) =>
+              this.renderSidebarNavLink(
+                navIcons[cfg.title],
+                getPath(cfg),
+                cfg.title,
+                idx,
+              ),
+            )}
 
-        {routeConfig
-          .filter(cfg => cfg.nav !== false)
-          .map((cfg, idx) =>
-            this.renderSidebarNavLink(
-              navIcons[cfg.title],
-              getPath(cfg),
-              cfg.title,
-              idx,
-            ),
-          )}
+          <RequireConfig isAdmin>
+            <Divider aria-hidden />
+            {this.renderAdmin()}
+          </RequireConfig>
 
-        <RequireConfig isAdmin>
-          <Divider />
-          {this.renderAdmin()}
-        </RequireConfig>
-
-        <Divider />
-        {this.renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
-        <Config>
-          {cfg =>
-            cfg['Feedback.Enable'] &&
-            this.renderFeedback(
-              cfg['Feedback.OverrideURL'] ||
-                'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
-            )
-          }
-        </Config>
-        {this.renderSidebarLink(
-          LogoutIcon,
-          '/api/v2/identity/logout',
-          'Logout',
-          {
-            onClick: e => {
-              e.preventDefault()
-              this.props.logout()
+          <Divider aria-hidden />
+          {this.renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
+          <Config>
+            {cfg =>
+              cfg['Feedback.Enable'] &&
+              this.renderFeedback(
+                cfg['Feedback.OverrideURL'] ||
+                  'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
+              )
+            }
+          </Config>
+          {this.renderSidebarLink(
+            LogoutIcon,
+            '/api/v2/identity/logout',
+            'Logout',
+            {
+              onClick: e => {
+                e.preventDefault()
+                this.props.logout()
+              },
             },
-          },
-        )}
-        {this.renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
-      </List>
+          )}
+          {this.renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
+        </List>
+      </React.Fragment>
     )
   }
 }

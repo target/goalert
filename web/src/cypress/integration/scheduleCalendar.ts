@@ -141,8 +141,10 @@ function testCalendar(screen: ScreenFormat) {
     cy.fixture('users').then(users => {
       cy.get('button[data-cy="add-override"]').click()
       cy.get('input[name=addUserID]').selectByLabel(users[0].name)
-      cy.get('button[type="submit"]').click()
-      cy.get('button[type="submit"]').should('not.exist')
+      cy.get('div[role=dialog]')
+        .contains('button', 'Submit')
+        .click()
+        .should('not.exist')
     })
   })
 
@@ -150,8 +152,10 @@ function testCalendar(screen: ScreenFormat) {
     cy.fixture('users').then(users => {
       cy.get('button[data-cy="add-override"]').click()
       cy.get('input[name=addUserID]').selectByLabel(users[0].name)
-      cy.get('button[type="submit"]').click()
-      cy.get('button[type="submit"]').should('not.exist')
+      cy.get('div[role=dialog]')
+        .contains('button', 'Submit')
+        .click()
+        .should('not.exist')
     })
   })
 
@@ -161,7 +165,9 @@ function testCalendar(screen: ScreenFormat) {
       .trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="remove-override"]').click()
-    cy.get('button[type="submit"]').click()
-    cy.get('button[type="submit"]').should('not.exist')
+    cy.get('div[role=dialog]')
+      .contains('button', 'Submit')
+      .click()
+      .should('not.exist')
   })
 }

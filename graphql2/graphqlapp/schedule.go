@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/oncall"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/search"
@@ -170,7 +171,12 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 		if err != nil {
 			return err
 		}
-
+		if input.Favorite != nil && *input.Favorite {
+			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.ScheduleTarget(sched.ID))
+			if err != nil {
+				return err
+			}
+		}
 		for i := range input.Targets {
 			if input.Targets[i].NewRotation == nil {
 				continue
@@ -206,10 +212,16 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 	if opts == nil {
 		opts = &graphql2.ScheduleSearchOptions{}
 	}
-
 	var searchOpts schedule.SearchOptions
+	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
+	}
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
+	}
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	searchOpts.Omit = opts.Omit
 	if opts.After != nil && *opts.After != "" {
@@ -237,6 +249,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 	}
 	if len(scheds) > 0 {
 		last := scheds[len(scheds)-1]
+		searchOpts.After.IsFavorite = last.IsUserFavorite()
 		searchOpts.After.Name = last.Name
 
 		cur, err := search.Cursor(searchOpts)
@@ -247,4 +260,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 	}
 	conn.Nodes = scheds
 	return conn, err
+}
+func (s *Schedule) IsFavorite(ctx context.Context, raw *schedule.Schedule) (bool, error) {
+	return raw.IsUserFavorite(), nil
 }

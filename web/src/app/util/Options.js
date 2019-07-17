@@ -132,6 +132,7 @@ export default class Options extends Component {
           data-cy='other-actions'
           color='inherit'
           onClick={onClick}
+          aria-expanded={this.state.show || this.state.showOptions}
           {...iconProps}
         />
       )
@@ -142,6 +143,7 @@ export default class Options extends Component {
           data-cy='other-actions'
           color='inherit'
           onClick={onClick}
+          aria-expanded={this.state.show || this.state.showOptions}
           {...iconProps}
         >
           {Icon || <OptionsIcon />}

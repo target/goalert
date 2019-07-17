@@ -3,70 +3,166 @@ package app
 import (
 	"context"
 	"sync"
+
+	"github.com/pkg/errors"
 )
+
+var errQueueFull = errors.New("queue full")
 
 // concurrencyLimiter is a locking mechanism that allows setting a limit
 // on the number of simultaneous locks for a given arbitrary ID.
 type concurrencyLimiter struct {
-	max     int
-	count   map[string]int
-	pending map[string]chan struct{}
+	maxLock    int
+	maxQueue   int
+	lockCount  map[string]int
+	queueCount map[string]int
+	pending    map[string]*pendingList
 
 	mx sync.Mutex
 }
+type pendingReq struct {
+	lockCh     chan bool
+	prev, next *pendingReq
+}
+type pendingList struct{ head, tail *pendingReq }
 
-func newConcurrencyLimiter(max int) *concurrencyLimiter {
+func (list *pendingList) newReq() *pendingReq {
+	req := &pendingReq{
+		lockCh: make(chan bool),
+		prev:   list.tail,
+	}
+
+	if list.head == nil {
+		list.head, list.tail = req, req
+	} else {
+		list.tail.next, list.tail = req, req
+	}
+
+	return req
+}
+
+func (list *pendingList) remove(req *pendingReq) bool {
+	if req == nil || list == nil {
+		return false
+	}
+
+	defer func() { req.prev, req.next = nil, nil }()
+
+	if list.head == req {
+		list.head = req.next
+		if list.head != nil {
+			list.head.prev = nil
+		}
+		if list.tail == req {
+			list.tail = nil
+		}
+		return true
+	}
+
+	if list.tail == req {
+		list.tail = req.prev
+		if list.tail != nil {
+			list.tail.next = nil
+		}
+
+		return true
+	}
+
+	if req.next != nil {
+		req.next.prev = req.prev
+	}
+	if req.prev != nil {
+		req.prev.next = req.next
+		return true
+	}
+
+	return false
+}
+
+func (list *pendingList) pop() *pendingReq {
+	if list == nil {
+		return nil
+	}
+
+	req := list.head
+	list.remove(req)
+
+	return req
+}
+
+func newConcurrencyLimiter(maxLock, maxQueue int) *concurrencyLimiter {
 	return &concurrencyLimiter{
-		max:     max,
-		count:   make(map[string]int, 100),
-		pending: make(map[string]chan struct{}),
+		maxLock:    maxLock,
+		maxQueue:   maxQueue,
+		lockCount:  make(map[string]int, 100),
+		queueCount: make(map[string]int, 100),
+		pending:    make(map[string]*pendingList, 100),
 	}
 }
 
 // Lock will acquire a lock for the given ID. It may return an err
 // if the context expires before the lock is given.
-func (l *concurrencyLimiter) Lock(ctx context.Context, id string) error {
-	for {
-		l.mx.Lock()
-		n := l.count[id]
-		if n < l.max {
-			l.count[id] = n + 1
-			l.mx.Unlock()
-			return nil
-		}
+func (l *concurrencyLimiter) Lock(ctx context.Context, id string) (err error) {
+	l.mx.Lock()
+	c := l.lockCount[id]
+	if c < l.maxLock {
+		l.lockCount[id] = c + 1
+		l.mx.Unlock()
+		return nil
+	}
 
-		ch := l.pending[id]
-		if ch == nil {
-			ch = make(chan struct{})
-			l.pending[id] = ch
+	list := l.pending[id]
+	if list == nil {
+		list = &pendingList{}
+		l.pending[id] = list
+	}
+
+	if l.queueCount[id] == l.maxQueue {
+		l.mx.Unlock()
+		return errQueueFull
+	}
+
+	// need to queue
+	req := list.newReq()
+	l.queueCount[id]++
+	l.mx.Unlock()
+
+	select {
+	case <-ctx.Done():
+		close(req.lockCh)
+		l.mx.Lock()
+		if list.remove(req) {
+			l.queueCount[id]--
 		}
 		l.mx.Unlock()
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ch:
-		}
+		return ctx.Err()
+	case req.lockCh <- true:
 	}
+
+	return nil
 }
 
 // Unlock releases a lock for the given ID. It panics
 // if there are no remaining locks.
 func (l *concurrencyLimiter) Unlock(id string) {
 	l.mx.Lock()
-	defer l.mx.Unlock()
-	n := l.count[id]
-	n--
-	if n < 0 {
-		panic("not locked: " + id)
+	if l.lockCount[id] == 0 {
+		l.mx.Unlock()
+		panic("not locked")
 	}
-	if n == 0 {
-		delete(l.count, id)
-	} else {
-		l.count[id] = n
+	list := l.pending[id]
+	for {
+		req := list.pop()
+		if req == nil {
+			break
+		}
+		l.queueCount[id]--
+		if <-req.lockCh {
+			// keep lock count
+			l.mx.Unlock()
+			return
+		}
 	}
-	ch := l.pending[id]
-	if ch != nil {
-		delete(l.pending, id)
-		close(ch)
-	}
+	l.lockCount[id]--
+	l.mx.Unlock()
 }

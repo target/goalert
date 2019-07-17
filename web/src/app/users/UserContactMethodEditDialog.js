@@ -28,7 +28,7 @@ const mutation = gql`
 
 export default class UserContactMethodEditDialog extends React.PureComponent {
   static propTypes = {
-    cmID: p.string.isRequired,
+    contactMethodID: p.string.isRequired,
     onClose: p.func,
   }
 
@@ -42,7 +42,7 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
     return (
       <Query
         query={query}
-        variables={{ id: this.props.cmID }}
+        variables={{ id: this.props.contactMethodID }}
         render={({ data }) => this.renderMutation(data.userContactMethod)}
         noPoll
       />
@@ -80,7 +80,10 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
           return commit({
             variables: {
               // removing field 'type' from value for mutation
-              input: { ...omit(this.state.value, 'type'), id: this.props.cmID },
+              input: {
+                ...omit(this.state.value, 'type'),
+                id: this.props.contactMethodID,
+              },
             },
           })
         }}

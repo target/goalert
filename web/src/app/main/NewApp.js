@@ -20,6 +20,7 @@ import LazyWideSideBar from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
+import { SkipToContentLink } from '../util/SkipToContentLink'
 
 const drawerWidth = '10.5em'
 
@@ -83,6 +84,7 @@ export default class App extends React.PureComponent {
             data-cy='app-bar'
             data-cy-format={cyFormat}
           >
+            <SkipToContentLink />
             <Toolbar className={classes.toolbar}>
               <ToolbarAction
                 handleShowMobileSidebar={() =>
@@ -116,7 +118,7 @@ export default class App extends React.PureComponent {
 
           <URLErrorDialog />
 
-          <main className={classes.main} style={{ marginLeft }}>
+          <main id='content' className={classes.main} style={{ marginLeft }}>
             <div className={classes.toolbar} />
             <ErrorBoundary>
               <LazyNewUserSetup />

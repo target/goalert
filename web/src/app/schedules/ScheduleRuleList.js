@@ -89,7 +89,7 @@ export default class ScheduleRuleList extends React.PureComponent {
         subText: ruleSummary(tgt.rules, timeZone, this.props.zone),
         icon:
           type === 'rotation' ? <RotationAvatar /> : <UserAvatar userID={id} />,
-        action: (
+        secondaryAction: (
           <OtherActions
             actions={[
               {

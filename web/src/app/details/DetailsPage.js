@@ -30,12 +30,8 @@ const styles = theme => ({
     [theme.breakpoints.up('md')]: { float: 'left' },
     margin: 20,
   },
-  detailsTopHeader: {
+  mainHeading: {
     fontSize: '1.5rem',
-    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: 400,
-    lineHeight: 1.33,
-    letterSpacing: '0em',
   },
 })
 
@@ -132,18 +128,18 @@ export default class DetailsPage extends React.PureComponent {
           <Card>
             <CardContent>
               {icon && <div className={classes.iconContainer}>{icon}</div>}
-              <Typography variant='h2' className={classes.detailsTopHeader}>
+              <Typography
+                data-cy='details-heading'
+                className={classes.mainHeading}
+                component='h2'
+              >
                 {title}
               </Typography>
-              <Typography
-                data-cy='details'
-                component='div'
-                className={classes.smallestSubtitle}
-              >
+              <Typography data-cy='details' variant='subtitle1'>
                 <Markdown value={details} />
               </Typography>
               {titleFooter && (
-                <Typography className={classes.smallestSubtitle}>
+                <Typography variant='subtitle1' data-cy='title-footer'>
                   {titleFooter}
                 </Typography>
               )}
