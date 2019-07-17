@@ -63,9 +63,9 @@ export default class UserContactMethodForm extends React.PureComponent {
               component={TextField}
             />
             <Typography
-              variant={'caption'}
-              component={'p'}
-              id={'countryCodeIndicator'}
+              variant='caption'
+              component='p'
+              id='countryCodeIndicator'
             >
               Please provide your country code eg. +1 (USA), +91 (India) +44
               (UK)
