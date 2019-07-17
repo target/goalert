@@ -638,6 +638,15 @@ enum HeartbeatState {
   unhealthy
 }
 
+type Heartbeat {
+  id: ID!
+  serviceID: ID
+  name: String!
+  heartbeatInterval: Int!
+  lastState: HeartbeatState!
+  lastHeartbeat: ISOTimestamp
+}
+
 type Label {
   key: String!
   value: String!

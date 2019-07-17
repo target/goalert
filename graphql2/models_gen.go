@@ -87,6 +87,15 @@ type CreateEscalationPolicyStepInput struct {
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule"`
 }
 
+type CreateHeartbeatInput struct {
+	ID                string         `json:"id"`
+	ServiceID         *string        `json:"serviceID"`
+	Name              string         `json:"name"`
+	HeartbeatInterval int            `json:"heartbeatInterval"`
+	LastState         HeartbeatState `json:"lastState"`
+	LastHeartbeat     *time.Time     `json:"lastHeartbeat"`
+}
+
 type CreateIntegrationKeyInput struct {
 	ServiceID *string            `json:"serviceID"`
 	Type      IntegrationKeyType `json:"type"`
@@ -120,6 +129,7 @@ type CreateServiceInput struct {
 	NewEscalationPolicy *CreateEscalationPolicyInput `json:"newEscalationPolicy"`
 	NewIntegrationKeys  []CreateIntegrationKeyInput  `json:"newIntegrationKeys"`
 	Labels              []SetLabelInput              `json:"labels"`
+	NewHeartbeat        *CreateHeartbeatInput        `json:"newHeartbeat"`
 }
 
 type CreateUserContactMethodInput struct {
@@ -154,6 +164,15 @@ type EscalationPolicySearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type Heartbeat struct {
+	ID                string         `json:"id"`
+	ServiceID         *string        `json:"serviceID"`
+	Name              string         `json:"name"`
+	HeartbeatInterval int            `json:"heartbeatInterval"`
+	LastState         HeartbeatState `json:"lastState"`
+	LastHeartbeat     *time.Time     `json:"lastHeartbeat"`
 }
 
 type LabelConnection struct {
@@ -456,6 +475,49 @@ func (e *ConfigType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ConfigType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type HeartbeatState string
+
+const (
+	HeartbeatStateInactive  HeartbeatState = "inactive"
+	HeartbeatStateHealthy   HeartbeatState = "healthy"
+	HeartbeatStateUnhealthy HeartbeatState = "unhealthy"
+)
+
+var AllHeartbeatState = []HeartbeatState{
+	HeartbeatStateInactive,
+	HeartbeatStateHealthy,
+	HeartbeatStateUnhealthy,
+}
+
+func (e HeartbeatState) IsValid() bool {
+	switch e {
+	case HeartbeatStateInactive, HeartbeatStateHealthy, HeartbeatStateUnhealthy:
+		return true
+	}
+	return false
+}
+
+func (e HeartbeatState) String() string {
+	return string(e)
+}
+
+func (e *HeartbeatState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = HeartbeatState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid HeartbeatState", str)
+	}
+	return nil
+}
+
+func (e HeartbeatState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
