@@ -138,10 +138,6 @@ web/src/node_modules/.bin/cypress: web/src/yarn.lock
 web/src/build/index.html: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
 	rm -rf web/src/build/static
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js)
-	echo "" >>web/src/build/index.html
-	echo "<!-- Version: $(GIT_VERSION) -->" >>web/src/build/index.html
-	echo "<!-- GitCommit: $(GIT_COMMIT) ($(GIT_TREE)) -->" >>web/src/build/index.html
-	echo "<!-- BuildDate: $(BUILD_DATE) -->" >>web/src/build/index.html
 
 web/inline_data_gen.go: web/src/build/index.html $(CFGPARAMS) $(INLINER)
 	go generate ./web
