@@ -3,12 +3,12 @@ package contactmethod
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/lib/pq"
 )
 
 // Store allows the lookup and management of ContactMethods.
@@ -332,6 +332,7 @@ func scanAll(rows *sql.Rows) ([]ContactMethod, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		contactMethods = append(contactMethods, c)
 	}
 	return contactMethods, nil

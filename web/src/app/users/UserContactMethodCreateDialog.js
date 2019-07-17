@@ -21,8 +21,9 @@ export default function UserContactMethodCreateDialog(props) {
   const [cmValue, setCmValue] = useState({
     name: '',
     type: 'SMS',
-    value: '+1',
+    value: '',
   })
+
   const [createCM, createCMStatus] = useMutation(createMutation, {
     refetchQueries: ['nrList', 'cmList'],
     awaitRefetchQueries: true,
