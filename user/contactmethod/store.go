@@ -3,6 +3,7 @@ package contactmethod
 import (
 	"context"
 	"database/sql"
+
 	"github.com/lib/pq"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
