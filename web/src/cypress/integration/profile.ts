@@ -47,9 +47,7 @@ function testProfile(screen: ScreenFormat) {
         .get('button[type=submit]')
         .click()
       cy.get(`[data-cy='verify-form']`)
-
-      // TODO: twilio mock server verification pending
-      cy.get('button[type=button]')
+        .find('button[type=button]')
         .contains('Cancel')
         .click()
       cy.get('ul[data-cy="contact-methods"] li')
@@ -57,6 +55,8 @@ function testProfile(screen: ScreenFormat) {
         .parent()
         .parent()
         .find(`button[data-cy='cm-disabled']`)
+
+      // TODO: twilio mock server verification pending
 
       cy.get('body').should('contain', `${name} (${type})`)
     })
