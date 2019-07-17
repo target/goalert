@@ -65,22 +65,22 @@ export default class CreateAlertFab extends Component {
 
     const transitionClass = transition ? fabOpen : classes.fabClose
 
-    return [
-      <Fab
-        key='create-button'
-        data-cy='page-fab'
-        className={classnames(classes.fab, transitionClass)}
-        color='primary'
-        onClick={() => this.handleShowForm(true)}
-      >
-        <AddIcon />
-      </Fab>,
-      <AlertForm
-        key='alert-form'
-        open={this.state.showForm}
-        handleRequestClose={() => this.handleShowForm(false)}
-        serviceID={this.props.serviceID}
-      />,
-    ]
+    return (
+      <React.Fragment>
+        <Fab
+          data-cy='page-fab'
+          className={classnames(classes.fab, transitionClass)}
+          color='primary'
+          onClick={() => this.handleShowForm(true)}
+        >
+          <AddIcon />
+        </Fab>
+        <AlertForm
+          open={this.state.showForm}
+          handleRequestClose={() => this.handleShowForm(false)}
+          serviceID={this.props.serviceID}
+        />
+      </React.Fragment>
+    )
   }
 }
