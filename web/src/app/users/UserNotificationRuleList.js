@@ -28,6 +28,7 @@ const query = gql`
           type
           name
           value
+          formattedValue
         }
       }
     }

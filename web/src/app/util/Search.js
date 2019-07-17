@@ -65,7 +65,6 @@ export default class Search extends Component {
     return (
       <TextField
         key={search}
-        autoFocus
         InputProps={{
           disableUnderline: true,
           classes: {

@@ -5,7 +5,6 @@ import gql from 'graphql-tag'
 import Query from '../util/Query'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
-import { formatPhoneNumber } from './util'
 import { Config } from '../util/RequireConfig'
 import { useMutation } from '@apollo/react-hooks'
 
@@ -62,17 +61,13 @@ export default function UserContactMethodVerificationDialog(props) {
 
           let caption = null
           if (fromNumber && cm.type === 'SMS') {
-            caption = `If you do not receive a code, try sending UNSTOP to ${formatPhoneNumber(
-              fromNumber,
-            )} before resending.`
+            caption = `If you do not receive a code, try sending UNSTOP to ${fromNumber} before resending.`
           }
 
           return (
             <FormDialog
               title='Verify Contact Method'
-              subTitle={`A verification code has been sent to ${formatPhoneNumber(
-                cm.value,
-              )} (${cm.type})`}
+              subTitle={`A verification code has been sent to ${cm.formattedValue} (${cm.type})`}
               caption={caption}
               loading={loading}
               errors={

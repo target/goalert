@@ -35,31 +35,39 @@ function testProfile(screen: ScreenFormat) {
       const value = '763' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'SM CM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
+      const usCountryCode = '+1'
 
       cy.pageFab('Contact')
-      cy.get(`[data-cy='create-form']`)
-        .get('input[name=name]')
+      cy.get('div[role=dialog]').as('dialog')
+
+      cy.get('@dialog')
+        .find('input[name=name]')
         .type(name)
-        .get('input[name=type]')
+      cy.get('@dialog')
+        .find('input[name=type]')
         .selectByLabel(type)
-        .get('input[name=value]')
-        .type(value)
-        .get('button[type=submit]')
+      cy.get('@dialog')
+        .find('input[name=value]')
+        .type(usCountryCode + value)
+      cy.get('@dialog')
+        .find('button[type=submit]')
         .click()
+
+      // todo: closing form pending twilio mock server verification
       cy.get(`[data-cy='verify-form']`)
         .contains('button[type=button]', 'Cancel')
         .click()
+
       cy.get('ul[data-cy="contact-methods"]')
         .contains('li', `${name} (${type})`)
         .find(`button[data-cy='cm-disabled']`)
-
-      // TODO: twilio mock server verification pending
 
       cy.get('body').should('contain', `${name} (${type})`)
     })
     it('should allow editing', () => {
       const name = 'SM CM ' + c.word({ length: 8 })
       const value = '763' + c.integer({ min: 3000000, max: 3999999 })
+      const usCountryCode = '+1'
       cy.get('ul[data-cy=contact-methods]')
         .contains('li', cm.name)
         .find('button[data-cy=other-actions]')
@@ -70,7 +78,7 @@ function testProfile(screen: ScreenFormat) {
         .type(name)
       cy.get('input[name=value]')
         .clear()
-        .type(value)
+        .type(usCountryCode + value)
       cy.get('button[type=submit]').click()
 
       cy.get('ul[data-cy=contact-methods]').should(
@@ -111,6 +119,24 @@ function testProfile(screen: ScreenFormat) {
       })
       cy.reload()
       cy.get('body').should('not.contain', sentence)
+    })
+    countryCodeCheck('India', '+91', '1234567890', '+91 1234 567 890')
+    countryCodeCheck('UK', '+44', '7911123456', '+44 7911 123456')
+
+    it('should not allow fake country codes', () => {
+      const value = '810' + c.integer({ min: 3000000, max: 3999999 })
+      const name = 'CM SM ' + c.word({ length: 8 })
+      const type = c.pickone(['SMS', 'VOICE'])
+      const fakeCountryCode = '+555'
+
+      cy.pageFab('Contact')
+      cy.get('input[name=name]').type(name)
+      cy.get('input[name=type]').selectByLabel(type)
+      cy.get('input[name=value]').type(fakeCountryCode + value)
+      cy.get('button[type=submit]').click()
+      cy.get('[aria-labelledby=countryCodeIndicator]')
+        .siblings()
+        .contains('Must be a valid number')
     })
   })
   describe('Notification Rules', () => {
@@ -172,5 +198,24 @@ function testProfile(screen: ScreenFormat) {
 
       cy.get('body').should('contain', 'No notification rules')
     })
+  })
+}
+
+function countryCodeCheck(
+  country: string,
+  countryCode: string,
+  value: string,
+  formattedValue: string,
+) {
+  it(`should handle ${country} phone number`, () => {
+    const name = 'CM SM ' + c.word({ length: 8 })
+    const type = c.pickone(['SMS', 'VOICE'])
+
+    cy.pageFab('Contact')
+    cy.get('input[name=name]').type(name)
+    cy.get('input[name=type]').selectByLabel(type)
+    cy.get('input[name=value]').type(countryCode + value)
+    cy.get('button[type=submit]').click()
+    cy.get('body').should('contain', formattedValue)
   })
 }

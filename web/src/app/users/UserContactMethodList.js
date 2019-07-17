@@ -4,7 +4,7 @@ import Query from '../util/Query'
 import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
-import { formatCMValue, sortContactMethods } from './util'
+import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
@@ -26,6 +26,7 @@ const query = gql`
         name
         type
         value
+        formattedValue
         disabled
       }
     }
@@ -143,7 +144,7 @@ export default function UserContactMethodList(props) {
               title: `${cm.name} (${cm.type})${
                 cm.disabled ? ' - Disabled' : ''
               }`,
-              subText: formatCMValue(cm.type, cm.value),
+              subText: cm.formattedValue,
               secondaryAction: getSecondaryAction(cm),
               icon: getIcon(cm),
             }))}
