@@ -89,7 +89,6 @@ export default class AdminConfig extends React.PureComponent {
           {groups.map((groupID, index) => (
             <Grid
               key={index}
-              container
               item
               xs={12}
               className={this.props.classes.gridItem}
