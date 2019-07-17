@@ -67,6 +67,7 @@ function testProfile(screen: ScreenFormat) {
     it('should allow editing', () => {
       const name = 'SM CM ' + c.word({ length: 8 })
       const value = '763' + c.integer({ min: 3000000, max: 3999999 })
+      const usCountryCode = '+1'
       cy.get('ul[data-cy=contact-methods]')
         .contains('li', cm.name)
         .find('button[data-cy=other-actions]')
@@ -77,7 +78,7 @@ function testProfile(screen: ScreenFormat) {
         .type(name)
       cy.get('input[name=value]')
         .clear()
-        .type(value)
+        .type(usCountryCode + value)
       cy.get('button[type=submit]').click()
 
       cy.get('ul[data-cy=contact-methods]').should(
