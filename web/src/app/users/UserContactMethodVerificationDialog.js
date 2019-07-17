@@ -61,7 +61,7 @@ export default function UserContactMethodVerificationDialog(props) {
 
           let caption = null
           if (fromNumber && cm.type === 'SMS') {
-            caption = `If you do not receive a code, try sending UNSTOP to ${cm.formattedValue} before resending.`
+            caption = `If you do not receive a code, try sending UNSTOP to ${fromNumber} before resending.`
           }
 
           return (
