@@ -57,7 +57,7 @@ export default function UserContactMethodCreateDialog(props) {
       loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
-      onSubmit={() => createCM()}
+      onSubmit={createCM}
       form={form}
     />
   )
