@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+
 	"github.com/pkg/errors"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"

@@ -3,11 +3,12 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"github.com/target/goalert/validation/validate"
+
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 	"github.com/ttacon/libphonenumber"
 )
 
