@@ -63,7 +63,7 @@ export default class UserDetails extends React.PureComponent {
   state = {
     createCM: false,
     createNR: false,
-    verifyCMID: null,
+    showVerifyDialogByID: null,
   }
 
   render() {
@@ -104,7 +104,7 @@ export default class UserDetails extends React.PureComponent {
               console.log(result)
               this.setState({
                 createCM: false,
-                verifyCMID:
+                showVerifyDialogByID:
                   result && result.contactMethodID
                     ? result.contactMethodID
                     : null,
@@ -112,10 +112,10 @@ export default class UserDetails extends React.PureComponent {
             }}
           />
         )}
-        {this.state.verifyCMID && (
+        {this.state.showVerifyDialogByID && (
           <UserContactMethodVerificationDialog
-            contactMethodID={this.state.verifyCMID}
-            onClose={() => this.setState({ verifyCMID: null })}
+            contactMethodID={this.state.showVerifyDialogByID}
+            onClose={() => this.setState({ showVerifyDialogByID: null })}
           />
         )}
         {this.state.createNR && (
