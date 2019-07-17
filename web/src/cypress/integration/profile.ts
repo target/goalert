@@ -38,23 +38,29 @@ function testProfile(screen: ScreenFormat) {
       const usCountryCode = '+1'
 
       cy.pageFab('Contact')
-      cy.get(`[data-cy='create-form']`)
-        .get('input[name=name]')
+      cy.get('div[role=dialog]').as('dialog')
+
+      cy.get('@dialog')
+        .find('input[name=name]')
         .type(name)
-        .get('input[name=type]')
+      cy.get('@dialog')
+        .find('input[name=type]')
         .selectByLabel(type)
-        .get('input[name=value]')
+      cy.get('@dialog')
+        .find('input[name=value]')
         .type(usCountryCode + value)
-        .get('button[type=submit]')
+      cy.get('@dialog')
+        .find('button[type=submit]')
         .click()
+
+      // todo: closing form pending twilio mock server verification
       cy.get(`[data-cy='verify-form']`)
         .contains('button[type=button]', 'Cancel')
         .click()
+
       cy.get('ul[data-cy="contact-methods"]')
         .contains('li', `${name} (${type})`)
         .find(`button[data-cy='cm-disabled']`)
-
-      // TODO: twilio mock server verification pending
 
       cy.get('body').should('contain', `${name} (${type})`)
     })
