@@ -35,7 +35,11 @@ export default class DialogContentError extends Component {
     if (!error) {
       return (
         <DialogContent style={style}>
-          <Typography variant='subtitle1' style={{ display: 'flex' }}>
+          <Typography
+            component='p'
+            variant='subtitle1'
+            style={{ display: 'flex' }}
+          >
             &nbsp;
           </Typography>
         </DialogContent>

@@ -137,4 +137,10 @@ export const styles = theme => ({
     lineHeight: 1.33,
     letterSpacing: '0em',
   },
+  srOnly: {
+    clip: 'rect(1px, 1px, 1px, 1px)',
+    overflow: 'hidden',
+    height: 1,
+    width: 1,
+  },
 })
