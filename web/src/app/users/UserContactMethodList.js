@@ -4,7 +4,8 @@ import Query from '../util/Query'
 import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
-import { formatCMValue, sortContactMethods } from './util'
+import withWidth, { isWidthUp } from '@material-ui/core/withWidth'
+import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
@@ -26,6 +27,7 @@ const query = gql`
         name
         type
         value
+        formattedValue
         disabled
       }
     }
@@ -50,7 +52,7 @@ const useStyles = makeStyles(theme => {
   })
 })
 
-export default function UserContactMethodList(props) {
+function UserContactMethodList(props) {
   const classes = useStyles()
 
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
@@ -67,6 +69,7 @@ export default function UserContactMethodList(props) {
 
     return (
       <IconButton
+        data-cy='cm-disabled'
         aria-label='Reactivate contact method'
         onClick={() => setShowVerifyDialogByID(cm.id)}
         variant='contained'
@@ -98,6 +101,11 @@ export default function UserContactMethodList(props) {
             },
           }),
       })
+    } else {
+      actions.push({
+        label: 'Reactivate',
+        onClick: () => setShowVerifyDialogByID(cm.id),
+      })
     }
 
     return actions
@@ -106,7 +114,7 @@ export default function UserContactMethodList(props) {
   function getSecondaryAction(cm) {
     return (
       <Grid container spacing={2} className={classes.actionGrid}>
-        {cm.disabled && !props.readOnly && (
+        {cm.disabled && !props.readOnly && isWidthUp('md', props.width) && (
           <Grid item>
             <Button
               aria-label='Reactivate contact method'
@@ -142,7 +150,7 @@ export default function UserContactMethodList(props) {
               title: `${cm.name} (${cm.type})${
                 cm.disabled ? ' - Disabled' : ''
               }`,
-              subText: formatCMValue(cm.type, cm.value),
+              subText: cm.formattedValue,
               secondaryAction: getSecondaryAction(cm),
               icon: getIcon(cm),
             }))}
@@ -191,6 +199,8 @@ export default function UserContactMethodList(props) {
     />
   )
 }
+
+export default withWidth()(UserContactMethodList)
 
 UserContactMethodList.propTypes = {
   userID: p.string.isRequired,

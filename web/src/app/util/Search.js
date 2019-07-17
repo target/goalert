@@ -89,7 +89,7 @@ export default class Search extends Component {
 
   renderMobileSearch() {
     return (
-      <Hidden key='mobile-search' mdUp>
+      <Hidden mdUp>
         <IconButton
           key='search-icon'
           color='inherit'
@@ -128,14 +128,15 @@ export default class Search extends Component {
   }
 
   renderDesktopSearch() {
-    return (
-      <Hidden key='desktop-search' smDown>
-        {this.renderTextField()}
-      </Hidden>
-    )
+    return <Hidden smDown>{this.renderTextField()}</Hidden>
   }
 
   render() {
-    return [this.renderDesktopSearch(), this.renderMobileSearch()]
+    return (
+      <React.Fragment>
+        {this.renderDesktopSearch()}
+        {this.renderMobileSearch()}
+      </React.Fragment>
+    )
   }
 }
