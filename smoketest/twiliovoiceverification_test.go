@@ -2,11 +2,12 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioVoiceVerification checks that a verification voice call is processed.
@@ -41,7 +42,6 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		values
 			({{uuid "sid"}}, 'testing');
 	`
-
 	h := harness.NewHarness(t, sqlQuery, "add-verification-code")
 	defer h.Close()
 

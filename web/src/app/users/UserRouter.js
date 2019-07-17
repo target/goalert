@@ -28,21 +28,22 @@ const query = gql`
 
 class UserList extends React.PureComponent {
   render() {
-    return [
-      <PageActions key='actions'>
-        <Search />
-      </PageActions>,
-      <QueryList
-        key='list'
-        query={query}
-        mapDataNode={n => ({
-          title: n.name,
-          subText: n.email,
-          url: n.id,
-          icon: <UserAvatar userID={n.id} />,
-        })}
-      />,
-    ]
+    return (
+      <React.Fragment>
+        <PageActions>
+          <Search />
+        </PageActions>
+        <QueryList
+          query={query}
+          mapDataNode={n => ({
+            title: n.name,
+            subText: n.email,
+            url: n.id,
+            icon: <UserAvatar userID={n.id} />,
+          })}
+        />
+      </React.Fragment>
+    )
   }
 }
 
