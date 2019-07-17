@@ -39,7 +39,7 @@ export default class FilterContainer extends React.PureComponent {
 
   renderContent() {
     return (
-      <Grid container spacing={3} className={this.props.classes.container}>
+      <Grid container spacing={2} className={this.props.classes.container}>
         <Grid
           item
           container
