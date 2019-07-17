@@ -85,11 +85,7 @@ export default class DialogTitleWrapper extends Component {
     } else {
       return (
         <React.Fragment>
-          <DialogTitle disableTypography key='title'>
-            <Typography component='h2' className={classes.dialogTitle}>
-              {title}
-            </Typography>
-          </DialogTitle>
+          <DialogTitle key='title'> {title} </DialogTitle>
           {menu}
         </React.Fragment>
       )
