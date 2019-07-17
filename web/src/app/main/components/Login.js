@@ -192,7 +192,7 @@ export default class Login extends Component {
     }
 
     return (
-      <React.Fragment>
+      <React.Fragment key={idx}>
         <Grid item xs={12}>
           <form action={url} method='post' id={'auth-' + id}>
             {form}
