@@ -31,7 +31,7 @@ export default function Search() {
   const setSearchParam = value => dispatch(setURLParam('search', value))
   const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
-  const [showMobile, setShowMobile] = useState(false)
+  const [showMobile, setShowMobile] = useState(Boolean(search))
 
   // If the page search param changes, we update state directly.
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function Search() {
         </IconButton>
         <Slide
           key='search-field'
-          in={showMobile}
+          in={showMobile || Boolean(search)}
           direction='down'
           mountOnEnter
           unmountOnExit
@@ -90,7 +90,11 @@ export default function Search() {
             <Toolbar>
               <IconButton
                 color='inherit'
-                onClick={() => setShowMobile(false)}
+                onClick={() => {
+                  // cancel search and close the bar
+                  setSearch('')
+                  setShowMobile(false)
+                }}
                 aria-label='Cancel'
                 data-cy='close-search'
               >
