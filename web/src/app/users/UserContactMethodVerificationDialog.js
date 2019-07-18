@@ -70,7 +70,11 @@ export default function UserContactMethodVerificationDialog(props) {
               caption={caption}
               loading={loading}
               errors={
-                sendError ? [{ message: sendError }] : nonFieldErrors(error)
+                sendError
+                  ? [{ message: sendError, nonSubmit: true }].concat(
+                      nonFieldErrors(error),
+                    )
+                  : nonFieldErrors(error)
               }
               data-cy='verify-form'
               onClose={props.onClose}

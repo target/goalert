@@ -49,6 +49,7 @@ export default class FormDialog extends React.PureComponent {
     errors: p.arrayOf(
       p.shape({
         message: p.string.isRequired,
+        nonSubmit: p.bool, // indicates that it is a non-submit related error
       }),
     ),
 
@@ -196,7 +197,7 @@ export default class FormDialog extends React.PureComponent {
           Cancel
         </Button>
         <LoadingButton
-          attemptCount={errors.length ? 1 : 0}
+          attemptCount={errors.filter(e => !e.nonSubmit).length ? 1 : 0}
           buttonText={confirm ? 'Confirm' : 'Submit'}
           color='primary'
           loading={loading}
