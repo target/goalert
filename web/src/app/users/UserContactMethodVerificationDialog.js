@@ -24,9 +24,8 @@ const contactMethodQuery = gql`
   query($id: ID!) {
     userContactMethod(id: $id) {
       id
-      name
       type
-      value
+      formattedValue
     }
   }
 `
