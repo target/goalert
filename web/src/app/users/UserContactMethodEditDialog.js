@@ -7,7 +7,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import Query from '../util/Query'
-import { omit } from 'lodash-es'
+import { pick } from 'lodash-es'
 
 const query = gql`
   query($id: ID!) {
@@ -79,9 +79,9 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
         onSubmit={() => {
           return commit({
             variables: {
-              // removing field 'type' from value for mutation
+              // only pass 'name'
               input: {
-                ...omit(this.state.value, 'type'),
+                ...pick(this.state.value, 'name'),
                 id: this.props.contactMethodID,
               },
             },
