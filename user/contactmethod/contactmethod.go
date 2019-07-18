@@ -1,9 +1,8 @@
 package contactmethod
 
 import (
-	"github.com/target/goalert/validation/validate"
-
 	uuid "github.com/satori/go.uuid"
+	"github.com/target/goalert/validation/validate"
 )
 
 // ContactMethod stores the information for contacting a user.

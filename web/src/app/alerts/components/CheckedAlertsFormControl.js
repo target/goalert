@@ -348,46 +348,47 @@ export default class CheckedAlertsFormControl extends Component {
         containerClass = classnames(classes.stickyLarge)
     }
 
-    return [
-      <UpdateAlertsSnackbar
-        key='action-complete-snackbar'
-        errorMessage={errorMessage}
-        numberChecked={this.checkedAlertIDs().length}
-        onClose={() => this.props.setAlertsActionComplete(false)}
-        onExited={() => {
-          this.setState({ errorMessage: '', updateMessage: '' })
-        }}
-        open={actionComplete}
-        updateMessage={updateMessage}
-      />,
-      <Grid key='form-control' item container className={containerClass}>
-        <Grid item className={classes.whitespace} />
-        <Grid item>
-          <Checkbox
-            checked={!this.areNoneChecked()}
-            data-cy='select-all'
-            indeterminate={!this.areNoneChecked() && !this.areAllChecked()}
-            tabIndex={-1}
-            onChange={this.toggleCheckbox}
-          />
+    return (
+      <React.Fragment>
+        <UpdateAlertsSnackbar
+          errorMessage={errorMessage}
+          numberChecked={this.checkedAlertIDs().length}
+          onClose={() => this.props.setAlertsActionComplete(false)}
+          onExited={() => {
+            this.setState({ errorMessage: '', updateMessage: '' })
+          }}
+          open={actionComplete}
+          updateMessage={updateMessage}
+        />
+        <Grid item container className={containerClass}>
+          <Grid item className={classes.whitespace} />
+          <Grid item>
+            <Checkbox
+              checked={!this.areNoneChecked()}
+              data-cy='select-all'
+              indeterminate={!this.areNoneChecked() && !this.areAllChecked()}
+              tabIndex={-1}
+              onChange={this.toggleCheckbox}
+            />
+          </Grid>
+          <Grid
+            item
+            className={classnames(classes.hover, classes.icon)}
+            data-cy='checkboxes-menu'
+          >
+            <OtherActions
+              icon={
+                <Icon>
+                  <ArrowDropDown />
+                </Icon>
+              }
+              actions={this.getSelectOptions()}
+              placement='right'
+            />
+          </Grid>
+          {this.renderActionButtons()}
         </Grid>
-        <Grid
-          item
-          className={classnames(classes.hover, classes.icon)}
-          data-cy='checkboxes-menu'
-        >
-          <OtherActions
-            icon={
-              <Icon>
-                <ArrowDropDown />
-              </Icon>
-            }
-            actions={this.getSelectOptions()}
-            placement='right'
-          />
-        </Grid>
-        {this.renderActionButtons()}
-      </Grid>,
-    ]
+      </React.Fragment>
+    )
   }
 }

@@ -91,8 +91,6 @@ func (h *Handler) buildSchema() error {
 		"createAll":                          h.createAllField(),
 		"updateConfigLimit":                  h.updateConfigLimitField(),
 		"sendContactMethodTest":              h.sendContactMethodTest(),
-		"sendContactMethodVerification":      h.sendContactMethodVerification(),
-		"verifyContactMethod":                h.verifyContactMethod(),
 		"deleteHeartbeatMonitor":             h.deleteHeartbeatMonitorField(),
 		"updateUserOverride":                 h.updateUserOverrideField(),
 		"deleteAll":                          h.deleteAllField(),

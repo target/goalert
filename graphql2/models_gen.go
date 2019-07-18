@@ -241,6 +241,10 @@ type ScheduleTargetInput struct {
 	Rules       []ScheduleRuleInput   `json:"rules"`
 }
 
+type SendContactMethodVerificationInput struct {
+	ContactMethodID string `json:"contactMethodID"`
+}
+
 type ServiceConnection struct {
 	Nodes    []service.Service `json:"nodes"`
 	PageInfo PageInfo          `json:"pageInfo"`
@@ -388,6 +392,11 @@ type UserSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type VerifyContactMethodInput struct {
+	ContactMethodID string `json:"contactMethodID"`
+	Code            int    `json:"code"`
 }
 
 type AlertStatus string
