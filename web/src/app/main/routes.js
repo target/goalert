@@ -112,6 +112,14 @@ export default [
     title: 'Admin',
     path: '/admin',
     component: AdminRouter,
+    subRoutes: [
+      {
+        nav: false,
+        title: 'Config',
+        path: '/admin/config',
+        component: AdminRouter,
+      },
+    ],
   },
   {
     nav: false,
