@@ -30,8 +30,9 @@ const styles = theme => {
       display: 'flex',
       flexDirection: 'column',
     },
-    noGrow: {
+    errorContainer: {
       flexGrow: 0,
+      overflowY: 'visible',
     },
   }
 }
@@ -166,7 +167,7 @@ export default class FormDialog extends React.PureComponent {
   renderErrors = () => {
     return this.props.errors.map((err, idx) => (
       <DialogContentError
-        className={this.props.classes.noGrow}
+        className={this.props.classes.errorContainer}
         error={err.message || err}
         key={idx}
         noPadding
