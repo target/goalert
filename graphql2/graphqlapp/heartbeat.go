@@ -13,21 +13,23 @@ type Heartbeat App
 func (a *App) Heartbeat() graphql2.HeartbeatResolver { return (*Heartbeat)(a) }
 
 func (q *Query) Heartbeat(ctx context.Context, id string) (*heartbeat.Heartbeat, error) {
-	return q.hbStore.FindAll(ctx, id)
+	return q.FindAllByService(ctx, id)
 }
 
-func (m *Mutation) Heartbeat(ctx context.Context, input graphql2.CreateHeartbeatInput) (beat *heartbeat.Heartbeat, err error) {
+func (m *Mutation) CreateHeartbeat(ctx context.Context, input graphql2.CreateHeartbeatInput) (beat *heartbeat.Heartbeat, err error) {
 	var serviceID string
 	if input.ServiceID != nil {
 		serviceID = *input.ServiceID
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		beat = &heartbeat.Heartbeat{
-			ServiceID: serviceID,
-			Name:      input.Name,
-			// include other properties here?
+			ServiceID:         serviceID,
+			Name:              input.Name,
+			HeartbeatInterval: input.HeartbeatInterval,
+			LastState:         input.LastState,
+			// lastHeartbeat not required - include here?
 		}
-		beat, err = m.hbStore.CreateTx(ctx, tx, beat)
+		beat, err = m.DB.hbStore.CreateTx(ctx, tx, beat)
 		return err
 	})
 	return beat, err

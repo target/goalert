@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
@@ -113,4 +114,8 @@ func (app *App) FindOneAlert(ctx context.Context, id int) (*alert.Alert, error) 
 	}
 
 	return loader.FetchOneAlert(ctx, id)
+}
+
+func (app *App) FindOneHeartbeat(ctx context.Context, id string) (*alert.Alert, error) {
+	loader, ok := ctx.Value(dataLoader)
 }

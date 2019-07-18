@@ -129,7 +129,7 @@ type CreateServiceInput struct {
 	NewEscalationPolicy *CreateEscalationPolicyInput `json:"newEscalationPolicy"`
 	NewIntegrationKeys  []CreateIntegrationKeyInput  `json:"newIntegrationKeys"`
 	Labels              []SetLabelInput              `json:"labels"`
-	NewHeartbeat        *CreateHeartbeatInput        `json:"newHeartbeat"`
+	NewHeartbeats       []*CreateHeartbeatInput      `json:"newHeartbeats"`
 }
 
 type CreateUserContactMethodInput struct {

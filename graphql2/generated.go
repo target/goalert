@@ -2696,7 +2696,7 @@ input CreateServiceInput {
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
   labels: [SetLabelInput!]
-  newHeartbeat: CreateHeartbeatInput
+  newHeartbeats: [CreateHeartbeatInput]
 }
 
 input CreateEscalationPolicyInput {
@@ -11439,9 +11439,9 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "newHeartbeat":
+		case "newHeartbeats":
 			var err error
-			it.NewHeartbeat, err = ec.unmarshalOCreateHeartbeatInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, v)
+			it.NewHeartbeats, err = ec.unmarshalOCreateHeartbeatInput2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17196,6 +17196,26 @@ func (ec *executionContext) unmarshalOCreateEscalationPolicyStepInput2ᚕgithub�
 
 func (ec *executionContext) unmarshalOCreateHeartbeatInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx context.Context, v interface{}) (CreateHeartbeatInput, error) {
 	return ec.unmarshalInputCreateHeartbeatInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOCreateHeartbeatInput2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx context.Context, v interface{}) ([]*CreateHeartbeatInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*CreateHeartbeatInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalOCreateHeartbeatInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOCreateHeartbeatInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx context.Context, v interface{}) (*CreateHeartbeatInput, error) {

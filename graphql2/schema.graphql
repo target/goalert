@@ -308,7 +308,7 @@ input CreateServiceInput {
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
   labels: [SetLabelInput!]
-  newHeartbeat: CreateHeartbeatInput
+  newHeartbeats: [CreateHeartbeatInput]
 }
 
 input CreateEscalationPolicyInput {
