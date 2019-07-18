@@ -30,8 +30,9 @@ const styles = theme => {
       display: 'flex',
       flexDirection: 'column',
     },
-    noGrow: {
+    errorContainer: {
       flexGrow: 0,
+      overflowY: 'visible',
     },
   }
 }
@@ -49,6 +50,7 @@ export default class FormDialog extends React.PureComponent {
     errors: p.arrayOf(
       p.shape({
         message: p.string.isRequired,
+        nonSubmit: p.bool, // indicates that it is a non-submit related error
       }),
     ),
 
@@ -165,7 +167,7 @@ export default class FormDialog extends React.PureComponent {
   renderErrors = () => {
     return this.props.errors.map((err, idx) => (
       <DialogContentError
-        className={this.props.classes.noGrow}
+        className={this.props.classes.errorContainer}
         error={err.message || err}
         key={idx}
         noPadding
@@ -196,7 +198,7 @@ export default class FormDialog extends React.PureComponent {
           Cancel
         </Button>
         <LoadingButton
-          attemptCount={errors.length ? 1 : 0}
+          attemptCount={errors.filter(e => !e.nonSubmit).length ? 1 : 0}
           buttonText={confirm ? 'Confirm' : 'Submit'}
           color='primary'
           loading={loading}

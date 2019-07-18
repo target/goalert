@@ -128,7 +128,7 @@ export default class ServiceDeleteDialog extends React.PureComponent {
           <DeleteForm
             epName={svcData.escalationPolicy.name}
             error={
-              fieldErrors(error).find(f => f.field === 'escalationPolicyId') &&
+              fieldErrors(error).find(f => f.field === 'escalationPolicyID') &&
               'Escalation policy is currently in use.'
             }
             onChange={deleteEP => this.setState({ deleteEP })}
