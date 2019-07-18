@@ -15,18 +15,12 @@ function pageSearch(s: string): Cypress.Chainable {
     if (format === 'mobile') {
       cy.get('@container')
         .find('button[data-cy=open-search]')
-        .click()
+        .click({ force: true }) // since we're running tests, it's ok if it is already open
     }
 
     cy.get('@container')
       .find('input')
       .type(`{selectall}${s}{enter}`)
-
-    if (format === 'mobile') {
-      cy.get('@container')
-        .find('button[data-cy=close-search]')
-        .click()
-    }
   })
 }
 
