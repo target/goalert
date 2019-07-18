@@ -32,6 +32,15 @@ export default class UserContactMethodForm extends React.PureComponent {
   }
 
   render() {
+    const cleanValue = val => {
+      val = val.replace(/[^0-9]/g, '')
+
+      if (!val) {
+        return ''
+      }
+
+      return '+' + val
+    }
     return (
       <FormContainer {...this.props} optionalLabels>
         <Grid container spacing={2}>
@@ -61,6 +70,7 @@ export default class UserContactMethodForm extends React.PureComponent {
               label='Phone Number'
               type='tel'
               component={TextField}
+              mapOnChangeValue={cleanValue}
             />
             <Typography
               variant='caption'
