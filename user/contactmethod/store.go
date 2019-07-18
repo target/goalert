@@ -40,7 +40,6 @@ type DB struct {
 	lookupUserID *sql.Stmt
 	disable      *sql.Stmt
 	disablePhone *sql.Stmt
-	getType      *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -64,11 +63,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			SELECT DISTINCT user_id
 			FROM user_contact_methods
 			WHERE id = any($1)
-		`),
-		getType: p.P(`
-			SELECT type
-			FROM user_contact_methods
-			WHERE id = $1
 		`),
 		insert: p.P(`
 			INSERT INTO user_contact_methods (id,name,type,value,disabled,user_id)
@@ -97,7 +91,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		update: p.P(`
 				UPDATE user_contact_methods
-				SET name = $2, value = $3, disabled = $4
+				SET name = $2, disabled = $3
 				WHERE id = $1
 			`),
 		delete: p.P(`
@@ -269,37 +263,31 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) error 
 		return err
 	}
 
-	row := wrapTx(ctx, tx, db.getType).QueryRowContext(ctx, n.ID)
-	var cmType Type
-	err = row.Scan(&cmType)
+	cm, err := db.FindOneTx(ctx, tx, c.ID)
 	if err != nil {
 		return err
 	}
-	if n.Type != cmType {
+	if n.Type != cm.Type {
 		return validation.NewFieldError("Type", "cannot update type of contact method")
+	}
+	if n.Value != cm.Value {
+		return validation.NewFieldError("Value", "cannot update value of contact method")
+	}
+	if n.UserID != cm.UserID {
+		return validation.NewFieldError("UserID", "cannot update owner of contact method")
 	}
 
 	if permission.Admin(ctx) {
-		_, err = wrapTx(ctx, tx, db.update).ExecContext(ctx, n.ID, n.Name, n.Value, n.Disabled)
+		_, err = wrapTx(ctx, tx, db.update).ExecContext(ctx, n.ID, n.Name, n.Disabled)
 		return err
 	}
 
-	var userID string
-
-	row = wrapTx(ctx, tx, db.lookupUserID).QueryRowContext(ctx, pq.StringArray{n.ID})
-	err = row.Scan(&userID)
+	err = permission.LimitCheckAny(ctx, permission.MatchUser(cm.UserID))
 	if err != nil {
 		return err
 	}
 
-	n.UserID = userID
-
-	err = permission.LimitCheckAny(ctx, permission.MatchUser(userID))
-	if err != nil {
-		return err
-	}
-
-	_, err = wrapTx(ctx, tx, db.update).ExecContext(ctx, n.ID, n.Name, n.Value, n.Disabled)
+	_, err = wrapTx(ctx, tx, db.update).ExecContext(ctx, n.ID, n.Name, n.Disabled)
 	return err
 }
 
