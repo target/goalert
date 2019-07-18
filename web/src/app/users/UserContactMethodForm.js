@@ -71,15 +71,18 @@ export default class UserContactMethodForm extends React.PureComponent {
               type='tel'
               component={TextField}
               mapOnChangeValue={cleanValue}
+              disabled={this.props.edit}
             />
-            <Typography
-              variant='caption'
-              component='p'
-              id='countryCodeIndicator'
-            >
-              Please provide your country code e.g. +1 (USA), +91 (India) +44
-              (UK)
-            </Typography>
+            {!this.props.edit && (
+              <Typography
+                variant='caption'
+                component='p'
+                id='countryCodeIndicator'
+              >
+                Please provide your country code e.g. +1 (USA), +91 (India) +44
+                (UK)
+              </Typography>
+            )}
           </Grid>
         </Grid>
       </FormContainer>
