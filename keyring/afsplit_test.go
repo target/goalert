@@ -11,9 +11,11 @@ import (
 func TestAFSplitMerge(t *testing.T) {
 	const input = "Hello, World!"
 
-	split := AFSplit([]byte(input), 10, crypto.SHA256)
+	split, err := AFSplit([]byte(input), 1000, crypto.SHA256)
+	assert.NoError(t, err)
 	t.Log("split:", hex.EncodeToString(split))
-	merged := AFMerge(split, 10, crypto.SHA256)
+	merged, err := AFMerge(split, 1000, crypto.SHA256)
+	assert.NoError(t, err)
 	t.Log("merge:", string(merged))
 	assert.Equal(t, input, string(merged))
 }

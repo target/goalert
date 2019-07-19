@@ -3,25 +3,11 @@ package keyring
 import (
 	"bytes"
 	"crypto"
-	cRand "crypto/rand"
-	"encoding/binary"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+
+	"github.com/pkg/errors"
 )
-
-var pseudoRand *rand.Rand
-
-func init() {
-	b := make([]byte, 8)
-
-	_, err := cRand.Read(b)
-	if err != nil {
-		// lack of entropy
-		panic(err)
-	}
-
-	pseudoRand = rand.New(rand.NewSource(int64(binary.BigEndian.Uint64(b))))
-}
 
 func xor(a, b []byte) []byte {
 	if len(a) != len(b) {
@@ -58,31 +44,54 @@ func diffuse(block []byte, digest crypto.Hash) []byte {
 	return out[:len(block)]
 }
 
-func AFSplit(data []byte, stripes int, digest crypto.Hash) []byte {
-	out := bytes.NewBuffer(make([]byte, 0, len(data)*stripes))
+func AFSplit(data []byte, stripes int, digest crypto.Hash) ([]byte, error) {
+	if stripes < 2 {
+		return nil, errors.New("number of stripes must be >= 2")
+	}
+	var randData [][]byte
 	state := make([]byte, len(data))
-	randBuf := make([]byte, len(data))
 	for i := 1; i < stripes; i++ {
-		pseudoRand.Read(randBuf)
-		out.Write(randBuf)
-		state = xor(state, randBuf)
+		buf := make([]byte, len(data))
+		rand.Read(buf)
+		randData = append(randData, buf)
+		state = xor(state, buf)
 		state = diffuse(state, digest)
 	}
 
-	out.Write(xor(state, data))
-	return out.Bytes()
+	ciphertext := xor(state, data)
+	out := bytes.NewBuffer(make([]byte, 0, len(data)*(stripes+1)))
+	out.Write(ciphertext)
+
+	state = diffuse(ciphertext, digest)
+	for _, d := range randData {
+		out.Write(xor(state, d))
+	}
+
+	return out.Bytes(), nil
 }
 
-func AFMerge(data []byte, stripes int, digest crypto.Hash) []byte {
+func AFMerge(data []byte, stripes int, digest crypto.Hash) ([]byte, error) {
+	if stripes < 2 {
+		return nil, errors.New("number of stripes must be >= 2")
+	}
+	if len(data)%stripes != 0 {
+		return nil, errors.New("invalid length for number of stripes")
+	}
 	r := bytes.NewReader(data)
 	state := make([]byte, len(data)/stripes)
+	ciphertext := make([]byte, len(state))
 	currentChunk := make([]byte, len(state))
+
+	r.Read(ciphertext)
+	blockKey := diffuse(ciphertext, digest)
+
 	for i := 1; i < stripes; i++ {
 		r.Read(currentChunk)
-		state = xor(currentChunk, state)
+		currentChunk = xor(blockKey, currentChunk)
+
+		state = xor(state, currentChunk)
 		state = diffuse(state, digest)
 	}
 
-	n, _ := r.Read(currentChunk)
-	return xor(currentChunk[:n], state)
+	return xor(ciphertext, state), nil
 }
