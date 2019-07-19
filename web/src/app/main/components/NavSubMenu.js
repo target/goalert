@@ -1,14 +1,14 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { NavLink } from 'react-router-dom'
-import Collapse from '@material-ui/core/Collapse'
 import List from '@material-ui/core/List'
 import { makeStyles } from '@material-ui/styles'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Typography from '@material-ui/core/Typography'
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 import { styles } from '../../styles/materialStyles'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import { Collapse } from '@material-ui/core'
 
 const useStyles = makeStyles(theme => {
   const { nav } = styles(theme)
@@ -42,12 +42,8 @@ const useStyles = makeStyles(theme => {
 
 export default function NavSubMenu(props) {
   const { parentIcon, parentTitle, path, subMenuRoutes } = props
-  const [open, setOpen] = useState(false)
   const classes = useStyles()
-
-  function handleClick(bool) {
-    setOpen(bool)
-  }
+  let isRoute = window.location.pathname.includes(path)
 
   function renderParentLink(IconComponent, label) {
     return (
@@ -60,7 +56,7 @@ export default function NavSubMenu(props) {
           disableTypography
           primary={<Typography variant='subtitle1'>{label}</Typography>}
         />
-        <ArrowDropDownIcon className={classes.parentItem} />
+        <ExpandMoreIcon />
       </ListItem>
     )
   }
@@ -87,19 +83,12 @@ export default function NavSubMenu(props) {
     return subMenu
   }
 
-  function activeLink(match) {
-    if (!match) {
-      return handleClick(false)
-    }
-
-    return handleClick(true)
-  }
   return (
     <React.Fragment>
-      <NavLink to={path} className={classes.nav} isActive={activeLink}>
+      <NavLink to={path} className={classes.nav}>
         {renderParentLink(parentIcon, parentTitle)}
       </NavLink>
-      <Collapse in={open} timeout='auto' unmountOnExit>
+      <Collapse in={isRoute} mountOnEnter>
         <List className={classes.subMenu}>{renderSubMenu(subMenuRoutes)}</List>
       </Collapse>
     </React.Fragment>

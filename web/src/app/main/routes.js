@@ -114,7 +114,6 @@ export default [
     component: AdminRouter,
     subRoutes: [
       {
-        nav: false,
         title: 'Config',
         path: '/admin/config',
         component: AdminRouter,
