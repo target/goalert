@@ -7,7 +7,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import Query from '../util/Query'
-import { omit } from 'lodash-es'
+import { pick } from 'lodash-es'
 
 const query = gql`
   query($id: ID!) {
@@ -28,7 +28,7 @@ const mutation = gql`
 
 export default class UserContactMethodEditDialog extends React.PureComponent {
   static propTypes = {
-    cmID: p.string.isRequired,
+    contactMethodID: p.string.isRequired,
     onClose: p.func,
   }
 
@@ -42,7 +42,7 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
     return (
       <Query
         query={query}
-        variables={{ id: this.props.cmID }}
+        variables={{ id: this.props.contactMethodID }}
         render={({ data }) => this.renderMutation(data.userContactMethod)}
         noPoll
       />
@@ -79,8 +79,11 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
         onSubmit={() => {
           return commit({
             variables: {
-              // removing field 'type' from value for mutation
-              input: { ...omit(this.state.value, 'type'), id: this.props.cmID },
+              // only pass 'name'
+              input: {
+                ...pick(this.state.value, 'name'),
+                id: this.props.contactMethodID,
+              },
             },
           })
         }}

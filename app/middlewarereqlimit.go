@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -22,34 +23,41 @@ func getIntKey(ctx context.Context) string {
 	return ""
 }
 func (cfg conReqLimit) Middleware(next http.Handler) http.Handler {
-	userLim := newConcurrencyLimiter(cfg.perUser)
-	svcLim := newConcurrencyLimiter(cfg.perService)
-	intLim := newConcurrencyLimiter(cfg.perIntKey)
+	userLim := newConcurrencyLimiter(cfg.perUser, 250)
+	svcLim := newConcurrencyLimiter(cfg.perService, 250)
+	intLim := newConcurrencyLimiter(cfg.perIntKey, 250)
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 
+		lockCtx, cancel := context.WithTimeout(ctx, 25*time.Second)
+		defer cancel()
+
+		failure := func(err error) bool {
+			if err == nil {
+				return false
+			}
+
+			log.Debug(ctx, err)
+			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
+			return true
+		}
+
 		if id := getIntKey(ctx); id != "" {
-			err := intLim.Lock(ctx, id)
-			if err != nil {
-				log.Debug(ctx, err)
+			if failure(intLim.Lock(lockCtx, id)) {
 				return
 			}
 			defer intLim.Unlock(id)
 		}
 
 		if id := permission.ServiceID(ctx); id != "" {
-			err := svcLim.Lock(ctx, id)
-			if err != nil {
-				log.Debug(ctx, err)
+			if failure(svcLim.Lock(ctx, id)) {
 				return
 			}
 			defer svcLim.Unlock(id)
 		}
 
 		if id := permission.UserID(ctx); id != "" {
-			err := userLim.Lock(ctx, id)
-			if err != nil {
-				log.Debug(ctx, err)
+			if failure(userLim.Lock(ctx, id)) {
 				return
 			}
 			defer userLim.Unlock(id)

@@ -30,8 +30,9 @@ const styles = theme => {
       display: 'flex',
       flexDirection: 'column',
     },
-    noGrow: {
+    errorContainer: {
       flexGrow: 0,
+      overflowY: 'visible',
     },
   }
 }
@@ -49,6 +50,7 @@ export default class FormDialog extends React.PureComponent {
     errors: p.arrayOf(
       p.shape({
         message: p.string.isRequired,
+        nonSubmit: p.bool, // indicates that it is a non-submit related error
       }),
     ),
 
@@ -120,6 +122,7 @@ export default class FormDialog extends React.PureComponent {
           fullScreen={!isWideScreen && !confirm && !alert}
           onClose={onClose}
           title={title}
+          subTitle={subTitle}
         />
         <Form
           className={classes.formContainer}
@@ -138,35 +141,24 @@ export default class FormDialog extends React.PureComponent {
   }
 
   renderForm = () => {
-    const { classes, disableGutters, form, subTitle } = this.props
+    const { classes, disableGutters, form } = this.props
 
     // don't render empty space
-    if (!form && !subTitle) {
+    if (!form) {
       return null
     }
 
     let Component = DialogContent
     if (disableGutters) Component = 'div'
 
-    return (
-      <Component className={classes.form}>
-        {this.renderSubtitle()}
-        {form}
-      </Component>
-    )
-  }
-
-  renderSubtitle = () => {
-    if (!this.props.subTitle) return null
-
-    return <Typography variant='subtitle1'>{this.props.subTitle}</Typography>
+    return <Component className={classes.form}>{form}</Component>
   }
 
   renderCaption = () => {
     if (!this.props.caption) return null
 
     return (
-      <DialogContent key='caption'>
+      <DialogContent>
         <Typography variant='caption'>{this.props.caption}</Typography>
       </DialogContent>
     )
@@ -175,7 +167,7 @@ export default class FormDialog extends React.PureComponent {
   renderErrors = () => {
     return this.props.errors.map((err, idx) => (
       <DialogContentError
-        className={this.props.classes.noGrow}
+        className={this.props.classes.errorContainer}
         error={err.message || err}
         key={idx}
         noPadding
@@ -206,7 +198,7 @@ export default class FormDialog extends React.PureComponent {
           Cancel
         </Button>
         <LoadingButton
-          attemptCount={errors.length ? 1 : 0}
+          attemptCount={errors.filter(e => !e.nonSubmit).length ? 1 : 0}
           buttonText={confirm ? 'Confirm' : 'Submit'}
           color='primary'
           loading={loading}
