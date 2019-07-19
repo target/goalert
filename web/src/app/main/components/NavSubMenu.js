@@ -9,6 +9,8 @@ import Typography from '@material-ui/core/Typography'
 import { styles } from '../../styles/materialStyles'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { Collapse } from '@material-ui/core'
+import { urlPathSelector } from '../../selectors/url'
+import { useSelector } from 'react-redux'
 
 const useStyles = makeStyles(theme => {
   const { nav } = styles(theme)
@@ -43,7 +45,8 @@ const useStyles = makeStyles(theme => {
 export default function NavSubMenu(props) {
   const { parentIcon, parentTitle, path, subMenuRoutes } = props
   const classes = useStyles()
-  let isRoute = window.location.pathname.includes(path)
+  const pathname = useSelector(urlPathSelector)
+  let isRoute = pathname.startsWith(path)
 
   function renderParentLink(IconComponent, label) {
     return (
