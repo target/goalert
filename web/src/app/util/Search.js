@@ -1,33 +1,21 @@
-import React, { Component } from 'react'
-import { PropTypes as p } from 'prop-types'
+import React, { useState, useEffect } from 'react'
 import AppBar from '@material-ui/core/AppBar'
 import Hidden from '@material-ui/core/Hidden'
 import IconButton from '@material-ui/core/IconButton'
 import Slide from '@material-ui/core/Slide'
 import TextField from '@material-ui/core/TextField'
 import Toolbar from '@material-ui/core/Toolbar'
-import withStyles from '@material-ui/core/styles/withStyles'
 import { Close as CloseIcon, Search as SearchIcon } from '@material-ui/icons'
 import { styles } from '../styles/materialStyles'
-import { connect } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { searchSelector } from '../selectors/url'
 import { setURLParam } from '../actions/main'
-import { debounce } from 'lodash-es'
 import { DEBOUNCE_DELAY } from '../config'
+import { makeStyles } from '@material-ui/core'
 
-const mapDispatchToProps = dispatch => {
-  return {
-    setSearch: debounce(
-      value => dispatch(setURLParam('search', value)),
-      DEBOUNCE_DELAY,
-    ),
-  }
-}
-const mapStateToProps = state => {
-  return {
-    search: searchSelector(state),
-  }
-}
+const useStyles = makeStyles(theme => {
+  return { searchFieldBox: styles(theme).searchFieldBox }
+})
 
 /*
  * Renders a search bar that will fix to the top right of the screen (in the app bar)
@@ -36,35 +24,32 @@ const mapStateToProps = state => {
  * a new appbar will display that contains a search field to use.
  *
  * On a larger screen, the field will always be present to use in the app bar.
- *
- * Uncontrolled component with a key. If the component detects that the search
- * URL parameter has been reset, it will reset the search param's state as well.
- * i.e. this component's location key changes and will remount a new version of itself.
- *
- * A search function is provided for components that need tracking of the search
- * in Redux (for cache updates, queries, etc).
  */
-@withStyles(styles)
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
-export default class Search extends Component {
-  static propTypes = {
-    setSearch: p.func.isRequired, // used for redux updates
-    search: p.string.isRequired, // initial value of search param, if given
-  }
+export default function Search() {
+  const searchParam = useSelector(searchSelector)
+  const dispatch = useDispatch()
+  const setSearchParam = value => dispatch(setURLParam('search', value))
+  const classes = useStyles()
+  const [search, setSearch] = useState(searchParam)
+  const [showMobile, setShowMobile] = useState(Boolean(search))
 
-  state = {
-    showMobile: false,
-  }
+  // If the page search param changes, we update state directly.
+  useEffect(() => {
+    setSearch(searchParam)
+  }, [searchParam])
 
-  renderTextField = extraProps => {
-    const { classes, search } = this.props
+  // When typing, we setup a debounce before updating the URL.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchParam(search)
+    }, DEBOUNCE_DELAY)
 
+    return () => clearTimeout(t)
+  }, [search])
+
+  function renderTextField(extraProps) {
     return (
       <TextField
-        key={search}
         InputProps={{
           disableUnderline: true,
           classes: {
@@ -72,28 +57,28 @@ export default class Search extends Component {
           },
         }}
         placeholder='Search'
-        onChange={e => this.props.setSearch(e.target.value)}
-        defaultValue={search}
+        onChange={e => setSearch(e.target.value)}
+        value={search}
         {...extraProps}
       />
     )
   }
 
-  renderMobileSearch() {
+  function renderMobile() {
     return (
-      <Hidden mdUp>
+      <React.Fragment>
         <IconButton
           key='search-icon'
           color='inherit'
           aria-label='Search'
           data-cy='open-search'
-          onClick={() => this.setState({ showMobile: true })}
+          onClick={() => setShowMobile(true)}
         >
           <SearchIcon />
         </IconButton>
         <Slide
           key='search-field'
-          in={this.state.showMobile}
+          in={showMobile || Boolean(search)}
           direction='down'
           mountOnEnter
           unmountOnExit
@@ -105,30 +90,28 @@ export default class Search extends Component {
             <Toolbar>
               <IconButton
                 color='inherit'
-                onClick={() => this.setState({ showMobile: false })}
+                onClick={() => {
+                  // cancel search and close the bar
+                  setSearch('')
+                  setShowMobile(false)
+                }}
                 aria-label='Cancel'
                 data-cy='close-search'
               >
                 <CloseIcon />
               </IconButton>
-              {this.renderTextField({ style: { flex: 1 } })}
+              {renderTextField({ style: { flex: 1 } })}
             </Toolbar>
           </AppBar>
         </Slide>
-      </Hidden>
-    )
-  }
-
-  renderDesktopSearch() {
-    return <Hidden smDown>{this.renderTextField()}</Hidden>
-  }
-
-  render() {
-    return (
-      <React.Fragment>
-        {this.renderDesktopSearch()}
-        {this.renderMobileSearch()}
       </React.Fragment>
     )
   }
+
+  return (
+    <React.Fragment>
+      <Hidden smDown>{renderTextField()}</Hidden>
+      <Hidden mdUp>{renderMobile()}</Hidden>
+    </React.Fragment>
+  )
 }
