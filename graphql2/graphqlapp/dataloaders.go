@@ -118,4 +118,5 @@ func (app *App) FindOneAlert(ctx context.Context, id int) (*alert.Alert, error) 
 
 func (app *App) FindOneHeartbeat(ctx context.Context, id string) (*alert.Alert, error) {
 	loader, ok := ctx.Value(dataLoader)
+	return loader.FindOne(ctx, id)
 }

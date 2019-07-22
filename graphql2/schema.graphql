@@ -616,7 +616,7 @@ type Service {
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
-  heartbeats: [Heartbeat]
+  heartbeats: [Heartbeat!]!
 }
 
 input CreateIntegrationKeyInput {
@@ -626,12 +626,9 @@ input CreateIntegrationKeyInput {
 }
 
 input CreateHeartbeatInput {
-  id: ID!
   serviceID: ID
   name: String!
   heartbeatInterval: Int!
-  lastState: HeartbeatState!
-  lastHeartbeat: ISOTimestamp
 }
 
 enum HeartbeatState {

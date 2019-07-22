@@ -16,4 +16,5 @@ func NewHeartbeatLoader(ctx context.Context, store heartbeat.Store) *HeartbeatLo
 		store: store,
 	}
 	p.loader = newLoader(ctx, loaderConfig{})
+	return p
 }
