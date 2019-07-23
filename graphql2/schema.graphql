@@ -769,6 +769,7 @@ type UserContactMethod {
   # User-defined label for this contact method.
   name: String!
   value: String!
+  formattedValue: String!
   disabled: Boolean!
 }
 

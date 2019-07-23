@@ -11,7 +11,7 @@ function pageNav(s: string, skipClick?: boolean): Cypress.Chainable {
     expect(format, 'app bar format').to.be.oneOf(['mobile', 'wide'])
 
     if (format === 'mobile') {
-      cy.get('button[data-cy=nav-menu-icon]').click()
+      cy.get('button[data-cy=nav-menu-icon]').click({ force: true }) // since we're running tests, it's ok if it's already open
     }
     if (skipClick) {
       cy.get('ul[data-cy=nav-list]').contains('a', s)
