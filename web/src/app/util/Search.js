@@ -63,21 +63,19 @@ export default class Search extends Component {
     const { classes, search } = this.props
 
     return (
-      <React.Fragment>
-        <TextField
-          key={search}
-          InputProps={{
-            disableUnderline: true,
-            classes: {
-              input: classes.searchFieldBox,
-            },
-          }}
-          placeholder='Search'
-          onChange={e => this.props.setSearch(e.target.value)}
-          defaultValue={search}
-          {...extraProps}
-        />
-      </React.Fragment>
+      <TextField
+        key={search}
+        InputProps={{
+          disableUnderline: true,
+          classes: {
+            input: classes.searchFieldBox,
+          },
+        }}
+        placeholder='Search'
+        onChange={e => this.props.setSearch(e.target.value)}
+        defaultValue={search}
+        {...extraProps}
+      />
     )
   }
 
