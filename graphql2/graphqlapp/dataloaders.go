@@ -6,6 +6,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
+	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/service"
@@ -25,6 +26,7 @@ const (
 	dataLoaderKeyService
 	dataLoaderKeyUser
 	dataLoaderKeyCM
+	dataLoaderKeyHeartbeatMonitor
 )
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
@@ -116,7 +118,11 @@ func (app *App) FindOneAlert(ctx context.Context, id int) (*alert.Alert, error) 
 	return loader.FetchOneAlert(ctx, id)
 }
 
-func (app *App) FindManyHbMonitors(ctx context.Context, id string) (*alert.Alert, error) {
-	loader, ok := ctx.Value(dataLoader)
-	return loader.FindMany(ctx, id)
+func (app *App) FindOneHeartbeatMonitor(ctx context.Context, id string) (heartbeat.Monitor, error) {
+	loader, ok := ctx.Value(dataLoaderKeyHeartbeatMonitor).(*dataloader.HeartbeatMonitorLoader)
+	if !ok {
+		return app.HeartbeatStore.FindOne(ctx, id)
+	}
+
+	return loader.FetchOne(ctx, id)
 }

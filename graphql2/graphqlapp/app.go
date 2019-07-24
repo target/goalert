@@ -60,7 +60,7 @@ type App struct {
 	OverrideStore  override.Store
 	ConfigStore    *config.Store
 	SlackStore     *slack.ChannelSender
-	HeartbeatStore *heartbeat.Store
+	HeartbeatStore heartbeat.Store
 
 	NotificationStore notification.Store
 

@@ -25,6 +25,15 @@ type Store interface {
 
 	// FindAllByService returns all heartbeats belonging to the given service ID.
 	FindAllByService(context.Context, string) ([]Monitor, error)
+
+	// Update updates a hearbeat's fields.
+	Update(context.Context, *Monitor) error
+
+	// UpdateTx updates a heartbeat's fields within the transaction.
+	UpdateTx(context.Context, *sql.Tx, *Monitor) error
+
+	// FindMany returns the heartbeat monitors with the given IDs.
+	FindMany(context.Context, []string) ([]Monitor, error)
 }
 
 var _ Store = &DB{}
@@ -126,7 +135,7 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
 	_, err = s.ExecContext(ctx, id)
 	return err
 }
-func (db *DB) Update(ctx context.Context, m *Monitor) error {
+func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return err
@@ -138,8 +147,15 @@ func (db *DB) Update(ctx context.Context, m *Monitor) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.update.ExecContext(ctx, n.ID, n.Name, n.TimeoutMinutes)
+	stmt := db.update
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.TimeoutMinutes)
 	return err
+}
+func (db *DB) Update(ctx context.Context, m *Monitor) error {
+	return db.UpdateTx(ctx, nil, m)
 }
 func (db *DB) FindMany(ctx context.Context, ids []string) ([]Monitor, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
