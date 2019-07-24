@@ -63,8 +63,9 @@ export default function NavSubMenu(props) {
         />
         <ExpandMoreIcon
           className={
-            (classes.dropdown,
-            isRoute ? classes.dropdownOpen : classes.dropdownClosed)
+            classes.dropdown +
+            ' ' +
+            (isRoute ? classes.dropdownOpen : classes.dropdownClosed)
           }
         />
       </ListItem>
