@@ -13,6 +13,7 @@ import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { resetURLParams, setURLParam } from '../actions'
 import { urlParamSelector } from '../selectors'
 import { DateTime, Interval } from 'luxon'
+import { theme } from '../mui'
 
 const localizer = BigCalendar.momentLocalizer(moment)
 
@@ -185,9 +186,6 @@ export default class ScheduleCalendar extends React.PureComponent {
   render() {
     const { classes, shifts, start, weekly } = this.props
 
-    // fill available doesn't work in weekly view
-    const height = weekly ? '100%' : '-webkit-fill-available'
-
     return (
       <React.Fragment>
         <Typography variant='caption' color='textSecondary'>
@@ -202,7 +200,11 @@ export default class ScheduleCalendar extends React.PureComponent {
               date={new Date(start)}
               localizer={localizer}
               events={this.getCalEvents(shifts)}
-              style={{ height, font: '-webkit-control' }}
+              style={{
+                height: weekly ? '100%' : '45rem',
+                fontFamily: theme.typography.body2.fontFamily,
+                fontSize: theme.typography.body2.fontSize,
+              }}
               tooltipAccessor={() => null}
               views={['month', 'week']}
               view={weekly ? 'week' : 'month'}
