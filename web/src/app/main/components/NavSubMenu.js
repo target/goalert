@@ -32,7 +32,10 @@ const useStyles = makeStyles(theme => {
       color: theme.palette.primary['500'],
     },
     subMenuLinkText: {
-      paddingLeft: '3rem',
+      paddingLeft: '3.5rem',
+      '& span': {
+        fontSize: '.9rem',
+      },
     },
     subMenuSelected: {
       color: '#616161',
