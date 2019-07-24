@@ -57,7 +57,7 @@ export default class WizardForm extends React.PureComponent {
   sectionHeading = text => {
     const { classes } = this.props
     return (
-      <Typography variant='h2' className={classes.sectionHeading}>
+      <Typography component='h2' className={classes.sectionHeading}>
         {text}{' '}
       </Typography>
     )
