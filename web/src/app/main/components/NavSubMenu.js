@@ -17,16 +17,7 @@ const useStyles = makeStyles(theme => {
   return {
     nav,
     subMenu: {
-      backgroundColor: theme.palette.primary['500'],
       padding: '0',
-    },
-    link: {
-      textDecoration: 'none',
-      display: 'block',
-      color: '#fff',
-      '&:hover': {
-        textDecoration: 'none',
-      },
     },
     parentItem: {
       color: theme.palette.primary['500'],
@@ -74,7 +65,7 @@ export default function NavSubMenu(props) {
           exact
           activeClassName={classes.subMenuSelected}
           key={key}
-          className={classes.link}
+          className={classes.nav}
           to={route.path}
         >
           <ListItem>
