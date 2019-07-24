@@ -50,10 +50,6 @@ const styles = theme => ({
   logo: {
     padding: '0.5em',
   },
-  navSelected: {
-    backgroundColor: '#ebebeb',
-    borderRight: '3px solid ' + theme.palette.primary['500'],
-  },
   navIcon: {
     width: '1em',
     height: '1em',

@@ -13,9 +13,10 @@ import { urlPathSelector } from '../../selectors/url'
 import { useSelector } from 'react-redux'
 
 const useStyles = makeStyles(theme => {
-  const { nav } = styles(theme)
+  const { nav, navSelected } = styles(theme)
   return {
     nav,
+    navSelected,
     subMenu: {
       padding: '0',
     },
@@ -27,11 +28,6 @@ const useStyles = makeStyles(theme => {
       '& span': {
         fontSize: '.9rem',
       },
-    },
-    subMenuSelected: {
-      color: '#616161',
-      backgroundColor: '#ebebeb',
-      borderRight: '3px solid #D3D3D3',
     },
   }
 })
@@ -63,7 +59,7 @@ export default function NavSubMenu(props) {
       return (
         <NavLink
           exact
-          activeClassName={classes.subMenuSelected}
+          activeClassName={classes.navSelected}
           key={key}
           className={classes.nav}
           to={route.path}
