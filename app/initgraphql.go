@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	"github.com/target/goalert/graphql"
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/schedule/shiftcalc"
@@ -38,6 +39,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		ConfigStore:       app.ConfigStore,
 		NotificationStore: app.NotificationStore,
 		SlackStore:        app.slackChan,
+		HeartbeatStore:    app.HeartbeatStore,
 	}
 
 	var err error

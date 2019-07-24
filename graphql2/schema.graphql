@@ -23,8 +23,8 @@ type Query {
   # Returns a single integration key with the given ID.
   integrationKey(id: ID!): IntegrationKey
 
-  # Returns a heartbeat with the given ID
-  heartbeat(id: ID!): Heartbeat
+  # Returns a heartbeat monitor with the given ID
+  heartbeatMonitor(id: ID!): HeartbeatMonitor
 
   # Returns a paginated list of services.
   services(input: ServiceSearchOptions): ServiceConnection!
@@ -193,7 +193,7 @@ type Mutation {
 
   createIntegrationKey(input: CreateIntegrationKeyInput!): IntegrationKey
 
-  createHeartbeat(input: CreateHeartbeatInput!): Heartbeat
+  createHeartbeatMonitor(input: CreateHeartbeatMonitorInput!): HeartbeatMonitor
 
   setLabel(input: SetLabelInput!): Boolean!
 
@@ -213,6 +213,7 @@ type Mutation {
 
   updateSchedule(input: UpdateScheduleInput!): Boolean!
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
+  updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
 }
@@ -308,7 +309,7 @@ input CreateServiceInput {
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
   labels: [SetLabelInput!]
-  newHeartbeats: [CreateHeartbeatInput!]
+  newHeartbeatMonitors: [CreateHeartbeatMonitorInput!]
 }
 
 input CreateEscalationPolicyInput {
@@ -616,7 +617,7 @@ type Service {
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
-  heartbeats: [Heartbeat!]!
+  heartbeatMonitors: [HeartbeatMonitor!]!
 }
 
 input CreateIntegrationKeyInput {
@@ -625,26 +626,31 @@ input CreateIntegrationKeyInput {
   name: String!
 }
 
-input CreateHeartbeatInput {
-  serviceID: ID
+input CreateHeartbeatMonitorInput {
+  serviceID: ID!
   name: String!
-  heartbeatInterval: Int!
+  timeoutMinutes: Int!
 }
 
-enum HeartbeatState {
+input UpdateHeartbeatMonitorInput {
+  id: ID!
+  name: String
+  timeoutMinutes: Int
+}
+
+enum HeartbeatMonitorState {
   inactive
   healthy
   unhealthy
 }
 
-# Convert last Heartbeat to ISOTimestamp
-type Heartbeat {
+type HeartbeatMonitor {
   id: ID!
-  serviceID: ID
+  serviceID: ID!
   name: String!
-  heartbeatInterval: Int!
-  lastState: HeartbeatState!
-  lastHeartbeat: Int!
+  timeoutMinutes: Int!
+  lastState: HeartbeatMonitorState!
+  lastHeartbeat: ISOTimestamp!
 }
 
 type Label {
@@ -713,6 +719,7 @@ enum TargetType {
   userOverride
   notificationRule
   contactMethod
+  heartbeatMonitor
 }
 
 type ServiceConnection {

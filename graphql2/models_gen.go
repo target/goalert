@@ -87,10 +87,10 @@ type CreateEscalationPolicyStepInput struct {
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule"`
 }
 
-type CreateHeartbeatInput struct {
-	ServiceID         *string `json:"serviceID"`
-	Name              string  `json:"name"`
-	HeartbeatInterval int     `json:"heartbeatInterval"`
+type CreateHeartbeatMonitorInput struct {
+	ServiceID      string `json:"serviceID"`
+	Name           string `json:"name"`
+	TimeoutMinutes int    `json:"timeoutMinutes"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -119,14 +119,14 @@ type CreateScheduleInput struct {
 }
 
 type CreateServiceInput struct {
-	Name                string                       `json:"name"`
-	Description         *string                      `json:"description"`
-	Favorite            *bool                        `json:"favorite"`
-	EscalationPolicyID  *string                      `json:"escalationPolicyID"`
-	NewEscalationPolicy *CreateEscalationPolicyInput `json:"newEscalationPolicy"`
-	NewIntegrationKeys  []CreateIntegrationKeyInput  `json:"newIntegrationKeys"`
-	Labels              []SetLabelInput              `json:"labels"`
-	NewHeartbeats       []CreateHeartbeatInput       `json:"newHeartbeats"`
+	Name                 string                        `json:"name"`
+	Description          *string                       `json:"description"`
+	Favorite             *bool                         `json:"favorite"`
+	EscalationPolicyID   *string                       `json:"escalationPolicyID"`
+	NewEscalationPolicy  *CreateEscalationPolicyInput  `json:"newEscalationPolicy"`
+	NewIntegrationKeys   []CreateIntegrationKeyInput   `json:"newIntegrationKeys"`
+	Labels               []SetLabelInput               `json:"labels"`
+	NewHeartbeatMonitors []CreateHeartbeatMonitorInput `json:"newHeartbeatMonitors"`
 }
 
 type CreateUserContactMethodInput struct {
@@ -163,13 +163,13 @@ type EscalationPolicySearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
-type Heartbeat struct {
-	ID                string         `json:"id"`
-	ServiceID         *string        `json:"serviceID"`
-	Name              string         `json:"name"`
-	HeartbeatInterval int            `json:"heartbeatInterval"`
-	LastState         HeartbeatState `json:"lastState"`
-	LastHeartbeat     int            `json:"lastHeartbeat"`
+type HeartbeatMonitor struct {
+	ID             string                `json:"id"`
+	ServiceID      string                `json:"serviceID"`
+	Name           string                `json:"name"`
+	TimeoutMinutes int                   `json:"timeoutMinutes"`
+	LastState      HeartbeatMonitorState `json:"lastState"`
+	LastHeartbeat  time.Time             `json:"lastHeartbeat"`
 }
 
 type LabelConnection struct {
@@ -312,6 +312,12 @@ type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes"`
 	Targets      []assignment.RawTarget `json:"targets"`
+}
+
+type UpdateHeartbeatMonitorInput struct {
+	ID             string  `json:"id"`
+	Name           *string `json:"name"`
+	TimeoutMinutes *int    `json:"timeoutMinutes"`
 }
 
 type UpdateRotationInput struct {
@@ -484,46 +490,46 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type HeartbeatState string
+type HeartbeatMonitorState string
 
 const (
-	HeartbeatStateInactive  HeartbeatState = "inactive"
-	HeartbeatStateHealthy   HeartbeatState = "healthy"
-	HeartbeatStateUnhealthy HeartbeatState = "unhealthy"
+	HeartbeatMonitorStateInactive  HeartbeatMonitorState = "inactive"
+	HeartbeatMonitorStateHealthy   HeartbeatMonitorState = "healthy"
+	HeartbeatMonitorStateUnhealthy HeartbeatMonitorState = "unhealthy"
 )
 
-var AllHeartbeatState = []HeartbeatState{
-	HeartbeatStateInactive,
-	HeartbeatStateHealthy,
-	HeartbeatStateUnhealthy,
+var AllHeartbeatMonitorState = []HeartbeatMonitorState{
+	HeartbeatMonitorStateInactive,
+	HeartbeatMonitorStateHealthy,
+	HeartbeatMonitorStateUnhealthy,
 }
 
-func (e HeartbeatState) IsValid() bool {
+func (e HeartbeatMonitorState) IsValid() bool {
 	switch e {
-	case HeartbeatStateInactive, HeartbeatStateHealthy, HeartbeatStateUnhealthy:
+	case HeartbeatMonitorStateInactive, HeartbeatMonitorStateHealthy, HeartbeatMonitorStateUnhealthy:
 		return true
 	}
 	return false
 }
 
-func (e HeartbeatState) String() string {
+func (e HeartbeatMonitorState) String() string {
 	return string(e)
 }
 
-func (e *HeartbeatState) UnmarshalGQL(v interface{}) error {
+func (e *HeartbeatMonitorState) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = HeartbeatState(str)
+	*e = HeartbeatMonitorState(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid HeartbeatState", str)
+		return fmt.Errorf("%s is not a valid HeartbeatMonitorState", str)
 	}
 	return nil
 }
 
-func (e HeartbeatState) MarshalGQL(w io.Writer) {
+func (e HeartbeatMonitorState) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

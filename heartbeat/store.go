@@ -3,7 +3,9 @@ package heartbeat
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 
@@ -33,6 +35,7 @@ type DB struct {
 
 	create   *sql.Stmt
 	findAll  *sql.Stmt
+	findMany *sql.Stmt
 	delete   *sql.Stmt
 	update   *sql.Stmt
 	getSvcID *sql.Stmt
@@ -55,6 +58,12 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				id, name, extract(epoch from heartbeat_interval)/60, last_state, trunc(extract(epoch from now()-last_heartbeat)/60)::int
 			from heartbeat_monitors
 			where service_id = $1
+		`),
+		findMany: p.P(`
+			select
+				id, name, extract(epoch from heartbeat_interval)/60, last_state, trunc(extract(epoch from now()-last_heartbeat)/60)::int
+			from heartbeat_monitors
+			where id = any($1)
 		`),
 		delete: p.P(`
 			delete from heartbeat_monitors
@@ -88,7 +97,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor, e
 	}
 	n.ID = uuid.NewV4().String()
 
-	_, err = tx.Stmt(db.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, n.IntervalMinutes)
+	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, n.TimeoutMinutes)
 	n.lastState = StateInactive
 	return n, err
 }
@@ -112,7 +121,7 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
 	}
 	s := db.delete
 	if tx != nil {
-		s = tx.Stmt(s)
+		s = tx.StmtContext(ctx, s)
 	}
 	_, err = s.ExecContext(ctx, id)
 	return err
@@ -129,9 +138,39 @@ func (db *DB) Update(ctx context.Context, m *Monitor) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.update.ExecContext(ctx, n.ID, n.Name, n.IntervalMinutes)
+	_, err = db.update.ExecContext(ctx, n.ID, n.Name, n.TimeoutMinutes)
 	return err
 }
+func (db *DB) FindMany(ctx context.Context, ids []string) ([]Monitor, error) {
+	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	err = validate.Range("heartbeatMonitorIDS", len(ids), 1, search.MaxResults)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.findMany.QueryContext(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var monitors []Monitor
+	for rows.Next() {
+		var m Monitor
+		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeatMinutes)
+		if err != nil {
+			return nil, err
+		}
+		monitors = append(monitors, m)
+	}
+	return monitors, nil
+}
+
 func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Monitor, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
@@ -151,7 +190,7 @@ func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Monitor
 	for rows.Next() {
 		var m Monitor
 		m.ServiceID = serviceID
-		err = rows.Scan(&m.ID, &m.Name, &m.IntervalMinutes, &m.lastState, &m.lastHeartbeatMinutes)
+		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeatMinutes)
 		if err != nil {
 			return nil, err
 		}

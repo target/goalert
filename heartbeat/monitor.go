@@ -2,15 +2,16 @@ package heartbeat
 
 import (
 	"database/sql"
+
 	"github.com/target/goalert/validation/validate"
 )
 
-// A Monitor will generate an alert if it does not receive a heartbeat within the configured IntervalMinutes.
+// A Monitor will generate an alert if it does not receive a heartbeat within the configured TimeoutMinutes.
 type Monitor struct {
-	ID              string `json:"id,omitempty"`
-	Name            string `json:"name,omitempty"`
-	ServiceID       string `json:"service_id,omitempty"`
-	IntervalMinutes int    `json:"interval_minutes,omitempty"`
+	ID             string `json:"id,omitempty"`
+	Name           string `json:"name,omitempty"`
+	ServiceID      string `json:"service_id,omitempty"`
+	TimeoutMinutes int    `json:"interval_minutes,omitempty"`
 
 	lastState            State
 	lastHeartbeatMinutes sql.NullInt64
@@ -30,7 +31,7 @@ func (m Monitor) Normalize() (*Monitor, error) {
 	err := validate.Many(
 		validate.UUID("ServiceID", m.ServiceID),
 		validate.IDName("Name", m.Name),
-		validate.Range("IntervalMinutes", m.IntervalMinutes, 1, 9000),
+		validate.Range("TimeoutMinutes", m.TimeoutMinutes, 1, 9000),
 	)
 	if err != nil {
 		return nil, err

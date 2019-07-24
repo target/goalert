@@ -116,7 +116,7 @@ func (app *App) FindOneAlert(ctx context.Context, id int) (*alert.Alert, error) 
 	return loader.FetchOneAlert(ctx, id)
 }
 
-func (app *App) FindOneHeartbeat(ctx context.Context, id string) (*alert.Alert, error) {
+func (app *App) FindManyHbMonitors(ctx context.Context, id string) (*alert.Alert, error) {
 	loader, ok := ctx.Value(dataLoader)
-	return loader.FindOne(ctx, id)
+	return loader.FindMany(ctx, id)
 }

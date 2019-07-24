@@ -11,10 +11,11 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/log"
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/notification"
@@ -40,25 +41,26 @@ import (
 )
 
 type App struct {
-	DB            *sql.DB
-	UserStore     user.Store
-	CMStore       contactmethod.Store
-	NRStore       notificationrule.Store
-	NCStore       notificationchannel.Store
-	AlertStore    alert.Store
-	AlertLogStore alertlog.Store
-	ServiceStore  service.Store
-	FavoriteStore favorite.Store
-	PolicyStore   escalation.Store
-	ScheduleStore schedule.Store
-	RotationStore rotation.Store
-	OnCallStore   oncall.Store
-	IntKeyStore   integrationkey.Store
-	LabelStore    label.Store
-	RuleStore     rule.Store
-	OverrideStore override.Store
-	ConfigStore   *config.Store
-	SlackStore    *slack.ChannelSender
+	DB             *sql.DB
+	UserStore      user.Store
+	CMStore        contactmethod.Store
+	NRStore        notificationrule.Store
+	NCStore        notificationchannel.Store
+	AlertStore     alert.Store
+	AlertLogStore  alertlog.Store
+	ServiceStore   service.Store
+	FavoriteStore  favorite.Store
+	PolicyStore    escalation.Store
+	ScheduleStore  schedule.Store
+	RotationStore  rotation.Store
+	OnCallStore    oncall.Store
+	IntKeyStore    integrationkey.Store
+	LabelStore     label.Store
+	RuleStore      rule.Store
+	OverrideStore  override.Store
+	ConfigStore    *config.Store
+	SlackStore     *slack.ChannelSender
+	HeartbeatStore *heartbeat.Store
 
 	NotificationStore notification.Store
 
