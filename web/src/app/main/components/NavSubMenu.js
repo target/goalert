@@ -11,6 +11,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { Collapse } from '@material-ui/core'
 import { urlPathSelector } from '../../selectors/url'
 import { useSelector } from 'react-redux'
+import { PropTypes as p } from 'prop-types'
 
 const useStyles = makeStyles(theme => {
   const { nav, navSelected } = styles(theme)
@@ -102,4 +103,11 @@ export default function NavSubMenu(props) {
       </Collapse>
     </React.Fragment>
   )
+}
+
+NavSubMenu.propTypes = {
+  parentIcon: p.object.isRequired,
+  parentTitle: p.string.isRequired,
+  path: p.string.isRequired,
+  subMenuRoutes: p.array.isRequired,
 }
