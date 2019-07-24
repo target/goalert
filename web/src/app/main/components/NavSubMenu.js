@@ -40,7 +40,7 @@ export default function NavSubMenu(props) {
 
   function renderParentLink(IconComponent, label) {
     return (
-      <ListItem>
+      <ListItem button tabIndex={-1}>
         <ListItemIcon>
           <IconComponent />
         </ListItemIcon>
@@ -64,7 +64,7 @@ export default function NavSubMenu(props) {
           className={classes.nav}
           to={route.path}
         >
-          <ListItem>
+          <ListItem button tabIndex={-1}>
             <ListItemText className={classes.subMenuLinkText}>
               {route.title}
             </ListItemText>
