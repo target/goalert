@@ -55,7 +55,6 @@ type ResolverRoot interface {
 	AlertLogEntry() AlertLogEntryResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
-	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
 	Mutation() MutationResolver
 	OnCallShift() OnCallShiftResolver
@@ -423,9 +422,6 @@ type EscalationPolicyResolver interface {
 type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
 	EscalationPolicy(ctx context.Context, obj *escalation.Step) (*escalation.Policy, error)
-}
-type HeartbeatMonitorResolver interface {
-	LastState(ctx context.Context, obj *heartbeat.Monitor) (HeartbeatMonitorState, error)
 }
 type IntegrationKeyResolver interface {
 	Type(ctx context.Context, obj *integrationkey.IntegrationKey) (IntegrationKeyType, error)
@@ -5459,7 +5455,7 @@ func (ec *executionContext) _HeartbeatMonitor_lastState(ctx context.Context, fie
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.HeartbeatMonitor().LastState(rctx, obj)
+		return obj.LastState(), nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -5467,10 +5463,10 @@ func (ec *executionContext) _HeartbeatMonitor_lastState(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(HeartbeatMonitorState)
+	res := resTmp.(heartbeat.State)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNHeartbeatMonitorState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeatMonitorState(ctx, field.Selections, res)
+	return ec.marshalNHeartbeatMonitorState2githubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _HeartbeatMonitor_lastHeartbeat(ctx context.Context, field graphql.CollectedField, obj *heartbeat.Monitor) graphql.Marshaler {
@@ -13226,19 +13222,10 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 				invalid = true
 			}
 		case "lastState":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._HeartbeatMonitor_lastState(ctx, field, obj)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
+			out.Values[i] = ec._HeartbeatMonitor_lastState(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "lastHeartbeat":
 			out.Values[i] = ec._HeartbeatMonitor_lastHeartbeat(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -15791,13 +15778,13 @@ func (ec *executionContext) marshalNHeartbeatMonitor2ᚕgithubᚗcomᚋtargetᚋ
 	return ret
 }
 
-func (ec *executionContext) unmarshalNHeartbeatMonitorState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeatMonitorState(ctx context.Context, v interface{}) (HeartbeatMonitorState, error) {
-	var res HeartbeatMonitorState
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) unmarshalNHeartbeatMonitorState2githubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐState(ctx context.Context, v interface{}) (heartbeat.State, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return heartbeat.State(tmp), err
 }
 
-func (ec *executionContext) marshalNHeartbeatMonitorState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeatMonitorState(ctx context.Context, sel ast.SelectionSet, v HeartbeatMonitorState) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalNHeartbeatMonitorState2githubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐState(ctx context.Context, sel ast.SelectionSet, v heartbeat.State) graphql.Marshaler {
+	return graphql.MarshalString(string(v))
 }
 
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {

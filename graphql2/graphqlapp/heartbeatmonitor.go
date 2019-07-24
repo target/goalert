@@ -8,9 +8,7 @@ import (
 	"github.com/target/goalert/heartbeat"
 )
 
-type HeartbeatMonitor App
-
-func (a *App) HeartbeatMonitor() graphql2.HeartbeatResolver { return (*HeartbeatMonitor)(a) }
+/* type HeartbeatMonitor App */
 
 func (q *Query) HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Monitor, error) {
 	return (*App)(q).FindOneHeartbeatMonitor(ctx, id)
@@ -24,7 +22,8 @@ func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.Cr
 	}
 	var heartbeatMonitor *heartbeat.Monitor
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		heartbeatMonitor, err := m.HeartbeatStore.CreateTx(ctx, tx, hb)
+		var err error
+		heartbeatMonitor, err = m.HeartbeatStore.CreateTx(ctx, tx, hb)
 		return err
 	})
 	return heartbeatMonitor, err
@@ -47,3 +46,7 @@ func (m *Mutation) UpdateHeartbeatMonitor(ctx context.Context, input graphql2.Up
 	})
 	return result, err
 }
+
+/* func (h *HeartbeatMonitor) LastState(ctx context.Context, hb *heartbeat.Monitor) (heartbeat.State, error) {
+	return hb.LastState(), nil
+} */

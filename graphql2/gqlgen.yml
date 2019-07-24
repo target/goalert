@@ -66,3 +66,5 @@ models:
     model: github.com/target/goalert/notification/slack.Channel
   HeartbeatMonitor:
     model: github.com/target/goalert/heartbeat.Monitor
+  HeartbeatMonitorState:
+    model: github.com/target/goalert/heartbeat.State

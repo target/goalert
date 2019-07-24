@@ -481,49 +481,6 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type HeartbeatMonitorState string
-
-const (
-	HeartbeatMonitorStateInactive  HeartbeatMonitorState = "inactive"
-	HeartbeatMonitorStateHealthy   HeartbeatMonitorState = "healthy"
-	HeartbeatMonitorStateUnhealthy HeartbeatMonitorState = "unhealthy"
-)
-
-var AllHeartbeatMonitorState = []HeartbeatMonitorState{
-	HeartbeatMonitorStateInactive,
-	HeartbeatMonitorStateHealthy,
-	HeartbeatMonitorStateUnhealthy,
-}
-
-func (e HeartbeatMonitorState) IsValid() bool {
-	switch e {
-	case HeartbeatMonitorStateInactive, HeartbeatMonitorStateHealthy, HeartbeatMonitorStateUnhealthy:
-		return true
-	}
-	return false
-}
-
-func (e HeartbeatMonitorState) String() string {
-	return string(e)
-}
-
-func (e *HeartbeatMonitorState) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = HeartbeatMonitorState(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid HeartbeatMonitorState", str)
-	}
-	return nil
-}
-
-func (e HeartbeatMonitorState) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 type IntegrationKeyType string
 
 const (
