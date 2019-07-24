@@ -88,12 +88,9 @@ type CreateEscalationPolicyStepInput struct {
 }
 
 type CreateHeartbeatInput struct {
-	ID                string         `json:"id"`
-	ServiceID         *string        `json:"serviceID"`
-	Name              string         `json:"name"`
-	HeartbeatInterval int            `json:"heartbeatInterval"`
-	LastState         HeartbeatState `json:"lastState"`
-	LastHeartbeat     *time.Time     `json:"lastHeartbeat"`
+	ServiceID         *string `json:"serviceID"`
+	Name              string  `json:"name"`
+	HeartbeatInterval int     `json:"heartbeatInterval"`
 }
 
 type CreateIntegrationKeyInput struct {
@@ -129,7 +126,7 @@ type CreateServiceInput struct {
 	NewEscalationPolicy *CreateEscalationPolicyInput `json:"newEscalationPolicy"`
 	NewIntegrationKeys  []CreateIntegrationKeyInput  `json:"newIntegrationKeys"`
 	Labels              []SetLabelInput              `json:"labels"`
-	NewHeartbeats       []*CreateHeartbeatInput      `json:"newHeartbeats"`
+	NewHeartbeats       []CreateHeartbeatInput       `json:"newHeartbeats"`
 }
 
 type CreateUserContactMethodInput struct {
@@ -172,7 +169,7 @@ type Heartbeat struct {
 	Name              string         `json:"name"`
 	HeartbeatInterval int            `json:"heartbeatInterval"`
 	LastState         HeartbeatState `json:"lastState"`
-	LastHeartbeat     *time.Time     `json:"lastHeartbeat"`
+	LastHeartbeat     int            `json:"lastHeartbeat"`
 }
 
 type LabelConnection struct {

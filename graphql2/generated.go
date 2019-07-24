@@ -515,7 +515,7 @@ type ServiceResolver interface {
 	OnCallUsers(ctx context.Context, obj *service.Service) ([]oncall.ServiceOnCallUser, error)
 	IntegrationKeys(ctx context.Context, obj *service.Service) ([]integrationkey.IntegrationKey, error)
 	Labels(ctx context.Context, obj *service.Service) ([]label.Label, error)
-	Heartbeats(ctx context.Context, obj *service.Service) ([]*Heartbeat, error)
+	Heartbeats(ctx context.Context, obj *service.Service) ([]Heartbeat, error)
 }
 type TargetResolver interface {
 	Name(ctx context.Context, obj *assignment.RawTarget) (*string, error)
@@ -2696,7 +2696,7 @@ input CreateServiceInput {
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
   labels: [SetLabelInput!]
-  newHeartbeats: [CreateHeartbeatInput]
+  newHeartbeats: [CreateHeartbeatInput!]
 }
 
 input CreateEscalationPolicyInput {
@@ -3004,7 +3004,7 @@ type Service {
   onCallUsers: [ServiceOnCallUser!]!
   integrationKeys: [IntegrationKey!]!
   labels: [Label!]!
-  heartbeats: [Heartbeat]
+  heartbeats: [Heartbeat!]!
 }
 
 input CreateIntegrationKeyInput {
@@ -3014,12 +3014,9 @@ input CreateIntegrationKeyInput {
 }
 
 input CreateHeartbeatInput {
-  id: ID!
   serviceID: ID
   name: String!
   heartbeatInterval: Int!
-  lastState: HeartbeatState!
-  lastHeartbeat: ISOTimestamp
 }
 
 enum HeartbeatState {
@@ -3028,13 +3025,14 @@ enum HeartbeatState {
   unhealthy
 }
 
+# Convert last Heartbeat to ISOTimestamp
 type Heartbeat {
   id: ID!
   serviceID: ID
   name: String!
   heartbeatInterval: Int!
   lastState: HeartbeatState!
-  lastHeartbeat: ISOTimestamp
+  lastHeartbeat: Int!
 }
 
 type Label {
@@ -5448,12 +5446,15 @@ func (ec *executionContext) _Heartbeat_lastHeartbeat(ctx context.Context, field 
 		return obj.LastHeartbeat, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*time.Time)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOISOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) graphql.Marshaler {
@@ -8893,12 +8894,15 @@ func (ec *executionContext) _Service_heartbeats(ctx context.Context, field graph
 		return ec.resolvers.Service().Heartbeats(rctx, obj)
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*Heartbeat)
+	res := resTmp.([]Heartbeat)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOHeartbeat2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx, field.Selections, res)
+	return ec.marshalNHeartbeat2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ServiceConnection) graphql.Marshaler {
@@ -11213,12 +11217,6 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatInput(ctx context.Conte
 
 	for k, v := range asMap {
 		switch k {
-		case "id":
-			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "serviceID":
 			var err error
 			it.ServiceID, err = ec.unmarshalOID2ᚖstring(ctx, v)
@@ -11234,18 +11232,6 @@ func (ec *executionContext) unmarshalInputCreateHeartbeatInput(ctx context.Conte
 		case "heartbeatInterval":
 			var err error
 			it.HeartbeatInterval, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastState":
-			var err error
-			it.LastState, err = ec.unmarshalNHeartbeatState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeatState(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastHeartbeat":
-			var err error
-			it.LastHeartbeat, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11441,7 +11427,7 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 			}
 		case "newHeartbeats":
 			var err error
-			it.NewHeartbeats, err = ec.unmarshalOCreateHeartbeatInput2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, v)
+			it.NewHeartbeats, err = ec.unmarshalOCreateHeartbeatInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13136,6 +13122,9 @@ func (ec *executionContext) _Heartbeat(ctx context.Context, sel ast.SelectionSet
 			}
 		case "lastHeartbeat":
 			out.Values[i] = ec._Heartbeat_lastHeartbeat(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14351,6 +14340,9 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Service_heartbeats(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
 				return res
 			})
 		default:
@@ -15622,6 +15614,47 @@ func (ec *executionContext) marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtarge
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNEscalationPolicyStep2githubᚗcomᚋtargetᚋgoalertᚋescalationᚐStep(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNHeartbeat2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx context.Context, sel ast.SelectionSet, v Heartbeat) graphql.Marshaler {
+	return ec._Heartbeat(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHeartbeat2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx context.Context, sel ast.SelectionSet, v []Heartbeat) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNHeartbeat2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -17194,11 +17227,7 @@ func (ec *executionContext) unmarshalOCreateEscalationPolicyStepInput2ᚕgithub�
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOCreateHeartbeatInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx context.Context, v interface{}) (CreateHeartbeatInput, error) {
-	return ec.unmarshalInputCreateHeartbeatInput(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOCreateHeartbeatInput2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx context.Context, v interface{}) ([]*CreateHeartbeatInput, error) {
+func (ec *executionContext) unmarshalOCreateHeartbeatInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx context.Context, v interface{}) ([]CreateHeartbeatInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -17208,22 +17237,14 @@ func (ec *executionContext) unmarshalOCreateHeartbeatInput2ᚕᚖgithubᚗcomᚋ
 		}
 	}
 	var err error
-	res := make([]*CreateHeartbeatInput, len(vSlice))
+	res := make([]CreateHeartbeatInput, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalOCreateHeartbeatInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNCreateHeartbeatInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) unmarshalOCreateHeartbeatInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx context.Context, v interface{}) (*CreateHeartbeatInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOCreateHeartbeatInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateHeartbeatInput(ctx, v)
-	return &res, err
 }
 
 func (ec *executionContext) unmarshalOCreateIntegrationKeyInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateIntegrationKeyInput(ctx context.Context, v interface{}) ([]CreateIntegrationKeyInput, error) {
@@ -17318,46 +17339,6 @@ func (ec *executionContext) marshalOEscalationPolicyStep2ᚖgithubᚗcomᚋtarge
 
 func (ec *executionContext) marshalOHeartbeat2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx context.Context, sel ast.SelectionSet, v Heartbeat) graphql.Marshaler {
 	return ec._Heartbeat(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOHeartbeat2ᚕᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx context.Context, sel ast.SelectionSet, v []*Heartbeat) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOHeartbeat2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalOHeartbeat2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐHeartbeat(ctx context.Context, sel ast.SelectionSet, v *Heartbeat) graphql.Marshaler {

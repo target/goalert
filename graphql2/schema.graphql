@@ -308,7 +308,7 @@ input CreateServiceInput {
   newEscalationPolicy: CreateEscalationPolicyInput
   newIntegrationKeys: [CreateIntegrationKeyInput!]
   labels: [SetLabelInput!]
-  newHeartbeats: [CreateHeartbeatInput]
+  newHeartbeats: [CreateHeartbeatInput!]
 }
 
 input CreateEscalationPolicyInput {
@@ -637,13 +637,14 @@ enum HeartbeatState {
   unhealthy
 }
 
+# Convert last Heartbeat to ISOTimestamp
 type Heartbeat {
   id: ID!
   serviceID: ID
   name: String!
   heartbeatInterval: Int!
   lastState: HeartbeatState!
-  lastHeartbeat: ISOTimestamp
+  lastHeartbeat: Int!
 }
 
 type Label {
