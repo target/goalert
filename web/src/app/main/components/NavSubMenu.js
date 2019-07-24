@@ -29,6 +29,17 @@ const useStyles = makeStyles(theme => {
         fontSize: '.9rem',
       },
     },
+    dropdown: {
+      transition: theme.transitions.create(['transform'], {
+        duration: theme.transitions.duration.short,
+      }),
+    },
+    dropdownOpen: {
+      transform: 'rotate(0)',
+    },
+    dropdownClosed: {
+      transform: 'rotate(-90deg)',
+    },
   }
 })
 
@@ -49,7 +60,12 @@ export default function NavSubMenu(props) {
           disableTypography
           primary={<Typography variant='subtitle1'>{label}</Typography>}
         />
-        <ExpandMoreIcon />
+        <ExpandMoreIcon
+          className={
+            (classes.dropdown,
+            isRoute ? classes.dropdownOpen : classes.dropdownClosed)
+          }
+        />
       </ListItem>
     )
   }
