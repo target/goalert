@@ -118,10 +118,14 @@ func (app *App) FindOneAlert(ctx context.Context, id int) (*alert.Alert, error) 
 	return loader.FetchOneAlert(ctx, id)
 }
 
-func (app *App) FindOneHeartbeatMonitor(ctx context.Context, id string) (heartbeat.Monitor, error) {
+func (app *App) FindOneHeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Monitor, error) {
 	loader, ok := ctx.Value(dataLoaderKeyHeartbeatMonitor).(*dataloader.HeartbeatMonitorLoader)
 	if !ok {
-		return app.HeartbeatStore.FindOne(ctx, id)
+		hb, err := app.HeartbeatStore.FindMany(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return &hb[0], nil
 	}
 
 	return loader.FetchOne(ctx, id)

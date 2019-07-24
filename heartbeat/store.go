@@ -33,7 +33,7 @@ type Store interface {
 	UpdateTx(context.Context, *sql.Tx, *Monitor) error
 
 	// FindMany returns the heartbeat monitors with the given IDs.
-	FindMany(context.Context, []string) ([]Monitor, error)
+	FindMany(context.Context, ...string) ([]Monitor, error)
 }
 
 var _ Store = &DB{}
@@ -157,7 +157,7 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 func (db *DB) Update(ctx context.Context, m *Monitor) error {
 	return db.UpdateTx(ctx, nil, m)
 }
-func (db *DB) FindMany(ctx context.Context, ids []string) ([]Monitor, error) {
+func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return nil, err
@@ -178,7 +178,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Monitor, error) {
 	var monitors []Monitor
 	for rows.Next() {
 		var m Monitor
-		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeatMinutes)
+		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeat)
 		if err != nil {
 			return nil, err
 		}
@@ -206,7 +206,7 @@ func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Monitor
 	for rows.Next() {
 		var m Monitor
 		m.ServiceID = serviceID
-		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeatMinutes)
+		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeat)
 		if err != nil {
 			return nil, err
 		}

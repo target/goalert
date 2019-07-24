@@ -16,13 +16,13 @@ func (q *Query) HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Mon
 	return (*App)(q).FindOneHeartbeatMonitor(ctx, id)
 }
 
-func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.CreateHeartbeatMonitorInput) (*graphql2.HeartbeatMonitor, error) {
+func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.CreateHeartbeatMonitorInput) (*heartbeat.Monitor, error) {
 	hb := &heartbeat.Monitor{
 		ServiceID:      input.ServiceID,
 		Name:           input.Name,
 		TimeoutMinutes: input.TimeoutMinutes,
 	}
-	var heartbeatMonitor *graphql2.HeartbeatMonitor
+	var heartbeatMonitor *heartbeat.Monitor
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		heartbeatMonitor, err := m.HeartbeatStore.CreateTx(ctx, tx, hb)
 		return err

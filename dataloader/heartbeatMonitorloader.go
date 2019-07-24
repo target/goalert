@@ -37,7 +37,7 @@ func (l *HeartbeatMonitorLoader) FetchOne(ctx context.Context, id string) (*hear
 }
 
 func (l *HeartbeatMonitorLoader) fetch(ctx context.Context, ids []string) ([]interface{}, error) {
-	many, err := l.store.FindMany(ctx, ids)
+	many, err := l.store.FindMany(ctx, ids...)
 	if err != nil {
 		return nil, err
 	}

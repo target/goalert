@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -12,7 +14,6 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	g "github.com/graphql-go/graphql"
 )
@@ -103,7 +104,7 @@ func parseHeartbeatMonitor(_m interface{}) *heartbeat.Monitor {
 
 	var hb heartbeat.Monitor
 	hb.Name, _ = m["name"].(string)
-	hb.IntervalMinutes, _ = m["interval_minutes"].(int)
+	hb.TimeoutMinutes, _ = m["interval_minutes"].(int)
 	hb.ServiceID, _ = m["service_id"].(string)
 
 	return &hb

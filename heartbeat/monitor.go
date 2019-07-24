@@ -13,19 +13,17 @@ type Monitor struct {
 	ServiceID      string `json:"service_id,omitempty"`
 	TimeoutMinutes int    `json:"interval_minutes,omitempty"`
 
-	lastState            State
-	lastHeartbeatMinutes time.Time
+	lastState     State
+	lastHeartbeat time.Time
 }
 
 // LastState returns the last known state.
 func (m Monitor) LastState() State { return m.lastState }
 
-// LastHeartbeatMinutes returns the minutes since the heartbeat last reported.
+// LastHeartbeat returns the minutes since the heartbeat last reported.
 // The interval is truncated, so a value of 0 means "less than 1 minute".
-func (m Monitor) LastHeartbeatMinutes() (int, bool) {
-	t := time.Since(m.lastHeartbeatMinutes)
-	tint := int(t.Minutes())
-	return tint, true
+func (m Monitor) LastHeartbeat() time.Time {
+	return m.lastHeartbeat
 }
 
 // Normalize performs validation and returns a new copy.

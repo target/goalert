@@ -163,15 +163,6 @@ type EscalationPolicySearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
-type HeartbeatMonitor struct {
-	ID             string                `json:"id"`
-	ServiceID      string                `json:"serviceID"`
-	Name           string                `json:"name"`
-	TimeoutMinutes int                   `json:"timeoutMinutes"`
-	LastState      HeartbeatMonitorState `json:"lastState"`
-	LastHeartbeat  time.Time             `json:"lastHeartbeat"`
-}
-
 type LabelConnection struct {
 	Nodes    []label.Label `json:"nodes"`
 	PageInfo PageInfo      `json:"pageInfo"`
