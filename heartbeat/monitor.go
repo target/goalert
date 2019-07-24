@@ -1,7 +1,7 @@
 package heartbeat
 
 import (
-	"database/sql"
+	"time"
 
 	"github.com/target/goalert/validation/validate"
 )
@@ -14,7 +14,7 @@ type Monitor struct {
 	TimeoutMinutes int    `json:"interval_minutes,omitempty"`
 
 	lastState            State
-	lastHeartbeatMinutes sql.NullInt64
+	lastHeartbeatMinutes time.Time
 }
 
 // LastState returns the last known state.
@@ -23,7 +23,9 @@ func (m Monitor) LastState() State { return m.lastState }
 // LastHeartbeatMinutes returns the minutes since the heartbeat last reported.
 // The interval is truncated, so a value of 0 means "less than 1 minute".
 func (m Monitor) LastHeartbeatMinutes() (int, bool) {
-	return int(m.lastHeartbeatMinutes.Int64), m.lastHeartbeatMinutes.Valid
+	t := time.Since(m.lastHeartbeatMinutes)
+	tint := int(t.Minutes())
+	return tint, true
 }
 
 // Normalize performs validation and returns a new copy.

@@ -64,13 +64,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		findAll: p.P(`
 			select
-				id, name, extract(epoch from heartbeat_interval)/60, last_state, trunc(extract(epoch from now()-last_heartbeat)/60)::int
+				id, name, heartbeat_interval, last_state, last_heartbeat
 			from heartbeat_monitors
 			where service_id = $1
 		`),
 		findMany: p.P(`
 			select
-				id, name, extract(epoch from heartbeat_interval)/60, last_state, trunc(extract(epoch from now()-last_heartbeat)/60)::int
+				id, name, heartbeat_interval, last_state, last_heartbeat
 			from heartbeat_monitors
 			where id = any($1)
 		`),
