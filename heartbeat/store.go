@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -21,7 +22,7 @@ type Store interface {
 	CreateTx(context.Context, *sql.Tx, *Monitor) (*Monitor, error)
 
 	// Delete deletes the heartbeat check with the given heartbeat ID.
-	DeleteTx(context.Context, *sql.Tx, string) error
+	DeleteTx(context.Context, *sql.Tx, ...string) error
 
 	// FindAllByService returns all heartbeats belonging to the given service ID.
 	FindAllByService(context.Context, string) ([]Monitor, error)
@@ -73,7 +74,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		delete: p.P(`
 			delete from heartbeat_monitors
-			where id = $1
+			where id = any($1)
 		`),
 		update: p.P(`
 			update heartbeat_monitors
@@ -117,12 +118,12 @@ func (db *DB) Heartbeat(ctx context.Context, id string) error {
 	_, err = db.heartbeat.ExecContext(ctx, id)
 	return err
 }
-func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
+func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
 		return err
 	}
-	err = validate.UUID("MonitorID", id)
+	err = validate.ManyUUID("MonitorID", ids, 100)
 	if err != nil {
 		return err
 	}
@@ -130,7 +131,7 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, id)
+	_, err = s.ExecContext(ctx, pq.StringArray(ids))
 	return err
 }
 func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
@@ -166,7 +167,7 @@ func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.findMany.QueryContext(ctx, ids)
+	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids))
 	if err != nil {
 		return nil, err
 	}
