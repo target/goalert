@@ -12,6 +12,7 @@ import InactiveIcon from '@material-ui/icons/Remove'
 import { makeStyles } from '@material-ui/core/styles'
 import { green, red } from '@material-ui/core/colors'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
+import { formatTimeSince } from '../util/timeFormat'
 
 export default function HeartbeatMonitorListItem(props) {
   return (
@@ -88,7 +89,11 @@ export function HeartbeatMonitorListItemAvatar(props) {
   const classes = useStyles()
 
   function renderLastHeartbeat() {
-    return <Typography variant='caption'>3m ago</Typography>
+    return (
+      <Typography variant='caption'>
+        {formatTimeSince(props.lastHeartbeat)}
+      </Typography>
+    )
   }
 
   switch (props.lastState) {
@@ -144,4 +149,5 @@ export function HeartbeatMonitorListItemAvatar(props) {
 
 HeartbeatMonitorListItemAvatar.propTypes = {
   lastState: p.oneOf(['inactive', 'healthy', 'unhealthy']).isRequired,
+  lastHeartbeat: p.string,
 }

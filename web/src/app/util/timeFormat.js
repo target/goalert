@@ -1,5 +1,14 @@
 import { Interval, DateTime } from 'luxon'
 
+export function formatTimeSince(isoTimestamp) {
+  if (!isoTimestamp) return ''
+  return (
+    DateTime.fromISO(isoTimestamp)
+      .diffNow()
+      .toString() + ' ago'
+  )
+}
+
 export function relativeDate(_to, _from = DateTime.utc()) {
   const to = _to instanceof DateTime ? _to : DateTime.fromISO(_to)
   const from = (_from instanceof DateTime ? _from : DateTime.fromISO(_from))
