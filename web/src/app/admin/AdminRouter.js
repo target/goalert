@@ -8,7 +8,7 @@ export const AdminRouter = () => (
   <Switch>
     <Route
       exact
-      path='/admin'
+      path='/admin/config'
       render={() => (
         <RequireConfig isAdmin else={<GenericError error='Access Denied' />}>
           <AdminConfig />
