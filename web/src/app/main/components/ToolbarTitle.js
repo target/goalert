@@ -187,7 +187,7 @@ export default class ToolbarTitle extends React.Component {
           render={this.renderSubPageTitle}
         />
         <Route
-          path='/:type(services)/:id/:sub(alerts|integration-keys|labels)'
+          path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
           render={this.renderSubPageTitle}
         />
         <Route
