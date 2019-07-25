@@ -37,19 +37,19 @@ func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.Cr
 }
 
 func (m *Mutation) UpdateHeartbeatMonitor(ctx context.Context, input graphql2.UpdateHeartbeatMonitorInput) (bool, error) {
-	hb := &heartbeat.Monitor{
-		ID: input.ID,
-	}
-	if input.Name != nil {
-		hb.Name = *input.Name
-	}
-	if input.TimeoutMinutes != nil {
-		hb.Timeout = time.Duration(*input.TimeoutMinutes) * time.Minute
-	}
-	var result bool
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		result := m.HeartbeatStore.UpdateTx(ctx, tx, hb)
-		return result
+		hb, err := m.HeartbeatStore.FindOneTx(ctx, tx, input.ID)
+		if err != nil {
+			return err
+		}
+		if input.Name != nil {
+			hb.Name = *input.Name
+		}
+		if input.TimeoutMinutes != nil {
+			hb.Timeout = time.Duration(*input.TimeoutMinutes) * time.Minute
+		}
+
+		return m.HeartbeatStore.UpdateTx(ctx, tx, hb)
 	})
-	return result, err
+	return err == nil, err
 }

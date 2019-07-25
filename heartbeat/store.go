@@ -30,6 +30,9 @@ type Store interface {
 	// UpdateTx updates a heartbeat's fields within the transaction.
 	UpdateTx(context.Context, *sql.Tx, *Monitor) error
 
+	// FindOneTx returns a heartbeat montior for updating.
+	FindOneTx(context.Context, *sql.Tx, string) (*Monitor, error)
+
 	// FindMany returns the heartbeat monitors with the given IDs.
 	FindMany(context.Context, ...string) ([]Monitor, error)
 }
@@ -40,14 +43,14 @@ var _ Store = &DB{}
 type DB struct {
 	db *sql.DB
 
-	create   *sql.Stmt
-	findAll  *sql.Stmt
-	findMany *sql.Stmt
-	delete   *sql.Stmt
-	update   *sql.Stmt
-	getSvcID *sql.Stmt
-
-	heartbeat *sql.Stmt
+	create     *sql.Stmt
+	findAll    *sql.Stmt
+	findMany   *sql.Stmt
+	delete     *sql.Stmt
+	update     *sql.Stmt
+	getSvcID   *sql.Stmt
+	findOneUpd *sql.Stmt
+	heartbeat  *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
@@ -71,6 +74,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				id, name, service_id, EXTRACT(EPOCH FROM heartbeat_interval), last_state, last_heartbeat
 			from heartbeat_monitors
 			where id = any($1)
+		`),
+		findOneUpd: p.P(`
+			select
+				id, name, service_id, EXTRACT(EPOCH FROM heartbeat_interval), last_state, last_heartbeat
+			from heartbeat_monitors
+			where id = $1
+			for update
 		`),
 		delete: p.P(`
 			delete from heartbeat_monitors
@@ -140,6 +150,9 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 		return err
 	}
 	n, err := m.Normalize()
+	if err != nil {
+		return err
+	}
 	err = validate.Many(err,
 		validate.UUID("MonitorID", n.ID),
 	)
@@ -152,6 +165,26 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 	}
 	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Timeout/time.Minute)
 	return err
+}
+
+func (db *DB) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*Monitor, error) {
+	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("ID", id)
+	if err != nil {
+		return nil, err
+	}
+	row := tx.StmtContext(ctx, db.findOneUpd).QueryRowContext(ctx, id)
+	var m Monitor
+	err = m.scanFrom(row.Scan)
+	if err != nil {
+		return nil, err
+	}
+
+	return &m, nil
 }
 
 func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
