@@ -152,6 +152,7 @@ type ComplexityRoot struct {
 	}
 
 	HeartbeatMonitor struct {
+		Href           func(childComplexity int) int
 		ID             func(childComplexity int) int
 		LastHeartbeat  func(childComplexity int) int
 		LastState      func(childComplexity int) int
@@ -426,6 +427,8 @@ type EscalationPolicyStepResolver interface {
 }
 type HeartbeatMonitorResolver interface {
 	TimeoutMinutes(ctx context.Context, obj *heartbeat.Monitor) (int, error)
+
+	Href(ctx context.Context, obj *heartbeat.Monitor) (string, error)
 }
 type IntegrationKeyResolver interface {
 	Type(ctx context.Context, obj *integrationkey.IntegrationKey) (IntegrationKeyType, error)
@@ -868,6 +871,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EscalationPolicyStep.Targets(childComplexity), true
+
+	case "HeartbeatMonitor.Href":
+		if e.complexity.HeartbeatMonitor.Href == nil {
+			break
+		}
+
+		return e.complexity.HeartbeatMonitor.Href(childComplexity), true
 
 	case "HeartbeatMonitor.ID":
 		if e.complexity.HeartbeatMonitor.ID == nil {
@@ -2615,7 +2625,9 @@ type Mutation {
     input: CreateUserNotificationRuleInput!
   ): UserNotificationRule
   updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
-  sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
+  sendContactMethodVerification(
+    input: SendContactMethodVerificationInput!
+  ): Boolean!
   verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
 
   updateSchedule(input: UpdateScheduleInput!): Boolean!
@@ -3058,6 +3070,7 @@ type HeartbeatMonitor {
   timeoutMinutes: Int!
   lastState: HeartbeatMonitorState!
   lastHeartbeat: ISOTimestamp
+  href: String!
 }
 
 type Label {
@@ -5495,6 +5508,33 @@ func (ec *executionContext) _HeartbeatMonitor_lastHeartbeat(ctx context.Context,
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _HeartbeatMonitor_href(ctx context.Context, field graphql.CollectedField, obj *heartbeat.Monitor) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "HeartbeatMonitor",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.HeartbeatMonitor().Href(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) graphql.Marshaler {
@@ -13238,6 +13278,20 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 			}
 		case "lastHeartbeat":
 			out.Values[i] = ec._HeartbeatMonitor_lastHeartbeat(ctx, field, obj)
+		case "href":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HeartbeatMonitor_href(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
