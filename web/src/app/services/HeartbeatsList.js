@@ -1,9 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
-import withStyles from '@material-ui/core/styles/withStyles'
 import gql from 'graphql-tag'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
@@ -12,6 +11,7 @@ import IconButton from '@material-ui/core/IconButton'
 import { Trash } from '../icons'
 import HeartbeatCreateDialog from './HeartbeatCreateDialog'
 import HeartbeatDeleteDialog from './HeartbeatDeleteDialog'
+import { makeStyles } from '@material-ui/core'
 
 const query = gql`
   query($serviceID: ID!) {
@@ -28,7 +28,7 @@ const query = gql`
   }
 `
 
-const styles = {
+const useStyles = makeStyles(theme => ({
   text: {
     display: 'flex',
     alignItems: 'center',
@@ -37,7 +37,7 @@ const styles = {
   spacing: {
     marginBottom: 96,
   },
-}
+}))
 
 const sortItems = (a, b) => {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -47,90 +47,29 @@ const sortItems = (a, b) => {
   return 0
 }
 
-@withStyles(styles)
-class HeartbeatDetails extends React.PureComponent {
-  static propTypes = {
-    // timeoutMinutes: p.int.isRequired,
-    // lastState: p.string.isRequired,
-    // lastHeartbeatTime: p.string.isRequired,
-    // provided by withStyles
-    classes: p.object,
-  }
+export default function HeartbeatsList(props) {
+  const classes = useStyles()
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
-  render() {
-    return (
-      <React.Fragment>
-        <div>
-          Sends an alert if no beat is received within
-          {this.props.timeoutMinutes} minutes from the last timestamp.
-        </div>
-        <div>Last known state: {this.props.lastState}</div>
-        <div>Last report time: {this.props.lastHeartbeatTime}</div>
-      </React.Fragment>
-    )
-  }
-}
-
-@withStyles(styles)
-export default class HeartbeatsList extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
-  }
-
-  state = {
-    create: false,
-    delete: null,
-  }
-
-  render() {
-    return (
-      <React.Fragment>
-        <Grid item xs={12} className={this.props.classes.spacing}>
-          <Card>
-            <CardContent>{this.renderQuery()}</CardContent>
-          </Card>
-        </Grid>
-        <CreateFAB onClick={() => this.setState({ create: true })} />
-        {this.state.create && (
-          <HeartbeatCreateDialog
-            serviceID={this.props.serviceID}
-            onClose={() => this.setState({ create: false })}
-          />
-        )}
-        {this.state.delete && (
-          <HeartbeatDeleteDialog
-            HeartbeatID={this.state.delete}
-            onClose={() => this.setState({ delete: null })}
-          />
-        )}
-      </React.Fragment>
-    )
-  }
-
-  renderQuery() {
-    return (
-      <Query
-        query={query}
-        variables={{ serviceID: this.props.serviceID }}
-        render={({ data }) => this.renderList(data.service.heartbeatMonitors)}
-      />
-    )
-  }
-
-  renderList(monitors) {
+  function renderList(monitors) {
     const items = (monitors || [])
       .slice()
       .sort(sortItems)
       .map(monitor => ({
         title: monitor.name,
-        subText: (
+        /* subText: (
           <HeartbeatDetails
             timeoutMinutes={monitor.timeoutMinutes}
             lastState={monitor.lastState}
-            lastHeartbeatTime={this.props.lastHeartbeatTime}
+            lastHeartbeatTime={
+              this.props.lastHeartbeatTime
+                ? this.props.lastHeartbeatTime
+                : 'not yet reported'
+            }
             classes={this.props.classes}
           />
-        ),
+        ), */
         action: (
           <IconButton onClick={() => this.setState({ delete: monitor.id })}>
             <Trash />
@@ -146,4 +85,36 @@ export default class HeartbeatsList extends React.PureComponent {
       />
     )
   }
+
+  return (
+    <React.Fragment>
+      <Grid item xs={12} className={classes.spacing}>
+        <Card>
+          <CardContent>
+            <Query
+              query={query}
+              variables={{ serviceID: props.serviceID }}
+              render={({ data }) => renderList(data.service.heartbeatMonitors)}
+            />
+          </CardContent>
+        </Card>
+      </Grid>
+      <CreateFAB onClick={() => setShowCreateDialog(true)} />
+      {showCreateDialog && (
+        <HeartbeatCreateDialog
+          serviceID={props.serviceID}
+          onClose={() => setShowCreateDialog(false)}
+        />
+      )}
+      {Boolean(showDeleteDialogByID) && (
+        <HeartbeatDeleteDialog
+          HeartbeatID={showDeleteDialogByID}
+          onClose={() => setShowDeleteDialogByID(null)}
+        />
+      )}
+    </React.Fragment>
+  )
+}
+HeartbeatsList.propTypes = {
+  serviceID: p.string.isRequired,
 }
