@@ -50,10 +50,6 @@ const sortItems = (a, b) => {
 @withStyles(styles)
 class HeartbeatDetails extends React.PureComponent {
   static propTypes = {
-    // timeoutMinutes: p.int.isRequired,
-    // lastState: p.string.isRequired,
-    // lastHeartbeatTime: p.string.isRequired,
-    // provided by withStyles
     classes: p.object,
   }
 
@@ -61,8 +57,8 @@ class HeartbeatDetails extends React.PureComponent {
     return (
       <React.Fragment>
         <div>
-          Sends an alert if no beat is received within
-          {this.props.timeoutMinutes} minutes from the last timestamp.
+          Sends an alert if no heartbeat is received {this.props.timeoutMinutes}{' '}
+          minutes after the last reported time.
         </div>
         <div>Last known state: {this.props.lastState}</div>
         <div>Last report time: {this.props.lastHeartbeatTime}</div>
@@ -127,7 +123,11 @@ export default class HeartbeatsList extends React.PureComponent {
           <HeartbeatDetails
             timeoutMinutes={monitor.timeoutMinutes}
             lastState={monitor.lastState}
-            lastHeartbeatTime={this.props.lastHeartbeatTime}
+            lastHeartbeatTime={
+              this.props.lastHeartbeatTime
+                ? this.props.lastHeartbeatTime
+                : 'not yet reported'
+            }
             classes={this.props.classes}
           />
         ),
