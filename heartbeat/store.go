@@ -3,13 +3,13 @@ package heartbeat
 import (
 	"context"
 	"database/sql"
+	"time"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
-
-	uuid "github.com/satori/go.uuid"
 )
 
 // Store manages heartbeat checks and recording heartbeats.
@@ -25,9 +25,6 @@ type Store interface {
 
 	// FindAllByService returns all heartbeats belonging to the given service ID.
 	FindAllByService(context.Context, string) ([]Monitor, error)
-
-	// Update updates a hearbeat's fields.
-	Update(context.Context, *Monitor) error
 
 	// UpdateTx updates a heartbeat's fields within the transaction.
 	UpdateTx(context.Context, *sql.Tx, *Monitor) error
@@ -64,13 +61,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		findAll: p.P(`
 			select
-				id, name, heartbeat_interval, last_state, last_heartbeat
+				id, name, service_id, EXTRACT(EPOCH FROM heartbeat_interval), last_state, last_heartbeat
 			from heartbeat_monitors
 			where service_id = $1
 		`),
 		findMany: p.P(`
 			select
-				id, name, heartbeat_interval, last_state, last_heartbeat
+				id, name, service_id, EXTRACT(EPOCH FROM heartbeat_interval), last_state, last_heartbeat
 			from heartbeat_monitors
 			where id = any($1)
 		`),
@@ -105,10 +102,10 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor, e
 		return nil, err
 	}
 	n.ID = uuid.NewV4().String()
-
-	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, n.TimeoutMinutes)
 	n.lastState = StateInactive
-	// ID is nil, but shows up in postico when created
+
+	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, n.Timeout/time.Minute)
+
 	return n, err
 }
 func (db *DB) Heartbeat(ctx context.Context, id string) error {
@@ -152,12 +149,10 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.TimeoutMinutes)
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Timeout/time.Minute)
 	return err
 }
-func (db *DB) Update(ctx context.Context, m *Monitor) error {
-	return db.UpdateTx(ctx, nil, m)
-}
+
 func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
 	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
 	if err != nil {
@@ -167,7 +162,7 @@ func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
 		return nil, nil
 	}
 
-	err = validate.Range("heartbeatMonitorIDS", len(ids), 1, search.MaxResults)
+	err = validate.ManyUUID("IDs", ids, search.MaxResults)
 	if err != nil {
 		return nil, err
 	}
@@ -176,15 +171,17 @@ func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var monitors []Monitor
+	var m Monitor
 	for rows.Next() {
-		var m Monitor
-		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeat)
+		err = m.scanFrom(rows.Scan)
 		if err != nil {
 			return nil, err
 		}
 		monitors = append(monitors, m)
 	}
+
 	return monitors, nil
 }
 
@@ -204,10 +201,9 @@ func (db *DB) FindAllByService(ctx context.Context, serviceID string) ([]Monitor
 	defer rows.Close()
 
 	var monitors []Monitor
+	var m Monitor
 	for rows.Next() {
-		var m Monitor
-		m.ServiceID = serviceID
-		err = rows.Scan(&m.ID, &m.Name, &m.TimeoutMinutes, &m.lastState, &m.lastHeartbeat)
+		err = m.scanFrom(rows.Scan)
 		if err != nil {
 			return nil, err
 		}
