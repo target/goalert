@@ -1,103 +1,63 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
-
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
-import HearbeatForm from './HeartbeatForm'
+import HeartbeatForm from './HeartbeatForm'
 
-const mutation = gql`
-  mutation($input: CreateHeartbeatInput!) {
-    createHeartbeat(input: $input) {
+import { useMutation } from '@apollo/react-hooks'
+
+const createMutation = gql`
+  mutation($input: CreateHeartbeatMonitorInput!) {
+    createHeartbeatMonitor(input: $input) {
       id
       serviceID
       name
-      heartbeatInterval
+      timeoutMinutes
       lastState
     }
   }
 `
-const query = gql`
-  query($serviceID: ID!) {
-    service(id: $serviceID) {
-      id
-      heartbeats {
-        id
-        name
-        heartbeatInterval
-        lastState
+
+export default function HeartbeatCreateDialog(props) {
+  const [value, setValue] = useState({ name: '', timeoutMinutes: 5 })
+  const [createHeartbeat, { loading, error }] = useMutation(createMutation, {
+    refetchQueries: ['monitorQuery'],
+    awaitRefetchQueries: true,
+    variables: {
+      input: {
+        name: value.name,
+        timeoutMinutes: value.timeoutMinutes,
+        serviceID: props.serviceID,
+      },
+    },
+  })
+
+  return (
+    <FormDialog
+      maxWidth='sm'
+      title='Create New Heartbeat'
+      loading={loading}
+      errors={nonFieldErrors(error)}
+      onClose={props.onClose}
+      onSubmit={() => createHeartbeat().then(props.onClose)}
+      form={
+        <HeartbeatForm
+          errors={fieldErrors(error).map(f => ({
+            ...f,
+            field: f.field === 'timeout' ? 'timeoutMinutes' : f.field,
+          }))}
+          disabled={loading}
+          value={value}
+          onChange={value => setValue(value)}
+        />
       }
-    }
-  }
-`
+    />
+  )
+}
 
-export default class HeartbeatCreateDialog extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
-    onClose: p.func,
-  }
-
-  state = {
-    value: { name: '' },
-    errors: [],
-  }
-
-  render() {
-    return (
-      <Mutation
-        client={graphql2Client}
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        update={(cache, { data: { createHeartbeat } }) => {
-          const { service } = cache.readQuery({
-            query,
-            variables: { serviceID: this.props.serviceID },
-          })
-          cache.writeData({
-            query,
-            variables: { serviceID: this.props.serviceID },
-            data: {
-              service: {
-                ...service,
-                heartbeats: (service.heartbeats || []).concat(createHeartbeat),
-              },
-            },
-          })
-        }}
-      >
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(commit, status) {
-    const { loading, error } = status
-    return (
-      <FormDialog
-        maxWidth='sm'
-        title='Create New Heartbeat'
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: { ...this.state.value, serviceID: this.props.serviceID },
-            },
-          })
-        }}
-        form={
-          <HearbeatForm
-            errors={fieldErrors(error)}
-            disabled={loading}
-            value={this.state.value}
-            onChange={value => this.setState({ value })}
-          />
-        }
-      />
-    )
-  }
+HeartbeatCreateDialog.propTypes = {
+  serviceID: p.string.isRequired,
+  onClose: p.func,
 }
