@@ -7,14 +7,14 @@ import gql from 'graphql-tag'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
-import IconButton from '@material-ui/core/IconButton'
-import { Trash } from '../icons'
 import HeartbeatCreateDialog from './HeartbeatCreateDialog'
-import HeartbeatDeleteDialog from './HeartbeatDeleteDialog'
 import { makeStyles } from '@material-ui/core'
+import HeartbeatMonitorListItem, {
+  HeartbeatMonitorListItemActions,
+} from './HeartbeatMonitorListItem'
 
 const query = gql`
-  query($serviceID: ID!) {
+  query monitorQuery($serviceID: ID!) {
     service(id: $serviceID) {
       id # need to tie the result to the correct record
       heartbeatMonitors {
@@ -47,10 +47,9 @@ const sortItems = (a, b) => {
   return 0
 }
 
-export default function HeartbeatsList(props) {
+export default function HeartbeatMonitorsList(props) {
   const classes = useStyles()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
   function renderList(monitors) {
     const items = (monitors || [])
@@ -58,22 +57,20 @@ export default function HeartbeatsList(props) {
       .sort(sortItems)
       .map(monitor => ({
         title: monitor.name,
-        /* subText: (
-          <HeartbeatDetails
+        subText: (
+          <HeartbeatMonitorListItem
             timeoutMinutes={monitor.timeoutMinutes}
             lastState={monitor.lastState}
             lastHeartbeatTime={
-              this.props.lastHeartbeatTime
-                ? this.props.lastHeartbeatTime
-                : 'not yet reported'
+              monitor.lastHeartbeat ? monitor.lastHeartbeat : 'not yet reported'
             }
-            classes={this.props.classes}
           />
-        ), */
-        action: (
-          <IconButton onClick={() => this.setState({ delete: monitor.id })}>
-            <Trash />
-          </IconButton>
+        ),
+        secondaryAction: (
+          <HeartbeatMonitorListItemActions
+            monitorID={monitor.id}
+            refetchQueries={['monitorQuery']}
+          />
         ),
       }))
 
@@ -106,15 +103,9 @@ export default function HeartbeatsList(props) {
           onClose={() => setShowCreateDialog(false)}
         />
       )}
-      {Boolean(showDeleteDialogByID) && (
-        <HeartbeatDeleteDialog
-          HeartbeatID={showDeleteDialogByID}
-          onClose={() => setShowDeleteDialogByID(null)}
-        />
-      )}
     </React.Fragment>
   )
 }
-HeartbeatsList.propTypes = {
+HeartbeatMonitorsList.propTypes = {
   serviceID: p.string.isRequired,
 }
