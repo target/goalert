@@ -13,38 +13,18 @@ import { makeStyles } from '@material-ui/core/styles'
 import { green, red } from '@material-ui/core/colors'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
 import { formatTimeSince } from '../util/timeFormat'
-import copyToClipboard from '../util/copyToClipboard'
-import ContentCopy from 'mdi-material-ui/ContentCopy'
-import Tooltip from '@material-ui/core/Tooltip'
+import CopyText from '../util/CopyText'
 
 export default function HeartbeatMonitorListItem(props) {
-  const [showTooltip, setShowTooltip] = useState(false)
-
   return (
     <React.Fragment>
       {`Timeout: ${props.timeoutMinutes} minute${
         props.timeoutMinutes > 1 ? 's' : ''
       }`}
-      <Tooltip
-        onClose={() => setShowTooltip(false)}
-        open={showTooltip}
-        title='Copied!'
-        placement='right'
-      >
-        <React.Fragment>
-          <a
-            href={props.href}
-            onClick={e => {
-              e.preventDefault()
-              copyToClipboard(props.href)
-              setShowTooltip(true)
-            }}
-          >
-            <ContentCopy />
-            Click here to copy API key.
-          </a>
-        </React.Fragment>
-      </Tooltip>
+      <CopyText
+        title='Click here to copy API key.'
+        value={'http://asdasd.com'}
+      />
     </React.Fragment>
   )
 }
