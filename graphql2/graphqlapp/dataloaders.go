@@ -125,6 +125,9 @@ func (app *App) FindOneHeartbeatMonitor(ctx context.Context, id string) (*heartb
 		if err != nil {
 			return nil, err
 		}
+		if len(hb) == 0 {
+			return nil, nil
+		}
 		return &hb[0], nil
 	}
 
