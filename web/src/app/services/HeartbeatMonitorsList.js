@@ -16,7 +16,7 @@ import {
 
 // generates a single alert if a POST is not received before the timeout
 const HEARTBEAT_MONITOR_DESCRIPTION =
-  'Sends an alert if no heartbeat is received after the set' +
+  'Creates an alert if no heartbeat is received after the set ' +
   'duration after the last reported time.'
 
 const query = gql`
