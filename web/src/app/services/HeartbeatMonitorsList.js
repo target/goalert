@@ -34,7 +34,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   text: {
     display: 'flex',
     alignItems: 'center',

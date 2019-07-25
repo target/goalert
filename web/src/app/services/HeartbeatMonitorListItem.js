@@ -54,13 +54,14 @@ export function HeartbeatMonitorListItemActions(props) {
         <HeartbeatDeleteDialog
           heartbeatID={props.monitorID}
           onClose={() => setShowDeleteDialog(false)}
+          refetchQueries={props.refetchQueries}
         />
       )}
       {showEditDialog && (
         <HeartbeatMonitorEditDialog
-          refetchQueries={props.refetchQueries}
           monitorID={props.monitorID}
           onClose={() => setShowEditDialog(false)}
+          refetchQueries={props.refetchQueries}
         />
       )}
     </React.Fragment>
