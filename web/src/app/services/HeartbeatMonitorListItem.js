@@ -21,10 +21,8 @@ export default function HeartbeatMonitorListItem(props) {
       {`Timeout: ${props.timeoutMinutes} minute${
         props.timeoutMinutes > 1 ? 's' : ''
       }`}
-      <CopyText
-        title='Click here to copy API key.'
-        value={'http://asdasd.com'}
-      />
+      <br />
+      <CopyText title='Copy API key' value={props.href} />
     </React.Fragment>
   )
 }

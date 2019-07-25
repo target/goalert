@@ -29,6 +29,7 @@ const query = gql`
         timeoutMinutes
         lastState
         lastHeartbeat
+        href
       }
     }
   }
@@ -71,7 +72,7 @@ export default function HeartbeatMonitorsList(props) {
         title: monitor.name,
         subText: (
           <HeartbeatMonitorListItem
-            href={'http://copystring.com/'}
+            href={monitor.href}
             timeoutMinutes={monitor.timeoutMinutes}
           />
         ),
@@ -89,6 +90,9 @@ export default function HeartbeatMonitorsList(props) {
         emptyMessage='No monitors exist for this service.'
         headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
         items={items}
+        secondaryTypographyProps={{
+          component: 'div',
+        }}
       />
     )
   }
