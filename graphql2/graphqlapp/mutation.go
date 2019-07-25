@@ -72,6 +72,7 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 		assignment.TargetTypeSchedule,
 		assignment.TargetTypeUser,
 		assignment.TargetTypeIntegrationKey,
+		assignment.TargetTypeHeartbeatMonitor,
 		assignment.TargetTypeService,
 		assignment.TargetTypeEscalationPolicy,
 		assignment.TargetTypeNotificationRule,
@@ -102,6 +103,8 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 			err = errors.Wrap(a.CMStore.DeleteTx(ctx, tx, ids...), "delete contact methods")
 		case assignment.TargetTypeNotificationRule:
 			err = errors.Wrap(a.NRStore.DeleteTx(ctx, tx, ids...), "delete notification rules")
+		case assignment.TargetTypeHeartbeatMonitor:
+			err = errors.Wrap(a.HeartbeatStore.DeleteTx(ctx, tx, ids...), "delete heartbeat monitors")
 		default:
 			return false, validation.NewFieldError("type", "unsupported type "+typ.String())
 		}

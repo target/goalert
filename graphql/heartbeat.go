@@ -4,10 +4,9 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/target/goalert/heartbeat"
-
 	g "github.com/graphql-go/graphql"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/heartbeat"
 )
 
 func getHeartbeatMonitor(src interface{}) (*heartbeat.Monitor, error) {
@@ -53,7 +52,12 @@ func (h *Handler) heartbeatMonitorFields() g.Fields {
 				if err != nil {
 					return nil, err
 				}
-				return time.Since(h.LastHeartbeat()) / time.Minute, nil
+				last := h.LastHeartbeat()
+				if last.IsZero() {
+					return nil, nil
+				}
+
+				return time.Since(last) / time.Minute, nil
 			},
 		},
 		"interval_minutes": &g.Field{Type: g.Int},

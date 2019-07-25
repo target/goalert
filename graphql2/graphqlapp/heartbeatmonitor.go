@@ -3,10 +3,19 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"time"
 
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/heartbeat"
 )
+
+type HeartbeatMonitor App
+
+func (a *App) HeartbeatMonitor() graphql2.HeartbeatMonitorResolver { return (*HeartbeatMonitor)(a) }
+
+func (a *HeartbeatMonitor) TimeoutMinutes(ctx context.Context, hb *heartbeat.Monitor) (int, error) {
+	return int(hb.Timeout / time.Minute), nil
+}
 
 func (q *Query) HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Monitor, error) {
 	return (*App)(q).FindOneHeartbeatMonitor(ctx, id)
@@ -14,9 +23,9 @@ func (q *Query) HeartbeatMonitor(ctx context.Context, id string) (*heartbeat.Mon
 
 func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.CreateHeartbeatMonitorInput) (*heartbeat.Monitor, error) {
 	hb := &heartbeat.Monitor{
-		ServiceID:      input.ServiceID,
-		Name:           input.Name,
-		TimeoutMinutes: input.TimeoutMinutes,
+		ServiceID: input.ServiceID,
+		Name:      input.Name,
+		Timeout:   time.Duration(input.TimeoutMinutes) * time.Minute,
 	}
 	var heartbeatMonitor *heartbeat.Monitor
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
@@ -28,19 +37,19 @@ func (m *Mutation) CreateHeartbeatMonitor(ctx context.Context, input graphql2.Cr
 }
 
 func (m *Mutation) UpdateHeartbeatMonitor(ctx context.Context, input graphql2.UpdateHeartbeatMonitorInput) (bool, error) {
-	hb := &heartbeat.Monitor{
-		ID: input.ID,
-	}
-	if input.Name != nil {
-		hb.Name = *input.Name
-	}
-	if input.TimeoutMinutes != nil {
-		hb.TimeoutMinutes = *input.TimeoutMinutes
-	}
-	var result bool
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		result := m.HeartbeatStore.UpdateTx(ctx, tx, hb)
-		return result
+		hb, err := m.HeartbeatStore.FindOneTx(ctx, tx, input.ID)
+		if err != nil {
+			return err
+		}
+		if input.Name != nil {
+			hb.Name = *input.Name
+		}
+		if input.TimeoutMinutes != nil {
+			hb.Timeout = time.Duration(*input.TimeoutMinutes) * time.Minute
+		}
+
+		return m.HeartbeatStore.UpdateTx(ctx, tx, hb)
 	})
-	return result, err
+	return err == nil, err
 }

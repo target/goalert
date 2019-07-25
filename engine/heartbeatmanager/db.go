@@ -3,6 +3,7 @@ package heartbeatmanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"

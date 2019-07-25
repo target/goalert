@@ -55,6 +55,7 @@ type ResolverRoot interface {
 	AlertLogEntry() AlertLogEntryResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
+	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
 	Mutation() MutationResolver
 	OnCallShift() OnCallShiftResolver
@@ -422,6 +423,9 @@ type EscalationPolicyResolver interface {
 type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
 	EscalationPolicy(ctx context.Context, obj *escalation.Step) (*escalation.Policy, error)
+}
+type HeartbeatMonitorResolver interface {
+	TimeoutMinutes(ctx context.Context, obj *heartbeat.Monitor) (int, error)
 }
 type IntegrationKeyResolver interface {
 	Type(ctx context.Context, obj *integrationkey.IntegrationKey) (IntegrationKeyType, error)
@@ -5422,13 +5426,13 @@ func (ec *executionContext) _HeartbeatMonitor_timeoutMinutes(ctx context.Context
 		Object:   "HeartbeatMonitor",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TimeoutMinutes, nil
+		return ec.resolvers.HeartbeatMonitor().TimeoutMinutes(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -13214,10 +13218,19 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 				invalid = true
 			}
 		case "timeoutMinutes":
-			out.Values[i] = ec._HeartbeatMonitor_timeoutMinutes(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._HeartbeatMonitor_timeoutMinutes(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "lastState":
 			out.Values[i] = ec._HeartbeatMonitor_lastState(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
