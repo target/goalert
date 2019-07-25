@@ -50,9 +50,9 @@ const sortItems = (a, b) => {
 @withStyles(styles)
 class HeartbeatDetails extends React.PureComponent {
   static propTypes = {
-    interval: p.int.isRequired,
-    lastState: p.string.isRequired,
-    lastHeartbeatMins: p.int.isRequired,
+    // timeoutMinutes: p.int.isRequired,
+    // lastState: p.string.isRequired,
+    // lastHeartbeatTime: p.string.isRequired,
     // provided by withStyles
     classes: p.object,
   }
@@ -62,10 +62,10 @@ class HeartbeatDetails extends React.PureComponent {
       <React.Fragment>
         <div>
           Sends an alert if no beat is received within
-          {this.props.interval} minutes.
+          {this.props.timeoutMinutes} minutes from the last timestamp.
         </div>
         <div>Last known state: {this.props.lastState}</div>
-        <div>Last report time: {this.props.lastHeartbeatMins}</div>
+        <div>Last report time: {this.props.lastHeartbeatTime}</div>
       </React.Fragment>
     )
   }
@@ -112,7 +112,7 @@ export default class HeartbeatsList extends React.PureComponent {
       <Query
         query={query}
         variables={{ serviceID: this.props.serviceID }}
-        render={({ data }) => this.renderList(data.service.heartbeats)}
+        render={({ data }) => this.renderList(data.service.heartbeatMonitors)}
       />
     )
   }
@@ -125,9 +125,9 @@ export default class HeartbeatsList extends React.PureComponent {
         title: beat.name,
         subText: (
           <HeartbeatDetails
-            interval={beat.interval}
+            timeoutMinutes={beat.timeoutMinutes}
             lastState={beat.lastState}
-            lastHeartbeatMins={beat.lastHeartbeatMins}
+            lastHeartbeatTime={this.props.lastHeartbeatTime}
             classes={this.props.classes}
           />
         ),

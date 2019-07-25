@@ -112,6 +112,10 @@ export default class ServiceDetails extends React.PureComponent {
               url: 'integration-keys',
             },
             {
+              label: 'Heartbeat Monitors',
+              url: 'heartbeat-monitors',
+            },
+            {
               label: 'Labels',
               url: 'labels',
             },
