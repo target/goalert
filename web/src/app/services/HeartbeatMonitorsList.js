@@ -62,7 +62,12 @@ export default function HeartbeatMonitorsList(props) {
       .slice()
       .sort(sortItems)
       .map(monitor => ({
-        icon: <HeartbeatMonitorListItemAvatar lastState={monitor.lastState} />,
+        icon: (
+          <HeartbeatMonitorListItemAvatar
+            lastState={monitor.lastState}
+            lastHeartbeat={monitor.lastHeartbeat}
+          />
+        ),
         title: monitor.name,
         subText: `Timeout: ${monitor.timeoutMinutes} minute${
           monitor.timeoutMinutes > 1 ? 's' : ''
