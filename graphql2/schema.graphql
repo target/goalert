@@ -650,7 +650,7 @@ type HeartbeatMonitor {
   name: String!
   timeoutMinutes: Int!
   lastState: HeartbeatMonitorState!
-  lastHeartbeat: ISOTimestamp!
+  lastHeartbeat: ISOTimestamp
 }
 
 type Label {

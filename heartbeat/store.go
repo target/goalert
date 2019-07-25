@@ -108,6 +108,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor, e
 
 	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, n.TimeoutMinutes)
 	n.lastState = StateInactive
+	// ID is nil, but shows up in postico when created
 	return n, err
 }
 func (db *DB) Heartbeat(ctx context.Context, id string) error {

@@ -3053,7 +3053,7 @@ type HeartbeatMonitor {
   name: String!
   timeoutMinutes: Int!
   lastState: HeartbeatMonitorState!
-  lastHeartbeat: ISOTimestamp!
+  lastHeartbeat: ISOTimestamp
 }
 
 type Label {
@@ -5485,15 +5485,12 @@ func (ec *executionContext) _HeartbeatMonitor_lastHeartbeat(ctx context.Context,
 		return obj.LastHeartbeat(), nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOISOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IntegrationKey_id(ctx context.Context, field graphql.CollectedField, obj *integrationkey.IntegrationKey) graphql.Marshaler {
@@ -13228,9 +13225,6 @@ func (ec *executionContext) _HeartbeatMonitor(ctx context.Context, sel ast.Selec
 			}
 		case "lastHeartbeat":
 			out.Values[i] = ec._HeartbeatMonitor_lastHeartbeat(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
