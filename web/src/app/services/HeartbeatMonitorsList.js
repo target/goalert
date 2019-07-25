@@ -9,9 +9,15 @@ import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
 import HeartbeatCreateDialog from './HeartbeatCreateDialog'
 import { makeStyles } from '@material-ui/core'
-import HeartbeatMonitorListItem, {
+import {
   HeartbeatMonitorListItemActions,
+  HeartbeatMonitorListItemAvatar,
 } from './HeartbeatMonitorListItem'
+
+// generates a single alert if a POST is not received before the timeout
+const HEARTBEAT_MONITOR_DESCRIPTION =
+  'Sends an alert if no heartbeat is received after the set' +
+  'duration after the last reported time.'
 
 const query = gql`
   query monitorQuery($serviceID: ID!) {
@@ -56,16 +62,11 @@ export default function HeartbeatMonitorsList(props) {
       .slice()
       .sort(sortItems)
       .map(monitor => ({
+        icon: <HeartbeatMonitorListItemAvatar lastState={monitor.lastState} />,
         title: monitor.name,
-        subText: (
-          <HeartbeatMonitorListItem
-            timeoutMinutes={monitor.timeoutMinutes}
-            lastState={monitor.lastState}
-            lastHeartbeatTime={
-              monitor.lastHeartbeat ? monitor.lastHeartbeat : 'not yet reported'
-            }
-          />
-        ),
+        subText: `Timeout: ${monitor.timeoutMinutes} minute${
+          monitor.timeoutMinutes > 1 ? 's' : ''
+        }`,
         secondaryAction: (
           <HeartbeatMonitorListItemActions
             monitorID={monitor.id}
@@ -78,6 +79,7 @@ export default function HeartbeatMonitorsList(props) {
       <FlatList
         data-cy='monitors'
         emptyMessage='No monitors exist for this service.'
+        headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
         items={items}
       />
     )
