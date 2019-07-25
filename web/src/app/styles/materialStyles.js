@@ -99,6 +99,10 @@ export const styles = theme => ({
       textDecoration: 'none',
     },
   },
+  navSelected: {
+    backgroundColor: '#ebebeb',
+    borderRight: '3px solid ' + theme.palette.primary['500'],
+  },
   // parent container must have position: relative
   topRightActions: {
     position: 'absolute',

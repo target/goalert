@@ -50,6 +50,18 @@ export function renderRoutes(routeConfig = []) {
       })
     }
 
+    if (cfg.subRoutes && cfg.subRoutes.length) {
+      routes.push(
+        <Redirect
+          key={`redir_sub_${idx}`}
+          strict
+          exact
+          from={path.replace(/\/$/, '')}
+          to={cfg.subRoutes[0].path}
+        />,
+      )
+    }
+
     routes.push(
       <Route
         key={'route_' + idx}
@@ -112,6 +124,13 @@ export default [
     title: 'Admin',
     path: '/admin',
     component: AdminRouter,
+    subRoutes: [
+      {
+        title: 'Config',
+        path: '/admin/config',
+        component: AdminRouter,
+      },
+    ],
   },
   {
     nav: false,
