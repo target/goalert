@@ -17,11 +17,12 @@ const query = gql`
   query($serviceID: ID!) {
     service(id: $serviceID) {
       id # need to tie the result to the correct record
-      heartbeats {
+      heartbeatMonitors {
         id
         name
-        heartbeatInterval
+        timeoutMinutes
         lastState
+        lastHeartbeat
       }
     }
   }

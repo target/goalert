@@ -3,8 +3,9 @@ package assignment
 //go:generate go run golang.org/x/tools/cmd/stringer -type TargetType
 
 import (
-	"github.com/target/goalert/validation"
 	"io"
+
+	"github.com/target/goalert/validation"
 
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -27,6 +28,7 @@ const (
 	TargetTypeUserOverride
 	TargetTypeNotificationRule
 	TargetTypeContactMethod
+	TargetTypeHeartbeatMonitor
 )
 
 // UnmarshalGQL implements the graphql.Marshaler interface
@@ -61,6 +63,8 @@ func (tt *TargetType) UnmarshalGQL(v interface{}) error {
 		*tt = TargetTypeContactMethod
 	case "notificationRule":
 		*tt = TargetTypeNotificationRule
+	case "heartbeatMonitor":
+		*tt = TargetTypeHeartbeatMonitor
 	default:
 		return validation.NewFieldError("TargetType", "unknown target type "+str)
 	}
@@ -95,5 +99,7 @@ func (tt TargetType) MarshalGQL(w io.Writer) {
 		graphql.MarshalString("contactMethod").MarshalGQL(w)
 	case TargetTypeNotificationRule:
 		graphql.MarshalString("notificationRule").MarshalGQL(w)
+	case TargetTypeHeartbeatMonitor:
+		graphql.MarshalString("heartbeatMonitor").MarshalGQL(w)
 	}
 }
