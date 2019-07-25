@@ -11,6 +11,7 @@ import UnhealthyIcon from '@material-ui/icons/Clear'
 import InactiveIcon from '@material-ui/icons/Remove'
 import { makeStyles } from '@material-ui/core/styles'
 import { green, red } from '@material-ui/core/colors'
+import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
 
 export default function HeartbeatMonitorListItem(props) {
   return (
@@ -32,17 +33,17 @@ HeartbeatMonitorListItem.propTypes = {
 }
 
 export function HeartbeatMonitorListItemActions(props) {
-  // const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   return (
     <React.Fragment>
       <OtherActions
         actions={[
-          // {
-          //   label: 'Edit',
-          //   onClick: () => setShowEditDialog(true),
-          // },
+          {
+            label: 'Edit',
+            onClick: () => setShowEditDialog(true),
+          },
           {
             label: 'Delete',
             onClick: () => setShowDeleteDialog(true),
@@ -53,6 +54,13 @@ export function HeartbeatMonitorListItemActions(props) {
         <HeartbeatDeleteDialog
           heartbeatID={props.monitorID}
           onClose={() => setShowDeleteDialog(false)}
+        />
+      )}
+      {showEditDialog && (
+        <HeartbeatMonitorEditDialog
+          refetchQueries={props.refetchQueries}
+          monitorID={props.monitorID}
+          onClose={() => setShowEditDialog(false)}
         />
       )}
     </React.Fragment>
