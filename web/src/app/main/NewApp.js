@@ -22,7 +22,7 @@ import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 
-const drawerWidth = '10.5em'
+const drawerWidth = '12em'
 
 const styles = theme => ({
   root: {

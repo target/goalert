@@ -50,10 +50,6 @@ const styles = theme => ({
   logo: {
     padding: '0.5em',
   },
-  navSelected: {
-    backgroundColor: '#ebebeb',
-    borderRight: '3px solid ' + theme.palette.primary['500'],
-  },
   navIcon: {
     width: '1em',
     height: '1em',
@@ -175,25 +171,23 @@ export default class SideBarDrawerList extends React.PureComponent {
             .map((cfg, idx) => {
               if (cfg.subRoutes) {
                 return (
-                  <React.Fragment key={idx}>
-                    <NavSubMenu
-                      parentIcon={navIcons[cfg.title]}
-                      parentTitle={cfg.title}
-                      path={getPath(cfg)}
-                      subMenuRoutes={cfg.subRoutes}
-                    >
-                      {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
-                    </NavSubMenu>
-                  </React.Fragment>
-                )
-              } else {
-                return this.renderSidebarNavLink(
-                  navIcons[cfg.title],
-                  getPath(cfg),
-                  cfg.title,
-                  idx,
+                  <NavSubMenu
+                    key={idx}
+                    parentIcon={navIcons[cfg.title]}
+                    parentTitle={cfg.title}
+                    path={getPath(cfg)}
+                    subMenuRoutes={cfg.subRoutes}
+                  >
+                    {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
+                  </NavSubMenu>
                 )
               }
+              return this.renderSidebarNavLink(
+                navIcons[cfg.title],
+                getPath(cfg),
+                cfg.title,
+                idx,
+              )
             })}
           <RequireConfig isAdmin>
             <Divider aria-hidden />

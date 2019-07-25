@@ -71,6 +71,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 }
 
 func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.UpdateUserContactMethodInput) (bool, error) {
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cm, err := m.CMStore.FindOneTx(ctx, tx, input.ID)
 		if err != nil {
@@ -80,11 +81,9 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 			cm.Name = *input.Name
 		}
 		if input.Value != nil {
-			if *input.Value != cm.Value {
-				cm.Disabled = true
-			}
 			cm.Value = *input.Value
 		}
+
 		return m.CMStore.UpdateTx(ctx, tx, cm)
 	})
 	return err == nil, err

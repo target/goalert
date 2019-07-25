@@ -1,57 +1,58 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { NavLink } from 'react-router-dom'
-import Collapse from '@material-ui/core/Collapse'
 import List from '@material-ui/core/List'
-import { makeStyles } from '@material-ui/styles'
+import { makeStyles } from '@material-ui/core/styles'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Typography from '@material-ui/core/Typography'
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 import { styles } from '../../styles/materialStyles'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import { Collapse } from '@material-ui/core'
+import { urlPathSelector } from '../../selectors/url'
+import { useSelector } from 'react-redux'
+import { PropTypes as p } from 'prop-types'
 
 const useStyles = makeStyles(theme => {
-  const { nav } = styles(theme)
+  const { nav, navSelected } = styles(theme)
   return {
     nav,
+    navSelected,
     subMenu: {
-      backgroundColor: theme.palette.primary['500'],
       padding: '0',
-    },
-    link: {
-      textDecoration: 'none',
-      display: 'block',
-      color: '#fff',
-      '&:hover': {
-        textDecoration: 'none',
-      },
     },
     parentItem: {
       color: theme.palette.primary['500'],
     },
     subMenuLinkText: {
-      paddingLeft: '3rem',
+      paddingLeft: '3.5rem',
+      '& span': {
+        fontSize: '.9rem',
+      },
     },
-    subMenuSelected: {
-      color: '#616161',
-      backgroundColor: '#ebebeb',
-      borderRight: '3px solid #D3D3D3',
+    dropdown: {
+      transition: theme.transitions.create(['transform'], {
+        duration: theme.transitions.duration.short,
+      }),
+    },
+    dropdownOpen: {
+      transform: 'rotate(0)',
+    },
+    dropdownClosed: {
+      transform: 'rotate(-90deg)',
     },
   }
 })
 
 export default function NavSubMenu(props) {
   const { parentIcon, parentTitle, path, subMenuRoutes } = props
-  const [open, setOpen] = useState(false)
   const classes = useStyles()
-
-  function handleClick(bool) {
-    setOpen(bool)
-  }
+  const pathname = useSelector(urlPathSelector)
+  let isRoute = pathname.startsWith(path)
 
   function renderParentLink(IconComponent, label) {
     return (
-      <ListItem>
+      <ListItem button tabIndex={-1}>
         <ListItemIcon>
           <IconComponent />
         </ListItemIcon>
@@ -60,7 +61,13 @@ export default function NavSubMenu(props) {
           disableTypography
           primary={<Typography variant='subtitle1'>{label}</Typography>}
         />
-        <ArrowDropDownIcon className={classes.parentItem} />
+        <ExpandMoreIcon
+          className={
+            classes.dropdown +
+            ' ' +
+            (isRoute ? classes.dropdownOpen : classes.dropdownClosed)
+          }
+        />
       </ListItem>
     )
   }
@@ -70,12 +77,12 @@ export default function NavSubMenu(props) {
       return (
         <NavLink
           exact
-          activeClassName={classes.subMenuSelected}
+          activeClassName={classes.navSelected}
           key={key}
-          className={classes.link}
+          className={classes.nav}
           to={route.path}
         >
-          <ListItem>
+          <ListItem button tabIndex={-1}>
             <ListItemText className={classes.subMenuLinkText}>
               {route.title}
             </ListItemText>
@@ -87,21 +94,21 @@ export default function NavSubMenu(props) {
     return subMenu
   }
 
-  function activeLink(match) {
-    if (!match) {
-      return handleClick(false)
-    }
-
-    return handleClick(true)
-  }
   return (
     <React.Fragment>
-      <NavLink to={path} className={classes.nav} isActive={activeLink}>
+      <NavLink to={path} className={classes.nav}>
         {renderParentLink(parentIcon, parentTitle)}
       </NavLink>
-      <Collapse in={open} timeout='auto' unmountOnExit>
+      <Collapse in={isRoute} mountOnEnter>
         <List className={classes.subMenu}>{renderSubMenu(subMenuRoutes)}</List>
       </Collapse>
     </React.Fragment>
   )
+}
+
+NavSubMenu.propTypes = {
+  parentIcon: p.object.isRequired,
+  parentTitle: p.string.isRequired,
+  path: p.string.isRequired,
+  subMenuRoutes: p.array.isRequired,
 }

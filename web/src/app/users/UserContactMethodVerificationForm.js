@@ -42,12 +42,16 @@ export default function UserContactMethodVerificationForm(props) {
   })
 
   function sendAndCatch() {
+    // Clear error on new actions.
+    props.setSendError(null)
     sendCode().catch(err => props.setSendError(err.message))
   }
 
-  // componentDidMount
+  // Attempt to send a code on load, but it's ok if it fails.
+  //
+  // We only want to display an error in response to a user action.
   useEffect(() => {
-    sendAndCatch()
+    sendCode().catch(() => {})
   }, [])
 
   return (
