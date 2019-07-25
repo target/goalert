@@ -208,7 +208,9 @@ type Mutation {
     input: CreateUserNotificationRuleInput!
   ): UserNotificationRule
   updateUserContactMethod(input: UpdateUserContactMethodInput!): Boolean!
-  sendContactMethodVerification(input: SendContactMethodVerificationInput!): Boolean!
+  sendContactMethodVerification(
+    input: SendContactMethodVerificationInput!
+  ): Boolean!
   verifyContactMethod(input: VerifyContactMethodInput!): Boolean!
 
   updateSchedule(input: UpdateScheduleInput!): Boolean!
@@ -651,6 +653,7 @@ type HeartbeatMonitor {
   timeoutMinutes: Int!
   lastState: HeartbeatMonitorState!
   lastHeartbeat: ISOTimestamp
+  href: String!
 }
 
 type Label {
