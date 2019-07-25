@@ -31,19 +31,17 @@ export default function HeartbeatMonitorListItem(props) {
         title='Copied!'
         placement='right'
       >
-        <React.Fragment>
-          <a
-            href={props.href}
-            onClick={e => {
-              e.preventDefault()
-              copyToClipboard(props.href)
-              setShowTooltip(true)
-            }}
-          >
-            <ContentCopy />
-            Click here to copy API key.
-          </a>
-        </React.Fragment>
+        <a
+          href={props.href}
+          onClick={e => {
+            e.preventDefault()
+            copyToClipboard(props.href)
+            setShowTooltip(true)
+          }}
+        >
+          <ContentCopy />
+          Click here to copy API key.
+        </a>
       </Tooltip>
     </React.Fragment>
   )

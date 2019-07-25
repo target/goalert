@@ -79,20 +79,18 @@ class IntegrationKeyDetails extends React.PureComponent {
         title='Copied!'
         placement='right'
       >
-        <React.Fragment>
-          <a
-            href={this.props.url}
-            onClick={e => {
-              e.preventDefault()
-              copyToClipboard(this.props.copy)
-              this.setState({ showTooltip: true })
-            }}
-            className={this.props.classes.keyLink}
-          >
-            <ContentCopy className={this.props.classes.copyIcon} />
-            {this.props.label}
-          </a>
-        </React.Fragment>
+        <a
+          href={this.props.url}
+          onClick={e => {
+            e.preventDefault()
+            copyToClipboard(this.props.copy)
+            this.setState({ showTooltip: true })
+          }}
+          className={this.props.classes.keyLink}
+        >
+          <ContentCopy className={this.props.classes.copyIcon} />
+          {this.props.label}
+        </a>
       </Tooltip>
     )
 
