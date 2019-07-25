@@ -117,22 +117,22 @@ export default class HeartbeatsList extends React.PureComponent {
     )
   }
 
-  renderList(beats) {
-    const items = (beats || [])
+  renderList(monitors) {
+    const items = (monitors || [])
       .slice()
       .sort(sortItems)
-      .map(beat => ({
-        title: beat.name,
+      .map(monitor => ({
+        title: monitor.name,
         subText: (
           <HeartbeatDetails
-            timeoutMinutes={beat.timeoutMinutes}
-            lastState={beat.lastState}
+            timeoutMinutes={monitor.timeoutMinutes}
+            lastState={monitor.lastState}
             lastHeartbeatTime={this.props.lastHeartbeatTime}
             classes={this.props.classes}
           />
         ),
         action: (
-          <IconButton onClick={() => this.setState({ delete: beat.id })}>
+          <IconButton onClick={() => this.setState({ delete: monitor.id })}>
             <Trash />
           </IconButton>
         ),
@@ -140,8 +140,8 @@ export default class HeartbeatsList extends React.PureComponent {
 
     return (
       <FlatList
-        data-cy='beats'
-        emptyMessage='No heartbeats exist for this service.'
+        data-cy='monitors'
+        emptyMessage='No monitors exist for this service.'
         items={items}
       />
     )
