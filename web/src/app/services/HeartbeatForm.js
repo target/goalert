@@ -11,17 +11,20 @@ const styles = theme => ({
   },
 })
 
+const clampTimeout = val =>
+  Number.isNaN(val) ? 5 : Math.min(Math.max(1, val), 9000)
+
 @withStyles(styles)
 export default class HeartbeatForm extends React.PureComponent {
   static propTypes = {
     value: p.shape({
       name: p.string,
-      duration: p.number,
+      duration: Number(p.string),
     }).isRequired,
 
     errors: p.arrayOf(
       p.shape({
-        field: p.oneOf(['name', 'duration']).isRequired,
+        field: p.oneOf(['name', 'timeoutMinutes']).isRequired,
         message: p.string.isRequired,
       }),
     ),
@@ -48,8 +51,12 @@ export default class HeartbeatForm extends React.PureComponent {
               fullWidth
               component={TextField}
               required
-              label='Duration'
-              name='duration'
+              type='number'
+              label='Timeout (minutes)'
+              name='timeoutMinutes'
+              min={1}
+              max={9000}
+              mapOnChangeValue={value => clampTimeout(parseInt(value, 10))}
             />
           </Grid>
         </Grid>
