@@ -21,7 +21,7 @@ const createMutation = gql`
 `
 
 export default function HeartbeatCreateDialog(props) {
-  const [value, setValue] = useState({ name: '', timeoutMinutes: 5 })
+  const [value, setValue] = useState({ name: '', timeoutMinutes: 15 })
   const [createHeartbeat, { loading, error }] = useMutation(createMutation, {
     refetchQueries: ['monitorQuery'],
     awaitRefetchQueries: true,

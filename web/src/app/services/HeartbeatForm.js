@@ -11,8 +11,12 @@ const styles = theme => ({
   },
 })
 
-const clampTimeout = val =>
-  Number.isNaN(val) ? 5 : Math.min(Math.max(1, val), 9000)
+const clampTimeout = val => {
+  const num = parseInt(val, 10)
+  if (Number.isNaN(num)) return val
+
+  return Math.min(Math.max(5, num), 9000)
+}
 
 @withStyles(styles)
 export default class HeartbeatForm extends React.PureComponent {
@@ -54,9 +58,9 @@ export default class HeartbeatForm extends React.PureComponent {
               type='number'
               label='Timeout (minutes)'
               name='timeoutMinutes'
-              min={1}
+              min={5}
               max={9000}
-              mapOnChangeValue={value => clampTimeout(parseInt(value, 10))}
+              mapOnChangeValue={clampTimeout}
             />
           </Grid>
         </Grid>
