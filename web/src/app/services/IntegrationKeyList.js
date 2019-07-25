@@ -8,15 +8,13 @@ import gql from 'graphql-tag'
 import { Link } from 'react-router-dom'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
-import ContentCopy from 'mdi-material-ui/ContentCopy'
-import copyToClipboard from '../util/copyToClipboard'
-import Tooltip from '@material-ui/core/Tooltip'
 import Query from '../util/Query'
 import IconButton from '@material-ui/core/IconButton'
 import { Trash } from '../icons'
 import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
 import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
 import RequireConfig from '../util/RequireConfig'
+import CopyText from '../util/CopyText'
 
 const query = gql`
   query($serviceID: ID!) {
@@ -73,25 +71,7 @@ class IntegrationKeyDetails extends React.PureComponent {
 
   render() {
     let tooltip = (
-      <Tooltip
-        onClose={() => this.setState({ showTooltip: false })}
-        open={this.state.showTooltip}
-        title='Copied!'
-        placement='right'
-      >
-        <a
-          href={this.props.url}
-          onClick={e => {
-            e.preventDefault()
-            copyToClipboard(this.props.copy)
-            this.setState({ showTooltip: true })
-          }}
-          className={this.props.classes.keyLink}
-        >
-          <ContentCopy className={this.props.classes.copyIcon} />
-          {this.props.label}
-        </a>
-      </Tooltip>
+      <CopyText title={'Copy ' + this.props.label} value={this.props.copy} />
     )
 
     // if link is not properly present, do not display to copy
