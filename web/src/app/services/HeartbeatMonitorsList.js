@@ -9,7 +9,7 @@ import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
 import HeartbeatCreateDialog from './HeartbeatCreateDialog'
 import { makeStyles } from '@material-ui/core'
-import {
+import HeartbeatMonitorListItem, {
   HeartbeatMonitorListItemActions,
   HeartbeatMonitorListItemAvatar,
 } from './HeartbeatMonitorListItem'
@@ -69,9 +69,12 @@ export default function HeartbeatMonitorsList(props) {
           />
         ),
         title: monitor.name,
-        subText: `Timeout: ${monitor.timeoutMinutes} minute${
-          monitor.timeoutMinutes > 1 ? 's' : ''
-        }`,
+        subText: (
+          <HeartbeatMonitorListItem
+            href={'http://copystring.com/'}
+            timeoutMinutes={monitor.timeoutMinutes}
+          />
+        ),
         secondaryAction: (
           <HeartbeatMonitorListItemActions
             monitorID={monitor.id}
