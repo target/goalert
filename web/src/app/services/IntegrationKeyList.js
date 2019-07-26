@@ -71,7 +71,7 @@ class IntegrationKeyDetails extends React.PureComponent {
 
   render() {
     let tooltip = (
-      <CopyText title={'Copy ' + this.props.label} value={this.props.copy} />
+      <CopyText title={'Copy ' + this.props.label} value={this.props.url} />
     )
 
     // if link is not properly present, do not display to copy
