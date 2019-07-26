@@ -56,8 +56,7 @@ const sortItems = (a, b) => {
 @withStyles(styles)
 class IntegrationKeyDetails extends React.PureComponent {
   static propTypes = {
-    url: p.string.isRequired,
-    copy: p.string.isRequired,
+    href: p.string.isRequired,
     label: p.string.isRequired,
     type: p.string.isRequired,
 
@@ -71,11 +70,11 @@ class IntegrationKeyDetails extends React.PureComponent {
 
   render() {
     let tooltip = (
-      <CopyText title={'Copy ' + this.props.label} value={this.props.url} />
+      <CopyText title={'Copy ' + this.props.label} value={this.props.href} />
     )
 
     // if link is not properly present, do not display to copy
-    if (this.props.type === 'email' && !this.props.url.startsWith('mailto:')) {
+    if (this.props.type === 'email' && !this.props.href.startsWith('mailto:')) {
       tooltip = null
     }
 
@@ -140,10 +139,6 @@ export default class IntegrationKeyList extends React.PureComponent {
   }
 
   renderList(keys) {
-    const getURL = url =>
-      url.startsWith('/') ? global.location.origin + url : url
-    const getCopy = key =>
-      key.type !== 'email' ? key.href : key.href.replace(/^mailto:/, '')
     const typeLabels = {
       generic: 'Generic API Key',
       grafana: 'Grafana Webhook URL',
@@ -158,8 +153,7 @@ export default class IntegrationKeyList extends React.PureComponent {
         subText: (
           <IntegrationKeyDetails
             key={key.id}
-            url={getURL(key.href)}
-            copy={getCopy(key)}
+            href={key.href}
             label={typeLabels[key.type]}
             type={key.type}
             classes={this.props.classes}
