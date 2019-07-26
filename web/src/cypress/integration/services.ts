@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
+import { italic } from 'ansi-colors'
 const c = new Chance()
 
 testScreen('Services', testServices)
@@ -200,6 +201,16 @@ function testServices(screen: ScreenFormat) {
       )
     })
 
+    it('should navigate to and from heartbeat monitors', () => {
+      cy.navigateToAndFrom(
+        screen,
+        'Service Details',
+        svc.name,
+        'Heartbeat Monitors',
+        `${svc.id}/heartbeat-monitors`,
+      )
+    })
+
     it('should navigate to and from labels', () => {
       cy.navigateToAndFrom(
         screen,
@@ -219,16 +230,45 @@ function testServices(screen: ScreenFormat) {
     })
     it('should create a monitor', () => {
       const name = c.word({ length: 5 }) + ' Monitor'
-      let timeout = Math.trunc(Math.random() * 10) + 1
+      let timeout = (Math.trunc(Math.random() * 10) + 1).toString()
 
       cy.pageFab()
       cy.get('input[name="name"]').type(name)
-      cy.get('input[name="timeoutMinutes"]').type(timeout.toString())
+      cy.get('input[name="timeoutMinutes"]').type(timeout)
       cy.get('*[role=dialog]')
         .find('button[type=submit]')
         .click()
-      cy.get('li').should('contain', name)
+      cy.get('li')
+        .should('contain', name)
+        .should('contain', timeout)
     })
+    /* it('should edit a monitor', () => {
+      const newName = c.word({ length: 5 }) + ' Monitor'
+      const newTimeout = (Math.trunc(Math.random() * 10) + 1).toString()
+
+      // TODO: Create a support monitor
+      cy.createMonitor().then(m => {
+        cy.get('li')
+        .should('contain', m.name)
+        .find('div')
+        .find('button[data-cy=other-actions]')
+        .menu('Edit')
+
+      cy.get('input[name="name"]')
+        .clear()
+        .type(newName)
+      cy.get('input[name="timeoutMinutes"]')
+        .clear()
+        .type(newTimeout)
+      cy.get('*[role=dialog]')
+        .find('button[type=submit]')
+        .click()
+
+      cy.get('li').should('contain', newName)
+      cy.get('li').should('contain', newTimeout)
+
+      })
+    }) */
   })
 
   describe('Integration Keys', () => {
