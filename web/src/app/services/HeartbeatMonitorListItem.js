@@ -74,6 +74,9 @@ HeartbeatMonitorListItemActions.propTypes = {
 }
 
 const useStyles = makeStyles({
+  container: {
+    width: 'min-content',
+  },
   unhealthy: {
     color: '#fff',
     backgroundColor: red[500],
@@ -98,7 +101,7 @@ export function HeartbeatMonitorListItemAvatar(props) {
   switch (props.lastState) {
     case 'healthy':
       return (
-        <Grid container>
+        <Grid container className={classes.container}>
           <Grid item xs={12}>
             <ListItemAvatar>
               <Avatar aria-label='Healthy' className={classes.healthy}>
@@ -113,7 +116,7 @@ export function HeartbeatMonitorListItemAvatar(props) {
       )
     case 'unhealthy':
       return (
-        <Grid container>
+        <Grid container className={classes.container}>
           <Grid item xs={12}>
             <ListItemAvatar>
               <Avatar aria-label='Unhealthy' className={classes.unhealthy}>
@@ -128,7 +131,7 @@ export function HeartbeatMonitorListItemAvatar(props) {
       )
     case 'inactive':
       return (
-        <Grid container>
+        <Grid container className={classes.container}>
           <Grid item xs={12}>
             <ListItemAvatar>
               <Avatar aria-label='Inactive'>
