@@ -7,7 +7,7 @@ export function formatTimeSince(_since, _now = DateTime.utc()) {
   const diff = now.diff(since)
 
   if (diff.as('minutes') < 1) {
-    return `<1m ago`
+    return `< 1m ago`
   }
 
   if (diff.as('hours') < 1) {

@@ -10,9 +10,9 @@ describe('formatTimeSince', () => {
     })
   }
 
-  check({ seconds: -1 }, '<1m ago')
-  check({ seconds: 1 }, '<1m ago')
-  check({ seconds: 59 }, '<1m ago')
+  check({ seconds: -1 }, '< 1m ago')
+  check({ seconds: 1 }, '< 1m ago')
+  check({ seconds: 59 }, '< 1m ago')
   check({ minutes: 1 }, '1m ago')
   check({ minutes: 1, seconds: 1 }, '1m ago')
   check({ hours: 1 }, '1h ago')
