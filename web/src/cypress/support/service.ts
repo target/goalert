@@ -17,6 +17,9 @@ declare global {
 
       /** Creates a label for a given service */
       createLabel: typeof createLabel
+
+      /** Creates a label for a given service */
+      createMonitor: typeof createMonitor
     }
   }
 
@@ -53,6 +56,20 @@ declare global {
     svc?: ServiceOptions
     key?: string
     value?: string
+  }
+
+  interface Monitor {
+    svcID: string
+    svc: Service
+    name: string
+    timeoutMinutes: number
+  }
+
+  interface MonitorOptions {
+    svcID?: string
+    svc?: Service
+    name?: string
+    timeoutMinutes?: number
   }
 }
 
@@ -162,7 +179,40 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
     }))
 }
 
+function createMonitor(monitor?: MonitorOptions): Cypress.Chainable<Monitor> {
+  if (!monitor) monitor = {}
+  if (!monitor.svcID) {
+    return cy
+      .createService(monitor.svc)
+      .then(s => createMonitor({ svcID: s.id, svc: s }))
+  }
+  const name = monitor.name || c.word({ length: 5 }) + ' Monitor'
+  let timeout = monitor.timeoutMinutes || Math.trunc(Math.random() * 10) + 1
+  const svcID = monitor.svcID
+
+  const query = `
+  mutation($input: CreateHeartbeatMonitorInput!) {
+    createHeartbeatMonitor(input: $input) {
+      id
+      serviceID
+      name
+      timeoutMinutes
+      lastState
+    }
+  }
+  `
+
+  return cy.graphql2(query, {
+    input: {
+      serviceID: svcID,
+      name: name,
+      timeoutMinutes: timeout,
+    },
+  })
+}
+
 Cypress.Commands.add('getService', getService)
 Cypress.Commands.add('createService', createService)
 Cypress.Commands.add('deleteService', deleteService)
 Cypress.Commands.add('createLabel', createLabel)
+Cypress.Commands.add('createMonitor', createMonitor)
