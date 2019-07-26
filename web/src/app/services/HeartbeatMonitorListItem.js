@@ -102,7 +102,9 @@ export function HeartbeatMonitorListItemAvatar(props) {
     return (
       <Grid item xs={12} className={classes.durationText}>
         <Typography variant='caption'>
-          {formatTimeSince(props.lastHeartbeat)}
+          {props.lastHeartbeat
+            ? formatTimeSince(props.lastHeartbeat)
+            : 'Inactive'}
         </Typography>
       </Grid>
     )
