@@ -211,6 +211,26 @@ function testServices(screen: ScreenFormat) {
     })
   })
 
+  describe('Heartbeat Monitors', () => {
+    beforeEach(() => {
+      cy.createService().then(s => {
+        return cy.visit(`/services/${s.id}/heartbeat-monitors`)
+      })
+    })
+    it('should create a monitor', () => {
+      const name = c.word({ length: 5 }) + ' Monitor'
+      let timeout = Math.trunc(Math.random() * 10) + 1
+
+      cy.pageFab()
+      cy.get('input[name="name"]').type(name)
+      cy.get('input[name="timeoutMinutes"]').type(timeout.toString())
+      cy.get('*[role=dialog]')
+        .find('button[type=submit]')
+        .click()
+      cy.get('li').should('contain', name)
+    })
+  })
+
   describe('Integration Keys', () => {
     let svc: Service
     beforeEach(() =>
