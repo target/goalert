@@ -9,6 +9,7 @@ const useStyles = makeStyles({
   copyContainer: {
     alignItems: 'center',
     display: 'flex',
+    width: 'fit-content',
   },
   icon: {
     paddingRight: 4,
