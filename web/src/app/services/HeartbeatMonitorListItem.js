@@ -74,8 +74,9 @@ HeartbeatMonitorListItemActions.propTypes = {
 }
 
 const useStyles = makeStyles({
-  container: {
+  gridContainer: {
     width: 'min-content',
+    marginRight: '1em',
   },
   unhealthy: {
     color: '#fff',
@@ -85,6 +86,13 @@ const useStyles = makeStyles({
     color: '#fff',
     backgroundColor: green[500],
   },
+  avatarContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  durationText: {
+    textAlign: 'center',
+  },
 })
 
 export function HeartbeatMonitorListItemAvatar(props) {
@@ -92,56 +100,52 @@ export function HeartbeatMonitorListItemAvatar(props) {
 
   function renderLastHeartbeat() {
     return (
-      <Typography variant='caption'>
-        {formatTimeSince(props.lastHeartbeat)}
-      </Typography>
+      <Grid item xs={12} className={classes.durationText}>
+        <Typography variant='caption'>
+          {formatTimeSince(props.lastHeartbeat)}
+        </Typography>
+      </Grid>
     )
   }
 
   switch (props.lastState) {
     case 'healthy':
       return (
-        <Grid container className={classes.container}>
+        <Grid container className={classes.gridContainer}>
           <Grid item xs={12}>
-            <ListItemAvatar>
+            <ListItemAvatar className={classes.avatarContainer}>
               <Avatar aria-label='Healthy' className={classes.healthy}>
                 <HealthyIcon />
               </Avatar>
             </ListItemAvatar>
           </Grid>
-          <Grid item xs={12}>
-            {renderLastHeartbeat()}
-          </Grid>
+          {renderLastHeartbeat()}
         </Grid>
       )
     case 'unhealthy':
       return (
-        <Grid container className={classes.container}>
+        <Grid container className={classes.gridContainer}>
           <Grid item xs={12}>
-            <ListItemAvatar>
+            <ListItemAvatar className={classes.avatarContainer}>
               <Avatar aria-label='Unhealthy' className={classes.unhealthy}>
                 <UnhealthyIcon />
               </Avatar>
             </ListItemAvatar>
           </Grid>
-          <Grid item xs={12}>
-            {renderLastHeartbeat()}
-          </Grid>
+          {renderLastHeartbeat()}
         </Grid>
       )
     case 'inactive':
       return (
-        <Grid container className={classes.container}>
+        <Grid container className={classes.gridContainer}>
           <Grid item xs={12}>
-            <ListItemAvatar>
+            <ListItemAvatar className={classes.avatarContainer}>
               <Avatar aria-label='Inactive'>
                 <InactiveIcon />
               </Avatar>
             </ListItemAvatar>
           </Grid>
-          <Grid item xs={12}>
-            {renderLastHeartbeat()}
-          </Grid>
+          {renderLastHeartbeat()}
         </Grid>
       )
     default:
