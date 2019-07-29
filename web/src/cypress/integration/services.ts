@@ -249,6 +249,7 @@ function testServices(screen: ScreenFormat) {
       cy.get('*[role=dialog]')
         .find('button[type=submit]')
         .click()
+      cy.get('*[role=dialog]').should('not.exist')
       cy.get('li')
         .should('contain', name)
         .should('contain', timeout)
@@ -274,6 +275,7 @@ function testServices(screen: ScreenFormat) {
         .find('button[type=submit]')
         .click()
 
+      cy.get('*[role=dialog]').should('not.exist')
       cy.get('li').should('contain', newName)
       cy.get('li').should('contain', newTimeout)
     })
