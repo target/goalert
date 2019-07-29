@@ -283,6 +283,7 @@ export default class AlertDetails extends Component {
   }
 
   renderAlertDetails() {
+    const { classes } = this.props
     const alert = this.props.data
     let details = (alert.details || '').trim()
     if (!details) return null
@@ -328,7 +329,9 @@ export default class AlertDetails extends Component {
       >
         <Card className={this.getCardClassName()}>
           <CardContent>
-            <Typography variant='h5'>Details</Typography>
+            <Typography component='h3' className={classes.mdSubtitle}>
+              Details
+            </Typography>
             <Typography
               variant='body1'
               style={{ whiteSpace: 'pre-wrap' }}

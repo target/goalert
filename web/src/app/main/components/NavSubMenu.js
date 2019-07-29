@@ -41,6 +41,9 @@ const useStyles = makeStyles(theme => {
     dropdownClosed: {
       transform: 'rotate(-90deg)',
     },
+    listItemText: {
+      color: theme.palette.primary['500'],
+    },
   }
 })
 
@@ -59,7 +62,13 @@ export default function NavSubMenu(props) {
         <ListItemText
           className={classes.parentItem}
           disableTypography
-          primary={<Typography variant='subtitle1'>{label}</Typography>}
+          primary={
+            <Typography
+              className={(classes.listItemText, classes.smallestSubtitle)}
+            >
+              {label}
+            </Typography>
+          }
         />
         <ExpandMoreIcon
           className={
