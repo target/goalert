@@ -29,7 +29,7 @@ func (m Monitor) Normalize() (*Monitor, error) {
 	err := validate.Many(
 		validate.UUID("ServiceID", m.ServiceID),
 		validate.IDName("Name", m.Name),
-		validate.Duration("TimeoutMinutes", m.Timeout, time.Minute, 9000*time.Minute),
+		validate.Duration("TimeoutMinutes", m.Timeout, 5*time.Minute, 9000*time.Minute),
 	)
 	if err != nil {
 		return nil, err
