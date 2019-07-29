@@ -292,6 +292,28 @@ function testServices(screen: ScreenFormat) {
 
       cy.get('li').should('not.contain', monitor.name)
     })
+
+    it('should handle canceling', () => {
+      cy.pageFab()
+      cy.get('div[role=dialog]').should(
+        'contain',
+        'Create New Heartbeat Monitor',
+      )
+      cy.get('div[role=dialog]')
+        .contains('button', 'Cancel')
+        .click()
+      cy.get('div[role=dialog]').should('not.exist')
+
+      cy.get('li')
+        .should('contain', monitor.name)
+        .find('div')
+        .find('button[data-cy=other-actions]')
+        .menu('Edit')
+      cy.get('*[role=dialog]')
+        .contains('button', 'Cancel')
+        .click()
+      cy.get('div[role=dialog]').should('not.exist')
+    })
   })
 
   describe('Integration Keys', () => {
