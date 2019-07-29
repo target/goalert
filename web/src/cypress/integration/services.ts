@@ -229,7 +229,7 @@ function testServices(screen: ScreenFormat) {
           .createMonitor({
             svcID: s.id,
             name: c.word({ length: 5 }) + ' Monitor',
-            timeoutMinutes: Math.trunc(Math.random() * 10) + 1,
+            timeoutMinutes: Math.trunc(Math.random() * 10) + 5,
           })
           .then(m => {
             monitor = m
@@ -240,7 +240,7 @@ function testServices(screen: ScreenFormat) {
 
     it('should create a monitor', () => {
       const name = c.word({ length: 5 }) + ' Monitor'
-      let timeout = (Math.trunc(Math.random() * 10) + 1).toString()
+      let timeout = (Math.trunc(Math.random() * 10) + 5).toString()
 
       cy.pageFab()
       cy.get('input[name="name"]').type(name)
@@ -256,7 +256,7 @@ function testServices(screen: ScreenFormat) {
 
     it('should edit a monitor', () => {
       const newName = c.word({ length: 5 })
-      const newTimeout = (Math.trunc(Math.random() * 10) + 1).toString()
+      const newTimeout = (Math.trunc(Math.random() * 10) + 5).toString()
 
       cy.get('li')
         .should('contain', monitor.name)
