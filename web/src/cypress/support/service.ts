@@ -186,29 +186,32 @@ function createMonitor(monitor?: MonitorOptions): Cypress.Chainable<Monitor> {
       .createService(monitor.svc)
       .then(s => createMonitor({ svcID: s.id, svc: s }))
   }
+
   const name = monitor.name || c.word({ length: 5 }) + ' Monitor'
   let timeout = monitor.timeoutMinutes || Math.trunc(Math.random() * 10) + 1
   const svcID = monitor.svcID
 
   const query = `
-  mutation($input: CreateHeartbeatMonitorInput!) {
-    createHeartbeatMonitor(input: $input) {
-      id
-      serviceID
-      name
-      timeoutMinutes
-      lastState
+    mutation($input: CreateHeartbeatMonitorInput!) {
+      createHeartbeatMonitor(input: $input) {
+        id
+        serviceID
+        name
+        timeoutMinutes
+        lastState
+      }
     }
-  }
   `
 
-  return cy.graphql2(query, {
-    input: {
-      serviceID: svcID,
-      name: name,
-      timeoutMinutes: timeout,
-    },
-  })
+  return cy
+    .graphql2(query, {
+      input: {
+        serviceID: svcID,
+        name: name,
+        timeoutMinutes: timeout,
+      },
+    })
+    .then(res => res.createHeartbeatMonitor)
 }
 
 Cypress.Commands.add('getService', getService)

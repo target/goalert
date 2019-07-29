@@ -223,11 +223,22 @@ function testServices(screen: ScreenFormat) {
   })
 
   describe('Heartbeat Monitors', () => {
+    let monitor: Monitor
     beforeEach(() => {
-      cy.createService().then(s => {
-        return cy.visit(`/services/${s.id}/heartbeat-monitors`)
-      })
+      cy.createService().then(s =>
+        cy
+          .createMonitor({
+            svcID: s.id,
+            name: c.word({ length: 5 }) + ' Monitor',
+            timeoutMinutes: Math.trunc(Math.random() * 10) + 1,
+          })
+          .then(m => {
+            monitor = m
+          })
+          .visit(`/services/${s.id}/heartbeat-monitors`),
+      )
     })
+
     it('should create a monitor', () => {
       const name = c.word({ length: 5 }) + ' Monitor'
       let timeout = (Math.trunc(Math.random() * 10) + 1).toString()
@@ -242,14 +253,13 @@ function testServices(screen: ScreenFormat) {
         .should('contain', name)
         .should('contain', timeout)
     })
-    /* it('should edit a monitor', () => {
-      const newName = c.word({ length: 5 }) + ' Monitor'
+
+    it('should edit a monitor', () => {
+      const newName = c.word({ length: 5 })
       const newTimeout = (Math.trunc(Math.random() * 10) + 1).toString()
 
-      // TODO: Create a support monitor
-      cy.createMonitor().then(m => {
-        cy.get('li')
-        .should('contain', m.name)
+      cy.get('li')
+        .should('contain', monitor.name)
         .find('div')
         .find('button[data-cy=other-actions]')
         .menu('Edit')
@@ -266,9 +276,7 @@ function testServices(screen: ScreenFormat) {
 
       cy.get('li').should('contain', newName)
       cy.get('li').should('contain', newTimeout)
-
-      })
-    }) */
+    })
   })
 
   describe('Integration Keys', () => {
