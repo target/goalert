@@ -46,7 +46,7 @@ export default function HeartbeatMonitorDeleteDialog(props) {
       <FormDialog
         title='Are you sure?'
         confirm
-        subTitle={`This will delete the heartbeat: ${name}`}
+        subTitle={`This will delete the heartbeat monitor: ${name}`}
         caption=''
         loading={loading}
         errors={nonFieldErrors(error)}

@@ -61,7 +61,7 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
   return (
     <FormDialog
       maxWidth='sm'
-      title='Edit Heartbeat'
+      title='Edit Heartbeat Monitor'
       loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}

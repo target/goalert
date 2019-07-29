@@ -37,7 +37,7 @@ export default function HeartbeatMonitorCreateDialog(props) {
   return (
     <FormDialog
       maxWidth='sm'
-      title='Create New Heartbeat'
+      title='Create New Heartbeat Monitor'
       loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
