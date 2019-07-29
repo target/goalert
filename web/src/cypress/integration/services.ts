@@ -277,6 +277,19 @@ function testServices(screen: ScreenFormat) {
       cy.get('li').should('contain', newName)
       cy.get('li').should('contain', newTimeout)
     })
+
+    it('should delete a monitor', () => {
+      cy.get('li')
+        .should('contain', monitor.name)
+        .find('div')
+        .find('button[data-cy=other-actions]')
+        .menu('Delete')
+      cy.get('*[role=dialog]')
+        .find('button[type=submit]')
+        .click()
+
+      cy.get('li').should('not.contain', monitor.name)
+    })
   })
 
   describe('Integration Keys', () => {
