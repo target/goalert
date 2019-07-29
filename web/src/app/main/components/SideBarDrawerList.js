@@ -105,7 +105,7 @@ export default class SideBarDrawerList extends React.PureComponent {
   renderSidebarItem = (IconComponent, label) => {
     const { classes } = this.props
     return (
-      <ListItem tabIndex={-1}>
+      <ListItem button tabIndex={-1}>
         <ListItemIcon>
           <IconComponent className={this.props.classes.navIcon} />
         </ListItemIcon>

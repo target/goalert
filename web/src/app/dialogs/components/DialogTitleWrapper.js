@@ -76,7 +76,7 @@ export default class DialogTitleWrapper extends Component {
             </Toolbar>
           </AppBar>
           <DialogContent style={{ overflowY: 'unset' }}>
-            <Typography component='p' variant='subtitle1'>
+            <Typography className={classes.smallestSubtitle}>
               {subTitle}
             </Typography>
           </DialogContent>
@@ -86,6 +86,12 @@ export default class DialogTitleWrapper extends Component {
       return (
         <React.Fragment>
           <DialogTitle key='title'> {title} </DialogTitle>
+          <DialogContent style={{ overflowY: 'unset' }}>
+            <Typography className={classes.smallestSubtitle}>
+              {subTitle}
+            </Typography>
+          </DialogContent>
+
           {menu}
         </React.Fragment>
       )
