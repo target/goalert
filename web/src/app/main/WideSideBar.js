@@ -2,7 +2,7 @@ import React from 'react'
 import withStyles from '@material-ui/core/styles/withStyles'
 import Drawer from '@material-ui/core/Drawer'
 
-const drawerWidth = '10.5em'
+const drawerWidth = '12em'
 const styles = theme => ({
   sidebarPaper: {
     width: drawerWidth,
