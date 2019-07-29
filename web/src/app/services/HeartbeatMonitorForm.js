@@ -15,7 +15,8 @@ const clampTimeout = val => {
   const num = parseInt(val, 10)
   if (Number.isNaN(num)) return val
 
-  return Math.min(Math.max(5, num), 9000)
+  // need to have the min be 1 here so you can type `10`
+  return Math.min(Math.max(1, num), 9000)
 }
 
 @withStyles(styles)
