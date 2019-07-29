@@ -293,6 +293,7 @@ function testServices(screen: ScreenFormat) {
     })
 
     it('should handle canceling', () => {
+      // cancel out of create
       cy.pageFab()
       cy.get('div[role=dialog]').should(
         'contain',
@@ -303,11 +304,23 @@ function testServices(screen: ScreenFormat) {
         .click()
       cy.get('div[role=dialog]').should('not.exist')
 
+      // cancel out of edit
       cy.get('li')
         .should('contain', monitor.name)
         .find('div')
         .find('button[data-cy=other-actions]')
         .menu('Edit')
+      cy.get('*[role=dialog]')
+        .contains('button', 'Cancel')
+        .click()
+      cy.get('div[role=dialog]').should('not.exist')
+
+      // cancel out of delete
+      cy.get('li')
+        .should('contain', monitor.name)
+        .find('div')
+        .find('button[data-cy=other-actions]')
+        .menu('Delete')
       cy.get('*[role=dialog]')
         .contains('button', 'Cancel')
         .click()
