@@ -1,6 +1,5 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
-import { italic } from 'ansi-colors'
 const c = new Chance()
 
 testScreen('Services', testServices)
