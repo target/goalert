@@ -7,7 +7,7 @@ import gql from 'graphql-tag'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
-import HeartbeatCreateDialog from './HeartbeatCreateDialog'
+import HeartbeatMonitorCreateDialog from './HeartbeatMonitorCreateDialog'
 import { makeStyles } from '@material-ui/core'
 import HeartbeatMonitorListItem, {
   HeartbeatMonitorListItemActions,
@@ -112,7 +112,7 @@ export default function HeartbeatMonitorsList(props) {
       </Grid>
       <CreateFAB onClick={() => setShowCreateDialog(true)} />
       {showCreateDialog && (
-        <HeartbeatCreateDialog
+        <HeartbeatMonitorCreateDialog
           serviceID={props.serviceID}
           onClose={() => setShowCreateDialog(false)}
         />

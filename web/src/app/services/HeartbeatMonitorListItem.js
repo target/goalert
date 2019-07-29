@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import HeartbeatDeleteDialog from './HeartbeatDeleteDialog'
+import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
 import OtherActions from '../util/OtherActions'
 import Avatar from '@material-ui/core/Avatar'
 import Grid from '@material-ui/core/Grid'
@@ -51,7 +51,7 @@ export function HeartbeatMonitorListItemActions(props) {
         ]}
       />
       {showDeleteDialog && (
-        <HeartbeatDeleteDialog
+        <HeartbeatMonitorDeleteDialog
           heartbeatID={props.monitorID}
           onClose={() => setShowDeleteDialog(false)}
           refetchQueries={props.refetchQueries}

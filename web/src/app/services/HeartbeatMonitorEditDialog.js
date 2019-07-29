@@ -4,7 +4,7 @@ import gql from 'graphql-tag'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 import FormDialog from '../dialogs/FormDialog'
-import HearbeatForm from './HeartbeatForm'
+import HeartbeatMonitorForm from './HeartbeatMonitorForm'
 import { useMutation } from '@apollo/react-hooks'
 
 const mutation = gql`
@@ -73,7 +73,7 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
         })
       }}
       form={
-        <HearbeatForm
+        <HeartbeatMonitorForm
           errors={fieldErrors(error)}
           disabled={loading}
           value={value}
