@@ -19,7 +19,7 @@ declare global {
       createLabel: typeof createLabel
 
       /** Creates a label for a given service */
-      createMonitor: typeof createMonitor
+      createHeartbeatMonitor: typeof createHeartbeatMonitor
     }
   }
 
@@ -58,14 +58,14 @@ declare global {
     value?: string
   }
 
-  interface Monitor {
+  interface HeartbeatMonitor {
     svcID: string
     svc: Service
     name: string
     timeoutMinutes: number
   }
 
-  interface MonitorOptions {
+  interface HeartbeatMonitorOptions {
     svcID?: string
     svc?: Service
     name?: string
@@ -179,16 +179,18 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
     }))
 }
 
-function createMonitor(monitor?: MonitorOptions): Cypress.Chainable<Monitor> {
+function createHeartbeatMonitor(
+  monitor?: HeartbeatMonitorOptions,
+): Cypress.Chainable<HeartbeatMonitor> {
   if (!monitor) monitor = {}
   if (!monitor.svcID) {
     return cy
       .createService(monitor.svc)
-      .then(s => createMonitor({ svcID: s.id, svc: s }))
+      .then(s => createHeartbeatMonitor({ svcID: s.id }))
   }
 
   const name = monitor.name || c.word({ length: 5 }) + ' Monitor'
-  let timeout = monitor.timeoutMinutes || Math.trunc(Math.random() * 10) + 1
+  let timeout = monitor.timeoutMinutes || Math.trunc(Math.random() * 30) + 5
   const svcID = monitor.svcID
 
   const query = `
@@ -211,11 +213,17 @@ function createMonitor(monitor?: MonitorOptions): Cypress.Chainable<Monitor> {
         timeoutMinutes: timeout,
       },
     })
-    .then(res => res.createHeartbeatMonitor)
+    .then(res => {
+      const mon = res.createHeartbeatMonitor
+      return getService(svcID).then(svc => {
+        mon.svc = svc
+        return mon
+      })
+    })
 }
 
 Cypress.Commands.add('getService', getService)
 Cypress.Commands.add('createService', createService)
 Cypress.Commands.add('deleteService', deleteService)
 Cypress.Commands.add('createLabel', createLabel)
-Cypress.Commands.add('createMonitor', createMonitor)
+Cypress.Commands.add('createHeartbeatMonitor', createHeartbeatMonitor)
