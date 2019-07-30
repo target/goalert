@@ -89,7 +89,7 @@
     "mdi-material-ui": "6.0.0",
     "moment": "^2.22.2",
     "react": "16.8.6",
-    "react-apollo": "2.5.6",
+    "react-apollo": "2.5.8",
     "react-beautiful-dnd": "11.0.4",
     "react-big-calendar": "0.21.0",
     "react-count-down": "^1.1.0",
