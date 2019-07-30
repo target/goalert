@@ -12,7 +12,7 @@ import { PageNotFound } from '../error-pages/Errors'
 import ServiceAlerts from './components/ServiceAlerts'
 
 import ServiceCreateDialog from './ServiceCreateDialog'
-import HeartbeatMonitorsList from './HeartbeatMonitorsList'
+import HeartbeatMonitorList from './HeartbeatMonitorList'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -56,7 +56,7 @@ export default class ServiceRouter extends React.PureComponent {
     <IntegrationKeyList serviceID={match.params.serviceID} />
   )
   renderHeartbeatMonitors = ({ match }) => (
-    <HeartbeatMonitorsList serviceID={match.params.serviceID} />
+    <HeartbeatMonitorList serviceID={match.params.serviceID} />
   )
   renderLabels = ({ match }) => (
     <ServiceLabelList serviceID={match.params.serviceID} />

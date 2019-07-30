@@ -9,15 +9,15 @@ import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
 import HeartbeatMonitorCreateDialog from './HeartbeatMonitorCreateDialog'
 import { makeStyles } from '@material-ui/core'
-import HeartbeatMonitorListItem, {
-  HeartbeatMonitorListItemActions,
-  HeartbeatMonitorListItemAvatar,
-} from './HeartbeatMonitorListItem'
+import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
+import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
+import OtherActions from '../util/OtherActions'
+import HeartbeatMonitorStatus from './HeartbeatMonitorStatus'
+import CopyText from '../util/CopyText'
 
 // generates a single alert if a POST is not received before the timeout
 const HEARTBEAT_MONITOR_DESCRIPTION =
-  'Creates an alert if no heartbeat is received after the set ' +
-  'duration after the last reported time.'
+  'Heartbeat monitors create an alert if no heartbeat is received (a POST request) before the configured timeout.'
 
 const query = gql`
   query monitorQuery($serviceID: ID!) {
@@ -54,9 +54,11 @@ const sortItems = (a, b) => {
   return 0
 }
 
-export default function HeartbeatMonitorsList(props) {
+export default function HeartbeatMonitorList(props) {
   const classes = useStyles()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [showEditDialogByID, setShowEditDialogByID] = useState(null)
+  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
   function renderList(monitors) {
     const items = (monitors || [])
@@ -64,22 +66,33 @@ export default function HeartbeatMonitorsList(props) {
       .sort(sortItems)
       .map(monitor => ({
         icon: (
-          <HeartbeatMonitorListItemAvatar
+          <HeartbeatMonitorStatus
             lastState={monitor.lastState}
             lastHeartbeat={monitor.lastHeartbeat}
           />
         ),
         title: monitor.name,
         subText: (
-          <HeartbeatMonitorListItem
-            href={monitor.href}
-            timeoutMinutes={monitor.timeoutMinutes}
-          />
+          <React.Fragment>
+            {`Timeout: ${monitor.timeoutMinutes} minute${
+              monitor.timeoutMinutes > 1 ? 's' : ''
+            }`}
+            <br />
+            <CopyText title='Copy URL' value={monitor.href} />
+          </React.Fragment>
         ),
         secondaryAction: (
-          <HeartbeatMonitorListItemActions
-            monitorID={monitor.id}
-            refetchQueries={['monitorQuery']}
+          <OtherActions
+            actions={[
+              {
+                label: 'Edit',
+                onClick: () => setShowEditDialogByID(monitor.id),
+              },
+              {
+                label: 'Delete',
+                onClick: () => setShowDeleteDialogByID(monitor.id),
+              },
+            ]}
           />
         ),
       }))
@@ -87,7 +100,7 @@ export default function HeartbeatMonitorsList(props) {
     return (
       <FlatList
         data-cy='monitors'
-        emptyMessage='No monitors exist for this service.'
+        emptyMessage='No heartbeat monitors exist for this service.'
         headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
         items={items}
       />
@@ -111,12 +124,27 @@ export default function HeartbeatMonitorsList(props) {
       {showCreateDialog && (
         <HeartbeatMonitorCreateDialog
           serviceID={props.serviceID}
+          refetchQueries={['monitorQuery']}
           onClose={() => setShowCreateDialog(false)}
+        />
+      )}
+      {showEditDialogByID && (
+        <HeartbeatMonitorEditDialog
+          monitorID={showEditDialogByID}
+          refetchQueries={['monitorQuery']}
+          onClose={() => setShowEditDialogByID(null)}
+        />
+      )}
+      {showDeleteDialogByID && (
+        <HeartbeatMonitorDeleteDialog
+          monitorID={showDeleteDialogByID}
+          refetchQueries={['monitorQuery']}
+          onClose={() => setShowDeleteDialogByID(null)}
         />
       )}
     </React.Fragment>
   )
 }
-HeartbeatMonitorsList.propTypes = {
+HeartbeatMonitorList.propTypes = {
   serviceID: p.string.isRequired,
 }
