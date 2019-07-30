@@ -23,17 +23,19 @@ func (app *App) listenEvents(ctx context.Context) error {
 				return
 			}
 
-			log.Debugf(log.WithFields(ctx, log.Fields{
-				"Channel": n.Channel,
-				"PID":     n.BePid,
-				"Extra":   n.Extra,
-			}), "NOTIFY")
+			if n!= nil {
+				log.Debugf(log.WithFields(ctx, log.Fields{
+					"Channel": n.Channel,
+					"PID":     n.BePid,
+					"Extra":   n.Extra,
+				}), "NOTIFY")
 
-			switch n.Channel {
-			case "/goalert/config-refresh":
-				permission.SudoContext(ctx, func(ctx context.Context) {
-					log.Log(ctx, app.ConfigStore.Reload(ctx))
-				})
+				switch n.Channel {
+				case "/goalert/config-refresh":
+					permission.SudoContext(ctx, func(ctx context.Context) {
+						log.Log(ctx, app.ConfigStore.Reload(ctx))
+					})
+				}
 			}
 		}
 	}
