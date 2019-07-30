@@ -25,14 +25,14 @@ export default function HeartbeatMonitorDeleteDialog(props) {
   const [deleteHeartbeat, { loading, error }] = useMutation(mutation, {
     refetchQueries: props.refetchQueries,
     awaitRefetchQueries: true,
-    variables: { id: props.heartbeatID },
+    variables: { id: props.monitorID },
   })
 
   function renderQuery() {
     return (
       <Query
         query={query}
-        variables={{ id: props.heartbeatID }}
+        variables={{ id: props.monitorID }}
         render={({ data }) => renderDialog(data.heartbeatMonitor.name)}
       />
     )
@@ -56,7 +56,7 @@ export default function HeartbeatMonitorDeleteDialog(props) {
 }
 
 HeartbeatMonitorDeleteDialog.propTypes = {
-  heartbeatID: p.string.isRequired,
+  monitorID: p.string.isRequired,
   onClose: p.func,
   refetchQueries: p.arrayOf(p.string),
 }
