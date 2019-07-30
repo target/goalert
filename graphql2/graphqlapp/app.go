@@ -186,7 +186,7 @@ func (a *App) Handler() http.Handler {
 			if e, ok := err.(*strconv.NumError); ok {
 				// gqlgen doesn't handle exponent notation numbers properly
 				// but we want to return a validation error instead of a 500 at least.
-				err = validation.NewFieldError("", "parse '"+e.Num+"': "+e.Err.Error())
+				err = validation.NewGenericError("parse '" + e.Num + "': " + e.Err.Error())
 			}
 			err = errutil.MapDBError(err)
 			isUnsafe, safeErr := errutil.ScrubError(err)
