@@ -8,6 +8,7 @@ import { connect } from 'react-redux'
 import { searchSelector } from '../selectors'
 import Query from '../util/Query'
 import { fieldAlias } from '../util/graphql'
+import Spinner from '../loading/components/Spinner'
 
 const mapStateToProps = state => ({
   search: searchSelector(state),
@@ -95,6 +96,10 @@ export default class QueryList extends React.PureComponent {
         loadMore = this.buildFetchMore(fetchMore, data.data.pageInfo.endCursor)
       }
     }
+
+    // react-router initializes without a key sometimes, need to wait for it to "correct"
+    if (!this.props.routeKey) return <Spinner />
+
     return (
       <PaginatedList
         {...listProps}
