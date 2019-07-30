@@ -90,9 +90,6 @@ export default function HeartbeatMonitorsList(props) {
         emptyMessage='No monitors exist for this service.'
         headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
         items={items}
-        secondaryTypographyProps={{
-          component: 'div',
-        }}
       />
     )
   }

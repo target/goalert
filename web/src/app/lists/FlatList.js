@@ -60,7 +60,6 @@ export default class FlatList extends React.PureComponent {
     //
     // onReorder(id, oldIndex, newIndex)
     onReorder: p.func,
-    secondaryTypographyProps: p.object,
   }
 
   static defaultProps = {
@@ -104,12 +103,7 @@ export default class FlatList extends React.PureComponent {
         <ListItemText
           primary={item.title}
           secondary={item.subText}
-          secondaryTypographyProps={{
-            style: {
-              whiteSpace: 'pre-line',
-            },
-            ...this.props.secondaryTypographyProps,
-          }}
+          secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
         />
         {item.secondaryAction && (
           <ListItemSecondaryAction>
@@ -181,7 +175,6 @@ export default class FlatList extends React.PureComponent {
       emptyMessage,
       headerNote,
       items,
-      secondaryTypographyProps, // so it's not used in spread
       ...otherProps
     } = this.props
     return (
