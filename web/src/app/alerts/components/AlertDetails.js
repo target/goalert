@@ -111,12 +111,11 @@ export default class AlertDetails extends Component {
   }
 
   renderAlertLogs() {
-    const { classes } = this.props
     return (
       <Card className={this.getCardClassName()}>
         <div style={{ display: 'flex' }}>
           <CardContent style={{ flex: 1, paddingBottom: 0 }}>
-            <Typography component='h3' className={classes.mdSubtitle}>
+            <Typography component='h3' variant='h5'>
               Event Log
             </Typography>
           </CardContent>
@@ -249,12 +248,11 @@ export default class AlertDetails extends Component {
 
   renderEscalationPolicy() {
     const alert = this.props.data
-    const { classes } = this.props
 
     return (
       <Card className={this.getCardClassName()} style={{ overflowX: 'auto' }}>
         <CardContent>
-          <Typography component='h3' className={classes.mdSubtitle}>
+          <Typography component='h3' variant='h5'>
             <Link
               to={`/escalation-policies/${alert.service.escalation_policy_id}`}
             >
@@ -283,7 +281,6 @@ export default class AlertDetails extends Component {
   }
 
   renderAlertDetails() {
-    const { classes } = this.props
     const alert = this.props.data
     let details = (alert.details || '').trim()
     if (!details) return null
@@ -329,7 +326,7 @@ export default class AlertDetails extends Component {
       >
         <Card className={this.getCardClassName()}>
           <CardContent>
-            <Typography component='h3' className={classes.mdSubtitle}>
+            <Typography component='h3' variant='h5'>
               Details
             </Typography>
             <Typography
@@ -453,7 +450,7 @@ export default class AlertDetails extends Component {
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography component='h2' className={classes.mdSubtitle}>
+                  <Typography component='h2' variant='h5'>
                     {alert.number}: {alert.summary}
                   </Typography>
                 </Grid>

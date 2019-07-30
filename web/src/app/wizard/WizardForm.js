@@ -27,13 +27,6 @@ const styles = {
   div: {
     paddingLeft: '3em',
   },
-  sectionHeading: {
-    fontSize: '1.25rem',
-    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: 500,
-    lineHeight: 1.6,
-    letterSpacing: '0.0075em',
-  },
 }
 
 @withStyles(styles)
@@ -55,9 +48,8 @@ export default class WizardForm extends React.PureComponent {
   }
 
   sectionHeading = text => {
-    const { classes } = this.props
     return (
-      <Typography component='h2' className={classes.sectionHeading}>
+      <Typography component='h2' variant='h6'>
         {text}{' '}
       </Typography>
     )

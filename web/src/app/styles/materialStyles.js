@@ -120,20 +120,6 @@ export const styles = theme => ({
   mobileGridSpacing: {
     marginBottom: '1em',
   },
-  smallestSubtitle: {
-    fontSize: '1rem',
-    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: 400,
-    lineHeight: 1.75,
-    letterSpacing: '0.00938em',
-  },
-  mdSubtitle: {
-    fontSize: '1.5rem',
-    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: 400,
-    lineHeight: 1.33,
-    letterSpacing: '0em',
-  },
   srOnly: {
     clip: 'rect(1px, 1px, 1px, 1px)',
     overflow: 'hidden',

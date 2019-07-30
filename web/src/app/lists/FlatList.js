@@ -139,6 +139,7 @@ export default class FlatList extends React.PureComponent {
                 component='h2'
                 variant='subtitle1'
                 color='textSecondary'
+                data-cy='flat-list-item-subheader'
               >
                 {item.subHeader}
               </Typography>

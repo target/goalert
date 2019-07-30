@@ -103,7 +103,6 @@ export default class SideBarDrawerList extends React.PureComponent {
   }
 
   renderSidebarItem = (IconComponent, label) => {
-    const { classes } = this.props
     return (
       <ListItem button tabIndex={-1}>
         <ListItemIcon>
@@ -113,7 +112,9 @@ export default class SideBarDrawerList extends React.PureComponent {
           disableTypography
           primary={
             <Typography
-              className={(classes.listItemText, classes.smallestSubtitle)}
+              variant='subtitle1'
+              component='p'
+              className={this.props.classes.listItemText}
             >
               {label}
             </Typography>

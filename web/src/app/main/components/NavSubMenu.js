@@ -64,7 +64,9 @@ export default function NavSubMenu(props) {
           disableTypography
           primary={
             <Typography
-              className={(classes.listItemText, classes.smallestSubtitle)}
+              variant='subtitle1'
+              component='p'
+              className={classes.listItemText}
             >
               {label}
             </Typography>

@@ -18,11 +18,9 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
 
 const styles = theme => {
-  const { dndDragging, mdSubtitle, smallestSubtitle } = globalStyles(theme)
+  const { dndDragging } = globalStyles(theme)
 
   return {
-    mdSubtitle,
-    smallestSubtitle,
     dndDragging,
     paddingTop: {
       paddingTop: '1em',
@@ -142,7 +140,7 @@ export default class PolicyStepsCard extends Component {
   }
 
   renderRepeatText = () => {
-    const { repeat, steps, classes } = this.props
+    const { repeat, steps } = this.props
 
     if (!steps.length) {
       return null
@@ -153,7 +151,11 @@ export default class PolicyStepsCard extends Component {
     else if (repeat === 1) text = 'Repeat once'
     else text = `Repeat ${repeat} times`
 
-    return <Typography className={classes.smallestSubtitle}>{text}</Typography>
+    return (
+      <Typography variant='subtitle1' component='p'>
+        {text}
+      </Typography>
+    )
   }
 
   renderNoSteps = () => {
@@ -180,7 +182,7 @@ export default class PolicyStepsCard extends Component {
 
     return (
       <React.Fragment>
-        <Typography className={classes.smallestSubtitle}>
+        <Typography component='p' variant='subtitle1'>
           Notify the following:
         </Typography>
         <Mutation
@@ -258,13 +260,12 @@ export default class PolicyStepsCard extends Component {
 
   render() {
     const { message: error } = this.state.error || {}
-    const { classes } = this.props
 
     return (
       <React.Fragment>
         <Card>
           <CardContent>
-            <Typography variant='h3' className={classes.mdSubtitle}>
+            <Typography variant='h5' component='h3'>
               Escalation Steps
             </Typography>
             {this.renderStepsList()}

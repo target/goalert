@@ -4,21 +4,8 @@ import DialogContent from '@material-ui/core/DialogContent'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import Error from '@material-ui/icons/Error'
-import { styles as globalStyles } from '../../styles/materialStyles'
+import { styles } from '../../styles/materialStyles'
 import { Zoom } from '@material-ui/core'
-
-const styles = theme => {
-  return {
-    ...globalStyles(theme),
-    subtitle: {
-      fontSize: '1rem',
-      fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-      fontWeight: 400,
-      lineHeight: 1.75,
-      letterSpacing: '0.00938em',
-    },
-  }
-}
 
 @withStyles(styles)
 export default class DialogContentError extends Component {
@@ -49,7 +36,11 @@ export default class DialogContentError extends Component {
     return (
       <DialogContent style={{ textAlign: 'center', ...style }} {...other}>
         <Zoom in>
-          <Typography className={classes.subtitle} style={{ display: 'flex' }}>
+          <Typography
+            component='p'
+            variant='subtitle1'
+            style={{ display: 'flex' }}
+          >
             <Error className={classes.error} />
             &nbsp;
             <span className={classes.error}>{error}</span>
