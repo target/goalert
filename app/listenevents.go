@@ -23,7 +23,7 @@ func (app *App) listenEvents(ctx context.Context) error {
 				return
 			}
 
-			if n!= nil {
+			if n != nil {
 				log.Debugf(log.WithFields(ctx, log.Fields{
 					"Channel": n.Channel,
 					"PID":     n.BePid,
