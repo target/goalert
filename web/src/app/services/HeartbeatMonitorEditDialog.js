@@ -31,6 +31,7 @@ export default function HeartbeatMonitorEditDialog(props) {
         <HeartbeatMonitorEditDialogContent
           props={props}
           data={data.heartbeatMonitor}
+          refetchQueries={props.refetchQueries}
         />
       )}
     />
@@ -52,6 +53,9 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
     refetchQueries: props.refetchQueries,
     awaitRefetchQueries: Boolean(props.refetchQueries),
     onCompleted: props.onClose,
+    variables: {
+      input: { id: props.monitorID, ...value },
+    },
   })
 
   useEffect(() => {
@@ -65,16 +69,13 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
       loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
-      onSubmit={() => {
-        return update({
-          variables: {
-            input: { ...value, id: props.monitorID },
-          },
-        })
-      }}
+      onSubmit={() => update()}
       form={
         <HeartbeatMonitorForm
-          errors={fieldErrors(error)}
+          errors={fieldErrors(error).map(f => ({
+            ...f,
+            field: f.field === 'timeout' ? 'timeoutMinutes' : f.field,
+          }))}
           disabled={loading}
           value={value}
           onChange={value => setValue(value)}

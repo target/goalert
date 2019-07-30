@@ -16,19 +16,16 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: [TargetInput!]!) {
-    deleteAll(input: $input)
+  mutation($id: ID!) {
+    deleteAll(input: [{ type: heartbeatMonitor, id: $id }])
   }
 `
 
 export default function HeartbeatMonitorDeleteDialog(props) {
   const [deleteHeartbeat, { loading, error }] = useMutation(mutation, {
-    refetchQueries: ['monitorQuery'],
+    refetchQueries: props.refetchQueries,
     awaitRefetchQueries: true,
     variables: { id: props.heartbeatID },
-    data: {
-      id: props.heartbeatID,
-    },
   })
 
   function renderQuery() {
@@ -47,23 +44,10 @@ export default function HeartbeatMonitorDeleteDialog(props) {
         title='Are you sure?'
         confirm
         subTitle={`This will delete the heartbeat monitor: ${name}`}
-        caption=''
         loading={loading}
         errors={nonFieldErrors(error)}
         onClose={props.onClose}
-        onSubmit={() => {
-          const input = [
-            {
-              type: 'heartbeatMonitor',
-              id: props.heartbeatID,
-            },
-          ]
-          return deleteHeartbeat({
-            variables: {
-              input,
-            },
-          }).then(props.onClose)
-        }}
+        onSubmit={() => deleteHeartbeat().then(props.onClose)}
       />
     )
   }
@@ -74,4 +58,5 @@ export default function HeartbeatMonitorDeleteDialog(props) {
 HeartbeatMonitorDeleteDialog.propTypes = {
   heartbeatID: p.string.isRequired,
   onClose: p.func,
+  refetchQueries: p.arrayOf(p.string),
 }

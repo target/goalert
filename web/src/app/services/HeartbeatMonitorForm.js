@@ -23,8 +23,8 @@ const clampTimeout = val => {
 export default class HeartbeatMonitorForm extends React.PureComponent {
   static propTypes = {
     value: p.shape({
-      name: p.string,
-      duration: Number(p.string),
+      name: p.string.isRequired,
+      timeoutMinutes: p.number.isRequired,
     }).isRequired,
 
     errors: p.arrayOf(

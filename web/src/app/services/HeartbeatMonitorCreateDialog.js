@@ -12,10 +12,6 @@ const createMutation = gql`
   mutation($input: CreateHeartbeatMonitorInput!) {
     createHeartbeatMonitor(input: $input) {
       id
-      serviceID
-      name
-      timeoutMinutes
-      lastState
     }
   }
 `
@@ -23,7 +19,7 @@ const createMutation = gql`
 export default function HeartbeatMonitorCreateDialog(props) {
   const [value, setValue] = useState({ name: '', timeoutMinutes: 15 })
   const [createHeartbeat, { loading, error }] = useMutation(createMutation, {
-    refetchQueries: ['monitorQuery'],
+    refetchQueries: props.refetchQueries,
     awaitRefetchQueries: true,
     variables: {
       input: {
@@ -60,4 +56,5 @@ export default function HeartbeatMonitorCreateDialog(props) {
 HeartbeatMonitorCreateDialog.propTypes = {
   serviceID: p.string.isRequired,
   onClose: p.func,
+  refetchQueries: p.arrayOf(p.string),
 }
