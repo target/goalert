@@ -13,13 +13,22 @@ export function resetURLParams(...keys) {
     keys.forEach(key => {
       q.delete(key)
     })
-    if (q.sort) q.sort()
 
-    const search = q.toString()
-    dispatch(
-      replace(state.router.location.pathname + (search ? '?' + search : '')),
-    )
+    setSearchStr(dispatch, state, q)
   }
+}
+
+const setSearchStr = (dispatch, state, searchParams) => {
+  if (searchParams.sort) searchParams.sort()
+  let newSearch = searchParams.toString()
+  newSearch = newSearch ? '?' + newSearch : ''
+
+  const { search, pathname, hash } = state.router.location
+  if (newSearch === search) {
+    // no action for no param change
+    return
+  }
+  dispatch(replace(pathname + newSearch + hash))
 }
 
 const sanitizeParam = value => {
@@ -61,12 +70,8 @@ export function setURLParam(name, _value, _default) {
     } else {
       q.delete(name)
     }
-    if (q.sort) q.sort()
 
-    const search = q.toString()
-    dispatch(
-      replace(state.router.location.pathname + (search ? '?' + search : '')),
-    )
+    setSearchStr(dispatch, state, q)
   }
 }
 

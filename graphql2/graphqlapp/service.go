@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/oncall"
@@ -99,6 +100,10 @@ func (s *Service) IntegrationKeys(ctx context.Context, raw *service.Service) ([]
 	return s.IntKeyStore.FindAllByService(ctx, raw.ID)
 }
 
+func (s *Service) HeartbeatMonitors(ctx context.Context, raw *service.Service) ([]heartbeat.Monitor, error) {
+	return s.HeartbeatStore.FindAllByService(ctx, raw.ID)
+}
+
 func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServiceInput) (result *service.Service, err error) {
 	if input.NewEscalationPolicy != nil && input.EscalationPolicyID != nil && *input.EscalationPolicyID != "" {
 		return nil, validation.NewFieldError("newEscalationPolicy", "cannot be used with `escalationPolicyID`.")
@@ -160,6 +165,14 @@ func (m *Mutation) CreateService(ctx context.Context, input graphql2.CreateServi
 			_, err = m.CreateIntegrationKey(ctx, key)
 			if err != nil {
 				return validation.AddPrefix("newIntegrationKeys["+strconv.Itoa(i)+"].", err)
+			}
+		}
+
+		for i, hb := range input.NewHeartbeatMonitors {
+			hb.ServiceID = result.ID
+			_, err = m.CreateHeartbeatMonitor(ctx, hb)
+			if err != nil {
+				return validation.AddPrefix("newHeartbeatMonitors["+strconv.Itoa(i)+"].", err)
 			}
 		}
 

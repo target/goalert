@@ -10,7 +10,7 @@ before(function() {
 
 // Fail-fast-single-file
 afterEach(function() {
-  if (this.currentTest.state === 'failed') {
+  if (this.currentTest && this.currentTest.state === 'failed') {
     cy.setCookie('has-failed-test', 'true')
     CY.runner.stop()
   }

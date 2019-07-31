@@ -28,6 +28,7 @@ import { CurrentUserAvatar } from '../../util/avatar'
 import { authLogout } from '../../actions'
 import { connect } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
+import NavSubMenu from './NavSubMenu'
 
 const navIcons = {
   Alerts: AlertsIcon,
@@ -48,10 +49,6 @@ const styles = theme => ({
   },
   logo: {
     padding: '0.5em',
-  },
-  navSelected: {
-    backgroundColor: '#ebebeb',
-    borderRight: '3px solid ' + theme.palette.primary['500'],
   },
   navIcon: {
     width: '1em',
@@ -129,11 +126,15 @@ export default class SideBarDrawerList extends React.PureComponent {
   renderAdmin() {
     const cfg = routeConfig.find(c => c.title === 'Admin')
 
-    return this.renderSidebarNavLink(
-      navIcons[cfg.title],
-      getPath(cfg),
-      cfg.title,
-      null,
+    return (
+      <NavSubMenu
+        parentIcon={navIcons[cfg.title]}
+        parentTitle={cfg.title}
+        path={getPath(cfg)}
+        subMenuRoutes={cfg.subRoutes}
+      >
+        {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
+      </NavSubMenu>
     )
   }
 
@@ -167,15 +168,27 @@ export default class SideBarDrawerList extends React.PureComponent {
         <List role='navigation' className={classes.list} data-cy='nav-list'>
           {routeConfig
             .filter(cfg => cfg.nav !== false)
-            .map((cfg, idx) =>
-              this.renderSidebarNavLink(
+            .map((cfg, idx) => {
+              if (cfg.subRoutes) {
+                return (
+                  <NavSubMenu
+                    key={idx}
+                    parentIcon={navIcons[cfg.title]}
+                    parentTitle={cfg.title}
+                    path={getPath(cfg)}
+                    subMenuRoutes={cfg.subRoutes}
+                  >
+                    {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
+                  </NavSubMenu>
+                )
+              }
+              return this.renderSidebarNavLink(
                 navIcons[cfg.title],
                 getPath(cfg),
                 cfg.title,
                 idx,
-              ),
-            )}
-
+              )
+            })}
           <RequireConfig isAdmin>
             <Divider aria-hidden />
             {this.renderAdmin()}

@@ -1,6 +1,9 @@
 package graphql
 
 import (
+	"time"
+
+	g "github.com/graphql-go/graphql"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -12,9 +15,6 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
-
-	g "github.com/graphql-go/graphql"
 )
 
 func parseUO(_m interface{}) (*override.UserOverride, error) {
@@ -103,7 +103,8 @@ func parseHeartbeatMonitor(_m interface{}) *heartbeat.Monitor {
 
 	var hb heartbeat.Monitor
 	hb.Name, _ = m["name"].(string)
-	hb.IntervalMinutes, _ = m["interval_minutes"].(int)
+	min, _ := m["interval_minutes"].(int)
+	hb.Timeout = time.Duration(min) * time.Minute
 	hb.ServiceID, _ = m["service_id"].(string)
 
 	return &hb

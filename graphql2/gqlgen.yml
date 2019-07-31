@@ -64,3 +64,7 @@ models:
     model: github.com/target/goalert/graphql2.ContactMethodType
   SlackChannel:
     model: github.com/target/goalert/notification/slack.Channel
+  HeartbeatMonitor:
+    model: github.com/target/goalert/heartbeat.Monitor
+  HeartbeatMonitorState:
+    model: github.com/target/goalert/heartbeat.State
