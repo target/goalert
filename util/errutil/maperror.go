@@ -1,12 +1,12 @@
 package errutil
 
 import (
-	"github.com/target/goalert/limit"
-	"github.com/target/goalert/validation"
 	"strings"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/limit"
+	"github.com/target/goalert/validation"
 )
 
 // MapDBError will map known DB errors (like unique names) to a valiation error
@@ -38,6 +38,9 @@ func MapDBError(err error) error {
 		}
 		if dbErr.Constraint == "user_notification_rules_contact_method_id_delay_minutes_key" {
 			return validation.NewFieldError("DelayMinutes", "notification rule already exists for that delay and contact method")
+		}
+		if dbErr.Constraint == "heartbeat_monitor_name_service_id" {
+			return validation.NewFieldError("Name", "heartbeat monitor already exists with that name")
 		}
 	case "23514": // check constraint
 		newErr := limit.MapError(dbErr)

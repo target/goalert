@@ -40,7 +40,9 @@ func (c *Config) deleteAll(ctx context.Context, data *deleteAllData) error {
 	deleteIDs(func(ctx context.Context, tx *sql.Tx, id string) error {
 		return c.OverrideStore.DeleteUserOverrideTx(ctx, tx, id)
 	}, data.UserOverrideIDs)
-	deleteIDs(c.HeartbeatStore.DeleteTx, data.HeartbeatMonitorIDs)
+	deleteIDs(func(ctx context.Context, tx *sql.Tx, id string) error {
+		return c.HeartbeatStore.DeleteTx(ctx, tx, id)
+	}, data.HeartbeatMonitorIDs)
 	deleteIDs(c.ScheduleRuleStore.DeleteTx, data.ScheduleRuleIDs)
 	deleteIDs(c.IntegrationKeyStore.DeleteTx, data.IntegrationKeyIDs)
 	deleteIDs(func(ctx context.Context, tx *sql.Tx, id string) error {
