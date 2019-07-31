@@ -142,7 +142,11 @@ export default class PolicyStep extends Component {
       } minute${pluralizer(step.delayMinutes)}`
     }
 
-    return <Typography variant='caption'>{repeatText}</Typography>
+    return (
+      <Typography variant='caption' component='p'>
+        {repeatText}
+      </Typography>
+    )
   }
 
   render() {
@@ -160,7 +164,7 @@ export default class PolicyStep extends Component {
         <ListItem id={index}>
           <Grid container spacing={2}>
             <Grid item className={classes.centerFlex}>
-              <Typography variant='subtitle1'>
+              <Typography component='h4' variant='subtitle1'>
                 <b>Step #{this.getStepNumber(step.id)}:</b>
               </Typography>
             </Grid>

@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => {
       padding: '0',
     },
     parentItem: {
-      color: theme.palette.primary['500'],
+      color: theme.palette.primary.main,
     },
     subMenuLinkText: {
       paddingLeft: '3.5rem',
@@ -40,6 +40,9 @@ const useStyles = makeStyles(theme => {
     },
     dropdownClosed: {
       transform: 'rotate(-90deg)',
+    },
+    listItemText: {
+      color: theme.palette.primary.main,
     },
   }
 })
@@ -59,7 +62,15 @@ export default function NavSubMenu(props) {
         <ListItemText
           className={classes.parentItem}
           disableTypography
-          primary={<Typography variant='subtitle1'>{label}</Typography>}
+          primary={
+            <Typography
+              variant='subtitle1'
+              component='p'
+              className={classes.listItemText}
+            >
+              {label}
+            </Typography>
+          }
         />
         <ExpandMoreIcon
           className={

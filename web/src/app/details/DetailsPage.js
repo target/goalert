@@ -135,11 +135,15 @@ export default class DetailsPage extends React.PureComponent {
               >
                 {title}
               </Typography>
-              <Typography data-cy='details' variant='subtitle1'>
+              <Typography data-cy='details' variant='subtitle1' component='div'>
                 <Markdown value={details} />
               </Typography>
               {titleFooter && (
-                <Typography variant='subtitle1' data-cy='title-footer'>
+                <Typography
+                  component='p'
+                  variant='subtitle1'
+                  data-cy='title-footer'
+                >
                   {titleFooter}
                 </Typography>
               )}
