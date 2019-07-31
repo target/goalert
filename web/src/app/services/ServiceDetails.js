@@ -21,7 +21,12 @@ const query = gql`
         id
         name
       }
+      heartbeatMonitors {
+        id
+        lastState
+      }
     }
+
     alerts(
       input: {
         filterByStatus: [StatusAcknowledged, StatusUnacknowledged]
@@ -46,6 +51,13 @@ const titleQuery = gql`
     }
   }
 `
+
+const hbStatus = h => {
+  if (!h || !h.length) return ''
+  if (h.every(m => m.lastState === 'healthy')) return 'ok'
+  if (h.some(m => m.lastState === 'unhealthy')) return 'err'
+  return 'warn'
+}
 
 export default class ServiceDetails extends React.PureComponent {
   static propTypes = {
@@ -106,6 +118,11 @@ export default class ServiceDetails extends React.PureComponent {
               label: 'Alerts',
               status: alertStatus,
               url: 'alerts',
+            },
+            {
+              label: 'Heartbeat Monitors',
+              url: 'heartbeat-monitors',
+              status: hbStatus(data.service.heartbeatMonitors),
             },
             {
               label: 'Integration Keys',
