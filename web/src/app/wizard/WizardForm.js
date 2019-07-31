@@ -50,7 +50,7 @@ export default class WizardForm extends React.PureComponent {
   sectionHeading = text => {
     return (
       <Typography component='h2' variant='h6'>
-        {text}{' '}
+        {text}
       </Typography>
     )
   }

@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => {
       padding: '0',
     },
     parentItem: {
-      color: theme.palette.primary['500'],
+      color: theme.palette.primary.main,
     },
     subMenuLinkText: {
       paddingLeft: '3.5rem',
@@ -42,7 +42,7 @@ const useStyles = makeStyles(theme => {
       transform: 'rotate(-90deg)',
     },
     listItemText: {
-      color: theme.palette.primary['500'],
+      color: theme.palette.primary.main,
     },
   }
 })
