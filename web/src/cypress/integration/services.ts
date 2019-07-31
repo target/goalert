@@ -222,11 +222,11 @@ function testServices(screen: ScreenFormat) {
   })
 
   describe('Heartbeat Monitors', () => {
-    let monitor: Monitor
+    let monitor: HeartbeatMonitor
     beforeEach(() => {
       cy.createService().then(s =>
         cy
-          .createMonitor({
+          .createHeartbeatMonitor({
             svcID: s.id,
             name: c.word({ length: 5 }) + ' Monitor',
             timeoutMinutes: Math.trunc(Math.random() * 10) + 5,
