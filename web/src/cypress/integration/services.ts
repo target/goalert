@@ -290,7 +290,10 @@ function testServices(screen: ScreenFormat) {
         .click()
 
       cy.get('li').should('not.contain', monitor.name)
-      cy.get('li').should('contain', 'No monitors exist for this service.')
+      cy.get('li').should(
+        'contain',
+        'No heartbeat monitors exist for this service.',
+      )
     })
 
     it('should handle canceling', () => {
