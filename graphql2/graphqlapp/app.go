@@ -4,6 +4,7 @@ import (
 	context "context"
 	"database/sql"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -11,10 +12,11 @@ import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/log"
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/notification"
@@ -40,25 +42,26 @@ import (
 )
 
 type App struct {
-	DB            *sql.DB
-	UserStore     user.Store
-	CMStore       contactmethod.Store
-	NRStore       notificationrule.Store
-	NCStore       notificationchannel.Store
-	AlertStore    alert.Store
-	AlertLogStore alertlog.Store
-	ServiceStore  service.Store
-	FavoriteStore favorite.Store
-	PolicyStore   escalation.Store
-	ScheduleStore schedule.Store
-	RotationStore rotation.Store
-	OnCallStore   oncall.Store
-	IntKeyStore   integrationkey.Store
-	LabelStore    label.Store
-	RuleStore     rule.Store
-	OverrideStore override.Store
-	ConfigStore   *config.Store
-	SlackStore    *slack.ChannelSender
+	DB             *sql.DB
+	UserStore      user.Store
+	CMStore        contactmethod.Store
+	NRStore        notificationrule.Store
+	NCStore        notificationchannel.Store
+	AlertStore     alert.Store
+	AlertLogStore  alertlog.Store
+	ServiceStore   service.Store
+	FavoriteStore  favorite.Store
+	PolicyStore    escalation.Store
+	ScheduleStore  schedule.Store
+	RotationStore  rotation.Store
+	OnCallStore    oncall.Store
+	IntKeyStore    integrationkey.Store
+	LabelStore     label.Store
+	RuleStore      rule.Store
+	OverrideStore  override.Store
+	ConfigStore    *config.Store
+	SlackStore     *slack.ChannelSender
+	HeartbeatStore heartbeat.Store
 
 	NotificationStore notification.Store
 
@@ -180,6 +183,11 @@ func (a *App) Handler() http.Handler {
 			return res, err
 		}),
 		handler.ErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+			if e, ok := err.(*strconv.NumError); ok {
+				// gqlgen doesn't handle exponent notation numbers properly
+				// but we want to return a validation error instead of a 500 at least.
+				err = validation.NewGenericError("parse '" + e.Num + "': " + e.Err.Error())
+			}
 			err = errutil.MapDBError(err)
 			isUnsafe, safeErr := errutil.ScrubError(err)
 			if isUnsafe {
