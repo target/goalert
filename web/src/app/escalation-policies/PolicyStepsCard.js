@@ -151,7 +151,11 @@ export default class PolicyStepsCard extends Component {
     else if (repeat === 1) text = 'Repeat once'
     else text = `Repeat ${repeat} times`
 
-    return <Typography variant='subtitle1'>{text}</Typography>
+    return (
+      <Typography variant='subtitle1' component='p'>
+        {text}
+      </Typography>
+    )
   }
 
   renderNoSteps = () => {
@@ -178,7 +182,9 @@ export default class PolicyStepsCard extends Component {
 
     return (
       <React.Fragment>
-        <Typography variant='subtitle1'>Notify the following:</Typography>
+        <Typography component='p' variant='subtitle1'>
+          Notify the following:
+        </Typography>
         <Mutation
           client={graphql2Client}
           mutation={gql`
@@ -208,7 +214,7 @@ export default class PolicyStepsCard extends Component {
               <Droppable droppableId='droppable'>
                 {(provided, _) => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
-                    <List data-cy='steps-list' disablePadding>
+                    <List data-cy='steps-list'>
                       {steps.map((step, index) => (
                         <Draggable
                           key={step.id}
@@ -259,7 +265,9 @@ export default class PolicyStepsCard extends Component {
       <React.Fragment>
         <Card>
           <CardContent>
-            <Typography variant='h5'>Escalation Steps</Typography>
+            <Typography variant='h5' component='h3'>
+              Escalation Steps
+            </Typography>
             {this.renderStepsList()}
             {this.renderRepeatText()}
           </CardContent>

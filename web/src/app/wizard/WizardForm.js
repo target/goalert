@@ -47,6 +47,14 @@ export default class WizardForm extends React.PureComponent {
     this.forceUpdate()
   }
 
+  sectionHeading = text => {
+    return (
+      <Typography component='h2' variant='h6'>
+        {text}
+      </Typography>
+    )
+  }
+
   render() {
     const { classes, onChange, value } = this.props
 
@@ -57,7 +65,7 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='1' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Team Details</Typography>
+            {this.sectionHeading('Team Details')}
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>
@@ -76,14 +84,14 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='2' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Primary Schedule</Typography>
+            {this.sectionHeading('Primary Schedule')}
           </Grid>
           <WizardScheduleForm onChange={onChange} value={value} />
           <Grid item className={classes.stepItem}>
             <StepIcon icon='3' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Secondary Schedule</Typography>
+            {this.sectionHeading('Secondary Schedule')}
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>
@@ -122,7 +130,7 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='4' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Escalation Policy</Typography>
+            {this.sectionHeading('Escalation Policy')}
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>
@@ -160,7 +168,7 @@ export default class WizardForm extends React.PureComponent {
             <StepIcon icon='5' />
           </Grid>
           <Grid item xs={10}>
-            <Typography variant='h6'>Service</Typography>
+            {this.sectionHeading('Service')}
           </Grid>
           <Grid item xs={12}>
             <div className={classes.div}>

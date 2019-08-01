@@ -178,7 +178,11 @@ export default class CalendarToolbar extends React.PureComponent {
           </Button>
         </Grid>
         <Grid item className={classes.abs}>
-          <Typography data-cy='calendar-header' variant='subtitle1'>
+          <Typography
+            component='p'
+            data-cy='calendar-header'
+            variant='subtitle1'
+          >
             {label}
           </Typography>
         </Grid>

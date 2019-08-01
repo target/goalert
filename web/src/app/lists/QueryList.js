@@ -11,6 +11,7 @@ import { fieldAlias } from '../util/graphql'
 
 const mapStateToProps = state => ({
   search: searchSelector(state),
+  routeKey: state.router.location.key,
 })
 
 @connect(mapStateToProps)
@@ -44,6 +45,7 @@ export default class QueryList extends React.PureComponent {
 
     // provided by redux
     search: p.string,
+    routeKey: p.string,
   }
 
   static defaultProps = {
@@ -93,10 +95,11 @@ export default class QueryList extends React.PureComponent {
         loadMore = this.buildFetchMore(fetchMore, data.data.pageInfo.endCursor)
       }
     }
+
     return (
       <PaginatedList
         {...listProps}
-        key={this.props.search}
+        key={this.props.routeKey}
         items={items}
         loadMore={loadMore}
         isLoading={loading}

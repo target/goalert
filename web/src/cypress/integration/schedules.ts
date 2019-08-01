@@ -150,8 +150,11 @@ function testSchedules(screen: ScreenFormat) {
           .contains('Shifts')
           .click()
         cy.reload()
-        cy.get('h6').should('contain', 'Today')
-        cy.get('h6').should('contain', 'Tomorrow')
+        cy.get('[data-cy=flat-list-item-subheader]').should('contain', 'Today')
+        cy.get('[data-cy=flat-list-item-subheader]').should(
+          'contain',
+          'Tomorrow',
+        )
         cy.get('p').should('contain', 'Showing shifts')
       })
     })

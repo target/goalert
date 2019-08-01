@@ -55,6 +55,8 @@ type (
 	ContactMethodTarget string
 	// NotificationRuleTarget implements the Target interface by wrapping an NotificationRule ID.
 	NotificationRuleTarget string
+	// HeartbeatMonitorTarget implements the Target interface by wrapping a HeartbeatMonitor ID.
+	HeartbeatMonitorTarget string
 )
 
 // TargetType implements the Target interface.
@@ -122,3 +124,9 @@ func (NotificationRuleTarget) TargetType() TargetType { return TargetTypeNotific
 
 // TargetID implements the Target interface.
 func (k NotificationRuleTarget) TargetID() string { return string(k) }
+
+// TargetType implements the Target interface.
+func (HeartbeatMonitorTarget) TargetType() TargetType { return TargetTypeHeartbeatMonitor }
+
+// TargetID implements the Target interface.
+func (k HeartbeatMonitorTarget) TargetID() string { return string(k) }

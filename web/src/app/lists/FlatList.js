@@ -135,7 +135,12 @@ export default class FlatList extends React.PureComponent {
         if (item.subHeader) {
           return (
             <ListSubheader key={idx} className={this.props.classes.background}>
-              <Typography variant='subtitle1' color='textSecondary'>
+              <Typography
+                component='h2'
+                variant='subtitle1'
+                color='textSecondary'
+                data-cy='flat-list-item-subheader'
+              >
                 {item.subHeader}
               </Typography>
             </ListSubheader>
