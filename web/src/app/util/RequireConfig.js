@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import p from 'prop-types'
 import Query from './Query'
 import gql from 'graphql-tag'
@@ -71,6 +71,32 @@ function isTrue(value) {
   return Boolean(value)
 }
 
+const mapConfig = value =>
+  _.chain(value.config)
+    .groupBy('id')
+    .mapValues(v => parseValue(v[0].type, v[0].value))
+    .value()
+
+// useSessionInfo returns an object with `isAdmin` true if the current
+// session is an admin, and a `userID` value set to the current users ID.
+export function useSessionInfo() {
+  const info = _.pick(useContext(ConfigContext), 'isAdmin', 'userID')
+  info.ready = Boolean(info.userID) // no user ID if not loaded
+  return info
+}
+
+// useConfig will return the current public configuration as an object
+// like:
+//
+// ```js
+// {
+//   "Mailgun.Enable": true
+// }
+// ```
+export function useConfig() {
+  return mapConfig(useContext(ConfigContext).config)
+}
+
 export class Config extends React.PureComponent {
   render() {
     return (
@@ -85,10 +111,7 @@ export class Config extends React.PureComponent {
               }
               etc..
             */
-            _.chain(value.config)
-              .groupBy('id')
-              .mapValues(v => parseValue(v[0].type, v[0].value))
-              .value(),
+            mapConfig(value.config),
             {
               isAdmin: value.isAdmin,
               userID: value.userID,
