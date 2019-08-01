@@ -140,7 +140,7 @@ export default class DetailsPage extends React.PureComponent {
               </Typography>
               {titleFooter && (
                 <Typography
-                  component='p'
+                  component='div'
                   variant='subtitle1'
                   data-cy='title-footer'
                 >
