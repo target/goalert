@@ -90,7 +90,7 @@ export default class RotationDetails extends React.PureComponent {
 
         <CreateFAB
           onClick={() => this.setState({ addUser: true })}
-          title='add user to rotation'
+          title='Add User'
         />
         {this.state.addUser && (
           <RotationAddUserDialog

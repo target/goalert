@@ -100,7 +100,7 @@ export default class ServiceLabelList extends React.PureComponent {
         </Grid>
         <CreateFAB
           onClick={() => this.setState({ create: true })}
-          title='Add service label'
+          title='Add Label'
         />
         {this.state.create && (
           <ServiceLabelSetDialog

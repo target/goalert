@@ -123,7 +123,7 @@ export default function HeartbeatMonitorList(props) {
       </Grid>
       <CreateFAB
         onClick={() => setShowCreateDialog(true)}
-        title='Create heartbeat monitor'
+        title='Create Heartbeat Monitor'
       />
       {showCreateDialog && (
         <HeartbeatMonitorCreateDialog
