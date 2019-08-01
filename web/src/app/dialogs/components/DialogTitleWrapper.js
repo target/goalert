@@ -15,6 +15,16 @@ const styles = theme => {
   const { topRightActions } = globalStyles(theme)
 
   return {
+    appBar: {
+      marginBottom: '1em',
+    },
+    appBarTitle: {
+      fontSize: '1.2em',
+      flex: 1,
+    },
+    subtitle: {
+      overflowY: 'unset',
+    },
     topRightActions,
     wideScreenTitle: {
       paddingBottom: 0,
@@ -73,7 +83,7 @@ export default class DialogTitleWrapper extends Component {
     let subtitle
     if (subTitle) {
       subtitle = (
-        <DialogContent style={{ overflowY: 'unset' }}>
+        <DialogContent className={classes.subtitle}>
           <Typography variant='subtitle1' component='p'>
             {subTitle}
           </Typography>
@@ -84,13 +94,10 @@ export default class DialogTitleWrapper extends Component {
     if (fullScreen) {
       return (
         <React.Fragment>
-          <AppBar position='sticky' style={{ marginBottom: '1em' }}>
+          <AppBar position='sticky' className={classes.appBar}>
             <Toolbar>
               {closeButton}
-              <Typography
-                color='inherit'
-                style={{ fontSize: '1.2em', flex: 1 }}
-              >
+              <Typography color='inherit' className={classes.appBarTitle}>
                 {title}
               </Typography>
               {toolbarItems}
