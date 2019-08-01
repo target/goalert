@@ -104,8 +104,7 @@ export default class DialogTitleWrapper extends Component {
       return (
         <React.Fragment>
           <DialogTitle className={classes.wideScreenTitle} key='title'>
-            {' '}
-            {title}{' '}
+            {title}
           </DialogTitle>
           {subtitle}
           {menu}
