@@ -5,7 +5,7 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
 import moment from 'moment'
-import BigCalendar from 'react-big-calendar'
+import { Calendar, momentLocalizer } from 'react-big-calendar'
 import '../../node_modules/react-big-calendar/lib/css/react-big-calendar.css'
 import CalendarEventWrapper from './CalendarEventWrapper'
 import CalendarToolbar from './CalendarToolbar'
@@ -15,7 +15,7 @@ import { urlParamSelector } from '../selectors'
 import { DateTime, Interval } from 'luxon'
 import { theme } from '../mui'
 
-const localizer = BigCalendar.momentLocalizer(moment)
+const localizer = momentLocalizer(moment)
 
 const styles = {
   calendarContainer: {
@@ -196,7 +196,7 @@ export default class ScheduleCalendar extends React.PureComponent {
         </Typography>
         <Card>
           <div className={classes.calendarContainer}>
-            <BigCalendar
+            <Calendar
               date={new Date(start)}
               localizer={localizer}
               events={this.getCalEvents(shifts)}
