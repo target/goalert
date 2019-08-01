@@ -72,7 +72,7 @@ function isTrue(value) {
 }
 
 const mapConfig = value =>
-  _.chain(value.config)
+  _.chain(value)
     .groupBy('id')
     .mapValues(v => parseValue(v[0].type, v[0].value))
     .value()
