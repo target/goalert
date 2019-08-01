@@ -12,7 +12,8 @@ export default class SimpleListPage extends React.PureComponent {
   }
 
   render() {
-    const { createForm, ...queryProps } = this.props
+    const { createForm, createLabel, ...queryProps } = this.props
+    console.log(window.document, window.location)
     return (
       <React.Fragment>
         <PageActions>
@@ -24,7 +25,7 @@ export default class SimpleListPage extends React.PureComponent {
         {createForm && (
           <CreateFAB
             onClick={() => this.setState({ create: true })}
-            title='create new'
+            title={`Create ${createLabel}`}
           />
         )}
 

@@ -6,8 +6,9 @@ import Tooltip from '@material-ui/core/Tooltip'
 
 export default function CreateFAB(props) {
   const { onClick, title } = props
+
   return (
-    <Tooltip title={title} aria-label={title}>
+    <Tooltip title={title} aria-label={title} placement='left'>
       <Fab
         aria-label='Create New'
         data-cy='page-fab'

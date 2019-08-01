@@ -67,7 +67,7 @@ export default class CreateAlertFab extends Component {
 
     return (
       <React.Fragment>
-        <Tooltip title='Create new alert'>
+        <Tooltip title='Add alert' aria-label='Add alert' placement='left'>
           <Fab
             data-cy='page-fab'
             className={classnames(classes.fab, transitionClass)}

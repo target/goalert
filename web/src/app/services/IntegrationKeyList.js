@@ -113,7 +113,7 @@ export default class IntegrationKeyList extends React.PureComponent {
         </Grid>
         <CreateFAB
           onClick={() => this.setState({ create: true })}
-          title='create new integration key'
+          title='Add integration key'
         />
         {this.state.create && (
           <IntegrationKeyCreateDialog

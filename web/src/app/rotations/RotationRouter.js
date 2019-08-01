@@ -51,6 +51,7 @@ export default class RotationRouter extends React.PureComponent {
         isFavorite: n.isFavorite,
       })}
       createForm={<RotationCreateDialog />}
+      createLabel='Rotation'
     />
   )
 }

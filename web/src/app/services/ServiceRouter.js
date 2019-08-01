@@ -43,6 +43,7 @@ export default class ServiceRouter extends React.PureComponent {
         isFavorite: n.isFavorite,
       })}
       createForm={<ServiceCreateDialog />}
+      createLabel='Service'
     />
   )
 
