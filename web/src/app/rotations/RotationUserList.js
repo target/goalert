@@ -5,7 +5,6 @@ import { graphql2Client } from '../apollo'
 import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
 import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
 import CardHeader from '@material-ui/core/CardHeader'
 import { reorderList, calcNewActiveIndex } from './util'
 import { Mutation } from 'react-apollo'
@@ -67,13 +66,11 @@ export default class RotationUserList extends React.PureComponent {
             component='h3'
             title='Users'
           />
-          <CardContent>
-            <Query
-              query={rotationUsersQuery}
-              render={({ data }) => this.renderMutation(data)}
-              variables={{ id: this.props.rotationID }}
-            />
-          </CardContent>
+          <Query
+            query={rotationUsersQuery}
+            render={({ data }) => this.renderMutation(data)}
+            variables={{ id: this.props.rotationID }}
+          />
         </Card>
         {this.state.deleteIndex !== null && (
           <RotationUserDeleteDialog
