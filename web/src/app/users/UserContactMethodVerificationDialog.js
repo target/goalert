@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import Query from '../util/Query'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
-import { useConfig } from '../util/RequireConfig'
+import { useConfigValue } from '../util/RequireConfig'
 import { useMutation } from '@apollo/react-hooks'
 
 /*
@@ -47,13 +47,12 @@ export default function UserContactMethodVerificationDialog(props) {
     refetchQueries: ['cmList'],
     onCompleted: props.onClose,
   })
-  const config = useConfig()
+  const [fromNumber] = useConfigValue('Twilio.FromNumber')
 
   // dialog rendered that handles rendering the verification form
   function renderDialog(cm) {
     const { loading, error } = status
     const fieldErrs = fieldErrors(error)
-    const fromNumber = config['Twilio.FromNumber']
 
     let caption = null
     if (fromNumber && cm.type === 'SMS') {

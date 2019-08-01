@@ -99,6 +99,18 @@ export function useConfig() {
   return mapConfig(useContext(ConfigContext).config)
 }
 
+// useConfigValue will return an array of config values
+// for the provided fields.
+//
+// Example:
+// ```js
+// const [mailgun, slack] = useConfigValue('Mailgun.Enable', 'Slack.Enable')
+// ```
+export function useConfigValue(...fields) {
+  const config = useConfig()
+  return fields.map(f => config[f])
+}
+
 export class Config extends React.PureComponent {
   render() {
     return (
