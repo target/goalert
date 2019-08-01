@@ -120,4 +120,10 @@ export const styles = theme => ({
   mobileGridSpacing: {
     marginBottom: '1em',
   },
+  srOnly: {
+    clip: 'rect(1px, 1px, 1px, 1px)',
+    overflow: 'hidden',
+    height: 1,
+    width: 1,
+  },
 })

@@ -113,6 +113,7 @@ export default class SideBarDrawerList extends React.PureComponent {
           primary={
             <Typography
               variant='subtitle1'
+              component='p'
               className={this.props.classes.listItemText}
             >
               {label}

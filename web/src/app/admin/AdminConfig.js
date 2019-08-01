@@ -96,6 +96,7 @@ export default class AdminConfig extends React.PureComponent {
             >
               <Grid item xs={12}>
                 <Typography
+                  component='h2'
                   variant='subtitle1'
                   color='textSecondary'
                   classes={{

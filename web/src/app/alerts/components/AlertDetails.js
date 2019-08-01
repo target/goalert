@@ -115,7 +115,9 @@ export default class AlertDetails extends Component {
       <Card className={this.getCardClassName()}>
         <div style={{ display: 'flex' }}>
           <CardContent style={{ flex: 1, paddingBottom: 0 }}>
-            <Typography variant='h5'>Event Log</Typography>
+            <Typography component='h3' variant='h5'>
+              Event Log
+            </Typography>
           </CardContent>
           <FormControlLabel
             control={
@@ -250,7 +252,7 @@ export default class AlertDetails extends Component {
     return (
       <Card className={this.getCardClassName()} style={{ overflowX: 'auto' }}>
         <CardContent>
-          <Typography variant='h5'>
+          <Typography component='h3' variant='h5'>
             <Link
               to={`/escalation-policies/${alert.service.escalation_policy_id}`}
             >
@@ -324,7 +326,9 @@ export default class AlertDetails extends Component {
       >
         <Card className={this.getCardClassName()}>
           <CardContent>
-            <Typography variant='h5'>Details</Typography>
+            <Typography component='h3' variant='h5'>
+              Details
+            </Typography>
             <Typography
               variant='body1'
               style={{ whiteSpace: 'pre-wrap' }}
@@ -446,7 +450,7 @@ export default class AlertDetails extends Component {
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant='h5'>
+                  <Typography component='h2' variant='h5'>
                     {alert.number}: {alert.summary}
                   </Typography>
                 </Grid>

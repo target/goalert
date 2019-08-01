@@ -22,5 +22,13 @@ export const theme = createMuiTheme({
     secondary: grey,
     error: red,
   },
+
+  // override default props
+  props: {
+    MuiList: {
+      disablePadding: true,
+    },
+  },
+
   ...testOverrides,
 })
