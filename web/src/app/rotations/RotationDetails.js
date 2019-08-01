@@ -88,7 +88,10 @@ export default class RotationDetails extends React.PureComponent {
           pageFooter={<RotationUserList rotationID={this.props.rotationID} />}
         />
 
-        <CreateFAB onClick={() => this.setState({ addUser: true })} />
+        <CreateFAB
+          onClick={() => this.setState({ addUser: true })}
+          title='Add User'
+        />
         {this.state.addUser && (
           <RotationAddUserDialog
             rotationID={this.props.rotationID}

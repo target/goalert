@@ -3,7 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import Fab from '@material-ui/core/Fab'
 import AddIcon from '@material-ui/icons/Add'
 import classnames from 'classnames'
-
+import Tooltip from '@material-ui/core/Tooltip'
 import AlertForm from './AlertForm'
 import withStyles from '@material-ui/core/styles/withStyles'
 
@@ -67,14 +67,20 @@ export default class CreateAlertFab extends Component {
 
     return (
       <React.Fragment>
-        <Fab
-          data-cy='page-fab'
-          className={classnames(classes.fab, transitionClass)}
-          color='primary'
-          onClick={() => this.handleShowForm(true)}
+        <Tooltip
+          title='Create Alert'
+          aria-label='Create Alert'
+          placement='left'
         >
-          <AddIcon />
-        </Fab>
+          <Fab
+            data-cy='page-fab'
+            className={classnames(classes.fab, transitionClass)}
+            color='primary'
+            onClick={() => this.handleShowForm(true)}
+          >
+            <AddIcon />
+          </Fab>
+        </Tooltip>
         <AlertForm
           open={this.state.showForm}
           handleRequestClose={() => this.handleShowForm(false)}

@@ -7,8 +7,9 @@ import Search from '../util/Search'
 import QueryList from '../lists/QueryList'
 import UserDetails from './UserDetails'
 import { PageNotFound } from '../error-pages/Errors'
-import { Config } from '../util/RequireConfig'
+import { useSessionInfo } from '../util/RequireConfig'
 import UserOnCallAssignmentList from './UserOnCallAssignmentList'
+import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -48,11 +49,16 @@ class UserList extends React.PureComponent {
 }
 
 function UserProfile() {
-  return (
-    <Config>
-      {(cfg, meta) => meta.userID && <UserDetails userID={meta.userID} />}
-    </Config>
-  )
+  const { userID, ready } = useSessionInfo()
+  if (!ready) return <Spinner />
+
+  return <UserDetails userID={userID} />
+}
+
+function UserOnCallAssignments() {
+  const { userID, ready } = useSessionInfo()
+  if (!ready) return <Spinner />
+  return <UserOnCallAssignmentList userID={userID} currentUser />
 }
 
 export default class UserRouter extends Component {
@@ -71,15 +77,7 @@ export default class UserRouter extends Component {
         <Route
           exact
           path='/profile/on-call-assignments'
-          render={({ match }) => (
-            <Config>
-              {(cfg, meta) =>
-                meta.userID && (
-                  <UserOnCallAssignmentList userID={meta.userID} currentUser />
-                )
-              }
-            </Config>
-          )}
+          component={UserOnCallAssignments}
         />
         <Route
           exact

@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import Card from '@material-ui/core/Card'
 import InfoIcon from '@material-ui/icons/Info'
 import List from '@material-ui/core/List'
-import Grid from '@material-ui/core/Grid'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Snackbar from '@material-ui/core/Snackbar'
@@ -325,31 +324,23 @@ export default class AlertsList extends Component {
           serviceID={serviceID}
           transition={fullScreen && (showFavoritesWarning || actionComplete)}
         />
-        <Grid item container>
-          <Grid item container>
-            <Card style={{ width: '100%' }}>
-              <Hidden mdDown>
-                <AlertsListControls />
-              </Hidden>
-              <List
-                id='alerts-list'
-                style={{ padding: 0 }}
-                data-cy='alerts-list'
-              >
-                <InfiniteScroll
-                  next={() => loadMore(this.getQueryData(offset))}
-                  dataLength={len}
-                  hasMore={hasMore}
-                  loader={null}
-                  scrollThreshold={(len - 20) / len}
-                  style={{ overflow: 'hidden' }}
-                >
-                  {content}
-                </InfiniteScroll>
-              </List>
-            </Card>
-          </Grid>
-        </Grid>
+        <Card style={{ width: '100%' }}>
+          <Hidden mdDown>
+            <AlertsListControls />
+          </Hidden>
+          <List id='alerts-list' style={{ padding: 0 }} data-cy='alerts-list'>
+            <InfiniteScroll
+              next={() => loadMore(this.getQueryData(offset))}
+              dataLength={len}
+              hasMore={hasMore}
+              loader={null}
+              scrollThreshold={(len - 20) / len}
+              style={{ overflow: 'hidden' }}
+            >
+              {content}
+            </InfiniteScroll>
+          </List>
+        </Card>
       </React.Fragment>
     )
   }

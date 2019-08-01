@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import Query from '../util/Query'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
-import { Config } from '../util/RequireConfig'
+import { useConfig } from '../util/RequireConfig'
 import { useMutation } from '@apollo/react-hooks'
 
 /*
@@ -47,55 +47,48 @@ export default function UserContactMethodVerificationDialog(props) {
     refetchQueries: ['cmList'],
     onCompleted: props.onClose,
   })
+  const config = useConfig()
 
   // dialog rendered that handles rendering the verification form
   function renderDialog(cm) {
     const { loading, error } = status
     const fieldErrs = fieldErrors(error)
+    const fromNumber = config['Twilio.FromNumber']
 
+    let caption = null
+    if (fromNumber && cm.type === 'SMS') {
+      caption = `If you do not receive a code, try sending UNSTOP to ${fromNumber} before resending.`
+    }
     return (
-      <Config>
-        {config => {
-          const fromNumber = config['Twilio.FromNumber']
-
-          let caption = null
-          if (fromNumber && cm.type === 'SMS') {
-            caption = `If you do not receive a code, try sending UNSTOP to ${fromNumber} before resending.`
-          }
-
-          return (
-            <FormDialog
-              title='Verify Contact Method'
-              subTitle={`A verification code has been sent to ${cm.formattedValue} (${cm.type})`}
-              caption={caption}
-              loading={loading}
-              errors={
-                sendError
-                  ? [{ message: sendError, nonSubmit: true }].concat(
-                      nonFieldErrors(error),
-                    )
-                  : nonFieldErrors(error)
-              }
-              data-cy='verify-form'
-              onClose={props.onClose}
-              onSubmit={() => {
-                setSendError('')
-                return submitVerify()
-              }}
-              form={
-                <UserContactMethodVerificationForm
-                  contactMethodID={cm.id}
-                  errors={fieldErrs}
-                  setSendError={setSendError}
-                  disabled={loading}
-                  value={value}
-                  onChange={value => setValue(value)}
-                />
-              }
-            />
-          )
+      <FormDialog
+        title='Verify Contact Method'
+        subTitle={`A verification code has been sent to ${cm.formattedValue} (${cm.type})`}
+        caption={caption}
+        loading={loading}
+        errors={
+          sendError
+            ? [{ message: sendError, nonSubmit: true }].concat(
+                nonFieldErrors(error),
+              )
+            : nonFieldErrors(error)
+        }
+        data-cy='verify-form'
+        onClose={props.onClose}
+        onSubmit={() => {
+          setSendError('')
+          return submitVerify()
         }}
-      </Config>
+        form={
+          <UserContactMethodVerificationForm
+            contactMethodID={cm.id}
+            errors={fieldErrs}
+            setSendError={setSendError}
+            disabled={loading}
+            value={value}
+            onChange={value => setValue(value)}
+          />
+        }
+      />
     )
   }
 

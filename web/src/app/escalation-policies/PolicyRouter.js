@@ -33,6 +33,7 @@ export default class PolicyRouter extends PureComponent {
         url: n.id,
       })}
       createForm={<PolicyCreateDialog />}
+      createLabel='Escalation Policy'
     />
   )
 
