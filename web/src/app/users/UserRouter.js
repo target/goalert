@@ -49,8 +49,8 @@ class UserList extends React.PureComponent {
 }
 
 function UserProfile() {
-  const { userID } = useSessionInfo()
-  if (!userID) return null
+  const { userID, ready } = useSessionInfo()
+  if (!ready) return <Spinner />
 
   return <UserDetails userID={userID} />
 }
