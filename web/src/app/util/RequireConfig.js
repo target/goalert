@@ -77,8 +77,10 @@ const mapConfig = value =>
     .mapValues(v => parseValue(v[0].type, v[0].value))
     .value()
 
-// useSessionInfo returns an object with `isAdmin` true if the current
-// session is an admin, and a `userID` value set to the current users ID.
+// useSessionInfo returns an object with the following properties:
+// - `isAdmin` true if the current session is an admin
+// - `userID` the current users ID
+// - `ready` true if session/config info is available (e.g. before initial page load/fetch)
 export function useSessionInfo() {
   const info = _.pick(useContext(ConfigContext), 'isAdmin', 'userID')
   info.ready = Boolean(info.userID) // no user ID if not loaded
