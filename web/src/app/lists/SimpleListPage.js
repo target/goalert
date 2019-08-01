@@ -13,7 +13,6 @@ export default class SimpleListPage extends React.PureComponent {
 
   render() {
     const { createForm, createLabel, ...queryProps } = this.props
-    console.log(window.document, window.location)
     return (
       <React.Fragment>
         <PageActions>

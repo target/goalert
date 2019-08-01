@@ -76,7 +76,7 @@ export default class PolicyDetails extends PureComponent {
         />
         <CreateFAB
           onClick={() => this.props.setCreateStep(true)}
-          title='Add policy step'
+          title='Create policy step'
         />
         {this.props.createStep && (
           <PolicyStepCreateDialog
