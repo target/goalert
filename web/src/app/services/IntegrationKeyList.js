@@ -111,7 +111,10 @@ export default class IntegrationKeyList extends React.PureComponent {
             <CardContent>{this.renderQuery()}</CardContent>
           </Card>
         </Grid>
-        <CreateFAB onClick={() => this.setState({ create: true })} />
+        <CreateFAB
+          onClick={() => this.setState({ create: true })}
+          title='create new integration key'
+        />
         {this.state.create && (
           <IntegrationKeyCreateDialog
             serviceID={this.props.serviceID}

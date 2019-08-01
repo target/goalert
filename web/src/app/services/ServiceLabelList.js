@@ -98,7 +98,10 @@ export default class ServiceLabelList extends React.PureComponent {
             <CardContent>{this.renderQuery()}</CardContent>
           </Card>
         </Grid>
-        <CreateFAB onClick={() => this.setState({ create: true })} />
+        <CreateFAB
+          onClick={() => this.setState({ create: true })}
+          title='create new service label'
+        />
         {this.state.create && (
           <ServiceLabelSetDialog
             serviceID={this.props.serviceID}

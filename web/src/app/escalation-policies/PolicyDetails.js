@@ -74,7 +74,10 @@ export default class PolicyDetails extends PureComponent {
             <PolicyStepsQuery escalationPolicyID={data.escalationPolicy.id} />
           }
         />
-        <CreateFAB onClick={() => this.props.setCreateStep(true)} />
+        <CreateFAB
+          onClick={() => this.props.setCreateStep(true)}
+          title='create new policy step'
+        />
         {this.props.createStep && (
           <PolicyStepCreateDialog
             escalationPolicyID={data.escalationPolicy.id}

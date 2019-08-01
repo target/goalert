@@ -22,7 +22,10 @@ export default class SimpleListPage extends React.PureComponent {
         <QueryList {...queryProps} />
 
         {createForm && (
-          <CreateFAB onClick={() => this.setState({ create: true })} />
+          <CreateFAB
+            onClick={() => this.setState({ create: true })}
+            title='create new'
+          />
         )}
 
         {this.state.create &&
