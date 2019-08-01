@@ -62,7 +62,7 @@ export default class AdminConfigSection extends React.PureComponent {
 
     return (
       <FormContainer>
-        <List disablePadding>
+        <List>
           {fields.map((f, idx) => {
             const Field = components[f.type]
 

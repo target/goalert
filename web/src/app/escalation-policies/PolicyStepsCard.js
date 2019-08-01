@@ -214,7 +214,7 @@ export default class PolicyStepsCard extends Component {
               <Droppable droppableId='droppable'>
                 {(provided, _) => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
-                    <List data-cy='steps-list' disablePadding>
+                    <List data-cy='steps-list'>
                       {steps.map((step, index) => (
                         <Draggable
                           key={step.id}
