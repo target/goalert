@@ -83,14 +83,14 @@ export default class AdminConfig extends React.PureComponent {
       <React.Fragment>
         <Grid
           container
-          spacing={3}
+          spacing={2}
           className={this.props.classes.gridContainer}
         >
           {groups.map((groupID, index) => (
             <Grid
               key={index}
-              container
-              item
+              container // contains title above card/card itself
+              item // for each admin config section
               xs={12}
               className={this.props.classes.gridItem}
             >
