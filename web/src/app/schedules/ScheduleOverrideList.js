@@ -133,44 +133,40 @@ export default class ScheduleOverrideList extends React.PureComponent {
             onClick={variant => this.setState({ create: variant })}
           />
         </PageActions>
-        <Grid item container>
-          <QueryList
-            headerNote={note}
-            noSearch
-            noPlaceholder
-            query={query}
-            mapDataNode={n => ({
-              title: n.addUser ? n.addUser.name : n.removeUser.name,
-              subText: subText(n),
-              icon: (
-                <UserAvatar
-                  userID={n.addUser ? n.addUser.id : n.removeUser.id}
-                />
-              ),
-              action: (
-                <OtherActions
-                  actions={[
-                    {
-                      label: 'Edit',
-                      onClick: () => this.setState({ editID: n.id }),
-                    },
-                    {
-                      label: 'Delete',
-                      onClick: () => this.setState({ deleteID: n.id }),
-                    },
-                  ]}
-                />
-              ),
-            })}
-            variables={{
-              input: {
-                scheduleID: this.props.scheduleID,
-                start: this.props.showPast ? null : new Date().toISOString(),
-                filterAnyUserID: this.props.userFilter,
-              },
-            }}
-          />
-        </Grid>
+        <QueryList
+          headerNote={note}
+          noSearch
+          noPlaceholder
+          query={query}
+          mapDataNode={n => ({
+            title: n.addUser ? n.addUser.name : n.removeUser.name,
+            subText: subText(n),
+            icon: (
+              <UserAvatar userID={n.addUser ? n.addUser.id : n.removeUser.id} />
+            ),
+            action: (
+              <OtherActions
+                actions={[
+                  {
+                    label: 'Edit',
+                    onClick: () => this.setState({ editID: n.id }),
+                  },
+                  {
+                    label: 'Delete',
+                    onClick: () => this.setState({ deleteID: n.id }),
+                  },
+                ]}
+              />
+            ),
+          })}
+          variables={{
+            input: {
+              scheduleID: this.props.scheduleID,
+              start: this.props.showPast ? null : new Date().toISOString(),
+              filterAnyUserID: this.props.userFilter,
+            },
+          }}
+        />
         {this.state.create && (
           <ScheduleOverrideCreateDialog
             scheduleID={this.props.scheduleID}
