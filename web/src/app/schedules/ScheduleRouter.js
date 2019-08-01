@@ -40,6 +40,7 @@ class ScheduleList extends React.PureComponent {
           isFavorite: n.isFavorite,
         })}
         createForm={<ScheduleCreateDialog />}
+        createLabel='Schedule'
       />
     )
   }

@@ -121,7 +121,10 @@ export default function HeartbeatMonitorList(props) {
           </CardContent>
         </Card>
       </Grid>
-      <CreateFAB onClick={() => setShowCreateDialog(true)} />
+      <CreateFAB
+        onClick={() => setShowCreateDialog(true)}
+        title='Create Heartbeat Monitor'
+      />
       {showCreateDialog && (
         <HeartbeatMonitorCreateDialog
           serviceID={props.serviceID}
