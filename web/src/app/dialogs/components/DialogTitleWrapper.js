@@ -8,8 +8,19 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import CloseIcon from '@material-ui/icons/Close'
 import DropDownMenu from '../../dialogs/components/DropDownMenu'
-import { styles } from '../../styles/materialStyles'
+import { styles as globalStyles } from '../../styles/materialStyles'
 import { DialogContent } from '@material-ui/core'
+
+const styles = theme => {
+  const { topRightActions } = globalStyles(theme)
+
+  return {
+    topRightActions,
+    wideScreenTitle: {
+      paddingBottom: 0,
+    },
+  }
+}
 
 /**
  * Renders a fullscreen dialog with an app bar if on a small
@@ -59,6 +70,17 @@ export default class DialogTitleWrapper extends Component {
       )
     }
 
+    let subtitle
+    if (subTitle) {
+      subtitle = (
+        <DialogContent style={{ overflowY: 'unset' }}>
+          <Typography variant='subtitle1' component='p'>
+            {subTitle}
+          </Typography>
+        </DialogContent>
+      )
+    }
+
     if (fullScreen) {
       return (
         <React.Fragment>
@@ -75,23 +97,17 @@ export default class DialogTitleWrapper extends Component {
               {menu}
             </Toolbar>
           </AppBar>
-          <DialogContent style={{ overflowY: 'unset' }}>
-            <Typography variant='subtitle1' component='p'>
-              {subTitle}
-            </Typography>
-          </DialogContent>
+          {subtitle}
         </React.Fragment>
       )
     } else {
       return (
         <React.Fragment>
-          <DialogTitle key='title'> {title} </DialogTitle>
-          <DialogContent style={{ overflowY: 'unset' }}>
-            <Typography variant='subtitle1' component='p'>
-              {subTitle}
-            </Typography>
-          </DialogContent>
-
+          <DialogTitle className={classes.wideScreenTitle} key='title'>
+            {' '}
+            {title}{' '}
+          </DialogTitle>
+          {subtitle}
           {menu}
         </React.Fragment>
       )
