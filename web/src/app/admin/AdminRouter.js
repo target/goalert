@@ -1,12 +1,11 @@
 import React from 'react'
-import { Switch, Route, Redirect } from 'react-router-dom'
+import { Switch, Route } from 'react-router-dom'
 import { GenericError, PageNotFound } from '../error-pages/Errors'
 import AdminConfig from './AdminConfig'
 import RequireConfig from '../util/RequireConfig'
 
 export const AdminRouter = () => (
   <Switch>
-    <Route exact path='/admin' render={() => <Redirect to='/admin/config' />} />
     <Route
       exact
       path='/admin/config'
