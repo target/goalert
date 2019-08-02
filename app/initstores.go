@@ -36,11 +36,18 @@ import (
 func (app *App) initStores(ctx context.Context) error {
 	var err error
 
+	if app.KeyStore == nil {
+		app.KeyStore, err = keyring.NewKeyStore(ctx, app.db, app.cfg.EncryptionPassphrases)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init keystore")
+	}
+
 	if app.ConfigStore == nil {
 		var fallback url.URL
 		fallback.Scheme = "http"
 		fallback.Host = app.l.Addr().String()
-		app.ConfigStore, err = config.NewStore(ctx, app.db, app.cfg.EncryptionKeys, fallback.String())
+		app.ConfigStore, err = config.NewStore(ctx, app.db, app.KeyStore, fallback.String())
 	}
 	if err != nil {
 		return errors.Wrap(err, "init config store")
@@ -58,7 +65,7 @@ func (app *App) initStores(ctx context.Context) error {
 			Name:         "oauth-state",
 			RotationDays: 1,
 			MaxOldKeys:   1,
-			Keys:         app.cfg.EncryptionKeys,
+			Keys:         app.KeyStore,
 		})
 	}
 	if err != nil {
@@ -70,7 +77,7 @@ func (app *App) initStores(ctx context.Context) error {
 			Name:         "browser-sessions",
 			RotationDays: 1,
 			MaxOldKeys:   30,
-			Keys:         app.cfg.EncryptionKeys,
+			Keys:         app.KeyStore,
 		})
 	}
 	if err != nil {

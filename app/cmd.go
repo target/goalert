@@ -19,7 +19,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
-	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/remotemonitor"
@@ -499,7 +498,7 @@ func getConfig() (appConfig, error) {
 		KubernetesCooldown: viper.GetDuration("kubernetes-cooldown"),
 		StatusAddr:         viper.GetString("status-addr"),
 
-		EncryptionKeys: keyring.Keys{[]byte(viper.GetString("data-encryption-key")), []byte(viper.GetString("data-encryption-key-old"))},
+		EncryptionPassphrases: []string{viper.GetString("data-encryption-key"), viper.GetString("data-encryption-key-old")},
 
 		RegionName: viper.GetString("region-name"),
 

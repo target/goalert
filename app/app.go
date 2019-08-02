@@ -91,6 +91,7 @@ type App struct {
 	LimitStore     limit.Store
 	HeartbeatStore heartbeat.Store
 
+	KeyStore       keyring.KeyStore
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
 

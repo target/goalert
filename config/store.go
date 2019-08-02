@@ -7,11 +7,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/keyring"
-	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/errutil"
-	"github.com/target/goalert/util/log"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -19,6 +14,11 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/keyring"
+	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
 )
 
 // Store handles saving and loading configuration from a postgres database.
@@ -28,7 +28,7 @@ type Store struct {
 	fallbackURL  string
 	mx           sync.RWMutex
 	db           *sql.DB
-	keys         keyring.Keys
+	keys         keyring.KeyStore
 	latestConfig *sql.Stmt
 	setConfig    *sql.Stmt
 	lock         *sql.Stmt
@@ -36,7 +36,7 @@ type Store struct {
 
 // NewStore will create a new Store with the given parameters. It will automatically detect
 // new configuration changes.
-func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keys, fallbackURL string) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, keys keyring.KeyStore, fallbackURL string) (*Store, error) {
 	p := util.Prepare{Ctx: ctx, DB: db}
 
 	s := &Store{
@@ -176,7 +176,7 @@ func (s *Store) ConfigData(ctx context.Context, tx *sql.Tx) (id, schemaVersion i
 		return 0, 0, nil, err
 	}
 
-	data, _, err = s.keys.Decrypt(data)
+	data, err = s.keys.Decrypt(data)
 	if err != nil {
 		return 0, 0, nil, errors.Wrap(err, "decrypt config")
 	}

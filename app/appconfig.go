@@ -2,8 +2,6 @@ package app
 
 import (
 	"time"
-
-	"github.com/target/goalert/keyring"
 )
 
 type appConfig struct {
@@ -44,7 +42,7 @@ type appConfig struct {
 	LogTraces        bool
 	TraceProbability float64
 
-	EncryptionKeys keyring.Keys
+	EncryptionPassphrases []string
 
 	RegionName string
 

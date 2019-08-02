@@ -23,7 +23,7 @@ type Config struct {
 
 	ConfigSource config.Source
 
-	Keys keyring.Keys
+	Keys keyring.KeyStore
 
 	MaxMessages int
 

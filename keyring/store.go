@@ -12,12 +12,13 @@ import (
 	"database/sql"
 	"encoding/binary"
 	"encoding/json"
-	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation/validate"
 	"math/big"
 	"sync"
 	"time"
+
+	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/validation/validate"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
@@ -73,7 +74,7 @@ type Config struct {
 	MaxOldKeys int
 
 	// Keys specifies a set of keys to use for encrypting and decrypting the private key.
-	Keys Keys
+	Keys KeyStore
 }
 
 // DB implements a Keyring using postgres as the datastore.
@@ -271,7 +272,7 @@ func (db *DB) newKey() (*ecdsa.PrivateKey, []byte, error) {
 	return key, data, nil
 }
 func (db *DB) loadKey(encData []byte) (*ecdsa.PrivateKey, error) {
-	data, _, err := db.cfg.Keys.Decrypt(encData)
+	data, err := db.cfg.Keys.Decrypt(encData)
 	if err != nil {
 		return nil, err
 	}

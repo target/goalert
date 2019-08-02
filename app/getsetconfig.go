@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -40,7 +41,12 @@ func getSetConfig(setCfg bool, data []byte) error {
 	}
 	defer tx.Rollback()
 
-	s, err := config.NewStore(ctx, db, c.EncryptionKeys, "")
+	keyStore, err := keyring.NewKeyStore(ctx, db, c.EncryptionPassphrases)
+	if err != nil {
+		return errors.Wrap(err, "init keystore")
+	}
+
+	s, err := config.NewStore(ctx, db, keyStore, "")
 	if err != nil {
 		return errors.Wrap(err, "init config store")
 	}
