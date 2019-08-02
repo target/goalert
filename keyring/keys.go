@@ -51,7 +51,7 @@ func NewKeyStore(ctx context.Context, db *sql.DB, passphrases []string) (KeyStor
 			select
 				id,
 				version,
-				coalese(active, false),
+				coalesce(active, false),
 				mk_digest,
 				mk_digest_salt,
 				mk_digest_iter
@@ -62,7 +62,7 @@ func NewKeyStore(ctx context.Context, db *sql.DB, passphrases []string) (KeyStor
 			select
 				id,
 				version,
-				coalese(active, false),
+				coalesce(active, false),
 				mk_digest,
 				mk_digest_salt,
 				mk_digest_iter
