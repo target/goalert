@@ -22,7 +22,11 @@ export default class DialogContentError extends Component {
     if (!error) {
       return (
         <DialogContent style={style}>
-          <Typography variant='subtitle1' style={{ display: 'flex' }}>
+          <Typography
+            component='p'
+            variant='subtitle1'
+            style={{ display: 'flex' }}
+          >
             &nbsp;
           </Typography>
         </DialogContent>
@@ -32,7 +36,11 @@ export default class DialogContentError extends Component {
     return (
       <DialogContent style={{ textAlign: 'center', ...style }} {...other}>
         <Zoom in>
-          <Typography variant='subtitle1' style={{ display: 'flex' }}>
+          <Typography
+            component='p'
+            variant='subtitle1'
+            style={{ display: 'flex' }}
+          >
             <Error className={classes.error} />
             &nbsp;
             <span className={classes.error}>{error}</span>

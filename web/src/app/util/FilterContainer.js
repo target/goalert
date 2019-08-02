@@ -12,6 +12,10 @@ import { FilterList } from '@material-ui/icons'
 
 const style = theme => {
   return {
+    actions: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+    },
     overflow: {
       overflow: 'visible',
     },
@@ -35,7 +39,7 @@ export default class FilterContainer extends React.PureComponent {
 
   renderContent() {
     return (
-      <Grid item container spacing={3} className={this.props.classes.container}>
+      <Grid container spacing={2} className={this.props.classes.container}>
         <Grid
           item
           container
@@ -45,7 +49,7 @@ export default class FilterContainer extends React.PureComponent {
         >
           {this.props.children}
         </Grid>
-        <Grid item container justify='flex-end' xs={12}>
+        <Grid item xs={12} className={this.props.classes.actions}>
           {this.props.onReset && (
             <Button onClick={this.props.onReset}>Reset</Button>
           )}

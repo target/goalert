@@ -123,7 +123,7 @@ export default class DetailsPage extends React.PureComponent {
       classes,
     } = this.props
     return (
-      <Grid item container>
+      <Grid container>
         <Grid item xs={12} className={classes.spacing}>
           <Card>
             <CardContent>
@@ -135,11 +135,15 @@ export default class DetailsPage extends React.PureComponent {
               >
                 {title}
               </Typography>
-              <Typography data-cy='details' variant='subtitle1'>
+              <Typography data-cy='details' variant='subtitle1' component='div'>
                 <Markdown value={details} />
               </Typography>
               {titleFooter && (
-                <Typography variant='subtitle1' data-cy='title-footer'>
+                <Typography
+                  component='div'
+                  variant='subtitle1'
+                  data-cy='title-footer'
+                >
                   {titleFooter}
                 </Typography>
               )}

@@ -3,7 +3,7 @@ import p from 'prop-types'
 import gql from 'graphql-tag'
 import Query from '../util/Query'
 import FlatList from '../lists/FlatList'
-import { Grid, Card } from '@material-ui/core'
+import Card from '@material-ui/core/Card'
 
 const query = gql`
   query($id: ID!) {
@@ -33,17 +33,15 @@ export default class ScheduleAssignedToList extends React.PureComponent {
   }
   renderList({ data }) {
     return (
-      <Grid item container>
-        <Card style={{ width: '100%' }}>
-          <FlatList
-            items={data.schedule.assignedTo.map(t => ({
-              title: t.name,
-              url: `/escalation-policies/${t.id}`,
-            }))}
-            emptyMessage='This schedule is not assigned to any escalation policies.'
-          />
-        </Card>
-      </Grid>
+      <Card style={{ width: '100%' }}>
+        <FlatList
+          items={data.schedule.assignedTo.map(t => ({
+            title: t.name,
+            url: `/escalation-policies/${t.id}`,
+          }))}
+          emptyMessage='This schedule is not assigned to any escalation policies.'
+        />
+      </Card>
     )
   }
 }

@@ -46,6 +46,7 @@ export default class ToolbarAction extends Component {
         {getRoute('/escalation-policies/:escalationPolicyID/services')}
         {getRoute('/services/:serviceID/alerts')}
         {getRoute('/services/:serviceID/integration-keys')}
+        {getRoute('/services/:serviceID/heartbeat-monitors')}
         {getRoute('/services/:serviceID/labels')}
         <Route
           render={() => (

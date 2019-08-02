@@ -2,6 +2,7 @@ import React from 'react'
 import QueryList from './QueryList'
 
 import PageActions from '../util/PageActions'
+import p from 'prop-types'
 
 import Search from '../util/Search'
 import CreateFAB from './CreateFAB'
@@ -11,8 +12,14 @@ export default class SimpleListPage extends React.PureComponent {
     create: false,
   }
 
+  static propTypes = {
+    createForm: p.element,
+    createLabel: p.string,
+    queryProps: p.object,
+  }
+
   render() {
-    const { createForm, ...queryProps } = this.props
+    const { createForm, createLabel, ...queryProps } = this.props
     return (
       <React.Fragment>
         <PageActions>
@@ -22,7 +29,10 @@ export default class SimpleListPage extends React.PureComponent {
         <QueryList {...queryProps} />
 
         {createForm && (
-          <CreateFAB onClick={() => this.setState({ create: true })} />
+          <CreateFAB
+            onClick={() => this.setState({ create: true })}
+            title={`Create ${createLabel}`}
+          />
         )}
 
         {this.state.create &&

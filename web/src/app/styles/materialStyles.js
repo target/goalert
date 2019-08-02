@@ -99,6 +99,10 @@ export const styles = theme => ({
       textDecoration: 'none',
     },
   },
+  navSelected: {
+    backgroundColor: '#ebebeb',
+    borderRight: '3px solid ' + theme.palette.primary['500'],
+  },
   // parent container must have position: relative
   topRightActions: {
     position: 'absolute',
@@ -115,5 +119,11 @@ export const styles = theme => ({
   // use on grid items except the last one per page
   mobileGridSpacing: {
     marginBottom: '1em',
+  },
+  srOnly: {
+    clip: 'rect(1px, 1px, 1px, 1px)',
+    overflow: 'hidden',
+    height: 1,
+    width: 1,
   },
 })

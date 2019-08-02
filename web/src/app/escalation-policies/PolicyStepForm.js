@@ -119,7 +119,7 @@ export default class PolicyStepForm extends React.Component {
 
     return (
       <FormContainer {...this.props}>
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           <Grid item xs={12}>
             <Config>
               {cfg => (

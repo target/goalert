@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
-import CardContent from '@material-ui/core/CardContent'
 import CardHeader from '@material-ui/core/CardHeader'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
@@ -117,7 +116,7 @@ export default class OnCallForService extends Component {
           component='h3'
           title='On Call Users'
         />
-        <CardContent>{content}</CardContent>
+        {content}
       </Card>
     )
   }
