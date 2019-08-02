@@ -2,14 +2,13 @@
 CREATE TABLE data_encryption_key_metadata (
     id UUID PRIMARY KEY,
     version INT NOT NULL,
+    active BOOLEAN,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    cipher_name TEXT NOT NULL,
-    cipher_mode TEXT NOT NULL,
-    hash_spec TEXT NOT NULL,
-    key_bytes INT NOT NULL,
     mk_digest BYTEA NOT NULL,
     mk_digest_salt BYTEA NOT NULL,
-    mk_digest_iter INT NOT NULL
+    mk_digest_iter INT NOT NULL,
+    check(active),
+    unique(active)
 );
 
 CREATE TABLE data_encryption_key_slots (
