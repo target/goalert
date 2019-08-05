@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import p from 'prop-types'
-import ContactMethodForm from '../../contact-methods/components/ContactMethodForm'
+import UserContactMethodCreateDialog from '../../users/UserContactMethodCreateDialog'
 import { clearParameter } from '../../util/query_param'
 import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
@@ -47,6 +47,21 @@ export default class NewUserSetup extends Component {
     setShowNewUserForm: p.func,
   }
 
+  state = {
+    createCM: false,
+    showVerifyDialogByID: null,
+  }
+
+  onExit(result) {
+    this.setState({
+      createCM: false,
+      showVerifyDialogByID:
+        result && result.contactMethodID ? result.contactMethodID : null,
+    })
+
+    this.onNewUserDialogClose()
+  }
+
   /*
    * Don't show the new user setup dialog if the user keeps refreshing with
    * the original query param still active
@@ -61,19 +76,26 @@ export default class NewUserSetup extends Component {
   render() {
     const { data, isFirstLogin } = this.props
     const userID = data && data.currentUser && data.currentUser.id
+    const title = 'Welcome to GoAlert!'
+    const subtitle = 'To get started, please enter a contact method.'
+
     if (!userID) {
       return null
     }
 
-    return (
-      <ContactMethodForm
-        newUser
-        notificationRules={data.notification_rules}
-        open={isFirstLogin}
-        userId={userID}
-        existing={[]}
-        handleRequestClose={this.onNewUserDialogClose}
-      />
-    )
+    if (isFirstLogin) {
+      return (
+        <UserContactMethodCreateDialog
+          title={title}
+          subtitle={subtitle}
+          userID={userID}
+          onClose={result => {
+            this.onExit(result)
+          }}
+        />
+      )
+    } else {
+      return null
+    }
   }
 }
