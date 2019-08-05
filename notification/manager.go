@@ -3,9 +3,10 @@ package notification
 import (
 	"context"
 	"fmt"
-	"github.com/target/goalert/util/log"
 	"strings"
 	"sync"
+
+	"github.com/target/goalert/util/log"
 
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
@@ -18,7 +19,9 @@ type Manager struct {
 	providers   map[string]*namedSender
 	searchOrder []*namedSender
 
-	r  Receiver
+	rcv   Receiver
+	rcvMx sync.Mutex
+
 	mx *sync.RWMutex
 
 	shutdownCh chan struct{}
@@ -41,8 +44,8 @@ func NewManager() *Manager {
 // SetStubNotifiers will cause all notifications senders to be stubbed out.
 //
 // This causes all notifications to be marked as delivered, but not actually sent.
-func (mgr *Manager) SetStubNotifiers() {
-	mgr.stubNotifiers = true
+func (m *Manager) SetStubNotifiers() {
+	m.stubNotifiers = true
 }
 
 func bgSpan(ctx context.Context, name string) (context.Context, *trace.Span) {
@@ -144,21 +147,25 @@ func (m *Manager) RegisterSender(t DestType, name string, s SendResponder) {
 	go m.senderLoop(n)
 }
 
+func (m *Manager) receiver() Receiver {
+	m.rcvMx.Lock()
+	defer m.rcvMx.Unlock()
+	return m.rcv
+}
+
 // UpdateStatus will update the status of a message.
 func (m *Manager) updateStatus(ctx context.Context, status *MessageStatus) {
-	err := m.r.UpdateStatus(ctx, status)
+	err := m.receiver().UpdateStatus(ctx, status)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "update message status"))
 	}
 }
 
-// RegisterReceiver will set the given Receiver as the target for all Receive() calls.
-// It will panic if called multiple times.
-func (m *Manager) RegisterReceiver(r Receiver) {
-	if m.r != nil {
-		panic("tried to register a second Receiver")
-	}
-	m.r = r
+// SetReceiver will set the given Receiver as the target for all Receive() calls.
+func (m *Manager) SetReceiver(r Receiver) {
+	m.rcvMx.Lock()
+	m.rcv = r
+	m.rcvMx.Unlock()
 }
 
 // Send implements the Sender interface by trying all registered senders for the type given
@@ -227,8 +234,8 @@ func (m *Manager) receive(ctx context.Context, providerID string, resp *MessageR
 		"response received",
 	)
 	if resp.Result == ResultStop {
-		return m.r.Stop(ctx, resp.From)
+		return m.receiver().Stop(ctx, resp.From)
 	}
 
-	return m.r.Receive(ctx, resp.ID, resp.Result)
+	return m.receiver().Receive(ctx, resp.ID, resp.Result)
 }

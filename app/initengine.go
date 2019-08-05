@@ -51,7 +51,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		return errors.Wrap(err, "init engine")
 	}
 
-	app.notificationManager.RegisterReceiver(app.engine)
+	app.notificationManager.SetReceiver(app.engine)
 
 	return nil
 }
