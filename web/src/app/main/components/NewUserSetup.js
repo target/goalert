@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import p from 'prop-types'
 import UserContactMethodCreateDialog from '../../users/UserContactMethodCreateDialog'
+import UserContactMethodVerificationDialog from '../../users/UserContactMethodVerificationDialog'
 import { clearParameter } from '../../util/query_param'
 import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
@@ -85,17 +86,23 @@ export default class NewUserSetup extends Component {
 
     if (isFirstLogin) {
       return (
-        <UserContactMethodCreateDialog
-          title={title}
-          subtitle={subtitle}
-          userID={userID}
-          onClose={result => {
-            this.onExit(result)
-          }}
-        />
+        <React.Fragment>
+          <UserContactMethodCreateDialog
+            title={title}
+            subtitle={subtitle}
+            userID={userID}
+            onClose={result => {
+              this.onExit(result)
+            }}
+          />
+          {this.state.showVerifyDialogByID && (
+            <UserContactMethodVerificationDialog
+              contactMethodID={this.state.showVerifyDialogByID}
+              onClose={() => this.setState({ showVerifyDialogByID: null })}
+            />
+          )}
+        </React.Fragment>
       )
-    } else {
-      return null
     }
   }
 }
