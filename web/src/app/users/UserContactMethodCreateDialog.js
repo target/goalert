@@ -45,20 +45,22 @@ export default function UserContactMethodCreateDialog(props) {
   const fieldErrs = fieldErrors(error)
   var title = 'Create New Contact Method'
 
+  console.log('disclaimer ', props.disclaimer)
+
   const form = (
     <UserContactMethodForm
       disabled={loading}
       errors={fieldErrs}
       onChange={cmValue => setCmValue(cmValue)}
       value={cmValue}
+      disclaimer={props.disclaimer}
     />
   )
   return (
     <FormDialog
       data-cy='create-form'
       title={props.title ? props.title : title}
-      subtitle={props.subtitle ? props.subtitle : null}
-      caption={props.caption ? props.caption : null}
+      subTitle={props.subtitle ? props.subtitle : null}
       loading={loading}
       errors={nonFieldErrors(error)}
       onClose={props.onClose}

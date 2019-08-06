@@ -4,7 +4,6 @@ import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import { MenuItem, Typography } from '@material-ui/core'
-import { Config } from '../util/RequireConfig'
 
 export default class UserContactMethodForm extends React.PureComponent {
   static propTypes = {
@@ -86,13 +85,9 @@ export default class UserContactMethodForm extends React.PureComponent {
             )}
           </Grid>
           <Grid item xs={12}>
-            <Config>
-              {config => (
-                <Typography variant='caption' component='p' id='disclaimerText'>
-                  {config['General.NotificationDisclaimer']}
-                </Typography>
-              )}
-            </Config>
+            <Typography variant='caption'>
+              Disclaimer : {this.props.disclaimer}
+            </Typography>
           </Grid>
         </Grid>
       </FormContainer>
