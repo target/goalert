@@ -11,6 +11,8 @@ export default class UserContactMethodForm extends React.PureComponent {
       name: p.string.isRequired,
       type: p.oneOf(['SMS', 'VOICE']).isRequired,
       value: p.string.isRequired,
+      // disclaimer text to display at the bottom of the form
+      disclaimer: p.string,
     }).isRequired,
 
     errors: p.arrayOf(
@@ -83,6 +85,9 @@ export default class UserContactMethodForm extends React.PureComponent {
                 (UK)
               </Typography>
             )}
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant='caption'>{this.props.disclaimer}</Typography>
           </Grid>
         </Grid>
       </FormContainer>

@@ -130,6 +130,32 @@ function testProfile(screen: ScreenFormat) {
         .siblings()
         .contains('Must be a valid number')
     })
+
+    it('should set and verify contact method on first login', () => {
+      cy.visit(`/alerts?isFirstLogin=1`)
+
+      const value = '763' + c.integer({ min: 3000000, max: 3999999 })
+      const name = 'SM CM ' + c.word({ length: 8 })
+      const usCountryCode = '+1'
+
+      cy.get('body').should('contain', 'Welcome to GoAlert')
+
+      cy.get('div[role=dialog]').as('dialog')
+
+      cy.get('@dialog')
+        .find('input[name=name]')
+        .type(name)
+      cy.get('@dialog')
+        .find('input[name=value]')
+        .type(usCountryCode + value)
+      cy.get('@dialog')
+        .find('button[type=submit]')
+        .click()
+
+      cy.get(`[data-cy='verify-form']`)
+        .contains('button[type=button]', 'Cancel')
+        .click()
+    })
   })
   describe('Notification Rules', () => {
     it('should allow creating an immediate rule', () => {
