@@ -29,8 +29,8 @@ export default function NewUserSetup() {
 
   return (
     <UserContactMethodCreateDialog
-      title={'Welcome to GoAlert!'}
-      subtitle={'To get started, please enter a contact method.'}
+      title='Welcome to GoAlert!'
+      subtitle='To get started, please enter a contact method.'
       disclaimer={disclaimer}
       userID={userID}
       onClose={result => {
