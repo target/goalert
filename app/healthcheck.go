@@ -1,13 +1,11 @@
 package app
 
 import (
-	"github.com/target/goalert/app/lifecycle"
-	"github.com/target/goalert/retry"
-	"github.com/target/goalert/util/errutil"
 	"net/http"
-	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/util/errutil"
 )
 
 func (app *App) healthCheck(w http.ResponseWriter, req *http.Request) {
@@ -15,17 +13,12 @@ func (app *App) healthCheck(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "server shutting down", http.StatusInternalServerError)
 		return
 	}
+	if app.mgr.Status() == lifecycle.StatusStarting {
+		http.Error(w, "server starting", http.StatusInternalServerError)
+		return
+	}
 
-	ctx := req.Context()
-	err := retry.DoTemporaryError(func(_ int) error {
-		return app.db.PingContext(ctx)
-	},
-		retry.Log(ctx),
-		retry.Limit(5),
-		retry.FibBackoff(100*time.Millisecond),
-	)
-
-	errutil.HTTPError(req.Context(), w, errors.Wrap(err, "engine cycle"))
+	// Good to go
 }
 
 func (app *App) engineStatus(w http.ResponseWriter, req *http.Request) {
