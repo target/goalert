@@ -85,9 +85,7 @@ export default class UserContactMethodForm extends React.PureComponent {
             )}
           </Grid>
           <Grid item xs={12}>
-            <Typography variant='caption'>
-              Disclaimer : {this.props.disclaimer}
-            </Typography>
+            <Typography variant='caption'>{this.props.disclaimer}</Typography>
           </Grid>
         </Grid>
       </FormContainer>

@@ -45,8 +45,6 @@ export default function UserContactMethodCreateDialog(props) {
   const fieldErrs = fieldErrors(error)
   var title = 'Create New Contact Method'
 
-  console.log('disclaimer ', props.disclaimer)
-
   const form = (
     <UserContactMethodForm
       disabled={loading}
