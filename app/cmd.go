@@ -435,7 +435,7 @@ Migration: %s (#%d)
 
 			if pass == "" {
 				fmt.Printf("New Password: ")
-				p, err := terminal.ReadPassword(0)
+				p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
 				if err != nil {
 					return errors.Wrap(err, "get password")
 				}
