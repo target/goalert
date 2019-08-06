@@ -73,4 +73,6 @@ UserContactMethodCreateDialog.propTypes = {
   userID: p.string.isRequired,
   onClose: p.func,
   disclaimer: p.string,
+  title: p.string,
+  subtitle: p.string,
 }

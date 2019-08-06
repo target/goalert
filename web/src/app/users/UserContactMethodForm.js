@@ -11,7 +11,7 @@ export default class UserContactMethodForm extends React.PureComponent {
       name: p.string.isRequired,
       type: p.oneOf(['SMS', 'VOICE']).isRequired,
       value: p.string.isRequired,
-      // config value for disclaimer is used if navigated here from first login attempt
+      // disclaimer text to display at the bottom of the form
       disclaimer: p.string,
     }).isRequired,
 
