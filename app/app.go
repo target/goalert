@@ -46,8 +46,9 @@ type App struct {
 
 	mgr *lifecycle.Manager
 
-	db *sql.DB
-	l  net.Listener
+	db  *sql.DB
+	l   net.Listener
+	upg upgrader
 
 	cooldown *cooldown
 	doneCh   chan struct{}
@@ -103,19 +104,17 @@ type App struct {
 
 // NewApp constructs a new App and binds the listening socket.
 func NewApp(c appConfig, db *sql.DB) (*App, error) {
-	l, err := net.Listen("tcp", c.ListenAddr)
-	if err != nil {
-		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
-	}
-
 	app := &App{
-		l:        l,
 		db:       db,
 		cfg:      c,
 		doneCh:   make(chan struct{}),
 		cooldown: newCooldown(c.KubernetesCooldown),
 
 		requestLock: newContextLocker(),
+	}
+	err := app.listen()
+	if err != nil {
+		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
 	}
 
 	if c.StatusAddr != "" {

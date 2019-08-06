@@ -20,6 +20,7 @@ type appConfig struct {
 	MaxReqHeaderBytes int
 
 	DisableHTTPSRedirect bool
+	DisableWatchdog      bool
 
 	TwilioBaseURL string
 	SlackBaseURL  string

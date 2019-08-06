@@ -17,6 +17,7 @@ require (
 	github.com/brianvoe/gofakeit v3.17.0+incompatible
 	github.com/chzyer/logex v1.1.10 // indirect
 	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
+	github.com/cloudflare/tableflip v1.0.0
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/coreos/go-oidc v0.0.0-20180604232625-8ae1da518bd4
 	github.com/davecgh/go-spew v1.1.1
@@ -36,7 +37,7 @@ require (
 	github.com/jackc/pgx v3.4.0+incompatible
 	github.com/joho/godotenv v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/lib/pq v1.1.1
+	github.com/lib/pq v1.2.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-colorable v0.1.2
 	github.com/pelletier/go-toml v1.4.0

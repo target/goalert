@@ -39,6 +39,13 @@ func (app *App) _Run(ctx context.Context) error {
 		return err
 	}
 
+	if app.upg != nil {
+		err = app.upg.Ready()
+		if err != nil {
+			return err
+		}
+	}
+
 	err = app.srv.Serve(app.l)
 	if err != nil && err != http.ErrServerClosed {
 		return errors.Wrap(err, "serve HTTP")

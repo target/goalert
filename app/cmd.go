@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/lib/pq"
@@ -143,6 +142,7 @@ var RootCmd = &cobra.Command{
 			}
 			return app.Shutdown(ctx)
 		})
+		go app.watchdog(ctx)
 
 		// trigger engine cycles by process signal
 		trigCh := make(chan os.Signal, 1)
@@ -435,7 +435,7 @@ Migration: %s (#%d)
 
 			if pass == "" {
 				fmt.Printf("New Password: ")
-				p, err := terminal.ReadPassword(syscall.Stdin)
+				p, err := terminal.ReadPassword(0)
 				if err != nil {
 					return errors.Wrap(err, "get password")
 				}
@@ -475,6 +475,7 @@ func getConfig() (appConfig, error) {
 		MaxReqHeaderBytes: viper.GetInt("max-request-header-bytes"),
 
 		DisableHTTPSRedirect: viper.GetBool("disable-https-redirect"),
+		DisableWatchdog:      viper.GetBool("disable-engine-watchdog"),
 
 		ListenAddr: viper.GetString("listen"),
 
@@ -526,6 +527,8 @@ func init() {
 
 	RootCmd.Flags().Int("db-max-open", 15, "Max open DB connections.")
 	RootCmd.Flags().Int("db-max-idle", 5, "Max idle DB connections.")
+
+	RootCmd.Flags().Bool("disable-engine-watchdog", false, "Disables the engine watchdog. Has no effect in api-only mode or on windows.")
 
 	RootCmd.Flags().Int64("max-request-body-bytes", 256*1024, "Max body size for all incoming requests (in bytes). Set to 0 to disable limit.")
 	RootCmd.Flags().Int("max-request-header-bytes", 4096, "Max header size for all incoming requests (in bytes). Set to 0 to disable limit.")
