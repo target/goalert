@@ -19,6 +19,10 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	defer app.db.Close()
 	var errs []error
 
+	if app.upg != nil {
+		app.upg.Stop()
+	}
+
 	if app.cooldown != nil {
 		// wait for the cooldown (since last req closed)
 		app.cooldown.WaitContext(ctx)
