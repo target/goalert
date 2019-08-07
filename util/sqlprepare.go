@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type ContextPreparer interface {
@@ -38,16 +38,16 @@ type Prepare struct {
 
 type queryErr struct {
 	q   string
-	err *pq.Error
+	err *sqlutil.Error
 }
 type QueryError interface {
 	Query() string
-	Cause() *pq.Error
+	Cause() *sqlutil.Error
 }
 
-func (q *queryErr) Query() string    { return q.q }
-func (q *queryErr) Cause() *pq.Error { return q.err }
-func (q *queryErr) Error() string    { return q.err.Error() }
+func (q *queryErr) Query() string         { return q.q }
+func (q *queryErr) Cause() *sqlutil.Error { return q.err }
+func (q *queryErr) Error() string         { return q.err.Error() }
 
 func (p *Prepare) P(query string) (s *sql.Stmt) {
 	if p.Err != nil {
@@ -60,9 +60,9 @@ func (p *Prepare) P(query string) (s *sql.Stmt) {
 		s, p.Err = p.DB.PrepareContext(context.Background(), query)
 	}
 	if p.Err != nil {
-		if pqe, ok := p.Err.(*pq.Error); ok {
+		if e := sqlutil.MapError(p.Err); e != nil {
 			p.Err = &queryErr{
-				err: pqe,
+				err: e,
 				q:   query,
 			}
 		}

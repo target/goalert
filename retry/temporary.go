@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type clientErr interface {
@@ -33,7 +33,7 @@ func IsTemporaryError(err error) bool {
 	if cause == driver.ErrBadConn {
 		return true
 	}
-	if e := errutil.NewSQLError(err); e != nil {
+	if e := sqlutil.MapError(err); e != nil {
 		switch {
 		// Allow retry for tx or connection errors:
 		// - Class 40 — Transaction Rollback

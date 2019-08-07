@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lib/pq"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/target/goalert/util/sqlutil"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -76,8 +75,8 @@ func addSource(ctx context.Context, err error) context.Context {
 	if stacks {
 		ctx = WithField(ctx, "Source", fmt.Sprintf("%+v", err.(stackTracer).StackTrace()))
 	}
-	if perr, ok := errors.Cause(err).(*pq.Error); ok && perr.Detail != "" {
-		ctx = WithField(ctx, "SQLErrDetails", perr.Detail)
+	if e := sqlutil.MapError(err); e != nil && e.Detail != "" {
+		ctx = WithField(ctx, "SQLErrDetails", e.Detail)
 	}
 	return ctx
 }

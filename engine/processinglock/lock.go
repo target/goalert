@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/sqlutil"
 
 	"go.opencensus.io/trace"
 )
@@ -52,7 +52,7 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 		// 55P03 is lock_not_available (due to the `nowait` in the query)
 		//
 		// https://www.postgresql.org/docs/9.4/static/errcodes-appendix.html
-		if sqlErr := errutil.NewSQLError(err); sqlErr != nil && sqlErr.Code == "55P03" {
+		if sqlErr := sqlutil.MapError(err); sqlErr != nil && sqlErr.Code == "55P03" {
 			return nil, ErrNoLock
 		}
 		return nil, err

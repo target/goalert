@@ -7,7 +7,7 @@ import (
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
-	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 
 	g "github.com/graphql-go/graphql"
@@ -134,7 +134,7 @@ func (h *Handler) deleteEscalationPolicyField() *g.Field {
 
 			// Code 23503 corresponds to: "foreign_key_violation"
 			// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-			if e := errutil.NewSQLError(err); e != nil && e.Code == "23503" && e.ConstraintName == "services_escalation_policy_id_fkey" {
+			if e := sqlutil.MapError(err); e != nil && e.Code == "23503" && e.ConstraintName == "services_escalation_policy_id_fkey" {
 				return nil, errors.New("policy is currently in use by one or more services")
 			}
 			return newScrubber(p.Context).scrub(&n, err)

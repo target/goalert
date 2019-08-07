@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // LimitError represents an error caused by a configured system limit.
@@ -31,7 +32,7 @@ func IsLimitError(err error) bool {
 	return false
 }
 
-func (s *SQLError) toLimitError() LimitError {
+func mapLimitError(s *sqlutil.Error) LimitError {
 	if s == nil {
 		return nil
 	}

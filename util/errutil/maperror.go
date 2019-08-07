@@ -3,6 +3,7 @@ package errutil
 import (
 	"strings"
 
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 )
 
@@ -12,8 +13,8 @@ func MapDBError(err error) error {
 		return nil
 	}
 
-	dbErr := NewSQLError(err)
-	if dbErr==nil {
+	dbErr := sqlutil.MapError(err)
+	if dbErr == nil {
 		return err
 	}
 
@@ -41,7 +42,7 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("Name", "heartbeat monitor already exists with that name")
 		}
 	case "23514": // check constraint
-		newErr := dbErr.toLimitError()
+		newErr := mapLimitError(dbErr)
 		if newErr != nil {
 			return newErr
 		}

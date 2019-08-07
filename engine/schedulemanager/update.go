@@ -10,8 +10,8 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -177,7 +177,7 @@ func (db *DB) update(ctx context.Context) error {
 }
 
 func isScheduleDeleted(err error) bool {
-	dbErr := errutil.NewSQLError(err)
+	dbErr := sqlutil.MapError(err)
 	if dbErr == nil {
 		return false
 	}
