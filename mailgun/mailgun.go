@@ -6,17 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/target/goalert/alert"
-	"github.com/target/goalert/auth"
-	"github.com/target/goalert/config"
-	"github.com/target/goalert/integrationkey"
-	"github.com/target/goalert/limit"
-	"github.com/target/goalert/permission"
-	"github.com/target/goalert/retry"
-	"github.com/target/goalert/util/errutil"
-	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation"
-	"github.com/target/goalert/validation/validate"
 	"io"
 	"net/http"
 	"net/mail"
@@ -24,6 +13,16 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/alert"
+	"github.com/target/goalert/auth"
+	"github.com/target/goalert/config"
+	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/permission"
+	"github.com/target/goalert/retry"
+	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 )
 
 // httpError is used to respond in a standard way to Mailgun when err != nil. If
@@ -48,7 +47,7 @@ func httpError(ctx context.Context, w http.ResponseWriter, err error) bool {
 		return true
 	}
 
-	if limit.IsLimitError(err) {
+	if errutil.IsLimitError(err) {
 		// don't retry if a limit has been exceeded
 		log.Debug(ctx, err)
 		http.Error(w, err.Error(), http.StatusNotAcceptable)
