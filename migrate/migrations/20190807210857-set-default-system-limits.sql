@@ -1,7 +1,7 @@
 -- +migrate Up
 INSERT INTO config_limits (id, max)
 VALUES
-    ('notification_rules_per_user', 15),
+	('notification_rules_per_user', 15),
 	('contact_methods_per_user', 10),
 	('ep_steps_per_policy', 10),
 	('ep_actions_per_step', 20),
