@@ -77,6 +77,9 @@ var ignoreRules = []ignoreRule{
 
 	// End times are truncated to the minute
 	{MigrationName: "schedule-rule-endtime-fix", TableName: "schedule_rules", ColumnName: "end_time"},
+
+	// System default limits once set are not unset
+	{MigrationName: "set-default-system-limits", TableName: "config_limits", ExtraRows: true},
 }
 
 const migrateInitData = `
