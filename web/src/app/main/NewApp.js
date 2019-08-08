@@ -35,6 +35,7 @@ const styles = theme => ({
   },
   main: {
     width: '100%',
+    padding: '10px',
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
