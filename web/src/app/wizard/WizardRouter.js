@@ -41,7 +41,6 @@ const mutation = gql`
 const styles = {
   card: {
     width: '100%',
-    padding: '1em',
     marginBottom: '4.5em',
   },
   cardActions: {
