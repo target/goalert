@@ -32,6 +32,7 @@ const styles = {
     backgroundColor: '#cd1831',
   },
   optional: {
+    float: 'left',
     textAlign: 'left',
   },
   label: {
