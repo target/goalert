@@ -6,7 +6,7 @@
       "Dir": "web/src",
       "Command": ["./scripts/smoketest-prep.sh"],
       "Env": [
-        "DB_URL=postgres://postgres@localhost:5432/postgres?sslmode=disable",
+        "DB_URL=postgres://goalert@localhost:5432/goalert?sslmode=disable",
         "GOALERT=../../bin/goalert",
         "BASE_URL=http://localhost:3040"
       ]
@@ -14,7 +14,7 @@
     "Command": [
       "bin/goalert",
       "-l=localhost:3042",
-      "--db-url=postgres://postgres@localhost:5432/postgres?sslmode=disable",
+      "--db-url=postgres://goalert@localhost:5432/goalert?sslmode=disable",
       "--log-requests=false",
       "--slack-base-url=http://localhost:3040/slack"
     ]
@@ -53,7 +53,7 @@
       "baseUrl=http://localhost:3040"
     ],
     "Env": [
-      "CYPRESS_DB_URL=postgres://postgres@localhost:5432/postgres?sslmode=disable"
+      "CYPRESS_DB_URL=postgres://goalert@localhost:5432/goalert?sslmode=disable"
     ],
     "Dir": "web/src",
     "ExitAfter": true
