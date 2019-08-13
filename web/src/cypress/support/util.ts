@@ -43,8 +43,6 @@ values
   ('${profile.id}', '${profile.username}', '${profile.passwordHash}'),
   ('${profileAdmin.id}', '${profileAdmin.username}', '${profileAdmin.passwordHash}');
 `
-      .replace(/'/g, "\\'")
-      .replace(/\n/g, '')
     return _resetQuery
   })
 }
@@ -76,7 +74,13 @@ export function testScreen(
 ) {
   describe(label, () => {
     before(() =>
-      resetQuery().then(query => cy.exec(`psql -d '${dbURL}' -c '${query}'`)),
+      resetQuery().then(query =>
+        cy.exec(`psql -d '${dbURL}' -c "$QUERY"`, {
+          env: {
+            QUERY: query,
+          },
+        }),
+      ),
     )
     it('reset db', () => {}) // required due to mocha skip bug
 
