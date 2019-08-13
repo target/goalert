@@ -4,5 +4,6 @@
   "email": "cy-smoketest@example.com",
   "role": "user",
   "username": "cysmoketest",
-  "password": "hunter2"
+  "password": "hunter2",
+  "passwordHash": "$2y$04$KfvjkXmDPYhrmSukrJWQ.OmmeofzMkJA8SPmkQL2lUOxE8fXwu9LG"
 }
