@@ -122,7 +122,6 @@
     "babel-jest": "^24.8.0",
     "babel-loader": "8.0.6",
     "babel-plugin-transform-class-properties": "^6.19.0",
-    "bcryptjs": "^2.4.3",
     "chance": "^1.0.16",
     "css-loader": "1.0.1",
     "cssnano": "^4.1.7",
