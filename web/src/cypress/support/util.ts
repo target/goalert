@@ -42,7 +42,9 @@ insert into auth_basic_users (user_id, username, password_hash)
 values
   ('${profile.id}', '${profile.username}', '${profile.passwordHash}'),
   ('${profileAdmin.id}', '${profileAdmin.username}', '${profileAdmin.passwordHash}');
-`.replace(/'/g, "\\'")
+`
+      .replace(/'/g, "\\'")
+      .replace(/\n/g, '')
     return _resetQuery
   })
 }
