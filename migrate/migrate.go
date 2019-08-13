@@ -12,12 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 // Names will return all AssetNames without the timestamps and extensions
@@ -80,7 +79,7 @@ func getConn(ctx context.Context, db *sql.DB) (*sql.Conn, error) {
 		// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
 		//
 		// If the lock gets a timeout, terminate stale backends and try again.
-		if pErr, ok := err.(*pq.Error); ok && pErr.Code == "55P03" {
+		if e := sqlutil.MapError(err); e != nil && e.Code == "55P03" {
 			log.Log(ctx, errors.Wrap(err, "get migration lock (will retry)"))
 			_, err = c.ExecContext(ctx, `
 				select pg_terminate_backend(l.pid)
@@ -113,9 +112,7 @@ func ensureTableQuery(ctx context.Context, db *sql.DB, fn func() error) error {
 	}
 	// 42P01 is undefined_table
 	// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "42P01" {
-		// continue
-	} else if pgxErr, ok := err.(pgx.PgError); ok && pgxErr.Code == "42P01" {
+	if e := sqlutil.MapError(err); e != nil && e.Code == "42P01" {
 		// continue
 	} else {
 		return err
