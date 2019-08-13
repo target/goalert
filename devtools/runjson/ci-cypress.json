@@ -1,16 +1,6 @@
 [
   {
     "Name": "Backend",
-    "Before": {
-      "Name": "Prep",
-      "Dir": "web/src",
-      "Command": ["./scripts/smoketest-prep.sh"],
-      "Env": [
-        "DB_URL=postgres://goalert@localhost:5432/goalert?sslmode=disable",
-        "GOALERT=../../bin/goalert",
-        "BASE_URL=http://localhost:3040"
-      ]
-    },
     "Command": [
       "bin/goalert",
       "-l=localhost:3042",

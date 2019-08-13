@@ -1,13 +1,8 @@
 import { Chance } from 'chance'
+import { testScreen } from '../support'
 const c = new Chance()
 
-describe('Markdown', () => {
-  before(() => cy.login())
-  beforeEach(() => Cypress.Cookies.preserveOnce('goalert_session.2'))
-
-  describe('Mobile', () => testMarkdown('mobile'))
-  describe('Wide', () => testMarkdown('widescreen'))
-})
+testScreen('Markdown', testMarkdown)
 
 interface Config {
   // test is the name of the section
