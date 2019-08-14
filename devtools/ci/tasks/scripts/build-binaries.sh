@@ -5,7 +5,7 @@ BINARIES="bin/goalert"
 
 if [ "$BUILD_INTEGRATION" = "1" ]
 then
-    BINARIES="bin/goalert bin/waitfor bin/runjson bin/mockslack bin/simpleproxy"
+    BINARIES="bin/goalert bin/waitfor bin/runjson bin/mockslack bin/simpleproxy bin/psql-lite"
 fi
 
 make check $BINARIES BUNDLE=1

@@ -75,7 +75,7 @@ export function testScreen(
   describe(label, () => {
     before(() =>
       resetQuery().then(query =>
-        cy.exec(`psql -d "$DB" -c "$QUERY"`, {
+        cy.exec(`psql-lite -tx -d "$DB" -c "$QUERY"`, {
           env: {
             DB: dbURL,
             QUERY: query,

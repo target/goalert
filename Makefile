@@ -48,6 +48,8 @@ all: test install
 
 $(BIN_DIR)/runjson: go.sum devtools/runjson/*.go
 	go build -o $@ ./devtools/$(@F)
+$(BIN_DIR)/psql-lite: go.sum devtools/psql-lite/*.go
+	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
 	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
@@ -60,7 +62,7 @@ $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 install: $(GOFILES)
 	go install -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert web/src/node_modules
+cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules
 	web/src/node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js
