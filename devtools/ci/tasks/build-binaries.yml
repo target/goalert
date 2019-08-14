@@ -1,4 +1,6 @@
 platform: linux
+params:
+  BUILD_TEST: "1"
 caches:
   - path: ../../../go/pkg
   - path: goalert/web/src/node_modules
