@@ -13,6 +13,9 @@ VERSION=$(./bin/goalert version | head -n 1 |awk '{print $2}')
 
 tar czf ../bin/goalert-${VERSION}-linux-amd64.tgz -C .. goalert/bin/goalert
 
+make ../darwin/goalert/bin/goalert BUNDLE=1 GOOS=darwin BIN_DIR=../darwin/goalert/bin
+tar czf ../bin/goalert-${VERSION}-darwin-amd64.tgz -C ../darwin goalert/bin/goalert
+
 if [ "$BUILD_INTEGRATION" = "1" ]
 then
     echo Building integration test files...
@@ -22,6 +25,3 @@ then
     git rev-parse HEAD >COMMIT
     tar czf ../bin/integration-${VERSION}-linux-amd64.tgz -C .. goalert/bin goalert/cypress goalert/cypress.json goalert/COMMIT goalert/devtools/ci goalert/.git/resource
 fi
-
-make ../darwin/goalert/bin/goalert BUNDLE=1 GOOS=darwin BIN_DIR=../darwin/goalert/bin
-tar czf ../bin/goalert-${VERSION}-darwin-amd64.tgz -C ../darwin goalert/bin/goalert
