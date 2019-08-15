@@ -19,7 +19,8 @@ then
     mkdir cypress
     (cd web/src && yarn webpack --config webpack.cypress.js && cp -r cypress/fixtures ../../cypress/ && cp cypress.json ../../)
     sed -i 's/\.ts/\.js/' cypress.json
-    tar czf ../bin/integration-${VERSION}-linux-amd64.tgz -C .. goalert/bin goalert/cypress goalert/cypress.json
+    git rev-parse HEAD >COMMIT
+    tar czf ../bin/integration-${VERSION}-linux-amd64.tgz -C .. goalert/bin goalert/cypress goalert/cypress.json goalert/COMMIT
 fi
 
 rm -rf bin && make bin/goalert BUNDLE=1 GOOS=darwin
