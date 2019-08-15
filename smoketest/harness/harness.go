@@ -106,15 +106,6 @@ func (h *Harness) Config() config.Config {
 	return h.cfg
 }
 
-func runCmd(t *testing.T, c *exec.Cmd) {
-	t.Helper()
-	data, err := c.CombinedOutput()
-	t.Log(string(data))
-	if err != nil {
-		t.Fatalf("failed to run '%s %s': %v", c.Path, strings.Join(c.Args, " "), err)
-	}
-}
-
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
