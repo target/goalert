@@ -84,7 +84,7 @@ export default class ServiceOnCallList extends Component {
     return (
       <FlatList
         items={items}
-        emptyMessage='No users on call for this service'
+        emptyMessage='No users on-call for this service'
       />
     )
   }
