@@ -8,7 +8,7 @@ then
     BINARIES="bin/goalert bin/waitfor bin/runjson bin/mockslack bin/simpleproxy bin/psql-lite"
 fi
 
-make check $BINARIES BUNDLE=1
+make check test $BINARIES BUNDLE=1
 VERSION=$(./bin/goalert version | head -n 1 |awk '{print $2}')
 
 tar czf ../bin/goalert-${VERSION}-linux-amd64.tgz -C .. goalert/bin/goalert
