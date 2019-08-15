@@ -14,8 +14,8 @@ GOPATH=$(shell go env GOPATH)
 BIN_DIR=bin
 
 GIT_COMMIT=$(shell git rev-parse HEAD || echo '?')
-GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(GIT_COMMIT))
 GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
+GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(GIT_COMMIT)-$(GIT_TREE))
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 LD_FLAGS+=-X github.com/target/goalert/version.gitCommit=$(GIT_COMMIT)
