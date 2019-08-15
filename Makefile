@@ -13,8 +13,8 @@ LOG_DIR=
 GOPATH=$(shell go env GOPATH)
 BIN_DIR=bin
 
-GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo "dev-$(git rev-parse HEAD)")
 GIT_COMMIT=$(shell git rev-parse HEAD || echo '?')
+GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(GIT_COMMIT))
 GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
