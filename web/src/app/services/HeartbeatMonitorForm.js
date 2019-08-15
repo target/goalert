@@ -25,7 +25,7 @@ export default class HeartbeatMonitorForm extends React.PureComponent {
   static propTypes = {
     value: p.shape({
       name: p.string.isRequired,
-      timeoutMinutes: p.oneOfType([p.string, p.number]),
+      timeoutMinutes: p.oneOfType([p.number, p.string]),
     }).isRequired,
 
     errors: p.arrayOf(
