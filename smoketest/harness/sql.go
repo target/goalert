@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/jackc/pgx"
@@ -118,7 +117,6 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	b := tx.BeginBatch()
 	var n int
 	for _, q := range queries {
-		fmt.Printf("\nQ '%s'\n", q)
 		b.Queue(q, nil, nil, nil)
 		n++
 	}
