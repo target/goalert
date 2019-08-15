@@ -15,5 +15,6 @@ image_resource:
   source:
     repository: goalert/build-env
 run:
+  path: sh
   dir: goalert
-  path: ./devtools/ci/tasks/scripts/build-binaries.sh
+  args: [-e, ./devtools/ci/tasks/scripts/build-binaries.sh]
