@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
-import Card from '@material-ui/core/Card'
-import CardHeader from '@material-ui/core/CardHeader'
-import { UserAvatar } from '../../util/avatar'
-import Spinner from '../../loading/components/Spinner'
-import { withStyles } from '@material-ui/core'
-import { styles as globalStyles } from '../../styles/materialStyles'
-import FlatList from '../../lists/FlatList'
+import Card from '@material-ui/core/Card/index'
+import CardHeader from '@material-ui/core/CardHeader/index'
+import { UserAvatar } from '../util/avatar'
+import Spinner from '../loading/components/Spinner'
+import { withStyles } from '@material-ui/core/index'
+import { styles as globalStyles } from '../styles/materialStyles'
+import FlatList from '../lists/FlatList'
 
 const styles = theme => {
   const { cardHeader } = globalStyles(theme)
@@ -17,7 +17,7 @@ const styles = theme => {
 }
 
 @withStyles(styles)
-export default class OnCallForService extends Component {
+export default class ServiceOnCallList extends Component {
   static propTypes = {
     onCallUsers: p.arrayOf(
       p.shape({
