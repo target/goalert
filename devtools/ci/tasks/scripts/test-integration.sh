@@ -6,6 +6,10 @@ set -x
 export PATH=$PATH:$(pwd)/bin
 mkdir -p logs
 
+COMMIT=$(cat COMMIT)
+
+trap "tar czf ../debug/debug-$COMMIT.tgz -C .. goalert" EXIT
+
 mockslack \
   -client-id=000000000000.000000000000 \
   -client-secret=00000000000000000000000000000000 \
