@@ -20,8 +20,8 @@ then
     (cd web/src && yarn webpack --config webpack.cypress.js && cp -r cypress/fixtures ../../cypress/ && cp cypress.json ../../)
     sed -i 's/\.ts/\.js/' cypress.json
     git rev-parse HEAD >COMMIT
-    tar czf ../bin/integration-${VERSION}-linux-amd64.tgz -C .. goalert/bin goalert/cypress goalert/cypress.json goalert/COMMIT goalert/devtools/ci
+    tar czf ../bin/integration-${VERSION}-linux-amd64.tgz -C .. goalert/bin goalert/cypress goalert/cypress.json goalert/COMMIT goalert/devtools/ci goalert/.git/resource
 fi
 
-rm -rf bin && make bin/goalert BUNDLE=1 GOOS=darwin
-tar czf ../bin/goalert-${VERSION}-darwin-amd64.tgz -C .. goalert/bin/goalert
+make ../darwin/goalert/bin/goalert BUNDLE=1 GOOS=darwin BIN_DIR=../darwin/goalert/bin
+tar czf ../bin/goalert-${VERSION}-darwin-amd64.tgz -C ../darwin goalert/bin/goalert
