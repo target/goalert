@@ -84,8 +84,10 @@ func ExecSQL(ctx context.Context, url string, query string) error {
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
+
 	for _, q := range queries {
-		_, err = conn.ExecEx(ctx, q, nil)
+		_, err := conn.ExecEx(ctx, q, nil)
 		if err != nil {
 			return err
 		}
@@ -115,6 +117,7 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	defer tx.Rollback()
 
 	b := tx.BeginBatch()
+	defer b.Close()
 	var n int
 	for _, q := range queries {
 		b.Queue(q, nil, nil, nil)
