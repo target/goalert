@@ -104,6 +104,7 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	if err != nil {
 		return err
 	}
+
 	conn, err := pgx.Connect(cfg)
 	if err != nil {
 		return err
@@ -118,10 +119,8 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 
 	b := tx.BeginBatch()
 	defer b.Close()
-	var n int
 	for _, q := range queries {
 		b.Queue(q, nil, nil, nil)
-		n++
 	}
 
 	err = b.Send(ctx, nil)
@@ -129,12 +128,16 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 		return err
 	}
 
-	for i := 0; i < n; i++ {
+	for range queries {
 		_, err = b.ExecResults()
 		if err != nil {
 			return err
 		}
 	}
+	err = b.Close()
+	if err != nil {
+		return err
+	}
 
-	return tx.Commit()
+	return tx.CommitEx(ctx)
 }
