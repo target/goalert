@@ -71,11 +71,11 @@ export default class ServiceOnCallList extends Component {
   renderUsers() {
     const usersDict = this.getUsersDict(this.props.onCallUsers)
     const items = Object.keys(usersDict).map(id => {
-      const step = usersDict[id]['steps'].length > 1 ? 'Steps' : 'Step'
+      const step = usersDict[id].steps.length > 1 ? 'Steps' : 'Step'
 
       return {
-        title: usersDict[id]['name'],
-        subText: `${step} ${this.stepsText(usersDict[id]['steps'])}`,
+        title: usersDict[id].name,
+        subText: `${step} ${this.stepsText(usersDict[id].steps)}`,
         icon: <UserAvatar userID={id} />,
         url: `/users/${id}`,
       }
