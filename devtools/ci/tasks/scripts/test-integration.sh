@@ -8,7 +8,7 @@ mkdir -p logs
 
 COMMIT=$(cat COMMIT)
 
-trap "tar czf ../debug/debug-$COMMIT.tgz -C .. goalert" EXIT
+trap "tar czf ../debug/debug-$(date +%Y%m%d%H%M%S)-$COMMIT.tgz -C .. goalert" EXIT
 
 mockslack \
   -client-id=000000000000.000000000000 \
