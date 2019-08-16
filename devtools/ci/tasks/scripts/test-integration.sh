@@ -1,5 +1,5 @@
 #!/bin/sh
-export GOALERT_DB_URL="$DB_URL/$(cat db/NAME)"
+export GOALERT_DB_URL="$DB_URL/$(cat ../../db/NAME)"
 export CYPRESS_DB_URL="$GOALERT_DB_URL"
 set -x
 
