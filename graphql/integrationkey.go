@@ -54,6 +54,8 @@ func (h *Handler) integrationKeyFields() g.Fields {
 					return "/v1/api/alerts?integration_key=" + url.QueryEscape(key.ID), nil
 				case integrationkey.TypeGrafana:
 					return "/v1/webhooks/grafana?integration_key=" + url.QueryEscape(key.ID), nil
+				case integrationkey.TypeSite24x7:
+					return "/v1/webhooks/site24x7?integration_key=" + url.QueryEscape(key.ID), nil
 				case integrationkey.TypeEmail:
 					if !cfg.Mailgun.Enable || cfg.Mailgun.EmailDomain == "" {
 						return "", nil
@@ -108,9 +110,10 @@ func (h *Handler) integrationKeysField() *g.Field {
 var integrationKeyType = g.NewEnum(g.EnumConfig{
 	Name: "IntegrationKeyType",
 	Values: g.EnumValueConfigMap{
-		"grafana": &g.EnumValueConfig{Value: integrationkey.TypeGrafana},
-		"generic": &g.EnumValueConfig{Value: integrationkey.TypeGeneric},
-		"email":   &g.EnumValueConfig{Value: integrationkey.TypeEmail},
+		"grafana":  &g.EnumValueConfig{Value: integrationkey.TypeGrafana},
+		"site24x7": &g.EnumValueConfig{Value: integrationkey.TypeSite24x7},
+		"generic":  &g.EnumValueConfig{Value: integrationkey.TypeGeneric},
+		"email":    &g.EnumValueConfig{Value: integrationkey.TypeEmail},
 	},
 })
 

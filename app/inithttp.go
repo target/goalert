@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/genericapi"
 	"github.com/target/goalert/grafana"
+	"github.com/target/goalert/site24x7"
 	"github.com/target/goalert/mailgun"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/util/log"
@@ -154,6 +155,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	mux.HandleFunc("/api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
+	mux.HandleFunc("/api/v2/site24x7/incoming", site24x7.Site24x7ToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 
 	mux.HandleFunc("/api/v2/generic/incoming", generic.ServeCreateAlert)
 	mux.HandleFunc("/api/v2/heartbeat/", generic.ServeHeartbeatCheck)
@@ -175,6 +177,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	muxRewrite(mux, "/v1/webhooks/mailgun", "/api/v2/mailgun/incoming")
 	muxRewrite(mux, "/v1/webhooks/grafana", "/api/v2/grafana/incoming")
+	muxRewrite(mux, "/v1/webhooks/site24x7", "/api/v2/site24x7/incoming")
 	muxRewrite(mux, "/v1/api/alerts", "/api/v2/generic/incoming")
 	muxRewritePrefix(mux, "/v1/api/heartbeat/", "/api/v2/heartbeat/")
 	muxRewriteWith(mux, "/v1/api/users/", func(req *http.Request) *http.Request {
