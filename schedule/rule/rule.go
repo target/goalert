@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jackc/pgx/pgtype"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/validation/validate"
 )
@@ -46,11 +45,10 @@ type scanner interface {
 var errNoKnownTarget = errors.New("rule had no known target set (user or rotation)")
 
 func (r *Rule) scanFrom(s scanner) error {
-	var filter pgtype.BoolArray
 	f := []interface{}{
 		&r.ID,
 		&r.ScheduleID,
-		&filter,
+		&r.WeekdayFilter,
 		&r.Start,
 		&r.End,
 	}
@@ -60,14 +58,7 @@ func (r *Rule) scanFrom(s scanner) error {
 	if err != nil {
 		return err
 	}
-	var filterBool []bool
-	err = filter.AssignTo(&filterBool)
-	if err != nil {
-		return err
-	}
-	for i, v := range filterBool {
-		r.SetDay(time.Weekday(i), v)
-	}
+
 	switch {
 	case usr.Valid:
 		r.Target = assignment.UserTarget(usr.String)
@@ -79,23 +70,10 @@ func (r *Rule) scanFrom(s scanner) error {
 	return nil
 }
 func (r Rule) readFields() []interface{} {
-	var wf pgtype.BoolArray
-	err := wf.Set([]bool{
-		r.WeekdayFilter[time.Sunday] != 0,
-		r.WeekdayFilter[time.Monday] != 0,
-		r.WeekdayFilter[time.Tuesday] != 0,
-		r.WeekdayFilter[time.Wednesday] != 0,
-		r.WeekdayFilter[time.Thursday] != 0,
-		r.WeekdayFilter[time.Friday] != 0,
-		r.WeekdayFilter[time.Saturday] != 0,
-	})
-	if err != nil {
-		panic(err)
-	}
 	f := []interface{}{
 		&r.ID,
 		&r.ScheduleID,
-		&wf,
+		&r.WeekdayFilter,
 		&r.Start,
 		&r.End,
 	}

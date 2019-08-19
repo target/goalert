@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
 	uuid "github.com/satori/go.uuid"
@@ -360,7 +361,8 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ruleIDs []string) er
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, ruleIDs)
+
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ruleIDs))
 	return err
 
 }
