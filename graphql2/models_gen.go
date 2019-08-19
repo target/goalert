@@ -484,10 +484,10 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 type IntegrationKeyType string
 
 const (
-	IntegrationKeyTypeGeneric IntegrationKeyType = "generic"
-	IntegrationKeyTypeGrafana IntegrationKeyType = "grafana"
+	IntegrationKeyTypeGeneric  IntegrationKeyType = "generic"
+	IntegrationKeyTypeGrafana  IntegrationKeyType = "grafana"
 	IntegrationKeyTypeSite24x7 IntegrationKeyType = "site24x7"
-	IntegrationKeyTypeEmail   IntegrationKeyType = "email"
+	IntegrationKeyTypeEmail    IntegrationKeyType = "email"
 )
 
 var AllIntegrationKeyType = []IntegrationKeyType{
