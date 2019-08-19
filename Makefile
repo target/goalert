@@ -113,7 +113,7 @@ generate:
 	go generate ./...
 
 smoketest: install bin/goalert
-	(cd smoketest && go test -timeout 20m)
+	(cd smoketest && go test -parallel 15 -timeout 20m)
 
 test-migrations: migrate/inline_data_gen.go bin/goalert
 	(cd smoketest && go test -run TestMigrations)
