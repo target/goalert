@@ -214,7 +214,7 @@ func (a *Mutation) UpdateService(ctx context.Context, input graphql2.UpdateServi
 
 	err = a.ServiceStore.UpdateTx(ctx, tx, svc)
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
 	err = tx.Commit()
