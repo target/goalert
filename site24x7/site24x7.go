@@ -22,7 +22,6 @@ type site24x7Post struct {
 	STATUS                  string
 	REASON                  string
 	MONITORNAME             string
-	ct                      int
 	FAILED_LOCATIONS        string
 	INCIDENT_REASON         string
 	OUTAGE_TIME_UNIX_FORMAT string
@@ -31,6 +30,7 @@ type site24x7Post struct {
 	INCIDENT_TIME           string
 	INCIDENT_TIME_ISO       string
 	RCA_LINK                string
+	//ct                      int
 }
 
 func clientError(w http.ResponseWriter, code int, err error) bool {
