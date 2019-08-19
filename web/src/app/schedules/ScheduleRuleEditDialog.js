@@ -15,6 +15,7 @@ const query = gql`
       id
       target(input: $tgt) {
         rules {
+          id
           start
           end
           weekdayFilter

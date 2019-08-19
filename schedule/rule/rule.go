@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/validation/validate"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/pgtype"
+	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/validation/validate"
 )
 
 type Rule struct {
@@ -46,7 +46,7 @@ type scanner interface {
 var errNoKnownTarget = errors.New("rule had no known target set (user or rotation)")
 
 func (r *Rule) scanFrom(s scanner) error {
-	filter := make(pq.BoolArray, 7)
+	var filter pgtype.BoolArray
 	f := []interface{}{
 		&r.ID,
 		&r.ScheduleID,
@@ -60,7 +60,12 @@ func (r *Rule) scanFrom(s scanner) error {
 	if err != nil {
 		return err
 	}
-	for i, v := range filter {
+	var filterBool []bool
+	err = filter.AssignTo(&filterBool)
+	if err != nil {
+		return err
+	}
+	for i, v := range filterBool {
 		r.SetDay(time.Weekday(i), v)
 	}
 	switch {
@@ -73,17 +78,24 @@ func (r *Rule) scanFrom(s scanner) error {
 	}
 	return nil
 }
-func (r *Rule) readFields() []interface{} {
+func (r Rule) readFields() []interface{} {
+	var wf pgtype.BoolArray
+	err := wf.Set([]bool{
+		r.WeekdayFilter[time.Sunday] != 0,
+		r.WeekdayFilter[time.Monday] != 0,
+		r.WeekdayFilter[time.Tuesday] != 0,
+		r.WeekdayFilter[time.Wednesday] != 0,
+		r.WeekdayFilter[time.Thursday] != 0,
+		r.WeekdayFilter[time.Friday] != 0,
+		r.WeekdayFilter[time.Saturday] != 0,
+	})
+	if err != nil {
+		panic(err)
+	}
 	f := []interface{}{
 		&r.ID,
 		&r.ScheduleID,
-		&r.WeekdayFilter[time.Sunday],
-		&r.WeekdayFilter[time.Monday],
-		&r.WeekdayFilter[time.Tuesday],
-		&r.WeekdayFilter[time.Wednesday],
-		&r.WeekdayFilter[time.Thursday],
-		&r.WeekdayFilter[time.Friday],
-		&r.WeekdayFilter[time.Saturday],
+		&wf,
 		&r.Start,
 		&r.End,
 	}
