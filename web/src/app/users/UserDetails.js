@@ -134,7 +134,11 @@ export default class UserDetails extends React.PureComponent {
               />
               <Typography
                 variant='caption'
-                style={{ textAlign: 'center', paddingTop: '0.5em' }}
+                style={{
+                  textAlign: 'center',
+                  paddingTop: '0.5em',
+                  display: 'block',
+                }}
               >
                 Provided by{' '}
                 <a href='https://gravatar.com' target='_blank'>

@@ -40,6 +40,8 @@ const (
 // encoding problems with buggy apps.
 var b64enc = base64.URLEncoding.WithPadding(base64.NoPadding)
 
+var errVoiceTimeout = errors.New("process voice action: timeout")
+
 // KeyPressed specifies a key pressed from the voice menu options.
 type KeyPressed string
 
@@ -343,6 +345,21 @@ type call struct {
 	msgBody      string
 }
 
+func (v *Voice) handleResponse(resp notification.MessageResponse) error {
+	errCh := make(chan error, 1)
+	resp.Err = errCh
+	v.respCh <- &resp
+	var err error
+	t := time.NewTicker(5 * time.Second)
+	defer t.Stop()
+	select {
+	case err = <-errCh:
+	case <-t.C:
+		err = errVoiceTimeout
+	}
+	return err
+}
+
 func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
 		return
@@ -371,15 +388,13 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		})
 
 	case digitConfirm:
-		errCh := make(chan error, 1)
-		v.respCh <- &notification.MessageResponse{
+		err := v.handleResponse(notification.MessageResponse{
 			Ctx:    ctx,
 			From:   notification.Dest{Type: notification.DestTypeVoice, Value: call.Number},
 			Result: notification.ResultStop,
-			Err:    errCh,
-		}
+		})
 
-		if errResp(false, errors.Wrap(<-errCh, "process STOP response"), "") {
+		if errResp(false, errors.Wrap(err, "process STOP response"), "") {
 			return
 		}
 
@@ -469,7 +484,7 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 		// always log the failure
 		log.Log(ctx, err)
 
-		if retry.IsTemporaryError(err) && retryCount < 3 {
+		if (errors.Cause(err) == errVoiceTimeout || retry.IsTemporaryError(err)) && retryCount < 3 {
 			// schedule a retry
 			q.Set("retry_count", strconv.Itoa(retryCount+1))
 			q.Set("retry_digits", digits)
@@ -678,15 +693,12 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			result = notification.ResultAcknowledge
 			msg = "Acknowledged. Goodbye."
 		}
-		errCh := make(chan error, 1)
-		v.respCh <- &notification.MessageResponse{
+		err := v.handleResponse(notification.MessageResponse{
 			Ctx:    ctx,
 			ID:     call.msgID,
 			From:   notification.Dest{Type: notification.DestTypeVoice, Value: call.Number},
 			Result: result,
-			Err:    errCh,
-		}
-		err = <-errCh
+		})
 		if err != nil {
 			msg, err = voiceErrorMessage(ctx, err)
 		}

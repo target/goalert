@@ -2,11 +2,11 @@ package retry
 
 import (
 	"context"
-	"github.com/target/goalert/util/log"
 	"math/rand"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/util/log"
 )
 
 var _fib = []int{0, 1}
@@ -77,5 +77,12 @@ func FibBackoff(d time.Duration) Option {
 		}
 		time.Sleep(time.Duration(fib(a))*d + time.Duration(rand.Intn(100)-50)*time.Millisecond)
 		return true
+	}
+}
+
+// Context will allow retry to continue until the context is cancelled.
+func Context(ctx context.Context) Option {
+	return func(a int, _ error) bool {
+		return ctx.Err() == nil
 	}
 }
