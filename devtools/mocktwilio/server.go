@@ -66,6 +66,7 @@ func NewServer(cfg Config) *Server {
 		smsCh:     make(chan *SMS),
 		callCh:    make(chan *VoiceCall),
 		errs:      make(chan error, 10000),
+		shutdown:  make(chan struct{}),
 	}
 
 	base := "/Accounts/" + cfg.AccountSID
