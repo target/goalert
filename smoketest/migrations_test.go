@@ -566,8 +566,13 @@ func TestMigrations(t *testing.T) {
 
 	names := migrate.Names()
 	env, _ := os.LookupEnv("SKIP_TO")
+	var skipTo bool
 	if env != "" {
 		start = env
+		skipTo = true
+	} else {
+		start = "add-rotation-favorite" // default skip_to
+		skipTo = true
 	}
 	var idx int
 	for idx = range names {
@@ -577,7 +582,7 @@ func TestMigrations(t *testing.T) {
 	}
 
 	names = names[idx:]
-	if env, ok := os.LookupEnv("SKIP_TO"); ok && env != "" {
+	if skipTo {
 		n, err := migrate.Up(context.Background(), db, env)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
