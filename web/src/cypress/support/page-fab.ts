@@ -10,7 +10,10 @@ declare namespace Cypress {
 }
 
 function pageFab(dialOption?: string): Cypress.Chainable {
-  const res = cy.get('button[data-cy=page-fab]').click()
+  const res = cy
+    .get('button[data-cy=page-fab]')
+    .should('be.visible')
+    .click()
   if (!dialOption) return res
 
   return res
