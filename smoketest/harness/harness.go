@@ -527,6 +527,10 @@ func (h *Harness) Close() error {
 		h.cmd.Process.Kill()
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	h.sessKey.Shutdown(ctx)
+	h.tw.Close()
 	h.dumpDB()
 	h.db.Close()
 

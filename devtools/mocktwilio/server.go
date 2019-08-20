@@ -47,6 +47,8 @@ type Server struct {
 
 	mux *http.ServeMux
 
+	shutdown chan struct{}
+
 	sidSeq uint64
 }
 
@@ -167,11 +169,23 @@ func (s *Server) processCalls() {
 		}
 	}
 }
+
+// Close will shutdown the server loop.
+func (s *Server) Close() error {
+	close(s.shutdown)
+	return nil
+}
 func (s *Server) loop() {
 	sendT := time.NewTicker(10 * time.Millisecond)
-	for range sendT.C {
-		s.processMessages()
-		s.processCalls()
+	for {
+		select {
+		case <-sendT.C:
+			s.processMessages()
+			s.processCalls()
+		case <-s.shutdown:
+			// exit
+			return
+		}
 	}
 }
 
