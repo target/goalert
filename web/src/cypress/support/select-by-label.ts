@@ -43,12 +43,6 @@ function findByLabel(sub: any, label: string): Cypress.Chainable {
         .should('be.visible')
         .click()
 
-        // workaround until `not.have.focus` support is merged
-        // https://github.com/cypress-io/cypress/pull/3219
-        .should(el => {
-          expect(el).to.not.equal(document.activeElement)
-        })
-
       cy.focused()
         .should('be.visible')
         .type(label)
