@@ -3,7 +3,6 @@ package harness
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,8 +19,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/lib/pq"
-	_ "github.com/lib/pq" // load postgres driver
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/stdlib"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/alert"
@@ -89,7 +88,7 @@ type Harness struct {
 	lastTimeChange time.Time
 	pgResume       time.Time
 
-	db *sql.DB
+	db *pgx.ConnPool
 	nr notificationrule.Store
 	a  alert.Store
 
@@ -154,7 +153,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	start := time.Now()
 	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	runCmd(t, exec.Command("psql", "-d", DBURL(""), "-c", "create database "+pq.QuoteIdentifier(name)))
+	runCmd(t, exec.Command("psql", "-d", DBURL(""), "-c", "create database "+pgx.Identifier([]string{name}).Sanitize()))
 	t.Logf("created test database '%s': %s", name, DBURL(name))
 	g := NewDataGen(t, "Phone", DataGenFunc(GenPhone))
 
@@ -194,7 +193,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	// freeze DB time until backend starts
 	h.execQuery(`
 		create schema testing_overrides;
-		alter database ` + pq.QuoteIdentifier(name) + ` set search_path = "$user", public,testing_overrides, pg_catalog;
+		alter database ` + pgx.Identifier([]string{name}).Sanitize() + ` set search_path = "$user", public,testing_overrides, pg_catalog;
 		
 
 		create or replace function testing_overrides.now()
@@ -252,11 +251,17 @@ func (h *Harness) Start() {
 		h.t.Fatalf("failed to config backend: %v\n%s", err, string(out))
 	}
 
-	// resume the flow of time
-	h.db, err = sql.Open("postgres", h.dbURL)
+	dbCfg, err := pgx.ParseConnectionString(h.dbURL)
 	if err != nil {
-		h.t.Fatalf("failed to open DB: %v", err)
+		h.t.Fatalf("failed to parse db url: %v", err)
 	}
+	h.db, err = pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     dbCfg,
+		AcquireTimeout: 30 * time.Second,
+		MaxConnections: 2,
+	})
+
+	// resume the flow of time
 	err = h.db.QueryRow(`select pg_catalog.now()`).Scan(&h.pgResume)
 	if err != nil {
 		h.t.Fatalf("failed to get postgres timestamp: %v", err)
@@ -286,33 +291,34 @@ func (h *Harness) Start() {
 	}
 	ctx := context.Background()
 
-	h.nr, err = notificationrule.NewDB(ctx, h.db)
+	stdlibDB := stdlib.OpenDBFromPool(h.db)
+	h.nr, err = notificationrule.NewDB(ctx, stdlibDB)
 	if err != nil {
 		h.t.Fatalf("failed to init notification rule backend: %v", err)
 	}
-	h.usr, err = user.NewDB(ctx, h.db)
+	h.usr, err = user.NewDB(ctx, stdlibDB)
 	if err != nil {
 		h.t.Fatalf("failed to init user backend: %v", err)
 	}
 
-	aLog, err := alertlog.NewDB(ctx, h.db)
+	aLog, err := alertlog.NewDB(ctx, stdlibDB)
 	if err != nil {
 		h.t.Fatalf("failed to init alert log backend: %v", err)
 	}
 
-	h.a, err = alert.NewDB(ctx, h.db, aLog)
+	h.a, err = alert.NewDB(ctx, stdlibDB, aLog)
 	if err != nil {
 		h.t.Fatalf("failed to init alert backend: %v", err)
 	}
 
-	h.sessKey, err = keyring.NewDB(ctx, h.db, &keyring.Config{
+	h.sessKey, err = keyring.NewDB(ctx, stdlibDB, &keyring.Config{
 		Name: "browser-sessions",
 	})
 	if err != nil {
 		h.t.Fatalf("failed to init keyring: %v", err)
 	}
 
-	h.authH, err = auth.NewHandler(ctx, h.db, auth.HandlerConfig{
+	h.authH, err = auth.NewHandler(ctx, stdlibDB, auth.HandlerConfig{
 		SessionKeyring: h.sessKey,
 	})
 	if err != nil {
