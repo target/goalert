@@ -6,7 +6,7 @@ testScreen('Schedules', testSchedules)
 
 function testSchedules(screen: ScreenFormat) {
   describe('Creation', () => {
-    it.only('should create a schedule', () => {
+    it('should create a schedule', () => {
       const name = c.word({ length: 8 })
       const description = c.sentence({ words: 5 })
 
