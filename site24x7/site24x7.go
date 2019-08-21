@@ -16,21 +16,10 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type site24x7Post struct {
-	MONITOR_DASHBOARD_LINK  string
-	MONITORTYPE             string
-	STATUS                  string
-	REASON                  string
-	MONITORNAME             string
-	FAILED_LOCATIONS        string
-	INCIDENT_REASON         string
-	OUTAGE_TIME_UNIX_FORMAT string
-	MONITORURL              string
-	MONITOR_GROUPNAME       string
-	INCIDENT_TIME           string
-	INCIDENT_TIME_ISO       string
-	RCA_LINK                string
-	//ct                      int
+type post struct {
+	MonitorDashboardURL string `json:"MONITOR_DASHBOARD_LINK"` // using URL instead of Link to match fields used in GoAlert, we can just map it to the JSON name
+	Status              string `json:"STATUS"`
+	MonitorName         string `json:"MONITORNAME"`
 }
 
 func clientError(w http.ResponseWriter, code int, err error) bool {
@@ -54,7 +43,7 @@ func Site24x7ToEventsAPI(aDB alert.Store, intDB integrationkey.Store) http.Handl
 		}
 		serviceID := permission.ServiceID(ctx)
 
-		var g site24x7Post
+		var g post
 		err = json.NewDecoder(r.Body).Decode(&g)
 		if clientError(w, http.StatusBadRequest, err) {
 			log.Logf(ctx, "bad request from site24x7: %v", err)
@@ -62,17 +51,13 @@ func Site24x7ToEventsAPI(aDB alert.Store, intDB integrationkey.Store) http.Handl
 		}
 
 		ctx = log.WithFields(ctx, log.Fields{
-			"RuleURL": g.MONITOR_DASHBOARD_LINK,
-			"State":   g.STATUS,
+			"RuleURL": g.MonitorDashboardURL,
+			"State":   g.Status,
 		})
 
 		var site24x7State alert.Status
-		switch g.STATUS {
-		case "DOWN":
-			site24x7State = alert.StatusTriggered
-		case "CRITICAL":
-			site24x7State = alert.StatusTriggered
-		case "TROUBLE":
+		switch g.Status {
+		case "DOWN", "CRITICAL", "TROUBLE":
 			site24x7State = alert.StatusTriggered
 		case "UP":
 			site24x7State = alert.StatusClosed
@@ -83,14 +68,14 @@ func Site24x7ToEventsAPI(aDB alert.Store, intDB integrationkey.Store) http.Handl
 		}
 
 		var urlStr string
-		if validate.AbsoluteURL("RuleURL", g.MONITOR_DASHBOARD_LINK) == nil {
-			urlStr = g.MONITOR_DASHBOARD_LINK
+		if validate.AbsoluteURL("MONITOR_DASHBOARD_LINK", g.MonitorDashboardURL) == nil {
+			urlStr = g.MonitorDashboardURL
 		}
-		body := strings.TrimSpace(urlStr + "\n\n" + g.MONITORNAME)
+		body := strings.TrimSpace(urlStr + "\n\n" + g.MonitorName)
 
 		//dedupe is description, source, and serviceID
 		msg := &alert.Alert{
-			Summary:   validate.SanitizeText(g.MONITORNAME, alert.MaxSummaryLength),
+			Summary:   validate.SanitizeText(g.MonitorName, alert.MaxSummaryLength),
 			Details:   validate.SanitizeText(body, alert.MaxDetailsLength),
 			Status:    site24x7State,
 			Source:    alert.SourceSite24x7,

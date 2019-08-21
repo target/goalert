@@ -64,8 +64,8 @@ To trigger an alert using Site24x7, follow these steps:
    - Display Name: Choose a name that makes sense to people outside of your team.
    - Url: Paste in the Site24x7 webhook URL you generated in step 1.
    - HTTP Method: POST
-   - Send Incident Parameters: Select this to pass the deatils of the alert.
-   - Post as JSON: Select this to pass the deatils in the required JSON format.
+   - Send Incident Parameters: Select this to pass the details of the alert.
+   - Post as JSON: Select this to pass the details in the required JSON format.
    - Click Save, testing the IT Automation will fail as the test doesn't pass any of the required information.
 
 3. Navigate to the configuration page for the check you want to alert on, in the IT Automation section select the Automation you created above and select when you want the action to trigger. To have an alert on both Up and Down, create a second IT Automation.  

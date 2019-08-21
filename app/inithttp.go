@@ -177,7 +177,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	muxRewrite(mux, "/v1/webhooks/mailgun", "/api/v2/mailgun/incoming")
 	muxRewrite(mux, "/v1/webhooks/grafana", "/api/v2/grafana/incoming")
-	muxRewrite(mux, "/v1/webhooks/site24x7", "/api/v2/site24x7/incoming")
 	muxRewrite(mux, "/v1/api/alerts", "/api/v2/generic/incoming")
 	muxRewritePrefix(mux, "/v1/api/heartbeat/", "/api/v2/heartbeat/")
 	muxRewriteWith(mux, "/v1/api/users/", func(req *http.Request) *http.Request {
