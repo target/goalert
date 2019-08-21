@@ -1,5 +1,8 @@
 #!/bin/sh
-export GOALERT_DB_URL="$DB_URL/$(cat ../../db/NAME)"
+
+BASE_URL=$(echo "$DB_URL" | sed 's/?.*$//')
+URL_QUERY=$(echo "$DB_URL" | grep '?' | sed 's/^.*?/?/')
+export GOALERT_DB_URL="$BASE_URL/$(cat ../../db/NAME)$URL_QUERY"
 export CYPRESS_DB_URL="$GOALERT_DB_URL"
 set -x
 
