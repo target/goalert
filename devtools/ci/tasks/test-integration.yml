@@ -1,6 +1,6 @@
 platform: linux
 params:
-  DB_URL: ((dev-db-url))
+  DB_URL: ""
   MOBILE: "0"
 inputs:
   - name: integration
