@@ -47,7 +47,10 @@ function testCalendar(screen: ScreenFormat) {
               weekdayFilter: [true, true, true, true, true, true, true],
             },
           ],
-        }).then(() => cy.visit('/schedules/' + sched.id))
+        }).then(() => {
+          cy.visit('/schedules/' + sched.id)
+          cy.get('[data-cy=calendar]', { timeout: 15000 }).should('be.visible')
+        })
       })
     })
   })
