@@ -1,4 +1,4 @@
-<!-- Thank you for your contribution to Goalert. -->
+<!-- Thank you for your contribution to GoAlert. -->
 <!-- Before submitting this PR, please make sure that you have: -->
 
 - [X] Identified the issue which this PR solves.
