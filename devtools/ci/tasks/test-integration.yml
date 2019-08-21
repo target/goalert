@@ -1,0 +1,16 @@
+platform: linux
+params:
+  DB_URL: ""
+  MOBILE: "0"
+inputs:
+  - name: integration
+  - name: db
+outputs:
+  - name: debug
+image_resource:
+  type: registry-image
+  source: { repository: cypress/included, tag: 3.4.1 }
+run:
+  path: sh
+  dir: integration/goalert
+  args: [-e, ./devtools/ci/tasks/scripts/test-integration.sh]
