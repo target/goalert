@@ -42,6 +42,7 @@ function findByLabel(sub: any, label: string): Cypress.Chainable {
         .should('have.length', 1)
         .should('be.visible')
         .click()
+        .should('not.have.focus')
 
       cy.focused()
         .should('be.visible')
