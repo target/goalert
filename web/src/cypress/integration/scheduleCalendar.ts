@@ -183,8 +183,11 @@ function testCalendar(screen: ScreenFormat) {
   })
 
   it('should create a remove override from a shift tooltip', () => {
-    cy.get('div')
-      .contains(rot.users[0].name.split(' ')[0])
+    const name = rot.users[0].name.split(' ')[0]
+
+    cy.get('[data-cy=calendar]')
+      .should('contain', name)
+      .contains('div', name)
       .trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="remove-override"]').click()
