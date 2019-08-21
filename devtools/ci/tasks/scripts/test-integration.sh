@@ -17,7 +17,7 @@ then
   DEBUG_SUFFIX=mobile
 fi
 
-trap "tar czf ../../debug/debug-$(date +%Y%m%d%H%M%S)-$COMMIT-$DEBUG_SUFFIX.tgz -C .. goalert" EXIT
+trap "tar czf ../../debug/debug-$(date +%Y%m%d%H%M%S)-$COMMIT-$DEBUG_SUFFIX.tgz cypress/screenshots cypress/videos" EXIT
 
 mockslack \
   -client-id=000000000000.000000000000 \
