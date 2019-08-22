@@ -16,7 +16,9 @@ function pageSearch(s: string): Cypress.Chainable {
       }) // since we're running tests, it's ok if it is already open
     }
 
-    cy.get('[data-cy=app-bar] input').type(`{selectall}${s}`)
+    cy.get('[data-cy=app-bar] input')
+      .type(`{selectall}${s}`)
+      .should('have.value', s)
   })
 }
 
