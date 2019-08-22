@@ -70,9 +70,9 @@ export default class AdminConfirmDialog extends React.PureComponent {
           })),
         )}
         form={
-          <List>
+          <List data-cy='confirmation-diff'>
             {changes.map(c => (
-              <ListItem divider key={c.id}>
+              <ListItem divider key={c.id} data-cy={'diff-' + c.id}>
                 <ListItemText
                   disableTypography
                   secondary={
