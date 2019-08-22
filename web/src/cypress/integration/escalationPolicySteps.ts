@@ -39,7 +39,6 @@ function testSteps(screen: ScreenFormat) {
         const u2 = users[1]
 
         cy.pageFab()
-        cy.get('div[role=dialog]').as('dialog')
         cy.get('div[role=dialog]').should('contain', 'Create Step')
 
         cy.get('input[name=rotations]').selectByLabel(r1.name)
