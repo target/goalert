@@ -32,27 +32,37 @@ function testAdmin(screen: ScreenFormat) {
       const newVal = 'http://' + c.domain()
       cy.get('input[name="General.PublicURL"]')
         .clear()
+        .should('be.empty')
         .type(newVal)
+        .should('have.value', newVal)
       cy.get('button[data-cy="save"]').click()
+
+      // save dialog
       cy.get('p[data-cy="old"]').should('contain', cfg.General.PublicURL)
       cy.get('p[data-cy="new"]').should('contain', newVal)
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
       cy.get('div[role="document"]').should('not.exist') // dialog should close
+
       cy.get('input[name="General.PublicURL"]').should('have.value', newVal)
     })
 
     it('should set a config value', () => {
       const newVal = c.domain()
-      cy.get('input[name="Mailgun.EmailDomain"]').type(newVal)
+      cy.get('input[name="Mailgun.EmailDomain"]')
+        .type(newVal)
+        .should('have.value', newVal)
       cy.get('button[data-cy="save"]').click()
+
+      // save dialog
       cy.get('p[data-cy="old"]').should('not.exist')
       cy.get('p[data-cy="new"]').should('contain', newVal)
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
       cy.get('div[role="document"]').should('not.exist') // dialog should close
+
       cy.get('input[name="Mailgun.EmailDomain"]').should('have.value', newVal)
     })
 
@@ -63,23 +73,31 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('input[name="General.PublicURL"]')
         .clear()
         .type(newVal1)
-      cy.get('input[name="Mailgun.EmailDomain"]').type(newVal2)
+        .should('have.value', newVal1)
+      cy.get('input[name="Mailgun.EmailDomain"]')
+        .type(newVal2)
+        .should('have.value', newVal2)
       cy.get('button[data-cy="save"]').click()
 
+      // save dialog
       cy.get('li')
+        .should('be.visible')
         .contains('General.PublicURL')
         .siblings('p[data-cy="old"]')
         .should('contain', cfg.General.PublicURL)
       cy.get('li')
+        .should('be.visible')
         .contains('General.PublicURL')
         .siblings('p[data-cy="new"]')
         .should('contain', newVal1)
 
       cy.get('li')
+        .should('be.visible')
         .contains('Mailgun.EmailDomain')
         .siblings('p[data-cy="old"]')
         .should('not.exist') // not set in beforeEach
       cy.get('li')
+        .should('be.visible')
         .contains('Mailgun.EmailDomain')
         .siblings('p[data-cy="new"]')
         .should('contain', newVal2)
@@ -94,36 +112,62 @@ function testAdmin(screen: ScreenFormat) {
     })
 
     it('should delete a config value', () => {
-      cy.get('input[name="General.PublicURL"]').clear()
+      cy.get('input[name="General.PublicURL"]')
+        .clear()
+        .should('be.empty')
       cy.get('button[data-cy="save"]').click()
+
+      // save dialog
       cy.get('p[data-cy="old"]').should('contain', cfg.General.PublicURL)
       cy.get('p[data-cy="new"]').should('not.exist')
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
       cy.get('div[role="document"]').should('not.exist') // dialog should close
+
       cy.get('input[name="General.PublicURL"]').should('have.value', '')
     })
 
     it('should cancel changing a config value', () => {
       const newVal = c.domain()
+
       cy.get('input[name="General.PublicURL"]')
         .clear()
+        .should('be.empty')
         .type(newVal)
+        .should('have.value', newVal)
       cy.get('button[data-cy="save"]').click()
+
+      // save dialog
       cy.get('p[data-cy="old"]').should('contain', cfg.General.PublicURL)
       cy.get('p[data-cy="new"]').should('contain', newVal)
       cy.get('button[type="button"]')
         .contains('Cancel')
         .click()
       cy.get('div[role="document"]').should('not.exist') // dialog should close
+
+      // value typed in
+      cy.get('input[name="General.PublicURL"]').should('have.value', newVal)
+      // reload page
+      cy.reload()
+      // since cancelled, data should be the same as before
+      cy.get('input[name="General.PublicURL"]').should(
+        'have.value',
+        cfg.General.PublicURL,
+      )
     })
 
     it('should reset pending config value changes', () => {
+      const domain1 = c.domain()
+      const domain2 = c.domain()
       cy.get('input[name="General.PublicURL"]')
         .clear()
-        .type(c.domain())
-      cy.get('input[name="Mailgun.EmailDomain"]').type(c.domain())
+        .should('be.empty')
+        .type(domain1)
+        .should('have.value', domain1)
+      cy.get('input[name="Mailgun.EmailDomain"]')
+        .type(domain2)
+        .should('have.value', domain2)
 
       cy.get('button[data-cy="reset"]').click()
 
@@ -137,12 +181,15 @@ function testAdmin(screen: ScreenFormat) {
     it('should update a boolean toggle field', () => {
       cy.get('input[name="Twilio.Enable"]').click()
       cy.get('button[data-cy="save"]').click()
+
+      // save dialog
       cy.get('p[data-cy="old"]').should('contain', 'false')
       cy.get('p[data-cy="new"]').should('contain', 'true')
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
       cy.get('div[role="document"]').should('not.exist') // dialog should close
+
       cy.get('input[name="Twilio.Enable"]').should('have.value', 'true')
     })
 
@@ -153,16 +200,22 @@ function testAdmin(screen: ScreenFormat) {
 
       cy.get('input[name="Auth.RefererURLs-new-item"]')
         .clear()
+        .should('be.empty')
         .type(domain1)
+        .should('have.value', domain1)
       cy.get('input[name="Auth.RefererURLs-new-item"]')
         .clear()
+        .should('be.empty')
         .type(domain2)
+        .should('have.value', domain2)
       cy.get('input[name="Auth.RefererURLs-new-item"]')
         .clear()
+        .should('be.empty')
         .type(domain3)
-
+        .should('have.value', domain3)
       cy.get('button[data-cy="save"]').click()
-      // cy.get('p[data-cy="old"]').should('contain', url)
+
+      // save dialog
       cy.get('p[data-cy="new"]').should(
         'contain',
         domain1 + ', ' + domain2 + ', ' + domain3,
@@ -171,6 +224,7 @@ function testAdmin(screen: ScreenFormat) {
         .contains('Confirm')
         .click()
       cy.get('div[role="document"]').should('not.exist') // dialog should close
+
       cy.get('input[name="Auth.RefererURLs-0"]').should('have.value', domain1)
       cy.get('input[name="Auth.RefererURLs-1"]').should('have.value', domain2)
       cy.get('input[name="Auth.RefererURLs-2"]').should('have.value', domain3)
@@ -181,14 +235,19 @@ function testAdmin(screen: ScreenFormat) {
       const newKey = 'key-' + c.string({ length: 32, pool: '0123456789abcdef' })
       cy.get('input[name="Mailgun.APIKey"]')
         .clear()
+        .should('be.empty')
         .type(newKey)
+        .should('have.value', newKey)
       cy.get('button[data-cy="save"]').click()
+
+      // save dialog
       cy.get('p[data-cy="old"]').should('contain', cfg.Mailgun.APIKey)
       cy.get('p[data-cy="new"]').should('contain', newKey)
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
       cy.get('div[role="document"]').should('not.exist') // dialog should close
+
       cy.get('input[name="Mailgun.APIKey"]').should('have.value', newKey)
     })
   })
