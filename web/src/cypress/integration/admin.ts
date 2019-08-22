@@ -40,7 +40,7 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-General.PublicURL"] p[data-cy="old"]',
       )
         .should('contain', cfg.General.PublicURL)
         .siblings('p[data-cy="new"]')
@@ -63,10 +63,10 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Mailgun.EmailDomain"] p[data-cy="old"]',
       ).should('not.exist')
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="new"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Mailgun.EmailDomain"] p[data-cy="new"]',
       ).should('contain', newVal)
       cy.get('button[type="submit"]')
         .contains('Confirm')
@@ -91,18 +91,18 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-General.PublicURL"] p[data-cy="old"]',
       )
         .should('contain', cfg.General.PublicURL)
         .siblings('p[data-cy="new"]')
         .should('contain', newVal1)
 
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Mailgun.EmailDomain"] p[data-cy="old"]',
       ).should('not.exist') // not set in beforeEach
 
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="new"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Mailgun.EmailDomain"] p[data-cy="new"]',
       ).should('contain', newVal2)
 
       cy.get('button[type="submit"]')
@@ -122,7 +122,7 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-General.PublicURL"] p[data-cy="old"]',
       )
         .should('contain', cfg.General.PublicURL)
         .siblings('p[data-cy="new"]')
@@ -147,7 +147,7 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-General.PublicURL"] p[data-cy="old"]',
       )
         .should('contain', cfg.General.PublicURL)
         .siblings('p[data-cy="new"]')
@@ -196,7 +196,7 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Twilio.Enable"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Twilio.Enable"] p[data-cy="old"]',
       )
         .should('contain', 'false')
         .siblings('p[data-cy="new"]')
@@ -233,10 +233,10 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Auth.RefererURLs"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Auth.RefererURLs"] p[data-cy="old"]',
       ).should('not.exist')
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Auth.RefererURLs"] p[data-cy="new"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Auth.RefererURLs"] p[data-cy="new"]',
       ).should('contain', `${domain1}, ${domain2}, ${domain3}`)
       cy.get('button[type="submit"]')
         .contains('Confirm')
@@ -261,7 +261,7 @@ function testAdmin(screen: ScreenFormat) {
 
       // save dialog
       cy.get(
-        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.APIKey"] p[data-cy="old"]',
+        'ul[data-cy="confirmation-diff"] li[data-cy="diff-Mailgun.APIKey"] p[data-cy="old"]',
       )
         .should('contain', cfg.Mailgun.APIKey)
         .siblings('p[data-cy="new"]')
