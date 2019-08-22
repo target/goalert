@@ -8,7 +8,6 @@ import gql from 'graphql-tag'
 import { omit } from 'lodash-es'
 import FormDialog from '../dialogs/FormDialog'
 import { Mutation } from 'react-apollo'
-import { graphql2Client } from '../apollo'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Diff from '../util/Diff'
 
@@ -29,7 +28,6 @@ export default class AdminConfirmDialog extends React.PureComponent {
   render() {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={mutation}
         onCompleted={this.props.onComplete}
         awaitRefetchQueries

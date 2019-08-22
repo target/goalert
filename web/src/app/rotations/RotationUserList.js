@@ -1,7 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { graphql2Client } from '../apollo'
 import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
 import Card from '@material-ui/core/Card'
@@ -92,7 +91,7 @@ export default class RotationUserList extends React.PureComponent {
 
   renderMutation(data) {
     return (
-      <Mutation client={graphql2Client} mutation={mutation}>
+      <Mutation mutation={mutation}>
         {commit => this.renderList(data, commit)}
       </Mutation>
     )

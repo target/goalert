@@ -1,6 +1,5 @@
 import React from 'react'
 import { Redirect } from 'react-router'
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
@@ -39,7 +38,7 @@ export default class RotationCreateDialog extends React.PureComponent {
 
   render() {
     return (
-      <Mutation client={graphql2Client} mutation={mutation}>
+      <Mutation mutation={mutation}>
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
     )

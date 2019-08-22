@@ -1,7 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
 
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { nonFieldErrors } from '../util/errutil'
@@ -38,7 +37,6 @@ export default class ScheduleDeleteDialog extends React.PureComponent {
     return (
       <Query
         noPoll
-        client={graphql2Client}
         query={query}
         variables={{ id: this.props.scheduleID }}
         render={({ data }) => this.renderMutation(data.schedule)}
@@ -48,7 +46,7 @@ export default class ScheduleDeleteDialog extends React.PureComponent {
 
   renderMutation(data) {
     return (
-      <Mutation client={graphql2Client} mutation={mutation}>
+      <Mutation mutation={mutation}>
         {(commit, status) => this.renderDialog(data, commit, status)}
       </Mutation>
     )
