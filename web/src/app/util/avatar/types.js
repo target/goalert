@@ -1,54 +1,67 @@
-import React from 'react'
-import BaseAvatar from './BaseAvatar'
+import React, { useEffect, useState } from 'react'
 import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
+import { useSessionInfo } from '../RequireConfig'
+import { Avatar } from '@material-ui/core'
 
-import { graphql } from 'react-apollo'
-import gql from 'graphql-tag'
+function useImage(srcURL) {
+  const [valid, setValid] = useState(false)
 
-export class UserAvatar extends BaseAvatar {
-  renderFallback() {
-    return <Person />
-  }
+  useEffect(() => {
+    setValid(false)
+    if (!srcURL) return
 
-  srcURL(props) {
-    return props.userID && `/api/v2/user-avatar/${props.userID}`
-  }
-}
-export class ServiceAvatar extends BaseAvatar {
-  renderFallback() {
-    return <VpnKey />
-  }
-}
-export class EPAvatar extends BaseAvatar {
-  renderFallback() {
-    return <Layers />
-  }
-}
-export class RotationAvatar extends BaseAvatar {
-  renderFallback() {
-    return <RotateRight />
-  }
-}
-export class ScheduleAvatar extends BaseAvatar {
-  renderFallback() {
-    return <Today />
-  }
-}
+    const image = new Image()
+    image.onload = () => setValid(true)
+    image.src = srcURL
 
-const CURRENT_USER_QUERY = gql`
-  query GetCurrentUser {
-    currentUser {
-      id
+    return () => {
+      image.onload = null
     }
-  }
-`
+  }, [srcURL])
 
-@graphql(CURRENT_USER_QUERY)
-export class CurrentUserAvatar extends UserAvatar {
-  render() {
-    const { data, loading, error, ...props } = this.props
-    const userID = data && data.currentUser && data.currentUser.id
+  if (!valid) return null
 
-    return <UserAvatar {...props} userID={userID} />
-  }
+  return srcURL
+}
+
+function avatar(Fallback, otherProps, imgSrc) {
+  const src = useImage(imgSrc)
+
+  return (
+    <Avatar
+      alt=''
+      src={src || null}
+      data-cy={src ? null : 'avatar-fallback'}
+      {...otherProps}
+    >
+      {src ? null : <Fallback />}
+    </Avatar>
+  )
+}
+
+export function UserAvatar({ userID, ...otherProps }) {
+  return avatar(
+    Person,
+    otherProps,
+    userID ? `/api/v2/user-avatar/${userID}` : null,
+  )
+}
+
+export function CurrentUserAvatar(otherProps) {
+  const { userID } = useSessionInfo()
+  return <UserAvatar userID={userID} {...otherProps} />
+}
+
+export function ServiceAvatar(props) {
+  return avatar(VpnKey, props)
+}
+
+export function EPAvatar(props) {
+  return avatar(Layers, props)
+}
+export function RotationAvatar(props) {
+  return avatar(RotateRight, props)
+}
+export function ScheduleAvatar(props) {
+  return avatar(Today, props)
 }
