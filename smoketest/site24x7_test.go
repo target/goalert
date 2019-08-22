@@ -43,7 +43,7 @@ func TestSite24x7(t *testing.T) {
 	values
 		({{uuid "int_key"}}, 'site24x7', 'my key', {{uuid "sid"}});
 `
-	h := harness.NewHarness(t, sql, "ids-to-uuids")
+	h := harness.NewHarness(t, sql, "site24x7-integration")
 	defer h.Close()
 
 	url := h.URL() + "/api/v2/site24x7/incoming?token=" + h.UUID("int_key")
@@ -73,5 +73,5 @@ func TestSite24x7(t *testing.T) {
 	}
 	resp.Body.Close()
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("bob")
+	h.Twilio().Device(h.Phone("1")).ExpectSMS("Site24x7")
 }
