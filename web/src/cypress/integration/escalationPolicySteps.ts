@@ -40,7 +40,7 @@ function testSteps(screen: ScreenFormat) {
 
         cy.pageFab()
         cy.get('div[role=dialog]').as('dialog')
-        cy.get('@dialog').should('contain', 'Create Step')
+        cy.get('div[role=dialog]').should('contain', 'Create Step')
 
         cy.get('input[name=rotations]').selectByLabel(r1.name)
         cy.get('input[name=rotations]').selectByLabel(r2.name)
@@ -57,6 +57,7 @@ function testSteps(screen: ScreenFormat) {
         cy.get('input[name=delayMinutes]')
           .should('have.value', '15')
           .clear()
+          .should('be.empty')
           .type(delStr)
           .should('have.value', delStr)
 
@@ -64,7 +65,7 @@ function testSteps(screen: ScreenFormat) {
         cy.get('button[type=submit]').click()
 
         // confirm dialog closes
-        cy.get('@dialog').should('not.exist')
+        cy.get('div[role=dialog]').should('not.exist')
 
         // verify data integrity
         cy.get('body').should('contain', 'Notify the following:')
@@ -91,7 +92,7 @@ function testSteps(screen: ScreenFormat) {
 
         cy.pageFab()
         cy.get('div[role=dialog]').as('dialog')
-        cy.get('@dialog').should('contain', 'Create Step')
+        cy.get('div[role=dialog]').should('contain', 'Create Step')
 
         cy.get('button[data-cy="users-step"]').click()
         cy.get('input[name=users]').selectByLabel(u1.name)
@@ -113,7 +114,7 @@ function testSteps(screen: ScreenFormat) {
             .menu('Edit')
 
           cy.get('div[role=dialog]').as('dialog')
-          cy.get('@dialog').should('contain', 'Edit Step')
+          cy.get('div[role=dialog]').should('contain', 'Edit Step')
 
           cy.get('input[name=rotations]').selectByLabel(r1.name)
 
@@ -122,6 +123,7 @@ function testSteps(screen: ScreenFormat) {
           cy.get('input[name=delayMinutes]')
             .should('have.value', s1.delayMinutes.toString())
             .clear()
+            .should('be.empty')
             .type(delStr)
             .should('have.value', delStr)
 
@@ -129,7 +131,7 @@ function testSteps(screen: ScreenFormat) {
           cy.get('button[type=submit]').click()
 
           // confirm dialog closes
-          cy.get('@dialog').should('not.exist')
+          cy.get('div[role=dialog]').should('not.exist')
 
           // verify data integrity
           cy.get('body').should('contain', 'Notify the following:')
@@ -147,8 +149,7 @@ function testSteps(screen: ScreenFormat) {
       cy.reload()
 
       cy.pageFab()
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog').should('contain', 'Create Step')
+      cy.get('div[role=dialog]').should('contain', 'Create Step')
 
       // expand slack channels section
       cy.get('button[data-cy="slack-channels-step"]').click()
@@ -161,7 +162,7 @@ function testSteps(screen: ScreenFormat) {
       cy.get('button[type=submit]').click()
 
       // confirm create dialog closes
-      cy.get('@dialog').should('not.exist')
+      cy.get('div[role=dialog]').should('not.exist')
 
       // verify data integrity
       cy.get('body').should('contain', 'Notify the following:')
@@ -175,7 +176,7 @@ function testSteps(screen: ScreenFormat) {
         .menu('Edit')
 
       // confirm edit step dialog open
-      cy.get('@dialog').should('contain', 'Edit Step')
+      cy.get('div[role=dialog]').should('contain', 'Edit Step')
 
       // expand slack channels section
       cy.get('button[data-cy="slack-channels-step"]').click()
@@ -187,7 +188,7 @@ function testSteps(screen: ScreenFormat) {
       cy.get('button[type=submit]').click()
 
       // confirm edit dialog closes
-      cy.get('@dialog').should('not.exist')
+      cy.get('div[role=dialog]').should('not.exist')
 
       // verify data integrity
       cy.get('body').should('contain', 'Notify the following:')
@@ -203,14 +204,14 @@ function testSteps(screen: ScreenFormat) {
         .menu('Delete')
       cy.get('div[role=dialog]').as('dialog')
 
-      cy.get('@dialog').should('contain', 'Are you sure?')
-      cy.get('@dialog').should(
+      cy.get('div[role=dialog]').should('contain', 'Are you sure?')
+      cy.get('div[role=dialog]').should(
         'contain',
         'This will delete step #1 on this escalation policy.',
       )
       cy.get('button[type=submit]').click()
 
-      cy.get('@dialog').should('not.exist')
+      cy.get('div[role=dialog]').should('not.exist')
       cy.get('body').should(
         'contain',
         'No steps currently on this Escalation Policy',
