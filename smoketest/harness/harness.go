@@ -106,15 +106,6 @@ func (h *Harness) Config() config.Config {
 	return h.cfg
 }
 
-func runCmd(t *testing.T, c *exec.Cmd) {
-	t.Helper()
-	data, err := c.CombinedOutput()
-	t.Log(string(data))
-	if err != nil {
-		t.Fatalf("failed to run '%s %s': %v", c.Path, strings.Join(c.Args, " "), err)
-	}
-}
-
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
@@ -140,7 +131,7 @@ func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
 const (
 	twilioAuthToken  = "11111111111111111111111111111111"
 	twilioAccountSID = "AC00000000000000000000000000000000"
-	mailgunApiKey    = "key-00000000000000000000000000000000"
+	mailgunAPIKey    = "key-00000000000000000000000000000000"
 )
 
 // NewStoppedHarness will create a NewHarness, but will not call Start.
@@ -154,7 +145,10 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	start := time.Now()
 	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	runCmd(t, exec.Command("psql", "-d", DBURL(""), "-c", "create database "+pq.QuoteIdentifier(name)))
+	err := ExecSQL(context.Background(), DBURL(""), "create database "+name)
+	if err != nil {
+		t.Fatalf("create database: %v", err)
+	}
 	t.Logf("created test database '%s': %s", name, DBURL(name))
 	g := NewDataGen(t, "Phone", DataGenFunc(GenPhone))
 
@@ -231,7 +225,7 @@ func (h *Harness) Start() {
 	cfg.Twilio.FromNumber = h.phoneG.Get("twilio")
 
 	cfg.Mailgun.Enable = true
-	cfg.Mailgun.APIKey = mailgunApiKey
+	cfg.Mailgun.APIKey = mailgunAPIKey
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
 	data, err := json.Marshal(cfg)
@@ -410,7 +404,10 @@ func (h *Harness) execQuery(sql string) {
 		h.t.Fatalf("failed to render query template: %v", err)
 	}
 
-	runCmd(h.t, exec.Command("psql", "-d", h.dbURL, "-c", b.String()))
+	err = ExecSQLBatch(context.Background(), h.dbURL, b.String())
+	if err != nil {
+		h.t.Fatalf("failed to exec query: %v", err)
+	}
 }
 
 // CreateAlert will create a new unacknowledged alert.
@@ -530,10 +527,14 @@ func (h *Harness) Close() error {
 		h.cmd.Process.Kill()
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	h.sessKey.Shutdown(ctx)
+	h.tw.Close()
 	h.dumpDB()
 	h.db.Close()
 
-	err := exec.Command("psql", "-d", DBURL(""), "-c", "drop database "+h.dbName).Run()
+	err := ExecSQL(context.Background(), DBURL(""), "drop database "+h.dbName)
 	if err != nil {
 		h.t.Errorf("failed to drop database '%s': %v", h.dbName, err)
 	}

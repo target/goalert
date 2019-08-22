@@ -5,6 +5,5 @@
   "waitForAnimations": false,
   "viewportWidth": 1440,
   "viewportHeight": 900,
-  "defaultCommandTimeout": 15000,
   "requestTimeout": 15000
 }

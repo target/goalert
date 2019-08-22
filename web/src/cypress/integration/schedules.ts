@@ -11,19 +11,24 @@ function testSchedules(screen: ScreenFormat) {
       const description = c.sentence({ words: 5 })
 
       cy.visit('/schedules')
-      cy.pageFab()
-      cy.get('input[name=name]').type(name)
 
+      cy.pageFab()
+      cy.get('div[role=dialog]').should('contain', 'Create New Schedule')
+
+      cy.get('input[name=name]')
+        .type(name)
+        .should('have.value', name)
       cy.get('textarea[name=description]')
-        .clear()
         .type(description)
+        .should('have.value', description)
+
       cy.get('button')
         .contains('Submit')
         .click()
 
       // verify on details by content headers
-      cy.get('[data-cy=details-heading]').contains(name)
-      cy.get('[data-cy=details]').contains(description)
+      cy.get('[data-cy=details-heading]').should('contain', name)
+      cy.get('[data-cy=details]').should('contain', description)
     })
   })
 
@@ -76,22 +81,30 @@ function testSchedules(screen: ScreenFormat) {
 
       cy.pageAction('Edit Schedule')
       cy.get('input[name=name]')
+        .should('have.value', sched.name)
         .clear()
+        .should('be.empty')
         .type(newName) // type in new name
-      cy.get('input[name=time-zone]').selectByLabel(newTz)
+        .should('have.value', newName)
 
       cy.get('textarea[name=description]')
+        .should('have.value', sched.description)
         .clear()
+        .should('be.empty')
         .type(newDesc) // type in new description
+        .should('have.value', newDesc)
+
+      cy.get('input[name=time-zone]').selectByLabel(newTz)
+
       cy.get('button')
         .contains('Submit')
         .click()
 
       // verify changes occurred
       cy.reload()
-      cy.get('[data-cy=details-heading]').contains(newName)
-      cy.get('[data-cy=details]').contains(newDesc)
-      cy.get('[data-cy=title-footer]').contains(newTz)
+      cy.get('[data-cy=details-heading]').should('contain', newName)
+      cy.get('[data-cy=details]').should('contain', newDesc)
+      cy.get('[data-cy=title-footer]').should('contain', newTz)
     })
 
     it('should navigate to and from assignments', () => {

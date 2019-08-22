@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/lib/pq"
@@ -435,7 +434,7 @@ Migration: %s (#%d)
 
 			if pass == "" {
 				fmt.Printf("New Password: ")
-				p, err := terminal.ReadPassword(syscall.Stdin)
+				p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
 				if err != nil {
 					return errors.Wrap(err, "get password")
 				}
