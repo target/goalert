@@ -3,7 +3,7 @@ import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
 import { useSessionInfo } from '../RequireConfig'
 import { Avatar } from '@material-ui/core'
 
-function useImage(srcURL) {
+function useValidImage(srcURL) {
   const [valid, setValid] = useState(false)
 
   useEffect(() => {
@@ -19,28 +19,26 @@ function useImage(srcURL) {
     }
   }, [srcURL])
 
-  if (!valid) return null
-
-  return srcURL
+  return valid
 }
 
-function avatar(Fallback, otherProps, imgSrc) {
-  const src = useImage(imgSrc)
+function renderAvatar(Fallback, otherProps, imgSrc) {
+  const validImage = useValidImage(imgSrc)
 
   return (
     <Avatar
       alt=''
-      src={src || null}
-      data-cy={src ? null : 'avatar-fallback'}
+      src={validImage ? imgSrc : null}
+      data-cy={validImage ? null : 'avatar-fallback'}
       {...otherProps}
     >
-      {src ? null : <Fallback />}
+      {validImage ? null : <Fallback />}
     </Avatar>
   )
 }
 
 export function UserAvatar({ userID, ...otherProps }) {
-  return avatar(
+  return renderAvatar(
     Person,
     otherProps,
     userID ? `/api/v2/user-avatar/${userID}` : null,
@@ -53,15 +51,15 @@ export function CurrentUserAvatar(otherProps) {
 }
 
 export function ServiceAvatar(props) {
-  return avatar(VpnKey, props)
+  return renderAvatar(VpnKey, props)
 }
 
 export function EPAvatar(props) {
-  return avatar(Layers, props)
+  return renderAvatar(Layers, props)
 }
 export function RotationAvatar(props) {
-  return avatar(RotateRight, props)
+  return renderAvatar(RotateRight, props)
 }
 export function ScheduleAvatar(props) {
-  return avatar(Today, props)
+  return renderAvatar(Today, props)
 }
