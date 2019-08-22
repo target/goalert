@@ -55,8 +55,10 @@ function testSteps(screen: ScreenFormat) {
         const del = c.integer({ min: 1, max: 9000 })
         const delStr = del.toString()
         cy.get('input[name=delayMinutes]')
+          .should('have.value', '15')
           .clear()
           .type(delStr)
+          .should('have.value', delStr)
 
         // submit form
         cy.get('button[type=submit]').click()
@@ -98,38 +100,46 @@ function testSteps(screen: ScreenFormat) {
     })
 
     it('should edit a step', () => {
-      cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
-      cy.get('ul[data-cy=steps-list]')
-        .find('li')
-        .eq(0)
-        .find('button[data-cy=other-actions]')
-        .menu('Edit')
+      let s1: EPStep
+      cy.createEPStep({ epID: ep.id })
+        .then(x => {
+          s1 = x
+          cy.reload()
+        })
+        .then(() => {
+          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+            .should('contain', 'Step #')
+            .find('button[data-cy=other-actions]')
+            .menu('Edit')
 
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog').should('contain', 'Edit Step')
+          cy.get('div[role=dialog]').as('dialog')
+          cy.get('@dialog').should('contain', 'Edit Step')
 
-      cy.get('input[name=rotations]').selectByLabel(r1.name)
+          cy.get('input[name=rotations]').selectByLabel(r1.name)
 
-      const del = c.integer({ min: 1, max: 9000 })
-      const delStr = del.toString()
-      cy.get('input[name=delayMinutes]')
-        .clear()
-        .type(delStr)
+          const del = c.integer({ min: 1, max: 9000 })
+          const delStr = del.toString()
+          cy.get('input[name=delayMinutes]')
+            .should('have.value', s1.delayMinutes.toString())
+            .clear()
+            .type(delStr)
+            .should('have.value', delStr)
 
-      // submit form
-      cy.get('button[type=submit]').click()
+          // submit form
+          cy.get('button[type=submit]').click()
 
-      // confirm dialog closes
-      cy.get('@dialog').should('not.exist')
+          // confirm dialog closes
+          cy.get('@dialog').should('not.exist')
 
-      // verify data integrity
-      cy.get('body').should('contain', 'Notify the following:')
-      cy.get('body').should('contain', 'Step #1:')
-      cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
-      cy.get('body').should(
-        'contain',
-        `Go back to step #1 after ${delStr} minutes`,
-      )
+          // verify data integrity
+          cy.get('body').should('contain', 'Notify the following:')
+          cy.get('body').should('contain', 'Step #1:')
+          cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
+          cy.get('body').should(
+            'contain',
+            `Go back to step #1 after ${delStr} minutes`,
+          )
+        })
     })
 
     it('should add and then remove a slack channel', () => {
@@ -160,9 +170,7 @@ function testSteps(screen: ScreenFormat) {
       cy.get('div[data-cy=slack-chip]').should('contain', '#foobar')
 
       // open edit step dialog
-      cy.get('ul[data-cy=steps-list]')
-        .find('li')
-        .eq(0)
+      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
@@ -190,9 +198,7 @@ function testSteps(screen: ScreenFormat) {
 
     it('should delete a step', () => {
       cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
-      cy.get('ul[data-cy=steps-list]')
-        .find('li')
-        .eq(0)
+      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
         .find('button[data-cy=other-actions]')
         .menu('Delete')
       cy.get('div[role=dialog]').as('dialog')
@@ -229,13 +235,12 @@ function testSteps(screen: ScreenFormat) {
         })
         .then(() => {
           cy.get('ul[data-cy=steps-list]')
+            .should('contain', 'Step #3')
             .find('li')
             .should('have.length', 3)
 
           // focus element to be drag and dropped
-          cy.get('ul[data-cy=steps-list]')
-            .find('li')
-            .eq(0)
+          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
             .should('contain', 'Step #1')
             .should('contain', s1.delayMinutes)
             .parent('[tabindex]')
