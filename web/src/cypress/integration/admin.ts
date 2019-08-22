@@ -39,8 +39,12 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('p[data-cy="old"]').should('contain', cfg.General.PublicURL)
-      cy.get('p[data-cy="new"]').should('contain', newVal)
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+      )
+        .should('contain', cfg.General.PublicURL)
+        .siblings('p[data-cy="new"]')
+        .should('contain', newVal)
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
@@ -58,8 +62,12 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('p[data-cy="old"]').should('not.exist')
-      cy.get('p[data-cy="new"]').should('contain', newVal)
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="old"]',
+      ).should('not.exist')
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="new"]',
+      ).should('contain', newVal)
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
@@ -82,27 +90,20 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('li')
-        .should('be.visible')
-        .contains('General.PublicURL')
-        .siblings('p[data-cy="old"]')
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+      )
         .should('contain', cfg.General.PublicURL)
-      cy.get('li')
-        .should('be.visible')
-        .contains('General.PublicURL')
         .siblings('p[data-cy="new"]')
         .should('contain', newVal1)
 
-      cy.get('li')
-        .should('be.visible')
-        .contains('Mailgun.EmailDomain')
-        .siblings('p[data-cy="old"]')
-        .should('not.exist') // not set in beforeEach
-      cy.get('li')
-        .should('be.visible')
-        .contains('Mailgun.EmailDomain')
-        .siblings('p[data-cy="new"]')
-        .should('contain', newVal2)
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="old"]',
+      ).should('not.exist') // not set in beforeEach
+
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.EmailDomain"] p[data-cy="new"]',
+      ).should('contain', newVal2)
 
       cy.get('button[type="submit"]')
         .contains('Confirm')
@@ -120,8 +121,12 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('p[data-cy="old"]').should('contain', cfg.General.PublicURL)
-      cy.get('p[data-cy="new"]').should('not.exist')
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+      )
+        .should('contain', cfg.General.PublicURL)
+        .siblings('p[data-cy="new"]')
+        .should('not.exist')
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
@@ -141,8 +146,12 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('p[data-cy="old"]').should('contain', cfg.General.PublicURL)
-      cy.get('p[data-cy="new"]').should('contain', newVal)
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="General.PublicURL"] p[data-cy="old"]',
+      )
+        .should('contain', cfg.General.PublicURL)
+        .siblings('p[data-cy="new"]')
+        .should('contain', newVal)
       cy.get('button[type="button"]')
         .contains('Cancel')
         .click()
@@ -186,8 +195,12 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('p[data-cy="old"]').should('contain', 'false')
-      cy.get('p[data-cy="new"]').should('contain', 'true')
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Twilio.Enable"] p[data-cy="old"]',
+      )
+        .should('contain', 'false')
+        .siblings('p[data-cy="new"]')
+        .should('contain', 'true')
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
@@ -219,10 +232,12 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('p[data-cy="new"]').should(
-        'contain',
-        domain1 + ', ' + domain2 + ', ' + domain3,
-      )
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Auth.RefererURLs"] p[data-cy="old"]',
+      ).should('not.exist')
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Auth.RefererURLs"] p[data-cy="new"]',
+      ).should('contain', `${domain1}, ${domain2}, ${domain3}`)
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
@@ -245,8 +260,12 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
-      cy.get('p[data-cy="old"]').should('contain', cfg.Mailgun.APIKey)
-      cy.get('p[data-cy="new"]').should('contain', newKey)
+      cy.get(
+        'ul[data-cy="confirmation-diff"] li[data-cy="Mailgun.APIKey"] p[data-cy="old"]',
+      )
+        .should('contain', cfg.Mailgun.APIKey)
+        .siblings('p[data-cy="new"]')
+        .should('contain', newKey)
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
