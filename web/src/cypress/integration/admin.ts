@@ -30,6 +30,7 @@ function testAdmin(screen: ScreenFormat) {
 
     it('should update a config value', () => {
       const newVal = 'http://' + c.domain()
+
       cy.get('input[name="General.PublicURL"]')
         .clear()
         .should('be.empty')
@@ -50,6 +51,7 @@ function testAdmin(screen: ScreenFormat) {
 
     it('should set a config value', () => {
       const newVal = c.domain()
+
       cy.get('input[name="Mailgun.EmailDomain"]')
         .type(newVal)
         .should('have.value', newVal)
@@ -160,6 +162,7 @@ function testAdmin(screen: ScreenFormat) {
     it('should reset pending config value changes', () => {
       const domain1 = c.domain()
       const domain2 = c.domain()
+
       cy.get('input[name="General.PublicURL"]')
         .clear()
         .should('be.empty')
@@ -233,6 +236,7 @@ function testAdmin(screen: ScreenFormat) {
 
     it('should update a password field', () => {
       const newKey = 'key-' + c.string({ length: 32, pool: '0123456789abcdef' })
+
       cy.get('input[name="Mailgun.APIKey"]')
         .clear()
         .should('be.empty')
