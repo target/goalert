@@ -195,7 +195,7 @@ export default class ScheduleCalendar extends React.PureComponent {
           </i>
         </Typography>
         <Card>
-          <div className={classes.calendarContainer}>
+          <div data-cy='calendar' className={classes.calendarContainer}>
             <Calendar
               date={new Date(start)}
               localizer={localizer}
