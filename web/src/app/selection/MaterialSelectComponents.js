@@ -34,7 +34,8 @@ export const styles = theme => ({
       0.08,
     ),
   },
-  noOptionsMessage: {
+  message: {
+    float: 'left',
     padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
   },
   singleValue: {
@@ -57,10 +58,20 @@ export const styles = theme => ({
 export const NoOptionsMessage = props => (
   <Typography
     color='textSecondary'
-    className={props.selectProps.classes.noOptionsMessage}
+    className={props.selectProps.classes.message}
     {...props.innerProps}
   >
     {props.children}
+  </Typography>
+)
+
+export const LoadingMessage = props => (
+  <Typography
+    color='textSecondary'
+    className={props.selectProps.classes.message}
+    {...props.innerProps}
+  >
+    Loading...
   </Typography>
 )
 
@@ -163,6 +174,7 @@ export const Menu = props => (
 export const components = {
   Option,
   Control,
+  LoadingMessage,
   NoOptionsMessage,
   Placeholder,
   SingleValue,
