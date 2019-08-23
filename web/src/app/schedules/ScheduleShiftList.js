@@ -16,6 +16,7 @@ import {
   IconButton,
   TextField,
   MenuItem,
+  withStyles,
 } from '@material-ui/core'
 import { DateRange } from '@material-ui/icons'
 import { UserAvatar } from '../util/avatar'
@@ -116,6 +117,13 @@ const mapDispatchToProps = dispatch => {
   }
 }
 
+const styles = {
+  datePicker: {
+    width: '100%',
+  },
+}
+
+@withStyles(styles)
 @connect(
   mapStateToProps,
   mapDispatchToProps,
@@ -321,6 +329,7 @@ export default class ScheduleShiftList extends React.PureComponent {
             </Grid>
             <Grid item xs={12}>
               <DatePicker
+                className={this.props.classes.datePicker}
                 disabled={this.props.activeOnly}
                 label='Start Date'
                 value={DateTime.fromISO(this.props.start, { zone })}
