@@ -448,9 +448,9 @@ export default class AlertDetails extends Component {
       },
     }
 
-    options.push(esc)
-    options.push(close)
     if (status.toLowerCase() === 'unacknowledged') options.push(ack)
+    options.push(close)
+    options.push(esc)
     return options
   }
 
