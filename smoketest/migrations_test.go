@@ -6,8 +6,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/target/goalert/migrate"
-	"github.com/target/goalert/smoketest/harness"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -17,6 +15,9 @@ import (
 	"testing"
 	"text/template"
 	"time"
+
+	"github.com/target/goalert/migrate"
+	"github.com/target/goalert/smoketest/harness"
 
 	"github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
@@ -558,18 +559,20 @@ func TestMigrations(t *testing.T) {
 
 	initSQL := renderQuery(t, migrateInitData)
 
-	data, err := exec.Command("psql",
-		"-d", harness.DBURL(dbName),
-		"-c", initSQL,
-	).CombinedOutput()
+	err = harness.ExecSQLBatch(context.Background(), harness.DBURL(dbName), initSQL)
 	if err != nil {
-		t.Fatalf("failed to init db (%v):\n%s", err, string(data))
+		t.Fatalf("failed to init db %v", err)
 	}
 
 	names := migrate.Names()
 	env, _ := os.LookupEnv("SKIP_TO")
+	var skipTo bool
 	if env != "" {
 		start = env
+		skipTo = true
+	} else {
+		start = "add-rotation-favorite" // default skip_to
+		skipTo = true
 	}
 	var idx int
 	for idx = range names {
@@ -579,7 +582,7 @@ func TestMigrations(t *testing.T) {
 	}
 
 	names = names[idx:]
-	if env, ok := os.LookupEnv("SKIP_TO"); ok && env != "" {
+	if skipTo {
 		n, err := migrate.Up(context.Background(), db, env)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)

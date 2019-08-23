@@ -13,9 +13,9 @@ LOG_DIR=
 GOPATH=$(shell go env GOPATH)
 BIN_DIR=bin
 
-GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo 'dev')
 GIT_COMMIT=$(shell git rev-parse HEAD || echo '?')
 GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
+GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 LD_FLAGS+=-X github.com/target/goalert/version.gitCommit=$(GIT_COMMIT)
@@ -48,6 +48,8 @@ all: test install
 
 $(BIN_DIR)/runjson: go.sum devtools/runjson/*.go
 	go build -o $@ ./devtools/$(@F)
+$(BIN_DIR)/psql-lite: go.sum devtools/psql-lite/*.go
+	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
 	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
@@ -60,7 +62,7 @@ $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 install: $(GOFILES)
 	go install -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert web/src/node_modules
+cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules
 	web/src/node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js
@@ -111,7 +113,7 @@ generate:
 	go generate ./...
 
 smoketest: install bin/goalert
-	(cd smoketest && go test -timeout 20m)
+	(cd smoketest && go test -parallel 10 -timeout 20m)
 
 test-migrations: migrate/inline_data_gen.go bin/goalert
 	(cd smoketest && go test -run TestMigrations)
