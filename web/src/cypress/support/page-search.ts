@@ -6,21 +6,19 @@ declare namespace Cypress {
 }
 
 function pageSearch(s: string): Cypress.Chainable {
-  cy.get('[data-cy=app-bar]').as('container')
-
-  return cy.get('@container').then(el => {
+  return cy.get('[data-cy=app-bar]').then(el => {
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
 
     if (format === 'mobile') {
-      cy.get('@container')
-        .find('button[data-cy=open-search]')
-        .click({ force: true }) // since we're running tests, it's ok if it is already open
+      cy.get('[data-cy=app-bar] button[data-cy=open-search]').click({
+        force: true,
+      }) // since we're running tests, it's ok if it is already open
     }
 
-    cy.get('@container')
-      .find('input')
-      .type(`{selectall}${s}{enter}`)
+    cy.get('[data-cy=app-bar] input')
+      .type(`{selectall}${s}`)
+      .should('have.value', s)
   })
 }
 

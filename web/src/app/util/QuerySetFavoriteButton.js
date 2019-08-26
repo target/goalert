@@ -1,7 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { graphql2Client } from '../apollo'
 import Query from '../util/Query'
 import { Mutation } from 'react-apollo'
 import { SetFavoriteButton } from './SetFavoriteButton'
@@ -72,7 +71,6 @@ function renderMutation(isFavorite, id, typeName) {
   return (
     <Mutation
       mutation={mutation}
-      client={graphql2Client}
       awaitRefetchQueries
       refetchQueries={[`${typeName}FavQuery`]}
     >

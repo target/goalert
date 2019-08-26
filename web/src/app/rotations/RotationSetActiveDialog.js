@@ -1,7 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { graphql2Client } from '../apollo'
 import Query from '../util/Query'
 import { Mutation } from 'react-apollo'
 import FormDialog from '../dialogs/FormDialog'
@@ -35,7 +34,6 @@ export default class RotationSetActiveDialog extends React.PureComponent {
     return (
       <Query
         query={query}
-        client={graphql2Client}
         variables={{ id: this.props.rotationID }}
         render={({ data }) => this.renderMutation(data.rotation)}
       />
@@ -45,7 +43,6 @@ export default class RotationSetActiveDialog extends React.PureComponent {
   renderMutation(data) {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={mutation}
         onCompleted={this.props.onClose}
         awaitRefetchQueries

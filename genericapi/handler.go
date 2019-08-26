@@ -47,6 +47,10 @@ func (h *Handler) ServeUserAvatar(w http.ResponseWriter, req *http.Request) {
 // ServeHeartbeatCheck serves the heartbeat check-in endpoint.
 func (h *Handler) ServeHeartbeatCheck(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
 
 	parts := strings.Split(r.URL.Path, "/")
 	monitorID := parts[len(parts)-1]

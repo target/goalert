@@ -3,7 +3,6 @@ import p from 'prop-types'
 
 import { Redirect } from 'react-router-dom'
 
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -62,7 +61,7 @@ export default class ServiceCreateDialog extends React.PureComponent {
 
   renderMutation(defaultValue) {
     return (
-      <Mutation client={graphql2Client} mutation={createMutation}>
+      <Mutation mutation={createMutation}>
         {(commit, status) => this.renderDialog(defaultValue, commit, status)}
       </Mutation>
     )

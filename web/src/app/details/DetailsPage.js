@@ -91,7 +91,7 @@ export default class DetailsPage extends React.PureComponent {
           primaryTypographyProps={{ variant: 'h5' }}
         />
         <ListItemSecondaryAction>
-          <IconButton>
+          <IconButton component={Link} to={absURL(url)}>
             <ChevronRight />
           </IconButton>
         </ListItemSecondaryAction>

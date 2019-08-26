@@ -1,7 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
 
-import { graphql2Client } from '../apollo'
 import { connect } from 'react-redux'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
@@ -47,7 +46,6 @@ export default class ScheduleOverrideDeleteDialog extends React.PureComponent {
     return (
       <Query
         noPoll
-        client={graphql2Client}
         query={query}
         variables={{ id: this.props.overrideID }}
         render={({ data }) => this.renderMutation(data.userOverride)}
@@ -58,7 +56,6 @@ export default class ScheduleOverrideDeleteDialog extends React.PureComponent {
   renderMutation(data) {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={mutation}
         onCompleted={this.props.onClose}
         refetchQueries={['scheduleOverrides']}

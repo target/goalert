@@ -1,6 +1,5 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -32,7 +31,6 @@ export default class RotationAddUserDialog extends React.Component {
 
     return (
       <Mutation
-        client={graphql2Client}
         mutation={mutation}
         awaitRefetchQueries
         refetchQueries={() => ['rotationUsers']}
