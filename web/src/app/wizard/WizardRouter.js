@@ -38,10 +38,6 @@ const mutation = gql`
 `
 
 const styles = {
-  card: {
-    width: '100%',
-    marginBottom: '4.5em',
-  },
   cardActions: {
     justifyContent: 'flex-end',
   },
@@ -195,7 +191,7 @@ export default class WizardRouter extends React.PureComponent {
 
           return (
             <React.Fragment>
-              <Card className={this.props.classes.card}>
+              <Card>
                 <Form
                   onSubmit={(e, isValid) => this.submit(e, isValid, commit)}
                   disabled={loading}
