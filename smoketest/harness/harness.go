@@ -87,7 +87,7 @@ func formatConnString(c pgx.ConnConfig) string {
 		q.Set(k, v)
 	}
 
-	if c.TLSConfig == nil && c.FallbackTLSConfig == nil && c.FallbackTLSConfig == nil {
+	if c.TLSConfig == nil && !c.UseFallbackTLS && c.FallbackTLSConfig == nil {
 		q.Set("sslmode", "disable")
 	} else if c.TLSConfig == nil && c.UseFallbackTLS && c.FallbackTLSConfig != nil {
 		q.Set("sslmode", "allow")
@@ -194,12 +194,12 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 
 	conn, err := pgx.Connect(dbCfg)
 	if err != nil {
-		t.Fatalf("connect to db:", err)
+		t.Fatal("connect to db:", err)
 	}
 	defer conn.Close()
 	_, err = conn.Exec("create database " + pgx.Identifier([]string{name}).Sanitize())
 	if err != nil {
-		t.Fatalf("create db:", err)
+		t.Fatal("create db:", err)
 	}
 	conn.Close()
 
