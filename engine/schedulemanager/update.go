@@ -13,7 +13,6 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -81,7 +80,7 @@ func (db *DB) update(ctx context.Context) error {
 	tz := make(map[string]*time.Location)
 	for rows.Next() {
 		var r userRule
-		filter := make(pq.BoolArray, 7)
+		filter := make(sqlutil.BoolArray, 7)
 		err = rows.Scan(
 			&r.ScheduleID,
 			&filter,
