@@ -312,6 +312,9 @@ func (h *Harness) Start() {
 		AcquireTimeout: 30 * time.Second,
 		MaxConnections: 2,
 	})
+	if err != nil {
+		h.t.Fatalf("failed to connect to db: %v", err)
+	}
 
 	// resume the flow of time
 	err = h.db.QueryRow(`select pg_catalog.now()`).Scan(&h.pgResume)
