@@ -5,7 +5,6 @@ import { Query as ApolloQuery } from 'react-apollo'
 import Spinner from '../loading/components/Spinner'
 import { isEmpty } from 'lodash-es'
 import { GenericError, ObjectNotFound } from '../error-pages/Errors'
-import { graphql2Client } from '../apollo'
 
 import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../config'
 
@@ -59,10 +58,6 @@ export default class Query extends React.PureComponent {
       'cache-only',
       'no-cache',
     ]),
-  }
-
-  static defaultProps = {
-    client: graphql2Client,
   }
 
   state = {

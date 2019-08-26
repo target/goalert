@@ -19,7 +19,6 @@ import classnames from 'classnames'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import UpdateAlertsSnackbar from './UpdateAlertsSnackbar'
-import { graphql2Client } from '../../apollo'
 import withWidth from '@material-ui/core/withWidth'
 import { alertFilterSelector } from '../../selectors'
 
@@ -209,7 +208,6 @@ export default class CheckedAlertsFormControl extends Component {
   getAckButton = () => {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={updateAlerts}
         onError={err => {
           this.props.setAlertsActionComplete(true)
@@ -239,7 +237,6 @@ export default class CheckedAlertsFormControl extends Component {
   getCloseButton = () => {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={updateAlerts}
         onError={err => {
           this.props.setAlertsActionComplete(true)
@@ -269,7 +266,6 @@ export default class CheckedAlertsFormControl extends Component {
   getEscalateButton = () => {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={escalateAlerts}
         onError={err => {
           this.props.setAlertsActionComplete(true)

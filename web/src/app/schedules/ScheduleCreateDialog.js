@@ -3,7 +3,6 @@ import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
-import { graphql2Client } from '../apollo'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import { Redirect } from 'react-router'
 
@@ -28,11 +27,7 @@ export default class ScheduleCreateDialog extends React.PureComponent {
     },
   }
   render() {
-    return (
-      <Mutation mutation={mutation} client={graphql2Client}>
-        {this.renderForm}
-      </Mutation>
-    )
+    return <Mutation mutation={mutation}>{this.renderForm}</Mutation>
   }
   renderForm = (commit, status) => {
     if (status.data && status.data.createSchedule) {

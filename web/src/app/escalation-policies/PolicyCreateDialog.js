@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react'
 import p from 'prop-types'
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -79,11 +78,7 @@ export default class PolicyCreateDialog extends PureComponent {
 
   render() {
     return (
-      <Mutation
-        client={graphql2Client}
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-      >
+      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
     )

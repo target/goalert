@@ -4,7 +4,6 @@ import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
-import { graphql2Client } from '../apollo'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 
@@ -46,7 +45,6 @@ export default class ScheduleEditDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        client={graphql2Client}
         awaitRefetchQueries
         onCompleted={this.props.onClose}
         refetchQueries={() => [

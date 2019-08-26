@@ -1,7 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { graphql2Client } from '../apollo'
 import Query from '../util/Query'
 import { Mutation } from 'react-apollo'
 import FormDialog from '../dialogs/FormDialog'
@@ -45,7 +44,6 @@ export default class RotationUserDeleteDialog extends React.PureComponent {
   renderMutation(data) {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={mutation}
         onCompleted={this.props.onClose}
         awaitRefetchQueries

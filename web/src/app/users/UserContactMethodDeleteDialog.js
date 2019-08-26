@@ -3,7 +3,6 @@ import p from 'prop-types'
 import gql from 'graphql-tag'
 import FormDialog from '../dialogs/FormDialog'
 import { Mutation } from 'react-apollo'
-import { graphql2Client } from '../apollo'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
@@ -21,7 +20,6 @@ export default class UserContactMethodDeleteDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        client={graphql2Client}
         onCompleted={this.props.onClose}
         awaitRefetchQueries
         refetchQueries={['nrList', 'cmList']}

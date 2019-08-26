@@ -11,6 +11,7 @@ import LoadingButton from '../../loading/components/LoadingButton'
 import { styles } from '../../styles/materialStyles'
 import DialogContentError from './DialogContentError'
 import { Mutation } from 'react-apollo'
+import { LegacyGraphQLClient } from '../../apollo'
 
 @withStyles(styles)
 export default class ConfirmationDialog extends Component {
@@ -98,6 +99,7 @@ export default class ConfirmationDialog extends Component {
       <Mutation
         key='mutation-form'
         mutation={mutation}
+        client={LegacyGraphQLClient}
         refetchQueries={this.props.refetchQueries}
         update={(cache, { data }) => {
           this.setState({ loading: false })
