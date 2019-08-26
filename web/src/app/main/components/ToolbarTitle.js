@@ -8,7 +8,6 @@ import withStyles from '@material-ui/core/styles/withStyles'
 import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
 import { startCase } from 'lodash-es'
-import { graphql2Client } from '../../apollo'
 import { connect } from 'react-redux'
 import { absURLSelector } from '../../selectors/url'
 
@@ -89,11 +88,7 @@ class NameLoader extends React.PureComponent {
   render() {
     if (!this.props.query || !this.props.id) return this.props.fallback
     return (
-      <Query
-        query={this.props.query}
-        variables={{ id: this.props.id }}
-        client={graphql2Client}
-      >
+      <Query query={this.props.query} variables={{ id: this.props.id }}>
         {({ data }) => {
           if (!data || !data.data) {
             return this.props.fallback

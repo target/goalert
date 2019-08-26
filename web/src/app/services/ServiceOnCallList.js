@@ -2,16 +2,11 @@ import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemAvatar from '@material-ui/core/ListItemAvatar'
-import ListItemText from '@material-ui/core/ListItemText'
-import Typography from '@material-ui/core/Typography'
-import { UserAvatar } from '../../util/avatar'
-import { Link } from 'react-router-dom'
-import Spinner from '../../loading/components/Spinner'
+import { UserAvatar } from '../util/avatar'
+import Spinner from '../loading/components/Spinner'
 import { withStyles } from '@material-ui/core'
-import { styles as globalStyles } from '../../styles/materialStyles'
+import { styles as globalStyles } from '../styles/materialStyles'
+import FlatList from '../lists/FlatList'
 
 const styles = theme => {
   const { cardHeader } = globalStyles(theme)
@@ -22,7 +17,7 @@ const styles = theme => {
 }
 
 @withStyles(styles)
-export default class OnCallForService extends Component {
+export default class ServiceOnCallList extends Component {
   static propTypes = {
     onCallUsers: p.arrayOf(
       p.shape({
@@ -75,33 +70,22 @@ export default class OnCallForService extends Component {
 
   renderUsers() {
     const usersDict = this.getUsersDict(this.props.onCallUsers)
+    const items = Object.keys(usersDict).map(id => {
+      const step = usersDict[id].steps.length > 1 ? 'Steps' : 'Step'
 
-    if (!Object.keys(usersDict).length) {
-      return (
-        <Typography variant='caption'>
-          No users on call for this service
-        </Typography>
-      )
-    }
+      return {
+        title: usersDict[id].name,
+        subText: `${step} ${this.stepsText(usersDict[id].steps)}`,
+        icon: <UserAvatar userID={id} />,
+        url: `/users/${id}`,
+      }
+    })
 
     return (
-      <List>
-        {Object.keys(usersDict).map(id => {
-          const step = usersDict[id]['steps'].length > 1 ? 'Steps' : 'Step'
-
-          return (
-            <ListItem key={id} button component={Link} to={`/users/${id}`}>
-              <ListItemAvatar>
-                <UserAvatar userID={id} />
-              </ListItemAvatar>
-              <ListItemText
-                primary={usersDict[id]['name']}
-                secondary={`${step} ${this.stepsText(usersDict[id]['steps'])}`}
-              />
-            </ListItem>
-          )
-        })}
-      </List>
+      <FlatList
+        items={items}
+        emptyMessage='No users on-call for this service'
+      />
     )
   }
 

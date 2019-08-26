@@ -12,7 +12,6 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import gql from 'graphql-tag'
 import PolicyStep from './PolicyStep'
 import { Mutation } from 'react-apollo'
-import { graphql2Client } from '../apollo'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
@@ -186,7 +185,6 @@ export default class PolicyStepsCard extends Component {
           Notify the following:
         </Typography>
         <Mutation
-          client={graphql2Client}
           mutation={gql`
             mutation UpdateEscalationPolicyMutation(
               $input: UpdateEscalationPolicyInput!

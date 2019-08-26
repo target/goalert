@@ -1,6 +1,5 @@
 import React from 'react'
 import p from 'prop-types'
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { nonFieldErrors } from '../util/errutil'
@@ -34,7 +33,6 @@ export default class PolicyStepDeleteDialog extends React.PureComponent {
   renderMutation(data) {
     return (
       <Mutation
-        client={graphql2Client}
         mutation={mutation}
         onCompleted={this.props.onClose}
         update={cache => {

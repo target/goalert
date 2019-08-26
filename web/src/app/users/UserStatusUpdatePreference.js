@@ -3,7 +3,6 @@ import p from 'prop-types'
 import gql from 'graphql-tag'
 import Query from '../util/Query'
 import { Mutation } from 'react-apollo'
-import { graphql2Client } from '../apollo'
 import UserContactMethodSelect from './UserContactMethodSelect'
 
 const query = gql`
@@ -48,11 +47,7 @@ export default class UserStatusUpdatePreference extends React.PureComponent {
       })
     }
     return (
-      <Mutation
-        client={graphql2Client}
-        mutation={mutation}
-        refetchQueries={['statusUpdate']}
-      >
+      <Mutation mutation={mutation} refetchQueries={['statusUpdate']}>
         {commit =>
           this.renderControl(user.statusUpdateContactMethodID, setCM(commit))
         }

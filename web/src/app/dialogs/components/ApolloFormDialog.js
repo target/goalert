@@ -14,6 +14,7 @@ import DialogContentError from './DialogContentError'
 import DialogTitleWrapper from './DialogTitleWrapper'
 import { Mutation } from 'react-apollo'
 import classnames from 'classnames'
+import { LegacyGraphQLClient } from '../../apollo'
 
 /**
  * Consumes an apollo mutation (with an updater function, if applicable)
@@ -121,6 +122,7 @@ export default class ApolloFormDialog extends Component {
       subtitleJSX,
       <Mutation
         key='mutation-form'
+        client={LegacyGraphQLClient}
         mutation={mutation}
         update={(cache, { data }) => {
           this.setState({ loading: false })

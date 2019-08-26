@@ -47,7 +47,10 @@ function testCalendar(screen: ScreenFormat) {
               weekdayFilter: [true, true, true, true, true, true, true],
             },
           ],
-        }).then(() => cy.visit('/schedules/' + sched.id))
+        }).then(() => {
+          cy.visit('/schedules/' + sched.id)
+          cy.get('[data-cy=calendar]', { timeout: 15000 }).should('be.visible')
+        })
       })
     })
   })
@@ -180,8 +183,11 @@ function testCalendar(screen: ScreenFormat) {
   })
 
   it('should create a remove override from a shift tooltip', () => {
-    cy.get('div')
-      .contains(rot.users[0].name.split(' ')[0])
+    const name = rot.users[0].name.split(' ')[0]
+
+    cy.get('[data-cy=calendar]')
+      .should('contain', name)
+      .contains('div', name)
       .trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="remove-override"]').click()

@@ -66,6 +66,7 @@ module.exports = {
       'strip-ansi',
       'uncontrollable',
       'url',
+      '@apollo/react-hooks',
     ],
   },
   mode: 'development',
