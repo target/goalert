@@ -20,20 +20,10 @@
     "IgnoreErrors": true,
     "Watch": true,
     "Before": {
-      "Name": "Prep",
-      "Before": {
-        "Name": "PG Wait",
-        "Command": [
-          "bin/waitfor",
-          "postgres://postgres@localhost:5433/postgres?sslmode=disable"
-        ]
-      },
-      "Dir": "web/src",
-      "Command": ["./scripts/smoketest-prep.sh"],
-      "Env": [
-        "DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable",
-        "GOALERT=../../bin/goalert",
-        "BASE_URL=http://localhost:3040"
+      "Name": "PG Wait",
+      "Command": [
+        "bin/waitfor",
+        "postgres://postgres@localhost:5433/postgres?sslmode=disable"
       ]
     }
   },

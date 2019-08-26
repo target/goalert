@@ -25,6 +25,7 @@ LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
 export CY_ACTION = open
 export CY_BROWSER = chrome
+export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
 
 ifdef LOG_DIR
 RUNJSON_ARGS += -logs=$(LOG_DIR)
@@ -67,9 +68,9 @@ cy-wide: cypress web/src/build/vendorPackages.dll.js
 cy-mobile: cypress web/src/build/vendorPackages.dll.js
 	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
 cy-wide-prod: web/inline_data_gen.go cypress
-	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress-prod.json
+	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
 cy-mobile-prod: web/inline_data_gen.go cypress
-	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress-prod.json
+	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
 cy-wide-prod-run: web/inline_data_gen.go cypress
 	make cy-wide-prod CY_ACTION=run
 cy-mobile-prod-run: web/inline_data_gen.go cypress

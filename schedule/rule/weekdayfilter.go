@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type WeekdayFilter [7]byte
@@ -121,9 +121,31 @@ func (f WeekdayFilter) String() string {
 
 // Value converts the WeekdayFilter to a DB array of bool.
 func (f WeekdayFilter) Value() (driver.Value, error) {
-	res := make(pq.BoolArray, 7)
-	for i, v := range f {
-		res[i] = v == 1
+	return sqlutil.BoolArray{
+		f[time.Sunday] != 0,
+		f[time.Monday] != 0,
+		f[time.Tuesday] != 0,
+		f[time.Wednesday] != 0,
+		f[time.Thursday] != 0,
+		f[time.Friday] != 0,
+		f[time.Saturday] != 0,
+	}.Value()
+}
+
+// Scan scans the WeekdayFilter from a DB array of bool.
+func (f *WeekdayFilter) Scan(src interface{}) error {
+	var b sqlutil.BoolArray
+	err := b.Scan(src)
+	if err != nil {
+		return err
 	}
-	return res, nil
+	for i := range f {
+		if i < len(b) && b[i] {
+			f[i] = 1
+		} else {
+			f[i] = 0
+		}
+	}
+
+	return nil
 }

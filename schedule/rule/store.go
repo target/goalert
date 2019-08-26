@@ -3,12 +3,13 @@ package rule
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -78,23 +79,23 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				end_time,
 				tgt_user_id,
 				tgt_rotation_id
-			) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+			) values ($1, $2, ($3::Bool[])[1], ($3::Bool[])[2], ($3::Bool[])[3], ($3::Bool[])[4], ($3::Bool[])[5], ($3::Bool[])[6], ($3::Bool[])[7], $4, $5, $6, $7)
 		`),
 		update: p.P(`
 			update schedule_rules
 			set
 				schedule_id = $2,
-				sunday = $3,
-				monday = $4,
-				tuesday = $5,
-				wednesday = $6,
-				thursday = $7,
-				friday = $8,
-				saturday = $9,
-				start_time = $10,
-				end_time = $11,
-				tgt_user_id = $12,
-				tgt_rotation_id = $13
+				sunday = ($3::Bool[])[1],
+				monday = ($3::Bool[])[2],
+				tuesday = ($3::Bool[])[3],
+				wednesday = ($3::Bool[])[4],
+				thursday = ($3::Bool[])[5],
+				friday = ($3::Bool[])[6],
+				saturday = ($3::Bool[])[7],
+				start_time = $4,
+				end_time = $5,
+				tgt_user_id = $6,
+				tgt_rotation_id = $7
 			where id = $1
 		`),
 		delete: p.P(`delete from schedule_rules where id = any($1)`),
@@ -145,7 +146,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				tgt_rotation_id
 			from schedule_rules
 			where schedule_id = $1
-			order by created_at
+			order by created_at, id
 		`),
 		findTgt: p.P(`
 			select
@@ -166,6 +167,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				tgt_rotation_id
 			from schedule_rules
 			where schedule_id = $1 AND (tgt_user_id = $2 OR tgt_rotation_id = $3)
+			order by created_at, id
 		`),
 		findAllUsers: p.P(`
 			with rotation_users as (
@@ -198,7 +200,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			from schedule_rules r
 			left join rotation_users rUser on rUser.rotation_id = r.tgt_rotation_id
 			where schedule_id = $1
-			order by created_at
+			order by created_at, id
 		`),
 	}, p.Err
 }
@@ -359,7 +361,8 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ruleIDs []string) er
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ruleIDs))
+
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ruleIDs))
 	return err
 
 }
