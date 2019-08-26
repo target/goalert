@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-import OnCallForService from './components/OnCallForService'
+import ServiceOnCallList from './ServiceOnCallList'
 import gql from 'graphql-tag'
 import Query from '../util/Query'
 
@@ -18,7 +18,7 @@ const query = gql`
 `
 
 export default class ServiceOnCallQuery extends React.PureComponent {
-  static propTyps = {
+  static propTypes = {
     serviceID: p.string.isRequired,
   }
 
@@ -28,7 +28,7 @@ export default class ServiceOnCallQuery extends React.PureComponent {
         query={query}
         variables={{ id: this.props.serviceID }}
         render={({ data }) => {
-          return <OnCallForService onCallUsers={data.service.onCallUsers} />
+          return <ServiceOnCallList onCallUsers={data.service.onCallUsers} />
         }}
       />
     )

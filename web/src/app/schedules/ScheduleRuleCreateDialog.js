@@ -5,7 +5,6 @@ import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
-import { graphql2Client } from '../apollo'
 import { startCase } from 'lodash-es'
 
 const mutation = gql`
@@ -37,7 +36,6 @@ export default class ScheduleRuleCreateDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        client={graphql2Client}
         onCompleted={this.props.onClose}
         refetchQueries={['scheduleRules']}
         awaitRefetchQueries

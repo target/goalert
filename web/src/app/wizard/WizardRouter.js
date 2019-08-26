@@ -15,7 +15,6 @@ import WizardForm from './WizardForm'
 import LoadingButton from '../loading/components/LoadingButton'
 import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
-import { graphql2Client } from '../apollo'
 import { Form } from '../forms'
 import {
   getService,
@@ -188,7 +187,7 @@ export default class WizardRouter extends React.PureComponent {
     const { complete, errorMessage, redirect } = this.state
 
     return (
-      <Mutation client={graphql2Client} mutation={mutation}>
+      <Mutation mutation={mutation}>
         {(commit, { data, error, loading }) => {
           if (redirect && data && data.createService) {
             return <Redirect push to={`/services/${data.createService.id}`} />

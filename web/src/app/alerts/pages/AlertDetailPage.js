@@ -5,6 +5,7 @@ import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
 import AlertDetails from '../components/AlertDetails'
 import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../../util/poll_intervals'
+import { LegacyGraphQLClient } from '../../apollo'
 
 const query = gql`
   query AlertDetailsPageQuery($id: Int!) {
@@ -57,6 +58,7 @@ export default class AlertDetailPage extends Component {
     return (
       <Query
         query={query}
+        client={LegacyGraphQLClient}
         variables={{ id: this.props.match.params.alertID }}
         pollInterval={POLL_INTERVAL}
       >

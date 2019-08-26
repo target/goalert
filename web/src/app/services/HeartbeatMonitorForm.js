@@ -12,6 +12,7 @@ const styles = theme => ({
 })
 
 const clampTimeout = val => {
+  if (!val) return ''
   const num = parseInt(val, 10)
   if (Number.isNaN(num)) return val
 
@@ -24,7 +25,7 @@ export default class HeartbeatMonitorForm extends React.PureComponent {
   static propTypes = {
     value: p.shape({
       name: p.string.isRequired,
-      timeoutMinutes: p.number.isRequired,
+      timeoutMinutes: p.oneOfType([p.number, p.string]).isRequired,
     }).isRequired,
 
     errors: p.arrayOf(

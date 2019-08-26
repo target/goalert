@@ -6,7 +6,6 @@ import { DateTime } from 'luxon'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
-import { graphql2Client } from '../apollo'
 
 const copyText = {
   add: {
@@ -74,7 +73,6 @@ export default class ScheduleOverrideCreateDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        client={graphql2Client}
         onCompleted={this.props.onClose}
         refetchQueries={[
           'scheduleShifts',

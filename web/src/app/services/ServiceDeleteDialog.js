@@ -1,7 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
 
-import { graphql2Client } from '../apollo'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -74,7 +73,6 @@ export default class ServiceDeleteDialog extends React.PureComponent {
     return (
       <Query
         noPoll
-        client={graphql2Client}
         query={query}
         variables={{ id: this.props.serviceID }}
         render={({ data }) => this.renderMutation(data.service)}
@@ -84,7 +82,7 @@ export default class ServiceDeleteDialog extends React.PureComponent {
 
   renderMutation(svcData) {
     return (
-      <Mutation client={graphql2Client} mutation={mutation}>
+      <Mutation mutation={mutation}>
         {(commit, status) => this.renderDialog(svcData, commit, status)}
       </Mutation>
     )
