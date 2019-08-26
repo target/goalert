@@ -11,10 +11,10 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"strings"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -396,11 +396,11 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 
 	switch t := id.(type) {
 	case string:
-		idArg = pq.StringArray{t}
+		idArg = sqlutil.UUIDArray{t}
 	case int:
-		idArg = pq.Int64Array{int64(t)}
+		idArg = sqlutil.IntArray{int64(t)}
 	case []int:
-		ids64 := make(pq.Int64Array, len(t))
+		ids64 := make(sqlutil.IntArray, len(t))
 		for i, id := range t {
 			ids64[i] = int64(id)
 		}

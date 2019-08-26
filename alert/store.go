@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"time"
@@ -287,7 +288,7 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(alertIDs))
+	ids64 := make(sqlutil.IntArray, len(alertIDs))
 	for i, id := range alertIDs {
 		ids64[i] = int64(id)
 	}
@@ -398,7 +399,7 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(alertIDs))
+	ids64 := make(sqlutil.IntArray, len(alertIDs))
 	for i, k := range alertIDs {
 		ids64[i] = int64(k)
 	}
@@ -750,7 +751,7 @@ func (db *DB) FindMany(ctx context.Context, ids []int) ([]Alert, error) {
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(ids))
+	ids64 := make(sqlutil.IntArray, len(ids))
 	for i, id := range ids {
 		ids64[i] = int64(id)
 	}
@@ -785,7 +786,7 @@ func (db *DB) State(ctx context.Context, alertIDs []int) ([]State, error) {
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(alertIDs))
+	ids64 := make(sqlutil.IntArray, len(alertIDs))
 	for i, id := range alertIDs {
 		ids64[i] = int64(id)
 	}
