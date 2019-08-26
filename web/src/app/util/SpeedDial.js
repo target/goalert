@@ -47,8 +47,8 @@ export default class ScheduleNewOverrideFAB extends React.PureComponent {
         open={this.state.open}
         style={{
           position: 'fixed',
-          bottom: '1em',
-          right: '1em',
+          bottom: '2em',
+          right: '2em',
           zIndex: 9001,
         }}
       >
