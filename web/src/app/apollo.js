@@ -84,7 +84,7 @@ const defaultLink = ApolloLink.from([
   defaultHttpLink, // terminating link must be last: apollographql.com/docs/link/overview.html#terminating
 ])
 
-export const graphql1Client = new ApolloClient({
+export const LegacyGraphQLClient = new ApolloClient({
   link: defaultLink,
   cache: new InMemoryCache(),
 })
@@ -129,7 +129,7 @@ cache = new InMemoryCache({
   },
 })
 
-export const graphql2Client = new ApolloClient({
+export const GraphQLClient = new ApolloClient({
   link: graphql2Link,
   cache,
 })

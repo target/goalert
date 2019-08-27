@@ -27,6 +27,7 @@ import {
   alertFilterSelector,
 } from '../../selectors/url'
 import AlertsListControls from '../components/AlertsListControls'
+import { LegacyGraphQLClient } from '../../apollo'
 
 const LIMIT = 25
 
@@ -86,6 +87,7 @@ const mapStateToProps = state => {
 @graphql(alertsQuery, {
   options: props => {
     return {
+      client: LegacyGraphQLClient,
       variables: {
         favorite_services_only: props.serviceID ? false : !props.allServices,
         service_id: props.serviceID || '',

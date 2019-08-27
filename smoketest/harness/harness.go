@@ -87,7 +87,7 @@ func formatConnString(c pgx.ConnConfig) string {
 		q.Set(k, v)
 	}
 
-	if c.TLSConfig == nil && c.FallbackTLSConfig == nil && c.FallbackTLSConfig == nil {
+	if c.TLSConfig == nil && !c.UseFallbackTLS && c.FallbackTLSConfig == nil {
 		q.Set("sslmode", "disable")
 	} else if c.TLSConfig == nil && c.UseFallbackTLS && c.FallbackTLSConfig != nil {
 		q.Set("sslmode", "allow")
@@ -153,15 +153,6 @@ func (h *Harness) Config() config.Config {
 	return h.cfg
 }
 
-func runCmd(t *testing.T, c *exec.Cmd) {
-	t.Helper()
-	data, err := c.CombinedOutput()
-	t.Log(string(data))
-	if err != nil {
-		t.Fatalf("failed to run '%s %s': %v", c.Path, strings.Join(c.Args, " "), err)
-	}
-}
-
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
@@ -187,7 +178,7 @@ func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
 const (
 	twilioAuthToken  = "11111111111111111111111111111111"
 	twilioAccountSID = "AC00000000000000000000000000000000"
-	mailgunApiKey    = "key-00000000000000000000000000000000"
+	mailgunAPIKey    = "key-00000000000000000000000000000000"
 )
 
 // NewStoppedHarness will create a NewHarness, but will not call Start.
@@ -203,12 +194,12 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 
 	conn, err := pgx.Connect(dbCfg)
 	if err != nil {
-		t.Fatalf("connect to db:", err)
+		t.Fatal("connect to db:", err)
 	}
 	defer conn.Close()
 	_, err = conn.Exec("create database " + pgx.Identifier([]string{name}).Sanitize())
 	if err != nil {
-		t.Fatalf("create db:", err)
+		t.Fatal("create db:", err)
 	}
 	conn.Close()
 
@@ -291,7 +282,7 @@ func (h *Harness) Start() {
 	cfg.Twilio.FromNumber = h.phoneG.Get("twilio")
 
 	cfg.Mailgun.Enable = true
-	cfg.Mailgun.APIKey = mailgunApiKey
+	cfg.Mailgun.APIKey = mailgunAPIKey
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
 	data, err := json.Marshal(cfg)
@@ -321,6 +312,9 @@ func (h *Harness) Start() {
 		AcquireTimeout: 30 * time.Second,
 		MaxConnections: 2,
 	})
+	if err != nil {
+		h.t.Fatalf("failed to connect to db: %v", err)
+	}
 
 	// resume the flow of time
 	err = h.db.QueryRow(`select pg_catalog.now()`).Scan(&h.pgResume)
@@ -477,7 +471,10 @@ func (h *Harness) execQuery(sql string) {
 		h.t.Fatalf("failed to render query template: %v", err)
 	}
 
-	runCmd(h.t, exec.Command("psql", "-d", h.dbURL, "-c", b.String()))
+	err = ExecSQLBatch(context.Background(), h.dbURL, b.String())
+	if err != nil {
+		h.t.Fatalf("failed to exec query: %v", err)
+	}
 }
 
 // CreateAlert will create a new unacknowledged alert.
@@ -598,10 +595,11 @@ func (h *Harness) Close() error {
 		h.cmd.Process.Wait()
 	}
 
-	h.dumpDB()
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	h.sessKey.Shutdown(ctx)
+	h.tw.Close()
+	h.dumpDB()
 	h.dbStdlib.Close()
 	h.db.Close()
 	h.t.Log(h.db.Stat())

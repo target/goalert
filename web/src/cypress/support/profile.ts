@@ -86,7 +86,14 @@ function createManyUsers(
       .join(',') +
     `;`
 
-  return cy.exec(`psql -d '${dbURL}' -c "${dbQuery}"`).then(() => profiles)
+  return cy
+    .exec(`psql-lite -tx -d "$DB" -c "$QUERY"`, {
+      env: {
+        DB: dbURL,
+        QUERY: dbQuery,
+      },
+    })
+    .then(() => profiles)
 }
 
 function createUser(user?: UserOptions): Cypress.Chainable<Profile> {

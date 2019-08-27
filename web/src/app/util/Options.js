@@ -16,6 +16,7 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth/index'
+import { LegacyGraphQLClient } from '../apollo'
 
 /*
  * Renders options that will fix to the top right of the screen (in the app bar)
@@ -108,6 +109,7 @@ export default class Options extends Component {
     // wrap with mutation component
     return (
       <Mutation
+        client={LegacyGraphQLClient}
         key={idx}
         mutation={o.mutation.query}
         update={(cache, { data }) => {

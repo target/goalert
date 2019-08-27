@@ -3,8 +3,9 @@ package sqltrace
 import (
 	"context"
 	"database/sql/driver"
-	"io"
+
 	"github.com/target/goalert/util/sqlutil"
+	"io"
 	"go.opencensus.io/trace"
 )
 
