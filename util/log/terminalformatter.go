@@ -3,13 +3,12 @@ package log
 import (
 	"bytes"
 	"io"
-	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 var sqlHighlight = func(w io.Writer, q string) error {
@@ -22,7 +21,7 @@ type terminalFormatter struct {
 }
 type queryError interface {
 	Query() string
-	Cause() *pq.Error
+	Cause() *sqlutil.Error
 }
 
 func lineCol(q string, pos int) (int, int) {
@@ -34,7 +33,7 @@ func lineCol(q string, pos int) (int, int) {
 	lastLine = strings.Replace(lastLine, "\t", strings.Repeat(" ", 8), -1)
 	return len(lines), len(lastLine) - 1
 }
-func makeCodeFrame(q string, e *pq.Error) string {
+func makeCodeFrame(q string, e *sqlutil.Error) string {
 
 	buf := new(bytes.Buffer)
 	err := sqlHighlight(buf, q)
@@ -46,7 +45,7 @@ func makeCodeFrame(q string, e *pq.Error) string {
 	}
 
 	buf.Reset()
-	pos, err := strconv.Atoi(e.Position)
+	pos := e.Position
 	if err == nil {
 		l, c := lineCol(q, pos)
 		lines := strings.Split(code, "\n")

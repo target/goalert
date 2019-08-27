@@ -3,9 +3,7 @@ package errutil
 import (
 	"strings"
 
-	"github.com/lib/pq"
-	"github.com/pkg/errors"
-	"github.com/target/goalert/limit"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 )
 
@@ -14,14 +12,15 @@ func MapDBError(err error) error {
 	if err == nil {
 		return nil
 	}
-	dbErr, ok := errors.Cause(err).(*pq.Error)
-	if !ok {
+
+	dbErr := sqlutil.MapError(err)
+	if dbErr == nil {
 		return err
 	}
 
 	switch dbErr.Code {
 	case "23503": // fkey constraint
-		switch dbErr.Constraint {
+		switch dbErr.ConstraintName {
 		case "user_overrides_add_user_id_fkey":
 			return validation.NewFieldError("AddUserID", "user does not exist")
 		case "user_overrides_remove_user_id_fkey":
@@ -30,24 +29,24 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("TargetID", "schedule does not exist")
 		}
 	case "23505": // unique constraint
-		if strings.HasPrefix(dbErr.Constraint, dbErr.Table+"_name") || dbErr.Constraint == "auth_basic_users_username_key" {
+		if strings.HasPrefix(dbErr.ConstraintName, dbErr.TableName+"_name") || dbErr.ConstraintName == "auth_basic_users_username_key" {
 			return validation.NewFieldError("Name", "already in use")
 		}
-		if dbErr.Constraint == "user_contact_methods_type_value_key" {
+		if dbErr.ConstraintName == "user_contact_methods_type_value_key" {
 			return validation.NewFieldError("Value", "contact method already exists for that type and value")
 		}
-		if dbErr.Constraint == "user_notification_rules_contact_method_id_delay_minutes_key" {
+		if dbErr.ConstraintName == "user_notification_rules_contact_method_id_delay_minutes_key" {
 			return validation.NewFieldError("DelayMinutes", "notification rule already exists for that delay and contact method")
 		}
-		if dbErr.Constraint == "heartbeat_monitor_name_service_id" {
+		if dbErr.ConstraintName == "heartbeat_monitor_name_service_id" {
 			return validation.NewFieldError("Name", "heartbeat monitor already exists with that name")
 		}
 	case "23514": // check constraint
-		newErr := limit.MapError(dbErr)
+		newErr := mapLimitError(dbErr)
 		if newErr != nil {
 			return newErr
 		}
-		switch dbErr.Constraint {
+		switch dbErr.ConstraintName {
 		case "user_overrides_check2":
 			return validation.NewFieldError("AddUserID", "cannot be the same as the user being replaced")
 		case "user_override_no_conflict_allowed":
@@ -59,7 +58,7 @@ func MapDBError(err error) error {
 		}
 	}
 
-	switch dbErr.Constraint {
+	switch dbErr.ConstraintName {
 	case "services_escalation_policy_id_fkey":
 		if strings.Contains(dbErr.Detail, "is still referenced") {
 			return validation.NewFieldError("EscalationPolicyID", "is currently in use")

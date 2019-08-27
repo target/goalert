@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/stdlib"
 	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -84,7 +84,7 @@ var RootCmd = &cobra.Command{
 			}
 		}()
 
-		wrappedDriver := sqltrace.WrapDriver(&pq.Driver{}, &sqltrace.WrapOptions{Query: true, Args: true})
+		wrappedDriver := sqltrace.WrapDriver(stdlib.GetDefaultDriver(), &sqltrace.WrapOptions{Query: true})
 
 		u, err := url.Parse(cfg.DBURL)
 		if err != nil {

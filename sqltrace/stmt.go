@@ -5,8 +5,7 @@ import (
 	"database/sql/driver"
 	"io"
 
-	"github.com/lib/pq"
-	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 	"go.opencensus.io/trace"
 )
 
@@ -37,16 +36,15 @@ func errSpan(err error, sp *trace.Span) error {
 
 	attrs := []trace.Attribute{trace.BoolAttribute("error", true)}
 
-	if pErr, ok := errors.Cause(err).(*pq.Error); ok {
+	if e := sqlutil.MapError(err); e != nil {
 		attrs = append(attrs,
-			trace.StringAttribute("pq.error.detail", pErr.Detail),
-			trace.StringAttribute("pq.error.hint", pErr.Hint),
-			trace.StringAttribute("pq.error.code.name", pErr.Code.Name()),
-			trace.StringAttribute("pq.error.code", string(pErr.Code)),
-			trace.StringAttribute("pq.error.table", pErr.Table),
-			trace.StringAttribute("pq.error.constraint", pErr.Constraint),
-			trace.StringAttribute("pq.error.where", pErr.Where),
-			trace.StringAttribute("pq.error.column", pErr.Column),
+			trace.StringAttribute("pq.error.detail", e.Detail),
+			trace.StringAttribute("pq.error.hint", e.Hint),
+			trace.StringAttribute("pq.error.code", e.Code),
+			trace.StringAttribute("pq.error.table", e.TableName),
+			trace.StringAttribute("pq.error.constraint", e.ConstraintName),
+			trace.StringAttribute("pq.error.where", e.Where),
+			trace.StringAttribute("pq.error.column", e.ColumnName),
 		)
 	}
 	sp.Annotate(attrs, err.Error())

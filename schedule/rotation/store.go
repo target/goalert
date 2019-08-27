@@ -3,16 +3,17 @@ package rotation
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util"
-	"github.com/target/goalert/validation"
-	"github.com/target/goalert/validation/validate"
 	"sort"
 
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
+	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 )
 
 // ErrNoState is returned when there is no state information available for a rotation.
@@ -817,7 +818,7 @@ func (db *DB) SetActiveIndexTx(ctx context.Context, tx *sql.Tx, rotID string, po
 	}
 
 	_, err = stmt.ExecContext(ctx, rotID, position)
-	if p, ok := err.(*pq.Error); ok && p.Code == "23502" && p.Column == "rotation_participant_id" {
+	if e := sqlutil.MapError(err); e != nil && e.Code == "23502" && e.ColumnName == "rotation_participant_id" {
 		// 23502 is not_null_violation
 		// https://www.postgresql.org/docs/9.6/errcodes-appendix.html
 		// We are checking to see if there is no participant for that position before returning a validation error

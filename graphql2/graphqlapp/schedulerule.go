@@ -3,12 +3,14 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"strconv"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/validation"
-	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -68,9 +70,7 @@ func (m *Mutation) UpdateScheduleTarget(ctx context.Context, input graphql2.Sche
 				r.End = *inputRule.End
 			}
 			for i, v := range inputRule.WeekdayFilter {
-				if !v {
-					r.WeekdayFilter[i] = 0
-				}
+				r.WeekdayFilter.SetDay(time.Weekday(i), v)
 			}
 
 			if inputRule.ID != nil {

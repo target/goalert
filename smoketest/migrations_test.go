@@ -16,11 +16,10 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/jackc/pgx"
+	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/smoketest/harness"
-
-	"github.com/lib/pq"
-	uuid "github.com/satori/go.uuid"
 )
 
 type ignoreRule struct {
@@ -533,20 +532,20 @@ func TestMigrations(t *testing.T) {
 	start := "atomic-escalation-policies"
 	t.Logf("Starting migration testing at %s", start)
 
-	db, err := sql.Open("postgres", harness.DBURL(""))
+	db, err := sql.Open("pgx", harness.DBURL(""))
 	if err != nil {
 		t.Fatal("failed to open db:", err)
 	}
 	defer db.Close()
 	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	_, err = db.Exec("create database " + pq.QuoteIdentifier(dbName))
+	_, err = db.Exec("create database " + pgx.Identifier([]string{dbName}).Sanitize())
 	if err != nil {
 		t.Fatal("failed to create db:", err)
 	}
-	defer db.Exec("drop database " + pq.QuoteIdentifier(dbName))
+	defer db.Exec("drop database " + pgx.Identifier([]string{dbName}).Sanitize())
 
-	db, err = sql.Open("postgres", harness.DBURL(dbName))
+	db, err = sql.Open("pgx", harness.DBURL(dbName))
 	if err != nil {
 		t.Fatal("failed to open created db:", err)
 	}

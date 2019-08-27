@@ -20,8 +20,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/lib/pq"
-	_ "github.com/lib/pq" // load postgres driver
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/stdlib"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/alert"
@@ -38,22 +38,68 @@ import (
 
 const dbTimeFormat = "2006-01-02 15:04:05.999999-07:00"
 
-// DBURL will return the URL for the given dbName.
-//
-// If DB_URL is set, it will be used.
-func DBURL(dbName string) string {
-	env := os.Getenv("DB_URL")
-	if env != "" && dbName == "" {
-		return env
+var (
+	dbURL string
+	dbCfg pgx.ConnConfig
+)
+
+func init() {
+	dbURL = os.Getenv("DB_URL")
+	if dbURL == "" {
+		dbURL = "postgres://goalert@127.0.0.1:5432?sslmode=disable"
 	}
-	if env == "" {
-		env = "postgres://goalert@127.0.0.1:5432?sslmode=disable"
-	}
-	u, err := url.Parse(env)
+	var err error
+	dbCfg, err = pgx.ParseConnectionString(dbURL)
 	if err != nil {
 		panic(err)
 	}
-	u.Path = dbName
+}
+
+func DBURL(name string) string {
+	if name == "" {
+		return formatConnString(dbCfg)
+	}
+
+	cfg := dbCfg
+	cfg.Database = name
+	return formatConnString(cfg)
+}
+
+func formatConnString(c pgx.ConnConfig) string {
+	var u url.URL
+
+	u.Scheme = "postgresql"
+	if c.Password != "" {
+		u.User = url.UserPassword(c.User, c.Password)
+	} else if c.User != "" {
+		u.User = url.User(c.User)
+	}
+	u.Path = c.Database
+
+	if c.Port != 0 {
+		u.Host = fmt.Sprintf("%s:%d", c.Host, c.Port)
+	} else {
+		u.Host = c.Host
+	}
+
+	q := make(url.Values)
+	for k, v := range c.RuntimeParams {
+		q.Set(k, v)
+	}
+
+	if c.TLSConfig == nil && !c.UseFallbackTLS && c.FallbackTLSConfig == nil {
+		q.Set("sslmode", "disable")
+	} else if c.TLSConfig == nil && c.UseFallbackTLS && c.FallbackTLSConfig != nil {
+		q.Set("sslmode", "allow")
+	} else if c.TLSConfig != nil && c.UseFallbackTLS && c.FallbackTLSConfig == nil {
+		q.Set("sslmode", "prefer")
+	} else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.InsecureSkipVerify {
+		q.Set("sslmode", "require")
+	} else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.ServerName != "" {
+		q.Set("sslmode", "verify-full")
+	}
+
+	u.RawQuery = q.Encode()
 
 	return u.String()
 }
@@ -89,9 +135,10 @@ type Harness struct {
 	lastTimeChange time.Time
 	pgResume       time.Time
 
-	db *sql.DB
-	nr notificationrule.Store
-	a  alert.Store
+	db       *pgx.ConnPool
+	dbStdlib *sql.DB
+	nr       notificationrule.Store
+	a        alert.Store
 
 	usr                user.Store
 	userGeneratedIndex int
@@ -141,15 +188,25 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 		t.Skip("skipping Harness tests for short mode")
 	}
 
-	t.Logf("Using DB URL: %s", DBURL(""))
+	t.Logf("Using DB URL: %s", dbURL)
 	start := time.Now()
 	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	err := ExecSQL(context.Background(), DBURL(""), "create database "+name)
+	conn, err := pgx.Connect(dbCfg)
 	if err != nil {
-		t.Fatalf("create database: %v", err)
+		t.Fatal("connect to db:", err)
 	}
-	t.Logf("created test database '%s': %s", name, DBURL(name))
+	defer conn.Close()
+	_, err = conn.Exec("create database " + pgx.Identifier([]string{name}).Sanitize())
+	if err != nil {
+		t.Fatal("create db:", err)
+	}
+	conn.Close()
+
+	testDBCfg := dbCfg
+	testDBCfg.Database = name
+
+	t.Logf("created test database '%s': %s", name, dbURL)
 	g := NewDataGen(t, "Phone", DataGenFunc(GenPhone))
 
 	twCfg := mocktwilio.Config{
@@ -162,8 +219,8 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 		phoneG:         g,
 		uuidG:          NewDataGen(t, "UUID", DataGenFunc(GenUUID)),
 		phoneCCG:       NewDataGen(t, "PhoneCC", DataGenArgFunc(GenPhoneCC)),
-		dbURL:          DBURL(name),
 		dbName:         name,
+		dbURL:          formatConnString(testDBCfg),
 		lastTimeChange: start,
 		start:          start,
 
@@ -178,7 +235,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 		"goalert",
 		"-l", "localhost:0",
 		"-v",
-		"--db-url", DBURL(name),
+		"--db-url", h.dbURL,
 		"--json",
 		"--twilio-base-url", h.twS.URL,
 		"--db-max-open", "5", // 2 for API 1 for engine
@@ -188,7 +245,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	// freeze DB time until backend starts
 	h.execQuery(`
 		create schema testing_overrides;
-		alter database ` + pq.QuoteIdentifier(name) + ` set search_path = "$user", public,testing_overrides, pg_catalog;
+		alter database ` + pgx.Identifier([]string{name}).Sanitize() + ` set search_path = "$user", public,testing_overrides, pg_catalog;
 		
 
 		create or replace function testing_overrides.now()
@@ -233,24 +290,33 @@ func (h *Harness) Start() {
 		h.t.Fatalf("failed to marshal config: %v", err)
 	}
 
-	cfgCmd := exec.Command("goalert", "migrate", "--db-url="+DBURL(h.dbName))
+	cfgCmd := exec.Command("goalert", "migrate", "--db-url="+h.dbURL)
 	cfgCmd.Stdin = bytes.NewReader(data)
 	out, err := cfgCmd.CombinedOutput()
 	if err != nil {
 		h.t.Fatalf("failed to migrate backend: %v\n%s", err, string(out))
 	}
-	cfgCmd = exec.Command("goalert", "set-config", "--allow-empty-data-encryption-key", "--db-url="+DBURL(h.dbName))
+	cfgCmd = exec.Command("goalert", "set-config", "--allow-empty-data-encryption-key", "--db-url="+h.dbURL)
 	cfgCmd.Stdin = bytes.NewReader(data)
 	out, err = cfgCmd.CombinedOutput()
 	if err != nil {
 		h.t.Fatalf("failed to config backend: %v\n%s", err, string(out))
 	}
 
-	// resume the flow of time
-	h.db, err = sql.Open("postgres", h.dbURL)
+	dbCfg, err := pgx.ParseConnectionString(h.dbURL)
 	if err != nil {
-		h.t.Fatalf("failed to open DB: %v", err)
+		h.t.Fatalf("failed to parse db url: %v", err)
 	}
+	h.db, err = pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     dbCfg,
+		AcquireTimeout: 30 * time.Second,
+		MaxConnections: 2,
+	})
+	if err != nil {
+		h.t.Fatalf("failed to connect to db: %v", err)
+	}
+
+	// resume the flow of time
 	err = h.db.QueryRow(`select pg_catalog.now()`).Scan(&h.pgResume)
 	if err != nil {
 		h.t.Fatalf("failed to get postgres timestamp: %v", err)
@@ -280,33 +346,34 @@ func (h *Harness) Start() {
 	}
 	ctx := context.Background()
 
-	h.nr, err = notificationrule.NewDB(ctx, h.db)
+	h.dbStdlib = stdlib.OpenDBFromPool(h.db)
+	h.nr, err = notificationrule.NewDB(ctx, h.dbStdlib)
 	if err != nil {
 		h.t.Fatalf("failed to init notification rule backend: %v", err)
 	}
-	h.usr, err = user.NewDB(ctx, h.db)
+	h.usr, err = user.NewDB(ctx, h.dbStdlib)
 	if err != nil {
 		h.t.Fatalf("failed to init user backend: %v", err)
 	}
 
-	aLog, err := alertlog.NewDB(ctx, h.db)
+	aLog, err := alertlog.NewDB(ctx, h.dbStdlib)
 	if err != nil {
 		h.t.Fatalf("failed to init alert log backend: %v", err)
 	}
 
-	h.a, err = alert.NewDB(ctx, h.db, aLog)
+	h.a, err = alert.NewDB(ctx, h.dbStdlib, aLog)
 	if err != nil {
 		h.t.Fatalf("failed to init alert backend: %v", err)
 	}
 
-	h.sessKey, err = keyring.NewDB(ctx, h.db, &keyring.Config{
+	h.sessKey, err = keyring.NewDB(ctx, h.dbStdlib, &keyring.Config{
 		Name: "browser-sessions",
 	})
 	if err != nil {
 		h.t.Fatalf("failed to init keyring: %v", err)
 	}
 
-	h.authH, err = auth.NewHandler(ctx, h.db, auth.HandlerConfig{
+	h.authH, err = auth.NewHandler(ctx, h.dbStdlib, auth.HandlerConfig{
 		SessionKeyring: h.sessKey,
 	})
 	if err != nil {
@@ -525,6 +592,7 @@ func (h *Harness) Close() error {
 	h.mx.Unlock()
 	if h.cmd.Process != nil {
 		h.cmd.Process.Kill()
+		h.cmd.Process.Wait()
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -532,9 +600,16 @@ func (h *Harness) Close() error {
 	h.sessKey.Shutdown(ctx)
 	h.tw.Close()
 	h.dumpDB()
+
+	h.dbStdlib.Close()
 	h.db.Close()
 
-	err := ExecSQL(context.Background(), DBURL(""), "drop database "+h.dbName)
+	conn, err := pgx.Connect(dbCfg)
+	if err != nil {
+		h.t.Error("failed to connect to DB:", err)
+	}
+	defer conn.Close()
+	_, err = conn.Exec("drop database " + pgx.Identifier([]string{h.dbName}).Sanitize())
 	if err != nil {
 		h.t.Errorf("failed to drop database '%s': %v", h.dbName, err)
 	}

@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"net"
+	"strings"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type clientErr interface {
@@ -32,14 +33,14 @@ func IsTemporaryError(err error) bool {
 	if cause == driver.ErrBadConn {
 		return true
 	}
-	if pqe, ok := cause.(*pq.Error); ok {
-		switch pqe.Code.Class() {
+	if e := sqlutil.MapError(err); e != nil {
+		switch {
 		// Allow retry for tx or connection errors:
 		// - Class 40 — Transaction Rollback
 		// - Class 08 — Connection Exception
 		//
 		// https://www.postgresql.org/docs/10/static/errcodes-appendix.html
-		case "40", "08":
+		case strings.HasPrefix(e.Code, "40"), strings.HasPrefix(e.Code, "08"):
 			return true
 		}
 	}
