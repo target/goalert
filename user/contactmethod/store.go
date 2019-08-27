@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )

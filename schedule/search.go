@@ -9,8 +9,8 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
-	"github.com/target/goalert/validation/validate"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation/validate"
 )
 
 // SearchOptions allow filtering and paginating the list of schedules.
