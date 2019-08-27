@@ -108,9 +108,9 @@ func (h *Handler) integrationKeysField() *g.Field {
 var integrationKeyType = g.NewEnum(g.EnumConfig{
 	Name: "IntegrationKeyType",
 	Values: g.EnumValueConfigMap{
-		"grafana":  &g.EnumValueConfig{Value: integrationkey.TypeGrafana},
-		"generic":  &g.EnumValueConfig{Value: integrationkey.TypeGeneric},
-		"email":    &g.EnumValueConfig{Value: integrationkey.TypeEmail},
+		"grafana": &g.EnumValueConfig{Value: integrationkey.TypeGrafana},
+		"generic": &g.EnumValueConfig{Value: integrationkey.TypeGeneric},
+		"email":   &g.EnumValueConfig{Value: integrationkey.TypeEmail},
 	},
 })
 
