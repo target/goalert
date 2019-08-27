@@ -4,19 +4,20 @@ import (
 	"context"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 func (app *App) listenEvents(ctx context.Context) error {
 	channels := []string{"/goalert/config-refresh"}
 
-	handle := func(l *pq.Listener) {
+	handle := func(l *sqlutil.Listener) {
 		defer l.Close()
 
 		for {
-			var n *pq.Notification
+			var n *pgx.Notification
 			select {
 			case n = <-l.NotificationChannel():
 			case <-ctx.Done():
@@ -42,8 +43,8 @@ func (app *App) listenEvents(ctx context.Context) error {
 		}
 	}
 
-	makeListener := func(url string) (*pq.Listener, error) {
-		l := pq.NewListener(app.cfg.DBURL, 3*time.Second, time.Minute, nil)
+	makeListener := func(url string) (*sqlutil.Listener, error) {
+		l := sqlutil.NewListener(app.cfg.DBURL, 3*time.Second, time.Minute, nil)
 		for _, ch := range channels {
 			err := l.Listen(ch)
 			if err != nil {
@@ -64,7 +65,7 @@ func (app *App) listenEvents(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	var ln *pq.Listener
+	var ln *sqlutil.Listener
 	if app.cfg.DBURLNext != "" {
 		ln, err = makeListener(app.cfg.DBURLNext)
 		if err != nil {

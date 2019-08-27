@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/version"
 )
 
@@ -29,7 +29,7 @@ func (h *Handler) initNewDBListen(name string) error {
 	u.RawQuery = q.Encode()
 	name = u.String()
 
-	l := pq.NewListener(name, 0, time.Second, h.listenEvent)
+	l := sqlutil.NewListener(name, 0, time.Second, h.listenEvent)
 
 	err = l.Listen(DBIDChannel)
 	if err != nil {
@@ -79,7 +79,7 @@ func (h *Handler) initListen(name string) error {
 	u.RawQuery = q.Encode()
 	name = u.String()
 
-	h.l = pq.NewListener(name, 0, time.Second, h.listenEvent)
+	h.l = sqlutil.NewListener(name, 0, time.Second, h.listenEvent)
 
 	err = h.l.Listen(StateChannel)
 	if err != nil {
@@ -148,21 +148,22 @@ func (h *Handler) listenLoop() {
 		}
 	}
 }
-func (h *Handler) listenEvent(ev pq.ListenerEventType, err error) {
+func (h *Handler) listenEvent(ev sqlutil.ListenerEventType, err error) {
 	var event string
+	// TODO Types mapping
 	switch ev {
-	case pq.ListenerEventConnected:
+	case sqlutil.ListenerEventConnected:
 		event = "connected"
-	case pq.ListenerEventConnectionAttemptFailed:
+	case sqlutil.ListenerEventConnectionAttemptFailed:
 		event = "connection attempt failed"
-	case pq.ListenerEventDisconnected:
+	case sqlutil.ListenerEventDisconnected:
 		event = "disconnected"
-	case pq.ListenerEventReconnected:
+	case sqlutil.ListenerEventReconnected:
 		event = "reconnected"
 	}
 	if err != nil {
-		log.Log(context.Background(), errors.Wrapf(err, "pq listen event '%s'", event))
+		log.Log(context.Background(), errors.Wrapf(err, "sqlutil listen event '%s'", event))
 	} else {
-		log.Logf(context.Background(), "PQ Listen Event: %s", event)
+		log.Logf(context.Background(), "SQLUTIL Listen Event: %s", event)
 	}
 }

@@ -11,8 +11,8 @@ import (
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -25,9 +25,8 @@ type Handler struct {
 	dbID, dbNextID string
 
 	sendNotification *sql.Stmt
-
-	nodeStatus map[string]Status
-	l          *pq.Listener
+	nodeStatus       map[string]Status
+	l                *sqlutil.Listener
 
 	statusCh  chan *Status
 	controlCh chan *DeadlineConfig
