@@ -2,8 +2,6 @@ package sqlutil
 
 import (
 	"database/sql/driver"
-	"fmt"
-
 	"github.com/jackc/pgx/pgtype"
 )
 
@@ -17,7 +15,6 @@ func (s IntArray) Value() (driver.Value, error) {
 		return nil, err
 	}
 
-	fmt.Println("SET", s)
 	return pgArray.Value()
 }
 
