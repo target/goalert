@@ -2,7 +2,6 @@ package sqlutil
 
 import (
 	"database/sql/driver"
-	"fmt"
 
 	"github.com/jackc/pgx/pgtype"
 )
@@ -15,9 +14,9 @@ func (s BoolArray) Value() (driver.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("SET", s)
 	return pgArray.Value()
 }
+
 func (s *BoolArray) Scan(src interface{}) error {
 	var pgArray pgtype.BoolArray
 	err := pgArray.Scan(src)
