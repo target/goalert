@@ -46,6 +46,7 @@ const styles = theme => ({
     [theme.breakpoints.down('sm')]: {
       '&:not(:first-child)': {
         marginBottom: '4.5em',
+        paddingBottom: '1em',
       },
     },
   },

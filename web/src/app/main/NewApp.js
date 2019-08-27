@@ -35,7 +35,6 @@ const styles = theme => ({
   },
   main: {
     width: '100%',
-    padding: '10px',
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
@@ -46,7 +45,7 @@ const styles = theme => ({
   },
   toolbar: theme.mixins.toolbar,
   containerClass: {
-    paddingTop: '1em',
+    padding: '1em',
     [theme.breakpoints.up('md')]: { width: '75%' },
     [theme.breakpoints.down('sm')]: { width: '100%' },
   },

@@ -92,7 +92,7 @@
     "react-apollo": "3.0.1",
     "react-beautiful-dnd": "11.0.5",
     "react-big-calendar": "0.22.0",
-    "react-count-down": "^1.1.0",
+    "react-countdown-now": "^2.1.1",
     "react-dom": "16.9.0",
     "react-ga": "2.6.0",
     "react-infinite-scroll-component": "^4.2.0",

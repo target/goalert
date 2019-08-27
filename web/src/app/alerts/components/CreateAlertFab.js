@@ -10,8 +10,8 @@ import withStyles from '@material-ui/core/styles/withStyles'
 const styles = theme => ({
   fab: {
     position: 'fixed',
-    bottom: '1em',
-    right: '1em',
+    bottom: '2em',
+    right: '2em',
     zIndex: 9001,
   },
   transitionUp: {
