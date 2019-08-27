@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"github.com/target/goalert/util/log"
 	"os"
-
-	_ "github.com/lib/pq"
 )
 
 var queries = [][]string{

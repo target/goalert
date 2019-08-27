@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"text/template"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -80,7 +80,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 }
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
-	alertIDs := make(pq.Int64Array, len(opts.FilterAlertIDs))
+	alertIDs := make(sqlutil.IntArray, len(opts.FilterAlertIDs))
 	for i := range opts.FilterAlertIDs {
 		alertIDs[i] = int64(opts.FilterAlertIDs[i])
 	}

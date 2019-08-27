@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	_ "github.com/lib/pq"
 )
 
 func waitForHTTP(ctx context.Context, url string) {

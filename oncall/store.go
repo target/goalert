@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"time"
 
@@ -203,7 +204,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		rotIDs = append(rotIDs, rot.ID)
 	}
 
-	rows, err = tx.StmtContext(ctx, db.rotParts).QueryContext(ctx, pq.StringArray(rotIDs))
+	rows, err = tx.StmtContext(ctx, db.rotParts).QueryContext(ctx, sqlutil.UUIDArray(rotIDs))
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup rotation participants")
 	}
