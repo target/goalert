@@ -601,8 +601,8 @@ func (h *Harness) Close() error {
 	h.tw.Close()
 	h.dumpDB()
 	h.dbStdlib.Close()
+
 	h.db.Close()
-	h.t.Log(h.db.Stat())
 
 	conn, err := pgx.Connect(dbCfg)
 	if err != nil {

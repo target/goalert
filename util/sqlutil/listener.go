@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx"
-	"github.com/target/goalert/switchover"
 )
 
 type ListenerEventType int
@@ -41,50 +41,53 @@ const (
 type Listener struct {
 	// Channel for receiving notifications from the database.  In some cases a
 	// nil value will be sent.
-	Notify chan *pgx.Notification
+	Notify   chan *pgx.Notification
+	Channels map[string]struct{}
 
-	EventCallback        EventCallbackType
+	EventCallback        ListenerEventType
 	Name                 string
 	MinReconnectInterval time.Duration
-	maxReconnectInterval time.Duration
+	MaxReconnectInterval time.Duration
 }
 
-func NewListener(name string, minReconnectInterval time.Duration, maxReconnectInterval time.Duration, eventCallback EventCallbackType) *Listener {
+// EventCallbackType is the event callback type. See also ListenerEventType
+// constants' documentation.
+type EventCallbackType func(event ListenerEventType, err error)
+
+func NewListener(name string, minReconnectInterval time.Duration, maxReconnectInterval time.Duration, eventCallback ListenerEventType) *Listener {
 	l := &Listener{
-		eventCallback:        eventCallback,
-		name:                 name,
-		minReconnectInterval: minReconnectInterval,
-		maxReconnectInterval: maxReconnectInterval,
-		notify:               make(chan *pgx.Notification, 32),
+		EventCallback:        eventCallback,
+		Name:                 name,
+		MinReconnectInterval: minReconnectInterval,
+		MaxReconnectInterval: maxReconnectInterval,
+		Notify:               make(chan *pgx.Notification, 32),
+		Channels:             make(map[string]struct{}),
 	}
 
 	return l
 }
 
-func (l *Listener) ListenerEventType(e EventCallbackType) EventCallbackType {
-	return l.EventCallback
-}
-
 func (l *Listener) Listen(db *sql.DB) {
 	for {
-		// ignoring errors (will reconnect)
+		// TODO Don't ignore errors, perform logic for reconnect
 		err := func() error {
-			c, err := getConfig()
+			dbURL := os.Getenv("DB_URL")
+			if dbURL == "" {
+				dbURL = "postgres://goalert@127.0.0.1:5432?sslmode=disable"
+			}
+
+			dbCfg, err := pgx.ParseConnectionString(dbURL)
 			if err != nil {
 				return err
 			}
 
-			c, err := pgx.ParseConnectionString(c.DBURL)
+			conn, err := pgx.Connect(dbCfg)
 			if err != nil {
 				return err
 			}
 
-			conn, err := pgx.Connect(c)
-			if err != nil {
-				return err
-			}
-
-			err = conn.Listen(switchover.StateChannel)
+			// TODO
+			err = conn.Listen("channel_name_here")
 			if err != nil {
 				return err
 			}
@@ -94,26 +97,30 @@ func (l *Listener) Listen(db *sql.DB) {
 				if err != nil {
 					return err
 				}
-				stat, err := switchover.ParseStatus(n.Payload)
+				/*stat, err := switchover.ParseStatus(n.Payload)
 				if err != nil {
 					fmt.Println("ERROR:", err)
 					continue
-				}
+				}*/
 
-				s.mx.Lock()
-				s.nodeStatus[stat.NodeID] = *stat
-				s.mx.Unlock()
+				// WaitForNotification in a loop feeding a channel should get us the behavior we want,
+				// then we can reconnect as-needed and just keep passing messages to the same channel
+				// Use parsed notification message somewhere
 				select {
-				case s.statChange <- struct{}{}:
+				// Writing to channel
+				case l.Notify <- n:
 				default:
 				}
 			}
 		}()
 		fmt.Println("ERROR:", err)
 		time.Sleep(time.Second)
+
+		// Call Close() here?
 	}
 }
 
 func (l *Listener) Close() {
 	// TODO Cleanup/Close on shutdown
+
 }

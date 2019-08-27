@@ -150,7 +150,6 @@ func (h *Handler) listenLoop() {
 }
 func (h *Handler) listenEvent(ev sqlutil.ListenerEventType, err error) {
 	var event string
-	// TODO Types mapping
 	switch ev {
 	case sqlutil.ListenerEventConnected:
 		event = "connected"
