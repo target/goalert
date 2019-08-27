@@ -12,7 +12,6 @@ import (
 	"github.com/target/goalert/validation/validate"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -243,7 +242,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 	var userHistory []Shift
 	for rows.Next() {
 		var s Shift
-		var end pq.NullTime
+		var end sqlutil.NullTime
 		err = rows.Scan(&s.UserID, &s.Start, &end)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan on-call history info")

@@ -12,7 +12,6 @@ import (
 	"github.com/target/goalert/validation/validate"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
 )
@@ -791,7 +790,7 @@ func (db *DB) State(ctx context.Context, alertIDs []int) ([]State, error) {
 		ids64[i] = int64(id)
 	}
 
-	var t pq.NullTime
+	var t sqlutil.NullTime
 	rows, err := db.epState.QueryContext(ctx, ids64)
 	if err == sql.ErrNoRows {
 		err = nil
