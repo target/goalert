@@ -5,12 +5,12 @@ import (
 	"github.com/jackc/pgx/pgtype"
 )
 
-type IntArray []int64
+type IntArray []int
 
 func (s IntArray) Value() (driver.Value, error) {
 	var pgArray pgtype.Int8Array
 
-	err := pgArray.Set([]int64(s))
+	err := pgArray.Set([]int(s))
 	if err != nil {
 		return nil, err
 	}
@@ -26,5 +26,5 @@ func (s *IntArray) Scan(src interface{}) error {
 		return err
 	}
 
-	return pgArray.AssignTo((*[]int64)(s))
+	return pgArray.AssignTo((*[]int)(s))
 }

@@ -398,13 +398,9 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	case string:
 		idArg = sqlutil.UUIDArray{t}
 	case int:
-		idArg = sqlutil.IntArray{int64(t)}
+		idArg = sqlutil.IntArray{t}
 	case []int:
-		ids64 := make(sqlutil.IntArray, len(t))
-		for i, id := range t {
-			ids64[i] = int64(id)
-		}
-		idArg = ids64
+		idArg = make(sqlutil.IntArray, len(t))
 	default:
 		return errors.Errorf("invalid id type %T", t)
 	}

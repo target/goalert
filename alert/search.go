@@ -124,9 +124,6 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		stat[i] = string(opts.Status[i])
 	}
 	omit := make(sqlutil.IntArray, len(opts.Omit))
-	for i := range opts.Omit {
-		omit[i] = int64(opts.Omit[i])
-	}
 	return []sql.NamedArg{
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("status", stat),
