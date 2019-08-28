@@ -19,7 +19,7 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import isFullScreen from '@material-ui/core/withMobileDialog'
 import moment from 'moment'
-import Countdown from 'react-count-down'
+import Countdown from 'react-countdown-now'
 import { Link } from 'react-router-dom'
 import { ScheduleLink, ServiceLink, UserLink } from '../../links'
 import { styles } from '../../styles/materialStyles'
@@ -195,25 +195,45 @@ export default class AlertDetails extends Component {
     const { currentLevel, numSteps, lastEscalation } = this.epsHelper()
     const prevEscalation = new Date(lastEscalation)
 
-    if (!this.canAutoEscalate()) {
-      return <div>{delayMinutes} minutes</div>
-    }
-
-    if (currentLevel % numSteps === index) {
+    if (currentLevel % numSteps === index && this.canAutoEscalate()) {
       return (
         <Countdown
-          options={{
-            endDate: new Date(prevEscalation.getTime() + delayMinutes * 60000),
+          date={new Date(prevEscalation.getTime() + delayMinutes * 60000)}
+          renderer={props => {
+            const { hours, minutes, seconds } = props
+
+            const hourTxt = parseInt(hours)
+              ? `${hours} hour${parseInt(hours) === 1 ? '' : 's'} `
+              : ''
+            const minTxt = parseInt(minutes)
+              ? `${minutes} minute${parseInt(minutes) === 1 ? '' : 's'} `
+              : ''
+            const secTxt = `${seconds} second${
+              parseInt(seconds) === 1 ? '' : 's'
+            }`
+
+            return hourTxt + minTxt + secTxt
           }}
         />
       )
+    } else {
+      return <Typography>&mdash;</Typography>
     }
-
-    return <div />
   }
 
   renderEscalationPolicySteps() {
     const { steps, status, currentLevel } = this.epsHelper()
+
+    if (!steps.length) {
+      return (
+        <TableRow>
+          <TableCell>No steps</TableCell>
+          <TableCell>&mdash;</TableCell>
+          <TableCell>&mdash;</TableCell>
+        </TableRow>
+      )
+    }
+
     return steps.map((step, index) => {
       const { schedules, delay_minutes: delayMinutes, users } = step
 
@@ -233,10 +253,14 @@ export default class AlertDetails extends Component {
       if (status !== 'closed' && currentLevel % steps.length === index) {
         className = this.props.classes.highlightRow
       }
+
       return (
         <TableRow key={index} className={className}>
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
+            {!users.length && !schedules.length && (
+              <Typography>&mdash;</Typography>
+            )}
             {usersRender}
             {schedulesRender}
           </TableCell>
@@ -275,6 +299,11 @@ export default class AlertDetails extends Component {
             </TableHead>
             <TableBody>{this.renderEscalationPolicySteps()}</TableBody>
           </Table>
+        </CardContent>
+        <CardContent>
+          <Typography color='textSecondary' variant='caption'>
+            Visit this escalation policy for more information.
+          </Typography>
         </CardContent>
       </Card>
     )
@@ -419,9 +448,9 @@ export default class AlertDetails extends Component {
       },
     }
 
-    options.push(esc)
-    options.push(close)
     if (status.toLowerCase() === 'unacknowledged') options.push(ack)
+    options.push(close)
+    options.push(esc)
     return options
   }
 
