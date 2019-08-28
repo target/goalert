@@ -170,35 +170,33 @@ export default class WizardForm extends React.PureComponent {
           <Grid item xs={10}>
             {this.sectionHeading('Service')}
           </Grid>
-          <Grid item xs={12}>
-            <div className={classes.div}>
-              <FormField
-                component={MaterialSelect}
-                name='key'
-                label='How would you like to connect your application with GoAlert?'
-                formLabel
-                required
-                options={[
-                  {
-                    label: 'Generic API',
-                    value: 'generic',
-                  },
-                  {
-                    label: 'Grafana Webhook URL',
-                    value: 'grafana',
-                  },
-                  {
-                    label: 'Site24x7 Webhook URL',
-                    value: 'site24x7',
-                  },
-                  {
-                    label: 'Email',
-                    value: 'email',
-                  },
-                ]}
-                className={classes.formField}
-              />
-            </div>
+          <Grid item xs={12} className={classes.fieldItem}>
+            <FormField
+              component={MaterialSelect}
+              name='key'
+              label='How would you like to connect your application with GoAlert?'
+              formLabel
+              fullWidth={isWidthDown('md', width)}
+              required
+              options={[
+                {
+                  label: 'Generic API',
+                  value: 'generic',
+                },
+                {
+                  label: 'Grafana Webhook URL',
+                  value: 'grafana',
+                },
+                {
+                  label: 'Site24x7 Webhook URL',
+                  value: 'site24x7',
+                },
+                {
+                  label: 'Email',
+                  value: 'email',
+                },
+              ]}
+            />
           </Grid>
         </Grid>
       </FormContainer>
