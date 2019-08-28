@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/target/goalert/util/log"
 	"os"
+
+	_ "github.com/jackc/pgx/stdlib"
 )
 
 var queries = [][]string{
@@ -39,7 +41,7 @@ func main() {
 	mult := flag.Float64("m", 1.5, "Multiplier for prod values.")
 	url := flag.String("db", os.Getenv("DB_URL"), "DB connection URL.")
 	flag.Parse()
-	db, err := sql.Open("postgres", *url)
+	db, err := sql.Open("pgx", *url)
 	noErr(err)
 
 	for _, q := range queries {
