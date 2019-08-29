@@ -10,12 +10,14 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
-func (app *App) listenEvents(ctx context.Context) error {
-	channels := []string{"/goalert/config-refresh"}
+func (app *App) listenEvents(ctx context.Context, db *sql.DB) error {
+	l, err := sqlutil.NewListener(ctx, db, "/goalert/config-refresh")
+	if err != nil {
+		return err
+	}
+	app.events = l
 
-	handle := func(l *sqlutil.Listener) {
-		defer l.Close()
-
+	go func() {
 		for {
 			var n *pgx.Notification
 			select {
@@ -23,9 +25,8 @@ func (app *App) listenEvents(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			}
-
 			if n == nil {
-				continue
+				return
 			}
 
 			log.Debugf(log.WithFields(ctx, log.Fields{
@@ -41,43 +42,7 @@ func (app *App) listenEvents(ctx context.Context) error {
 				})
 			}
 		}
-	}
-
-	makeListener := func(url string) (*sqlutil.Listener, error) {
-		l := sqlutil.NewListener(app.cfg.DBURL, 3*time.Second, time.Minute, nil)
-		for _, ch := range channels {
-			err := l.Listen(ch)
-			if err != nil {
-				l.Close()
-				return nil, err
-			}
-		}
-		err := l.Ping()
-		if err != nil {
-			l.Close()
-			return nil, err
-		}
-
-		return l, nil
-	}
-
-	l, err := makeListener(app.cfg.DBURL)
-	if err != nil {
-		return err
-	}
-	var ln *sqlutil.Listener
-	if app.cfg.DBURLNext != "" {
-		ln, err = makeListener(app.cfg.DBURLNext)
-		if err != nil {
-			l.Close()
-			return err
-		}
-	}
-
-	go handle(l)
-	if ln != nil {
-		go handle(ln)
-	}
+	}()
 
 	return nil
 }

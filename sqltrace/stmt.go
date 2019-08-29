@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql/driver"
 
-	"github.com/target/goalert/util/sqlutil"
 	"io"
+
+	"github.com/target/goalert/util/sqlutil"
 	"go.opencensus.io/trace"
 )
 

@@ -48,6 +48,7 @@ type App struct {
 
 	db *sql.DB
 	l  net.Listener
+	events *sqlutil.Listener
 
 	cooldown *cooldown
 	doneCh   chan struct{}

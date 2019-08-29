@@ -600,8 +600,8 @@ func (h *Harness) Close() error {
 	h.sessKey.Shutdown(ctx)
 	h.tw.Close()
 	h.dumpDB()
-	h.dbStdlib.Close()
 
+	h.dbStdlib.Close()
 	h.db.Close()
 
 	conn, err := pgx.Connect(dbCfg)
