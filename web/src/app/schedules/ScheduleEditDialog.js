@@ -45,7 +45,6 @@ export default class ScheduleEditDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        awaitRefetchQueries
         onCompleted={this.props.onClose}
         refetchQueries={() => [
           {

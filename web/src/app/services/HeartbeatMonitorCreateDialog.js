@@ -20,7 +20,6 @@ export default function HeartbeatMonitorCreateDialog(props) {
   const [value, setValue] = useState({ name: '', timeoutMinutes: 15 })
   const [createHeartbeat, { loading, error }] = useMutation(createMutation, {
     refetchQueries: props.refetchQueries,
-    awaitRefetchQueries: true,
     variables: {
       input: {
         name: value.name,
