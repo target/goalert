@@ -1,11 +1,11 @@
 import React from 'react'
+import { useDispatch } from 'react-redux'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
-import { nonFieldErrors } from '../util/errutil'
-import { Redirect } from 'react-router'
-import Query from '../util/Query'
+import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
+import { useQuery, useMutation } from 'react-apollo'
+import { push } from 'connected-react-router'
 
 const query = gql`
   query($id: ID!) {
@@ -25,58 +25,40 @@ const mutation = gql`
   }
 `
 
-export default class RotationDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    rotationID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function RotationDeleteDialog(props) {
+  const dispatch = useDispatch()
+  const { data, loading: dataLoading } = useQuery(query, {
+    variables: { id: props.rotationID },
+  })
+  const [deleteRotation, deleteRotationStatus] = useMutation(mutation, {
+    refetchQueries: ['rotationsQuery'],
+    variables: {
+      input: [
+        {
+          id: props.rotationID,
+          type: 'rotation',
+        },
+      ],
+    },
+    onCompleted: () => dispatch(push('/rotations')),
+  })
 
-  render() {
-    return (
-      <Query
-        noPoll
-        query={query}
-        variables={{ id: this.props.rotationID }}
-        render={({ data, error }) => this.renderMutation(data.rotation)}
-      />
-    )
-  }
+  if (dataLoading) return <Spinner />
 
-  renderMutation(rotData) {
-    return (
-      <Mutation mutation={mutation}>
-        {(commit, status) => this.renderDialog(rotData, commit, status)}
-      </Mutation>
-    )
-  }
+  return (
+    <FormDialog
+      title='Are you sure?'
+      confirm
+      subTitle={`This will delete the rotation: ${data.rotation.name}`}
+      loading={deleteRotationStatus.loading}
+      errors={deleteRotationStatus.error ? [deleteRotationStatus.error] : []}
+      onClose={props.onClose}
+      onSubmit={() => deleteRotation()}
+    />
+  )
+}
 
-  renderDialog(rotData, commit, mutStatus) {
-    const { loading, error, data } = mutStatus
-    if (data && data.deleteAll) {
-      return <Redirect push to={`/rotations`} />
-    }
-    return (
-      <FormDialog
-        title='Are you sure?'
-        confirm
-        subTitle={`This will delete the rotation: ${rotData.name}`}
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          const input = [
-            {
-              type: 'rotation',
-              id: this.props.rotationID,
-            },
-          ]
-          return commit({
-            variables: {
-              input,
-            },
-          })
-        }}
-      />
-    )
-  }
+RotationDeleteDialog.propTypes = {
+  rotationID: p.string.isRequired,
+  onClose: p.func,
 }
