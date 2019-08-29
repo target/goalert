@@ -65,7 +65,6 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
   const refetch = ['servicesQuery']
   const [deleteService, { loading, error }] = useMutation(mutation, {
     variables: { input },
-    awaitRefetchQueries: true,
     refetchQueries: refetch,
     onCompleted: () => dispatch(push('/services')),
   })

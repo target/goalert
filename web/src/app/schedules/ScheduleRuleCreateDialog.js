@@ -38,7 +38,6 @@ export default class ScheduleRuleCreateDialog extends React.PureComponent {
         mutation={mutation}
         onCompleted={this.props.onClose}
         refetchQueries={['scheduleRules']}
-        awaitRefetchQueries
       >
         {this.renderDialog}
       </Mutation>

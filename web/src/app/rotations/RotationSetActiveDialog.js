@@ -45,7 +45,6 @@ export default class RotationSetActiveDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        awaitRefetchQueries
         refetchQueries={['rotationDetails']}
       >
         {commit => this.renderDialog(data, commit)}

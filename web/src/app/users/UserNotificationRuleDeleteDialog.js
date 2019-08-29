@@ -19,7 +19,6 @@ export default class UserNotificationRuleDeleteDialog extends React.PureComponen
     return (
       <Mutation
         mutation={mutation}
-        awaitRefetchQueries
         refetchQueries={['nrList']}
         onCompleted={this.props.onClose}
       >
