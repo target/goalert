@@ -145,6 +145,7 @@ export default class IntegrationKeyList extends React.PureComponent {
     const typeLabels = {
       generic: 'Generic API Key',
       grafana: 'Grafana Webhook URL',
+      site24x7: 'Site24x7 Webhook URL',
       email: 'Email Address',
     }
 

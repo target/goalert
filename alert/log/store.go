@@ -379,6 +379,8 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 				r.subject.classifier = "Generic API"
 			case integrationkey.TypeGrafana:
 				r.subject.classifier = "Grafana"
+			case integrationkey.TypeSite24x7:
+				r.subject.classifier = "Site24x7"
 			case integrationkey.TypeEmail:
 				r.subject.classifier = "Email"
 			}

@@ -12,6 +12,10 @@ const keys = [
     value: 'grafana',
   },
   {
+    label: 'Site24x7 Webhook URL',
+    value: 'site24x7',
+  },
+  {
     label: 'Email',
     value: 'email',
   },

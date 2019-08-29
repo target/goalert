@@ -47,6 +47,31 @@ To trigger an alert using Grafana, follow these steps:
 
 ---
 
+## Site24x7
+
+Site24x7 provides alerting functionality for checks as an IT automation.
+
+To trigger an alert using Site24x7, follow these steps:
+
+1. Within GoAlert, on the Services page, select the service you want to process the alert. Under Integration Keys:
+
+   - Key Name: Enter a name for the key.
+   - Key Type: Site24x7
+   - Click Add Key. Copy the generated URL and keep it handy, as you'll need it in a future step.
+
+2. In Site24x7, go to Admin > IT Automation, then click Add Automation:
+
+   - Display Name: Choose a name that makes sense to people outside of your team.
+   - Url: Paste in the Site24x7 webhook URL you generated in step 1.
+   - HTTP Method: POST
+   - Send Incident Parameters: Select this to pass the details of the alert.
+   - Post as JSON: Select this to pass the details in the required JSON format.
+   - Click Save, testing the IT Automation will fail as the test doesn't pass any of the required information.
+
+3. Navigate to the configuration page for the check you want to alert on, in the IT Automation section select the Automation you created above and select when you want the action to trigger.
+
+---
+
 ## Email
 
 It is possible to create an Email integration key from the Service Details page. This will generate a unique email address that can be used for creating alerts.
