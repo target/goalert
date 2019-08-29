@@ -62,14 +62,18 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
   })
   const input = [{ type: 'service', id: serviceID }]
   const dispatch = useDispatch()
+  const refetch = ['servicesQuery']
   const [deleteService, { loading, error }] = useMutation(mutation, {
     variables: { input },
+    awaitRefetchQueries: true,
+    refetchQueries: refetch,
     onCompleted: () => dispatch(push('/services')),
   })
 
   if (dataLoading) return <Spinner />
 
   if (deleteEP) {
+    refetch.push('epsQuery')
     input.push({
       type: 'escalationPolicy',
       id: data.service.escalationPolicyID,
