@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"time"
 
 	"github.com/jackc/pgx"
 	"github.com/target/goalert/permission"
@@ -10,18 +9,23 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
-func (app *App) listenEvents(ctx context.Context, db *sql.DB) error {
-	l, err := sqlutil.NewListener(ctx, db, "/goalert/config-refresh")
+func (app *App) listenEvents(ctx context.Context) error {
+	l, err := sqlutil.NewListener(ctx, (*sqlutil.DBConnector)(app.db), "/goalert/config-refresh")
 	if err != nil {
 		return err
 	}
 	app.events = l
+	go func() {
+		for err := range l.Errors() {
+			log.Log(ctx, err)
+		}
+	}()
 
 	go func() {
 		for {
 			var n *pgx.Notification
 			select {
-			case n = <-l.NotificationChannel():
+			case n = <-l.Notifications():
 			case <-ctx.Done():
 				return
 			}
@@ -31,8 +35,8 @@ func (app *App) listenEvents(ctx context.Context, db *sql.DB) error {
 
 			log.Debugf(log.WithFields(ctx, log.Fields{
 				"Channel": n.Channel,
-				"PID":     n.BePid,
-				"Extra":   n.Extra,
+				"PID":     n.PID,
+				"Payload": n.Payload,
 			}), "NOTIFY")
 
 			switch n.Channel {
