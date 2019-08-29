@@ -400,7 +400,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	case int:
 		idArg = sqlutil.IntArray{t}
 	case []int:
-		idArg = make(sqlutil.IntArray, len(t))
+		idArg = sqlutil.IntArray(t)
 	default:
 		return errors.Errorf("invalid id type %T", t)
 	}

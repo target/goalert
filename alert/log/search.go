@@ -80,11 +80,9 @@ func (opts renderData) Normalize() (*renderData, error) {
 }
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
-	alertIDs := make(sqlutil.IntArray, len(opts.FilterAlertIDs))
-
 	return []sql.NamedArg{
 		sql.Named("afterID", opts.After.ID),
-		sql.Named("alertIDs", alertIDs),
+		sql.Named("alertIDs", sqlutil.IntArray(opts.FilterAlertIDs)),
 	}
 }
 

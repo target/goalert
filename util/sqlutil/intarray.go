@@ -7,10 +7,14 @@ import (
 
 type IntArray []int
 
-func (s IntArray) Value() (driver.Value, error) {
-	var pgArray pgtype.Int8Array
+func (a IntArray) Value() (driver.Value, error) {
+	arr := make([]int64, len(a))
+	for i, e := range a {
+		arr[i] = int64(e)
+	}
 
-	err := pgArray.Set([]int(s))
+	var pgArray pgtype.Int8Array
+	err := pgArray.Set(arr)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +22,7 @@ func (s IntArray) Value() (driver.Value, error) {
 	return pgArray.Value()
 }
 
-func (s *IntArray) Scan(src interface{}) error {
+func (a *IntArray) Scan(src interface{}) error {
 	var pgArray pgtype.Int8Array
 
 	err := pgArray.Scan(src)
@@ -26,5 +30,16 @@ func (s *IntArray) Scan(src interface{}) error {
 		return err
 	}
 
-	return pgArray.AssignTo((*[]int)(s))
+	var arr []int64
+	err = pgArray.AssignTo(&arr)
+	if err != nil {
+		return err
+	}
+
+	*a = make(IntArray, len(arr))
+	for i, e := range arr {
+		(*a)[i] = int(e)
+	}
+
+	return nil
 }

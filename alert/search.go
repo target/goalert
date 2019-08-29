@@ -119,18 +119,17 @@ func (opts renderData) Normalize() (*renderData, error) {
 }
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
-	stat := make(sqlutil.UUIDArray, len(opts.Status))
+	stat := make(sqlutil.StringArray, len(opts.Status))
 	for i := range opts.Status {
 		stat[i] = string(opts.Status[i])
 	}
-	omit := make(sqlutil.IntArray, len(opts.Omit))
 	return []sql.NamedArg{
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("status", stat),
 		sql.Named("services", sqlutil.UUIDArray(opts.Services)),
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
-		sql.Named("omit", sqlutil.IntArray(omit)),
+		sql.Named("omit", sqlutil.IntArray(opts.Omit)),
 	}
 }
 

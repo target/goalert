@@ -287,7 +287,7 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 		return nil, err
 	}
 
-	ids := make(sqlutil.IntArray, len(alertIDs))
+	ids := sqlutil.IntArray(alertIDs)
 
 	tx, err := db.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -395,7 +395,7 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 		return nil, err
 	}
 
-	ids := make(sqlutil.IntArray, len(alertIDs))
+	ids := sqlutil.IntArray(alertIDs)
 
 	tx, err := db.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -744,9 +744,7 @@ func (db *DB) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 		return nil, err
 	}
 
-	ids := make(sqlutil.IntArray, len(alertIDs))
-
-	rows, err := db.findMany.QueryContext(ctx, ids)
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.IntArray(alertIDs))
 	if err != nil {
 		return nil, err
 	}
@@ -777,10 +775,8 @@ func (db *DB) State(ctx context.Context, alertIDs []int) ([]State, error) {
 		return nil, err
 	}
 
-	ids := make(sqlutil.IntArray, len(alertIDs))
-
 	var t sqlutil.NullTime
-	rows, err := db.epState.QueryContext(ctx, ids)
+	rows, err := db.epState.QueryContext(ctx, sqlutil.IntArray(alertIDs))
 	if err == sql.ErrNoRows {
 		err = nil
 	}

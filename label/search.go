@@ -134,7 +134,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("valueSearch", opts.ValueSearch()),
 		sql.Named("afterKey", opts.After.Key),
 		sql.Named("afterServiceID", afterServiceID),
-		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("omit", sqlutil.StringArray(opts.Omit)),
 	}
 }
 

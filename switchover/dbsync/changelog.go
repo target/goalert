@@ -6,7 +6,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/abiosoft/ishell"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/vbauerster/mpb/v4"
 	"github.com/vbauerster/mpb/v4/decor"
