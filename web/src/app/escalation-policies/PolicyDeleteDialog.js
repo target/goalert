@@ -1,8 +1,9 @@
 import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
-import { Redirect } from 'react-router-dom'
+import { useMutation } from '@apollo/react-hooks'
+import { push } from 'connected-react-router'
+import { useDispatch } from 'react-redux'
 import FormDialog from '../dialogs/FormDialog'
 
 const mutation = gql`
@@ -11,51 +12,36 @@ const mutation = gql`
   }
 `
 
-export default class PolicyDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    escalationPolicyID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function PolicyDeleteDialog(props) {
+  const dispatch = useDispatch()
+  const [deletePolicy, deletePolicyStatus] = useMutation(mutation, {
+    awaitRefetchQueries: true,
+    refetchQueries: ['epsQuery'],
+    variables: {
+      input: [
+        {
+          type: 'escalationPolicy',
+          id: props.escalationPolicyID,
+        },
+      ],
+    },
+    onCompleted: () => dispatch(push('/escalation-policies')),
+  })
 
-  renderDialog = (commit, mutStatus) => {
-    const { loading, error, data } = mutStatus
-    if (data && data.deleteAll) {
-      return <Redirect push to={`/escalation-policies`} />
-    }
+  return (
+    <FormDialog
+      title='Are you sure?'
+      confirm
+      subTitle='You will not be able to delete this policy if it is in use by one or more services.'
+      loading={deletePolicyStatus.loading}
+      errors={deletePolicyStatus.error ? [deletePolicyStatus.error] : []}
+      onClose={props.onClose}
+      onSubmit={() => deletePolicy()}
+    />
+  )
+}
 
-    return (
-      <FormDialog
-        title='Are you sure?'
-        confirm
-        subTitle='You will not be able to delete this policy if it is in use by one or more services.'
-        loading={loading}
-        errors={error ? [error] : []}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: [
-                {
-                  type: 'escalationPolicy',
-                  id: this.props.escalationPolicyID,
-                },
-              ],
-            },
-          })
-        }}
-      />
-    )
-  }
-
-  render() {
-    return (
-      <Mutation
-        mutation={mutation}
-        awaitRefetchQueries
-        refetchQueries={() => ['epsQuery']}
-      >
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
+PolicyDeleteDialog.propTypes = {
+  escalationPolicyID: p.string.isRequired,
+  onClose: p.func,
 }
