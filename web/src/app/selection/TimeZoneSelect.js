@@ -1,7 +1,5 @@
-import React from 'react'
-
 import gql from 'graphql-tag'
-import QuerySelect from './QuerySelect'
+import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
   query($input: TimeZoneSearchOptions) {
@@ -13,14 +11,7 @@ const query = gql`
   }
 `
 
-export class TimeZoneSelect extends React.PureComponent {
-  render() {
-    return (
-      <QuerySelect
-        {...this.props}
-        query={query}
-        mapDataNode={n => ({ label: n.id, value: n.id })}
-      />
-    )
-  }
-}
+export const TimeZoneSelect = makeQuerySelect('TimeZoneSelect', {
+  query,
+  mapDataNode: ({ id }) => ({ label: id, value: id }),
+})
