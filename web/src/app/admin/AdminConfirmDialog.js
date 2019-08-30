@@ -30,7 +30,6 @@ export default class AdminConfirmDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onComplete}
-        awaitRefetchQueries
         refetchQueries={['getConfig']}
       >
         {(commit, status) => this.renderConfirm(commit, status)}
