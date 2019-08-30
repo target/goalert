@@ -30,11 +30,7 @@ export default class RotationAddUserDialog extends React.Component {
     }
 
     return (
-      <Mutation
-        mutation={mutation}
-        awaitRefetchQueries
-        refetchQueries={() => ['rotationUsers']}
-      >
+      <Mutation mutation={mutation} refetchQueries={() => ['rotationUsers']}>
         {(commit, status) => this.renderDialog(defaultValue, commit, status)}
       </Mutation>
     )

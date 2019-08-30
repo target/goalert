@@ -52,7 +52,6 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
     return (
       <Mutation
         mutation={mutation}
-        awaitRefetchQueries
         refetchQueries={['cmList']}
         onCompleted={this.props.onClose}
       >

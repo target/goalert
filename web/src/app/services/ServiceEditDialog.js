@@ -65,7 +65,6 @@ export default class ServiceEditDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        awaitRefetchQueries
         refetchQueries={() => [
           {
             query,

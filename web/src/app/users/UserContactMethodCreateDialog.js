@@ -26,7 +26,6 @@ export default function UserContactMethodCreateDialog(props) {
 
   const [createCM, createCMStatus] = useMutation(createMutation, {
     refetchQueries: ['nrList', 'cmList'],
-    awaitRefetchQueries: true,
     onCompleted: result => {
       props.onClose({ contactMethodID: result.createUserContactMethod.id })
     },

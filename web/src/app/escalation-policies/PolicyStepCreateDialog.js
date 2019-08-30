@@ -112,7 +112,6 @@ export default class PolicyStepCreateDialog extends React.Component {
     return (
       <Mutation
         mutation={mutation}
-        awaitRefetchQueries
         refetchQueries={() => [
           {
             query: refetchQuery,

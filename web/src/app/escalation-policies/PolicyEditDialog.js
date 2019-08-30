@@ -40,7 +40,6 @@ export default class PolicyEditDialog extends PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        awaitRefetchQueries
         refetchQueries={() => [
           {
             query,
