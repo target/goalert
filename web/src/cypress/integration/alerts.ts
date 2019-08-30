@@ -23,10 +23,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('contain', alert.summary)
         .should('contain', alert.number)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=alerts-list] div[role=button]').should(
-        'have.length',
-        1,
-      )
+      cy.get('ul[data-cy=alerts-list] li').should('have.length', 1)
     })
     it('should handle searching by summary', () => {
       // by summary
@@ -35,10 +32,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('contain', alert.summary)
         .should('contain', alert.number)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=alerts-list] div[role=button]').should(
-        'have.length',
-        1,
-      )
+      cy.get('ul[data-cy=alerts-list] li').should('have.length', 1)
     })
 
     it('should handle searching by service name', () => {
@@ -48,10 +42,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('contain', alert.summary)
         .should('contain', alert.number)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=alerts-list] div[role=button]').should(
-        'have.length',
-        1,
-      )
+      cy.get('ul[data-cy=alerts-list] li').should('have.length', 1)
     })
 
     it('should handle toggling show by favorites filter', () => {
