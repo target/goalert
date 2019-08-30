@@ -25,13 +25,12 @@ const asArray = value => {
 
   return Array.isArray(value) ? value : [value]
 }
+
 const mapValueQuery = (query, index) =>
   mapInputVars(fieldAlias(query, 'data' + index), { id: 'id' + index })
-// useValues will return a set of {id, label}
-// for the provided value.
-//
-// If value is not an array, a single object (instead of array)
-// is returned.
+
+// makeUseValues will return a hook that will fetch select values for the
+// given ids.
 function makeUseValues(query, mapNode) {
   if (!query) {
     // no value query, so always use the map function
@@ -83,7 +82,8 @@ function makeUseValues(query, mapNode) {
   }
 }
 
-// makeUseOptions will provide the available options for the given query.
+// makeUseOptions will return a hook that will fetch available options
+// for a given search query.
 function makeUseOptions(query, mapNode, vars, defaultVars) {
   const q = fieldAlias(query, 'data')
   return function useOptions(value, search) {
@@ -127,12 +127,26 @@ export const querySelectPropTypes = {
   placeholder: p.string,
 }
 
+// makeQuerySelect will return a new React component that can be used
+// as a select input with connected search.
 export function makeQuerySelect(displayName, options) {
   const {
+    // mapDataNode can be passed to change how server-returned values are mapped to select options
     mapDataNode = defaultMapNode,
+
+    // variables will be mixed into the query parameters
     variables = {},
+
+    // query is used to fetch available options. It should define
+    // an `input` variable that takes `omit`, `first`, and `search` properties.
     query,
+
+    // valueQuery is optional and used to fetch labels for selected ids.
     valueQuery,
+
+    // defaultQueryVariables, if specified, will be used when the component is active
+    // but has no search parameter. It is useful for showing favorites before the user
+    // enters a search term.
     defaultQueryVariables,
   } = options
 
