@@ -13,7 +13,6 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -81,10 +80,9 @@ func (db *DB) update(ctx context.Context) error {
 	tz := make(map[string]*time.Location)
 	for rows.Next() {
 		var r userRule
-		filter := make(pq.BoolArray, 7)
 		err = rows.Scan(
 			&r.ScheduleID,
-			&filter,
+			&r.WeekdayFilter,
 			&r.Start,
 			&r.End,
 			&tzName,
@@ -92,9 +90,6 @@ func (db *DB) update(ctx context.Context) error {
 		)
 		if err != nil {
 			return errors.Wrap(err, "scan rule")
-		}
-		for i, v := range filter {
-			r.SetDay(time.Weekday(i), v)
 		}
 		if tz[r.ScheduleID] == nil {
 			tz[r.ScheduleID], err = util.LoadLocation(tzName)

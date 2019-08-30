@@ -3,9 +3,9 @@ package heartbeat
 import (
 	"context"
 	"database/sql"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/jackc/pgx/pgtype"
-	"github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -144,7 +144,7 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
@@ -208,7 +208,7 @@ func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids))
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err != nil {
 		return nil, err
 	}

@@ -1,10 +1,10 @@
 package heartbeat
 
 import (
+	"github.com/target/goalert/util/sqlutil"
 	"time"
 
 	"github.com/jackc/pgx/pgtype"
-	"github.com/lib/pq"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -42,7 +42,7 @@ func (m Monitor) Normalize() (*Monitor, error) {
 }
 
 func (m *Monitor) scanFrom(scanFn func(...interface{}) error) error {
-	var t pq.NullTime
+	var t sqlutil.NullTime
 
 	var timeout pgtype.Interval
 	err := scanFn(&m.ID, &m.Name, &m.ServiceID, &timeout, &m.lastState, &t)

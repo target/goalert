@@ -3,6 +3,7 @@ package escalation
 import (
 	"context"
 	"database/sql"
+	"github.com/target/goalert/util/sqlutil"
 
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
@@ -13,7 +14,6 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -328,7 +328,7 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 		return nil, err
 	}
 
-	rows, err := db.findManyPolicies.QueryContext(ctx, pq.StringArray(ids))
+	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -601,7 +601,7 @@ func (db *DB) DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 

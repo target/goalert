@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -143,7 +143,7 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 	if tx != nil {
 		s = tx.Stmt(s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 

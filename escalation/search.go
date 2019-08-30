@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"text/template"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -77,7 +77,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	return []sql.NamedArg{
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
-		sql.Named("omit", pq.StringArray(opts.Omit)),
+		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 	}
 }
 

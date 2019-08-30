@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/target/goalert/util/sqlutil"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -12,7 +13,6 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -175,7 +175,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]En
 	}
 	defer tx.Rollback()
 
-	var start, end pq.NullTime
+	var start, end sqlutil.NullTime
 	if !opts.Start.IsZero() {
 		start.Valid = true
 		start.Time = opts.Start

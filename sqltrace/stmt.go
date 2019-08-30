@@ -38,13 +38,13 @@ func errSpan(err error, sp *trace.Span) error {
 
 	if e := sqlutil.MapError(err); e != nil {
 		attrs = append(attrs,
-			trace.StringAttribute("pq.error.detail", e.Detail),
-			trace.StringAttribute("pq.error.hint", e.Hint),
-			trace.StringAttribute("pq.error.code", e.Code),
-			trace.StringAttribute("pq.error.table", e.TableName),
-			trace.StringAttribute("pq.error.constraint", e.ConstraintName),
-			trace.StringAttribute("pq.error.where", e.Where),
-			trace.StringAttribute("pq.error.column", e.ColumnName),
+			trace.StringAttribute("sql.error.detail", e.Detail),
+			trace.StringAttribute("sql.error.hint", e.Hint),
+			trace.StringAttribute("sql.error.code", e.Code),
+			trace.StringAttribute("sql.error.table", e.TableName),
+			trace.StringAttribute("sql.error.constraint", e.ConstraintName),
+			trace.StringAttribute("sql.error.where", e.Where),
+			trace.StringAttribute("sql.error.column", e.ColumnName),
 		)
 	}
 	sp.Annotate(attrs, err.Error())

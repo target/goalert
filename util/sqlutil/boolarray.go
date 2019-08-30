@@ -16,6 +16,7 @@ func (s BoolArray) Value() (driver.Value, error) {
 	}
 	return pgArray.Value()
 }
+
 func (s *BoolArray) Scan(src interface{}) error {
 	var pgArray pgtype.BoolArray
 	err := pgArray.Scan(src)

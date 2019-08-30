@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"sort"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/assignment"
@@ -491,7 +490,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 	}
 
 	userID := permission.UserID(ctx)
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids), userID)
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -617,7 +616,7 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 
 }
@@ -865,7 +864,7 @@ func (db *DB) AddRotationUsersTx(ctx context.Context, tx *sql.Tx, rotationID str
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, rotationID, pq.StringArray(userIDs))
+	_, err = stmt.ExecContext(ctx, rotationID, sqlutil.UUIDArray(userIDs))
 
 	return err
 }
@@ -886,7 +885,7 @@ func (db *DB) DeleteRotationParticipantsTx(ctx context.Context, tx *sql.Tx, part
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	_, err = stmt.ExecContext(ctx, pq.StringArray(partIDs))
+	_, err = stmt.ExecContext(ctx, sqlutil.UUIDArray(partIDs))
 	return err
 }
 
