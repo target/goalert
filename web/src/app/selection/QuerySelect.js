@@ -151,10 +151,12 @@ export function makeQuerySelect(displayName, options) {
 
       placeholder,
 
-      onCreate = () => {},
+      onCreate: _onCreate,
       onChange = () => {},
       ...otherProps
     } = props
+
+    const onCreate = _onCreate || (() => {})
 
     const [search, setSearch] = useState('')
     const [searchInput, setSearchInput] = useState('')
@@ -165,6 +167,18 @@ export function makeQuerySelect(displayName, options) {
       selectOptions,
       { loading: optionsLoading, error: optionsError },
     ] = useOptions(value, search)
+
+    if (
+      _onCreate &&
+      searchInput &&
+      !selectOptions.some(o => o.value === searchInput)
+    ) {
+      selectOptions.push({
+        isCreate: true,
+        value: searchInput,
+        label: `Create "${searchInput}"`,
+      })
+    }
 
     useEffect(() => {
       const t = setTimeout(() => setRenderCheck(renderCheck + 1), 1000)
