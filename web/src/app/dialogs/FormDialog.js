@@ -15,6 +15,7 @@ import DialogContentError from './components/DialogContentError'
 import { styles as globalStyles } from '../styles/materialStyles'
 import gracefulUnmount from '../util/gracefulUnmount'
 import { Form } from '../forms'
+import ErrorBoundary from '../main/ErrorBoundary'
 
 const styles = theme => {
   const { cancelButton, dialogWidth } = globalStyles(theme)
@@ -131,10 +132,12 @@ export default class FormDialog extends React.PureComponent {
             if (valid) onSubmit()
           }}
         >
-          {this.renderForm()}
-          {this.renderCaption()}
-          {this.renderErrors()}
-          {this.renderActions()}
+          <ErrorBoundary>
+            {this.renderForm()}
+            {this.renderCaption()}
+            {this.renderErrors()}
+            {this.renderActions()}
+          </ErrorBoundary>
         </Form>
       </Dialog>
     )
