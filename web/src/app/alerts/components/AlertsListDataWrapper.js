@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography'
 import moment from 'moment'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
-import { withRouter } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { setCheckedAlerts } from '../../actions'
 import { bindActionCreators } from 'redux'
 import statusStyles from '../../util/statusStyles'
@@ -47,7 +47,6 @@ const mapDispatchToProps = dispatch =>
   mapStateToProps,
   mapDispatchToProps,
 )
-@withRouter
 export default class AlertsListDataWrapper extends Component {
   static propTypes = {
     alert: p.object.isRequired,
@@ -98,7 +97,7 @@ export default class AlertsListDataWrapper extends Component {
   }
 
   render() {
-    const { alert, checkedAlerts, classes, history, onServicePage } = this.props
+    const { alert, checkedAlerts, classes, onServicePage } = this.props
 
     const checkbox = (
       <Checkbox
@@ -114,6 +113,7 @@ export default class AlertsListDataWrapper extends Component {
         disableRipple
         tabIndex={-1}
         onChange={() => this.toggleChecked(alert.number)}
+        onClick={e => e.stopPropagation()}
       />
     )
 
@@ -131,34 +131,35 @@ export default class AlertsListDataWrapper extends Component {
     }
 
     return (
-      <ListItem button className={statusClass}>
+      <ListItem
+        button
+        className={statusClass}
+        component={Link}
+        to={`/alerts/${alert.number}`}
+      >
         {checkbox}
-        <div
-          className={classes.listItem}
-          onClick={() => history.push(`/alerts/${alert.number}`)}
-        >
-          <ListItemText disableTypography style={{ paddingRight: '2.75em' }}>
-            <Typography>
-              <b>{alert.number}: </b>
-              {alert.status.toUpperCase()}
-            </Typography>
-            {onServicePage ? null : (
-              <Typography variant='caption'>{alert.service.name}</Typography>
-            )}
-            <Typography variant='caption' noWrap>
-              {alert.summary}
+
+        <ListItemText disableTypography style={{ paddingRight: '2.75em' }}>
+          <Typography>
+            <b>{alert.number}: </b>
+            {alert.status.toUpperCase()}
+          </Typography>
+          {onServicePage ? null : (
+            <Typography variant='caption'>{alert.service.name}</Typography>
+          )}
+          <Typography variant='caption' noWrap>
+            {alert.summary}
+          </Typography>
+        </ListItemText>
+        <ListItemSecondaryAction>
+          <ListItemText disableTypography>
+            <Typography variant='caption'>
+              {moment(alert.created_at)
+                .local()
+                .fromNow()}
             </Typography>
           </ListItemText>
-          <ListItemSecondaryAction>
-            <ListItemText disableTypography>
-              <Typography variant='caption'>
-                {moment(alert.created_at)
-                  .local()
-                  .fromNow()}
-              </Typography>
-            </ListItemText>
-          </ListItemSecondaryAction>
-        </div>
+        </ListItemSecondaryAction>
       </ListItem>
     )
   }
