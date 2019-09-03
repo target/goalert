@@ -64,7 +64,6 @@ type Listener struct {
 	mx      sync.Mutex
 	conn    *pgx.Conn
 	running bool
-	closed  bool
 }
 
 // NewListener will create and initialize a Listener which will automatically reconnect and listen to the provided channels.
