@@ -24,17 +24,13 @@ func (h *Handler) initNewDBListen(name string) error {
 		return err
 	}
 	cfg.RuntimeParams["application_name"] = fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion())
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	l, err := sqlutil.NewListener(ctx, sqlutil.ConfigConnector(cfg), DBIDChannel, StateChannel)
+	l, err := sqlutil.NewListener(context.Background(), sqlutil.ConfigConnector(cfg), DBIDChannel, StateChannel)
 	if err != nil {
 		return err
 	}
-	defer l.Close()
 
 	go func() {
+		defer l.Close()
 		for n := range l.Notifications() {
 			switch n.Channel {
 			case DBIDChannel:
@@ -64,10 +60,7 @@ func (h *Handler) initListen(name string) error {
 	}
 	cfg.RuntimeParams["application_name"] = fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	h.l, err = sqlutil.NewListener(ctx, sqlutil.ConfigConnector(cfg), DBIDChannel, StateChannel, ControlChannel)
+	h.l, err = sqlutil.NewListener(context.Background(), sqlutil.ConfigConnector(cfg), DBIDChannel, StateChannel, ControlChannel)
 	if err != nil {
 		return err
 	}
