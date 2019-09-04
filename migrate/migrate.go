@@ -70,7 +70,7 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 		return nil, err
 	}
 
-	_, err = conn.ExecEx(ctx, `set lock_timeout = 1500`, nil)
+	_, err = conn.ExecEx(ctx, `set lock_timeout = 15000`, nil)
 	if err != nil {
 		conn.Close()
 		return nil, errors.Wrap(err, "set lock timeout")
@@ -258,83 +258,118 @@ func DumpMigrations(dest string) error {
 type migration struct {
 	ID   string
 	Name string
-	*sqlparse.ParsedMigration
+
+	Up   migrationStep
+	Down migrationStep
+}
+type migrationStep struct {
+	statements []string
+	disableTx  bool
+	isUp       bool
+	*migration
 }
 
 func parseMigrations() ([]migration, error) {
 	var migrations []migration
-	var err error
 	for _, file := range Files {
 		var m migration
 		m.ID = strings.TrimPrefix(file.Name, "migrations/")
 		m.Name = migrationName(file.Name)
-		m.ParsedMigration, err = sqlparse.ParseMigration(bytes.NewReader(file.Data()))
+		p, err := sqlparse.ParseMigration(bytes.NewReader(file.Data()))
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse %s", m.ID)
 		}
+		m.Up.statements = p.UpStatements
+		m.Up.disableTx = p.DisableTransactionUp
+		m.Up.isUp = true
+		m.Up.migration = &m
+
+		m.Down.statements = p.DownStatements
+		m.Down.disableTx = p.DisableTransactionDown
+		m.Down.migration = &m
 
 		migrations = append(migrations, m)
 	}
 	return migrations, nil
 }
 
-func (m migration) apply(ctx context.Context, c *pgx.Conn, up bool) (err error) {
-	var tx *pgx.Tx
-	type execer interface {
-		ExecEx(context.Context, string, *pgx.QueryExOptions, ...interface{}) (pgx.CommandTag, error)
-	}
-	s := time.Now()
-	typ := "UP"
-	if !up {
-		typ = "DOWN"
-	}
-	ex := execer(c)
-	if up && !m.DisableTransactionUp || !up && !m.DisableTransactionDown {
-		tx, err = c.BeginEx(ctx, nil)
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-		ex = tx
-	}
+const (
+	deleteMigrationRecord = `delete from gorp_migrations where id = $1`
+	insertMigrationRecord = `insert into gorp_migrations (id, applied_at) values ($1, now())`
+)
 
-	stmts := m.UpStatements
-	if !up {
-		stmts = m.DownStatements
+func (step migrationStep) doneStmt() string {
+	if step.isUp {
+		return insertMigrationRecord
 	}
-	for _, s := range stmts {
-		_, err = ex.ExecEx(ctx, s, nil)
-		if err != nil {
-			return err
+	return deleteMigrationRecord
+}
+func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
+	for i, stmt := range step.statements {
+		_, err := c.ExecEx(ctx, stmt, nil)
+		if err != nil && err != pgx.ErrNoRows {
+			return errors.Wrapf(err, "statement #%d", i)
 		}
 	}
 
-	if up {
-		_, err = ex.ExecEx(ctx, `insert into gorp_migrations (id, applied_at) values ($1, now())`, nil, m.ID)
-	} else {
-		_, err = ex.ExecEx(ctx, `delete from gorp_migrations where id = $1`, nil, m.ID)
-	}
+	_, err := c.ExecEx(ctx, step.doneStmt(), &pgx.QueryExOptions{ParameterOIDs: []pgtype.OID{pgtype.TextOID}}, step.ID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "update gorp_migrations")
 	}
-
-	if tx != nil {
-		err = tx.Commit()
-		if err != nil {
-			return err
-		}
-	}
-
-	log.Debugf(ctx, "Applied %s migration '%s' in %s", typ, m.Name, time.Since(s).Truncate(time.Millisecond))
 
 	return nil
 }
-func performMigrations(ctx context.Context, c *pgx.Conn, applyUp bool, migrations []migration) (int, error) {
-	for i, m := range migrations {
-		err := m.apply(ctx, c, applyUp)
-		if err != nil {
-			return i, err
-		}
+
+func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) (err error) {
+	if step.disableTx {
+		return step.applyNoTx(ctx, c)
 	}
+
+	tx, err := c.BeginEx(ctx, nil)
+	if err != nil {
+		return errors.Wrap(err, "begin tx")
+	}
+	defer tx.Rollback()
+
+	b := tx.BeginBatch()
+	defer b.Close()
+
+	for _, stmt := range step.statements {
+		b.Queue(stmt, nil, nil, nil)
+	}
+	b.Queue(step.doneStmt(), []interface{}{step.ID}, []pgtype.OID{pgtype.TextOID}, nil)
+
+	err = b.Send(ctx, nil)
+	if err != nil {
+		return errors.Wrap(err, "send statements")
+	}
+	err = b.Close()
+	if err != nil && err != pgx.ErrNoRows {
+		return errors.Wrap(err, "execute migration steps")
+	}
+
+	return tx.CommitEx(ctx)
+}
+
+func performMigrations(ctx context.Context, c *pgx.Conn, applyUp bool, migrations []migration) (int, error) {
+	typ := "DOWN"
+	if applyUp {
+		typ = "UP"
+	}
+
+	for i, m := range migrations {
+		step := m.Down
+		if applyUp {
+			step = m.Up
+		}
+
+		s := time.Now()
+		err := step.apply(ctx, c)
+		if err != nil {
+			return i, errors.Wrapf(err, "apply '%s'", m.Name)
+		}
+		log.Debugf(ctx, "Applied %s migration '%s' in %s", typ, m.Name, time.Since(s).Truncate(time.Millisecond))
+	}
+
 	return len(migrations), nil
 }
