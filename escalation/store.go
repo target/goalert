@@ -178,7 +178,6 @@ func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 		addStepTarget: p.P(`
 			INSERT INTO escalation_policy_actions (id, escalation_policy_step_id, user_id, schedule_id, rotation_id, channel_id)
 			VALUES ($1, $2, $3, $4, $5, $6)
-			ON CONFLICT DO NOTHING
 		`),
 		deleteStepTarget: p.P(`
 			DELETE FROM escalation_policy_actions
@@ -373,7 +372,7 @@ func (db *DB) _updateStepTarget(ctx context.Context, stepID string, tgt assignme
 	if err != nil {
 		return err
 	}
-	_, err := stmt.ExecContext(ctx, tgtFields(stepID, tgt, insert)...)
+	_, err = stmt.ExecContext(ctx, tgtFields(stepID, tgt, insert)...)
 	if err == sql.ErrNoRows {
 		err = nil
 	}
