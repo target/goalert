@@ -111,7 +111,13 @@ func (l *Listener) run(ctx context.Context) {
 			return
 		default:
 		}
-		l.errCh <- l.handleNotifications(ctx)
+		err := l.handleNotifications(ctx)
+		if err == context.Canceled {
+			err = nil
+		}
+		if err != nil {
+			l.errCh <- err
+		}
 	}
 }
 
