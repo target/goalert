@@ -76,10 +76,14 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 		return nil, errors.Wrap(err, "set lock timeout")
 	}
 
+	return conn, nil
+
+}
+func aquireLock(ctx context.Context, conn *pgx.Conn) error {
 	for {
-		_, err = conn.ExecEx(ctx, `select pg_advisory_lock($1)`, nil, lock.GlobalMigrate)
+		_, err := conn.ExecEx(ctx, `select pg_advisory_lock($1)`, nil, lock.GlobalMigrate)
 		if err == nil {
-			return conn, nil
+			return nil
 		}
 		// 55P03 is lock_not_available
 		// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
@@ -95,12 +99,11 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 			`, nil, lock.GlobalMigrate)
 			if err != nil {
 				conn.Close()
-				return nil, errors.Wrap(err, "terminate stale backends")
+				return errors.Wrap(err, "terminate stale backends")
 			}
 			continue
 		}
 	}
-
 }
 
 func ensureTableQuery(ctx context.Context, conn *pgx.Conn, fn func() error) error {
@@ -162,6 +165,10 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	err = aquireLock(ctx, conn)
+	if err != nil {
+		return 0, err
+	}
 
 	rows, err := conn.QueryEx(ctx, `select id from gorp_migrations order by id`, nil)
 	if err != nil && err != pgx.ErrNoRows {
@@ -218,6 +225,11 @@ func Down(ctx context.Context, url, targetName string) (int, error) {
 	byID := make(map[string]migration)
 	for _, m := range migrations {
 		byID[m.ID] = m
+	}
+
+	err = aquireLock(ctx, conn)
+	if err != nil {
+		return 0, err
 	}
 
 	rows, err := conn.QueryEx(ctx, `select id from gorp_migrations where id > $1 order by id desc`, nil, targetID)
