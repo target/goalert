@@ -499,12 +499,12 @@ func recreateDB() error {
 	return err
 }
 
-func resetDB(db *sql.DB) error {
+func resetDB(url string) error {
 	var err error
 	if flag.Arg(0) != "" {
-		_, err = migrate.Up(context.Background(), db, flag.Arg(0))
+		_, err = migrate.Up(context.Background(), url, flag.Arg(0))
 	} else {
-		_, err = migrate.ApplyAll(context.Background(), db)
+		_, err = migrate.ApplyAll(context.Background(), url)
 	}
 	return err
 }
@@ -525,7 +525,7 @@ func doMigrations(skipMigrate *bool) error {
 		return nil
 	}
 
-	err = resetDB(db)
+	err = resetDB("user=goalert dbname=goalert sslmode=disable")
 	if err != nil {
 		return errors.Wrap(err, "perform migration after resettting")
 	}

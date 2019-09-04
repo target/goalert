@@ -545,13 +545,7 @@ func TestMigrations(t *testing.T) {
 	}
 	defer db.Exec("drop database " + pgx.Identifier([]string{dbName}).Sanitize())
 
-	db, err = sql.Open("pgx", harness.DBURL(dbName))
-	if err != nil {
-		t.Fatal("failed to open created db:", err)
-	}
-	defer db.Close()
-
-	n, err := migrate.Up(context.Background(), db, start)
+	n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
 	if err != nil {
 		t.Fatal("failed to apply initial migrations:", err)
 	}
@@ -582,7 +576,7 @@ func TestMigrations(t *testing.T) {
 
 	names = names[idx:]
 	if skipTo {
-		n, err := migrate.Up(context.Background(), db, env)
+		n, err := migrate.Up(context.Background(), harness.DBURL(dbName), env)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
 		}
@@ -644,7 +638,7 @@ func TestMigrations(t *testing.T) {
 			ctx := context.Background()
 
 			orig := snapshot(t, migrationName)
-			n, err = migrate.Up(ctx, db, migrationName)
+			n, err = migrate.Up(ctx, harness.DBURL(dbName), migrationName)
 			if err != nil {
 				t.Fatalf("failed to apply UP migration: %v", err)
 			}
@@ -653,7 +647,7 @@ func TestMigrations(t *testing.T) {
 			}
 			applied = true
 			upSnap := snapshot(t, migrationName)
-			_, err = migrate.Down(ctx, db, lastMigrationName)
+			_, err = migrate.Down(ctx, harness.DBURL(dbName), lastMigrationName)
 			if err != nil {
 				t.Fatalf("failed to apply DOWN migration: %v", err)
 			}
@@ -663,7 +657,7 @@ func TestMigrations(t *testing.T) {
 				t.Fatalf("DOWN migration did not restore previous schema")
 			}
 
-			_, err = migrate.Up(ctx, db, migrationName)
+			_, err = migrate.Up(ctx, harness.DBURL(dbName), migrationName)
 			if err != nil {
 				t.Fatalf("failed to apply UP migration (2nd time): %v", err)
 			}
@@ -674,7 +668,7 @@ func TestMigrations(t *testing.T) {
 			}
 		})
 		if !pass && !applied {
-			n, err = migrate.Up(context.Background(), db, migrationName)
+			n, err = migrate.Up(context.Background(), harness.DBURL(dbName), migrationName)
 			if err != nil || n == 0 {
 				t.Fatalf("failed to apply UP migration; abort")
 			}
