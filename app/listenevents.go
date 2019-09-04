@@ -2,35 +2,41 @@ package app
 
 import (
 	"context"
-	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 func (app *App) listenEvents(ctx context.Context) error {
-	channels := []string{"/goalert/config-refresh"}
+	l, err := sqlutil.NewListener(ctx, (*sqlutil.DBConnector)(app.db), "/goalert/config-refresh")
+	if err != nil {
+		return err
+	}
+	app.events = l
+	go func() {
+		for err := range l.Errors() {
+			log.Log(ctx, err)
+		}
+	}()
 
-	handle := func(l *pq.Listener) {
-		defer l.Close()
-
+	go func() {
 		for {
-			var n *pq.Notification
+			var n *pgx.Notification
 			select {
-			case n = <-l.NotificationChannel():
+			case n = <-l.Notifications():
 			case <-ctx.Done():
 				return
 			}
-
 			if n == nil {
-				continue
+				return
 			}
 
 			log.Debugf(log.WithFields(ctx, log.Fields{
 				"Channel": n.Channel,
-				"PID":     n.BePid,
-				"Extra":   n.Extra,
+				"PID":     n.PID,
+				"Payload": n.Payload,
 			}), "NOTIFY")
 
 			switch n.Channel {
@@ -40,43 +46,7 @@ func (app *App) listenEvents(ctx context.Context) error {
 				})
 			}
 		}
-	}
-
-	makeListener := func(url string) (*pq.Listener, error) {
-		l := pq.NewListener(app.cfg.DBURL, 3*time.Second, time.Minute, nil)
-		for _, ch := range channels {
-			err := l.Listen(ch)
-			if err != nil {
-				l.Close()
-				return nil, err
-			}
-		}
-		err := l.Ping()
-		if err != nil {
-			l.Close()
-			return nil, err
-		}
-
-		return l, nil
-	}
-
-	l, err := makeListener(app.cfg.DBURL)
-	if err != nil {
-		return err
-	}
-	var ln *pq.Listener
-	if app.cfg.DBURLNext != "" {
-		ln, err = makeListener(app.cfg.DBURLNext)
-		if err != nil {
-			l.Close()
-			return err
-		}
-	}
-
-	go handle(l)
-	if ln != nil {
-		go handle(ln)
-	}
+	}()
 
 	return nil
 }

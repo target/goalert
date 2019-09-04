@@ -36,6 +36,7 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
 )
@@ -46,8 +47,9 @@ type App struct {
 
 	mgr *lifecycle.Manager
 
-	db *sql.DB
-	l  net.Listener
+	db     *sql.DB
+	l      net.Listener
+	events *sqlutil.Listener
 
 	cooldown *cooldown
 	doneCh   chan struct{}
