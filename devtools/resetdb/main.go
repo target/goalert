@@ -20,8 +20,10 @@ import (
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/brianvoe/gofakeit"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/stdlib"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 )
 
 func main() {
@@ -150,21 +152,26 @@ type table struct {
 	s    time.Time
 }
 
-func NewTable(ctx context.Context, tx *sql.Tx, name string, cols []string) *table {
-	stmt, err := tx.Prepare(pq.CopyIn(name, cols...))
-	noErr(ctx, err)
-	return &table{ctx: ctx, stmt: stmt, name: name, s: time.Now()}
-}
-func (t *table) Close() {
-	noErr(t.ctx, t.stmt.Close())
-	fmt.Printf("%s: %d records in %s\n", t.name, t.n, time.Since(t.s).String())
-	genRecords += t.n
+func NewTable(ctx context.Context, conn *pgx.Conn, tx *sql.Tx, name string, cols []string, vals [][]interface{}) error {
+	rows, err := conn.CopyFrom(pgx.Identifier{name}, cols, pgx.CopyFromRows(vals))
+	if err != nil {
+		return err
+	}
 	genTables++
+	genRecords += rows
+	return nil
 }
-func (t *table) Insert(args ...interface{}) {
-	t.n++
-	_, err := t.stmt.Exec(args...)
-	noErr(t.ctx, err)
+
+func marshal(x string) ([]byte, error) {
+	bID, err := uuid.FromString(x)
+	if err != nil {
+		return nil, err
+	}
+	id, err := bID.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	return id, nil
 }
 
 func fillDB() error {
@@ -173,6 +180,11 @@ func fillDB() error {
 		return errors.Wrap(err, "open DB")
 	}
 	defer db.Close()
+
+	conn, err := stdlib.AcquireConn(db)
+	if err != nil {
+		return err
+	}
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -185,15 +197,26 @@ func fillDB() error {
 
 	defer tx.Rollback()
 
-	users := NewTable(ctx, tx, "users", []string{"id", "name", "role", "email"})
 	usrGen := newGen()
 	var userIDs []string
+	var users [][]interface{}
+
 	for i := 0; i < UserCount; i++ {
-		id := gofakeit.UUID()
-		userIDs = append(userIDs, id)
-		users.Insert(id, usrGen.Gen(gofakeit.Name), permission.RoleUser, usrGen.Gen(gofakeit.Email))
+		uid := gofakeit.UUID()
+		userIDs = append(userIDs, uid)
+
+		id, err := marshal(uid)
+		if err != nil {
+			return err
+		}
+
+		tuple := []interface{}{id, usrGen.Gen(gofakeit.Name), permission.RoleUser, usrGen.Gen(gofakeit.Email)}
+		users = append(users, tuple)
 	}
-	users.Close()
+	err = NewTable(ctx, conn, tx, "users", []string{"id", "name", "role", "email"}, users)
+	if err != nil {
+		return err
+	}
 
 	p := 0
 	phone := func() string {
@@ -201,8 +224,15 @@ func fillDB() error {
 		return fmt.Sprintf("+17633%06d", p)
 	}
 	var nRules [][]interface{}
-	cm := NewTable(ctx, tx, "user_contact_methods", []string{"id", "name", "value", "user_id", "type", "disabled"})
+	var cms [][]interface{}
+
 	for _, userID := range userIDs {
+		// For userID also
+		uID, err := marshal(userID)
+		if err != nil {
+			return err
+		}
+
 		gen := newGen()
 		typ := contactmethod.TypeSMS
 		if gofakeit.Bool() {
@@ -211,9 +241,15 @@ func fillDB() error {
 		n := rand.Intn(CMMax)
 		var cmIDs []string
 		for i := 0; i < n; i++ {
-			id := gofakeit.UUID()
-			cm.Insert(id, gen.Gen(gofakeit.FirstName), phone(), userID, typ, true)
-			cmIDs = append(cmIDs, id)
+			c := gofakeit.UUID()
+			cmIDs = append(cmIDs, c)
+
+			id, err := marshal(c)
+			if err != nil {
+				return err
+			}
+			tuple := []interface{}{id, gen.Gen(gofakeit.FirstName), phone(), uID, typ, true}
+			cms = append(cms, tuple)
 		}
 		nr := 0
 		nrTotal := rand.Intn(NRMax)
@@ -221,72 +257,117 @@ func fillDB() error {
 			nrGen := newIntGen()
 			n := rand.Intn(NRCMMax) + nr
 			for ; nr <= n && nr <= nrTotal; nr++ {
-				nRules = append(nRules, []interface{}{gofakeit.UUID(), nrGen.Gen(60), cmID, userID})
+				n := gofakeit.UUID()
+				id, err := marshal(n)
+				if err != nil {
+					return err
+				}
+				// For contact_method_id also
+				cid, err := marshal(cmID)
+				if err != nil {
+					return err
+				}
+				nRules = append(nRules, []interface{}{id, nrGen.Gen(60), cid, uID})
 			}
 		}
 	}
-	cm.Close()
-
-	nr := NewTable(ctx, tx, "user_notification_rules", []string{"id", "delay_minutes", "contact_method_id", "user_id"})
-	for _, rules := range nRules {
-		nr.Insert(rules...)
+	err = NewTable(ctx, conn, tx, "user_contact_methods", []string{"id", "name", "value", "user_id", "type", "disabled"}, cms)
+	if err != nil {
+		return err
 	}
-	nr.Close()
+
+	err = NewTable(ctx, conn, tx, "user_notification_rules", []string{"id", "delay_minutes", "contact_method_id", "user_id"}, nRules)
+	if err != nil {
+		return err
+	}
 
 	zones := []string{"America/Chicago", "Europe/Berlin", "UTC"}
 	rotTypes := []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
 
 	rotGen := newGen()
 	var rotationIDs []string
-	rot := NewTable(ctx, tx, "rotations", []string{"id", "name", "description", "time_zone", "shift_length", "start_time", "type"})
-	for i := 0; i < RotationCount; i++ {
-		id := gofakeit.UUID()
-		rot.Insert(
-			id,
-			rotGen.Gen(idName("Rotation")),
-			gofakeit.Sentence(rand.Intn(10)+3),
-			zones[rand.Intn(len(zones))],
-			rand.Intn(14)+1,
-			gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()),
-			rotTypes[rand.Intn(len(rotTypes))],
-		)
-		rotationIDs = append(rotationIDs, id)
-	}
-	rot.Close()
+	var rots [][]interface{}
 
-	rPart := NewTable(ctx, tx, "rotation_participants", []string{"id", "rotation_id", "position", "user_id"})
+	for i := 0; i < RotationCount; i++ {
+		rid := gofakeit.UUID()
+		rotationIDs = append(rotationIDs, rid)
+
+		id, err := marshal(rid)
+		if err != nil {
+			return err
+		}
+
+		tuple := []interface{}{id,
+			rotGen.Gen(idName("Rotation")),
+			gofakeit.Sentence(rand.Intn(10) + 3),
+			zones[rand.Intn(len(zones))],
+			rand.Intn(14) + 1,
+			gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()),
+			rotTypes[rand.Intn(len(rotTypes))]}
+		rots = append(rots, tuple)
+
+	}
+	err = NewTable(ctx, conn, tx, "rotations", []string{"id", "name", "description", "time_zone", "shift_length", "start_time", "type"}, rots)
+	if err != nil {
+		return err
+	}
+
+	var parts [][]interface{}
 	for _, rotID := range rotationIDs {
 		n := rand.Intn(RotationMaxPart)
 		for i := 0; i < n; i++ {
-			rPart.Insert(gofakeit.UUID(), rotID, i, pickOneStr(userIDs)) //duplicates ok
+			pid := gofakeit.UUID()
+			id, err := marshal(pid)
+			if err != nil {
+				return err
+			}
+
+			// For rotation_id also
+			rID, err := marshal(rotID)
+			if err != nil {
+				return err
+			}
+			// For user_id also
+			uid := pickOneStr(userIDs)
+			userID, err := marshal(uid)
+			if err != nil {
+				return err
+			}
+
+			tuple := []interface{}{id, rID, i, userID} //duplicates ok
+			parts = append(parts, tuple)
 		}
 	}
-	rPart.Close()
+	err = NewTable(ctx, conn, tx, "rotation_participants", []string{"id", "rotation_id", "position", "user_id"}, parts)
+	if err != nil {
+		return err
+	}
 
 	schedGen := newGen()
-	sc := NewTable(ctx, tx, "schedules", []string{"id", "name", "description", "time_zone"})
-	var scheduleIDs []string
-	for i := 0; i < ScheduleCount; i++ {
-		id := gofakeit.UUID()
-		sc.Insert(id,
-			schedGen.Gen(idName("Schedule")),
-			gofakeit.Sentence(rand.Intn(10)+3),
-			zones[rand.Intn(len(zones))],
-		)
-		scheduleIDs = append(scheduleIDs, id)
-	}
-	sc.Close()
 
-	uo := NewTable(ctx, tx, "user_overrides",
-		[]string{
-			"id",
-			"tgt_schedule_id",
-			"add_user_id",
-			"remove_user_id",
-			"start_time",
-			"end_time",
-		},
-	)
+	var scheduleIDs []string
+	var scheds [][]interface{}
+	for i := 0; i < ScheduleCount; i++ {
+		sid := gofakeit.UUID()
+		scheduleIDs = append(scheduleIDs, sid)
+
+		id, err := marshal(sid)
+		if err != nil {
+			return err
+		}
+
+		tuple := []interface{}{id,
+			schedGen.Gen(idName("Schedule")),
+			gofakeit.Sentence(rand.Intn(10) + 3),
+			zones[rand.Intn(len(zones))]}
+		scheds = append(scheds, tuple)
+	}
+	err = NewTable(ctx, conn, tx, "schedules", []string{"id", "name", "description", "time_zone"}, scheds)
+	if err != nil {
+		return err
+	}
+
+	var overrides [][]interface{}
 	for _, schedID := range scheduleIDs {
 		n := rand.Intn(ScheduleMaxOverrides)
 		u := make(map[string]bool, len(userIDs))
@@ -312,74 +393,173 @@ func fillDB() error {
 			}
 			end := gofakeit.DateRange(time.Now(), time.Now().AddDate(0, 1, 0))
 			start := gofakeit.DateRange(time.Now().AddDate(0, -1, 0), end.Add(-time.Minute))
-			uo.Insert(
-				gofakeit.UUID(),
-				schedID,
-				add, rem,
-				start, end,
-			)
+
+			oid := gofakeit.UUID()
+			id, err := marshal(oid)
+			if err != nil {
+				return err
+			}
+			// For tgt_schedule_id also
+			sID, err := marshal(schedID)
+			if err != nil {
+				return err
+			}
+			var aID, rID []byte
+			// For add_user_id also
+			if add.Valid {
+				aID, err = marshal(add.String)
+				if err != nil {
+					return err
+				}
+			}
+
+			// For remove_user_id also
+			if rem.Valid {
+				rID, err = marshal(rem.String)
+				if err != nil {
+					return err
+				}
+			}
+			tuple := []interface{}{id,
+				sID,
+				aID, rID,
+				start, end}
+			overrides = append(overrides, tuple)
 		}
 	}
-	uo.Close()
-
-	sr := NewTable(ctx, tx, "schedule_rules",
+	err = NewTable(ctx, conn, tx, "user_overrides",
 		[]string{
 			"id",
-			"schedule_id",
-			"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
-			"start_time", "end_time",
-			"tgt_user_id", "tgt_rotation_id",
-		})
-	for _, schedID := range scheduleIDs {
-		n := rand.Intn(ScheduleMaxRules)
-		for i := 0; i < n; i++ {
-			var usr, rot sql.NullString
-			if gofakeit.Bool() {
-				usr.Valid = true
-				usr.String = pickOneStr(userIDs)
-			} else {
-				rot.Valid = true
-				rot.String = pickOneStr(rotationIDs)
-			}
-			sr.Insert(
-				gofakeit.UUID(),
-				schedID,
-				gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(),
-				gofakeit.Date(), gofakeit.Date(),
-				usr, rot,
-			)
-		}
+			"tgt_schedule_id",
+			"add_user_id",
+			"remove_user_id",
+			"start_time",
+			"end_time",
+		}, overrides)
+	if err != nil {
+		return err
 	}
-	sr.Close()
+
+	/*
+		var rules [][]interface{}
+		for _, schedID := range scheduleIDs {
+			n := rand.Intn(ScheduleMaxRules)
+			for i := 0; i < n; i++ {
+				var usr, rot sql.NullString
+				if gofakeit.Bool() {
+					usr.Valid = true
+					usr.String = pickOneStr(userIDs)
+				} else {
+					rot.Valid = true
+					rot.String = pickOneStr(rotationIDs)
+				}
+				rid := gofakeit.UUID()
+				id, err := marshal(rid)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+				// For schedule_id also
+				sID, err := marshal(schedID)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+				var uID, rID []byte
+				// For tgt_user_id also
+				if usr.Valid {
+					uID, err = marshal(usr.String)
+					if err != nil {
+						fmt.Println("Error: ", err)
+					}
+				}
+				// For tgt_rotation_id also
+				if rot.Valid {
+					rID, err = marshal(rot.String)
+					if err != nil {
+						fmt.Println("Error: ", err)
+					}
+				}
+				startDate, err := gofakeit.Date().MarshalBinary()
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+				endDate, err := gofakeit.Date().MarshalBinary()
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+
+				tuple := []interface{}{id,
+					sID,
+					gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(),
+					startDate, endDate,
+					uID, rID}
+				rules = append(rules, tuple)
+			}
+		}
+		_, err = NewTable(ctx, conn, tx, "schedule_rules",
+			[]string{
+				"id",
+				"schedule_id",
+				"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
+				"start_time", "end_time",
+				"tgt_user_id", "tgt_rotation_id",
+			}, rules)
+		if err != nil {
+			return err
+		} */
 
 	var epIDs []string
-	ep := NewTable(ctx, tx, "escalation_policies", []string{"id", "name", "description", "repeat"})
+	var eps [][]interface{}
+
 	epGen := newGen()
 	for i := 0; i < EPCount; i++ {
-		id := gofakeit.UUID()
-		ep.Insert(id, epGen.Gen(idName("Policy")), gofakeit.Sentence(rand.Intn(10)+3), rand.Intn(3))
-		epIDs = append(epIDs, id)
+		eid := gofakeit.UUID()
+		epIDs = append(epIDs, eid)
+
+		id, err := marshal(eid)
+		if err != nil {
+			return err
+		}
+
+		tuple := []interface{}{id, epGen.Gen(idName("Policy")), gofakeit.Sentence(rand.Intn(10) + 3), rand.Intn(3)}
+		eps = append(eps, tuple)
 	}
-	ep.Close()
+	err = NewTable(ctx, conn, tx, "escalation_policies", []string{"id", "name", "description", "repeat"}, eps)
+	if err != nil {
+		return err
+	}
 
 	var epStepIDs []string
-	eps := NewTable(ctx, tx, "escalation_policy_steps", []string{"id", "escalation_policy_id", "step_number", "delay"})
+	var epSteps [][]interface{}
+
 	for _, epID := range epIDs {
 		n := rand.Intn(EPMaxStep)
 		for i := 0; i < n; i++ {
-			id := gofakeit.UUID()
-			eps.Insert(
-				id,
-				epID,
+			sid := gofakeit.UUID()
+			epStepIDs = append(epStepIDs, sid)
+
+			id, err := marshal(sid)
+			if err != nil {
+				return err
+			}
+			// For escalation_policy_id also
+			eID, err := marshal(epID)
+			if err != nil {
+				return err
+			}
+
+			tuple := []interface{}{id,
+				eID,
 				i,
-				rand.Intn(25)+5,
-			)
-			epStepIDs = append(epStepIDs, id)
+				rand.Intn(25) + 5}
+			epSteps = append(epSteps, tuple)
 		}
 	}
-	eps.Close()
+	err = NewTable(ctx, conn, tx, "escalation_policy_steps", []string{"id", "escalation_policy_id", "step_number", "delay"}, epSteps)
+	if err != nil {
+		return err
+	}
 
-	epAct := NewTable(ctx, tx, "escalation_policy_actions", []string{"id", "escalation_policy_step_id", "user_id", "schedule_id", "rotation_id"})
+	var epActions [][]interface{}
 	for _, epStepID := range epStepIDs {
 		epActGen := newGen()
 		n := rand.Intn(EPMaxAssigned)
@@ -396,31 +576,83 @@ func fillDB() error {
 				rot.Valid = true
 				rot.String = epActGen.PickOne(rotationIDs)
 			}
-			epAct.Insert(
-				gofakeit.UUID(),
-				epStepID,
-				usr, sched, rot,
-			)
+
+			aid := gofakeit.UUID()
+			id, err := marshal(aid)
+			if err != nil {
+				return err
+			}
+
+			// For escalation_policy_step_id also
+			eID, err := marshal(epStepID)
+			if err != nil {
+				return err
+			}
+			var uID, sID, rID []byte
+			// For user_id also
+			if usr.Valid {
+				uID, err = marshal(usr.String)
+				if err != nil {
+					return err
+				}
+			}
+			// For schedule_id also
+			if sched.Valid {
+				sID, err = marshal(sched.String)
+				if err != nil {
+					return err
+				}
+			}
+			// For rotation_id also
+			if rot.Valid {
+				rID, err = marshal(rot.String)
+				if err != nil {
+					return err
+				}
+			}
+
+			tuple := []interface{}{id,
+				eID,
+				uID, sID, rID}
+			epActions = append(epActions, tuple)
 		}
 	}
-	epAct.Close()
+	err = NewTable(ctx, conn, tx, "escalation_policy_actions", []string{"id", "escalation_policy_step_id", "user_id", "schedule_id", "rotation_id"}, epActions)
+	if err != nil {
+		return err
+	}
 
 	var serviceIDs []string
-	svcGen := newGen()
-	svc := NewTable(ctx, tx, "services", []string{"id", "name", "description", "escalation_policy_id"})
-	for i := 0; i < SvcCount; i++ {
-		id := gofakeit.UUID()
-		svc.Insert(
-			id,
-			svcGen.Gen(idName("Service")),
-			gofakeit.Sentence(rand.Intn(10)+3),
-			pickOneStr(epIDs),
-		)
-		serviceIDs = append(serviceIDs, id)
-	}
-	svc.Close()
+	var svcs [][]interface{}
 
-	iKey := NewTable(ctx, tx, "integration_keys", []string{"id", "name", "type", "service_id"})
+	svcGen := newGen()
+
+	for i := 0; i < SvcCount; i++ {
+		sid := gofakeit.UUID()
+		serviceIDs = append(serviceIDs, sid)
+
+		id, err := marshal(sid)
+		if err != nil {
+			return err
+		}
+		// For escalation_policy_id also
+		eID, err := marshal(pickOneStr(epIDs))
+		if err != nil {
+			return err
+		}
+
+		tuple := []interface{}{id,
+			svcGen.Gen(idName("Service")),
+			gofakeit.Sentence(rand.Intn(10) + 3),
+			eID}
+		svcs = append(svcs, tuple)
+	}
+	err = NewTable(ctx, conn, tx, "services", []string{"id", "name", "description", "escalation_policy_id"}, svcs)
+	if err != nil {
+		return err
+	}
+
+	var iKeys [][]interface{}
 	for _, serviceID := range serviceIDs {
 		genIKey := newGen()
 		n := rand.Intn(IntegrationKeyMax)
@@ -429,17 +661,30 @@ func fillDB() error {
 			if gofakeit.Bool() {
 				typ = integrationkey.TypeGeneric
 			}
-			iKey.Insert(
-				gofakeit.UUID(),
+			kid := gofakeit.UUID()
+			id, err := marshal(kid)
+			if err != nil {
+				return err
+			}
+			// For service_id also
+			sID, err := marshal(serviceID)
+			if err != nil {
+				return err
+			}
+
+			tuple := []interface{}{id,
 				genIKey.Gen(idName("Key")),
 				typ,
-				serviceID,
-			)
+				sID}
+			iKeys = append(iKeys, tuple)
 		}
 	}
-	iKey.Close()
+	err = NewTable(ctx, conn, tx, "integration_keys", []string{"id", "name", "type", "service_id"}, iKeys)
+	if err != nil {
+		return err
+	}
 
-	aTbl := NewTable(ctx, tx, "alerts", []string{"summary", "details", "status", "service_id", "source", "dedup_key"})
+	var alerts [][]interface{}
 	totalAlerts := AlertActiveCount + AlertClosedCount
 	for i := 0; i < totalAlerts; i++ {
 		a := alert.Alert{
@@ -462,16 +707,24 @@ func fillDB() error {
 		if a.Status != alert.StatusClosed {
 			dedup = a.DedupKey()
 		}
-		aTbl.Insert(
-			a.Summary,
+		// For service_id also
+		sID, err := marshal(a.ServiceID)
+		if err != nil {
+			return err
+		}
+
+		tuple := []interface{}{a.Summary,
 			a.Details,
 			a.Status,
-			a.ServiceID,
+			sID,
 			a.Source,
-			dedup,
-		)
+			dedup}
+		alerts = append(alerts, tuple)
 	}
-	aTbl.Close()
+	err = NewTable(ctx, conn, tx, "alerts", []string{"summary", "details", "status", "service_id", "source", "dedup_key"}, alerts)
+	if err != nil {
+		return err
+	}
 
 	noErr(ctx, tx.Commit())
 	fmt.Printf("Finished %d records across %d tables in %s\n", genRecords, genTables, time.Since(start).String())
@@ -481,11 +734,11 @@ func fillDB() error {
 
 // openDB will open dbconfig.yml to detect the datasource, and attempt to open a DB connection.
 func openDB() (*sql.DB, error) {
-	return sql.Open("postgres", "user=goalert dbname=goalert sslmode=disable")
+	return sql.Open("pgx", "user=goalert dbname=goalert sslmode=disable")
 }
 
 func recreateDB() error {
-	db, err := sql.Open("postgres", "user=goalert dbname=postgres sslmode=disable")
+	db, err := sql.Open("pgx", "user=goalert dbname=postgres sslmode=disable")
 	if err != nil {
 		return err
 	}
