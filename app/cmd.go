@@ -99,6 +99,14 @@ var RootCmd = &cobra.Command{
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
 
+		n, err := migrate.ApplyAll(log.EnableDebug(ctx), cfg.DBURL)
+		if err != nil {
+			return errors.Wrap(err, "apply migrations")
+		}
+		if n > 0 {
+			log.Logf(ctx, "Applied %d migrations.", n)
+		}
+
 		dbc, err := wrappedDriver.OpenConnector(cfg.DBURL)
 		if err != nil {
 			return errors.Wrap(err, "connect to postgres")
@@ -289,17 +297,12 @@ Migration: %s (#%d)
 			if err != nil {
 				return err
 			}
-			db, err := sql.Open("postgres", c.DBURL)
-			if err != nil {
-				return errors.Wrap(err, "connect to postgres")
-			}
-			defer db.Close()
 
 			ctx := context.Background()
 			down := viper.GetString("down")
 			up := viper.GetString("up")
 			if down != "" {
-				n, err := migrate.Down(ctx, db, down)
+				n, err := migrate.Down(ctx, c.DBURL, down)
 
 				if err != nil {
 					return errors.Wrap(err, "apply DOWN migrations")
@@ -310,7 +313,7 @@ Migration: %s (#%d)
 			}
 
 			if up != "" || down == "" {
-				n, err := migrate.Up(ctx, db, up)
+				n, err := migrate.Up(ctx, c.DBURL, up)
 
 				if err != nil {
 					return errors.Wrap(err, "apply UP migrations")
