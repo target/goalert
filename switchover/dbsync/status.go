@@ -43,7 +43,7 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 			return "", errors.Wrap(err, "scan query results")
 		}
 		if strings.Contains(name, "GoAlert") && !strings.Contains(name, "S/O") {
-			issues = append(issues, "Non-switchover GoAlert connection: "+name+" (try setting --db-url-next)")
+			issues = append(issues, "Non-switchover GoAlert connection: "+name+" (try setting `--db-url-next`)")
 		}
 		table.Body.Cells = append(table.Body.Cells, []*simpletable.Cell{
 			{Text: name},
