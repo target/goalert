@@ -33,6 +33,10 @@ func (app *App) _Shutdown(ctx context.Context) error {
 		errs = append(errs, errors.Wrap(app.engine.Shutdown(ctx), "shutdown engine"))
 	}
 
+	if app.events != nil {
+		errs = append(errs, errors.Wrap(app.events.Close(), "close event listener"))
+	}
+
 	if app.notificationManager != nil {
 		errs = append(errs, errors.Wrap(app.notificationManager.Shutdown(ctx), "shutdown notification manager"))
 	}

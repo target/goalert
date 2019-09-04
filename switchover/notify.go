@@ -3,12 +3,11 @@ package switchover
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/version"
 )
 
@@ -20,41 +19,26 @@ const (
 )
 
 func (h *Handler) initNewDBListen(name string) error {
-	u, err := url.Parse(name)
+	cfg, err := pgx.ParseConnectionString(name)
 	if err != nil {
-		return errors.Wrap(err, "parse db URL")
-	}
-	q := u.Query()
-	q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion()))
-	u.RawQuery = q.Encode()
-	name = u.String()
-
-	l := pq.NewListener(name, 0, time.Second, h.listenEvent)
-
-	err = l.Listen(DBIDChannel)
-	if err != nil {
-		l.Close()
 		return err
 	}
-	err = l.Listen(StateChannel)
+	cfg.RuntimeParams["application_name"] = fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion())
+	l, err := sqlutil.NewListener(context.Background(), sqlutil.ConfigConnector(cfg), DBIDChannel, StateChannel)
 	if err != nil {
-		l.Close()
 		return err
 	}
 
 	go func() {
-		for n := range l.NotificationChannel() {
-			if n == nil {
-				// nil can be sent, ignore
-				continue
-			}
+		defer l.Close()
+		for n := range l.Notifications() {
 			switch n.Channel {
 			case DBIDChannel:
 				h.mx.Lock()
-				h.dbNextID = n.Extra
+				h.dbNextID = n.Payload
 				h.mx.Unlock()
 			case StateChannel:
-				s, err := ParseStatus(n.Extra)
+				s, err := ParseStatus(n.Payload)
 				if err != nil {
 					log.Log(context.Background(), errors.Wrap(err, "parse Status string"))
 					continue
@@ -70,32 +54,17 @@ func (h *Handler) initNewDBListen(name string) error {
 	return nil
 }
 func (h *Handler) initListen(name string) error {
-	u, err := url.Parse(name)
+	cfg, err := pgx.ParseConnectionString(name)
 	if err != nil {
-		return errors.Wrap(err, "parse db URL")
+		return err
 	}
-	q := u.Query()
-	q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion()))
-	u.RawQuery = q.Encode()
-	name = u.String()
+	cfg.RuntimeParams["application_name"] = fmt.Sprintf("GoAlert %s (S/O Listener)", version.GitVersion())
 
-	h.l = pq.NewListener(name, 0, time.Second, h.listenEvent)
+	h.l, err = sqlutil.NewListener(context.Background(), sqlutil.ConfigConnector(cfg), DBIDChannel, StateChannel, ControlChannel)
+	if err != nil {
+		return err
+	}
 
-	err = h.l.Listen(StateChannel)
-	if err != nil {
-		h.l.Close()
-		return err
-	}
-	err = h.l.Listen(ControlChannel)
-	if err != nil {
-		h.l.Close()
-		return err
-	}
-	err = h.l.Listen(DBIDChannel)
-	if err != nil {
-		h.l.Close()
-		return err
-	}
 	go h.listenLoop()
 	return nil
 }
@@ -105,8 +74,9 @@ func (h *Handler) pushState(s State) { h.stateCh <- s }
 func (h *Handler) listenLoop() {
 	ctx := context.Background()
 	ctx = log.WithField(ctx, "NodeID", h.id)
+	defer h.l.Close()
 
-	for n := range h.l.NotificationChannel() {
+	for n := range h.l.Notifications() {
 		if n == nil {
 			// nil can be sent, ignore
 			continue
@@ -114,10 +84,10 @@ func (h *Handler) listenLoop() {
 		switch n.Channel {
 		case DBIDChannel:
 			h.mx.Lock()
-			h.dbID = n.Extra
+			h.dbID = n.Payload
 			h.mx.Unlock()
 		case StateChannel:
-			s, err := ParseStatus(n.Extra)
+			s, err := ParseStatus(n.Payload)
 			if err != nil {
 				log.Log(ctx, errors.Wrap(err, "parse Status string"))
 				continue
@@ -127,7 +97,7 @@ func (h *Handler) listenLoop() {
 			}
 			h.statusCh <- s
 		case ControlChannel:
-			switch n.Extra {
+			switch n.Payload {
 			case "done":
 				go h.pushState(StateComplete)
 				continue
@@ -139,30 +109,12 @@ func (h *Handler) listenLoop() {
 				continue
 			}
 
-			d, err := ParseDeadlineConfig(n.Extra, h.old.timeOffset)
+			d, err := ParseDeadlineConfig(n.Payload, h.old.timeOffset)
 			if err != nil {
 				log.Log(ctx, errors.Wrap(err, "parse Deadlines string"))
 				continue
 			}
 			h.controlCh <- d
 		}
-	}
-}
-func (h *Handler) listenEvent(ev pq.ListenerEventType, err error) {
-	var event string
-	switch ev {
-	case pq.ListenerEventConnected:
-		event = "connected"
-	case pq.ListenerEventConnectionAttemptFailed:
-		event = "connection attempt failed"
-	case pq.ListenerEventDisconnected:
-		event = "disconnected"
-	case pq.ListenerEventReconnected:
-		event = "reconnected"
-	}
-	if err != nil {
-		log.Log(context.Background(), errors.Wrapf(err, "pq listen event '%s'", event))
-	} else {
-		log.Logf(context.Background(), "PQ Listen Event: %s", event)
 	}
 }
