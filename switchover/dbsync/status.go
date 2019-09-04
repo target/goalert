@@ -97,7 +97,7 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 	buf.WriteString(table.String() + "\n\n")
 
 	if len(nodes) == 0 {
-		issues = append(issues, "No nodes detected.")
+		issues = append(issues, "No nodes detected.(Have you set `db-url-next` for running GoAlert instances?)")
 	}
 
 	fmt.Fprintf(buf, "Node Count: %d\n", len(nodes))
