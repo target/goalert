@@ -53,7 +53,6 @@ export default class RotationEditDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        awaitRefetchQueries
         refetchQueries={['rotationDetails']}
       >
         {(...args) => this.renderForm(data, ...args)}

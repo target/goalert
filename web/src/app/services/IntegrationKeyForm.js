@@ -21,7 +21,7 @@ export default class IntegrationKeyForm extends React.PureComponent {
   static propTypes = {
     value: p.shape({
       name: p.string,
-      type: p.oneOf(['generic', 'grafana', 'email']),
+      type: p.oneOf(['generic', 'grafana', 'site24x7', 'email']),
     }).isRequired,
 
     errors: p.arrayOf(
@@ -75,6 +75,7 @@ export default class IntegrationKeyForm extends React.PureComponent {
                   )}
                   <MenuItem value='generic'>Generic API</MenuItem>
                   <MenuItem value='grafana'>Grafana</MenuItem>
+                  <MenuItem value='site24x7'>Site24x7</MenuItem>
                 </FormField>
               )}
             </Config>

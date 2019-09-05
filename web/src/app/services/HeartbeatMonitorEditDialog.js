@@ -51,7 +51,6 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
   })
   const [update, { loading, error }] = useMutation(mutation, {
     refetchQueries: props.refetchQueries,
-    awaitRefetchQueries: Boolean(props.refetchQueries),
     onCompleted: props.onClose,
     variables: {
       input: { id: props.monitorID, ...value },

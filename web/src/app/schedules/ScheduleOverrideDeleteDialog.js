@@ -59,7 +59,6 @@ export default class ScheduleOverrideDeleteDialog extends React.PureComponent {
         mutation={mutation}
         onCompleted={this.props.onClose}
         refetchQueries={['scheduleOverrides']}
-        awaitRefetchQueries
       >
         {(commit, status) => this.renderDialog(data, commit, status)}
       </Mutation>
