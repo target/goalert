@@ -43,7 +43,6 @@ export default function UserContactMethodVerificationDialog(props) {
         code: value.code,
       },
     },
-    awaitRefetchQueries: true,
     refetchQueries: ['cmList'],
     onCompleted: props.onClose,
   })

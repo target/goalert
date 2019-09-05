@@ -2,12 +2,11 @@ import React from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
-import { nonFieldErrors } from '../util/errutil'
-import { Redirect } from 'react-router'
-import Query from '../util/Query'
-
+import { useQuery, useMutation } from '@apollo/react-hooks'
+import { push } from 'connected-react-router'
+import { useDispatch } from 'react-redux'
 import FormDialog from '../dialogs/FormDialog'
+import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query($id: ID!) {
@@ -23,58 +22,42 @@ const mutation = gql`
   }
 `
 
-export default class ScheduleDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
+export default function ScheduleDeleteDialog(props) {
+  const dispatch = useDispatch()
+  const { data, loading: dataLoading } = useQuery(query, {
     onClose: p.func,
-  }
+    variables: { id: props.scheduleID },
+  })
+  const [deleteSchedule, deleteScheduleStatus] = useMutation(mutation, {
+    refetchQueries: ['schedulesQuery'],
+    variables: {
+      input: [
+        {
+          type: 'schedule',
+          id: props.scheduleID,
+        },
+      ],
+    },
+    onCompleted: () => dispatch(push('/schedules')),
+  })
 
-  state = {
-    deleteEP: true,
-  }
+  if (dataLoading) return <Spinner />
 
-  render() {
-    return (
-      <Query
-        noPoll
-        query={query}
-        variables={{ id: this.props.scheduleID }}
-        render={({ data }) => this.renderMutation(data.schedule)}
-      />
-    )
-  }
+  return (
+    <FormDialog
+      title='Are you sure?'
+      confirm
+      subTitle={`This will delete the schedule: ${data.schedule.name}`}
+      caption='Deleting a schedule will also delete all associated rules and overrides.'
+      loading={deleteScheduleStatus.loading}
+      errors={deleteScheduleStatus.error ? [deleteScheduleStatus.error] : []}
+      onClose={props.onClose}
+      onSubmit={() => deleteSchedule()}
+    />
+  )
+}
 
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation}>
-        {(commit, status) => this.renderDialog(data, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(data, commit, mutStatus) {
-    const { loading, error, data: mutData } = mutStatus
-    if (mutData && mutData.deleteAll) {
-      return <Redirect push to={`/schedules`} />
-    }
-
-    return (
-      <FormDialog
-        title='Are you sure?'
-        confirm
-        subTitle={`This will delete the schedule: ${data.name}`}
-        caption='Deleting a schedule will also delete all associated rules and overrides.'
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: [{ type: 'schedule', id: this.props.scheduleID }],
-            },
-          })
-        }}
-      />
-    )
-  }
+ScheduleDeleteDialog.propTypes = {
+  scheduleID: p.string.isRequired,
+  onClose: p.func,
 }

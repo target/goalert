@@ -99,6 +99,8 @@ func createdSubject(msg string) *Subject {
 	switch msg {
 	case "Created via: grafana":
 		return &Subject{Type: SubjectTypeIntegrationKey, Classifier: "Grafana"}
+	case "Created via: site24x7":
+		return &Subject{Type: SubjectTypeIntegrationKey, Classifier: "Site24x7"}
 	case "Created via: manual":
 		return &Subject{Type: SubjectTypeUser, Classifier: "Web"}
 	case "Created via: generic":

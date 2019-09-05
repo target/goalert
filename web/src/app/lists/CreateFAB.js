@@ -13,7 +13,7 @@ export default function CreateFAB(props) {
         aria-label='Create New'
         data-cy='page-fab'
         color='primary'
-        style={{ position: 'fixed', bottom: '1em', right: '1em' }}
+        style={{ position: 'fixed', bottom: '2em', right: '2em' }}
         onClick={onClick}
       >
         <AddIcon />

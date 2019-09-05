@@ -39,7 +39,7 @@ module.exports = {
       'history',
       'react-select',
       'react-apollo',
-      'react-count-down',
+      'react-countdown-now',
       'connected-react-router',
       'chance',
       '@hot-loader/react-dom',

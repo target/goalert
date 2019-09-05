@@ -484,20 +484,22 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 type IntegrationKeyType string
 
 const (
-	IntegrationKeyTypeGeneric IntegrationKeyType = "generic"
-	IntegrationKeyTypeGrafana IntegrationKeyType = "grafana"
-	IntegrationKeyTypeEmail   IntegrationKeyType = "email"
+	IntegrationKeyTypeGeneric  IntegrationKeyType = "generic"
+	IntegrationKeyTypeGrafana  IntegrationKeyType = "grafana"
+	IntegrationKeyTypeSite24x7 IntegrationKeyType = "site24x7"
+	IntegrationKeyTypeEmail    IntegrationKeyType = "email"
 )
 
 var AllIntegrationKeyType = []IntegrationKeyType{
 	IntegrationKeyTypeGeneric,
 	IntegrationKeyTypeGrafana,
+	IntegrationKeyTypeSite24x7,
 	IntegrationKeyTypeEmail,
 }
 
 func (e IntegrationKeyType) IsValid() bool {
 	switch e {
-	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeEmail:
+	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypeEmail:
 		return true
 	}
 	return false

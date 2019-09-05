@@ -79,7 +79,6 @@ export default class ScheduleOverrideCreateDialog extends React.PureComponent {
           'scheduleCalendarShifts',
           'scheduleOverrides',
         ]}
-        awaitRefetchQueries
       >
         {this.renderDialog}
       </Mutation>

@@ -10,9 +10,10 @@ type Type string
 
 // Types
 const (
-	TypeGrafana Type = "grafana"
-	TypeGeneric Type = "generic"
-	TypeEmail   Type = "email"
+	TypeGrafana  Type = "grafana"
+	TypeSite24x7 Type = "site24x7"
+	TypeGeneric  Type = "generic"
+	TypeEmail    Type = "email"
 )
 
 func (s Type) Value() (driver.Value, error) {

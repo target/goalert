@@ -68,7 +68,6 @@ export default class ScheduleRuleEditDialog extends React.Component {
         mutation={mutation}
         onCompleted={this.props.onClose}
         refetchQueries={['scheduleRules']}
-        awaitRefetchQueries
       >
         {(commit, status) => this.renderDialog(data, commit, status)}
       </Mutation>

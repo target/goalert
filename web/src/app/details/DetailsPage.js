@@ -23,7 +23,9 @@ const styles = theme => ({
     '&:not(:first-child)': {
       marginTop: 8,
     },
-    marginBottom: 8,
+    '&:not(:last-child)': {
+      marginBottom: 8,
+    },
   },
   iconContainer: {
     [theme.breakpoints.down('sm')]: { float: 'top' },

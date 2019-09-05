@@ -8,6 +8,7 @@ import { toIdValue } from 'apollo-utilities'
 import { authLogout } from './actions'
 
 import reduxStore from './reduxStore'
+import { POLL_INTERVAL } from './config'
 
 let pendingMutations = 0
 window.onbeforeunload = function(e) {
@@ -129,7 +130,16 @@ cache = new InMemoryCache({
   },
 })
 
+const queryOpts = { fetchPolicy: 'cache-and-network' }
+if (new URLSearchParams(location.search).get('poll') !== '0') {
+  queryOpts.pollInterval = POLL_INTERVAL
+}
+
 export const GraphQLClient = new ApolloClient({
   link: graphql2Link,
   cache,
+  defaultOptions: {
+    query: queryOpts,
+    mutate: { awaitRefetchQueries: true },
+  },
 })

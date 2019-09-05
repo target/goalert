@@ -13,22 +13,21 @@ import { FormContainer, FormField } from '../forms'
 import WizardScheduleForm from './WizardScheduleForm'
 import { value as valuePropType } from './propTypes'
 import withStyles from '@material-ui/core/styles/withStyles'
+import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
 import MaterialSelect from '../selection/MaterialSelect'
 import { set } from 'lodash-es'
 
 const styles = {
+  fieldItem: {
+    marginLeft: '2.5em',
+  },
   stepItem: {
     display: 'flex',
     alignItems: 'center',
   },
-  formField: {
-    width: '20em',
-  },
-  div: {
-    paddingLeft: '3em',
-  },
 }
 
+@withWidth()
 @withStyles(styles)
 export default class WizardForm extends React.PureComponent {
   static propTypes = {
@@ -56,7 +55,7 @@ export default class WizardForm extends React.PureComponent {
   }
 
   render() {
-    const { classes, onChange, value } = this.props
+    const { classes, onChange, value, width } = this.props
 
     return (
       <FormContainer optionalLabels {...this.props}>
@@ -67,18 +66,16 @@ export default class WizardForm extends React.PureComponent {
           <Grid item xs={10}>
             {this.sectionHeading('Team Details')}
           </Grid>
-          <Grid item xs={12}>
-            <div className={classes.div}>
-              <FormField
-                component={TextField}
-                name='teamName'
-                errorName='newEscalationPolicy.name'
-                label={`What is your team's name?`}
-                formLabel
-                required
-                className={classes.formField}
-              />
-            </div>
+          <Grid item xs={12} className={classes.fieldItem}>
+            <FormField
+              component={TextField}
+              name='teamName'
+              errorName='newEscalationPolicy.name'
+              label={`What is your team's name?`}
+              formLabel
+              fullWidth={isWidthDown('md', width)}
+              required
+            />
           </Grid>
           <Grid item className={classes.stepItem}>
             <StepIcon icon='2' />
@@ -93,35 +90,32 @@ export default class WizardForm extends React.PureComponent {
           <Grid item xs={10}>
             {this.sectionHeading('Secondary Schedule')}
           </Grid>
-          <Grid item xs={12}>
-            <div className={classes.div}>
-              <FormControl>
-                <FormLabel>
-                  Will your team need a <b>secondary</b> schedule to escalate
-                  to?
-                </FormLabel>
-                <RadioGroup
-                  aria-label='Create Secondary Schedule'
-                  name='secondary'
-                  row
-                  value={value.secondarySchedule.enable}
-                  onChange={this.enableSecondarySchedule}
-                >
-                  <FormControlLabel
-                    data-cy='secondary.yes'
-                    value='yes'
-                    control={<Radio />}
-                    label='Yes'
-                  />
-                  <FormControlLabel
-                    data-cy='secondary.no'
-                    value='no'
-                    control={<Radio />}
-                    label='No'
-                  />
-                </RadioGroup>
-              </FormControl>
-            </div>
+          <Grid item xs={12} className={classes.fieldItem}>
+            <FormControl>
+              <FormLabel>
+                Will your team need a <b>secondary</b> schedule to escalate to?
+              </FormLabel>
+              <RadioGroup
+                aria-label='Create Secondary Schedule'
+                name='secondary'
+                row
+                value={value.secondarySchedule.enable}
+                onChange={this.enableSecondarySchedule}
+              >
+                <FormControlLabel
+                  data-cy='secondary.yes'
+                  value='yes'
+                  control={<Radio />}
+                  label='Yes'
+                />
+                <FormControlLabel
+                  data-cy='secondary.no'
+                  value='no'
+                  control={<Radio />}
+                  label='No'
+                />
+              </RadioGroup>
+            </FormControl>
           </Grid>
           {value.secondarySchedule.enable === 'yes' && (
             <WizardScheduleForm onChange={onChange} value={value} secondary />
@@ -132,37 +126,33 @@ export default class WizardForm extends React.PureComponent {
           <Grid item xs={10}>
             {this.sectionHeading('Escalation Policy')}
           </Grid>
-          <Grid item xs={12}>
-            <div className={classes.div}>
-              <FormField
-                component={TextField}
-                name='delayMinutes'
-                errorName='newEscalationPolicy.steps0.delayMinutes'
-                label={this.getDelayLabel()}
-                formLabel
-                required
-                type='number'
-                placeholder='15'
-                mapOnChangeValue={value => value.toString()}
-                className={classes.formField}
-              />
-            </div>
+          <Grid item xs={12} className={classes.fieldItem}>
+            <FormField
+              component={TextField}
+              name='delayMinutes'
+              errorName='newEscalationPolicy.steps0.delayMinutes'
+              label={this.getDelayLabel()}
+              formLabel
+              fullWidth={isWidthDown('md', width)}
+              required
+              type='number'
+              placeholder='15'
+              mapOnChangeValue={value => value.toString()}
+            />
           </Grid>
-          <Grid item xs={12}>
-            <div className={classes.div}>
-              <FormField
-                component={TextField}
-                name='repeat'
-                errorName='newEscalationPolicy.repeat'
-                label='How many times would you like to repeat alerting your team?'
-                formLabel
-                required
-                type='number'
-                placeholder='3'
-                mapOnChangeValue={value => value.toString()}
-                className={classes.formField}
-              />
-            </div>
+          <Grid item xs={12} className={classes.fieldItem}>
+            <FormField
+              component={TextField}
+              name='repeat'
+              errorName='newEscalationPolicy.repeat'
+              label='How many times would you like to repeat alerting your team?'
+              formLabel
+              fullWidth={isWidthDown('md', width)}
+              required
+              type='number'
+              placeholder='3'
+              mapOnChangeValue={value => value.toString()}
+            />
           </Grid>
           <Grid item className={classes.stepItem}>
             <StepIcon icon='5' />
@@ -170,31 +160,33 @@ export default class WizardForm extends React.PureComponent {
           <Grid item xs={10}>
             {this.sectionHeading('Service')}
           </Grid>
-          <Grid item xs={12}>
-            <div className={classes.div}>
-              <FormField
-                component={MaterialSelect}
-                name='key'
-                label='How would you like to connect your application with GoAlert?'
-                formLabel
-                required
-                options={[
-                  {
-                    label: 'Generic API',
-                    value: 'generic',
-                  },
-                  {
-                    label: 'Grafana Webhook URL',
-                    value: 'grafana',
-                  },
-                  {
-                    label: 'Email',
-                    value: 'email',
-                  },
-                ]}
-                className={classes.formField}
-              />
-            </div>
+          <Grid item xs={12} className={classes.fieldItem}>
+            <FormField
+              component={MaterialSelect}
+              name='key'
+              label='How would you like to connect your application with GoAlert?'
+              formLabel
+              fullWidth={isWidthDown('md', width)}
+              required
+              options={[
+                {
+                  label: 'Generic API',
+                  value: 'generic',
+                },
+                {
+                  label: 'Grafana Webhook URL',
+                  value: 'grafana',
+                },
+                {
+                  label: 'Site24x7 Webhook URL',
+                  value: 'site24x7',
+                },
+                {
+                  label: 'Email',
+                  value: 'email',
+                },
+              ]}
+            />
           </Grid>
         </Grid>
       </FormContainer>
