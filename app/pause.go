@@ -38,17 +38,21 @@ func (app *App) Resume() {
 	app.mgr.Resume(context.Background())
 }
 func (app *App) _pause(ctx context.Context) error {
+	app.events.Stop()
+
 	cfg := switchover.ConfigFromContext(ctx)
 	if cfg.NoPauseAPI {
 		return nil
 	}
 	err := app.requestLock.Lock(ctx)
 	if err != nil {
+		app.events.Start()
 		return err
 	}
 	return nil
 }
 func (app *App) _resume(ctx context.Context) error {
+	app.events.Start()
 	app.requestLock.Unlock()
 	return nil
 }

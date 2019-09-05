@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/target/goalert/app/lifecycle"
-	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
@@ -51,17 +50,6 @@ func (app *App) startup(ctx context.Context) error {
 		}
 
 		return err
-	})
-
-	app.initStartup(ctx, "Startup.MigrateDB", func(ctx context.Context) error {
-		n, err := migrate.ApplyAll(log.EnableDebug(ctx), app.db)
-		if err != nil {
-			return errors.Wrap(err, "apply migrations")
-		}
-		if n > 0 {
-			log.Logf(ctx, "Applied %d migrations.", n)
-		}
-		return nil
 	})
 
 	app.notificationManager = notification.NewManager()
