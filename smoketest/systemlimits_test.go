@@ -3,13 +3,14 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/limit"
-	"github.com/target/goalert/smoketest/harness"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/limit"
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestSystemLimits tests that limits are enforced if configured.
@@ -214,28 +215,6 @@ func TestSystemLimits(t *testing.T) {
 	)
 
 	actUsersList := []string{h.UUID("ep_act_user1"), h.UUID("ep_act_user2"), h.UUID("ep_act_user3"), h.UUID("ep_act_user4")}
-	actUsers := func(n int) string {
-		return fmt.Sprintf(`"%s"`, strings.Join(actUsersList[:n], `","`))
-	}
-	doTest(
-		limit.EPActionsPerStep,
-		"actions",
-		func(n int) string {
-			return fmt.Sprintf(`mutation{createOrUpdateEscalationPolicyStep(input:{id:"%s", escalation_policy_id: "%s", delay_minutes: 15, schedule_ids: [], user_ids: [%s]}){escalation_policy_step{id}}}`,
-				h.UUID("act_ep_step"),
-				h.UUID("act_ep"),
-				actUsers(n),
-			)
-		},
-		func(n int, _ string) string {
-			return fmt.Sprintf(`mutation{createOrUpdateEscalationPolicyStep(input:{id:"%s", escalation_policy_id: "%s", delay_minutes: 15, schedule_ids: [], user_ids: [%s]}){escalation_policy_step{id}}}`,
-				h.UUID("act_ep_step"),
-				h.UUID("act_ep"),
-				actUsers(n),
-			)
-		},
-		nil,
-	)
 	doTest(
 		limit.EPActionsPerStep,
 		"actions",
