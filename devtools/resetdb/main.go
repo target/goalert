@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/migrate"
 
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -95,9 +96,13 @@ func fillDB(cfg pgx.ConnConfig) error {
 		return errors.Wrap(err, "connect to db")
 	}
 	defer conn.Close()
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	_ = ctx
+
+	var t pgTime
+	conn.ConnInfo.RegisterDataType(pgtype.DataType{
+		Value: &t,
+		Name:  "time",
+		OID:   1183,
+	})
 
 	must := func(err error) {
 		if err != nil {
@@ -172,36 +177,30 @@ func fillDB(cfg pgx.ConnConfig) error {
 		return []interface{}{asUUID(s.ID), s.Name, s.Description, s.TimeZone.String()}
 	})
 
-	// copyFrom("schedule_rules",
-	// 	[]string{"id", "schedule_id", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "start_time", "end_time", "tgt_user_id", "tgt_rotation_id"},
-	// 	len(data.ScheduleRules), func(n int) []interface{} {
-	// 		r := data.ScheduleRules[n]
+	copyFrom("schedule_rules",
+		[]string{"id", "schedule_id", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "start_time", "end_time", "tgt_user_id", "tgt_rotation_id"},
+		len(data.ScheduleRules), func(n int) []interface{} {
+			r := data.ScheduleRules[n]
 
-	// 		id := asUUID(r.Target.TargetID())
-	// 		var usr, rot *[16]byte
-	// 		switch r.Target.TargetType() {
-	// 		case assignment.TargetTypeRotation:
-	// 			rot = &id
-	// 		case assignment.TargetTypeUser:
-	// 			usr = &id
-	// 		}
+			id := asUUID(r.Target.TargetID())
+			var usr, rot *[16]byte
+			switch r.Target.TargetType() {
+			case assignment.TargetTypeRotation:
+				rot = &id
+			case assignment.TargetTypeUser:
+				usr = &id
+			}
 
-	// 		return []interface{}{
-	// 			asUUID(r.ID),
-	// 			asUUID(r.ScheduleID),
-	// 			r.Day(0),
-	// 			r.Day(1),
-	// 			r.Day(2),
-	// 			r.Day(3),
-	// 			r.Day(4),
-	// 			r.Day(5),
-	// 			r.Day(6),
-	// 			time.Date(2000, 0, 0, r.Start.Hour(), r.Start.Minute(), 0, 0, time.UTC).Format(time.RFC3339),
-	// 			time.Date(2000, 0, 0, r.End.Hour(), r.End.Minute(), 0, 0, time.UTC).Format(time.RFC3339),
-	// 			usr,
-	// 			rot,
-	// 		}
-	// 	})
+			return []interface{}{
+				asUUID(r.ID),
+				asUUID(r.ScheduleID),
+				r.Day(0), r.Day(1), r.Day(2), r.Day(3), r.Day(4), r.Day(5), r.Day(6),
+				pgTime(r.Start),
+				pgTime(r.End),
+				usr,
+				rot,
+			}
+		})
 
 	copyFrom("user_overrides", []string{"id", "tgt_schedule_id", "start_time", "end_time", "add_user_id", "remove_user_id"}, len(data.Overrides), func(n int) []interface{} {
 		o := data.Overrides[n]
