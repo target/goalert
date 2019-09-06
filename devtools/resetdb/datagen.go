@@ -20,7 +20,6 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/notificationrule"
-	"github.com/target/goalert/util"
 )
 
 var timeZones = []string{"America/Chicago", "Europe/Berlin", "UTC"}
@@ -118,16 +117,12 @@ func (d *datagen) NewNR(userID, cmID string) {
 	d.NotificationRules = append(d.NotificationRules, nr)
 }
 func (d *datagen) NewRotation() {
-	loc, err := util.LoadLocation(sample(timeZones))
-	if err != nil {
-		panic(err)
-	}
 	r := rotation.Rotation{
 		ID:          gofakeit.UUID(),
 		Name:        d.ids.Gen(idName("Rotation")),
 		Description: gofakeit.Sentence(rand.Intn(10) + 3),
 		Type:        rotationTypes[rand.Intn(len(rotationTypes))],
-		Start:       gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()).In(loc),
+		Start:       gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()).In(time.FixedZone(sample(timeZones), 0)),
 		ShiftLength: rand.Intn(14) + 1,
 	}
 
@@ -142,15 +137,11 @@ func (d *datagen) NewRotationParticipant(rotID string, pos int) {
 	})
 }
 func (d *datagen) NewSchedule() {
-	loc, err := util.LoadLocation(sample(timeZones))
-	if err != nil {
-		panic(err)
-	}
 	d.Schedules = append(d.Schedules, schedule.Schedule{
 		ID:          gofakeit.UUID(),
 		Name:        d.ids.Gen(idName("Schedule")),
 		Description: gofakeit.Sentence(rand.Intn(10) + 3),
-		TimeZone:    loc,
+		TimeZone:    time.FixedZone(sample(timeZones), 0),
 	})
 }
 func (d *datagen) NewScheduleRule(scheduleID string) {
