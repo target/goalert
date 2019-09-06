@@ -54,6 +54,8 @@ $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
 	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
 	go build -o $@ ./devtools/$(@F)
+$(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go
+	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	go build -o $@ ./devtools/mockslack/cmd/mockslack
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
@@ -160,8 +162,8 @@ postgres:
 		-p 5432:5432 \
 		postgres:11-alpine || docker start goalert-postgres
 
-regendb: bin/goalert migrate/inline_data_gen.go config.json.bak
-	go run ./devtools/resetdb --with-rand-data
+regendb: bin/resetdb bin/goalert migrate/inline_data_gen.go config.json.bak
+	./bin/resetdb --with-rand-data
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --admin --email admin@example.com --user admin --pass admin123 "--db-url=$(DB_URL)"
 
