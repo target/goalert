@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 
@@ -25,10 +26,13 @@ var (
 func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.StringVar(&adminID, "admin-id", "", "Generate an admin user with the given ID.")
-	rand := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
+	seedVal := flag.Int64("seed", 1, "Change the random seed used to generate data.")
+	genData := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
 	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
 	dbURL := flag.String("db-url", "user=goalert dbname=goalert sslmode=disable", "DB URL to use.")
 	flag.Parse()
+
+	rand.Seed(*seedVal)
 
 	cfg, err := pgx.ParseConnectionString(*dbURL)
 	if err != nil {
@@ -40,7 +44,7 @@ func main() {
 		log.Fatal("apply migrations:", err)
 	}
 
-	if !*rand {
+	if !*genData {
 		return
 	}
 
