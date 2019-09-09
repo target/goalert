@@ -81,9 +81,10 @@ type datagen struct {
 	Alerts             []alert.Alert
 	Favorites          []userFavorite
 
-	ids      *uniqGen
-	ints     *uniqIntGen
-	phoneInc int
+	ids          *uniqGen
+	ints         *uniqIntGen
+	phoneInc     int
+	alertDetails []string
 }
 
 func (d *datagen) genPhone() string {
@@ -94,9 +95,9 @@ func (d *datagen) genPhone() string {
 func (d *datagen) NewUser() {
 	u := user.User{
 		ID:    gofakeit.UUID(),
-		Name:  d.ids.Gen(gofakeit.Name),
+		Name:  d.ids.Gen(gofakeit.Name, "user"),
 		Role:  permission.RoleUser,
-		Email: d.ids.Gen(gofakeit.Email),
+		Email: d.ids.Gen(gofakeit.Email, "user"),
 	}
 	d.Users = append(d.Users, u)
 }
@@ -261,18 +262,10 @@ func (d *datagen) NewMonitor(svcID string) {
 	})
 }
 
-var alertDetails = make([]string, 20)
-
-func init() {
-	for i := range alertDetails {
-		alertDetails[i] = gofakeit.Paragraph(2, 4, 10, "\n\n")
-	}
-}
-
 func (d *datagen) NewAlert(status alert.Status) {
 	var details string
 	if gofakeit.Bool() {
-		details = sample(alertDetails)
+		details = sample(d.alertDetails)
 	}
 	var src alert.Source
 	switch rand.Intn(5) {
@@ -412,6 +405,11 @@ func (cfg datagenConfig) Generate() datagen {
 
 	for _, usr := range d.Users {
 		run(rand.Intn(cfg.UserFavMax), func() { d.NewFavorite(usr.ID) })
+	}
+
+	d.alertDetails = make([]string, 20)
+	for i := range d.alertDetails {
+		d.alertDetails[i] = gofakeit.Paragraph(2, 4, 10, "\n\n")
 	}
 
 	run(cfg.AlertClosedCount, func() { d.NewAlert(alert.StatusClosed) })
