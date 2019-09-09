@@ -43,6 +43,9 @@ type datagenConfig struct {
 	ScheduleMaxRules     int
 	ScheduleMaxOverrides int
 	HeartbeatMonitorMax  int
+	UserFavMax           int
+
+	AdminID string
 }
 type rotationPart struct {
 	ID         string
@@ -53,6 +56,10 @@ type rotationPart struct {
 type stepAction struct {
 	ID     string
 	StepID string
+	Tgt    assignment.Target
+}
+type userFavorite struct {
+	UserID string
 	Tgt    assignment.Target
 }
 
@@ -72,6 +79,7 @@ type datagen struct {
 	IntKeys            []integrationkey.IntegrationKey
 	Monitors           []heartbeat.Monitor
 	Alerts             []alert.Alert
+	Favorites          []userFavorite
 
 	ids      *uniqGen
 	ints     *uniqIntGen
@@ -295,6 +303,23 @@ func (d *datagen) NewAlert(status alert.Status) {
 	})
 }
 
+func (d *datagen) NewFavorite(userID string) {
+	var tgt assignment.Target
+	switch rand.Intn(3) {
+	case 0:
+		tgt = assignment.ServiceTarget(d.ids.Gen(func() string { return d.Services[rand.Intn(len(d.Services))].ID }, "favSvc", userID))
+	case 1:
+		tgt = assignment.RotationTarget(d.ids.Gen(func() string { return d.Rotations[rand.Intn(len(d.Rotations))].ID }, "favRot", userID))
+	case 2:
+		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[rand.Intn(len(d.Schedules))].ID }, "favSched", userID))
+	}
+
+	d.Favorites = append(d.Favorites, userFavorite{
+		UserID: userID,
+		Tgt:    tgt,
+	})
+}
+
 // 		end := gofakeit.DateRange(time.Now(), time.Now().AddDate(0, 1, 0))
 // 		start := gofakeit.DateRange(time.Now().AddDate(0, -1, 0), end.Add(-time.Minute))
 func (cfg datagenConfig) Generate() datagen {
@@ -322,6 +347,7 @@ func (cfg datagenConfig) Generate() datagen {
 	setDefault(&cfg.AlertClosedCount, AlertClosedCount)
 	setDefault(&cfg.AlertActiveCount, AlertActiveCount)
 	setDefault(&cfg.HeartbeatMonitorMax, HeartbeatMonitorMax)
+	setDefault(&cfg.UserFavMax, UserFavMax)
 
 	d := datagen{
 		ids:    newGen(),
@@ -336,6 +362,14 @@ func (cfg datagenConfig) Generate() datagen {
 		return times
 	}
 
+	if cfg.AdminID != "" {
+		d.Users = append(d.Users, user.User{
+			ID:    cfg.AdminID,
+			Name:  "Admin McAdminFace",
+			Role:  permission.RoleAdmin,
+			Email: "admin@example.com",
+		})
+	}
 	run(cfg.UserCount, d.NewUser)
 	for _, u := range d.Users {
 		n := run(rand.Intn(cfg.CMMax), func() { d.NewCM(u.ID) })
@@ -375,6 +409,11 @@ func (cfg datagenConfig) Generate() datagen {
 		run(rand.Intn(cfg.IntegrationKeyMax), func() { d.NewIntKey(svc.ID) })
 		run(rand.Intn(cfg.HeartbeatMonitorMax), func() { d.NewMonitor(svc.ID) })
 	}
+
+	for _, usr := range d.Users {
+		run(rand.Intn(cfg.UserFavMax), func() { d.NewFavorite(usr.ID) })
+	}
+
 	run(cfg.AlertClosedCount, func() { d.NewAlert(alert.StatusClosed) })
 	run(cfg.AlertActiveCount, func() { d.NewAlert(alert.StatusActive) })
 

@@ -18,9 +18,13 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+var (
+	adminID string
+)
+
 func main() {
 	log.SetFlags(log.Lshortfile)
-
+	flag.StringVar(&adminID, "admin-id", "", "Generate an admin user with the given ID.")
 	rand := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
 	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
 	dbURL := flag.String("db-url", "user=goalert dbname=goalert sslmode=disable", "DB URL to use.")
@@ -88,7 +92,7 @@ func fillDB(cfg pgx.ConnConfig) error {
 	defer func() {
 		log.Println("Completed in", time.Since(s))
 	}()
-	data := datagenConfig{}.Generate()
+	data := datagenConfig{AdminID: adminID}.Generate()
 	log.Println("Generated random data in", time.Since(s))
 
 	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
@@ -242,6 +246,20 @@ func fillDB(cfg pgx.ConnConfig) error {
 		hb := data.Monitors[n]
 		return []interface{}{asUUID(hb.ID), asUUID(hb.ServiceID), hb.Name, hb.Timeout}
 	}, "services")
+	copyFrom("user_favorites", []string{"user_id", "tgt_service_id", "tgt_schedule_id", "tgt_rotation_id"}, len(data.Favorites), func(n int) []interface{} {
+		fav := data.Favorites[n]
+		var svc, sched, rot *[16]byte
+		id := asUUID(fav.Tgt.TargetID())
+		switch fav.Tgt.TargetType() {
+		case assignment.TargetTypeService:
+			svc = &id
+		case assignment.TargetTypeSchedule:
+			sched = &id
+		case assignment.TargetTypeRotation:
+			rot = &id
+		}
+		return []interface{}{asUUID(fav.UserID), svc, sched, rot}
+	})
 
 	_, err = pool.Exec("alter table alerts disable trigger trg_enforce_alert_limit")
 	must(err)
