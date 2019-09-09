@@ -243,13 +243,16 @@ func fillDB(cfg pgx.ConnConfig) error {
 		return []interface{}{asUUID(hb.ID), asUUID(hb.ServiceID), hb.Name, hb.Timeout}
 	}, "services")
 
+	_, err = pool.Exec("alter table alerts disable trigger trg_enforce_alert_limit")
+	must(err)
 	copyFrom("alerts", []string{"status", "summary", "details", "dedup_key", "service_id", "source"}, len(data.Alerts), func(n int) []interface{} {
 		a := data.Alerts[n]
 		return []interface{}{a.Status, a.Summary, a.Details, a.DedupKey(), asUUID(a.ServiceID), a.Source}
 	}, "services")
 
 	dt.Wait()
-
+	_, err = pool.Exec("alter table alerts enable trigger all")
+	must(err)
 	return nil
 }
 

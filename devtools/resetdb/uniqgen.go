@@ -18,7 +18,7 @@ type strScope struct {
 
 func newGen() *uniqGen {
 	return &uniqGen{
-		m: make(map[strScope]int),
+		m: make(map[strScope]int, 100000),
 	}
 }
 

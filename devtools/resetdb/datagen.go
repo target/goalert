@@ -208,7 +208,6 @@ func (d *datagen) NewEPStepAction(stepID string) {
 		tgt = assignment.RotationTarget(d.ids.Gen(func() string { return d.Rotations[rand.Intn(len(d.Rotations))].ID }, stepID))
 	case 2:
 		tgt = assignment.ScheduleTarget(d.ids.Gen(func() string { return d.Schedules[rand.Intn(len(d.Schedules))].ID }, stepID))
-		// TODO: notification channels
 	}
 	d.EscalationActions = append(d.EscalationActions, stepAction{
 		ID:     gofakeit.UUID(),
@@ -253,10 +252,19 @@ func (d *datagen) NewMonitor(svcID string) {
 		Timeout:   5*time.Minute + time.Duration(rand.Int63n(int64(60*time.Hour))),
 	})
 }
+
+var alertDetails = make([]string, 20)
+
+func init() {
+	for i := range alertDetails {
+		alertDetails[i] = gofakeit.Paragraph(2, 4, 10, "\n\n")
+	}
+}
+
 func (d *datagen) NewAlert(status alert.Status) {
 	var details string
 	if gofakeit.Bool() {
-		details = gofakeit.Paragraph(2, 4, 10, "\n\n")
+		details = sample(alertDetails)
 	}
 	var src alert.Source
 	switch rand.Intn(5) {
@@ -290,10 +298,6 @@ func (d *datagen) NewAlert(status alert.Status) {
 // 		end := gofakeit.DateRange(time.Now(), time.Now().AddDate(0, 1, 0))
 // 		start := gofakeit.DateRange(time.Now().AddDate(0, -1, 0), end.Add(-time.Minute))
 func (cfg datagenConfig) Generate() datagen {
-	d := datagen{
-		ids:  newGen(),
-		ints: newUniqIntGen(),
-	}
 
 	setDefault := func(val *int, def int) {
 		if *val != 0 {
@@ -318,6 +322,12 @@ func (cfg datagenConfig) Generate() datagen {
 	setDefault(&cfg.AlertClosedCount, AlertClosedCount)
 	setDefault(&cfg.AlertActiveCount, AlertActiveCount)
 	setDefault(&cfg.HeartbeatMonitorMax, HeartbeatMonitorMax)
+
+	d := datagen{
+		ids:    newGen(),
+		ints:   newUniqIntGen(),
+		Alerts: make([]alert.Alert, 0, cfg.AlertClosedCount+cfg.AlertActiveCount),
+	}
 
 	run := func(times int, fn func()) int {
 		for i := 0; i < times; i++ {
