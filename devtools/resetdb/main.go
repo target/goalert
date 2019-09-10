@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -54,41 +53,6 @@ func main() {
 		os.Exit(1)
 	}
 
-}
-
-var (
-	genRecords int
-	genTables  int
-)
-
-type table struct {
-	ctx  context.Context
-	stmt *sql.Stmt
-	n    int
-	name string
-	s    time.Time
-}
-
-func NewTable(ctx context.Context, conn *pgx.Conn, tx *sql.Tx, name string, cols []string, vals [][]interface{}) error {
-	rows, err := conn.CopyFrom(pgx.Identifier{name}, cols, pgx.CopyFromRows(vals))
-	if err != nil {
-		return err
-	}
-	genTables++
-	genRecords += rows
-	return nil
-}
-
-func marshal(x string) ([]byte, error) {
-	bID, err := uuid.FromString(x)
-	if err != nil {
-		return nil, err
-	}
-	id, err := bID.MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	return id, nil
 }
 
 func fillDB(cfg pgx.ConnConfig) error {
@@ -286,11 +250,6 @@ func fillDB(cfg pgx.ConnConfig) error {
 	_, err = pool.Exec("alter table alerts enable trigger all")
 	must(err)
 	return nil
-}
-
-// openDB will open dbconfig.yml to detect the datasource, and attempt to open a DB connection.
-func openDB() (*sql.DB, error) {
-	return sql.Open("pgx", "user=goalert dbname=goalert sslmode=disable")
 }
 
 func recreateDB(cfg pgx.ConnConfig) error {

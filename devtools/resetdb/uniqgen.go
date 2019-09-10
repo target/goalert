@@ -3,6 +3,8 @@ package main
 import (
 	"strings"
 	"sync"
+
+	"github.com/brianvoe/gofakeit"
 )
 
 // uniqGen allows generating unique string values.
@@ -25,7 +27,7 @@ func newGen() *uniqGen {
 // PickOne will return a random item from a slice, and will not return the
 // same value twice.
 func (g *uniqGen) PickOne(s []string) string {
-	return g.Gen(func() string { return sample(s) })
+	return g.Gen(func() string { return gofakeit.RandString(s) })
 }
 
 // Gen will call `fn` until a new value is returned.
