@@ -88,7 +88,6 @@ type datagen struct {
 
 	ids          *uniqGen
 	ints         *uniqIntGen
-	phoneInc     int
 	alertDetails []string
 	labelKeyVal  map[string][]string
 	labelKeys    []string
@@ -144,7 +143,7 @@ func (d *datagen) NewRotation() {
 		Name:        d.ids.Gen(idName("Rotation")),
 		Description: gofakeit.Sentence(rand.Intn(10) + 3),
 		Type:        rotationTypes[rand.Intn(len(rotationTypes))],
-		Start:       gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()).In(time.FixedZone(sample(timeZones), 0)),
+		Start:       gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()).In(time.FixedZone(gofakeit.RandString(timeZones), 0)),
 		ShiftLength: rand.Intn(14) + 1,
 	}
 
@@ -167,7 +166,7 @@ func (d *datagen) NewSchedule() {
 		ID:          gofakeit.UUID(),
 		Name:        d.ids.Gen(idName("Schedule")),
 		Description: gofakeit.Sentence(rand.Intn(10) + 3),
-		TimeZone:    time.FixedZone(sample(timeZones), 0),
+		TimeZone:    time.FixedZone(gofakeit.RandString(timeZones), 0),
 	})
 }
 
@@ -285,12 +284,12 @@ func (d *datagen) NewIntKey(svcID string) {
 // NewLabel will generate a random label for the provided service ID.
 func (d *datagen) NewLabel(svcID string) {
 	key := d.ids.Gen(func() string {
-		return sample(d.labelKeys)
+		return gofakeit.RandString(d.labelKeys)
 	}, "labelKey", svcID)
 
 	d.Labels = append(d.Labels, label.Label{
 		Key:    key,
-		Value:  sample(d.labelKeyVal[key]),
+		Value:  gofakeit.RandString(d.labelKeyVal[key]),
 		Target: assignment.ServiceTarget(svcID),
 	})
 }
@@ -309,7 +308,7 @@ func (d *datagen) NewMonitor(svcID string) {
 func (d *datagen) NewAlert(status alert.Status) {
 	var details string
 	if gofakeit.Bool() {
-		details = sample(d.alertDetails)
+		details = gofakeit.RandString(d.alertDetails)
 	}
 	var src alert.Source
 	switch rand.Intn(5) {
