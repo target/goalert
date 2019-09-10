@@ -393,7 +393,7 @@ Migration: %s (#%d)
 			if err != nil {
 				return err
 			}
-			db, err := sql.Open("postgres", c.DBURL)
+			db, err := sql.Open("pgx", c.DBURL)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}
