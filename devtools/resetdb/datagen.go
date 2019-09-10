@@ -108,6 +108,8 @@ func (d *datagen) NewUser() {
 	}
 	d.Users = append(d.Users, u)
 }
+
+// NewCM will generate a contact method for the given UserID.
 func (d *datagen) NewCM(userID string) {
 	cm := contactmethod.ContactMethod{
 		ID:       gofakeit.UUID(),
@@ -123,6 +125,8 @@ func (d *datagen) NewCM(userID string) {
 	cm.Value = d.ids.Gen(d.genPhone, cm.Type.DestType().String())
 	d.ContactMethods = append(d.ContactMethods, cm)
 }
+
+// NewNR will generate a notification rule for the user/contact method provided.
 func (d *datagen) NewNR(userID, cmID string) {
 	nr := notificationrule.NotificationRule{
 		ID:              gofakeit.UUID(),
@@ -132,6 +136,8 @@ func (d *datagen) NewNR(userID, cmID string) {
 	}
 	d.NotificationRules = append(d.NotificationRules, nr)
 }
+
+// NewRotation will generate a rotation.
 func (d *datagen) NewRotation() {
 	r := rotation.Rotation{
 		ID:          gofakeit.UUID(),
@@ -144,6 +150,8 @@ func (d *datagen) NewRotation() {
 
 	d.Rotations = append(d.Rotations, r)
 }
+
+// NewRotationParticipant will create a new rotation participant for the given rotation and position.
 func (d *datagen) NewRotationParticipant(rotID string, pos int) {
 	d.RotationParts = append(d.RotationParts, rotationPart{
 		ID:         gofakeit.UUID(),
@@ -152,6 +160,8 @@ func (d *datagen) NewRotationParticipant(rotID string, pos int) {
 		Pos:        pos,
 	})
 }
+
+// NewSchedule will generate a new random schedule.
 func (d *datagen) NewSchedule() {
 	d.Schedules = append(d.Schedules, schedule.Schedule{
 		ID:          gofakeit.UUID(),
@@ -160,6 +170,8 @@ func (d *datagen) NewSchedule() {
 		TimeZone:    time.FixedZone(sample(timeZones), 0),
 	})
 }
+
+// NewScheduleRule will generate a random schedule rule for the provided schedule ID.
 func (d *datagen) NewScheduleRule(scheduleID string) {
 	var filter rule.WeekdayFilter
 	for i := range filter {
@@ -180,6 +192,8 @@ func (d *datagen) NewScheduleRule(scheduleID string) {
 		Target:        tgt,
 	})
 }
+
+// NewScheduleOverride well generate a random override for the provided schedule ID.
 func (d *datagen) NewScheduleOverride(scheduleID string) {
 	end := gofakeit.DateRange(time.Now().Add(time.Hour), time.Now().Add(30*24*time.Hour))
 	start := gofakeit.DateRange(end.Add(-30*24*time.Hour), end.Add(-time.Hour))
@@ -199,6 +213,7 @@ func (d *datagen) NewScheduleOverride(scheduleID string) {
 	d.Overrides = append(d.Overrides, o)
 }
 
+// NewEP will generate a new escalation policy.
 func (d *datagen) NewEP() {
 	d.EscalationPolicies = append(d.EscalationPolicies, escalation.Policy{
 		ID:          gofakeit.UUID(),
@@ -207,6 +222,8 @@ func (d *datagen) NewEP() {
 		Repeat:      rand.Intn(5) - 1,
 	})
 }
+
+// NewEPStep will generate a random escalation policy step for the provided policy.
 func (d *datagen) NewEPStep(epID string, n int) {
 	d.EscalationSteps = append(d.EscalationSteps, escalation.Step{
 		ID:           gofakeit.UUID(),
@@ -215,6 +232,8 @@ func (d *datagen) NewEPStep(epID string, n int) {
 		StepNumber:   n,
 	})
 }
+
+// NewEPStepAction will generate a new action for the provided step ID.
 func (d *datagen) NewEPStepAction(stepID string) {
 	var tgt assignment.Target
 	switch rand.Intn(3) {
@@ -231,6 +250,8 @@ func (d *datagen) NewEPStepAction(stepID string) {
 		Tgt:    tgt,
 	})
 }
+
+// NewService will generate a random service.
 func (d *datagen) NewService() {
 	d.Services = append(d.Services, service.Service{
 		ID:                 gofakeit.UUID(),
@@ -240,6 +261,7 @@ func (d *datagen) NewService() {
 	})
 }
 
+// NewIntKey will generate a random integration key for the given service ID.
 func (d *datagen) NewIntKey(svcID string) {
 	var typ integrationkey.Type
 	switch rand.Intn(4) {
@@ -260,6 +282,7 @@ func (d *datagen) NewIntKey(svcID string) {
 	})
 }
 
+// NewLabel will generate a random label for the provided service ID.
 func (d *datagen) NewLabel(svcID string) {
 	key := d.ids.Gen(func() string {
 		return sample(d.labelKeys)
@@ -272,6 +295,7 @@ func (d *datagen) NewLabel(svcID string) {
 	})
 }
 
+// NewMonitor will generate a random heartbreat monitor for the provided service ID.
 func (d *datagen) NewMonitor(svcID string) {
 	d.Monitors = append(d.Monitors, heartbeat.Monitor{
 		ID:        gofakeit.UUID(),
@@ -281,6 +305,7 @@ func (d *datagen) NewMonitor(svcID string) {
 	})
 }
 
+// NewAlert will generate an alert with the provided status.
 func (d *datagen) NewAlert(status alert.Status) {
 	var details string
 	if gofakeit.Bool() {
@@ -315,6 +340,7 @@ func (d *datagen) NewAlert(status alert.Status) {
 	})
 }
 
+// NewFavorite will generate a new favorite for the provided user ID.
 func (d *datagen) NewFavorite(userID string) {
 	var tgt assignment.Target
 	switch rand.Intn(3) {
@@ -332,8 +358,7 @@ func (d *datagen) NewFavorite(userID string) {
 	})
 }
 
-// 		end := gofakeit.DateRange(time.Now(), time.Now().AddDate(0, 1, 0))
-// 		start := gofakeit.DateRange(time.Now().AddDate(0, -1, 0), end.Add(-time.Minute))
+// Generate will produce a full random dataset based on the configuration.
 func (cfg datagenConfig) Generate() datagen {
 
 	setDefault := func(val *int, def int) {

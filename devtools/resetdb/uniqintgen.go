@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// uniqIntGen works like uniqGen but returns integers.
 type uniqIntGen struct {
 	m  map[intScope]bool
 	mx sync.Mutex
@@ -24,7 +25,7 @@ func newUniqIntGen() *uniqIntGen {
 
 // Gen will return a random value from 0 to n (non-inclusive).
 //
-// It will always return a different value.
+// It will always return a unique value.
 func (g *uniqIntGen) Gen(n int, scope ...string) int {
 	g.mx.Lock()
 	defer g.mx.Unlock()

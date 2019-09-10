@@ -1,6 +1,6 @@
 package main
 
-// Constant values for data generation
+// Default values for data generation
 const (
 	UserCount            = 1619  // select count(id) from users
 	CMMax                = 7     // select count(id) from user_contact_methods group by user_id order by count desc limit 1

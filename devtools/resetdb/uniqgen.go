@@ -28,10 +28,10 @@ func (g *uniqGen) PickOne(s []string) string {
 	return g.Gen(func() string { return sample(s) })
 }
 
-// Gen will call `fn` until a new value is returned.
+// Gen will call `fn` until a unique value is returned.
 func (g *uniqGen) Gen(fn func() string, scope ...string) string { return g.GenN(1, fn, scope...) }
 
-// Gen will call `fn` until a value that has been used less than N is returned.
+// Gen will call `fn` until a value that has been returned less than N is provided.
 func (g *uniqGen) GenN(n int, fn func() string, scope ...string) string {
 	g.mx.Lock()
 	defer g.mx.Unlock()

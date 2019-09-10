@@ -10,6 +10,7 @@ import (
 	"github.com/target/goalert/schedule/rule"
 )
 
+// pgTime handles encoding rule.Clock values with the native (binary) pgx interface.
 type pgTime rule.Clock
 
 func (t pgTime) AssignTo(dst interface{}) error { return errors.New("cannot AssignTo") }
