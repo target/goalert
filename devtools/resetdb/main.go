@@ -246,6 +246,16 @@ func fillDB(cfg pgx.ConnConfig) error {
 		key := data.IntKeys[n]
 		return []interface{}{asUUID(key.ID), asUUID(key.ServiceID), key.Name, key.Type}
 	}, "services")
+	copyFrom("labels", []string{"tgt_service_id", "key", "value"}, len(data.Labels), func(n int) []interface{} {
+		lbl := data.Labels[n]
+		var svc *[16]byte
+		id := asUUID(lbl.Target.TargetID())
+		switch lbl.Target.TargetType() {
+		case assignment.TargetTypeService:
+			svc = &id
+		}
+		return []interface{}{svc, lbl.Key, lbl.Value}
+	}, "services")
 	copyFrom("heartbeat_monitors", []string{"id", "service_id", "name", "heartbeat_interval"}, len(data.Monitors), func(n int) []interface{} {
 		hb := data.Monitors[n]
 		return []interface{}{asUUID(hb.ID), asUUID(hb.ServiceID), hb.Name, hb.Timeout}

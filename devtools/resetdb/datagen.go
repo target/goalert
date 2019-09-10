@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/label"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -44,6 +45,9 @@ type datagenConfig struct {
 	ScheduleMaxOverrides int
 	HeartbeatMonitorMax  int
 	UserFavMax           int
+	SvcLabelMax          int
+	UniqueLabelKeys      int
+	LabelValueMax        int
 
 	AdminID string
 }
@@ -80,11 +84,14 @@ type datagen struct {
 	Monitors           []heartbeat.Monitor
 	Alerts             []alert.Alert
 	Favorites          []userFavorite
+	Labels             []label.Label
 
 	ids          *uniqGen
 	ints         *uniqIntGen
 	phoneInc     int
 	alertDetails []string
+	labelKeyVal  map[string][]string
+	labelKeys    []string
 }
 
 func (d *datagen) genPhone() string {
@@ -253,6 +260,18 @@ func (d *datagen) NewIntKey(svcID string) {
 	})
 }
 
+func (d *datagen) NewLabel(svcID string) {
+	key := d.ids.Gen(func() string {
+		return sample(d.labelKeys)
+	}, "labelKey", svcID)
+
+	d.Labels = append(d.Labels, label.Label{
+		Key:    key,
+		Value:  sample(d.labelKeyVal[key]),
+		Target: assignment.ServiceTarget(svcID),
+	})
+}
+
 func (d *datagen) NewMonitor(svcID string) {
 	d.Monitors = append(d.Monitors, heartbeat.Monitor{
 		ID:        gofakeit.UUID(),
@@ -341,11 +360,15 @@ func (cfg datagenConfig) Generate() datagen {
 	setDefault(&cfg.AlertActiveCount, AlertActiveCount)
 	setDefault(&cfg.HeartbeatMonitorMax, HeartbeatMonitorMax)
 	setDefault(&cfg.UserFavMax, UserFavMax)
+	setDefault(&cfg.SvcLabelMax, SvcLabelMax)
+	setDefault(&cfg.UniqueLabelKeys, UniqueLabelKeys)
+	setDefault(&cfg.LabelValueMax, LabelValueMax)
 
 	d := datagen{
-		ids:    newGen(),
-		ints:   newUniqIntGen(),
-		Alerts: make([]alert.Alert, 0, cfg.AlertClosedCount+cfg.AlertActiveCount),
+		ids:         newGen(),
+		ints:        newUniqIntGen(),
+		labelKeyVal: make(map[string][]string),
+		Alerts:      make([]alert.Alert, 0, cfg.AlertClosedCount+cfg.AlertActiveCount),
 	}
 
 	run := func(times int, fn func()) int {
@@ -397,10 +420,26 @@ func (cfg datagenConfig) Generate() datagen {
 		run(rand.Intn(cfg.EPMaxAssigned), func() { d.NewEPStepAction(step.ID) })
 	}
 
+	d.labelKeys = make([]string, cfg.UniqueLabelKeys)
+	for i := range d.labelKeys {
+		d.labelKeys[i] = d.ids.Gen(func() string {
+			return gofakeit.DomainName() + "/" + gofakeit.HackerNoun()
+		}, "labelKey")
+	}
+
+	for _, key := range d.labelKeys {
+		run(rand.Intn(cfg.LabelValueMax)+1, func() {
+			d.labelKeyVal[key] = append(d.labelKeyVal[key], d.ids.Gen(func() string {
+				return gofakeit.HackerAdjective() + " " + gofakeit.HackerVerb()
+			}, "labelKeyVal", key))
+		})
+	}
+
 	run(cfg.SvcCount, d.NewService)
 	for _, svc := range d.Services {
 		run(rand.Intn(cfg.IntegrationKeyMax), func() { d.NewIntKey(svc.ID) })
 		run(rand.Intn(cfg.HeartbeatMonitorMax), func() { d.NewMonitor(svc.ID) })
+		run(rand.Intn(cfg.SvcLabelMax), func() { d.NewLabel(svc.ID) })
 	}
 
 	for _, usr := range d.Users {

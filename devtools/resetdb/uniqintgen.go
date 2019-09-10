@@ -29,12 +29,17 @@ func (g *uniqIntGen) Gen(n int, scope ...string) int {
 	g.mx.Lock()
 	defer g.mx.Unlock()
 	scopeVal := strings.Join(scope, "|")
+	var i int
 	for {
+		if i > 5 {
+			panic("aborted after 5 tries")
+		}
 		scope := intScope{
 			value: rand.Intn(n),
 			scope: scopeVal,
 		}
 		if g.m[scope] {
+			i++
 			continue
 		}
 		g.m[scope] = true

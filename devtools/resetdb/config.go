@@ -20,4 +20,7 @@ const (
 	ScheduleMaxOverrides = 24    // select count(*) from user_overrides where end_time > now() group by tgt_schedule_id order by count desc limit 1
 	HeartbeatMonitorMax  = 8     // select count(*) from heartbeat_monitors group by service_id order by count desc limit 1
 	UserFavMax           = 27    // select count(*) from user_favorites group by user_id order by count desc limit 1)
+	SvcLabelMax          = 5     // select count(*) from labels group by tgt_service_id order by count desc limit 1
+	UniqueLabelKeys      = 20    // select count(distinct key) from labels
+	LabelValueMax        = 13    // select count(distinct value) from labels group by key order by count desc limit 1
 )

@@ -36,12 +36,17 @@ func (g *uniqGen) GenN(n int, fn func() string, scope ...string) string {
 	g.mx.Lock()
 	defer g.mx.Unlock()
 	scopeVal := strings.Join(scope, "|")
+	var i int
 	for {
+		if i > 5 {
+			panic("aborted after 5 tries")
+		}
 		scope := strScope{
 			scope: scopeVal,
 			value: fn(),
 		}
 		if g.m[scope] >= n {
+			i++
 			continue
 		}
 		g.m[scope]++
