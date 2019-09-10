@@ -36,7 +36,6 @@ require (
 	github.com/jackc/pgx v3.5.0+incompatible
 	github.com/joho/godotenv v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/lib/pq v1.1.1
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-colorable v0.1.2
 	github.com/pelletier/go-toml v1.4.0

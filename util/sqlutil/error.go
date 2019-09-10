@@ -1,10 +1,7 @@
 package sqlutil
 
 import (
-	"strconv"
-
 	"github.com/jackc/pgx"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -26,21 +23,6 @@ func (e Error) Error() string { return e.err.Error() }
 
 // MapError will return a Error from the given err object or nil otherwise.
 func MapError(err error) *Error {
-	if pqErr, ok := errors.Cause(err).(*pq.Error); ok {
-		pos, _ := strconv.Atoi(pqErr.Position)
-		return &Error{
-			err:            err,
-			Code:           string(pqErr.Code),
-			Message:        pqErr.Message,
-			Detail:         pqErr.Detail,
-			Hint:           pqErr.Hint,
-			TableName:      pqErr.Table,
-			ConstraintName: pqErr.Constraint,
-			Where:          pqErr.Where,
-			ColumnName:     pqErr.Column,
-			Position:       pos,
-		}
-	}
 	if pgxErr, ok := errors.Cause(err).(pgx.PgError); ok {
 		return &Error{
 			err:            err,
