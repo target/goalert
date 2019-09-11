@@ -2,500 +2,268 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
-	"sync"
 	"time"
 
-	"github.com/target/goalert/alert"
-	"github.com/target/goalert/integrationkey"
+	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/migrate"
-	"github.com/target/goalert/permission"
-	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/user/contactmethod"
-	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation/validate"
 
-	"github.com/brianvoe/gofakeit"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 	"github.com/pkg/errors"
-)
-
-func main() {
-	rand := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
-	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
-	flag.Parse()
-	err := doMigrations(skipMigrate)
-	if err != nil {
-		log.Log(context.TODO(), err)
-		os.Exit(1)
-	}
-
-	if *rand {
-		err := fillDB()
-		if err != nil {
-			fmt.Println("ERROR:", err)
-			os.Exit(1)
-		}
-	}
-}
-func noErr(ctx context.Context, err error) {
-	if err == nil {
-		return
-	}
-
-	log.Log(ctx, errors.WithStack(err))
-	os.Exit(1)
-}
-
-// Constant values for data generation
-const (
-	UserCount            = 1619  // select count(id) from users
-	CMMax                = 7     // select count(id) from user_contact_methods group by user_id order by count desc limit 1
-	NRMax                = 15    // select count(id) from user_notification_rules group by user_id order by count desc limit 1
-	NRCMMax              = 11    // select count(id) from user_notification_rules group by user_id,contact_method_id order by count desc limit 1
-	EPCount              = 371   // select count(id) from escalation_policies
-	EPMaxStep            = 8     // select count(id) from escalation_policy_steps group by escalation_policy_id order by count desc limit 1
-	EPMaxAssigned        = 19    // select count(id) from escalation_policy_actions group by escalation_policy_step_id order by count desc limit 1
-	SvcCount             = 397   // select count(id) from services
-	RotationMaxPart      = 50    // select count(id) from rotation_participants group by rotation_id order by count desc limit 1
-	ScheduleCount        = 404   // select count(id) from schedules
-	AlertClosedCount     = 76909 // select count(id) from alerts where status = 'closed'
-	AlertActiveCount     = 2762  // select count(id) from alerts where status = 'triggered' or status = 'active'
-	RotationCount        = 529   // select count(id) from rotations
-	IntegrationKeyMax    = 11    // select count(id) from integration_keys group by service_id order by count desc limit 1
-	ScheduleMaxRules     = 10    // select count(id) from schedule_rules group by schedule_id order by count desc limit 1
-	ScheduleMaxOverrides = 10
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
-	genRecords int
-	genTables  int
+	adminID string
 )
 
-type intGen struct {
-	m  map[int]bool
-	mx sync.Mutex
-}
+func main() {
+	log.SetFlags(log.Lshortfile)
+	flag.StringVar(&adminID, "admin-id", "", "Generate an admin user with the given ID.")
+	seedVal := flag.Int64("seed", 1, "Change the random seed used to generate data.")
+	genData := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
+	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
+	dbURL := flag.String("db-url", "user=goalert dbname=goalert sslmode=disable", "DB URL to use.")
+	flag.Parse()
 
-func newIntGen() *intGen {
-	return &intGen{
-		m: make(map[int]bool),
-	}
-}
-func (g *intGen) Gen(n int) int {
-	g.mx.Lock()
-	defer g.mx.Unlock()
-	for {
-		value := rand.Intn(n)
-		if g.m[value] {
-			continue
-		}
-		g.m[value] = true
-		return value
-	}
-}
+	rand.Seed(*seedVal)
 
-type gen struct {
-	m  map[string]bool
-	mx sync.Mutex
-}
-
-func newGen() *gen {
-	return &gen{
-		m: make(map[string]bool),
-	}
-}
-func (g *gen) PickOne(s []string) string {
-	return g.Gen(func() string { return pickOneStr(s) })
-}
-func (g *gen) Gen(fn func() string) string {
-	g.mx.Lock()
-	defer g.mx.Unlock()
-	for {
-		value := fn()
-		if g.m[value] {
-			continue
-		}
-		g.m[value] = true
-		return value
-	}
-}
-
-func idName(suffix string) func() string {
-	return func() string {
-		var res string
-		for {
-			res = fmt.Sprintf("%s %s %s %s", gofakeit.JobDescriptor(), gofakeit.BuzzWord(), gofakeit.JobLevel(), suffix)
-			err := validate.IDName("", res)
-			if err == nil {
-				return res
-			}
-		}
-	}
-}
-
-func pickOneStr(s []string) string {
-	return s[rand.Intn(len(s))]
-}
-
-type table struct {
-	ctx  context.Context
-	stmt *sql.Stmt
-	n    int
-	name string
-	s    time.Time
-}
-
-func NewTable(ctx context.Context, tx *sql.Tx, name string, cols []string) *table {
-	stmt, err := tx.Prepare(pq.CopyIn(name, cols...))
-	noErr(ctx, err)
-	return &table{ctx: ctx, stmt: stmt, name: name, s: time.Now()}
-}
-func (t *table) Close() {
-	noErr(t.ctx, t.stmt.Close())
-	fmt.Printf("%s: %d records in %s\n", t.name, t.n, time.Since(t.s).String())
-	genRecords += t.n
-	genTables++
-}
-func (t *table) Insert(args ...interface{}) {
-	t.n++
-	_, err := t.stmt.Exec(args...)
-	noErr(t.ctx, err)
-}
-
-func fillDB() error {
-	db, err := openDB()
+	cfg, err := pgx.ParseConnectionString(*dbURL)
 	if err != nil {
-		return errors.Wrap(err, "open DB")
+		log.Fatal("parse config:", err)
 	}
-	defer db.Close()
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	ctx = permission.SystemContext(ctx, "resetdb")
-	start := time.Now()
-	tx, err := db.BeginTx(ctx, nil)
-	noErr(ctx, err)
-
-	defer tx.Rollback()
-
-	users := NewTable(ctx, tx, "users", []string{"id", "name", "role", "email"})
-	usrGen := newGen()
-	var userIDs []string
-	for i := 0; i < UserCount; i++ {
-		id := gofakeit.UUID()
-		userIDs = append(userIDs, id)
-		users.Insert(id, usrGen.Gen(gofakeit.Name), permission.RoleUser, usrGen.Gen(gofakeit.Email))
+	err = doMigrations(*dbURL, cfg, skipMigrate)
+	if err != nil {
+		log.Fatal("apply migrations:", err)
 	}
-	users.Close()
 
-	p := 0
-	phone := func() string {
-		p++
-		return fmt.Sprintf("+17633%06d", p)
+	if !*genData {
+		return
 	}
-	var nRules [][]interface{}
-	cm := NewTable(ctx, tx, "user_contact_methods", []string{"id", "name", "value", "user_id", "type", "disabled"})
-	for _, userID := range userIDs {
-		gen := newGen()
-		typ := contactmethod.TypeSMS
-		if gofakeit.Bool() {
-			typ = contactmethod.TypeVoice
-		}
-		n := rand.Intn(CMMax)
-		var cmIDs []string
-		for i := 0; i < n; i++ {
-			id := gofakeit.UUID()
-			cm.Insert(id, gen.Gen(gofakeit.FirstName), phone(), userID, typ, true)
-			cmIDs = append(cmIDs, id)
-		}
-		nr := 0
-		nrTotal := rand.Intn(NRMax)
-		for _, cmID := range cmIDs {
-			nrGen := newIntGen()
-			n := rand.Intn(NRCMMax) + nr
-			for ; nr <= n && nr <= nrTotal; nr++ {
-				nRules = append(nRules, []interface{}{gofakeit.UUID(), nrGen.Gen(60), cmID, userID})
-			}
-		}
+
+	err = fillDB(cfg)
+	if err != nil {
+		fmt.Println("ERROR:", err)
+		os.Exit(1)
 	}
-	cm.Close()
 
-	nr := NewTable(ctx, tx, "user_notification_rules", []string{"id", "delay_minutes", "contact_method_id", "user_id"})
-	for _, rules := range nRules {
-		nr.Insert(rules...)
-	}
-	nr.Close()
+}
 
-	zones := []string{"America/Chicago", "Europe/Berlin", "UTC"}
-	rotTypes := []rotation.Type{rotation.TypeDaily, rotation.TypeHourly, rotation.TypeWeekly}
+func fillDB(cfg pgx.ConnConfig) error {
+	s := time.Now()
+	defer func() {
+		log.Println("Completed in", time.Since(s))
+	}()
+	data := datagenConfig{AdminID: adminID}.Generate()
+	log.Println("Generated random data in", time.Since(s))
 
-	rotGen := newGen()
-	var rotationIDs []string
-	rot := NewTable(ctx, tx, "rotations", []string{"id", "name", "description", "time_zone", "shift_length", "start_time", "type"})
-	for i := 0; i < RotationCount; i++ {
-		id := gofakeit.UUID()
-		rot.Insert(
-			id,
-			rotGen.Gen(idName("Rotation")),
-			gofakeit.Sentence(rand.Intn(10)+3),
-			zones[rand.Intn(len(zones))],
-			rand.Intn(14)+1,
-			gofakeit.DateRange(time.Now().AddDate(-3, 0, 0), time.Now()),
-			rotTypes[rand.Intn(len(rotTypes))],
-		)
-		rotationIDs = append(rotationIDs, id)
-	}
-	rot.Close()
-
-	rPart := NewTable(ctx, tx, "rotation_participants", []string{"id", "rotation_id", "position", "user_id"})
-	for _, rotID := range rotationIDs {
-		n := rand.Intn(RotationMaxPart)
-		for i := 0; i < n; i++ {
-			rPart.Insert(gofakeit.UUID(), rotID, i, pickOneStr(userIDs)) //duplicates ok
-		}
-	}
-	rPart.Close()
-
-	schedGen := newGen()
-	sc := NewTable(ctx, tx, "schedules", []string{"id", "name", "description", "time_zone"})
-	var scheduleIDs []string
-	for i := 0; i < ScheduleCount; i++ {
-		id := gofakeit.UUID()
-		sc.Insert(id,
-			schedGen.Gen(idName("Schedule")),
-			gofakeit.Sentence(rand.Intn(10)+3),
-			zones[rand.Intn(len(zones))],
-		)
-		scheduleIDs = append(scheduleIDs, id)
-	}
-	sc.Close()
-
-	uo := NewTable(ctx, tx, "user_overrides",
-		[]string{
-			"id",
-			"tgt_schedule_id",
-			"add_user_id",
-			"remove_user_id",
-			"start_time",
-			"end_time",
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     cfg,
+		MaxConnections: 20,
+		AfterConnect: func(conn *pgx.Conn) error {
+			var t pgTime
+			conn.ConnInfo.RegisterDataType(pgtype.DataType{
+				Value: &t,
+				Name:  "time",
+				OID:   1183,
+			})
+			return nil
 		},
-	)
-	for _, schedID := range scheduleIDs {
-		n := rand.Intn(ScheduleMaxOverrides)
-		u := make(map[string]bool, len(userIDs))
-		nextUser := func() string {
-			for {
-				id := pickOneStr(userIDs)
-				if u[id] {
-					continue
-				}
-				u[id] = true
-				return id
+	})
+	if err != nil {
+		return errors.Wrap(err, "connect to db")
+	}
+	defer pool.Close()
+
+	must := func(err error) {
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	asUUID := func(id string) (res [16]byte) {
+		copy(res[:], uuid.FromStringOrNil(id).Bytes())
+		return res
+	}
+	asUUIDPtr := func(id string) *[16]byte {
+		if id == "" {
+			return nil
+		}
+		uid := asUUID(id)
+		return &uid
+	}
+	dt := newDepTree()
+	copyFrom := func(table string, cols []string, n int, get func(int) []interface{}, deps ...string) {
+		dt.Start(table)
+		go func() {
+			defer dt.Done(table)
+			rows := make([][]interface{}, n)
+			for i := 0; i < n; i++ {
+				rows[i] = get(i)
 			}
-		}
-		for i := 0; i < n; i++ {
-			var add, rem sql.NullString
-			if gofakeit.Bool() {
-				add.Valid = true
-				add.String = nextUser()
+			s := time.Now()
+			// wait for deps to finish inserting
+			dt.WaitFor(deps...)
+			_, err = pool.CopyFrom(pgx.Identifier{table}, cols, pgx.CopyFromRows(rows))
+			must(err)
+			log.Printf("inserted %d rows into %s in %s", n, table, time.Since(s).String())
+		}()
+	}
+
+	copyFrom("users", []string{"id", "name", "role", "email"}, len(data.Users), func(n int) []interface{} {
+		u := data.Users[n]
+		return []interface{}{asUUID(u.ID), u.Name, u.Role, u.Email}
+	})
+	copyFrom("user_contact_methods", []string{"id", "user_id", "name", "type", "value", "disabled"}, len(data.ContactMethods), func(n int) []interface{} {
+		cm := data.ContactMethods[n]
+		return []interface{}{asUUID(cm.ID), asUUID(cm.UserID), cm.Name, cm.Type, cm.Value, cm.Disabled}
+	}, "users")
+	copyFrom("user_notification_rules", []string{"id", "user_id", "contact_method_id", "delay_minutes"}, len(data.NotificationRules), func(n int) []interface{} {
+		nr := data.NotificationRules[n]
+		return []interface{}{asUUID(nr.ID), asUUID(nr.UserID), asUUID(nr.ContactMethodID), nr.DelayMinutes}
+	}, "user_contact_methods")
+	copyFrom("rotations", []string{"id", "name", "description", "type", "shift_length", "start_time", "time_zone"}, len(data.Rotations), func(n int) []interface{} {
+		r := data.Rotations[n]
+		zone, _ := r.Start.Zone()
+		return []interface{}{asUUID(r.ID), r.Name, r.Description, r.Type, r.ShiftLength, r.Start, zone}
+	})
+	copyFrom("rotation_participants", []string{"id", "rotation_id", "user_id", "position"}, len(data.RotationParts), func(n int) []interface{} {
+		p := data.RotationParts[n]
+		return []interface{}{asUUID(p.ID), asUUID(p.RotationID), asUUID(p.UserID), p.Pos}
+	}, "rotations", "users")
+	copyFrom("schedules", []string{"id", "name", "description", "time_zone"}, len(data.Schedules), func(n int) []interface{} {
+		s := data.Schedules[n]
+		return []interface{}{asUUID(s.ID), s.Name, s.Description, s.TimeZone.String()}
+	})
+
+	copyFrom("schedule_rules",
+		[]string{"id", "schedule_id", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "start_time", "end_time", "tgt_user_id", "tgt_rotation_id"},
+		len(data.ScheduleRules), func(n int) []interface{} {
+			r := data.ScheduleRules[n]
+
+			id := asUUID(r.Target.TargetID())
+			var usr, rot *[16]byte
+			switch r.Target.TargetType() {
+			case assignment.TargetTypeRotation:
+				rot = &id
+			case assignment.TargetTypeUser:
+				usr = &id
 			}
-			if !add.Valid || gofakeit.Bool() {
-				rem.Valid = true
-				rem.String = nextUser()
+
+			return []interface{}{
+				asUUID(r.ID),
+				asUUID(r.ScheduleID),
+				r.Day(0), r.Day(1), r.Day(2), r.Day(3), r.Day(4), r.Day(5), r.Day(6),
+				pgTime(r.Start),
+				pgTime(r.End),
+				usr,
+				rot,
 			}
-			end := gofakeit.DateRange(time.Now(), time.Now().AddDate(0, 1, 0))
-			start := gofakeit.DateRange(time.Now().AddDate(0, -1, 0), end.Add(-time.Minute))
-			uo.Insert(
-				gofakeit.UUID(),
-				schedID,
-				add, rem,
-				start, end,
-			)
-		}
-	}
-	uo.Close()
+		}, "schedules", "rotations", "users")
 
-	sr := NewTable(ctx, tx, "schedule_rules",
-		[]string{
-			"id",
-			"schedule_id",
-			"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
-			"start_time", "end_time",
-			"tgt_user_id", "tgt_rotation_id",
-		})
-	for _, schedID := range scheduleIDs {
-		n := rand.Intn(ScheduleMaxRules)
-		for i := 0; i < n; i++ {
-			var usr, rot sql.NullString
-			if gofakeit.Bool() {
-				usr.Valid = true
-				usr.String = pickOneStr(userIDs)
-			} else {
-				rot.Valid = true
-				rot.String = pickOneStr(rotationIDs)
-			}
-			sr.Insert(
-				gofakeit.UUID(),
-				schedID,
-				gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(), gofakeit.Bool(),
-				gofakeit.Date(), gofakeit.Date(),
-				usr, rot,
-			)
+	copyFrom("user_overrides", []string{"id", "tgt_schedule_id", "start_time", "end_time", "add_user_id", "remove_user_id"}, len(data.Overrides), func(n int) []interface{} {
+		o := data.Overrides[n]
+		var schedID *[16]byte
+		if o.Target.TargetType() == assignment.TargetTypeSchedule {
+			schedID = asUUIDPtr(o.Target.TargetID())
 		}
-	}
-	sr.Close()
+		addUser := asUUIDPtr(o.AddUserID)
+		remUser := asUUIDPtr(o.RemoveUserID)
+		return []interface{}{asUUID(o.ID), schedID, o.Start, o.End, addUser, remUser}
+	}, "schedules", "users")
 
-	var epIDs []string
-	ep := NewTable(ctx, tx, "escalation_policies", []string{"id", "name", "description", "repeat"})
-	epGen := newGen()
-	for i := 0; i < EPCount; i++ {
-		id := gofakeit.UUID()
-		ep.Insert(id, epGen.Gen(idName("Policy")), gofakeit.Sentence(rand.Intn(10)+3), rand.Intn(3))
-		epIDs = append(epIDs, id)
-	}
-	ep.Close()
+	copyFrom("escalation_policies", []string{"id", "name", "description", "repeat"}, len(data.EscalationPolicies), func(n int) []interface{} {
+		ep := data.EscalationPolicies[n]
+		return []interface{}{asUUID(ep.ID), ep.Name, ep.Description, ep.Repeat}
+	})
+	copyFrom("escalation_policy_steps", []string{"id", "escalation_policy_id", "step_number", "delay"}, len(data.EscalationSteps), func(n int) []interface{} {
+		step := data.EscalationSteps[n]
+		return []interface{}{asUUID(step.ID), asUUID(step.PolicyID), step.StepNumber, step.DelayMinutes}
+	}, "escalation_policies")
 
-	var epStepIDs []string
-	eps := NewTable(ctx, tx, "escalation_policy_steps", []string{"id", "escalation_policy_id", "step_number", "delay"})
-	for _, epID := range epIDs {
-		n := rand.Intn(EPMaxStep)
-		for i := 0; i < n; i++ {
-			id := gofakeit.UUID()
-			eps.Insert(
-				id,
-				epID,
-				i,
-				rand.Intn(25)+5,
-			)
-			epStepIDs = append(epStepIDs, id)
+	copyFrom("escalation_policy_actions", []string{"id", "escalation_policy_step_id", "user_id", "rotation_id", "schedule_id", "channel_id"}, len(data.EscalationActions), func(n int) []interface{} {
+		act := data.EscalationActions[n]
+		var u, r, s, c *[16]byte
+		id := asUUID(act.Tgt.TargetID())
+		switch act.Tgt.TargetType() {
+		case assignment.TargetTypeUser:
+			u = &id
+		case assignment.TargetTypeRotation:
+			r = &id
+		case assignment.TargetTypeSchedule:
+			s = &id
+		case assignment.TargetTypeNotificationChannel:
+			c = &id
 		}
-	}
-	eps.Close()
-
-	epAct := NewTable(ctx, tx, "escalation_policy_actions", []string{"id", "escalation_policy_step_id", "user_id", "schedule_id", "rotation_id"})
-	for _, epStepID := range epStepIDs {
-		epActGen := newGen()
-		n := rand.Intn(EPMaxAssigned)
-		for i := 0; i < n; i++ {
-			var usr, sched, rot sql.NullString
-			switch rand.Intn(3) {
-			case 0:
-				usr.Valid = true
-				usr.String = epActGen.PickOne(userIDs)
-			case 1:
-				sched.Valid = true
-				sched.String = epActGen.PickOne(scheduleIDs)
-			case 2:
-				rot.Valid = true
-				rot.String = epActGen.PickOne(rotationIDs)
-			}
-			epAct.Insert(
-				gofakeit.UUID(),
-				epStepID,
-				usr, sched, rot,
-			)
+		return []interface{}{asUUID(act.ID), asUUID(act.StepID), u, r, s, c}
+	}, "escalation_policy_steps", "users", "schedules", "rotations")
+	copyFrom("services", []string{"id", "name", "description", "escalation_policy_id"}, len(data.Services), func(n int) []interface{} {
+		s := data.Services[n]
+		return []interface{}{asUUID(s.ID), s.Name, s.Description, asUUID(s.EscalationPolicyID)}
+	}, "escalation_policies")
+	copyFrom("integration_keys", []string{"id", "service_id", "name", "type"}, len(data.IntKeys), func(n int) []interface{} {
+		key := data.IntKeys[n]
+		return []interface{}{asUUID(key.ID), asUUID(key.ServiceID), key.Name, key.Type}
+	}, "services")
+	copyFrom("labels", []string{"tgt_service_id", "key", "value"}, len(data.Labels), func(n int) []interface{} {
+		lbl := data.Labels[n]
+		var svc *[16]byte
+		id := asUUID(lbl.Target.TargetID())
+		switch lbl.Target.TargetType() {
+		case assignment.TargetTypeService:
+			svc = &id
 		}
-	}
-	epAct.Close()
-
-	var serviceIDs []string
-	svcGen := newGen()
-	svc := NewTable(ctx, tx, "services", []string{"id", "name", "description", "escalation_policy_id"})
-	for i := 0; i < SvcCount; i++ {
-		id := gofakeit.UUID()
-		svc.Insert(
-			id,
-			svcGen.Gen(idName("Service")),
-			gofakeit.Sentence(rand.Intn(10)+3),
-			pickOneStr(epIDs),
-		)
-		serviceIDs = append(serviceIDs, id)
-	}
-	svc.Close()
-
-	iKey := NewTable(ctx, tx, "integration_keys", []string{"id", "name", "type", "service_id"})
-	for _, serviceID := range serviceIDs {
-		genIKey := newGen()
-		n := rand.Intn(IntegrationKeyMax)
-		for i := 0; i < n; i++ {
-			typ := integrationkey.TypeGrafana
-			if gofakeit.Bool() {
-				typ = integrationkey.TypeGeneric
-			}
-			iKey.Insert(
-				gofakeit.UUID(),
-				genIKey.Gen(idName("Key")),
-				typ,
-				serviceID,
-			)
+		return []interface{}{svc, lbl.Key, lbl.Value}
+	}, "services")
+	copyFrom("heartbeat_monitors", []string{"id", "service_id", "name", "heartbeat_interval"}, len(data.Monitors), func(n int) []interface{} {
+		hb := data.Monitors[n]
+		return []interface{}{asUUID(hb.ID), asUUID(hb.ServiceID), hb.Name, hb.Timeout}
+	}, "services")
+	copyFrom("user_favorites", []string{"user_id", "tgt_service_id", "tgt_schedule_id", "tgt_rotation_id"}, len(data.Favorites), func(n int) []interface{} {
+		fav := data.Favorites[n]
+		var svc, sched, rot *[16]byte
+		id := asUUID(fav.Tgt.TargetID())
+		switch fav.Tgt.TargetType() {
+		case assignment.TargetTypeService:
+			svc = &id
+		case assignment.TargetTypeSchedule:
+			sched = &id
+		case assignment.TargetTypeRotation:
+			rot = &id
 		}
-	}
-	iKey.Close()
+		return []interface{}{asUUID(fav.UserID), svc, sched, rot}
+	})
 
-	aTbl := NewTable(ctx, tx, "alerts", []string{"summary", "details", "status", "service_id", "source", "dedup_key"})
-	totalAlerts := AlertActiveCount + AlertClosedCount
-	for i := 0; i < totalAlerts; i++ {
-		a := alert.Alert{
-			Summary:   gofakeit.Sentence(rand.Intn(10) + 3),
-			Source:    alert.SourceGrafana,
-			ServiceID: pickOneStr(serviceIDs),
-			Status:    alert.StatusClosed,
-		}
+	_, err = pool.Exec("alter table alerts disable trigger trg_enforce_alert_limit")
+	must(err)
+	copyFrom("alerts", []string{"status", "summary", "details", "dedup_key", "service_id", "source"}, len(data.Alerts), func(n int) []interface{} {
+		a := data.Alerts[n]
+		return []interface{}{a.Status, a.Summary, a.Details, a.DedupKey(), asUUID(a.ServiceID), a.Source}
+	}, "services")
 
-		if gofakeit.Bool() {
-			a.Details = gofakeit.Sentence(rand.Intn(30) + 1)
-		}
-		if i < AlertActiveCount {
-			a.Status = alert.StatusActive
-		}
-		if gofakeit.Bool() {
-			a.Source = alert.SourceManual
-		}
-		var dedup *alert.DedupID
-		if a.Status != alert.StatusClosed {
-			dedup = a.DedupKey()
-		}
-		aTbl.Insert(
-			a.Summary,
-			a.Details,
-			a.Status,
-			a.ServiceID,
-			a.Source,
-			dedup,
-		)
-	}
-	aTbl.Close()
-
-	noErr(ctx, tx.Commit())
-	fmt.Printf("Finished %d records across %d tables in %s\n", genRecords, genTables, time.Since(start).String())
-
+	dt.Wait()
+	_, err = pool.Exec("alter table alerts enable trigger all")
+	must(err)
 	return nil
 }
 
-// openDB will open dbconfig.yml to detect the datasource, and attempt to open a DB connection.
-func openDB() (*sql.DB, error) {
-	return sql.Open("postgres", "user=goalert dbname=goalert sslmode=disable")
-}
+func recreateDB(cfg pgx.ConnConfig) error {
+	conn, err := pgx.Connect(cfg)
+	if err != nil {
+		return errors.Wrap(err, "connect to DB")
+	}
+	defer conn.Close()
 
-func recreateDB() error {
-	db, err := sql.Open("postgres", "user=goalert dbname=postgres sslmode=disable")
+	_, err = conn.Exec("drop database if exists goalert")
 	if err != nil {
 		return err
 	}
-	defer db.Close()
-
-	_, err = db.Exec("drop database if exists goalert")
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("create database goalert")
+	_, err = conn.Exec("create database goalert")
 	return err
 }
 
@@ -509,23 +277,18 @@ func resetDB(url string) error {
 	return err
 }
 
-func doMigrations(skipMigrate *bool) error {
-	err := recreateDB()
+func doMigrations(url string, cfg pgx.ConnConfig, skipMigrate *bool) error {
+	cfg.Database = "postgres"
+	err := recreateDB(cfg)
 	if err != nil {
 		return errors.Wrap(err, "recreate DB")
 	}
-
-	db, err := openDB()
-	if err != nil {
-		return errors.Wrap(err, "open DB")
-	}
-	defer db.Close()
 
 	if *skipMigrate {
 		return nil
 	}
 
-	err = resetDB("user=goalert dbname=goalert sslmode=disable")
+	err = resetDB(url)
 	if err != nil {
 		return errors.Wrap(err, "perform migration after resettting")
 	}

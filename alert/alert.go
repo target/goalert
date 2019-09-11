@@ -3,9 +3,10 @@ package alert
 import (
 	"crypto/sha512"
 	"encoding/hex"
-	"github.com/target/goalert/validation/validate"
 	"strings"
 	"time"
+
+	"github.com/target/goalert/validation/validate"
 )
 
 // maximum lengths
@@ -30,6 +31,9 @@ type Alert struct {
 // The Dedup prop is used if non-nil, otherwise one is generated
 // using the Description of the Alert.
 func (a *Alert) DedupKey() *DedupID {
+	if a.Status == StatusClosed {
+		return nil
+	}
 	if a.Dedup != nil {
 		return a.Dedup
 	}
