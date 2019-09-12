@@ -6,6 +6,32 @@ import { mergeFields, fieldAlias, mapInputVars } from '../util/graphql'
 import FavoriteIcon from '@material-ui/icons/Star'
 import { DEBOUNCE_DELAY } from '../config'
 import { useQuery } from 'react-apollo'
+import { Typography, makeStyles } from '@material-ui/core'
+import { Error } from '@material-ui/icons'
+import { styles } from '../styles/materialStyles'
+
+const useStyles = makeStyles(theme => {
+  return {
+    error: styles(theme).error,
+  }
+})
+
+function ErrorMessage({ value }) {
+  const classes = useStyles()
+  return (
+    <React.Fragment>
+      <Typography
+        component='span'
+        variant='subtitle1'
+        style={{ display: 'flex' }}
+      >
+        <Error className={classes.error} />
+        &nbsp;
+        <span className={classes.error}>{value}</span>
+      </Typography>
+    </React.Fragment>
+  )
+}
 
 // valueCheck ensures the type is `arrayOf(p.string)` if `multiple` is set
 // and `p.string` otherwise.
@@ -97,10 +123,14 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       variables: { input },
       fetchPolicy: 'network-only',
       pollInterval: 0,
+      errorPolicy: 'all', // needs to be set explicitly for some reason
     })
 
     let result = []
 
+    if (error) {
+      return [[], { error }]
+    }
     if (!loading && data && data.data) {
       result = data.data.nodes.map(mapNode)
     }
@@ -215,7 +245,11 @@ export function makeQuerySelect(displayName, options) {
     }
 
     let noOptionsMessage = 'No options'
-    if (!searchInput && !selectOptions.length)
+    if (optionsError) {
+      noOptionsMessage = (
+        <ErrorMessage value={optionsError.message || optionsError} />
+      )
+    } else if (!searchInput && !selectOptions.length)
       noOptionsMessage = 'Start typing...'
     else if (optionsError) noOptionsMessage = 'Error: ' + optionsError
 
