@@ -24,7 +24,7 @@ module.exports = {
     publicPath: '/',
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.css', '.scss'],
+    extensions: ['.js', '.jsx', '.css'],
   },
   module: {
     rules: [
@@ -35,20 +35,6 @@ module.exports = {
           { loader: 'ifdef-loader', options: { production: true, HMR: false } },
         ],
         include: [APP],
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          'style-loader',
-          { loader: 'css-loader', options: { importLoaders: 1 } },
-          'postcss-loader',
-          {
-            loader: 'sass-loader',
-            options: {
-              includePaths: ['./node_modules'],
-            },
-          },
-        ],
       },
       {
         test: /\.css$/,
