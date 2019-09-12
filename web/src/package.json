@@ -4,10 +4,10 @@
   "description": "user interface for the goalert project",
   "main": "index.js",
   "scripts": {
-    "slint": "stylelint ./app/**/*.css ./app/**/*.scss --syntax scss",
+    "slint": "stylelint ./app/**/*.css",
     "lint": "eslint .",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
-    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,scss,ts,html}' || eslint --fix .",
+    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,html}' || eslint --fix .",
     "build-deps": "webpack --config ./webpack.dll.config.js --progress"
   },
   "jest": {
@@ -33,9 +33,9 @@
       "eslint --fix",
       "git add"
     ],
-    "*.{css,scss}": [
+    "*.css": [
       "prettier --write",
-      "stylelint --syntax scss",
+      "stylelint",
       "git add"
     ]
   },
@@ -145,14 +145,12 @@
     "jest": "24.9.0",
     "json-loader": "0.5.7",
     "lint-staged": "9.2.5",
-    "node-sass": "4.12.0",
     "postcss-loader": "3.0.0",
     "prettier": "1.18.2",
     "raw-loader": "3.1.0",
     "react-hot-loader": "4.12.12",
     "redux": "4.0.4",
     "redux-devtools-extension": "2.13.8",
-    "sass-loader": "7.1.0",
     "style-loader": "1.0.0",
     "stylelint": "10.1.0",
     "stylelint-config-standard": "18.3.0",
