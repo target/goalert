@@ -88,6 +88,7 @@ const defaultLink = ApolloLink.from([
 export const LegacyGraphQLClient = new ApolloClient({
   link: defaultLink,
   cache: new InMemoryCache(),
+  defaultOptions: { errorPolicy: 'all' },
 })
 
 const graphql2HttpLink = createHttpLink({
@@ -130,7 +131,7 @@ cache = new InMemoryCache({
   },
 })
 
-const queryOpts = { fetchPolicy: 'cache-and-network' }
+const queryOpts = { fetchPolicy: 'cache-and-network', errorPolicy: 'all' }
 if (new URLSearchParams(location.search).get('poll') !== '0') {
   queryOpts.pollInterval = POLL_INTERVAL
 }
