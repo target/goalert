@@ -183,7 +183,6 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Service, error
 	if opts == nil {
 		opts = &SearchOptions{}
 	}
-	return nil, errors.New("who knew?")
 
 	userCheck := permission.User
 	if opts.FavoritesUserID != "" {
