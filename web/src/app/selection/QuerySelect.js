@@ -174,7 +174,6 @@ export function makeQuerySelect(displayName, options) {
 
     const [search, setSearch] = useState('')
     const [searchInput, setSearchInput] = useState('')
-    const [renderCheck, setRenderCheck] = useState(0)
     const [optionCache] = useState({})
     const [selectValue] = useValues(value)
     const [
@@ -195,10 +194,6 @@ export function makeQuerySelect(displayName, options) {
     }
 
     useEffect(() => {
-      const t = setTimeout(() => setRenderCheck(renderCheck + 1), 1000)
-      return () => clearTimeout(t)
-    })
-    useEffect(() => {
       const t = setTimeout(() => setSearch(searchInput), DEBOUNCE_DELAY)
 
       return () => clearTimeout(t)
@@ -216,7 +211,7 @@ export function makeQuerySelect(displayName, options) {
       const created = asArray(newVal).find(v => v.isCreate)
       if (created) onCreate(created.value)
       else if (multiple) onChange(asArray(newVal).map(v => v.value))
-      else onChange(newVal.value)
+      else onChange((newVal && newVal.value) || null)
     }
 
     let noOptionsMessage = 'No options'
