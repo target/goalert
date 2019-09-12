@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/migrate"
 
@@ -243,7 +244,11 @@ func fillDB(cfg pgx.ConnConfig) error {
 	must(err)
 	copyFrom("alerts", []string{"status", "summary", "details", "dedup_key", "service_id", "source"}, len(data.Alerts), func(n int) []interface{} {
 		a := data.Alerts[n]
-		return []interface{}{a.Status, a.Summary, a.Details, a.DedupKey(), asUUID(a.ServiceID), a.Source}
+		var dedup *alert.DedupID
+		if a.Status != alert.StatusClosed {
+			dedup = a.DedupKey()
+		}
+		return []interface{}{a.Status, a.Summary, a.Details, dedup, asUUID(a.ServiceID), a.Source}
 	}, "services")
 
 	dt.Wait()
