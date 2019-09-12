@@ -113,7 +113,7 @@ function makeUseValues(query, mapNode) {
 function makeUseOptions(query, mapNode, vars, defaultVars) {
   const q = fieldAlias(query, 'data')
   return function useOptions(value, search) {
-    const params = { first: 5, omit: asArray(value) }
+    const params = { first: 5, omit: Array.isArray(value) ? value : [] } // only omit in multi-select mode
     const input = search
       ? { ...vars, ...params, search }
       : { ...defaultVars, ...params }
