@@ -4,6 +4,11 @@ import (
 	context "context"
 	"database/sql"
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/oncall"
@@ -14,10 +19,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type Schedule App

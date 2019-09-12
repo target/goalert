@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/stdlib"
 )
 
 func waitForHTTP(ctx context.Context, url string) {
@@ -32,7 +32,7 @@ func waitForHTTP(ctx context.Context, url string) {
 func waitForPostgres(ctx context.Context, connStr string) {
 	t := time.NewTicker(3 * time.Second)
 	defer t.Stop()
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		log.Fatal("db open:", err)
 	}

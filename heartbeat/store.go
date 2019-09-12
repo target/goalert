@@ -3,9 +3,9 @@ package heartbeat
 import (
 	"context"
 	"database/sql"
-	"time"
+	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/pgtype"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -61,23 +61,23 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		create: p.P(`
 			insert into heartbeat_monitors (
 				id, name, service_id, heartbeat_interval
-			) values ($1, $2, $3, ($4||' minutes')::interval)
+			) values ($1, $2, $3, $4)
 		`),
 		findAll: p.P(`
 			select
-				id, name, service_id, EXTRACT(EPOCH FROM heartbeat_interval), last_state, last_heartbeat
+				id, name, service_id, heartbeat_interval, last_state, last_heartbeat
 			from heartbeat_monitors
 			where service_id = $1
 		`),
 		findMany: p.P(`
 			select
-				id, name, service_id, EXTRACT(EPOCH FROM heartbeat_interval), last_state, last_heartbeat
+				id, name, service_id, heartbeat_interval, last_state, last_heartbeat
 			from heartbeat_monitors
 			where id = any($1)
 		`),
 		findOneUpd: p.P(`
 			select
-				id, name, service_id, EXTRACT(EPOCH FROM heartbeat_interval), last_state, last_heartbeat
+				id, name, service_id, heartbeat_interval, last_state, last_heartbeat
 			from heartbeat_monitors
 			where id = $1
 			for update
@@ -90,7 +90,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			update heartbeat_monitors
 			set
 				name = $2,
-				heartbeat_interval = ($3||' minutes')::interval
+				heartbeat_interval = $3
 			where id = $1
 		`),
 		getSvcID: p.P(`select service_id from heartbeat_monitors where id = $1`),
@@ -114,9 +114,12 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor, e
 	}
 	n.ID = uuid.NewV4().String()
 	n.lastState = StateInactive
-
-	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, n.Timeout/time.Minute)
-
+	var timeout pgtype.Interval
+	err = timeout.Set(n.Timeout)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.ServiceID, &timeout)
 	return n, err
 }
 func (db *DB) Heartbeat(ctx context.Context, id string) error {
@@ -141,7 +144,7 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
@@ -163,7 +166,12 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Timeout/time.Minute)
+	var timeout pgtype.Interval
+	err = timeout.Set(n.Timeout)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, &timeout)
 	return err
 }
 
@@ -200,7 +208,7 @@ func (db *DB) FindMany(ctx context.Context, ids ...string) ([]Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids))
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err != nil {
 		return nil, err
 	}

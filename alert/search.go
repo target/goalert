@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"strconv"
 	"text/template"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -119,21 +119,17 @@ func (opts renderData) Normalize() (*renderData, error) {
 }
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
-	stat := make(pq.StringArray, len(opts.Status))
+	stat := make(sqlutil.StringArray, len(opts.Status))
 	for i := range opts.Status {
 		stat[i] = string(opts.Status[i])
-	}
-	omit := make(pq.Int64Array, len(opts.Omit))
-	for i := range opts.Omit {
-		omit[i] = int64(opts.Omit[i])
 	}
 	return []sql.NamedArg{
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("status", stat),
-		sql.Named("services", pq.StringArray(opts.Services)),
+		sql.Named("services", sqlutil.UUIDArray(opts.Services)),
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
-		sql.Named("omit", pq.Int64Array(omit)),
+		sql.Named("omit", sqlutil.IntArray(opts.Omit)),
 	}
 }
 

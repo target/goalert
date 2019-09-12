@@ -6,12 +6,12 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"strconv"
 	"strings"
 	"text/template"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -134,7 +134,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("valueSearch", opts.ValueSearch()),
 		sql.Named("afterKey", opts.After.Key),
 		sql.Named("afterServiceID", afterServiceID),
-		sql.Named("omit", pq.StringArray(opts.Omit)),
+		sql.Named("omit", sqlutil.StringArray(opts.Omit)),
 	}
 }
 

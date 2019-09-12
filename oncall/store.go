@@ -8,10 +8,10 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -203,7 +203,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		rotIDs = append(rotIDs, rot.ID)
 	}
 
-	rows, err = tx.StmtContext(ctx, db.rotParts).QueryContext(ctx, pq.StringArray(rotIDs))
+	rows, err = tx.StmtContext(ctx, db.rotParts).QueryContext(ctx, sqlutil.UUIDArray(rotIDs))
 	if err != nil {
 		return nil, errors.Wrap(err, "lookup rotation participants")
 	}
@@ -242,7 +242,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 	var userHistory []Shift
 	for rows.Next() {
 		var s Shift
-		var end pq.NullTime
+		var end sqlutil.NullTime
 		err = rows.Scan(&s.UserID, &s.Start, &end)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan on-call history info")

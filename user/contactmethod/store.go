@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/lib/pq"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -177,11 +177,11 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	}
 
 	if permission.Admin(ctx) {
-		_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, pq.StringArray(ids))
+		_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, sqlutil.UUIDArray(ids))
 		return err
 	}
 
-	rows, err := wrapTx(ctx, tx, db.lookupUserID).QueryContext(ctx, pq.StringArray(ids))
+	rows, err := wrapTx(ctx, tx, db.lookupUserID).QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	if err != nil {
 		return err
 	}
-	_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, pq.StringArray(ids))
+	_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 
@@ -303,7 +303,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]ContactMethod, erro
 		return nil, err
 	}
 
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids))
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err != nil {
 		return nil, err
 	}

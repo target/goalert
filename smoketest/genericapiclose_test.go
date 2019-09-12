@@ -2,11 +2,12 @@ package smoketest
 
 import (
 	"bytes"
-	"github.com/target/goalert/smoketest/harness"
 	"net/http"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 func TestGenericAPIClose(t *testing.T) {
@@ -88,4 +89,7 @@ func TestGenericAPIClose(t *testing.T) {
 	h.FastForward(time.Minute)
 
 	d.ExpectSMS("test1")
+
+	h.Trigger()
+	time.Sleep(5 * time.Second)
 }

@@ -3,15 +3,16 @@ package schedulemanager
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
-	"time"
+	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -79,10 +80,9 @@ func (db *DB) update(ctx context.Context) error {
 	tz := make(map[string]*time.Location)
 	for rows.Next() {
 		var r userRule
-		filter := make(pq.BoolArray, 7)
 		err = rows.Scan(
 			&r.ScheduleID,
-			&filter,
+			&r.WeekdayFilter,
 			&r.Start,
 			&r.End,
 			&tzName,
@@ -90,9 +90,6 @@ func (db *DB) update(ctx context.Context) error {
 		)
 		if err != nil {
 			return errors.Wrap(err, "scan rule")
-		}
-		for i, v := range filter {
-			r.SetDay(time.Weekday(i), v)
 		}
 		if tz[r.ScheduleID] == nil {
 			tz[r.ScheduleID], err = util.LoadLocation(tzName)
@@ -175,9 +172,9 @@ func (db *DB) update(ctx context.Context) error {
 }
 
 func isScheduleDeleted(err error) bool {
-	dbErr, ok := err.(*pq.Error)
-	if !ok {
+	dbErr := sqlutil.MapError(err)
+	if dbErr == nil {
 		return false
 	}
-	return dbErr.Constraint == "schedule_on_call_users_schedule_id_fkey"
+	return dbErr.ConstraintName == "schedule_on_call_users_schedule_id_fkey"
 }

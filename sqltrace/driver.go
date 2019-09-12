@@ -2,12 +2,18 @@ package sqltrace
 
 import (
 	"database/sql/driver"
+
+	"github.com/jackc/pgx/stdlib"
 )
 
 type _Driver struct {
 	drv          driver.Driver
 	includeQuery bool
 	includeArgs  bool
+
+	// TODO: remove once pgx supports specifying `sql.LevelRepeatableRead`
+	// https://github.com/jackc/pgx/pull/572
+	pgxRRFix bool
 }
 
 // WrapOptions allow specifying additional information to include in the trace.
@@ -21,7 +27,9 @@ func WrapDriver(drv driver.Driver, opts *WrapOptions) driver.DriverContext {
 	if opts == nil {
 		opts = &WrapOptions{}
 	}
-	return &_Driver{drv: drv, includeArgs: opts.Args, includeQuery: opts.Query}
+
+	_, pgxRRFix := drv.(*stdlib.Driver)
+	return &_Driver{drv: drv, includeArgs: opts.Args, includeQuery: opts.Query, pgxRRFix: pgxRRFix}
 }
 
 func (d *_Driver) Open(name string) (driver.Conn, error) {

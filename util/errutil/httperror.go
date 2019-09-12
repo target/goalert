@@ -3,15 +3,13 @@ package errutil
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/limit"
-	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation"
 	"net/http"
 
-	"github.com/lib/pq"
-
 	"github.com/pkg/errors"
+	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 )
 
 func isCtxCause(err error) bool {
@@ -27,7 +25,7 @@ func isCtxCause(err error) bool {
 
 	// 57014 = query_canceled
 	// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-	if e, ok := err.(*pq.Error); ok && e.Code == "57014" {
+	if e := sqlutil.MapError(err); e != nil && e.Code == "57014" {
 		return true
 	}
 
@@ -57,7 +55,7 @@ func HTTPError(ctx context.Context, w http.ResponseWriter, err error) bool {
 		http.Error(w, errors.Cause(err).Error(), http.StatusBadRequest)
 		return true
 	}
-	if limit.IsLimitError(err) {
+	if IsLimitError(err) {
 		log.Debug(ctx, err)
 		http.Error(w, errors.Cause(err).Error(), http.StatusConflict)
 		return true
