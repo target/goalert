@@ -3,8 +3,8 @@ package schedule
 import (
 	"context"
 	"database/sql"
+	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -92,7 +92,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
 		return nil, err
 	}
 	userID := permission.UserID(ctx)
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids), userID)
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -283,6 +283,6 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }

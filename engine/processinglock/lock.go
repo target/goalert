@@ -3,9 +3,11 @@ package processinglock
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/util"
 
-	"github.com/lib/pq"
+	"github.com/target/goalert/lock"
+	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
+
 	"go.opencensus.io/trace"
 )
 
@@ -14,6 +16,8 @@ type Lock struct {
 	cfg      Config
 	db       *sql.DB
 	lockStmt *sql.Stmt
+
+	advLockStmt *sql.Stmt
 }
 type txBeginner interface {
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
@@ -23,8 +27,9 @@ type txBeginner interface {
 func NewLock(ctx context.Context, db *sql.DB, cfg Config) (*Lock, error) {
 	p := &util.Prepare{Ctx: ctx, DB: db}
 	return &Lock{
-		db:  db,
-		cfg: cfg,
+		db:          db,
+		cfg:         cfg,
+		advLockStmt: p.P(`select pg_try_advisory_xact_lock_shared($1)`),
 		lockStmt: p.P(`
 			select version
 			from engine_processing_versions
@@ -44,6 +49,18 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 		return nil, err
 	}
 
+	// Ensure the engine isn't running or that it waits for migrations to complete.
+	var gotAdvLock bool
+	err = tx.StmtContext(ctx, l.advLockStmt).QueryRowContext(ctx, lock.GlobalMigrate).Scan(&gotAdvLock)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	if !gotAdvLock {
+		tx.Rollback()
+		return nil, ErrNoLock
+	}
+
 	var dbVersion int
 	err = tx.StmtContext(ctx, l.lockStmt).QueryRowContext(ctx, l.cfg.Type).Scan(&dbVersion)
 	if err != nil {
@@ -51,7 +68,7 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions) 
 		// 55P03 is lock_not_available (due to the `nowait` in the query)
 		//
 		// https://www.postgresql.org/docs/9.4/static/errcodes-appendix.html
-		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "55P03" {
+		if sqlErr := sqlutil.MapError(err); sqlErr != nil && sqlErr.Code == "55P03" {
 			return nil, ErrNoLock
 		}
 		return nil, err

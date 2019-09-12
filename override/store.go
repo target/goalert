@@ -6,11 +6,11 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"time"
 
-	"github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -235,7 +235,7 @@ func (db *DB) DeleteUserOverrideTx(ctx context.Context, tx *sql.Tx, ids ...strin
 		return err
 	}
 
-	_, err = wrap(db.deleteUO, tx).ExecContext(ctx, pq.StringArray(ids))
+	_, err = wrap(db.deleteUO, tx).ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 

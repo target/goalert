@@ -3,6 +3,7 @@ package override
 import (
 	"context"
 	"database/sql"
+	"github.com/target/goalert/util/sqlutil"
 	"text/template"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -120,10 +120,10 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("scheduleID", opts.ScheduleID),
 		sql.Named("startTime", opts.Start),
 		sql.Named("endTime", opts.End),
-		sql.Named("addUserIDs", pq.StringArray(opts.AddUserIDs)),
-		sql.Named("removeUserIDs", pq.StringArray(opts.RemoveUserIDs)),
-		sql.Named("anyUserIDs", pq.StringArray(opts.AnyUserIDs)),
-		sql.Named("omit", pq.StringArray(opts.Omit)),
+		sql.Named("addUserIDs", sqlutil.UUIDArray(opts.AddUserIDs)),
+		sql.Named("removeUserIDs", sqlutil.UUIDArray(opts.RemoveUserIDs)),
+		sql.Named("anyUserIDs", sqlutil.UUIDArray(opts.AnyUserIDs)),
+		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
 	}
 }
 

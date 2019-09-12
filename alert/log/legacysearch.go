@@ -5,13 +5,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/target/goalert/util/sqlutil"
+	"time"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -124,7 +125,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]En
 	orderStr := buf.String()
 	// Refer to https://github.com/jackc/pgx/issues/281 on why to include a typecast before comparing to null
 	whereStr := `WHERE 
-	($1 = '0' or a.alert_id = $1 ::int) and 
+	($1::int = 0 or a.alert_id = $1::int) and 
 	($2 = '' or alerts.service_id = cast($2 as UUID)) and
 	(coalesce(a.timestamp >= cast($3 as timestamp with time zone), true)) and 
 	(coalesce(a.timestamp < cast($4 as timestamp with time zone), true)) and
@@ -174,7 +175,7 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]En
 	}
 	defer tx.Rollback()
 
-	var start, end pq.NullTime
+	var start, end sqlutil.NullTime
 	if !opts.Start.IsZero() {
 		start.Valid = true
 		start.Time = opts.Start

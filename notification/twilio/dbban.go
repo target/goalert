@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/target/goalert/util/sqlutil"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/target/goalert/util"
 )
 
@@ -37,7 +37,7 @@ func newBanDB(ctx context.Context, db *sql.DB, c *Config, tableName string) (*db
 			)
 			VALUES
 				($1, $2, $3)
-		`, pq.QuoteIdentifier(tableName))),
+		`, sqlutil.QuoteID(tableName))),
 		isBanned: p.P(fmt.Sprintf(`
 			select count(1)
 			from %s
@@ -46,7 +46,7 @@ func newBanDB(ctx context.Context, db *sql.DB, c *Config, tableName string) (*db
 				and occurred_at between
 					(now() - '%f minutes'::interval) and now()
 		`,
-			pq.QuoteIdentifier(tableName),
+			sqlutil.QuoteID(tableName),
 			banDuration.Minutes(),
 		)),
 	}, p.Err

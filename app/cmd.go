@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/stdlib"
 	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -84,7 +84,7 @@ var RootCmd = &cobra.Command{
 			}
 		}()
 
-		wrappedDriver := sqltrace.WrapDriver(&pq.Driver{}, &sqltrace.WrapOptions{Query: true, Args: true})
+		wrappedDriver := sqltrace.WrapDriver(stdlib.GetDefaultDriver(), &sqltrace.WrapOptions{Query: true})
 
 		u, err := url.Parse(cfg.DBURL)
 		if err != nil {
@@ -98,6 +98,15 @@ var RootCmd = &cobra.Command{
 		}
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
+
+		s := time.Now()
+		n, err := migrate.ApplyAll(log.EnableDebug(ctx), cfg.DBURL)
+		if err != nil {
+			return errors.Wrap(err, "apply migrations")
+		}
+		if n > 0 {
+			log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
+		}
 
 		dbc, err := wrappedDriver.OpenConnector(cfg.DBURL)
 		if err != nil {
@@ -289,17 +298,12 @@ Migration: %s (#%d)
 			if err != nil {
 				return err
 			}
-			db, err := sql.Open("postgres", c.DBURL)
-			if err != nil {
-				return errors.Wrap(err, "connect to postgres")
-			}
-			defer db.Close()
 
 			ctx := context.Background()
 			down := viper.GetString("down")
 			up := viper.GetString("up")
 			if down != "" {
-				n, err := migrate.Down(ctx, db, down)
+				n, err := migrate.Down(ctx, c.DBURL, down)
 
 				if err != nil {
 					return errors.Wrap(err, "apply DOWN migrations")
@@ -310,7 +314,7 @@ Migration: %s (#%d)
 			}
 
 			if up != "" || down == "" {
-				n, err := migrate.Up(ctx, db, up)
+				n, err := migrate.Up(ctx, c.DBURL, up)
 
 				if err != nil {
 					return errors.Wrap(err, "apply UP migrations")
@@ -389,7 +393,7 @@ Migration: %s (#%d)
 			if err != nil {
 				return err
 			}
-			db, err := sql.Open("postgres", c.DBURL)
+			db, err := sql.Open("pgx", c.DBURL)
 			if err != nil {
 				return errors.Wrap(err, "connect to postgres")
 			}

@@ -3,9 +3,9 @@ package dbsync
 import (
 	"context"
 	"fmt"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/abiosoft/ishell"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/vbauerster/mpb/v4"
 	"github.com/vbauerster/mpb/v4/decor"
@@ -57,14 +57,14 @@ func changeLogTrigName(tableName string) string {
 }
 
 func changeLogTrigDel(tableName string) string {
-	return fmt.Sprintf(`DROP TRIGGER IF EXISTS %s ON %s`, pq.QuoteIdentifier(changeLogTrigName(tableName)), pq.QuoteIdentifier(tableName))
+	return fmt.Sprintf(`DROP TRIGGER IF EXISTS %s ON %s`, sqlutil.QuoteID(changeLogTrigName(tableName)), sqlutil.QuoteID(tableName))
 }
 func changeLogTrigDef(tableName string) string {
 	return fmt.Sprintf(`
 		CREATE TRIGGER %s
 		AFTER INSERT OR UPDATE OR DELETE ON %s
 		FOR EACH ROW EXECUTE PROCEDURE fn_process_change_log()`,
-		pq.QuoteIdentifier(changeLogTrigName(tableName)), pq.QuoteIdentifier(tableName))
+		sqlutil.QuoteID(changeLogTrigName(tableName)), sqlutil.QuoteID(tableName))
 }
 
 // ChangeLogEnable will instrument the database for the sync operation.

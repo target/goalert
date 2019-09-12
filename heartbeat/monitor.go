@@ -1,9 +1,10 @@
 package heartbeat
 
 import (
+	"github.com/target/goalert/util/sqlutil"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/pgtype"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -41,15 +42,17 @@ func (m Monitor) Normalize() (*Monitor, error) {
 }
 
 func (m *Monitor) scanFrom(scanFn func(...interface{}) error) error {
-	var t pq.NullTime
-	var timeoutVal int
+	var t sqlutil.NullTime
 
-	err := scanFn(&m.ID, &m.Name, &m.ServiceID, &timeoutVal, &m.lastState, &t)
+	var timeout pgtype.Interval
+	err := scanFn(&m.ID, &m.Name, &m.ServiceID, &timeout, &m.lastState, &t)
 	if err != nil {
 		return err
 	}
-	// Postgres EPOCH is seconds
-	m.Timeout = time.Second * time.Duration(timeoutVal)
+	err = timeout.AssignTo(&m.Timeout)
+	if err != nil {
+		return err
+	}
 	m.lastHeartbeat = t.Time
 	return nil
 }

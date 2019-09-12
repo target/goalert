@@ -54,6 +54,8 @@ $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
 	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
 	go build -o $@ ./devtools/$(@F)
+$(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go
+	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	go build -o $@ ./devtools/mockslack/cmd/mockslack
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
@@ -149,7 +151,7 @@ web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.co
 	(cd web/src && node_modules/.bin/webpack --config ./webpack.dll.config.js --progress)
 
 config.json.bak: bin/goalert
-	bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new
+	bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || rm config.json.new
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)
 
 postgres:
@@ -160,10 +162,10 @@ postgres:
 		-p 5432:5432 \
 		postgres:11-alpine || docker start goalert-postgres
 
-regendb: bin/goalert migrate/inline_data_gen.go config.json.bak
-	go run ./devtools/resetdb --with-rand-data
+regendb: bin/resetdb bin/goalert migrate/inline_data_gen.go config.json.bak
+	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000000
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
-	bin/goalert add-user --admin --email admin@example.com --user admin --pass admin123 "--db-url=$(DB_URL)"
+	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000000 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
 resetdb: migrate/inline_data_gen.go config.json.bak
 	go run ./devtools/resetdb --no-migrate

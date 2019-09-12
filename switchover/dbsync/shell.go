@@ -55,17 +55,12 @@ func RunShell(oldURL, newURL string) error {
 	}
 
 	fmt.Println("Applying migrations to next-db...")
-	dbNew, err := sql.Open("pgx", newURL)
-	if err != nil {
-		return errors.Wrap(err, "open next-DB")
-	}
-	_, err = migrate.ApplyAll(ctx, dbNew)
+	_, err = migrate.ApplyAll(ctx, newURL)
 	if err != nil {
 		return errors.Wrap(err, "migrate next-DB")
 	}
-	dbNew.Close()
 
-	dbNew, err = sql.Open("pgx", newURL)
+	dbNew, err := sql.Open("pgx", newURL)
 	if err != nil {
 		return errors.Wrap(err, "open next-DB")
 	}
