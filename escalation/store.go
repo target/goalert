@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/target/goalert/util/sqlutil"
+
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/notification/slack"
@@ -13,7 +15,6 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -175,9 +176,8 @@ func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 		deletePolicy: p.P(`DELETE FROM escalation_policies WHERE id = any($1)`),
 
 		addStepTarget: p.P(`
-			INSERT INTO escalation_policy_actions (escalation_policy_step_id, user_id, schedule_id, rotation_id, channel_id)
-			VALUES ($1, $2, $3, $4, $5)
-			ON CONFLICT DO NOTHING
+			INSERT INTO escalation_policy_actions (id, escalation_policy_step_id, user_id, schedule_id, rotation_id, channel_id)
+			VALUES ($1, $2, $3, $4, $5, $6)
 		`),
 		deleteStepTarget: p.P(`
 			DELETE FROM escalation_policy_actions
@@ -292,7 +292,7 @@ func validStepTarget(tgt assignment.Target) error {
 	)
 }
 
-func tgtFields(id string, tgt assignment.Target) []interface{} {
+func tgtFields(id string, tgt assignment.Target, insert bool) []interface{} {
 	var usr, sched, rot, ch sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeUser:
@@ -307,6 +307,16 @@ func tgtFields(id string, tgt assignment.Target) []interface{} {
 	case assignment.TargetTypeNotificationChannel:
 		ch.Valid = true
 		ch.String = tgt.TargetID()
+	}
+	if insert {
+		return []interface{}{
+			uuid.NewV4().String(),
+			id,
+			usr,
+			sched,
+			rot,
+			ch,
+		}
 	}
 	return []interface{}{
 		id,
@@ -328,7 +338,7 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 		return nil, err
 	}
 
-	rows, err := db.findManyPolicies.QueryContext(ctx, pq.StringArray(ids))
+	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -350,7 +360,7 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 	return result, nil
 }
 
-func (db *DB) _updateStepTarget(ctx context.Context, stepID string, tgt assignment.Target, stmt *sql.Stmt) error {
+func (db *DB) _updateStepTarget(ctx context.Context, stepID string, tgt assignment.Target, stmt *sql.Stmt, insert bool) error {
 	err := validate.Many(
 		validate.UUID("StepID", stepID),
 		validStepTarget(tgt),
@@ -362,7 +372,7 @@ func (db *DB) _updateStepTarget(ctx context.Context, stepID string, tgt assignme
 	if err != nil {
 		return err
 	}
-	_, err = stmt.ExecContext(ctx, tgtFields(stepID, tgt)...)
+	_, err = stmt.ExecContext(ctx, tgtFields(stepID, tgt, insert)...)
 	if err == sql.ErrNoRows {
 		err = nil
 	}
@@ -397,7 +407,7 @@ func (db *DB) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackC
 }
 
 func (db *DB) AddStepTarget(ctx context.Context, stepID string, tgt assignment.Target) error {
-	return db._updateStepTarget(ctx, stepID, tgt, db.addStepTarget)
+	return db._updateStepTarget(ctx, stepID, tgt, db.addStepTarget, true)
 }
 
 func (db *DB) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
@@ -408,11 +418,11 @@ func (db *DB) AddStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tg
 			return err
 		}
 	}
-	return db._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, db.addStepTarget))
+	return db._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, db.addStepTarget), true)
 }
 
 func (db *DB) DeleteStepTarget(ctx context.Context, stepID string, tgt assignment.Target) error {
-	return db._updateStepTarget(ctx, stepID, tgt, db.deleteStepTarget)
+	return db._updateStepTarget(ctx, stepID, tgt, db.deleteStepTarget, false)
 }
 
 func (db *DB) DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string, tgt assignment.Target) error {
@@ -423,7 +433,7 @@ func (db *DB) DeleteStepTargetTx(ctx context.Context, tx *sql.Tx, stepID string,
 			return err
 		}
 	}
-	return db._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, db.deleteStepTarget))
+	return db._updateStepTarget(ctx, stepID, tgt, tx.StmtContext(ctx, db.deleteStepTarget), false)
 }
 
 func (db *DB) FindAllStepTargets(ctx context.Context, stepID string) ([]assignment.Target, error) {
@@ -601,7 +611,7 @@ func (db *DB) DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 

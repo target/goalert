@@ -4,10 +4,9 @@ import (
 	"context"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"net/http"
 	"net/url"
-
-	"github.com/lib/pq"
 )
 
 // UpdateAll will update the state of all active escalation policies.
@@ -35,7 +34,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 	defer rows.Close()
 
-	var toDelete pq.StringArray
+	var toDelete sqlutil.UUIDArray
 	for rows.Next() {
 		var id, token string
 		err = rows.Scan(&id, &token)

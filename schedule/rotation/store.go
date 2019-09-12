@@ -3,16 +3,16 @@ package rotation
 import (
 	"context"
 	"database/sql"
+	"sort"
+
+	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"sort"
-
-	"github.com/lib/pq"
-	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 )
 
 // ErrNoState is returned when there is no state information available for a rotation.
@@ -490,7 +490,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 	}
 
 	userID := permission.UserID(ctx)
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids), userID)
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -616,7 +616,7 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, pq.StringArray(ids))
+	_, err = s.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 
 }
@@ -817,7 +817,7 @@ func (db *DB) SetActiveIndexTx(ctx context.Context, tx *sql.Tx, rotID string, po
 	}
 
 	_, err = stmt.ExecContext(ctx, rotID, position)
-	if p, ok := err.(*pq.Error); ok && p.Code == "23502" && p.Column == "rotation_participant_id" {
+	if e := sqlutil.MapError(err); e != nil && e.Code == "23502" && e.ColumnName == "rotation_participant_id" {
 		// 23502 is not_null_violation
 		// https://www.postgresql.org/docs/9.6/errcodes-appendix.html
 		// We are checking to see if there is no participant for that position before returning a validation error
@@ -864,7 +864,7 @@ func (db *DB) AddRotationUsersTx(ctx context.Context, tx *sql.Tx, rotationID str
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, rotationID, pq.StringArray(userIDs))
+	_, err = stmt.ExecContext(ctx, rotationID, sqlutil.UUIDArray(userIDs))
 
 	return err
 }
@@ -885,7 +885,7 @@ func (db *DB) DeleteRotationParticipantsTx(ctx context.Context, tx *sql.Tx, part
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	_, err = stmt.ExecContext(ctx, pq.StringArray(partIDs))
+	_, err = stmt.ExecContext(ctx, sqlutil.UUIDArray(partIDs))
 	return err
 }
 

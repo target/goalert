@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/target/goalert/validation/validate"
 
-	"github.com/lib/pq"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -140,11 +140,11 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	}
 
 	if permission.Admin(ctx) {
-		_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, pq.StringArray(ids))
+		_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, sqlutil.UUIDArray(ids))
 		return err
 	}
 
-	rows, err := wrapTx(ctx, tx, db.lookupUserID).QueryContext(ctx, pq.StringArray(ids))
+	rows, err := wrapTx(ctx, tx, db.lookupUserID).QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
 	if err != nil {
 		return err
 	}
-	_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, pq.StringArray(ids))
+	_, err = wrapTx(ctx, tx, db.delete).ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 
@@ -211,7 +211,7 @@ func (db *DB) UpdateDelay(ctx context.Context, id string, delay int) error {
 
 	var userID string
 
-	row := db.lookupUserID.QueryRowContext(ctx, pq.StringArray{id})
+	row := db.lookupUserID.QueryRowContext(ctx, sqlutil.UUIDArray{id})
 	err = row.Scan(&userID)
 	if err != nil {
 		return err

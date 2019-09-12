@@ -43,7 +43,7 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 			return "", errors.Wrap(err, "scan query results")
 		}
 		if strings.Contains(name, "GoAlert") && !strings.Contains(name, "S/O") {
-			issues = append(issues, "Non-switchover GoAlert connection: "+name)
+			issues = append(issues, "Non-switchover GoAlert connection: "+name+" (try setting `--db-url-next`)")
 		}
 		table.Body.Cells = append(table.Body.Cells, []*simpletable.Cell{
 			{Text: name},
@@ -97,7 +97,7 @@ func (s *Sync) status(ctx context.Context) (string, error) {
 	buf.WriteString(table.String() + "\n\n")
 
 	if len(nodes) == 0 {
-		issues = append(issues, "No nodes detected.")
+		issues = append(issues, "No nodes detected. (make sure GoAlert is running)")
 	}
 
 	fmt.Fprintf(buf, "Node Count: %d\n", len(nodes))

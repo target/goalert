@@ -7,11 +7,11 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"time"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
 )
@@ -287,10 +287,7 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(alertIDs))
-	for i, id := range alertIDs {
-		ids64[i] = int64(id)
-	}
+	ids := sqlutil.IntArray(alertIDs)
 
 	tx, err := db.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -298,12 +295,12 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.StmtContext(ctx, db.lockAlertSvc).ExecContext(ctx, ids64)
+	_, err = tx.StmtContext(ctx, db.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := tx.StmtContext(ctx, db.escalate).QueryContext(ctx, ids64)
+	rows, err := tx.StmtContext(ctx, db.escalate).QueryContext(ctx, ids)
 	if err == sql.ErrNoRows {
 		log.Debugf(ctx, "escalate alert: no rows matched")
 		err = nil
@@ -398,10 +395,7 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(alertIDs))
-	for i, k := range alertIDs {
-		ids64[i] = int64(k)
-	}
+	ids := sqlutil.IntArray(alertIDs)
 
 	tx, err := db.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -416,12 +410,12 @@ func (db *DB) UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs
 
 	var updatedIDs []int
 
-	_, err = tx.StmtContext(ctx, db.lockAlertSvc).ExecContext(ctx, ids64)
+	_, err = tx.StmtContext(ctx, db.lockAlertSvc).ExecContext(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := tx.StmtContext(ctx, db.updateByIDAndStatus).QueryContext(ctx, status, ids64)
+	rows, err := tx.StmtContext(ctx, db.updateByIDAndStatus).QueryContext(ctx, status, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -736,31 +730,27 @@ func (db *DB) FindOne(ctx context.Context, id int) (*Alert, error) {
 	return &alerts[0], nil
 }
 
-func (db *DB) FindMany(ctx context.Context, ids []int) ([]Alert, error) {
+func (db *DB) FindMany(ctx context.Context, alertIDs []int) ([]Alert, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
 		return nil, err
 	}
-	if len(ids) == 0 {
+	if len(alertIDs) == 0 {
 		return nil, nil
 	}
 
-	err = validate.Range("AlertIDs", len(ids), 1, maxBatch)
+	err = validate.Range("AlertIDs", len(alertIDs), 1, maxBatch)
 	if err != nil {
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(ids))
-	for i, id := range ids {
-		ids64[i] = int64(id)
-	}
-	rows, err := db.findMany.QueryContext(ctx, ids64)
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.IntArray(alertIDs))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	alerts := make([]Alert, 0, len(ids))
+	alerts := make([]Alert, 0, len(alertIDs))
 
 	for rows.Next() {
 		var a Alert
@@ -785,13 +775,8 @@ func (db *DB) State(ctx context.Context, alertIDs []int) ([]State, error) {
 		return nil, err
 	}
 
-	ids64 := make(pq.Int64Array, len(alertIDs))
-	for i, id := range alertIDs {
-		ids64[i] = int64(id)
-	}
-
-	var t pq.NullTime
-	rows, err := db.epState.QueryContext(ctx, ids64)
+	var t sqlutil.NullTime
+	rows, err := db.epState.QueryContext(ctx, sqlutil.IntArray(alertIDs))
 	if err == sql.ErrNoRows {
 		err = nil
 	}

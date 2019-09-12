@@ -2,6 +2,7 @@ package sqltrace
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"strconv"
@@ -69,6 +70,9 @@ func (c *_Conn) BeginTx(ctx context.Context, opts driver.TxOptions) (tx driver.T
 	)
 
 	if cx, ok := c.conn.(driver.ConnBeginTx); ok {
+		if c.drv.pgxRRFix && sql.IsolationLevel(opts.Isolation) == sql.LevelRepeatableRead {
+			opts.Isolation = driver.IsolationLevel(sql.LevelSnapshot)
+		}
 		tx, err = cx.BeginTx(ctx, opts)
 	} else {
 		//lint:ignore SA1019 We have to fallback if the wrapped driver doesn't implement ConnBeginTx.

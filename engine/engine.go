@@ -3,6 +3,9 @@ package engine
 import (
 	"context"
 	"database/sql"
+	"strings"
+	"time"
+
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/engine/escalationmanager"
@@ -19,9 +22,8 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
-	"time"
+	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
 )
@@ -175,7 +177,7 @@ func (p *Engine) processModule(ctx context.Context, m updater) {
 
 	for {
 		err := m.UpdateAll(ctx)
-		if pErr, ok := errors.Cause(err).(*pq.Error); ctx.Err() == nil && ok && pErr.Code.Class() == "40" {
+		if sqlErr := sqlutil.MapError(err); ctx.Err() == nil && sqlErr != nil && strings.HasPrefix(sqlErr.Code, "40") {
 			// Class `40` is a transaction failure.
 			// In that case we will retry, so long
 			// as the context deadline has not been reached.

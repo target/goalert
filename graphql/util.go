@@ -3,13 +3,14 @@ package graphql
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
-	"time"
+	"github.com/target/goalert/util/sqlutil"
 
 	g "github.com/graphql-go/graphql"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -46,7 +47,7 @@ func isCtxCause(err error) bool {
 
 	// 57014 = query_canceled
 	// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-	if e, ok := err.(*pq.Error); ok && e.Code == "57014" {
+	if e := sqlutil.MapError(err); e != nil && e.Code == "57014" {
 		return true
 	}
 

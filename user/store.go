@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/lib/pq"
 )
 
 // Store allows the lookup and management of Users.
@@ -152,7 +151,7 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 		tx.StmtContext(ctx, del)
 	}
 
-	_, err = del.ExecContext(ctx, pq.StringArray(ids))
+	_, err = del.ExecContext(ctx, sqlutil.UUIDArray(ids))
 	return err
 }
 
@@ -246,7 +245,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]User, error) {
 		return nil, err
 	}
 
-	rows, err := db.findMany.QueryContext(ctx, pq.StringArray(ids))
+	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids))
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

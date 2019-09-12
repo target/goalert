@@ -3,9 +3,10 @@ package alert
 import (
 	"crypto/sha512"
 	"encoding/hex"
-	"github.com/target/goalert/validation/validate"
 	"strings"
 	"time"
+
+	"github.com/target/goalert/validation/validate"
 )
 
 // maximum lengths
