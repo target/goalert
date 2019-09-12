@@ -1,4 +1,8 @@
-@import './variables.scss';
+:root {
+  --color-critical: #ff324d;
+  --color-warning: #ffd602;
+  --color-ok: #8cc800;
+}
 
 html {
   height: 100%;
@@ -17,11 +21,10 @@ body {
 a {
   text-decoration: none;
   color: #cd1831;
+}
 
-  &:hover {
-    text-decoration: underline;
-    //color: #8f1022;
-  }
+a:hover {
+  text-decoration: underline;
 }
 
 .rbc-time-content .rbc-current-time-indicator {
@@ -89,17 +92,17 @@ pre code {
 
 tr.unacknowledged,
 div.unacknowledged {
-  border-left: 3px solid $color-critical;
+  border-left: 3px solid var(--color-critical);
 }
 
 tr.acknowledged,
 div.acknowledged {
-  border-left: 3px solid $color-warning;
+  border-left: 3px solid var(--color-warning);
 }
 
 tr.resolved,
 div.resolved {
-  border-left: 3px solid $color-ok;
+  border-left: 3px solid var(--color-ok);
 }
 
 .list-label {
@@ -111,10 +114,8 @@ div.resolved {
   width: 100%;
 }
 
-ul.no-separators {
-  li {
-    border: none;
-  }
+ul.no-separators li {
+  border: none;
 }
 
 .margin-top-none {
