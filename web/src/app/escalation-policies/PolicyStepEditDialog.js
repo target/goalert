@@ -96,11 +96,7 @@ export default class PolicyStepEditDialog extends React.Component {
     }
 
     return (
-      <Mutation
-        mutation={mutation}
-        refetchQueries={() => ['stepsQuery']}
-        onCompleted={this.props.onClose}
-      >
+      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
         {(commit, status) => this.renderDialog(defaultValue, commit, status)}
       </Mutation>
     )

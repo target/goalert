@@ -31,7 +31,6 @@ export default function HeartbeatMonitorEditDialog(props) {
         <HeartbeatMonitorEditDialogContent
           props={props}
           data={data.heartbeatMonitor}
-          refetchQueries={props.refetchQueries}
         />
       )}
     />
@@ -39,7 +38,6 @@ export default function HeartbeatMonitorEditDialog(props) {
 }
 HeartbeatMonitorEditDialog.propTypes = {
   monitorID: p.string.isRequired,
-  refetchQueries: p.arrayOf(p.string),
   onClose: p.func,
 }
 
@@ -50,7 +48,6 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
     timeoutMinutes: data.timeoutMinutes,
   })
   const [update, { loading, error }] = useMutation(mutation, {
-    refetchQueries: props.refetchQueries,
     onCompleted: props.onClose,
     variables: {
       input: { id: props.monitorID, ...value },

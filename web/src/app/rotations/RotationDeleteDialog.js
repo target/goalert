@@ -31,7 +31,6 @@ export default function RotationDeleteDialog(props) {
     variables: { id: props.rotationID },
   })
   const [deleteRotation, deleteRotationStatus] = useMutation(mutation, {
-    refetchQueries: ['rotationsQuery'],
     variables: {
       input: [
         {

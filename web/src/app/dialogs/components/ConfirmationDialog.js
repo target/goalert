@@ -100,7 +100,6 @@ export default class ConfirmationDialog extends Component {
         key='mutation-form'
         mutation={mutation}
         client={LegacyGraphQLClient}
-        refetchQueries={this.props.refetchQueries}
         update={(cache, { data }) => {
           this.setState({ loading: false })
           onRequestClose(true) // success = true prevents no-op set state in some funcs

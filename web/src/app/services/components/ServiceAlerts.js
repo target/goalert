@@ -84,7 +84,6 @@ export default class ServiceAlerts extends Component {
         <ConfirmationDialog
           key='update-alerts-form'
           mutation={updateAllAlertsMutation}
-          refetchQueries={['alerts']}
           mutationVariables={{
             input: {
               service_id: serviceID,
