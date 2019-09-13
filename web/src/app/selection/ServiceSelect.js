@@ -1,7 +1,5 @@
-import React from 'react'
-
 import gql from 'graphql-tag'
-import QuerySelect from './QuerySelect'
+import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -24,16 +22,9 @@ const valueQuery = gql`
     }
   }
 `
-export class ServiceSelect extends React.PureComponent {
-  render() {
-    return (
-      <QuerySelect
-        {...this.props}
-        variables={{ input: { favoritesFirst: true } }}
-        defaultQueryVariables={{ input: { favoritesOnly: true } }}
-        query={query}
-        valueQuery={valueQuery}
-      />
-    )
-  }
-}
+export const ServiceSelect = makeQuerySelect('ServiceSelect', {
+  variables: { favoritesFirst: true },
+  defaultQueryVariables: { favoritesOnly: true },
+  query,
+  valueQuery,
+})

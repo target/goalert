@@ -1,7 +1,5 @@
-import React from 'react'
-
 import gql from 'graphql-tag'
-import QuerySelect from './QuerySelect'
+import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
   query($input: EscalationPolicySearchOptions) {
@@ -22,8 +20,8 @@ const valueQuery = gql`
     }
   }
 `
-export class EscalationPolicySelect extends React.PureComponent {
-  render() {
-    return <QuerySelect {...this.props} query={query} valueQuery={valueQuery} />
-  }
-}
+
+export const EscalationPolicySelect = makeQuerySelect(
+  'EscalationPolicySelect',
+  { query, valueQuery },
+)

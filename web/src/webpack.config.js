@@ -84,7 +84,7 @@ module.exports = {
   },
 
   // Source maps used for debugging information
-  devtool: 'eval',
+  devtool: 'inline-source-map',
   // webpack-dev-server configuration
   devServer: {
     disableHostCheck: true,

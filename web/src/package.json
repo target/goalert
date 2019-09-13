@@ -7,7 +7,7 @@
     "slint": "stylelint ./app/**/*.css",
     "lint": "eslint .",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
-    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,html}' || eslint --fix .",
+    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,html}' && eslint --fix .",
     "build-deps": "webpack --config ./webpack.dll.config.js --progress"
   },
   "jest": {

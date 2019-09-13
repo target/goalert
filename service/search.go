@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"database/sql"
+	"strings"
+	"text/template"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"strings"
-	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -58,7 +59,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{end}}
 	WHERE true
 	{{if .Omit}}
-		AND not id = any(:omit)
+		AND not svc.id = any(:omit)
 	{{end}}
 	{{- if and .LabelKey .LabelNegate}}
 		AND svc.id NOT IN (

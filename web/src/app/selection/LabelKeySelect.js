@@ -1,5 +1,4 @@
-import React from 'react'
-import QuerySelect from './QuerySelect'
+import { makeQuerySelect } from './QuerySelect'
 import gql from 'graphql-tag'
 
 const query = gql`
@@ -12,19 +11,9 @@ const query = gql`
   }
 `
 
-export class LabelKeySelect extends React.PureComponent {
-  render() {
-    return (
-      <QuerySelect
-        {...this.props}
-        variables={{ input: { uniqueKeys: true } }}
-        defaultQueryVariables={{ input: { uniqueKeys: true } }}
-        mapDataNode={node => ({
-          label: node.key,
-          value: node.key,
-        })}
-        query={query}
-      />
-    )
-  }
-}
+export const LabelKeySelect = makeQuerySelect('LabelKeySelect', {
+  variables: { uniqueKeys: true },
+  defaultQueryVariables: { uniqueKeys: true },
+  query,
+  mapDataNode: ({ key }) => ({ label: key, value: key }),
+})

@@ -1,7 +1,5 @@
-import React from 'react'
-
 import gql from 'graphql-tag'
-import QuerySelect from './QuerySelect'
+import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
   query($input: UserSearchOptions) {
@@ -22,8 +20,8 @@ const valueQuery = gql`
     }
   }
 `
-export class UserSelect extends React.PureComponent {
-  render() {
-    return <QuerySelect {...this.props} query={query} valueQuery={valueQuery} />
-  }
-}
+
+export const UserSelect = makeQuerySelect('UserSelect', {
+  query,
+  valueQuery,
+})
