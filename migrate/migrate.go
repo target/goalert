@@ -151,7 +151,7 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 	var hasLatest bool
 	err = ensureTableQuery(ctx, conn, func() error {
 		return conn.QueryRowEx(ctx, `select true from gorp_migrations where id = $1`, &pgx.QueryExOptions{
-			ParameterOIDs: []pgtype.OID{0},
+			ParameterOIDs: []pgtype.OID{pgtype.TextOID},
 		}, targetID).Scan(&hasLatest)
 	})
 	if err == nil && hasLatest {
