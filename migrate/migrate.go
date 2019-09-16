@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
 	"github.com/target/goalert/lock"
+	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -65,7 +66,16 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 		return nil, err
 	}
 
-	conn, err := pgx.Connect(cfg)
+	var conn *pgx.Conn
+	err = retry.DoTemporaryError(func(int) error {
+		var err error
+		conn, err = pgx.Connect(cfg)
+		return err
+	},
+		retry.Log(ctx),
+		retry.Limit(12),
+		retry.FibBackoff(time.Millisecond*100),
+	)
 	if err != nil {
 		return nil, err
 	}
