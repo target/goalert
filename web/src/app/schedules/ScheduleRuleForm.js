@@ -21,7 +21,6 @@ import { startCase } from 'lodash-es'
 import { Add, Trash } from '../icons'
 import { TimePicker } from '@material-ui/pickers'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
-import { oneOfShape } from '../util/propTypes'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
 import { connect } from 'react-redux'
@@ -109,11 +108,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
     targetType: p.oneOf(['rotation', 'user']).isRequired,
     targetDisabled: p.bool,
 
-    // one of scheduleID or scheduleTimeZone must be specified
-    tz: oneOfShape({
-      scheduleID: p.string,
-      scheduleTimeZone: p.string,
-    }),
+    scheduleID: p.string.isRequired,
 
     value: p.shape({
       targetID: p.string.isRequired,
@@ -129,9 +124,6 @@ export default class ScheduleRuleForm extends React.PureComponent {
   }
 
   render() {
-    if (this.props.scheduleTimeZone) {
-      return this.renderForm(this.props.scheduleTimeZone)
-    }
     return (
       <Query
         query={query}
