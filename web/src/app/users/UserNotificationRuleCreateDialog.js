@@ -32,11 +32,7 @@ export default class UserNotificationRuleCreateDialog extends React.PureComponen
 
   render() {
     return (
-      <Mutation
-        mutation={createMutation}
-        refetchQueries={['nrList']}
-        onCompleted={this.props.onClose}
-      >
+      <Mutation mutation={createMutation} onCompleted={this.props.onClose}>
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
     )
