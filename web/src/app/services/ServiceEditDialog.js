@@ -62,16 +62,7 @@ export default class ServiceEditDialog extends React.PureComponent {
 
   renderMutation(defaultValue) {
     return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        refetchQueries={() => [
-          {
-            query,
-            variables: { id: this.props.serviceID },
-          },
-        ]}
-      >
+      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
         {(commit, status) => this.renderDialog(defaultValue, commit, status)}
       </Mutation>
     )

@@ -47,7 +47,7 @@ export default class UserStatusUpdatePreference extends React.PureComponent {
       })
     }
     return (
-      <Mutation mutation={mutation} refetchQueries={['statusUpdate']}>
+      <Mutation mutation={mutation}>
         {commit =>
           this.renderControl(user.statusUpdateContactMethodID, setCM(commit))
         }
