@@ -49,6 +49,7 @@ type App struct {
 
 	db     *sql.DB
 	l      net.Listener
+	l2     net.Listener
 	events *sqlutil.Listener
 
 	cooldown *cooldown
@@ -110,8 +111,14 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
 	}
 
+	l2, err := net.Listen("tcp", c.TLSListenAddr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "bind address %s", c.TLSListenAddr)
+	}
+
 	app := &App{
 		l:        l,
+		l2:       l2,
 		db:       db,
 		cfg:      c,
 		doneCh:   make(chan struct{}),

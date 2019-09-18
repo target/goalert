@@ -479,7 +479,10 @@ func getConfig() (appConfig, error) {
 
 		DisableHTTPSRedirect: viper.GetBool("disable-https-redirect"),
 
-		ListenAddr: viper.GetString("listen"),
+		ListenAddr:    viper.GetString("listen"),
+		TLSListenAddr: viper.GetString("listen-tls"),
+		TLSCert:       viper.GetString("tls-cert"),
+		TLSKey:        viper.GetString("tls-key"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
 		TwilioBaseURL: viper.GetString("twilio-base-url"),
@@ -524,6 +527,10 @@ func getConfig() (appConfig, error) {
 
 func init() {
 	RootCmd.Flags().StringP("listen", "l", "localhost:8081", "Listen address:port for the application.")
+	RootCmd.Flags().StringP("listen-tls", "t", "localhost:8443", "HTTPS listen address:port for the application.")
+
+	RootCmd.Flags().String("tls-cert", "cert.pem", "If using listen-tls, specify path of certificate file.")
+	RootCmd.Flags().String("tls-key", "key.pem", "If using listen-tls, specify path of certificate private key.")
 
 	RootCmd.Flags().Bool("api-only", false, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 
