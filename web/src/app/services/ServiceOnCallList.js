@@ -3,8 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
 import { UserAvatar } from '../util/avatar'
-import Spinner from '../loading/components/Spinner'
-import { withStyles } from '@material-ui/core'
+import { withStyles, CircularProgress } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
 
@@ -70,6 +69,20 @@ export default class ServiceOnCallList extends Component {
   }
 
   renderUsers() {
+    if (this.props.loading) {
+      return (
+        <FlatList
+          style={{ color: 'gray' }}
+          items={[
+            {
+              title: 'Fetching users...',
+              icon: <CircularProgress />,
+            },
+          ]}
+        />
+      )
+    }
+
     const usersDict = this.getUsersDict(this.props.value)
     const items = Object.keys(usersDict).map(id => {
       const step = usersDict[id].steps.length > 1 ? 'Steps' : 'Step'
@@ -91,7 +104,6 @@ export default class ServiceOnCallList extends Component {
   }
 
   render() {
-    let content = this.props.loading ? <Spinner /> : this.renderUsers()
     let { classes } = this.props
 
     return (
@@ -101,7 +113,7 @@ export default class ServiceOnCallList extends Component {
           component='h3'
           title='On Call Users'
         />
-        {content}
+        {this.renderUsers()}
       </Card>
     )
   }
