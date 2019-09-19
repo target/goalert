@@ -55,8 +55,6 @@ ScheduleTZFilter.propTypes = {
     scheduleTimeZone: p.string,
   }),
 
-  scheduleID: p.string.isRequired,
-
   // provided by connect
   zone: p.string,
   setZone: p.func,
