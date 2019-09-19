@@ -26,7 +26,7 @@ func newMultiListener(ln ...net.Listener) *multiListener {
 	return &ml
 }
 
-// listen waits for and returns the next connection, by utlilizing the Accept() for the listener.
+// listen waits for and returns the next connection for the listener.
 func (ml multiListener) listen(l net.Listener) {
 	for {
 		c, err := l.Accept()
@@ -50,7 +50,7 @@ func (ml multiListener) Accept() (net.Conn, error) {
 }
 
 // Close ranges through listeners closing all of them and and returns an error if any listener encountered an error while closing.
-// It will log all individual listener errors and return an error in the end in the case of errors.
+// It will log all individual listener errors and return an error in the end in the case of error(s).
 func (ml multiListener) Close() error {
 	hasErr := false
 	for _, l := range ml.listeners {
@@ -67,7 +67,7 @@ func (ml multiListener) Close() error {
 	return nil
 }
 
-// Addr returns the address of the first listener in the slice of listeners in the multilistener.
+// Addr returns the address of the first listener in the multilistener.
 // This implementation of Addr might change in the future.
 func (ml multiListener) Addr() net.Addr {
 	return ml.listeners[0].Addr()
