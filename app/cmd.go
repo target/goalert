@@ -527,7 +527,7 @@ func getConfig() (appConfig, error) {
 
 func init() {
 	RootCmd.Flags().StringP("listen", "l", "localhost:8081", "Listen address:port for the application.")
-	RootCmd.Flags().StringP("listen-tls", "t", "localhost:8443", "HTTPS listen address:port for the application.")
+	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.")
 
 	RootCmd.Flags().String("tls-cert", "cert.pem", "If using listen-tls, specify path of certificate file.")
 	RootCmd.Flags().String("tls-key", "key.pem", "If using listen-tls, specify path of certificate private key.")
