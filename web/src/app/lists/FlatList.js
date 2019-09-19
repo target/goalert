@@ -18,6 +18,9 @@ const useStyles = makeStyles({
   background: {
     backgroundColor: 'white',
   },
+  dndDragging: {
+    backgroundColor: '#ebebeb',
+  },
   highlightedItem: {
     borderLeft: '6px solid #93ed94',
     background: '#defadf',
@@ -27,9 +30,6 @@ const useStyles = makeStyles({
   },
   listItemSubtext: {
     whiteSpace: 'pre-line',
-  },
-  participantDragging: {
-    backgroundColor: '#ebebeb',
   },
 })
 
@@ -102,7 +102,7 @@ export default function FlatList(props) {
             {(provided, snapshot) => {
               // light grey background while dragging non-active user
               const draggingBackground = snapshot.isDragging
-                ? classes.participantDragging
+                ? classes.dndDragging
                 : null
 
               return (
@@ -140,6 +140,11 @@ export default function FlatList(props) {
   }
 
   function renderListItem(item, idx) {
+    // render custom list item element
+    if (item.el) {
+      return item.el
+    }
+
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -196,6 +201,9 @@ FlatList.propTypes = {
       }),
       p.shape({
         subHeader: p.string.isRequired,
+      }),
+      p.shape({
+        el: p.element.isRequired, // renders custom element
       }),
     ]),
   ),
