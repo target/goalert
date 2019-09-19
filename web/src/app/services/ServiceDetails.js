@@ -126,12 +126,7 @@ export default function ServiceDetails({ serviceID }) {
           { label: 'Integration Keys', url: 'integration-keys' },
           { label: 'Labels', url: 'labels' },
         ]}
-        pageFooter={
-          <ServiceOnCallList
-            value={get(data, 'service.onCallUsers', [])}
-            loading={loading}
-          />
-        }
+        pageFooter={<ServiceOnCallList serviceID={serviceID} />}
       />
       {showEdit && (
         <ServiceEditDialog
