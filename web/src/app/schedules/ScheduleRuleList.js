@@ -111,7 +111,7 @@ export default class ScheduleRuleList extends React.PureComponent {
         <PageActions>
           <FilterContainer onReset={() => this.props.resetFilter()}>
             <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={this.props.scheduleID} />
+              <ScheduleTZFilter scheduleTimeZone={timeZone} />
             </Grid>
           </FilterContainer>
           <SpeedDial

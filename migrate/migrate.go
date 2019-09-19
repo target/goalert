@@ -16,7 +16,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
 	"github.com/target/goalert/lock"
-	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -66,16 +65,7 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 		return nil, err
 	}
 
-	var conn *pgx.Conn
-	err = retry.DoTemporaryError(func(int) error {
-		var err error
-		conn, err = pgx.Connect(cfg)
-		return err
-	},
-		retry.Log(ctx),
-		retry.Limit(12),
-		retry.FibBackoff(time.Millisecond*100),
-	)
+	conn, err := pgx.Connect(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +151,7 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 	var hasLatest bool
 	err = ensureTableQuery(ctx, conn, func() error {
 		return conn.QueryRowEx(ctx, `select true from gorp_migrations where id = $1`, &pgx.QueryExOptions{
-			ParameterOIDs: []pgtype.OID{pgtype.TextOID},
+			ParameterOIDs: []pgtype.OID{0},
 		}, targetID).Scan(&hasLatest)
 	})
 	if err == nil && hasLatest {
