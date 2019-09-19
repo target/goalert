@@ -9,6 +9,8 @@ import (
 type appConfig struct {
 	ListenAddr    string
 	TLSListenAddr string
+	TLSCertFile   string
+	TLSKeyFile    string
 	TLSCert       string
 	TLSKey        string
 	Verbose       bool

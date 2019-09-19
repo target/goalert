@@ -481,6 +481,8 @@ func getConfig() (appConfig, error) {
 
 		ListenAddr:    viper.GetString("listen"),
 		TLSListenAddr: viper.GetString("listen-tls"),
+		TLSCertFile:   viper.GetString("tls-cert-file"),
+		TLSKeyFile:    viper.GetString("tls-key-file"),
 		TLSCert:       viper.GetString("tls-cert"),
 		TLSKey:        viper.GetString("tls-key"),
 
@@ -529,8 +531,10 @@ func init() {
 	RootCmd.Flags().StringP("listen", "l", "localhost:8081", "Listen address:port for the application.")
 	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.")
 
-	RootCmd.Flags().String("tls-cert", "cert.pem", "If using listen-tls, specify path of certificate file.")
-	RootCmd.Flags().String("tls-key", "key.pem", "If using listen-tls, specify path of certificate private key.")
+	RootCmd.Flags().String("tls-cert-file", "", "If using listen-tls, specify path of PEM-encoded certificate file.")
+	RootCmd.Flags().String("tls-key-file", "", "If using listen-tls, specify path of PEM-encoded private key file.")
+	RootCmd.Flags().String("tls-cert", "", "If using listen-tls, specify PEM-encoded certificate.")
+	RootCmd.Flags().String("tls-key", "", "If using listen-tls, specify PEM-encoded private key.")
 
 	RootCmd.Flags().Bool("api-only", false, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 

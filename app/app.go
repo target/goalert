@@ -128,10 +128,25 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 	}
 
 	if c.TLSListenAddr != "" {
-		cert, err := tls.LoadX509KeyPair(c.TLSCert, c.TLSKey)
-		if err != nil {
-			return nil, errors.Wrap(err, "load tls cert")
+
+		if c.TLSCertFile == "" && c.TLSCert == "" {
+			return nil, errors.New("tls init error -- must supply certificate info")
 		}
+		var cert tls.Certificate
+		if c.TLSCertFile != "" {
+			cert, err = tls.LoadX509KeyPair(c.TLSCertFile, c.TLSKeyFile)
+			if err != nil {
+				return nil, errors.Wrap(err, "load tls cert file")
+			}
+		}
+		//if both TLSCertFile and TLSCert used, TLSCert takes precedence
+		if c.TLSCert != "" {
+			cert, err = tls.X509KeyPair([]byte(c.TLSCert), []byte(c.TLSKey))
+			if err != nil {
+				return nil, errors.Wrap(err, "parse tls cert")
+			}
+		}
+
 		cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
 
 		l2, err := tls.Listen("tcp", c.TLSListenAddr, cfg)
