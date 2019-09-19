@@ -1,6 +1,7 @@
 package app
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"net"
 	"net/http"
@@ -48,8 +49,7 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
-	l      net.Listener
-	l2     net.Listener
+	l      *multiListener
 	events *sqlutil.Listener
 
 	cooldown *cooldown
@@ -111,14 +111,18 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
 	}
 
-	l2, err := net.Listen("tcp", c.TLSListenAddr)
+	cert, err := tls.LoadX509KeyPair(c.TLSCert, c.TLSKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "load tls cert")
+	}
+	cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+	l2, err := tls.Listen("tcp", c.TLSListenAddr, cfg)
 	if err != nil {
 		return nil, errors.Wrapf(err, "bind address %s", c.TLSListenAddr)
 	}
 
 	app := &App{
-		l:        l,
-		l2:       l2,
 		db:       db,
 		cfg:      c,
 		doneCh:   make(chan struct{}),
@@ -136,6 +140,7 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 
 	app.db.SetMaxIdleConns(c.DBMaxIdle)
 	app.db.SetMaxOpenConns(c.DBMaxOpen)
+	app.l = newMultiListener(l, l2)
 
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)
