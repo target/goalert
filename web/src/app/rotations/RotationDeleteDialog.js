@@ -1,11 +1,10 @@
 import React from 'react'
-import { useDispatch } from 'react-redux'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useQuery, useMutation } from 'react-apollo'
-import { push } from 'connected-react-router'
+import { get } from 'lodash-es'
 
 const query = gql`
   query($id: ID!) {
@@ -26,7 +25,6 @@ const mutation = gql`
 `
 
 export default function RotationDeleteDialog(props) {
-  const dispatch = useDispatch()
   const { data, loading: dataLoading } = useQuery(query, {
     variables: { id: props.rotationID },
   })
@@ -39,7 +37,6 @@ export default function RotationDeleteDialog(props) {
         },
       ],
     },
-    onCompleted: () => dispatch(push('/rotations')),
   })
 
   if (dataLoading) return <Spinner />
@@ -48,7 +45,7 @@ export default function RotationDeleteDialog(props) {
     <FormDialog
       title='Are you sure?'
       confirm
-      subTitle={`This will delete the rotation: ${data.rotation.name}`}
+      subTitle={`This will delete the rotation: ${get(data, 'rotation.name')}`}
       loading={deleteRotationStatus.loading}
       errors={deleteRotationStatus.error ? [deleteRotationStatus.error] : []}
       onClose={props.onClose}
