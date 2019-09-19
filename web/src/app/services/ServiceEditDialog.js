@@ -1,13 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { useQuery, useMutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import Query from '../util/Query'
 
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm from './ServiceForm'
+import _ from 'lodash-es'
 
 const query = gql`
   query service($id: ID!) {
@@ -15,8 +15,7 @@ const query = gql`
       id
       name
       description
-      escalationPolicyID
-      escalationPolicy {
+      ep: escalationPolicy {
         id
         name
       }
@@ -29,80 +28,45 @@ const mutation = gql`
   }
 `
 
-export default class ServiceEditDialog extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
-    onClose: p.func,
-  }
-
-  state = {
-    value: null,
-    errors: [],
-  }
-
-  renderQuery() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.serviceID }}
-        noPoll
-        render={({ data }) => {
-          const { id, name, description, escalationPolicyID } =
-            data.service || {}
-          return this.renderMutation({
-            id,
-            name,
-            description,
-            escalationPolicyID,
-          })
-        }}
-      />
-    )
-  }
-
-  renderMutation(defaultValue) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(defaultValue, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(
-    defaultValue = { name: '', description: '', escalationPolicyID: '' },
-    commit,
-    status,
-  ) {
-    const { loading, error } = status
-    const fieldErrs = fieldErrors(error)
-
-    return (
-      <FormDialog
-        title='Edit Service'
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: this.state.value || defaultValue,
-            },
-          }).then(() => this.props.onClose())
-        }}
-        form={
-          <ServiceForm
-            epRequired
-            errors={fieldErrs}
-            disabled={loading}
-            value={this.state.value || defaultValue}
-            onChange={value => this.setState({ value })}
-          />
+export default function ServiceEditDialog({ serviceID, onClose }) {
+  const [value, setValue] = useState(null)
+  const { data, loading: dataLoading, error: dataError } = useQuery(query, {
+    variables: { id: serviceID },
+  })
+  const [save, { loading, error }] = useMutation(mutation, {
+    variables: { input: { ...value, id: serviceID } },
+    onCompleted: onClose,
+  })
+  const defaults =
+    data && data.service && data.service.id
+      ? {
+          ..._.pick(data.service, ['name', 'description']),
+          escalationPolicyID: data.service.ep.id,
         }
-      />
-    )
-  }
+      : {}
 
-  render() {
-    return this.renderQuery()
-  }
+  const fieldErrs = fieldErrors(error)
+
+  return (
+    <FormDialog
+      title='Edit Service'
+      loading={loading}
+      errors={nonFieldErrors(error).concat(nonFieldErrors(dataError))}
+      onClose={onClose}
+      onSubmit={() => save()}
+      form={
+        <ServiceForm
+          epRequired
+          errors={fieldErrs}
+          disabled={loading || dataLoading || dataError}
+          value={value || defaults}
+          onChange={value => setValue(value)}
+        />
+      }
+    />
+  )
+}
+ServiceEditDialog.propTypes = {
+  serviceID: p.string.isRequired,
+  onClose: p.func,
 }
