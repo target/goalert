@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/target/goalert/util/log"
+
+	"github.com/pkg/errors"
 )
 
 var triggerSignals []os.Signal
@@ -26,8 +27,7 @@ func (app *App) _Run(ctx context.Context) error {
 	log.Logf(
 		log.WithFields(context.TODO(), log.Fields{
 			"address": app.l.Addr().String(),
-			// "tls-address": app.l2.Addr().String(),
-			"url": app.ConfigStore.Config().PublicURL(),
+			"url":     app.ConfigStore.Config().PublicURL(),
 		}),
 		"Listening.",
 	)
@@ -37,17 +37,6 @@ func (app *App) _Run(ctx context.Context) error {
 	err := app.listenEvents(eventCtx)
 	if err != nil {
 		return err
-	}
-
-	//Serve & ServeTLS are blocking - need go routine
-	if app.cfg.TLSListenAddr != "" {
-		go func() {
-			err = app.srv.ServeTLS(app.l2, app.cfg.TLSCert, app.cfg.TLSKey)
-			if err != nil && err != http.ErrServerClosed {
-				// this is being swallowed somewhere - troubleshoot
-				//return errors.Wrap(err, "serve HTTPS")
-			}
-		}()
 	}
 
 	err = app.srv.Serve(app.l)
