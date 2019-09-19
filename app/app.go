@@ -111,17 +111,6 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
 	}
 
-	cert, err := tls.LoadX509KeyPair(c.TLSCert, c.TLSKey)
-	if err != nil {
-		return nil, errors.Wrap(err, "load tls cert")
-	}
-	cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
-
-	l2, err := tls.Listen("tcp", c.TLSListenAddr, cfg)
-	if err != nil {
-		return nil, errors.Wrapf(err, "bind address %s", c.TLSListenAddr)
-	}
-
 	app := &App{
 		db:       db,
 		cfg:      c,
@@ -138,9 +127,24 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 		}
 	}
 
+	if c.TLSListenAddr != "" {
+		cert, err := tls.LoadX509KeyPair(c.TLSCert, c.TLSKey)
+		if err != nil {
+			return nil, errors.Wrap(err, "load tls cert")
+		}
+		cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+		l2, err := tls.Listen("tcp", c.TLSListenAddr, cfg)
+		if err != nil {
+			return nil, errors.Wrapf(err, "bind address %s", c.TLSListenAddr)
+		}
+		app.l = newMultiListener(l, l2)
+	} else {
+		app.l = newMultiListener(l)
+	}
+
 	app.db.SetMaxIdleConns(c.DBMaxIdle)
 	app.db.SetMaxOpenConns(c.DBMaxOpen)
-	app.l = newMultiListener(l, l2)
 
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)
