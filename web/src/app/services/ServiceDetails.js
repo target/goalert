@@ -11,7 +11,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { useQuery } from 'react-apollo'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import { get } from 'lodash-es'
+import _ from 'lodash-es'
 import ServiceOnCallList from './ServiceOnCallList'
 
 const query = gql`
@@ -75,7 +75,7 @@ export default function ServiceDetails({ serviceID }) {
   })
 
   if (error) return <GenericError error={error.message} />
-  if (!get(data, 'service.id')) {
+  if (!_.get(data, 'service.id')) {
     if (loading) return <Spinner />
     return showDelete ? <Redirect to='/services' push /> : <ObjectNotFound />
   }
@@ -103,7 +103,7 @@ export default function ServiceDetails({ serviceID }) {
         titleFooter={
           <div>
             Escalation Policy:&nbsp;
-            {get(data, 'service.ep') ? (
+            {_.get(data, 'service.ep') ? (
               <Link to={`/escalation-policies/${data.service.ep.id}`}>
                 {data.service.ep.name}
               </Link>
@@ -115,13 +115,13 @@ export default function ServiceDetails({ serviceID }) {
         links={[
           {
             label: 'Alerts',
-            status: alertStatus(get(data, 'alerts.nodes')),
+            status: alertStatus(_.get(data, 'alerts.nodes')),
             url: 'alerts',
           },
           {
             label: 'Heartbeat Monitors',
             url: 'heartbeat-monitors',
-            status: hbStatus(get(data, 'service.heartbeatMonitors')),
+            status: hbStatus(_.get(data, 'service.heartbeatMonitors')),
           },
           { label: 'Integration Keys', url: 'integration-keys' },
           { label: 'Labels', url: 'labels' },

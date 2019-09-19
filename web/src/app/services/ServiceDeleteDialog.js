@@ -9,7 +9,7 @@ import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
-import { get } from 'lodash-es'
+import _ from 'lodash-es'
 
 function DeleteForm({ epName, error, value, onChange }) {
   return (
@@ -67,8 +67,8 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
     variables: { input },
   })
 
-  const epID = get(data, 'service.ep.id')
-  const epName = get(
+  const epID = _.get(data, 'service.ep.id')
+  const epName = _.get(
     data,
     'service.ep.name',
     <Spinner text='fetching policy...' />,
@@ -88,7 +88,7 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
       subTitle={
         <React.Fragment>
           This will delete the service:{' '}
-          {get(data, 'service.name', <Spinner text='loading...' />)}
+          {_.get(data, 'service.name', <Spinner text='loading...' />)}
         </React.Fragment>
       }
       caption='Deleting a service will also delete all associated integration keys and alerts.'
