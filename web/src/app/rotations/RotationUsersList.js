@@ -152,10 +152,7 @@ export default function RotationUsersList(props) {
         />
       )}
       <Dialog open={showErrorDialog} onClose={() => setShowErrorDialog(false)}>
-        <DialogTitleWrapper
-          // TODO: fullScreen={isWidthDown('md', this.props.width)}
-          title='An error occurred'
-        />
+        <DialogTitleWrapper title='An error occurred' />
         <DialogContentError
           error={updateRotStatus.error && updateRotStatus.error.message}
         />
