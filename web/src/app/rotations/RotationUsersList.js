@@ -34,6 +34,7 @@ export default function RotationUsersList(props) {
   let oldID = null
   let oldIdx = null
   let newIdx = null
+  let nextActiveIdx = null
   let userIDs = users.map(user => user.id)
 
   const classes = useStyles()
@@ -45,18 +46,13 @@ export default function RotationUsersList(props) {
       oldID = null
       oldIdx = null
       newIdx = null
+      nextActiveIdx = null
     },
     onError: () => setShowErrorDialog(true),
     optimisticResponse: {
       updateRotation: true,
     },
     update: (cache, { data }) => updateCache(cache, data),
-    variables: {
-      input: {
-        id: props.rotationID,
-        userIDs,
-      },
-    },
   })
 
   function arrayMove(arr) {
@@ -80,11 +76,23 @@ export default function RotationUsersList(props) {
     oldIdx = userIDs.indexOf(oldID)
     newIdx = result.destination.index
 
+    // if moving the active user, keep them as active
+    // otherwise, ignore
+    nextActiveIdx = activeUserIndex === oldIdx ? newIdx : activeUserIndex
+
     // re-order sids array
     arrayMove(userIDs)
 
     // call mutation
-    return updateRot()
+    return updateRot({
+      variables: {
+        input: {
+          id: props.rotationID,
+          userIDs,
+          activeUserIndex: nextActiveIdx,
+        },
+      },
+    })
   }
 
   function updateCache(cache, data) {
@@ -121,6 +129,7 @@ export default function RotationUsersList(props) {
         rotation: {
           ...rotation,
           users,
+          activeUserIndex: nextActiveIdx,
         },
       },
     })
