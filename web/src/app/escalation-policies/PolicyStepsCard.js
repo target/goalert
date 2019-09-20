@@ -28,8 +28,8 @@ const updateEPMutation = gql`
 `
 
 export default function PolicyStepsCard(props) {
-  let oldID
-  let oldIdx
+  let oldID = null
+  let oldIdx = null
   let newIdx = null
   let stepIDs = props.steps.map(step => step.id)
 
@@ -161,8 +161,8 @@ export default function PolicyStepsCard(props) {
     return (
       <React.Fragment>
         <FlatList
-          headerNote={steps.length ? headerEl : null}
           emptyMessage='No steps currently on this Escalation Policy'
+          headerNote={steps.length ? headerEl : null}
           onReorder={onReorder}
           items={steps.map((step, idx) => ({
             id: step.id,

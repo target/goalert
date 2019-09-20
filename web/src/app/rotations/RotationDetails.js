@@ -9,11 +9,11 @@ import { handoffSummary } from './util'
 import DetailsPage from '../details/DetailsPage'
 import RotationEditDialog from './RotationEditDialog'
 import RotationDeleteDialog from './RotationDeleteDialog'
-import RotationUserList from './RotationUserList'
+import RotationUsersList from './RotationUsersList'
 import RotationAddUserDialog from './RotationAddUserDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 
-const query = gql`
+export const query = gql`
   query rotationDetails($rotationID: ID!) {
     rotation(id: $rotationID) {
       id
@@ -25,6 +25,13 @@ const query = gql`
       shiftLength
       timeZone
       start
+
+      users {
+        id
+        name
+      }
+      activeUserIndex
+      nextHandoffTimes
     }
   }
 `
@@ -85,7 +92,12 @@ export default class RotationDetails extends React.PureComponent {
           title={data.rotation.name}
           details={data.rotation.description}
           titleFooter={summary}
-          pageFooter={<RotationUserList rotationID={this.props.rotationID} />}
+          pageFooter={
+            <RotationUsersList
+              rotationID={this.props.rotationID}
+              rotation={data.rotation}
+            />
+          }
         />
 
         <CreateFAB
