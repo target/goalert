@@ -158,6 +158,7 @@ export default function PolicyStepsCard(props) {
     return (
       <React.Fragment>
         <FlatList
+          data-cy='steps-list'
           emptyMessage='No steps currently on this Escalation Policy'
           headerNote={steps.length ? headerEl : null}
           onReorder={onReorder}
