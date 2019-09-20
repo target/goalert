@@ -46,7 +46,7 @@ export default class RotationUserDeleteDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        refetchQueries={['rotationUsers']}
+        refetchQueries={['rotationDetails']}
       >
         {commit => this.renderDialog(data, commit)}
       </Mutation>
