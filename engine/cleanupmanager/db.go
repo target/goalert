@@ -14,6 +14,7 @@ type DB struct {
 	lock *processinglock.Lock
 
 	cleanupAlerts *sql.Stmt
+	setTimeout    *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -35,6 +36,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
+		// Abort any cleanup operation that takes longer than 3 seconds
+		// error will be logged.
+		setTimeout:    p.P(`SET LOCAL statement_timeout = 3000`),
 		cleanupAlerts: p.P(`delete from alerts where id = any(select id from alerts where status = 'closed' AND created_at < (now() - $1::interval) order by id limit 100 for update)`),
 	}, p.Err
 }

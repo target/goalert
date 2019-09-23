@@ -28,6 +28,11 @@ func (db *DB) update(ctx context.Context) error {
 	}
 	defer tx.Rollback()
 
+	_, err = tx.StmtContext(ctx, db.setTimeout).ExecContext(ctx)
+	if err != nil {
+		return err
+	}
+
 	cfg := config.FromContext(ctx)
 	if cfg.Maintenance.AlertCleanupDays > 0 {
 		var dur pgtype.Interval
