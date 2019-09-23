@@ -102,7 +102,7 @@ export default function ServiceDetails({ serviceID }) {
         details={data.service.description}
         titleFooter={
           <div>
-            Escalation Policy:&nbsp;
+            Escalation Policy:{' '}
             {_.get(data, 'service.ep') ? (
               <Link to={`/escalation-policies/${data.service.ep.id}`}>
                 {data.service.ep.name}
