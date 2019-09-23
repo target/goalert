@@ -24,7 +24,7 @@ function DeleteForm({ epName, error, value, onChange }) {
         }
         label={
           <React.Fragment>
-            `Also delete escalation policy: {epName}
+            Also delete escalation policy: {epName}
           </React.Fragment>
         }
       />
@@ -33,7 +33,7 @@ function DeleteForm({ epName, error, value, onChange }) {
   )
 }
 DeleteForm.propTypes = {
-  epName: p.string.isRequired,
+  epName: p.node.isRequired,
   error: p.string,
   value: p.bool,
   onChange: p.func.isRequired,
