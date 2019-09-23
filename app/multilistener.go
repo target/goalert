@@ -57,12 +57,12 @@ func (ml multiListener) Close() error {
 		err := l.Close()
 		if err != nil {
 			hasErr = true
-			log.Log(context.Background(), errors.Wrap(err, "Listener error "))
+			log.Log(context.Background(), errors.Wrap(err, "Listener error"))
 		}
 	}
 
 	if hasErr {
-		return errors.New("Multiple listeners failed.")
+		return errors.New("Multiple listeners failed")
 	}
 	return nil
 }
