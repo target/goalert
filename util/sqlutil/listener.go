@@ -40,8 +40,8 @@ func (db *DBConnector) Release(conn *pgx.Conn) error {
 type ConfigConnector pgx.ConnConfig
 
 // Connect will get a new connection using the underlying `pgx.ConnConfig`.
-func (cfg ConfigConnector) Connect(context.Context) (*pgx.Conn, error) {
-	return pgx.Connect(pgx.ConnConfig(cfg))
+func (cfg ConfigConnector) Connect(ctx context.Context) (*pgx.Conn, error) {
+	return pgx.ConnectConfig(ctx, (*pgx.ConnConfig)(&cfg))
 }
 
 var (
@@ -202,7 +202,7 @@ func (l *Listener) disconnect() {
 	if l.conn == nil {
 		return
 	}
-	l.conn.Close()
+	l.conn.Close(l.ctx)
 	if r, ok := l.db.(Releaser); ok {
 		r.Release(l.conn)
 	}
@@ -230,7 +230,7 @@ func (l *Listener) connect(ctx context.Context) error {
 			return ctx.Err()
 		default:
 		}
-		err = conn.Listen(name)
+		_, err = conn.Exec(ctx, `listen $1`, name)
 		if err != nil {
 			l.disconnect()
 			return err
