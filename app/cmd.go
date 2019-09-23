@@ -520,6 +520,12 @@ func getConfig() (appConfig, error) {
 		return cfg, validation.NewFieldError("db-url", "is required")
 	}
 
+	if cfg.TLSListenAddr != "" {
+		if (cfg.TLSCertFile == "" && cfg.TLSKeyFile == "") || (cfg.TLSCert == "" && cfg.TLSKey == "") {
+			return cfg, validation.NewFieldError("--listen-tls", "requires --tls-cert and --tls-key OR --tls-cert-file and --tls-key-file")
+		}
+	}
+
 	if viper.GetBool("stack-traces") {
 		log.EnableStacks()
 	}
@@ -529,7 +535,7 @@ func getConfig() (appConfig, error) {
 
 func init() {
 	RootCmd.Flags().StringP("listen", "l", "localhost:8081", "Listen address:port for the application.")
-	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.")
+	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.  Requires setting --tls-cert and --tls-key OR --tls-cert-file and --tls-key-file.")
 
 	RootCmd.Flags().String("tls-cert-file", "", "If using listen-tls, specify path of PEM-encoded certificate file.")
 	RootCmd.Flags().String("tls-key-file", "", "If using listen-tls, specify path of PEM-encoded private key file.")
