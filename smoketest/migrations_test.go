@@ -16,10 +16,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/v4/stdlib" // import db driver
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/smoketest/harness"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 type ignoreRule struct {
@@ -539,11 +540,11 @@ func TestMigrations(t *testing.T) {
 	defer db.Close()
 	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	_, err = db.Exec("create database " + pgx.Identifier([]string{dbName}).Sanitize())
+	_, err = db.Exec("create database " + sqlutil.QuoteID(dbName))
 	if err != nil {
 		t.Fatal("failed to create db:", err)
 	}
-	defer db.Exec("drop database " + pgx.Identifier([]string{dbName}).Sanitize())
+	defer db.Exec("drop database " + sqlutil.QuoteID(dbName))
 
 	n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
 	if err != nil {
