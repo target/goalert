@@ -22,6 +22,8 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/validation"
+	"github.com/ttacon/libphonenumber"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -207,8 +209,14 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		return nil, errors.New("Twilio provider is disabled")
 	}
 	toNumber := msg.Destination().Value
-	if !supportedCountryCode(toNumber) {
-		return nil, errors.New("unsupported country code")
+
+	t, err := libphonenumber.Parse(toNumber, "")
+	if err != nil {
+		return nil, validation.NewFieldError(toNumber, fmt.Sprintf("must be a valid number: %s", err.Error()))
+	}
+
+	if !libphonenumber.IsValidNumber(t) {
+		return nil, validation.NewFieldError(toNumber, "must be a valid number")
 	}
 
 	if toNumber == cfg.Twilio.FromNumber {
