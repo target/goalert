@@ -20,8 +20,9 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/alert"
@@ -34,13 +35,14 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 const dbTimeFormat = "2006-01-02 15:04:05.999999-07:00"
 
 var (
 	dbURL string
-	dbCfg pgx.ConnConfig
+	dbCfg *pgx.ConnConfig
 )
 
 func init() {
@@ -49,7 +51,7 @@ func init() {
 		dbURL = "postgres://goalert@127.0.0.1:5432?sslmode=disable"
 	}
 	var err error
-	dbCfg, err = pgx.ParseConnectionString(dbURL)
+	dbCfg, err = pgx.ParseConfig(dbURL)
 	if err != nil {
 		panic(err)
 	}
@@ -57,12 +59,12 @@ func init() {
 
 func DBURL(name string) string {
 	if name == "" {
-		return formatConnString(dbCfg)
+		return formatConnString(*dbCfg)
 	}
 
 	cfg := dbCfg
 	cfg.Database = name
-	return formatConnString(cfg)
+	return formatConnString(*cfg)
 }
 
 func formatConnString(c pgx.ConnConfig) string {
@@ -87,17 +89,18 @@ func formatConnString(c pgx.ConnConfig) string {
 		q.Set(k, v)
 	}
 
-	if c.TLSConfig == nil && !c.UseFallbackTLS && c.FallbackTLSConfig == nil {
-		q.Set("sslmode", "disable")
-	} else if c.TLSConfig == nil && c.UseFallbackTLS && c.FallbackTLSConfig != nil {
-		q.Set("sslmode", "allow")
-	} else if c.TLSConfig != nil && c.UseFallbackTLS && c.FallbackTLSConfig == nil {
-		q.Set("sslmode", "prefer")
-	} else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.InsecureSkipVerify {
-		q.Set("sslmode", "require")
-	} else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.ServerName != "" {
-		q.Set("sslmode", "verify-full")
-	}
+	// TODO
+	// if c.TLSConfig == nil && !c.UseFallbackTLS && c.FallbackTLSConfig == nil {
+	// 	q.Set("sslmode", "disable")
+	// } else if c.TLSConfig == nil && c.UseFallbackTLS && c.FallbackTLSConfig != nil {
+	// 	q.Set("sslmode", "allow")
+	// } else if c.TLSConfig != nil && c.UseFallbackTLS && c.FallbackTLSConfig == nil {
+	// 	q.Set("sslmode", "prefer")
+	// } else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.InsecureSkipVerify {
+	// 	q.Set("sslmode", "require")
+	// } else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.ServerName != "" {
+	// 	q.Set("sslmode", "verify-full")
+	// }
 
 	u.RawQuery = q.Encode()
 
@@ -135,7 +138,7 @@ type Harness struct {
 	lastTimeChange time.Time
 	pgResume       time.Time
 
-	db       *pgx.ConnPool
+	db       *pgxpool.Pool
 	dbStdlib *sql.DB
 	nr       notificationrule.Store
 	a        alert.Store
@@ -192,18 +195,21 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	start := time.Now()
 	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	conn, err := pgx.Connect(dbCfg)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	conn, err := pgx.ConnectConfig(ctx, dbCfg)
 	if err != nil {
 		t.Fatal("connect to db:", err)
 	}
-	defer conn.Close()
-	_, err = conn.Exec("create database " + pgx.Identifier([]string{name}).Sanitize())
+	defer conn.Close(ctx)
+	_, err = conn.Exec(ctx, "create database "+sqlutil.QuoteID(name))
 	if err != nil {
 		t.Fatal("create db:", err)
 	}
-	conn.Close()
+	conn.Close(ctx)
 
-	testDBCfg := dbCfg
+	testDBCfg := *dbCfg
 	testDBCfg.Database = name
 
 	t.Logf("created test database '%s': %s", name, dbURL)
@@ -245,7 +251,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	// freeze DB time until backend starts
 	h.execQuery(`
 		create schema testing_overrides;
-		alter database ` + pgx.Identifier([]string{name}).Sanitize() + ` set search_path = "$user", public,testing_overrides, pg_catalog;
+		alter database ` + sqlutil.QuoteID(name) + ` set search_path = "$user", public,testing_overrides, pg_catalog;
 		
 
 		create or replace function testing_overrides.now()
@@ -303,21 +309,24 @@ func (h *Harness) Start() {
 		h.t.Fatalf("failed to config backend: %v\n%s", err, string(out))
 	}
 
-	dbCfg, err := pgx.ParseConnectionString(h.dbURL)
+	dbCfg, err := pgx.ParseConfig(h.dbURL)
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
-	h.db, err = pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig:     dbCfg,
-		AcquireTimeout: 30 * time.Second,
-		MaxConnections: 2,
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	h.db, err = pgxpool.ConnectConfig(ctx, &pgxpool.Config{
+		ConnConfig: dbCfg,
+		MaxConns:   2,
 	})
 	if err != nil {
 		h.t.Fatalf("failed to connect to db: %v", err)
 	}
 
 	// resume the flow of time
-	err = h.db.QueryRow(`select pg_catalog.now()`).Scan(&h.pgResume)
+	err = h.db.QueryRow(ctx, `select pg_catalog.now()`).Scan(&h.pgResume)
 	if err != nil {
 		h.t.Fatalf("failed to get postgres timestamp: %v", err)
 	}
@@ -344,9 +353,8 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
 	}
-	ctx := context.Background()
 
-	h.dbStdlib = stdlib.OpenDBFromPool(h.db)
+	h.dbStdlib = stdlib.OpenDB(*dbCfg)
 	h.nr, err = notificationrule.NewDB(ctx, h.dbStdlib)
 	if err != nil {
 		h.t.Fatalf("failed to init notification rule backend: %v", err)
@@ -555,7 +563,7 @@ func (h *Harness) dumpDB() {
 	file := filepath.Join("smoketest_db_dump", testName+".sql")
 	os.MkdirAll(filepath.Dir(file), 0755)
 	var t time.Time
-	err := h.db.QueryRow("select now()").Scan(&t)
+	err := h.db.QueryRow(context.Background(), "select now()").Scan(&t)
 	if err != nil {
 		h.t.Fatalf("failed to get current timestamp: %v", err)
 	}
@@ -595,8 +603,8 @@ func (h *Harness) Close() error {
 		h.cmd.Process.Wait()
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 	h.sessKey.Shutdown(ctx)
 	h.tw.Close()
 	h.dumpDB()
@@ -604,12 +612,12 @@ func (h *Harness) Close() error {
 	h.dbStdlib.Close()
 	h.db.Close()
 
-	conn, err := pgx.Connect(dbCfg)
+	conn, err := pgx.ConnectConfig(ctx, dbCfg)
 	if err != nil {
 		h.t.Error("failed to connect to DB:", err)
 	}
-	defer conn.Close()
-	_, err = conn.Exec("drop database " + pgx.Identifier([]string{h.dbName}).Sanitize())
+	defer conn.Close(ctx)
+	_, err = conn.Exec(ctx, "drop database "+sqlutil.QuoteID(h.dbName))
 	if err != nil {
 		h.t.Errorf("failed to drop database '%s': %v", h.dbName, err)
 	}

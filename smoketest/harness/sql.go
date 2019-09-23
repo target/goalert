@@ -6,7 +6,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v4"
 )
 
 func sqlSplitBlock(blockIdx int, data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -76,11 +76,8 @@ func sqlSplit(query string) []string {
 // ExecSQL will execute all queries one-by-one.
 func ExecSQL(ctx context.Context, url string, query string) error {
 	queries := sqlSplit(query)
-	cfg, err := pgx.ParseConnectionString(url)
-	if err != nil {
-		return err
-	}
-	conn, err := pgx.Connect(cfg)
+
+	conn, err := pgx.Connect(ctx, url)
 	if err != nil {
 		return err
 	}
@@ -100,12 +97,7 @@ func ExecSQL(ctx context.Context, url string, query string) error {
 func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	queries := sqlSplit(query)
 
-	cfg, err := pgx.ParseConnectionString(url)
-	if err != nil {
-		return err
-	}
-
-	conn, err := pgx.Connect(cfg)
+	conn, err := pgx.Connect(ctx, url)
 	if err != nil {
 		return err
 	}
