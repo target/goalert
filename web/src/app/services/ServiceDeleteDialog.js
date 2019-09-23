@@ -59,11 +59,11 @@ const mutation = gql`
 
 export default function ServiceDeleteDialog({ serviceID, onClose }) {
   const [deleteEP, setDeleteEP] = useState(true)
-  const { data, loading: dataLoading } = useQuery(query, {
+  const { data, ...dataStatus } = useQuery(query, {
     variables: { id: serviceID },
   })
   const input = [{ type: 'service', id: serviceID }]
-  const [deleteService, { loading, error }] = useMutation(mutation, {
+  const [deleteService, deleteServiceStatus] = useMutation(mutation, {
     variables: { input },
   })
 
@@ -92,16 +92,17 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
         </React.Fragment>
       }
       caption='Deleting a service will also delete all associated integration keys and alerts.'
-      loading={loading || dataLoading}
-      errors={nonFieldErrors(error)}
+      loading={deleteServiceStatus.loading || dataStatus.loading}
+      errors={nonFieldErrors(deleteServiceStatus.error)}
       onClose={onClose}
       onSubmit={() => deleteService()}
       form={
         <DeleteForm
           epName={epName}
           error={
-            fieldErrors(error).find(f => f.field === 'escalationPolicyID') &&
-            'Escalation policy is currently in use.'
+            fieldErrors(deleteServiceStatus.error).find(
+              f => f.field === 'escalationPolicyID',
+            ) && 'Escalation policy is currently in use.'
           }
           onChange={deleteEP => setDeleteEP(deleteEP)}
           value={deleteEP}
