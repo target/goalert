@@ -30,35 +30,41 @@ const mutation = gql`
 
 export default function ServiceEditDialog({ serviceID, onClose }) {
   const [value, setValue] = useState(null)
-  const { data, loading: dataLoading, error: dataError } = useQuery(query, {
+  const { data, ...dataStatus } = useQuery(query, {
     variables: { id: serviceID },
   })
-  const [save, { loading, error }] = useMutation(mutation, {
+  const [save, saveStatus] = useMutation(mutation, {
     variables: { input: { ...value, id: serviceID } },
     onCompleted: onClose,
   })
-  const defaults =
-    data && data.service && data.service.id
-      ? {
-          ..._.pick(data.service, ['name', 'description']),
-          escalationPolicyID: data.service.ep.id,
-        }
-      : {}
 
-  const fieldErrs = fieldErrors(error)
+  const defaults = {
+    // default value is the service name & description with the ep.id
+    ..._.chain(data)
+      .get('service')
+      .pick(['name', 'description'])
+      .value(),
+    escalationPolicyID: _.get(data, 'service.ep.id'),
+  }
+
+  const fieldErrs = fieldErrors(saveStatus.error)
 
   return (
     <FormDialog
       title='Edit Service'
-      loading={loading}
-      errors={nonFieldErrors(error).concat(nonFieldErrors(dataError))}
+      loading={saveStatus.loading || dataStatus.loading}
+      errors={nonFieldErrors(saveStatus.error).concat(
+        nonFieldErrors(dataStatus.error),
+      )}
       onClose={onClose}
       onSubmit={() => save()}
       form={
         <ServiceForm
           epRequired
           errors={fieldErrs}
-          disabled={loading || dataLoading || dataError}
+          disabled={Boolean(
+            saveStatus.loading || dataStatus.loading || dataStatus.error,
+          )}
           value={value || defaults}
           onChange={value => setValue(value)}
         />
