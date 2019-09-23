@@ -521,7 +521,7 @@ func getConfig() (appConfig, error) {
 	}
 
 	if cfg.TLSListenAddr != "" {
-		if (cfg.TLSCertFile == "" && cfg.TLSKeyFile == "") || (cfg.TLSCert == "" && cfg.TLSKey == "") {
+		if cfg.TLSCertFile == "" && cfg.TLSKeyFile == "" && cfg.TLSCert == "" && cfg.TLSKey == "" {
 			return cfg, validation.NewFieldError("--listen-tls", "requires --tls-cert and --tls-key OR --tls-cert-file and --tls-key-file")
 		}
 	}
