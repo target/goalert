@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/stdlib"
+	"github.com/jackc/pgx/v4/stdlib"
 	toml "github.com/pelletier/go-toml"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
