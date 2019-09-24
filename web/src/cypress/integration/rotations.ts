@@ -146,7 +146,7 @@ function testRotations(screen: ScreenFormat) {
         .should('contain', rot.users[1].name)
     })
 
-    it('should allow re-ordering participants', () => {
+    it.skip('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]')
         .find('li')
