@@ -3,17 +3,15 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/migrate"
+	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
@@ -30,7 +28,8 @@ func main() {
 	seedVal := flag.Int64("seed", 1, "Change the random seed used to generate data.")
 	genData := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
 	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
-	dbURL := flag.String("db-url", "user=goalert dbname=goalert sslmode=disable", "DB URL to use.")
+	adminURL := flag.String("admin-db-url", "postgres://goalert@localhost/postgres", "Admin DB URL to use (used to recreate DB).")
+	dbURL := flag.String("db-url", "postgres://goalert@localhost", "DB URL to use.")
 	flag.Parse()
 
 	rand.Seed(*seedVal)
@@ -40,27 +39,41 @@ func main() {
 
 	cfg, err := pgx.ParseConfig(*dbURL)
 	if err != nil {
-		log.Fatal("parse config:", err)
+		log.Fatal("parse db-url:", err)
+	}
+	dbName := cfg.Database
+	if dbName == "" {
+		dbName = cfg.User
 	}
 
-	err = doMigrations(ctx, *dbURL, *cfg, skipMigrate)
+	err = recreateDB(ctx, *adminURL, dbName)
 	if err != nil {
-		log.Fatal("apply migrations:", err)
+		log.Fatal("recreate DB:", err)
 	}
+
+	if *skipMigrate {
+		return
+	}
+
+	s := time.Now()
+	n, err := resetDB(ctx, *dbURL)
+	if err != nil {
+		log.Fatalln("apply migrations:", err)
+	}
+	log.Printf("applied %d migrations in %s", n, time.Since(s).String())
 
 	if !*genData {
 		return
 	}
 
-	err = fillDB(ctx, *cfg)
+	err = fillDB(ctx, *dbURL)
 	if err != nil {
-		fmt.Println("ERROR:", err)
-		os.Exit(1)
+		log.Fatal("insert random data:", err)
 	}
 
 }
 
-func fillDB(ctx context.Context, cfg pgx.ConnConfig) error {
+func fillDB(ctx context.Context, url string) error {
 	s := time.Now()
 	defer func() {
 		log.Println("Completed in", time.Since(s))
@@ -68,19 +81,13 @@ func fillDB(ctx context.Context, cfg pgx.ConnConfig) error {
 	data := datagenConfig{AdminID: adminID}.Generate()
 	log.Println("Generated random data in", time.Since(s))
 
-	pool, err := pgxpool.ConnectConfig(ctx, &pgxpool.Config{
-		ConnConfig: &cfg,
-		MaxConns:   20,
-		AfterConnect: func(ctx context.Context, conn *pgx.Conn) error {
-			var t pgTime
-			conn.ConnInfo().RegisterDataType(pgtype.DataType{
-				Value: &t,
-				Name:  "time",
-				OID:   1183,
-			})
-			return nil
-		},
-	})
+	cfg, err := pgxpool.ParseConfig(url)
+	if err != nil {
+		return err
+	}
+	cfg.MaxConns = 20
+
+	pool, err := pgxpool.ConnectConfig(ctx, cfg)
 	if err != nil {
 		return errors.Wrap(err, "connect to db")
 	}
@@ -115,7 +122,7 @@ func fillDB(ctx context.Context, cfg pgx.ConnConfig) error {
 			// wait for deps to finish inserting
 			dt.WaitFor(deps...)
 			_, err = pool.CopyFrom(ctx, pgx.Identifier{table}, cols, pgx.CopyFromRows(rows))
-			must(err)
+			must(errors.Wrap(err, table))
 			log.Printf("inserted %d rows into %s in %s", n, table, time.Since(s).String())
 		}()
 	}
@@ -261,45 +268,26 @@ func fillDB(ctx context.Context, cfg pgx.ConnConfig) error {
 	return nil
 }
 
-func recreateDB(ctx context.Context, cfg pgx.ConnConfig) error {
-	conn, err := pgx.ConnectConfig(ctx, &cfg)
+func recreateDB(ctx context.Context, url, dbName string) error {
+	conn, err := pgx.Connect(ctx, url)
 	if err != nil {
 		return errors.Wrap(err, "connect to DB")
 	}
 	defer conn.Close(ctx)
 
-	_, err = conn.Exec(ctx, "drop database if exists goalert")
+	_, err = conn.Exec(ctx, "drop database if exists "+sqlutil.QuoteID(dbName))
 	if err != nil {
 		return err
 	}
-	_, err = conn.Exec(ctx, "create database goalert")
+	_, err = conn.Exec(ctx, "create database "+sqlutil.QuoteID(dbName))
 	return err
 }
 
-func resetDB(ctx context.Context, url string) error {
-	var err error
+func resetDB(ctx context.Context, url string) (n int, err error) {
 	if flag.Arg(0) != "" {
-		_, err = migrate.Up(ctx, url, flag.Arg(0))
+		n, err = migrate.Up(ctx, url, flag.Arg(0))
 	} else {
-		_, err = migrate.ApplyAll(ctx, url)
+		n, err = migrate.ApplyAll(ctx, url)
 	}
-	return err
-}
-
-func doMigrations(ctx context.Context, url string, cfg pgx.ConnConfig, skipMigrate *bool) error {
-	cfg.Database = "postgres"
-	err := recreateDB(ctx, cfg)
-	if err != nil {
-		return errors.Wrap(err, "recreate DB")
-	}
-
-	if *skipMigrate {
-		return nil
-	}
-
-	err = resetDB(ctx, url)
-	if err != nil {
-		return errors.Wrap(err, "perform migration after resettting")
-	}
-	return nil
+	return n, err
 }
