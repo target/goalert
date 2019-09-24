@@ -1,7 +1,6 @@
 package dbsync
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
@@ -162,15 +161,18 @@ func (s *Sync) Aborted() bool {
 }
 
 type progWrite struct {
+	pgx.Rows
 	inc1 func(int, ...time.Duration)
 	inc2 func(int, ...time.Duration)
 }
 
-func (w *progWrite) Write(p []byte) (int, error) {
-	n := bytes.Count(p, []byte{'\n'})
-	w.inc1(n)
-	w.inc2(n)
-	return len(p), nil
+func (p *progWrite) Next() bool {
+	n := p.Rows.Next()
+	if n {
+		p.inc1(1)
+		p.inc2(1)
+	}
+	return n
 }
 
 func (s *Sync) table(tableName string) Table {

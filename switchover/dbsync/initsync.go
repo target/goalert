@@ -1,18 +1,16 @@
 package dbsync
 
 import (
-	"bufio"
 	"context"
-	"fmt"
-	"io"
+	"strings"
 
-	"github.com/jackc/pgx"
-	"github.com/pkg/errors"
+	"github.com/jackc/pgx/v4"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/vbauerster/mpb/v4"
 	"github.com/vbauerster/mpb/v4/decor"
 )
 
-func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
+func (s *Sync) initialSync(ctx context.Context, txSrc, txDst pgx.Tx) error {
 	err := s.RefreshTables(ctx)
 	if err != nil {
 		return err
@@ -31,7 +29,7 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 	)
 	for _, t := range s.tables {
 		var rowCount int64
-		err := txSrc.QueryRowEx(ctx, `select count(*) from `+t.SafeName(), nil).Scan(&rowCount)
+		err := txSrc.QueryRow(ctx, `select count(*) from `+t.SafeName()).Scan(&rowCount)
 		if err != nil {
 			scanBar.Abort(false)
 			p.Wait()
@@ -70,38 +68,18 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 	for i, t := range toSync {
 		err = func() error {
 			defer tBar.Increment()
-
-			pr, pw := io.Pipe()
-			bw := bufio.NewWriter(pw)
-			br := bufio.NewReader(pr)
-			errCh := make(chan error, 3)
-			go func() {
-				<-ctx.Done()
-				go pw.CloseWithError(ctx.Err())
-				go pr.CloseWithError(ctx.Err())
-				errCh <- ctx.Err()
-			}()
-			go func() {
-				defer pw.Close()
-				defer bw.Flush()
-				_, err := txSrc.CopyToWriter(pw, fmt.Sprintf(`copy %s to stdout`, t.SafeName()))
-				errCh <- errors.Wrap(err, "read from src")
-			}()
-			go func() {
-				r := io.TeeReader(br, &progWrite{inc1: tBar.IncrBy, inc2: bars[i].IncrBy})
-				_, err := txDst.CopyFromReader(r, fmt.Sprintf(`copy %s from stdin`, t.SafeName()))
-				errCh <- errors.Wrap(err, "write to dst")
-			}()
-			err = <-errCh
+			safeCols := t.ColumnNames()
+			for i, n := range safeCols {
+				safeCols[i] = sqlutil.QuoteID(n)
+			}
+			rows, err := txSrc.Query(ctx, "select "+strings.Join(safeCols, ",")+" from "+t.SafeName())
 			if err != nil {
 				return err
 			}
-			err = <-errCh
-			if err != nil {
-				return err
-			}
+			defer rows.Close()
 
-			return nil
+			_, err = txDst.CopyFrom(ctx, pgx.Identifier{t.Name}, t.ColumnNames(), &progWrite{rows: rows, inc1: tBar.IncrBy, inc2: bars[i].IncrBy})
+			return err
 		}()
 		if err != nil {
 			abort(i)
