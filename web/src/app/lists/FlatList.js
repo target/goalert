@@ -26,7 +26,7 @@ const useStyles = makeStyles({
     background: '#defadf',
   },
   listItem: {
-    width: '100',
+    width: '100%',
   },
   listItemSubtext: {
     whiteSpace: 'pre-line',
