@@ -49,7 +49,7 @@ type App struct {
 	mgr *lifecycle.Manager
 
 	db     *sql.DB
-	l      *multiListener
+	l      net.Listener
 	events *sqlutil.Listener
 
 	cooldown *cooldown
@@ -111,7 +111,33 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
 	}
 
+	if c.TLSListenAddr != "" {
+		var cert tls.Certificate
+		if c.TLSCertFile != "" && c.TLSKeyFile != "" {
+			cert, err = tls.LoadX509KeyPair(c.TLSCertFile, c.TLSKeyFile)
+			if err != nil {
+				return nil, errors.Wrap(err, "load tls cert file")
+			}
+		}
+		//if both TLSCertFile and TLSCert are set in config, TLSCert will be used
+		if c.TLSCertData != "" && c.TLSKeyData != "" {
+			cert, err = tls.X509KeyPair([]byte(c.TLSCertData), []byte(c.TLSKeyData))
+			if err != nil {
+				return nil, errors.Wrap(err, "parse tls cert")
+			}
+		}
+
+		cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+		l2, err := tls.Listen("tcp", c.TLSListenAddr, cfg)
+		if err != nil {
+			return nil, errors.Wrapf(err, "bind address %s", c.TLSListenAddr)
+		}
+		l = newMultiListener(l, l2)
+	}
+
 	app := &App{
+		l:        l,
 		db:       db,
 		cfg:      c,
 		doneCh:   make(chan struct{}),
@@ -125,33 +151,6 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "start status listener")
 		}
-	}
-
-	if c.TLSListenAddr != "" {
-		var cert tls.Certificate
-		if c.TLSCertFile != "" && c.TLSKeyFile != "" {
-			cert, err = tls.LoadX509KeyPair(c.TLSCertFile, c.TLSKeyFile)
-			if err != nil {
-				return nil, errors.Wrap(err, "load tls cert file")
-			}
-		}
-		//if both TLSCertFile and TLSCert are set in config, TLSCert will be used
-		if c.TLSCert != "" && c.TLSKey != "" {
-			cert, err = tls.X509KeyPair([]byte(c.TLSCert), []byte(c.TLSKey))
-			if err != nil {
-				return nil, errors.Wrap(err, "parse tls cert")
-			}
-		}
-
-		cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
-
-		l2, err := tls.Listen("tcp", c.TLSListenAddr, cfg)
-		if err != nil {
-			return nil, errors.Wrapf(err, "bind address %s", c.TLSListenAddr)
-		}
-		app.l = newMultiListener(l, l2)
-	} else {
-		app.l = newMultiListener(l)
 	}
 
 	app.db.SetMaxIdleConns(c.DBMaxIdle)

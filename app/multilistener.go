@@ -16,10 +16,11 @@ type multiListener struct {
 }
 
 func newMultiListener(ln ...net.Listener) *multiListener {
-	ml := multiListener{listeners: ln}
-	ml.ch = make(chan net.Conn)
-	ml.errCh = make(chan error)
-
+	ml := multiListener{
+		listeners: ln,
+		ch:        make(chan net.Conn),
+		errCh:     make(chan error),
+	}
 	for _, l := range ln {
 		go ml.listen(l)
 	}
@@ -57,12 +58,12 @@ func (ml multiListener) Close() error {
 		err := l.Close()
 		if err != nil {
 			hasErr = true
-			log.Log(context.Background(), errors.Wrap(err, "Listener error"))
+			log.Log(context.Background(), errors.Wrap(err, "close listener"))
 		}
 	}
 
 	if hasErr {
-		return errors.New("Multiple listeners failed")
+		return errors.New("close listeners: multiple errors")
 	}
 	return nil
 }

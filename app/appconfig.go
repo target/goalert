@@ -7,16 +7,17 @@ import (
 )
 
 type appConfig struct {
-	ListenAddr    string
+	ListenAddr  string
+	Verbose     bool
+	JSON        bool
+	LogRequests bool
+	APIOnly     bool
+
 	TLSListenAddr string
 	TLSCertFile   string
 	TLSKeyFile    string
-	TLSCert       string
-	TLSKey        string
-	Verbose       bool
-	JSON          bool
-	LogRequests   bool
-	APIOnly       bool
+	TLSCertData   string
+	TLSKeyData    string
 
 	DBMaxOpen int
 	DBMaxIdle int

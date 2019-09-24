@@ -479,12 +479,13 @@ func getConfig() (appConfig, error) {
 
 		DisableHTTPSRedirect: viper.GetBool("disable-https-redirect"),
 
-		ListenAddr:    viper.GetString("listen"),
+		ListenAddr: viper.GetString("listen"),
+
 		TLSListenAddr: viper.GetString("listen-tls"),
 		TLSCertFile:   viper.GetString("tls-cert-file"),
 		TLSKeyFile:    viper.GetString("tls-key-file"),
-		TLSCert:       viper.GetString("tls-cert"),
-		TLSKey:        viper.GetString("tls-key"),
+		TLSCertData:   viper.GetString("tls-cert-data"),
+		TLSKeyData:    viper.GetString("tls-key-data"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
 		TwilioBaseURL: viper.GetString("twilio-base-url"),
@@ -521,8 +522,8 @@ func getConfig() (appConfig, error) {
 	}
 
 	if cfg.TLSListenAddr != "" {
-		if cfg.TLSCertFile == "" && cfg.TLSKeyFile == "" && cfg.TLSCert == "" && cfg.TLSKey == "" {
-			return cfg, validation.NewFieldError("--listen-tls", "requires --tls-cert and --tls-key OR --tls-cert-file and --tls-key-file")
+		if cfg.TLSCertFile == "" && cfg.TLSKeyFile == "" && cfg.TLSCertData == "" && cfg.TLSKeyData == "" {
+			return cfg, validation.NewFieldError("--listen-tls", "requires --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file")
 		}
 	}
 
@@ -535,12 +536,12 @@ func getConfig() (appConfig, error) {
 
 func init() {
 	RootCmd.Flags().StringP("listen", "l", "localhost:8081", "Listen address:port for the application.")
-	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.  Requires setting --tls-cert and --tls-key OR --tls-cert-file and --tls-key-file.")
 
-	RootCmd.Flags().String("tls-cert-file", "", "If using listen-tls, specify path of PEM-encoded certificate file.")
-	RootCmd.Flags().String("tls-key-file", "", "If using listen-tls, specify path of PEM-encoded private key file.")
-	RootCmd.Flags().String("tls-cert", "", "If using listen-tls, specify PEM-encoded certificate.")
-	RootCmd.Flags().String("tls-key", "", "If using listen-tls, specify PEM-encoded private key.")
+	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
+	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
+	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
+	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
+	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
 
 	RootCmd.Flags().Bool("api-only", false, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 
