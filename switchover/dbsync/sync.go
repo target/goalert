@@ -68,8 +68,14 @@ func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, e
 		return nil, err
 	}
 
-	go s.listen(s.oldDB)
-	go s.listen(s.newDB)
+	err = s.listen(s.oldDB)
+	if err != nil {
+		return nil, err
+	}
+	err = s.listen(s.newDB)
+	if err != nil {
+		return nil, err
+	}
 
 	return s, nil
 }

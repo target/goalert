@@ -230,7 +230,8 @@ func (l *Listener) connect(ctx context.Context) error {
 			return ctx.Err()
 		default:
 		}
-		_, err = conn.Exec(ctx, `listen $1`, name)
+
+		_, err = conn.Exec(ctx, "listen "+QuoteID(name))
 		if err != nil {
 			l.disconnect()
 			return err
