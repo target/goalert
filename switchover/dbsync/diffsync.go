@@ -29,7 +29,7 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst pgx.Tx, dstChange int)
 		order by
 			max_id.max,
 			cmd_id::text::int
-	`, nil, dstChange)
+	`, dstChange)
 	if err != nil {
 		return errors.Wrap(err, "get changed rows")
 	}
@@ -101,11 +101,11 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst pgx.Tx, dstChange int)
 	for _, c := range changes {
 		switch c.OP {
 		case "DELETE":
-			b.Queue(c.OP+":"+c.Table, []interface{}{c.RowID}, nil, nil)
+			b.Queue(c.OP+":"+c.Table, c.RowID)
 		case "INSERT":
-			b.Queue(c.OP+":"+c.Table, []interface{}{c.RowData}, nil, nil)
+			b.Queue(c.OP+":"+c.Table, c.RowData)
 		case "UPDATE":
-			b.Queue(c.OP+":"+c.Table, []interface{}{c.RowID, c.RowData}, nil, nil)
+			b.Queue(c.OP+":"+c.Table, c.RowID, c.RowData)
 		}
 		b.Queue("_ins:change_log", c.ID, c.OP, c.Table, c.RowID)
 		batchCount++
@@ -114,7 +114,6 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst pgx.Tx, dstChange int)
 			if err != nil {
 				bar.Abort(false)
 				p.Wait()
-				fmt.Println("SYNC", c.ID)
 				return err
 			}
 			bar.IncrBy(batchCount)

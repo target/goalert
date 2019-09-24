@@ -1,6 +1,7 @@
 package dbsync
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
@@ -167,18 +168,15 @@ func (s *Sync) Aborted() bool {
 }
 
 type progWrite struct {
-	pgx.Rows
 	inc1 func(int, ...time.Duration)
 	inc2 func(int, ...time.Duration)
 }
 
-func (p *progWrite) Next() bool {
-	n := p.Rows.Next()
-	if n {
-		p.inc1(1)
-		p.inc2(1)
-	}
-	return n
+func (w *progWrite) Write(p []byte) (int, error) {
+	n := bytes.Count(p, []byte{'\n'})
+	w.inc1(n)
+	w.inc2(n)
+	return len(p), nil
 }
 
 func (s *Sync) table(tableName string) Table {
@@ -302,7 +300,11 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 	}
 
 	if dstLastChange == 0 {
-		err = s.initialSync(ctx, txSrc, txDst)
+		// Need raw conn for CopyFrom and CopyTo to work.
+		//
+		// Transaction is at the connection level so
+		// it will still work properly.
+		err = s.initialSync(ctx, srcConn, dstConn)
 	} else if srcLastChange > dstLastChange {
 		err = s.diffSync(ctx, txSrc, txDst, dstLastChange)
 	}
@@ -331,7 +333,7 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 		start = time.Now()
 		batch := &pgx.Batch{}
 		for _, t := range s.tables {
-			batch.Queue(`alter table `+t.SafeName()+` enable trigger user`, nil, nil, nil)
+			batch.Queue(`alter table ` + t.SafeName() + ` enable trigger user`)
 		}
 		err = dstConn.SendBatch(ctx, batch).Close()
 		if err != nil {

@@ -32,7 +32,7 @@ func (s *Sync) syncSequences(ctx context.Context, txSrc, txDst pgx.Tx) error {
 	rows.Close()
 	batchRead := &pgx.Batch{}
 	for _, name := range names {
-		batchRead.Queue(`select last_value, is_called from `+sqlutil.QuoteID(name), nil, nil, []int16{pgx.BinaryFormatCode, pgx.BinaryFormatCode})
+		batchRead.Queue(`select last_value, is_called from ` + sqlutil.QuoteID(name))
 	}
 	readResults := txSrc.SendBatch(ctx, batchRead)
 	if err != nil {
@@ -48,11 +48,11 @@ func (s *Sync) syncSequences(ctx context.Context, txSrc, txDst pgx.Tx) error {
 		}
 		batchWrite.Queue(`select pg_catalog.setval($1, $2, $3)`, name, lastVal, called)
 	}
-	err=readResults.Close()
+	err = readResults.Close()
 	if err != nil {
 		return errors.Wrap(err, "close src data")
 	}
 
-	writeResults:=txDst.SendBatch(ctx, batchWrite)
+	writeResults := txDst.SendBatch(ctx, batchWrite)
 	return errors.Wrap(writeResults.Close(), "update dst sequence state")
 }
