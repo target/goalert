@@ -1,15 +1,14 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestSimpleNotifications_India tests that SMS and Voice goes out for
+// TestSimpleNotifications_India tests that SMS and Voice goes out international country codes for
 // 1 alert -> service -> esc -> step -> user. 2 rules (1 of each) immediately.
-//
-// Currently, country code '+222' is used as a negative test. If we support
-// 222 in the future, this test will need to be updated.
+// Since with a recent PR, GoAlert accepts all international phone numbers, the negative test for '+222' has been adjusted accordingly.
 func TestSimpleNotifications_India(t *testing.T) {
 	t.Parallel()
 
@@ -53,16 +52,14 @@ func TestSimpleNotifications_India(t *testing.T) {
 	h := harness.NewStoppedHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	// We are doing negative testing in that we expect the invalid country-codes
-	// to be rejected before being passed to Twilio.
-	h.IgnoreErrorsWith("send notification:")
-	h.IgnoreErrorsWith("all notification senders failed")
-
 	h.Start()
 
 	d1 := h.Twilio().Device(h.PhoneCC("+91", "1"))
+	d2 := h.Twilio().Device(h.PhoneCC("+222", "1"))
 
 	d1.ExpectSMS("testing")
 	d1.ExpectVoice("testing")
+	d2.ExpectSMS("testing")
+	d2.ExpectVoice("testing")
 
 }
