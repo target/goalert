@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
@@ -322,8 +321,8 @@ func (step migrationStep) doneStmt() string {
 func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	for i, stmt := range step.statements {
 		_, err := c.Exec(ctx, stmt)
-		if err != nil && err != pgx.ErrNoRows {
-			return errors.Wrapf(err, "statement #%d", i)
+		if err != nil {
+			return errors.Wrapf(err, "statement #%d", i+1)
 		}
 	}
 
@@ -335,7 +334,7 @@ func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	return nil
 }
 
-func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) (err error) {
+func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) error {
 	if step.disableTx {
 		return step.applyNoTx(ctx, c)
 	}
@@ -346,19 +345,14 @@ func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) (err error) {
 	}
 	defer tx.Rollback(ctx)
 
-	b := &pgx.Batch{}
-
-	for _, stmt := range step.statements {
-		b.Queue(stmt, nil, nil, nil)
-	}
-	b.Queue(step.doneStmt(), []interface{}{step.ID}, []pgtype.OID{pgtype.TextOID}, nil)
-
-	err = tx.SendBatch(ctx, b).Close()
-	if err != nil && err != pgx.ErrNoRows {
-		return errors.Wrap(err, "execute migration steps")
+	// tx applies to the connection, so NoTx
+	// will execute correctly.
+	err = step.applyNoTx(ctx, c)
+	if err != nil {
+		return err
 	}
 
-	return tx.Commit(ctx)
+	return errors.Wrap(tx.Commit(ctx), "commit")
 }
 
 func performMigrations(ctx context.Context, c *pgx.Conn, applyUp bool, migrations []migration) (int, error) {
