@@ -6,7 +6,7 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestSimpleNotifications_India tests that SMS and Voice goes out international country codes for
+// TestSimpleNotifications_India tests that SMS and Voice goes out for
 // 1 alert -> service -> esc -> step -> user. 2 rules (1 of each) immediately.
 // Since with a recent PR, GoAlert accepts all international phone numbers, the negative test for '+222' has been adjusted accordingly.
 func TestSimpleNotifications_India(t *testing.T) {
