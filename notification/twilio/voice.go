@@ -22,7 +22,6 @@ import (
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation/validate"
 )
 
 // CallType indicates a supported Twilio voice call type.
@@ -208,10 +207,6 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		return nil, errors.New("Twilio provider is disabled")
 	}
 	toNumber := msg.Destination().Value
-	err := validate.Phone("toNumber", toNumber)
-	if err != nil {
-		return nil, errors.Wrap(err, "must be a valid number")
-	}
 
 	if toNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to make outgoing call to FromNumber")

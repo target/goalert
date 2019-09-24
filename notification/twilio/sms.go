@@ -17,7 +17,6 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 )
@@ -86,11 +85,6 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
 	}
 	destNumber := msg.Destination().Value
-	err := validate.Phone("destNumber", destNumber)
-	if err != nil {
-		return nil, errors.Wrap(err, "must be a valid number")
-	}
-
 	if destNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}
