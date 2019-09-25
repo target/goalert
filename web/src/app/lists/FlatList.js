@@ -25,6 +25,9 @@ const useStyles = makeStyles({
     borderLeft: '6px solid #93ed94',
     background: '#defadf',
   },
+  listSubheader: {
+    margin: 0,
+  },
   listItem: {
     width: '100%',
   },
@@ -70,7 +73,9 @@ export default function FlatList(props) {
     const { onReorder, emptyMessage, headerNote, items, ...otherProps } = props
 
     const subheader = headerNote ? (
-      <ListSubheader>{headerNote}</ListSubheader>
+      <ListSubheader component='p' className={classes.listSubheader}>
+        {headerNote}
+      </ListSubheader>
     ) : null
 
     return (
