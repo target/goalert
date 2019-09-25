@@ -81,10 +81,10 @@ func ExecSQL(ctx context.Context, url string, query string) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer conn.Close(ctx)
 
 	for _, q := range queries {
-		_, err := conn.ExecEx(ctx, q, nil)
+		_, err := conn.Exec(ctx, q)
 		if err != nil {
 			return err
 		}
@@ -101,35 +101,23 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer conn.Close(ctx)
 
-	tx, err := conn.BeginEx(ctx, nil)
+	tx, err := conn.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
-	b := tx.BeginBatch()
-	defer b.Close()
+	b := &pgx.Batch{}
 	for _, q := range queries {
-		b.Queue(q, nil, nil, nil)
+		b.Queue(q)
 	}
 
-	err = b.Send(ctx, nil)
+	err = tx.SendBatch(ctx, b).Close()
 	if err != nil {
 		return err
 	}
 
-	for range queries {
-		_, err = b.ExecResults()
-		if err != nil {
-			return err
-		}
-	}
-	err = b.Close()
-	if err != nil {
-		return err
-	}
-
-	return tx.CommitEx(ctx)
+	return tx.Commit(ctx)
 }

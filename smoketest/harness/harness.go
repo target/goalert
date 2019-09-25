@@ -41,17 +41,17 @@ import (
 const dbTimeFormat = "2006-01-02 15:04:05.999999-07:00"
 
 var (
-	dbURL string
-	dbCfg *pgx.ConnConfig
+	dbURLStr string
+	dbURL    *url.URL
 )
 
 func init() {
-	dbURL = os.Getenv("DB_URL")
-	if dbURL == "" {
-		dbURL = "postgres://goalert@127.0.0.1:5432?sslmode=disable"
+	dbURLStr = os.Getenv("DB_URL")
+	if dbURLStr == "" {
+		dbURLStr = "postgres://goalert@127.0.0.1:5432?sslmode=disable"
 	}
 	var err error
-	dbCfg, err = pgx.ParseConfig(dbURL)
+	dbURL, err = url.Parse(dbURLStr)
 	if err != nil {
 		panic(err)
 	}
@@ -59,51 +59,10 @@ func init() {
 
 func DBURL(name string) string {
 	if name == "" {
-		return formatConnString(*dbCfg)
+		return dbURLStr
 	}
-
-	cfg := dbCfg
-	cfg.Database = name
-	return formatConnString(*cfg)
-}
-
-func formatConnString(c pgx.ConnConfig) string {
-	var u url.URL
-
-	u.Scheme = "postgresql"
-	if c.Password != "" {
-		u.User = url.UserPassword(c.User, c.Password)
-	} else if c.User != "" {
-		u.User = url.User(c.User)
-	}
-	u.Path = c.Database
-
-	if c.Port != 0 {
-		u.Host = fmt.Sprintf("%s:%d", c.Host, c.Port)
-	} else {
-		u.Host = c.Host
-	}
-
-	q := make(url.Values)
-	for k, v := range c.RuntimeParams {
-		q.Set(k, v)
-	}
-
-	// TODO
-	// if c.TLSConfig == nil && !c.UseFallbackTLS && c.FallbackTLSConfig == nil {
-	// 	q.Set("sslmode", "disable")
-	// } else if c.TLSConfig == nil && c.UseFallbackTLS && c.FallbackTLSConfig != nil {
-	// 	q.Set("sslmode", "allow")
-	// } else if c.TLSConfig != nil && c.UseFallbackTLS && c.FallbackTLSConfig == nil {
-	// 	q.Set("sslmode", "prefer")
-	// } else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.InsecureSkipVerify {
-	// 	q.Set("sslmode", "require")
-	// } else if c.TLSConfig != nil && !c.UseFallbackTLS && c.TLSConfig.ServerName != "" {
-	// 	q.Set("sslmode", "verify-full")
-	// }
-
-	u.RawQuery = q.Encode()
-
+	u := *dbURL
+	u.Path = "/" + url.PathEscape(name)
 	return u.String()
 }
 
@@ -198,7 +157,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	conn, err := pgx.ConnectConfig(ctx, dbCfg)
+	conn, err := pgx.Connect(ctx, DBURL(""))
 	if err != nil {
 		t.Fatal("connect to db:", err)
 	}
@@ -208,9 +167,6 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 		t.Fatal("create db:", err)
 	}
 	conn.Close(ctx)
-
-	testDBCfg := *dbCfg
-	testDBCfg.Database = name
 
 	t.Logf("created test database '%s': %s", name, dbURL)
 	g := NewDataGen(t, "Phone", DataGenFunc(GenPhone))
@@ -226,7 +182,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 		uuidG:          NewDataGen(t, "UUID", DataGenFunc(GenUUID)),
 		phoneCCG:       NewDataGen(t, "PhoneCC", DataGenArgFunc(GenPhoneCC)),
 		dbName:         name,
-		dbURL:          formatConnString(testDBCfg),
+		dbURL:          DBURL(name),
 		lastTimeChange: start,
 		start:          start,
 
@@ -317,10 +273,13 @@ func (h *Harness) Start() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	h.db, err = pgxpool.ConnectConfig(ctx, &pgxpool.Config{
-		ConnConfig: dbCfg,
-		MaxConns:   2,
-	})
+	poolCfg, err := pgxpool.ParseConfig(h.dbURL)
+	if err != nil {
+		h.t.Fatalf("failed to parse db url: %v", err)
+	}
+	poolCfg.MaxConns = 2
+
+	h.db, err = pgxpool.ConnectConfig(ctx, poolCfg)
 	if err != nil {
 		h.t.Fatalf("failed to connect to db: %v", err)
 	}
@@ -612,7 +571,7 @@ func (h *Harness) Close() error {
 	h.dbStdlib.Close()
 	h.db.Close()
 
-	conn, err := pgx.ConnectConfig(ctx, dbCfg)
+	conn, err := pgx.Connect(ctx, DBURL(""))
 	if err != nil {
 		h.t.Error("failed to connect to DB:", err)
 	}
