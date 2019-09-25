@@ -26,6 +26,11 @@ func TestPhone(t *testing.T) {
 		"+17734562190",
 		"+916301210000",
 		"+447480809090",
+		"+61455518786",   // Australia
+		"+498963648018",  // Germany
+		"+85268355559",   // Hong Kong
+		"+8618555196185", // China
+		"+50223753964",   // Guatemala
 	}
 	for _, number := range valid {
 		check(number, true)
@@ -35,6 +40,9 @@ func TestPhone(t *testing.T) {
 		"+10633453456",
 		"+15555555555",
 		"+4474808090",
+		"+611111111111",
+		"+491515559510",
+		"+85211111111",
 	}
 	for _, number := range invalid {
 		check(number, false)
