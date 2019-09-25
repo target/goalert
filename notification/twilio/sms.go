@@ -85,10 +85,6 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
 	}
 	destNumber := msg.Destination().Value
-	if !supportedCountryCode(destNumber) {
-		return nil, errors.New("unsupported country code")
-	}
-
 	if destNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}
