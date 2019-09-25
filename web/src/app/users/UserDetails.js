@@ -71,9 +71,6 @@ export default function UserDetails(props) {
 
   if (error) return <GenericError error={error.message} />
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
-    if (loading) return <Spinner />
-    else return <ObjectNotFound />
-  }
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
