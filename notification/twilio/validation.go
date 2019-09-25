@@ -3,11 +3,11 @@ package twilio
 import (
 	"context"
 	"crypto/hmac"
-	"github.com/target/goalert/config"
-	"github.com/target/goalert/util/log"
 	"net/http"
 	"regexp"
-	"strings"
+
+	"github.com/target/goalert/config"
+	"github.com/target/goalert/util/log"
 
 	"github.com/pkg/errors"
 )
@@ -77,13 +77,4 @@ func validSID(n string) string {
 	}
 
 	return n
-}
-
-// Supported Country Codes
-// +1 = USA, +91 = India, +44 = United Kingdom
-func supportedCountryCode(n string) bool {
-	if strings.HasPrefix(n, "+1") || strings.HasPrefix(n, "+91") || strings.HasPrefix(n, "+44") {
-		return true
-	}
-	return false
 }
