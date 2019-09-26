@@ -3,7 +3,7 @@ package sqlutil
 import (
 	"database/sql/driver"
 
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
 )
 
 type BoolArray []bool

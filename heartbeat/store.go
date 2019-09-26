@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"github.com/target/goalert/util/sqlutil"
 
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
