@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"github.com/vbauerster/mpb/v4"
 	"github.com/vbauerster/mpb/v4/decor"
 )
 
-func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
+func (s *Sync) initialSync(ctx context.Context, src, dst *pgx.Conn) error {
 	err := s.RefreshTables(ctx)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 	)
 	for _, t := range s.tables {
 		var rowCount int64
-		err := txSrc.QueryRowEx(ctx, `select count(*) from `+t.SafeName(), nil).Scan(&rowCount)
+		err := src.QueryRow(ctx, `select count(*) from `+t.SafeName()).Scan(&rowCount)
 		if err != nil {
 			scanBar.Abort(false)
 			p.Wait()
@@ -84,12 +84,12 @@ func (s *Sync) initialSync(ctx context.Context, txSrc, txDst *pgx.Tx) error {
 			go func() {
 				defer pw.Close()
 				defer bw.Flush()
-				_, err := txSrc.CopyToWriter(pw, fmt.Sprintf(`copy %s to stdout`, t.SafeName()))
+				_, err := src.PgConn().CopyTo(ctx, pw, fmt.Sprintf(`copy %s to stdout`, t.SafeName()))
 				errCh <- errors.Wrap(err, "read from src")
 			}()
 			go func() {
 				r := io.TeeReader(br, &progWrite{inc1: tBar.IncrBy, inc2: bars[i].IncrBy})
-				_, err := txDst.CopyFromReader(r, fmt.Sprintf(`copy %s from stdin`, t.SafeName()))
+				_, err := dst.PgConn().CopyFrom(ctx, r, fmt.Sprintf(`copy %s from stdin`, t.SafeName()))
 				errCh <- errors.Wrap(err, "write to dst")
 			}()
 			err = <-errCh

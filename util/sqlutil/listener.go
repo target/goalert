@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/stdlib"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/stdlib"
 )
 
 // Connector will return a new *pgx.Conn.
@@ -39,8 +40,8 @@ func (db *DBConnector) Release(conn *pgx.Conn) error {
 type ConfigConnector pgx.ConnConfig
 
 // Connect will get a new connection using the underlying `pgx.ConnConfig`.
-func (cfg ConfigConnector) Connect(context.Context) (*pgx.Conn, error) {
-	return pgx.Connect(pgx.ConnConfig(cfg))
+func (cfg ConfigConnector) Connect(ctx context.Context) (*pgx.Conn, error) {
+	return pgx.ConnectConfig(ctx, (*pgx.ConnConfig)(&cfg))
 }
 
 var (
@@ -51,7 +52,7 @@ var (
 
 // Listener will listen for NOTIFY commands on a set of channels.
 type Listener struct {
-	notifCh chan *pgx.Notification
+	notifCh chan *pgconn.Notification
 
 	ctx      context.Context
 	db       Connector
@@ -69,7 +70,7 @@ type Listener struct {
 // NewListener will create and initialize a Listener which will automatically reconnect and listen to the provided channels.
 func NewListener(ctx context.Context, db Connector, channels ...string) (*Listener, error) {
 	l := &Listener{
-		notifCh:  make(chan *pgx.Notification, 32),
+		notifCh:  make(chan *pgconn.Notification, 32),
 		ctx:      ctx,
 		channels: channels,
 		db:       db,
@@ -195,13 +196,13 @@ func (l *Listener) Errors() <-chan error { return l.errCh }
 
 // Notifications returns the notification channel for this listener.
 // Nil values will not be returned until the listener is closed.
-func (l *Listener) Notifications() <-chan *pgx.Notification { return l.notifCh }
+func (l *Listener) Notifications() <-chan *pgconn.Notification { return l.notifCh }
 
 func (l *Listener) disconnect() {
 	if l.conn == nil {
 		return
 	}
-	l.conn.Close()
+	l.conn.Close(l.ctx)
 	if r, ok := l.db.(Releaser); ok {
 		r.Release(l.conn)
 	}
@@ -229,7 +230,8 @@ func (l *Listener) connect(ctx context.Context) error {
 			return ctx.Err()
 		default:
 		}
-		err = conn.Listen(name)
+
+		_, err = conn.Exec(ctx, "listen "+QuoteID(name))
 		if err != nil {
 			l.disconnect()
 			return err
