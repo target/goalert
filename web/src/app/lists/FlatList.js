@@ -100,8 +100,8 @@ export default function FlatList(props) {
     }
 
     return props.items.map((item, idx) => {
+      // render with drag and drop
       if (props.onReorder) {
-        // render with drag and drop
         return (
           <Draggable key={idx + item.id} draggableId={item.id} index={idx}>
             {(provided, snapshot) => {
@@ -123,8 +123,10 @@ export default function FlatList(props) {
             }}
           </Draggable>
         )
-      } else if (item.subHeader) {
-        // render list item as subheader
+      }
+
+      // render list item as subheader
+      if (item.subHeader) {
         return (
           <ListSubheader key={idx} className={classes.background}>
             <Typography
@@ -137,10 +139,10 @@ export default function FlatList(props) {
             </Typography>
           </ListSubheader>
         )
-      } else {
-        // render standard list item
-        return renderListItem(item, idx)
       }
+
+      // render standard list item
+      return renderListItem(item, idx)
     })
   }
 
