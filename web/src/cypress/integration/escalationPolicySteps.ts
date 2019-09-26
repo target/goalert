@@ -108,7 +108,7 @@ function testSteps(screen: ScreenFormat) {
         })
         .then(() => {
           cy.get('ul[data-cy=steps-list] li')
-            .eq(1)
+            .eq(0)
             .should('contain', 'Step #')
             .find('button[data-cy=other-actions]')
             .menu('Edit')
@@ -172,7 +172,7 @@ function testSteps(screen: ScreenFormat) {
 
       // open edit step dialog
       cy.get('ul[data-cy=steps-list] li')
-        .eq(1)
+        .eq(0)
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
@@ -201,7 +201,7 @@ function testSteps(screen: ScreenFormat) {
     it('should delete a step', () => {
       cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
       cy.get('ul[data-cy=steps-list] li')
-        .eq(1)
+        .eq(0)
         .find('button[data-cy=other-actions]')
         .menu('Delete')
       cy.get('div[role=dialog]').as('dialog')
@@ -240,11 +240,11 @@ function testSteps(screen: ScreenFormat) {
           cy.get('ul[data-cy=steps-list]')
             .should('contain', 'Step #3')
             .find('li')
-            .should('have.length', 4)
+            .should('have.length', 3)
 
           // focus element to be drag and dropped
           cy.get('ul[data-cy=steps-list] li')
-            .eq(1)
+            .eq(0)
             .should('contain', 'Step #1')
             .should('contain', s1.delayMinutes)
             .parent('[tabindex]')
@@ -275,15 +275,15 @@ function testSteps(screen: ScreenFormat) {
 
           // verify data integrity
           cy.get('ul[data-cy=steps-list] li')
-            .eq(1)
+            .eq(0)
             .should('contain', 'Step #1')
             .should('contain', s2.delayMinutes)
           cy.get('ul[data-cy=steps-list] li')
-            .eq(2)
+            .eq(1)
             .should('contain', 'Step #2')
             .should('contain', s3.delayMinutes)
           cy.get('ul[data-cy=steps-list] li')
-            .eq(3)
+            .eq(2)
             .should('contain', 'Step #3')
             .should('contain', s1.delayMinutes)
         })
