@@ -72,11 +72,19 @@ export default function FlatList(props) {
   function renderList(dragPlaceholder) {
     const { onReorder, emptyMessage, headerNote, items, ...otherProps } = props
 
-    const subheader = headerNote ? (
-      <ListSubheader component='p' className={classes.listSubheader}>
-        {headerNote}
-      </ListSubheader>
-    ) : null
+    let subheader = null
+    if (headerNote) {
+      // if headerNote is a string (instead of a diff type of react element)
+      // render with proper subheader formatting
+      subheader =
+        typeof headerNote === 'string' ? (
+          <ListSubheader component='p' className={classes.listSubheader}>
+            {headerNote}
+          </ListSubheader>
+        ) : (
+          headerNote
+        )
+    }
 
     return (
       <List subheader={subheader} {...otherProps}>

@@ -1,80 +1,96 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
+import { useMutation } from '@apollo/react-hooks'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Dialog from '@material-ui/core/Dialog'
-import List from '@material-ui/core/List'
 import Typography from '@material-ui/core/Typography'
-import { withStyles } from '@material-ui/core/styles/index'
-import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import { styles as globalStyles } from '../styles/materialStyles'
+import { makeStyles } from '@material-ui/core/styles/index'
 import gql from 'graphql-tag'
 import PolicyStep from './PolicyStep'
-import { Mutation } from 'react-apollo'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
+import FlatList from '../lists/FlatList'
 
-const styles = theme => {
-  const { dndDragging } = globalStyles(theme)
+const useStyles = makeStyles({
+  headerEl: {
+    color: 'black',
+  },
+})
 
-  return {
-    dndDragging,
-    paddingTop: {
-      paddingTop: '1em',
+const updateEPMutation = gql`
+  mutation UpdateEscalationPolicyMutation(
+    $input: UpdateEscalationPolicyInput!
+  ) {
+    updateEscalationPolicy(input: $input)
+  }
+`
+
+export default function PolicyStepsCard(props) {
+  let oldID = null
+  let oldIdx = null
+  let newIdx = null
+  let stepIDs = props.steps.map(step => step.id)
+
+  const classes = useStyles()
+  const [showErrorDialog, setShowErrorDialog] = useState(false)
+  const [updateEP, updateEPStatus] = useMutation(updateEPMutation, {
+    onCompleted: () => {
+      oldID = null
+      oldIdx = null
+      newIdx = null
     },
-  }
-}
+    onError: () => setShowErrorDialog(true),
+    optimisticResponse: {
+      updateEscalationPolicy: true,
+    },
+    update: (cache, { data }) => updateCache(cache, data),
+    variables: {
+      input: {
+        id: props.escalationPolicyID,
+        stepIDs,
+      },
+    },
+  })
 
-@withWidth()
-@withStyles(styles)
-export default class PolicyStepsCard extends Component {
-  static propTypes = {
-    escalationPolicyID: p.string.isRequired,
-    repeat: p.number.isRequired, // # of times EP repeats escalation process
-    steps: p.arrayOf(
-      p.shape({
-        id: p.string.isRequired,
-        delayMinutes: p.number.isRequired,
-        targets: p.arrayOf(
-          p.shape({
-            id: p.string.isRequired,
-            name: p.string.isRequired,
-            type: p.string.isRequired,
-          }),
-        ).isRequired,
-      }),
-    ).isRequired,
+  function arrayMove(arr) {
+    const el = arr[oldIdx]
+    arr.splice(oldIdx, 1)
+    arr.splice(newIdx, 0, el)
   }
 
-  state = {
-    error: null,
+  /*
+   * Executes on drag end. Once the mutation completes
+   * successfully, updateCache will be called to update
+   * the UI with the correct data.
+   */
+  function onReorder(result) {
+    // dropped outside the list
+    if (!result.destination) {
+      return
+    }
+
+    oldID = result.draggableId
+    oldIdx = stepIDs.indexOf(oldID)
+    newIdx = result.destination.index
+
+    // re-order sids array
+    arrayMove(stepIDs)
+
+    // call mutation
+    return updateEP()
   }
 
-  oldID = null
-  oldIdx = null
-  newIdx = null
-
-  arrayMove = arr => {
-    const el = arr[this.oldIdx]
-    arr.splice(this.oldIdx, 1)
-    arr.splice(this.newIdx, 0, el)
-  }
-
-  onMutationUpdate = (cache, data) => {
+  function updateCache(cache, data) {
     // mutation returns true on a success
-    if (
-      !data.updateEscalationPolicy ||
-      this.oldIdx == null ||
-      this.newIdx == null
-    ) {
+    if (!data.updateEscalationPolicy || oldIdx == null || newIdx == null) {
       return
     }
 
     // variables for query to read/write from the cache
     const variables = {
-      id: this.props.escalationPolicyID,
+      id: props.escalationPolicyID,
     }
 
     // get the current state of the steps in the cache
@@ -87,10 +103,10 @@ export default class PolicyStepsCard extends Component {
     const steps = escalationPolicy.steps.slice()
 
     // if optimistic cache update was successful, return out
-    if (steps[this.newIdx].id === this.oldID) return
+    if (steps[newIdx].id === oldID) return
 
     // re-order escalationPolicy.steps array
-    this.arrayMove(steps)
+    arrayMove(steps)
 
     // write new steps order to cache
     cache.writeQuery({
@@ -105,41 +121,67 @@ export default class PolicyStepsCard extends Component {
     })
   }
 
-  onDragStart = () => {
-    // adds a little vibration if the browser supports it
-    if (window.navigator.vibrate) {
-      window.navigator.vibrate(100)
-    }
+  // main render return
+  return (
+    <React.Fragment>
+      <Card>
+        <CardContent>
+          <Typography variant='h5' component='h3'>
+            Escalation Steps
+          </Typography>
+          {renderStepsList()}
+          {renderRepeatText()}
+        </CardContent>
+      </Card>
+      <Dialog open={showErrorDialog} onClose={() => setShowErrorDialog(false)}>
+        <DialogTitleWrapper title='An error occurred' />
+        <DialogContentError
+          error={updateEPStatus.error && updateEPStatus.error.message}
+        />
+      </Dialog>
+    </React.Fragment>
+  )
+
+  function renderStepsList() {
+    const { escalationPolicyID, repeat, steps } = props
+
+    const headerEl = (
+      <Typography
+        component='p'
+        variant='subtitle1'
+        className={classes.headerEl}
+      >
+        Notify the following:
+      </Typography>
+    )
+
+    return (
+      <React.Fragment>
+        <FlatList
+          data-cy='steps-list'
+          emptyMessage='No steps currently on this Escalation Policy'
+          headerNote={steps.length ? headerEl : null}
+          onReorder={onReorder}
+          items={steps.map((step, idx) => ({
+            id: step.id,
+            el: (
+              <PolicyStep
+                key={idx}
+                escalationPolicyID={escalationPolicyID}
+                index={idx}
+                repeat={repeat}
+                step={step}
+                steps={steps}
+              />
+            ),
+          }))}
+        />
+      </React.Fragment>
+    )
   }
 
-  // update step order on ui and send out mutation
-  onDragEnd = (result, mutation) => {
-    // dropped outside the list
-    if (!result.destination) {
-      return
-    }
-
-    // map ids to swap elements
-    let sids = this.props.steps.map(s => s.id)
-    this.oldID = result.draggableId
-    this.oldIdx = sids.indexOf(this.oldID)
-    this.newIdx = result.destination.index
-
-    // re-order sids array
-    this.arrayMove(sids)
-
-    mutation({
-      variables: {
-        input: {
-          id: this.props.escalationPolicyID,
-          stepIDs: sids,
-        },
-      },
-    })
-  }
-
-  renderRepeatText = () => {
-    const { repeat, steps } = this.props
+  function renderRepeatText() {
+    const { repeat, steps } = props
 
     if (!steps.length) {
       return null
@@ -156,131 +198,22 @@ export default class PolicyStepsCard extends Component {
       </Typography>
     )
   }
+}
 
-  renderNoSteps = () => {
-    return (
-      <Typography className={this.props.classes.paddingTop} variant='caption'>
-        No steps currently on this Escalation Policy
-      </Typography>
-    )
-  }
-
-  /*
-   * Renders the steps list with the drag and drop context
-   *
-   * Each step will have a grid containing the step number,
-   * targets (rendered as mui chips), and the delay length
-   * until the next escalation.
-   */
-  renderStepsList = () => {
-    const { classes, escalationPolicyID, repeat, steps } = this.props
-
-    if (!steps.length) {
-      return this.renderNoSteps()
-    }
-
-    return (
-      <React.Fragment>
-        <Typography component='p' variant='subtitle1'>
-          Notify the following:
-        </Typography>
-        <Mutation
-          mutation={gql`
-            mutation UpdateEscalationPolicyMutation(
-              $input: UpdateEscalationPolicyInput!
-            ) {
-              updateEscalationPolicy(input: $input)
-            }
-          `}
-          onCompleted={() => {
-            this.oldID = null
-            this.oldIdx = null
-            this.newIdx = null
-          }}
-          optimisticResponse={{
-            updateEscalationPolicy: true,
-          }}
-          onError={error => this.setState({ error })}
-          update={(cache, { data }) => this.onMutationUpdate(cache, data)}
-        >
-          {mutation => (
-            <DragDropContext
-              key='drag-context'
-              onDragStart={this.onDragStart}
-              onDragEnd={res => this.onDragEnd(res, mutation)}
-            >
-              <Droppable droppableId='droppable'>
-                {(provided, _) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps}>
-                    <List data-cy='steps-list'>
-                      {steps.map((step, index) => (
-                        <Draggable
-                          key={step.id}
-                          draggableId={step.id}
-                          index={index}
-                        >
-                          {(provided, snapshot) => {
-                            // light grey background while dragging
-                            const draggingBackground = snapshot.isDragging
-                              ? classes.dndDragging
-                              : null
-
-                            return (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={draggingBackground}
-                              >
-                                <PolicyStep
-                                  escalationPolicyID={escalationPolicyID}
-                                  index={index}
-                                  repeat={repeat}
-                                  step={step}
-                                  steps={steps}
-                                />
-                              </div>
-                            )
-                          }}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </List>
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          )}
-        </Mutation>
-      </React.Fragment>
-    )
-  }
-
-  render() {
-    const { message: error } = this.state.error || {}
-
-    return (
-      <React.Fragment>
-        <Card>
-          <CardContent>
-            <Typography variant='h5' component='h3'>
-              Escalation Steps
-            </Typography>
-            {this.renderStepsList()}
-            {this.renderRepeatText()}
-          </CardContent>
-        </Card>
-        <Dialog
-          open={Boolean(this.state.error)}
-          onClose={() => this.setState({ error: null })}
-        >
-          <DialogTitleWrapper
-            fullScreen={isWidthDown('md', this.props.width)}
-            title='An error occurred'
-          />
-          <DialogContentError error={error} />
-        </Dialog>
-      </React.Fragment>
-    )
-  }
+PolicyStepsCard.propTypes = {
+  escalationPolicyID: p.string.isRequired,
+  repeat: p.number.isRequired, // # of times EP repeats escalation process
+  steps: p.arrayOf(
+    p.shape({
+      id: p.string.isRequired,
+      delayMinutes: p.number.isRequired,
+      targets: p.arrayOf(
+        p.shape({
+          id: p.string.isRequired,
+          name: p.string.isRequired,
+          type: p.string.isRequired,
+        }),
+      ).isRequired,
+    }),
+  ).isRequired,
 }

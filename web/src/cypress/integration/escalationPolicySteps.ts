@@ -107,7 +107,8 @@ function testSteps(screen: ScreenFormat) {
           cy.reload()
         })
         .then(() => {
-          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+          cy.get('ul[data-cy=steps-list] li')
+            .eq(1)
             .should('contain', 'Step #')
             .find('button[data-cy=other-actions]')
             .menu('Edit')
@@ -170,7 +171,8 @@ function testSteps(screen: ScreenFormat) {
       cy.get('div[data-cy=slack-chip]').should('contain', '#foobar')
 
       // open edit step dialog
-      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+      cy.get('ul[data-cy=steps-list] li')
+        .eq(1)
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
@@ -198,7 +200,8 @@ function testSteps(screen: ScreenFormat) {
 
     it('should delete a step', () => {
       cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
-      cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+      cy.get('ul[data-cy=steps-list] li')
+        .eq(1)
         .find('button[data-cy=other-actions]')
         .menu('Delete')
       cy.get('div[role=dialog]').as('dialog')
@@ -237,10 +240,11 @@ function testSteps(screen: ScreenFormat) {
           cy.get('ul[data-cy=steps-list]')
             .should('contain', 'Step #3')
             .find('li')
-            .should('have.length', 3)
+            .should('have.length', 4)
 
           // focus element to be drag and dropped
-          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+          cy.get('ul[data-cy=steps-list] li')
+            .eq(1)
             .should('contain', 'Step #1')
             .should('contain', s1.delayMinutes)
             .parent('[tabindex]')
@@ -270,13 +274,16 @@ function testSteps(screen: ScreenFormat) {
           cy.focused().type(' ', { force: true })
 
           // verify data integrity
-          cy.get('ul[data-cy=steps-list] :nth-child(1) li')
+          cy.get('ul[data-cy=steps-list] li')
+            .eq(1)
             .should('contain', 'Step #1')
             .should('contain', s2.delayMinutes)
-          cy.get('ul[data-cy=steps-list] :nth-child(2) li')
+          cy.get('ul[data-cy=steps-list] li')
+            .eq(2)
             .should('contain', 'Step #2')
             .should('contain', s3.delayMinutes)
-          cy.get('ul[data-cy=steps-list] :nth-child(3) li')
+          cy.get('ul[data-cy=steps-list] li')
+            .eq(3)
             .should('contain', 'Step #3')
             .should('contain', s1.delayMinutes)
         })
