@@ -41,6 +41,11 @@ const query = gql`
 `
 
 const useStyles = makeStyles({
+  gravatarText: {
+    textAlign: 'center',
+    paddingTop: '0.5em',
+    display: 'block',
+  },
   profileImage: {
     width: 128,
     height: 128,
@@ -127,14 +132,7 @@ export default function UserDetails(props) {
               userID={props.userID}
               className={classes.profileImage}
             />
-            <Typography
-              variant='caption'
-              style={{
-                textAlign: 'center',
-                paddingTop: '0.5em',
-                display: 'block',
-              }}
-            >
+            <Typography variant='caption' className={classes.gravatarText}>
               Provided by{' '}
               <a href='https://gravatar.com' target='_blank'>
                 Gravatar
