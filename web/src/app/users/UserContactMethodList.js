@@ -9,9 +9,6 @@ import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'
 import UserContactMethodDeleteDialog from './UserContactMethodDeleteDialog'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import { Config } from '../util/RequireConfig'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
@@ -174,18 +171,6 @@ function UserContactMethodList(props) {
               onClose={() => setShowDeleteDialogByID(null)}
             />
           )}
-          <Config>
-            {cfg =>
-              !props.readOnly &&
-              cfg['General.NotificationDisclaimer'] && (
-                <ListItem>
-                  <ListItemText
-                    secondary={cfg['General.NotificationDisclaimer']}
-                  />
-                </ListItem>
-              )
-            }
-          </Config>
         </Card>
       </Grid>
     )
