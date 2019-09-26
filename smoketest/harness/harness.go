@@ -154,7 +154,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	start := time.Now()
 	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
@@ -270,7 +270,7 @@ func (h *Harness) Start() {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	poolCfg, err := pgxpool.ParseConfig(h.dbURL)
@@ -562,7 +562,7 @@ func (h *Harness) Close() error {
 		h.cmd.Process.Wait()
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	h.sessKey.Shutdown(ctx)
 	h.tw.Close()
