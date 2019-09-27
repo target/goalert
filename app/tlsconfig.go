@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// getTLSConfig creates a static TLS config using supplied certificate values.
+// Returns nil if no certificate values are set.
 func getTLSConfig() (*tls.Config, error) {
 
 	var n int
