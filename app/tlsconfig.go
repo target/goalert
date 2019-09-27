@@ -12,7 +12,6 @@ import (
 func getTLSConfig() (*tls.Config, error) {
 
 	var n int
-
 	if viper.GetString("tls-cert-file") != "" {
 		n += 0b0001
 	}
@@ -28,7 +27,6 @@ func getTLSConfig() (*tls.Config, error) {
 
 	var cert tls.Certificate
 	var err error
-
 	switch n {
 	case 0b0011: // file mode
 		cert, err = tls.LoadX509KeyPair(viper.GetString("tls-cert-file"), viper.GetString("tls-key-file"))
@@ -49,6 +47,5 @@ func getTLSConfig() (*tls.Config, error) {
 		return nil, errors.New("--tls-cert-file and --tls-key-file OR --tls-cert-data and --tls-key-data must be specified")
 	}
 
-	return &tls.Config{Certificates: []tls.Certificate{cert}}, nil
-
+	return &tls.Config{Certificates: []tls.Certificate{cert}, NextProtos: []string{"h2", "http/1.1"}}, nil
 }
