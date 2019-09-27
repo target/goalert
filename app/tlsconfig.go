@@ -39,7 +39,7 @@ func getTLSConfig() (*tls.Config, error) {
 			return nil, errors.Wrap(err, "parse tls cert")
 		}
 	case 0: // no flags set
-		if !viper.IsSet("listen-tls") {
+		if viper.GetString("listen-tls") == "" {
 			return nil, nil
 		}
 		fallthrough
