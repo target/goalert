@@ -481,6 +481,8 @@ func getConfig() (appConfig, error) {
 
 		ListenAddr: viper.GetString("listen"),
 
+		TLSListenAddr: viper.GetString("listen-tls"),
+
 		SlackBaseURL:  viper.GetString("slack-base-url"),
 		TwilioBaseURL: viper.GetString("twilio-base-url"),
 
@@ -515,6 +517,12 @@ func getConfig() (appConfig, error) {
 		return cfg, validation.NewFieldError("db-url", "is required")
 	}
 
+	var err error
+	cfg.TLSConfig, err = getTLSConfig()
+	if err != nil {
+		return cfg, err
+	}
+
 	if viper.GetBool("stack-traces") {
 		log.EnableStacks()
 	}
@@ -524,6 +532,12 @@ func getConfig() (appConfig, error) {
 
 func init() {
 	RootCmd.Flags().StringP("listen", "l", "localhost:8081", "Listen address:port for the application.")
+
+	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
+	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
+	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
+	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
+	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
 
 	RootCmd.Flags().Bool("api-only", false, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 
