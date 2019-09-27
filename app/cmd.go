@@ -482,10 +482,6 @@ func getConfig() (appConfig, error) {
 		ListenAddr: viper.GetString("listen"),
 
 		TLSListenAddr: viper.GetString("listen-tls"),
-		TLSCertFile:   viper.GetString("tls-cert-file"),
-		TLSKeyFile:    viper.GetString("tls-key-file"),
-		TLSCertData:   viper.GetString("tls-cert-data"),
-		TLSKeyData:    viper.GetString("tls-key-data"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
 		TwilioBaseURL: viper.GetString("twilio-base-url"),
@@ -521,10 +517,10 @@ func getConfig() (appConfig, error) {
 		return cfg, validation.NewFieldError("db-url", "is required")
 	}
 
-	if cfg.TLSListenAddr != "" {
-		if cfg.TLSCertFile == "" && cfg.TLSKeyFile == "" && cfg.TLSCertData == "" && cfg.TLSKeyData == "" {
-			return cfg, validation.NewFieldError("--listen-tls", "requires --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file")
-		}
+	var err error
+	cfg.TLSConfig, err = getTLSConfig()
+	if err != nil {
+		return cfg, err
 	}
 
 	if viper.GetBool("stack-traces") {

@@ -1,0 +1,52 @@
+package app
+
+import (
+	"crypto/tls"
+
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
+)
+
+func getTLSConfig() (*tls.Config, error) {
+
+	var n int
+
+	if viper.IsSet("tls-cert-file") {
+		n += 0b0001
+	}
+	if viper.IsSet("tls-key-file") {
+		n += 0b0010
+	}
+	if viper.IsSet("tls-cert-data") {
+		n += 0b0100
+	}
+	if viper.IsSet("tls-key-data") {
+		n += 0b1000
+	}
+
+	var cert tls.Certificate
+	var err error
+
+	switch n {
+	case 0b0011: // file mode
+		cert, err = tls.LoadX509KeyPair(viper.GetString("tls-cert-file"), viper.GetString("tls-key-file"))
+		if err != nil {
+			return nil, errors.Wrap(err, "load tls cert files")
+		}
+	case 0b1100: // data mode
+		cert, err = tls.X509KeyPair([]byte(viper.GetString("tls-cert-data")), []byte(viper.GetString("tls-key-data")))
+		if err != nil {
+			return nil, errors.Wrap(err, "parse tls cert")
+		}
+	case 0: // no flags set
+		if !viper.IsSet("listen-tls") {
+			return nil, nil
+		}
+		fallthrough
+	default:
+		return nil, errors.New("--tls-cert-file and --tls-key-file OR --tls-cert-data and --tls-key-data must be specified")
+	}
+
+	return &tls.Config{Certificates: []tls.Certificate{cert}}, nil
+
+}

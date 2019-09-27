@@ -112,26 +112,9 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 	}
 
 	if c.TLSListenAddr != "" {
-		var cert tls.Certificate
-		if c.TLSCertFile != "" && c.TLSKeyFile != "" {
-			cert, err = tls.LoadX509KeyPair(c.TLSCertFile, c.TLSKeyFile)
-			if err != nil {
-				return nil, errors.Wrap(err, "load tls cert file")
-			}
-		}
-		//if both TLSCertFile and TLSCert are set in config, TLSCert will be used
-		if c.TLSCertData != "" && c.TLSKeyData != "" {
-			cert, err = tls.X509KeyPair([]byte(c.TLSCertData), []byte(c.TLSKeyData))
-			if err != nil {
-				return nil, errors.Wrap(err, "parse tls cert")
-			}
-		}
-
-		cfg := &tls.Config{Certificates: []tls.Certificate{cert}}
-
-		l2, err := tls.Listen("tcp", c.TLSListenAddr, cfg)
+		l2, err := tls.Listen("tcp", c.TLSListenAddr, c.TLSConfig)
 		if err != nil {
-			return nil, errors.Wrapf(err, "bind address %s", c.TLSListenAddr)
+			return nil, errors.Wrapf(err, "listen %s", c.TLSListenAddr)
 		}
 		l = newMultiListener(l, l2)
 	}
