@@ -3,19 +3,23 @@ import { Settings } from 'luxon'
 
 describe('calcNewActiveIndex', () => {
   let oldZone = ''
+
   beforeAll(() => {
     // 01/02 03:04:05PM '06 -0700
     Settings.now = () => 1136239445
     oldZone = Settings.defaultZoneName
     Settings.defaultZoneName = 'UTC'
   })
+
   afterAll(() => {
     Settings.now = () => Date.now()
     Settings.defaultZone = oldZone
   })
+
   const check = (aIdx, oldIdx, newIdx, exp) => {
     expect(calcNewActiveIndex(aIdx, oldIdx, newIdx)).toBe(exp)
   }
+
   test('should return original activeIdx when no change', () => {
     check(0, 1, 2, 0)
     check(0, 2, 1, 0)
@@ -23,14 +27,17 @@ describe('calcNewActiveIndex', () => {
     check(3, 2, 1, 3)
     check(0, 0, 0, 0)
   })
+
   test('should return newIndex when active user is being dragged', () => {
     check(1, 1, 2, 2)
     check(2, 2, 1, 1)
   })
+
   test('should return newIndex +1 ', () => {
     check(0, 2, 0, 1)
     check(1, 2, 0, 2)
   })
+
   test('should return newIndex -1', () => {
     check(1, 0, 2, 0)
     check(1, 0, 1, 0)
