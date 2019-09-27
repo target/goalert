@@ -86,7 +86,7 @@ func (ml *multiListener) Close() error {
 	}
 
 	if hasErr {
-		return errors.New("close listeners: multiple errors")
+		return errors.New("close listeners: one or more errors")
 	}
 	return nil
 }
