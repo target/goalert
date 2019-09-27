@@ -146,16 +146,16 @@ function testRotations(screen: ScreenFormat) {
         .should('contain', rot.users[1].name)
     })
 
-    it.skip('should allow re-ordering participants', () => {
+    it('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]')
         .find('li')
-        .should('have.length', 4)
+        .should('have.length', 3)
       cy.get('[data-cy=avatar-fallback]').should('not.exist')
 
       cy.get('ul[data-cy=users]')
         .find('li')
-        .eq(1)
+        .eq(0)
         .should('contain', rot.users[0].name)
         .should('contain', 'Active')
         .parent('[tabindex]')
