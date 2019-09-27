@@ -1,11 +1,12 @@
 import { DateTime } from 'luxon'
 
 // calcNewActiveIndex returns the newActiveIndex for a swap operation
-// -1 will be returned if there was no change
+// oldActiveIndex will be returned if there was no change
 export function calcNewActiveIndex(oldActiveIndex, oldIndex, newIndex) {
   if (oldIndex === newIndex) {
-    return -1
+    return oldActiveIndex
   }
+
   if (oldActiveIndex === oldIndex) {
     return newIndex
   }
@@ -17,7 +18,7 @@ export function calcNewActiveIndex(oldActiveIndex, oldIndex, newIndex) {
   if (oldIndex < oldActiveIndex && newIndex >= oldActiveIndex) {
     return oldActiveIndex - 1
   }
-  return -1
+  return oldActiveIndex
 }
 
 // formatTime returns the formatted time with the timezone (if different than local timezone)

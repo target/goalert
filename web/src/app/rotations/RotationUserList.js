@@ -55,6 +55,54 @@ export default class RotationUserList extends React.PureComponent {
     setActiveIndex: null,
   }
 
+  oldID = null
+  oldIdx = null
+  newIdx = null
+
+  updateCache = (cache, data, activeUserIndex) => {
+    // mutation returns true on a success
+    if (!data.updateRotation || this.oldIdx == null || this.newIdx == null) {
+      return
+    }
+
+    // variables for query to read/write from the cache
+    const variables = {
+      id: this.props.rotationID,
+    }
+
+    // get the current state of the steps in the cache
+    const { rotation } = cache.readQuery({
+      query: rotationUsersQuery,
+      variables,
+    })
+
+    // get steps from cache
+    let users = rotation.users.slice()
+
+    // if optimistic cache update was successful, return out
+    if (users[this.newIdx].id === this.oldID) return
+
+    // re-order rotation.users array
+    users = reorderList(users, this.oldIdx, this.newIdx)
+
+    // write new steps order to cache
+    cache.writeQuery({
+      query: rotationUsersQuery,
+      variables,
+      data: {
+        rotation: {
+          ...rotation,
+          users,
+          activeUserIndex: calcNewActiveIndex(
+            activeUserIndex,
+            this.oldIdx,
+            this.newIdx,
+          ),
+        },
+      },
+    })
+  }
+
   render() {
     const { classes } = this.props
     return (
@@ -164,48 +212,45 @@ export default class RotationUserList extends React.PureComponent {
             />
           ),
         }))}
-        onReorder={(...args) => {
-          let updatedUsers = reorderList(users.map(u => u.id), ...args)
-          const newActiveIndex = calcNewActiveIndex(activeUserIndex, ...args)
-          const params = { id: this.props.rotationID, userIDs: updatedUsers }
+        onReorder={result => {
+          let userIDs = users.map(user => user.id)
 
-          if (newActiveIndex !== -1) {
-            params.activeUserIndex = newActiveIndex
+          // dropped outside the list
+          if (!result.destination) {
+            return
           }
 
+          this.oldID = result.draggableId
+          this.oldIdx = userIDs.indexOf(this.oldID)
+          this.newIdx = result.destination.index
+
+          // re-order sids array
+          userIDs = reorderList(userIDs, this.oldIdx, this.newIdx)
+
+          // call mutation
           return commit({
-            variables: { input: params },
-            update: (cache, response) => {
-              if (!response.data.updateRotation) {
-                return
-              }
-              const data = cache.readQuery({
-                query: rotationUsersQuery,
-                variables: { id: this.props.rotationID },
-              })
-
-              const users = reorderList(data.rotation.users, ...args)
-
-              cache.writeQuery({
-                query: rotationUsersQuery,
-                variables: { id: this.props.rotationID },
-                data: {
-                  ...data,
-                  rotation: {
-                    ...data.rotation,
-                    activeUserIndex:
-                      newActiveIndex === -1
-                        ? data.rotation.activeUserIndex
-                        : newActiveIndex,
-                    users,
-                  },
-                },
-              })
+            variables: {
+              input: {
+                id: this.props.rotationID,
+                userIDs,
+                activeUserIndex: calcNewActiveIndex(
+                  activeUserIndex,
+                  this.oldIdx,
+                  this.newIdx,
+                ),
+              },
+            },
+            onCompleted: () => {
+              this.oldID = null
+              this.oldIdx = null
+              this.newIdx = null
             },
             optimisticResponse: {
               __typename: 'Mutation',
               updateRotation: true,
             },
+            update: (cache, { data }) =>
+              this.updateCache(cache, data, activeUserIndex),
           })
         }}
       />
