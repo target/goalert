@@ -11,16 +11,16 @@ func getTLSConfig() (*tls.Config, error) {
 
 	var n int
 
-	if viper.IsSet("tls-cert-file") {
+	if viper.GetString("tls-cert-file") != "" {
 		n += 0b0001
 	}
-	if viper.IsSet("tls-key-file") {
+	if viper.GetString("tls-key-file") != "" {
 		n += 0b0010
 	}
-	if viper.IsSet("tls-cert-data") {
+	if viper.GetString("tls-cert-data") != "" {
 		n += 0b0100
 	}
-	if viper.IsSet("tls-key-data") {
+	if viper.GetString("tls-key-data") != "" {
 		n += 0b1000
 	}
 
