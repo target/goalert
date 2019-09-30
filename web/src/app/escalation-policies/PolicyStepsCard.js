@@ -12,6 +12,7 @@ import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
 import FlatList from '../lists/FlatList'
+import { reorderList } from '../rotations/util'
 
 const useStyles = makeStyles({
   headerEl: {
@@ -46,19 +47,7 @@ export default function PolicyStepsCard(props) {
       updateEscalationPolicy: true,
     },
     update: (cache, { data }) => updateCache(cache, data),
-    variables: {
-      input: {
-        id: props.escalationPolicyID,
-        stepIDs,
-      },
-    },
   })
-
-  function arrayMove(arr) {
-    const el = arr[oldIdx]
-    arr.splice(oldIdx, 1)
-    arr.splice(newIdx, 0, el)
-  }
 
   /*
    * Executes on drag end. Once the mutation completes
@@ -76,10 +65,17 @@ export default function PolicyStepsCard(props) {
     newIdx = result.destination.index
 
     // re-order sids array
-    arrayMove(stepIDs)
+    stepIDs = reorderList(stepIDs, oldIdx, newIdx)
 
     // call mutation
-    return updateEP()
+    return updateEP({
+      variables: {
+        input: {
+          id: props.escalationPolicyID,
+          stepIDs,
+        },
+      },
+    })
   }
 
   function updateCache(cache, data) {
@@ -100,13 +96,13 @@ export default function PolicyStepsCard(props) {
     })
 
     // get steps from cache
-    const steps = escalationPolicy.steps.slice()
+    let steps = escalationPolicy.steps.slice()
 
     // if optimistic cache update was successful, return out
     if (steps[newIdx].id === oldID) return
 
     // re-order escalationPolicy.steps array
-    arrayMove(steps)
+    steps = reorderList(steps, oldIdx, newIdx)
 
     // write new steps order to cache
     cache.writeQuery({
