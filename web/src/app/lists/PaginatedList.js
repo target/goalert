@@ -23,6 +23,7 @@ import { connect } from 'react-redux'
 import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
+import Search from '../util/Search'
 
 // gray boxes on load
 // disable overflow
@@ -43,6 +44,7 @@ const styles = theme => ({
     fontStyle: 'italic',
   },
   controls: {
+    alignItems: 'center',
     [theme.breakpoints.down('sm')]: {
       '&:not(:first-child)': {
         marginBottom: '4.5em',
@@ -58,49 +60,69 @@ class PaginationControls extends React.PureComponent {
     isLoading: p.bool,
     onNext: p.func,
     onBack: p.func,
+    searchFilters: p.node,
+    withSearch: p.bool,
   }
 
   render() {
-    const { classes, isLoading, onBack, onNext } = this.props
+    const {
+      classes,
+      isLoading,
+      onBack,
+      onNext,
+      searchFilters,
+      withSearch,
+    } = this.props
 
     return (
-      <React.Fragment>
-        <Grid container justify='flex-end' className={classes.controls}>
+      <Grid
+        item
+        xs={12}
+        container
+        spacing={1}
+        justify='flex-end'
+        className={classes.controls}
+      >
+        {withSearch && <Grid item>{searchFilters}</Grid>}
+        {withSearch && (
           <Grid item>
-            <IconButton
-              title='back page'
-              data-cy='back-button'
-              disabled={!onBack}
-              onClick={() => {
-                onBack()
-                window.scrollTo(0, 0)
-              }}
-            >
-              <LeftIcon />
-            </IconButton>
+            <Search />
           </Grid>
-          <Grid item>
-            <IconButton
-              title='next page'
-              data-cy='next-button'
-              disabled={!onNext}
-              onClick={() => {
-                onNext()
-                window.scrollTo(0, 0)
-              }}
-            >
-              {isLoading && !onNext && (
-                <CircularProgress
-                  color='secondary'
-                  size={24}
-                  className={classes.progress}
-                />
-              )}
-              <RightIcon />
-            </IconButton>
-          </Grid>
+        )}
+        <Grid item>
+          <IconButton
+            title='back page'
+            data-cy='back-button'
+            disabled={!onBack}
+            onClick={() => {
+              onBack()
+              window.scrollTo(0, 0)
+            }}
+          >
+            <LeftIcon />
+          </IconButton>
         </Grid>
-      </React.Fragment>
+        <Grid item>
+          <IconButton
+            title='next page'
+            data-cy='next-button'
+            disabled={!onNext}
+            onClick={() => {
+              onNext()
+              window.scrollTo(0, 0)
+            }}
+          >
+            {isLoading && !onNext && (
+              <CircularProgress
+                color='secondary'
+                size={24}
+                className={classes.progress}
+              />
+            )}
+            <RightIcon />
+          </IconButton>
+        </Grid>
+      </Grid>
     )
   }
 }
@@ -164,6 +186,8 @@ export class PaginatedList extends React.PureComponent {
 
     // provide a message to display if there are no results
     emptyMessage: p.string,
+
+    searchFilters: p.node,
   }
 
   static defaultProps = {
@@ -222,7 +246,7 @@ export class PaginatedList extends React.PureComponent {
       this.props.loadMore(ITEMS_PER_PAGE * 2)
   }
 
-  renderPaginationControls() {
+  renderPaginationControls(withSearch) {
     let onBack = null
     let onNext = null
 
@@ -235,6 +259,8 @@ export class PaginatedList extends React.PureComponent {
         onBack={onBack}
         onNext={onNext}
         isLoading={this.isLoading()}
+        searchFilters={this.props.searchFilters}
+        withSearch={withSearch}
       />
     )
   }
@@ -312,29 +338,34 @@ export class PaginatedList extends React.PureComponent {
 
   render() {
     const { headerNote, classes } = this.props
+    const withSearch = true
+
     return (
       <React.Fragment>
-        <Grid item xs={12}>
-          <Card>
-            <List data-cy='apollo-list'>
-              {headerNote && (
-                <ListItem>
-                  <ListItemText
-                    className={classes.headerNote}
-                    disableTypography
-                    secondary={
-                      <Typography color='textSecondary'>
-                        {headerNote}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-              )}
-              {this.renderListItems()}
-            </List>
-          </Card>
+        <Grid container spacing={2}>
+          {this.renderPaginationControls(withSearch)}
+          <Grid item xs={12}>
+            <Card>
+              <List data-cy='apollo-list'>
+                {headerNote && (
+                  <ListItem>
+                    <ListItemText
+                      className={classes.headerNote}
+                      disableTypography
+                      secondary={
+                        <Typography color='textSecondary'>
+                          {headerNote}
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                )}
+                {this.renderListItems()}
+              </List>
+            </Card>
+          </Grid>
+          {this.renderPaginationControls()}
         </Grid>
-        {this.renderPaginationControls()}
       </React.Fragment>
     )
   }

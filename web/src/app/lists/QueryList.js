@@ -46,6 +46,9 @@ export default class QueryList extends React.PureComponent {
     // provided by redux
     search: p.string,
     routeKey: p.string,
+
+    // filters additional to search, to be rendered to the left of the search text field
+    searchFilters: p.node,
   }
 
   static defaultProps = {
@@ -103,6 +106,7 @@ export default class QueryList extends React.PureComponent {
         items={items}
         loadMore={loadMore}
         isLoading={loading}
+        searchFilters={this.props.searchFilters}
       />
     )
   }
