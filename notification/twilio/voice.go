@@ -207,9 +207,6 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		return nil, errors.New("Twilio provider is disabled")
 	}
 	toNumber := msg.Destination().Value
-	if !supportedCountryCode(toNumber) {
-		return nil, errors.New("unsupported country code")
-	}
 
 	if toNumber == cfg.Twilio.FromNumber {
 		return nil, errors.New("refusing to make outgoing call to FromNumber")
