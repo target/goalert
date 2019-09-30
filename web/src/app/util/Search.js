@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react'
+import { makeStyles } from '@material-ui/core'
 import AppBar from '@material-ui/core/AppBar'
 import Hidden from '@material-ui/core/Hidden'
 import IconButton from '@material-ui/core/IconButton'
+import InputAdornment from '@material-ui/core/InputAdornment'
 import Slide from '@material-ui/core/Slide'
 import TextField from '@material-ui/core/TextField'
 import Toolbar from '@material-ui/core/Toolbar'
 import { Close as CloseIcon, Search as SearchIcon } from '@material-ui/icons'
-import { styles } from '../styles/materialStyles'
 import { useDispatch, useSelector } from 'react-redux'
 import { searchSelector } from '../selectors/url'
 import { setURLParam } from '../actions/main'
 import { DEBOUNCE_DELAY } from '../config'
-import { makeStyles } from '@material-ui/core'
 
-const useStyles = makeStyles(theme => {
-  return { searchFieldBox: styles(theme).searchFieldBox }
+const useStyles = makeStyles({
+  textField: {
+    backgroundColor: 'white',
+    borderRadius: '4px',
+  },
 })
 
 /*
- * Renders a search bar that will fix to the top right of the screen (in the app bar)
+ * Renders a search text field that utilizes the URL params to regulate
+ * what data to display
  *
  * On a mobile device the the search icon will be present, and when tapped
  * a new appbar will display that contains a search field to use.
@@ -51,14 +55,19 @@ export default function Search() {
     return (
       <TextField
         InputProps={{
-          disableUnderline: true,
-          classes: {
-            input: classes.searchFieldBox,
-          },
+          startAdornment: (
+            <InputAdornment position='start'>
+              <SearchIcon color='action' />
+            </InputAdornment>
+          ),
         }}
         placeholder='Search'
+        variant='outlined'
+        margin='dense'
+        hiddenLabel
         onChange={e => setSearch(e.target.value)}
         value={search}
+        className={classes.textField}
         {...extraProps}
       />
     )
