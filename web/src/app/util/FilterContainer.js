@@ -1,4 +1,5 @@
 import React from 'react'
+import p from 'prop-types'
 import {
   Hidden,
   Popover,
@@ -37,6 +38,12 @@ export default class FilterContainer extends React.PureComponent {
     anchorEl: null,
   }
 
+  // todo: fill in rest
+  static propTypes = {
+    // https://material-ui.com/api/icon-button/
+    iconButtonProps: p.object,
+  }
+
   renderContent() {
     return (
       <Grid container spacing={2} className={this.props.classes.container}>
@@ -67,7 +74,7 @@ export default class FilterContainer extends React.PureComponent {
     )
   }
   render() {
-    const { classes } = this.props
+    const { classes, iconButtonProps } = this.props
     return (
       <React.Fragment>
         <IconButton
@@ -79,6 +86,7 @@ export default class FilterContainer extends React.PureComponent {
           }
           title='filter'
           aria-expanded={Boolean(this.state.anchorEl)}
+          {...iconButtonProps}
         >
           <FilterList />
         </IconButton>
