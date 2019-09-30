@@ -1,10 +1,6 @@
 import React from 'react'
-import QueryList from './QueryList'
-
-import PageActions from '../util/PageActions'
 import p from 'prop-types'
-
-import Search from '../util/Search'
+import QueryList from './QueryList'
 import CreateFAB from './CreateFAB'
 
 export default class SimpleListPage extends React.PureComponent {
@@ -16,17 +12,18 @@ export default class SimpleListPage extends React.PureComponent {
     createForm: p.element,
     createLabel: p.string,
     queryProps: p.object,
+    searchFilters: p.node,
   }
 
   render() {
-    const { createForm, createLabel, ...queryProps } = this.props
+    const { createForm, createLabel, searchFilters, ...queryProps } = this.props
     return (
       <React.Fragment>
-        <PageActions>
-          <Search />
-        </PageActions>
-
-        <QueryList {...queryProps} />
+        <QueryList
+          key='service-list'
+          searchFilters={searchFilters}
+          {...queryProps}
+        />
 
         {createForm && (
           <CreateFAB
