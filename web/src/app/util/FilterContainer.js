@@ -9,7 +9,7 @@ import {
   Grid,
   Button,
 } from '@material-ui/core'
-import { FilterList } from '@material-ui/icons'
+import { FilterList as FilterIcon } from '@material-ui/icons'
 
 const style = theme => {
   return {
@@ -88,7 +88,7 @@ export default class FilterContainer extends React.PureComponent {
           aria-expanded={Boolean(this.state.anchorEl)}
           {...iconButtonProps}
         >
-          <FilterList />
+          <FilterIcon />
         </IconButton>
         <Hidden smDown>
           <Popover
