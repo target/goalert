@@ -25,6 +25,10 @@ type Config struct {
 		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`
 	}
 
+	Maintenance struct {
+		AlertCleanupDays int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
+	}
+
 	Auth struct {
 		RefererURLs  []string `info:"Allowed referer URLs for auth and redirects."`
 		DisableBasic bool     `public:"true" info:"Disallow username/password login."`
@@ -201,6 +205,7 @@ func (cfg Config) Validate() error {
 		validateKey("GitHub.ClientID", cfg.GitHub.ClientID),
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
+		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {

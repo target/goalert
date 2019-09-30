@@ -29,10 +29,8 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8
 	github.com/graphql-go/graphql v0.7.8
-	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgconn v1.0.1
 	github.com/jackc/pgtype v1.0.1
-	github.com/jackc/pgx v3.5.0+incompatible
 	github.com/jackc/pgx/v4 v4.0.1
 	github.com/joho/godotenv v1.3.0
 	github.com/magiconair/properties v1.8.1 // indirect

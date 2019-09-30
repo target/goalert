@@ -8,6 +8,7 @@ import (
 
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
+	"github.com/target/goalert/engine/cleanupmanager"
 	"github.com/target/goalert/engine/escalationmanager"
 	"github.com/target/goalert/engine/heartbeatmanager"
 	"github.com/target/goalert/engine/message"
@@ -119,10 +120,10 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "heartbeat processing backend")
 	}
-	// cleanMgr, err := cleanupmanager.NewDB(ctx, db, c.CredKeyring)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "cleanup backend")
-	// }
+	cleanMgr, err := cleanupmanager.NewDB(ctx, db)
+	if err != nil {
+		return nil, errors.Wrap(err, "cleanup backend")
+	}
 
 	p.modules = []updater{
 		rotMgr,
@@ -132,7 +133,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		statMgr,
 		verifyMgr,
 		hbMgr,
-		// cleanMgr,
+		cleanMgr,
 	}
 
 	p.msg, err = message.NewDB(ctx, db, &message.Config{
