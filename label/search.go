@@ -25,7 +25,8 @@ type SearchOptions struct {
 
 	Limit int `json:"-"`
 
-	UniqueKeys bool `json:"u,omitempty"`
+	UniqueKeys bool `json:"k,omitempty"`
+	UniqueValues bool `json:"v,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.

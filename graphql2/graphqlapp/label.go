@@ -23,6 +23,9 @@ func (q *Query) Labels(ctx context.Context, input *graphql2.LabelSearchOptions) 
 	if input.UniqueKeys != nil {
 		searchOpts.UniqueKeys = *input.UniqueKeys
 	}
+	if input.UniqueValues != nil {
+		searchOpts.UniqueValues = *input.UniqueValues
+	}
 	if input.After != nil && *input.After != "" {
 		err = search.ParseCursor(*input.After, &searchOpts)
 		if err != nil {
