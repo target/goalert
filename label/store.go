@@ -28,7 +28,6 @@ type DB struct {
 	delete           *sql.Stmt
 	findAllByService *sql.Stmt
 	uniqueKeys       *sql.Stmt
-	uniqueValues       *sql.Stmt
 }
 
 // NewDB will Set a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -55,11 +54,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		uniqueKeys: p.P(`
 			SELECT DISTINCT (key) 
-			FROM labels
-			ORDER BY key ASC
-		`),
-		uniqueValues: p.P(`
-			SELECT DISTINCT (value) 
 			FROM labels
 			ORDER BY key ASC
 		`),
@@ -173,35 +167,4 @@ func (db *DB) UniqueKeysTx(ctx context.Context, tx *sql.Tx) ([]string, error) {
 
 func (db *DB) UniqueKeys(ctx context.Context) ([]string, error) {
 	return db.UniqueKeysTx(ctx, nil)
-}
-
-func (db *DB) UniqueValuesTx(ctx context.Context, tx *sql.Tx) ([]string, error) {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
-	if err != nil {
-		return nil, err
-	}
-
-	stmt := db.uniqueValues
-	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
-	}
-
-	rows, err := stmt.QueryContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var keys []string
-
-	for rows.Next() {
-		var k string
-		err = rows.Scan(&k)
-		if err != nil {
-			return nil, errors.Wrap(err, "scan row")
-		}
-
-		keys = append(keys, k)
-	}
-	return keys, nil
 }
