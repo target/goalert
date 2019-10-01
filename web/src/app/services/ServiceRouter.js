@@ -73,6 +73,7 @@ export default function ServiceRouter() {
           color: 'default',
           'aria-label': 'Show Label Filters',
         }}
+        onReset={() => setSearchParam()}
       >
         <Grid item xs={12}>
           <LabelKeySelect
