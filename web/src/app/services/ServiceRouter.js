@@ -9,6 +9,7 @@ import ServiceDetails from './ServiceDetails'
 import ServiceLabelList from './ServiceLabelList'
 import IntegrationKeyList from './IntegrationKeyList'
 import { LabelKeySelect } from '../selection/LabelKeySelect'
+import { LabelValueSelect } from '../selection/LabelValueSelect'
 import { PageNotFound } from '../error-pages/Errors'
 import ServiceAlerts from './components/ServiceAlerts'
 import ServiceCreateDialog from './ServiceCreateDialog'
@@ -41,11 +42,11 @@ export default function ServiceRouter() {
 
   // grab key and value from the search param, if at all
   let key = null
-  // let value = null
+  let value = null
   if (searchParam.includes('=')) {
     const searchSplit = searchParam.split(/(!=|=)/)
     key = searchSplit[0]
-    // value = searchSplit[1]
+    value = searchSplit[2] // [1] being != or =
   }
 
   function renderList() {
@@ -82,16 +83,34 @@ export default function ServiceRouter() {
             onChange={onKeyChange}
           />
         </Grid>
+        <Grid item xs={12}>
+          <LabelValueSelect
+            label='Select Label Value'
+            value={value}
+            onChange={onValueChange}
+            disabled={!key}
+          />
+        </Grid>
       </FilterContainer>
     )
   }
 
-  // update key in state and update search parameters accordingly
-  function onKeyChange(newValue) {
-    if (newValue) {
-      setSearchParam(newValue + '=')
+  function onKeyChange(newKey) {
+    if (newKey) {
+      setSearchParam(newKey + '=')
     } else {
       setSearchParam() // clear search if clearing key
+    }
+  }
+
+  function onValueChange(newValue) {
+    // should be disabled if empty, but just in case :)
+    if (!key) return
+
+    if (newValue) {
+      setSearchParam(key + '=' + newValue)
+    } else {
+      setSearchParam(key + '=')
     }
   }
 
