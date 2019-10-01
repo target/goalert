@@ -34,6 +34,14 @@ export const styles = theme => ({
       0.08,
     ),
   },
+  listItemIcon: {
+    position: 'absolute',
+    right: 0,
+  },
+  menuItem: {
+    wordBreak: 'break-word',
+    whiteSpace: 'pre-wrap',
+  },
   message: {
     float: 'left',
     padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
@@ -104,15 +112,14 @@ export const Option = props => (
   <MenuItem
     buttonRef={props.innerRef}
     selected={props.isFocused}
-    component='div'
-    style={{
-      fontWeight: props.isSelected ? 500 : 400,
-    }}
+    component='span'
+    className={props.selectProps.classes.menuItem}
+    style={{ fontWeight: props.isSelected ? 500 : 400 }}
     {...props.innerProps}
   >
     {props.children}
     {props.data.icon && (
-      <ListItemIcon style={{ position: 'absolute', right: 0 }}>
+      <ListItemIcon className={props.selectProps.classes.listItemIcon}>
         {props.data.icon}
       </ListItemIcon>
     )}
