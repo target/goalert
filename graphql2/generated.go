@@ -2566,6 +2566,7 @@ input LabelSearchOptions {
   after: String = ""
   search: String = ""
   uniqueKeys: Boolean = false
+  uniqueValues: Boolean = false
   omit: [ID!]
 }
 
@@ -11737,6 +11738,12 @@ func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context
 		case "uniqueKeys":
 			var err error
 			it.UniqueKeys, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "uniqueValues":
+			var err error
+			it.UniqueValues, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -169,11 +169,12 @@ type LabelConnection struct {
 }
 
 type LabelSearchOptions struct {
-	First      *int     `json:"first"`
-	After      *string  `json:"after"`
-	Search     *string  `json:"search"`
-	UniqueKeys *bool    `json:"uniqueKeys"`
-	Omit       []string `json:"omit"`
+	First        *int     `json:"first"`
+	After        *string  `json:"after"`
+	Search       *string  `json:"search"`
+	UniqueKeys   *bool    `json:"uniqueKeys"`
+	UniqueValues *bool    `json:"uniqueValues"`
+	Omit         []string `json:"omit"`
 }
 
 type PageInfo struct {
