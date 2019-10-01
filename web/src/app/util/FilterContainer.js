@@ -20,10 +20,12 @@ const style = theme => {
     overflow: {
       overflow: 'visible',
     },
-
     container: {
       padding: 8,
-      [theme.breakpoints.up('md')]: { width: '17em' },
+      [theme.breakpoints.up('md')]: {
+        width: 'fit-content',
+        minWidth: '17em',
+      },
       [theme.breakpoints.down('sm')]: { width: '100%' },
     },
     formContainer: {
