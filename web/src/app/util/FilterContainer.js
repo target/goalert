@@ -61,9 +61,12 @@ export default class FilterContainer extends React.PureComponent {
         </Grid>
         <Grid item xs={12} className={this.props.classes.actions}>
           {this.props.onReset && (
-            <Button onClick={this.props.onReset}>Reset</Button>
+            <Button data-cy='filter-reset' onClick={this.props.onReset}>
+              Reset
+            </Button>
           )}
           <Button
+            data-cy='filter-done'
             onClick={() =>
               this.setState({
                 anchorEl: null,

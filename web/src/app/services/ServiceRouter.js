@@ -71,13 +71,15 @@ export default function ServiceRouter() {
     return (
       <FilterContainer
         iconButtonProps={{
-          color: 'default',
           'aria-label': 'Show Services Filters',
+          'data-cy': 'services-filter-button',
+          color: 'default',
         }}
         onReset={() => setSearchParam()}
       >
         <Grid item xs={12}>
           <LabelKeySelect
+            name='label-key'
             label='Select Label Key'
             value={key}
             onChange={onKeyChange}
@@ -85,6 +87,7 @@ export default function ServiceRouter() {
         </Grid>
         <Grid item xs={12}>
           <LabelValueSelect
+            name='label-value'
             label='Select Label Value'
             keyValue={key}
             value={value}
