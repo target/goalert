@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-
+import Grid from '@material-ui/core/Grid'
 import { PaginatedList } from './PaginatedList'
 import { ITEMS_PER_PAGE } from '../config'
 import { once } from 'lodash-es'
@@ -8,6 +8,10 @@ import { connect } from 'react-redux'
 import { searchSelector } from '../selectors'
 import Query from '../util/Query'
 import { fieldAlias } from '../util/graphql'
+import {
+  PaginationActionsContainer,
+  PaginationActionsProvider,
+} from './PaginationActions'
 
 const mapStateToProps = state => ({
   search: searchSelector(state),
@@ -107,6 +111,7 @@ export default class QueryList extends React.PureComponent {
         loadMore={loadMore}
         isLoading={loading}
         searchFilters={this.props.searchFilters}
+        withQuery
       />
     )
   }
@@ -126,13 +131,22 @@ export default class QueryList extends React.PureComponent {
       delete variables.input.search
     }
     return (
-      <Query
-        query={fieldAlias(this.props.query, 'data')}
-        variables={variables}
-        noPoll
-        notifyOnNetworkStatusChange
-        render={this.renderContent}
-      />
+      <PaginationActionsProvider>
+        <Grid container spacing={2}>
+          {/* Such that filtering and searching isn't re-rendered with the page content */}
+          <PaginationActionsContainer />
+
+          <Grid item xs={12}>
+            <Query
+              query={fieldAlias(this.props.query, 'data')}
+              variables={variables}
+              noPoll
+              notifyOnNetworkStatusChange
+              render={this.renderContent}
+            />
+          </Grid>
+        </Grid>
+      </PaginationActionsProvider>
     )
   }
 }

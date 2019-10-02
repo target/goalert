@@ -24,6 +24,7 @@ import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Search from '../util/Search'
+import PaginationActions from './PaginationActions'
 
 // gray boxes on load
 // disable overflow
@@ -76,9 +77,9 @@ class PaginationControls extends React.PureComponent {
 
     return (
       <Grid
-        item
+        item // item within main render grid
         xs={12}
-        container
+        container // container for control items
         spacing={1}
         justify='flex-end'
         className={classes.controls}
@@ -187,7 +188,12 @@ export class PaginatedList extends React.PureComponent {
     // provide a message to display if there are no results
     emptyMessage: p.string,
 
+    // additional filters that will be placed to the left of the search field
     searchFilters: p.node,
+
+    // lets PaginatedList know that it's parent is the QueryList component.
+    // renders the top pagination controls through the PaginationActions context
+    withQuery: p.bool,
   }
 
   static defaultProps = {
@@ -244,25 +250,6 @@ export class PaginatedList extends React.PureComponent {
       this.props.loadMore
     )
       this.props.loadMore(ITEMS_PER_PAGE * 2)
-  }
-
-  renderPaginationControls(withSearch) {
-    let onBack = null
-    let onNext = null
-
-    if (this.state.page > 0)
-      onBack = () => this.setState({ page: this.state.page - 1 })
-    if (this.hasNextPage()) onNext = this.onNextPage
-
-    return (
-      <PaginationControls
-        onBack={onBack}
-        onNext={onNext}
-        isLoading={this.isLoading()}
-        searchFilters={this.props.searchFilters}
-        withSearch={withSearch}
-      />
-    )
   }
 
   renderNoResults() {
@@ -337,13 +324,37 @@ export class PaginatedList extends React.PureComponent {
   }
 
   render() {
-    const { headerNote, classes } = this.props
+    const { classes, headerNote, withQuery } = this.props
     const withSearch = true
+
+    let onBack = null
+    let onNext = null
+
+    if (this.state.page > 0)
+      onBack = () => this.setState({ page: this.state.page - 1 })
+    if (this.hasNextPage()) onNext = this.onNextPage
+
+    let topControls = (
+      <PaginationControls
+        onBack={onBack}
+        onNext={onNext}
+        isLoading={this.isLoading()}
+        searchFilters={this.props.searchFilters}
+        withSearch={withSearch}
+      />
+    )
+
+    // renders in a different context outside of the query's render chain.
+    // this allows search to keep its focus while querying, and allows
+    // any additional filters to also stay open
+    if (withQuery) {
+      topControls = <PaginationActions>{topControls}</PaginationActions>
+    }
 
     return (
       <React.Fragment>
         <Grid container spacing={2}>
-          {this.renderPaginationControls(withSearch)}
+          {topControls}
           <Grid item xs={12}>
             <Card>
               <List data-cy='apollo-list'>
@@ -364,7 +375,11 @@ export class PaginatedList extends React.PureComponent {
               </List>
             </Card>
           </Grid>
-          {this.renderPaginationControls()}
+          <PaginationControls
+            onBack={onBack}
+            onNext={onNext}
+            isLoading={this.isLoading()}
+          />
         </Grid>
       </React.Fragment>
     )
