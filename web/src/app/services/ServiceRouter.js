@@ -72,7 +72,7 @@ export default function ServiceRouter() {
       <FilterContainer
         iconButtonProps={{
           color: 'default',
-          'aria-label': 'Show Label Filters',
+          'aria-label': 'Show Services Filters',
         }}
         onReset={() => setSearchParam()}
       >
