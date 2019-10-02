@@ -56,7 +56,7 @@ const styles = theme => ({
 })
 
 @withStyles(styles)
-class PaginationControls extends React.Component {
+class PaginationControls extends React.PureComponent {
   static propTypes = {
     isLoading: p.bool,
     onNext: p.func,
