@@ -23,8 +23,6 @@ import { connect } from 'react-redux'
 import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import Search from '../util/Search'
-import PaginationActions from './PaginationActions'
 
 // gray boxes on load
 // disable overflow
@@ -45,7 +43,6 @@ const styles = theme => ({
     fontStyle: 'italic',
   },
   controls: {
-    alignItems: 'center',
     [theme.breakpoints.down('sm')]: {
       '&:not(:first-child)': {
         marginBottom: '4.5em',
@@ -61,19 +58,10 @@ class PaginationControls extends React.PureComponent {
     isLoading: p.bool,
     onNext: p.func,
     onBack: p.func,
-    searchFilters: p.node,
-    withSearch: p.bool,
   }
 
   render() {
-    const {
-      classes,
-      isLoading,
-      onBack,
-      onNext,
-      searchFilters,
-      withSearch,
-    } = this.props
+    const { classes, isLoading, onBack, onNext } = this.props
 
     return (
       <Grid
@@ -82,14 +70,9 @@ class PaginationControls extends React.PureComponent {
         container // container for control items
         spacing={1}
         justify='flex-end'
+        alignItems='center'
         className={classes.controls}
       >
-        {withSearch && <Grid item>{searchFilters}</Grid>}
-        {withSearch && (
-          <Grid item>
-            <Search />
-          </Grid>
-        )}
         <Grid item>
           <IconButton
             title='back page'
@@ -187,13 +170,6 @@ export class PaginatedList extends React.PureComponent {
 
     // provide a message to display if there are no results
     emptyMessage: p.string,
-
-    // additional filters that will be placed to the left of the search field
-    searchFilters: p.node,
-
-    // lets PaginatedList know that it's parent is the QueryList component.
-    // renders the top pagination controls through the PaginationActions context
-    withQuery: p.bool,
   }
 
   static defaultProps = {
@@ -324,8 +300,7 @@ export class PaginatedList extends React.PureComponent {
   }
 
   render() {
-    const { classes, headerNote, withQuery } = this.props
-    const withSearch = true
+    const { classes, headerNote } = this.props
 
     let onBack = null
     let onNext = null
@@ -334,54 +309,34 @@ export class PaginatedList extends React.PureComponent {
       onBack = () => this.setState({ page: this.state.page - 1 })
     if (this.hasNextPage()) onNext = this.onNextPage
 
-    let topControls = (
-      <PaginationControls
-        onBack={onBack}
-        onNext={onNext}
-        isLoading={this.isLoading()}
-        searchFilters={this.props.searchFilters}
-        withSearch={withSearch}
-      />
-    )
-
-    // renders in a different context outside of the query's render chain.
-    // this allows search to keep its focus while querying, and allows
-    // any additional filters to also stay open
-    if (withQuery) {
-      topControls = <PaginationActions>{topControls}</PaginationActions>
-    }
-
     return (
-      <React.Fragment>
-        <Grid container spacing={2}>
-          {topControls}
-          <Grid item xs={12}>
-            <Card>
-              <List data-cy='apollo-list'>
-                {headerNote && (
-                  <ListItem>
-                    <ListItemText
-                      className={classes.headerNote}
-                      disableTypography
-                      secondary={
-                        <Typography color='textSecondary'>
-                          {headerNote}
-                        </Typography>
-                      }
-                    />
-                  </ListItem>
-                )}
-                {this.renderListItems()}
-              </List>
-            </Card>
-          </Grid>
-          <PaginationControls
-            onBack={onBack}
-            onNext={onNext}
-            isLoading={this.isLoading()}
-          />
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Card>
+            <List data-cy='apollo-list'>
+              {headerNote && (
+                <ListItem>
+                  <ListItemText
+                    className={classes.headerNote}
+                    disableTypography
+                    secondary={
+                      <Typography color='textSecondary'>
+                        {headerNote}
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+              )}
+              {this.renderListItems()}
+            </List>
+          </Card>
         </Grid>
-      </React.Fragment>
+        <PaginationControls
+          onBack={onBack}
+          onNext={onNext}
+          isLoading={this.isLoading()}
+        />
+      </Grid>
     )
   }
 }

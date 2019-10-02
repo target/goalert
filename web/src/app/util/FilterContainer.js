@@ -23,8 +23,9 @@ const style = theme => {
     container: {
       padding: 8,
       [theme.breakpoints.up('md')]: {
-        width: 'fit-content',
+        width: 'min-content',
         minWidth: '17em',
+        maxWidth: '22em',
       },
       [theme.breakpoints.down('sm')]: { width: '100%' },
     },
@@ -75,6 +76,7 @@ export default class FilterContainer extends React.PureComponent {
       </Grid>
     )
   }
+
   render() {
     const { classes, iconButtonProps } = this.props
     return (
