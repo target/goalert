@@ -86,6 +86,7 @@ export default function ServiceRouter() {
         <Grid item xs={12}>
           <LabelValueSelect
             label='Select Label Value'
+            keyValue={key}
             value={value}
             onChange={onValueChange}
             disabled={!key}
