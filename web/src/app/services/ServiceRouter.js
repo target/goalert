@@ -77,7 +77,7 @@ export default function ServiceRouter() {
         }}
         onReset={() => setSearchParam()}
       >
-        <Grid item xs={12}>
+        <Grid data-cy='label-key-container' item xs={12}>
           <LabelKeySelect
             name='label-key'
             label='Select Label Key'
@@ -85,7 +85,7 @@ export default function ServiceRouter() {
             onChange={onKeyChange}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid data-cy='label-value-container' item xs={12}>
           <LabelValueSelect
             name='label-value'
             label='Select Label Value'
