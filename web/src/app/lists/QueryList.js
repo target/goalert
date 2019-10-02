@@ -153,6 +153,7 @@ export default class QueryList extends React.PureComponent {
             query={fieldAlias(this.props.query, 'data')}
             variables={variables}
             noPoll
+            noSpin
             notifyOnNetworkStatusChange
             render={this.renderContent}
           />
