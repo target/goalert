@@ -107,14 +107,11 @@ export default class QueryList extends React.PureComponent {
         items={items}
         loadMore={loadMore}
         isLoading={loading}
-        searchFilters={this.props.searchFilters}
-        withQuery
       />
     )
   }
 
   render() {
-    const { searchFilters } = this.props
     const { input, ...vars } = this.props.variables
 
     const variables = {
@@ -142,7 +139,9 @@ export default class QueryList extends React.PureComponent {
           alignItems='center'
           style={{ paddingRight: 0 }}
         >
-          {Boolean(searchFilters) && <Grid item>{searchFilters}</Grid>}
+          {Boolean(this.props.searchFilters) && (
+            <Grid item>{this.props.searchFilters}</Grid>
+          )}
           <Grid item>
             <Search />
           </Grid>
