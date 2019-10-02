@@ -25,7 +25,7 @@ type SearchOptions struct {
 
 	Limit int `json:"-"`
 
-	UniqueKeys bool `json:"k,omitempty"`
+	UniqueKeys   bool `json:"k,omitempty"`
 	UniqueValues bool `json:"v,omitempty"`
 }
 
