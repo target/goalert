@@ -19,11 +19,7 @@ export default class SimpleListPage extends React.PureComponent {
     const { createForm, createLabel, searchFilters, ...queryProps } = this.props
     return (
       <React.Fragment>
-        <QueryList
-          key='service-list'
-          searchFilters={searchFilters}
-          {...queryProps}
-        />
+        <QueryList searchFilters={searchFilters} {...queryProps} />
 
         {createForm && (
           <CreateFAB
