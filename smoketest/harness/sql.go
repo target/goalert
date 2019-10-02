@@ -103,6 +103,11 @@ func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	}
 	defer conn.Close(ctx)
 
+	_, err = conn.Exec(ctx, "set statement_timeout = 3000")
+	if err != nil {
+		return err
+	}
+
 	tx, err := conn.Begin(ctx)
 	if err != nil {
 		return err
