@@ -22,11 +22,7 @@ const style = theme => {
     },
     container: {
       padding: 8,
-      [theme.breakpoints.up('md')]: {
-        width: 'min-content',
-        minWidth: '17em',
-        maxWidth: '22em',
-      },
+      [theme.breakpoints.up('md')]: { width: '22em' },
       [theme.breakpoints.down('sm')]: { width: '100%' },
     },
     formContainer: {
