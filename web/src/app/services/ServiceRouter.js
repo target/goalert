@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import { Switch, Route } from 'react-router-dom'
 import Grid from '@material-ui/core/Grid'
+import Typography from '@material-ui/core/Typography'
 
 import SimpleListPage from '../lists/SimpleListPage'
 import ServiceDetails from './ServiceDetails'
@@ -77,6 +78,11 @@ export default function ServiceRouter() {
         }}
         onReset={() => setSearchParam()}
       >
+        <Grid item xs={12}>
+          <Typography color='textSecondary'>
+            <i>Search by Label</i>
+          </Typography>
+        </Grid>
         <Grid data-cy='label-key-container' item xs={12}>
           <LabelKeySelect
             name='label-key'
