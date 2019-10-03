@@ -4,6 +4,7 @@ import gql from 'graphql-tag'
 import { Switch, Route } from 'react-router-dom'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
+import { Filter as LabelFilterIcon } from 'mdi-material-ui'
 
 import SimpleListPage from '../lists/SimpleListPage'
 import ServiceDetails from './ServiceDetails'
@@ -63,7 +64,7 @@ export default function ServiceRouter() {
         })}
         createForm={<ServiceCreateDialog />}
         createLabel='Service'
-        searchFilters={renderSearchFilters()}
+        searchAdornment={renderSearchFilters()}
       />
     )
   }
@@ -71,10 +72,13 @@ export default function ServiceRouter() {
   function renderSearchFilters() {
     return (
       <FilterContainer
+        icon={<LabelFilterIcon />}
         iconButtonProps={{
           'aria-label': 'Show Services Filters',
           'data-cy': 'services-filter-button',
           color: 'default',
+          edge: 'end',
+          size: 'small',
         }}
         onReset={() => setSearchParam()}
       >

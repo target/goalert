@@ -39,8 +39,13 @@ export default class FilterContainer extends React.PureComponent {
 
   // todo: fill in rest
   static propTypes = {
+    icon: p.node,
     // https://material-ui.com/api/icon-button/
     iconButtonProps: p.object,
+  }
+
+  static defaultProps = {
+    icon: <FilterIcon />,
   }
 
   renderContent() {
@@ -77,7 +82,7 @@ export default class FilterContainer extends React.PureComponent {
   }
 
   render() {
-    const { classes, iconButtonProps } = this.props
+    const { classes, icon, iconButtonProps } = this.props
     return (
       <React.Fragment>
         <IconButton
@@ -91,7 +96,7 @@ export default class FilterContainer extends React.PureComponent {
           aria-expanded={Boolean(this.state.anchorEl)}
           {...iconButtonProps}
         >
-          <FilterIcon />
+          {icon}
         </IconButton>
         <Hidden smDown>
           <Popover

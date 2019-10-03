@@ -11,7 +11,7 @@ function pageSearch(s: string): Cypress.Chainable {
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
 
     if (format === 'mobile') {
-      cy.get('button[data-cy=open-search]').click({
+      cy.get('[data-cy=app-bar] button[data-cy=open-search]').click({
         force: true,
       }) // since we're running tests, it's ok if it is already open
     }
