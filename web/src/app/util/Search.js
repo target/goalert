@@ -61,6 +61,7 @@ export default function Search() {
             </InputAdornment>
           ),
         }}
+        data-cy='search-field'
         placeholder='Search'
         variant='outlined'
         margin='dense'
