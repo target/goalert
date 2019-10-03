@@ -22,6 +22,7 @@ export const styles = theme => ({
     flexWrap: 'wrap',
     flex: 1,
     alignItems: 'center',
+    wordBreak: 'break-word',
   },
   chip: {
     margin: `${theme.spacing(1) / 2}px ${theme.spacing(1) / 4}px`,
