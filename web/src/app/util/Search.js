@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import p from 'prop-types'
 import { makeStyles } from '@material-ui/core'
 import AppBar from '@material-ui/core/AppBar'
 import Hidden from '@material-ui/core/Hidden'
@@ -12,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { searchSelector } from '../selectors/url'
 import { setURLParam } from '../actions/main'
 import { DEBOUNCE_DELAY } from '../config'
+import PageActions from './PageActions'
 
 const useStyles = makeStyles({
   textField: {
@@ -29,7 +31,7 @@ const useStyles = makeStyles({
  *
  * On a larger screen, the field will always be present to use in the app bar.
  */
-export default function Search() {
+export default function Search(props) {
   const searchParam = useSelector(searchSelector)
   const dispatch = useDispatch()
   const setSearchParam = value => dispatch(setURLParam('search', value))
@@ -60,6 +62,9 @@ export default function Search() {
               <SearchIcon color='action' />
             </InputAdornment>
           ),
+          endAdornment: (
+            <InputAdornment position='end'>{props.endAdornment}</InputAdornment>
+          ),
         }}
         data-cy='search-field'
         placeholder='Search'
@@ -76,9 +81,10 @@ export default function Search() {
 
   function renderMobile() {
     return (
-      <React.Fragment>
+      <PageActions>
         <IconButton
           key='search-icon'
+          color='inherit'
           aria-label='Search'
           data-cy='open-search'
           onClick={() => setShowMobile(true)}
@@ -113,7 +119,7 @@ export default function Search() {
             </Toolbar>
           </AppBar>
         </Slide>
-      </React.Fragment>
+      </PageActions>
     )
   }
 
@@ -123,4 +129,8 @@ export default function Search() {
       <Hidden mdUp>{renderMobile()}</Hidden>
     </React.Fragment>
   )
+}
+
+Search.propTypes = {
+  endAdornment: p.node,
 }

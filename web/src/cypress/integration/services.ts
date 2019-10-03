@@ -83,6 +83,9 @@ function testServices(screen: ScreenFormat) {
         cy.get('button[data-cy="filter-reset"]').should('not.exist')
 
         // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
         cy.get('button[data-cy="services-filter-button"]').click()
 
         // check that filter content exists
@@ -103,6 +106,9 @@ function testServices(screen: ScreenFormat) {
 
       it('should filter by label key', () => {
         // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
         cy.get('button[data-cy="services-filter-button"]').click()
 
         cy.get('input[name="label-key"]').selectByLabel(label1.key)
@@ -121,6 +127,9 @@ function testServices(screen: ScreenFormat) {
 
       it('should not allow searching by label value with no key selected', () => {
         // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
         cy.get('button[data-cy="services-filter-button"]').click()
 
         cy.get('div[name="label-value"]').should(
@@ -132,6 +141,9 @@ function testServices(screen: ScreenFormat) {
 
       it('should filter by label key and value', () => {
         // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
         cy.get('button[data-cy="services-filter-button"]').click()
 
         cy.get('input[name="label-key"]').selectByLabel(label1.key)
@@ -152,6 +164,9 @@ function testServices(screen: ScreenFormat) {
 
       it('should reset label filters', () => {
         // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
         cy.get('button[data-cy="services-filter-button"]').click()
 
         cy.get('input[name="label-key"]').selectByLabel(label1.key)
