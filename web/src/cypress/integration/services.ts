@@ -60,7 +60,7 @@ function testServices(screen: ScreenFormat) {
       cy.location('pathname').should('eq', `/services/${svc.id}`)
     })
 
-    describe.only('Filtering', () => {
+    describe('Filtering', () => {
       let label1: Label
       let label2: Label // uses key/value from label1
       beforeEach(() => {
