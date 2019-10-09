@@ -48,7 +48,7 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
-      cy.get('div[role="document"]').should('not.exist') // dialog should close
+      cy.get('div[role="document"]').should('exist') // dialog should close
 
       cy.get('input[name="General.PublicURL"]').should('have.value', newVal)
     })
@@ -71,7 +71,7 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
-      cy.get('div[role="document"]').should('not.exist') // dialog should close
+      cy.get('div[role="document"]').should('exist') // dialog should close
 
       cy.get('input[name="Mailgun.EmailDomain"]').should('have.value', newVal)
     })
@@ -108,7 +108,7 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
-      cy.get('div[role="document"]').should('not.exist') // dialog should close
+      cy.get('div[role="document"]').should('exist') // dialog should close
 
       cy.get('input[name="General.PublicURL"]').should('have.value', newVal1)
       cy.get('input[name="Mailgun.EmailDomain"]').should('have.value', newVal2)
@@ -130,7 +130,7 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
-      cy.get('div[role="document"]').should('not.exist') // dialog should close
+      cy.get('div[role="document"]').should('exist') // dialog should close
 
       cy.get('input[name="General.PublicURL"]').should('have.value', '')
     })
@@ -204,7 +204,7 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
-      cy.get('div[role="document"]').should('not.exist') // dialog should close
+      cy.get('div[role="document"]').should('exist') // dialog should close
 
       cy.get('input[name="Twilio.Enable"]').should('have.value', 'true')
     })
@@ -241,7 +241,7 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
-      cy.get('div[role="document"]').should('not.exist') // dialog should close
+      cy.get('div[role="document"]').should('exist') // dialog should close
 
       cy.get('input[name="Auth.RefererURLs-0"]').should('have.value', domain1)
       cy.get('input[name="Auth.RefererURLs-1"]').should('have.value', domain2)
@@ -269,7 +269,7 @@ function testAdmin(screen: ScreenFormat) {
       cy.get('button[type="submit"]')
         .contains('Confirm')
         .click()
-      cy.get('div[role="document"]').should('not.exist') // dialog should close
+      cy.get('div[role="document"]').should('exist') // dialog should close
 
       cy.get('input[name="Mailgun.APIKey"]').should('have.value', newKey)
     })
