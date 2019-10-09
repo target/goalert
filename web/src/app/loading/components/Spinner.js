@@ -50,7 +50,14 @@ export default class Spinner extends React.PureComponent {
     if (this.props.delayMs && !this.state.spin) return null
 
     return (
-      <div style={{ position: 'absolute', top: '50%', left: '50%' }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
         <CircularProgress />
       </div>
     )
