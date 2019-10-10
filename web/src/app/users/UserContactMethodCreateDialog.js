@@ -57,7 +57,9 @@ export default function UserContactMethodCreateDialog(props) {
     },
     variables: {
       input: {
-        ...cmValue,
+        name: cmValue.name,
+        type: cmValue.type,
+        value: cmValue.value,
         userID: props.userID,
         newUserNotificationRule: {
           delayMinutes: 0,
