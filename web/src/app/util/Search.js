@@ -15,15 +15,33 @@ import { setURLParam } from '../actions/main'
 import { DEBOUNCE_DELAY } from '../config'
 import PageActions from './PageActions'
 
-const useStyles = makeStyles(theme => ({
-  textField: {
-    backgroundColor: 'white',
-    borderRadius: '4px',
-    [theme.breakpoints.up('md')]: {
-      minWidth: 275, // wide only
+const useStyles = makeStyles(theme => {
+  return {
+    hasSearch: {
+      [theme.breakpoints.up('md')]: {
+        // type=text added to increase specificity to override the 180 min-width below
+        '& input[type=text]': {
+          minWidth: 350,
+        },
+      },
     },
-  },
-}))
+    textField: {
+      backgroundColor: 'white',
+      borderRadius: '4px',
+      [theme.breakpoints.up('md')]: {
+        '& input:focus': {
+          minWidth: 350,
+        },
+        '& input': {
+          minWidth: 180,
+          transitionProperty: 'min-width',
+          transitionDuration: theme.transitions.duration.standard,
+          transitionTimingFunction: theme.transitions.easing.easeInOut,
+        },
+      },
+    },
+  }
+})
 
 /*
  * Renders a search text field that utilizes the URL params to regulate
@@ -42,6 +60,10 @@ export default function Search(props) {
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
   const fieldRef = useRef()
+  let textClass = classes.textField
+  if (search) {
+    textClass += ' ' + classes.hasSearch
+  }
 
   // If the page search param changes, we update state directly.
   useEffect(() => {
@@ -80,7 +102,7 @@ export default function Search(props) {
         hiddenLabel
         onChange={e => setSearch(e.target.value)}
         value={search}
-        className={classes.textField}
+        className={textClass}
         {...extraProps}
       />
     )
