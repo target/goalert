@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import p from 'prop-types'
 import { makeStyles } from '@material-ui/core'
 import AppBar from '@material-ui/core/AppBar'
@@ -38,6 +38,7 @@ export default function Search(props) {
   const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
+  const fieldRef = useRef()
 
   // If the page search param changes, we update state directly.
   useEffect(() => {
@@ -57,13 +58,16 @@ export default function Search(props) {
     return (
       <TextField
         InputProps={{
+          ref: fieldRef,
           startAdornment: (
             <InputAdornment position='start'>
               <SearchIcon color='action' />
             </InputAdornment>
           ),
-          endAdornment: (
-            <InputAdornment position='end'>{props.endAdornment}</InputAdornment>
+          endAdornment: props.endAdornment && (
+            <InputAdornment position='end'>
+              {React.cloneElement(props.endAdornment, { anchorRef: fieldRef })}
+            </InputAdornment>
           ),
         }}
         data-cy='search-field'
