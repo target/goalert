@@ -73,8 +73,8 @@ export default function ServiceRouter() {
     return (
       <FilterContainer
         icon={<LabelFilterIcon />}
+        title='Search by Labels'
         iconButtonProps={{
-          'aria-label': 'Search By Labels',
           'data-cy': 'services-filter-button',
           color: 'default',
           edge: 'end',

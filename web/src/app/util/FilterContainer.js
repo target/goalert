@@ -42,12 +42,14 @@ export default class FilterContainer extends React.PureComponent {
     icon: p.node,
     // https://material-ui.com/api/icon-button/
     iconButtonProps: p.object,
+    title: p.string,
 
     anchorRef: p.object,
   }
 
   static defaultProps = {
     icon: <FilterIcon />,
+    title: 'Filter',
   }
 
   renderContent() {
@@ -94,7 +96,7 @@ export default class FilterContainer extends React.PureComponent {
               anchorEl: anchorRef ? anchorRef.current : e.target,
             })
           }}
-          title='filter'
+          title={this.props.title}
           aria-expanded={Boolean(this.state.anchorEl)}
           {...iconButtonProps}
         >
