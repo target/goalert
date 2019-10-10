@@ -15,12 +15,15 @@ import { setURLParam } from '../actions/main'
 import { DEBOUNCE_DELAY } from '../config'
 import PageActions from './PageActions'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   textField: {
     backgroundColor: 'white',
     borderRadius: '4px',
+    [theme.breakpoints.up('md')]: {
+      minWidth: 275, // wide only
+    },
   },
-})
+}))
 
 /*
  * Renders a search text field that utilizes the URL params to regulate
