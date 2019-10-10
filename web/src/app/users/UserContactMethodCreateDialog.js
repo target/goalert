@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
@@ -22,7 +22,33 @@ export default function UserContactMethodCreateDialog(props) {
     name: '',
     type: 'SMS',
     value: '',
+    dialCode: '+1', // default
+    countryName: 'United States',
   })
+
+  useEffect(() => {
+    async function fetchIpLocale() {
+      const response = await fetch('http://ip-api.com/json')
+      const json = await response.json()
+      const countryName = json.country
+      const countryCode = json.countryCode
+
+      const dialCodesJson = require('./dialCodes.json')
+      const countryCodeToDialCode = JSON.parse(JSON.stringify(dialCodesJson))
+      const dialCode = countryCodeToDialCode[countryCode]
+      return { countryName, dialCode }
+    }
+
+    fetchIpLocale().then(({ countryName, dialCode }) => {
+      setCmValue({
+        name: '',
+        type: 'SMS',
+        value: '',
+        dialCode,
+        countryName,
+      })
+    })
+  }, [])
 
   const [createCM, createCMStatus] = useMutation(createMutation, {
     refetchQueries: ['nrList', 'cmList'],

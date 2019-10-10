@@ -64,7 +64,7 @@ export default class UserContactMethodForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12}>
             <FormField
-              placeholder='+11235550123'
+              placeholder={`${this.props.value.dialCode}1235550123`}
               aria-labelledby='countryCodeIndicator'
               fullWidth
               name='value'
@@ -81,8 +81,7 @@ export default class UserContactMethodForm extends React.PureComponent {
                 component='p'
                 id='countryCodeIndicator'
               >
-                Please provide your country code e.g. +1 (USA), +91 (India) +44
-                (UK)
+                {`Please provide your country code e.g. ${this.props.value.dialCode} (${this.props.value.countryName}), +91 (India), +44 (UK)`}
               </Typography>
             )}
           </Grid>
