@@ -29,6 +29,7 @@ const useStyles = makeStyles(theme => {
       backgroundColor: 'white',
       borderRadius: '4px',
       [theme.breakpoints.up('md')]: {
+        minWidth: 275,
         '& input:focus': {
           minWidth: 350,
         },
