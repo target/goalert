@@ -4,6 +4,8 @@ import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import { MenuItem, Typography } from '@material-ui/core'
+import exampleNumbers from 'libphonenumber-js/examples.mobile.json'
+import { getExampleNumber } from 'libphonenumber-js'
 
 export default class UserContactMethodForm extends React.PureComponent {
   static propTypes = {
@@ -34,6 +36,21 @@ export default class UserContactMethodForm extends React.PureComponent {
   }
 
   render() {
+    const locale = this.props.value
+
+    const exampleNumber = getExampleNumber(
+      locale.countryCode,
+      exampleNumbers,
+    ).formatInternational()
+
+    const dialCode = exampleNumber.split(' ')[0]
+
+    const targetHQs = ['US', 'IN']
+    let localizedHelpText = ''
+    if (!targetHQs.includes(locale.countryCode)) {
+      localizedHelpText = `${dialCode} (${locale.countryName}), `
+    }
+
     const cleanValue = val => {
       val = val.replace(/[^0-9]/g, '')
 
@@ -64,7 +81,7 @@ export default class UserContactMethodForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12}>
             <FormField
-              placeholder={`${this.props.value.dialCode}1235550123`}
+              placeholder={exampleNumber}
               aria-labelledby='countryCodeIndicator'
               fullWidth
               name='value'
@@ -81,7 +98,7 @@ export default class UserContactMethodForm extends React.PureComponent {
                 component='p'
                 id='countryCodeIndicator'
               >
-                {`Please provide your country code e.g. ${this.props.value.dialCode} (${this.props.value.countryName}), +91 (India), +44 (UK)`}
+                {`Please provide your country dialing code e.g. ${localizedHelpText}+1 (USA), +91 (India)`}
               </Typography>
             )}
           </Grid>

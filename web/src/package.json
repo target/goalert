@@ -84,6 +84,7 @@
     "graphql": "14.5.4",
     "graphql-tag": "2.10.1",
     "history": "4.9.0",
+    "libphonenumber-js": "^1.7.25",
     "lodash-es": "4.17.15",
     "luxon": "1.17.2",
     "mdi-material-ui": "6.6.0",

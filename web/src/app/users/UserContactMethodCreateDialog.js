@@ -22,7 +22,7 @@ export default function UserContactMethodCreateDialog(props) {
     name: '',
     type: 'SMS',
     value: '',
-    dialCode: '+1', // default
+    countryCode: 'US', // default
     countryName: 'United States',
   })
 
@@ -32,19 +32,15 @@ export default function UserContactMethodCreateDialog(props) {
       const json = await response.json()
       const countryName = json.country
       const countryCode = json.countryCode
-
-      const dialCodesJson = require('./dialCodes.json')
-      const countryCodeToDialCode = JSON.parse(JSON.stringify(dialCodesJson))
-      const dialCode = countryCodeToDialCode[countryCode]
-      return { countryName, dialCode }
+      return { countryCode, countryName }
     }
 
-    fetchIpLocale().then(({ countryName, dialCode }) => {
+    fetchIpLocale().then(({ countryCode, countryName }) => {
       setCmValue({
         name: '',
         type: 'SMS',
         value: '',
-        dialCode,
+        countryCode, // NOTE change to mock other country
         countryName,
       })
     })
