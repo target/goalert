@@ -30,11 +30,15 @@ const styles = theme => {
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'scroll',
     },
     errorContainer: {
       flexGrow: 0,
       overflowY: 'visible',
+    },
+    actions: {
+      position: 'sticky',
+      bottom: '0',
+      backgroundColor: 'white',
     },
   }
 }
@@ -137,9 +141,9 @@ export default class FormDialog extends React.PureComponent {
             {this.renderForm()}
             {this.renderCaption()}
             {this.renderErrors()}
+            {this.renderActions()}
           </ErrorBoundary>
         </Form>
-        <ErrorBoundary>{this.renderActions()}</ErrorBoundary>
       </Dialog>
     )
   }
@@ -193,7 +197,7 @@ export default class FormDialog extends React.PureComponent {
     }
 
     return (
-      <DialogActions>
+      <DialogActions className={classes.actions}>
         <Button
           className={classes.cancelButton}
           disabled={loading}
