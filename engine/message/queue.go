@@ -3,6 +3,7 @@ package message
 import (
 	"math/rand"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/target/goalert/notification"
@@ -26,6 +27,8 @@ type queue struct {
 	serviceSent map[string]time.Time
 	userSent    map[string]time.Time
 	destSent    map[notification.Dest]time.Time
+
+	mx sync.Mutex
 }
 
 func newQueue(msgs []Message, now time.Time) *queue {
@@ -165,6 +168,9 @@ func (q *queue) sortPending(destType notification.DestType) {
 //
 // It returns nil if there are no more messages.
 func (q *queue) NextByType(destType notification.DestType) *Message {
+	q.mx.Lock()
+	defer q.mx.Unlock()
+
 	q.filterPending(destType)
 	q.sortPending(destType)
 	pending := q.pending[destType]
@@ -182,6 +188,9 @@ func (q *queue) NextByType(destType notification.DestType) *Message {
 // SentByType returns the number of messages sent for the given type
 // over the past Duration.
 func (q *queue) SentByType(destType notification.DestType, dur time.Duration) int {
+	q.mx.Lock()
+	defer q.mx.Unlock()
+
 	var count int
 	for _, msg := range q.sent {
 		if msg.Dest.Type == destType {
@@ -193,6 +202,9 @@ func (q *queue) SentByType(destType notification.DestType, dur time.Duration) in
 
 // Types returns a slice of all DestTypes currently waiting to be sent.
 func (q *queue) Types() []notification.DestType {
+	q.mx.Lock()
+	defer q.mx.Unlock()
+
 	result := make([]notification.DestType, 0, len(q.pending))
 	for typ, msgs := range q.pending {
 		if len(msgs) == 0 {
