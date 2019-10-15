@@ -22,7 +22,7 @@ var typePriority = map[Type]int{
 
 type queue struct {
 	sent    []Message
-	pending []Message
+	pending map[notification.DestType][]Message
 	now     time.Time
 
 	serviceSent map[string]time.Time
@@ -33,7 +33,7 @@ type queue struct {
 func newQueue(msgs []Message, now time.Time) *queue {
 	q := &queue{
 		sent:    make([]Message, 0, len(msgs)),
-		pending: make([]Message, 0, len(msgs)),
+		pending: make(map[notification.DestType][]Message),
 		now:     now,
 
 		serviceSent: make(map[string]time.Time),
@@ -43,7 +43,7 @@ func newQueue(msgs []Message, now time.Time) *queue {
 
 	for _, m := range msgs {
 		if m.SentAt.IsZero() {
-			q.pending = append(q.pending, m)
+			q.pending[m.Dest.Type] = append(q.pending[m.Dest.Type], m)
 			continue
 		}
 		q.addSent(m)
@@ -94,29 +94,39 @@ func (q *queue) servicePriority(serviceA, serviceB string) (isLess, ok bool) {
 }
 
 // filterPending will delete messages from pending that are not eligible to be sent.
-func (q *queue) filterPending() {
+func (q *queue) filterPending(destType notification.DestType) {
+	pending := q.pending[destType]
+	if len(pending) == 0 {
+		return
+	}
+
 	cutoffTime := q.now.Add(-cmCooldown)
-	filtered := q.pending[:0]
-	for _, p := range q.pending {
+	filtered := pending[:0]
+	for _, p := range pending {
 		if q.destSent[p.Dest].After(cutoffTime) {
 			continue
 		}
 		filtered = append(filtered, p)
 	}
 
-	q.pending = filtered
+	q.pending[destType] = filtered
 }
 
 // sortPending will re-sort the list of pending messages.
-func (q *queue) sortPending() {
-	rand.Shuffle(len(q.pending), func(i, j int) { q.pending[i], q.pending[j] = q.pending[j], q.pending[i] })
-	sort.SliceStable(q.pending, func(i, j int) bool {
-		pi, pj := q.pending[i], q.pending[j]
+func (q *queue) sortPending(destType notification.DestType) {
+	pending := q.pending[destType]
+	if len(pending) == 0 {
+		return
+	}
+
+	rand.Shuffle(len(pending), func(i, j int) { pending[i], pending[j] = pending[j], pending[i] })
+	sort.SliceStable(pending, func(i, j int) bool {
+		pi, pj := pending[i], pending[j]
 		// sort by creation time (if timestamps are not equal)
 		return pi.CreatedAt.Before(pj.CreatedAt)
 	})
-	sort.SliceStable(q.pending, func(i, j int) bool {
-		pi, pj := q.pending[i], q.pending[j]
+	sort.SliceStable(pending, func(i, j int) bool {
+		pi, pj := pending[i], pending[j]
 		if pi.Type != pj.Type {
 			return typePriority[pi.Type] < typePriority[pj.Type]
 		}
@@ -133,6 +143,8 @@ func (q *queue) sortPending() {
 		// return false to keep random ordering
 		return false
 	})
+
+	q.pending[destType] = pending
 }
 
 // NextByType returns the next message to be sent
@@ -140,14 +152,15 @@ func (q *queue) sortPending() {
 //
 // It returns nil if there are no more messages.
 func (q *queue) NextByType(destType notification.DestType) *Message {
-	q.filterPending()
-	q.sortPending()
-	if len(q.pending) == 0 {
+	q.filterPending(destType)
+	q.sortPending(destType)
+	pending := q.pending[destType]
+	if len(pending) == 0 {
 		return nil
 	}
 
-	next := q.pending[0]
-	q.pending = q.pending[1:]
+	next := pending[0]
+	q.pending[destType] = pending[1:]
 	q.addSent(next)
 
 	return &next
@@ -167,13 +180,12 @@ func (q *queue) SentByType(destType notification.DestType, dur time.Duration) in
 
 // Types returns a slice of all DestTypes currently waiting to be sent.
 func (q *queue) Types() []notification.DestType {
-	types := make(map[notification.DestType]bool)
-	for _, p := range q.pending {
-		types[p.Dest.Type] = true
-	}
+	result := make([]notification.DestType, 0, len(q.pending))
+	for typ, msgs := range q.pending {
+		if len(msgs) == 0 {
+			continue
+		}
 
-	result := make([]notification.DestType, 0, len(types))
-	for typ := range types {
 		result = append(result, typ)
 	}
 
