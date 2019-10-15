@@ -200,21 +200,7 @@ func (p *Engine) processMessages(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	err := p.msg.SendMessages(ctx, func(ctx context.Context, m *message.Message) (*notification.MessageStatus, error) {
-		switch m.Type {
-		case message.TypeAlertNotification:
-			return p.sendNotification(ctx, m.ID, m.AlertID, m.DestType, m.DestID)
-		case message.TypeAlertStatusUpdate:
-			return p.sendStatusUpdate(ctx, m.ID, m.AlertLogID, m.DestType, m.DestID)
-		case message.TypeTestNotification:
-			return p.sendTestNotification(ctx, m.ID, m.DestType, m.DestID)
-		case message.TypeVerificationMessage:
-			return p.sendVerificationMessage(ctx, m.ID, m.DestType, m.DestID, m.VerifyID)
-		}
-
-		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
-		return &notification.MessageStatus{State: notification.MessageStateFailedPerm}, nil
-	}, p.cfg.NotificationSender.Status)
+	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationSender.Status)
 	if errors.Cause(err) == processinglock.ErrNoLock {
 		return
 	}
