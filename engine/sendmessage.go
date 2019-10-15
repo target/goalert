@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/pkg/errors"
 	alertlog "github.com/target/goalert/alert/log"
@@ -51,11 +50,15 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			CallbackID: msg.ID,
 		}
 	case message.TypeAlertStatusUpdate:
+		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup alert log entry")
+		}
 		notifMsg = notification.AlertStatus{
 			Dest:      msg.Dest,
 			AlertID:   msg.AlertID,
 			MessageID: msg.ID,
-			Log:       strconv.Itoa(msg.AlertLogID),
+			Log:       e.String(),
 		}
 	case message.TypeTestNotification:
 		notifMsg = notification.Test{
