@@ -58,7 +58,7 @@ func (q *queue) addSent(m Message) {
 		q.serviceSent[m.ServiceID] = m.SentAt
 	}
 	if t := q.userSent[m.UserID]; m.SentAt.After(t) {
-		q.serviceSent[m.UserID] = m.SentAt
+		q.userSent[m.UserID] = m.SentAt
 	}
 	if t := q.destSent[m.Dest]; m.SentAt.After(t) {
 		q.destSent[m.Dest] = m.SentAt
@@ -71,8 +71,7 @@ func (q *queue) userPriority(userA, userB string) (isLess, ok bool) {
 	sentA := q.userSent[userA]
 	sentB := q.userSent[userB]
 
-	if sentA.IsZero() && sentB.IsZero() {
-		// neither has recieved a message
+	if sentA.Equal(sentB) {
 		return false, false
 	}
 
@@ -83,7 +82,7 @@ func (q *queue) servicePriority(serviceA, serviceB string) (isLess, ok bool) {
 	sentA := q.serviceSent[serviceA]
 	sentB := q.serviceSent[serviceB]
 
-	if sentA.IsZero() && sentB.IsZero() {
+	if sentA.Equal(sentB) {
 		// neither has recieved a message
 		return false, false
 	}
@@ -120,6 +119,10 @@ func (q *queue) sortPending(destType notification.DestType) {
 	rand.Shuffle(len(pending), func(i, j int) { pending[i], pending[j] = pending[j], pending[i] })
 	sort.SliceStable(pending, func(i, j int) bool {
 		pi, pj := pending[i], pending[j]
+		if pi.CreatedAt.Equal(pj.CreatedAt) {
+			// keep existing order
+			return i < j
+		}
 		// sort by creation time (if timestamps are not equal)
 		return pi.CreatedAt.Before(pj.CreatedAt)
 	})
@@ -151,7 +154,7 @@ func (q *queue) sortPending(destType notification.DestType) {
 
 		// two different users, two different services, none have gotten any notification
 		// return false to keep random ordering
-		return false
+		return i < j
 	})
 
 	q.pending[destType] = pending
