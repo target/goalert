@@ -12,12 +12,10 @@ import (
 const cmCooldown = time.Minute
 
 var typePriority = map[Type]int{
-	TypeAlertNotification:   0, // First Alert
 	TypeVerificationMessage: 1,
 	TypeTestNotification:    2,
-
-	// Non-first Alert for Same user
-	TypeAlertStatusUpdate: 3,
+	TypeAlertNotification:   3,
+	TypeAlertStatusUpdate:   4,
 }
 
 type queue struct {
@@ -127,8 +125,20 @@ func (q *queue) sortPending(destType notification.DestType) {
 	})
 	sort.SliceStable(pending, func(i, j int) bool {
 		pi, pj := pending[i], pending[j]
-		if pi.Type != pj.Type {
-			return typePriority[pi.Type] < typePriority[pj.Type]
+
+		// First Alert to a service takes highest priority
+		piTypePriority := typePriority[pi.Type]
+		if pi.Type == TypeAlertNotification && q.serviceSent[pi.ServiceID].IsZero() {
+			piTypePriority = 0
+		}
+
+		pjTypePriority := typePriority[pj.Type]
+		if pj.Type == TypeAlertNotification && q.serviceSent[pj.ServiceID].IsZero() {
+			pjTypePriority = 0
+		}
+
+		if piTypePriority != pjTypePriority {
+			return piTypePriority < pjTypePriority
 		}
 
 		if isLess, ok := q.userPriority(pi.UserID, pj.UserID); ok {
