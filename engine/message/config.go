@@ -1,9 +1,10 @@
 package message
 
 import (
+	"time"
+
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/notification"
-	"time"
 )
 
 // RateConfig allows setting egress rate limiting on messages.
