@@ -288,8 +288,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				sent_at > now() - '10 minutes'::interval or
 				last_status = 'pending' and
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
-		`), // TODO: base time after historical data
-
+		`),
 	}, p.Err
 }
 
