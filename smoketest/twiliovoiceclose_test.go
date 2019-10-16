@@ -51,8 +51,5 @@ func TestTwilioVoiceClose(t *testing.T) {
 	d1.ExpectVoice("testing").ThenPress("6").ThenExpect("closed")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
-
-	h.Delay(time.Second * 15)
 	// no more messages
 }

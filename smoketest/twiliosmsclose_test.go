@@ -52,8 +52,5 @@ func TestTwilioSMSClose(t *testing.T) {
 	d1.ExpectSMS("closed")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
-
-	h.Delay(time.Second * 15)
 	// no more messages
 }

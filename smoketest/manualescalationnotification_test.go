@@ -52,7 +52,6 @@ func TestManualEscalation(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	h.Delay(time.Second * 15)  // ensure first notification is not sent out
 	h.Twilio().WaitAndAssert() // phone 2 should not get SMS before escalating
 	h.Escalate(1, 0)
 
