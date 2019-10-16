@@ -191,9 +191,11 @@ func (q *queue) SentByType(destType notification.DestType, dur time.Duration) in
 	q.mx.Lock()
 	defer q.mx.Unlock()
 
+	cutoff := q.now.Add(-dur)
+
 	var count int
 	for _, msg := range q.sent {
-		if msg.Dest.Type == destType {
+		if msg.SentAt.After(cutoff) && msg.Dest.Type == destType {
 			count++
 		}
 	}
