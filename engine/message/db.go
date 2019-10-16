@@ -31,11 +31,11 @@ type DB struct {
 
 	setSending *sql.Stmt
 
-	lockStmt     *sql.Stmt
-	messageQueue *sql.Stmt // todo: something that doesn't remind Aru of websphere
-	currentTime  *sql.Stmt
-	retryReset   *sql.Stmt
-	retryClear   *sql.Stmt
+	lockStmt    *sql.Stmt
+	messages    *sql.Stmt
+	currentTime *sql.Stmt
+	retryReset  *sql.Stmt
+	retryClear  *sql.Stmt
 
 	sendDeadlineExpired *sql.Stmt
 
@@ -294,7 +294,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 }
 
 func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*queue, error) {
-	rows, err := tx.Stmt(db.messageQueue).QueryContext(ctx)
+	rows, err := tx.Stmt(db.messages).QueryContext(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
