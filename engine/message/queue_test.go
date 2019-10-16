@@ -17,10 +17,12 @@ func TestQueue_Sort(t *testing.T) {
 	/*
 		Sent:
 		- Test to User C
+		- Verify to User H (< 60 seconds ago)
 
 		Pending:
 		- Alert to User A, Service A (first alert)
 		- Alert to User E, Service B (created 2nd)
+		- Alert to User H, Service C (created 3nd) -- Not sent, user H already notified
 		- Verify to User F
 		- Test to User B
 		- Alert to User C, Service A
@@ -36,6 +38,12 @@ func TestQueue_Sort(t *testing.T) {
 			UserID: "User C",
 			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS C"},
 			SentAt: n.Add(-2 * time.Minute),
+		},
+		{
+			Type:   TypeTestNotification,
+			UserID: "User H",
+			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
+			SentAt: n.Add(-30 * time.Second),
 		},
 
 		// Pending
@@ -53,6 +61,13 @@ func TestQueue_Sort(t *testing.T) {
 			ServiceID: "Service B",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS E"},
 			CreatedAt: n.Add(1),
+		}, {
+			// no ID, this message should not be sent this cycle
+			Type:      TypeAlertNotification,
+			UserID:    "User H",
+			ServiceID: "Service C",
+			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
+			CreatedAt: n.Add(2),
 		}, {
 			ID:     "2",
 			Type:   TypeVerificationMessage,

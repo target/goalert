@@ -266,7 +266,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				cm.disabled
 		`),
 
-		messageQueue: p.P(`
+		messages: p.P(`
 			select
 				msg.id,
 				msg.message_type,
