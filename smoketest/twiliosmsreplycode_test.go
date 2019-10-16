@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSReplyCode checks that reply codes work properly.
@@ -19,8 +20,7 @@ func TestTwilioSMSReplyCode(t *testing.T) {
 
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
-		({{uuid "user"}}, {{uuid "cm1"}}, 0),
-		({{uuid "user"}}, {{uuid "cm1"}}, 1);
+		({{uuid "user"}}, {{uuid "cm1"}}, 0);
 
 	insert into escalation_policies (id, name) 
 	values
