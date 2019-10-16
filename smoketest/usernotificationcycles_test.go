@@ -23,8 +23,8 @@ func TestUserNotificationCycles(t *testing.T) {
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes, created_at) 
 	values
 		({{uuid "user"}}, {{uuid "cm1"}}, 0, now()-'1 hour'::interval),
-		({{uuid "user"}}, {{uuid "cm1"}}, 1, now()-'1 hour'::interval),
-		({{uuid "user"}}, {{uuid "cm1"}}, 5, now()-'1 hour'::interval);
+		({{uuid "user"}}, {{uuid "cm1"}}, 30, now()-'1 hour'::interval),
+		({{uuid "user"}}, {{uuid "cm1"}}, 60, now()-'1 hour'::interval);
 
 	insert into escalation_policies (id, name) 
 	values
@@ -46,11 +46,11 @@ func TestUserNotificationCycles(t *testing.T) {
 
 	insert into notification_logs (id, alert_id, contact_method_id, process_timestamp, completed)
 	values
-		({{uuid ""}}, 1, {{uuid "cm1"}}, now() - '119 seconds'::interval, true);
+		({{uuid ""}}, 1, {{uuid "cm1"}}, now() - '54 minutes'::interval, true);
 
 	insert into notification_policy_cycles (id, user_id, alert_id, started_at) 
 	values
-		({{uuid ""}}, {{uuid "user"}}, 1, now() - '120 seconds'::interval);
+		({{uuid ""}}, {{uuid "user"}}, 1, now() - '55 minutes'::interval);
 `
 	h := harness.NewHarness(t, sql, "ev3-remove-status-trigger")
 	defer h.Close()
@@ -59,12 +59,11 @@ func TestUserNotificationCycles(t *testing.T) {
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectSMS("testing") // 1 minute rule should fire (since we're behind)
-	h.Delay(15 * time.Second)
+	d1.ExpectSMS("testing") // 30 minute rule should fire (since we're behind)
 	tw.WaitAndAssert()
 
 	h.FastForward(5 * time.Minute)
 
-	// 5-min rule should now fire
+	// 60-min rule should now fire
 	d1.ExpectSMS("testing")
 }

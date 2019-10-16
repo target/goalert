@@ -59,9 +59,6 @@ func TestTwilioSMSReplyCode(t *testing.T) {
 
 	h.CreateAlert(h.UUID("sid"), "test3")
 	d1.ExpectSMS("test3", "1c", "1a").ThenReply("1 a") // 1 was re-used for alert #3
-
-	tw.WaitAndAssert()
-
 	d1.ExpectSMS("Ack", "#3")
 
 	tw.WaitAndAssert()

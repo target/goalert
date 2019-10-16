@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/target/goalert/smoketest/harness"
 )
@@ -63,21 +62,19 @@ func TestPrioritization(t *testing.T) {
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
+	d1.IgnoreUnexpectedSMS("service-1-alert")
+
 	d1.ExpectSMS("service-1-alert")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
 	d1.ExpectSMS("service-1-alert")
-	d1.IgnoreUnexpectedSMS("service-1-alert")
 	tw.WaitAndAssert()
 
 	h.CreateAlert(h.UUID("s2"), "service-2-alert")
 
-	h.FastForward(time.Minute)
 	d1.ExpectSMS("service-2-alert")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
 	d1.ExpectSMS("service-1-alert")
 	tw.WaitAndAssert()
 }
