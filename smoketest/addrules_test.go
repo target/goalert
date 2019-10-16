@@ -71,18 +71,18 @@ func TestAddRules(t *testing.T) {
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	// ADD RULES
 	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 30)
 	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 90)
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
@@ -92,7 +92,7 @@ func TestAddRules(t *testing.T) {
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing")
 }

@@ -63,7 +63,7 @@ func TestPostCycleRules(t *testing.T) {
 	// ensure no notification for instant rule
 	tw.WaitAndAssert()
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d1.ExpectSMS("testing")
 	tw.WaitAndAssert()

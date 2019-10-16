@@ -56,6 +56,6 @@ values
 	d.ExpectSMS("testing")
 	h.Twilio().WaitAndAssert()
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 	h.Twilio().Device(h.Phone("2")).ExpectSMS("testing")
 }

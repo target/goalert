@@ -2,6 +2,7 @@ package message
 
 import (
 	"time"
+
 	"github.com/target/goalert/notification"
 )
 

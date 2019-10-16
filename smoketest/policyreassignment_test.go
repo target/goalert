@@ -76,7 +76,7 @@ values
 	d2.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 	// no new alerts
 	tw.WaitAndAssert()
 

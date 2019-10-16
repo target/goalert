@@ -443,5 +443,6 @@ func (tw *twServer) WaitAndAssert() {
 		processStuff()
 	}
 
+	tw.timeoutFail()
 	tw.t.Fatal("did not get all expected messages after 15 cycles")
 }

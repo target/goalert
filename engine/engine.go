@@ -29,8 +29,6 @@ import (
 	"go.opencensus.io/trace"
 )
 
-var errDisabledCM = errors.New("contact method is disabled")
-
 type updater interface {
 	Name() string
 	UpdateAll(context.Context) error
