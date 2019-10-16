@@ -24,6 +24,7 @@ func TestQueue_Sort(t *testing.T) {
 		- Alert to User E, Service B (created 2nd)
 		- Alert to User H, Service C (created 3nd) -- Not sent, user H already notified
 		- Verify to User F
+		- Verify to User A -- Not sent, (will get an alert for Service A)
 		- Test to User B
 		- Alert to User C, Service A
 		- Status to User D
@@ -73,6 +74,11 @@ func TestQueue_Sort(t *testing.T) {
 			Type:   TypeVerificationMessage,
 			UserID: "User F",
 			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS F"},
+		}, {
+			// no ID, this message should not be sent this cycle
+			Type:   TypeVerificationMessage,
+			UserID: "User A",
+			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},
 		}, {
 			ID:     "3",
 			Type:   TypeTestNotification,
