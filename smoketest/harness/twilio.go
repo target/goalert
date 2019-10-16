@@ -431,11 +431,11 @@ func (tw *twServer) WaitAndAssert() {
 		if !waiting {
 			doneCycles++
 		} else {
-			doneCycles=0
+			doneCycles = 0
 		}
 
 		// complete one extra cycle to check for extra messages
-		if doneCycles>=3 {
+		if doneCycles >= 3 {
 			return
 		}
 

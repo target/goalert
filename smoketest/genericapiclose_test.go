@@ -86,7 +86,7 @@ func TestGenericAPIClose(t *testing.T) {
 	fire(key, "test2", "", true)
 	fire(key, "test3", "dedup", true)
 
-	h.FastForward(30*time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("test1")
 

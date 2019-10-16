@@ -1,9 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
-	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSAck checks that an SMS ack message is processed.
