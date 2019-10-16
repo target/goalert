@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 )
 
 // TestStatusUpdates checks basic functionality of status updates:
@@ -76,24 +75,14 @@ func TestStatusUpdates(t *testing.T) {
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectSMS("alert")
-	tw.WaitAndAssert()
-
-	h.FastForward(time.Minute)
-	d1.ExpectSMS("alert")
+	d1.ExpectSMS("first alert")
+	d1.ExpectSMS("second alert")
 	tw.WaitAndAssert()
 
 	doClose("first alert")
-
-	h.Delay(15 * time.Second) // ensure no additional notifications sent
+	d1.ExpectSMS("closed")
 	tw.WaitAndAssert()
 
 	doClose("second alert")
-
-	h.FastForward(time.Minute)
-	// expect (1) status notification
 	d1.ExpectSMS("closed")
-	h.Delay(15 * time.Second) // ensure no additional notifications sent
-
-	tw.WaitAndAssert()
 }
