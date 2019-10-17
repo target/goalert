@@ -24,7 +24,7 @@ func TestMultiStepNotifications(t *testing.T) {
 	values
 		({{uuid "u1"}}, {{uuid "c1"}}, 0),
 		({{uuid "u1"}}, {{uuid "c2"}}, 0),
-		({{uuid "u1"}}, {{uuid "c1"}}, 1);
+		({{uuid "u1"}}, {{uuid "c1"}}, 30);
 
 	insert into escalation_policies (id, name) 
 	values 
@@ -55,7 +55,7 @@ func TestMultiStepNotifications(t *testing.T) {
 	d2.ExpectVoice("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 	d1.ExpectSMS("testing")
 
 }

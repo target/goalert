@@ -41,14 +41,14 @@ func TestAddRules(t *testing.T) {
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
 		({{uuid "uid"}}, {{uuid "cid"}}, 0),
-		({{uuid "uid"}}, {{uuid "cid"}}, 2);
+		({{uuid "uid"}}, {{uuid "cid"}}, 60);
 
 	insert into escalation_policies (id, name, repeat) 
 	values 
 		({{uuid "eid"}}, 'esc policy', -1);
 	insert into escalation_policy_steps (id, escalation_policy_id, delay) 
 	values 
-		({{uuid "esid"}}, {{uuid "eid"}}, 60);
+		({{uuid "esid"}}, {{uuid "eid"}}, 300);
 
 	insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
 	values
@@ -71,18 +71,18 @@ func TestAddRules(t *testing.T) {
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	// ADD RULES
-	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 1)
-	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 3)
+	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 30)
+	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 90)
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
@@ -92,7 +92,7 @@ func TestAddRules(t *testing.T) {
 	d.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing")
 }
