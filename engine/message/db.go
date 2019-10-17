@@ -281,7 +281,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
 			where last_status = 'pending' and (not cm isnull or not chan isnull)
-			and not EXISTS (select * from outgoing_messages where contact_method_id = msg.contact_method_id and last_status != 'pending' and last_status_at > now() - '60 seconds'::interval)
+			and not EXISTS (select * from outgoing_messages where contact_method_id = msg.contact_method_id and last_status != 'pending' and sent_at > now() - '60 seconds'::interval)
 			order by
 				msg.contact_method_id,
 				msg.message_type,
