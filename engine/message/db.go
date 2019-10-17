@@ -270,7 +270,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				DISTINCT ON (msg.contact_method_id)
 				msg.id,
 				msg.message_type,
-			    msg.contact_method_id,
+				msg.contact_method_id,
 				cm.type,
 				msg.alert_id,
 				msg.alert_log_id,
