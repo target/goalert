@@ -388,7 +388,7 @@ func (tw *twServer) unexpectedCall(vc *mocktwilio.VoiceCall) {
 func (tw *twServer) WaitAndAssert() {
 	tw.t.Helper()
 
-	processStuff := func() {
+	processMessages := func() {
 		tw.h.Trigger()
 		// wait for mock twilio server to send messages
 		msgDelay := time.NewTimer(1000 * time.Millisecond)
@@ -418,7 +418,7 @@ func (tw *twServer) WaitAndAssert() {
 		}
 	}
 
-	processStuff()
+	processMessages()
 	var doneCycles int
 	for i := 0; i < 15; i++ {
 		var waiting bool
@@ -440,9 +440,9 @@ func (tw *twServer) WaitAndAssert() {
 		}
 
 		tw.h.FastForward(time.Minute)
-		processStuff()
+		processMessages()
 	}
 
 	tw.timeoutFail()
-	tw.t.Fatal("did not get all expected messages after 15 cycles")
+	tw.t.Fatal("Twilio: Did not get all expected messages after 15 cycles.")
 }
