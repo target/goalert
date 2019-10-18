@@ -186,10 +186,9 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 		lastTimeChange: start,
 		start:          start,
 
-		tw: newTWServer(t, mocktwilio.NewServer(twCfg)),
-
 		t: t,
 	}
+	h.tw = newTWServer(t, h, mocktwilio.NewServer(twCfg))
 
 	h.twS = httptest.NewServer(h.tw)
 
@@ -682,19 +681,8 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 		}
 		return true
 	}
-	timeout := time.NewTimer(10 * time.Second)
-	defer timeout.Stop()
 
-	check := time.NewTicker(100 * time.Millisecond)
-	defer check.Stop()
+	h.Trigger() // run engine cycle
 
-	for !match(false) {
-		select {
-		case <-check.C: // pulling from check
-
-		case <-timeout.C:
-			match(true)
-			return
-		}
-	}
+	match(true) // assert result
 }
