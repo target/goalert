@@ -47,7 +47,7 @@ func TestPrioritization(t *testing.T) {
 		insert into alerts (service_id, description)
 		values
 	`)
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 300; i++ {
 		if i > 0 {
 			buf.WriteString(",\n")
 		}
