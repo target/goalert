@@ -627,11 +627,13 @@ func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn
 	}
 	defer close(sendCh)
 
+	var done bool
 	for {
-		if sentCount() < toSend {
+		if !done && sentCount() < toSend {
 			msg := q.NextByType(typ)
 			if msg == nil {
-				break
+				done = true
+				continue
 			}
 			select {
 			case <-ctx.Done():
