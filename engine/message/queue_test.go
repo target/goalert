@@ -37,7 +37,12 @@ func TestQueue_Sort(t *testing.T) {
 		{
 			Type:   TypeTestNotification,
 			UserID: "User C",
-			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS C"},
+
+			// Sent messages are considered regardless of the Dest.Type
+			// as the user has been notified *somehow*. That way if we need
+			// to make a choice, a user who has gotten no message of any kind
+			// would take priority (all other criteria being equal).
+			Dest:   notification.Dest{Type: notification.DestTypeVoice, ID: "Voice C"},
 			SentAt: n.Add(-2 * time.Minute),
 		},
 		{
