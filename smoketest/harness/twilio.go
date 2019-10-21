@@ -1,10 +1,11 @@
 package harness
 
 import (
-	"github.com/target/goalert/devtools/mocktwilio"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/devtools/mocktwilio"
 )
 
 // TwilioServer is used to assert voice and SMS behavior.
@@ -146,13 +147,15 @@ func (k keywordMatcher) Match(msg string) bool {
 type twServer struct {
 	*mocktwilio.Server
 	t *testing.T
+	h *Harness
 
 	devices map[string]*twDevice
 }
 
-func newTWServer(t *testing.T, s *mocktwilio.Server) *twServer {
+func newTWServer(t *testing.T, h *Harness, s *mocktwilio.Server) *twServer {
 	return &twServer{
 		t:       t,
+		h:       h,
 		Server:  s,
 		devices: make(map[string]*twDevice),
 	}
@@ -384,11 +387,40 @@ func (tw *twServer) unexpectedCall(vc *mocktwilio.VoiceCall) {
 }
 func (tw *twServer) WaitAndAssert() {
 	tw.t.Helper()
-	timeout := 15 * time.Second
-	t := time.NewTimer(timeout)
-	defer t.Stop()
 
-	for {
+	processMessages := func() {
+		tw.h.Trigger()
+		// wait for mock twilio server to send messages
+		msgDelay := time.NewTimer(1000 * time.Millisecond)
+		defer msgDelay.Stop()
+		for {
+			select {
+			case sms := <-tw.SMS():
+				dev := tw.devices[sms.To()]
+				if dev == nil {
+					tw.unexpectedSMS(sms)
+				} else {
+					dev.processSMS(sms)
+				}
+			case vc := <-tw.VoiceCalls():
+				dev := tw.devices[vc.To()]
+				if dev == nil {
+					tw.unexpectedCall(vc)
+				} else {
+					dev.processCall(vc)
+				}
+			case err := <-tw.Server.Errors():
+				tw.t.Errorf("Twilio: %v", err)
+			case <-msgDelay.C:
+				return
+			}
+			msgDelay.Reset(1000 * time.Millisecond)
+		}
+	}
+
+	processMessages()
+	var doneCycles int
+	for i := 0; i < 15; i++ {
 		var waiting bool
 		for _, dev := range tw.devices {
 			if !dev.done() {
@@ -397,31 +429,20 @@ func (tw *twServer) WaitAndAssert() {
 			}
 		}
 		if !waiting {
-			break
+			doneCycles++
+		} else {
+			doneCycles = 0
 		}
 
-		select {
-		case <-t.C:
-			// test timed out
-			tw.timeoutFail()
+		// complete one extra cycle to check for extra messages
+		if doneCycles >= 3 {
 			return
-		case sms := <-tw.SMS():
-			dev := tw.devices[sms.To()]
-			if dev == nil {
-				tw.unexpectedSMS(sms)
-			} else {
-				dev.processSMS(sms)
-			}
-		case vc := <-tw.VoiceCalls():
-			dev := tw.devices[vc.To()]
-			if dev == nil {
-				tw.unexpectedCall(vc)
-			} else {
-				dev.processCall(vc)
-			}
-		case err := <-tw.Server.Errors():
-			tw.t.Errorf("Twilio: %v", err)
 		}
-		t.Reset(timeout)
+
+		tw.h.FastForward(time.Minute)
+		processMessages()
 	}
+
+	tw.timeoutFail()
+	tw.t.Fatal("Twilio: Did not get all expected messages after 15 cycles.")
 }

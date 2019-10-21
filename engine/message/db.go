@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/notification"
@@ -14,7 +16,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
@@ -266,6 +267,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 		`),
 		pending: p.P(fmt.Sprintf(`
 			select
+				DISTINCT ON (msg.contact_method_id)
 				msg.id,
 				msg.message_type,
 				msg.contact_method_id,
@@ -279,7 +281,9 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
 			where last_status = 'pending' and (not cm isnull or not chan isnull)
+			and not EXISTS (select * from outgoing_messages where contact_method_id = msg.contact_method_id and last_status != 'pending' and sent_at > now() - '60 seconds'::interval)
 			order by
+				msg.contact_method_id,
 				msg.message_type,
 				(select max(sent_at) from outgoing_messages om where om.escalation_policy_id = msg.escalation_policy_id) nulls first,
 				(select max(sent_at) from outgoing_messages om where om.service_id = msg.service_id) nulls first,
@@ -289,8 +293,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				(select max(sent_at) from outgoing_messages om where om.contact_method_id = msg.contact_method_id) nulls first,
 				msg.created_at,
 				msg.alert_id,
-				msg.alert_log_id,
-				msg.contact_method_id
+				msg.alert_log_id
 			limit %d
 		`, c.MaxMessagesPerCycle)),
 	}, p.Err

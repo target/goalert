@@ -1,9 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
-	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSClose checks that an SMS close message is processed.
@@ -52,8 +52,5 @@ func TestTwilioSMSClose(t *testing.T) {
 	d1.ExpectSMS("closed")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
-
-	h.Delay(time.Second * 15)
 	// no more messages
 }

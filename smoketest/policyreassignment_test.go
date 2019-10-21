@@ -34,7 +34,7 @@ values
 
 insert into escalation_policy_steps (id, escalation_policy_id, delay)
 values
-	({{uuid "ep1_1"}}, {{uuid "ep1"}}, 1),
+	({{uuid "ep1_1"}}, {{uuid "ep1"}}, 30),
 	({{uuid "ep1_2"}}, {{uuid "ep1"}}, 60),
 	({{uuid "ep2_1"}}, {{uuid "ep2"}}, 60);
 	
@@ -76,9 +76,8 @@ values
 	d2.ExpectSMS("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 	// no new alerts
-	h.Delay(15 * time.Second)
 	tw.WaitAndAssert()
 
 	h.GraphQLQuery(fmt.Sprintf(`
