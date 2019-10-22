@@ -54,8 +54,6 @@ type DB struct {
 	advLock        *sql.Stmt
 	advLockCleanup *sql.Stmt
 
-	markBundled *sql.Stmt
-
 	insertAlertBundle  *sql.Stmt
 	insertStatusBundle *sql.Stmt
 	updateStatusBundle *sql.Stmt
@@ -273,46 +271,40 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				cm.disabled
 		`),
 
-		markBundled: p.P(`
-			update outgoing_messages
-			set
-				last_status = 'bundled',
-				last_status_at = 'now(),
-				status_deatails = $1,
-				cycle_id = null,
-				next_retry_at = null
-			where id = any($2)
-		`),
 		insertAlertBundle: p.P(`
 			insert into outgoing_messages (
 				id,
+				created_at,
 				message_type,
 				contact_method_id,
 				channel_id,
 				user_id,
-				service_id,
+				service_id
 			) values (
-				$1, 'alert_notification_bundle', $2, $3, $4, $5
+				$1, $2, 'alert_notification_bundle', $3, $4, $5, $6
 			)
 		`),
+
 		insertStatusBundle: p.P(`
-			insert into outgoing_messages (
-				id,
-				message_type,
-				contact_method_id,
-				channel_id,
-				user_id,
-				alert_log_id
-			) values (
-				$1, 'alert_status_update_bundle', $2, $3, $4, $5
+			with new_msg as (
+				insert into outgoing_messages (
+					id,
+					created_at,
+					message_type,
+					contact_method_id,
+					user_id,
+					alert_log_id,
+					status_count
+				) values (
+					$1, $2, 'alert_status_update_bundle', $3, $4, $5, array_length($6::uuid[], 1)
+				) returning (id)
 			)
-		`),
-		updateStatusBundle: p.P(`
 			update outgoing_messages
 			set
-				status_count = status_count + $2,
-				alert_log_id = $3
-			where id = $1
+				last_status = 'bundled',
+				last_status_at = now(),
+				status_details = (select id from new_msg)
+			where id = any($6::uuid[])
 		`),
 
 		messages: p.P(`
@@ -401,7 +393,11 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 
 	cfg := config.FromContext(ctx)
 	if cfg.General.MessageBundles {
-		result, err = db.bundleMessages(ctx, tx, result)
+		result, err = db.bundleStatusMessages(ctx, tx, result)
+		if err != nil {
+			return nil, err
+		}
+		result, err = db.bundleAlertMessages(ctx, tx, result)
 		if err != nil {
 			return nil, err
 		}

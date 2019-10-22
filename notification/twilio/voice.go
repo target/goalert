@@ -229,6 +229,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		Params:         make(url.Values),
 	}
 	var message string
+	var subID int
 	switch t := msg.(type) {
 	case notification.AlertBundle:
 		message = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
@@ -241,16 +242,16 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		}
 		message = fmt.Sprintf("%s. %d other alert%s been updated.", rmParen.ReplaceAllString(t.Log, ""), t.OtherUpdates, plural)
 		opts.CallType = CallTypeAlertStatus
-		opts.Params.Set(msgParamSubID, strconv.Itoa(t.AlertID))
+		subID = t.AlertID
 		opts.Params.Set(msgParamBundle, "1")
 	case notification.Alert:
 		message = t.Summary
 		opts.CallType = CallTypeAlert
-		opts.Params.Set(msgParamSubID, strconv.Itoa(t.AlertID))
+		subID = t.AlertID
 	case notification.AlertStatus:
 		message = rmParen.ReplaceAllString(t.Log, "")
 		opts.CallType = CallTypeAlertStatus
-		opts.Params.Set(msgParamSubID, strconv.Itoa(t.AlertID))
+		subID = t.AlertID
 	case notification.Test:
 		message = "This is a test message from GoAlert."
 		opts.CallType = CallTypeTest
@@ -265,6 +266,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		message = "No summary provided."
 	}
 
+	opts.Params.Set(msgParamSubID, strconv.Itoa(subID))
 	opts.CallbackParams.Set(msgParamID, msg.ID())
 	// Encode the body so we don't need to worry about
 	// buggy apps not escaping url params properly.

@@ -577,9 +577,9 @@ iHAq3XcvJ3lGk7DXAvQbjQNTv_Lw8TU5fabrXoS-Y1-VUBn8ne9iexF6ztKIupVSoBH6X_bRCAMl6ShM
 UrJdNks-pnP-aFFN9N0zlqqYbW7TwiiLNwXoREtpqqdRr_rzwdF0gkfHq4vx2TU6n-Jp-I_x5DU0Rp3E
 OE-eoFO2U5KAIKKkhJ6rt10U6Xff3__QOzIYMw3k3ISZpaUTC_fmNt9tEj8DVa0EtKDyFXXfUzElwt-H
 5zig8Cwli7g2joPHyFmEuSyGbyN-8CY5q0tK6-StcxMr6V1pxjwy9Sprt97ssvkynQPDwrTlHmF0GCnL
-EjXemG3Ws5SnShivHo4BolSlGpXFAaELDwf9grkk0iTDfVUS2M0vXVaMgpPku6xApZvUJNxm6Sh6LDmj
-H2U2aV_8_wsn7Gh6qRY5mV5D5OUmmy0Yb0HQVkSNK5TQ2Kmo7C6qyHFSXZLWzeou6j8BAAD__y-TkkDK
-LQQA
+EjXemG3Ws5SnShivHo4BolSlGpXFAaELDwf9grkk0lSBYFjQSpUKdvNOlxWmoCX5LitQ6T41ibhZOooq
+S85oSZlN2kf__8LZHWh6qRY5mV5DpOYmyy3YZNILithxhUIaOy2V3UiVOk6qS9K6X91d_ScAAP__bc4q
+l-ItBAA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -595,7 +595,7 @@ LQQA
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(45608)
+				buf.Grow(45612)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -800,6 +800,6 @@ LQQA
 		{Data: dataRange(272642, 272795), Name: "migrations/20191016162114-om-status-index.sql"},
 		{Data: dataRange(272795, 272988), Name: "migrations/20191021145356-message-bundle-versions.sql"},
 		{Data: dataRange(272988, 273297), Name: "migrations/20191021145357-message-bundle-types.sql"},
-		{Data: dataRange(273297, 273866), Name: "migrations/20191021145358-message-bundles.sql"},
+		{Data: dataRange(273297, 273890), Name: "migrations/20191021145358-message-bundles.sql"},
 	}
 }

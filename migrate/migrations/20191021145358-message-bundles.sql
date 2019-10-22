@@ -4,7 +4,7 @@ ALTER TABLE twilio_sms_callbacks
     ALTER alert_id DROP NOT NULL,
     ADD service_id UUID REFERENCES services (id) ON DELETE CASCADE;
 
-CREATE INDEX idx_twilio_sms_service_id (service_id);
+CREATE INDEX idx_twilio_sms_service_id ON twilio_sms_callbacks (service_id);
 
 ALTER TABLE outgoing_messages
     ADD status_count INT,
