@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/notification"
@@ -52,13 +53,19 @@ type DB struct {
 
 	advLock        *sql.Stmt
 	advLockCleanup *sql.Stmt
+
+	markBundled *sql.Stmt
+
+	insertAlertBundle  *sql.Stmt
+	insertStatusBundle *sql.Stmt
+	updateStatusBundle *sql.Stmt
 }
 
 // NewDB creates a new DB. If config is nil, DefaultConfig() is used.
 func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
-		Version: 6,
+		Version: 7,
 	})
 	if err != nil {
 		return nil, err
@@ -266,6 +273,48 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				cm.disabled
 		`),
 
+		markBundled: p.P(`
+			update outgoing_messages
+			set
+				last_status = 'bundled',
+				last_status_at = 'now(),
+				status_deatails = $1,
+				cycle_id = null,
+				next_retry_at = null
+			where id = any($2)
+		`),
+		insertAlertBundle: p.P(`
+			insert into outgoing_messages (
+				id,
+				message_type,
+				contact_method_id,
+				channel_id,
+				user_id,
+				service_id,
+			) values (
+				$1, 'alert_notification_bundle', $2, $3, $4, $5
+			)
+		`),
+		insertStatusBundle: p.P(`
+			insert into outgoing_messages (
+				id,
+				message_type,
+				contact_method_id,
+				channel_id,
+				user_id,
+				alert_log_id
+			) values (
+				$1, 'alert_status_update_bundle', $2, $3, $4, $5
+			)
+		`),
+		updateStatusBundle: p.P(`
+			update outgoing_messages
+			set
+				status_count = status_count + $2,
+				alert_log_id = $3
+			where id = $1
+		`),
+
 		messages: p.P(`
 			select
 				msg.id,
@@ -280,7 +329,8 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				msg.user_id,
 				msg.service_id,
 				msg.created_at,
-				msg.sent_at
+				msg.sent_at,
+				msg.status_count
 			from outgoing_messages msg
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
@@ -303,7 +353,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	for rows.Next() {
 		var msg Message
 		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
-		var alertID, logID sql.NullInt64
+		var alertID, logID, statusCount sql.NullInt64
 		var createdAt, sentAt sql.NullTime
 		err = rows.Scan(
 			&msg.ID,
@@ -319,6 +369,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			&serviceID,
 			&createdAt,
 			&sentAt,
+			&statusCount,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
@@ -332,6 +383,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.SentAt = sentAt.Time
 		msg.Dest.ID = destID.String
 		msg.Dest.Value = destValue.String
+		msg.StatusCount = int(statusCount.Int64)
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
 			msg.Dest.Type = notification.DestTypeSMS
@@ -345,6 +397,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 
 		result = append(result, msg)
+	}
+
+	cfg := config.FromContext(ctx)
+	if cfg.General.MessageBundles {
+		result, err = db.bundleMessages(ctx, tx, result)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return newQueue(result, now), nil
