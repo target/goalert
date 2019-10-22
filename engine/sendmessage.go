@@ -67,11 +67,11 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
 		notifMsg = notification.AlertStatusBundle{
-			Dest:         msg.Dest,
-			MessageID:    msg.ID,
-			Log:          e.String(),
-			AlertID:      msg.AlertID,
-			OtherUpdates: msg.StatusCount,
+			Dest:      msg.Dest,
+			MessageID: msg.ID,
+			Log:       e.String(),
+			AlertID:   msg.AlertID,
+			Count:     msg.StatusCount,
 		}
 	case message.TypeAlertStatusUpdate:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)

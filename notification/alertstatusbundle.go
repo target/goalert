@@ -1,11 +1,11 @@
 package notification
 
 type AlertStatusBundle struct {
-	Dest         Dest
-	MessageID    string
-	Log          string
-	AlertID      int
-	OtherUpdates int
+	Dest      Dest
+	MessageID string
+	Log       string
+	AlertID   int
+	Count     int
 }
 
 var _ Message = &AlertStatusBundle{}

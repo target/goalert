@@ -455,7 +455,7 @@ func (h *Harness) CreateAlert(serviceID, summary string) {
 		h.t.Helper()
 		_, err := h.a.Create(ctx, a)
 		if err != nil {
-			h.t.Fatalf("failed to insert alet: %v", err)
+			h.t.Fatalf("failed to insert alert: %v", err)
 		}
 	})
 	h.trigger()

@@ -1,22 +1,18 @@
 package message
 
 import (
-	"context"
-	"database/sql"
 	"sort"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/notification"
-	"github.com/target/goalert/util/sqlutil"
 )
 
 // bundleStatusMessages will bundle status updates for the same Dest value. It will not attempt to join existing status-update bundles.
 //
 // It also handles updating the outgoing_messages table by marking bundled messages with the `bundled`
 // status and creating a new bundled message placeholder.
-func (db *DB) bundleStatusMessages(ctx context.Context, tx *sql.Tx, messages []Message) ([]Message, error) {
+func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string) error) ([]Message, error) {
 	sort.Slice(messages, func(i, j int) bool { return messages[i].AlertLogID > messages[j].AlertLogID })
-
 	type bundle struct {
 		Message
 		IDs []string
@@ -32,7 +28,6 @@ func (db *DB) bundleStatusMessages(ctx context.Context, tx *sql.Tx, messages []M
 		old, ok := byDest[msg.Dest]
 		if !ok {
 			cpy := bundle{Message: msg, IDs: []string{msg.ID}}
-			cpy.StatusCount = 1
 			byDest[msg.Dest] = &cpy
 			continue
 		}
@@ -46,7 +41,7 @@ func (db *DB) bundleStatusMessages(ctx context.Context, tx *sql.Tx, messages []M
 
 	// add Bundled messages to the table
 	for _, msg := range byDest {
-		if msg.StatusCount == 1 {
+		if len(msg.IDs) == 1 {
 			msg.StatusCount = 0 // set back to zero, not a bundle
 			filtered = append(filtered, msg.Message)
 			continue
@@ -54,9 +49,8 @@ func (db *DB) bundleStatusMessages(ctx context.Context, tx *sql.Tx, messages []M
 
 		msg.Type = TypeAlertStatusUpdateBundle
 		msg.ID = uuid.NewV4().String()
-		msg.AlertID = 0
 		msg.StatusCount = len(msg.IDs)
-		_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.UUIDArray(msg.IDs))
+		err := bundleFunc(msg.Message, msg.IDs)
 		if err != nil {
 			return nil, err
 		}

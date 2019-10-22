@@ -237,10 +237,10 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		opts.CallType = CallTypeAlert
 	case notification.AlertStatusBundle:
 		plural := "s have"
-		if t.OtherUpdates == 1 {
+		if t.Count == 2 { // count is the total number
 			plural = " has"
 		}
-		message = fmt.Sprintf("%s. %d other alert%s been updated.", rmParen.ReplaceAllString(t.Log, ""), t.OtherUpdates, plural)
+		message = fmt.Sprintf("%s. %d other alert%s been updated.", rmParen.ReplaceAllString(t.Log, ""), t.Count-1, plural)
 		opts.CallType = CallTypeAlertStatus
 		subID = t.AlertID
 		opts.Params.Set(msgParamBundle, "1")

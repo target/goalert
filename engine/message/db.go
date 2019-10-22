@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"go.opencensus.io/trace"
 
@@ -393,7 +394,10 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 
 	cfg := config.FromContext(ctx)
 	if cfg.General.MessageBundles {
-		result, err = db.bundleStatusMessages(ctx, tx, result)
+		result, err = bundleStatusMessages(result, func(msg Message, ids []string) error {
+			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.UUIDArray(ids))
+			return errors.Wrap(err, "insert status bundle")
+		})
 		if err != nil {
 			return nil, err
 		}
