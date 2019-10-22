@@ -303,6 +303,12 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 	if err != nil {
 		return err
 	}
+	if cb.ServiceID != "" {
+		ctx = log.WithField(ctx, "ServiceID", cb.ServiceID)
+	}
+	if cb.AlertID != 0 {
+		ctx = log.WithField(ctx, "AlertID", cb.AlertID)
+	}
 
 	var usr *user.User
 	permission.SudoContext(ctx, func(ctx context.Context) {
@@ -324,14 +330,24 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 		ID:   callbackID,
 	})
 
+	var newStatus alert.Status
 	switch result {
 	case notification.ResultAcknowledge:
-		return p.am.UpdateStatus(ctx, cb.AlertID, alert.StatusActive)
+		newStatus = alert.StatusActive
 	case notification.ResultResolve:
-		return p.am.UpdateStatus(ctx, cb.AlertID, alert.StatusClosed)
+		newStatus = alert.StatusClosed
+	default:
+		return errors.New("unknown result type")
 	}
 
-	return errors.New("unknown result")
+	if cb.AlertID != 0 {
+		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+	}
+	if cb.ServiceID != "" {
+		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+	}
+
+	return errors.New("unknown callback type")
 }
 
 // Stop will disable all associated contact methods associated with `value` of type `t`. This is should

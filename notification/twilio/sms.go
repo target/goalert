@@ -26,7 +26,7 @@ var (
 	shortReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(c|a)\s*'?$`)
 	alertReplyRx = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*#?\s*([0-9]+)\s*'?$`)
 
-	svcReplyRx = regexp.MustCompile(`^'?\s*(aa|cc)\s*([0-9]+)\s*'?$`)
+	svcReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(cc|aa)\s*'?$`)
 )
 
 // SMS implements a notification.Sender for Twilio SMS.
