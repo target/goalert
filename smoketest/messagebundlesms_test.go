@@ -11,9 +11,9 @@ func TestMessageBundle_SMS(t *testing.T) {
 	t.Parallel()
 
 	sql := `
-		insert into users (id, name, email) 
+		insert into users (id, role, name, email) 
 		values 
-			({{uuid "user"}}, 'bob', 'joe');
+			({{uuid "user"}}, 'user', 'bob', 'joe');
 		insert into user_contact_methods (id, user_id, name, type, value) 
 		values
 			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
@@ -35,30 +35,33 @@ func TestMessageBundle_SMS(t *testing.T) {
 
 		insert into services (id, escalation_policy_id, name) 
 		values
-			({{uuid "sid"}}, {{uuid "eid"}}, 'service');
+			({{uuid "sid"}}, {{uuid "eid"}}, 'My Service'),
+			({{uuid "sid2"}}, {{uuid "eid"}}, 'My Other');
 `
 	h := harness.NewHarness(t, sql, "message-bundles")
 	defer h.Close()
 
 	h.SetConfigValue("General.MessageBundles", "true")
+	h.SetConfigValue("General.ShortURL", "http://sho.rt")
 
 	h.CreateAlert(h.UUID("sid"), "test1")
 	h.CreateAlert(h.UUID("sid"), "test2")
 	h.CreateAlert(h.UUID("sid"), "test3")
 	h.CreateAlert(h.UUID("sid"), "test4")
+	h.CreateAlert(h.UUID("sid2"), "test1")
+	h.CreateAlert(h.UUID("sid2"), "test2")
+	h.CreateAlert(h.UUID("sid2"), "test3")
 
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
-	// TODO: should be bundle, allow closing.
-	d1.ExpectSMS("test1")
-	d1.ExpectSMS("test2")
-	d1.ExpectSMS("test3")
-	d1.ExpectSMS("test4")
+	d1.ExpectSMS("My Service", "4 unacked").ThenReply("100aa")
+	d1.ExpectSMS("My Other", "3 unacked")
+	d1.ExpectSMS("Acknowledged all", "My Service")
 
 	tw.WaitAndAssert()
 
-	h.GraphQLQuery2(`mutation{ updateAlerts(input: {alertIDs: [1,2,3,4], newStatus: StatusClosed}){id} }`)
+	h.GraphQLQuery2(`mutation{ updateAlerts(input: {alertIDs: [5,6,7], newStatus: StatusClosed}){id} }`)
 
-	d1.ExpectSMS("Alert #4", "Closed", "3 other alerts")
+	d1.ExpectSMS("Closed", "2 other alerts")
 }

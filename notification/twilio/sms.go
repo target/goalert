@@ -316,7 +316,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			lookupFn = func() (*codeInfo, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
 		}
 	} else if m := svcReplyRx.FindStringSubmatch(body); len(m) == 3 {
-		if strings.HasPrefix(m[1], "a") {
+		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
 		} else {
 			result = notification.ResultResolve
