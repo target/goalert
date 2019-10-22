@@ -229,7 +229,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		Params:         make(url.Values),
 	}
 	var message string
-	var subID int
+	subID := -1
 	switch t := msg.(type) {
 	case notification.AlertBundle:
 		message = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
