@@ -20,6 +20,7 @@ export default function ServiceLabelFilterContainer(props) {
         size: 'small',
       }}
       onReset={props.onReset}
+      anchorRef={props.anchorRef}
     >
       <Grid item xs={12}>
         <Typography color='textSecondary'>
@@ -54,4 +55,7 @@ ServiceLabelFilterContainer.propTypes = {
   onKeyChange: p.func.isRequired,
   onValueChange: p.func.isRequired,
   onReset: p.func,
+
+  // optionally anchors the popover to a specified element's ref
+  anchorRef: p.string,
 }
