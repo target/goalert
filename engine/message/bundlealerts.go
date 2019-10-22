@@ -1,6 +1,9 @@
 package message
 
-import "github.com/target/goalert/notification"
+import (
+	uuid "github.com/satori/go.uuid"
+	"github.com/target/goalert/notification"
+)
 
 // bundleAlertMessages will bundle status updates for the same Dest value. It will add any new messages to an existing bundle.
 // A single contact-method will only ever have a single alert notification per-service in the result.
@@ -48,6 +51,7 @@ func bundleAlertMessages(messages []Message, bundleFunc func(Message, []string) 
 
 		msg.Type = TypeAlertNotificationBundle
 		msg.AlertID = 0
+		msg.ID = uuid.NewV4().String()
 		err := bundleFunc(msg.Message, msg.IDs)
 		if err != nil {
 			return nil, err

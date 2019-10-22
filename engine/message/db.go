@@ -273,17 +273,25 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 		`),
 
 		insertAlertBundle: p.P(`
-			insert into outgoing_messages (
-				id,
-				created_at,
-				message_type,
-				contact_method_id,
-				channel_id,
-				user_id,
-				service_id
-			) values (
-				$1, $2, 'alert_notification_bundle', $3, $4, $5, $6
+			with new_msg as (
+				insert into outgoing_messages (
+					id,
+					created_at,
+					message_type,
+					contact_method_id,
+					channel_id,
+					user_id,
+					service_id
+				) values (
+					$1, $2, 'alert_notification_bundle', $3, $4, $5, $6
+				) returning (id)
 			)
+			update outgoing_messages
+			set
+				last_status = 'bundled',
+				last_status_at = now(),
+				status_details = (select id from new_msg)
+			where id = any($7::uuid[])
 		`),
 
 		insertStatusBundle: p.P(`
@@ -319,7 +327,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				msg.alert_id,
 				msg.alert_log_id,
 				msg.user_verification_code_id,
-				msg.user_id,
+				cm.user_id,
 				msg.service_id,
 				msg.created_at,
 				msg.sent_at,
@@ -402,7 +410,20 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			return nil, err
 		}
 		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
-			return nil
+			var cmID, chanID, userID sql.NullString
+			if msg.UserID != "" {
+				userID.Valid = true
+				userID.String = msg.UserID
+			}
+			if msg.Dest.Type.IsUserCM() {
+				cmID.Valid = true
+				cmID.String = msg.Dest.ID
+			} else {
+				chanID.Valid = true
+				chanID.String = msg.Dest.ID
+			}
+			_, err := tx.StmtContext(ctx, db.insertAlertBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID, sqlutil.UUIDArray(ids))
+			return err
 		})
 		if err != nil {
 			return nil, err
