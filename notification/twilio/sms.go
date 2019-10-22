@@ -277,7 +277,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	body = strings.TrimSpace(body)
 	body = strings.ToLower(body)
-	var lookupFn func() (string, int, error)
+	var lookupFn func() (string, error)
 	var result notification.Result
 
 	if m := lastReplyRx.FindStringSubmatch(body); len(m) == 2 {
@@ -286,7 +286,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		} else {
 			result = notification.ResultResolve
 		}
-		lookupFn = func() (string, int, error) { return s.b.LookupByCode(ctx, from, 0) }
+		lookupFn = func() (string, error) { return s.b.LookupByCode(ctx, from, 0) }
 	} else if m := shortReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
@@ -298,7 +298,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			log.Debug(ctx, errors.Wrap(err, "parse code"))
 		} else {
 			ctx = log.WithField(ctx, "Code", code)
-			lookupFn = func() (string, int, error) { return s.b.LookupByCode(ctx, from, code) }
+			lookupFn = func() (string, error) { return s.b.LookupByCode(ctx, from, code) }
 		}
 	} else if m := alertReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[1], "a") {
@@ -311,7 +311,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			log.Debug(ctx, errors.Wrap(err, "parse alertID"))
 		} else {
 			ctx = log.WithField(ctx, "AlertID", alertID)
-			lookupFn = func() (string, int, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
+			lookupFn = func() (string, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
 		}
 	}
 
@@ -333,11 +333,10 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	var alertID int
 	err = retry.DoTemporaryError(func(int) error {
-		callbackID, aID, err := lookupFn()
+		callbackID, err := lookupFn()
 		if err != nil {
 			return errors.Wrap(err, "lookup callbackID")
 		}
-		alertID = aID
 
 		errCh := make(chan error, 1)
 		s.respCh <- &notification.MessageResponse{
@@ -353,7 +352,6 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		retry.Limit(10),
 		retry.FibBackoff(time.Second),
 	)
-	ctx = log.WithField(ctx, "AlertID", alertID)
 
 	if errors.Cause(err) == sql.ErrNoRows {
 		respond("unknown callbackID", "Unknown alert code for this number. Visit the dashboard to manage alerts.")
@@ -363,10 +361,10 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	msg := "System error. Visit the dashboard to manage alerts."
 	if alert.IsAlreadyClosed(err) {
 		nonSystemErr = true
-		msg = fmt.Sprintf("Alert #%d already closed", alertID)
+		msg = fmt.Sprintf("Alert #%d already closed", alert.AlertID(err))
 	} else if alert.IsAlreadyAcknowledged(err) {
 		nonSystemErr = true
-		msg = fmt.Sprintf("Alert #%d already acknowledged", alertID)
+		msg = fmt.Sprintf("Alert #%d already acknowledged", alert.AlertID(err))
 	}
 
 	if nonSystemErr {

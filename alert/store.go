@@ -50,7 +50,7 @@ type Manager interface {
 	UpdateManyAlertStatus(ctx context.Context, status Status, alertIDs []int) (updatedAlertIDs []int, err error)
 	UpdateStatusTx(context.Context, *sql.Tx, int, Status) error
 	EPID(ctx context.Context, alertID int) (string, error)
-	
+
 	// ServiceInfo will return the name of the given service ID as well as the current number
 	// of unacknowledged alerts.
 	ServiceInfo(ctx context.Context, serviceID string) (string, int, error)
