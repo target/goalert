@@ -3,6 +3,7 @@ package twilio
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/util"
 )
 
@@ -15,7 +16,8 @@ type dbSMS struct {
 	lookupLatest *sql.Stmt
 	existingCode *sql.Stmt
 
-	lookupByAlert *sql.Stmt
+	lookupByAlert   *sql.Stmt
+	lookupSvcByCode *sql.Stmt
 
 	getInUse *sql.Stmt
 }
@@ -63,11 +65,17 @@ func newDB(ctx context.Context, db *sql.DB) (*dbSMS, error) {
 				service_id = $5
 		`),
 
-		lookupByCode:  p(`SELECT callback_id FROM twilio_sms_callbacks WHERE phone_number = $1 AND code = $2`),
-		lookupByAlert: p(`SELECT callback_id FROM twilio_sms_callbacks WHERE phone_number = $1 AND alert_id = $2`),
+		lookupSvcByCode: p(`
+			SELECT callback_id, NULL, name
+			FROM twilio_sms_callbacks
+			JOIN services svc ON svc.id = service_id
+			WHERE phone_number = $1 AND code = $2
+		`),
+		lookupByCode:  p(`SELECT callback_id, alert_id, NULL FROM twilio_sms_callbacks WHERE phone_number = $1 AND code = $2`),
+		lookupByAlert: p(`SELECT callback_id, alert_id, NULL FROM twilio_sms_callbacks WHERE phone_number = $1 AND alert_id = $2`),
 
 		lookupLatest: p(`
-			SELECT callback_id
+			SELECT callback_id, alert_id, NULL
 			FROM twilio_sms_callbacks
 			WHERE phone_number = $1 AND alert_id NOTNULL
 			ORDER BY sent_at DESC
@@ -141,17 +149,48 @@ func (db *dbSMS) insertDB(ctx context.Context, phoneNumber, callbackID string, a
 	return code, tx.Commit()
 }
 
-func (db *dbSMS) LookupByCode(ctx context.Context, phoneNumber string, code int) (callbackID string, err error) {
+type codeInfo struct {
+	ServiceName string
+	AlertID     int
+	CallbackID  string
+}
+
+func (c *codeInfo) scanFrom(row *sql.Row) error {
+	var aID sql.NullInt64
+	var svcName sql.NullString
+	err := row.Scan(&c.CallbackID, &aID, &svcName)
+	if err != nil {
+		return err
+	}
+	c.ServiceName = svcName.String
+	c.AlertID = int(aID.Int64)
+
+	return nil
+}
+
+func (db *dbSMS) LookupByCode(ctx context.Context, phoneNumber string, code int) (*codeInfo, error) {
 	var row *sql.Row
 	if code != 0 {
 		row = db.lookupByCode.QueryRowContext(ctx, phoneNumber, code)
 	} else {
 		row = db.lookupLatest.QueryRowContext(ctx, phoneNumber)
 	}
-	err = row.Scan(&callbackID)
-	return callbackID, err
+
+	info := &codeInfo{}
+	err := info.scanFrom(row)
+	return info, err
 }
-func (db *dbSMS) LookupByAlertID(ctx context.Context, phoneNumber string, searchID int) (callbackID string, err error) {
-	err = db.lookupByAlert.QueryRowContext(ctx, phoneNumber, searchID).Scan(&callbackID)
-	return callbackID, err
+func (db *dbSMS) LookupByAlertID(ctx context.Context, phoneNumber string, searchID int) (*codeInfo, error) {
+	row := db.lookupByAlert.QueryRowContext(ctx, phoneNumber, searchID)
+
+	info := &codeInfo{}
+	err := info.scanFrom(row)
+	return info, err
+}
+func (db *dbSMS) LookupSvcByCode(ctx context.Context, phoneNumber string, code int) (*codeInfo, error) {
+	row := db.lookupSvcByCode.QueryRowContext(ctx, phoneNumber, code)
+
+	info := &codeInfo{}
+	err := info.scanFrom(row)
+	return info, err
 }

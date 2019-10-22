@@ -25,6 +25,8 @@ var (
 	lastReplyRx  = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*'?$`)
 	shortReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(c|a)\s*'?$`)
 	alertReplyRx = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*#?\s*([0-9]+)\s*'?$`)
+
+	svcReplyRx = regexp.MustCompile(`^'?\s*(aa|cc)\s*([0-9]+)\s*'?$`)
 )
 
 // SMS implements a notification.Sender for Twilio SMS.
@@ -277,7 +279,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	body = strings.TrimSpace(body)
 	body = strings.ToLower(body)
-	var lookupFn func() (string, error)
+	var lookupFn func() (*codeInfo, error)
 	var result notification.Result
 
 	if m := lastReplyRx.FindStringSubmatch(body); len(m) == 2 {
@@ -286,7 +288,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		} else {
 			result = notification.ResultResolve
 		}
-		lookupFn = func() (string, error) { return s.b.LookupByCode(ctx, from, 0) }
+		lookupFn = func() (*codeInfo, error) { return s.b.LookupByCode(ctx, from, 0) }
 	} else if m := shortReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
@@ -298,7 +300,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			log.Debug(ctx, errors.Wrap(err, "parse code"))
 		} else {
 			ctx = log.WithField(ctx, "Code", code)
-			lookupFn = func() (string, error) { return s.b.LookupByCode(ctx, from, code) }
+			lookupFn = func() (*codeInfo, error) { return s.b.LookupByCode(ctx, from, code) }
 		}
 	} else if m := alertReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[1], "a") {
@@ -311,7 +313,20 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			log.Debug(ctx, errors.Wrap(err, "parse alertID"))
 		} else {
 			ctx = log.WithField(ctx, "AlertID", alertID)
-			lookupFn = func() (string, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
+			lookupFn = func() (*codeInfo, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
+		}
+	} else if m := svcReplyRx.FindStringSubmatch(body); len(m) == 3 {
+		if strings.HasPrefix(m[1], "a") {
+			result = notification.ResultAcknowledge
+		} else {
+			result = notification.ResultResolve
+		}
+		code, err := strconv.Atoi(m[1])
+		if err != nil {
+			log.Debug(ctx, errors.Wrap(err, "parse code"))
+		} else {
+			ctx = log.WithField(ctx, "Code", code)
+			lookupFn = func() (*codeInfo, error) { return s.b.LookupSvcByCode(ctx, from, code) }
 		}
 	}
 
@@ -330,18 +345,17 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var nonSystemErr bool
-
-	var alertID int
+	var info *codeInfo
 	err = retry.DoTemporaryError(func(int) error {
-		callbackID, err := lookupFn()
+		info, err = lookupFn()
 		if err != nil {
-			return errors.Wrap(err, "lookup callbackID")
+			return errors.Wrap(err, "lookup code")
 		}
 
 		errCh := make(chan error, 1)
 		s.respCh <- &notification.MessageResponse{
 			Ctx:    ctx,
-			ID:     callbackID,
+			ID:     info.CallbackID,
 			From:   notification.Dest{Type: notification.DestTypeSMS, Value: from},
 			Result: result,
 			Err:    errCh,
@@ -392,5 +406,9 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	respond("", fmt.Sprintf("%s alert #%d", prefix, alertID))
+	if info.ServiceName != "" {
+		respond("", fmt.Sprintf("%s all alerts for service '%s'", prefix, info.ServiceName))
+	} else {
+		respond("", fmt.Sprintf("%s alert #%d", prefix, info.AlertID))
+	}
 }
