@@ -20,14 +20,8 @@ func (q *Query) Labels(ctx context.Context, input *graphql2.LabelSearchOptions) 
 		searchOpts.Search = *input.Search
 	}
 	searchOpts.Omit = input.Omit
-	if input.UniqueKeys != nil && input.UniqueValues != nil {
-		return nil, validation.NewFieldError("Unique", "Only one unique identifier may be toggled on at a time.")
-	}
 	if input.UniqueKeys != nil {
 		searchOpts.UniqueKeys = *input.UniqueKeys
-	}
-	if input.UniqueValues != nil {
-		searchOpts.UniqueValues = *input.UniqueValues
 	}
 	if input.After != nil && *input.After != "" {
 		err = search.ParseCursor(*input.After, &searchOpts)

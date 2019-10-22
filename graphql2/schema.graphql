@@ -149,7 +149,6 @@ input LabelSearchOptions {
   after: String = ""
   search: String = ""
   uniqueKeys: Boolean = false
-  uniqueValues: Boolean = false
   omit: [ID!]
 }
 

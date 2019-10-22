@@ -21,7 +21,7 @@ const useStyles = makeStyles(theme => {
       [theme.breakpoints.up('md')]: {
         // type=text added to increase specificity to override the 180 min-width below
         '& input[type=text]': {
-          minWidth: 350,
+          minWidth: 275,
         },
       },
     },
@@ -29,9 +29,9 @@ const useStyles = makeStyles(theme => {
       backgroundColor: 'white',
       borderRadius: '4px',
       [theme.breakpoints.up('md')]: {
-        minWidth: 275,
+        minWidth: 250,
         '& input:focus': {
-          minWidth: 350,
+          minWidth: 275,
         },
         '& input': {
           minWidth: 180,
