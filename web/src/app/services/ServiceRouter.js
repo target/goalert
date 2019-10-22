@@ -2,23 +2,18 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import gql from 'graphql-tag'
 import { Switch, Route } from 'react-router-dom'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
-import { Filter as LabelFilterIcon } from 'mdi-material-ui'
 
 import SimpleListPage from '../lists/SimpleListPage'
 import ServiceDetails from './ServiceDetails'
 import ServiceLabelList from './ServiceLabelList'
 import IntegrationKeyList from './IntegrationKeyList'
-import { LabelKeySelect } from '../selection/LabelKeySelect'
-import { LabelValueSelect } from '../selection/LabelValueSelect'
 import { PageNotFound } from '../error-pages/Errors'
 import ServiceAlerts from './components/ServiceAlerts'
 import ServiceCreateDialog from './ServiceCreateDialog'
 import HeartbeatMonitorList from './HeartbeatMonitorList'
-import FilterContainer from '../util/FilterContainer'
 import { searchSelector } from '../selectors'
 import { setURLParam } from '../actions'
+import ServiceLabelFilterContainer from './ServiceLabelFilterContainer'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -64,48 +59,16 @@ export default function ServiceRouter() {
         })}
         createForm={<ServiceCreateDialog />}
         createLabel='Service'
-        searchAdornment={renderSearchFilters()}
+        searchAdornment={
+          <ServiceLabelFilterContainer
+            labelKey={key}
+            labelValue={value}
+            onKeyChange={onKeyChange}
+            onValueChange={onValueChange}
+            onReset={() => setSearchParam()}
+          />
+        }
       />
-    )
-  }
-
-  function renderSearchFilters() {
-    return (
-      <FilterContainer
-        icon={<LabelFilterIcon />}
-        title='Search by Labels'
-        iconButtonProps={{
-          'data-cy': 'services-filter-button',
-          color: 'default',
-          edge: 'end',
-          size: 'small',
-        }}
-        onReset={() => setSearchParam()}
-      >
-        <Grid item xs={12}>
-          <Typography color='textSecondary'>
-            <i>Search by Label</i>
-          </Typography>
-        </Grid>
-        <Grid data-cy='label-key-container' item xs={12}>
-          <LabelKeySelect
-            name='label-key'
-            label='Select Label Key'
-            value={key}
-            onChange={onKeyChange}
-          />
-        </Grid>
-        <Grid data-cy='label-value-container' item xs={12}>
-          <LabelValueSelect
-            name='label-value'
-            label='Select Label Value'
-            keyValue={key}
-            value={value}
-            onChange={onValueChange}
-            disabled={!key}
-          />
-        </Grid>
-      </FilterContainer>
     )
   }
 
