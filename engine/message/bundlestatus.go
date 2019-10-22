@@ -42,7 +42,6 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 	// add Bundled messages to the table
 	for _, msg := range byDest {
 		if len(msg.IDs) == 1 {
-			msg.StatusCount = 0 // set back to zero, not a bundle
 			filtered = append(filtered, msg.Message)
 			continue
 		}

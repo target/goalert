@@ -401,7 +401,9 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		if err != nil {
 			return nil, err
 		}
-		result, err = db.bundleAlertMessages(ctx, tx, result)
+		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
+			return nil
+		})
 		if err != nil {
 			return nil, err
 		}
