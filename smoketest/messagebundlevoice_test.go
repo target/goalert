@@ -6,8 +6,8 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestMessageBundle checks that status updates and alet notifications are bundled when General.MessageBundles is enabled.
-func TestMessageBundle(t *testing.T) {
+// TestMessageBundle_Voice checks that voice status updates and alert notifications are bundled when General.MessageBundles is enabled.
+func TestMessageBundle_Voice(t *testing.T) {
 	t.Parallel()
 
 	sql := `
@@ -16,7 +16,7 @@ func TestMessageBundle(t *testing.T) {
 			({{uuid "user"}}, 'bob', 'joe');
 		insert into user_contact_methods (id, user_id, name, type, value) 
 		values
-			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
+			({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'VOICE', {{phone "1"}});
 		insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 		values
 			({{uuid "user"}}, {{uuid "cm1"}}, 0);
@@ -51,14 +51,14 @@ func TestMessageBundle(t *testing.T) {
 	d1 := tw.Device(h.Phone("1"))
 
 	// TODO: should be bundle, allow closing.
-	d1.ExpectSMS("test1")
-	d1.ExpectSMS("test2")
-	d1.ExpectSMS("test3")
-	d1.ExpectSMS("test4")
+	d1.ExpectVoice("test1")
+	d1.ExpectVoice("test2")
+	d1.ExpectVoice("test3")
+	d1.ExpectVoice("test4")
 
 	tw.WaitAndAssert()
 
 	h.GraphQLQuery2(`mutation{ updateAlerts(input: {alertIDs: [1,2,3,4], newStatus: StatusClosed}){id} }`)
 
-	d1.ExpectSMS("Alert #4", "Closed", "3 other alerts")
+	d1.ExpectVoice("Alert number 4", "Closed", "3 other alerts")
 }
