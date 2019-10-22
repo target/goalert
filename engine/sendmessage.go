@@ -37,6 +37,18 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 
 	var notifMsg notification.Message
 	switch msg.Type {
+	case message.TypeAlertNotificationBundle:
+		name, count, err := p.am.ServiceInfo(ctx, msg.ServiceID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup service info")
+		}
+		notifMsg = notification.AlertBundle{
+			Dest:        msg.Dest,
+			CallbackID:  msg.ID,
+			ServiceID:   msg.ServiceID,
+			ServiceName: name,
+			Count:       count,
+		}
 	case message.TypeAlertNotification:
 		a, err := p.am.FindOne(ctx, msg.AlertID)
 		if err != nil {
@@ -48,6 +60,18 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Summary:    a.Summary,
 			Details:    a.Details,
 			CallbackID: msg.ID,
+		}
+	case message.TypeAlertStatusUpdateBundle:
+		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup alert log entry")
+		}
+		notifMsg = notification.AlertStatusBundle{
+			Dest:         msg.Dest,
+			MessageID:    msg.ID,
+			Log:          e.String(),
+			AlertID:      msg.AlertID,
+			OtherUpdates: msg.StatusCount,
 		}
 	case message.TypeAlertStatusUpdate:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
