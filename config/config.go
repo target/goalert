@@ -23,6 +23,7 @@ type Config struct {
 		GoogleAnalyticsID      string `public:"true"`
 		NotificationDisclaimer string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`
+		MessageBundles         bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack all' responses to bundled alerts."`
 	}
 
 	Maintenance struct {
