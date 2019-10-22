@@ -329,7 +329,6 @@ export default class AlertsList extends Component {
         /> */}
         <CreateAlertSpeedDial
           showFavoritesWarning={showFavoritesWarning}
-          serviceID={serviceID}
           transition={fullScreen && (showFavoritesWarning || actionComplete)}
         />
         <Card style={{ width: '100%' }}>
