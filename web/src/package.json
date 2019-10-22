@@ -99,7 +99,7 @@
     "react-markdown": "4.2.2",
     "react-redux": "7.1.1",
     "react-router-dom": "5.0.1",
-    "react-select": "3.0.4",
+    "react-select": "3.0.7",
     "redux-thunk": "2.3.0",
     "reselect": "4.0.0"
   },
