@@ -17,7 +17,6 @@ export function LabelValueSelect(props) {
   const { keyValue, ...selectProps } = props
   const variables = {
     search: props.keyValue + '=*',
-    uniqueValues: true,
   }
 
   const LabelValueSelect = makeQuerySelect('LabelValueSelect', {
