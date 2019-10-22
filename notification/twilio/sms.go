@@ -102,34 +102,50 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		return nil, errors.New("number had too many outgoing errors recently")
 	}
 
-	var message string
-	switch msg.Type() {
-	case notification.MessageTypeAlertStatus:
-		message, err = alertSMS{
-			ID:   msg.SubjectID(),
-			Body: msg.Body(),
-		}.Render()
-	case notification.MessageTypeAlert:
+	makeSMSCode := func(alertID int, serviceID string) int {
 		var code int
 		if hasTwoWaySMSSupport(destNumber) {
-			code, err = s.b.insertDB(ctx, destNumber, msg.ID(), msg.SubjectID())
+			code, err = s.b.insertDB(ctx, destNumber, msg.ID(), alertID, serviceID)
 			if err != nil {
 				log.Log(ctx, errors.Wrap(err, "insert alert id for SMS callback -- sending 1-way SMS as fallback"))
 			}
 		}
+		return code
+	}
 
+	var message string
+	switch t := msg.(type) {
+	case notification.AlertStatus:
 		message, err = alertSMS{
-			ID:   msg.SubjectID(),
-			Body: msg.Body(),
-			Code: code,
-			Link: cfg.CallbackURL("/alerts/" + strconv.Itoa(msg.SubjectID())),
+			ID:   t.AlertID,
+			Body: t.Log,
 		}.Render()
-	case notification.MessageTypeTest:
+	case notification.AlertStatusBundle:
+		message, err = alertSMS{
+			ID:    t.AlertID,
+			Body:  t.Log,
+			Count: t.OtherUpdates,
+		}.Render()
+	case notification.AlertBundle:
+		message, err = alertSMS{
+			Count: t.Count,
+			Body:  t.ServiceName,
+			Link:  cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID)),
+			Code:  makeSMSCode(0, t.ServiceID),
+		}.Render()
+	case notification.Alert:
+		message, err = alertSMS{
+			ID:   t.AlertID,
+			Body: t.Summary,
+			Link: cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID)),
+			Code: makeSMSCode(t.AlertID, ""),
+		}.Render()
+	case notification.Test:
 		message = fmt.Sprintf("This is a test message from GoAlert.")
-	case notification.MessageTypeVerification:
-		message = fmt.Sprintf("GoAlert verification code: %d", msg.SubjectID())
+	case notification.Verification:
+		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
 	default:
-		return nil, errors.Errorf("unhandled message type %s", msg.Type().String())
+		return nil, errors.Errorf("unhandled message type %T", t)
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, "render message")

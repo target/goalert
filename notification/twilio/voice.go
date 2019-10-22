@@ -223,38 +223,49 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		return nil, errors.New("number had too many outgoing errors recently")
 	}
 
-	var ep CallType
+	opts := &VoiceOptions{
+		ValidityPeriod: time.Second * 10,
+		CallbackParams: make(url.Values),
+		Params:         make(url.Values),
+	}
 	var message string
-
-	switch msg.Type() {
-	case notification.MessageTypeAlert:
-		message = msg.Body()
-		ep = CallTypeAlert
-	case notification.MessageTypeAlertStatus:
-		message = rmParen.ReplaceAllString(msg.Body(), "")
-		ep = CallTypeAlertStatus
-	case notification.MessageTypeTest:
+	switch t := msg.(type) {
+	case notification.AlertBundle:
+		message = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
+		opts.Params.Set(msgParamBundle, "1")
+		opts.CallType = CallTypeAlert
+	case notification.AlertStatusBundle:
+		plural := "s have"
+		if t.OtherUpdates == 1 {
+			plural = " has"
+		}
+		message = fmt.Sprintf("%s. %d other alert%s been updated.", rmParen.ReplaceAllString(t.Log, ""), t.OtherUpdates, plural)
+		opts.CallType = CallTypeAlertStatus
+		opts.Params.Set(msgParamSubID, strconv.Itoa(t.AlertID))
+		opts.Params.Set(msgParamBundle, "1")
+	case notification.Alert:
+		message = t.Summary
+		opts.CallType = CallTypeAlert
+		opts.Params.Set(msgParamSubID, strconv.Itoa(t.AlertID))
+	case notification.AlertStatus:
+		message = rmParen.ReplaceAllString(t.Log, "")
+		opts.CallType = CallTypeAlertStatus
+		opts.Params.Set(msgParamSubID, strconv.Itoa(t.AlertID))
+	case notification.Test:
 		message = "This is a test message from GoAlert."
-		ep = CallTypeTest
-	case notification.MessageTypeVerification:
-		message = "Your verification code for GoAlert is: " + spellNumber(msg.SubjectID())
-		ep = CallTypeVerify
+		opts.CallType = CallTypeTest
+	case notification.Verification:
+		message = "Your verification code for GoAlert is: " + spellNumber(t.Code)
+		opts.CallType = CallTypeVerify
 	default:
-		return nil, errors.Errorf("unhandled message type %s", msg.Type().String())
+		return nil, errors.Errorf("unhandled message type: %T", t)
 	}
 
 	if message == "" {
 		message = "No summary provided."
 	}
 
-	opts := &VoiceOptions{
-		ValidityPeriod: time.Second * 10,
-		CallType:       ep,
-		CallbackParams: make(url.Values),
-		Params:         make(url.Values),
-	}
 	opts.CallbackParams.Set(msgParamID, msg.ID())
-	opts.Params.Set(msgParamSubID, strconv.Itoa(msg.SubjectID()))
 	// Encode the body so we don't need to worry about
 	// buggy apps not escaping url params properly.
 	opts.Params.Set(msgParamBody, b64enc.EncodeToString([]byte(message)))
@@ -658,9 +669,13 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		}
 		fallthrough
 	case "", digitRepeat:
+		var suffix string
+		if call.Q.Get(msgParamBundle) == "1" {
+			suffix = " all"
+		}
 		message := fmt.Sprintf(
-			"%sMessage from Go Alert. %s. To acknowledge, press %s. To close, press %s. To unenroll from all notifications, press %s. To repeat this message, press %s",
-			messagePrefix, call.msgBody, digitAck, digitClose, digitStop, digitRepeat)
+			"%sMessage from Go Alert. %s. To acknowledge%s, press %s. To close%s, press %s. To unenroll from all notifications, press %s. To repeat this message, press %s",
+			messagePrefix, call.msgBody, suffix, digitAck, suffix, digitClose, digitStop, digitRepeat)
 		// User wants Twilio to repeat the message
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlert),
