@@ -3,14 +3,15 @@ package label
 import (
 	"context"
 	"database/sql"
+	"strconv"
+	"strings"
+	"text/template"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"strconv"
-	"strings"
-	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -25,7 +26,7 @@ type SearchOptions struct {
 
 	Limit int `json:"-"`
 
-	UniqueKeys   bool `json:"k,omitempty"`
+	UniqueKeys bool `json:"k,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
