@@ -36,8 +36,13 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
-	SELECT {{if .UniqueKeys}} distinct on (lower(key)){{end}}
-		key, value, tgt_service_id
+	SELECT DISTINCT ON
+		{{if .UniqueKeys}}
+			(lower(key))
+		{{else}}
+			(lower(key), lower(value)) 
+		{{end}}
+			key, value, tgt_service_id
 	FROM labels l
 	WHERE true
 	{{if .Omit}}
