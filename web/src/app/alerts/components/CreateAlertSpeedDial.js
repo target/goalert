@@ -3,7 +3,7 @@ import AddIcon from '@material-ui/icons/Add'
 import LabelIcon from '@material-ui/icons/Label'
 import classnames from 'classnames'
 import AlertForm from './AlertForm'
-import CreateAlertByLabelDialog from './CreateAlertByLabelDialog'
+import CreateAlertByLabelDialog from '../../dialogs/CreateAlertDialog/'
 import withStyles from '@material-ui/core/styles/withStyles'
 import SpeedDial from '../../util/SpeedDial'
 

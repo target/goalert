@@ -3,11 +3,9 @@ import {
   Grid,
   TextField,
   Dialog,
-  DialogActions,
   Stepper,
   Step,
   StepLabel,
-  Button,
   DialogContent,
   InputAdornment,
 } from '@material-ui/core'
@@ -19,11 +17,9 @@ import classnames from 'classnames'
 import { FormContainer, FormField } from '../../forms'
 import ServiceLabelFilterContainer from '../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
+import DialogNavigation from './DialogNavigation'
 
 const useStyles = makeStyles(theme => ({
-  button: {
-    marginRight: theme.spacing(1),
-  },
   instructions: {
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(1),
@@ -61,6 +57,9 @@ const StepContent = props => {
       return (
         <Grid item xs={12}>
           <FormContainer onChange={props.onChange}>
+            {/* <Grid item xs={12}>
+              <SelectedServices />
+            </Grid> */}
             <FormField
               fullWidth
               label='Search Query'
@@ -98,21 +97,6 @@ const StepContent = props => {
   }
 }
 
-const nextIsDisabled = (activeStep, formFields) => {
-  switch (activeStep) {
-    case 0:
-      // return !(formFields.summary && formFields.details)
-      // TODO uncomment
-      return false
-    case 1:
-      return !formFields.serviceIds.length
-    // case 2:
-    //   return !
-    default:
-      return false
-  }
-}
-
 export default function CreateAlertByLabelDialog(props) {
   const classes = useStyles()
   const [activeStep, setActiveStep] = useState(0)
@@ -128,18 +112,6 @@ export default function CreateAlertByLabelDialog(props) {
   }
 
   const steps = ['Summary and Details', 'Label Selection', 'Create Alert']
-
-  const handleNext = () => {
-    setActiveStep(prevActiveStep => prevActiveStep + 1)
-  }
-
-  const handleBack = () => {
-    setActiveStep(prevActiveStep => prevActiveStep - 1)
-  }
-
-  const handleSubmit = () => {
-    console.log('SUBMIT')
-  }
 
   return (
     <Dialog
@@ -168,35 +140,12 @@ export default function CreateAlertByLabelDialog(props) {
             onChange={e => onStepContentChange(e)}
             setFormFields={setFormFields}
           />
-          <DialogActions>
-            <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              className={classes.button}
-            >
-              Back
-            </Button>
-
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={handleNext}
-              className={classes.button}
-              disabled={nextIsDisabled(activeStep, formFields)}
-            >
-              Next
-            </Button>
-
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={handleSubmit}
-              className={classes.button}
-              disabled={activeStep !== steps.length - 1}
-            >
-              Submit
-            </Button>
-          </DialogActions>
+          <DialogNavigation
+            activeStep={activeStep}
+            setActiveStep={setActiveStep}
+            formFields={formFields}
+            steps={steps}
+          />
         </div>
       </DialogContent>
     </Dialog>
