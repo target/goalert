@@ -6,29 +6,21 @@ const useStyles = makeStyles(theme => ({
   button: {
     marginRight: theme.spacing(1),
   },
-  instructions: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-  },
 }))
 
 const nextIsDisabled = (activeStep, formFields) => {
   switch (activeStep) {
     case 0:
-      // return !(formFields.summary && formFields.details)
-      // TODO uncomment
-      return false
+      return !(formFields.summary && formFields.details)
     case 1:
-      return !formFields.services.length
-    // case 2:
-    //   return !
+      return formFields.selectedServices.length === 0
     default:
-      return false
+      return true
   }
 }
 
 export default props => {
-  const { activeStep, formFields, setActiveStep, steps } = props
+  const { activeStep, formFields, setActiveStep, steps, handleSubmit } = props
   const classes = useStyles()
 
   const handleNext = () => {
@@ -37,10 +29,6 @@ export default props => {
 
   const handleBack = () => {
     setActiveStep(prevActiveStep => prevActiveStep - 1)
-  }
-
-  const handleSubmit = () => {
-    console.log('SUBMIT')
   }
 
   return (
