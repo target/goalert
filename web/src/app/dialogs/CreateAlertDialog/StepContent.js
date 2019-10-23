@@ -108,7 +108,11 @@ export default props => {
                       }))
                     }}
                     onValueChange={newValue => {
-                      const newState = { labelValue: newValue }
+                      let newState = { labelValue: newValue }
+                      if (formFields.searchQuery.endsWith('=')) {
+                        newState['searchQuery'] =
+                          formFields.searchQuery + newValue
+                      }
                       props.setFormFields(prevState => ({
                         ...prevState,
                         ...newState,
