@@ -57,7 +57,6 @@ type DB struct {
 
 	insertAlertBundle  *sql.Stmt
 	insertStatusBundle *sql.Stmt
-	updateStatusBundle *sql.Stmt
 }
 
 // NewDB creates a new DB. If config is nil, DefaultConfig() is used.
@@ -290,7 +289,8 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 			set
 				last_status = 'bundled',
 				last_status_at = now(),
-				status_details = (select id from new_msg)
+				status_details = (select id from new_msg),
+				cycle_id = null
 			where id = any($7::uuid[])
 		`),
 
