@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 )
 
 // TestStatusUpdates checks basic functionality of status updates:
@@ -81,15 +80,9 @@ func TestStatusUpdates(t *testing.T) {
 	tw.WaitAndAssert()
 
 	doClose("first alert")
-
-	h.Delay(15 * time.Second) // ensure no additional notifications sent
+	d1.ExpectSMS("closed")
 	tw.WaitAndAssert()
 
 	doClose("second alert")
-
-	// expect (1) status notification
 	d1.ExpectSMS("closed")
-	h.Delay(15 * time.Second) // ensure no additional notifications sent
-
-	tw.WaitAndAssert()
 }
