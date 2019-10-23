@@ -12,7 +12,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import classnames from 'classnames'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
-// import fetchServices from fetchServices
+import { styles as globalStyles } from '../../styles/materialStyles'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -26,19 +26,29 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
-  instructions: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-  },
-}))
+const useStyles = makeStyles(theme => {
+  const { dialogWidth, overflowVisible } = globalStyles(theme)
+  return {
+    dialogWidth,
+    overflowVisible,
+  }
+})
+
+const handleSubmit = () => {
+  console.log('SUBMIT')
+}
 
 export default props => {
   const classes = useStyles()
+
   const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
+    // form data
     summary: '',
     details: '',
+    selectedServices: [],
+
+    // helpers
     searchQuery: '',
     services: [],
     labelKey: '',
@@ -49,11 +59,11 @@ export default props => {
     variables: { input: { search: formFields.searchQuery } },
   })
 
-  // TODO refactor this hack
+  // TODO: refactor this hack
   // WANT: if (searchQuery changed?) { fetchAndUpdateServicesState() }
   if (!loading && !error) {
-    const newState = { services: data.services.nodes }
     if (data.services.nodes !== formFields.services) {
+      const newState = { services: data.services.nodes }
       setFormFields(prevState => ({ ...prevState, ...newState }))
     }
   }
@@ -67,7 +77,6 @@ export default props => {
   return (
     <Dialog
       open={props.open}
-      // open={true}
       onClose={props.handleRequestClose}
       classes={{
         paper: classnames(classes.dialogWidth, classes.overflowVisible),
@@ -76,13 +85,11 @@ export default props => {
     >
       <DialogContent className={classes.overflowVisible}>
         <Stepper activeStep={activeStep}>
-          {steps.map(label => {
-            return (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            )
-          })}
+          {steps.map(label => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
         </Stepper>
         <StepContent
           activeStep={activeStep}
@@ -95,6 +102,7 @@ export default props => {
           setActiveStep={setActiveStep}
           formFields={formFields}
           steps={steps}
+          handleSubmit={handleSubmit}
         />
       </DialogContent>
     </Dialog>
