@@ -42,6 +42,15 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup service info")
 		}
+		if count == 0 {
+			// already acked/closed, don't send bundled notification
+			return &notification.MessageStatus{
+				Ctx:     ctx,
+				ID:      msg.ID,
+				Details: "alerts acked/closed before message sent",
+				State:   notification.MessageStateFailedPerm,
+			}, nil
+		}
 		notifMsg = notification.AlertBundle{
 			Dest:        msg.Dest,
 			CallbackID:  msg.ID,
