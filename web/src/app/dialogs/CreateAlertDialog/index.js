@@ -6,10 +6,8 @@ import {
   StepLabel,
   DialogContent,
 } from '@material-ui/core'
-// import gql from 'graphql-tag'
 
 import { makeStyles } from '@material-ui/core/styles'
-// import Typography from '@material-ui/core/Typography'
 import classnames from 'classnames'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
@@ -21,7 +19,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default function CreateAlertByLabelDialog(props) {
+export default props => {
   const classes = useStyles()
   const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
