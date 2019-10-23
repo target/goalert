@@ -124,29 +124,25 @@ export default function CreateAlertByLabelDialog(props) {
     >
       <DialogContent className={classes.overflowVisible}>
         <Stepper activeStep={activeStep}>
-          {steps.map((label, index) => {
-            const stepProps = {}
-            const labelProps = {}
+          {steps.map(label => {
             return (
-              <Step key={label} {...stepProps}>
-                <StepLabel {...labelProps}>{label}</StepLabel>
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
               </Step>
             )
           })}
         </Stepper>
-        <div>
-          <StepContent
-            activeStep={activeStep}
-            onChange={e => onStepContentChange(e)}
-            setFormFields={setFormFields}
-          />
-          <DialogNavigation
-            activeStep={activeStep}
-            setActiveStep={setActiveStep}
-            formFields={formFields}
-            steps={steps}
-          />
-        </div>
+        <StepContent
+          activeStep={activeStep}
+          onChange={e => onStepContentChange(e)}
+          setFormFields={setFormFields}
+        />
+        <DialogNavigation
+          activeStep={activeStep}
+          setActiveStep={setActiveStep}
+          formFields={formFields}
+          steps={steps}
+        />
       </DialogContent>
     </Dialog>
   )
