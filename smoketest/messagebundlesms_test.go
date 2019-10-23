@@ -35,8 +35,7 @@ func TestMessageBundle_SMS(t *testing.T) {
 
 		insert into services (id, escalation_policy_id, name) 
 		values
-			({{uuid "sid"}}, {{uuid "eid"}}, 'My Service'),
-			({{uuid "sid2"}}, {{uuid "eid"}}, 'My Other');
+			({{uuid "sid"}}, {{uuid "eid"}}, 'My Service');
 `
 	h := harness.NewHarness(t, sql, "message-bundles")
 	defer h.Close()
@@ -48,20 +47,16 @@ func TestMessageBundle_SMS(t *testing.T) {
 	h.CreateAlert(h.UUID("sid"), "test2")
 	h.CreateAlert(h.UUID("sid"), "test3")
 	h.CreateAlert(h.UUID("sid"), "test4")
-	h.CreateAlert(h.UUID("sid2"), "test1")
-	h.CreateAlert(h.UUID("sid2"), "test2")
-	h.CreateAlert(h.UUID("sid2"), "test3")
 
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
 	d1.ExpectSMS("My Service", "4 unacked").ThenReply("100aa")
-	d1.ExpectSMS("My Other", "3 unacked")
 	d1.ExpectSMS("Acknowledged all", "My Service")
 
 	tw.WaitAndAssert()
 
-	h.GraphQLQuery2(`mutation{ updateAlerts(input: {alertIDs: [5,6,7], newStatus: StatusClosed}){id} }`)
+	h.GraphQLQuery2(`mutation{ updateAlerts(input: {alertIDs: [1,2,3,4], newStatus: StatusClosed}){id} }`)
 
-	d1.ExpectSMS("Closed", "2 other alerts")
+	d1.ExpectSMS("Closed", "3 other alerts")
 }
