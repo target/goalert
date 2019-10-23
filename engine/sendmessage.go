@@ -108,8 +108,14 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 	if err != nil {
 		return nil, err
 	}
-	if msg.Type == message.TypeAlertNotification {
+	switch msg.Type {
+	case message.TypeAlertNotification:
 		p.cfg.AlertLogStore.MustLog(ctx, msg.AlertID, alertlog.TypeNotificationSent, nil)
+	case message.TypeAlertNotificationBundle:
+		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, nil)
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "append alert log"))
+		}
 	}
 
 	return status, nil
