@@ -135,7 +135,7 @@ Reply '1a' to ack, '1c' to close.`,
 			Code:  100,
 			Link:  "https://example.com/services/321-654/alerts",
 		},
-		`Service 'My Service' has 5 unacked alerts
+		`Svc 'My Service': 5 unacked alerts
 
 https://example.com/services/321-654/alerts
 
