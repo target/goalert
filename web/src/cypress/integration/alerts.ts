@@ -199,6 +199,48 @@ function testAlerts(screen: ScreenFormat) {
         .parent('[role=button]')
         .should('not.contain', 'UNACKNOWLEDGED')
     })
+
+    it('should NOT acknowledge acknowledged alerts', () => {
+      //ack first two
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      //ack
+      //ack
+      //unack
+      cy.get(`[data-cy=alert-${alert1.number}]`)
+        .parent('[role=button]')
+        .should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(`[data-cy=alert-${alert2.number}]`)
+        .parent('[role=button]')
+        .should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(`[data-cy=alert-${alert3.number}]`)
+        .parent('[role=button]')
+        .should('contain', 'UNACKNOWLEDGED')
+
+      //ack first two again (noop)
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      cy.get('span[data-cy=update-message]').should(
+        'contain',
+        '0 of 2 alerts updated',
+      )
+
+      //ack all three
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert3.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      //first two already acked, third now acked
+      cy.get('span[data-cy=update-message]').should(
+        'contain',
+        '1 of 3 alerts updated',
+      )
+    })
   })
 
   describe('Alert Creation', () => {
