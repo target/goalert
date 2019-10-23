@@ -47,7 +47,7 @@
     "name": "Target",
     "url": "https://github.com/target/goalert/blob/master/CONTRIBUTORS"
   },
-  "license": "",
+  "license": "Apache-2.0",
   "standard": {
     "parser": "babel-eslint",
     "env": [
