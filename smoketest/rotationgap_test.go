@@ -49,9 +49,6 @@ func TestRotationGap(t *testing.T) {
 	insert into services (id, escalation_policy_id, name) values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 
-	insert into alerts (service_id, description) values
-		({{uuid "sid"}}, 'testing');
-
 	`
 
 	h := harness.NewHarness(t, sql, "add-verification-code")
