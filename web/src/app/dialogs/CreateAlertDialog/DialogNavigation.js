@@ -19,7 +19,7 @@ const nextIsDisabled = (activeStep, formFields) => {
       // TODO uncomment
       return false
     case 1:
-      return !formFields.serviceIds.length
+      return !formFields.services.length
     // case 2:
     //   return !
     default:
