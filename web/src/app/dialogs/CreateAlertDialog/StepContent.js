@@ -127,10 +127,10 @@ export default props => {
                 {formFields.services.map(service => (
                   <ListItem
                     button
+                    disabled={
+                      formFields.selectedServices.indexOf(service) !== -1
+                    }
                     onClick={() => {
-                      if (formFields.selectedServices.indexOf(service) !== -1) {
-                        return
-                      }
                       const newState = [...formFields.selectedServices, service]
 
                       props.onChange({ selectedServices: newState })
