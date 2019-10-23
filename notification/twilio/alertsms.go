@@ -27,7 +27,7 @@ type alertSMS struct {
 
 var smsTmpl = template.Must(template.New("alertSMS").Parse(`
 {{- if .ID}}Alert #{{.ID}}: {{.Body}}
-{{- else if .Count}}Svc '{{.Body}}': {{.Count}} unacked alerts
+{{- else if .Count}}Svc '{{.Body}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
 {{- end}}
 {{- if .Link }}
 
