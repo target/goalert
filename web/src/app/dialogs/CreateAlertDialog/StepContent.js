@@ -1,9 +1,17 @@
 import React from 'react'
-import { Grid, TextField, InputAdornment } from '@material-ui/core'
-
+import {
+  Grid,
+  TextField,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+} from '@material-ui/core'
 import { FormContainer, FormField } from '../../forms'
 import ServiceLabelFilterContainer from '../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
+import FavoriteIcon from '@material-ui/icons/Star'
 
 export default props => {
   switch (props.activeStep) {
@@ -36,9 +44,6 @@ export default props => {
       return (
         <Grid item xs={12}>
           <FormContainer onChange={props.onChange}>
-            {/* <Grid item xs={12}>
-              <SelectedServices />
-            </Grid> */}
             <FormField
               fullWidth
               label='Search Query'
@@ -47,7 +52,6 @@ export default props => {
               required
               component={TextField}
               InputProps={{
-                // ref: fieldRef,
                 startAdornment: (
                   <InputAdornment position='start'>
                     <SearchIcon color='action' />
@@ -55,16 +59,41 @@ export default props => {
                 ),
                 endAdornment: (
                   <ServiceLabelFilterContainer
-                    // anchorRef={fieldRef}
-                    labelKey={'key'}
-                    labelValue={'() => console.log(value)'}
-                    onKeyChange={() => console.log('onKeyChange')}
-                    onValueChange={() => console.log('onValueChange')}
-                    // onReset={() => setSearchParam()}
+                    labelKey={props.formFields.labelKey}
+                    labelValue={props.formFields.labelValue}
+                    onKeyChange={newKey => {
+                      newKey = `${newKey}=`
+                      const newState = { labelKey: newKey, searchQuery: newKey }
+                      props.setFormFields(prevState => ({
+                        ...prevState,
+                        ...newState,
+                      }))
+                    }}
+                    onValueChange={newValue => {
+                      const newState = { labelValue: newValue }
+                      props.setFormFields(prevState => ({
+                        ...prevState,
+                        ...newState,
+                      }))
+                    }}
                   />
                 ),
               }}
             />
+            {props.formFields.searchQuery && (
+              <List component='nav' aria-label='main mailbox folders'>
+                {props.formFields.services.map(service => (
+                  <ListItem button>
+                    <ListItemText primary={service.name} />
+                    {service.isFavorite && (
+                      <ListItemIcon>
+                        <FavoriteIcon />
+                      </ListItemIcon>
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </FormContainer>
         </Grid>
       )
