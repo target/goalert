@@ -23,7 +23,7 @@ export class ServiceChip extends Component {
   }
 
   render() {
-    const { id, history, name, onDelete, style } = this.props
+    const { id, history, name, onDelete, style, onClick } = this.props
 
     return (
       <Chip
@@ -35,7 +35,7 @@ export class ServiceChip extends Component {
         }
         style={style}
         onDelete={onDelete}
-        onClick={() => history.push(`/services/${id}`)}
+        onClick={onClick || (() => history.push(`/services/${id}`))}
         label={name}
       />
     )
