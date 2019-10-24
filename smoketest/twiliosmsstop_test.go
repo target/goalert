@@ -1,9 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
-	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSStop checks that an SMS STOP message is processed.
@@ -50,8 +50,5 @@ func TestTwilioSMSStop(t *testing.T) {
 	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing").ThenReply("stop")
 	h.Twilio().WaitAndAssert()
 
-	h.FastForward(time.Minute)
-
-	h.Delay(time.Second * 15)
 	// no more messages, it should have disabled both
 }

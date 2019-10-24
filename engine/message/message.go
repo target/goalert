@@ -1,6 +1,8 @@
 package message
 
 import (
+	"time"
+
 	"github.com/target/goalert/notification"
 )
 
@@ -8,9 +10,13 @@ import (
 type Message struct {
 	ID         string
 	Type       Type
-	DestType   notification.DestType
-	DestID     string
+	Dest       notification.Dest
 	AlertID    int
 	AlertLogID int
 	VerifyID   string
+
+	UserID    string
+	ServiceID string
+	CreatedAt time.Time
+	SentAt    time.Time
 }
