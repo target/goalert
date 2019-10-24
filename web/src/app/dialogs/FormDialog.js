@@ -194,7 +194,7 @@ export default class FormDialog extends React.PureComponent {
     }
 
     return (
-      <DialogActions className={classes.actions}>
+      <DialogActions>
         <Button
           className={classes.cancelButton}
           disabled={loading}
