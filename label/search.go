@@ -58,7 +58,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{end}}
 	{{if .After.Key}}
 			{{if .UniqueKeys}}
-				lower(l.key) > lower(:afterKey) OR (lower(l.key = lower(:afterKey) AND l.key > :afterKey
+				AND lower(l.key) > lower(:afterKey) OR (lower(l.key) = lower(:afterKey) AND l.key > :afterKey)
 			{{else}}
 				AND lower(l.key||' '||l.value) > lower(:oldPair) OR
 				(lower(l.key||' '||l.value) = lower(:oldPair) AND (l.key||' '||l.value > :oldPair) OR ((l.key||' '||l.value = :oldPair) AND (l.tgt_service_id > :afterServiceID)))
