@@ -75,9 +75,14 @@ export default props => {
     }
   }
 
+  // TODO loading error handles
   const { data } = useQuery(query, {
     variables: {
-      input: { search: formFields.searchQuery, favoritesFirst: true },
+      input: {
+        search: formFields.searchQuery,
+        favoritesFirst: true,
+        omit: formFields.selectedServices,
+      },
     },
     skip: formFields.searchQuery.length === 0,
   })
@@ -111,18 +116,18 @@ export default props => {
         <Grid item xs={12}>
           {formFields.selectedServices.length > 0 && (
             <Paper className={classes.chipContainer}>
-              {formFields.selectedServices.map((service, key) => {
+              {formFields.selectedServices.map((id, key) => {
                 return (
                   <ServiceChip
                     key={key}
                     clickable={false}
-                    id={service.id}
+                    id={id}
                     style={{ margin: 3 }}
                     onClick={e => e.preventDefault()}
                     onDelete={() =>
                       props.onChange({
                         selectedServices: formFields.selectedServices.filter(
-                          s => s.id !== service.id,
+                          sid => sid !== id,
                         ),
                       })
                     }
@@ -168,7 +173,10 @@ export default props => {
                   key={key}
                   disabled={formFields.selectedServices.indexOf(service) !== -1}
                   onClick={() => {
-                    const newState = [...formFields.selectedServices, service]
+                    const newState = [
+                      ...formFields.selectedServices,
+                      service.id,
+                    ]
                     props.onChange({ selectedServices: newState })
                   }}
                 >
