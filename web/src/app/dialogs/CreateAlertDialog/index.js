@@ -34,7 +34,7 @@ const handleSubmit = () => {
 export default props => {
   const width = useWidth()
 
-  const [activeStep, setActiveStep] = useState(1)
+  const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
     // mutation data
     summary: '',
@@ -66,10 +66,8 @@ export default props => {
 
   return (
     <Dialog
-      // open={props.open}
-      open
+      open={props.open}
       onClose={props.handleRequestClose}
-      // c={console.log(formFields)}
       fullScreen={isWidthDown('md', width)}
       fullWidth
       width={'md'}
