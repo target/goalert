@@ -9,11 +9,8 @@ import {
 import { isWidthDown } from '@material-ui/core/withWidth'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
-import { makeStyles } from '@material-ui/core/styles'
-// import classnames from 'classnames'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
-import { styles as globalStyles } from '../../styles/materialStyles'
 import { FormContainer } from '../../forms'
 import DialogTitleWrapper from '../components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
@@ -30,19 +27,11 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles(theme => {
-  const { dialogWidth } = globalStyles(theme)
-  return {
-    dialogWidth,
-  }
-})
-
 const handleSubmit = () => {
   console.log('SUBMIT')
 }
 
 export default props => {
-  const classes = useStyles()
   const width = useWidth()
 
   const [activeStep, setActiveStep] = useState(0)
@@ -85,12 +74,10 @@ export default props => {
       open={props.open}
       // open={true}
       onClose={props.handleRequestClose}
-      // classes={{
-      //   paper: classes.dialogWidth,
-      // }}
-      className={classes.dialogWidth}
       c={console.log(formFields)}
       fullScreen={isWidthDown('md', width)}
+      fullWidth
+      width={'md'}
     >
       <DialogTitleWrapper
         fullScreen={isWidthDown('md', width)}
