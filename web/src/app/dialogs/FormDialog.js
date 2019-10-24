@@ -30,7 +30,6 @@ const styles = theme => {
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'auto',
     },
     errorContainer: {
       flexGrow: 0,
