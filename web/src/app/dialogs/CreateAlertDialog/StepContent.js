@@ -31,6 +31,36 @@ export default props => {
 
   const { formFields } = props
 
+  const getLabelKey = () => {
+    return formFields.searchQuery.split(/(!=|=)/)[0]
+  }
+
+  const getLabelValue = () => {
+    return formFields.searchQuery
+      .split(/(!=|=)/)
+      .slice(2)
+      .join('')
+  }
+
+  const setLabelKey = newKey => {
+    if (newKey) {
+      props.onChange({ searchQuery: newKey + '=' })
+    } else {
+      props.onChange({ searchQuery: '' }) // clear search if clearing key
+    }
+  }
+
+  const setLabelValue = newValue => {
+    // should be disabled if empty, but just in case :)
+    if (!getLabelKey()) return
+
+    if (newValue) {
+      props.onChange({ searchQuery: getLabelKey() + '=' + newValue })
+    } else {
+      props.onChange({ searchQuery: getLabelKey() + '=' })
+    }
+  }
+
   switch (props.activeStep) {
     case 0:
       return (
@@ -96,40 +126,14 @@ export default props => {
               ),
               endAdornment: (
                 <ServiceLabelFilterContainer
-                  labelKey={formFields.labelKey}
-                  labelValue={formFields.labelValue}
-                  onKeyChange={newKey => {
-                    if (newKey === null) {
-                      props.onChange({
-                        searchQuery: '',
-                        labelKey: '',
-                        labelValue: '',
-                      })
-                    } else {
-                      props.onChange({
-                        labelKey: `${newKey}=`,
-                        searchQuery: `${newKey}=`,
-                      })
-                    }
-                  }}
-                  onValueChange={newValue => {
-                    if (newValue === null) {
-                      props.onChange({
-                        labelValue: '',
-                        searchQuery: `${formFields.searchQuery.split('=')[0]}=`,
-                      })
-                    } else {
-                      props.onChange({
-                        labelValue: newValue,
-                        searchQuery: formFields.searchQuery + newValue,
-                      })
-                    }
-                  }}
+                  c={console.log(formFields)}
+                  labelKey={getLabelKey()}
+                  labelValue={getLabelValue()}
+                  onKeyChange={setLabelKey}
+                  onValueChange={setLabelValue}
                   onReset={() =>
                     props.onChange({
                       searchQuery: '',
-                      labelKey: '',
-                      labelValue: '',
                     })
                   }
                 />
@@ -137,7 +141,7 @@ export default props => {
             }}
           />
           {formFields.searchQuery && (
-            <List component='nav' aria-label='main mailbox folders'>
+            <List aria-label='select service options'>
               {formFields.services.map((service, key) => (
                 <ListItem
                   button
