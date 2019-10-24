@@ -43,7 +43,8 @@ export default function ServiceRouter() {
   if (searchParam.includes('=')) {
     const searchSplit = searchParam.split(/(!=|=)/)
     key = searchSplit[0]
-    value = searchSplit[2] // [1] being != or =
+    // the value can contain "=", so joining the rest of the match such that it doesn't get lost
+    value = searchSplit.slice(2).join('')
   }
 
   function renderList() {

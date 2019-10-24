@@ -26,7 +26,7 @@ type SearchOptions struct {
 
 	Limit int `json:"-"`
 
-	UniqueKeys bool `json:"k,omitempty"`
+	UniqueKeys bool `json:"u,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -64,7 +64,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 				(lower(l.key||' '||l.value) = lower(:oldPair) AND (l.key||' '||l.value > :oldPair) OR ((l.key||' '||l.value = :oldPair) AND (l.tgt_service_id > :afterServiceID)))
 			{{end}}	
 	{{end}}
-	ORDER BY lower(l.key), l.key, lower(l.value), l.value, l.tgt_service_id
+	ORDER BY lower(key), key, lower(value), value, tgt_service_id
 	LIMIT {{.Limit}}
 `))
 
