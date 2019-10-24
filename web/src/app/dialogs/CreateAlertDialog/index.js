@@ -114,14 +114,14 @@ export default props => {
             onChange={e => onStepContentChange(e)}
           />
         </FormContainer>
-        <DialogNavigation
-          activeStep={activeStep}
-          setActiveStep={setActiveStep}
-          formFields={formFields}
-          steps={steps}
-          handleSubmit={handleSubmit}
-        />
       </DialogContent>
+      <DialogNavigation
+        activeStep={activeStep}
+        setActiveStep={setActiveStep}
+        formFields={formFields}
+        steps={steps}
+        handleSubmit={handleSubmit}
+      />
     </Dialog>
   )
 }
