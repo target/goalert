@@ -112,8 +112,11 @@ export default class AlertsListDataWrapper extends Component {
         data-cy={'alert-' + alert.number}
         disableRipple
         tabIndex={-1}
-        onChange={() => this.toggleChecked(alert.number)}
-        onClick={e => e.stopPropagation()}
+        onClick={e => {
+          e.stopPropagation()
+          e.preventDefault()
+          this.toggleChecked(alert.number)
+        }}
       />
     )
 
