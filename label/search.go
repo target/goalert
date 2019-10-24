@@ -32,6 +32,7 @@ type SearchOptions struct {
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
 	Key        string                `json:"k,omitempty"`
+	Value      string                `json:"v,omitempty"`
 	TargetID   string                `json:"t,omitempty"`
 	TargetType assignment.TargetType `json:"y,omitempty"`
 }
@@ -39,9 +40,9 @@ type SearchCursor struct {
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT DISTINCT ON
 		{{if .UniqueKeys}}
-			(lower(key))
+			(lower(key), key)
 		{{else}}
-			(lower(key), lower(value)) 
+			(lower(key), key, lower(value), value) 
 		{{end}}
 			key, value, tgt_service_id
 	FROM labels l
@@ -56,9 +57,14 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		AND ({{if .ValueNegate}}NOT {{end}}l.value ILIKE :valueSearch)
 	{{end}}
 	{{if .After.Key}}
-		AND (lower(l.key) > lower(:afterKey) AND l.tgt_service_id > :afterServiceID)
+			{{if .UniqueKeys}}
+				lower(l.key) > lower(:afterKey) OR (lower(l.key = lower(:afterKey) AND l.key > :afterKey
+			{{else}}
+				AND lower(l.key||' '||l.value) > lower(:oldPair) OR
+				(lower(l.key||' '||l.value) = lower(:oldPair) AND (l.key||' '||l.value > :oldPair) OR ((l.key||' '||l.value = :oldPair) AND (l.tgt_service_id > :afterServiceID)))
+			{{end}}	
 	{{end}}
-	ORDER BY lower(key), lower(value), key, value, tgt_service_id
+	ORDER BY lower(l.key), l.key, lower(l.value), l.value, l.tgt_service_id
 	LIMIT {{.Limit}}
 `))
 
@@ -118,6 +124,10 @@ func (opts renderData) Normalize() (*renderData, error) {
 		err = validate.Many(err, validate.LabelKey("After.Key", opts.After.Key))
 	}
 
+	if opts.After.Value != "" {
+		err = validate.Many(err, validate.LabelValue("After.Value", opts.After.Value))
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -135,10 +145,13 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	if opts.After.TargetType == assignment.TargetTypeService {
 		afterServiceID = opts.After.TargetID
 	}
+	oldPair := opts.After.Key + " " + opts.After.Value
 	return []sql.NamedArg{
 		sql.Named("keySearch", opts.KeySearch()),
 		sql.Named("valueSearch", opts.ValueSearch()),
 		sql.Named("afterKey", opts.After.Key),
+		sql.Named("afterValue", opts.After.Value),
+		sql.Named("oldPair", oldPair),
 		sql.Named("afterServiceID", afterServiceID),
 		sql.Named("omit", sqlutil.StringArray(opts.Omit)),
 	}

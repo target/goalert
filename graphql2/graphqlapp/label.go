@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/label"
@@ -49,6 +50,7 @@ func (q *Query) Labels(ctx context.Context, input *graphql2.LabelSearchOptions) 
 	if len(labels) > 0 {
 		last := labels[len(labels)-1]
 		searchOpts.After.Key = last.Key
+		searchOpts.After.Value = last.Value
 		searchOpts.After.TargetType = last.Target.TargetType()
 		searchOpts.After.TargetID = last.Target.TargetID()
 
