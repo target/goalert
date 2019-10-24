@@ -18,14 +18,11 @@ import FavoriteIcon from '@material-ui/icons/Star'
 import { ServiceChip } from '../../util/Chips'
 
 const useStyles = makeStyles(theme => ({
-  root: {
+  chipContainer: {
     display: 'flex',
-    justifyContent: 'center',
     flexWrap: 'wrap',
     padding: theme.spacing(0.5),
-  },
-  chip: {
-    margin: theme.spacing(0.5),
+    margin: '10px 0px',
   },
 }))
 
@@ -63,24 +60,29 @@ export default props => {
     case 1:
       return (
         <Grid item xs={12}>
-          <Paper className={classes.root}>
-            {formFields.selectedServices.map(service => {
-              return (
-                <ServiceChip
-                  id={service.id}
-                  name={service.name}
-                  // className={classes.chip}
-                  onDelete={() =>
-                    props.onChange({
-                      selectedServices: formFields.selectedServices.filter(
-                        s => s.id !== service.id,
-                      ),
-                    })
-                  }
-                />
-              )
-            })}
-          </Paper>
+          {formFields.selectedServices.length > 0 && (
+            <Paper className={classes.chipContainer}>
+              {formFields.selectedServices.map((service, key) => {
+                return (
+                  <ServiceChip
+                    key={key}
+                    clickable={false}
+                    id={service.id}
+                    name={service.name}
+                    style={{ margin: 3 }}
+                    onClick={e => e.preventDefault()}
+                    onDelete={() =>
+                      props.onChange({
+                        selectedServices: formFields.selectedServices.filter(
+                          s => s.id !== service.id,
+                        ),
+                      })
+                    }
+                  />
+                )
+              })}
+            </Paper>
+          )}
           <FormContainer onChange={props.onChange}>
             <FormField
               fullWidth
@@ -100,39 +102,56 @@ export default props => {
                     labelKey={formFields.labelKey}
                     labelValue={formFields.labelValue}
                     onKeyChange={newKey => {
-                      newKey = `${newKey}=`
-                      const newState = { labelKey: newKey, searchQuery: newKey }
-                      props.setFormFields(prevState => ({
-                        ...prevState,
-                        ...newState,
-                      }))
+                      if (newKey === null) {
+                        props.onChange({
+                          searchQuery: '',
+                          labelKey: '',
+                          labelValue: '',
+                        })
+                      } else {
+                        props.onChange({
+                          labelKey: `${newKey}=`,
+                          searchQuery: `${newKey}=`,
+                        })
+                      }
                     }}
                     onValueChange={newValue => {
-                      let newState = { labelValue: newValue }
-                      if (formFields.searchQuery.endsWith('=')) {
-                        newState['searchQuery'] =
-                          formFields.searchQuery + newValue
+                      if (newValue === null) {
+                        props.onChange({
+                          labelValue: '',
+                          searchQuery: `${
+                            formFields.searchQuery.split('=')[0]
+                          }=`,
+                        })
+                      } else {
+                        props.onChange({
+                          labelValue: newValue,
+                          searchQuery: formFields.searchQuery + newValue,
+                        })
                       }
-                      props.setFormFields(prevState => ({
-                        ...prevState,
-                        ...newState,
-                      }))
                     }}
+                    onReset={() =>
+                      props.onChange({
+                        searchQuery: '',
+                        labelKey: '',
+                        labelValue: '',
+                      })
+                    }
                   />
                 ),
               }}
             />
             {formFields.searchQuery && (
               <List component='nav' aria-label='main mailbox folders'>
-                {formFields.services.map(service => (
+                {formFields.services.map((service, key) => (
                   <ListItem
                     button
+                    key={key}
                     disabled={
                       formFields.selectedServices.indexOf(service) !== -1
                     }
                     onClick={() => {
                       const newState = [...formFields.selectedServices, service]
-
                       props.onChange({ selectedServices: newState })
                     }}
                   >

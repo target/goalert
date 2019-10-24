@@ -9,7 +9,7 @@ import {
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
 import { makeStyles } from '@material-ui/core/styles'
-import classnames from 'classnames'
+// import classnames from 'classnames'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
 import { styles as globalStyles } from '../../styles/materialStyles'
@@ -27,10 +27,9 @@ const query = gql`
 `
 
 const useStyles = makeStyles(theme => {
-  const { dialogWidth, overflowVisible } = globalStyles(theme)
+  const { dialogWidth } = globalStyles(theme)
   return {
     dialogWidth,
-    overflowVisible,
   }
 })
 
@@ -43,12 +42,12 @@ export default props => {
 
   const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
-    // form data
+    // mutation data
     summary: '',
     details: '',
     selectedServices: [],
 
-    // helpers
+    // form helpers
     searchQuery: '',
     services: [],
     labelKey: '',
@@ -56,7 +55,9 @@ export default props => {
   })
 
   const { data, loading, error } = useQuery(query, {
-    variables: { input: { search: formFields.searchQuery } },
+    variables: {
+      input: { search: formFields.searchQuery, favoritesFirst: true },
+    },
   })
 
   // TODO: refactor this hack
@@ -77,13 +78,15 @@ export default props => {
   return (
     <Dialog
       open={props.open}
+      // open={true}
       onClose={props.handleRequestClose}
-      classes={{
-        paper: classnames(classes.dialogWidth, classes.overflowVisible),
-      }}
+      // classes={{
+      //   paper: classes.dialogWidth,
+      // }}
+      className={classes.dialogWidth}
       c={console.log(formFields)}
     >
-      <DialogContent className={classes.overflowVisible}>
+      <DialogContent>
         <Stepper activeStep={activeStep}>
           {steps.map(label => (
             <Step key={label}>
@@ -95,7 +98,6 @@ export default props => {
           activeStep={activeStep}
           onChange={e => onStepContentChange(e)}
           formFields={formFields}
-          setFormFields={setFormFields}
         />
         <DialogNavigation
           activeStep={activeStep}
