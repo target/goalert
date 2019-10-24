@@ -15,7 +15,7 @@ const nextIsDisabled = (activeStep, formFields) => {
     case 1:
       return formFields.selectedServices.length === 0
     default:
-      return true
+      return false
   }
 }
 
@@ -31,6 +31,8 @@ export default props => {
     setActiveStep(prevActiveStep => prevActiveStep - 1)
   }
 
+  const onLastStep = () => activeStep === steps.length - 1
+
   return (
     <DialogActions>
       <Button
@@ -44,21 +46,11 @@ export default props => {
       <Button
         variant='contained'
         color='primary'
-        onClick={handleNext}
+        onClick={onLastStep() ? handleSubmit : handleNext}
         className={classes.button}
         disabled={nextIsDisabled(activeStep, formFields)}
       >
-        Next
-      </Button>
-
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={handleSubmit}
-        className={classes.button}
-        disabled={activeStep !== steps.length - 1}
-      >
-        Submit
+        {onLastStep() ? 'Submit' : 'Next'}
       </Button>
     </DialogActions>
   )
