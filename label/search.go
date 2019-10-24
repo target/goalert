@@ -58,7 +58,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .After.Key}}
 		AND (lower(l.key) > lower(:afterKey) AND l.tgt_service_id > :afterServiceID)
 	{{end}}
-	ORDER BY lower(key), lower(value), key, value, tgt_service_id
+	ORDER BY lower(key), key, lower(value), value, tgt_service_id
 	LIMIT {{.Limit}}
 `))
 
