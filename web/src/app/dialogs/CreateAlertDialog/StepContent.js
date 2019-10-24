@@ -8,12 +8,14 @@ import {
   ListItemText,
   ListItemIcon,
   Paper,
+  Chip,
 } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles, emphasize } from '@material-ui/core/styles'
 import { FormField } from '../../forms'
 import ServiceLabelFilterContainer from '../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
+import AddIcon from '@material-ui/icons/Add'
 import { ServiceChip } from '../../util/Chips'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
@@ -37,6 +39,26 @@ const useStyles = makeStyles(theme => ({
     flexWrap: 'wrap',
     padding: theme.spacing(0.5),
     margin: '10px 0px',
+  },
+  addAll: {
+    backgroundColor: theme.palette.grey[100],
+    height: theme.spacing(3),
+    color: theme.palette.grey[800],
+    fontWeight: theme.typography.fontWeightRegular,
+    '&:hover, &:focus': {
+      backgroundColor: theme.palette.grey[300],
+      textDecoration: 'none',
+    },
+    '&:active': {
+      boxShadow: theme.shadows[1],
+      backgroundColor: emphasize(theme.palette.grey[300], 0.12),
+      textDecoration: 'none',
+    },
+  },
+  addAllWrapper: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    padding: 3,
   },
 }))
 
@@ -86,6 +108,22 @@ export default props => {
     },
     skip: formFields.searchQuery.length === 0,
   })
+
+  const AddAll = () => (
+    <div className={classes.addAllWrapper}>
+      <Chip
+        component='button'
+        label='Add All'
+        icon={<AddIcon fontSize='small' />}
+        onClick={() => {
+          const toAdd = _.get(data, 'services.nodes', []).map(s => s.id)
+          const newState = formFields.selectedServices.concat(toAdd)
+          props.onChange({ selectedServices: newState })
+        }}
+        className={classes.addAll}
+      />
+    </div>
+  )
 
   switch (props.activeStep) {
     case 0:
@@ -165,6 +203,7 @@ export default props => {
               ),
             }}
           />
+          {_.get(data, 'services.nodes', []).length > 0 && <AddAll />}
           {formFields.searchQuery && (
             <List aria-label='select service options'>
               {_.get(data, 'services.nodes', []).map((service, key) => (
