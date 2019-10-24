@@ -6,6 +6,7 @@ import {
   StepLabel,
   DialogContent,
 } from '@material-ui/core'
+import { isWidthDown } from '@material-ui/core/withWidth'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
 import { makeStyles } from '@material-ui/core/styles'
@@ -14,6 +15,8 @@ import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { FormContainer } from '../../forms'
+import DialogTitleWrapper from '../components/DialogTitleWrapper'
+import useWidth from '../../util/useWidth'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -40,6 +43,7 @@ const handleSubmit = () => {
 
 export default props => {
   const classes = useStyles()
+  const width = useWidth()
 
   const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
@@ -86,7 +90,12 @@ export default props => {
       // }}
       className={classes.dialogWidth}
       c={console.log(formFields)}
+      fullScreen={isWidthDown('md', width)}
     >
+      <DialogTitleWrapper
+        fullScreen={isWidthDown('md', width)}
+        title='Create New Alert'
+      />
       <DialogContent>
         <Stepper activeStep={activeStep}>
           {steps.map(label => (
