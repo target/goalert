@@ -34,7 +34,7 @@ const handleSubmit = () => {
 export default props => {
   const width = useWidth()
 
-  const [activeStep, setActiveStep] = useState(0)
+  const [activeStep, setActiveStep] = useState(1)
   const [formFields, setFormFields] = useState({
     // mutation data
     summary: '',
@@ -44,8 +44,6 @@ export default props => {
     // form helpers
     searchQuery: '',
     services: [],
-    labelKey: '',
-    labelValue: '',
   })
 
   const { data } = useQuery(query, {
@@ -57,6 +55,7 @@ export default props => {
       const newState = { services: data.services.nodes }
       setFormFields(prevState => ({ ...prevState, ...newState }))
     },
+    pollInterval: 0,
   })
 
   const onStepContentChange = e => {
@@ -67,10 +66,10 @@ export default props => {
 
   return (
     <Dialog
-      open={props.open}
-      // open={true}
+      // open={props.open}
+      open
       onClose={props.handleRequestClose}
-      c={console.log(formFields)}
+      // c={console.log(formFields)}
       fullScreen={isWidthDown('md', width)}
       fullWidth
       width={'md'}
