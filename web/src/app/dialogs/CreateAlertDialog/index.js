@@ -13,6 +13,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
 import { styles as globalStyles } from '../../styles/materialStyles'
+import { FormContainer } from '../../forms'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -94,11 +95,16 @@ export default props => {
             </Step>
           ))}
         </Stepper>
-        <StepContent
-          activeStep={activeStep}
+        <FormContainer
           onChange={e => onStepContentChange(e)}
-          formFields={formFields}
-        />
+          value={formFields}
+        >
+          <StepContent
+            activeStep={activeStep}
+            formFields={formFields}
+            onChange={e => onStepContentChange(e)}
+          />
+        </FormContainer>
         <DialogNavigation
           activeStep={activeStep}
           setActiveStep={setActiveStep}

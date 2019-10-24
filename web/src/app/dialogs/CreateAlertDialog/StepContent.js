@@ -11,7 +11,7 @@ import {
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
-import { FormContainer, FormField } from '../../forms'
+import { FormField } from '../../forms'
 import ServiceLabelFilterContainer from '../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -35,26 +35,24 @@ export default props => {
     case 0:
       return (
         <Grid container spacing={2}>
-          <FormContainer onChange={props.onChange}>
-            <Grid item xs={12}>
-              <FormField
-                fullWidth
-                label='Alert Summary'
-                name='summary'
-                required
-                component={TextField}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormField
-                fullWidth
-                label='Alert Details'
-                name='details'
-                required
-                component={TextField}
-              />
-            </Grid>
-          </FormContainer>
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              label='Alert Summary'
+              name='summary'
+              required
+              component={TextField}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              label='Alert Details'
+              name='details'
+              required
+              component={TextField}
+            />
+          </Grid>
         </Grid>
       )
     case 1:
@@ -83,89 +81,83 @@ export default props => {
               })}
             </Paper>
           )}
-          <FormContainer onChange={props.onChange}>
-            <FormField
-              fullWidth
-              label='Search Query'
-              name='searchQuery'
-              fieldName='searchQuery'
-              required
-              component={TextField}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon color='action' />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <ServiceLabelFilterContainer
-                    labelKey={formFields.labelKey}
-                    labelValue={formFields.labelValue}
-                    onKeyChange={newKey => {
-                      if (newKey === null) {
-                        props.onChange({
-                          searchQuery: '',
-                          labelKey: '',
-                          labelValue: '',
-                        })
-                      } else {
-                        props.onChange({
-                          labelKey: `${newKey}=`,
-                          searchQuery: `${newKey}=`,
-                        })
-                      }
-                    }}
-                    onValueChange={newValue => {
-                      if (newValue === null) {
-                        props.onChange({
-                          labelValue: '',
-                          searchQuery: `${
-                            formFields.searchQuery.split('=')[0]
-                          }=`,
-                        })
-                      } else {
-                        props.onChange({
-                          labelValue: newValue,
-                          searchQuery: formFields.searchQuery + newValue,
-                        })
-                      }
-                    }}
-                    onReset={() =>
+          <FormField
+            fullWidth
+            label='Search Query'
+            name='searchQuery'
+            fieldName='searchQuery'
+            required
+            component={TextField}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon color='action' />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <ServiceLabelFilterContainer
+                  labelKey={formFields.labelKey}
+                  labelValue={formFields.labelValue}
+                  onKeyChange={newKey => {
+                    if (newKey === null) {
                       props.onChange({
                         searchQuery: '',
                         labelKey: '',
                         labelValue: '',
                       })
+                    } else {
+                      props.onChange({
+                        labelKey: `${newKey}=`,
+                        searchQuery: `${newKey}=`,
+                      })
                     }
-                  />
-                ),
-              }}
-            />
-            {formFields.searchQuery && (
-              <List component='nav' aria-label='main mailbox folders'>
-                {formFields.services.map((service, key) => (
-                  <ListItem
-                    button
-                    key={key}
-                    disabled={
-                      formFields.selectedServices.indexOf(service) !== -1
+                  }}
+                  onValueChange={newValue => {
+                    if (newValue === null) {
+                      props.onChange({
+                        labelValue: '',
+                        searchQuery: `${formFields.searchQuery.split('=')[0]}=`,
+                      })
+                    } else {
+                      props.onChange({
+                        labelValue: newValue,
+                        searchQuery: formFields.searchQuery + newValue,
+                      })
                     }
-                    onClick={() => {
-                      const newState = [...formFields.selectedServices, service]
-                      props.onChange({ selectedServices: newState })
-                    }}
-                  >
-                    <ListItemText primary={service.name} />
-                    {service.isFavorite && (
-                      <ListItemIcon>
-                        <FavoriteIcon />
-                      </ListItemIcon>
-                    )}
-                  </ListItem>
-                ))}
-              </List>
-            )}
-          </FormContainer>
+                  }}
+                  onReset={() =>
+                    props.onChange({
+                      searchQuery: '',
+                      labelKey: '',
+                      labelValue: '',
+                    })
+                  }
+                />
+              ),
+            }}
+          />
+          {formFields.searchQuery && (
+            <List component='nav' aria-label='main mailbox folders'>
+              {formFields.services.map((service, key) => (
+                <ListItem
+                  button
+                  key={key}
+                  disabled={formFields.selectedServices.indexOf(service) !== -1}
+                  onClick={() => {
+                    const newState = [...formFields.selectedServices, service]
+                    props.onChange({ selectedServices: newState })
+                  }}
+                >
+                  <ListItemText primary={service.name} />
+                  {service.isFavorite && (
+                    <ListItemIcon>
+                      <FavoriteIcon />
+                    </ListItemIcon>
+                  )}
+                </ListItem>
+              ))}
+            </List>
+          )}
         </Grid>
       )
 
