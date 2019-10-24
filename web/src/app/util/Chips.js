@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Chip from '@material-ui/core/Chip'
-import { withRouter } from 'react-router-dom'
+import { withRouter, useHistory } from 'react-router-dom'
 
 import {
   Layers as PolicyIcon,
@@ -13,33 +13,31 @@ import Avatar from '@material-ui/core/Avatar'
 import { UserAvatar } from './avatar'
 import { SlackBW } from '../icons'
 
-@withRouter
-export class ServiceChip extends Component {
-  static propTypes = {
-    id: p.string.isRequired,
-    style: p.object,
-    name: p.string.isRequired,
-    onDelete: p.func,
-  }
+export function ServiceChip(props) {
+  const { id, name, onDelete, style, onClick } = props
 
-  render() {
-    const { id, history, name, onDelete, style, onClick } = this.props
+  const history = useHistory()
 
-    return (
-      <Chip
-        data-cy='service-chip'
-        avatar={
-          <Avatar>
-            <ServiceIcon />
-          </Avatar>
-        }
-        style={style}
-        onDelete={onDelete}
-        onClick={onClick || (() => history.push(`/services/${id}`))}
-        label={name}
-      />
-    )
-  }
+  return (
+    <Chip
+      data-cy='service-chip'
+      avatar={
+        <Avatar>
+          <ServiceIcon />
+        </Avatar>
+      }
+      style={style}
+      onDelete={onDelete}
+      onClick={onClick || (() => history.push(`/services/${id}`))}
+      label={name}
+    />
+  )
+}
+ServiceChip.propTypes = {
+  id: p.string.isRequired,
+  style: p.object,
+  name: p.string.isRequired,
+  onDelete: p.func,
 }
 
 @withRouter
