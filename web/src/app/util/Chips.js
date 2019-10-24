@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Chip from '@material-ui/core/Chip'
 import { withRouter, useHistory } from 'react-router-dom'
+import { useQuery } from 'react-apollo'
 
 import {
   Layers as PolicyIcon,
@@ -12,11 +13,39 @@ import {
 import Avatar from '@material-ui/core/Avatar'
 import { UserAvatar } from './avatar'
 import { SlackBW } from '../icons'
+import gql from 'graphql-tag'
+
+const serviceQuery = gql`
+  query service($id: ID!) {
+    service(id: $id) {
+      id
+      name
+    }
+  }
+`
 
 export function ServiceChip(props) {
   const { id, name, onDelete, style, onClick } = props
 
   const history = useHistory()
+
+  const { data, loading, error } = useQuery(serviceQuery, {
+    variables: {
+      id,
+    },
+    skip: Boolean(name),
+    fetchPolicy: 'cache-first',
+  })
+
+  const getLabel = () => {
+    if (name) return name
+
+    if (loading) return 'Loading...'
+
+    if (error || !data || !data.service) return 'Error loading name'
+
+    return data.service.name
+  }
 
   return (
     <Chip
@@ -29,14 +58,14 @@ export function ServiceChip(props) {
       style={style}
       onDelete={onDelete}
       onClick={onClick || (() => history.push(`/services/${id}`))}
-      label={name}
+      label={getLabel()}
     />
   )
 }
 ServiceChip.propTypes = {
   id: p.string.isRequired,
   style: p.object,
-  name: p.string.isRequired,
+  name: p.string,
   onDelete: p.func,
 }
 

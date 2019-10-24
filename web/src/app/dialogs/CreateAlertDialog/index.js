@@ -7,25 +7,11 @@ import {
   DialogContent,
 } from '@material-ui/core'
 import { isWidthDown } from '@material-ui/core/withWidth'
-import gql from 'graphql-tag'
-import { useQuery } from 'react-apollo'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
 import { FormContainer } from '../../forms'
 import DialogTitleWrapper from '../components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
-
-const query = gql`
-  query($input: ServiceSearchOptions) {
-    services(input: $input) {
-      nodes {
-        id
-        name
-        isFavorite
-      }
-    }
-  }
-`
 
 const handleSubmit = () => {
   console.log('SUBMIT')
@@ -34,7 +20,7 @@ const handleSubmit = () => {
 export default props => {
   const width = useWidth()
 
-  const [activeStep, setActiveStep] = useState(0)
+  const [activeStep, setActiveStep] = useState(1)
   const [formFields, setFormFields] = useState({
     // mutation data
     summary: '',
@@ -43,19 +29,6 @@ export default props => {
 
     // form helpers
     searchQuery: '',
-    services: [],
-  })
-
-  const { data } = useQuery(query, {
-    variables: {
-      input: { search: formFields.searchQuery, favoritesFirst: true },
-    },
-    skip: formFields.searchQuery.length === 0,
-    onCompleted: () => {
-      const newState = { services: data.services.nodes }
-      setFormFields(prevState => ({ ...prevState, ...newState }))
-    },
-    pollInterval: 0,
   })
 
   const onStepContentChange = e => {
@@ -66,7 +39,7 @@ export default props => {
 
   return (
     <Dialog
-      open={props.open}
+      open
       onClose={props.handleRequestClose}
       fullScreen={isWidthDown('md', width)}
       fullWidth
