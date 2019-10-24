@@ -10,12 +10,26 @@ import {
   Paper,
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-
 import { FormField } from '../../forms'
 import ServiceLabelFilterContainer from '../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
 import { ServiceChip } from '../../util/Chips'
+import gql from 'graphql-tag'
+import { useQuery } from 'react-apollo'
+import _ from 'lodash-es'
+
+const query = gql`
+  query($input: ServiceSearchOptions) {
+    services(input: $input) {
+      nodes {
+        id
+        name
+        isFavorite
+      }
+    }
+  }
+`
 
 const useStyles = makeStyles(theme => ({
   chipContainer: {
@@ -61,6 +75,13 @@ export default props => {
     }
   }
 
+  const { data } = useQuery(query, {
+    variables: {
+      input: { search: formFields.searchQuery, favoritesFirst: true },
+    },
+    skip: formFields.searchQuery.length === 0,
+  })
+
   switch (props.activeStep) {
     case 0:
       return (
@@ -96,7 +117,6 @@ export default props => {
                     key={key}
                     clickable={false}
                     id={service.id}
-                    name={service.name}
                     style={{ margin: 3 }}
                     onClick={e => e.preventDefault()}
                     onDelete={() =>
@@ -142,7 +162,7 @@ export default props => {
           />
           {formFields.searchQuery && (
             <List aria-label='select service options'>
-              {formFields.services.map((service, key) => (
+              {_.get(data, 'services.nodes', []).map((service, key) => (
                 <ListItem
                   button
                   key={key}
