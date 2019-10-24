@@ -48,20 +48,16 @@ export default props => {
     labelValue: '',
   })
 
-  const { data, loading, error } = useQuery(query, {
+  const { data } = useQuery(query, {
     variables: {
       input: { search: formFields.searchQuery, favoritesFirst: true },
     },
-  })
-
-  // TODO: refactor this hack
-  // WANT: if (searchQuery changed?) { fetchAndUpdateServicesState() }
-  if (!loading && !error) {
-    if (data.services.nodes !== formFields.services) {
+    skip: formFields.searchQuery.length === 0,
+    onCompleted: () => {
       const newState = { services: data.services.nodes }
       setFormFields(prevState => ({ ...prevState, ...newState }))
-    }
-  }
+    },
+  })
 
   const onStepContentChange = e => {
     setFormFields(prevState => ({ ...prevState, ...e }))
