@@ -12,6 +12,7 @@ export default class LoadingButton extends Component {
     loading: p.bool,
     noSubmit: p.bool,
     onClick: p.func,
+    form: p.string,
   }
 
   render() {
@@ -24,11 +25,13 @@ export default class LoadingButton extends Component {
       noSubmit,
       onClick,
       style,
+      form,
     } = this.props
 
     return (
       <div style={{ position: 'relative', ...style }}>
         <Button
+          form={form}
           data-cy='loading-button'
           variant='contained'
           color={color || 'primary'}
