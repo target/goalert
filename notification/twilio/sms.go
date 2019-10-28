@@ -120,12 +120,12 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	case notification.AlertStatus:
 		message, err = alertSMS{
 			ID:   t.AlertID,
-			Body: t.Log,
+			Body: t.LogEntry,
 		}.Render()
 	case notification.AlertStatusBundle:
 		message, err = alertSMS{
 			ID:    t.AlertID,
-			Body:  t.Log,
+			Body:  t.LogEntry,
 			Count: t.Count - 1,
 		}.Render()
 	case notification.AlertBundle:

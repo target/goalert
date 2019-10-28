@@ -76,11 +76,11 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
 		notifMsg = notification.AlertStatusBundle{
-			Dest:      msg.Dest,
-			MessageID: msg.ID,
-			Log:       e.String(),
-			AlertID:   msg.AlertID,
-			Count:     msg.StatusCount,
+			Dest:       msg.Dest,
+			CallbackID: msg.ID,
+			LogEntry:   e.String(),
+			AlertID:    msg.AlertID,
+			Count:      msg.StatusCount,
 		}
 	case message.TypeAlertStatusUpdate:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
@@ -88,10 +88,10 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
 		notifMsg = notification.AlertStatus{
-			Dest:      msg.Dest,
-			AlertID:   msg.AlertID,
-			MessageID: msg.ID,
-			Log:       e.String(),
+			Dest:       msg.Dest,
+			AlertID:    msg.AlertID,
+			CallbackID: msg.ID,
+			LogEntry:   e.String(),
 		}
 	case message.TypeTestNotification:
 		notifMsg = notification.Test{
