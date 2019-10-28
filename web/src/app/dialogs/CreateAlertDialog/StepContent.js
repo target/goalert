@@ -9,6 +9,7 @@ import {
   ListItemIcon,
   Paper,
   Chip,
+  Typography,
 } from '@material-ui/core'
 import { makeStyles, emphasize } from '@material-ui/core/styles'
 import { FormField } from '../../forms'
@@ -153,7 +154,7 @@ export default props => {
       return (
         <Grid item xs={12}>
           {formFields.selectedServices.length > 0 && (
-            <Paper className={classes.chipContainer}>
+            <Paper className={classes.chipContainer} elevation={0}>
               {formFields.selectedServices.map((id, key) => {
                 return (
                   <ServiceChip
@@ -233,7 +234,29 @@ export default props => {
       )
 
     case 2:
-      return 'plz confirm ur info'
+      // return 'plz confirm ur info'
+
+      return (
+        <Paper elevation={0}>
+          <Typography variant='h6' component='h3'>
+            Summary: {formFields.summary}
+          </Typography>
+          <Typography variant='h6' component='h3'>
+            Details: {formFields.details}
+          </Typography>
+          {formFields.selectedServices.map((id, key) => {
+            return (
+              <ServiceChip
+                key={key}
+                clickable={false}
+                id={id}
+                style={{ margin: 3 }}
+                onClick={e => e.preventDefault()}
+              />
+            )
+          })}
+        </Paper>
+      )
     default:
       return 'Unknown step'
   }
