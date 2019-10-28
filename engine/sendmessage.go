@@ -22,7 +22,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		trace.StringAttribute("dest.id", msg.Dest.ID),
 	)
 	ctx = log.WithField(ctx, "CallbackID", msg.ID)
-	ctx = permission.SystemContext(ctx, "Engine.SendMessage")
+	ctx = permission.SystemContext(ctx, "SendMessage")
 
 	if msg.Dest.Type.IsUserCM() {
 		ctx = permission.SourceContext(ctx, &permission.SourceInfo{
