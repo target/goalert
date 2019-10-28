@@ -50,8 +50,7 @@ func TestMessageBundle_Voice(t *testing.T) {
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectVoice("My Service", "4 unacknowledged").ThenPress("4")
-	d1.ExpectVoice("Acknowledged all", "My Service")
+	d1.ExpectVoice("My Service", "4 unacknowledged").ThenPress("4").ThenExpect("Acknowledged all", "My Service")
 
 	tw.WaitAndAssert()
 
