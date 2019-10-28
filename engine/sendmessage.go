@@ -22,14 +22,14 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		trace.StringAttribute("dest.id", msg.Dest.ID),
 	)
 	ctx = log.WithField(ctx, "CallbackID", msg.ID)
-	ctx = permission.SystemContext(ctx, "SendMessage")
 
 	if msg.Dest.Type.IsUserCM() {
-		ctx = permission.SourceContext(ctx, &permission.SourceInfo{
+		ctx = permission.UserSourceContext(ctx, msg.UserID, permission.RoleUser, &permission.SourceInfo{
 			Type: permission.SourceTypeContactMethod,
 			ID:   msg.Dest.ID,
 		})
 	} else {
+		ctx = permission.SystemContext(ctx, "SendMessage")
 		ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 			Type: permission.SourceTypeNotificationChannel,
 			ID:   msg.Dest.ID,
