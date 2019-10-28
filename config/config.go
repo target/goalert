@@ -23,8 +23,8 @@ type Config struct {
 		GoogleAnalyticsID      string `public:"true"`
 		NotificationDisclaimer string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`
-		MessageBundles         bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack all' responses to bundled alerts."`
-		ShortURL               string `public:"true" info:"If set, messages will contain a shorter URL using this prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
+		MessageBundles         bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
+		ShortURL               string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
 	}
 
 	Maintenance struct {
@@ -275,6 +275,13 @@ func (cfg Config) Validate() error {
 		err = validate.Many(
 			err,
 			validate.AbsoluteURL("Feedback.OverrideURL", cfg.Feedback.OverrideURL),
+		)
+	}
+
+	if cfg.General.ShortURL != "" {
+		err = validate.Many(
+			err,
+			validate.AbsoluteURL("General.ShortURL", cfg.General.ShortURL),
 		)
 	}
 
