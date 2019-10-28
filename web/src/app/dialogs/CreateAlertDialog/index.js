@@ -12,16 +12,6 @@ import StepContent from './StepContent'
 import { FormContainer } from '../../forms'
 import DialogTitleWrapper from '../components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
-import gql from 'graphql-tag'
-import { useMutation } from 'react-apollo'
-
-const mutation = gql`
-  mutation CreateAlertMutation($input: CreateAlertInput!) {
-    createAlert(input: $input) {
-      id
-    }
-  }
-`
 
 export default props => {
   const width = useWidth()
@@ -39,25 +29,6 @@ export default props => {
 
   const onStepContentChange = e => {
     setFormFields(prevState => ({ ...prevState, ...e }))
-  }
-
-  const handleSubmit = () => {
-    console.log('SUBMIT')
-
-    formFields.selectedServices.forEach((serviceId, i) => {
-      useMutation(mutation, {
-        variables: {
-          input: {
-            service_id: serviceId,
-            summary: formFields.summary.trim(),
-            details: formFields.details.trim(),
-            // description:
-            //   formFields.summary.trim() + '\n' + formFields.details.trim(),
-          },
-        },
-        onCompleted: data => console.log(data),
-      })
-    })
   }
 
   const steps = ['Summary and Details', 'Label Selection', 'Confirm and Submit']
@@ -98,7 +69,6 @@ export default props => {
         setActiveStep={setActiveStep}
         formFields={formFields}
         steps={steps}
-        handleSubmit={handleSubmit}
       />
     </Dialog>
   )

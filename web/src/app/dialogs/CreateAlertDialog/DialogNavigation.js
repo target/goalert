@@ -1,6 +1,16 @@
 import React from 'react'
 import { DialogActions, Button } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
+import gql from 'graphql-tag'
+import { useMutation } from 'react-apollo'
+
+const mutation = gql`
+  mutation CreateAlertMutation($input: CreateAlertInput!) {
+    createAlert(input: $input) {
+      id
+    }
+  }
+`
 
 const useStyles = makeStyles(theme => ({
   button: {
@@ -20,7 +30,7 @@ const nextIsDisabled = (activeStep, formFields) => {
 }
 
 export default props => {
-  const { activeStep, formFields, setActiveStep, steps, handleSubmit } = props
+  const { activeStep, formFields, setActiveStep, steps } = props
   const classes = useStyles()
 
   const handleNext = () => {
@@ -32,6 +42,16 @@ export default props => {
   }
 
   const onLastStep = () => activeStep === steps.length - 1
+
+  const [createAlert] = useMutation(mutation, {
+    variables: {
+      input: {
+        serviceID: formFields.selectedServices[0],
+        summary: formFields.summary.trim(),
+        details: formFields.details.trim(),
+      },
+    },
+  })
 
   return (
     <DialogActions>
@@ -46,7 +66,7 @@ export default props => {
       <Button
         variant='contained'
         color='primary'
-        onClick={onLastStep() ? handleSubmit : handleNext}
+        onClick={onLastStep() ? () => createAlert() : handleNext}
         className={classes.button}
         disabled={nextIsDisabled(activeStep, formFields)}
       >
