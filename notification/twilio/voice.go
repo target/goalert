@@ -702,10 +702,15 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		var msg string
 		if call.Digits == digitClose {
 			result = notification.ResultResolve
-			msg = "Closed. Goodbye."
+			msg = "Closed"
 		} else {
 			result = notification.ResultAcknowledge
-			msg = "Acknowledged. Goodbye."
+			msg = "Acknowledged"
+		}
+		if call.Q.Get(msgParamBundle) == "1" {
+			msg += fmt.Sprintf(" all alerts for service '%s'. Goodbye.", call.msgBody)
+		} else {
+			msg += ". Goodbye."
 		}
 		err := v.handleResponse(notification.MessageResponse{
 			Ctx:    ctx,
