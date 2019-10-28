@@ -143,18 +143,18 @@ Reply '100aa' to ack all, '100cc' to close all.`,
 	)
 
 	check("alert-bundle",
-	alertSMS{
-		Count: 5, 
-		Body:  "My Service",
-		Code:  100,
-		Link:  "https://example.com/services/321-654/alerts",
-	},
-	`Svc 'My Service': 5 unacked alerts
+		alertSMS{
+			Count: 5,
+			Body:  "My Service",
+			Code:  100,
+			Link:  "https://example.com/services/321-654/alerts",
+		},
+		`Svc 'My Service': 5 unacked alerts
 
 https://example.com/services/321-654/alerts
 
 Reply '100aa' to ack all, '100cc' to close all.`,
-)
+	)
 
 	check("status-bundle-one",
 		// can't fit body
