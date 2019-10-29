@@ -42,6 +42,14 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 			UserID:     "User A",
 			CreatedAt:  n.Add(time.Hour),
 		},
+		{
+			ID:             "e",
+			AlertLogID:     3,
+			Type:           TypeAlertStatusUpdateBundle,
+			UserID:         "User A",
+			StatusAlertIDs: []int{7, 8},
+			CreatedAt:      n.Add(time.Hour),
+		},
 	}
 
 	var bundleID string
@@ -50,7 +58,7 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 			t.Error("got multiple bundles; expected 1")
 		}
 		bundleID = b.ID
-		assert.ElementsMatch(t, []string{"a", "b", "c", "d"}, ids)
+		assert.ElementsMatch(t, []string{"a", "b", "c", "d", "e"}, ids)
 
 		return nil
 	})
@@ -58,12 +66,12 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 	assert.Len(t, out, 1)
 	assert.NotEmpty(t, bundleID, "bundled output")
 	assert.Equal(t, []Message{{
-		ID:          bundleID,
-		Type:        TypeAlertStatusUpdateBundle,
-		CreatedAt:   n.Add(-time.Hour), // oldest CreatedAt
-		AlertLogID:  7,                 // highest ID
-		AlertID:     2,                 // Should match Log ID
-		UserID:      "User A",
-		StatusCount: 3, // Number of unique alerts
+		ID:             bundleID,
+		Type:           TypeAlertStatusUpdateBundle,
+		CreatedAt:      n.Add(-time.Hour), // oldest CreatedAt
+		AlertLogID:     7,                 // highest ID
+		AlertID:        2,                 // Should match Log ID
+		UserID:         "User A",
+		StatusAlertIDs: []int{1, 2, 4, 7, 8}, // unique alert ids
 	}}, out)
 }

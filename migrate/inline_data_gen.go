@@ -578,9 +578,9 @@ FCYp2S6fph-zGX-0qCb67hlLtZ2ub7OtURZvCtCJltJUT6Ne9ef9o8kYj45XF6Oza3Q-wdPwf0bj19AY
 dRLjPHmCTtlOSQKCiJISeq5oM99m331__0N0ZDBmGsi5CTNLSycW7s1NsVunfgaqWgloQRVL6r6nYkqE
 vw_PcUDhWUoWc20cB4-RswhzWQzfRvzgTXJWl5TWyVvnJlbSu9KMeWTqVdZuvdnls0U2A4aFacs9wugw
 UpYlarwx26xnKU-VMF49HANEqUo1KosDQhceDvoFc0mkqQLBsKCVKhXs5p0uK0xB4-3aMC_q__8D_KEr
-lhxlCm-SFru85Cdlxmln_fcLZ7-gyaVZ9nhyTShIYbb_YsnnSzZL8iJ5P19ns0TaOhl1tSTnFOL86CWt
-C2ieo160yvLZPL-N4mhT_r_30zmeCHE5JfqoWAvFAGp9upXpwbkiH-MTp97Baj5fsHMJGIqsc4UWHDsX
-lgOWapKcVJekDXR1H_mvAAAA__-qsxRazC4EAA==
+lomRgZGTMsu0p_77hbNT0OTSLHg8uSb8ozDVf7HkkyWbJXmRvJ-vs1ki7ZuMilqSc_5wfu6SFgU0z1Ev
+WmX5bJ7fRnG0Kf_f--kcz4K4nA99VKyFXAC1Pt3K3OBcjo-RiVPXYDWZL9izBAxF07lCCI4dCsvRSgVJ
+TqpL0ka5duySizXXZs5kKI2D0Rj1HDM_do6S_onHGKbQaGOpxUOo_sD5VwAAAP__pu-U50cwBAA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -596,7 +596,7 @@ lgOWapKcVJekDXR1H_mvAAAA__-qsxRazC4EAA==
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(45725)
+				buf.Grow(45761)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -801,6 +801,6 @@ lgOWapKcVJekDXR1H_mvAAAA__-qsxRazC4EAA==
 		{Data: dataRange(272642, 272795), Name: "migrations/20191016162114-om-status-index.sql"},
 		{Data: dataRange(272795, 272988), Name: "migrations/20191021145356-message-bundle-versions.sql"},
 		{Data: dataRange(272988, 273297), Name: "migrations/20191021145357-message-bundle-types.sql"},
-		{Data: dataRange(273297, 274124), Name: "migrations/20191021145358-message-bundles.sql"},
+		{Data: dataRange(273297, 274503), Name: "migrations/20191021145358-message-bundles.sql"},
 	}
 }

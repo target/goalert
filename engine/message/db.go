@@ -303,9 +303,9 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 					contact_method_id,
 					user_id,
 					alert_log_id,
-					status_count
+					status_alert_ids
 				) values (
-					$1, $2, 'alert_status_update_bundle', $3, $4, $5, array_length($6::uuid[], 1)
+					$1, $2, 'alert_status_update_bundle', $3, $4, $5, $6::bigint[]
 				) returning (id)
 			)
 			update outgoing_messages
@@ -313,7 +313,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				last_status = 'bundled',
 				last_status_at = now(),
 				status_details = (select id from new_msg)
-			where id = any($6::uuid[])
+			where id = any($7::uuid[])
 		`),
 
 		messages: p.P(`
@@ -331,7 +331,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				msg.service_id,
 				msg.created_at,
 				msg.sent_at,
-				msg.status_count
+				msg.status_alert_ids
 			from outgoing_messages msg
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
@@ -354,7 +354,8 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	for rows.Next() {
 		var msg Message
 		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
-		var alertID, logID, statusCount sql.NullInt64
+		var alertID, logID sql.NullInt64
+		var statusAlertIDs sqlutil.IntArray
 		var createdAt, sentAt sql.NullTime
 		err = rows.Scan(
 			&msg.ID,
@@ -370,7 +371,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			&serviceID,
 			&createdAt,
 			&sentAt,
-			&statusCount,
+			&statusAlertIDs,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
@@ -384,7 +385,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.SentAt = sentAt.Time
 		msg.Dest.ID = destID.String
 		msg.Dest.Value = destValue.String
-		msg.StatusCount = int(statusCount.Int64)
+		msg.StatusAlertIDs = statusAlertIDs
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
 			msg.Dest.Type = notification.DestTypeSMS
@@ -403,7 +404,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	cfg := config.FromContext(ctx)
 	if cfg.General.MessageBundles {
 		result, err = bundleStatusMessages(result, func(msg Message, ids []string) error {
-			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.UUIDArray(ids))
+			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.IntArray(msg.StatusAlertIDs), sqlutil.UUIDArray(ids))
 			return errors.Wrap(err, "insert status bundle")
 		})
 		if err != nil {

@@ -81,7 +81,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			CallbackID: msg.ID,
 			LogEntry:   e.String(),
 			AlertID:    e.AlertID(),
-			Count:      msg.StatusCount,
+			Count:      len(msg.StatusAlertIDs),
 		}
 	case message.TypeAlertStatusUpdate:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)

@@ -21,7 +21,7 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 	byDest := make(map[notification.Dest]*bundle)
 	filtered := messages[:0]
 	for _, msg := range messages {
-		if msg.Type != TypeAlertStatusUpdate || !msg.SentAt.IsZero() {
+		if (msg.Type != TypeAlertStatusUpdate && msg.Type != TypeAlertStatusUpdateBundle) || !msg.SentAt.IsZero() {
 			filtered = append(filtered, msg)
 			continue
 		}
@@ -29,13 +29,23 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 		old, ok := byDest[msg.Dest]
 		if !ok {
 			cpy := bundle{Message: msg, IDs: []string{msg.ID}, Alerts: make(map[int]struct{})}
-			cpy.Alerts[msg.AlertID] = struct{}{}
+			if msg.AlertID != 0 {
+				cpy.Alerts[msg.AlertID] = struct{}{}
+			}
+			for _, a := range msg.StatusAlertIDs {
+				cpy.Alerts[a] = struct{}{}
+			}
 			byDest[msg.Dest] = &cpy
 			continue
 		}
 
 		old.IDs = append(old.IDs, msg.ID)
-		old.Alerts[msg.AlertID] = struct{}{}
+		if msg.AlertID != 0 {
+			old.Alerts[msg.AlertID] = struct{}{}
+		}
+		for _, a := range msg.StatusAlertIDs {
+			old.Alerts[a] = struct{}{}
+		}
 		if msg.CreatedAt.Before(old.CreatedAt) {
 			// use oldest value as CreatedAt
 			old.CreatedAt = msg.CreatedAt
@@ -51,7 +61,11 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 
 		msg.Type = TypeAlertStatusUpdateBundle
 		msg.ID = uuid.NewV4().String()
-		msg.StatusCount = len(msg.Alerts)
+		msg.StatusAlertIDs = make([]int, 0, len(msg.StatusAlertIDs))
+		for id := range msg.Alerts {
+			msg.StatusAlertIDs = append(msg.StatusAlertIDs, id)
+		}
+		sort.Ints(msg.StatusAlertIDs)
 		err := bundleFunc(msg.Message, msg.IDs)
 		if err != nil {
 			return nil, err
