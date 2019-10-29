@@ -281,7 +281,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	body = strings.ToLower(body)
 	var lookupFn func() (*codeInfo, error)
 	var result notification.Result
-
+	var isSvc bool
 	if m := lastReplyRx.FindStringSubmatch(body); len(m) == 2 {
 		if strings.HasPrefix(m[1], "a") {
 			result = notification.ResultAcknowledge
@@ -316,6 +316,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			lookupFn = func() (*codeInfo, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
 		}
 	} else if m := svcReplyRx.FindStringSubmatch(body); len(m) == 3 {
+		isSvc = true
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
 		} else {
@@ -367,8 +368,8 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		retry.FibBackoff(time.Second),
 	)
 
-	if errors.Cause(err) == sql.ErrNoRows {
-		respond("unknown callbackID", "Unknown alert code for this number. Visit the dashboard to manage alerts.")
+	if errors.Cause(err) == sql.ErrNoRows || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0) {
+		respond("unknown callbackID", "Unknown reply code for this action. Visit the dashboard to manage alerts.")
 		return
 	}
 
