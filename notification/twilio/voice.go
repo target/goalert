@@ -708,7 +708,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			msg = "Acknowledged"
 		}
 		if call.Q.Get(msgParamBundle) == "1" {
-			msg += fmt.Sprintf(" all alerts for service '%s'. Goodbye.", call.msgBody)
+			msg += " all alerts. Goodbye."
 		} else {
 			msg += ". Goodbye."
 		}
