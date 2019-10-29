@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/notification"
@@ -15,6 +16,7 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"go.opencensus.io/trace"
 
@@ -52,13 +54,16 @@ type DB struct {
 
 	advLock        *sql.Stmt
 	advLockCleanup *sql.Stmt
+
+	insertAlertBundle  *sql.Stmt
+	insertStatusBundle *sql.Stmt
 }
 
 // NewDB creates a new DB. If config is nil, DefaultConfig() is used.
 func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
-		Version: 6,
+		Version: 7,
 	})
 	if err != nil {
 		return nil, err
@@ -266,6 +271,51 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				cm.disabled
 		`),
 
+		insertAlertBundle: p.P(`
+			with new_msg as (
+				insert into outgoing_messages (
+					id,
+					created_at,
+					message_type,
+					contact_method_id,
+					channel_id,
+					user_id,
+					service_id
+				) values (
+					$1, $2, 'alert_notification_bundle', $3, $4, $5, $6
+				) returning (id)
+			)
+			update outgoing_messages
+			set
+				last_status = 'bundled',
+				last_status_at = now(),
+				status_details = (select id from new_msg),
+				cycle_id = null
+			where id = any($7::uuid[])
+		`),
+
+		insertStatusBundle: p.P(`
+			with new_msg as (
+				insert into outgoing_messages (
+					id,
+					created_at,
+					message_type,
+					contact_method_id,
+					user_id,
+					alert_log_id,
+					status_alert_ids
+				) values (
+					$1, $2, 'alert_status_update_bundle', $3, $4, $5, $6::bigint[]
+				) returning (id)
+			)
+			update outgoing_messages
+			set
+				last_status = 'bundled',
+				last_status_at = now(),
+				status_details = (select id from new_msg)
+			where id = any($7::uuid[])
+		`),
+
 		messages: p.P(`
 			select
 				msg.id,
@@ -277,10 +327,11 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				msg.alert_id,
 				msg.alert_log_id,
 				msg.user_verification_code_id,
-				msg.user_id,
+				cm.user_id,
 				msg.service_id,
 				msg.created_at,
-				msg.sent_at
+				msg.sent_at,
+				msg.status_alert_ids
 			from outgoing_messages msg
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
@@ -304,6 +355,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		var msg Message
 		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
 		var alertID, logID sql.NullInt64
+		var statusAlertIDs sqlutil.IntArray
 		var createdAt, sentAt sql.NullTime
 		err = rows.Scan(
 			&msg.ID,
@@ -319,6 +371,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			&serviceID,
 			&createdAt,
 			&sentAt,
+			&statusAlertIDs,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
@@ -332,6 +385,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.SentAt = sentAt.Time
 		msg.Dest.ID = destID.String
 		msg.Dest.Value = destValue.String
+		msg.StatusAlertIDs = statusAlertIDs
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
 			msg.Dest.Type = notification.DestTypeSMS
@@ -345,6 +399,36 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 
 		result = append(result, msg)
+	}
+
+	cfg := config.FromContext(ctx)
+	if cfg.General.MessageBundles {
+		result, err = bundleStatusMessages(result, func(msg Message, ids []string) error {
+			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.IntArray(msg.StatusAlertIDs), sqlutil.UUIDArray(ids))
+			return errors.Wrap(err, "insert status bundle")
+		})
+		if err != nil {
+			return nil, err
+		}
+		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
+			var cmID, chanID, userID sql.NullString
+			if msg.UserID != "" {
+				userID.Valid = true
+				userID.String = msg.UserID
+			}
+			if msg.Dest.Type.IsUserCM() {
+				cmID.Valid = true
+				cmID.String = msg.Dest.ID
+			} else {
+				chanID.Valid = true
+				chanID.String = msg.Dest.ID
+			}
+			_, err := tx.StmtContext(ctx, db.insertAlertBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID, sqlutil.UUIDArray(ids))
+			return err
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return newQueue(result, now), nil
