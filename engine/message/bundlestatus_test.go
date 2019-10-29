@@ -29,7 +29,7 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 		{
 			ID:         "c",
 			AlertLogID: 6,
-			AlertID:    3,
+			AlertID:    4,
 			Type:       TypeAlertStatusUpdate,
 			UserID:     "User A",
 			CreatedAt:  n.Add(-time.Hour),
@@ -64,6 +64,6 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 		AlertLogID:  7,                 // highest ID
 		AlertID:     2,                 // Should match Log ID
 		UserID:      "User A",
-		StatusCount: 4,
+		StatusCount: 3, // Number of unique alerts
 	}}, out)
 }

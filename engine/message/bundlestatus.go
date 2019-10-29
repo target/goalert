@@ -15,7 +15,8 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 	sort.Slice(messages, func(i, j int) bool { return messages[i].AlertLogID > messages[j].AlertLogID })
 	type bundle struct {
 		Message
-		IDs []string
+		IDs    []string
+		Alerts map[int]struct{}
 	}
 	byDest := make(map[notification.Dest]*bundle)
 	filtered := messages[:0]
@@ -27,12 +28,14 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 
 		old, ok := byDest[msg.Dest]
 		if !ok {
-			cpy := bundle{Message: msg, IDs: []string{msg.ID}}
+			cpy := bundle{Message: msg, IDs: []string{msg.ID}, Alerts: make(map[int]struct{})}
+			cpy.Alerts[msg.AlertID] = struct{}{}
 			byDest[msg.Dest] = &cpy
 			continue
 		}
 
 		old.IDs = append(old.IDs, msg.ID)
+		old.Alerts[msg.AlertID] = struct{}{}
 		if msg.CreatedAt.Before(old.CreatedAt) {
 			// use oldest value as CreatedAt
 			old.CreatedAt = msg.CreatedAt
@@ -48,7 +51,7 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 
 		msg.Type = TypeAlertStatusUpdateBundle
 		msg.ID = uuid.NewV4().String()
-		msg.StatusCount = len(msg.IDs)
+		msg.StatusCount = len(msg.Alerts)
 		err := bundleFunc(msg.Message, msg.IDs)
 		if err != nil {
 			return nil, err
