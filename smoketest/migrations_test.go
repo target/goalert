@@ -577,7 +577,7 @@ func TestMigrations(t *testing.T) {
 
 	names = names[idx:]
 	if skipTo {
-		n, err := migrate.Up(context.Background(), harness.DBURL(dbName), env)
+		n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
 		}
@@ -632,12 +632,12 @@ func TestMigrations(t *testing.T) {
 		mm++
 		return mismatch
 	}
+	names = names[1:]
 	for i, migrationName := range names[1:] {
 		lastMigrationName := names[i]
 		var applied bool
 		pass := t.Run(migrationName, func(t *testing.T) {
 			ctx := context.Background()
-
 			orig := snapshot(t, migrationName)
 			n, err = migrate.Up(ctx, harness.DBURL(dbName), migrationName)
 			if err != nil {
