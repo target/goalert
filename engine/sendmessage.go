@@ -80,7 +80,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Dest:       msg.Dest,
 			CallbackID: msg.ID,
 			LogEntry:   e.String(),
-			AlertID:    msg.AlertID,
+			AlertID:    e.AlertID(),
 			Count:      msg.StatusCount,
 		}
 	case message.TypeAlertStatusUpdate:
@@ -90,7 +90,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 		notifMsg = notification.AlertStatus{
 			Dest:       msg.Dest,
-			AlertID:    msg.AlertID,
+			AlertID:    e.AlertID(),
 			CallbackID: msg.ID,
 			LogEntry:   e.String(),
 		}
