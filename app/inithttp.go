@@ -52,6 +52,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 			})
 		},
 
+		config.ShortURLMiddleware,
+
 		// redirect http to https if public URL is https
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

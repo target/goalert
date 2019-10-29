@@ -443,8 +443,42 @@ func (h *Harness) execQuery(sql string) {
 	}
 }
 
-// CreateAlert will create a new unacknowledged alert.
-func (h *Harness) CreateAlert(serviceID, summary string) {
+// CreateAlert will create one or more unacknowledged alerts for a service.
+func (h *Harness) CreateAlert(serviceID string, summary ...string) {
+	h.t.Helper()
+
+	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		h.t.Helper()
+		tx, err := h.dbStdlib.BeginTx(ctx, nil)
+		if err != nil {
+			h.t.Fatalf("failed to start tx: %v", err)
+		}
+		defer tx.Rollback()
+		for _, sum := range summary {
+			a := &alert.Alert{
+				ServiceID: serviceID,
+				Summary:   sum,
+			}
+
+			h.t.Logf("insert alert: %v", a)
+			_, isNew, err := h.a.CreateOrUpdateTx(ctx, tx, a)
+			if err != nil {
+				h.t.Fatalf("failed to insert alert: %v", err)
+			}
+			if !isNew {
+				h.t.Fatal("could not create duplicate alert with summary: " + sum)
+			}
+		}
+		err = tx.Commit()
+		if err != nil {
+			h.t.Fatalf("failed to commit tx: %v", err)
+		}
+	})
+	h.trigger()
+}
+
+// CreateManyAlert will create multiple new unacknowledged alerts for a given service.
+func (h *Harness) CreateManyAlert(serviceID, summary string) {
 	h.t.Helper()
 	a := &alert.Alert{
 		ServiceID: serviceID,
@@ -455,7 +489,7 @@ func (h *Harness) CreateAlert(serviceID, summary string) {
 		h.t.Helper()
 		_, err := h.a.Create(ctx, a)
 		if err != nil {
-			h.t.Fatalf("failed to insert alet: %v", err)
+			h.t.Fatalf("failed to insert alert: %v", err)
 		}
 	})
 	h.trigger()

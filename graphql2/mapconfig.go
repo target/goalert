@@ -18,6 +18,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
+		{ID: "General.MessageBundles", Type: ConfigTypeBoolean, Description: "Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts.", Value: fmt.Sprintf("%t", cfg.General.MessageBundles)},
+		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
 		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n")},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
@@ -56,6 +58,8 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},
+		{ID: "General.MessageBundles", Type: ConfigTypeBoolean, Description: "Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts.", Value: fmt.Sprintf("%t", cfg.General.MessageBundles)},
+		{ID: "General.ShortURL", Type: ConfigTypeString, Description: "If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL.", Value: cfg.General.ShortURL},
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
 		{ID: "GitHub.Enable", Type: ConfigTypeBoolean, Description: "Enable GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.Enable)},
@@ -111,6 +115,14 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.General.DisableLabelCreation = val
+		case "General.MessageBundles":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.General.MessageBundles = val
+		case "General.ShortURL":
+			cfg.General.ShortURL = v.Value
 		case "Maintenance.AlertCleanupDays":
 			val, err := parseInt(v.ID, v.Value)
 			if err != nil {

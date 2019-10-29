@@ -29,6 +29,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			ID:   msg.Dest.ID,
 		})
 	} else {
+		ctx = permission.SystemContext(ctx, "SendMessage")
 		ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 			Type: permission.SourceTypeNotificationChannel,
 			ID:   msg.Dest.ID,
@@ -37,6 +38,27 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 
 	var notifMsg notification.Message
 	switch msg.Type {
+	case message.TypeAlertNotificationBundle:
+		name, count, err := p.am.ServiceInfo(ctx, msg.ServiceID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup service info")
+		}
+		if count == 0 {
+			// already acked/closed, don't send bundled notification
+			return &notification.MessageStatus{
+				Ctx:     ctx,
+				ID:      msg.ID,
+				Details: "alerts acked/closed before message sent",
+				State:   notification.MessageStateFailedPerm,
+			}, nil
+		}
+		notifMsg = notification.AlertBundle{
+			Dest:        msg.Dest,
+			CallbackID:  msg.ID,
+			ServiceID:   msg.ServiceID,
+			ServiceName: name,
+			Count:       count,
+		}
 	case message.TypeAlertNotification:
 		a, err := p.am.FindOne(ctx, msg.AlertID)
 		if err != nil {
@@ -49,16 +71,28 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Details:    a.Details,
 			CallbackID: msg.ID,
 		}
+	case message.TypeAlertStatusUpdateBundle:
+		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup alert log entry")
+		}
+		notifMsg = notification.AlertStatusBundle{
+			Dest:       msg.Dest,
+			CallbackID: msg.ID,
+			LogEntry:   e.String(),
+			AlertID:    e.AlertID(),
+			Count:      len(msg.StatusAlertIDs),
+		}
 	case message.TypeAlertStatusUpdate:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
 		notifMsg = notification.AlertStatus{
-			Dest:      msg.Dest,
-			AlertID:   msg.AlertID,
-			MessageID: msg.ID,
-			Log:       e.String(),
+			Dest:       msg.Dest,
+			AlertID:    e.AlertID(),
+			CallbackID: msg.ID,
+			LogEntry:   e.String(),
 		}
 	case message.TypeTestNotification:
 		notifMsg = notification.Test{
@@ -84,8 +118,14 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 	if err != nil {
 		return nil, err
 	}
-	if msg.Type == message.TypeAlertNotification {
+	switch msg.Type {
+	case message.TypeAlertNotification:
 		p.cfg.AlertLogStore.MustLog(ctx, msg.AlertID, alertlog.TypeNotificationSent, nil)
+	case message.TypeAlertNotificationBundle:
+		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, nil)
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "append alert log"))
+		}
 	}
 
 	return status, nil

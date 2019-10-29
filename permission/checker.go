@@ -95,8 +95,11 @@ func All(ctx context.Context) bool {
 	return false
 }
 
-// Admin is a Checker that determines if a context has the Admin role.
+// Admin is a Checker that determines if a context has the Admin or System role.
 func Admin(ctx context.Context) bool {
+	if System(ctx) {
+		return true
+	}
 	r, ok := ctx.Value(contextKeyUserRole).(Role)
 	if ok && r == RoleAdmin {
 		return true
@@ -105,8 +108,11 @@ func Admin(ctx context.Context) bool {
 	return false
 }
 
-// User is a Checker that determines if a context has the User or Admin role.
+// User is a Checker that determines if a context has the User, Admin or System role.
 func User(ctx context.Context) bool {
+	if System(ctx) {
+		return true
+	}
 	r, ok := ctx.Value(contextKeyUserRole).(Role)
 	if ok && (r == RoleUser || r == RoleAdmin) {
 		return true
