@@ -66,7 +66,7 @@ const useStyles = makeStyles(theme => ({
 export default props => {
   const classes = useStyles()
 
-  const { formFields } = props
+  const { formFields, mutationStatus } = props
 
   const getLabelKey = () => {
     return formFields.searchQuery.split(/(!=|=)/)[0]
@@ -256,7 +256,32 @@ export default props => {
         </Paper>
       )
     case 3:
-      return 'revue ur alerts'
+      console.log(mutationStatus)
+      const alertsCreated = mutationStatus.alertsCreated || {}
+      const alertsFailed = mutationStatus.alertsFailed || {}
+      return (
+        <Paper elevation={0}>
+          <Typography variant='h6' component='h3'>
+            {`Successfully created ${Object.keys(alertsCreated).length} alerts`}
+          </Typography>
+          <ul>
+            {Object.keys(alertsCreated).map((alias, i) => {
+              // TODO return <AlertListItem id={alertsCreated[alias].id} />
+              return <p>{alertsCreated[alias].id}</p>
+            })}
+          </ul>
+
+          <Typography variant='h6' component='h3'>
+            {`Failed to create ${Object.keys(alertsFailed).length} alerts`}
+          </Typography>
+          <ul>
+            {Object.keys(alertsFailed).map((alias, i) => {
+              // TODO return <AlertListItem id={alertsFailed[alias].id} />
+              return <p>{alertsFailed[alias].id}</p>
+            })}
+          </ul>
+        </Paper>
+      )
     default:
       return 'Unknown step'
   }
