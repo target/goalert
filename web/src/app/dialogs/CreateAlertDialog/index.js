@@ -25,6 +25,7 @@ export default props => {
 
     // form helper
     searchQuery: '',
+    dialogTitle: 'Create New Alert',
   })
 
   const onStepContentChange = e => {
@@ -43,7 +44,7 @@ export default props => {
     >
       <DialogTitleWrapper
         fullScreen={isWidthDown('md', width)}
-        title='Create New Alert'
+        title={formFields.dialogTitle}
       />
       <DialogContent>
         <Stepper activeStep={activeStep}>

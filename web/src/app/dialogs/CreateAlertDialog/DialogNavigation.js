@@ -34,7 +34,12 @@ export default props => {
 
   const onLastStep = () => activeStep === steps.length - 1
 
-  const [createAlerts] = useCreateAlerts(formFields)
+  const [
+    createAlerts,
+    { data: createdAlerts, error: failedAlerts, loading: isCreatingAlerts },
+  ] = useCreateAlerts(formFields)
+
+  console.log(createdAlerts, failedAlerts, isCreatingAlerts)
 
   return (
     <DialogActions>
