@@ -125,20 +125,21 @@ export default class FormDialog extends React.PureComponent {
           title={title}
           subTitle={subTitle}
         />
-        <Form
-          className={classes.formContainer}
-          onSubmit={(e, valid) => {
-            e.preventDefault()
-            if (valid) onSubmit()
-          }}
-        >
-          <ErrorBoundary>
-            {this.renderForm()}
-            {this.renderCaption()}
-            {this.renderErrors()}
-            {this.renderActions()}
-          </ErrorBoundary>
-        </Form>
+        <DialogContent>
+          <Form
+            id='dialog-form'
+            className={classes.formContainer}
+            onSubmit={(e, valid) => {
+              e.preventDefault()
+              if (valid) onSubmit()
+            }}
+          >
+            <ErrorBoundary>{this.renderForm()}</ErrorBoundary>
+          </Form>
+        </DialogContent>
+        {this.renderCaption()}
+        {this.renderErrors()}
+        {this.renderActions()}
       </Dialog>
     )
   }
@@ -201,6 +202,7 @@ export default class FormDialog extends React.PureComponent {
           Cancel
         </Button>
         <LoadingButton
+          form='dialog-form'
           attemptCount={errors.filter(e => !e.nonSubmit).length ? 1 : 0}
           buttonText={confirm ? 'Confirm' : 'Submit'}
           color='primary'
