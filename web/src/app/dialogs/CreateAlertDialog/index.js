@@ -12,6 +12,7 @@ import StepContent from './StepContent'
 import { FormContainer } from '../../forms'
 import DialogTitleWrapper from '../components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
+import useCreateAlerts from './useCreateAlerts'
 
 export default props => {
   const width = useWidth()
@@ -26,6 +27,11 @@ export default props => {
     // form helper
     searchQuery: '',
   })
+
+  const [
+    createAlerts,
+    { data: alertsCreated, error: alertsFailed, loading: isCreatingAlerts },
+  ] = useCreateAlerts(formFields)
 
   const onStepContentChange = e => {
     setFormFields(prevState => ({ ...prevState, ...e }))
@@ -86,17 +92,19 @@ export default props => {
           <StepContent
             activeStep={activeStep}
             formFields={formFields}
+            mutationStatus={{ alertsCreated, alertsFailed, isCreatingAlerts }}
             onChange={e => onStepContentChange(e)}
           />
         </FormContainer>
       </DialogContent>
       <DialogNavigation
         activeStep={activeStep}
-        setActiveStep={setActiveStep}
         formFields={formFields}
-        steps={steps}
-        onLastStep={onLastStep}
         onClose={onClose}
+        onLastStep={onLastStep}
+        onSubmit={createAlerts}
+        setActiveStep={setActiveStep}
+        steps={steps}
       />
     </Dialog>
   )
