@@ -40,10 +40,24 @@ export default props => {
 
   const onLastStep = () => activeStep === steps.length - 1
 
+  const onClose = () => {
+    props.handleRequestClose()
+    // NOTE dialog takes time to fade out
+    setTimeout(() => {
+      setActiveStep(0)
+      setFormFields({
+        summary: '',
+        details: '',
+        selectedServices: [],
+        searchQuery: '',
+      })
+    }, 1000)
+  }
+
   return (
     <Dialog
       open={props.open}
-      onClose={props.handleRequestClose}
+      onClose={onClose}
       fullScreen={isWidthDown('md', width)}
       fullWidth
       width={'md'}
@@ -82,7 +96,7 @@ export default props => {
         formFields={formFields}
         steps={steps}
         onLastStep={onLastStep}
-        onClose={props.handleRequestClose}
+        onClose={onClose}
       />
     </Dialog>
   )
