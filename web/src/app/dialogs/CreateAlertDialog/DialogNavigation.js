@@ -1,7 +1,6 @@
 import React from 'react'
 import { DialogActions, Button } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import useCreateAlerts from './useCreateAlerts'
 
 const useStyles = makeStyles(theme => ({
   button: {
@@ -26,6 +25,7 @@ export default props => {
     formFields,
     onClose,
     onLastStep,
+    onSubmit,
     setActiveStep,
     steps,
   } = props
@@ -51,25 +51,18 @@ export default props => {
   }
 
   const onNextBtnClick = () => {
-    // NOTE intential fall-through here
     switch (activeStep) {
       case steps.length - 1:
-        return onClose()
+        onClose()
+        break
       case steps.length - 2:
-        createAlerts()
+        onSubmit()
         handleNext()
         break
       default:
         handleNext()
     }
   }
-
-  const [
-    createAlerts,
-    { data: createdAlerts, error: failedAlerts, loading: isCreatingAlerts },
-  ] = useCreateAlerts(formFields)
-
-  console.log(createdAlerts, failedAlerts, isCreatingAlerts)
 
   return (
     <DialogActions>
