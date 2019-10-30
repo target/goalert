@@ -234,8 +234,6 @@ export default props => {
       )
 
     case 2:
-      // return 'plz confirm ur info'
-
       return (
         <Paper elevation={0}>
           <Typography variant='h6' component='h3'>
