@@ -25,14 +25,20 @@ export default props => {
 
     // form helper
     searchQuery: '',
-    dialogTitle: 'Create New Alert',
   })
 
   const onStepContentChange = e => {
     setFormFields(prevState => ({ ...prevState, ...e }))
   }
 
-  const steps = ['Summary and Details', 'Label Selection', 'Confirm and Submit']
+  const steps = [
+    'Summary and Details',
+    'Label Selection',
+    'Confirm and Submit',
+    null,
+  ]
+
+  const onLastStep = () => activeStep === steps.length - 1
 
   return (
     <Dialog
@@ -44,16 +50,21 @@ export default props => {
     >
       <DialogTitleWrapper
         fullScreen={isWidthDown('md', width)}
-        title={formFields.dialogTitle}
+        title={onLastStep() ? 'Review Created Alerts' : 'Create New Alert'}
       />
       <DialogContent>
-        <Stepper activeStep={activeStep}>
-          {steps.map(label => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+        {!onLastStep() && (
+          <Stepper activeStep={activeStep}>
+            {steps.map(
+              label =>
+                label && (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ),
+            )}
+          </Stepper>
+        )}
         <FormContainer
           onChange={e => onStepContentChange(e)}
           value={formFields}
@@ -70,6 +81,7 @@ export default props => {
         setActiveStep={setActiveStep}
         formFields={formFields}
         steps={steps}
+        onLastStep={onLastStep}
         onClose={props.handleRequestClose}
       />
     </Dialog>

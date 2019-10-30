@@ -21,7 +21,14 @@ const nextIsDisabled = (activeStep, formFields) => {
 }
 
 export default props => {
-  const { activeStep, formFields, setActiveStep, steps } = props
+  const {
+    activeStep,
+    formFields,
+    onClose,
+    onLastStep,
+    setActiveStep,
+    steps,
+  } = props
   const classes = useStyles()
 
   const handleNext = () => {
@@ -32,7 +39,30 @@ export default props => {
     setActiveStep(prevActiveStep => prevActiveStep - 1)
   }
 
-  const onLastStep = () => activeStep === steps.length - 1
+  const getNextBtnLabel = () => {
+    switch (activeStep) {
+      case steps.length - 1:
+        return 'Done'
+      case steps.length - 2:
+        return 'Submit'
+      default:
+        return 'Next'
+    }
+  }
+
+  const onNextBtnClick = () => {
+    // NOTE intential fall-through here
+    switch (activeStep) {
+      case steps.length - 1:
+        return onClose()
+      case steps.length - 2:
+        createAlerts()
+        handleNext()
+        break
+      default:
+        handleNext()
+    }
+  }
 
   const [
     createAlerts,
@@ -43,22 +73,24 @@ export default props => {
 
   return (
     <DialogActions>
-      <Button
-        disabled={activeStep === 0}
-        onClick={handleBack}
-        className={classes.button}
-      >
-        Back
-      </Button>
+      {!onLastStep() && (
+        <Button
+          disabled={activeStep === 0}
+          onClick={handleBack}
+          className={classes.button}
+        >
+          Back
+        </Button>
+      )}
 
       <Button
         variant='contained'
         color='primary'
-        onClick={onLastStep() ? () => createAlerts() : handleNext}
+        onClick={onNextBtnClick}
         className={classes.button}
         disabled={nextIsDisabled(activeStep, formFields)}
       >
-        {onLastStep() ? 'Submit' : 'Next'}
+        {getNextBtnLabel()}
       </Button>
     </DialogActions>
   )

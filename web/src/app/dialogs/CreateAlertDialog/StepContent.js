@@ -255,6 +255,8 @@ export default props => {
           })}
         </Paper>
       )
+    case 3:
+      return 'revue ur alerts'
     default:
       return 'Unknown step'
   }
