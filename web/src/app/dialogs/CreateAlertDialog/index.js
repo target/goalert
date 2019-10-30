@@ -69,6 +69,7 @@ export default props => {
         setActiveStep={setActiveStep}
         formFields={formFields}
         steps={steps}
+        onClose={props.handleRequestClose}
       />
     </Dialog>
   )
