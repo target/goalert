@@ -25,6 +25,9 @@ const styles = theme => {
     form: {
       height: '100%', // pushes caption to bottom if room is available
     },
+    dialogContent: {
+      padding: 0,
+    },
     formContainer: {
       width: '100%',
       height: '100%',
@@ -125,7 +128,7 @@ export default class FormDialog extends React.PureComponent {
           title={title}
           subTitle={subTitle}
         />
-        <DialogContent>
+        <DialogContent className={classes.dialogContent}>
           <Form
             id='dialog-form'
             className={classes.formContainer}
