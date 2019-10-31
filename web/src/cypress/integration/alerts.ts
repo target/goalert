@@ -247,7 +247,7 @@ function testAlerts(screen: ScreenFormat) {
     beforeEach(() => cy.visit('/alerts?allServices=1'))
 
     it('should allow canceling', () => {
-      cy.pageFab()
+      cy.pageFab('Single')
       cy.get('div[role=dialog]').should('contain', 'Create New Alert')
       cy.get('div[role=dialog]')
         .contains('button', 'Cancel')
@@ -255,9 +255,9 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('div[role=dialog]').should('not.exist')
     })
 
-    it('should create an alert when submitted', () => {
+    it('should create an alert for a single service', () => {
       cy.createService().then(svc => {
-        cy.pageFab()
+        cy.pageFab('Single')
 
         cy.get('div[role=dialog]').as('dialog')
 
@@ -286,6 +286,113 @@ function testAlerts(screen: ScreenFormat) {
 
         cy.pageSearch(summary)
         cy.get('body').should('contain', svc.name)
+      })
+    })
+
+    it('should create an alert for mutliple services', () => {
+      cy.createService().then(svc1 => {
+        cy.createService().then(svc2 => {
+          cy.pageFab('Multi')
+
+          cy.get('div[role=dialog]').as('dialog')
+
+          const summary = c.sentence({
+            words: 3,
+          })
+          const details = c.word({ length: 10 })
+
+          // STEP 1
+          cy.get('@dialog')
+            .contains('button', 'Back')
+            .should('be.disabled')
+
+          cy.get('@dialog')
+            .contains('button', 'Next')
+            .should('be.disabled')
+
+          cy.get('@dialog')
+            .find('input[name=summary]')
+            .type(summary)
+
+          cy.get('@dialog')
+            .find('input[name=details]')
+            .type(details)
+
+          cy.get('@dialog')
+            .contains('button', 'Next')
+            .click()
+
+          // STEP 2
+          cy.get('@dialog')
+            .contains('button', 'Next')
+            .should('be.disabled')
+
+          cy.get('@dialog')
+            .find('input[name=searchQuery]')
+            .type(svc1.name)
+
+          cy.get('@dialog')
+            .contains('span', svc1.name)
+            .click()
+
+          cy.get('@dialog')
+            .find('input[name=searchQuery]')
+            .clear()
+
+          cy.get('@dialog')
+            .contains('span', svc1.name)
+            .should('be.visible')
+
+          cy.get('@dialog')
+            .find('input[name=searchQuery]')
+            .type(svc2.name)
+
+          cy.get('@dialog')
+            .contains('span', svc2.name)
+            .click()
+
+          cy.get('@dialog')
+            .contains('span', svc1.name)
+            .should('be.visible')
+
+          cy.get('@dialog')
+            .contains('span', svc2.name)
+            .should('be.visible')
+
+          cy.get('@dialog')
+            .contains('button', 'Next')
+            .click()
+
+          // STEP 3
+          cy.get('@dialog')
+            .contains('span', svc1.name)
+            .should('be.visible')
+
+          cy.get('@dialog')
+            .contains('span', svc2.name)
+            .should('be.visible')
+
+          cy.get('@dialog')
+            .contains('button', 'Submit')
+            .click()
+
+          // STEP 4
+          cy.get('@dialog')
+            .contains('button', 'Back')
+            .should('not.be.visible')
+
+          cy.get('@dialog')
+            .contains('button', 'Done')
+            .should('be.visible')
+
+          cy.get('@dialog')
+            .contains('span', svc1.name)
+            .should('be.visible')
+
+          cy.get('@dialog')
+            .contains('span', svc2.name)
+            .should('be.visible')
+        })
       })
     })
   })
