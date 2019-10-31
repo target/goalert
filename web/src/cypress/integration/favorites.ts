@@ -13,7 +13,7 @@ function testFavorites(screen: ScreenFormat) {
     () =>
       cy
         .visit(`/alerts`)
-        .pageFab()
+        .pageFab('Single')
         .get('input[name=service]'),
   )
 

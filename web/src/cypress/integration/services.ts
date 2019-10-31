@@ -547,22 +547,6 @@ function testServices(screen: ScreenFormat) {
       }),
     )
 
-    it('should allow creating alerts', () => {
-      cy.pageFab()
-      const summary = c.sentence({ words: 3 })
-      const details = c.word({ length: 10 })
-      cy.get('input[name=summary]').type(summary)
-      cy.get('textarea[name=details]').type(details)
-
-      cy.get('*[role=dialog]')
-        .contains('button', 'Submit')
-        .click()
-
-      cy.location('pathname').should('contain', '/alerts/') // details page
-
-      cy.get('body').should('contain', summary)
-    })
-
     it('should allow ack/close all alerts', () => {
       cy.createAlert({ serviceID: svc.id })
       cy.createAlert({ serviceID: svc.id })
