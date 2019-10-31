@@ -392,6 +392,10 @@ function testAlerts(screen: ScreenFormat) {
           cy.get('@dialog')
             .contains('span', svc2.name)
             .should('be.visible')
+
+          cy.get('@dialog')
+            .contains('button', 'Done')
+            .click()
         })
       })
     })
