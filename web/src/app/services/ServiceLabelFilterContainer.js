@@ -39,7 +39,7 @@ export default function ServiceLabelFilterContainer(props) {
         <LabelValueSelect
           name='label-value'
           label='Select Label Value'
-          keyValue={props.labelKey}
+          labelKey={props.labelKey}
           value={props.labelValue}
           onChange={props.onValueChange}
           disabled={!props.labelKey}
