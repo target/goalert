@@ -4,31 +4,26 @@ import { makeQuerySelect } from './QuerySelect'
 import gql from 'graphql-tag'
 
 const query = gql`
-  query($input: LabelSearchOptions) {
-    labels(input: $input) {
-      nodes {
-        value
-      }
+  query($input: LabelValueSearchOptions) {
+    labelValues(input: $input) {
+      nodes
     }
   }
 `
 
 export function LabelValueSelect(props) {
-  const { keyValue, ...selectProps } = props
-  const variables = {
-    search: props.keyValue + '=*',
-  }
+  const { labelKey, ...selectProps } = props
 
   const LabelValueSelect = makeQuerySelect('LabelValueSelect', {
-    variables,
-    defaultQueryVariables: variables,
+    variables: { key: labelKey },
+    defaultQueryVariables: { key: labelKey },
     query,
-    mapDataNode: ({ value }) => ({ label: value, value: value }),
+    mapDataNode: value => ({ label: value, value }),
   })
 
   return <LabelValueSelect {...selectProps} />
 }
 
 LabelValueSelect.propTypes = {
-  keyValue: p.string,
+  labelKey: p.string,
 }

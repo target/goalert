@@ -128,4 +128,56 @@ Reply '1a' to ack, '1c' to close.`,
 		"",
 	)
 
+	check("alert-bundle-one",
+		alertSMS{
+			Count: 1,
+			Body:  "My Service",
+			Code:  100,
+			Link:  "https://example.com/services/321-654/alerts",
+		},
+		`Svc 'My Service': 1 unacked alert
+
+https://example.com/services/321-654/alerts
+
+Reply '100aa' to ack all, '100cc' to close all.`,
+	)
+
+	check("alert-bundle",
+		alertSMS{
+			Count: 5,
+			Body:  "My Service",
+			Code:  100,
+			Link:  "https://example.com/services/321-654/alerts",
+		},
+		`Svc 'My Service': 5 unacked alerts
+
+https://example.com/services/321-654/alerts
+
+Reply '100aa' to ack all, '100cc' to close all.`,
+	)
+
+	check("status-bundle-one",
+		// can't fit body
+		alertSMS{
+			ID:    123,
+			Count: 1,
+			Body:  "Some log entry",
+		},
+		`Alert #123: Some log entry
+
+1 other alert has been updated.`,
+	)
+
+	check("status-bundle",
+		// can't fit body
+		alertSMS{
+			ID:    123,
+			Count: 2,
+			Body:  "Some log entry",
+		},
+		`Alert #123: Some log entry
+
+2 other alerts have been updated.`,
+	)
+
 }

@@ -24,11 +24,13 @@ export default class LoadingButton extends Component {
       noSubmit,
       onClick,
       style,
+      ...rest
     } = this.props
 
     return (
       <div style={{ position: 'relative', ...style }}>
         <Button
+          {...rest}
           data-cy='loading-button'
           variant='contained'
           color={color || 'primary'}

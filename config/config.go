@@ -23,6 +23,8 @@ type Config struct {
 		GoogleAnalyticsID      string `public:"true"`
 		NotificationDisclaimer string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`
+		MessageBundles         bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
+		ShortURL               string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
 	}
 
 	Maintenance struct {
@@ -91,11 +93,7 @@ type Config struct {
 	}
 }
 
-// CallbackURL will return a public-routable URL to the given path.
-// It will use PublicURL() to fill in missing pieces.
-//
-// It will panic if provided an invalid URL.
-func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
+func (cfg Config) rawCallbackURL(path string, mergeParams ...url.Values) *url.URL {
 	base, err := url.Parse(cfg.PublicURL())
 	if err != nil {
 		panic(errors.Wrap(err, "parse PublicURL"))
@@ -123,6 +121,27 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	}
 
 	base.RawQuery = params.Encode()
+	return base
+}
+
+// CallbackURL will return a public-routable URL to the given path.
+// It will use PublicURL() to fill in missing pieces.
+//
+// It will panic if provided an invalid URL.
+func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
+	base := cfg.rawCallbackURL(path, mergeParams...)
+
+	newPath := ShortPath(base.Path)
+	if newPath != "" && cfg.General.ShortURL != "" {
+		short, err := url.Parse(cfg.General.ShortURL)
+		if err != nil {
+			panic(errors.Wrap(err, "parse ShortURL"))
+		}
+		base.Path = newPath
+		base.Host = short.Host
+		base.Scheme = short.Scheme
+	}
+
 	return base.String()
 }
 
@@ -256,6 +275,13 @@ func (cfg Config) Validate() error {
 		err = validate.Many(
 			err,
 			validate.AbsoluteURL("Feedback.OverrideURL", cfg.Feedback.OverrideURL),
+		)
+	}
+
+	if cfg.General.ShortURL != "" {
+		err = validate.Many(
+			err,
+			validate.AbsoluteURL("General.ShortURL", cfg.General.ShortURL),
 		)
 	}
 

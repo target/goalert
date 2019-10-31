@@ -15,8 +15,12 @@ const cmCooldown = time.Minute
 var typePriority = map[Type]int{
 	TypeVerificationMessage: 1,
 	TypeTestNotification:    2,
-	TypeAlertNotification:   3,
-	TypeAlertStatusUpdate:   4,
+
+	TypeAlertNotification:       3,
+	TypeAlertNotificationBundle: 3,
+
+	TypeAlertStatusUpdate:       4,
+	TypeAlertStatusUpdateBundle: 4,
 }
 
 type queue struct {
@@ -134,12 +138,12 @@ func (q *queue) sortPending(destType notification.DestType) {
 
 		// First Alert to a service takes highest priority
 		piTypePriority := typePriority[pi.Type]
-		if pi.Type == TypeAlertNotification && q.serviceSent[pi.ServiceID].IsZero() {
+		if (pi.Type == TypeAlertNotification || pi.Type == TypeAlertNotificationBundle) && q.serviceSent[pi.ServiceID].IsZero() {
 			piTypePriority = 0
 		}
 
 		pjTypePriority := typePriority[pj.Type]
-		if pj.Type == TypeAlertNotification && q.serviceSent[pj.ServiceID].IsZero() {
+		if (pj.Type == TypeAlertNotification || pj.Type == TypeAlertNotificationBundle) && q.serviceSent[pj.ServiceID].IsZero() {
 			pjTypePriority = 0
 		}
 

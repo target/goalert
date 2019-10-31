@@ -39,7 +39,7 @@ export default function ServiceLabelFilterContainer(props) {
         <LabelValueSelect
           name='label-value'
           label='Select Label Value'
-          keyValue={props.labelKey}
+          labelKey={props.labelKey}
           value={props.labelValue}
           onChange={props.onValueChange}
           disabled={!props.labelKey}
@@ -57,5 +57,5 @@ ServiceLabelFilterContainer.propTypes = {
   onReset: p.func,
 
   // optionally anchors the popover to a specified element's ref
-  anchorRef: p.string,
+  anchorRef: p.object,
 }

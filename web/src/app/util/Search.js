@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { searchSelector } from '../selectors/url'
 import { setURLParam } from '../actions/main'
 import { DEBOUNCE_DELAY } from '../config'
-import PageActions from './PageActions'
+import AppBarSearchContainer from './AppBarSearchContext'
 
 const useStyles = makeStyles(theme => {
   return {
@@ -111,7 +111,7 @@ export default function Search(props) {
 
   function renderMobile() {
     return (
-      <PageActions>
+      <AppBarSearchContainer>
         <IconButton
           key='search-icon'
           color='inherit'
@@ -149,7 +149,7 @@ export default function Search(props) {
             </Toolbar>
           </AppBar>
         </Slide>
-      </PageActions>
+      </AppBarSearchContainer>
     )
   }
 

@@ -375,14 +375,14 @@ func (tw *twDevice) done() bool {
 }
 func (tw *twServer) unexpectedSMS(sms *mocktwilio.SMS) {
 	tw.t.Helper()
-	tw.t.Errorf("Twilio: Unexpected SMS to %s: %s", sms.To(), sms.Body())
+	tw.t.Fatalf("Twilio: Unexpected SMS to %s: %s", sms.To(), sms.Body())
 }
 func (tw *twServer) unexpectedCall(vc *mocktwilio.VoiceCall) {
 	tw.t.Helper()
 	if vc.Message() != "" {
-		tw.t.Errorf("Twilio: Unexpected voice call (or message) to %s: %s", vc.To(), vc.Message())
+		tw.t.Fatalf("Twilio: Unexpected voice call (or message) to %s: %s", vc.To(), vc.Message())
 	} else {
-		tw.t.Errorf("Twilio: Unexpected voice call to %s", vc.To())
+		tw.t.Fatalf("Twilio: Unexpected voice call to %s", vc.To())
 	}
 }
 func (tw *twServer) WaitAndAssert() {

@@ -19,4 +19,6 @@ type Message struct {
 	ServiceID string
 	CreatedAt time.Time
 	SentAt    time.Time
+
+	StatusAlertIDs []int
 }

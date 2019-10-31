@@ -25,6 +25,8 @@ var (
 	lastReplyRx  = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*'?$`)
 	shortReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(c|a)\s*'?$`)
 	alertReplyRx = regexp.MustCompile(`^'?\s*(c|close|a|ack[a-z]*)\s*#?\s*([0-9]+)\s*'?$`)
+
+	svcReplyRx = regexp.MustCompile(`^'?\s*([0-9]+)\s*(cc|aa)\s*'?$`)
 )
 
 // SMS implements a notification.Sender for Twilio SMS.
@@ -102,34 +104,50 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 		return nil, errors.New("number had too many outgoing errors recently")
 	}
 
-	var message string
-	switch msg.Type() {
-	case notification.MessageTypeAlertStatus:
-		message, err = alertSMS{
-			ID:   msg.SubjectID(),
-			Body: msg.Body(),
-		}.Render()
-	case notification.MessageTypeAlert:
+	makeSMSCode := func(alertID int, serviceID string) int {
 		var code int
 		if hasTwoWaySMSSupport(destNumber) {
-			code, err = s.b.insertDB(ctx, destNumber, msg.ID(), msg.SubjectID())
+			code, err = s.b.insertDB(ctx, destNumber, msg.ID(), alertID, serviceID)
 			if err != nil {
 				log.Log(ctx, errors.Wrap(err, "insert alert id for SMS callback -- sending 1-way SMS as fallback"))
 			}
 		}
+		return code
+	}
 
+	var message string
+	switch t := msg.(type) {
+	case notification.AlertStatus:
 		message, err = alertSMS{
-			ID:   msg.SubjectID(),
-			Body: msg.Body(),
-			Code: code,
-			Link: cfg.CallbackURL("/alerts/" + strconv.Itoa(msg.SubjectID())),
+			ID:   t.AlertID,
+			Body: t.LogEntry,
 		}.Render()
-	case notification.MessageTypeTest:
+	case notification.AlertStatusBundle:
+		message, err = alertSMS{
+			ID:    t.AlertID,
+			Body:  t.LogEntry,
+			Count: t.Count - 1,
+		}.Render()
+	case notification.AlertBundle:
+		message, err = alertSMS{
+			Count: t.Count,
+			Body:  t.ServiceName,
+			Link:  cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID)),
+			Code:  makeSMSCode(0, t.ServiceID),
+		}.Render()
+	case notification.Alert:
+		message, err = alertSMS{
+			ID:   t.AlertID,
+			Body: t.Summary,
+			Link: cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID)),
+			Code: makeSMSCode(t.AlertID, ""),
+		}.Render()
+	case notification.Test:
 		message = fmt.Sprintf("This is a test message from GoAlert.")
-	case notification.MessageTypeVerification:
-		message = fmt.Sprintf("GoAlert verification code: %d", msg.SubjectID())
+	case notification.Verification:
+		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
 	default:
-		return nil, errors.Errorf("unhandled message type %s", msg.Type().String())
+		return nil, errors.Errorf("unhandled message type %T", t)
 	}
 	if err != nil {
 		return nil, errors.Wrap(err, "render message")
@@ -261,16 +279,16 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	body = strings.TrimSpace(body)
 	body = strings.ToLower(body)
-	var lookupFn func() (string, int, error)
+	var lookupFn func() (*codeInfo, error)
 	var result notification.Result
-
+	var isSvc bool
 	if m := lastReplyRx.FindStringSubmatch(body); len(m) == 2 {
 		if strings.HasPrefix(m[1], "a") {
 			result = notification.ResultAcknowledge
 		} else {
 			result = notification.ResultResolve
 		}
-		lookupFn = func() (string, int, error) { return s.b.LookupByCode(ctx, from, 0) }
+		lookupFn = func() (*codeInfo, error) { return s.b.LookupByCode(ctx, from, 0) }
 	} else if m := shortReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[2], "a") {
 			result = notification.ResultAcknowledge
@@ -282,7 +300,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			log.Debug(ctx, errors.Wrap(err, "parse code"))
 		} else {
 			ctx = log.WithField(ctx, "Code", code)
-			lookupFn = func() (string, int, error) { return s.b.LookupByCode(ctx, from, code) }
+			lookupFn = func() (*codeInfo, error) { return s.b.LookupByCode(ctx, from, code) }
 		}
 	} else if m := alertReplyRx.FindStringSubmatch(body); len(m) == 3 {
 		if strings.HasPrefix(m[1], "a") {
@@ -295,7 +313,21 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			log.Debug(ctx, errors.Wrap(err, "parse alertID"))
 		} else {
 			ctx = log.WithField(ctx, "AlertID", alertID)
-			lookupFn = func() (string, int, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
+			lookupFn = func() (*codeInfo, error) { return s.b.LookupByAlertID(ctx, from, alertID) }
+		}
+	} else if m := svcReplyRx.FindStringSubmatch(body); len(m) == 3 {
+		isSvc = true
+		if strings.HasPrefix(m[2], "a") {
+			result = notification.ResultAcknowledge
+		} else {
+			result = notification.ResultResolve
+		}
+		code, err := strconv.Atoi(m[1])
+		if err != nil {
+			log.Debug(ctx, errors.Wrap(err, "parse code"))
+		} else {
+			ctx = log.WithField(ctx, "Code", code)
+			lookupFn = func() (*codeInfo, error) { return s.b.LookupSvcByCode(ctx, from, code) }
 		}
 	}
 
@@ -314,19 +346,17 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var nonSystemErr bool
-
-	var alertID int
+	var info *codeInfo
 	err = retry.DoTemporaryError(func(int) error {
-		callbackID, aID, err := lookupFn()
+		info, err = lookupFn()
 		if err != nil {
-			return errors.Wrap(err, "lookup callbackID")
+			return errors.Wrap(err, "lookup code")
 		}
-		alertID = aID
 
 		errCh := make(chan error, 1)
 		s.respCh <- &notification.MessageResponse{
 			Ctx:    ctx,
-			ID:     callbackID,
+			ID:     info.CallbackID,
 			From:   notification.Dest{Type: notification.DestTypeSMS, Value: from},
 			Result: result,
 			Err:    errCh,
@@ -337,20 +367,19 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		retry.Limit(10),
 		retry.FibBackoff(time.Second),
 	)
-	ctx = log.WithField(ctx, "AlertID", alertID)
 
-	if errors.Cause(err) == sql.ErrNoRows {
-		respond("unknown callbackID", "Unknown alert code for this number. Visit the dashboard to manage alerts.")
+	if errors.Cause(err) == sql.ErrNoRows || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0) {
+		respond("unknown callbackID", "Unknown reply code for this action. Visit the dashboard to manage alerts.")
 		return
 	}
 
 	msg := "System error. Visit the dashboard to manage alerts."
 	if alert.IsAlreadyClosed(err) {
 		nonSystemErr = true
-		msg = fmt.Sprintf("Alert #%d already closed", alertID)
+		msg = fmt.Sprintf("Alert #%d already closed", alert.AlertID(err))
 	} else if alert.IsAlreadyAcknowledged(err) {
 		nonSystemErr = true
-		msg = fmt.Sprintf("Alert #%d already acknowledged", alertID)
+		msg = fmt.Sprintf("Alert #%d already acknowledged", alert.AlertID(err))
 	}
 
 	if nonSystemErr {
@@ -378,5 +407,9 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	respond("", fmt.Sprintf("%s alert #%d", prefix, alertID))
+	if info.ServiceName != "" {
+		respond("", fmt.Sprintf("%s all alerts for service '%s'", prefix, info.ServiceName))
+	} else {
+		respond("", fmt.Sprintf("%s alert #%d", prefix, info.AlertID))
+	}
 }
