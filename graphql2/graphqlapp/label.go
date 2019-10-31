@@ -16,14 +16,12 @@ func (q *Query) Labels(ctx context.Context, input *graphql2.LabelSearchOptions) 
 		input = &graphql2.LabelSearchOptions{}
 	}
 
-	var searchOpts label.SearchOptions
+	var searchOpts label.KeySearchOptions
 	if input.Search != nil {
 		searchOpts.Search = *input.Search
 	}
 	searchOpts.Omit = input.Omit
-	if input.UniqueKeys != nil {
-		searchOpts.UniqueKeys = *input.UniqueKeys
-	}
+
 	if input.After != nil && *input.After != "" {
 		err = search.ParseCursor(*input.After, &searchOpts)
 		if err != nil {
@@ -38,21 +36,18 @@ func (q *Query) Labels(ctx context.Context, input *graphql2.LabelSearchOptions) 
 	}
 
 	searchOpts.Limit++
-	labels, err := q.LabelStore.Search(ctx, &searchOpts)
+	labelKeys, err := q.LabelStore.SearchKeys(ctx, &searchOpts)
 	if err != nil {
 		return nil, err
 	}
 	conn = new(graphql2.LabelConnection)
-	if len(labels) == searchOpts.Limit {
-		labels = labels[:len(labels)-1]
+	if len(labelKeys) == searchOpts.Limit {
+		labelKeys = labelKeys[:len(labelKeys)-1]
 		conn.PageInfo.HasNextPage = true
 	}
-	if len(labels) > 0 {
-		last := labels[len(labels)-1]
-		searchOpts.After.Key = last.Key
-		searchOpts.After.Value = last.Value
-		searchOpts.After.TargetType = last.Target.TargetType()
-		searchOpts.After.TargetID = last.Target.TargetID()
+	if len(labelKeys) > 0 {
+		last := labelKeys[len(labelKeys)-1]
+		searchOpts.After = last
 
 		cur, err := search.Cursor(searchOpts)
 		if err != nil {
@@ -60,7 +55,10 @@ func (q *Query) Labels(ctx context.Context, input *graphql2.LabelSearchOptions) 
 		}
 		conn.PageInfo.EndCursor = &cur
 	}
-	conn.Nodes = labels
+	conn.Nodes = make([]label.Label, len(labelKeys))
+	for i, k := range labelKeys {
+		conn.Nodes[i].Key = k
+	}
 	return conn, err
 }
 func (m *Mutation) SetLabel(ctx context.Context, input graphql2.SetLabelInput) (bool, error) {
