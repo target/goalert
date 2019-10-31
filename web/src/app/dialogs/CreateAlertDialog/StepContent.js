@@ -21,6 +21,7 @@ import { ServiceChip } from '../../util/Chips'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
 import _ from 'lodash-es'
+import AlertListItem from './AlertListItem'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -255,7 +256,6 @@ export default props => {
         </Paper>
       )
     case 3:
-      console.log(mutationStatus)
       const alertsCreated = mutationStatus.alertsCreated || {}
       const graphQLErrors = _.get(
         mutationStatus,
@@ -263,36 +263,40 @@ export default props => {
         [],
       )
 
+      const numCreated = Object.keys(alertsCreated).length
+
       return (
         <Paper elevation={0}>
-          <Typography variant='h6' component='h3'>
-            {`Successfully created ${Object.keys(alertsCreated).length} alerts`}
-          </Typography>
-          <ul>
-            {Object.keys(alertsCreated).map((alias, i) => {
-              // TODO return <AlertListItem id={alertsCreated[alias].id} />
-              if (alertsCreated[alias]) return <p>{alertsCreated[alias].id}</p>
-            })}
-          </ul>
-
-          {graphQLErrors && (
+          {numCreated > 0 && (
             <div>
               <Typography variant='h6' component='h3'>
-                {`Failed to create ${graphQLErrors.length} alerts on these services:`}
+                {`Successfully created ${numCreated} alerts`}
+              </Typography>
+              <List aria-label='Successfully created alerts'>
+                {Object.keys(alertsCreated).map((alias, i) => (
+                  <AlertListItem key={i} id={alertsCreated[alias].id} />
+                ))}
+              </List>
+            </div>
+          )}
+
+          {graphQLErrors.length > 0 && (
+            <div>
+              <Typography variant='h6' component='h3'>
+                Failed to create alerts on these services:
               </Typography>
 
-              <ul>
+              <List aria-label='Failed alerts'>
                 {graphQLErrors.map((err, i) => {
                   const index = err.path[0].split(/(\d+)$/)[1]
-                  console.log(index)
                   const serviceId = formFields.selectedServices[index]
                   return (
-                    <li key={i}>
+                    <ListItem key={i}>
                       <ServiceChip id={serviceId} />
-                    </li>
+                    </ListItem>
                   )
                 })}
-              </ul>
+              </List>
             </div>
           )}
         </Paper>
