@@ -2,18 +2,16 @@ import { makeQuerySelect } from './QuerySelect'
 import gql from 'graphql-tag'
 
 const query = gql`
-  query($input: LabelSearchOptions) {
-    labels(input: $input) {
-      nodes {
-        key
-      }
+  query($input: LabelKeySearchOptions) {
+    labelKeys(input: $input) {
+      nodes
     }
   }
 `
 
 export const LabelKeySelect = makeQuerySelect('LabelKeySelect', {
-  variables: { uniqueKeys: true },
-  defaultQueryVariables: { uniqueKeys: true },
+  variables: {},
+  defaultQueryVariables: {},
   query,
-  mapDataNode: ({ key }) => ({ label: key, value: key }),
+  mapDataNode: key => ({ label: key, value: key }),
 })
