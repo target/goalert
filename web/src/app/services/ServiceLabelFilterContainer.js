@@ -57,5 +57,5 @@ ServiceLabelFilterContainer.propTypes = {
   onReset: p.func,
 
   // optionally anchors the popover to a specified element's ref
-  anchorRef: p.string,
+  anchorRef: p.object,
 }
