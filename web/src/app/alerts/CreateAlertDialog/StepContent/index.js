@@ -13,17 +13,18 @@ import {
   InputLabel,
 } from '@material-ui/core'
 import { makeStyles, emphasize } from '@material-ui/core/styles'
-import { FormField } from '../../forms'
-import ServiceLabelFilterContainer from '../../services/ServiceLabelFilterContainer'
+import { FormField } from '../../../forms'
+import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
 import AddIcon from '@material-ui/icons/Add'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import { ServiceChip } from '../../util/Chips'
+import { ServiceChip } from '../../../util/Chips'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
 import _ from 'lodash-es'
-import AlertListItem from './AlertListItem'
+import AlertListItem from '../AlertListItem'
+import Step0 from './Step0'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -139,28 +140,7 @@ export default props => {
 
   switch (props.activeStep) {
     case 0:
-      return (
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              label='Alert Summary'
-              name='summary'
-              required
-              component={TextField}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              label='Alert Details'
-              name='details'
-              required
-              component={TextField}
-            />
-          </Grid>
-        </Grid>
-      )
+      return <Step0 />
     case 1:
       return (
         <Grid item xs={12}>
