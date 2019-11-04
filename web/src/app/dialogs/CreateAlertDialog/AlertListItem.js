@@ -34,7 +34,13 @@ export default function AlertListItem(props) {
   if (error) return 'Error fetching data.'
 
   return (
-    <ListItem button key={id} component={Link} to={`/alerts/${alert.id}`}>
+    <ListItem
+      button
+      key={id}
+      component={Link}
+      to={`/alerts/${alert.id}`}
+      target={'_blank'}
+    >
       <ListItemText disableTypography style={{ paddingRight: '2.75em' }}>
         <Typography>
           <b>{alert.id}: </b>
