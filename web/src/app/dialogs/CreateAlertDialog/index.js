@@ -67,7 +67,7 @@ export default props => {
         fullScreen={isWidthDown('md', width)}
         title={onLastStep() ? 'Review Created Alerts' : 'Create New Alert'}
       />
-      <DialogContent>
+      <DialogContent style={{ height: '500px' }}>
         {!onLastStep() && (
           <Stepper activeStep={activeStep}>
             {steps.map(

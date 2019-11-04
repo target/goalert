@@ -57,10 +57,9 @@ const useStyles = makeStyles(theme => ({
       textDecoration: 'none',
     },
   },
-  addAllWrapper: {
+  endAdornment: {
     display: 'flex',
-    justifyContent: 'flex-end',
-    padding: 3,
+    alignItems: 'center',
   },
 }))
 
@@ -112,19 +111,17 @@ export default props => {
   })
 
   const AddAll = () => (
-    <div className={classes.addAllWrapper}>
-      <Chip
-        component='button'
-        label='Add All'
-        icon={<AddIcon fontSize='small' />}
-        onClick={() => {
-          const toAdd = _.get(data, 'services.nodes', []).map(s => s.id)
-          const newState = formFields.selectedServices.concat(toAdd)
-          props.onChange({ selectedServices: newState })
-        }}
-        className={classes.addAll}
-      />
-    </div>
+    <Chip
+      component='button'
+      label='Add All'
+      icon={<AddIcon fontSize='small' />}
+      onClick={() => {
+        const toAdd = _.get(data, 'services.nodes', []).map(s => s.id)
+        const newState = formFields.selectedServices.concat(toAdd)
+        props.onChange({ selectedServices: newState })
+      }}
+      className={classes.addAll}
+    />
   )
 
   switch (props.activeStep) {
@@ -190,21 +187,23 @@ export default props => {
                 </InputAdornment>
               ),
               endAdornment: (
-                <ServiceLabelFilterContainer
-                  labelKey={getLabelKey()}
-                  labelValue={getLabelValue()}
-                  onKeyChange={setLabelKey}
-                  onValueChange={setLabelValue}
-                  onReset={() =>
-                    props.onChange({
-                      searchQuery: '',
-                    })
-                  }
-                />
+                <span className={classes.endAdornment}>
+                  {_.get(data, 'services.nodes', []).length > 0 && <AddAll />}
+                  <ServiceLabelFilterContainer
+                    labelKey={getLabelKey()}
+                    labelValue={getLabelValue()}
+                    onKeyChange={setLabelKey}
+                    onValueChange={setLabelValue}
+                    onReset={() =>
+                      props.onChange({
+                        searchQuery: '',
+                      })
+                    }
+                  />
+                </span>
               ),
             }}
           />
-          {_.get(data, 'services.nodes', []).length > 0 && <AddAll />}
           {formFields.searchQuery && (
             <List aria-label='select service options'>
               {_.get(data, 'services.nodes', []).map((service, key) => (
