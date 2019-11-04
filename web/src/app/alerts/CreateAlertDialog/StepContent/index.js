@@ -18,14 +18,13 @@ import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterCon
 import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
 import AddIcon from '@material-ui/icons/Add'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import { ServiceChip } from '../../../util/Chips'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
 import _ from 'lodash-es'
-import AlertListItem from '../AlertListItem'
 import Step0 from './Step0'
 import Step2 from './Step2'
+import Step3 from './Step3'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -75,11 +74,6 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
     height: 150,
   },
-  spaceBetween: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
 }))
 
 export default props => {
@@ -117,20 +111,6 @@ export default props => {
         const toAdd = queriedServices.map(s => s.id)
         const newState = formFields.selectedServices.concat(toAdd)
         props.onChange({ selectedServices: newState })
-      }}
-      className={classes.addAll}
-    />
-  )
-
-  const OpenAll = () => (
-    <Chip
-      component='button'
-      label='Open All'
-      icon={<OpenInNewIcon fontSize='small' />}
-      onClick={() => {
-        formFields.selectedServices.forEach(id => {
-          window.open(`/alerts/${id}`)
-        })
       }}
       className={classes.addAll}
     />
@@ -244,54 +224,7 @@ export default props => {
     case 2:
       return <Step2 formFields={formFields} />
     case 3:
-      const alertsCreated = mutationStatus.alertsCreated || {}
-      const graphQLErrors = _.get(
-        mutationStatus,
-        'alertsFailed.graphQLErrors',
-        [],
-      )
-
-      const numCreated = Object.keys(alertsCreated).length
-
-      return (
-        <Paper elevation={0}>
-          {numCreated > 0 && (
-            <div>
-              <span className={classes.spaceBetween}>
-                <Typography variant='subtitle1' component='h3'>
-                  {`Successfully created ${numCreated} alerts`}
-                </Typography>
-                <OpenAll />
-              </span>
-              <List aria-label='Successfully created alerts'>
-                {Object.keys(alertsCreated).map((alias, i) => (
-                  <AlertListItem key={i} id={alertsCreated[alias].id} />
-                ))}
-              </List>
-            </div>
-          )}
-
-          {graphQLErrors.length > 0 && (
-            <div>
-              <Typography variant='h6' component='h3'>
-                Failed to create alerts on these services:
-              </Typography>
-
-              <List aria-label='Failed alerts'>
-                {graphQLErrors.map((err, i) => {
-                  const index = err.path[0].split(/(\d+)$/)[1]
-                  const serviceId = formFields.selectedServices[index]
-                  return (
-                    <ListItem key={i}>
-                      <ServiceChip id={serviceId} />
-                    </ListItem>
-                  )
-                })}
-              </List>
-            </div>
-          )}
-        </Paper>
-      )
+      return <Step3 formFields={formFields} mutationStatus={mutationStatus} />
     default:
       return 'Unknown step'
   }
