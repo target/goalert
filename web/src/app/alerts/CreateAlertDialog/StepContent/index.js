@@ -25,6 +25,7 @@ import { useQuery } from 'react-apollo'
 import _ from 'lodash-es'
 import AlertListItem from '../AlertListItem'
 import Step0 from './Step0'
+import Step2 from './Step2'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -78,9 +79,6 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  nudgeRight: {
-    marginLeft: theme.spacing(1.3),
   },
 }))
 
@@ -244,49 +242,7 @@ export default props => {
       )
 
     case 2:
-      return (
-        <Paper elevation={0}>
-          <Typography variant='subtitle1' component='h3'>
-            Summary
-          </Typography>
-          <Typography
-            variant='body1'
-            component='p'
-            className={classes.nudgeRight}
-          >
-            {formFields.summary}
-          </Typography>
-          <Typography variant='subtitle1' component='h3'>
-            Details
-          </Typography>
-          <Typography
-            variant='body1'
-            component='p'
-            className={classes.nudgeRight}
-          >
-            {formFields.details}
-          </Typography>
-          <Typography variant='subtitle1' component='h3'>
-            {`Selected Services (${formFields.selectedServices.length})`}
-          </Typography>
-
-          {formFields.selectedServices.length > 0 && (
-            <span>
-              <Paper elevation={0}>
-                {formFields.selectedServices.map((id, key) => (
-                  <ServiceChip
-                    key={key}
-                    clickable={false}
-                    id={id}
-                    style={{ margin: 3 }}
-                    onClick={e => e.preventDefault()}
-                  />
-                ))}
-              </Paper>
-            </span>
-          )}
-        </Paper>
-      )
+      return <Step2 formFields={formFields} />
     case 3:
       const alertsCreated = mutationStatus.alertsCreated || {}
       const graphQLErrors = _.get(
