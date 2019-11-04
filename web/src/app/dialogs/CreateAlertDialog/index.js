@@ -37,12 +37,7 @@ export default props => {
     setFormFields(prevState => ({ ...prevState, ...e }))
   }
 
-  const steps = [
-    'Summary and Details',
-    'Label Selection',
-    'Confirm and Submit',
-    null,
-  ]
+  const steps = ['Alert Info', 'Service Selection', 'Summary', null]
 
   const onLastStep = () => activeStep === steps.length - 1
 
