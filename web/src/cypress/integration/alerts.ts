@@ -292,7 +292,7 @@ function testAlerts(screen: ScreenFormat) {
     it('should create an alert for mutliple services', () => {
       cy.createService().then(svc1 => {
         cy.createService().then(svc2 => {
-          cy.pageFab('Multi')
+          cy.pageFab('Alert Service Group')
 
           cy.get('div[role=dialog]').as('dialog')
 
