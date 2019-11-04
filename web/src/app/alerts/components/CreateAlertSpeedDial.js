@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import AddIcon from '@material-ui/icons/Add'
-import LabelIcon from '@material-ui/icons/Label'
+import { KeyChange as ServicesIcon } from 'mdi-material-ui'
+import { Notifications as AlertsIcon } from '@material-ui/icons/'
 import classnames from 'classnames'
 import AlertForm from './AlertForm'
 import CreateAlertByLabelDialog from '../../dialogs/CreateAlertDialog/'
@@ -85,14 +85,14 @@ export default class CreateAlertSpeedDial extends Component {
           label='Create Alert'
           actions={[
             {
-              label: 'Single Service',
-              onClick: () => this.showForm('createAlert'),
-              icon: <AddIcon />,
+              label: 'Alert Service Group',
+              onClick: () => this.showForm('createAlertByLabel'),
+              icon: <ServicesIcon />,
             },
             {
-              label: 'Multi-Service',
-              onClick: () => this.showForm('createAlertByLabel'),
-              icon: <LabelIcon />,
+              label: 'Create Single Alert',
+              onClick: () => this.showForm('createAlert'),
+              icon: <AlertsIcon />,
             },
           ]}
         />
