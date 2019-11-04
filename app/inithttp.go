@@ -199,7 +199,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	twilioHandler := twilio.WrapValidation(
 		// go back to the regular mux after validation
 		twilio.WrapHeaderHack(mux),
-		*app.twilioConfig,
+		false,
 	)
 
 	topMux := http.NewServeMux()
