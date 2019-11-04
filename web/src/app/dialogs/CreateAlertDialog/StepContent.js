@@ -307,7 +307,7 @@ export default props => {
             {formFields.details}
           </Typography>
           <Typography variant='subtitle1' component='h3'>
-            Selected Services
+            {`Selected Services (${formFields.selectedServices.length})`}
           </Typography>
 
           {formFields.selectedServices.length > 0 && (
