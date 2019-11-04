@@ -41,6 +41,9 @@ const useStyles = makeStyles(theme => ({
     flexWrap: 'wrap',
     padding: theme.spacing(0.5),
     margin: '10px 0px',
+    maxHeight: '10em',
+    overflow: 'auto',
+    border: '1px solid #bdbdbd',
   },
   addAll: {
     backgroundColor: theme.palette.grey[100],
