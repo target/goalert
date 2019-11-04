@@ -89,35 +89,11 @@ export default props => {
 
   const { formFields, mutationStatus } = props
 
-  const getLabelKey = () => {
-    return formFields.searchQuery.split(/(!=|=)/)[0]
-  }
-
-  const getLabelValue = () => {
-    return formFields.searchQuery
-      .split(/(!=|=)/)
-      .slice(2)
-      .join('')
-  }
-
-  const setLabelKey = newKey => {
-    if (newKey) {
-      props.onChange({ searchQuery: newKey + '=' })
-    } else {
-      props.onChange({ searchQuery: '' }) // clear search if clearing key
-    }
-  }
-
-  const setLabelValue = newValue => {
-    // should be disabled if empty, but just in case :)
-    if (!getLabelKey()) return
-
-    if (newValue) {
-      props.onChange({ searchQuery: getLabelKey() + '=' + newValue })
-    } else {
-      props.onChange({ searchQuery: getLabelKey() + '=' })
-    }
-  }
+  const labelKey = formFields.searchQuery.split(/(!=|=)/)[0]
+  const labelValue = formFields.searchQuery
+    .split(/(!=|=)/)
+    .slice(2)
+    .join('')
 
   // TODO loading error handles
   const { data } = useQuery(query, {
@@ -232,10 +208,14 @@ export default props => {
                 <span className={classes.endAdornment}>
                   {queriedServices.length > 0 && <AddAll />}
                   <ServiceLabelFilterContainer
-                    labelKey={getLabelKey()}
-                    labelValue={getLabelValue()}
-                    onKeyChange={setLabelKey}
-                    onValueChange={setLabelValue}
+                    value={{ labelKey, labelValue }}
+                    onChange={({ labelKey, labelValue }) =>
+                      props.onChange({
+                        searchQuery: labelKey
+                          ? `${labelKey}=${labelValue}`
+                          : '',
+                      })
+                    }
                     onReset={() =>
                       props.onChange({
                         searchQuery: '',
