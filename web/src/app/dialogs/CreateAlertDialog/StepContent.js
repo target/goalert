@@ -66,6 +66,12 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'center',
   },
+  noticeBox: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 200,
+  },
 }))
 
 export default props => {
@@ -161,7 +167,6 @@ export default props => {
           {formFields.selectedServices.length > 0 && (
             <span>
               <InputLabel shrink>Selected Services</InputLabel>
-              {/* MuiFormLabel-root MuiInputLabel-root MuiInputLabel-shrink */}
               <Paper className={classes.chipContainer} elevation={0}>
                 {formFields.selectedServices.map((id, key) => {
                   return (
@@ -214,7 +219,7 @@ export default props => {
               ),
             }}
           />
-          {formFields.searchQuery && (
+          {queriedServices.length > 0 ? (
             <List aria-label='select service options'>
               {queriedServices.map((service, key) => (
                 <ListItem
@@ -238,6 +243,14 @@ export default props => {
                 </ListItem>
               ))}
             </List>
+          ) : (
+            <div className={classes.noticeBox}>
+              <Typography variant='body1' component='p'>
+                {formFields.searchQuery
+                  ? 'No results'
+                  : 'Search for services above'}
+              </Typography>
+            </div>
           )}
         </Grid>
       )
