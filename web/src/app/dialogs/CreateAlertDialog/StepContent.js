@@ -70,7 +70,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 200,
+    height: 150,
   },
 }))
 
@@ -247,8 +247,8 @@ export default props => {
             <div className={classes.noticeBox}>
               <Typography variant='body1' component='p'>
                 {formFields.searchQuery
-                  ? 'No results'
-                  : 'Search for services above'}
+                  ? 'No services found'
+                  : 'Use the search box to select your service(s)'}
               </Typography>
             </div>
           )}
