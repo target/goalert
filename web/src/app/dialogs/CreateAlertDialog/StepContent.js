@@ -41,8 +41,8 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexWrap: 'wrap',
     padding: theme.spacing(0.5),
-    margin: theme.spacing(2),
-    marginTop: 0,
+    margin: 0,
+    marginBottom: theme.spacing(2),
     maxHeight: '10em',
     overflow: 'auto',
     border: '1px solid #bdbdbd',
@@ -263,23 +263,47 @@ export default props => {
     case 2:
       return (
         <Paper elevation={0}>
-          <Typography variant='h6' component='h3'>
-            Summary: {formFields.summary}
+          <Typography variant='subtitle1' component='h3'>
+            Summary
           </Typography>
-          <Typography variant='h6' component='h3'>
-            Details: {formFields.details}
+          <Typography variant='subtitle2' component='p'>
+            {formFields.summary}
           </Typography>
-          {formFields.selectedServices.map((id, key) => {
-            return (
-              <ServiceChip
-                key={key}
-                clickable={false}
-                id={id}
-                style={{ margin: 3 }}
-                onClick={e => e.preventDefault()}
-              />
-            )
-          })}
+          <Typography variant='subtitle1' component='h3'>
+            Details
+          </Typography>
+          <Typography variant='subtitle2' component='p'>
+            {formFields.details}
+          </Typography>
+          {/* {formFields.selectedServices.map((id, key) => (
+            <ServiceChip
+              key={key}
+              clickable={false}
+              id={id}
+              style={{ margin: 3 }}
+              onClick={e => e.preventDefault()}
+            />
+          ))} */}
+
+          <Typography variant='subtitle1' component='h3'>
+            Selected Services
+          </Typography>
+
+          {formFields.selectedServices.length > 0 && (
+            <span>
+              <Paper className={classes.chipContainer} elevation={0}>
+                {formFields.selectedServices.map((id, key) => (
+                  <ServiceChip
+                    key={key}
+                    clickable={false}
+                    id={id}
+                    style={{ margin: 3 }}
+                    onClick={e => e.preventDefault()}
+                  />
+                ))}
+              </Paper>
+            </span>
+          )}
         </Paper>
       )
     case 3:
