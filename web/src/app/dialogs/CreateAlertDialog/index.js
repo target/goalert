@@ -5,6 +5,7 @@ import {
   Step,
   StepLabel,
   DialogContent,
+  makeStyles,
 } from '@material-ui/core'
 import { isWidthDown } from '@material-ui/core/withWidth'
 import DialogNavigation from './DialogNavigation'
@@ -13,8 +14,18 @@ import { FormContainer } from '../../forms'
 import DialogTitleWrapper from '../components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
 import useCreateAlerts from './useCreateAlerts'
+import classnames from 'classnames'
 
 export default props => {
+  const useStyles = makeStyles(theme => ({
+    stepperPadding: {
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
+  }))
+
+  const classes = useStyles()
+
   const width = useWidth()
 
   const [activeStep, setActiveStep] = useState(0)
@@ -74,7 +85,10 @@ export default props => {
       />
       <DialogContent>
         {!onLastStep() && (
-          <Stepper activeStep={activeStep}>
+          <Stepper
+            activeStep={activeStep}
+            classes={{ horizontal: classnames(classes.stepperPadding) }}
+          >
             {steps.map(
               label =>
                 label && (
