@@ -21,7 +21,7 @@ import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
-import { SearchContainer, SearchProvider } from '../util/AppBarSearchContext'
+import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 
 const drawerWidth = '12em'
 

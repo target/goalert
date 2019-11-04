@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { searchSelector } from '../selectors/url'
 import { setURLParam } from '../actions/main'
 import { DEBOUNCE_DELAY } from '../config'
-import AppBarSearchContainer from './AppBarSearchContext'
+import AppBarSearchContainer from './AppBarSearchContainer'
 
 const useStyles = makeStyles(theme => {
   return {
