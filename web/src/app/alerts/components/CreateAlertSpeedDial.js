@@ -3,7 +3,7 @@ import { KeyChange as ServicesIcon } from 'mdi-material-ui'
 import { Notifications as AlertsIcon } from '@material-ui/icons/'
 import classnames from 'classnames'
 import AlertForm from './AlertForm'
-import CreateAlertByLabelDialog from '../../dialogs/CreateAlertDialog/'
+import CreateAlertDialog from '../CreateAlertDialog'
 import withStyles from '@material-ui/core/styles/withStyles'
 import SpeedDial from '../../util/SpeedDial'
 
@@ -41,7 +41,7 @@ const styles = theme => ({
 export default class CreateAlertSpeedDial extends Component {
   state = {
     showCreateAlertForm: false,
-    showCreateAlertByLabelDialog: false,
+    showCreateAlertDialog: false,
   }
 
   showForm = form => {
@@ -53,13 +53,13 @@ export default class CreateAlertSpeedDial extends Component {
         break
       case 'createAlertByLabel':
         this.setState({
-          showCreateAlertByLabelDialog: true,
+          showCreateAlertDialog: true,
         })
         break
       default:
         this.setState({
           showCreateAlertForm: false,
-          showCreateAlertByLabelDialog: false,
+          showCreateAlertDialog: false,
         })
         break
     }
@@ -100,8 +100,8 @@ export default class CreateAlertSpeedDial extends Component {
           open={this.state.showCreateAlertForm}
           handleRequestClose={() => this.showForm(null)}
         />
-        <CreateAlertByLabelDialog
-          open={this.state.showCreateAlertByLabelDialog}
+        <CreateAlertDialog
+          open={this.state.showCreateAlertDialog}
           handleRequestClose={() => this.showForm(null)}
         />
       </React.Fragment>

@@ -10,7 +10,7 @@ import { isWidthDown } from '@material-ui/core/withWidth'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
 import { FormContainer } from '../../forms'
-import DialogTitleWrapper from '../components/DialogTitleWrapper'
+import DialogTitleWrapper from '../../dialogs/components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
 import useCreateAlerts from './useCreateAlerts'
 
