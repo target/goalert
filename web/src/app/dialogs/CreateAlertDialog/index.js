@@ -58,14 +58,14 @@ export default props => {
   return (
     <Dialog
       open={props.open}
-      onClose={onClose}
+      onClose={onLastStep() ? null : onClose} // NOTE only close on last step if user hits Done
       fullScreen={isWidthDown('md', width)}
       fullWidth
       width={'md'}
     >
       <DialogTitleWrapper
         fullScreen={isWidthDown('md', width)}
-        title={onLastStep() ? 'Review Created Alerts' : 'Create New Alert'}
+        title={'Create New Alert'}
       />
       <DialogContent style={{ height: '500px' }}>
         {!onLastStep() && (
