@@ -10,6 +10,7 @@ import {
   Paper,
   Chip,
   Typography,
+  InputLabel,
 } from '@material-ui/core'
 import { makeStyles, emphasize } from '@material-ui/core/styles'
 import { FormField } from '../../forms'
@@ -40,7 +41,8 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexWrap: 'wrap',
     padding: theme.spacing(0.5),
-    margin: '10px 0px',
+    margin: theme.spacing(2),
+    marginTop: 0,
     maxHeight: '10em',
     overflow: 'auto',
     border: '1px solid #bdbdbd',
@@ -113,13 +115,15 @@ export default props => {
     skip: formFields.searchQuery.length === 0,
   })
 
+  const queriedServices = _.get(data, 'services.nodes', [])
+
   const AddAll = () => (
     <Chip
       component='button'
       label='Add All'
       icon={<AddIcon fontSize='small' />}
       onClick={() => {
-        const toAdd = _.get(data, 'services.nodes', []).map(s => s.id)
+        const toAdd = queriedServices.map(s => s.id)
         const newState = formFields.selectedServices.concat(toAdd)
         props.onChange({ selectedServices: newState })
       }}
@@ -155,33 +159,36 @@ export default props => {
       return (
         <Grid item xs={12}>
           {formFields.selectedServices.length > 0 && (
-            <Paper className={classes.chipContainer} elevation={0}>
-              {formFields.selectedServices.map((id, key) => {
-                return (
-                  <ServiceChip
-                    key={key}
-                    clickable={false}
-                    id={id}
-                    style={{ margin: 3 }}
-                    onClick={e => e.preventDefault()}
-                    onDelete={() =>
-                      props.onChange({
-                        selectedServices: formFields.selectedServices.filter(
-                          sid => sid !== id,
-                        ),
-                      })
-                    }
-                  />
-                )
-              })}
-            </Paper>
+            <span>
+              <InputLabel shrink>Selected Services</InputLabel>
+              {/* MuiFormLabel-root MuiInputLabel-root MuiInputLabel-shrink */}
+              <Paper className={classes.chipContainer} elevation={0}>
+                {formFields.selectedServices.map((id, key) => {
+                  return (
+                    <ServiceChip
+                      key={key}
+                      clickable={false}
+                      id={id}
+                      style={{ margin: 3 }}
+                      onClick={e => e.preventDefault()}
+                      onDelete={() =>
+                        props.onChange({
+                          selectedServices: formFields.selectedServices.filter(
+                            sid => sid !== id,
+                          ),
+                        })
+                      }
+                    />
+                  )
+                })}
+              </Paper>
+            </span>
           )}
           <FormField
             fullWidth
-            label='Search Query'
+            label='Search'
             name='searchQuery'
             fieldName='searchQuery'
-            required
             component={TextField}
             InputProps={{
               startAdornment: (
@@ -191,7 +198,7 @@ export default props => {
               ),
               endAdornment: (
                 <span className={classes.endAdornment}>
-                  {_.get(data, 'services.nodes', []).length > 0 && <AddAll />}
+                  {queriedServices.length > 0 && <AddAll />}
                   <ServiceLabelFilterContainer
                     labelKey={getLabelKey()}
                     labelValue={getLabelValue()}
@@ -209,7 +216,7 @@ export default props => {
           />
           {formFields.searchQuery && (
             <List aria-label='select service options'>
-              {_.get(data, 'services.nodes', []).map((service, key) => (
+              {queriedServices.map((service, key) => (
                 <ListItem
                   button
                   key={key}
