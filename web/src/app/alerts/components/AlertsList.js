@@ -13,7 +13,6 @@ import { graphql } from 'react-apollo'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { getParameterByName } from '../../util/query_param'
-// import CreateAlertFab from './CreateAlertFab'
 import CreateAlertSpeedDial from './CreateAlertSpeedDial'
 import AlertsListDataWrapper from './AlertsListDataWrapper'
 import { alertsQuery } from '../queries/AlertsListQuery'
@@ -322,11 +321,6 @@ export default class AlertsList extends Component {
             }
           />
         </Snackbar>
-        {/* <CreateAlertFab
-          showFavoritesWarning={showFavoritesWarning}
-          serviceID={serviceID}
-          transition={fullScreen && (showFavoritesWarning || actionComplete)}
-        /> */}
         <CreateAlertSpeedDial
           showFavoritesWarning={showFavoritesWarning}
           transition={fullScreen && (showFavoritesWarning || actionComplete)}
