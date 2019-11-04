@@ -18,6 +18,7 @@ import ServiceLabelFilterContainer from '../../services/ServiceLabelFilterContai
 import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
 import AddIcon from '@material-ui/icons/Add'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import { ServiceChip } from '../../util/Chips'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
@@ -71,6 +72,14 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     justifyContent: 'center',
     height: 150,
+  },
+  spaceBetween: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nudgeRight: {
+    marginLeft: theme.spacing(1.3),
   },
 }))
 
@@ -133,6 +142,20 @@ export default props => {
         const toAdd = queriedServices.map(s => s.id)
         const newState = formFields.selectedServices.concat(toAdd)
         props.onChange({ selectedServices: newState })
+      }}
+      className={classes.addAll}
+    />
+  )
+
+  const OpenAll = () => (
+    <Chip
+      component='button'
+      label='Open All'
+      icon={<OpenInNewIcon fontSize='small' />}
+      onClick={() => {
+        formFields.selectedServices.forEach(id => {
+          window.open(`/alerts/${id}`)
+        })
       }}
       className={classes.addAll}
     />
@@ -266,32 +289,30 @@ export default props => {
           <Typography variant='subtitle1' component='h3'>
             Summary
           </Typography>
-          <Typography variant='subtitle2' component='p'>
+          <Typography
+            variant='body1'
+            component='p'
+            className={classes.nudgeRight}
+          >
             {formFields.summary}
           </Typography>
           <Typography variant='subtitle1' component='h3'>
             Details
           </Typography>
-          <Typography variant='subtitle2' component='p'>
+          <Typography
+            variant='body1'
+            component='p'
+            className={classes.nudgeRight}
+          >
             {formFields.details}
           </Typography>
-          {/* {formFields.selectedServices.map((id, key) => (
-            <ServiceChip
-              key={key}
-              clickable={false}
-              id={id}
-              style={{ margin: 3 }}
-              onClick={e => e.preventDefault()}
-            />
-          ))} */}
-
           <Typography variant='subtitle1' component='h3'>
             Selected Services
           </Typography>
 
           {formFields.selectedServices.length > 0 && (
             <span>
-              <Paper className={classes.chipContainer} elevation={0}>
+              <Paper elevation={0}>
                 {formFields.selectedServices.map((id, key) => (
                   <ServiceChip
                     key={key}
@@ -320,9 +341,12 @@ export default props => {
         <Paper elevation={0}>
           {numCreated > 0 && (
             <div>
-              <Typography variant='h6' component='h3'>
-                {`Successfully created ${numCreated} alerts`}
-              </Typography>
+              <span className={classes.spaceBetween}>
+                <Typography variant='subtitle1' component='h3'>
+                  {`Successfully created ${numCreated} alerts`}
+                </Typography>
+                <OpenAll />
+              </span>
               <List aria-label='Successfully created alerts'>
                 {Object.keys(alertsCreated).map((alias, i) => (
                   <AlertListItem key={i} id={alertsCreated[alias].id} />
