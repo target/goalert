@@ -167,7 +167,9 @@ export default props => {
         <Grid item xs={12}>
           {formFields.selectedServices.length > 0 && (
             <span>
-              <InputLabel shrink>Selected Services</InputLabel>
+              <InputLabel
+                shrink
+              >{`Selected Services (${formFields.selectedServices.length})`}</InputLabel>
               <Paper className={classes.chipContainer} elevation={0}>
                 {formFields.selectedServices.map((id, key) => {
                   return (
