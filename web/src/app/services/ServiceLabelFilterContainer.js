@@ -9,6 +9,7 @@ import { LabelValueSelect } from '../selection/LabelValueSelect'
 import FilterContainer from '../util/FilterContainer'
 
 export default function ServiceLabelFilterContainer(props) {
+  const { labelKey, labelValue } = props.value
   return (
     <FilterContainer
       icon={<LabelFilterIcon />}
@@ -31,18 +32,20 @@ export default function ServiceLabelFilterContainer(props) {
         <LabelKeySelect
           name='label-key'
           label='Select Label Key'
-          value={props.labelKey}
-          onChange={props.onKeyChange}
+          value={labelKey}
+          onChange={labelKey => props.onChange({ ...props.value, labelKey })}
         />
       </Grid>
       <Grid data-cy='label-value-container' item xs={12}>
         <LabelValueSelect
           name='label-value'
           label='Select Label Value'
-          labelKey={props.labelKey}
-          value={props.labelValue}
-          onChange={props.onValueChange}
-          disabled={!props.labelKey}
+          labelKey={labelKey}
+          value={labelValue}
+          onChange={v =>
+            props.onChange({ ...props.value, labelValue: v || '' })
+          }
+          disabled={!labelKey}
         />
       </Grid>
     </FilterContainer>
@@ -50,10 +53,8 @@ export default function ServiceLabelFilterContainer(props) {
 }
 
 ServiceLabelFilterContainer.propTypes = {
-  labelKey: p.string,
-  labelValue: p.string,
-  onKeyChange: p.func.isRequired,
-  onValueChange: p.func.isRequired,
+  value: p.shape({ labelKey: p.string, labelValue: p.string }),
+  onChange: p.func,
   onReset: p.func,
 
   // optionally anchors the popover to a specified element's ref

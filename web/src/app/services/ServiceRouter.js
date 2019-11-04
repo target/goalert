@@ -38,13 +38,13 @@ export default function ServiceRouter() {
   const setSearchParam = value => dispatch(setURLParam('search', value))
 
   // grab key and value from the search param, if at all
-  let key = null
-  let value = null
+  let labelKey = ''
+  let labelValue = ''
   if (searchParam.includes('=')) {
     const searchSplit = searchParam.split(/(!=|=)/)
-    key = searchSplit[0]
+    labelKey = searchSplit[0]
     // the value can contain "=", so joining the rest of the match such that it doesn't get lost
-    value = searchSplit.slice(2).join('')
+    labelValue = searchSplit.slice(2).join('')
   }
 
   function renderList() {
@@ -62,34 +62,15 @@ export default function ServiceRouter() {
         createLabel='Service'
         searchAdornment={
           <ServiceLabelFilterContainer
-            labelKey={key}
-            labelValue={value}
-            onKeyChange={onKeyChange}
-            onValueChange={onValueChange}
+            value={{ labelKey, labelValue }}
+            onChange={({ labelKey, labelValue }) =>
+              setSearchParam(labelKey ? labelKey + '=' + labelValue : '')
+            }
             onReset={() => setSearchParam()}
           />
         }
       />
     )
-  }
-
-  function onKeyChange(newKey) {
-    if (newKey) {
-      setSearchParam(newKey + '=')
-    } else {
-      setSearchParam() // clear search if clearing key
-    }
-  }
-
-  function onValueChange(newValue) {
-    // should be disabled if empty, but just in case :)
-    if (!key) return
-
-    if (newValue) {
-      setSearchParam(key + '=' + newValue)
-    } else {
-      setSearchParam(key + '=')
-    }
   }
 
   function renderDetails({ match }) {
