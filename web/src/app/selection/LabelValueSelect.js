@@ -16,7 +16,6 @@ export function LabelValueSelect(props) {
 
   const LabelValueSelect = makeQuerySelect('LabelValueSelect', {
     variables: { key: labelKey },
-    defaultQueryVariables: { key: labelKey },
     query,
     mapDataNode: value => ({ label: value, value }),
   })
