@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import {
   Grid,
   TextField,
@@ -76,6 +76,7 @@ const useStyles = makeStyles(theme => ({
 
 export default props => {
   const classes = useStyles()
+  const fieldRef = useRef()
 
   const { formFields, mutationStatus } = props
 
@@ -196,6 +197,7 @@ export default props => {
             fieldName='searchQuery'
             component={TextField}
             InputProps={{
+              ref: fieldRef,
               startAdornment: (
                 <InputAdornment position='start'>
                   <SearchIcon color='action' />
@@ -214,6 +216,7 @@ export default props => {
                         searchQuery: '',
                       })
                     }
+                    anchorRef={fieldRef}
                   />
                 </span>
               ),
