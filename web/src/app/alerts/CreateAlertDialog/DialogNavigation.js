@@ -85,7 +85,7 @@ export default props => {
   return (
     <DialogActions>
       {!onLastStep() && (
-        <Button onClick={handleBack} className={classes.button}>
+        <Button onClick={handleBack} className={classes.button} tabIndex={-1}>
           {getBackBtnLabel()}
         </Button>
       )}
