@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/abiosoft/ishell"
-	_ "github.com/jackc/pgx/stdlib" // load PGX driver
+	_ "github.com/jackc/pgx/v4/stdlib" // load PGX driver
 	"github.com/pkg/errors"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/switchover"
