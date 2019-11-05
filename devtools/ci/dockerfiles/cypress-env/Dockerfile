@@ -9,3 +9,4 @@ RUN mkdir -p ${PGDATA} /run/postgresql &&\
     echo "listen_addresses='*'" >> $PGDATA/postgresql.conf
 
 COPY start_postgres.sh /usr/bin/start_postgres
+COPY stop_postgres.sh /usr/bin/stop_postgres
