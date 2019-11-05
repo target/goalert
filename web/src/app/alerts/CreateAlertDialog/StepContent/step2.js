@@ -1,5 +1,5 @@
 import React from 'react'
-import { Paper, Typography } from '@material-ui/core'
+import { Typography, Grid } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { ServiceChip } from '../../../util/Chips'
 
@@ -8,8 +8,6 @@ const useStyles = makeStyles(theme => ({
     marginTop: 0,
     marginBottom: 3,
   },
-  item: { marginBottom: theme.spacing(2) },
-
   itemTitle: {
     paddingBottom: 0,
   },
@@ -24,7 +22,7 @@ export default props => {
   const classes = useStyles()
 
   const Item = props => (
-    <div className={classes.item}>
+    <Grid item xs={12}>
       <Typography
         variant='subtitle1'
         component='h3'
@@ -45,27 +43,25 @@ export default props => {
       )}
 
       {props.children}
-    </div>
+    </Grid>
   )
 
   return (
-    <Paper elevation={0}>
+    <Grid container spacing={2}>
       <Item title={'Summary'} description={formFields.summary} />
       <Item title={'Details'} description={formFields.details} />
 
       <Item title={`Selected Services (${formFields.selectedServices.length})`}>
-        <Paper elevation={0}>
-          {formFields.selectedServices.map((id, key) => (
-            <ServiceChip
-              key={key}
-              clickable={false}
-              id={id}
-              style={{ margin: 3 }}
-              onClick={e => e.preventDefault()}
-            />
-          ))}
-        </Paper>
+        {formFields.selectedServices.map((id, key) => (
+          <ServiceChip
+            key={key}
+            clickable={false}
+            id={id}
+            style={{ margin: 3 }}
+            onClick={e => e.preventDefault()}
+          />
+        ))}
       </Item>
-    </Paper>
+    </Grid>
   )
 }
