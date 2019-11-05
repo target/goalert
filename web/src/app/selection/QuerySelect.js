@@ -177,7 +177,7 @@ export function makeQuerySelect(displayName, options) {
     // defaultQueryVariables, if specified, will be used when the component is active
     // but has no search parameter. It is useful for showing favorites before the user
     // enters a search term.
-    defaultQueryVariables,
+    defaultQueryVariables = {},
   } = options
 
   const useValues = makeUseValues(valueQuery, mapDataNode)
