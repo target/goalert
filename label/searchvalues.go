@@ -55,7 +55,7 @@ func (opts valueRenderData) Normalize() (*valueRenderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
-		validate.LabelKey("Key", opts.Key),
+		validate.Search("Key", opts.Key),
 	)
 
 	if opts.After != "" {
