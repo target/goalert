@@ -37,11 +37,11 @@ export default class FilterContainer extends React.PureComponent {
     anchorEl: null,
   }
 
-  // todo: fill in rest
   static propTypes = {
     icon: p.node,
     // https://material-ui.com/api/icon-button/
     iconButtonProps: p.object,
+    onReset: p.func,
     title: p.string,
 
     anchorRef: p.object,

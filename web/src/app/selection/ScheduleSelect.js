@@ -25,7 +25,7 @@ const valueQuery = gql`
 
 export const ScheduleSelect = makeQuerySelect('ScheduleSelect', {
   variables: { favoritesFirst: true },
-  defaultQueryVariables: { favoritesOnly: true },
+  defaultQueryVariables: { favoritesFirst: true },
   query,
   valueQuery,
 })

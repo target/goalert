@@ -1,5 +1,6 @@
 import { makeQuerySelect } from './QuerySelect'
 import gql from 'graphql-tag'
+import p from 'prop-types'
 
 const query = gql`
   query($input: LabelKeySearchOptions) {
@@ -10,8 +11,9 @@ const query = gql`
 `
 
 export const LabelKeySelect = makeQuerySelect('LabelKeySelect', {
-  variables: {},
-  defaultQueryVariables: {},
   query,
   mapDataNode: key => ({ label: key, value: key }),
 })
+LabelKeySelect.propTypes = {
+  value: p.string,
+}
