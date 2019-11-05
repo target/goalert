@@ -6,6 +6,11 @@ const useStyles = makeStyles(theme => ({
   button: {
     marginRight: theme.spacing(1),
   },
+  dialogActions: {
+    display: 'flex',
+    flexDirection: 'row-reverse',
+    justifyContent: 'flex-start',
+  },
 }))
 
 const nextIsDisabled = (activeStep, formFields) => {
@@ -82,14 +87,10 @@ export default props => {
     }
   }
 
+  // NOTE buttons are mounted in order of tab precedence and arranged with CSS
+  // https://www.maxability.co.in/2016/06/13/tabindex-for-accessibility-good-bad-and-ugly/
   return (
-    <DialogActions>
-      {!onLastStep() && (
-        <Button onClick={handleBack} className={classes.button} tabIndex={-1}>
-          {getBackBtnLabel()}
-        </Button>
-      )}
-
+    <DialogActions className={classes.dialogActions}>
       <Button
         variant='contained'
         color='primary'
@@ -99,6 +100,12 @@ export default props => {
       >
         {getNextBtnLabel()}
       </Button>
+
+      {!onLastStep() && (
+        <Button onClick={handleBack} className={classes.button}>
+          {getBackBtnLabel()}
+        </Button>
+      )}
     </DialogActions>
   )
 }
