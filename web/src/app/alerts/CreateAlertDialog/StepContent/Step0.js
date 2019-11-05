@@ -16,6 +16,9 @@ export default props => (
     <Grid item xs={12}>
       <FormField
         fullWidth
+        multiline
+        rows={10}
+        variant='outlined'
         label='Alert Details'
         name='details'
         required
