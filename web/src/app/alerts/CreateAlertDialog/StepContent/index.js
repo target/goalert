@@ -29,9 +29,9 @@ export default props => {
         search: formFields.searchQuery,
         favoritesFirst: true,
         omit: formFields.selectedServices,
+        favoritesOnly: formFields.searchQuery.length === 0,
       },
     },
-    skip: formFields.searchQuery.length === 0,
   })
 
   const queriedServices = _.get(data, 'services.nodes', [])
