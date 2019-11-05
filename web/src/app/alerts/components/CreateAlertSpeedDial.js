@@ -85,7 +85,7 @@ export default class CreateAlertSpeedDial extends Component {
           label='Create Alert'
           actions={[
             {
-              label: 'Alert Service Group',
+              label: 'Alert Multiple Services',
               onClick: () => this.showForm('createAlertByLabel'),
               icon: <ServicesIcon />,
             },
