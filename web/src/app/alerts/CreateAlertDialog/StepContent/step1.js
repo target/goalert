@@ -37,12 +37,9 @@ const useStyles = makeStyles(theme => ({
     },
   },
   chipContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
     padding: theme.spacing(0.5),
-    margin: 0,
     marginBottom: theme.spacing(2),
-    maxHeight: '10em',
+    height: '9em',
     overflow: 'auto',
     border: '1px solid #bdbdbd',
   },
@@ -50,13 +47,15 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'center',
   },
-  noticeBox: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 150,
+  noticeText: {
+    width: '100%',
+    textAlign: 'center',
+    alignSelf: 'center',
+    lineHeight: '9em',
   },
 }))
+
+const CREATE_ALERT_LIMIT = 35
 
 export default props => {
   const { formFields, queriedServices } = props
@@ -74,45 +73,63 @@ export default props => {
     <Chip
       component='button'
       label='Add All'
+      disabled={formFields.selectedServices.length >= CREATE_ALERT_LIMIT}
       icon={<AddIcon fontSize='small' />}
       onClick={() => {
         const toAdd = queriedServices.map(s => s.id)
-        const newState = formFields.selectedServices.concat(toAdd)
+
+        // build newState
+        let newState = formFields.selectedServices
+        toAdd.forEach(s => {
+          if (newState.length < CREATE_ALERT_LIMIT) {
+            newState = newState.concat(s)
+          }
+        })
+
         props.onChange({ selectedServices: newState })
       }}
       className={classes.addAll}
     />
   )
 
+  const serviceChips = formFields.selectedServices.map((id, key) => {
+    return (
+      <ServiceChip
+        key={key}
+        clickable={false}
+        id={id}
+        style={{ margin: 3 }}
+        onClick={e => e.preventDefault()}
+        onDelete={() =>
+          props.onChange({
+            selectedServices: formFields.selectedServices.filter(
+              sid => sid !== id,
+            ),
+          })
+        }
+      />
+    )
+  })
+
+  const notice = (
+    <Typography variant='body1' component='p' className={classes.noticeText}>
+      Select services using the search box below
+    </Typography>
+  )
+
   return (
     <Grid item xs={12}>
-      {formFields.selectedServices.length > 0 && (
-        <span>
-          <InputLabel
-            shrink
-          >{`Selected Services (${formFields.selectedServices.length})`}</InputLabel>
-          <Paper className={classes.chipContainer} elevation={0}>
-            {formFields.selectedServices.map((id, key) => {
-              return (
-                <ServiceChip
-                  key={key}
-                  clickable={false}
-                  id={id}
-                  style={{ margin: 3 }}
-                  onClick={e => e.preventDefault()}
-                  onDelete={() =>
-                    props.onChange({
-                      selectedServices: formFields.selectedServices.filter(
-                        sid => sid !== id,
-                      ),
-                    })
-                  }
-                />
-              )
-            })}
-          </Paper>
-        </span>
-      )}
+      <React.Fragment>
+        <InputLabel shrink>
+          {`Selected Services (${formFields.selectedServices.length})`}
+          {formFields.selectedServices.length === CREATE_ALERT_LIMIT &&
+            ' - Maximum number allowed'}
+        </InputLabel>
+        <Paper className={classes.chipContainer} elevation={0}>
+          {formFields.selectedServices.length > 0 ? serviceChips : notice}
+        </Paper>
+      </React.Fragment>
+
       <FormField
         fullWidth
         label='Search'
@@ -147,36 +164,33 @@ export default props => {
           ),
         }}
       />
-      {queriedServices.length > 0 ? (
-        <List aria-label='select service options'>
-          {queriedServices.map((service, key) => (
-            <ListItem
-              button
-              key={key}
-              disabled={formFields.selectedServices.indexOf(service) !== -1}
-              onClick={() => {
-                const newState = [...formFields.selectedServices, service.id]
-                props.onChange({ selectedServices: newState })
-              }}
-            >
-              <ListItemText primary={service.name} />
-              {service.isFavorite && (
-                <ListItemIcon>
-                  <FavoriteIcon />
-                </ListItemIcon>
-              )}
-            </ListItem>
-          ))}
-        </List>
-      ) : (
-        <div className={classes.noticeBox}>
-          <Typography variant='body1' component='p'>
-            {formFields.searchQuery
-              ? 'No services found'
-              : 'Use the search box to select your service(s)'}
-          </Typography>
-        </div>
-      )}
+
+      <List aria-label='select service options'>
+        {queriedServices.map((service, key) => (
+          <ListItem
+            button
+            key={key}
+            disabled={formFields.selectedServices.length >= CREATE_ALERT_LIMIT}
+            onClick={() => {
+              const newState = [...formFields.selectedServices, service.id]
+              props.onChange({ selectedServices: newState })
+            }}
+          >
+            <ListItemText primary={service.name} />
+            {service.isFavorite && (
+              <ListItemIcon>
+                <FavoriteIcon />
+              </ListItemIcon>
+            )}
+          </ListItem>
+        ))}
+
+        {queriedServices.length === 0 && (
+          <ListItem>
+            <ListItemText secondary={'No services found'} />
+          </ListItem>
+        )}
+      </List>
     </Grid>
   )
 }
