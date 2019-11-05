@@ -31,11 +31,11 @@ export default props => {
   } = props
   const classes = useStyles()
 
-  const handleNext = () => {
+  const stepForward = () => {
     setActiveStep(prevActiveStep => prevActiveStep + 1)
   }
 
-  const handleBack = () => {
+  const stepBackward = () => {
     setActiveStep(prevActiveStep => prevActiveStep - 1)
   }
 
@@ -50,36 +50,50 @@ export default props => {
     }
   }
 
-  const onNextBtnClick = () => {
+  const getBackBtnLabel = () => {
+    switch (activeStep) {
+      case 0:
+        return 'Cancel'
+      default:
+        return 'Back'
+    }
+  }
+
+  const handleNext = () => {
     switch (activeStep) {
       case steps.length - 1:
         onClose()
         break
       case steps.length - 2:
         onSubmit()
-        handleNext()
+        stepForward()
         break
       default:
-        handleNext()
+        stepForward()
+    }
+  }
+
+  const handleBack = () => {
+    switch (activeStep) {
+      case 0:
+        return onClose()
+      default:
+        return stepBackward()
     }
   }
 
   return (
     <DialogActions>
       {!onLastStep() && (
-        <Button
-          disabled={activeStep === 0}
-          onClick={handleBack}
-          className={classes.button}
-        >
-          Back
+        <Button onClick={handleBack} className={classes.button}>
+          {getBackBtnLabel()}
         </Button>
       )}
 
       <Button
         variant='contained'
         color='primary'
-        onClick={onNextBtnClick}
+        onClick={handleNext}
         className={classes.button}
         disabled={nextIsDisabled(activeStep, formFields)}
       >
