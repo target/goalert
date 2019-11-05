@@ -1,6 +1,5 @@
 import { makeQuerySelect } from './QuerySelect'
 import gql from 'graphql-tag'
-import React from 'react'
 import p from 'prop-types'
 
 const query = gql`
@@ -11,15 +10,10 @@ const query = gql`
   }
 `
 
-export function LabelKeySelect(props) {
-  const LabelKeySelect = makeQuerySelect('LabelKeySelect', {
-    query,
-    mapDataNode: key => ({ label: key, value: key }),
-  })
-
-  return <LabelKeySelect {...props} />
-}
-
+export const LabelKeySelect = makeQuerySelect('LabelKeySelect', {
+  query,
+  mapDataNode: key => ({ label: key, value: key }),
+})
 LabelKeySelect.propTypes = {
   value: p.string,
 }
