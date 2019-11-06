@@ -97,6 +97,7 @@ export default props => {
         onClick={handleNext}
         className={classes.button}
         disabled={nextIsDisabled(activeStep, formFields)}
+        type={activeStep === steps.length - 2 ? 'submit' : 'button'}
       >
         {getNextBtnLabel()}
       </Button>

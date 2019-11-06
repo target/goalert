@@ -61,7 +61,7 @@ export default props => {
       onClose={onLastStep() ? null : onClose} // NOTE only close on last step if user hits Done
       fullScreen={isWidthDown('md', width)}
       fullWidth
-      width={'md'}
+      width='md'
     >
       <DialogTitleWrapper
         fullScreen={isWidthDown('md', width)}
