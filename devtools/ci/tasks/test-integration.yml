@@ -1,6 +1,5 @@
 platform: linux
 params:
-  DB_URL: ""
   MOBILE: "0"
 inputs:
   - name: integration
