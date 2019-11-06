@@ -85,6 +85,7 @@ export default props => {
           onChange={e => onStepContentChange(e)}
           value={formFields}
           errors={fieldErrors(alertsFailed)}
+          optionalLabels
         >
           <Form id='create-alert-form'>
             <StepContent
