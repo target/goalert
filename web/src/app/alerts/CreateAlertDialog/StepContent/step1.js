@@ -118,16 +118,14 @@ export default props => {
 
   return (
     <Grid item xs={12}>
-      <React.Fragment>
-        <InputLabel shrink>
-          {`Selected Services (${formFields.selectedServices.length})`}
-          {formFields.selectedServices.length === CREATE_ALERT_LIMIT &&
-            ' - Maximum number allowed'}
-        </InputLabel>
-        <Paper className={classes.chipContainer} elevation={0}>
-          {formFields.selectedServices.length > 0 ? serviceChips : notice}
-        </Paper>
-      </React.Fragment>
+      <InputLabel shrink>
+        {`Selected Services (${formFields.selectedServices.length})`}
+        {formFields.selectedServices.length === CREATE_ALERT_LIMIT &&
+          ' - Maximum number allowed'}
+      </InputLabel>
+      <Paper className={classes.chipContainer} elevation={0}>
+        {formFields.selectedServices.length > 0 ? serviceChips : notice}
+      </Paper>
 
       <FormField
         fullWidth
@@ -189,7 +187,7 @@ export default props => {
 
         {queriedServices.length === 0 && (
           <ListItem>
-            <ListItemText secondary={'No services found'} />
+            <ListItemText secondary='No services found' />
           </ListItem>
         )}
       </List>
