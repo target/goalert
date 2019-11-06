@@ -68,29 +68,38 @@ export default props => {
 
   return (
     <Dialog
-      open={props.open}
+      open
       onClose={onLastStep() ? null : onClose} // NOTE only close on last step if user hits Done
       fullScreen={isWidthDown('md', width)}
       fullWidth
       width='md'
+      PaperProps={
+        isWidthDown('md', width)
+          ? null
+          : {
+              style: {
+                height: '65vh',
+              },
+            }
+      }
     >
       <DialogTitleWrapper
         fullScreen={isWidthDown('md', width)}
         title={'Create New Alert'}
       />
-      <DialogContent style={{ height: '500px' }}>
-        {!onLastStep() && (
-          <Stepper activeStep={activeStep}>
-            {steps.map(
-              label =>
-                label && (
-                  <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
-                  </Step>
-                ),
-            )}
-          </Stepper>
-        )}
+      {!onLastStep() && (
+        <Stepper activeStep={activeStep}>
+          {steps.map(
+            label =>
+              label && (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ),
+          )}
+        </Stepper>
+      )}
+      <DialogContent>
         <FormContainer
           onChange={e => onStepContentChange(e)}
           value={formFields}
