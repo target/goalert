@@ -12,7 +12,7 @@ import {
   InputLabel,
   Chip,
 } from '@material-ui/core'
-import { makeStyles, emphasize } from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles'
 import { FormField } from '../../../forms'
 import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
@@ -21,21 +21,6 @@ import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
 
 const useStyles = makeStyles(theme => ({
-  addAll: {
-    backgroundColor: theme.palette.grey[100],
-    height: theme.spacing(3),
-    color: theme.palette.grey[800],
-    fontWeight: theme.typography.fontWeightRegular,
-    '&:hover, &:focus': {
-      backgroundColor: theme.palette.grey[300],
-      textDecoration: 'none',
-    },
-    '&:active': {
-      boxShadow: theme.shadows[1],
-      backgroundColor: emphasize(theme.palette.grey[300], 0.12),
-      textDecoration: 'none',
-    },
-  },
   chipContainer: {
     padding: theme.spacing(0.5),
     marginBottom: theme.spacing(2),
@@ -73,6 +58,8 @@ export default props => {
     <Chip
       component='button'
       label='Add All'
+      color='primary'
+      size='small'
       icon={<AddIcon fontSize='small' />}
       onClick={() => {
         const toAdd = queriedServices.map(s => s.id)
@@ -87,7 +74,6 @@ export default props => {
 
         props.onChange({ selectedServices: newState })
       }}
-      className={classes.addAll}
     />
   )
 
