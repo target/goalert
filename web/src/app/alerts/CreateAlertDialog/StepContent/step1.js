@@ -73,7 +73,6 @@ export default props => {
     <Chip
       component='button'
       label='Add All'
-      disabled={formFields.selectedServices.length >= CREATE_ALERT_LIMIT}
       icon={<AddIcon fontSize='small' />}
       onClick={() => {
         const toAdd = queriedServices.map(s => s.id)
@@ -145,7 +144,10 @@ export default props => {
           ),
           endAdornment: (
             <span className={classes.endAdornment}>
-              {queriedServices.length > 0 && <AddAll />}
+              {queriedServices.length > 0 &&
+                formFields.selectedServices.length < CREATE_ALERT_LIMIT && (
+                  <AddAll />
+                )}
               <ServiceLabelFilterContainer
                 value={{ labelKey, labelValue }}
                 onChange={({ labelKey, labelValue }) =>
