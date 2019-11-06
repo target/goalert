@@ -9,7 +9,7 @@ import {
 import { isWidthDown } from '@material-ui/core/withWidth'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
-import { FormContainer } from '../../forms'
+import { FormContainer, Form } from '../../forms'
 import DialogTitleWrapper from '../../dialogs/components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
 import useCreateAlerts from './useCreateAlerts'
@@ -20,8 +20,8 @@ export default props => {
   const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
     // data for mutation
-    summary: '',
-    details: '',
+    Summary: '',
+    Details: '',
     selectedServices: [],
 
     // form helper
@@ -84,12 +84,14 @@ export default props => {
           onChange={e => onStepContentChange(e)}
           value={formFields}
         >
-          <StepContent
-            activeStep={activeStep}
-            formFields={formFields}
-            mutationStatus={{ alertsCreated, alertsFailed, isCreatingAlerts }}
-            onChange={e => onStepContentChange(e)}
-          />
+          <Form id='create-alert-form'>
+            <StepContent
+              activeStep={activeStep}
+              formFields={formFields}
+              mutationStatus={{ alertsCreated, alertsFailed, isCreatingAlerts }}
+              onChange={e => onStepContentChange(e)}
+            />
+          </Form>
         </FormContainer>
       </DialogContent>
       <DialogNavigation
