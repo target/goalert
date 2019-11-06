@@ -1,13 +1,9 @@
 import React from 'react'
-import { Typography, Grid } from '@material-ui/core'
+import { Typography, Grid, Divider } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { ServiceChip } from '../../../util/Chips'
 
 const useStyles = makeStyles(theme => ({
-  hrUnderline: {
-    marginTop: 0,
-    marginBottom: 3,
-  },
   itemTitle: {
     paddingBottom: 0,
   },
@@ -30,7 +26,7 @@ export default props => {
       >
         {props.title}
       </Typography>
-      <hr className={classes.hrUnderline} />
+      <Divider />
 
       {props.description && (
         <Typography
