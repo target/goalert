@@ -71,7 +71,7 @@ export default props => {
         break
       case steps.length - 2:
         onSubmit()
-        // stepForward()
+        stepForward()
         break
       default:
         stepForward()
