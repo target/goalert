@@ -4,7 +4,7 @@ import { Notifications as AlertsIcon } from '@material-ui/icons/'
 import { makeStyles } from '@material-ui/styles'
 import classnames from 'classnames'
 import AlertForm from './components/AlertForm'
-import CreateAlertDialog from './CreateAlertDialog'
+import { CreateAlertDialog } from './CreateAlertDialog'
 import SpeedDial from '../util/SpeedDial'
 
 const useStyles = makeStyles(theme => ({
