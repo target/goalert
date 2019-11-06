@@ -135,7 +135,7 @@ function testCalendar(screen: ScreenFormat) {
     )
   })
 
-  it('should navigate by week', () => {
+  it.skip('should navigate by week', () => {
     cy.get('button[data-cy="show-week"]').click()
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
