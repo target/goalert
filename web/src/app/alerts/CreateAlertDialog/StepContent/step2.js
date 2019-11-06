@@ -48,8 +48,8 @@ export default props => {
 
   return (
     <Grid container spacing={2}>
-      <Item title={'Summary'} description={formFields.Summary} />
-      <Item title={'Details'} description={formFields.Details} />
+      <Item title={'Summary'} description={formFields.summary} />
+      <Item title={'Details'} description={formFields.details} />
 
       <Item title={`Selected Services (${formFields.selectedServices.length})`}>
         {formFields.selectedServices.map((id, key) => (

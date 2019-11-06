@@ -26,8 +26,8 @@ const useCreateAlerts = formFields => {
   let variables = {}
   formFields.selectedServices.forEach((ss, i) => {
     variables[`input${i}`] = {
-      summary: formFields.Summary,
-      details: formFields.Details,
+      summary: formFields.summary,
+      details: formFields.details,
       serviceID: ss,
     }
   })

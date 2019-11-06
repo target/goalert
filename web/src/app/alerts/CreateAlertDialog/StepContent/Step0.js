@@ -8,7 +8,7 @@ export default props => (
       <FormField
         fullWidth
         label='Alert Summary'
-        name='Summary'
+        name='summary'
         required
         component={TextField}
       />
@@ -20,7 +20,7 @@ export default props => (
         rows={17}
         variant='outlined'
         label='Alert Details'
-        name='Details'
+        name='details'
         required
         component={TextField}
       />

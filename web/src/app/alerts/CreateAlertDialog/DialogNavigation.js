@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
 const nextIsDisabled = (activeStep, formFields) => {
   switch (activeStep) {
     case 0:
-      return !(formFields.Summary && formFields.Details)
+      return !(formFields.summary && formFields.details)
     case 1:
       return formFields.selectedServices.length === 0
     default:
