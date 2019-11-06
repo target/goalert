@@ -1,10 +1,18 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import { useQuery } from 'react-apollo'
-import { ListItem, ListItemText, Typography } from '@material-ui/core'
-import { Link } from 'react-router-dom'
+import {
+  ListItem,
+  ListItemText,
+  Typography,
+  IconButton,
+  Link,
+} from '@material-ui/core'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+import { LinkVariant as LinkIcon } from 'mdi-material-ui'
 
 import gql from 'graphql-tag'
+import copyToClipboard from '../../util/copyToClipboard-v2'
 
 const alertQuery = gql`
   query alert($id: Int!) {
@@ -33,20 +41,45 @@ export default function AlertListItem(props) {
   if (loading) return 'Loading...'
   if (error) return 'Error fetching data.'
 
+  const alertUrl = `${window.location.origin}/alerts/${alert.id}`
+
   return (
-    <ListItem
-      button
-      key={id}
-      component={Link}
-      to={`/alerts/${alert.id}`}
-      target={'_blank'}
-    >
-      <ListItemText disableTypography style={{ paddingRight: '2.75em' }}>
-        <Typography>
-          <b>{alert.id}: </b>
-          {alert.status.toUpperCase().slice(6)}
-        </Typography>
-        <Typography variant='caption'>{alert.service.name}</Typography>
+    <ListItem key={id} divider>
+      <ListItemText
+        disableTypography
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <span>
+          {/* <Typography>
+            <b>{alert.id}: </b>
+            {alert.status.toUpperCase().slice(6)}
+          </Typography>
+          <Typography variant='caption'>{alert.service.name}</Typography> */}
+          <Typography>
+            <Link href={alertUrl}>{alertUrl}</Link>
+          </Typography>
+        </span>
+
+        <span>
+          <IconButton
+            aria-label='Copy alert URL'
+            onClick={e => {
+              copyToClipboard(alertUrl)
+            }}
+          >
+            <LinkIcon fontSize='small' />
+          </IconButton>
+          <IconButton
+            aria-label='Open alert in new tab'
+            onClick={() => window.open(alertUrl)}
+          >
+            <OpenInNewIcon fontSize='small' />
+          </IconButton>
+        </span>
       </ListItemText>
     </ListItem>
   )
