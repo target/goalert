@@ -1,6 +1,7 @@
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { fieldAlias, mergeFields, mapInputVars } from '../../util/graphql'
+import { fieldErrors } from '../../util/errutil'
 
 const baseMutation = gql`
   mutation CreateAlertMutation($input: CreateAlertInput!) {
@@ -15,7 +16,7 @@ const getAliasedMutation = (mutation, index) =>
     input: 'input' + index,
   })
 
-const useCreateAlerts = formFields => {
+const useCreateAlerts = (formFields, setActiveStep) => {
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
   for (let i = 1; i < formFields.selectedServices.length; i++) {
@@ -36,6 +37,12 @@ const useCreateAlerts = formFields => {
   return useMutation(m, {
     variables,
     skip: formFields.selectedServices.length === 0,
+    onError: errorMsg => {
+      const errors = fieldErrors(errorMsg)
+      if (errors.some(e => e.field === 'summary' || e.field === 'details')) {
+        setActiveStep(0)
+      }
+    },
   })
 }
 

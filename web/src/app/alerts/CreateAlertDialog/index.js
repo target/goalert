@@ -32,17 +32,7 @@ export default props => {
   const [
     createAlerts,
     { data: alertsCreated, error: alertsFailed, loading: isCreatingAlerts },
-  ] = useCreateAlerts(formFields)
-
-  const errors = fieldErrors(alertsFailed)
-
-  if (activeStep !== 0 && errors.length > 0) {
-    errors.forEach(err => {
-      if (err.field === 'summary' || err.field === 'details') {
-        setActiveStep(0)
-      }
-    })
-  }
+  ] = useCreateAlerts(formFields, setActiveStep)
 
   const onStepContentChange = e => {
     setFormFields(prevState => ({ ...prevState, ...e }))
@@ -103,7 +93,7 @@ export default props => {
         <FormContainer
           onChange={e => onStepContentChange(e)}
           value={formFields}
-          errors={errors}
+          errors={fieldErrors(alertsFailed)}
           optionalLabels
         >
           <Form id='create-alert-form'>
