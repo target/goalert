@@ -68,7 +68,7 @@ export default props => {
 
   return (
     <Dialog
-      open
+      open={props.open}
       onClose={onLastStep() ? null : onClose} // NOTE only close on last step if user hits Done
       fullScreen={isWidthDown('md', width)}
       fullWidth

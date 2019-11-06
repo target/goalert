@@ -64,7 +64,8 @@ export default props => {
     }
   }
 
-  const handleNext = () => {
+  const handleNext = e => {
+    e.preventDefault()
     switch (activeStep) {
       case steps.length - 1:
         onClose()
@@ -98,6 +99,7 @@ export default props => {
         className={classes.button}
         disabled={nextIsDisabled(activeStep, formFields)}
         type={activeStep === steps.length - 2 ? 'submit' : 'button'}
+        form={activeStep === steps.length - 2 ? 'create-alert-form' : null}
       >
         {getNextBtnLabel()}
       </Button>
