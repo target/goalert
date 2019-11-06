@@ -13,6 +13,7 @@ import { FormContainer } from '../../forms'
 import DialogTitleWrapper from '../../dialogs/components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
 import useCreateAlerts from './useCreateAlerts'
+import { fieldErrors } from '../../util/errutil'
 
 export default props => {
   const width = useWidth()
@@ -83,6 +84,7 @@ export default props => {
         <FormContainer
           onChange={e => onStepContentChange(e)}
           value={formFields}
+          errors={fieldErrors(alertsFailed)}
         >
           <StepContent
             activeStep={activeStep}
