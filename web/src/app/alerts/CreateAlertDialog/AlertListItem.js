@@ -44,12 +44,11 @@ export default function AlertListItem(props) {
           >
             <ContentCopyIcon fontSize='small' />
           </IconButton>
-          <IconButton
-            aria-label='Open alert in new tab'
-            onClick={() => window.open(alertUrl)}
-          >
-            <OpenInNewIcon fontSize='small' />
-          </IconButton>
+          <Link href={alertUrl} target='_blank' rel='noopener noreferrer'>
+            <IconButton aria-label='Open alert in new tab'>
+              <OpenInNewIcon fontSize='small' />
+            </IconButton>
+          </Link>
         </span>
       </ListItemText>
     </ListItem>
