@@ -161,10 +161,10 @@ export default function Step1(props) {
       />
 
       <List aria-label='select service options'>
-        {queriedServices.map((service, key) => (
+        {queriedServices.map(service => (
           <ListItem
             button
-            key={key}
+            key={service.id}
             disabled={formFields.selectedServices.length >= CREATE_ALERT_LIMIT}
             onClick={() => {
               const newState = [...formFields.selectedServices, service.id]
