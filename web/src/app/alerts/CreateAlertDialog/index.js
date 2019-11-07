@@ -48,9 +48,9 @@ export default function CreateAlertDialog(props) {
     setFormFields(prevState => ({ ...prevState, ...e }))
   }
 
-  const steps = ['Alert Info', 'Service Selection', 'Review', null]
+  const stepsTitles = ['Alert Info', 'Service Selection', 'Review', null]
 
-  const onLastStep = activeStep === steps.length - 1
+  const onLastStep = activeStep === stepsTitles.length - 1
 
   const onClose = () => {
     props.handleRequestClose()
@@ -80,7 +80,7 @@ export default function CreateAlertDialog(props) {
       <DialogTitleWrapper fullScreen={!isWideScreen} title='Create New Alert' />
       {!onLastStep && (
         <Stepper activeStep={activeStep}>
-          {steps.map(
+          {stepsTitles.map(
             label =>
               label && (
                 <Step key={label}>
@@ -114,7 +114,7 @@ export default function CreateAlertDialog(props) {
         onLastStep={onLastStep}
         onSubmit={createAlerts}
         setActiveStep={setActiveStep}
-        steps={steps}
+        steps={stepsTitles}
       />
     </Dialog>
   )
