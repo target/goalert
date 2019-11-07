@@ -29,6 +29,7 @@ export default props => {
       >
         {props.title}
       </Typography>
+
       <Divider className={classes.divider} />
 
       {props.description && (
@@ -47,8 +48,8 @@ export default props => {
 
   return (
     <Grid container spacing={2}>
-      <Item title={'Summary'} description={formFields.summary} />
-      <Item title={'Details'} description={formFields.details} />
+      <Item title='Summary' description={formFields.summary} />
+      <Item title='Details' description={formFields.details} />
 
       <Item title={`Selected Services (${formFields.selectedServices.length})`}>
         {formFields.selectedServices.map((id, key) => (
