@@ -29,7 +29,6 @@ export default function StepContent(props) {
         search: formFields.searchQuery,
         favoritesFirst: true,
         omit: formFields.selectedServices,
-        favoritesOnly: formFields.searchQuery.length === 0,
       },
     },
   })
