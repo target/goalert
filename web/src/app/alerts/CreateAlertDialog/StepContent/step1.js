@@ -115,6 +115,7 @@ export default props => {
 
       <FormField
         fullWidth
+        required
         label='Search'
         name='searchQuery'
         fieldName='searchQuery'
