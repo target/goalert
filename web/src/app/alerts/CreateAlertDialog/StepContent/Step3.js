@@ -1,11 +1,17 @@
 import React from 'react'
-import { List, ListItem, Paper, Typography } from '@material-ui/core'
+import { Divider, Grid, List, ListItem, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { ServiceChip } from '../../../util/Chips'
 import _ from 'lodash-es'
 import AlertListItem from '../AlertListItem'
 
 const useStyles = makeStyles(theme => ({
+  noPaddingBottom: {
+    paddingBottom: '0 !important',
+  },
+  noPaddingTop: {
+    paddingTop: '0 !important',
+  },
   spaceBetween: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -13,39 +19,61 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+const pluralize = num => `${num !== 1 ? 's' : ''}`
+
 export default props => {
   const { formFields, mutationStatus } = props
 
   const classes = useStyles()
 
+  console.log(mutationStatus)
+
   const alertsCreated = mutationStatus.alertsCreated || {}
   const graphQLErrors = _.get(mutationStatus, 'alertsFailed.graphQLErrors', [])
 
-  const numCreated = Object.keys(alertsCreated).length
+  const numFailed = graphQLErrors.length
+  const numCreated = Object.keys(alertsCreated).length - numFailed
+
+  const HeaderItem = props => (
+    <Grid item xs={12} className={classes.noPaddingBottom}>
+      <Typography variant='subtitle1' component='h3'>
+        {props.text}
+      </Typography>
+      <Divider />
+    </Grid>
+  )
 
   return (
-    <Paper elevation={0}>
+    <Grid container spacing={2}>
       {numCreated > 0 && (
-        <div>
-          <span className={classes.spaceBetween}>
-            <Typography variant='subtitle1' component='h3'>
-              {`Successfully created ${numCreated} alerts`}
-            </Typography>
-          </span>
-          <List aria-label='Successfully created alerts'>
-            {Object.keys(alertsCreated).map((alias, i) => (
-              <AlertListItem key={i} id={alertsCreated[alias].id} />
-            ))}
-          </List>
-        </div>
+        <HeaderItem
+          text={`Successfully created ${numCreated} alert${pluralize(
+            numCreated,
+          )}`}
+        />
       )}
 
-      {graphQLErrors.length > 0 && (
-        <div>
-          <Typography variant='h6' component='h3'>
-            Failed to create alerts on these services:
-          </Typography>
+      {numCreated > 0 && (
+        <Grid item xs={12} className={classes.noPaddingTop}>
+          <List aria-label='Successfully created alerts'>
+            {Object.keys(alertsCreated).map((alias, i) => {
+              const alert = alertsCreated[alias]
+              if (alert) {
+                return <AlertListItem key={i} id={alertsCreated[alias].id} />
+              }
+            })}
+          </List>
+        </Grid>
+      )}
 
+      {numFailed > 0 && (
+        <HeaderItem
+          text={`Failed to create ${numFailed} alert${pluralize(numFailed)}`}
+        />
+      )}
+
+      {numFailed > 0 && (
+        <Grid item xs={12} className={classes.noPaddingTop}>
           <List aria-label='Failed alerts'>
             {graphQLErrors.map((err, i) => {
               const index = err.path[0].split(/(\d+)$/)[1]
@@ -53,12 +81,13 @@ export default props => {
               return (
                 <ListItem key={i}>
                   <ServiceChip id={serviceId} />
+                  <p>{err.message}</p>
                 </ListItem>
               )
             })}
           </List>
-        </div>
+        </Grid>
       )}
-    </Paper>
+    </Grid>
   )
 }
