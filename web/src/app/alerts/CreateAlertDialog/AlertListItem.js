@@ -60,7 +60,9 @@ export default function AlertListItem(props) {
           </Typography>
           <Typography variant='caption'>{alert.service.name}</Typography> */}
           <Typography>
-            <Link href={alertUrl}>{alertUrl}</Link>
+            <Link href={alertUrl} target='_blank' rel='noopener noreferrer'>
+              {alertUrl}
+            </Link>
           </Typography>
         </span>
 

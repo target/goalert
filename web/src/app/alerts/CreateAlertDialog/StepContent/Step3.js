@@ -1,9 +1,9 @@
 import React from 'react'
-import { Divider, Grid, List, ListItem, Typography } from '@material-ui/core'
+import { Divider, Grid, List, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import { ServiceChip } from '../../../util/Chips'
 import _ from 'lodash-es'
 import AlertListItem from '../AlertListItem'
+import ServiceListItem from '../ServiceListItem'
 
 const useStyles = makeStyles(theme => ({
   noPaddingBottom: {
@@ -25,8 +25,6 @@ export default props => {
   const { formFields, mutationStatus } = props
 
   const classes = useStyles()
-
-  console.log(mutationStatus)
 
   const alertsCreated = mutationStatus.alertsCreated || {}
   const graphQLErrors = _.get(mutationStatus, 'alertsFailed.graphQLErrors', [])
@@ -78,12 +76,7 @@ export default props => {
             {graphQLErrors.map((err, i) => {
               const index = err.path[0].split(/(\d+)$/)[1]
               const serviceId = formFields.selectedServices[index]
-              return (
-                <ListItem key={i}>
-                  <ServiceChip id={serviceId} />
-                  <p>{err.message}</p>
-                </ListItem>
-              )
+              return <ServiceListItem id={serviceId} err={err.message} />
             })}
           </List>
         </Grid>
