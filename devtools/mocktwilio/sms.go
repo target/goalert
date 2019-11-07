@@ -2,13 +2,14 @@ package mocktwilio
 
 import (
 	"encoding/json"
-	"github.com/target/goalert/notification/twilio"
-	"github.com/target/goalert/validation/validate"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 )
@@ -45,13 +46,13 @@ func (s *Server) serveNewMessage(w http.ResponseWriter, req *http.Request) {
 
 	s.mx.Lock()
 	s.messages[sms.msg.SID] = &sms
-	s.mx.Unlock()
 
 	w.WriteHeader(201)
 	err = json.NewEncoder(w).Encode(sms.msg)
 	if err != nil {
 		panic(err)
 	}
+	s.mx.Unlock()
 }
 func (s *Server) serveMessageStatus(w http.ResponseWriter, req *http.Request) {
 	id := strings.TrimSuffix(path.Base(req.URL.Path), ".json")
