@@ -339,30 +339,24 @@ function testAlerts(screen: ScreenFormat) {
     })
   })
   describe('Alert Details Logs', () => {
-    let alert: Alert
-    let time = 1000
+    let logs: AlertLogs
     beforeEach(() => {
-      cy.createAlert({ service: { ep: { stepCount: 1 } } }).then(a => {
-        alert = a
-        return cy.visit(`/alerts/${a.number}`)
+      cy.createAlertLogs({ count: 200 }).then(_logs => {
+        logs = _logs
+        return cy.visit(`/alerts/${logs.alert.number}`)
       })
-    })
-    beforeEach(() => {
-      for (let i = 0; i < 35; i++) {
-        cy.get('[data-cy=alert-status]').then($status => {
-          if ($status.text() === 'ACKNOWLEDGED') {
-            cy.pageAction('Escalate')
-          } else {
-            cy.pageAction('Acknowledge')
-          }
-        })
-        cy.wait(time)
-      }
     })
 
     it('should see load more, click, and no longer see load more', () => {
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 35)
       cy.get('body').should('contain', 'Load More')
       cy.get('[data-cy=load-more-logs]').click()
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 184)
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+
+      // create plus any engine events should be 200+
+      cy.get('ul[data-cy=alert-logs] li').should('have.length.gt', 200)
       cy.get('body').should('not.contain', 'Load More')
     })
   })

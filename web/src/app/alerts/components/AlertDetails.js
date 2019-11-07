@@ -169,7 +169,7 @@ class AlertLogs extends Component {
       ))
     }
     return (
-      <List style={{ padding: 0 }}>
+      <List data-cy='alert-logs' style={{ padding: 0 }}>
         {data}
         {this.renderLoadMore(alert.data.pageInfo.hasNextPage)}
       </List>
