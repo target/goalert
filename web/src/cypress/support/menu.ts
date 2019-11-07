@@ -24,7 +24,11 @@ function menu(
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
 
-    cy.wrap(sub).click()
+    // Can't just use `.click()` due to
+    // an issue with Cypress 3.6.0
+    cy.wrap(sub)
+      .eq(0)
+      .then(el => el.click())
 
     if ((options && options.forceWidescreen) || format === 'wide') {
       cy.get('ul[role=menu]')
