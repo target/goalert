@@ -113,7 +113,11 @@ export default props => {
         {formFields.selectedServices.length === CREATE_ALERT_LIMIT &&
           ' - Maximum number allowed'}
       </InputLabel>
-      <Paper className={classes.chipContainer} elevation={0}>
+      <Paper
+        className={classes.chipContainer}
+        elevation={0}
+        data-cy='service-chip-container'
+      >
         {formFields.selectedServices.length > 0 ? serviceChips : notice}
       </Paper>
 
