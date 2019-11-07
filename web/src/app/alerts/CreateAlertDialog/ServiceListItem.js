@@ -58,14 +58,11 @@ export default function ServiceListItem(props) {
           </Typography>
         </span>
 
-        <span>
-          <IconButton
-            aria-label='Open service in new tab'
-            onClick={() => window.open(serviceUrl)}
-          >
+        <Link href={serviceUrl} target='_blank' rel='noopener noreferrer'>
+          <IconButton aria-label='Open service in new tab'>
             <OpenInNewIcon fontSize='small' />
           </IconButton>
-        </span>
+        </Link>
       </ListItemText>
     </ListItem>
   )
