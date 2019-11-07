@@ -246,6 +246,19 @@ function testAlerts(screen: ScreenFormat) {
   describe('Alert Creation', () => {
     beforeEach(() => cy.visit('/alerts?allServices=1'))
 
+    let svc1: Service
+    let svc2: Service
+
+    beforeEach(() => {
+      cy.createService().then(s => {
+        svc1 = s
+      })
+
+      cy.createService().then(s => {
+        svc2 = s
+      })
+    })
+
     it('should allow canceling', () => {
       cy.pageFab('Create Single Alert')
       cy.get('div[role=dialog]').should('contain', 'Create New Alert')
@@ -290,127 +303,125 @@ function testAlerts(screen: ScreenFormat) {
     })
 
     it('should create an alert for mutliple services', () => {
-      cy.createService().then(svc1 => {
-        cy.createService().then(svc2 => {
-          cy.pageFab('Alert Multiple Services')
+      cy.pageFab('Alert Multiple Services')
 
-          cy.get('div[role=dialog]').as('dialog')
+      cy.get('div[role=dialog]').as('dialog')
 
-          const summary = c.sentence({
-            words: 3,
-          })
-          const details = c.word({ length: 10 })
-
-          // STEP 0
-          cy.get('@dialog')
-            .contains('button', 'Cancel')
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .contains('button', 'Next')
-            .should('be.disabled')
-
-          cy.get('@dialog')
-            .find('input[name=summary]')
-            .type(summary)
-
-          cy.get('@dialog')
-            .find('textarea[name=details]')
-            .type(details)
-
-          cy.get('@dialog')
-            .contains('button', 'Next')
-            .click()
-
-          // STEP 1
-          cy.get('@dialog')
-            .contains('button', 'Next')
-            .should('be.disabled')
-
-          cy.get('@dialog')
-            .find('input[name=searchQuery]')
-            .type(svc1.name)
-
-          cy.get('@dialog')
-            .contains('span', svc1.name)
-            .click()
-
-          cy.get('@dialog')
-            .find('input[name=searchQuery]')
-            .clear()
-
-          cy.get('@dialog')
-            .find('[data-cy=service-chip-container]')
-            .contains('[data-cy=service-chip]', svc1.name)
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .find('input[name=searchQuery]')
-            .type(svc2.name)
-
-          cy.get('@dialog')
-            .contains('span', svc2.name)
-            .click()
-
-          cy.get('@dialog')
-            .find('[data-cy=service-chip-container]')
-            .contains('[data-cy=service-chip]', svc2.name)
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .find('[data-cy=service-chip-container]')
-            .contains('[data-cy=service-chip]', svc1.name)
-            .should('be.visible')
-
-          cy.get('@dialog').contains('label', 'Selected Services (2)')
-
-          // TODO test Add All button
-
-          // TODO test Filter button
-
-          cy.get('@dialog')
-            .contains('button', 'Next')
-            .click()
-
-          // STEP 2
-          cy.get('@dialog')
-            .contains('span', svc1.name)
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .contains('span', svc2.name)
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .contains('[data-cy=service-chip]', svc1.name)
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .contains('[data-cy=service-chip]', svc2.name)
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .contains('button', 'Submit')
-            .click()
-
-          // STEP 3
-          cy.get('@dialog')
-            .contains('button', 'Back')
-            .should('not.be.visible')
-
-          cy.get('@dialog')
-            .contains('button', 'Done')
-            .should('be.visible')
-
-          cy.get('@dialog')
-            .find('li')
-            .should('have.length', 2)
-
-          cy.get('@dialog')
-            .contains('button', 'Done')
-            .click()
-        })
+      const summary = c.sentence({
+        words: 3,
       })
+      const details = c.word({ length: 10 })
+
+      // STEP 0
+      cy.get('@dialog')
+        .contains('button', 'Cancel')
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .should('be.disabled')
+
+      cy.get('@dialog')
+        .find('input[name=summary]')
+        .type(summary)
+
+      cy.get('@dialog')
+        .find('textarea[name=details]')
+        .type(details)
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // STEP 1
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .should('be.disabled')
+
+      cy.get('@dialog')
+        .find('input[name=searchQuery]')
+        .type(svc1.name)
+
+      cy.get('@dialog')
+        .contains('span', svc1.name)
+        .click()
+
+      cy.get('@dialog')
+        .find('input[name=searchQuery]')
+        .clear()
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('input[name=searchQuery]')
+        .type(svc2.name)
+
+      cy.get('@dialog')
+        .contains('span', svc2.name)
+        .click()
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog').contains('label', 'Selected Services (2)')
+
+      // TODO test Add All button
+
+      // TODO test Filter button
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // STEP 2
+      cy.get('@dialog')
+        .contains('span', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('span', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('button', 'Submit')
+        .click()
+
+      //TODO test failures and errors
+
+      // STEP 3
+      cy.get('@dialog')
+        .contains('button', 'Back')
+        .should('not.be.visible')
+
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('li')
+        .should('have.length', 2)
+
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .click()
     })
   })
 
