@@ -13,17 +13,6 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const nextIsDisabled = (activeStep, formFields) => {
-  switch (activeStep) {
-    case 0:
-      return !(formFields.summary && formFields.details)
-    case 1:
-      return formFields.selectedServices.length === 0
-    default:
-      return false
-  }
-}
-
 export default props => {
   const {
     activeStep,
@@ -42,6 +31,17 @@ export default props => {
 
   const stepBackward = () => {
     setActiveStep(prevActiveStep => prevActiveStep - 1)
+  }
+
+  const nextIsDisabled = () => {
+    switch (activeStep) {
+      case 0:
+        return !(formFields.summary && formFields.details)
+      case 1:
+        return formFields.selectedServices.length === 0
+      default:
+        return false
+    }
   }
 
   const getNextBtnLabel = () => {
@@ -97,7 +97,7 @@ export default props => {
         color='primary'
         onClick={handleNext}
         className={classes.button}
-        disabled={nextIsDisabled(activeStep, formFields)}
+        disabled={nextIsDisabled()}
         type={activeStep === steps.length - 2 ? 'submit' : 'button'}
         form={activeStep === steps.length - 2 ? 'create-alert-form' : null}
       >
