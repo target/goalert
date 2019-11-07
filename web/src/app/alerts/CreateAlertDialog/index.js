@@ -50,7 +50,7 @@ export default function CreateAlertDialog(props) {
 
   const steps = ['Alert Info', 'Service Selection', 'Review', null]
 
-  const onLastStep = () => activeStep === steps.length - 1
+  const onLastStep = activeStep === steps.length - 1
 
   const onClose = () => {
     props.handleRequestClose()
@@ -71,14 +71,14 @@ export default function CreateAlertDialog(props) {
   return (
     <Dialog
       open={props.open}
-      onClose={onLastStep() ? null : onClose} // NOTE only close on last step if user hits Done
+      onClose={onLastStep ? null : onClose} // NOTE only close on last step if user hits Done
       fullScreen={!isWideScreen}
       fullWidth
       width='md'
       PaperProps={{ className: classes.dialog }}
     >
       <DialogTitleWrapper fullScreen={!isWideScreen} title='Create New Alert' />
-      {!onLastStep() && (
+      {!onLastStep && (
         <Stepper activeStep={activeStep}>
           {steps.map(
             label =>

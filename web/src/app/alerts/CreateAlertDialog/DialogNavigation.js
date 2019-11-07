@@ -104,7 +104,7 @@ export default function DialogNavigation(props) {
         {getNextBtnLabel()}
       </Button>
 
-      {!onLastStep() && (
+      {!onLastStep && (
         <Button onClick={handleBack} className={classes.button}>
           {getBackBtnLabel()}
         </Button>
