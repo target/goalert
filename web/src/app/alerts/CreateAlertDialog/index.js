@@ -5,8 +5,9 @@ import {
   Step,
   StepLabel,
   DialogContent,
+  makeStyles,
 } from '@material-ui/core'
-import { isWidthDown } from '@material-ui/core/withWidth'
+import { isWidthUp } from '@material-ui/core/withWidth'
 import DialogNavigation from './DialogNavigation'
 import StepContent from './StepContent'
 import { FormContainer, Form } from '../../forms'
@@ -15,8 +16,17 @@ import useWidth from '../../util/useWidth'
 import useCreateAlerts from './useCreateAlerts'
 import { fieldErrors } from '../../util/errutil'
 
+const useStyles = makeStyles(theme => ({
+  dialog: {
+    [theme.breakpoints.up('md')]: {
+      height: '65vh',
+    },
+  },
+}))
+
 export default props => {
   const width = useWidth()
+  const classes = useStyles()
 
   const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
@@ -56,27 +66,18 @@ export default props => {
     }, 1000)
   }
 
+  const isWideScreen = isWidthUp('md', width)
+
   return (
     <Dialog
       open={props.open}
       onClose={onLastStep() ? null : onClose} // NOTE only close on last step if user hits Done
-      fullScreen={isWidthDown('md', width)}
+      fullScreen={!isWideScreen}
       fullWidth
       width='md'
-      PaperProps={
-        isWidthDown('md', width)
-          ? null
-          : {
-              style: {
-                height: '65vh',
-              },
-            }
-      }
+      PaperProps={{ className: classes.dialog }}
     >
-      <DialogTitleWrapper
-        fullScreen={isWidthDown('md', width)}
-        title='Create New Alert'
-      />
+      <DialogTitleWrapper fullScreen={!isWideScreen} title='Create New Alert' />
       {!onLastStep() && (
         <Stepper activeStep={activeStep}>
           {steps.map(

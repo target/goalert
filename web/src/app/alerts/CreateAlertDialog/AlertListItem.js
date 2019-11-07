@@ -9,7 +9,7 @@ import {
   Link,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import { LinkVariant as LinkIcon } from 'mdi-material-ui'
+import ContentCopyIcon from 'mdi-material-ui/ContentCopy'
 
 import gql from 'graphql-tag'
 import copyToClipboard from '../../util/copyToClipboard-v2'
@@ -73,7 +73,7 @@ export default function AlertListItem(props) {
               copyToClipboard(alertUrl)
             }}
           >
-            <LinkIcon fontSize='small' />
+            <ContentCopyIcon fontSize='small' />
           </IconButton>
           <IconButton
             aria-label='Open alert in new tab'
