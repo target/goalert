@@ -81,10 +81,10 @@ export default function Step1(props) {
     />
   )
 
-  const serviceChips = formFields.selectedServices.map((id, key) => {
+  const serviceChips = formFields.selectedServices.map(id => {
     return (
       <ServiceChip
-        key={key}
+        key={id}
         clickable={false}
         id={id}
         style={{ margin: 3 }}
