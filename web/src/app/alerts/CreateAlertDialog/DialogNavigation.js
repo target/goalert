@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default props => {
+export default function DialogNavigation(props) {
   const {
     activeStep,
     formFields,
