@@ -115,10 +115,10 @@ export default props => {
 
       <FormField
         fullWidth
-        required
         label='Search'
         name='searchQuery'
         fieldName='searchQuery'
+        required
         component={TextField}
         InputProps={{
           ref: fieldRef,
