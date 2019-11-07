@@ -6,7 +6,7 @@ const c = new Chance()
 testScreen('Alerts', testAlerts)
 
 function testAlerts(screen: ScreenFormat) {
-  /* describe('Alerts List', () => {
+  describe('Alerts List', () => {
     let alert: Alert
     beforeEach(() => {
       cy.createAlert()
@@ -337,7 +337,7 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
     })
-  }) */
+  })
   describe('Alert Details Logs', () => {
     let alert: Alert
     let time = 1000
