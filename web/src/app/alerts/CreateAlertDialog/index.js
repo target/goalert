@@ -75,7 +75,7 @@ export default props => {
     >
       <DialogTitleWrapper
         fullScreen={isWidthDown('md', width)}
-        title={'Create New Alert'}
+        title='Create New Alert'
       />
       {!onLastStep() && (
         <Stepper activeStep={activeStep}>
