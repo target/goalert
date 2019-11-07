@@ -113,7 +113,11 @@ export default function AlertDetailLogs(props) {
       </List>
     )
   }
-  return <List style={{ padding: 0 }}>{logs}</List>
+  return (
+    <List data-cy='alert-logs' style={{ padding: 0 }}>
+      {logs}
+    </List>
+  )
 }
 AlertDetailLogs.propTypes = {
   alertID: p.number,

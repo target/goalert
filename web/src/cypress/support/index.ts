@@ -31,6 +31,7 @@ import './page-action'
 import './page-nav'
 import './page-fab'
 import './config'
+import './sql'
 
 export * from './util'
 
