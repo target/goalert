@@ -19,7 +19,7 @@ const query = gql`
   }
 `
 
-export default props => {
+export default function StepContent(props) {
   const { formFields, mutationStatus, onChange } = props
 
   // TODO loading error handles

@@ -15,7 +15,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default props => {
+export default function Step2(props) {
   const { formFields } = props
 
   const classes = useStyles()

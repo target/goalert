@@ -21,7 +21,7 @@ const useStyles = makeStyles(theme => ({
 
 const pluralize = num => `${num !== 1 ? 's' : ''}`
 
-export default props => {
+export default function Step3(props) {
   const { formFields, mutationStatus } = props
 
   const classes = useStyles()

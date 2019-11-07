@@ -24,7 +24,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default props => {
+export default function CreateAlertDialog(props) {
   const width = useWidth()
   const classes = useStyles()
 

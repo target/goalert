@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
 
 const CREATE_ALERT_LIMIT = 35
 
-export default props => {
+export default function Step1(props) {
   const { formFields, queriedServices } = props
 
   const fieldRef = useRef()

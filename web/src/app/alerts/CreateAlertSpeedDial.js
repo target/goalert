@@ -16,7 +16,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default props => {
+export default function CreateAlertSpeedDial(props) {
   const classes = useStyles()
 
   const [showCreateAlertForm, setShowCreateAlertForm] = useState(false)
