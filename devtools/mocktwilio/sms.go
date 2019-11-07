@@ -46,13 +46,17 @@ func (s *Server) serveNewMessage(w http.ResponseWriter, req *http.Request) {
 
 	s.mx.Lock()
 	s.messages[sms.msg.SID] = &sms
-
-	w.WriteHeader(201)
-	err = json.NewEncoder(w).Encode(sms.msg)
+	data, err := json.Marshal(sms.msg)
 	if err != nil {
 		panic(err)
 	}
 	s.mx.Unlock()
+
+	w.WriteHeader(201)
+	_, err = w.Write(data)
+	if err != nil {
+		panic(err)
+	}
 }
 func (s *Server) serveMessageStatus(w http.ResponseWriter, req *http.Request) {
 	id := strings.TrimSuffix(path.Base(req.URL.Path), ".json")
