@@ -54,11 +54,10 @@ export default function Step3(props) {
       {numCreated > 0 && (
         <Grid item xs={12} className={classes.noPaddingTop}>
           <List aria-label='Successfully created alerts'>
-            {Object.keys(alertsCreated).map((alias, i) => {
+            {Object.keys(alertsCreated).map(alias => {
               const alert = alertsCreated[alias]
-              if (alert) {
-                return <AlertListItem key={i} id={alertsCreated[alias].id} />
-              }
+              if (!alert) return null
+              return <AlertListItem key={alias} id={alertsCreated[alias].id} />
             })}
           </List>
         </Grid>
