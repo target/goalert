@@ -41,6 +41,9 @@ func MapDBError(err error) error {
 		if dbErr.ConstraintName == "heartbeat_monitor_name_service_id" {
 			return validation.NewFieldError("Name", "heartbeat monitor already exists with that name")
 		}
+		if dbErr.ConstraintName == "idx_no_alert_duplicates" {
+			return validation.NewFieldError("", "duplicate alert already exists")
+		}
 	case "23514": // check constraint
 		newErr := mapLimitError(dbErr)
 		if newErr != nil {
