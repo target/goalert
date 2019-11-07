@@ -22,8 +22,7 @@ const query = gql`
 export default function StepContent(props) {
   const { formFields, mutationStatus, onChange } = props
 
-  // TODO loading error handles
-  const { data } = useQuery(query, {
+  const { data, error } = useQuery(query, {
     variables: {
       input: {
         search: formFields.searchQuery,
@@ -32,6 +31,8 @@ export default function StepContent(props) {
       },
     },
   })
+
+  if (error) return 'Error loading services'
 
   const queriedServices = _.get(data, 'services.nodes', [])
 
