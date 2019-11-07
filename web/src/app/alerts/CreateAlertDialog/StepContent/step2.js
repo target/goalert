@@ -4,6 +4,9 @@ import { makeStyles } from '@material-ui/core/styles'
 import { ServiceChip } from '../../../util/Chips'
 
 const useStyles = makeStyles(theme => ({
+  divider: {
+    backgroundColor: '#bdbdbd',
+  },
   itemTitle: {
     paddingBottom: 0,
   },
@@ -26,7 +29,7 @@ export default props => {
       >
         {props.title}
       </Typography>
-      <Divider />
+      <Divider className={classes.divider} />
 
       {props.description && (
         <Typography
