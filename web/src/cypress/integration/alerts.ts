@@ -6,7 +6,7 @@ const c = new Chance()
 testScreen('Alerts', testAlerts)
 
 function testAlerts(screen: ScreenFormat) {
-  describe('Alerts List', () => {
+  /* describe('Alerts List', () => {
     let alert: Alert
     beforeEach(() => {
       cy.createAlert()
@@ -336,6 +336,34 @@ function testAlerts(screen: ScreenFormat) {
       cy.pageAction('Close')
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
+    })
+  }) */
+  describe('Alert Details Logs', () => {
+    let alert: Alert
+    let time = 1000
+    beforeEach(() => {
+      cy.createAlert({ service: { ep: { stepCount: 1 } } }).then(a => {
+        alert = a
+        return cy.visit(`/alerts/${a.number}`)
+      })
+    })
+    beforeEach(() => {
+      for (let i = 0; i < 35; i++) {
+        cy.get('[data-cy=alert-status]').then($status => {
+          if ($status.text() === 'ACKNOWLEDGED') {
+            cy.pageAction('Escalate')
+          } else {
+            cy.pageAction('Acknowledge')
+          }
+        })
+        cy.wait(time)
+      }
+    })
+
+    it('should see load more, click, and no longer see load more', () => {
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+      cy.get('body').should('not.contain', 'Load More')
     })
   })
 }

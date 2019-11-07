@@ -589,7 +589,7 @@ export default class AlertDetails extends Component {
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant='body1'>
+                  <Typography variant='body1' data-cy='alert-status'>
                     {alert.status.toUpperCase()}
                   </Typography>
                 </Grid>
