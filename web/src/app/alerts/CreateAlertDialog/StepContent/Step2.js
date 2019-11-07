@@ -52,9 +52,9 @@ export default function Step2(props) {
       <Item title='Details' description={formFields.details} />
 
       <Item title={`Selected Services (${formFields.selectedServices.length})`}>
-        {formFields.selectedServices.map((id, key) => (
+        {formFields.selectedServices.map(id => (
           <ServiceChip
-            key={key}
+            key={id}
             clickable={false}
             id={id}
             style={{ margin: 3 }}
