@@ -10,6 +10,7 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Switch from '@material-ui/core/Switch'
+import Button from '@material-ui/core/Button'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
@@ -27,15 +28,153 @@ import Options from '../../util/Options'
 import gql from 'graphql-tag'
 import PageActions from '../../util/PageActions'
 import Markdown from '../../util/Markdown'
+import { graphql } from 'react-apollo'
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
 
-const sortTime = (a, b) => {
-  const ma = moment(a.timestamp)
-  const mb = moment(b.timestamp)
-  if (ma.isSame(mb)) return 0
-  return ma.isAfter(mb) ? -1 : 1
+const LIMIT = 149
+
+const query = gql`
+  query getAlert($id: Int!, $input: AlertRecentEventsOptions) {
+    alert(id: $id) {
+      data: recentEvents(input: $input) {
+        nodes {
+          timestamp
+          message
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+`
+
+@graphql(query, {
+  options: props => {
+    return {
+      showExact: props.showExact,
+      variables: {
+        id: props.data,
+        input: {
+          after: '',
+          limit: 35,
+        },
+      },
+    }
+  },
+  props: props => {
+    return {
+      showExact: props.ownProps.showExact,
+      data: props.data,
+      loadMore: queryVariables => {
+        return props.data.fetchMore({
+          variables: queryVariables,
+          updateQuery(prev, { fetchMoreResult }) {
+            if (!fetchMoreResult) return prev
+            return {
+              alert: {
+                ...fetchMoreResult.alert,
+                data: {
+                  ...fetchMoreResult.alert.data,
+                  nodes: prev.alert.data.nodes.concat(
+                    fetchMoreResult.alert.data.nodes,
+                  ),
+                },
+              },
+            }
+          },
+        })
+      },
+    }
+  },
+})
+@withStyles(styles)
+@isFullScreen()
+class AlertLogs extends Component {
+  handleLoadMore = () => {
+    let id = this.props.data.variables.id
+    let after = this.props.data.alert.data.pageInfo.endCursor
+    this.props.loadMore({
+      id: id,
+      input: {
+        after: after,
+        limit: LIMIT,
+      },
+    })
+  }
+  renderNoResults = () => {
+    return (
+      <ListItem>
+        <ListItemText primary='No events.' />
+      </ListItem>
+    )
+  }
+  renderLoadMore(hasNextPage) {
+    if (hasNextPage) {
+      return (
+        <Button
+          style={{ width: '100%' }}
+          onClick={this.handleLoadMore}
+          variant='outlined'
+          data-cy='load-more-logs'
+        >
+          Load More
+        </Button>
+      )
+    }
+  }
+  render() {
+    const { alert } = this.props.data
+    let data = []
+    if (alert) {
+      if (alert.data.nodes.length <= 35) {
+        this.props.data.startPolling(2500)
+      } else this.props.data.stopPolling()
+      data = alert.data ? alert.data.nodes : []
+    }
+
+    if (!data.length) {
+      return this.renderNoResults()
+    }
+    if (this.props.showExact) {
+      data = data.map((log, index) => (
+        <div key={index}>
+          <Divider />
+          <ListItem>
+            <ListItemText
+              primary={moment(log.timestamp)
+                .local()
+                .format('MMM Do YYYY, h:mm:ss a')}
+              secondary={log.message}
+            />
+          </ListItem>
+        </div>
+      ))
+    } else {
+      data = data.map((log, index) => (
+        <div key={index}>
+          <Divider />
+          <ListItem>
+            <ListItemText
+              primary={moment(log.timestamp)
+                .local()
+                .calendar()}
+              secondary={log.message}
+            />
+          </ListItem>
+        </div>
+      ))
+    }
+    return (
+      <List style={{ padding: 0 }}>
+        {data}
+        {this.renderLoadMore(alert.data.pageInfo.hasNextPage)}
+      </List>
+    )
+  }
 }
 
 @withStyles(styles)
@@ -75,41 +214,6 @@ export default class AlertDetails extends Component {
     })
     localStorage.setItem(exactTimesKey, newVal.toString())
   }
-
-  renderAlertLogEvents() {
-    let logs = this.props.data.logs_2.slice(0).sort(sortTime)
-
-    if (logs.length === 0) {
-      return (
-        <div>
-          <Divider />
-          <ListItem>
-            <ListItemText primary='No events.' />
-          </ListItem>
-        </div>
-      )
-    }
-
-    return logs.map((log, index) => {
-      let alertTimeStamp = moment(log.timestamp)
-        .local()
-        .calendar()
-      if (this.state.showExactTimes) {
-        alertTimeStamp = moment(log.timestamp)
-          .local()
-          .format('MMM Do YYYY, h:mm:ss a')
-      }
-      return (
-        <div key={index}>
-          <Divider />
-          <ListItem>
-            <ListItemText primary={alertTimeStamp} secondary={log.message} />
-          </ListItem>
-        </div>
-      )
-    })
-  }
-
   renderAlertLogs() {
     return (
       <Card className={this.getCardClassName()}>
@@ -134,7 +238,10 @@ export default class AlertDetails extends Component {
           className={this.props.classes.tableCardContent}
           style={{ paddingBottom: 0 }}
         >
-          <List>{this.renderAlertLogEvents()}</List>
+          <AlertLogs
+            data={this.props.data.number}
+            showExact={this.state.showExactTimes}
+          />
         </CardContent>
       </Card>
     )
@@ -381,7 +488,6 @@ export default class AlertDetails extends Component {
       status,
     } = this.props.data
     if (status.toLowerCase() === 'closed') return [] // no options to show if alert is already closed
-
     const updateStatusMutation = gql`
       mutation UpdateAlertStatusMutation($input: UpdateAlertStatusInput!) {
         updateAlertStatus(input: $input) {
@@ -395,7 +501,6 @@ export default class AlertDetails extends Component {
         }
       }
     `
-
     let options = []
     const ack = {
       text: 'Acknowledge',
