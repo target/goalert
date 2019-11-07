@@ -21,8 +21,8 @@ export default props => {
   const [activeStep, setActiveStep] = useState(0)
   const [formFields, setFormFields] = useState({
     // data for mutation
-    Summary: '',
-    Details: '',
+    summary: '',
+    details: '',
     selectedServices: [],
 
     // form helper
