@@ -21,6 +21,9 @@ import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
 
 const useStyles = makeStyles(theme => ({
+  addAll: {
+    backgroundColor: theme.palette.primary['400'],
+  },
   chipContainer: {
     padding: theme.spacing(0.5),
     marginBottom: theme.spacing(2),
@@ -56,9 +59,10 @@ export default props => {
 
   const AddAll = () => (
     <Chip
+      className={classes.addAll}
+      color='primary' // for white text
       component='button'
       label='Add All'
-      color='primary'
       size='small'
       icon={<AddIcon fontSize='small' />}
       onClick={() => {
