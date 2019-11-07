@@ -141,6 +141,6 @@ export const GraphQLClient = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
-    mutate: { awaitRefetchQueries: true },
+    mutate: { awaitRefetchQueries: true, errorPolicy: 'all' },
   },
 })
