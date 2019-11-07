@@ -22,21 +22,6 @@ export default function CreateAlertSpeedDial(props) {
   const [showCreateAlertForm, setShowCreateAlertForm] = useState(false)
   const [showCreateAlertDialog, setShowCreateAlertDialog] = useState(false)
 
-  const showForm = form => {
-    switch (form) {
-      case 'createAlert':
-        setShowCreateAlertForm(true)
-        break
-      case 'createAlertByLabel':
-        setShowCreateAlertDialog(true)
-        break
-      default:
-        setShowCreateAlertForm(false)
-        setShowCreateAlertDialog(false)
-        break
-    }
-  }
-
   return (
     <React.Fragment>
       <SpeedDial
@@ -47,23 +32,23 @@ export default function CreateAlertSpeedDial(props) {
         actions={[
           {
             label: 'Alert Multiple Services',
-            onClick: () => showForm('createAlertByLabel'),
+            onClick: () => setShowCreateAlertDialog(true),
             icon: <ServicesIcon />,
           },
           {
             label: 'Create Single Alert',
-            onClick: () => showForm('createAlert'),
+            onClick: () => setShowCreateAlertForm(true),
             icon: <AlertsIcon />,
           },
         ]}
       />
       <AlertForm
         open={showCreateAlertForm}
-        handleRequestClose={() => showForm(null)}
+        handleRequestClose={() => setShowCreateAlertForm(false)}
       />
       <CreateAlertDialog
         open={showCreateAlertDialog}
-        handleRequestClose={() => showForm(null)}
+        handleRequestClose={() => setShowCreateAlertDialog(false)}
       />
     </React.Fragment>
   )
