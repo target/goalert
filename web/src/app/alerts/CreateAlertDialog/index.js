@@ -54,16 +54,16 @@ export default function CreateAlertDialog(props) {
 
   const onClose = () => {
     props.handleRequestClose()
-    // NOTE dialog takes time to fade out
-    setTimeout(() => {
-      setActiveStep(0)
-      setFormFields({
-        summary: '',
-        details: '',
-        selectedServices: [],
-        searchQuery: '',
-      })
-    }, 1000)
+  }
+
+  const resetForm = () => {
+    setActiveStep(0)
+    setFormFields({
+      summary: '',
+      details: '',
+      selectedServices: [],
+      searchQuery: '',
+    })
   }
 
   const isWideScreen = isWidthUp('md', width)
@@ -76,6 +76,7 @@ export default function CreateAlertDialog(props) {
       fullWidth
       width='md'
       PaperProps={{ className: classes.dialog }}
+      onExited={resetForm}
     >
       <DialogTitleWrapper fullScreen={!isWideScreen} title='Create New Alert' />
       {!onLastStep && (
