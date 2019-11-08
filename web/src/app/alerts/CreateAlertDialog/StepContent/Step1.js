@@ -20,6 +20,7 @@ import FavoriteIcon from '@material-ui/icons/Star'
 import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
 import _ from 'lodash-es'
+import getServiceLabel from '../../../util/getServiceLabel'
 
 const useStyles = makeStyles(theme => ({
   addAll: {
@@ -52,11 +53,7 @@ export default function Step1(props) {
   const fieldRef = useRef()
   const classes = useStyles()
 
-  const labelKey = formFields.searchQuery.split(/(!=|=)/)[0]
-  const labelValue = formFields.searchQuery
-    .split(/(!=|=)/)
-    .slice(2)
-    .join('')
+  const { labelKey, labelValue } = getServiceLabel(formFields.searchQuery)
 
   const AddAll = () => (
     <Chip
