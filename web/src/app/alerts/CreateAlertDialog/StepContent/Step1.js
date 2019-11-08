@@ -70,10 +70,9 @@ export default function Step1(props) {
 
         // build newState
         let newState = formFields.selectedServices
-        toAdd.forEach(s => {
-          if (newState.length < CREATE_ALERT_LIMIT) {
-            newState = newState.concat(s)
-          }
+        toAdd.some(s => {
+          if (newState.length >= CREATE_ALERT_LIMIT) return true
+          newState = [...newState, s]
         })
 
         props.onChange({ selectedServices: newState })
