@@ -19,6 +19,7 @@ import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
 import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
+import _ from 'lodash-es'
 
 const useStyles = makeStyles(theme => ({
   addAll: {
@@ -74,6 +75,7 @@ export default function Step1(props) {
           if (newState.length >= CREATE_ALERT_LIMIT) return true
           newState = [...newState, s]
         })
+        newState = _.uniq(newState)
 
         props.onChange({ selectedServices: newState })
       }}
