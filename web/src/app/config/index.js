@@ -9,3 +9,5 @@ export const DEFAULT_SPIN_DELAY_MS = 200
 export const DEFAULT_SPIN_WAIT_MS = 1500
 
 export const DEBOUNCE_DELAY = 250
+
+export const CREATE_ALERT_LIMIT = 35

@@ -21,6 +21,7 @@ import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
 import _ from 'lodash-es'
 import getServiceLabel from '../../../util/getServiceLabel'
+import { CREATE_ALERT_LIMIT } from '../../../config'
 
 const useStyles = makeStyles(theme => ({
   addAll: {
@@ -44,8 +45,6 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '9em',
   },
 }))
-
-const CREATE_ALERT_LIMIT = 35
 
 export default function Step1(props) {
   const { formFields, queriedServices } = props
