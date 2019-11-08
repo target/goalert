@@ -112,10 +112,8 @@ export default function CreateAlertDialog(props) {
         activeStep={activeStep}
         formFields={formFields}
         onClose={onClose}
-        onLastStep={onLastStep}
         onSubmit={createAlerts}
         setActiveStep={setActiveStep}
-        steps={stepsTitles}
       />
     </Dialog>
   )

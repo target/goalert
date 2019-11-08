@@ -14,15 +14,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export default function DialogNavigation(props) {
-  const {
-    activeStep,
-    formFields,
-    onClose,
-    onLastStep,
-    onSubmit,
-    setActiveStep,
-    steps,
-  } = props
+  const { activeStep, formFields, onClose, onSubmit, setActiveStep } = props
   const classes = useStyles()
 
   const stepForward = () => {
@@ -33,82 +25,89 @@ export default function DialogNavigation(props) {
     setActiveStep(prevActiveStep => prevActiveStep - 1)
   }
 
-  const nextIsDisabled = () => {
-    switch (activeStep) {
-      case 0:
-        return !(formFields.summary && formFields.details)
-      case 1:
-        return formFields.selectedServices.length === 0
-      default:
-        return false
-    }
-  }
-
-  const getNextBtnLabel = () => {
-    switch (activeStep) {
-      case steps.length - 1:
-        return 'Done'
-      case steps.length - 2:
-        return 'Submit'
-      default:
-        return 'Next'
-    }
-  }
-
-  const getBackBtnLabel = () => {
-    switch (activeStep) {
-      case 0:
-        return 'Cancel'
-      default:
-        return 'Back'
-    }
-  }
-
-  const handleNext = e => {
-    e.preventDefault()
-    switch (activeStep) {
-      case steps.length - 1:
-        onClose()
-        break
-      case steps.length - 2:
-        onSubmit()
-        stepForward()
-        break
-      default:
-        stepForward()
-    }
-  }
-
-  const handleBack = () => {
-    switch (activeStep) {
-      case 0:
-        return onClose()
-      default:
-        return stepBackward()
-    }
-  }
-
   // NOTE buttons are mounted in order of tab precedence and arranged with CSS
   // https://www.maxability.co.in/2016/06/13/tabindex-for-accessibility-good-bad-and-ugly/
+  const renderButtons = () => {
+    switch (activeStep) {
+      case 0:
+        return (
+          <React.Fragment>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={stepForward}
+              className={classes.button}
+              disabled={!(formFields.summary && formFields.details)}
+              type='button'
+            >
+              Next
+            </Button>
+            <Button onClick={onClose} className={classes.button}>
+              Cancel
+            </Button>
+          </React.Fragment>
+        )
+      case 1:
+        return (
+          <React.Fragment>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={stepForward}
+              className={classes.button}
+              disabled={formFields.selectedServices.length === 0}
+              type='button'
+            >
+              Next
+            </Button>
+            <Button onClick={stepBackward} className={classes.button}>
+              Back
+            </Button>
+          </React.Fragment>
+        )
+      case 2:
+        return (
+          <React.Fragment>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={() => {
+                onSubmit()
+                stepForward()
+              }}
+              className={classes.button}
+              disabled={formFields.selectedServices.length === 0}
+              type='submit'
+            >
+              Next
+            </Button>
+            <Button onClick={stepBackward} className={classes.button}>
+              Back
+            </Button>
+          </React.Fragment>
+        )
+      case 3:
+        return (
+          <React.Fragment>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={onClose}
+              className={classes.button}
+              type='button'
+            >
+              Done
+            </Button>
+          </React.Fragment>
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <DialogActions className={classes.dialogActions}>
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={handleNext}
-        className={classes.button}
-        disabled={nextIsDisabled()}
-        type={activeStep === steps.length - 2 ? 'submit' : 'button'}
-        form={activeStep === steps.length - 2 ? 'create-alert-form' : null}
-      >
-        {getNextBtnLabel()}
-      </Button>
-
-      {!onLastStep && (
-        <Button onClick={handleBack} className={classes.button}>
-          {getBackBtnLabel()}
-        </Button>
-      )}
+      {renderButtons()}
     </DialogActions>
   )
 }
