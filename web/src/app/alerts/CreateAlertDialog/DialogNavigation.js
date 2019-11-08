@@ -79,7 +79,7 @@ export default function DialogNavigation(props) {
               disabled={formFields.selectedServices.length === 0}
               type='submit'
             >
-              Next
+              Submit
             </Button>
             <Button onClick={stepBackward} className={classes.button}>
               Back

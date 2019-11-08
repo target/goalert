@@ -20,7 +20,7 @@ const query = gql`
 `
 
 export default function StepContent(props) {
-  const { formFields, mutationStatus, onChange } = props
+  const { formFields, mutationStatus, onChange, setActiveStep } = props
 
   const { data } = useQuery(query, {
     variables: {
@@ -48,7 +48,13 @@ export default function StepContent(props) {
     case 2:
       return <Step2 formFields={formFields} />
     case 3:
-      return <Step3 formFields={formFields} mutationStatus={mutationStatus} />
+      return (
+        <Step3
+          formFields={formFields}
+          mutationStatus={mutationStatus}
+          setActiveStep={setActiveStep}
+        />
+      )
     default:
       return 'Unknown step'
   }

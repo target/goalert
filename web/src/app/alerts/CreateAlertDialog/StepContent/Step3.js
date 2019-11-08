@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Divider, Grid, List, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import _ from 'lodash-es'
@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => ({
 const pluralize = num => `${num !== 1 ? 's' : ''}`
 
 export default function Step3(props) {
-  const { formFields, mutationStatus } = props
+  const { formFields, mutationStatus, setActiveStep } = props
 
   const classes = useStyles()
 
@@ -31,6 +31,27 @@ export default function Step3(props) {
 
   const numFailed = graphQLErrors.length
   const numCreated = Object.keys(alertsCreated).length - numFailed
+
+  useEffect(() => {
+    if (numFailed === 0) return
+
+    const step0FieldNames = ['Details', 'Summary']
+
+    if (
+      graphQLErrors.some(err =>
+        step0FieldNames.includes(err.extensions.fieldName),
+      )
+    ) {
+      setActiveStep(0)
+    } else if (
+      graphQLErrors[0].extensions.isMultiFieldError &&
+      graphQLErrors[0].extensions.fieldErrors.some(err =>
+        step0FieldNames.includes(err.fieldName),
+      )
+    ) {
+      setActiveStep(0)
+    }
+  }, [graphQLErrors])
 
   const HeaderItem = props => (
     <Grid item xs={12} className={classes.noPaddingBottom}>
@@ -72,10 +93,16 @@ export default function Step3(props) {
       {numFailed > 0 && (
         <Grid item xs={12} className={classes.noPaddingTop}>
           <List aria-label='Failed alerts'>
-            {graphQLErrors.map((err, i) => {
+            {graphQLErrors.map(err => {
               const index = err.path[0].split(/(\d+)$/)[1]
               const serviceId = formFields.selectedServices[index]
-              return <ServiceListItem id={serviceId} err={err.message} />
+              return (
+                <ServiceListItem
+                  key={serviceId}
+                  id={serviceId}
+                  err={err.message}
+                />
+              )
             })}
           </List>
         </Grid>

@@ -1,7 +1,6 @@
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { fieldAlias, mergeFields, mapInputVars } from '../../util/graphql'
-import { fieldErrors } from '../../util/errutil'
 
 const baseMutation = gql`
   mutation CreateAlertMutation($input: CreateAlertInput!) {
@@ -37,12 +36,14 @@ const useCreateAlerts = (formFields, setActiveStep) => {
   return useMutation(m, {
     variables,
     skip: formFields.selectedServices.length === 0,
-    onError: errorMsg => {
-      const errors = fieldErrors(errorMsg)
-      if (errors.some(e => e.field === 'summary' || e.field === 'details')) {
-        setActiveStep(0)
-      }
-    },
+    // NOTE onError is a no-op here as long as the mutation errorPolicy is set to 'all'
+    // bug report: https://github.com/apollographql/react-apollo/issues/2590
+    // onError: errorMsg => {
+    //   const errors = fieldErrors(errorMsg)
+    //   if (errors.some(e => e.field === 'summary' || e.field === 'details')) {
+    //     setActiveStep(0)
+    //   }
+    // },
   })
 }
 

@@ -101,6 +101,7 @@ export default function CreateAlertDialog(props) {
           <Form id='create-alert-form'>
             <StepContent
               activeStep={activeStep}
+              setActiveStep={setActiveStep}
               formFields={formFields}
               mutationStatus={{ alertsCreated, alertsFailed, isCreatingAlerts }}
               onChange={e => onStepContentChange(e)}
