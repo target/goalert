@@ -6,6 +6,7 @@ import {
   Typography,
   IconButton,
   Link,
+  makeStyles,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import ContentCopyIcon from 'mdi-material-ui/ContentCopy'
@@ -13,8 +14,18 @@ import ContentCopyIcon from 'mdi-material-ui/ContentCopy'
 import copyToClipboard from '../../util/copyToClipboard-v2'
 import { absURLSelector } from '../../selectors'
 
+const useStyles = makeStyles(theme => ({
+  listItemText: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+}))
+
 export default function AlertListItem(props) {
   const { id } = props
+
+  const classes = useStyles()
 
   const selectAlertUrl = absURLSelector({
     router: { location: { pathname: 'alerts' } },
@@ -24,14 +35,7 @@ export default function AlertListItem(props) {
 
   return (
     <ListItem key={id} divider>
-      <ListItemText
-        disableTypography
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
             <Link href={alertUrl} target='_blank' rel='noopener noreferrer'>

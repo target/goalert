@@ -7,6 +7,7 @@ import {
   Typography,
   IconButton,
   Link,
+  makeStyles,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
@@ -22,8 +23,18 @@ const serviceQuery = gql`
   }
 `
 
+const useStyles = makeStyles(theme => ({
+  listItemText: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+}))
+
 export default function ServiceListItem(props) {
   const { id, err } = props
+
+  const classes = useStyles()
 
   const { data, loading, error: queryError } = useQuery(serviceQuery, {
     variables: {
@@ -44,14 +55,7 @@ export default function ServiceListItem(props) {
 
   return (
     <ListItem key={id} divider>
-      <ListItemText
-        disableTypography
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
             <Link href={serviceUrl} target='_blank' rel='noopener noreferrer'>
