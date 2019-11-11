@@ -76,7 +76,7 @@ export default function AlertDetailLogs(props) {
   }
   if (data && data.alert.data.pageInfo.hasNextPage) {
     return (
-      <List style={{ padding: 0 }}>
+      <List data-cy='alert-logs' style={{ padding: 0 }}>
         {logs}
         <Button
           style={{ width: '100%' }}
