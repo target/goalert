@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Chip from '@material-ui/core/Chip'
-import { withRouter, useHistory } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
+import { push } from 'connected-react-router'
+import { useDispatch } from 'react-redux'
 import { useQuery } from 'react-apollo'
 
 import {
@@ -26,8 +28,7 @@ const serviceQuery = gql`
 
 export function ServiceChip(props) {
   const { id, name, onDelete, style, onClick } = props
-
-  const history = useHistory()
+  const dispatch = useDispatch()
 
   const { data, loading, error } = useQuery(serviceQuery, {
     variables: {
@@ -57,7 +58,7 @@ export function ServiceChip(props) {
       }
       style={style}
       onDelete={onDelete}
-      onClick={onClick || (() => history.push(`/services/${id}`))}
+      onClick={onClick || (() => dispatch(push(`/services/${id}`)))}
       label={getLabel()}
     />
   )
