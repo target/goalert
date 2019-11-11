@@ -141,6 +141,17 @@ export const GraphQLClient = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
+    mutate: { awaitRefetchQueries: true },
+  },
+})
+
+// errorPolicy can only be set "globally" but breaks if we enable it for existing
+// code. Eventually we should transition everything to expect/handle explicit errors.
+export const GraphQLClientWithErrors = new ApolloClient({
+  link: graphql2Link,
+  cache,
+  defaultOptions: {
+    query: queryOpts,
     mutate: { awaitRefetchQueries: true, errorPolicy: 'all' },
   },
 })
