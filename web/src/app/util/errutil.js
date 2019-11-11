@@ -1,4 +1,9 @@
-import { camelCase } from 'lodash-es'
+import _ from 'lodash-es'
+
+// byPath will group errors by their path name.
+export function errorsByPath(err) {
+  return _.groupBy(allErrors(err), e => (e.path || []).join('.'))
+}
 
 // allErrors will return a flat list of all errors in the graphQL error.
 export function allErrors(err) {
@@ -6,7 +11,7 @@ export function allErrors(err) {
   return [].concat(...errs)
 }
 
-const mapName = name => camelCase(name).replace(/Id$/, 'ID')
+const mapName = name => _.camelCase(name).replace(/Id$/, 'ID')
 const stripMessage = msg => msg.split(';')[0]
 const stripDetails = msg => {
   const parts = msg.split(';').slice(1)
@@ -44,6 +49,7 @@ export function fieldErrors(err) {
             .join('.'),
           message: stripMessage(e.message),
           details: stripDetails(e.message),
+          path: err.path,
         }))
       }
 
@@ -54,6 +60,7 @@ export function fieldErrors(err) {
           .join('.'),
         message: stripMessage(err.message),
         details: stripDetails(err.message),
+        path: err.path,
       }
     })
 
