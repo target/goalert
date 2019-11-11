@@ -194,15 +194,7 @@ function testAdmin(screen: ScreenFormat) {
     })
 
     it('should update a boolean toggle field', () => {
-      // Required because in Cypress v3.6.0 `.click` and `.check` do not
-      // work in the mobile view for the switch/checkbox...
-      cy.document().then(doc => {
-        const el = doc.querySelector('input[name="Twilio.Enable"]')
-        if (el) (el as any).click()
-      })
-      // cy.get('input[name="Twilio.Enable"]').check()
-
-      cy.get('input[name="Twilio.Enable"]').should('be.checked')
+      cy.get('input[name="Twilio.Enable"]').check()
       cy.get('button[data-cy="save"]').click()
 
       // save dialog
