@@ -15,7 +15,7 @@ const getAliasedMutation = (mutation, index) =>
     input: 'input' + index,
   })
 
-const useCreateAlerts = (formFields, setActiveStep) => {
+const useCreateAlerts = formFields => {
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
   for (let i = 1; i < formFields.selectedServices.length; i++) {
@@ -36,14 +36,6 @@ const useCreateAlerts = (formFields, setActiveStep) => {
   return useMutation(m, {
     variables,
     skip: formFields.selectedServices.length === 0,
-    // NOTE onError is a no-op here as long as the mutation errorPolicy is set to 'all'
-    // bug report: https://github.com/apollographql/react-apollo/issues/2590
-    // onError: errorMsg => {
-    //   const errors = fieldErrors(errorMsg)
-    //   if (errors.some(e => e.field === 'summary' || e.field === 'details')) {
-    //     setActiveStep(0)
-    //   }
-    // },
   })
 }
 

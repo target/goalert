@@ -42,7 +42,7 @@ export default function CreateAlertDialog(props) {
   const [
     createAlerts,
     { data: alertsCreated, error: alertsFailed, loading: isCreatingAlerts },
-  ] = useCreateAlerts(formFields, setActiveStep)
+  ] = useCreateAlerts(formFields)
 
   const onStepContentChange = e => {
     setFormFields(prevState => ({ ...prevState, ...e }))
