@@ -10,6 +10,7 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+import { useSelector } from 'react-redux'
 
 import gql from 'graphql-tag'
 import { absURLSelector } from '../../selectors'
@@ -47,18 +48,16 @@ export default function ServiceListItem(props) {
   if (loading) return 'Loading...'
   if (queryError) return 'Error fetching data.'
 
-  const selectServiceUrl = absURLSelector({
-    router: { location: { pathname: 'services' } },
-  })
+  const absURL = useSelector(absURLSelector)
 
-  const serviceUrl = `${window.location.origin}/${selectServiceUrl(id)}`
+  const serviceURL = absURL('/services/' + id)
 
   return (
     <ListItem key={id} divider>
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
-            <Link href={serviceUrl} target='_blank' rel='noopener noreferrer'>
+            <Link href={serviceURL} target='_blank' rel='noopener noreferrer'>
               {service.name}
             </Link>
           </Typography>
@@ -67,7 +66,7 @@ export default function ServiceListItem(props) {
           </Typography>
         </span>
 
-        <Link href={serviceUrl} target='_blank' rel='noopener noreferrer'>
+        <Link href={serviceURL} target='_blank' rel='noopener noreferrer'>
           <IconButton aria-label='Open service in new tab'>
             <OpenInNewIcon fontSize='small' />
           </IconButton>

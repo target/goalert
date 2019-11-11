@@ -13,6 +13,7 @@ import ContentCopyIcon from 'mdi-material-ui/ContentCopy'
 
 import copyToClipboard from '../../util/copyToClipboard-v2'
 import { absURLSelector } from '../../selectors'
+import { useSelector } from 'react-redux'
 
 const useStyles = makeStyles(theme => ({
   listItemText: {
@@ -27,19 +28,16 @@ export default function AlertListItem(props) {
 
   const classes = useStyles()
 
-  const selectAlertUrl = absURLSelector({
-    router: { location: { pathname: 'alerts' } },
-  })
-
-  const alertUrl = `${window.location.origin}/${selectAlertUrl(id)}`
+  const absURL = useSelector(absURLSelector)
+  const alertURL = absURL('/alerts/' + id)
 
   return (
     <ListItem key={id} divider>
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
-            <Link href={alertUrl} target='_blank' rel='noopener noreferrer'>
-              {alertUrl}
+            <Link href={alertURL} target='_blank' rel='noopener noreferrer'>
+              {alertURL}
             </Link>
           </Typography>
         </span>
@@ -48,12 +46,12 @@ export default function AlertListItem(props) {
           <IconButton
             aria-label='Copy alert URL'
             onClick={e => {
-              copyToClipboard(alertUrl)
+              copyToClipboard(alertURL)
             }}
           >
             <ContentCopyIcon fontSize='small' />
           </IconButton>
-          <Link href={alertUrl} target='_blank' rel='noopener noreferrer'>
+          <Link href={alertURL} target='_blank' rel='noopener noreferrer'>
             <IconButton aria-label='Open alert in new tab'>
               <OpenInNewIcon fontSize='small' />
             </IconButton>
