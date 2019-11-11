@@ -17,7 +17,7 @@ export default function AlertListItem(props) {
   const { id } = props
 
   const selectAlertUrl = absURLSelector({
-    router: { location: { pathname: '/alerts' } },
+    router: { location: { pathname: 'alerts' } },
   })
 
   const alertUrl = `${window.location.origin}/${selectAlertUrl(id)}`

@@ -11,6 +11,7 @@ import {
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
 import gql from 'graphql-tag'
+import { absURLSelector } from '../../selectors'
 
 const serviceQuery = gql`
   query service($id: ID!) {
@@ -24,7 +25,7 @@ const serviceQuery = gql`
 export default function ServiceListItem(props) {
   const { id, err } = props
 
-  const { data, loading, error } = useQuery(serviceQuery, {
+  const { data, loading, error: queryError } = useQuery(serviceQuery, {
     variables: {
       id,
     },
@@ -33,9 +34,13 @@ export default function ServiceListItem(props) {
   let { service } = data || {}
 
   if (loading) return 'Loading...'
-  if (error) return 'Error fetching data.'
+  if (queryError) return 'Error fetching data.'
 
-  const serviceUrl = `${window.location.origin}/services/${id}`
+  const selectServiceUrl = absURLSelector({
+    router: { location: { pathname: 'services' } },
+  })
+
+  const serviceUrl = `${window.location.origin}/${selectServiceUrl(id)}`
 
   return (
     <ListItem key={id} divider>
