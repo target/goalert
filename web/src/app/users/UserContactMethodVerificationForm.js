@@ -52,7 +52,7 @@ export default function UserContactMethodVerificationForm(props) {
   // We only want to display an error in response to a user action.
   useEffect(() => {
     sendCode().catch(() => {})
-  }, [])
+  }, [sendCode])
 
   return (
     <FormContainer optionalLabels {...props}>

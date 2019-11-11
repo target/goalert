@@ -56,7 +56,6 @@ const useStyles = makeStyles(theme => {
 export default function Search(props) {
   const searchParam = useSelector(searchSelector)
   const dispatch = useDispatch()
-  const setSearchParam = value => dispatch(setURLParam('search', value))
   const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
@@ -73,12 +72,14 @@ export default function Search(props) {
 
   // When typing, we setup a debounce before updating the URL.
   useEffect(() => {
+    const setSearchParam = value => dispatch(setURLParam('search', value))
+
     const t = setTimeout(() => {
       setSearchParam(search)
     }, DEBOUNCE_DELAY)
 
     return () => clearTimeout(t)
-  }, [search])
+  }, [dispatch, search])
 
   function renderTextField(extraProps) {
     return (
