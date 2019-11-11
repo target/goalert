@@ -26,8 +26,8 @@ const useCreateAlerts = (formFields, setActiveStep) => {
   let variables = {}
   formFields.selectedServices.forEach((ss, i) => {
     variables[`input${i}`] = {
-      summary: formFields.summary,
-      details: formFields.details,
+      summary: formFields.summary.trim(),
+      details: formFields.details.trim(),
       serviceID: ss,
     }
   })
