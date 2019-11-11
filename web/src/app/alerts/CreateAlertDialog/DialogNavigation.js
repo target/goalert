@@ -25,8 +25,7 @@ export default function DialogNavigation(props) {
     setActiveStep(prevActiveStep => prevActiveStep - 1)
   }
 
-  // NOTE buttons are mounted in order of tab precedence and arranged with CSS
-  // https://www.maxability.co.in/2016/06/13/tabindex-for-accessibility-good-bad-and-ugly/
+  // NOTE accessibility: buttons are mounted in order of tab precedence and arranged with CSS
   const renderButtons = () => {
     switch (activeStep) {
       case 0:
