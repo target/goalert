@@ -1,10 +1,9 @@
 #!/bin/sh
 
-BASE_URL=$(echo "$DB_URL" | sed 's/?.*$//')
-URL_QUERY=$(echo "$DB_URL" | grep '?' | sed 's/^.*?/?/')
-export GOALERT_DB_URL="$BASE_URL/$(cat ../../db/NAME)$URL_QUERY"
-export CYPRESS_DB_URL="$GOALERT_DB_URL"
+export GOALERT_DB_URL="$DB_URL"
+export CYPRESS_DB_URL="$DB_URL"
 set -x
+start_postgres
 
 export PATH=$PATH:$(pwd)/bin
 mkdir -p logs
@@ -17,7 +16,7 @@ then
   DEBUG_SUFFIX=mobile
 fi
 
-trap "tar czf ../../debug/debug-$(date +%Y%m%d%H%M%S)-$COMMIT-$DEBUG_SUFFIX.tgz cypress" EXIT
+trap "stop_postgres; tar czf ../../debug/debug-$(date +%Y%m%d%H%M%S)-$COMMIT-$DEBUG_SUFFIX.tgz cypress" EXIT
 
 mockslack \
   -client-id=000000000000.000000000000 \
