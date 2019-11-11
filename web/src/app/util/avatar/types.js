@@ -22,7 +22,7 @@ function useValidImage(srcURL) {
   return valid
 }
 
-function renderAvatar(Fallback, otherProps, imgSrc) {
+function AvatarVariant(Fallback, otherProps, imgSrc) {
   const validImage = useValidImage(imgSrc)
 
   return (
@@ -38,7 +38,7 @@ function renderAvatar(Fallback, otherProps, imgSrc) {
 }
 
 export function UserAvatar({ userID, ...otherProps }) {
-  return renderAvatar(
+  return AvatarVariant(
     Person,
     otherProps,
     userID ? `/api/v2/user-avatar/${userID}` : null,
@@ -51,15 +51,17 @@ export function CurrentUserAvatar(otherProps) {
 }
 
 export function ServiceAvatar(props) {
-  return renderAvatar(VpnKey, props)
+  return AvatarVariant(VpnKey, props)
 }
 
 export function EPAvatar(props) {
-  return renderAvatar(Layers, props)
+  return AvatarVariant(Layers, props)
 }
+
 export function RotationAvatar(props) {
-  return renderAvatar(RotateRight, props)
+  return AvatarVariant(RotateRight, props)
 }
+
 export function ScheduleAvatar(props) {
-  return renderAvatar(Today, props)
+  return AvatarVariant(Today, props)
 }
