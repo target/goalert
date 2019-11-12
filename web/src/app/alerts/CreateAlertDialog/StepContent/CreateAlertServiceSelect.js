@@ -168,7 +168,7 @@ export function CreateAlertServiceSelect(props) {
       <TextField
         fullWidth
         label='Search'
-        name='search'
+        name='serviceSearch'
         value={searchInput}
         onChange={e => setSearchInput(e.target.value)}
         InputProps={{

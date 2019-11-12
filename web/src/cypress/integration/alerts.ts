@@ -302,7 +302,7 @@ function testAlerts(screen: ScreenFormat) {
       })
     })
 
-    it('should create an alert for mutliple services', () => {
+    it.only('should create an alert for mutliple services', () => {
       cy.pageFab('Alert Multiple Services')
 
       cy.get('div[role=dialog]').as('dialog')
@@ -318,10 +318,6 @@ function testAlerts(screen: ScreenFormat) {
         .should('be.visible')
 
       cy.get('@dialog')
-        .contains('button', 'Next')
-        .should('be.disabled')
-
-      cy.get('@dialog')
         .find('input[name=summary]')
         .type(summary)
 
@@ -334,12 +330,10 @@ function testAlerts(screen: ScreenFormat) {
         .click()
 
       // STEP 1
-      cy.get('@dialog')
-        .contains('button', 'Next')
-        .should('be.disabled')
+      cy.get('@dialog').contains('button', 'Next')
 
       cy.get('@dialog')
-        .find('input[name=searchQuery]')
+        .find('input[name=serviceSearch]')
         .type(svc1.name)
 
       cy.get('@dialog')
@@ -347,7 +341,7 @@ function testAlerts(screen: ScreenFormat) {
         .click()
 
       cy.get('@dialog')
-        .find('input[name=searchQuery]')
+        .find('input[name=serviceSearch]')
         .clear()
 
       cy.get('@dialog')
@@ -356,7 +350,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('be.visible')
 
       cy.get('@dialog')
-        .find('input[name=searchQuery]')
+        .find('input[name=serviceSearch]')
         .type(svc2.name)
 
       cy.get('@dialog')
@@ -412,7 +406,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('not.be.visible')
 
       cy.get('@dialog')
-        .contains('button', 'Done')
+        .contains('button', 'Okay')
         .should('be.visible')
 
       cy.get('@dialog')
@@ -420,7 +414,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('have.length', 2)
 
       cy.get('@dialog')
-        .contains('button', 'Done')
+        .contains('button', 'Okay')
         .click()
     })
   })
