@@ -36,7 +36,7 @@ export default function CreateAlertDialog(props) {
   const hasSubmitted = Boolean(data) && !hasValidationError
   const currentStep = loading ? 2 : step
 
-  let summary, summaryTitle
+  let review, reviewTitle
   if (hasSubmitted) {
     const createdAlertIDs = _.chain(data)
       .values()
@@ -51,11 +51,11 @@ export default function CreateAlertDialog(props) {
     const failMessage = failedServices.length
       ? ` (${failedServices.length} failed)`
       : ''
-    summaryTitle = `Successfully created ${
+    reviewTitle = `Successfully created ${
       createdAlertIDs.length
     } alert${pluralize(createdAlertIDs.length)}${failMessage}`
 
-    summary = (
+    review = (
       <CreateAlertReview
         createdAlertIDs={_.chain(data)
           .values()
@@ -74,7 +74,7 @@ export default function CreateAlertDialog(props) {
       onClose={props.onClose}
       loading={loading}
       subTitle={
-        summaryTitle || (
+        reviewTitle || (
           <Stepper activeStep={currentStep}>
             {stepTitles.map((title, idx) => (
               <Step key={idx}>
@@ -85,7 +85,7 @@ export default function CreateAlertDialog(props) {
         )
       }
       form={
-        summary || (
+        review || (
           <CreateAlertForm
             activeStep={currentStep}
             value={value}
