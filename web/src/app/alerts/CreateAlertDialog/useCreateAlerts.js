@@ -16,29 +16,32 @@ const getAliasedMutation = (mutation, index) =>
     input: 'input' + index,
   })
 
-const useCreateAlerts = formFields => {
+// useCreateAlerts will return mutation, status and a function for mapping
+// field/paths from the response to the respecitve service ID.
+export const useCreateAlerts = value => {
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
-  for (let i = 1; i < formFields.selectedServices.length; i++) {
+  for (let i = 1; i < value.serviceIDs.length; i++) {
     m = mergeFields(m, getAliasedMutation(baseMutation, i))
   }
 
   // 2. build variables
   let variables = {}
-  formFields.selectedServices.forEach((ss, i) => {
+  const aliasIDMap = {}
+  value.serviceIDs.forEach((ss, i) => {
+    aliasIDMap['alias' + i] = ss
     variables[`input${i}`] = {
-      summary: formFields.summary.trim(),
-      details: formFields.details.trim(),
+      summary: value.summary.trim(),
+      details: value.details.trim(),
       serviceID: ss,
     }
   })
 
-  // 3. execute mutation with variables
-  return useMutation(m, {
+  // 3. build mutation with variables
+  const [mutate, status] = useMutation(m, {
     variables,
-    skip: formFields.selectedServices.length === 0,
     client: GraphQLClientWithErrors,
   })
-}
 
-export { useCreateAlerts as default }
+  return [mutate, status, alias => aliasIDMap[alias]]
+}

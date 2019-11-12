@@ -13,7 +13,7 @@ import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import { useSelector } from 'react-redux'
 
 import gql from 'graphql-tag'
-import { absURLSelector } from '../../selectors'
+import { absURLSelector } from '../../../selectors'
 
 const serviceQuery = gql`
   query service($id: ID!) {
@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default function ServiceListItem(props) {
+export default function CreateAlertServiceListItem(props) {
   const { id, err } = props
 
   const classes = useStyles()
@@ -50,7 +50,7 @@ export default function ServiceListItem(props) {
 
   const absURL = useSelector(absURLSelector)
 
-  const serviceURL = absURL('/services/' + id)
+  const serviceURL = absURL('/services/' + id + '/alerts')
 
   return (
     <ListItem key={id} divider>
@@ -76,6 +76,6 @@ export default function ServiceListItem(props) {
   )
 }
 
-ServiceListItem.propTypes = {
+CreateAlertServiceListItem.propTypes = {
   id: p.string.isRequired,
 }

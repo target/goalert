@@ -11,8 +11,8 @@ import {
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import ContentCopyIcon from 'mdi-material-ui/ContentCopy'
 
-import copyToClipboard from '../../util/copyToClipboard-v2'
-import { absURLSelector } from '../../selectors'
+import copyToClipboard from '../../../util/copyToClipboard-v2'
+import { absURLSelector } from '../../../selectors'
 import { useSelector } from 'react-redux'
 
 const useStyles = makeStyles(theme => ({
@@ -23,7 +23,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default function AlertListItem(props) {
+export default function CreateAlertListItem(props) {
   const { id } = props
 
   const classes = useStyles()
@@ -37,7 +37,7 @@ export default function AlertListItem(props) {
         <span>
           <Typography>
             <Link href={alertURL} target='_blank' rel='noopener noreferrer'>
-              {alertURL}
+              #{id}
             </Link>
           </Typography>
         </span>
@@ -62,6 +62,6 @@ export default function AlertListItem(props) {
   )
 }
 
-AlertListItem.propTypes = {
+CreateAlertListItem.propTypes = {
   id: p.string.isRequired,
 }

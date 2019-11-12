@@ -2,7 +2,7 @@ import React from 'react'
 import { Grid, TextField } from '@material-ui/core'
 import { FormField } from '../../../forms'
 
-export default function Step0() {
+export function CreateAlertInfo() {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
