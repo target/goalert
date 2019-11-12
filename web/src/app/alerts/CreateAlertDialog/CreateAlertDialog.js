@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { Stepper, Step, StepLabel } from '@material-ui/core'
+import {
+  makeStyles,
+  Button,
+  Grid,
+  Stepper,
+  Step,
+  StepLabel,
+  Typography,
+  Link,
+} from '@material-ui/core'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
 import { useCreateAlerts } from './useCreateAlerts'
 import { fieldErrors, allErrors } from '../../util/errutil'
@@ -10,10 +20,16 @@ import { CreateAlertReview } from './StepContent/CreateAlertReview'
 import _ from 'lodash-es'
 
 const stepTitles = ['Alert Info', 'Service Selection', 'Confirm']
-
 const pluralize = num => (num !== 1 ? 's' : '')
 
+const useStyles = makeStyles({
+  flexGrow: {
+    flexGrow: 1,
+  },
+})
+
 export default function CreateAlertDialog(props) {
+  const classes = useStyles()
   const [step, setStep] = useState(0)
   const [value, setValue] = useState({
     summary: '',
@@ -43,17 +59,46 @@ export default function CreateAlertDialog(props) {
       .filter()
       .map(a => a.id)
       .value()
+
     const failedServices = allErrors(error).map(e => ({
       id: getSvcID(e.path),
       message: e.message,
     }))
 
     const failMessage = failedServices.length
-      ? ` (${failedServices.length} failed)`
+      ? `(${failedServices.length} failed)`
       : ''
-    reviewTitle = `Successfully created ${
+
+    const titleMessage = `Successfully created ${
       createdAlertIDs.length
-    } alert${pluralize(createdAlertIDs.length)}${failMessage}`
+    } alert${pluralize(createdAlertIDs.length)} ${failMessage}`
+
+    reviewTitle = (
+      <Grid container>
+        <Grid item>
+          <Typography>{titleMessage}</Typography>
+        </Grid>
+        <Grid item className={classes.flexGrow} />
+        <Grid item>
+          <Link
+            href={`/alerts?allServices=1&filter=all&search=${encodeURIComponent(
+              value.summary,
+            )}`}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            <Button
+              variant='contained'
+              color='primary'
+              size='small'
+              endIcon={<OpenInNewIcon />}
+            >
+              Monitor Alerts
+            </Button>
+          </Link>
+        </Grid>
+      </Grid>
+    )
 
     review = (
       <CreateAlertReview
