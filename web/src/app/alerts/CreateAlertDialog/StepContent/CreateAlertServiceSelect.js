@@ -45,7 +45,6 @@ const useStyles = makeStyles(theme => ({
   },
   chipContainer: {
     padding: theme.spacing(0.5),
-    marginBottom: theme.spacing(2),
     height: '9em',
     overflow: 'auto',
     border: '1px solid #bdbdbd',
@@ -59,6 +58,9 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'center',
     alignSelf: 'center',
     lineHeight: '9em',
+  },
+  searchInput: {
+    marginTop: theme.spacing(2),
   },
   searchResults: {
     flexGrow: 1,
@@ -180,6 +182,7 @@ export function CreateAlertServiceSelect(props) {
         label='Search'
         name='serviceSearch'
         value={searchInput}
+        className={classes.searchInput}
         onChange={e => setSearchInput(e.target.value)}
         InputProps={{
           ref: fieldRef,
