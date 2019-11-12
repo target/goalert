@@ -41,7 +41,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 			({{uuid "sid"}}, {{uuid "eid"}}, 'My Service');
 	`
 
-	var shortURL = "http://sho.rt"
+	const shortURL = "http://sho.rt"
 
 	t.Run("default URL in sms body", func(t *testing.T) {
 		h := harness.NewHarness(t, sql, "message-bundles")
