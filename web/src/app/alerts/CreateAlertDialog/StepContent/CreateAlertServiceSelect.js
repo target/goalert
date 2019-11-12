@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import {
   TextField,
   InputAdornment,
@@ -22,7 +22,7 @@ import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
 import _ from 'lodash-es'
 import getServiceLabel from '../../../util/getServiceLabel'
-import { CREATE_ALERT_LIMIT } from '../../../config'
+import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 import { useQuery } from 'react-apollo'
 import gql from 'graphql-tag'
 import { allErrors } from '../../../util/errutil'
@@ -76,6 +76,7 @@ const useStyles = makeStyles(theme => ({
 export function CreateAlertServiceSelect(props) {
   const { value, onChange, error } = props
   const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
 
   const { data, error: queryError, loading } = useQuery(query, {
     variables: {
@@ -96,12 +97,26 @@ export function CreateAlertServiceSelect(props) {
     .map(e => e.message)
     .join('\n')
 
-  let placeHolderMsg = null
-  if (queryErrorMsg) placeHolderMsg = null
-  else if (loading) placeHolderMsg = 'Loading...'
-  else if (searchResults.length === 0) placeHolderMsg = 'No services found'
+  let placeholderMsg = null
+  if (queryErrorMsg) placeholderMsg = null
+  else if (loading) placeholderMsg = 'Loading...'
+  else if (searchResults.length === 0) placeholderMsg = 'No services found'
 
-  const { labelKey, labelValue } = getServiceLabel(search)
+  // If the page search param changes, we update state directly.
+  useEffect(() => {
+    setSearchInput(search)
+  }, [search])
+
+  // When typing, we setup a debounce before updating the URL.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput)
+    }, DEBOUNCE_DELAY)
+
+    return () => clearTimeout(t)
+  }, [searchInput])
+
+  const { labelKey, labelValue } = getServiceLabel(searchInput)
 
   const addAll = e => {
     e.stopPropagation()
@@ -164,8 +179,8 @@ export function CreateAlertServiceSelect(props) {
         fullWidth
         label='Search'
         name='search'
-        value={search}
-        onChange={e => setSearch(e.target.value)}
+        value={searchInput}
+        onChange={e => setSearchInput(e.target.value)}
         InputProps={{
           ref: fieldRef,
           startAdornment: (
@@ -223,9 +238,9 @@ export function CreateAlertServiceSelect(props) {
               </ListItem>
             ))}
 
-            {!!placeHolderMsg && (
+            {!!placeholderMsg && (
               <ListItem>
-                <ListItemText secondary={placeHolderMsg} />
+                <ListItemText secondary={placeholderMsg} />
               </ListItem>
             )}
           </List>

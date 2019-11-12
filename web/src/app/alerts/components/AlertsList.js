@@ -28,6 +28,7 @@ import {
 } from '../../selectors/url'
 import AlertsListControls from '../components/AlertsListControls'
 import { LegacyGraphQLClient } from '../../apollo'
+import CreateAlertFab from './CreateAlertFab'
 
 const LIMIT = 25
 
@@ -321,10 +322,14 @@ export default class AlertsList extends Component {
             }
           />
         </Snackbar>
-        <CreateAlertSpeedDial
-          showFavoritesWarning={showFavoritesWarning}
-          transition={fullScreen && (showFavoritesWarning || actionComplete)}
-        />
+        {serviceID ? (
+          <CreateAlertFab serviceID={serviceID} />
+        ) : (
+          <CreateAlertSpeedDial
+            showFavoritesWarning={showFavoritesWarning}
+            transition={fullScreen && (showFavoritesWarning || actionComplete)}
+          />
+        )}
         <Card style={{ width: '100%' }}>
           <Hidden mdDown>
             <AlertsListControls />
