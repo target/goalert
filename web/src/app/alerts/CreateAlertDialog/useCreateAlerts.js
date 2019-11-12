@@ -1,6 +1,7 @@
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { fieldAlias, mergeFields, mapInputVars } from '../../util/graphql'
+import { GraphQLClientWithErrors } from '../../apollo'
 
 const baseMutation = gql`
   mutation CreateAlertMutation($input: CreateAlertInput!) {
@@ -36,6 +37,7 @@ const useCreateAlerts = formFields => {
   return useMutation(m, {
     variables,
     skip: formFields.selectedServices.length === 0,
+    client: GraphQLClientWithErrors,
   })
 }
 

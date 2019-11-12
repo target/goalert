@@ -141,6 +141,15 @@ export const GraphQLClient = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
+    mutate: { awaitRefetchQueries: true },
+  },
+})
+
+export const GraphQLClientWithErrors = new ApolloClient({
+  link: graphql2Link,
+  cache,
+  defaultOptions: {
+    query: queryOpts,
     mutate: { awaitRefetchQueries: true, errorPolicy: 'all' },
   },
 })
