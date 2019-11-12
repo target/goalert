@@ -25,6 +25,7 @@ import getServiceLabel from '../../../util/getServiceLabel'
 import { CREATE_ALERT_LIMIT } from '../../../config'
 import { useQuery } from 'react-apollo'
 import gql from 'graphql-tag'
+import { allErrors } from '../../../util/errutil'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -75,8 +76,8 @@ const useStyles = makeStyles(theme => ({
 export function CreateAlertServiceSelect(props) {
   const { value, onChange, error } = props
   const [search, setSearch] = useState('')
-  // TODO: handle error and loading state
-  const { data } = useQuery(query, {
+
+  const { data, error: queryError, loading } = useQuery(query, {
     variables: {
       input: {
         search,
@@ -90,6 +91,15 @@ export function CreateAlertServiceSelect(props) {
   const fieldRef = useRef()
   const classes = useStyles()
   const searchResults = _.get(data, 'services.nodes', [])
+
+  const queryErrorMsg = allErrors(queryError)
+    .map(e => e.message)
+    .join('\n')
+
+  let placeHolderMsg = null
+  if (queryErrorMsg) placeHolderMsg = null
+  else if (loading) placeHolderMsg = 'Loading...'
+  else if (searchResults.length === 0) placeHolderMsg = 'No services found'
 
   const { labelKey, labelValue } = getServiceLabel(search)
 
@@ -190,10 +200,13 @@ export function CreateAlertServiceSelect(props) {
       />
       <Box flexGrow={1} minHeight={0}>
         <Box overflow='auto' flex={1}>
-          <List
-            aria-label='select service options'
-            // style={{ height: '100%', overflowY: 'scroll' }}
-          >
+          <List aria-label='select service options'>
+            {!!queryErrorMsg && (
+              <ListItem>
+                <Typography color='error'>{queryErrorMsg}</Typography>
+              </ListItem>
+            )}
+
             {searchResults.map(service => (
               <ListItem
                 button
@@ -210,9 +223,9 @@ export function CreateAlertServiceSelect(props) {
               </ListItem>
             ))}
 
-            {searchResults.length === 0 && (
+            {!!placeHolderMsg && (
               <ListItem>
-                <ListItemText secondary='No services found' />
+                <ListItemText secondary={placeHolderMsg} />
               </ListItem>
             )}
           </List>
