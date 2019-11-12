@@ -25,6 +25,7 @@ import getServiceLabel from '../../../util/getServiceLabel'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 import { useQuery } from 'react-apollo'
 import gql from 'graphql-tag'
+import { allErrors } from '../../../util/errutil'
 
 const query = gql`
   query($input: ServiceSearchOptions) {
@@ -76,8 +77,8 @@ export function CreateAlertServiceSelect(props) {
   const { value, onChange, error } = props
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
-  // TODO: handle error and loading state
-  const { data } = useQuery(query, {
+
+  const { data, error: queryError, loading } = useQuery(query, {
     variables: {
       input: {
         search,
@@ -91,6 +92,15 @@ export function CreateAlertServiceSelect(props) {
   const fieldRef = useRef()
   const classes = useStyles()
   const searchResults = _.get(data, 'services.nodes', [])
+
+  const queryErrorMsg = allErrors(queryError)
+    .map(e => e.message)
+    .join('\n')
+
+  let placeholderMsg = null
+  if (queryErrorMsg) placeholderMsg = null
+  else if (loading || search !== searchInput) placeholderMsg = 'Loading...'
+  else if (searchResults.length === 0) placeholderMsg = 'No services found'
 
   // If the page search param changes, we update state directly.
   useEffect(() => {
@@ -145,7 +155,7 @@ export function CreateAlertServiceSelect(props) {
       height='100%'
     >
       <FormControl fullWidth error={Boolean(props.error)}>
-        <FormLabel shrink>
+        <FormLabel>
           {`Selected Services (${value.length})`}
           {value.length >= CREATE_ALERT_LIMIT && ' - Maximum number allowed'}
         </FormLabel>
@@ -205,10 +215,13 @@ export function CreateAlertServiceSelect(props) {
       />
       <Box flexGrow={1} minHeight={0}>
         <Box overflow='auto' flex={1}>
-          <List
-            aria-label='select service options'
-            // style={{ height: '100%', overflowY: 'scroll' }}
-          >
+          <List aria-label='select service options'>
+            {!!queryErrorMsg && (
+              <ListItem>
+                <Typography color='error'>{queryErrorMsg}</Typography>
+              </ListItem>
+            )}
+
             {searchResults.map(service => (
               <ListItem
                 button
@@ -225,9 +238,9 @@ export function CreateAlertServiceSelect(props) {
               </ListItem>
             ))}
 
-            {searchResults.length === 0 && (
+            {!!placeholderMsg && (
               <ListItem>
-                <ListItemText secondary='No services found' />
+                <ListItemText secondary={placeholderMsg} />
               </ListItem>
             )}
           </List>
