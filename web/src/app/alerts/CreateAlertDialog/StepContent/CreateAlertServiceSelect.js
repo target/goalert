@@ -99,7 +99,7 @@ export function CreateAlertServiceSelect(props) {
 
   let placeholderMsg = null
   if (queryErrorMsg) placeholderMsg = null
-  else if (loading) placeholderMsg = 'Loading...'
+  else if (loading || search !== searchInput) placeholderMsg = 'Loading...'
   else if (searchResults.length === 0) placeholderMsg = 'No services found'
 
   // If the page search param changes, we update state directly.
@@ -155,7 +155,7 @@ export function CreateAlertServiceSelect(props) {
       height='100%'
     >
       <FormControl fullWidth error={Boolean(props.error)}>
-        <FormLabel shrink>
+        <FormLabel>
           {`Selected Services (${value.length})`}
           {value.length >= CREATE_ALERT_LIMIT && ' - Maximum number allowed'}
         </FormLabel>
