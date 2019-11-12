@@ -35,6 +35,7 @@ export default function ScheduleDetails({ scheduleID }) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+
   const resetFilter = useResetURLParams(
     'userFilter',
     'start',
@@ -42,6 +43,7 @@ export default function ScheduleDetails({ scheduleID }) {
     'tz',
     'duration',
   )
+
   const { data: _data, loading, error } = useQuery(query, {
     variables: { id: scheduleID },
   })
@@ -50,8 +52,9 @@ export default function ScheduleDetails({ scheduleID }) {
   if (error) return <GenericError error={error.message} />
 
   const data = _data.schedule
-  if (!data)
+  if (!data) {
     return showDelete ? <Redirect to='/schedules' push /> : <ObjectNotFound />
+  }
 
   return (
     <React.Fragment>
@@ -115,6 +118,7 @@ export default function ScheduleDetails({ scheduleID }) {
     </React.Fragment>
   )
 }
+
 ScheduleDetails.propTypes = {
   scheduleID: p.string.isRequired,
 }
