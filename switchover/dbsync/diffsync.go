@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 	"github.com/vbauerster/mpb/v4"
 	"github.com/vbauerster/mpb/v4/decor"
@@ -13,9 +13,9 @@ import (
 
 const batchSize = 100
 
-func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int) error {
+func (s *Sync) diffSync(ctx context.Context, txSrc, txDst pgx.Tx, dstChange int) error {
 	start := time.Now()
-	rows, err := txSrc.QueryEx(ctx, `
+	rows, err := txSrc.Query(ctx, `
 		with tx_max_id as (
 			select max(id), tx_id
 			from change_log
@@ -29,7 +29,7 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int
 		order by
 			max_id.max,
 			cmd_id::text::int
-	`, nil, dstChange)
+	`, dstChange)
 	if err != nil {
 		return errors.Wrap(err, "get changed rows")
 	}
@@ -69,16 +69,17 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int
 		case "UPDATE":
 			query = s.table(c.Table).UpdateOneRow()
 		}
-		_, err = txDst.PrepareEx(ctx, name, query, nil)
+
+		_, err = txDst.Prepare(ctx, name, query)
 		if err != nil {
 			return errors.Wrap(err, "prepare statement")
 		}
 	}
 
-	_, err = txDst.PrepareEx(ctx, "_ins:change_log", `
+	_, err = txDst.Prepare(ctx, "_ins:change_log", `
 		insert into change_log (id, op, table_name, row_id)
 		values ($1, $2, $3, $4)
-	`, nil)
+	`)
 	if err != nil {
 		return errors.Wrap(err, "prepare statement")
 	}
@@ -96,41 +97,32 @@ func (s *Sync) diffSync(ctx context.Context, txSrc, txDst *pgx.Tx, dstChange int
 	)
 
 	var batchCount int
-	b := txDst.BeginBatch()
+	b := &pgx.Batch{}
 	for _, c := range changes {
 		switch c.OP {
 		case "DELETE":
-			b.Queue(c.OP+":"+c.Table, []interface{}{c.RowID}, nil, nil)
+			b.Queue(c.OP+":"+c.Table, c.RowID)
 		case "INSERT":
-			b.Queue(c.OP+":"+c.Table, []interface{}{c.RowData}, nil, nil)
+			b.Queue(c.OP+":"+c.Table, c.RowData)
 		case "UPDATE":
-			b.Queue(c.OP+":"+c.Table, []interface{}{c.RowID, c.RowData}, nil, nil)
+			b.Queue(c.OP+":"+c.Table, c.RowID, c.RowData)
 		}
-		b.Queue("_ins:change_log", []interface{}{c.ID, c.OP, c.Table, c.RowID}, nil, nil)
+		b.Queue("_ins:change_log", c.ID, c.OP, c.Table, c.RowID)
 		batchCount++
 		if batchCount >= batchSize {
-			err = b.Send(ctx, nil)
-			if err != nil {
-				return errors.Wrap(err, "send batched commands")
-			}
-			err = b.Close()
+			err = txDst.SendBatch(ctx, b).Close()
 			if err != nil {
 				bar.Abort(false)
 				p.Wait()
-				fmt.Println("SYNC", c.ID)
 				return err
 			}
 			bar.IncrBy(batchCount)
-			b = txDst.BeginBatch()
+			b = &pgx.Batch{}
 			batchCount = 0
 		}
 	}
 	if batchCount > 0 {
-		err = b.Send(ctx, nil)
-		if err != nil {
-			return errors.Wrap(err, "sync")
-		}
-		err = b.Close()
+		err = txDst.SendBatch(ctx, b).Close()
 		if err != nil {
 			bar.Abort(false)
 			p.Wait()

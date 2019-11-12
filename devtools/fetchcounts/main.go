@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/util/log"
 	"os"
 
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 var queries = [][]string{

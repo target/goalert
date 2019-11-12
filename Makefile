@@ -54,7 +54,7 @@ $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
 	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
 	go build -o $@ ./devtools/$(@F)
-$(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go
+$(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go migrate/*.go
 	go build -o $@ ./devtools/$(@F)
 $(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	go build -o $@ ./devtools/mockslack/cmd/mockslack

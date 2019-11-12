@@ -3,8 +3,8 @@ package cleanupmanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/engine/processinglock"
-	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/util"
 )
 
@@ -13,17 +13,15 @@ type DB struct {
 	db   *sql.DB
 	lock *processinglock.Lock
 
-	keys keyring.Keys
-
-	orphanSlackChan *sql.Stmt
-	deleteChan      *sql.Stmt
+	cleanupAlerts *sql.Stmt
+	setTimeout    *sql.Stmt
 }
 
 // Name returns the name of the module.
 func (db *DB) Name() string { return "Engine.CleanupManager" }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB, keys keyring.Keys) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Version: 1,
 		Type:    processinglock.TypeCleanup,
@@ -38,19 +36,9 @@ func NewDB(ctx context.Context, db *sql.DB, keys keyring.Keys) (*DB, error) {
 		db:   db,
 		lock: lock,
 
-		keys: keys,
-
-		orphanSlackChan: p.P(`
-			select
-				id, meta->>'tok'
-			from notification_channels
-			where
-				type = 'SLACK' and
-				id not in (select channel_id from escalation_policy_actions where channel_id notnull)
-			order by created_at
-			limit 15
-			for update skip locked
-		`),
-		deleteChan: p.P(`delete from notification_channels where id = any($1)`),
+		// Abort any cleanup operation that takes longer than 3 seconds
+		// error will be logged.
+		setTimeout:    p.P(`SET LOCAL statement_timeout = 3000`),
+		cleanupAlerts: p.P(`delete from alerts where id = any(select id from alerts where status = 'closed' AND created_at < (now() - $1::interval) order by id limit 100 for update)`),
 	}, p.Err
 }

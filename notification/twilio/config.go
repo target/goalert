@@ -8,6 +8,8 @@ const (
 	msgParamID    = "msgID"
 	msgParamSubID = "msgSubjectID"
 	msgParamBody  = "msgBody"
+
+	msgParamBundle = "msgBundle"
 )
 
 // Config contains the details needed to interact with Twilio for SMS

@@ -9,6 +9,7 @@ import (
 type callback struct {
 	ID              string
 	AlertID         int
+	ServiceID       string
 	ContactMethodID string
 }
 
@@ -24,12 +25,4 @@ func (c callback) Normalize() (*callback, error) {
 		return nil, err
 	}
 	return &c, nil
-}
-
-func (c *callback) fields() []interface{} {
-	return []interface{}{
-		&c.ID,
-		&c.AlertID,
-		&c.ContactMethodID,
-	}
 }

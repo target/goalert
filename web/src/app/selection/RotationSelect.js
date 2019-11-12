@@ -24,7 +24,7 @@ const valueQuery = gql`
 `
 export const RotationSelect = makeQuerySelect('RotationSelect', {
   variables: { favoritesFirst: true },
-  defaultQueryVariables: { favoritesOnly: true },
+  defaultQueryVariables: { favoritesFirst: true },
   query,
   valueQuery,
 })

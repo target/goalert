@@ -1,6 +1,7 @@
 package app
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"net"
 	"net/http"
@@ -108,6 +109,14 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 	l, err := net.Listen("tcp", c.ListenAddr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
+	}
+
+	if c.TLSListenAddr != "" {
+		l2, err := tls.Listen("tcp", c.TLSListenAddr, c.TLSConfig)
+		if err != nil {
+			return nil, errors.Wrapf(err, "listen %s", c.TLSListenAddr)
+		}
+		l = newMultiListener(l, l2)
 	}
 
 	app := &App{

@@ -3,11 +3,11 @@ package notification
 import (
 	"context"
 	"fmt"
-	"github.com/target/goalert/util/log"
 	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/util/log"
 	"go.opencensus.io/trace"
 )
 
