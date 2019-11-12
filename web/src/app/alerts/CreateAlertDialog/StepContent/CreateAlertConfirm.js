@@ -34,7 +34,12 @@ export function CreateAlertConfirm() {
 
       {children ||
         (name === 'details' ? (
-          <Markdown value={value} />
+          <Typography
+            variant='body1'
+            style={{ whiteSpace: 'pre-wrap' }}
+            component={Markdown}
+            value={value}
+          />
         ) : (
           <Typography
             variant='body1'
