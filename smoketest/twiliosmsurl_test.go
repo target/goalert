@@ -7,7 +7,9 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestTwilioURL_SMS checks that the GoAlert link in the SMS are correct when General.ShortURL or General.DisableSMSLinks are enabled.
+// TestTwilioURL_SMS checks that the GoAlert link in the SMS is correct
+// when General.ShortURL or General.DisableSMSLinks are enabled, as well
+// as with the default URL
 func TestTwilioURL_SMS(t *testing.T) {
 	t.Parallel()
 
