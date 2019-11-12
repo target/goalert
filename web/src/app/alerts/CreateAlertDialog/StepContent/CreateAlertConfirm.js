@@ -32,15 +32,18 @@ export function CreateAlertConfirm() {
 
       <Divider className={classes.divider} />
 
-      {children || (
-        <Typography
-          variant='body1'
-          component='p'
-          className={classes.nudgeRight}
-        >
-          {name === 'details' ? <Markdown value={value} /> : value}
-        </Typography>
-      )}
+      {children ||
+        (name === 'details' ? (
+          <Markdown value={value} />
+        ) : (
+          <Typography
+            variant='body1'
+            component='p'
+            className={classes.nudgeRight}
+          >
+            {value}
+          </Typography>
+        ))}
     </Grid>
   )
 
