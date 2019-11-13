@@ -21,7 +21,7 @@ const useStyles = makeStyles({
 export function CreateAlertConfirm() {
   const classes = useStyles()
 
-  const Item = ({ name, label, value, children }) => (
+  const renderItem = ({ name, label, value, children }) => (
     <Grid item xs={12}>
       <Typography
         variant='subtitle1'
@@ -53,25 +53,17 @@ export function CreateAlertConfirm() {
 
   return (
     <Grid container spacing={2}>
-      <FormField
-        name='summary'
-        label='Summary'
-        required
-        render={props => <Item {...props} />}
-      />
-      <FormField
-        name='details'
-        label='Details'
-        required
-        render={props => <Item {...props} />}
-      />
+      <FormField name='summary' label='Summary' required render={renderItem} />
+      <FormField name='details' label='Details' required render={renderItem} />
 
       <FormField
         label='Selected Services'
         name='serviceIDs'
-        render={({ value, ...otherProps }) => (
-          <Item {...otherProps} label={`Selected Services (${value.length})`}>
-            {value.map(id => (
+        render={({ value, ...otherProps }) =>
+          renderItem({
+            ...otherProps,
+            label: `Selected Services (${value.length})`,
+            children: value.map(id => (
               <ServiceChip
                 key={id}
                 clickable={false}
@@ -79,9 +71,9 @@ export function CreateAlertConfirm() {
                 style={{ margin: 3 }}
                 onClick={e => e.preventDefault()}
               />
-            ))}
-          </Item>
-        )}
+            )),
+          })
+        }
       />
     </Grid>
   )
