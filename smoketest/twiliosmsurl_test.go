@@ -1,9 +1,9 @@
 package smoketest
 
 import (
-	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -86,9 +86,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h.CreateAlert(h.UUID("sid"), "test")
 		smsMsg := d1.ExpectSMS("test")
 		tw.WaitAndAssert()
-		if strings.Contains(smsMsg.Body(), shortURL) {
-			t.Fatal("link contains URL")
-		}
+		assert.NotContains(t, smsMsg.Body(), shortURL)
 	})
 
 	t.Run("General.DisableSMSLinks using default URL", func(t *testing.T) {
@@ -104,8 +102,6 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h.CreateAlert(h.UUID("sid"), "test")
 		smsMsg := d1.ExpectSMS("test")
 		tw.WaitAndAssert()
-		if strings.Contains(smsMsg.Body(), longURL) {
-			t.Fatal("link contains URL", longURL)
-		}
+		assert.NotContains(t, smsMsg.Body(), longURL)
 	})
 }
