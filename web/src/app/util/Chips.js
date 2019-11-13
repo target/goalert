@@ -53,7 +53,7 @@ export function ServiceChip(props) {
       data-cy='service-chip'
       avatar={
         <Avatar>
-          <ServiceIcon />
+          <ServiceIcon fontSize='small' />
         </Avatar>
       }
       style={style}
