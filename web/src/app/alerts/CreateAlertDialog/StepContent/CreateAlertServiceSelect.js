@@ -42,6 +42,7 @@ const query = gql`
 const useStyles = makeStyles(theme => ({
   addAll: {
     backgroundColor: theme.palette.primary['400'],
+    marginRight: '0.25em',
   },
   chipContainer: {
     padding: theme.spacing(0.5),
