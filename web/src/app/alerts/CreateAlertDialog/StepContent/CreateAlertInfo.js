@@ -22,7 +22,6 @@ export function CreateAlertInfo() {
           variant='outlined'
           placeholder='Alert Details'
           name='details'
-          required
           component={TextField}
         />
       </Grid>
