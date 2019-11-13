@@ -53,6 +53,7 @@ export function CreateAlertReview(props) {
     </Grid>
   )
 }
+
 CreateAlertReview.propTypes = {
   createdAlertIDs: p.arrayOf(p.string),
   failedServices: p.arrayOf(

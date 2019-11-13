@@ -13,8 +13,11 @@ const useStyles = makeStyles({
     paddingBottom: 0,
   },
   markdown: {
-    margin: 0,
-    whiteSpace: 'pre-wrap',
+    '& p': {
+      marginBlockStart: 0,
+      marginBlockEnd: 0,
+      whiteSpace: 'pre-wrap',
+    },
   },
 })
 
