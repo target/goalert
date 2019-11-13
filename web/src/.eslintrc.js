@@ -16,6 +16,7 @@ module.exports = {
   ],
   rules: {
     'prettier/prettier': 'error',
+    'no-else-return': ['error', { allowElseIf: false }],
   },
   env: {
     'cypress/globals': true,
