@@ -406,7 +406,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('not.be.visible')
 
       cy.get('@dialog')
-        .contains('button', 'Okay')
+        .contains('button', 'Done')
         .should('be.visible')
 
       cy.get('@dialog')
@@ -414,7 +414,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('have.length', 2)
 
       cy.get('@dialog')
-        .contains('button', 'Okay')
+        .contains('button', 'Done')
         .click()
     })
   })

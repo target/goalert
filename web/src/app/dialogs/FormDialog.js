@@ -207,7 +207,7 @@ export default class FormDialog extends React.PureComponent {
       return (
         <DialogActions>
           <Button color='primary' onClick={onClose} variant='contained'>
-            Okay
+            Done
           </Button>
         </DialogActions>
       )
