@@ -5,17 +5,18 @@ import { ServiceChip } from '../../../util/Chips'
 import { FormField } from '../../../forms'
 import Markdown from '../../../util/Markdown'
 
-const useStyles = makeStyles(theme => ({
-  divider: {
-    backgroundColor: '#bdbdbd',
+const useStyles = makeStyles({
+  itemContent: {
+    marginTop: '0.5em',
   },
   itemTitle: {
     paddingBottom: 0,
   },
-  nudgeRight: {
-    marginLeft: theme.spacing(1),
+  markdown: {
+    margin: 0,
+    whiteSpace: 'pre-wrap',
   },
-}))
+})
 
 export function CreateAlertConfirm() {
   const classes = useStyles()
@@ -30,25 +31,23 @@ export function CreateAlertConfirm() {
         {label}
       </Typography>
 
-      <Divider className={classes.divider} />
+      <Divider />
 
-      {children ||
-        (name === 'details' ? (
-          <Typography
-            variant='body1'
-            style={{ whiteSpace: 'pre-wrap' }}
-            component={Markdown}
-            value={value}
-          />
-        ) : (
-          <Typography
-            variant='body1'
-            component='p'
-            className={classes.nudgeRight}
-          >
-            {value}
-          </Typography>
-        ))}
+      <div className={classes.itemContent}>
+        {children ||
+          (name === 'details' ? (
+            <Typography
+              variant='body1'
+              className={classes.markdown}
+              component={Markdown}
+              value={value}
+            />
+          ) : (
+            <Typography variant='body1' component='p'>
+              {value}
+            </Typography>
+          ))}
+      </div>
     </Grid>
   )
 
