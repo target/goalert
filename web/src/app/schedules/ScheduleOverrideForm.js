@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import {
@@ -52,11 +52,12 @@ export default function ScheduleOverrideForm(props) {
   const classes = useStyles()
   const params = useSelector(urlParamSelector)
   const zone = params('tz', 'local')
+  const [userErrors, setUserErrors] = useState([])
 
   const userError = props.errors.find(e => e && e.field === 'userID')
 
   // used to grab conflicting errors from pre-existing overrides
-  const { loading, error, data } = useQuery(query, {
+  const { data } = useQuery(query, {
     variables: {
       id: _.get(userError, 'details.CONFLICTING_ID', ''),
     },
@@ -64,20 +65,22 @@ export default function ScheduleOverrideForm(props) {
     skip: !userError,
   })
 
-  let formErrors = []
-  const conflictingUser = _.get(data, 'data.userOverride', null)
-  if (!loading && !error && conflictingUser) {
-    formErrors = errors
-      .filter(e => e.field !== 'userID')
-      .concat(
-        userError ? mapOverrideUserError(conflictingUser, value, zone) : [],
-      )
-  }
+  useEffect(() => {
+    if (!data) return
+
+    setUserErrors(
+      errors
+        .filter(e => e.field !== 'userID')
+        .concat(
+          userError ? mapOverrideUserError(data.userOverride, value, zone) : [],
+        ),
+    )
+  }, [data])
 
   return (
     <FormContainer
       optionalLabels
-      errors={formErrors}
+      errors={errors.concat(userErrors)}
       value={value}
       {...formProps}
     >
