@@ -210,6 +210,7 @@ export default class FlatList extends React.PureComponent {
           {(provided, _) => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
               {this.renderList()}
+              {provided.placeholder}
             </div>
           )}
         </Droppable>

@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -46,6 +49,13 @@ func (h *Harness) GraphQLQuery(query string) *QLResponse {
 func (h *Harness) GraphQLQuery2(query string) *QLResponse {
 	h.t.Helper()
 	return h.GraphQLQueryT(h.t, query, "/api/graphql")
+}
+
+// SetConfigValue will update the config value id (e.g. `General.PublicURL`) to the provided value.
+func (h *Harness) SetConfigValue(id, value string) {
+	h.t.Helper()
+	res := h.GraphQLQuery2(fmt.Sprintf(`mutation{setConfig(input:[{id: %s, value: %s}])}`, strconv.Quote(id), strconv.Quote(value)))
+	assert.Empty(h.t, res.Errors)
 }
 
 // GraphQLQueryT will perform a GraphQL query against the backend, internally

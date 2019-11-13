@@ -2,11 +2,11 @@ package cleanupmanager
 
 import (
 	"context"
+
+	"github.com/jackc/pgtype"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
-	"net/http"
-	"net/url"
 )
 
 // UpdateAll will update the state of all active escalation policies.
@@ -28,34 +28,20 @@ func (db *DB) update(ctx context.Context) error {
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.StmtContext(ctx, db.orphanSlackChan).QueryContext(ctx)
+	_, err = tx.StmtContext(ctx, db.setTimeout).ExecContext(ctx)
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 
-	var toDelete sqlutil.UUIDArray
-	for rows.Next() {
-		var id, token string
-		err = rows.Scan(&id, &token)
+	cfg := config.FromContext(ctx)
+	if cfg.Maintenance.AlertCleanupDays > 0 {
+		var dur pgtype.Interval
+		dur.Days = int32(cfg.Maintenance.AlertCleanupDays)
+		dur.Status = pgtype.Present
+		_, err = db.cleanupAlerts.ExecContext(ctx, &dur)
 		if err != nil {
 			return err
 		}
-		log.Debugf(ctx, "cleanup notification channel %s", id)
-		data, _, err := db.keys.Decrypt([]byte(token))
-		if err != nil {
-			return err
-		}
-
-		// TODO: implement retry/backoff logic?
-		go http.Get("https://slack.com/api/auth.revoke?token=" + url.QueryEscape(string(data)))
-
-		toDelete = append(toDelete, id)
-	}
-
-	_, err = tx.StmtContext(ctx, db.deleteChan).ExecContext(ctx, toDelete)
-	if err != nil {
-		return err
 	}
 
 	return tx.Commit()

@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSReplyLast checks that an SMS reply message is processed with no number.
@@ -19,8 +20,7 @@ func TestTwilioSMSReplyLast(t *testing.T) {
 
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
-		({{uuid "user"}}, {{uuid "cm1"}}, 0),
-		({{uuid "user"}}, {{uuid "cm1"}}, 1);
+		({{uuid "user"}}, {{uuid "cm1"}}, 0);
 
 	insert into escalation_policies (id, name) 
 	values
@@ -42,15 +42,16 @@ func TestTwilioSMSReplyLast(t *testing.T) {
 
 `
 	check := func(respondWith, expect string) {
-		h := harness.NewHarness(t, sql, "ids-to-uuids")
-		defer h.Close()
+		t.Run("check", func(t *testing.T) {
+			h := harness.NewHarness(t, sql, "ids-to-uuids")
+			defer h.Close()
 
-		tw := h.Twilio()
-		d1 := tw.Device(h.Phone("1"))
+			tw := h.Twilio()
+			d1 := tw.Device(h.Phone("1"))
 
-		d1.ExpectSMS("testing").ThenReply(respondWith)
-		d1.ExpectSMS(expect, "198")
-		tw.WaitAndAssert()
+			d1.ExpectSMS("testing").ThenReply(respondWith)
+			d1.ExpectSMS(expect, "198")
+		})
 	}
 
 	check("ack", "acknowledged")

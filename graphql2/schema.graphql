@@ -62,6 +62,12 @@ type Query {
   # Allows searching for assigned labels.
   labels(input: LabelSearchOptions): LabelConnection!
 
+  # Allows searching for label keys.
+  labelKeys(input: LabelKeySearchOptions): StringConnection!
+
+  # Allows searching for label values.
+  labelValues(input: LabelValueSearchOptions): StringConnection!
+
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
@@ -152,8 +158,28 @@ input LabelSearchOptions {
   omit: [ID!]
 }
 
+input LabelKeySearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
+input LabelValueSearchOptions {
+  key: String!
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
 type LabelConnection {
   nodes: [Label!]!
+  pageInfo: PageInfo!
+}
+
+type StringConnection {
+  nodes: [String!]!
   pageInfo: PageInfo!
 }
 
