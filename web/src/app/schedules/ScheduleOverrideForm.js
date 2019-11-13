@@ -47,7 +47,7 @@ const useStyles = makeStyles({
 })
 
 export default function ScheduleOverrideForm(props) {
-  const { add, remove, errors, scheduleID, value, ...formProps } = props
+  const { add, remove, errors = [], scheduleID, value, ...formProps } = props
 
   const classes = useStyles()
   const params = useSelector(urlParamSelector)
@@ -58,7 +58,7 @@ export default function ScheduleOverrideForm(props) {
   // used to grab conflicting errors from pre-existing overrides
   const { loading, error, data } = useQuery(query, {
     variables: {
-      id: userError ? userError.details.CONFLICTING_ID : '',
+      id: _.get(userError, 'details.CONFLICTING_ID', ''),
     },
     pollInterval: 0,
     skip: !userError,
