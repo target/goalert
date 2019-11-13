@@ -1,4 +1,4 @@
-FROM golang:1.13.1-alpine
+FROM golang:1.13.4-alpine
 
 ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@
 RUN apk --no-cache add git nodejs yarn make postgresql postgresql-contrib
