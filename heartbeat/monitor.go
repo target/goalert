@@ -1,10 +1,10 @@
 package heartbeat
 
 import (
-	"github.com/target/goalert/util/sqlutil"
 	"time"
 
-	"github.com/jackc/pgx/pgtype"
+	"github.com/jackc/pgtype"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 )
 
