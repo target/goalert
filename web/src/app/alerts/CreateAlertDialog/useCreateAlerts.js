@@ -25,15 +25,15 @@ export const useCreateAlerts = value => {
     m = mergeFields(m, getAliasedMutation(baseMutation, i))
   }
 
-  // 2. build variables
+  // 2. build variables, alias -> service ID map
   let variables = {}
   const aliasIDMap = {}
-  value.serviceIDs.forEach((ss, i) => {
-    aliasIDMap['alias' + i] = ss
+  value.serviceIDs.forEach((svcID, i) => {
+    aliasIDMap['alias' + i] = svcID
     variables[`input${i}`] = {
       summary: value.summary.trim(),
       details: value.details.trim(),
-      serviceID: ss,
+      serviceID: svcID,
     }
   })
 
