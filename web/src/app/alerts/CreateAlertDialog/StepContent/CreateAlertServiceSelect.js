@@ -63,20 +63,6 @@ const useStyles = makeStyles(theme => ({
   searchInput: {
     marginTop: theme.spacing(2),
   },
-  searchResults: {
-    flexGrow: 1,
-    width: '100%',
-    overflowY: 'auto',
-  },
-  selectedServicesText: {
-    marginBottom: '0.5em',
-  },
-  topContainer: {
-    height: '100%',
-  },
-  field: {
-    width: '100%',
-  },
 }))
 
 export function CreateAlertServiceSelect(props) {
@@ -160,11 +146,11 @@ export function CreateAlertServiceSelect(props) {
       flexDirection='column'
       height='100%'
     >
+      <FormLabel classes={{ root: ' MuiInputLabel-shrink' }}>
+        {`Selected Services (${value.length})`}
+        {value.length >= CREATE_ALERT_LIMIT && ' - Maximum number allowed'}
+      </FormLabel>
       <FormControl fullWidth error={Boolean(props.error)}>
-        <FormLabel className={classes.selectedServicesText}>
-          {`Selected Services (${value.length})`}
-          {value.length >= CREATE_ALERT_LIMIT && ' - Maximum number allowed'}
-        </FormLabel>
         <Paper
           className={classes.chipContainer}
           elevation={0}
