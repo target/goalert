@@ -13,7 +13,7 @@ import { graphql } from 'react-apollo'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { getParameterByName } from '../../util/query_param'
-import CreateAlertSpeedDial from '../CreateAlertSpeedDial'
+import CreateAlertFab from '../CreateAlertFab'
 import AlertsListDataWrapper from './AlertsListDataWrapper'
 import { alertsQuery } from '../queries/AlertsListQuery'
 import { connect } from 'react-redux'
@@ -28,7 +28,6 @@ import {
 } from '../../selectors/url'
 import AlertsListControls from '../components/AlertsListControls'
 import { LegacyGraphQLClient } from '../../apollo'
-import CreateAlertFab from './CreateAlertFab'
 
 const LIMIT = 25
 
@@ -243,11 +242,9 @@ export default class AlertsList extends Component {
 
   render() {
     const {
-      actionComplete,
       allServices,
       classes,
       data,
-      fullScreen,
       onServicePage,
       isFirstLogin,
       loadMore,
@@ -322,14 +319,7 @@ export default class AlertsList extends Component {
             }
           />
         </Snackbar>
-        {serviceID ? (
-          <CreateAlertFab serviceID={serviceID} />
-        ) : (
-          <CreateAlertSpeedDial
-            showFavoritesWarning={showFavoritesWarning}
-            transition={fullScreen && (showFavoritesWarning || actionComplete)}
-          />
-        )}
+        <CreateAlertFab serviceID={serviceID} />
         <Card style={{ width: '100%' }}>
           <Hidden mdDown>
             <AlertsListControls />

@@ -39,7 +39,7 @@ export default function CreateAlertDialog(props) {
   const [value, setValue] = useState({
     summary: '',
     details: '',
-    serviceIDs: [],
+    serviceIDs: props.serviceID ? [props.serviceID] : [],
   })
   const [mutate, { data, loading, error }, getSvcID] = useCreateAlerts(value)
 
