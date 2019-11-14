@@ -4,14 +4,11 @@ import {
   ListItem,
   ListItemText,
   Typography,
-  IconButton,
   Link,
   makeStyles,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import ContentCopyIcon from 'mdi-material-ui/ContentCopy'
-
-import copyToClipboard from '../../../util/copyToClipboard'
+import CopyText from '../../../util/CopyText'
 import { absURLSelector } from '../../../selectors'
 import { useSelector } from 'react-redux'
 
@@ -21,6 +18,13 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  endLinks: {
+    display: 'flex',
+    alignItems: 'flex-start',
+  },
+  openInNewTab: {
+    marginLeft: '0.75em',
+  },
 }))
 
 export default function CreateAlertListItem(props) {
@@ -29,7 +33,7 @@ export default function CreateAlertListItem(props) {
   const classes = useStyles()
 
   const absURL = useSelector(absURLSelector)
-  const alertURL = absURL('/alerts/' + id)
+  const alertURL = window.location.origin + absURL('/alerts/' + id)
 
   return (
     <ListItem key={id} divider>
@@ -42,20 +46,16 @@ export default function CreateAlertListItem(props) {
           </Typography>
         </span>
 
-        <span>
-          <IconButton
-            aria-label='Copy alert URL'
-            onClick={e => {
-              copyToClipboard(alertURL)
-            }}
+        <span className={classes.endLinks}>
+          <CopyText value={alertURL} placement='left' />
+          <a
+            href={alertURL}
+            target='_blank'
+            rel='noopener noreferrer'
+            className={classes.openInNewTab}
           >
-            <ContentCopyIcon fontSize='small' />
-          </IconButton>
-          <Link href={alertURL} target='_blank' rel='noopener noreferrer'>
-            <IconButton aria-label='Open alert in new tab'>
-              <OpenInNewIcon fontSize='small' />
-            </IconButton>
-          </Link>
+            <OpenInNewIcon fontSize='small' />
+          </a>
         </span>
       </ListItemText>
     </ListItem>

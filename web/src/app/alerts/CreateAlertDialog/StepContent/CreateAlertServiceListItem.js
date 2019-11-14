@@ -5,7 +5,6 @@ import {
   ListItem,
   ListItemText,
   Typography,
-  IconButton,
   Link,
   makeStyles,
 } from '@material-ui/core'
@@ -66,11 +65,9 @@ export default function CreateAlertServiceListItem(props) {
           </Typography>
         </span>
 
-        <Link href={serviceURL} target='_blank' rel='noopener noreferrer'>
-          <IconButton aria-label='Open service in new tab'>
-            <OpenInNewIcon fontSize='small' />
-          </IconButton>
-        </Link>
+        <a href={serviceURL} target='_blank' rel='noopener noreferrer'>
+          <OpenInNewIcon fontSize='small' />
+        </a>
       </ListItemText>
     </ListItem>
   )
