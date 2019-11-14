@@ -1,9 +1,10 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 /*
@@ -68,10 +69,10 @@ func TestAddRules(t *testing.T) {
 
 	tw := h.Twilio()
 	d := tw.Device(h.Phone("1"))
-	d.ExpectSMS("testing")
+	d.ExpectSMS("testing") // immediate rule
 	tw.WaitAndAssert()
 
-	h.FastForward(30 * time.Minute)
+	h.FastForward(35 * time.Minute)
 
 	// ADD RULES
 	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 30)
@@ -79,20 +80,20 @@ func TestAddRules(t *testing.T) {
 
 	h.FastForward(30 * time.Minute)
 
-	d.ExpectSMS("testing")
+	d.ExpectSMS("testing") // 60-min rule (30-min skipped)
 	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 
-	d.ExpectSMS("testing")
+	d.ExpectSMS("testing") // 90-min rule
 	tw.WaitAndAssert()
 
 	h.Escalate(1, 0)
 
-	d.ExpectSMS("testing")
+	d.ExpectSMS("testing") // immediate rule
 	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 
-	d.ExpectSMS("testing")
+	d.ExpectSMS("testing") // 30-min rule
 }
