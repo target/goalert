@@ -11,7 +11,7 @@ import {
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import ContentCopyIcon from 'mdi-material-ui/ContentCopy'
 
-import copyToClipboard from '../../../util/copyToClipboard-v2'
+import copyToClipboard from '../../../util/copyToClipboard'
 import { absURLSelector } from '../../../selectors'
 import { useSelector } from 'react-redux'
 
