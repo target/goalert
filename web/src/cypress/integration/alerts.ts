@@ -259,51 +259,8 @@ function testAlerts(screen: ScreenFormat) {
       })
     })
 
-    it('should allow canceling', () => {
-      cy.pageFab('Create Single Alert')
-      cy.get('div[role=dialog]').should('contain', 'Create New Alert')
-      cy.get('div[role=dialog]')
-        .contains('button', 'Cancel')
-        .click()
-      cy.get('div[role=dialog]').should('not.exist')
-    })
-
-    it('should create an alert for a single service', () => {
-      cy.createService().then(svc => {
-        cy.pageFab('Single')
-
-        cy.get('div[role=dialog]').as('dialog')
-
-        const summary = c.sentence({ words: 3 })
-        const details = c.word({ length: 10 })
-
-        cy.get('@dialog')
-          .find('input[name=summary]')
-          .type(summary)
-        cy.get('@dialog')
-          .find('input[name=service]')
-          .selectByLabel(svc.name)
-
-        cy.get('@dialog')
-          .find('textarea[name=details]')
-          .type(details)
-        cy.get('@dialog')
-          .contains('button', 'Submit')
-          .click()
-
-        // should be on details page
-        cy.get('*[data-cy=alert-summary]').should('contain', summary)
-        cy.get('*[data-cy=alert-details]').should('contain', details)
-
-        cy.go(-1)
-
-        cy.pageSearch(summary)
-        cy.get('body').should('contain', svc.name)
-      })
-    })
-
-    it.only('should create an alert for mutliple services', () => {
-      cy.pageFab('Alert Multiple Services')
+    it.only('should create an alert for two services', () => {
+      cy.pageFab()
 
       cy.get('div[role=dialog]').as('dialog')
 
@@ -312,7 +269,7 @@ function testAlerts(screen: ScreenFormat) {
       })
       const details = c.word({ length: 10 })
 
-      // STEP 0
+      // Alert Info
       cy.get('@dialog')
         .contains('button', 'Cancel')
         .should('be.visible')
@@ -329,7 +286,7 @@ function testAlerts(screen: ScreenFormat) {
         .contains('button', 'Next')
         .click()
 
-      // STEP 1
+      // Service Selection
       cy.get('@dialog').contains('button', 'Next')
 
       cy.get('@dialog')
@@ -370,14 +327,13 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('@dialog').contains('label', 'Selected Services (2)')
 
       // TODO test Add All button
-
       // TODO test Filter button
 
       cy.get('@dialog')
         .contains('button', 'Next')
         .click()
 
-      // STEP 2
+      // Confirm
       cy.get('@dialog')
         .contains('span', svc1.name)
         .should('be.visible')
@@ -398,9 +354,7 @@ function testAlerts(screen: ScreenFormat) {
         .contains('button', 'Submit')
         .click()
 
-      //TODO test failures and errors
-
-      // STEP 3
+      // Review
       cy.get('@dialog')
         .contains('button', 'Back')
         .should('not.be.visible')
@@ -416,6 +370,8 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('@dialog')
         .contains('button', 'Done')
         .click()
+
+      //TODO test errors
     })
   })
 
