@@ -57,7 +57,7 @@ export function CreateAlertConfirm() {
   return (
     <Grid container spacing={2}>
       <FormField name='summary' label='Summary' required render={renderItem} />
-      <FormField name='details' label='Details' required render={renderItem} />
+      <FormField name='details' label='Details' render={renderItem} />
 
       <FormField
         label='Selected Services'
