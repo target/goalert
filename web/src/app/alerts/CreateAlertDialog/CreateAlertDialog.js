@@ -107,11 +107,7 @@ export default function CreateAlertDialog(props) {
 
     review = (
       <CreateAlertReview
-        createdAlertIDs={_.chain(data)
-          .values()
-          .filter()
-          .map(a => a.id)
-          .value()}
+        createdAlertIDs={createdAlertIDs}
         failedServices={failedServices}
       />
     )
