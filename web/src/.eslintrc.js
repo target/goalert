@@ -15,6 +15,7 @@ module.exports = {
     'plugin:jsx-a11y/recommended',
   ],
   rules: {
+    'no-else-return': ['error', { allowElseIf: false }],
     'prettier/prettier': 'error',
     'react-hooks/rules-of-hooks': 'error',
   },
