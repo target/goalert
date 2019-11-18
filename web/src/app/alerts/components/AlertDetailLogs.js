@@ -7,15 +7,17 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Button from '@material-ui/core/Button'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
-import { DateTime, Interval } from 'luxon'
+import { DateTime } from 'luxon'
+import { logTimeFormat } from '../../util/timeFormat'
 import { POLL_INTERVAL } from '../../config'
+import _ from 'lodash-es'
 
 const LIMIT = 149
 
 const query = gql`
   query getAlert($id: Int!, $input: AlertRecentEventsOptions) {
     alert(id: $id) {
-      data: recentEvents(input: $input) {
+      recentEvents(input: $input) {
         nodes {
           timestamp
           message
@@ -32,8 +34,11 @@ export default function AlertDetailLogs(props) {
   const [poll, setPoll] = useState(POLL_INTERVAL)
   const { data, error, loading, fetchMore } = useQuery(query, {
     pollInterval: poll,
-    variables: { id: props.alertID, input: { after: '', limit: 35 } },
+    variables: { id: props.alertID, input: { limit: 35 } },
   })
+
+  const events = _.get(data, 'alert.recentEvents.nodes', [])
+  const pageInfo = _.get(data, 'alert.recentEvents.pageInfo', {})
 
   const doFetchMore = () => {
     setPoll(0)
@@ -41,7 +46,7 @@ export default function AlertDetailLogs(props) {
       variables: {
         id: props.alertID,
         input: {
-          after: data.alert.data.pageInfo.endCursor,
+          after: pageInfo.endCursor,
           limit: LIMIT,
         },
       },
@@ -50,10 +55,10 @@ export default function AlertDetailLogs(props) {
         return {
           alert: {
             ...fetchMoreResult.alert,
-            data: {
-              ...fetchMoreResult.alert.data,
-              nodes: prev.alert.data.nodes.concat(
-                fetchMoreResult.alert.data.nodes,
+            recentEvents: {
+              ...fetchMoreResult.alert.recentEvents,
+              nodes: prev.alert.recentEvents.nodes.concat(
+                fetchMoreResult.alert.recentEvents.nodes,
               ),
             },
           },
@@ -63,7 +68,7 @@ export default function AlertDetailLogs(props) {
   }
   const renderList = (items, loadMore) => {
     return (
-      <List data-cy='alert-logs' style={{ padding: 0 }}>
+      <List data-cy='alert-logs'>
         {items}
         {loadMore && (
           <Button
@@ -89,24 +94,13 @@ export default function AlertDetailLogs(props) {
         />
       )
     return (
-      <ListItemText primary={relativeTime(timestamp)} secondary={message} />
+      <ListItemText
+        primary={logTimeFormat(timestamp, DateTime.local().startOf('day'))}
+        secondary={message}
+      />
     )
   }
-  const relativeTime = timestamp => {
-    const to = DateTime.fromISO(timestamp)
-    const from = DateTime.local()
-      .setZone(to.zone)
-      .startOf('day')
-    if (Interval.after(from, { days: 1 }).contains(to))
-      return 'Today at ' + to.toFormat('h:mm a')
-    if (Interval.before(from, { days: 1 }).contains(to))
-      return 'Yesterday at ' + to.toFormat('h:mm a')
-    if (Interval.before(from, { weeks: 1 }).contains(to))
-      return 'Last ' + to.weekdayLong + ' at ' + to.toFormat('h:mm a')
-    return to.toFormat('MM/dd/yyyy')
-  }
-
-  if (data && data.alert.data.nodes.length === 0) {
+  if (events === 0) {
     return renderList(
       <ListItem>
         <ListItemText primary='No events.' />
@@ -128,14 +122,13 @@ export default function AlertDetailLogs(props) {
     )
   }
   return renderList(
-    data &&
-      data.alert.data.nodes.map((log, index) => (
-        <div key={index}>
-          <Divider />
-          <ListItem>{renderItems(log.timestamp, log.message)}</ListItem>
-        </div>
-      )),
-    data && data.alert.data.pageInfo.hasNextPage,
+    events.map((log, index) => (
+      <div key={index}>
+        <Divider />
+        <ListItem>{renderItems(log.timestamp, log.message)}</ListItem>
+      </div>
+    )),
+    pageInfo.hasNextPage,
   )
 }
 AlertDetailLogs.propTypes = {
