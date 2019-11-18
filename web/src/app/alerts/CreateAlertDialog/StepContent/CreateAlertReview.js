@@ -1,32 +1,16 @@
 import React from 'react'
 import p from 'prop-types'
 import { Grid, List } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
 import CreateAlertListItem from './CreateAlertListItem'
 import CreateAlertServiceListItem from './CreateAlertServiceListItem'
 
-const useStyles = makeStyles(theme => ({
-  noPaddingBottom: {
-    paddingBottom: '0 !important',
-  },
-  noPaddingTop: {
-    paddingTop: '0 !important',
-  },
-  spaceBetween: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-}))
-
 export function CreateAlertReview(props) {
   const { createdAlertIDs = [], failedServices = [] } = props
-  const classes = useStyles()
 
   return (
     <Grid container spacing={2}>
       {createdAlertIDs.length > 0 && (
-        <Grid item xs={12} className={classes.noPaddingTop}>
+        <Grid item xs={12}>
           <List aria-label='Successfully created alerts'>
             {createdAlertIDs.map(id => (
               <CreateAlertListItem key={id} id={id} />
@@ -36,7 +20,7 @@ export function CreateAlertReview(props) {
       )}
 
       {failedServices.length > 0 && (
-        <Grid item xs={12} className={classes.noPaddingTop}>
+        <Grid item xs={12}>
           <List aria-label='Failed alerts'>
             {failedServices.map(svc => {
               return (
