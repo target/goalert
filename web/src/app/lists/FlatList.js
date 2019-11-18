@@ -147,27 +147,27 @@ export default class FlatList extends React.PureComponent {
           )
         }
         return this.renderItem(item, idx)
-      } else
-        return (
-          <Draggable key={idx + item.id} draggableId={item.id} index={idx}>
-            {(provided, snapshot) => {
-              // light grey background while dragging non-active user
-              const draggingBackground = snapshot.isDragging
-                ? this.props.classes.participantDragging
-                : null
-              return (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  className={draggingBackground}
-                >
-                  {this.renderItem(item, idx)}
-                </div>
-              )
-            }}
-          </Draggable>
-        )
+      }
+      return (
+        <Draggable key={idx + item.id} draggableId={item.id} index={idx}>
+          {(provided, snapshot) => {
+            // light grey background while dragging non-active user
+            const draggingBackground = snapshot.isDragging
+              ? this.props.classes.participantDragging
+              : null
+            return (
+              <div
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+                className={draggingBackground}
+              >
+                {this.renderItem(item, idx)}
+              </div>
+            )
+          }}
+        </Draggable>
+      )
     })
   }
 
@@ -222,8 +222,7 @@ export default class FlatList extends React.PureComponent {
     if (this.props.onReorder) {
       // Enable drag and drop
       return this.renderDragAndDrop()
-    } else {
-      return this.renderList()
     }
+    return this.renderList()
   }
 }
