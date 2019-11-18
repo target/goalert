@@ -74,9 +74,10 @@ export default function ServiceDetails({ serviceID }) {
     returnPartialData: true,
   })
 
+  if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
+
   if (!_.get(data, 'service.id')) {
-    if (loading) return <Spinner />
     return showDelete ? <Redirect to='/services' push /> : <ObjectNotFound />
   }
 
