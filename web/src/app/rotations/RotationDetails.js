@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
+import _ from 'lodash-es'
+
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
@@ -41,10 +43,11 @@ export default function RotationDetails({ rotationID }) {
     variables: { id: rotationID },
   })
 
+  const data = _.get(_data, 'rotation', null)
+
   if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  const data = _data.rotation
   if (!data)
     return showDelete ? <Redirect to='/rotations' push /> : <ObjectNotFound />
 
