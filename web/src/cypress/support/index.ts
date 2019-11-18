@@ -14,6 +14,8 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
+import 'cypress-plugin-retries'
+Cypress.env('RETRIES', 2)
 
 import './alert'
 import './service'
