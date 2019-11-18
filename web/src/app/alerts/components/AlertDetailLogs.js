@@ -12,7 +12,8 @@ import { logTimeFormat } from '../../util/timeFormat'
 import { POLL_INTERVAL } from '../../config'
 import _ from 'lodash-es'
 
-const LIMIT = 149
+const FETCH_LIMIT = 149
+const QUERY_LIMIT = 35
 
 const query = gql`
   query getAlert($id: Int!, $input: AlertRecentEventsOptions) {
@@ -34,7 +35,7 @@ export default function AlertDetailLogs(props) {
   const [poll, setPoll] = useState(POLL_INTERVAL)
   const { data, error, loading, fetchMore } = useQuery(query, {
     pollInterval: poll,
-    variables: { id: props.alertID, input: { limit: 35 } },
+    variables: { id: props.alertID, input: { limit: QUERY_LIMIT } },
   })
 
   const events = _.get(data, 'alert.recentEvents.nodes', [])
@@ -47,7 +48,7 @@ export default function AlertDetailLogs(props) {
         id: props.alertID,
         input: {
           after: pageInfo.endCursor,
-          limit: LIMIT,
+          limit: FETCH_LIMIT,
         },
       },
       updateQuery: (prev, { fetchMoreResult }) => {
