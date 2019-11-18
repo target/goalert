@@ -3,7 +3,6 @@ import p from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import { Redirect } from 'react-router-dom'
-import _ from 'lodash-es'
 
 import PageActions from '../util/PageActions'
 import PolicyStepsQuery from './PolicyStepsQuery'
@@ -35,16 +34,18 @@ export default function PolicyDetails(props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
 
-  const { loading, error, data } = useQuery(query, {
+  const { loading, error, data: _data } = useQuery(query, {
     variables: {
       id: props.escalationPolicyID,
     },
   })
 
+  const data = _data.escalationPolicy
+
   if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  if (!_.get(data, 'escalationPolicy.id')) {
+  if (!data) {
     return showDeleteDialog ? (
       <Redirect to='/escalation-policies' push />
     ) : (
@@ -69,34 +70,32 @@ export default function PolicyDetails(props) {
         />
       </PageActions>
       <DetailsPage
-        title={data.escalationPolicy.name}
-        details={data.escalationPolicy.description}
+        title={data.name}
+        details={data.description}
         links={[
           {
             label: 'Services',
             url: 'services',
           },
         ]}
-        pageFooter={
-          <PolicyStepsQuery escalationPolicyID={data.escalationPolicy.id} />
-        }
+        pageFooter={<PolicyStepsQuery escalationPolicyID={data.id} />}
       />
       <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       {createStep && (
         <PolicyStepCreateDialog
-          escalationPolicyID={data.escalationPolicy.id}
+          escalationPolicyID={data.id}
           onClose={resetCreateStep}
         />
       )}
       {showEditDialog && (
         <PolicyEditDialog
-          escalationPolicyID={data.escalationPolicy.id}
+          escalationPolicyID={data.id}
           onClose={() => setShowEditDialog(false)}
         />
       )}
       {showDeleteDialog && (
         <PolicyDeleteDialog
-          escalationPolicyID={data.escalationPolicy.id}
+          escalationPolicyID={data.id}
           onClose={() => setShowDeleteDialog(false)}
         />
       )}
