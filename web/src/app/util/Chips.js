@@ -68,6 +68,7 @@ ServiceChip.propTypes = {
   style: p.object,
   name: p.string,
   onDelete: p.func,
+  onClick: p.func,
 }
 
 @withRouter
