@@ -7,7 +7,6 @@ import {
   Step,
   StepLabel,
   Typography,
-  Link,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
@@ -85,22 +84,19 @@ export default function CreateAlertDialog(props) {
         </Grid>
         <Grid item className={classes.flexGrow} />
         <Grid item>
-          <Link
+          <Button
+            variant='contained'
+            color='primary'
+            size='small'
+            endIcon={<OpenInNewIcon />}
             href={`/alerts?allServices=1&filter=all&search=${encodeURIComponent(
               value.summary,
             )}`}
             target='_blank'
             rel='noopener noreferrer'
           >
-            <Button
-              variant='contained'
-              color='primary'
-              size='small'
-              endIcon={<OpenInNewIcon />}
-            >
-              Monitor Alerts
-            </Button>
-          </Link>
+            Monitor Alerts
+          </Button>
         </Grid>
       </Grid>
     )
