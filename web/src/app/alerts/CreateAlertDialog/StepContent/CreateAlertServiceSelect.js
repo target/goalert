@@ -68,13 +68,13 @@ const useStyles = makeStyles(theme => ({
 
 export function CreateAlertServiceSelect(props) {
   const { value, onChange, error } = props
-  const [search, setSearch] = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const [searchQueryInput, setSearchQueryInput] = useState('')
+  const [searchUserInput, setSearchUserInput] = useState('')
 
   const { data, error: queryError, loading } = useQuery(query, {
     variables: {
       input: {
-        search,
+        search: searchQueryInput,
         favoritesFirst: true,
         omit: value,
         first: 15,
@@ -91,25 +91,24 @@ export function CreateAlertServiceSelect(props) {
     .join('\n')
 
   let placeholderMsg = null
-  if (queryErrorMsg) placeholderMsg = null
-  else if (loading || search !== searchInput) placeholderMsg = 'Loading...'
-  else if (searchResults.length === 0) placeholderMsg = 'No services found'
+  if (queryErrorMsg) {
+    placeholderMsg = null
+  } else if (loading || searchQueryInput !== searchUserInput) {
+    placeholderMsg = 'Loading...'
+  } else if (searchResults.length === 0) {
+    placeholderMsg = 'No services found'
+  }
 
-  // If the page search param changes, we update state directly.
-  useEffect(() => {
-    setSearchInput(search)
-  }, [search])
-
-  // When typing, we setup a debounce before updating the URL.
+  // debounce search query as user types
   useEffect(() => {
     const t = setTimeout(() => {
-      setSearch(searchInput)
+      setSearchQueryInput(searchUserInput)
     }, DEBOUNCE_DELAY)
 
     return () => clearTimeout(t)
-  }, [searchInput])
+  }, [searchUserInput])
 
-  const { labelKey, labelValue } = getServiceLabel(searchInput)
+  const { labelKey, labelValue } = getServiceLabel(searchUserInput)
 
   const addAll = e => {
     e.stopPropagation()
@@ -172,9 +171,9 @@ export function CreateAlertServiceSelect(props) {
         fullWidth
         label='Search'
         name='serviceSearch'
-        value={searchInput}
+        value={searchUserInput}
         className={classes.searchInput}
-        onChange={e => setSearchInput(e.target.value)}
+        onChange={e => setSearchUserInput(e.target.value)}
         InputProps={{
           ref: fieldRef,
           startAdornment: (
@@ -198,9 +197,11 @@ export function CreateAlertServiceSelect(props) {
               <ServiceLabelFilterContainer
                 value={{ labelKey, labelValue }}
                 onChange={({ labelKey, labelValue }) =>
-                  setSearch(labelKey ? `${labelKey}=${labelValue}` : '')
+                  setSearchUserInput(
+                    labelKey ? `${labelKey}=${labelValue}` : '',
+                  )
                 }
-                onReset={() => setSearch('')}
+                onReset={() => setSearchUserInput('')}
                 anchorRef={fieldRef}
               />
             </span>
