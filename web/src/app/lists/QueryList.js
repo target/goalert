@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-
+import Grid from '@material-ui/core/Grid'
 import { PaginatedList } from './PaginatedList'
 import { ITEMS_PER_PAGE } from '../config'
 import { once } from 'lodash-es'
@@ -8,12 +8,21 @@ import { connect } from 'react-redux'
 import { searchSelector } from '../selectors'
 import Query from '../util/Query'
 import { fieldAlias } from '../util/graphql'
+import Search from '../util/Search'
+import withStyles from '@material-ui/core/styles/withStyles'
+
+const styles = {
+  flexGrow: {
+    flexGrow: 1,
+  },
+}
 
 const mapStateToProps = state => ({
   search: searchSelector(state),
   routeKey: state.router.location.key,
 })
 
+@withStyles(styles)
 @connect(mapStateToProps)
 export default class QueryList extends React.PureComponent {
   static propTypes = {
@@ -46,6 +55,9 @@ export default class QueryList extends React.PureComponent {
     // provided by redux
     search: p.string,
     routeKey: p.string,
+
+    // filters additional to search, set in the search text field.
+    searchAdornment: p.node,
   }
 
   static defaultProps = {
@@ -81,6 +93,7 @@ export default class QueryList extends React.PureComponent {
     let items = []
     let loadMore
     const {
+      classes,
       query,
       mapDataNode,
       variables,
@@ -108,27 +121,42 @@ export default class QueryList extends React.PureComponent {
   }
 
   render() {
+    const { classes, noSearch, query, search, searchAdornment } = this.props
     const { input, ...vars } = this.props.variables
 
     const variables = {
       ...vars,
       input: {
         first: ITEMS_PER_PAGE,
-        search: this.props.search,
+        search,
         ...input,
       },
     }
-    if (this.props.noSearch) {
+
+    if (noSearch) {
       delete variables.input.search
     }
+
     return (
-      <Query
-        query={fieldAlias(this.props.query, 'data')}
-        variables={variables}
-        noPoll
-        notifyOnNetworkStatusChange
-        render={this.renderContent}
-      />
+      <Grid container spacing={2}>
+        <Grid item className={classes.flexGrow} />
+
+        {/* Such that filtering/searching isn't re-rendered with the page content */}
+        <Grid item>
+          <Search endAdornment={searchAdornment} />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Query
+            query={fieldAlias(query, 'data')}
+            variables={variables}
+            noPoll
+            noSpin
+            notifyOnNetworkStatusChange
+            render={this.renderContent}
+          />
+        </Grid>
+      </Grid>
     )
   }
 }

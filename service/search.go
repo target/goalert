@@ -152,7 +152,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		return nil, err
 	}
 	if opts.LabelKey() != "" {
-		err = validate.LabelKey("LabelKey", opts.LabelKey())
+		err = validate.Search("LabelKey", opts.LabelKey())
 		if opts.LabelValue() != "*" {
 			err = validate.Many(err,
 				validate.LabelValue("LabelValue", opts.LabelValue()),

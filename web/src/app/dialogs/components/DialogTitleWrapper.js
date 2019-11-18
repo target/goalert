@@ -107,16 +107,15 @@ export default class DialogTitleWrapper extends Component {
           {subtitle}
         </React.Fragment>
       )
-    } else {
-      return (
-        <React.Fragment>
-          <DialogTitle className={classes.wideScreenTitle} key='title'>
-            {title}
-          </DialogTitle>
-          {subtitle}
-          {menu}
-        </React.Fragment>
-      )
     }
+    return (
+      <React.Fragment>
+        <DialogTitle className={classes.wideScreenTitle} key='title'>
+          {title}
+        </DialogTitle>
+        {subtitle}
+        {menu}
+      </React.Fragment>
+    )
   }
 }

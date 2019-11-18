@@ -112,11 +112,11 @@ function makeUseValues(query, mapNode) {
 // for a given search query.
 function makeUseOptions(query, mapNode, vars, defaultVars) {
   const q = fieldAlias(query, 'data')
-  return function useOptions(value, search) {
+  return function useOptions(value, search, extraVars) {
     const params = { first: 5, omit: Array.isArray(value) ? value : [] } // only omit in multi-select mode
     const input = search
-      ? { ...vars, ...params, search }
-      : { ...defaultVars, ...params }
+      ? { ...vars, ...extraVars, ...params, search }
+      : { ...defaultVars, ...extraVars, ...params }
 
     const { data, loading, error } = useQuery(q, {
       skip: !search && !defaultVars,
@@ -167,6 +167,10 @@ export function makeQuerySelect(displayName, options) {
     // variables will be mixed into the query parameters
     variables = {},
 
+    // extraVariablesFunc is an optional function that is passed props
+    // and should return a new set of props and extra variables.
+    extraVariablesFunc = props => [props, {}],
+
     // query is used to fetch available options. It should define
     // an `input` variable that takes `omit`, `first`, and `search` properties.
     query,
@@ -177,7 +181,7 @@ export function makeQuerySelect(displayName, options) {
     // defaultQueryVariables, if specified, will be used when the component is active
     // but has no search parameter. It is useful for showing favorites before the user
     // enters a search term.
-    defaultQueryVariables,
+    defaultQueryVariables = {},
   } = options
 
   const useValues = makeUseValues(valueQuery, mapDataNode)
@@ -197,9 +201,10 @@ export function makeQuerySelect(displayName, options) {
 
       onCreate: _onCreate,
       onChange = () => {},
-      ...otherProps
+      ..._otherProps
     } = props
 
+    const [otherProps, extraVars] = extraVariablesFunc(_otherProps)
     const onCreate = _onCreate || (() => {})
 
     const [search, setSearch] = useState('')
@@ -209,7 +214,7 @@ export function makeQuerySelect(displayName, options) {
     const [
       selectOptions,
       { loading: optionsLoading, error: optionsError },
-    ] = useOptions(value, search)
+    ] = useOptions(value, search, extraVars)
 
     if (
       _onCreate &&

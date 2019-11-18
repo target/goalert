@@ -34,6 +34,14 @@ func (e logError) Error() string {
 	return "unknown status update"
 }
 
+func AlertID(err error) int {
+	if e, ok := errors.Cause(err).(logError); ok {
+		return e.alertID
+	}
+
+	return 0
+}
+
 func IsAlreadyAcknowledged(err error) bool {
 	if e, ok := errors.Cause(err).(logError); ok {
 		return e.isAlreadyAcknowledged

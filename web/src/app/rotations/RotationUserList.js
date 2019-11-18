@@ -126,14 +126,13 @@ export default class RotationUserList extends React.PureComponent {
             expiredMessage='< 1 Minute'
           />
         )
-      } else {
-        return (
-          'Starts at ' +
-          DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE) +
-          ' ' +
-          DateTime.fromISO(time).toRelativeCalendar()
-        )
       }
+      return (
+        'Starts at ' +
+        DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE) +
+        ' ' +
+        DateTime.fromISO(time).toRelativeCalendar()
+      )
     })
 
     return (
