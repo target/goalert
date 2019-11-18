@@ -53,11 +53,11 @@ export default function CreateAlertDialog(props) {
     }
   }, [hasValidationError])
 
-  const hasSubmitted = Boolean(data) && !hasValidationError
+  const hasComplete = Boolean(data) && !hasValidationError
   const currentStep = loading ? 2 : step
 
   let review, reviewTitle
-  if (hasSubmitted) {
+  if (hasComplete) {
     const createdAlertIDs = _.chain(data)
       .values()
       .filter()
@@ -112,7 +112,8 @@ export default function CreateAlertDialog(props) {
   return (
     <FormDialog
       title='Create New Alert'
-      alert={hasSubmitted}
+      mainActionText={hasComplete ? 'Done' : null}
+      disableBackdropClick={hasComplete}
       onClose={props.onClose}
       loading={loading}
       subTitle={
@@ -138,7 +139,7 @@ export default function CreateAlertDialog(props) {
         )
       }
       PaperProps={{ className: classes.dialog }}
-      onSubmit={() => (hasSubmitted ? props.onClose() : mutate())}
+      onSubmit={() => (hasComplete ? props.onClose() : mutate())}
       onNext={currentStep < 2 ? () => setStep(currentStep + 1) : null}
       onBack={currentStep > 0 ? () => setStep(currentStep - 1) : null}
     />
