@@ -1,9 +1,13 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
+import { useQuery } from 'react-apollo'
+import { Redirect } from 'react-router-dom'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import Switch from '@material-ui/core/Switch'
+import _ from 'lodash-es'
+
 import DetailsPage from '../details/DetailsPage'
 import { UserSelect } from '../selection'
 import FilterContainer from '../util/FilterContainer'
@@ -12,10 +16,8 @@ import OtherActions from '../util/OtherActions'
 import ScheduleEditDialog from './ScheduleEditDialog'
 import ScheduleDeleteDialog from './ScheduleDeleteDialog'
 import ScheduleCalendarQuery from './ScheduleCalendarQuery'
-import { Redirect } from 'react-router-dom'
 import { useURLParam, useResetURLParams } from '../actions'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import { useQuery } from 'react-apollo'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
@@ -48,10 +50,11 @@ export default function ScheduleDetails({ scheduleID }) {
     variables: { id: scheduleID },
   })
 
+  const data = _.get(_data, 'schedule', null)
+
   if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  const data = _data.schedule
   if (!data) {
     return showDelete ? <Redirect to='/schedules' push /> : <ObjectNotFound />
   }
