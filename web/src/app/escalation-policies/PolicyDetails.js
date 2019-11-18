@@ -3,6 +3,7 @@ import p from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import { Redirect } from 'react-router-dom'
+import _ from 'lodash-es'
 
 import PageActions from '../util/PageActions'
 import PolicyStepsQuery from './PolicyStepsQuery'
@@ -40,7 +41,7 @@ export default function PolicyDetails(props) {
     },
   })
 
-  const data = _data.escalationPolicy
+  const data = _.get(_data, 'escalationPolicy', null)
 
   if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
