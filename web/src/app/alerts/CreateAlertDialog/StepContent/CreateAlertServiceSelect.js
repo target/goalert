@@ -67,7 +67,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export function CreateAlertServiceSelect(props) {
-  const { value, onChange, error } = props
+  const { value, onChange } = props
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
 
@@ -158,11 +158,9 @@ export function CreateAlertServiceSelect(props) {
         >
           {value.length > 0 ? selectedServiceChips : notice}
         </Paper>
-        {error && (
-          <FormHelperText>
-            {(props.error &&
-              props.error.message.replace(/^./, str => str.toUpperCase())) ||
-              props.hint}
+        {Boolean(props.error) && (
+          <FormHelperText c={console.log(props.error)}>
+            {props.error.message}
           </FormHelperText>
         )}
       </FormControl>
@@ -247,6 +245,5 @@ export function CreateAlertServiceSelect(props) {
 
 CreateAlertServiceSelect.propTypes = {
   onChange: p.func.isRequired,
-  error: p.bool,
-  hint: p.string,
+  error: p.object,
 }
