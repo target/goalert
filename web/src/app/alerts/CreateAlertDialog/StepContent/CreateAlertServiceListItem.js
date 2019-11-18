@@ -75,4 +75,5 @@ export default function CreateAlertServiceListItem(props) {
 
 CreateAlertServiceListItem.propTypes = {
   id: p.string.isRequired,
+  err: p.string,
 }
