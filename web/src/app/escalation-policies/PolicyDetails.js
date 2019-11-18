@@ -41,9 +41,10 @@ export default function PolicyDetails(props) {
     },
   })
 
+  if (loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
+
   if (!_.get(data, 'escalationPolicy.id')) {
-    if (loading) return <Spinner />
     return showDeleteDialog ? (
       <Redirect to='/escalation-policies' push />
     ) : (
