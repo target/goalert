@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import p from 'prop-types'
 import {
   makeStyles,
   Button,
@@ -9,14 +10,13 @@ import {
   Typography,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+import _ from 'lodash-es'
 
 import { useCreateAlerts } from './useCreateAlerts'
 import { fieldErrors, allErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
-
-import _ from 'lodash-es'
 
 const stepTitles = ['Alert Info', 'Service Selection', 'Confirm']
 const pluralize = num => (num !== 1 ? 's' : '')
@@ -143,4 +143,9 @@ export default function CreateAlertDialog(props) {
       onBack={currentStep > 0 ? () => setStep(currentStep - 1) : null}
     />
   )
+}
+
+CreateAlertDialog.propTypes = {
+  onClose: p.func.isRequired,
+  serviceID: p.string,
 }

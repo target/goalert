@@ -1,5 +1,5 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
+import p from 'prop-types'
 import { useQuery } from 'react-apollo'
 import {
   ListItem,
@@ -23,13 +23,13 @@ const serviceQuery = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles({
   listItemText: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-}))
+})
 
 export default function CreateAlertServiceListItem(props) {
   const { id, err } = props

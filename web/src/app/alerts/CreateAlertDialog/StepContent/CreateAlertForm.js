@@ -22,6 +22,7 @@ export function CreateAlertForm(props) {
     </FormContainer>
   )
 }
+
 CreateAlertForm.propTypes = {
   activeStep: p.number.isRequired,
   value: p.shape({

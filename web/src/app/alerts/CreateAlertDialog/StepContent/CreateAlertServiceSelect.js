@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
+import p from 'prop-types'
 import {
   TextField,
   InputAdornment,
@@ -209,7 +210,7 @@ export function CreateAlertServiceSelect(props) {
       <Box flexGrow={1} minHeight={0}>
         <Box overflow='auto' flex={1}>
           <List aria-label='select service options'>
-            {!!queryErrorMsg && (
+            {Boolean(queryErrorMsg) && (
               <ListItem>
                 <Typography color='error'>{queryErrorMsg}</Typography>
               </ListItem>
@@ -231,7 +232,7 @@ export function CreateAlertServiceSelect(props) {
               </ListItem>
             ))}
 
-            {!!placeholderMsg && (
+            {Boolean(placeholderMsg) && (
               <ListItem>
                 <ListItemText secondary={placeholderMsg} />
               </ListItem>
@@ -241,4 +242,10 @@ export function CreateAlertServiceSelect(props) {
       </Box>
     </Box>
   )
+}
+
+CreateAlertServiceSelect.propTypes = {
+  onChange: p.func.isRequired,
+  error: p.bool,
+  hint: p.string,
 }

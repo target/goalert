@@ -6,14 +6,14 @@ import AddIcon from '@material-ui/icons/Add'
 import Tooltip from '@material-ui/core/Tooltip'
 import p from 'prop-types'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles({
   fab: {
     position: 'fixed',
     bottom: '2em',
     right: '2em',
     zIndex: 9001,
   },
-}))
+})
 
 export default function CreateAlertFab(props) {
   const classes = useStyles()

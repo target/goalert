@@ -1,5 +1,5 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
+import p from 'prop-types'
 import {
   ListItem,
   ListItemText,
@@ -12,7 +12,7 @@ import CopyText from '../../../util/CopyText'
 import { absURLSelector } from '../../../selectors'
 import { useSelector } from 'react-redux'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles({
   listItemText: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
   openInNewTab: {
     marginLeft: '0.75em',
   },
-}))
+})
 
 export default function CreateAlertListItem(props) {
   const { id } = props
