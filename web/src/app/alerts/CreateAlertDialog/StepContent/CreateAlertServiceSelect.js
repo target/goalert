@@ -160,7 +160,7 @@ export function CreateAlertServiceSelect(props) {
         </Paper>
         {Boolean(props.error) && (
           <FormHelperText c={console.log(props.error)}>
-            {props.error.message}
+            {props.error.message.replace(/^./, str => str.toUpperCase())}
           </FormHelperText>
         )}
       </FormControl>
