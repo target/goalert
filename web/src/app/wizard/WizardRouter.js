@@ -256,7 +256,8 @@ export default class WizardRouter extends React.PureComponent {
           </DialogContentText>
         </DialogContent>
       )
-    } else if (errorMessage) {
+    }
+    if (errorMessage) {
       return <DialogContentError error={errorMessage} />
     }
   }
