@@ -35,6 +35,7 @@ export default function CreateAlertServiceListItem(props) {
   const { id, err } = props
 
   const classes = useStyles()
+  const absURL = useSelector(absURLSelector)
 
   const { data, loading, error: queryError } = useQuery(serviceQuery, {
     variables: {
@@ -46,8 +47,6 @@ export default function CreateAlertServiceListItem(props) {
 
   if (loading) return 'Loading...'
   if (queryError) return 'Error fetching data.'
-
-  const absURL = useSelector(absURLSelector)
 
   const serviceURL = absURL('/services/' + id + '/alerts')
 
