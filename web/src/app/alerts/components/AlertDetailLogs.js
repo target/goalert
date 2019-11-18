@@ -101,7 +101,7 @@ export default function AlertDetailLogs(props) {
       />
     )
   }
-  if (events === 0) {
+  if (events.length === 0) {
     return renderList(
       <ListItem>
         <ListItemText primary='No events.' />
