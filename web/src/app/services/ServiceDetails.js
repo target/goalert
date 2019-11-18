@@ -1,17 +1,18 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
+import { useQuery } from 'react-apollo'
 import { Link, Redirect } from 'react-router-dom'
+import _ from 'lodash-es'
+
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import { useQuery } from 'react-apollo'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import _ from 'lodash-es'
 import ServiceOnCallList from './ServiceOnCallList'
 
 const query = gql`
@@ -20,6 +21,7 @@ const query = gql`
     name
     description
   }
+
   query serviceDetailsQuery($serviceID: ID!) {
     service(id: $serviceID) {
       ...TitleQuery
@@ -59,6 +61,7 @@ const hbStatus = h => {
   if (h.some(m => m.lastState === 'unhealthy')) return 'err'
   return 'warn'
 }
+
 const alertStatus = a => {
   if (!a) return null
   if (!a.length) return 'ok'
@@ -144,6 +147,7 @@ export default function ServiceDetails({ serviceID }) {
     </React.Fragment>
   )
 }
+
 ServiceDetails.propTypes = {
   serviceID: p.string.isRequired,
 }
