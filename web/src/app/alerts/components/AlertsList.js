@@ -242,9 +242,11 @@ export default class AlertsList extends Component {
 
   render() {
     const {
+      actionComplete,
       allServices,
       classes,
       data,
+      fullScreen,
       onServicePage,
       isFirstLogin,
       loadMore,
@@ -319,7 +321,11 @@ export default class AlertsList extends Component {
             }
           />
         </Snackbar>
-        <CreateAlertFab serviceID={serviceID} />
+        <CreateAlertFab
+          serviceID={serviceID}
+          showFavoritesWarning={showFavoritesWarning}
+          transition={fullScreen && (showFavoritesWarning || actionComplete)}
+        />
         <Card style={{ width: '100%' }}>
           <Hidden mdDown>
             <AlertsListControls />
