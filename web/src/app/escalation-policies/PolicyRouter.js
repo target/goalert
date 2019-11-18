@@ -23,7 +23,7 @@ const query = gql`
   }
 `
 
-export default function PolicyRouter(props) {
+export default function PolicyRouter() {
   const renderList = () => (
     <SimpleListPage
       query={query}
