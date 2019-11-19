@@ -68,7 +68,7 @@ export default class FormDialog extends React.PureComponent {
     disableGutters: p.bool,
 
     // overrides any of the main action button titles with this specific text
-    mainActionText: p.string,
+    primaryActionLabel: p.string,
 
     onClose: p.func,
     onSubmit: p.func,
@@ -105,7 +105,7 @@ export default class FormDialog extends React.PureComponent {
       errors,
       isUnmounting,
       loading,
-      mainActionText,
+      primaryActionLabel, // remove from dialogProps spread
       maxWidth,
       onClose,
       onSubmit,
@@ -202,7 +202,7 @@ export default class FormDialog extends React.PureComponent {
       classes,
       errors,
       loading,
-      mainActionText,
+      primaryActionLabel,
       onClose,
       onBack,
       onNext,
@@ -212,7 +212,7 @@ export default class FormDialog extends React.PureComponent {
       return (
         <DialogActions>
           <Button color='primary' onClick={onClose} variant='contained'>
-            {mainActionText || 'Okay'}
+            {primaryActionLabel || 'Okay'}
           </Button>
         </DialogActions>
       )
@@ -232,7 +232,7 @@ export default class FormDialog extends React.PureComponent {
         <LoadingButton
           form='dialog-form'
           attemptCount={errors.filter(e => !e.nonSubmit).length ? 1 : 0}
-          buttonText={mainActionText || (confirm ? 'Confirm' : submitText)}
+          buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
           color='primary'
           loading={loading}
           type='submit'
