@@ -13,7 +13,8 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import commands.js using ES2015 syntax:
+import 'cypress-plugin-retries'
+Cypress.env('RETRIES', 2)
 
 import './alert'
 import './service'
@@ -35,6 +36,3 @@ import './config'
 export * from './util'
 
 import './fail-fast'
-
-// Alternatively you can use CommonJS syntax:
-// require('./commands')

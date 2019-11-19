@@ -73,6 +73,7 @@ func TestAddRules(t *testing.T) {
 	tw.WaitAndAssert()
 
 	h.FastForward(35 * time.Minute)
+	h.Trigger() // ensure engine cycles before adding 30-min rule
 
 	// ADD RULES
 	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 30)
