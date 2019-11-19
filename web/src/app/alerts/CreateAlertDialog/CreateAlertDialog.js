@@ -120,8 +120,8 @@ export default function CreateAlertDialog(props) {
   return (
     <FormDialog
       title='Create New Alert'
+      alert={hasComplete}
       primaryActionLabel={hasComplete ? 'Done' : null}
-      disableBackdropClick={hasComplete}
       onClose={props.onClose}
       loading={loading}
       subTitle={
