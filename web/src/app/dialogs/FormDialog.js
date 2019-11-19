@@ -121,20 +121,18 @@ export default class FormDialog extends React.PureComponent {
     return (
       <Dialog
         disableBackdropClick={!isWideScreen || alert}
-        fullScreen={!isWideScreen && !confirm && !alert}
+        fullScreen={!isWideScreen && !confirm}
         maxWidth={maxWidth}
         fullWidth
         open={!isUnmounting}
         onClose={onClose}
         TransitionComponent={
-          isWideScreen || confirm || alert
-            ? DefaultTransition
-            : FullscreenTransition
+          isWideScreen || confirm ? DefaultTransition : FullscreenTransition
         }
         {...dialogProps}
       >
         <DialogTitleWrapper
-          fullScreen={!isWideScreen && !confirm && !alert}
+          fullScreen={!isWideScreen && !confirm}
           onClose={onClose}
           title={title}
           subTitle={subTitle}
