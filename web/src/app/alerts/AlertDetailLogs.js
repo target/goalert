@@ -8,8 +8,8 @@ import Button from '@material-ui/core/Button'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import { DateTime } from 'luxon'
-import { logTimeFormat } from '../../util/timeFormat'
-import { POLL_INTERVAL } from '../../config'
+import { logTimeFormat } from '../util/timeFormat'
+import { POLL_INTERVAL } from '../config'
 import _ from 'lodash-es'
 
 const FETCH_LIMIT = 149
