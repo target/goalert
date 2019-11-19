@@ -35,7 +35,7 @@ export function SetFavoriteButton({ typeName, isFavorite, loading, onClick }) {
 
 SetFavoriteButton.propTypes = {
   typeName: p.oneOf(['rotation', 'service', 'schedule']),
-  onSubmit: p.func,
+  onClick: p.func,
   isFavorite: p.bool,
   loading: p.bool,
 }
