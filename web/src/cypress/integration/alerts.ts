@@ -259,7 +259,7 @@ function testAlerts(screen: ScreenFormat) {
       })
     })
 
-    it.only('should create an alert for two services', () => {
+    it('should create an alert for two services', () => {
       cy.pageFab()
 
       cy.get('div[role=dialog]').as('dialog')
@@ -326,9 +326,6 @@ function testAlerts(screen: ScreenFormat) {
 
       cy.get('@dialog').contains('label', 'Selected Services (2)')
 
-      // TODO test Add All button
-      // TODO test Filter button
-
       cy.get('@dialog')
         .contains('button', 'Next')
         .click()
@@ -370,8 +367,6 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('@dialog')
         .contains('button', 'Done')
         .click()
-
-      //TODO test errors
     })
   })
 
