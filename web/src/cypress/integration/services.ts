@@ -560,17 +560,11 @@ function testServices(screen: ScreenFormat) {
         .contains('button', 'Next')
         .click()
 
-      // service already selected
+      // service already selected; skip to Confirm step
       cy.get('@dialog')
-        .find('[data-cy=service-chip-container]')
         .contains('[data-cy=service-chip]', svc.name)
         .should('be.visible')
 
-      cy.get('@dialog')
-        .contains('button', 'Next')
-        .click()
-
-      // confirm
       cy.get('@dialog')
         .contains('button', 'Submit')
         .click()

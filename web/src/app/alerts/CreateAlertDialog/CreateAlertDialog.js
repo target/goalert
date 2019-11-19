@@ -56,6 +56,14 @@ export default function CreateAlertDialog(props) {
   const hasComplete = Boolean(data) && !hasValidationError
   const currentStep = loading ? 2 : step
 
+  const onNext = () => {
+    if (currentStep === 0 && props.serviceID) {
+      setStep(currentStep + 2)
+    } else if (currentStep < 2) {
+      setStep(currentStep + 1)
+    }
+  }
+
   let review, reviewTitle
   if (hasComplete) {
     const createdAlertIDs = _.chain(data)
@@ -140,7 +148,7 @@ export default function CreateAlertDialog(props) {
       }
       PaperProps={{ className: classes.dialog }}
       onSubmit={() => (hasComplete ? props.onClose() : mutate())}
-      onNext={currentStep < 2 ? () => setStep(currentStep + 1) : null}
+      onNext={currentStep < 2 ? onNext : null}
       onBack={currentStep > 0 ? () => setStep(currentStep - 1) : null}
     />
   )
