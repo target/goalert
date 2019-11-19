@@ -1,8 +1,13 @@
 import getServiceLabel from './getServiceLabel'
 
 test('it should split service labels correctly', () => {
-  expect(getServiceLabel('wcbn.fm/rfaa=88.3 ann arbor')).toStrictEqual({
-    labelKey: 'wcbn.fm/rfaa',
-    labelValue: '88.3 ann arbor',
-  })
+  const check = (search, labelKey, labelValue) =>
+    expect(getServiceLabel(search)).toEqual({ labelKey, labelValue })
+
+  check('wcbn.fm/rfaa=88.3 ann arbor', 'wcbn.fm/rfaa', '88.3 ann arbor')
+  check('foo=bar', 'foo', 'bar')
+  check('foo!=bar', 'foo', 'bar')
+  check('foo=bar=baz', 'foo', 'bar=baz')
+  check('foo=bar!=baz', 'foo', 'bar!=baz')
+  check('foo=bar===!==', 'foo', 'bar===!==')
 })
