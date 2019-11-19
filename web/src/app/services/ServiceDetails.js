@@ -1,22 +1,30 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { Link } from 'react-router-dom'
+import { useQuery } from 'react-apollo'
+import { Link, Redirect } from 'react-router-dom'
+import _ from 'lodash-es'
+
 import PageActions from '../util/PageActions'
-import Query from '../util/Query'
 import OtherActions from '../util/OtherActions'
 import DetailsPage from '../details/DetailsPage'
-import ServiceOnCallQuery from './ServiceOnCallQuery'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
+import Spinner from '../loading/components/Spinner'
+import { GenericError, ObjectNotFound } from '../error-pages'
+import ServiceOnCallList from './ServiceOnCallList'
 
 const query = gql`
+  fragment TitleQuery on Service {
+    id
+    name
+    description
+  }
+
   query serviceDetailsQuery($serviceID: ID!) {
     service(id: $serviceID) {
-      id
-      name
-      description
+      ...TitleQuery
       ep: escalationPolicy {
         id
         name
@@ -24,6 +32,11 @@ const query = gql`
       heartbeatMonitors {
         id
         lastState
+      }
+      onCallUsers {
+        userID
+        userName
+        stepNumber
       }
     }
 
@@ -42,123 +55,99 @@ const query = gql`
   }
 `
 
-const titleQuery = gql`
-  query titleQuery($serviceID: ID!) {
-    service(id: $serviceID) {
-      id
-      name
-      description
-    }
-  }
-`
-
 const hbStatus = h => {
-  if (!h || !h.length) return ''
+  if (!h || !h.length) return null
   if (h.every(m => m.lastState === 'healthy')) return 'ok'
   if (h.some(m => m.lastState === 'unhealthy')) return 'err'
   return 'warn'
 }
 
-export default class ServiceDetails extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
+const alertStatus = a => {
+  if (!a) return null
+  if (!a.length) return 'ok'
+  if (a[0].status === 'StatusUnacknowledged') return 'err'
+  return 'warn'
+}
+
+export default function ServiceDetails({ serviceID }) {
+  const [showEdit, setShowEdit] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
+  const { data, loading, error } = useQuery(query, {
+    variables: { serviceID },
+    returnPartialData: true,
+  })
+
+  if (error) return <GenericError error={error.message} />
+
+  if (!_.get(data, 'service.id')) {
+    if (loading) return <Spinner />
+    return showDelete ? <Redirect to='/services' push /> : <ObjectNotFound />
   }
 
-  state = {
-    edit: false,
-    delete: false,
-  }
-
-  renderData = ({ data }) => {
-    let alertStatus
-    if (data.alerts) {
-      if (!data.alerts.nodes || !data.alerts.nodes.length) {
-        alertStatus = 'ok'
-      } else if (data.alerts.nodes[0].status === 'StatusUnacknowledged') {
-        alertStatus = 'err'
-      } else {
-        alertStatus = 'warn'
-      }
-    }
-
-    let titleFooter = null
-    if (data.service.ep) {
-      titleFooter = (
-        <div>
-          Escalation Policy:&nbsp;
-          <Link to={`/escalation-policies/${data.service.ep.id}`}>
-            {data.service.ep.name}
-          </Link>
-        </div>
-      )
-    }
-    return (
-      <React.Fragment>
-        <PageActions>
-          <QuerySetFavoriteButton serviceID={data.service.id} />
-          <OtherActions
-            actions={[
-              {
-                label: 'Edit Service',
-                onClick: () => this.setState({ edit: true }),
-              },
-              {
-                label: 'Delete Service',
-                onClick: () => this.setState({ delete: true }),
-              },
-            ]}
-          />
-        </PageActions>
-        <DetailsPage
-          title={data.service.name}
-          details={data.service.description}
-          titleFooter={titleFooter}
-          links={[
+  return (
+    <React.Fragment>
+      <PageActions>
+        <QuerySetFavoriteButton serviceID={serviceID} />
+        <OtherActions
+          actions={[
             {
-              label: 'Alerts',
-              status: alertStatus,
-              url: 'alerts',
+              label: 'Edit Service',
+              onClick: () => setShowEdit(true),
             },
             {
-              label: 'Heartbeat Monitors',
-              url: 'heartbeat-monitors',
-              status: hbStatus(data.service.heartbeatMonitors),
-            },
-            {
-              label: 'Integration Keys',
-              url: 'integration-keys',
-            },
-            {
-              label: 'Labels',
-              url: 'labels',
+              label: 'Delete Service',
+              onClick: () => setShowDelete(true),
             },
           ]}
-          pageFooter={<ServiceOnCallQuery serviceID={this.props.serviceID} />}
         />
-        {this.state.edit && (
-          <ServiceEditDialog
-            onClose={() => this.setState({ edit: false })}
-            serviceID={this.props.serviceID}
-          />
-        )}
-        {this.state.delete && (
-          <ServiceDeleteDialog
-            onClose={() => this.setState({ delete: false })}
-            serviceID={this.props.serviceID}
-          />
-        )}
-      </React.Fragment>
-    )
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        partialQuery={titleQuery}
-        variables={{ serviceID: this.props.serviceID }}
-        render={this.renderData}
+      </PageActions>
+      <DetailsPage
+        title={data.service.name}
+        details={data.service.description}
+        titleFooter={
+          <div>
+            Escalation Policy:{' '}
+            {_.get(data, 'service.ep') ? (
+              <Link to={`/escalation-policies/${data.service.ep.id}`}>
+                {data.service.ep.name}
+              </Link>
+            ) : (
+              <Spinner text='Looking up policy...' />
+            )}
+          </div>
+        }
+        links={[
+          {
+            label: 'Alerts',
+            status: alertStatus(_.get(data, 'alerts.nodes')),
+            url: 'alerts',
+          },
+          {
+            label: 'Heartbeat Monitors',
+            url: 'heartbeat-monitors',
+            status: hbStatus(_.get(data, 'service.heartbeatMonitors')),
+          },
+          { label: 'Integration Keys', url: 'integration-keys' },
+          { label: 'Labels', url: 'labels' },
+        ]}
+        pageFooter={<ServiceOnCallList serviceID={serviceID} />}
       />
-    )
-  }
+      {showEdit && (
+        <ServiceEditDialog
+          onClose={() => setShowEdit(false)}
+          serviceID={serviceID}
+        />
+      )}
+      {showDelete && (
+        <ServiceDeleteDialog
+          onClose={() => setShowDelete(false)}
+          serviceID={serviceID}
+        />
+      )}
+    </React.Fragment>
+  )
+}
+
+ServiceDetails.propTypes = {
+  serviceID: p.string.isRequired,
 }
