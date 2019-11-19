@@ -90,7 +90,7 @@
     "moment": "2.24.0",
     "react": "16.9.0",
     "react-apollo": "3.1.0",
-    "react-beautiful-dnd": "11.0.5",
+    "react-beautiful-dnd": "12.1.1",
     "react-big-calendar": "0.22.0",
     "react-countdown-now": "2.1.1",
     "react-dom": "16.9.0",
