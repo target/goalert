@@ -131,7 +131,7 @@
     "eslint-config-standard": "12.0.0",
     "eslint-config-standard-jsx": "6.0.2",
     "eslint-plugin-cypress": "2.7.0",
-    "eslint-plugin-import": "2.17.3",
+    "eslint-plugin-import": "2.18.2",
     "eslint-plugin-jsx-a11y": "6.2.3",
     "eslint-plugin-node": "9.2.0",
     "eslint-plugin-prettier": "3.1.0",
