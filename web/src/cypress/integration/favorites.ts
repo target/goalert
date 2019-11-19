@@ -6,6 +6,18 @@ testScreen('Favorites', testFavorites)
 
 function testFavorites(screen: ScreenFormat) {
   check(
+    'Service',
+    'services',
+    (name: string, favorite: boolean) =>
+      cy.createService({ name, favorite }).then(s => s.id),
+    () =>
+      cy
+        .visit(`/alerts`)
+        .pageFab()
+        .get('input[name=service]'),
+  )
+
+  check(
     'Rotation',
     'rotations',
     (name: string, favorite: boolean) =>
