@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/timezone"
@@ -38,6 +39,7 @@ func (q *Query) TimeZones(ctx context.Context, input *graphql2.TimeZoneSearchOpt
 	}
 
 	conn = new(graphql2.TimeZoneConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(names) == searchOpts.Limit {
 		names = names[:len(names)-1]
 		conn.PageInfo.HasNextPage = true

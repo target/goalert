@@ -245,6 +245,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 		return nil, err
 	}
 	conn = new(graphql2.ScheduleConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(scheds) == searchOpts.Limit {
 		scheds = scheds[:len(scheds)-1]
 		conn.PageInfo.HasNextPage = true
