@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go v0.49.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.8
-	contrib.go.opencensus.io/resource v0.1.1 // indirect
 	github.com/99designs/gqlgen v0.8.3
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
@@ -14,7 +13,6 @@ require (
 	github.com/alecthomas/chroma v0.6.9
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
 	github.com/alexeyco/simpletable v0.0.0-20191023080658-fe3ac9971811
-	github.com/apache/thrift v0.13.0 // indirect
 	github.com/aws/aws-sdk-go v1.25.38 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/chzyer/logex v1.1.10 // indirect
@@ -41,7 +39,6 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/mattn/go-colorable v0.1.4
 	github.com/mattn/go-isatty v0.0.10 // indirect
-	github.com/openzipkin/zipkin-go v0.1.6 // indirect
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
