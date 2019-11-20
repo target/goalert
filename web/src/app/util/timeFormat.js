@@ -58,3 +58,14 @@ export function relativeDate(_to, _from = DateTime.utc()) {
 
   return build('', { weekday: 'long' })
 }
+
+export function logTimeFormat(_to, _from) {
+  const to = DateTime.fromISO(_to)
+  if (Interval.after(_from, { days: 1 }).contains(to))
+    return 'Today at ' + to.toFormat('h:mm a')
+  if (Interval.before(_from, { days: 1 }).contains(to))
+    return 'Yesterday at ' + to.toFormat('h:mm a')
+  if (Interval.before(_from, { weeks: 1 }).contains(to))
+    return 'Last ' + to.weekdayLong + ' at ' + to.toFormat('h:mm a')
+  return to.toFormat('MM/dd/yyyy')
+}
