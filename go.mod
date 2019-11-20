@@ -16,10 +16,11 @@ require (
 	github.com/alexeyco/simpletable v0.0.0-20191023080658-fe3ac9971811
 	github.com/apache/thrift v0.13.0 // indirect
 	github.com/aws/aws-sdk-go v1.25.38 // indirect
-	github.com/brianvoe/gofakeit v3.17.0+incompatible
+	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/chzyer/logex v1.1.10 // indirect
 	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
 	github.com/coreos/go-oidc v2.1.0+incompatible
+	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dlclark/regexp2 v1.2.0 // indirect
@@ -56,6 +57,7 @@ require (
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.0.1
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
+	github.com/urfave/cli v1.22.1 // indirect
 	github.com/vbauerster/mpb/v4 v4.8.4
 	github.com/vektah/gqlparser v1.2.0
 	go.opencensus.io v0.22.2
