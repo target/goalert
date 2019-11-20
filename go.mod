@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.49.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.8
-	github.com/99designs/gqlgen v0.8.3
+	github.com/99designs/gqlgen v0.10.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.0.3 // indirect
@@ -37,6 +37,8 @@ require (
 	github.com/jackc/pgtype v1.0.3
 	github.com/jackc/pgx/v4 v4.1.2
 	github.com/joho/godotenv v1.3.0
+	github.com/machinebox/graphql v0.2.2
+	github.com/matryer/is v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.4
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/pelletier/go-toml v1.6.0
@@ -56,13 +58,14 @@ require (
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
 	github.com/urfave/cli v1.22.1 // indirect
 	github.com/vbauerster/mpb/v4 v4.8.4
+	github.com/vektah/dataloaden v0.3.0 // indirect
 	github.com/vektah/gqlparser v1.2.0
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191119213627-4f8c1d86b1ba
 	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sys v0.0.0-20191120130536-6bfc516c8699 // indirect
-	golang.org/x/tools v0.0.0-20191120143758-e97fc272220f
+	golang.org/x/tools v0.0.0-20191120181412-0a33398bd99d
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11 // indirect
