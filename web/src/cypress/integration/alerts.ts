@@ -338,4 +338,26 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('contain', 'CLOSED')
     })
   })
+  describe('Alert Details Logs', () => {
+    let logs: AlertLogs
+    beforeEach(() => {
+      cy.createAlertLogs({ count: 200 }).then(_logs => {
+        logs = _logs
+        return cy.visit(`/alerts/${logs.alert.number}`)
+      })
+    })
+
+    it('should see load more, click, and no longer see load more', () => {
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 35)
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 184)
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+
+      // create plus any engine events should be 200+
+      cy.get('ul[data-cy=alert-logs] li').should('have.length.gt', 200)
+      cy.get('body').should('not.contain', 'Load More')
+    })
+  })
 }
