@@ -25,6 +25,7 @@ type Config struct {
 		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`
 		MessageBundles         bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
 		ShortURL               string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
+		DisableSMSLinks        bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
 	}
 
 	Maintenance struct {
