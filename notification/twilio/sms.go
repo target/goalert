@@ -129,17 +129,27 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 			Count: t.Count - 1,
 		}.Render()
 	case notification.AlertBundle:
+		var link string
+		if !cfg.General.DisableSMSLinks {
+			link = cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID))
+		}
+
 		message, err = alertSMS{
 			Count: t.Count,
 			Body:  t.ServiceName,
-			Link:  cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", t.ServiceID)),
+			Link:  link,
 			Code:  makeSMSCode(0, t.ServiceID),
 		}.Render()
 	case notification.Alert:
+		var link string
+		if !cfg.General.DisableSMSLinks {
+			link = cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID))
+		}
+
 		message, err = alertSMS{
 			ID:   t.AlertID,
 			Body: t.Summary,
-			Link: cfg.CallbackURL(fmt.Sprintf("/alerts/%d", t.AlertID)),
+			Link: link,
 			Code: makeSMSCode(t.AlertID, ""),
 		}.Render()
 	case notification.Test:
