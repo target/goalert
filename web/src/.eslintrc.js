@@ -18,6 +18,11 @@ module.exports = {
     'no-else-return': ['error', { allowElseIf: false }],
     'prettier/prettier': 'error',
     'react-hooks/rules-of-hooks': 'error',
+    'react/jsx-fragments': ['error', 'element'],
+    'react/jsx-curly-newline': [
+      'error',
+      { multiline: 'consistent', singleline: 'consistent' },
+    ],
   },
   env: {
     'cypress/globals': true,
