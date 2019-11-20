@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/util/log"
 	"time"
+
+	"github.com/target/goalert/util/log"
 )
 
-type rawEntry struct {
+type Entry struct {
 	id        int
 	alertID   int
 	timestamp time.Time
@@ -30,7 +31,7 @@ type rawEntry struct {
 	meta rawJSON
 }
 
-func (e rawEntry) Meta() interface{} {
+func (e Entry) Meta() interface{} {
 	switch e.Type() {
 	case TypeEscalated:
 		var esc EscalationMetaData
@@ -44,18 +45,18 @@ func (e rawEntry) Meta() interface{} {
 
 	return nil
 }
-func (e rawEntry) AlertID() int {
+func (e Entry) AlertID() int {
 	return e.alertID
 }
 
-func (e rawEntry) ID() int {
+func (e Entry) ID() int {
 	return e.id
 }
 
-func (e rawEntry) Timestamp() time.Time {
+func (e Entry) Timestamp() time.Time {
 	return e.timestamp
 }
-func (e rawEntry) Type() Type {
+func (e Entry) Type() Type {
 	switch e._type {
 	case _TypeResponseReceived:
 		return respRecvType(e.message)
@@ -66,7 +67,7 @@ func (e rawEntry) Type() Type {
 	return e._type
 }
 
-func (e rawEntry) Subject() *Subject {
+func (e Entry) Subject() *Subject {
 	if e.subject._type == SubjectTypeNone {
 		if e.message != "" {
 			return e.subjectFromMessage()
@@ -113,7 +114,7 @@ func escalationMsg(m *EscalationMetaData) string {
 	return msg
 }
 
-func (e rawEntry) String() string {
+func (e Entry) String() string {
 	var msg string
 	var infinitive bool
 	switch e.Type() {
@@ -148,7 +149,7 @@ func (e rawEntry) String() string {
 	return msg
 }
 
-func (e *rawEntry) scanWith(scan func(...interface{}) error) error {
+func (e *Entry) scanWith(scan func(...interface{}) error) error {
 	return scan(
 		&e.id,
 		&e.alertID,

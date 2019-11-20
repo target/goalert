@@ -3,11 +3,12 @@ package alertlog
 import (
 	"context"
 	"database/sql"
+	"text/template"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -113,20 +114,16 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Entry, error) 
 	}
 	defer rows.Close()
 
-	var result []rawEntry
+	var result []Entry
 	for rows.Next() {
-		var r rawEntry
+		var r Entry
 		err = r.scanWith(rows.Scan)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, r)
 	}
-	var logs []Entry
-	for _, e := range result {
-		logs = append(logs, e)
-	}
 
-	return logs, nil
+	return result, nil
 
 }
