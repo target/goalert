@@ -55,13 +55,13 @@ require (
 	github.com/ttacon/libphonenumber v1.0.1
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
 	github.com/urfave/cli v1.22.1 // indirect
-	github.com/vbauerster/mpb/v4 v4.8.4
+	github.com/vbauerster/mpb/v4 v4.11.1
 	github.com/vektah/gqlparser v1.2.0
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191119213627-4f8c1d86b1ba
 	golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sys v0.0.0-20191120130536-6bfc516c8699 // indirect
+	golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e // indirect
 	golang.org/x/tools v0.0.0-20191120143758-e97fc272220f
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
