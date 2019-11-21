@@ -26,7 +26,7 @@ export const useCreateAlerts = value => {
   }
 
   // 2. build variables, alias -> service ID map
-  let variables = {}
+  const variables = {}
   const aliasIDMap = {}
   value.serviceIDs.forEach((svcID, i) => {
     aliasIDMap['alias' + i] = svcID

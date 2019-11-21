@@ -216,7 +216,7 @@ export default class FormDialog extends React.PureComponent {
       )
     }
 
-    let submitText = onNext ? 'Next' : 'Submit'
+    const submitText = onNext ? 'Next' : 'Submit'
 
     return (
       <DialogActions>

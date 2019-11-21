@@ -43,7 +43,7 @@ export default function CreateAlertServiceListItem(props) {
     },
   })
 
-  let { service } = data || {}
+  const { service } = data || {}
 
   if (loading) return 'Loading...'
   if (queryError) return 'Error fetching data.'
