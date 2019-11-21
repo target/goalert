@@ -55,7 +55,7 @@ const mapStateToProps = state => {
     start = DateTime.local().toISO()
   }
 
-  let end = DateTime.fromISO(start)
+  const end = DateTime.fromISO(start)
     .plus(Duration.fromISO(weekly ? 'P7D' : 'P1M'))
     .toISO()
 

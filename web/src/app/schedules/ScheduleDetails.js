@@ -46,9 +46,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => {
   return {
-    setUserFilter: value => dispatch(setURLParam('userFilter', value)),
-    setActiveOnly: value => dispatch(setURLParam('activeOnly', value)),
-    resetFilter: () =>
+    handleUserFilterSelect: value => dispatch(setURLParam('userFilter', value)),
+    handleActiveOnlySwitch: value => dispatch(setURLParam('activeOnly', value)),
+    handleFilterReset: () =>
       dispatch(
         resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'duration'),
       ),
@@ -85,13 +85,15 @@ export default class ScheduleDetails extends React.PureComponent {
       <React.Fragment>
         <PageActions>
           <QuerySetFavoriteButton scheduleID={data.id} />
-          <FilterContainer onReset={() => this.props.resetFilter()}>
+          <FilterContainer onReset={() => this.props.handleFilterReset()}>
             <Grid item xs={12}>
               <FormControlLabel
                 control={
                   <Switch
                     checked={this.props.activeOnly}
-                    onChange={e => this.props.setActiveOnly(e.target.checked)}
+                    onChange={e =>
+                      this.props.handleActiveOnlySwitch(e.target.checked)
+                    }
                     value='activeOnly'
                   />
                 }
@@ -103,7 +105,7 @@ export default class ScheduleDetails extends React.PureComponent {
                 label='Filter users...'
                 multiple
                 value={this.props.userFilter}
-                onChange={this.props.setUserFilter}
+                onChange={value => this.props.handleUserFilterSelect(value)}
               />
             </Grid>
           </FilterContainer>

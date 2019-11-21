@@ -49,6 +49,7 @@ export default class ScheduleRuleDeleteDialog extends React.PureComponent {
       />
     )
   }
+
   renderMutation(data) {
     return (
       <Mutation

@@ -27,9 +27,9 @@ export default class ServiceOnCallQuery extends React.PureComponent {
       <Query
         query={query}
         variables={{ id: this.props.serviceID }}
-        render={({ data }) => {
-          return <ServiceOnCallList onCallUsers={data.service.onCallUsers} />
-        }}
+        render={({ data }) => (
+          <ServiceOnCallList items={data.service.onCallUsers} />
+        )}
       />
     )
   }

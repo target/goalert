@@ -57,13 +57,14 @@ export default class AlertDetails extends Component {
    * Update state and local storage with new boolean value
    * telling whether or not the show exact times toggle is active
    */
-  toggleExactTimes = () => {
+  handleToggleExactTimes = () => {
     const newVal = !this.state.showExactTimes
     this.setState({
       showExactTimes: newVal,
     })
     localStorage.setItem(exactTimesKey, newVal.toString())
   }
+
   renderAlertLogs() {
     return (
       <Card className={this.getCardClassName()}>
@@ -77,7 +78,7 @@ export default class AlertDetails extends Component {
             control={
               <Switch
                 checked={this.state.showExactTimes}
-                onChange={this.toggleExactTimes}
+                onChange={this.handleToggleExactTimes}
               />
             }
             label='Full Timestamps'
@@ -350,7 +351,7 @@ export default class AlertDetails extends Component {
         }
       }
     `
-    let options = []
+    const options = []
     const ack = {
       text: 'Acknowledge',
       mutation: {

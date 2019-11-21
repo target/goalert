@@ -30,7 +30,7 @@ describe('logTimeFormat', () => {
       expect(logTimeFormat(to, from)).toBe(exp)
     })
   }
-  let to = '2019-05-25'
+  const to = '2019-05-25'
   let from = DateTime.local(2019, 5, 25)
   check(to, from, 'Today at 12:00 AM')
   from = from.plus({ days: 1 })
