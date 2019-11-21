@@ -175,7 +175,7 @@ export default class IntegrationKeyList extends React.PureComponent {
         data-cy='int-keys'
         headerNote={
           <React.Fragment>
-            API Documentation is available <Link to={`/docs`}>here</Link>.
+            API Documentation is available <Link to='/docs'>here</Link>.
           </React.Fragment>
         }
         emptyMessage='No integration keys exist for this service.'

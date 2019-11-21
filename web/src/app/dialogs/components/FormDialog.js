@@ -66,7 +66,7 @@ export default class FormDialog extends Component {
 
     return result
       .then(args => {
-        this.onClose(true) // successful action
+        this.handleClose(true) // successful action
         if (this.props.onSuccess) this.props.onSuccess(args) // If the function exists run it
       })
       .catch(err => {
@@ -80,7 +80,7 @@ export default class FormDialog extends Component {
       })
   }
 
-  onClose = (successful = false, clickaway) => {
+  handleClose = (successful = false, clickaway) => {
     if (this.state.loading && !successful) return
     this.props.onRequestClose(successful, clickaway)
   }
@@ -106,7 +106,7 @@ export default class FormDialog extends Component {
           key='title'
           fullScreen={fullScreen}
           title={title}
-          onClose={this.onClose}
+          onClose={this.handleClose}
         />
       )
     }
@@ -151,7 +151,7 @@ export default class FormDialog extends Component {
         <DialogActions>
           <Button
             className={classes.cancelButton}
-            onClick={this.onClose}
+            onClick={this.handleClose}
             disabled={loading}
           >
             Cancel
@@ -177,7 +177,7 @@ export default class FormDialog extends Component {
     return (
       <Dialog
         open={open || false}
-        onClose={() => this.onClose(false, true)}
+        onClose={() => this.handleClose(false, true)}
         classes={{
           paper: classnames(classes.dialogWidth, classes.overflowVisible),
         }}
