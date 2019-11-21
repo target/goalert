@@ -125,7 +125,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
                 label='Filter users...'
                 multiple
                 value={this.props.userFilter}
-                onChange={this.props.setUserFilter}
+                onChange={value => this.props.setUserFilter(value)}
               />
             </Grid>
           </FilterContainer>
