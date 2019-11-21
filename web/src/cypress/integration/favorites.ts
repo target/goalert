@@ -5,16 +5,8 @@ const c = new Chance()
 testScreen('Favorites', testFavorites)
 
 function testFavorites(screen: ScreenFormat) {
-  check(
-    'Service',
-    'services',
-    (name: string, favorite: boolean) =>
-      cy.createService({ name, favorite }).then(s => s.id),
-    () =>
-      cy
-        .visit(`/alerts`)
-        .pageFab()
-        .get('input[name=service]'),
+  check('Service', 'services', (name: string, favorite: boolean) =>
+    cy.createService({ name, favorite }).then(s => s.id),
   )
 
   check(
@@ -111,6 +103,36 @@ function check(
         cy.get('@items')
           .last()
           .should('contain', name1)
+      })
+    }
+
+    if (typeName === 'Service') {
+      it('should sort favorites first in create alert dialog', () => {
+        const suffix = c.word({ length: 12 })
+        const favSvc = `AAA${suffix}`
+        const otherSvc = `ZZZ${suffix}`
+        createFunc(favSvc, true)
+        createFunc(otherSvc, false)
+
+        cy.visit('/alerts')
+
+        cy.pageFab()
+        cy.get('div[role=dialog]').as('dialog')
+        const summary = c.sentence({
+          words: 3,
+        })
+
+        cy.get('@dialog')
+          .find('input[name=summary]')
+          .type(summary)
+
+        cy.get('@dialog')
+          .contains('button', 'Next')
+          .click()
+
+        cy.get('ul[aria-label="select service options"] span')
+          .first()
+          .should('contain', favSvc)
       })
     }
   })
