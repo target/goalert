@@ -71,10 +71,7 @@ const mapDispatchToProps = dispatch => {
 }
 
 @withStyles(styles, { withTheme: true })
-@connect(
-  null,
-  mapDispatchToProps,
-)
+@connect(null, mapDispatchToProps)
 export default class SideBarDrawerList extends React.PureComponent {
   static propTypes = {
     onWizard: p.func.isRequired,
