@@ -51,13 +51,13 @@ export default class WizardScheduleForm extends React.Component {
     return secondary ? 'secondarySchedule' : 'primarySchedule'
   }
 
-  changeRotationType = e => {
+  handleRotationTypeChange = e => {
     const { onChange, value } = this.props
     onChange(set(value, [this.getKey(), 'rotation', 'type'], e.target.value))
     this.forceUpdate()
   }
 
-  enableFollowTheSun = e => {
+  handleFollowTheSunToggle = e => {
     const { onChange, value } = this.props
     onChange(
       set(
@@ -144,7 +144,7 @@ export default class WizardScheduleForm extends React.Component {
               aria-label='Rotation?'
               row
               value={value[key].rotation.type}
-              onChange={this.changeRotationType}
+              onChange={this.handleRotationTypeChange}
             >
               <FormControlLabel
                 data-cy={`${key}.rotationType.weekly`}
@@ -228,7 +228,7 @@ export default class WizardScheduleForm extends React.Component {
                   name={`${key}.fts`}
                   row
                   value={value[key].followTheSunRotation.enable}
-                  onChange={this.enableFollowTheSun}
+                  onChange={this.handleFollowTheSunToggle}
                 >
                   <FormControlLabel
                     data-cy={`${key}.fts.yes`}

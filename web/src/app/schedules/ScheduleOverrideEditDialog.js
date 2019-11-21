@@ -47,7 +47,7 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
         query={query}
         variables={{ id: this.props.overrideID }}
         noPoll
-        fetchPolicy={'network-only'}
+        fetchPolicy='network-only'
         render={({ data }) => this.renderMutation(data.userOverride)}
       />
     )
@@ -79,7 +79,7 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
     return (
       <FormDialog
         onClose={this.props.onClose}
-        title={'Edit Schedule Override'}
+        title='Edit Schedule Override'
         errors={nonFieldErrors(status.error)}
         onSubmit={() => {
           if (this.state.value === null) {

@@ -68,7 +68,7 @@ export default class CalendarToolbar extends React.PureComponent {
    * April in monthly. Clicking "Today" would
    * reset the calendar back to March.
    */
-  onTodayClick = e => {
+  handleTodayClick = e => {
     this.props.onNavigate(e, moment().toDate())
   }
 
@@ -76,7 +76,7 @@ export default class CalendarToolbar extends React.PureComponent {
    * Go backwards 1 week or 1 month, depending
    * on the current view type.
    */
-  onBackClick = e => {
+  handleBackClick = e => {
     const { date, weekly } = this.props
     const nextDate = weekly
       ? moment(date)
@@ -93,7 +93,7 @@ export default class CalendarToolbar extends React.PureComponent {
    * Advance 1 week or 1 month, depending
    * on the current view type.
    */
-  onNextClick = e => {
+  handleNextClick = e => {
     const { date, weekly } = this.props
 
     // either month or week
@@ -105,19 +105,24 @@ export default class CalendarToolbar extends React.PureComponent {
   /*
    * Switches the calendar to a monthly view.
    */
-  onMonthClick = () => {
+  handleMonthViewClick = () => {
     this.props.onView('month')
   }
 
   /*
    * Switches the calendar to a weekly view.
    */
-  onWeekClick = () => {
+  handleWeekViewClick = () => {
     this.props.onView('week')
   }
 
   render() {
-    const { classes, label, onOverrideClick, view } = this.props
+    const {
+      classes,
+      label,
+      onOverrideClick: handleAddOverrideClick,
+      view,
+    } = this.props
 
     return (
       <Grid container spacing={2} className={classes.container}>
@@ -126,7 +131,7 @@ export default class CalendarToolbar extends React.PureComponent {
             data-cy='show-today'
             variant='outlined'
             className={classes.today}
-            onClick={this.onTodayClick}
+            onClick={this.handleTodayClick}
           >
             Today
           </Button>
@@ -134,7 +139,7 @@ export default class CalendarToolbar extends React.PureComponent {
             data-cy='back'
             variant='outlined'
             className={classes.back}
-            onClick={this.onBackClick}
+            onClick={this.handleBackClick}
           >
             Back
           </Button>
@@ -142,7 +147,7 @@ export default class CalendarToolbar extends React.PureComponent {
             data-cy='next'
             variant='outlined'
             className={classes.next}
-            onClick={this.onNextClick}
+            onClick={this.handleNextClick}
           >
             Next
           </Button>
@@ -154,7 +159,7 @@ export default class CalendarToolbar extends React.PureComponent {
             variant='outlined'
             disabled={view === 'month'}
             className={classes.month}
-            onClick={this.onMonthClick}
+            onClick={this.handleMonthViewClick}
           >
             Month
           </Button>
@@ -163,7 +168,7 @@ export default class CalendarToolbar extends React.PureComponent {
             variant='outlined'
             disabled={view === 'week'}
             className={classes.week}
-            onClick={this.onWeekClick}
+            onClick={this.handleWeekViewClick}
           >
             Week
           </Button>
@@ -172,7 +177,7 @@ export default class CalendarToolbar extends React.PureComponent {
           <Button
             data-cy='add-override'
             variant='outlined'
-            onClick={() => onOverrideClick()}
+            onClick={() => handleAddOverrideClick()}
           >
             Add Override
           </Button>

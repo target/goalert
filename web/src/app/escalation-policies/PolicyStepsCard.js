@@ -105,7 +105,7 @@ export default class PolicyStepsCard extends Component {
     })
   }
 
-  onDragStart = () => {
+  handleDragStart = () => {
     // adds a little vibration if the browser supports it
     if (window.navigator.vibrate) {
       window.navigator.vibrate(100)
@@ -206,7 +206,7 @@ export default class PolicyStepsCard extends Component {
           {mutation => (
             <DragDropContext
               key='drag-context'
-              onDragStart={this.onDragStart}
+              onDragStart={this.handleDragStart}
               onDragEnd={res => this.onDragEnd(res, mutation)}
             >
               <Droppable droppableId='droppable'>

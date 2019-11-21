@@ -56,7 +56,7 @@ export default class ScheduleRuleEditDialog extends React.Component {
         query={query}
         variables={{ id: this.props.scheduleID, tgt: this.props.target }}
         noPoll
-        fetchPolicy={'network-only'}
+        fetchPolicy='network-only'
         render={({ data }) => this.renderMutation(data.schedule.target)}
       />
     )

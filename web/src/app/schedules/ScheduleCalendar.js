@@ -86,7 +86,7 @@ export default class ScheduleCalendar extends React.PureComponent {
    * a week or month, depending on the current
    * view type.
    */
-  onNavigate = nextDate => {
+  handleCalNavigate = nextDate => {
     if (this.props.weekly) {
       this.props.setStart(
         moment(nextDate)
@@ -117,7 +117,7 @@ export default class ScheduleCalendar extends React.PureComponent {
    * If viewing the current month however, show the current
    * week.
    */
-  onView = nextView => {
+  handleViewChange = nextView => {
     const start = this.props.start
     const prevStartMonth = moment(start).month()
     const currMonth = moment().month()
@@ -211,8 +211,8 @@ export default class ScheduleCalendar extends React.PureComponent {
               popup
               eventPropGetter={this.eventStyleGetter}
               dayPropGetter={this.dayPropGetter}
-              onNavigate={this.onNavigate}
-              onView={this.onView}
+              onNavigate={this.handleCalNavigate}
+              onView={this.handleViewChange}
               components={{
                 eventWrapper: props => (
                   <CalendarEventWrapper

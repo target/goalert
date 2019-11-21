@@ -19,7 +19,7 @@ const styles = theme => {
 @withStyles(styles)
 export default class ServiceOnCallList extends Component {
   static propTypes = {
-    onCallUsers: p.arrayOf(
+    items: p.arrayOf(
       p.shape({
         stepNumber: p.number.isRequired,
         userID: p.string.isRequired,
@@ -69,7 +69,7 @@ export default class ServiceOnCallList extends Component {
   }
 
   renderUsers() {
-    const usersDict = this.getUsersDict(this.props.onCallUsers)
+    const usersDict = this.getUsersDict(this.props.items)
     const items = Object.keys(usersDict).map(id => {
       const step = usersDict[id].steps.length > 1 ? 'Steps' : 'Step'
 
