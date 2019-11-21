@@ -35,7 +35,7 @@ export default class UserNotificationRuleDeleteDialog extends React.PureComponen
         confirm
         loading={loading}
         errors={nonFieldErrors(error)}
-        subTitle={`This will delete the notification rule.`}
+        subTitle='This will delete the notification rule.'
         onSubmit={() => commit({ variables: { id: ruleID } })}
         {...rest}
       />
