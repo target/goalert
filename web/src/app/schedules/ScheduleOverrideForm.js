@@ -12,7 +12,7 @@ import { useQuery } from 'react-apollo'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { DateRange, ChevronRight, ChevronLeft } from '@material-ui/icons'
+import { DateRange } from '@material-ui/icons'
 import { DateTimePicker } from '@material-ui/pickers'
 import { DateTime } from 'luxon'
 import { UserSelect } from '../selection'
@@ -133,8 +133,6 @@ export default function ScheduleOverrideForm(props) {
             showTodayButton
             required
             name='start'
-            leftArrowIcon={<ChevronLeft />}
-            rightArrowIcon={<ChevronRight />}
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
@@ -155,8 +153,6 @@ export default function ScheduleOverrideForm(props) {
             showTodayButton
             name='end'
             required
-            leftArrowIcon={<ChevronLeft />}
-            rightArrowIcon={<ChevronRight />}
             InputProps={{
               endAdornment: (
                 <InputAdornment position='end'>
