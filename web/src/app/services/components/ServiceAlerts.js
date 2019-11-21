@@ -51,7 +51,7 @@ export default class ServiceAlerts extends Component {
     })
   }
 
-  updateAllAlertsSuccess = () => {
+  handleAllAlertsSuccess = () => {
     sendGAEvent({
       category: 'Service',
       action: this.state.alertStatus + ' All Action Completed',
@@ -91,7 +91,7 @@ export default class ServiceAlerts extends Component {
               status: this.state.alertStatus + 'd', // closed or acknowledged
             },
           }}
-          onMutationSuccess={this.updateAllAlertsSuccess}
+          onMutationSuccess={this.handleAllAlertsSuccess}
           onRequestClose={() =>
             this.handleShowForm('showUpdateConfirmation', false)
           }

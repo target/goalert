@@ -14,7 +14,7 @@ import { resetURLParams } from '../actions'
   }),
 )
 export default class URLErrorDialog extends React.Component {
-  onClose = () => {
+  handleDialogClose = () => {
     this.props.resetError()
   }
 
@@ -32,7 +32,7 @@ export default class URLErrorDialog extends React.Component {
             },
           ]}
           maxWidth='sm'
-          onClose={this.onClose}
+          onClose={this.handleDialogClose}
           title={errorTitle || 'An error occurred'}
         />
       )

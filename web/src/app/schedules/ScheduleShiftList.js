@@ -106,11 +106,12 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    setUserFilter: value => dispatch(setURLParam('userFilter', value)),
-    setActiveOnly: value => dispatch(setURLParam('activeOnly', value)),
-    setDuration: value => dispatch(setURLParam('duration', value, 'P14D')),
-    setStart: value => dispatch(setURLParam('start', value)),
-    resetFilter: () =>
+    handleUserFilterSelect: value => dispatch(setURLParam('userFilter', value)),
+    handleActiveOnlySwitch: value => dispatch(setURLParam('activeOnly', value)),
+    handleSetDuration: value =>
+      dispatch(setURLParam('duration', value, 'P14D')),
+    handleSetStart: value => dispatch(setURLParam('start', value)),
+    handleFilterReset: () =>
       dispatch(
         resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'duration'),
       ),
@@ -255,7 +256,7 @@ export default class ScheduleShiftList extends React.PureComponent {
           onChange={e => {
             e.target.value === 'SPECIFY'
               ? this.setState({ specifyDuration: true })
-              : this.props.setDuration(e.target.value)
+              : this.props.handleSetDuration(e.target.value)
           }}
         >
           {quickOptions.map(opt => (
@@ -277,7 +278,7 @@ export default class ScheduleShiftList extends React.PureComponent {
         min={1}
         type='number'
         onChange={e => {
-          this.props.setDuration(
+          this.props.handleSetDuration(
             Duration.fromObject({
               days: clamp(1, 30, parseInt(e.target.value, 10)),
             }).toISO(),
@@ -308,7 +309,7 @@ export default class ScheduleShiftList extends React.PureComponent {
         <PageActions>
           <FilterContainer
             onReset={() => {
-              this.props.resetFilter()
+              this.props.handleFilterReset()
               this.setState({ specifyDuration: false })
             }}
           >
@@ -317,7 +318,9 @@ export default class ScheduleShiftList extends React.PureComponent {
                 control={
                   <Switch
                     checked={this.props.activeOnly}
-                    onChange={e => this.props.setActiveOnly(e.target.checked)}
+                    onChange={e =>
+                      this.props.handleActiveOnlySwitch(e.target.checked)
+                    }
                     value='activeOnly'
                   />
                 }
@@ -333,7 +336,7 @@ export default class ScheduleShiftList extends React.PureComponent {
                 disabled={this.props.activeOnly}
                 label='Start Date'
                 value={DateTime.fromISO(this.props.start, { zone })}
-                onChange={e => this.props.setStart(e.toISO())}
+                onChange={e => this.props.handleSetStart(e.toISO())}
                 showTodayButton
                 autoOk
                 InputProps={{
@@ -355,7 +358,7 @@ export default class ScheduleShiftList extends React.PureComponent {
                 label='Filter users...'
                 multiple
                 value={this.props.userFilter}
-                onChange={this.props.setUserFilter}
+                onChange={this.props.handleUserFilterSelect}
               />
             </Grid>
           </FilterContainer>
