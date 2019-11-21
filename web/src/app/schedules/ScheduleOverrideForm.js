@@ -19,7 +19,7 @@ import { UserSelect } from '../selection'
 import gql from 'graphql-tag'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import _ from 'lodash-es/lodash.default'
+import _ from 'lodash-es'
 
 const query = gql`
   query($id: ID!) {
