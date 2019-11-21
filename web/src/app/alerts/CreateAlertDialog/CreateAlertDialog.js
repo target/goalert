@@ -18,7 +18,6 @@ import FormDialog from '../../dialogs/FormDialog'
 import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
 
-const stepTitles = ['Alert Info', 'Service Selection', 'Confirm']
 const pluralize = num => (num !== 1 ? 's' : '')
 
 const useStyles = makeStyles(theme => ({
@@ -55,6 +54,10 @@ export default function CreateAlertDialog(props) {
 
   const hasCompleted = Boolean(data) && !hasValidationError
   const currentStep = loading ? 2 : step
+
+  const stepTitles = props.serviceID
+    ? ['Alert Info', 'Confirm']
+    : ['Alert Info', 'Service Selection', 'Confirm']
 
   const onNext = () => {
     if (currentStep === 0 && props.serviceID) {
