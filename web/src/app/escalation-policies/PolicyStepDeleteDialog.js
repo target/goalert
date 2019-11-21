@@ -63,7 +63,7 @@ export default class PolicyStepDeleteDialog extends React.PureComponent {
     const { loading, error } = mutStatus
 
     // get array of step ids without the step to delete
-    let sids = data.steps.map(s => s.id)
+    const sids = data.steps.map(s => s.id)
     const toDel = sids.indexOf(this.props.stepID)
     sids.splice(toDel, 1)
 

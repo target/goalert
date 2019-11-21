@@ -26,9 +26,11 @@ export default class ScheduleCreateDialog extends React.PureComponent {
       favorite: true,
     },
   }
+
   render() {
     return <Mutation mutation={mutation}>{this.renderForm}</Mutation>
   }
+
   renderForm = (commit, status) => {
     if (status.data && status.data.createSchedule) {
       return (

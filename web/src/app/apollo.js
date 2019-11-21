@@ -15,7 +15,7 @@ window.onbeforeunload = function(e) {
   if (!pendingMutations) {
     return
   }
-  let dialogText =
+  const dialogText =
     'Your changes have not finished saving. If you leave this page, they could be lost.'
   e.returnValue = dialogText
   return dialogText
@@ -25,6 +25,7 @@ const trackMutation = p => {
   pendingMutations++
   p.then(() => pendingMutations--, () => pendingMutations--)
 }
+
 export function doFetch(body, url = '/v1/graphql') {
   const f = fetch(url, {
     credentials: 'same-origin',
@@ -112,7 +113,7 @@ const simpleCacheTypes = [
 
 // tell Apollo to use cached data for `type(id: foo) {... }` queries
 const queryCache = {}
-let cache
+
 simpleCacheTypes.forEach(name => {
   queryCache[camelCase(name)] = (_, args) =>
     args &&
@@ -123,7 +124,8 @@ simpleCacheTypes.forEach(name => {
       }),
     )
 })
-cache = new InMemoryCache({
+
+const cache = new InMemoryCache({
   cacheRedirects: {
     Query: {
       ...queryCache,

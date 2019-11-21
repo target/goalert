@@ -122,7 +122,7 @@ export default class WizardRouter extends React.PureComponent {
       .catch(err => {
         const generalErrors = nonFieldErrors(err)
         const graphqlErrors = fieldErrors(err).map(error => {
-          let name = error.field
+          const name = error.field
             .split('.')
             .pop() // get last occurrence
             .replace(/([A-Z])/g, ' $1') // insert a space before all caps
