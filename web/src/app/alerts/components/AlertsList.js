@@ -208,7 +208,7 @@ export default class AlertsList extends Component {
       height: '0.875em',
     }
 
-    let loadingItems = []
+    const loadingItems = []
     for (let i = 0; i < 5; i++) {
       loadingItems.push(
         <ListItem key={i} style={{ display: 'block' }}>
@@ -283,7 +283,7 @@ export default class AlertsList extends Component {
     else if (data.alerts2 && !isLoading && !data.alerts2.items.length)
       content = this.renderNoResults()
 
-    let dataToShow = data.alerts2 ? data.alerts2.items : []
+    const dataToShow = data.alerts2 ? data.alerts2.items : []
     if (!content) {
       content = dataToShow.map(alert => (
         <AlertsListDataWrapper

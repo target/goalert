@@ -19,7 +19,7 @@ const styles = theme => {
 @withStyles(styles)
 export default class ServiceOnCallList extends Component {
   static propTypes = {
-    onCallUsers: p.arrayOf(
+    items: p.arrayOf(
       p.shape({
         stepNumber: p.number.isRequired,
         userID: p.string.isRequired,
@@ -36,12 +36,12 @@ export default class ServiceOnCallList extends Component {
    */
   getUsersDict = users => {
     if (!users) return {}
-    let usersDict = {}
+    const usersDict = {}
 
     users.forEach(x => {
       // if duplicate found add step # to steps array of existing key
       if (x.userID in usersDict) {
-        usersDict[x.userID]['steps'].push(`#${x.stepNumber + 1}`)
+        usersDict[x.userID].steps.push(`#${x.stepNumber + 1}`)
         return
       }
 
@@ -69,7 +69,7 @@ export default class ServiceOnCallList extends Component {
   }
 
   renderUsers() {
-    const usersDict = this.getUsersDict(this.props.onCallUsers)
+    const usersDict = this.getUsersDict(this.props.items)
     const items = Object.keys(usersDict).map(id => {
       const step = usersDict[id].steps.length > 1 ? 'Steps' : 'Step'
 
@@ -90,8 +90,8 @@ export default class ServiceOnCallList extends Component {
   }
 
   render() {
-    let content = this.props.loading ? <Spinner /> : this.renderUsers()
-    let { classes } = this.props
+    const content = this.props.loading ? <Spinner /> : this.renderUsers()
+    const { classes } = this.props
 
     return (
       <Card>

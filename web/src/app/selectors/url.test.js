@@ -15,7 +15,7 @@ describe('urlParamSelector', () => {
           location: { search: cfg.search },
         },
       })
-      for (let key in cfg.expected) {
+      for (const key in cfg.expected) {
         expect(res(key)).toBe(cfg.expected[key])
       }
     }),

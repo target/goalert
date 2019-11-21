@@ -40,7 +40,7 @@ export default class WizardForm extends React.PureComponent {
     ),
   }
 
-  enableSecondarySchedule = e => {
+  handleSecondaryScheduleToggle = e => {
     const { onChange, value } = this.props
     onChange(set(value, ['secondarySchedule', 'enable'], e.target.value))
     this.forceUpdate()
@@ -100,7 +100,7 @@ export default class WizardForm extends React.PureComponent {
                 name='secondary'
                 row
                 value={value.secondarySchedule.enable}
-                onChange={this.enableSecondarySchedule}
+                onChange={this.handleSecondaryScheduleToggle}
               >
                 <FormControlLabel
                   data-cy='secondary.yes'

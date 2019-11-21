@@ -17,7 +17,7 @@ import LoadingButton from '../loading/components/LoadingButton'
   }),
 )
 export default class URLErrorDialog extends React.Component {
-  onClose = () => {
+  handleDialogClose = () => {
     this.props.resetError()
   }
 

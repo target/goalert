@@ -43,6 +43,7 @@ func TestTwilioSMSReplyLast(t *testing.T) {
 `
 	check := func(respondWith, expect string) {
 		t.Run("check", func(t *testing.T) {
+			t.Parallel()
 			h := harness.NewHarness(t, sql, "ids-to-uuids")
 			defer h.Close()
 

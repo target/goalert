@@ -19,6 +19,7 @@ export default class DropdownMenu extends Component {
       anchorEl: null,
     }
   }
+
   render() {
     const options = this.props.options
 
