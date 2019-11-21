@@ -19,9 +19,9 @@ export default function copyToClipboard(str) {
 
   // iOS requires some special finesse
   if (isOS()) {
-    let range = document.createRange()
+    const range = document.createRange()
     range.selectNodeContents(textArea)
-    let selection = window.getSelection()
+    const selection = window.getSelection()
     selection.removeAllRanges()
     selection.addRange(range)
     textArea.setSelectionRange(0, 999999) // Big number to copy everything

@@ -31,6 +31,7 @@ export default class UserContactMethodSelect extends React.PureComponent {
       }),
     ),
   }
+
   static defaultProps = {
     extraItems: [],
   }

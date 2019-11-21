@@ -90,7 +90,7 @@ const mapStateToProps = state => {
     start = DateTime.fromObject({ zone }).toISO()
   }
 
-  let end = DateTime.fromISO(start, { zone })
+  const end = DateTime.fromISO(start, { zone })
     .plus(Duration.fromISO(duration))
     .toISO()
 

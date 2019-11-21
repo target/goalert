@@ -35,7 +35,7 @@ export function relativeDate(_to, _from = DateTime.utc()) {
     .setZone(to.zoneName)
     .startOf('day')
 
-  let fmt = {
+  const fmt = {
     month: 'long',
     day: 'numeric',
   }

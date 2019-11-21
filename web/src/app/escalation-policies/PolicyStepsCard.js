@@ -120,7 +120,7 @@ export default class PolicyStepsCard extends Component {
     }
 
     // map ids to swap elements
-    let sids = this.props.steps.map(s => s.id)
+    const sids = this.props.steps.map(s => s.id)
     this.oldID = result.draggableId
     this.oldIdx = sids.indexOf(this.oldID)
     this.newIdx = result.destination.index

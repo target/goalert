@@ -51,7 +51,7 @@ export default function NavSubMenu(props) {
   const { parentIcon, parentTitle, path, subMenuRoutes } = props
   const classes = useStyles()
   const pathname = useSelector(urlPathSelector)
-  let isRoute = pathname.startsWith(path)
+  const isRoute = pathname.startsWith(path)
 
   function renderParentLink(IconComponent, label) {
     return (
@@ -84,7 +84,7 @@ export default function NavSubMenu(props) {
   }
 
   function renderSubMenu(subMenuRoutes) {
-    let subMenu = subMenuRoutes.map((route, key) => {
+    const subMenu = subMenuRoutes.map((route, key) => {
       return (
         <NavLink
           exact
