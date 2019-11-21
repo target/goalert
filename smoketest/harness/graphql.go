@@ -56,6 +56,10 @@ func (h *Harness) SetConfigValue(id, value string) {
 	h.t.Helper()
 	res := h.GraphQLQuery2(fmt.Sprintf(`mutation{setConfig(input:[{id: %s, value: %s}])}`, strconv.Quote(id), strconv.Quote(value)))
 	assert.Empty(h.t, res.Errors)
+
+	// wait for engine cycle to complete to ensure next action
+	// uses new config only
+	h.Trigger()
 }
 
 // GraphQLQueryT will perform a GraphQL query against the backend, internally
