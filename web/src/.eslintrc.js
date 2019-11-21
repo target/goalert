@@ -24,6 +24,9 @@ module.exports = {
     'react/jsx-curly-newline': 'off',
     'react/jsx-indent': 'off',
   },
+  settings: {
+    react: { version: 'detect' },
+  },
   env: {
     'cypress/globals': true,
   },
