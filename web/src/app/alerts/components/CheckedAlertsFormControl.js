@@ -107,10 +107,7 @@ const mapDispatchToProps = dispatch =>
 
 @withStyles(styles)
 @withWidth()
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class CheckedAlertsFormControl extends Component {
   static propTypes = {
     cardClassName: p.string,

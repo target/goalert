@@ -164,7 +164,10 @@ export default class RotationUserList extends React.PureComponent {
           ),
         }))}
         onReorder={(...args) => {
-          const updatedUsers = reorderList(users.map(u => u.id), ...args)
+          const updatedUsers = reorderList(
+            users.map(u => u.id),
+            ...args,
+          )
           const newActiveIndex = calcNewActiveIndex(activeUserIndex, ...args)
           const params = { id: this.props.rotationID, userIDs: updatedUsers }
 

@@ -43,10 +43,7 @@ const mapDispatchToProps = dispatch =>
   )
 
 @withStyles(styles)
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class AlertsListDataWrapper extends Component {
   static propTypes = {
     alert: p.object.isRequired,
