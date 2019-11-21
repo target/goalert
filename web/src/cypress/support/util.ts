@@ -2,9 +2,6 @@ declare global {
   type ScreenFormat = 'mobile' | 'tablet' | 'widescreen'
 }
 
-const dbURL =
-  Cypress.env('DB_URL') || 'postgres://goalert@localhost:5432?sslmode=disable'
-
 let _resetQuery = ''
 function resetQuery(): Cypress.Chainable<string> {
   if (_resetQuery) return cy.wrap(_resetQuery)
@@ -73,16 +70,7 @@ export function testScreen(
   adminLogin = false,
 ) {
   describe(label, () => {
-    before(() =>
-      resetQuery().then(query =>
-        cy.exec(`psql-lite -tx -d "$DB" -c "$QUERY"`, {
-          env: {
-            DB: dbURL,
-            QUERY: query,
-          },
-        }),
-      ),
-    )
+    before(() => resetQuery().then(query => cy.sql(query)))
     it('reset db', () => {}) // required due to mocha skip bug
 
     if (!skipLogin) {

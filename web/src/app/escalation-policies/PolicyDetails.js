@@ -81,7 +81,7 @@ export default class PolicyDetails extends PureComponent {
         {this.props.createStep && (
           <PolicyStepCreateDialog
             escalationPolicyID={data.escalationPolicy.id}
-            onClose={this.props.resetCreateStep}
+            onClose={() => this.props.resetCreateStep()}
           />
         )}
         {this.state.edit && (

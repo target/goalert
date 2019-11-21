@@ -9,7 +9,7 @@ import withWidth, { isWidthUp } from '@material-ui/core/withWidth'
 @withRouter
 export default class ToolbarAction extends Component {
   removeLastPartOfPath = path => {
-    let parts = path.split('/')
+    const parts = path.split('/')
     parts.pop()
     return parts.join('/')
   }

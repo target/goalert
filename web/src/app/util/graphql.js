@@ -64,13 +64,13 @@ export function fieldAlias(doc, aliasName) {
       `found ${doc.definitions.length} query definitions, but expected 1`,
     )
   }
-  let def = doc.definitions[0]
+  const def = doc.definitions[0]
   if (def.selectionSet.selections.length > 1) {
     throw new Error(
       `found ${def.selectionSet.selections.length} fields, but expected 1`,
     )
   }
-  let sel = def.selectionSet.selections[0]
+  const sel = def.selectionSet.selections[0]
 
   return {
     ...doc,
@@ -184,8 +184,8 @@ export function mergeFields(doc, newQuery) {
     )
   }
 
-  let def = doc.definitions[0]
-  let newDef = newQuery.definitions[0]
+  const def = doc.definitions[0]
+  const newDef = newQuery.definitions[0]
   return {
     ...doc,
     definitions: [

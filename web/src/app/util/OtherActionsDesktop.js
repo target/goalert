@@ -19,6 +19,7 @@ export default class OtherActionsMenuDesktop extends React.PureComponent {
 
     placement: p.oneOf(['left', 'right']),
   }
+
   static defaultProps = {
     onClose: () => {},
     actions: [],
