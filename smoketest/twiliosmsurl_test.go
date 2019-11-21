@@ -44,6 +44,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 	const shortURL = "http://sho.rt"
 
 	t.Run("default URL in sms body", func(t *testing.T) {
+		t.Parallel()
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
@@ -59,6 +60,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 	})
 
 	t.Run("General.ShortURL in sms body", func(t *testing.T) {
+		t.Parallel()
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
@@ -74,6 +76,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 	})
 
 	t.Run("General.DisableSMSLinks with General.ShortURL set", func(t *testing.T) {
+		t.Parallel()
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
@@ -90,6 +93,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 	})
 
 	t.Run("General.DisableSMSLinks using default URL", func(t *testing.T) {
+		t.Parallel()
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
