@@ -50,7 +50,7 @@ export default class RotationUserListItem extends React.PureComponent {
           <UserAvatar userID={user.id} />
           <ListItemText
             primary={user.name}
-            secondary={'Placeholder HandoffTimes Text'}
+            secondary='Placeholder HandoffTimes Text'
           />
           <OtherActions
             actions={[

@@ -134,7 +134,11 @@ export default function UserDetails(props) {
             />
             <Typography variant='caption' className={classes.gravatarText}>
               Provided by{' '}
-              <a href='https://gravatar.com' target='_blank'>
+              <a
+                href='https://gravatar.com'
+                target='_blank'
+                rel='noopener noreferrer'
+              >
                 Gravatar
               </a>
             </Typography>

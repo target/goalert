@@ -73,7 +73,7 @@ export default class PolicyStep extends Component {
     const targets = sortBy(_t.slice(), ['type', 'name'])
 
     if (!targets || targets.length === 0) {
-      return <Chip label={'No targets'} />
+      return <Chip label='No targets' />
     }
 
     const items = targets.map(tgt => {

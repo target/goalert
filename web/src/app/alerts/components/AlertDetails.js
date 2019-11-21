@@ -57,7 +57,7 @@ export default class AlertDetails extends Component {
    * Update state and local storage with new boolean value
    * telling whether or not the show exact times toggle is active
    */
-  toggleExactTimes = () => {
+  handleToggleExactTimes = () => {
     const newVal = !this.state.showExactTimes
     this.setState({
       showExactTimes: newVal,
@@ -77,7 +77,7 @@ export default class AlertDetails extends Component {
             control={
               <Switch
                 checked={this.state.showExactTimes}
-                onChange={this.toggleExactTimes}
+                onChange={this.handleToggleExactTimes}
               />
             }
             label='Full Timestamps'
