@@ -105,7 +105,7 @@ export default class ScheduleDetails extends React.PureComponent {
                 label='Filter users...'
                 multiple
                 value={this.props.userFilter}
-                onChange={this.props.handleUserFilterSelect}
+                onChange={value => this.props.handleUserFilterSelect(value)}
               />
             </Grid>
           </FilterContainer>
