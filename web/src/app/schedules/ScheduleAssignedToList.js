@@ -22,6 +22,7 @@ export default class ScheduleAssignedToList extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
   }
+
   render() {
     return (
       <Query
@@ -31,6 +32,7 @@ export default class ScheduleAssignedToList extends React.PureComponent {
       />
     )
   }
+
   renderList({ data }) {
     return (
       <Card style={{ width: '100%' }}>

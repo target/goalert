@@ -119,7 +119,7 @@ export default class CountDown extends Component {
   }
 
   render() {
-    let WrapComponent = this.props.WrapComponent
+    const WrapComponent = this.props.WrapComponent
 
     if (WrapComponent) {
       return (

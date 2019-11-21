@@ -68,6 +68,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
   }
+
   state = {
     editID: null,
     deleteID: null,

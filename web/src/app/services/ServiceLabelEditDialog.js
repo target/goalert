@@ -56,6 +56,7 @@ export default class ServiceLabelCreateDialog extends React.PureComponent {
       />
     )
   }
+
   renderMutation(data) {
     return (
       <Mutation

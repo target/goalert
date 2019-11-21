@@ -21,6 +21,7 @@ export default class ScheduleForm extends React.PureComponent {
 
     onChange: p.func.isRequired,
   }
+
   render() {
     return (
       <FormContainer optionalLabels {...this.props}>

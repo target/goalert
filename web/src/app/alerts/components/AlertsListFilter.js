@@ -67,6 +67,7 @@ export default class AlertsListFilter extends Component {
     allServices: p.bool.isRequired,
     filter: p.string.isRequired,
   }
+
   state = {
     show: false,
     anchorEl: null, // element in which filters form under

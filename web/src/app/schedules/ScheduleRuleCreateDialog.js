@@ -32,6 +32,7 @@ export default class ScheduleRuleCreateDialog extends React.PureComponent {
       ],
     },
   }
+
   render() {
     return (
       <Mutation
