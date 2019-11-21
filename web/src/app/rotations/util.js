@@ -105,7 +105,7 @@ export function handoffSummary(rotation) {
 // reorderList will move an item from the oldIndex to the newIndex, preserving order
 // returning the result as a new array.
 export function reorderList(_items, oldIndex, newIndex) {
-  let items = _items.slice()
+  const items = _items.slice()
   items.splice(oldIndex, 1) // remove 1 element from oldIndex position
   items.splice(newIndex, 0, _items[oldIndex]) // add dest to newIndex position
   return items

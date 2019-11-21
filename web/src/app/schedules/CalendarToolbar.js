@@ -97,8 +97,8 @@ export default class CalendarToolbar extends React.PureComponent {
     const { date, weekly } = this.props
 
     // either month or week
-    let dateCopy = moment(date).clone()
-    let nextDate = weekly ? dateCopy.add(1, 'week') : dateCopy.add(1, 'month')
+    const dateCopy = moment(date).clone()
+    const nextDate = weekly ? dateCopy.add(1, 'week') : dateCopy.add(1, 'month')
     this.props.onNavigate(e, nextDate.toDate())
   }
 

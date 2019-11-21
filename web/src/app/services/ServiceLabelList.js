@@ -59,6 +59,7 @@ export default class ServiceLabelList extends React.PureComponent {
       />
     )
   }
+
   renderList(labels) {
     const items = (labels || [])
       .slice()
@@ -90,6 +91,7 @@ export default class ServiceLabelList extends React.PureComponent {
       />
     )
   }
+
   render() {
     return (
       <React.Fragment>

@@ -64,6 +64,7 @@ export default class AlertDetails extends Component {
     })
     localStorage.setItem(exactTimesKey, newVal.toString())
   }
+
   renderAlertLogs() {
     return (
       <Card className={this.getCardClassName()}>
@@ -350,7 +351,7 @@ export default class AlertDetails extends Component {
         }
       }
     `
-    let options = []
+    const options = []
     const ack = {
       text: 'Acknowledge',
       mutation: {

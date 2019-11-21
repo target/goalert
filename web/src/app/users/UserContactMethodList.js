@@ -79,7 +79,7 @@ function UserContactMethodList(props) {
   }
 
   function getActionMenuItems(cm) {
-    let actions = [
+    const actions = [
       { label: 'Edit', onClick: () => setShowEditDialogByID(cm.id) },
       {
         label: 'Delete',
