@@ -10,6 +10,11 @@ export default class ScheduleNewOverrideFAB extends React.PureComponent {
 
   actions = [
     {
+      label: 'Temporarily Add a User',
+      onClick: () => this.props.onClick('add'),
+      icon: <AccountPlus />,
+    },
+    {
       label: 'Temporarily Replace a User',
       onClick: () => this.props.onClick('replace'),
       icon: <AccountSwitch />,
@@ -18,11 +23,6 @@ export default class ScheduleNewOverrideFAB extends React.PureComponent {
       label: 'Temporarily Remove a User',
       onClick: () => this.props.onClick('remove'),
       icon: <AccountMinus />,
-    },
-    {
-      label: 'Temporarily Add a User',
-      onClick: () => this.props.onClick('add'),
-      icon: <AccountPlus />,
     },
   ]
 

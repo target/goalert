@@ -87,14 +87,14 @@ export default function UserDetails(props) {
           label='Add Items'
           actions={[
             {
-              label: 'Add Contact Method',
-              icon: <SettingsPhone />,
-              onClick: () => setCreateCM(true),
-            },
-            {
               label: 'Add Notification Rule',
               icon: <AddAlarm />,
               onClick: () => setCreateNR(true),
+            },
+            {
+              label: 'Add Contact Method',
+              icon: <SettingsPhone />,
+              onClick: () => setCreateCM(true),
             },
           ]}
         />
