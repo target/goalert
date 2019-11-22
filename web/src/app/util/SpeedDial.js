@@ -1,9 +1,23 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab'
+import { makeStyles } from '@material-ui/styles'
+
+const useStyles = makeStyles(theme => ({
+  speedDial: {
+    position: 'fixed',
+    bottom: '2em',
+    right: '2em',
+    zIndex: 9001,
+  },
+  staticTooltipLabel: {
+    whiteSpace: 'nowrap',
+  },
+}))
 
 export default function CustomSpeedDial(props) {
   const [open, setOpen] = useState(false)
+  const classes = useStyles()
 
   const doToggle = () => setOpen(!open)
   const doOpen = () => setOpen(true)
@@ -21,12 +35,7 @@ export default function CustomSpeedDial(props) {
       onMouseEnter={doOpen}
       onMouseLeave={doClose}
       open={open}
-      style={{
-        position: 'fixed',
-        bottom: '2em',
-        right: '2em',
-        zIndex: 9001,
-      }}
+      className={classes.speedDial}
     >
       {props.actions
         .slice() // TODO why this?
@@ -36,8 +45,8 @@ export default function CustomSpeedDial(props) {
             key={idx}
             icon={action.icon}
             tooltipTitle={action.label}
-            // tooltipOpen // TODO set to persist speed dial on mobile. Clunky default styles need to be overridden.
-            // TooltipClasses={{ tooltip: { whiteSpace: 'nowrap' } }}
+            tooltipOpen
+            classes={{ staticTooltipLabel: classes.staticTooltipLabel }}
             aria-label={action.label}
             onClick={() => {
               setOpen(false)
