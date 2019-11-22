@@ -169,7 +169,7 @@ func RunShell(oldURL, newURL string) error {
 				mpb.BarClearOnComplete(),
 				mpb.PrependDecorators(
 					decor.OnComplete(
-						decor.StaticName("Truncating tables..."),
+						decor.Name("Truncating tables..."),
 						"Truncated all destination tables.")),
 			)
 			for _, t := range process {

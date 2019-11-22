@@ -23,7 +23,10 @@ window.onbeforeunload = function(e) {
 
 const trackMutation = p => {
   pendingMutations++
-  p.then(() => pendingMutations--, () => pendingMutations--)
+  p.then(
+    () => pendingMutations--,
+    () => pendingMutations--,
+  )
 }
 
 export function doFetch(body, url = '/v1/graphql') {
