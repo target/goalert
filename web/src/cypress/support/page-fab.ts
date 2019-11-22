@@ -18,7 +18,8 @@ function pageFab(dialOption?: string): Cypress.Chainable {
 
   return res
     .parent()
-    .find(`button[role=menuitem][aria-label*=${JSON.stringify(dialOption)}]`)
+    .find(`span[aria-label*=${JSON.stringify(dialOption)}]`)
+    .find('button[role=menuitem]')
     .click()
 }
 
