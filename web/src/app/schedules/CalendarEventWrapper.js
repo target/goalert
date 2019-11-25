@@ -68,10 +68,7 @@ const mapStateToProps = state => {
 }
 
 @withStyles(styles)
-@connect(
-  mapStateToProps,
-  null,
-)
+@connect(mapStateToProps, null)
 export default class CalendarEventWrapper extends Component {
   static propTypes = {
     event: p.object.isRequired,

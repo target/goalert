@@ -125,10 +125,7 @@ const styles = {
 }
 
 @withStyles(styles)
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 @withQuery(query, mapQueryToProps, mapPropsToQueryProps)
 export default class ScheduleShiftList extends React.PureComponent {
   static propTypes = {

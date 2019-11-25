@@ -55,10 +55,7 @@ const mapDispatchToProps = dispatch => {
   }
 }
 
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class ScheduleDetails extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
