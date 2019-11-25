@@ -62,10 +62,7 @@ const mapDispatchToProps = dispatch => {
 }
 
 @withStyles(styles)
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class ScheduleCalendar extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,

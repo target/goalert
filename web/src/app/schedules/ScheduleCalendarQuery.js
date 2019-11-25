@@ -53,10 +53,7 @@ const mapStateToProps = state => {
 }
 
 @withWidth()
-@connect(
-  mapStateToProps,
-  null,
-)
+@connect(mapStateToProps, null)
 export default class ScheduleCalendarQuery extends React.PureComponent {
   render() {
     if (isWidthDown('sm', this.props.width)) return null

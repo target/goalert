@@ -46,10 +46,7 @@ const mapStateToProps = state => ({
 })
 
 @withStyles(styles)
-@connect(
-  mapStateToProps,
-  null,
-)
+@connect(mapStateToProps, null)
 export default class CalendarToolbar extends React.PureComponent {
   static propTypes = {
     date: p.instanceOf(Date).isRequired,
