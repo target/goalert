@@ -17,6 +17,7 @@ GIT_COMMIT=$(shell git rev-parse HEAD || echo '?')
 GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
 GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+BUILD_FLAGS=
 
 LD_FLAGS+=-X github.com/target/goalert/version.gitCommit=$(GIT_COMMIT)
 LD_FLAGS+=-X github.com/target/goalert/version.gitVersion=$(GIT_VERSION)
@@ -47,22 +48,22 @@ endif
 all: test install
 
 $(BIN_DIR)/runjson: go.sum devtools/runjson/*.go
-	go build -o $@ ./devtools/$(@F)
+	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/psql-lite: go.sum devtools/psql-lite/*.go
-	go build -o $@ ./devtools/$(@F)
+	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
-	go build -o $@ ./devtools/$(@F)
+	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
-	go build -o $@ ./devtools/$(@F)
+	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go migrate/*.go
-	go build -o $@ ./devtools/$(@F)
+	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
-	go build -o $@ ./devtools/mockslack/cmd/mockslack
+	go build $(BUILD_FLAGS) -o $@ ./devtools/mockslack/cmd/mockslack
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
-	go build -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
 install: $(GOFILES)
-	go install -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
+	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
 cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules
 	web/src/node_modules/.bin/cypress install
