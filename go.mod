@@ -10,7 +10,7 @@ require (
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.0.3 // indirect
-	github.com/alecthomas/chroma v0.6.9
+	github.com/alecthomas/chroma v0.7.0
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
 	github.com/alexeyco/simpletable v0.0.0-20191023080658-fe3ac9971811
