@@ -8,13 +8,13 @@ then
     BINARIES="bin/goalert bin/waitfor bin/runjson bin/mockslack bin/simpleproxy bin/psql-lite"
 fi
 
-make check test $BINARIES BUNDLE=1
+make check test $BINARIES BUNDLE=1 BUILD_FLAGS=-trimpath
 VERSION=$(./bin/goalert version | head -n 1 |awk '{print $2}')
 BVERSION=$(date +%s)-$(git rev-parse --short HEAD)
 
 tar czvf ../bin/goalert-${VERSION}-linux-amd64.tgz -C .. goalert/bin/goalert
 
-make ../darwin/goalert/bin/goalert BUNDLE=1 GOOS=darwin BIN_DIR=../darwin/goalert/bin
+make ../darwin/goalert/bin/goalert BUNDLE=1 GOOS=darwin BIN_DIR=../darwin/goalert/bin BUILD_FLAGS=-trimpath
 tar czvf ../bin/goalert-${VERSION}-darwin-amd64.tgz -C ../darwin goalert/bin/goalert
 
 if [ "$BUILD_INTEGRATION" = "1" ]
