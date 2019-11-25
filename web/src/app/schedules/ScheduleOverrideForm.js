@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import {
@@ -52,32 +52,25 @@ export default function ScheduleOverrideForm(props) {
   const classes = useStyles()
   const params = useSelector(urlParamSelector)
   const zone = params('tz', 'local')
-  const [userConflictErrors, setUserConflictErrors] = useState([])
 
-  const userConflictError = props.errors.find(e => e && e.field === 'userID')
+  const conflictingUserID = props.errors.find(e => e && e.field === 'userID')
 
   // used to grab conflicting errors from pre-existing overrides
   const { data } = useQuery(query, {
     variables: {
-      id: _.get(userConflictError, 'details.CONFLICTING_ID', ''),
+      id: _.get(conflictingUserID, 'details.CONFLICTING_ID', ''),
     },
     pollInterval: 0,
-    skip: !userConflictError,
+    skip: !conflictingUserID,
   })
 
-  useEffect(() => {
-    if (!data) return
-
-    setUserConflictErrors(
-      errors
-        .filter(e => e.field !== 'userID')
-        .concat(
-          userConflictError
-            ? mapOverrideUserError(data.userOverride, value, zone)
-            : [],
-        ),
+  const userConflictErrors = errors
+    .filter(e => e.field !== 'userID')
+    .concat(
+      conflictingUserID
+        ? mapOverrideUserError(_.get(data, 'userOverride'), value, zone)
+        : [],
     )
-  }, [data])
 
   return (
     <FormContainer
@@ -166,8 +159,8 @@ export default function ScheduleOverrideForm(props) {
             }}
           />
         </Grid>
-        {userConflictError && (
-          <DialogContentError error={userConflictError.message} />
+        {conflictingUserID && (
+          <DialogContentError error={conflictingUserID.message} />
         )}
       </Grid>
     </FormContainer>
