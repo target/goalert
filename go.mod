@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go v0.49.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.8
-	github.com/99designs/gqlgen v0.8.3
+	github.com/99designs/gqlgen v0.10.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.0.3 // indirect
