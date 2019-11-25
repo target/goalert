@@ -5,6 +5,5 @@ This container provides a simple way to start and explore GoAlert. It is not rec
 
 ### Assumptions
 
-`goalert` binary built with `GOOS=linux BUNDLE=1` located in this directory before docker build.  
-`waitfor` binary built with `GOOS=linux` located in this directory before docker build.  
+`goalert` binary built with `GOOS=linux BUNDLE=1` located in this directory before docker build.   
 `init.sql` PostgreSQL demo data located in this directory before docker build.

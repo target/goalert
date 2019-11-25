@@ -52,10 +52,6 @@ func TestScheduleRule(t *testing.T) {
 	insert into services (id, escalation_policy_id, name) 
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
-
-	insert into alerts (service_id, description) 
-	values
-		({{uuid "sid"}}, 'testing');
 	
 	insert into schedule_on_call_users (schedule_id, start_time, end_time, user_id)
 	values

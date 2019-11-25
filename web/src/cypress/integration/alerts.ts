@@ -199,6 +199,48 @@ function testAlerts(screen: ScreenFormat) {
         .parent('[role=button]')
         .should('not.contain', 'UNACKNOWLEDGED')
     })
+
+    it('should NOT acknowledge acknowledged alerts', () => {
+      //ack first two
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      //ack
+      //ack
+      //unack
+      cy.get(`[data-cy=alert-${alert1.number}]`)
+        .parent('[role=button]')
+        .should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(`[data-cy=alert-${alert2.number}]`)
+        .parent('[role=button]')
+        .should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(`[data-cy=alert-${alert3.number}]`)
+        .parent('[role=button]')
+        .should('contain', 'UNACKNOWLEDGED')
+
+      //ack first two again (noop)
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      cy.get('span[data-cy=update-message]').should(
+        'contain',
+        '0 of 2 alerts updated',
+      )
+
+      //ack all three
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert3.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      //first two already acked, third now acked
+      cy.get('span[data-cy=update-message]').should(
+        'contain',
+        '1 of 3 alerts updated',
+      )
+    })
   })
 
   describe('Alert Creation', () => {
@@ -294,6 +336,28 @@ function testAlerts(screen: ScreenFormat) {
       cy.pageAction('Close')
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
+    })
+  })
+  describe('Alert Details Logs', () => {
+    let logs: AlertLogs
+    beforeEach(() => {
+      cy.createAlertLogs({ count: 200 }).then(_logs => {
+        logs = _logs
+        return cy.visit(`/alerts/${logs.alert.number}`)
+      })
+    })
+
+    it('should see load more, click, and no longer see load more', () => {
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 35)
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 184)
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+
+      // create plus any engine events should be 200+
+      cy.get('ul[data-cy=alert-logs] li').should('have.length.gt', 200)
+      cy.get('body').should('not.contain', 'Load More')
     })
   })
 }

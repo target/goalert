@@ -2,13 +2,9 @@ import React, { Component } from 'react'
 import p from 'prop-types'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
-import Divider from '@material-ui/core/Divider'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import Hidden from '@material-ui/core/Hidden'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
 import Switch from '@material-ui/core/Switch'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
@@ -18,7 +14,6 @@ import TableRow from '@material-ui/core/TableRow'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import isFullScreen from '@material-ui/core/withMobileDialog'
-import moment from 'moment'
 import Countdown from 'react-countdown-now'
 import { Link } from 'react-router-dom'
 import { ScheduleLink, ServiceLink, UserLink } from '../../links'
@@ -27,16 +22,10 @@ import Options from '../../util/Options'
 import gql from 'graphql-tag'
 import PageActions from '../../util/PageActions'
 import Markdown from '../../util/Markdown'
+import AlertDetailLogs from '../AlertDetailLogs'
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
-
-const sortTime = (a, b) => {
-  const ma = moment(a.timestamp)
-  const mb = moment(b.timestamp)
-  if (ma.isSame(mb)) return 0
-  return ma.isAfter(mb) ? -1 : 1
-}
 
 @withStyles(styles)
 @isFullScreen()
@@ -68,46 +57,12 @@ export default class AlertDetails extends Component {
    * Update state and local storage with new boolean value
    * telling whether or not the show exact times toggle is active
    */
-  toggleExactTimes = () => {
+  handleToggleExactTimes = () => {
     const newVal = !this.state.showExactTimes
     this.setState({
       showExactTimes: newVal,
     })
     localStorage.setItem(exactTimesKey, newVal.toString())
-  }
-
-  renderAlertLogEvents() {
-    let logs = this.props.data.logs_2.slice(0).sort(sortTime)
-
-    if (logs.length === 0) {
-      return (
-        <div>
-          <Divider />
-          <ListItem>
-            <ListItemText primary='No events.' />
-          </ListItem>
-        </div>
-      )
-    }
-
-    return logs.map((log, index) => {
-      let alertTimeStamp = moment(log.timestamp)
-        .local()
-        .calendar()
-      if (this.state.showExactTimes) {
-        alertTimeStamp = moment(log.timestamp)
-          .local()
-          .format('MMM Do YYYY, h:mm:ss a')
-      }
-      return (
-        <div key={index}>
-          <Divider />
-          <ListItem>
-            <ListItemText primary={alertTimeStamp} secondary={log.message} />
-          </ListItem>
-        </div>
-      )
-    })
   }
 
   renderAlertLogs() {
@@ -123,7 +78,7 @@ export default class AlertDetails extends Component {
             control={
               <Switch
                 checked={this.state.showExactTimes}
-                onChange={this.toggleExactTimes}
+                onChange={this.handleToggleExactTimes}
               />
             }
             label='Full Timestamps'
@@ -134,7 +89,10 @@ export default class AlertDetails extends Component {
           className={this.props.classes.tableCardContent}
           style={{ paddingBottom: 0 }}
         >
-          <List>{this.renderAlertLogEvents()}</List>
+          <AlertDetailLogs
+            alertID={this.props.data.number}
+            showExactTimes={this.state.showExactTimes}
+          />
         </CardContent>
       </Card>
     )
@@ -216,9 +174,8 @@ export default class AlertDetails extends Component {
           }}
         />
       )
-    } else {
-      return <Typography>&mdash;</Typography>
     }
+    return <Typography>&mdash;</Typography>
   }
 
   renderEscalationPolicySteps() {
@@ -381,7 +338,6 @@ export default class AlertDetails extends Component {
       status,
     } = this.props.data
     if (status.toLowerCase() === 'closed') return [] // no options to show if alert is already closed
-
     const updateStatusMutation = gql`
       mutation UpdateAlertStatusMutation($input: UpdateAlertStatusInput!) {
         updateAlertStatus(input: $input) {
@@ -395,8 +351,7 @@ export default class AlertDetails extends Component {
         }
       }
     `
-
-    let options = []
+    const options = []
     const ack = {
       text: 'Acknowledge',
       mutation: {
@@ -484,7 +439,7 @@ export default class AlertDetails extends Component {
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant='body1'>
+                  <Typography variant='body1' data-cy='alert-status'>
                     {alert.status.toUpperCase()}
                   </Typography>
                 </Grid>

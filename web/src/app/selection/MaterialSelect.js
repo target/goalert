@@ -59,7 +59,7 @@ export default class MaterialSelect extends Component {
       }),
     }
 
-    let textFieldProps = {
+    const textFieldProps = {
       required,
       label,
       placeholder,

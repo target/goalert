@@ -1,11 +1,15 @@
 #!/bin/sh
 set -e
 
-./usr/local/bin/docker-entrypoint.sh postgres &> /var/log/postgres.log &
-
-export DB_URL=postgres://postgres@127.0.0.1/postgres?sslmode=disable
-
-./bin/waitfor "$DB_URL"
+export PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@
+mkdir -p ${PGDATA} /run/postgresql /var/log/postgresql &&\
+chown postgres ${PGDATA} /run/postgresql /var/log/postgresql &&\
+su postgres -c "initdb $PGDATA" &&\
+echo "host all  all    0.0.0.0/0  md5" >> $PGDATA/pg_hba.conf &&\
+echo "listen_addresses='*'" >> $PGDATA/postgresql.conf &&\
+echo "fsync = off" >> $PGDATA/postgresql.conf &&\
+echo "full_page_writes = off" >> $PGDATA/postgresql.conf
+su postgres -c "pg_ctl start -w -l /var/log/postgresql/server.log"
 
 if test -f /bin/init.sql
 then

@@ -15,10 +15,7 @@ const mapDispatchToProps = dispatch => ({
 
 const tabs = ['active', 'unacknowledged', 'acknowledged', 'closed', 'all']
 
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class AlertsListControls extends React.PureComponent {
   render() {
     let currTab = tabs.indexOf(this.props.filter)

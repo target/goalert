@@ -29,8 +29,6 @@ import (
 	"go.opencensus.io/trace"
 )
 
-var errDisabledCM = errors.New("contact method is disabled")
-
 type updater interface {
 	Name() string
 	UpdateAll(context.Context) error
@@ -139,8 +137,9 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	p.msg, err = message.NewDB(ctx, db, &message.Config{
 		MaxMessagesPerCycle: c.MaxMessages,
 		RateLimit: map[notification.DestType]*message.RateConfig{
-			notification.DestTypeSMS:   &message.RateConfig{PerSecond: 1, Batch: 5 * time.Second},
-			notification.DestTypeVoice: &message.RateConfig{PerSecond: 1, Batch: 5 * time.Second},
+			notification.DestTypeSMS:          &message.RateConfig{PerSecond: 1, Batch: 5 * time.Second},
+			notification.DestTypeVoice:        &message.RateConfig{PerSecond: 1, Batch: 5 * time.Second},
+			notification.DestTypeSlackChannel: &message.RateConfig{PerSecond: 5, Batch: 5 * time.Second},
 		},
 		Pausable: p.mgr,
 	})
@@ -200,21 +199,7 @@ func (p *Engine) processMessages(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	err := p.msg.SendMessages(ctx, func(ctx context.Context, m *message.Message) (*notification.MessageStatus, error) {
-		switch m.Type {
-		case message.TypeAlertNotification:
-			return p.sendNotification(ctx, m.ID, m.AlertID, m.DestType, m.DestID)
-		case message.TypeAlertStatusUpdate:
-			return p.sendStatusUpdate(ctx, m.ID, m.AlertLogID, m.DestType, m.DestID)
-		case message.TypeTestNotification:
-			return p.sendTestNotification(ctx, m.ID, m.DestType, m.DestID)
-		case message.TypeVerificationMessage:
-			return p.sendVerificationMessage(ctx, m.ID, m.DestType, m.DestID, m.VerifyID)
-		}
-
-		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
-		return &notification.MessageStatus{State: notification.MessageStateFailedPerm}, nil
-	}, p.cfg.NotificationSender.Status)
+	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationSender.Status)
 	if errors.Cause(err) == processinglock.ErrNoLock {
 		return
 	}
@@ -318,6 +303,12 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 	if err != nil {
 		return err
 	}
+	if cb.ServiceID != "" {
+		ctx = log.WithField(ctx, "ServiceID", cb.ServiceID)
+	}
+	if cb.AlertID != 0 {
+		ctx = log.WithField(ctx, "AlertID", cb.AlertID)
+	}
 
 	var usr *user.User
 	permission.SudoContext(ctx, func(ctx context.Context) {
@@ -339,14 +330,24 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 		ID:   callbackID,
 	})
 
+	var newStatus alert.Status
 	switch result {
 	case notification.ResultAcknowledge:
-		return p.am.UpdateStatus(ctx, cb.AlertID, alert.StatusActive)
+		newStatus = alert.StatusActive
 	case notification.ResultResolve:
-		return p.am.UpdateStatus(ctx, cb.AlertID, alert.StatusClosed)
+		newStatus = alert.StatusClosed
+	default:
+		return errors.New("unknown result type")
 	}
 
-	return errors.New("unknown result")
+	if cb.AlertID != 0 {
+		return errors.Wrap(p.am.UpdateStatus(ctx, cb.AlertID, newStatus), "update alert")
+	}
+	if cb.ServiceID != "" {
+		return errors.Wrap(p.am.UpdateStatusByService(ctx, cb.ServiceID, newStatus), "update all alerts")
+	}
+
+	return errors.New("unknown callback type")
 }
 
 // Stop will disable all associated contact methods associated with `value` of type `t`. This is should
