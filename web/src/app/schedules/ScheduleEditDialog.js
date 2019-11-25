@@ -29,9 +29,11 @@ export default class ScheduleEditDialog extends React.PureComponent {
     scheduleID: p.string.isRequired,
     onClose: p.func,
   }
+
   state = {
     value: null,
   }
+
   render() {
     return (
       <Query
@@ -41,6 +43,7 @@ export default class ScheduleEditDialog extends React.PureComponent {
       />
     )
   }
+
   renderMutation(data) {
     return (
       <Mutation mutation={mutation} onCompleted={this.props.onClose}>
@@ -48,6 +51,7 @@ export default class ScheduleEditDialog extends React.PureComponent {
       </Mutation>
     )
   }
+
   renderForm = (data, commit, status) => {
     return (
       <FormDialog

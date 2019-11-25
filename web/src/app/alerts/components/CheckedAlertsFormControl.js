@@ -107,10 +107,7 @@ const mapDispatchToProps = dispatch =>
 
 @withStyles(styles)
 @withWidth()
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class CheckedAlertsFormControl extends Component {
   static propTypes = {
     cardClassName: p.string,
@@ -164,7 +161,7 @@ export default class CheckedAlertsFormControl extends Component {
     this.props.setCheckedAlerts(this.visibleAlertIDs())
   }
 
-  toggleCheckbox = () => {
+  handleSelectAllChange = () => {
     if (this.areNoneChecked()) return this.setAll()
 
     return this.setNone()
@@ -366,7 +363,7 @@ export default class CheckedAlertsFormControl extends Component {
               data-cy='select-all'
               indeterminate={!this.areNoneChecked() && !this.areAllChecked()}
               tabIndex={-1}
-              onChange={this.toggleCheckbox}
+              onChange={this.handleSelectAllChange}
             />
           </Grid>
           <Grid

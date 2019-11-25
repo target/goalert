@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { DateTime } from 'luxon'
 const c = new Chance()
 
 declare global {
@@ -6,6 +7,7 @@ declare global {
     interface Chainable {
       createAlert: typeof createAlert
       closeAlert: typeof closeAlert
+      createAlertLogs: typeof createAlertLogs
     }
   }
   interface Alert {
@@ -24,8 +26,117 @@ declare global {
 
     service?: ServiceOptions
   }
+
+  interface AlertLogOptions {
+    count?: number
+    alertID?: number
+    alert?: AlertOptions
+  }
+
+  interface AlertLogs {
+    alert: Alert
+    logs: Array<AlertLog>
+  }
+  interface AlertLog {
+    timestamp: string
+    message: string
+  }
 }
 
+function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
+  if (!opts) return createAlertLogs({})
+  if (!opts.count) opts.count = c.integer({ min: 1, max: 50 })
+  if (!opts.alertID) {
+    return cy
+      .createAlert(opts.alert)
+      .then(alert => createAlertLogs({ ...opts, alertID: alert.number }))
+  }
+
+  const genMeta = () =>
+    JSON.stringify({
+      NewStepIndex: c.integer({ min: 0, max: 5 }),
+      Repeat: false,
+      Forced: false,
+      Deleted: false,
+      OldDelayMinutes: c.integer({ min: 1, max: 60 }),
+    })
+
+  let query = `INSERT INTO alert_logs (alert_id, timestamp, event, meta, message) values\n`
+  const n = DateTime.utc()
+  const vals = []
+  for (let i = 0; i < opts.count; i++) {
+    vals.push(
+      `(${opts.alertID},'${n
+        .plus({
+          milliseconds: i,
+        })
+        .toISO()}', 'escalated', '${genMeta()}', '')`,
+    )
+  }
+  query += vals.join(',') + ';'
+
+  return cy
+    .sql(query)
+    .then(() => getAlert(opts.alertID as number))
+    .then(alert => {
+      return getAlertLogs(opts.alertID as number).then(logs => {
+        return {
+          alert,
+          logs,
+        }
+      })
+    })
+}
+
+function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
+  const query = `query GetLogs($id: Int!, $after: String!) {
+    alert(id: $id) {
+      recentEvents(input:{limit:149, after: $after}) {
+        nodes {
+          timestamp
+          message
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }`
+
+  const next = (logs: Array<AlertLog>, after: string): any =>
+    cy.graphql2(query, { id, after }).then(res => {
+      if (res.alert.recentEvents.pageInfo.hasNextPage) {
+        return next(
+          logs.concat(res.alert.recentEvents.nodes as Array<AlertLog>),
+          res.alert.recentEvents.pageInfo.endCursor,
+        )
+      }
+
+      return logs.concat(res.alert.recentEvents.nodes)
+    })
+
+  return next([], '')
+}
+function getAlert(id: number): Cypress.Chainable<Alert> {
+  const query = `query GetAlert($id: Int!) {
+    alert(id: $id) {
+      number: _id, id, summary, details, serviceID: service_id,
+      service {
+        id, name, description
+        epID: escalation_policy_id,
+        ep: escalation_policy {
+            id
+            name
+            description
+            repeat
+        }
+      }
+    }
+  }`
+
+  return cy.graphql(query, { id }).then(res => res.alert)
+}
 function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
   if (!a) a = {}
   const query = `mutation CreateAlert($input: CreateAlertInput){
@@ -72,4 +183,5 @@ function closeAlert(id: number): Cypress.Chainable<Alert> {
 }
 
 Cypress.Commands.add('createAlert', createAlert)
+Cypress.Commands.add('createAlertLogs', createAlertLogs)
 Cypress.Commands.add('closeAlert', closeAlert)

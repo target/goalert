@@ -44,7 +44,7 @@ export function getSchedule(key, value) {
  */
 export function getScheduleTargets(key, value) {
   const s = value[key]
-  let targets = []
+  const targets = []
   const fts = s.followTheSunRotation.enable === 'yes'
 
   // return just the users as schedule targets if rotation type is set to "never"
@@ -69,7 +69,7 @@ export function getScheduleTargets(key, value) {
       tzText = s.followTheSunRotation.timeZone + ' FTS'
     }
 
-    let name =
+    const name =
       value.teamName +
       (key.includes('primary') ? ' Primary ' : ' Secondary ') +
       tzText +

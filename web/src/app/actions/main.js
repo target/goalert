@@ -36,7 +36,7 @@ const sanitizeParam = value => {
   if (!value) value = '' // any falsey value
   if (!Array.isArray(value)) return value.trim()
 
-  let filtered = value.filter(v => v)
+  const filtered = value.filter(v => v)
   if (filtered.length === 0) return null
 
   return filtered

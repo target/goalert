@@ -42,7 +42,7 @@ export default class RotationAddUserDialog extends React.Component {
     const fieldErrs = fieldErrors(error)
 
     // append to users array from selected users
-    let users = []
+    const users = []
     const userIDs = (value && value.users) || defaultValue.users
 
     this.props.userIDs.forEach(u => users.push(u))

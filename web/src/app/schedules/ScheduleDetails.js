@@ -38,7 +38,7 @@ export default function ScheduleDetails({ scheduleID }) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
-  const resetFilter = useResetURLParams(
+  const handleFilterReset = useResetURLParams(
     'userFilter',
     'start',
     'activeOnly',
@@ -61,21 +61,9 @@ export default function ScheduleDetails({ scheduleID }) {
 
   return (
     <React.Fragment>
-      {showEdit && (
-        <ScheduleEditDialog
-          scheduleID={scheduleID}
-          onClose={() => setShowEdit(false)}
-        />
-      )}
-      {showDelete && (
-        <ScheduleDeleteDialog
-          scheduleID={scheduleID}
-          onClose={() => setShowDelete(false)}
-        />
-      )}
       <PageActions>
-        <QuerySetFavoriteButton scheduleID={scheduleID} />
-        <FilterContainer onReset={resetFilter}>
+        <QuerySetFavoriteButton scheduleID={data.id} />
+        <FilterContainer onReset={handleFilterReset}>
           <Grid item xs={12}>
             <FormControlLabel
               control={
@@ -93,14 +81,20 @@ export default function ScheduleDetails({ scheduleID }) {
               label='Filter users...'
               multiple
               value={userFilter}
-              onChange={setUserFilter}
+              onChange={value => setUserFilter(value)}
             />
           </Grid>
         </FilterContainer>
         <OtherActions
           actions={[
-            { label: 'Edit Schedule', onClick: () => setShowEdit(true) },
-            { label: 'Delete Schedule', onClick: () => setShowDelete(true) },
+            {
+              label: 'Edit Schedule',
+              onClick: () => setShowEdit(true),
+            },
+            {
+              label: 'Delete Schedule',
+              onClick: () => setShowDelete(true),
+            },
           ]}
         />
       </PageActions>
@@ -118,6 +112,18 @@ export default function ScheduleDetails({ scheduleID }) {
         ]}
         pageFooter={<ScheduleCalendarQuery scheduleID={scheduleID} />}
       />
+      {showEdit && (
+        <ScheduleEditDialog
+          scheduleID={scheduleID}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
+      {showDelete && (
+        <ScheduleDeleteDialog
+          scheduleID={scheduleID}
+          onClose={() => setShowDelete(false)}
+        />
+      )}
     </React.Fragment>
   )
 }
