@@ -10,10 +10,9 @@ import {
   Layers as PolicyIcon,
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
-  VpnKey as ServiceIcon,
 } from '@material-ui/icons'
 import Avatar from '@material-ui/core/Avatar'
-import { UserAvatar } from './avatar'
+import { UserAvatar, ServiceAvatar } from './avatar'
 import { SlackBW } from '../icons'
 import gql from 'graphql-tag'
 
@@ -52,11 +51,7 @@ export function ServiceChip(props) {
     <Chip
       className={className}
       data-cy='service-chip'
-      avatar={
-        <Avatar>
-          <ServiceIcon fontSize='small' />
-        </Avatar>
-      }
+      avatar={<ServiceAvatar />}
       style={style}
       onDelete={onDelete}
       onClick={onClick || (() => dispatch(push(`/services/${id}`)))}
