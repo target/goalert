@@ -55,7 +55,6 @@ module.exports = {
       'indexof',
       'lodash',
       'loglevel',
-      'prop-types-extra',
       'querystring-es3',
       'react-big-calendar',
       'react-hot-loader',
