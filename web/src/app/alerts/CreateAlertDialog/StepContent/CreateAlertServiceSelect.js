@@ -64,6 +64,9 @@ const useStyles = makeStyles(theme => ({
   searchInput: {
     marginTop: theme.spacing(2),
   },
+  serviceChip: {
+    margin: 3,
+  },
 }))
 
 export function CreateAlertServiceSelect(props) {
@@ -126,7 +129,7 @@ export function CreateAlertServiceSelect(props) {
         key={id}
         clickable={false}
         id={id}
-        style={{ margin: 3 }}
+        className={classes.serviceChip}
         onClick={e => e.preventDefault()}
         onDelete={() => props.onChange(value.filter(v => v !== id))}
       />

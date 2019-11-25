@@ -27,7 +27,7 @@ const serviceQuery = gql`
 `
 
 export function ServiceChip(props) {
-  const { id, name, onDelete, style, onClick } = props
+  const { className, id, name, onDelete, style, onClick } = props
   const dispatch = useDispatch()
 
   const { data, loading, error } = useQuery(serviceQuery, {
@@ -50,6 +50,7 @@ export function ServiceChip(props) {
 
   return (
     <Chip
+      className={className}
       data-cy='service-chip'
       avatar={
         <Avatar>
