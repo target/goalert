@@ -32,11 +32,18 @@ const query = gql`
   }
 `
 
+/*
+ * Handles if a user is on multiple steps
+ * by appending each step they're on to the
+ * last, rather than rendering a new list
+ * item per step
+ */
 const stepsText = _steps => {
   const steps = _.chain(_steps)
     .sort()
     .map(s => `#${s + 1}`)
     .value()
+
   if (steps.length === 1) {
     return 'Step ' + steps[0]
   }
@@ -104,6 +111,7 @@ export default function ServiceOnCallList({ serviceID }) {
     </Card>
   )
 }
+
 ServiceOnCallList.propTypes = {
   serviceID: p.string.isRequired,
 }

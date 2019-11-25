@@ -105,7 +105,7 @@ export default class PolicyStepsCard extends Component {
     })
   }
 
-  onDragStart = () => {
+  handleDragStart = () => {
     // adds a little vibration if the browser supports it
     if (window.navigator.vibrate) {
       window.navigator.vibrate(100)
@@ -120,7 +120,7 @@ export default class PolicyStepsCard extends Component {
     }
 
     // map ids to swap elements
-    let sids = this.props.steps.map(s => s.id)
+    const sids = this.props.steps.map(s => s.id)
     this.oldID = result.draggableId
     this.oldIdx = sids.indexOf(this.oldID)
     this.newIdx = result.destination.index
@@ -206,7 +206,7 @@ export default class PolicyStepsCard extends Component {
           {mutation => (
             <DragDropContext
               key='drag-context'
-              onDragStart={this.onDragStart}
+              onDragStart={this.handleDragStart}
               onDragEnd={res => this.onDragEnd(res, mutation)}
             >
               <Droppable droppableId='droppable'>

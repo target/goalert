@@ -93,7 +93,8 @@ export default class Options extends Component {
             <ListItemText primary={o.text} />
           </ListItem>
         )
-      } else if (type === 'menu') {
+      }
+      if (type === 'menu') {
         return (
           <MenuItem
             key={idx}
@@ -138,20 +139,19 @@ export default class Options extends Component {
           {...iconProps}
         />
       )
-    } else {
-      return (
-        <IconButton
-          aria-label='Other Actions'
-          data-cy='other-actions'
-          color='inherit'
-          onClick={onClick}
-          aria-expanded={this.state.show || this.state.showOptions}
-          {...iconProps}
-        >
-          {Icon || <OptionsIcon />}
-        </IconButton>
-      )
     }
+    return (
+      <IconButton
+        aria-label='Other Actions'
+        data-cy='other-actions'
+        color='inherit'
+        onClick={onClick}
+        aria-expanded={this.state.show || this.state.showOptions}
+        {...iconProps}
+      >
+        {Icon || <OptionsIcon />}
+      </IconButton>
+    )
   }
 
   renderMobileOptions() {

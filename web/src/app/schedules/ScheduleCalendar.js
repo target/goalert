@@ -26,7 +26,7 @@ const styles = {
 const mapStateToProps = state => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
-  let start = urlParamSelector(state)(
+  const start = urlParamSelector(state)(
     'start',
     weekly
       ? moment()
@@ -37,7 +37,7 @@ const mapStateToProps = state => {
           .toISOString(),
   )
 
-  let end = moment(start)
+  const end = moment(start)
     .add(1, weekly ? 'week' : 'month')
     .toISOString()
 
@@ -62,10 +62,7 @@ const mapDispatchToProps = dispatch => {
 }
 
 @withStyles(styles)
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class ScheduleCalendar extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
@@ -86,7 +83,7 @@ export default class ScheduleCalendar extends React.PureComponent {
    * a week or month, depending on the current
    * view type.
    */
-  onNavigate = nextDate => {
+  handleCalNavigate = nextDate => {
     if (this.props.weekly) {
       this.props.setStart(
         moment(nextDate)
@@ -117,7 +114,7 @@ export default class ScheduleCalendar extends React.PureComponent {
    * If viewing the current month however, show the current
    * week.
    */
-  onView = nextView => {
+  handleViewChange = nextView => {
     const start = this.props.start
     const prevStartMonth = moment(start).month()
     const currMonth = moment().month()
@@ -211,8 +208,8 @@ export default class ScheduleCalendar extends React.PureComponent {
               popup
               eventPropGetter={this.eventStyleGetter}
               dayPropGetter={this.dayPropGetter}
-              onNavigate={this.onNavigate}
-              onView={this.onView}
+              onNavigate={this.handleCalNavigate}
+              onView={this.handleViewChange}
               components={{
                 eventWrapper: props => (
                   <CalendarEventWrapper

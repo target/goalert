@@ -3,6 +3,7 @@ package dbsync
 import (
 	"context"
 	"fmt"
+
 	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/abiosoft/ishell"
@@ -111,7 +112,7 @@ func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
 		mpb.BarClearOnComplete(),
 		mpb.PrependDecorators(
 			decor.OnComplete(
-				decor.StaticName("Adding triggers..."),
+				decor.Name("Adding triggers..."),
 				"Instrumented all tables.")),
 	)
 	for _, t := range process {
@@ -167,7 +168,7 @@ func (s *Sync) ChangeLogDisable(ctx context.Context, sh *ishell.Context) error {
 		mpb.BarClearOnComplete(),
 		mpb.PrependDecorators(
 			decor.OnComplete(
-				decor.StaticName("Removing triggers..."),
+				decor.Name("Removing triggers..."),
 				"Removed all triggers."),
 		),
 	)

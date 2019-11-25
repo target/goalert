@@ -17,7 +17,7 @@ export class Form extends React.PureComponent {
 
   _checks = []
 
-  onSubmit = e => {
+  handleFormSubmit = e => {
     const valid = !this._checks.some(f => !f())
     return this.props.onSubmit(e, valid)
   }
@@ -35,7 +35,7 @@ export class Form extends React.PureComponent {
     const { onSubmit, disabled, ...formProps } = this.props
 
     return (
-      <form {...formProps} onSubmit={this.onSubmit}>
+      <form {...formProps} onSubmit={this.handleFormSubmit}>
         <FormContext.Provider
           value={{
             disabled,

@@ -45,6 +45,7 @@ export default class Spinner extends React.PureComponent {
       }
     }, this.props.delayMs)
   }
+
   componentWillUnmount() {
     clearTimeout(this._spin)
   }

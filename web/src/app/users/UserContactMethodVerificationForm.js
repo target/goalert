@@ -62,7 +62,7 @@ export default function UserContactMethodVerificationForm(props) {
             color='primary'
             loading={sendCodeStatus.loading}
             disabled={props.disabled}
-            buttonText={'Resend Code'}
+            buttonText='Resend Code'
             noSubmit
             onClick={() => sendAndCatch()}
           />

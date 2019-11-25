@@ -15,7 +15,7 @@ export function getAllParameters(url = global.location.href) {
   // match and select any parameters in the url
   const rx = /[?&](\w+)=(?:([^&#]*)|&|#|$)/
 
-  let queries = {}
+  const queries = {}
   // find the first match
   let m = rx.exec(url)
   while (m) {
@@ -30,7 +30,7 @@ export function getAllParameters(url = global.location.href) {
 
 // clears the parameter given from the current url
 export function clearParameter(name, url = global.location.href) {
-  let query = setParameterByName(name, null, url)
+  const query = setParameterByName(name, null, url)
   return query
 }
 
@@ -38,13 +38,13 @@ export function clearParameter(name, url = global.location.href) {
 // returns a string of the params and the maintained hash (DOES NOT RETURN THE PATH)
 export function setParameterByName(name, value, url = global.location.href) {
   // fetch all current url queries
-  let queries = getAllParameters(url)
+  const queries = getAllParameters(url)
 
   // set new value
   queries[name] = encodeURIComponent(value)
 
   // rebuild the url -- omit the parameter `name` if value is null
-  let queryList = Object.keys(queries)
+  const queryList = Object.keys(queries)
     .sort((a, b) => (a < b ? -1 : 1))
     .filter(i => !(value === null && i === name))
     .map(query => {

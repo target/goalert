@@ -25,14 +25,12 @@ export const urlParamSelector = createSelector(
     }),
 )
 
-export const searchSelector = createSelector(
-  urlParamSelector,
-  params => params('search', ''),
+export const searchSelector = createSelector(urlParamSelector, params =>
+  params('search', ''),
 )
 
-export const alertFilterSelector = createSelector(
-  urlParamSelector,
-  params => params('filter', 'active'),
+export const alertFilterSelector = createSelector(urlParamSelector, params =>
+  params('filter', 'active'),
 )
 
 export const alertAllServicesSelector = createSelector(
@@ -40,11 +38,9 @@ export const alertAllServicesSelector = createSelector(
   params => params('allServices', false),
 )
 
-export const absURLSelector = createSelector(
-  urlPathSelector,
-  base =>
-    memoize(
-      path =>
-        path && (path.startsWith('/') ? joinURL(path) : joinURL(base, path)),
-    ),
+export const absURLSelector = createSelector(urlPathSelector, base =>
+  memoize(
+    path =>
+      path && (path.startsWith('/') ? joinURL(path) : joinURL(base, path)),
+  ),
 )
