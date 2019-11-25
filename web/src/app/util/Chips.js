@@ -42,7 +42,7 @@ export function ServiceChip(props) {
 
     if (loading) return 'Loading...'
 
-    if (error || !data || !data.service) return 'Error loading name'
+    if (error) return `Error: ${error.message}`
 
     return data.service.name
   }
