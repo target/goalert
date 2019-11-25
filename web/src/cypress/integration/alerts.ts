@@ -3,6 +3,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
+let att = 0
 testScreen('Alerts', testAlerts)
 
 function testAlerts(screen: ScreenFormat) {
@@ -25,8 +26,14 @@ function testAlerts(screen: ScreenFormat) {
         .should('contain', alert.service.name)
       cy.get('ul[data-cy=alerts-list] li').should('have.length', 1)
     })
-    it('should handle searching by summary', () => {
+    it.only('should handle searching by summary', () => {
       // by summary
+      if (att) {
+        cy.pageSearch(alert.summary)
+      } else {
+        cy.contains('Fail attempt 1').should('exist')
+        att++
+      }
       cy.pageSearch(alert.summary)
       cy.get('body')
         .should('contain', alert.summary)
