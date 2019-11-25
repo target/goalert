@@ -6,19 +6,20 @@ import {
   InputAdornment,
   IconButton,
   Typography,
-  withStyles,
+  makeStyles,
 } from '@material-ui/core'
+import { useQuery } from 'react-apollo'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { DateRange, ChevronRight, ChevronLeft } from '@material-ui/icons'
+import { DateRange } from '@material-ui/icons'
 import { DateTimePicker } from '@material-ui/pickers'
 import { DateTime } from 'luxon'
 import { UserSelect } from '../selection'
-import Query from '../util/Query'
 import gql from 'graphql-tag'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import _ from 'lodash-es'
 
 const query = gql`
   query($id: ID!) {
@@ -38,163 +39,157 @@ const query = gql`
   }
 `
 
-const styles = theme => ({
+const useStyles = makeStyles({
   tzNote: {
     display: 'flex',
     alignItems: 'center',
   },
 })
 
-@connect(state => ({ zone: urlParamSelector(state)('tz', 'local') }))
-@withStyles(styles)
-export default class ScheduleOverrideForm extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
+export default function ScheduleOverrideForm(props) {
+  const { add, remove, errors = [], scheduleID, value, ...formProps } = props
 
-    value: p.shape({
-      addUserID: p.string.isRequired,
-      removeUserID: p.string.isRequired,
-      start: p.string.isRequired,
-      end: p.string.isRequired,
-    }).isRequired,
+  const classes = useStyles()
+  const params = useSelector(urlParamSelector)
+  const zone = params('tz', 'local')
 
-    add: p.bool,
-    remove: p.bool,
+  const conflictingUserFieldError = props.errors.find(
+    e => e && e.field === 'userID',
+  )
 
-    errors: p.arrayOf(
-      p.shape({
-        field: p.oneOf(['addUserID', 'removeUserID', 'userID', 'start', 'end'])
-          .isRequired,
-        message: p.string.isRequired,
-      }),
-    ),
+  // used to grab conflicting errors from pre-existing overrides
+  const { data } = useQuery(query, {
+    variables: {
+      id: _.get(conflictingUserFieldError, 'details.CONFLICTING_ID', ''),
+    },
+    pollInterval: 0,
+    skip: !conflictingUserFieldError,
+  })
 
-    onChange: p.func.isRequired,
-  }
-
-  render() {
-    const userError = this.props.errors.find(e => e.field === 'userID')
-    return (
-      <Query
-        query={query}
-        variables={{ id: userError ? userError.details.CONFLICTING_ID : '' }}
-        noPoll
-        skip={!userError}
-        noSpin
-        render={({ data }) => this.renderForm(data)}
-      />
+  const userConflictErrors = errors
+    .filter(e => e.field !== 'userID')
+    .concat(
+      conflictingUserFieldError
+        ? mapOverrideUserError(_.get(data, 'userOverride'), value, zone)
+        : [],
     )
-  }
 
-  renderForm(data) {
-    const { add, remove, zone, errors, value, ...formProps } = this.props
-    const userError = errors.find(e => e.field === 'userID')
-    const formErrors = errors
-      .filter(e => e.field !== 'userID')
-      .concat(
-        userError ? mapOverrideUserError(data.userOverride, value, zone) : [],
-      )
-
-    return (
-      <FormContainer
-        optionalLabels
-        errors={formErrors}
-        value={value}
-        {...formProps}
-      >
-        <Grid container spacing={2}>
-          <Grid
-            item
-            xs={12}
-            sm={12}
-            md={6}
-            className={this.props.classes.tzNote}
+  return (
+    <FormContainer
+      optionalLabels
+      errors={errors.concat(userConflictErrors)}
+      value={value}
+      {...formProps}
+    >
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
+          <Typography
+            // variant='caption'
+            color='textSecondary'
+            style={{ fontStyle: 'italic' }}
           >
-            <Typography
-              // variant='caption'
-              color='textSecondary'
-              style={{ fontStyle: 'italic' }}
-            >
-              Start and end time shown in{' '}
-              {zone === 'local' ? 'local time' : zone}.
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            {/* Purposefully leaving out of form, as it's only used for converting display times. */}
-            <ScheduleTZFilter
-              label={tz => `Configure in ${tz}`}
-              scheduleID={this.props.scheduleID}
-            />
-          </Grid>
-          {remove && (
-            <Grid item xs={12}>
-              <FormField
-                fullWidth
-                component={UserSelect}
-                name='removeUserID'
-                label={add && remove ? 'User to be Replaced' : 'User to Remove'}
-                required
-              />
-            </Grid>
-          )}
-          {add && (
-            <Grid item xs={12}>
-              <FormField
-                fullWidth
-                component={UserSelect}
-                required
-                name='addUserID'
-                label='User to Add'
-              />
-            </Grid>
-          )}
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={DateTimePicker}
-              mapValue={value => DateTime.fromISO(value, { zone })}
-              mapOnChangeValue={value => value.toISO()}
-              showTodayButton
-              required
-              name='start'
-              leftArrowIcon={<ChevronLeft />}
-              rightArrowIcon={<ChevronRight />}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <IconButton>
-                      <DateRange />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={DateTimePicker}
-              mapValue={value => DateTime.fromISO(value, { zone })}
-              mapOnChangeValue={value => value.toISO()}
-              showTodayButton
-              name='end'
-              required
-              leftArrowIcon={<ChevronLeft />}
-              rightArrowIcon={<ChevronRight />}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <IconButton>
-                      <DateRange />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
-          {userError && <DialogContentError error={userError.message} />}
+            Start and end time shown in {zone === 'local' ? 'local time' : zone}
+            .
+          </Typography>
         </Grid>
-      </FormContainer>
-    )
-  }
+        <Grid item xs={12} sm={12} md={6}>
+          {/* Purposefully leaving out of form, as it's only used for converting display times. */}
+          <ScheduleTZFilter
+            label={tz => `Configure in ${tz}`}
+            scheduleID={scheduleID}
+          />
+        </Grid>
+        {remove && (
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              component={UserSelect}
+              name='removeUserID'
+              label={add && remove ? 'User to be Replaced' : 'User to Remove'}
+              required
+            />
+          </Grid>
+        )}
+        {add && (
+          <Grid item xs={12}>
+            <FormField
+              fullWidth
+              component={UserSelect}
+              required
+              name='addUserID'
+              label='User to Add'
+            />
+          </Grid>
+        )}
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={DateTimePicker}
+            mapValue={value => DateTime.fromISO(value, { zone })}
+            mapOnChangeValue={value => value.toISO()}
+            showTodayButton
+            required
+            name='start'
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>
+                  <IconButton>
+                    <DateRange />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={DateTimePicker}
+            mapValue={value => DateTime.fromISO(value, { zone })}
+            mapOnChangeValue={value => value.toISO()}
+            showTodayButton
+            name='end'
+            required
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>
+                  <IconButton>
+                    <DateRange />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
+        {conflictingUserFieldError && (
+          <DialogContentError error={conflictingUserFieldError.message} />
+        )}
+      </Grid>
+    </FormContainer>
+  )
+}
+
+ScheduleOverrideForm.propTypes = {
+  scheduleID: p.string.isRequired,
+
+  value: p.shape({
+    addUserID: p.string.isRequired,
+    removeUserID: p.string.isRequired,
+    start: p.string.isRequired,
+    end: p.string.isRequired,
+  }).isRequired,
+
+  add: p.bool,
+  remove: p.bool,
+
+  disabled: p.bool.isRequired,
+  errors: p.arrayOf(
+    p.shape({
+      field: p.oneOf(['addUserID', 'removeUserID', 'userID', 'start', 'end'])
+        .isRequired,
+      message: p.string.isRequired,
+    }),
+  ),
+
+  onChange: p.func.isRequired,
 }
