@@ -114,11 +114,12 @@ $(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
 	cp -r devtools/ci bin/integration/goalert/devtools/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/COMMIT: $(shell find ./.git)
-	mkdir -p bin/integration/goalert
-	git rev-parse HEAD >bin/integration/goalert/COMMIT
+$(BIN_DIR)/integration/goalert/.git: $(shell find ./.git)
+	rm -rf $@
+	mkdir -p bin/integration/goalert/.git
+	git rev-parse HEAD >bin/integration/goalert/.git/COMMIT
 
-$(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/COMMIT $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/bin
+$(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/bin
 	touch $@
 
 $(BIN_DIR)/integration.tgz: bin/integration
