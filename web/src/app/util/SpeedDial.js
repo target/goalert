@@ -3,7 +3,7 @@ import p from 'prop-types'
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab'
 import { makeStyles } from '@material-ui/styles'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles({
   speedDial: {
     position: 'fixed',
     bottom: '2em',
@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
   staticTooltipLabel: {
     whiteSpace: 'nowrap',
   },
-}))
+})
 
 export default function CustomSpeedDial(props) {
   const [open, setOpen] = useState(false)
