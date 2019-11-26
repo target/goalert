@@ -9,7 +9,7 @@ module.exports = {
     'integration/all': glob.sync(path.join(__dirname, 'cypress/integration/*')),
   },
   output: {
-    path: path.join(__dirname, '../../cypress'),
+    path: path.join(__dirname, '../../bin/integration/goalert/cypress'),
   },
   resolve: {
     extensions: ['.js', '.ts'],
