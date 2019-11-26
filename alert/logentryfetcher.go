@@ -2,6 +2,7 @@ package alert
 
 import (
 	"context"
+
 	alertlog "github.com/target/goalert/alert/log"
 
 	"github.com/pkg/errors"
@@ -9,7 +10,7 @@ import (
 
 type LogEntryFetcher interface {
 	// LogEntry fetchs the latest log entry for a given alertID and type.
-	LogEntry(ctx context.Context) (alertlog.Entry, error)
+	LogEntry(ctx context.Context) (*alertlog.Entry, error)
 }
 
 type logError struct {
@@ -20,7 +21,7 @@ type logError struct {
 	logDB                 alertlog.Store
 }
 
-func (e logError) LogEntry(ctx context.Context) (alertlog.Entry, error) {
+func (e logError) LogEntry(ctx context.Context) (*alertlog.Entry, error) {
 	return e.logDB.FindLatestByType(ctx, e.alertID, e._type)
 }
 

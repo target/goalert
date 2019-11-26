@@ -76,6 +76,7 @@ func (q *Query) SlackChannels(ctx context.Context, input *graphql2.SlackChannelS
 	channels = filtered
 
 	conn = new(graphql2.SlackChannelConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(channels) > limit {
 		channels = channels[:limit]
 		conn.PageInfo.HasNextPage = true

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -81,6 +82,7 @@ func (h *Harness) GraphQLQueryT(t *testing.T, query string, u string) *QLRespons
 	if err != nil {
 		t.Fatal("failed to make request:", err)
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.AddCookie(&http.Cookie{
 		Name:  auth.CookieName,
 		Value: h.sessToken,
@@ -91,7 +93,8 @@ func (h *Harness) GraphQLQueryT(t *testing.T, query string, u string) *QLRespons
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		t.Fatal("failed to make graphql request:", resp.Status)
+		data, _ := ioutil.ReadAll(resp.Body)
+		t.Fatal("failed to make graphql request:", resp.Status, string(data))
 	}
 
 	var r QLResponse

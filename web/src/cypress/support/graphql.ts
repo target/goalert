@@ -22,34 +22,25 @@ function graphql(
 ): Cypress.Chainable<any> {
   if (!variables) variables = {}
 
-  return cy
-    .request({
-      url,
-      method: 'POST',
-      body: JSON.stringify({
-        query,
-        variables,
-      }),
-    })
-    .then(res => {
-      expect(res.status, 'status code').to.eq(200)
+  return cy.request('POST', url, { query, variables }).then(res => {
+    expect(res.status, 'status code').to.eq(200)
 
-      let data: GraphQLResponse
-      try {
-        if (typeof res.body === 'string') data = JSON.parse(res.body)
-        else data = res.body
-      } catch (e) {
-        console.error(res.body)
-        throw e
-      }
-      if (data.errors && data.errors[0]) {
-        // causes error message to be shown
-        expect(data.errors[0].message).to.be.empty
-      }
-      expect(data.errors, 'graphql errors').to.be.empty
+    let data: GraphQLResponse
+    try {
+      if (typeof res.body === 'string') data = JSON.parse(res.body)
+      else data = res.body
+    } catch (e) {
+      console.error(res.body)
+      throw e
+    }
+    if (data.errors && data.errors[0]) {
+      // causes error message to be shown
+      expect(data.errors[0].message).to.be.empty
+    }
+    expect(data.errors, 'graphql errors').to.be.empty
 
-      return data.data
-    })
+    return data.data
+  })
 }
 
 Cypress.Commands.add('graphql', graphql)

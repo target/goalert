@@ -374,6 +374,7 @@ func (q *Query) EscalationPolicies(ctx context.Context, opts *graphql2.Escalatio
 		return nil, err
 	}
 	conn = new(graphql2.EscalationPolicyConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(pols) == searchOpts.Limit {
 		pols = pols[:len(pols)-1]
 		conn.PageInfo.HasNextPage = true
