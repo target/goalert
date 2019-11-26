@@ -19,9 +19,9 @@ export default function CustomSpeedDial(props) {
   const [open, setOpen] = useState(false)
   const classes = useStyles()
 
-  const doToggle = () => setOpen(!open)
-  const doOpen = () => setOpen(true)
-  const doClose = () => setOpen(false)
+  const handleToggle = () => setOpen(!open)
+  const handleOpen = () => setOpen(true)
+  const handleClose = () => setOpen(false)
 
   return (
     <SpeedDial
@@ -30,10 +30,10 @@ export default function CustomSpeedDial(props) {
         'data-cy': 'page-fab',
       }}
       icon={<SpeedDialIcon />}
-      onClick={doToggle}
-      onClose={doClose}
-      onMouseEnter={doOpen}
-      onMouseLeave={doClose}
+      onClick={handleToggle}
+      onClose={handleClose}
+      onMouseEnter={handleOpen}
+      onMouseLeave={handleClose}
       open={open}
       className={classes.speedDial}
     >
@@ -49,7 +49,7 @@ export default function CustomSpeedDial(props) {
             classes={{ staticTooltipLabel: classes.staticTooltipLabel }}
             aria-label={action.label}
             onClick={() => {
-              setOpen(false)
+              handleClose()
               action.onClick()
             }}
           />
