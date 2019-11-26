@@ -3993,10 +3993,12 @@ cyclist@^1.0.1:
   resolved "https://registry.yarnpkg.com/cyclist/-/cyclist-1.0.1.tgz#596e9698fd0c80e12038c2b82d6eb1b35b6224d9"
   integrity sha1-WW6WmP0MgOEgOMK4LW6xs1tiJNk=
 
-cypress-plugin-retries@1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/cypress-plugin-retries/-/cypress-plugin-retries-1.4.0.tgz#30477294a22e368c874d50dc282e657906080955"
-  integrity sha512-Pudna9+dn0wp3flUVWt1ttn6hKTnD1MIBUSznYkw+uRv3JPNJhxHIv9cfxrZmig49/R1fIyGBVNORchtnFedEw==
+cypress-plugin-retries@1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/cypress-plugin-retries/-/cypress-plugin-retries-1.5.0.tgz#717cdfd7f2a8f07f218eb23e93ff6f7aa4c95029"
+  integrity sha512-nSJx4RkbeQFGjsymPWabn7i2GmxULUu9SqtiJqoVFa1XfVtQC1Uoogxj/zZzhrWYwYJ2183xslb9HqQV6bafFQ==
+  dependencies:
+    chalk "^3.0.0"
 
 cypress@*, cypress@3.4.1:
   version "3.4.1"
