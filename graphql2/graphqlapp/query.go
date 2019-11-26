@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
@@ -44,6 +45,7 @@ func (a *Query) AuthSubjectsForProvider(ctx context.Context, _first *int, _after
 	}
 
 	conn = new(graphql2.AuthSubjectConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	conn.Nodes, err = a.UserStore.FindSomeAuthSubjectsForProvider(ctx, first+1, c.LastID, c.ProviderID)
 	if err != nil {
 		return nil, err

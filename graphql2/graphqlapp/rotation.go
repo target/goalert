@@ -3,6 +3,8 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
@@ -12,7 +14,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -212,6 +213,7 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 		return nil, err
 	}
 	conn = new(graphql2.RotationConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(rots) == searchOpts.Limit {
 		rots = rots[:len(rots)-1]
 		conn.PageInfo.HasNextPage = true
