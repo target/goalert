@@ -100,6 +100,7 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	}
 
 	conn = new(graphql2.UserConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(users) == searchOpts.Limit {
 		users = users[:len(users)-1]
 		conn.PageInfo.HasNextPage = true

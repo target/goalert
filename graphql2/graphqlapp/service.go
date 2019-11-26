@@ -64,6 +64,7 @@ func (q *Query) Services(ctx context.Context, opts *graphql2.ServiceSearchOption
 		return nil, err
 	}
 	conn = new(graphql2.ServiceConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(svcs) == searchOpts.Limit {
 		svcs = svcs[:len(svcs)-1]
 		conn.PageInfo.HasNextPage = true

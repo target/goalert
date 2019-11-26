@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/override"
@@ -124,6 +125,7 @@ func (q *Query) UserOverrides(ctx context.Context, input *graphql2.UserOverrideS
 	}
 
 	conn = new(graphql2.UserOverrideConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(overrides) == searchOpts.Limit {
 		overrides = overrides[:len(overrides)-1]
 		conn.PageInfo.HasNextPage = true
