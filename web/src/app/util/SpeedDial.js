@@ -37,20 +37,23 @@ export default function CustomSpeedDial(props) {
       open={open}
       className={classes.speedDial}
     >
-      {props.actions.map((action, idx) => (
-        <SpeedDialAction
-          key={idx}
-          icon={action.icon}
-          tooltipTitle={action.label}
-          tooltipOpen
-          classes={{ staticTooltipLabel: classes.staticTooltipLabel }}
-          aria-label={action.label}
-          onClick={() => {
-            setOpen(false)
-            action.onClick()
-          }}
-        />
-      ))}
+      {props.actions
+        .slice() // TODO why this?
+        .reverse() // TODO why this? If we cut this line, we have to reorder the action arrays everywhere else (3 instances)
+        .map((action, idx) => (
+          <SpeedDialAction
+            key={idx}
+            icon={action.icon}
+            tooltipTitle={action.label}
+            tooltipOpen
+            classes={{ staticTooltipLabel: classes.staticTooltipLabel }}
+            aria-label={action.label}
+            onClick={() => {
+              setOpen(false)
+              action.onClick()
+            }}
+          />
+        ))}
     </SpeedDial>
   )
 }

@@ -120,14 +120,14 @@ export default class ScheduleRuleList extends React.PureComponent {
             label='Add Assignment'
             actions={[
               {
-                label: 'Add User',
-                onClick: () => this.setState({ createType: 'user' }),
-                icon: <AccountPlus />,
-              },
-              {
                 label: 'Add Rotation',
                 onClick: () => this.setState({ createType: 'rotation' }),
                 icon: <AccountMultiplePlus />,
+              },
+              {
+                label: 'Add User',
+                onClick: () => this.setState({ createType: 'user' }),
+                icon: <AccountPlus />,
               },
             ]}
           />
