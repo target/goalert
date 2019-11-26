@@ -38,8 +38,8 @@ export default function CustomSpeedDial(props) {
       className={classes.speedDial}
     >
       {props.actions
-        .slice() // TODO why this?
-        .reverse() // TODO why this? If we cut this line, we have to reorder the action arrays everywhere else (3 instances)
+        .slice()
+        .reverse()
         .map((action, idx) => (
           <SpeedDialAction
             key={idx}
