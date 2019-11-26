@@ -59,8 +59,72 @@ $(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go migrate/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	go build $(BUILD_FLAGS) -o $@ ./devtools/mockslack/cmd/mockslack
+
+$(BIN_DIR)/runjson.linux: go.sum devtools/runjson/*.go
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
+$(BIN_DIR)/psql-lite.linux: go.sum devtools/psql-lite/*.go
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
+$(BIN_DIR)/waitfor.linux: go.sum devtools/waitfor/*.go
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
+$(BIN_DIR)/simpleproxy.linux: go.sum devtools/simpleproxy/*.go
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
+$(BIN_DIR)/resetdb.linux: go.sum devtools/resetdb/*.go migrate/*.go
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
+$(BIN_DIR)/mockslack.linux: go.sum $(shell find ./devtools/mockslack -name '*.go')
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/mockslack/cmd/mockslack
+
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+$(BIN_DIR)/goalert.linux: $(BIN_DIR)/goalert web/inline_data_gen.go
+	GOOS=linux go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+$(BIN_DIR)/goalert.darwin: $(BIN_DIR)/goalert web/inline_data_gen.go
+	GOOS=darwin go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+
+$(BIN_DIR)/goalert-linux-amd64.tgz: $(BIN_DIR)/goalert.linux
+	rm -rf bin/goalert-linux
+	mkdir -p bin/goalert-linux/goalert/bin
+	cp $(BIN_DIR)/goalert.linux bin/goalert-linux/goalert/bin/goalert
+	tar czvf $@ -C bin/goalert-linux goalert
+
+$(BIN_DIR)/goalert-darwin-amd64.tgz: $(BIN_DIR)/goalert.darwin
+	rm -rf bin/goalert-darwin
+	mkdir -p bin/goalert-darwin/goalert/bin
+	cp $(BIN_DIR)/goalert.darwin bin/goalert-darwin/goalert/bin/goalert
+	tar czvf $@ -C bin/goalert-darwin goalert
+
+$(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
+	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
+
+$(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
+	rm -rf $@
+	(cd web/src && yarn webpack --config webpack.cypress.js)
+	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
+	touch $@
+
+$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert.linux $(BIN_DIR)/mockslack.linux $(BIN_DIR)/simpleproxy.linux $(BIN_DIR)/waitfor.linux $(BIN_DIR)/runjson.linux $(BIN_DIR)/psql-lite.linux
+	rm -rf $@
+	mkdir -p bin/integration/goalert/bin
+	cp bin/*.linux bin/integration/goalert/bin/
+	for f in bin/integration/goalert/bin/*.linux; do mv $$f bin/integration/goalert/bin/$$(basename $$f .linux); done
+	touch $@
+
+$(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
+	rm -rf $@
+	mkdir -p bin/integration/goalert/devtools
+	cp -r devtools/ci bin/integration/goalert/devtools/
+	touch $@
+
+$(BIN_DIR)/integration/goalert/.git: $(shell find ./.git)
+	rm -rf $@
+	mkdir -p bin/integration/goalert/.git
+	git rev-parse HEAD >bin/integration/goalert/COMMIT
+	test -d .git/resource && cp -r .git/resource bin/integration/goalert/.git/ || true
+
+$(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/bin
+	touch $@
+
+$(BIN_DIR)/integration.tgz: bin/integration
+	tar czvf bin/integration.tgz -C bin/integration goalert
 
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
