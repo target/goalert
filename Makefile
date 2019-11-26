@@ -117,7 +117,7 @@ $(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
 $(BIN_DIR)/integration/goalert/.git: $(shell find ./.git)
 	rm -rf $@
 	mkdir -p bin/integration/goalert/.git
-	git rev-parse HEAD >bin/integration/goalert/.git/COMMIT
+	git rev-parse HEAD >bin/integration/goalert/COMMIT
 	test -d .git/resource && cp -r .git/resource bin/integration/goalert/.git/ || true
 
 $(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integration/goalert/devtools $(BIN_DIR)/integration/goalert/cypress $(BIN_DIR)/integration/goalert/bin
