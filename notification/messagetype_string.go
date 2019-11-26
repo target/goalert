@@ -12,13 +12,11 @@ func _() {
 	_ = x[MessageTypeAlertStatus-1]
 	_ = x[MessageTypeTest-2]
 	_ = x[MessageTypeVerification-3]
-	_ = x[MessageTypeAlertBundle-4]
-	_ = x[MessageTypeAlertStatusBundle-5]
 }
 
-const _MessageType_name = "MessageTypeAlertMessageTypeAlertStatusMessageTypeTestMessageTypeVerificationMessageTypeAlertBundleMessageTypeAlertStatusBundle"
+const _MessageType_name = "MessageTypeAlertMessageTypeAlertStatusMessageTypeTestMessageTypeVerification"
 
-var _MessageType_index = [...]uint8{0, 16, 38, 53, 76, 98, 126}
+var _MessageType_index = [...]uint8{0, 16, 38, 53, 76}
 
 func (i MessageType) String() string {
 	if i < 0 || i >= MessageType(len(_MessageType_index)-1) {

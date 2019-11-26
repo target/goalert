@@ -3,7 +3,6 @@ package label
 import (
 	"context"
 	"database/sql"
-
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -18,8 +17,7 @@ type Store interface {
 	FindAllByService(ctx context.Context, serviceID string) ([]Label, error)
 	UniqueKeysTx(ctx context.Context, tx *sql.Tx) ([]string, error)
 	UniqueKeys(ctx context.Context) ([]string, error)
-	SearchKeys(ctx context.Context, opts *KeySearchOptions) ([]string, error)
-	SearchValues(ctx context.Context, opts *ValueSearchOptions) ([]string, error)
+	Search(ctx context.Context, opts *SearchOptions) ([]Label, error)
 }
 
 // DB implements the Store interface using a postgres database.

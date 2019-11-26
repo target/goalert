@@ -213,9 +213,7 @@ export default class CheckedAlertsFormControl extends Component {
           this.props.setAlertsActionComplete(true)
           this.setState({ errorMessage: err.message })
         }}
-        update={(cache, { data }) =>
-          this.onUpdate(data.updateAlerts ? data.updateAlerts.length : 0)
-        }
+        update={(cache, { data }) => this.onUpdate(data.updateAlerts.length)}
       >
         {mutation => (
           <Tooltip

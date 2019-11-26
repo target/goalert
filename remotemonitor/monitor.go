@@ -3,6 +3,8 @@ package remotemonitor
 import (
 	"context"
 	"fmt"
+	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification/twilio"
 	"io"
 	"log"
 	"net"
@@ -10,9 +12,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/target/goalert/config"
-	"github.com/target/goalert/notification/twilio"
 )
 
 // Monitor will check for functionality and communication between itself and one or more instances.
@@ -51,11 +50,7 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 	if err != nil {
 		return nil, err
 	}
-	h := twilio.WrapValidation(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		req.URL.Path = strings.TrimPrefix(req.URL.Path, u.Path)
-
-		m.ServeHTTP(w, req)
-	}), m.tw)
+	h := twilio.WrapValidation(m, m.tw)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, req *http.Request) { io.WriteString(w, "ok") })
 	m.appCfg.General.PublicURL = cfg.PublicURL
@@ -63,7 +58,11 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 	m.appCfg.Twilio.AccountSID = cfg.Twilio.AccountSID
 	m.appCfg.Twilio.AuthToken = cfg.Twilio.AuthToken
 	m.appCfg.Twilio.FromNumber = cfg.Twilio.FromNumber
-	mux.Handle("/", twilio.WrapHeaderHack(h))
+	mux.Handle("/", twilio.WrapHeaderHack(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		req.URL.Path = strings.TrimPrefix(req.URL.Path, u.Path)
+
+		h.ServeHTTP(w, req)
+	})))
 	m.srv = &http.Server{
 		Handler:           config.Handler(mux, config.Static(m.appCfg)),
 		IdleTimeout:       15 * time.Second,

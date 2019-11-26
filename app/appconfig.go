@@ -1,7 +1,6 @@
 package app
 
 import (
-	"crypto/tls"
 	"time"
 
 	"github.com/target/goalert/keyring"
@@ -13,9 +12,6 @@ type appConfig struct {
 	JSON        bool
 	LogRequests bool
 	APIOnly     bool
-
-	TLSListenAddr string
-	TLSConfig     *tls.Config
 
 	DBMaxOpen int
 	DBMaxIdle int

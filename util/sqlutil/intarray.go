@@ -2,7 +2,7 @@ package sqlutil
 
 import (
 	"database/sql/driver"
-	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/pgtype"
 )
 
 type IntArray []int

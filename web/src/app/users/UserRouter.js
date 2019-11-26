@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import { Switch, Route } from 'react-router-dom'
 import gql from 'graphql-tag'
 import { UserAvatar } from '../util/avatar/types'
+import PageActions from '../util/PageActions'
+import Search from '../util/Search'
 import QueryList from '../lists/QueryList'
 import UserDetails from './UserDetails'
 import { PageNotFound } from '../error-pages/Errors'
@@ -29,6 +31,9 @@ class UserList extends React.PureComponent {
   render() {
     return (
       <React.Fragment>
+        <PageActions>
+          <Search />
+        </PageActions>
         <QueryList
           query={query}
           mapDataNode={n => ({

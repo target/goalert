@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/stdlib"
 )
 
 func waitForHTTP(ctx context.Context, url string) {

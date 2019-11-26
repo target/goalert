@@ -24,6 +24,13 @@ func (app *App) _Run(ctx context.Context) error {
 			log.Log(ctx, err)
 		}
 	}()
+	log.Logf(
+		log.WithFields(context.TODO(), log.Fields{
+			"address": app.l.Addr().String(),
+			"url":     app.ConfigStore.Config().PublicURL(),
+		}),
+		"Listening.",
+	)
 
 	eventCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -32,13 +39,6 @@ func (app *App) _Run(ctx context.Context) error {
 		return err
 	}
 
-	log.Logf(
-		log.WithFields(context.TODO(), log.Fields{
-			"address": app.l.Addr().String(),
-			"url":     app.ConfigStore.Config().PublicURL(),
-		}),
-		"Listening.",
-	)
 	err = app.srv.Serve(app.l)
 	if err != nil && err != http.ErrServerClosed {
 		return errors.Wrap(err, "serve HTTP")

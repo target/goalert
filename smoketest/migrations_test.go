@@ -16,11 +16,10 @@ import (
 	"text/template"
 	"time"
 
-	_ "github.com/jackc/pgx/v4/stdlib" // import db driver
+	"github.com/jackc/pgx"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/smoketest/harness"
-	"github.com/target/goalert/util/sqlutil"
 )
 
 type ignoreRule struct {
@@ -540,11 +539,11 @@ func TestMigrations(t *testing.T) {
 	defer db.Close()
 	dbName := strings.Replace("migrations_smoketest_"+time.Now().Format("2006_01_02_03_04_05")+uuid.NewV4().String(), "-", "", -1)
 
-	_, err = db.Exec("create database " + sqlutil.QuoteID(dbName))
+	_, err = db.Exec("create database " + pgx.Identifier([]string{dbName}).Sanitize())
 	if err != nil {
 		t.Fatal("failed to create db:", err)
 	}
-	defer db.Exec("drop database " + sqlutil.QuoteID(dbName))
+	defer db.Exec("drop database " + pgx.Identifier([]string{dbName}).Sanitize())
 
 	n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
 	if err != nil {
@@ -577,7 +576,7 @@ func TestMigrations(t *testing.T) {
 
 	names = names[idx:]
 	if skipTo {
-		n, err := migrate.Up(context.Background(), harness.DBURL(dbName), start)
+		n, err := migrate.Up(context.Background(), harness.DBURL(dbName), env)
 		if err != nil {
 			t.Fatal("failed to apply skip migrations:", err)
 		}
@@ -632,12 +631,12 @@ func TestMigrations(t *testing.T) {
 		mm++
 		return mismatch
 	}
-	names = names[1:]
 	for i, migrationName := range names[1:] {
 		lastMigrationName := names[i]
 		var applied bool
 		pass := t.Run(migrationName, func(t *testing.T) {
 			ctx := context.Background()
+
 			orig := snapshot(t, migrationName)
 			n, err = migrate.Up(ctx, harness.DBURL(dbName), migrationName)
 			if err != nil {

@@ -168,27 +168,12 @@ type LabelConnection struct {
 	PageInfo PageInfo      `json:"pageInfo"`
 }
 
-type LabelKeySearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
-}
-
 type LabelSearchOptions struct {
 	First      *int     `json:"first"`
 	After      *string  `json:"after"`
 	Search     *string  `json:"search"`
 	UniqueKeys *bool    `json:"uniqueKeys"`
 	Omit       []string `json:"omit"`
-}
-
-type LabelValueSearchOptions struct {
-	Key    string   `json:"key"`
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
 }
 
 type PageInfo struct {
@@ -283,11 +268,6 @@ type SlackChannelSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
-}
-
-type StringConnection struct {
-	Nodes    []string `json:"nodes"`
-	PageInfo PageInfo `json:"pageInfo"`
 }
 
 type TimeZone struct {

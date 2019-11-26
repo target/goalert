@@ -6,7 +6,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx"
 )
 
 func sqlSplitBlock(blockIdx int, data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -76,15 +76,18 @@ func sqlSplit(query string) []string {
 // ExecSQL will execute all queries one-by-one.
 func ExecSQL(ctx context.Context, url string, query string) error {
 	queries := sqlSplit(query)
-
-	conn, err := pgx.Connect(ctx, url)
+	cfg, err := pgx.ParseConnectionString(url)
 	if err != nil {
 		return err
 	}
-	defer conn.Close(ctx)
+	conn, err := pgx.Connect(cfg)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
 
 	for _, q := range queries {
-		_, err := conn.Exec(ctx, q)
+		_, err := conn.ExecEx(ctx, q, nil)
 		if err != nil {
 			return err
 		}
@@ -97,32 +100,44 @@ func ExecSQL(ctx context.Context, url string, query string) error {
 func ExecSQLBatch(ctx context.Context, url string, query string) error {
 	queries := sqlSplit(query)
 
-	conn, err := pgx.Connect(ctx, url)
-	if err != nil {
-		return err
-	}
-	defer conn.Close(ctx)
-
-	_, err = conn.Exec(ctx, "set statement_timeout = 3000")
+	cfg, err := pgx.ParseConnectionString(url)
 	if err != nil {
 		return err
 	}
 
-	tx, err := conn.Begin(ctx)
+	conn, err := pgx.Connect(cfg)
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer conn.Close()
 
-	b := &pgx.Batch{}
+	tx, err := conn.BeginEx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	b := tx.BeginBatch()
+	defer b.Close()
 	for _, q := range queries {
-		b.Queue(q)
+		b.Queue(q, nil, nil, nil)
 	}
 
-	err = tx.SendBatch(ctx, b).Close()
+	err = b.Send(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit(ctx)
+	for range queries {
+		_, err = b.ExecResults()
+		if err != nil {
+			return err
+		}
+	}
+	err = b.Close()
+	if err != nil {
+		return err
+	}
+
+	return tx.CommitEx(ctx)
 }

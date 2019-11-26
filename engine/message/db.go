@@ -3,10 +3,7 @@ package message
 import (
 	"context"
 	"database/sql"
-	"sync"
-	"time"
-
-	"github.com/target/goalert/config"
+	"fmt"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/notification"
@@ -16,11 +13,11 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"go.opencensus.io/trace"
+	"time"
 
 	"github.com/pkg/errors"
+	"go.opencensus.io/trace"
 )
 
 // DB implements a priority message sender using Postgres.
@@ -34,7 +31,7 @@ type DB struct {
 	setSending *sql.Stmt
 
 	lockStmt    *sql.Stmt
-	messages    *sql.Stmt
+	pending     *sql.Stmt
 	currentTime *sql.Stmt
 	retryReset  *sql.Stmt
 	retryClear  *sql.Stmt
@@ -54,16 +51,13 @@ type DB struct {
 
 	advLock        *sql.Stmt
 	advLockCleanup *sql.Stmt
-
-	insertAlertBundle  *sql.Stmt
-	insertStatusBundle *sql.Stmt
 }
 
 // NewDB creates a new DB. If config is nil, DefaultConfig() is used.
 func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
-		Version: 7,
+		Version: 6,
 	})
 	if err != nil {
 		return nil, err
@@ -270,168 +264,82 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 				cm.id = msg.contact_method_id and
 				cm.disabled
 		`),
-
-		insertAlertBundle: p.P(`
-			with new_msg as (
-				insert into outgoing_messages (
-					id,
-					created_at,
-					message_type,
-					contact_method_id,
-					channel_id,
-					user_id,
-					service_id
-				) values (
-					$1, $2, 'alert_notification_bundle', $3, $4, $5, $6
-				) returning (id)
-			)
-			update outgoing_messages
-			set
-				last_status = 'bundled',
-				last_status_at = now(),
-				status_details = (select id from new_msg),
-				cycle_id = null
-			where id = any($7::uuid[])
-		`),
-
-		insertStatusBundle: p.P(`
-			with new_msg as (
-				insert into outgoing_messages (
-					id,
-					created_at,
-					message_type,
-					contact_method_id,
-					user_id,
-					alert_log_id,
-					status_alert_ids
-				) values (
-					$1, $2, 'alert_status_update_bundle', $3, $4, $5, $6::bigint[]
-				) returning (id)
-			)
-			update outgoing_messages
-			set
-				last_status = 'bundled',
-				last_status_at = now(),
-				status_details = (select id from new_msg)
-			where id = any($7::uuid[])
-		`),
-
-		messages: p.P(`
+		pending: p.P(fmt.Sprintf(`
 			select
 				msg.id,
 				msg.message_type,
+				msg.contact_method_id,
 				cm.type,
-				chan.type,
-				coalesce(msg.contact_method_id, msg.channel_id),
-				coalesce(cm.value, chan.value),
 				msg.alert_id,
 				msg.alert_log_id,
 				msg.user_verification_code_id,
-				cm.user_id,
-				msg.service_id,
-				msg.created_at,
-				msg.sent_at,
-				msg.status_alert_ids
+				msg.channel_id,
+				chan.type
 			from outgoing_messages msg
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
-			where
-				sent_at > now() - '10 minutes'::interval or
-				last_status = 'pending' and
-				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
-		`),
+			where last_status = 'pending' and (not cm isnull or not chan isnull)
+			order by
+				msg.message_type,
+				(select max(sent_at) from outgoing_messages om where om.escalation_policy_id = msg.escalation_policy_id) nulls first,
+				(select max(sent_at) from outgoing_messages om where om.service_id = msg.service_id) nulls first,
+				(select max(sent_at) from outgoing_messages om where om.alert_id = msg.alert_id) nulls first,
+				channel_id,
+				(select max(sent_at) from outgoing_messages om where om.user_id = msg.user_id) nulls first,
+				(select max(sent_at) from outgoing_messages om where om.contact_method_id = msg.contact_method_id) nulls first,
+				msg.created_at,
+				msg.alert_id,
+				msg.alert_log_id,
+				msg.contact_method_id
+			limit %d
+		`, c.MaxMessagesPerCycle)),
 	}, p.Err
 }
 
-func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*queue, error) {
-	rows, err := tx.Stmt(db.messages).QueryContext(ctx)
+func (db *DB) getRows(ctx context.Context, tx *sql.Tx) ([]row, error) {
+	rows, err := tx.Stmt(db.pending).QueryContext(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
 	defer rows.Close()
 
-	var result []Message
+	var result []row
+	var r row
 	for rows.Next() {
-		var msg Message
-		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
-		var alertID, logID sql.NullInt64
-		var statusAlertIDs sqlutil.IntArray
-		var createdAt, sentAt sql.NullTime
+		var cmID, cmType, chID, chType sql.NullString
 		err = rows.Scan(
-			&msg.ID,
-			&msg.Type,
+			&r.ID,
+			&r.Type,
+			&cmID,
 			&cmType,
-			&chanType,
-			&destID,
-			&destValue,
-			&alertID,
-			&logID,
-			&verifyID,
-			&userID,
-			&serviceID,
-			&createdAt,
-			&sentAt,
-			&statusAlertIDs,
+			&r.AlertID,
+			&r.AlertLogID,
+			&r.VerifyID,
+			&chID,
+			&chType,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
 		}
-		msg.AlertID = int(alertID.Int64)
-		msg.AlertLogID = int(logID.Int64)
-		msg.VerifyID = verifyID.String
-		msg.UserID = userID.String
-		msg.ServiceID = serviceID.String
-		msg.CreatedAt = createdAt.Time
-		msg.SentAt = sentAt.Time
-		msg.Dest.ID = destID.String
-		msg.Dest.Value = destValue.String
-		msg.StatusAlertIDs = statusAlertIDs
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
-			msg.Dest.Type = notification.DestTypeSMS
+			r.DestType = notification.DestTypeSMS
+			r.DestID = cmID.String
 		case cmType.String == string(contactmethod.TypeVoice):
-			msg.Dest.Type = notification.DestTypeVoice
-		case chanType.String == string(notificationchannel.TypeSlack):
-			msg.Dest.Type = notification.DestTypeSlackChannel
+			r.DestType = notification.DestTypeVoice
+			r.DestID = cmID.String
+		case chType.String == string(notificationchannel.TypeSlack):
+			r.DestType = notification.DestTypeSlackChannel
+			r.DestID = chID.String
 		default:
-			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
+			log.Debugf(ctx, "unknown message type for message %s", r.ID)
 			continue
 		}
 
-		result = append(result, msg)
+		result = append(result, r)
 	}
 
-	cfg := config.FromContext(ctx)
-	if cfg.General.MessageBundles {
-		result, err = bundleStatusMessages(result, func(msg Message, ids []string) error {
-			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.IntArray(msg.StatusAlertIDs), sqlutil.UUIDArray(ids))
-			return errors.Wrap(err, "insert status bundle")
-		})
-		if err != nil {
-			return nil, err
-		}
-		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
-			var cmID, chanID, userID sql.NullString
-			if msg.UserID != "" {
-				userID.Valid = true
-				userID.String = msg.UserID
-			}
-			if msg.Dest.Type.IsUserCM() {
-				cmID.Valid = true
-				cmID.String = msg.Dest.ID
-			} else {
-				chanID.Valid = true
-				chanID.String = msg.Dest.ID
-			}
-			_, err := tx.StmtContext(ctx, db.insertAlertBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, cmID, chanID, userID, msg.ServiceID, sqlutil.UUIDArray(ids))
-			return err
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return newQueue(result, now), nil
+	return result, nil
 }
 
 // UpdateMessageStatus will update the state of a message.
@@ -589,9 +497,22 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "reset retry messages")
 	}
 
-	q, err := db.currentQueue(ctx, tx, t)
+	msgs, err := db.getRows(ctx, tx)
 	if err != nil {
 		return errors.Wrap(err, "get pending messages")
+	}
+
+	counts := make(batchCounts, len(db.c.RateLimit))
+	for cType, cfg := range db.c.RateLimit {
+		if cfg == nil || cfg.Batch <= 0 || cfg.PerSecond < 1 || !cType.IsUserCM() {
+			continue
+		}
+		var c int
+		err = tx.Stmt(db.sentByCMType).QueryRowContext(execCtx, t.Add(-cfg.Batch), contactmethod.TypeFromDestType(cType)).Scan(&c)
+		if err != nil {
+			return errors.Wrap(err, "get sent message count")
+		}
+		counts[cType] = c
 	}
 
 	err = tx.Commit()
@@ -599,18 +520,52 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "commit message updates")
 	}
 
-	var wg sync.WaitGroup
-	for _, t := range q.Types() {
-		wg.Add(1)
-		go func(typ notification.DestType) {
-			defer wg.Done()
-			err := db.sendMessagesByType(ctx, cLock, send, q, typ)
+	if len(msgs) > 0 {
+		msgByType := make(map[notification.DestType][]row)
+
+		for _, m := range msgs {
+			msgByType[m.DestType] = append(msgByType[m.DestType], m)
+		}
+
+		// ensure we cancel sending other messages on err
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+
+		// ensure the buffer is large enough to hold all responses, even if we exit on err
+		// otherwise the goroutine will hang and be a memory leak
+		errCh := make(chan error, len(msgByType))
+
+		for typ, rows := range msgByType {
+			toSend := db.c.batchNum(typ) // max messages per cycle
+			if toSend == 0 {
+				// no limit
+				go db.sendAllMessages(ctx, cLock, send, rows, 0, errCh)
+				continue
+			}
+
+			toSend -= counts[typ]
+			if toSend <= 0 {
+				// nothing to send
+				errCh <- nil
+				continue
+			}
+
+			// only send remaining in queue
+			go db.sendAllMessages(ctx, cLock, send, rows, toSend, errCh)
+		}
+
+		n := 0
+		for err := range errCh {
+			n++
 			if err != nil && errors.Cause(err) != processinglock.ErrNoLock {
 				log.Log(ctx, errors.Wrap(err, "send"))
 			}
-		}(t)
+			// jump out once we've completed all types
+			if n == len(msgByType) {
+				break
+			}
+		}
 	}
-	wg.Wait()
 
 	return db.updateStuckMessages(ctx, status)
 }
@@ -683,83 +638,75 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	return nil
 }
 
-const workersPerType = 5
-
-func (db *DB) sendMessagesByType(ctx context.Context, cLock *processinglock.Conn, send SendFunc, q *queue, typ notification.DestType) error {
-	limit := db.c.RateLimit[typ]
-
-	toSend := int(limit.Batch.Seconds() * float64(limit.PerSecond))
-	var failures, processing int
-	sentCount := func() int {
-		return q.SentByType(typ, limit.Batch) - failures
+func (db *DB) sendAllMessages(ctx context.Context, cLock *processinglock.Conn, send SendFunc, rows []row, count int, errCh chan error) {
+	type sendResult struct {
+		sent bool
+		err  error
 	}
 
-	sendCh := make(chan *Message, workersPerType)
-	errCh := make(chan error, workersPerType)
-	resCh := make(chan bool, workersPerType)
-	for i := 0; i < workersPerType; i++ {
-		go func() {
-			for msg := range sendCh {
-				sent, err := db.sendMessage(ctx, cLock, send, msg)
-				if err != nil {
-					errCh <- err
-				} else {
-					resCh <- sent
-				}
-			}
-		}()
+	ch := make(chan sendResult, len(rows)) // ensure we can store all responses if needed
+	doSend := func(r row) {
+		var res sendResult
+		res.sent, res.err = db.sendMessage(ctx, cLock, send, &r)
+		ch <- res
 	}
-	defer close(sendCh)
 
-	var done bool
-	for {
-		if !done && sentCount() < toSend {
-			msg := q.NextByType(typ)
-			if msg == nil {
-				done = true
-				continue
-			}
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case sendCh <- msg:
-				processing++
-			}
-		} else if processing == 0 {
+	var sent int
+	var pending int
+	for i, m := range rows {
+		if db.c.Pausable.IsPausing() {
+			// abort due to pause
 			break
 		}
+		go doSend(m)
+		pending++
+		if i < 20 && (i < count || count == 0) {
+			continue
+		}
 
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case err := <-errCh:
-			return err
-		case sent := <-resCh:
-			if !sent {
-				failures++
-			}
-			processing--
+		res := <-ch
+		pending--
+		if res.err != nil {
+			errCh <- res.err
+			return
+		}
+		if res.sent {
+			sent++
+		}
+		if count > 0 && sent == count {
+			break
 		}
 	}
 
-	return nil
+	for ; pending > 0; pending-- {
+		// check remaining responses for errors
+		res := <-ch
+		if res.err != nil {
+			errCh <- res.err
+			return
+		}
+	}
+
+	errCh <- nil
 }
 
-func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *Message) (bool, error) {
+func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send SendFunc, m *row) (bool, error) {
 	ctx, sp := trace.StartSpan(ctx, "Engine.MessageManager.SendMessage")
 	defer sp.End()
 	ctx = log.WithFields(ctx, log.Fields{
-		"DestTypeID": m.Dest.ID,
-		"DestType":   m.Dest.Type.String(),
+		"DestTypeID": m.DestID,
+		"DestType":   m.DestType.String(),
 		"CallbackID": m.ID,
 	})
 	sp.AddAttributes(
-		trace.StringAttribute("message.dest.id", m.Dest.ID),
-		trace.StringAttribute("message.dest.type", m.Dest.Type.String()),
+		trace.StringAttribute("message.dest.id", m.DestID),
+		trace.StringAttribute("message.dest.type", m.DestType.String()),
 		trace.StringAttribute("message.callback.id", m.ID),
 	)
-	if m.AlertID != 0 {
-		ctx = log.WithField(ctx, "AlertID", m.AlertID)
+	var alertID int
+	if m.AlertID.Valid {
+		alertID = int(m.AlertID.Int64)
+		ctx = log.WithField(ctx, "AlertID", alertID)
 	}
 	_, err := cLock.Exec(ctx, db.setSending, m.ID)
 	if err != nil {
@@ -768,7 +715,15 @@ func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send 
 	sCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	var status *notification.MessageStatus
 	err = retry.DoTemporaryError(func(int) error {
-		status, err = send(sCtx, m)
+		status, err = send(sCtx, &Message{
+			ID:         m.ID,
+			Type:       m.Type,
+			DestType:   m.DestType,
+			DestID:     m.DestID,
+			AlertID:    alertID,
+			AlertLogID: int(m.AlertLogID.Int64),
+			VerifyID:   m.VerifyID.String,
+		})
 		return err
 	},
 		retry.Log(ctx),

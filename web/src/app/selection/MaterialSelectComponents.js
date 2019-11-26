@@ -22,7 +22,6 @@ export const styles = theme => ({
     flexWrap: 'wrap',
     flex: 1,
     alignItems: 'center',
-    wordBreak: 'break-word',
   },
   chip: {
     margin: `${theme.spacing(1) / 2}px ${theme.spacing(1) / 4}px`,
@@ -34,14 +33,6 @@ export const styles = theme => ({
         : theme.palette.grey[700],
       0.08,
     ),
-  },
-  listItemIcon: {
-    position: 'absolute',
-    right: 0,
-  },
-  menuItem: {
-    wordBreak: 'break-word',
-    whiteSpace: 'pre-wrap',
   },
   message: {
     float: 'left',
@@ -113,14 +104,15 @@ export const Option = props => (
   <MenuItem
     buttonRef={props.innerRef}
     selected={props.isFocused}
-    component='span'
-    className={props.selectProps.classes.menuItem}
-    style={{ fontWeight: props.isSelected ? 500 : 400 }}
+    component='div'
+    style={{
+      fontWeight: props.isSelected ? 500 : 400,
+    }}
     {...props.innerProps}
   >
     {props.children}
     {props.data.icon && (
-      <ListItemIcon className={props.selectProps.classes.listItemIcon}>
+      <ListItemIcon style={{ position: 'absolute', right: 0 }}>
         {props.data.icon}
       </ListItemIcon>
     )}

@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"strings"
-
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
@@ -15,6 +13,7 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -112,7 +111,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			from alerts a
 			where a.service_id = ANY ($1) and (
 				($2 = 'closed'::enum_alert_log_event and a.status != 'closed') or
-				($2::enum_alert_log_event in ('acknowledged', 'notification_sent') and a.status = 'triggered')
+				($2 = 'acknowledged'::enum_alert_log_event and a.status = 'triggered')
 			)
 		`),
 		insert: p.P(`

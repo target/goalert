@@ -4,36 +4,48 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
+	"github.com/jackc/pgx/stdlib"
 	"github.com/target/goalert/switchover"
-	"github.com/target/goalert/util/sqlutil"
 )
 
-func (s *Sync) listen(db *sql.DB) error {
-	ctx := context.Background()
-	l, err := sqlutil.NewListener(ctx, (*sqlutil.DBConnector)(db), switchover.StateChannel)
-	if err != nil {
-		return err
-	}
-	go func() {
-		for n := range l.Notifications() {
-
-			stat, err := switchover.ParseStatus(n.Payload)
+func (s *Sync) listen(db *sql.DB) {
+	for {
+		// ignoring errors (will reconnect)
+		err := func() error {
+			c, err := stdlib.AcquireConn(db)
 			if err != nil {
-				fmt.Println("ERROR:", err)
-				continue
+				return err
+			}
+			defer stdlib.ReleaseConn(db, c)
+
+			err = c.Listen(switchover.StateChannel)
+			if err != nil {
+				return err
 			}
 
-			s.mx.Lock()
-			s.nodeStatus[stat.NodeID] = *stat
-			s.mx.Unlock()
+			for {
+				n, err := c.WaitForNotification(context.Background())
+				if err != nil {
+					return err
+				}
+				stat, err := switchover.ParseStatus(n.Payload)
+				if err != nil {
+					fmt.Println("ERROR:", err)
+					continue
+				}
 
-			select {
-			case s.statChange <- struct{}{}:
-			default:
+				s.mx.Lock()
+				s.nodeStatus[stat.NodeID] = *stat
+				s.mx.Unlock()
+				select {
+				case s.statChange <- struct{}{}:
+				default:
+				}
 			}
-		}
-	}()
-	return nil
-
+		}()
+		fmt.Println("ERROR:", err)
+		time.Sleep(time.Second)
+	}
 }

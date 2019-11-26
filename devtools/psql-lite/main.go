@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"time"
 
 	"github.com/target/goalert/smoketest/harness"
 )
@@ -13,15 +14,10 @@ func main() {
 	db := flag.String("d", "", "Database URL.")
 	cmd := flag.String("c", "", "Queries to execute.")
 	inTx := flag.Bool("tx", false, "Run in transaction (faster).")
-	t := flag.Duration("t", 0, "Specify a timeout for the query(s) to execute.")
 	flag.Parse()
 
-	ctx := context.Background()
-	if *t > 0 {
-		var cancel func()
-		ctx, cancel = context.WithTimeout(context.Background(), *t)
-		defer cancel()
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 
 	var err error
 	if *inTx {

@@ -8,6 +8,9 @@ type Message interface {
 	ID() string
 	Type() MessageType
 	Destination() Dest
+	SubjectID() int
+	Body() string
+	ExtendedBody() string
 }
 
 // MessageType indicates the type of notification message.
@@ -19,6 +22,4 @@ const (
 	MessageTypeAlertStatus
 	MessageTypeTest
 	MessageTypeVerification
-	MessageTypeAlertBundle
-	MessageTypeAlertStatusBundle
 )

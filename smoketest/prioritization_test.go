@@ -2,10 +2,9 @@ package smoketest
 
 import (
 	"bytes"
+	"github.com/target/goalert/smoketest/harness"
 	"strconv"
 	"testing"
-
-	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestPrioritization tests that notifications for new users/alerts get
@@ -47,7 +46,7 @@ func TestPrioritization(t *testing.T) {
 		insert into alerts (service_id, description)
 		values
 	`)
-	for i := 0; i < 300; i++ {
+	for i := 0; i < 30; i++ {
 		if i > 0 {
 			buf.WriteString(",\n")
 		}
@@ -62,12 +61,9 @@ func TestPrioritization(t *testing.T) {
 	tw := h.Twilio()
 	d1 := tw.Device(h.Phone("1"))
 
+	d1.ExpectSMS("service-1-alert")
+	d1.ExpectSMS("service-1-alert")
 	d1.IgnoreUnexpectedSMS("service-1-alert")
-
-	d1.ExpectSMS("service-1-alert")
-	tw.WaitAndAssert()
-
-	d1.ExpectSMS("service-1-alert")
 	tw.WaitAndAssert()
 
 	h.CreateAlert(h.UUID("s2"), "service-2-alert")

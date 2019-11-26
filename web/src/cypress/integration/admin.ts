@@ -24,10 +24,7 @@ function testAdmin(screen: ScreenFormat) {
         })
         .then(curCfg => {
           cfg = curCfg
-          return cy
-            .visit('/admin')
-            .get('button[data-cy=save]')
-            .should('exist')
+          return cy.visit('/admin')
         })
     })
 
@@ -194,7 +191,7 @@ function testAdmin(screen: ScreenFormat) {
     })
 
     it('should update a boolean toggle field', () => {
-      cy.get('input[name="Twilio.Enable"]').check()
+      cy.get('input[name="Twilio.Enable"]').click()
       cy.get('button[data-cy="save"]').click()
 
       // save dialog

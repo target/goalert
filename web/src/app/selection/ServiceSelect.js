@@ -24,7 +24,7 @@ const valueQuery = gql`
 `
 export const ServiceSelect = makeQuerySelect('ServiceSelect', {
   variables: { favoritesFirst: true },
-  defaultQueryVariables: { favoritesFirst: true },
+  defaultQueryVariables: { favoritesOnly: true },
   query,
   valueQuery,
 })

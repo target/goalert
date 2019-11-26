@@ -3,13 +3,12 @@ package alert
 import (
 	"context"
 	"database/sql"
-	"strconv"
-	"text/template"
-
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
+	"strconv"
+	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -28,7 +27,7 @@ type SearchOptions struct {
 	After SearchCursor `json:"a,omitempty"`
 
 	// Omit specifies a list of alert IDs to exclude from the results.
-	Omit []int `json:"o,omitempty"`
+	Omit []int
 
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
@@ -73,7 +72,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .After.ID }}
 		AND (
 			a.status > :afterStatus::enum_alert_status OR
-			(a.status = :afterStatus::enum_alert_status AND a.id < :afterID)
+			(a.status = :afterStatus::enum_alert_status AND a.id < :afterID
 		)
 	{{ end }}
 	ORDER BY status, id DESC

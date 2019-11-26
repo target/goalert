@@ -216,8 +216,9 @@ export default class AlertDetails extends Component {
           }}
         />
       )
+    } else {
+      return <Typography>&mdash;</Typography>
     }
-    return <Typography>&mdash;</Typography>
   }
 
   renderEscalationPolicySteps() {

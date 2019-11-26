@@ -10,8 +10,8 @@ export default class AlertsIndexPage extends Component {
     return (
       <React.Fragment>
         <PageActions>
-          <AlertsListFilter key='filter' />
           <Search key='search' />
+          <AlertsListFilter key='filter' />
         </PageActions>
         <AlertsList />
       </React.Fragment>

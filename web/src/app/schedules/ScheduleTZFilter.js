@@ -2,6 +2,7 @@ import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import { FormControlLabel, Switch } from '@material-ui/core'
+import { oneOfShape } from '../util/propTypes'
 import { useQuery } from 'react-apollo'
 import { useURLParam } from '../actions/hooks'
 
@@ -48,7 +49,11 @@ export function ScheduleTZFilter(props) {
 ScheduleTZFilter.propTypes = {
   label: p.func,
 
-  scheduleID: p.string.isRequired,
+  // one of scheduleID or scheduleTimeZone must be specified
+  _tz: oneOfShape({
+    scheduleID: p.string,
+    scheduleTimeZone: p.string,
+  }),
 
   // provided by connect
   zone: p.string,

@@ -6,7 +6,7 @@ module.exports = {
   parserOptions: {
     ecmaFeatures: { legacyDecorators: true },
   },
-  plugins: ['cypress', 'prettier', 'jsx-a11y', 'react-hooks'],
+  plugins: ['cypress', 'prettier', 'jsx-a11y'],
   extends: [
     'standard',
     'standard-jsx',
@@ -15,9 +15,7 @@ module.exports = {
     'plugin:jsx-a11y/recommended',
   ],
   rules: {
-    'no-else-return': ['error', { allowElseIf: false }],
     'prettier/prettier': 'error',
-    'react-hooks/rules-of-hooks': 'error',
   },
   env: {
     'cypress/globals': true,

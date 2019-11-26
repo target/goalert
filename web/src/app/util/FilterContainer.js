@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 import {
   Hidden,
   Popover,
@@ -9,7 +8,7 @@ import {
   Grid,
   Button,
 } from '@material-ui/core'
-import { FilterList as FilterIcon } from '@material-ui/icons'
+import { FilterList } from '@material-ui/icons'
 
 const style = theme => {
   return {
@@ -20,9 +19,10 @@ const style = theme => {
     overflow: {
       overflow: 'visible',
     },
+
     container: {
       padding: 8,
-      [theme.breakpoints.up('md')]: { width: '22em' },
+      [theme.breakpoints.up('md')]: { width: '17em' },
       [theme.breakpoints.down('sm')]: { width: '100%' },
     },
     formContainer: {
@@ -35,21 +35,6 @@ const style = theme => {
 export default class FilterContainer extends React.PureComponent {
   state = {
     anchorEl: null,
-  }
-
-  static propTypes = {
-    icon: p.node,
-    // https://material-ui.com/api/icon-button/
-    iconButtonProps: p.object,
-    onReset: p.func,
-    title: p.string,
-
-    anchorRef: p.object,
-  }
-
-  static defaultProps = {
-    icon: <FilterIcon />,
-    title: 'Filter',
   }
 
   renderContent() {
@@ -66,12 +51,9 @@ export default class FilterContainer extends React.PureComponent {
         </Grid>
         <Grid item xs={12} className={this.props.classes.actions}>
           {this.props.onReset && (
-            <Button data-cy='filter-reset' onClick={this.props.onReset}>
-              Reset
-            </Button>
+            <Button onClick={this.props.onReset}>Reset</Button>
           )}
           <Button
-            data-cy='filter-done'
             onClick={() =>
               this.setState({
                 anchorEl: null,
@@ -84,23 +66,21 @@ export default class FilterContainer extends React.PureComponent {
       </Grid>
     )
   }
-
   render() {
-    const { classes, icon, iconButtonProps, anchorRef } = this.props
+    const { classes } = this.props
     return (
       <React.Fragment>
         <IconButton
           color='inherit'
-          onClick={e => {
+          onClick={e =>
             this.setState({
-              anchorEl: anchorRef ? anchorRef.current : e.target,
+              anchorEl: e.target,
             })
-          }}
-          title={this.props.title}
+          }
+          title='filter'
           aria-expanded={Boolean(this.state.anchorEl)}
-          {...iconButtonProps}
         >
-          {icon}
+          <FilterList />
         </IconButton>
         <Hidden smDown>
           <Popover

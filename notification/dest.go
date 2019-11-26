@@ -3,7 +3,6 @@ package notification
 //go:generate go run golang.org/x/tools/cmd/stringer -type DestType
 
 type Dest struct {
-	ID    string
 	Type  DestType
 	Value string
 }

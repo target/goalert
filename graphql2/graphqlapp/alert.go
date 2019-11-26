@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
@@ -140,8 +140,6 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	}
 	conn.Nodes = alerts
 	if len(alerts) > 0 {
-		s.After.ID = conn.Nodes[len(conn.Nodes)-1].ID
-		s.After.Status = conn.Nodes[len(conn.Nodes)-1].Status
 		cur, err := search.Cursor(s)
 		if err != nil {
 			return nil, errors.Wrap(err, "serialize cursor")

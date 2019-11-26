@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/stdlib"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/lock"
 	"github.com/target/goalert/switchover"
@@ -69,14 +69,8 @@ func NewSync(ctx context.Context, oldDB, newDB *sql.DB, newURL string) (*Sync, e
 		return nil, err
 	}
 
-	err = s.listen(s.oldDB)
-	if err != nil {
-		return nil, err
-	}
-	err = s.listen(s.newDB)
-	if err != nil {
-		return nil, err
-	}
+	go s.listen(s.oldDB)
+	go s.listen(s.newDB)
 
 	return s, nil
 }
@@ -197,7 +191,7 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 		return errors.Wrap(err, "get src conn")
 	}
 	defer stdlib.ReleaseConn(s.oldDB, srcConn)
-	defer srcConn.Close(ctx)
+	defer srcConn.Close()
 
 	var gotLock bool
 	if isFinal {
@@ -211,16 +205,16 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 			return errors.New("not enough time remaining for lock")
 		}
 
-		_, err = srcConn.Exec(ctx, `set lock_timeout = `+strconv.FormatInt(lockMs, 10))
+		_, err = srcConn.ExecEx(ctx, `set lock_timeout = `+strconv.FormatInt(lockMs, 10), nil)
 		if err != nil {
 			return errors.Wrap(err, "set lock_timeout")
 		}
-		_, err = srcConn.Exec(ctx, `select pg_advisory_lock($1)`, lock.GlobalSwitchOver)
+		_, err = srcConn.ExecEx(ctx, `select pg_advisory_lock($1)`, nil, lock.GlobalSwitchOver)
 		if err == nil {
 			gotLock = true
 		}
 	} else {
-		err = srcConn.QueryRow(ctx, `select pg_try_advisory_lock_shared($1)`, lock.GlobalSwitchOver).Scan(&gotLock)
+		err = srcConn.QueryRowEx(ctx, `select pg_try_advisory_lock_shared($1)`, nil, lock.GlobalSwitchOver).Scan(&gotLock)
 	}
 	if err != nil {
 		return errors.Wrap(err, "acquire advisory lock")
@@ -229,7 +223,7 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 		return errors.New("failed to get lock")
 	}
 
-	err = srcConn.QueryRow(ctx, `select current_state from switchover_state nowait`).Scan(&stat)
+	err = srcConn.QueryRowEx(ctx, `select current_state from switchover_state nowait`, nil).Scan(&stat)
 	if err != nil {
 		return errors.Wrap(err, "get current state")
 	}
@@ -247,7 +241,7 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 	defer stdlib.ReleaseConn(s.newDB, dstConn)
 
 	start := time.Now()
-	txSrc, err := srcConn.BeginTx(ctx, pgx.TxOptions{
+	txSrc, err := srcConn.BeginEx(ctx, &pgx.TxOptions{
 		IsoLevel:       pgx.Serializable,
 		AccessMode:     pgx.ReadOnly,
 		DeferrableMode: pgx.Deferrable,
@@ -255,10 +249,10 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 	if err != nil {
 		return errors.Wrap(err, "start src transaction")
 	}
-	defer txSrc.Rollback(ctx)
+	defer txSrc.Rollback()
 	fmt.Println("Got src tx after", time.Since(start))
 
-	txDst, err := dstConn.BeginTx(ctx, pgx.TxOptions{
+	txDst, err := dstConn.BeginEx(ctx, &pgx.TxOptions{
 		IsoLevel:       pgx.Serializable,
 		AccessMode:     pgx.ReadWrite,
 		DeferrableMode: pgx.Deferrable,
@@ -266,19 +260,19 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 	if err != nil {
 		return errors.Wrap(err, "start dst transaction")
 	}
-	defer txDst.Rollback(ctx)
+	defer txDst.Rollback()
 
-	_, err = txDst.Exec(ctx, `SET CONSTRAINTS ALL DEFERRED`)
+	_, err = txDst.ExecEx(ctx, `SET CONSTRAINTS ALL DEFERRED`, nil)
 	if err != nil {
 		return errors.Wrap(err, "defer constraints")
 	}
 
 	var srcLastChange, dstLastChange int
-	err = txSrc.QueryRow(ctx, `select coalesce(max(id), 0) from change_log`).Scan(&srcLastChange)
+	err = txSrc.QueryRowEx(ctx, `select coalesce(max(id), 0) from change_log`, nil).Scan(&srcLastChange)
 	if err != nil {
 		return errors.Wrap(err, "check src last change")
 	}
-	err = txDst.QueryRow(ctx, `select coalesce(max(id), 0) from change_log`).Scan(&dstLastChange)
+	err = txDst.QueryRowEx(ctx, `select coalesce(max(id), 0) from change_log`, nil).Scan(&dstLastChange)
 	if err != nil {
 		return errors.Wrap(err, "check dst last change")
 	}
@@ -288,11 +282,15 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 
 	if !isFinal {
 		start = time.Now()
-		batch := &pgx.Batch{}
+		batch := txDst.BeginBatch()
 		for _, t := range s.tables {
-			batch.Queue(`alter table ` + t.SafeName() + ` disable trigger user`)
+			batch.Queue(`alter table `+t.SafeName()+` disable trigger user`, nil, nil, nil)
 		}
-		err = txDst.SendBatch(ctx, batch).Close()
+		err = batch.Send(ctx, nil)
+		if err != nil {
+			return errors.Wrap(err, "disable triggers (send)")
+		}
+		err = batch.Close()
 		if err != nil {
 			return errors.Wrap(err, "disable triggers")
 		}
@@ -300,11 +298,7 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 	}
 
 	if dstLastChange == 0 {
-		// Need raw conn for CopyFrom and CopyTo to work.
-		//
-		// Transaction is at the connection level so
-		// it will still work properly.
-		err = s.initialSync(ctx, srcConn, dstConn)
+		err = s.initialSync(ctx, txSrc, txDst)
 	} else if srcLastChange > dstLastChange {
 		err = s.diffSync(ctx, txSrc, txDst, dstLastChange)
 	}
@@ -319,30 +313,34 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 	}
 	fmt.Println("Updated sequences in", time.Since(start))
 
-	err = txSrc.Commit(ctx)
+	err = txSrc.Commit()
 	if err != nil {
 		return errors.Wrap(err, "commit src")
 	}
 
-	err = txDst.Commit(ctx)
+	err = txDst.Commit()
 	if err != nil {
 		return errors.Wrap(err, "commit dst")
 	}
 
 	if isFinal {
 		start = time.Now()
-		batch := &pgx.Batch{}
+		batch := dstConn.BeginBatch()
 		for _, t := range s.tables {
-			batch.Queue(`alter table ` + t.SafeName() + ` enable trigger user`)
+			batch.Queue(`alter table `+t.SafeName()+` enable trigger user`, nil, nil, nil)
 		}
-		err = dstConn.SendBatch(ctx, batch).Close()
+		err = batch.Send(ctx, nil)
+		if err != nil {
+			return errors.Wrap(err, "enable triggers (send)")
+		}
+		err = batch.Close()
 		if err != nil {
 			return errors.Wrap(err, "enable triggers")
 		}
 		fmt.Println("Re-enabled triggers in", time.Since(start))
 
 		if enableSwitchOver {
-			_, err = srcConn.Exec(ctx, `update switchover_state set current_state = 'use_next_db'`)
+			_, err = srcConn.ExecEx(ctx, `update switchover_state set current_state = 'use_next_db'`, nil)
 			if err != nil {
 				return errors.Wrap(err, "update state table")
 			}

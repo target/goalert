@@ -1,9 +1,9 @@
 package smoketest
 
 import (
-	"testing"
-
 	"github.com/target/goalert/smoketest/harness"
+	"testing"
+	"time"
 )
 
 // TestTwilioVoiceStop checks that a voice call STOP is processed.
@@ -58,5 +58,8 @@ func TestTwilioVoiceStop(t *testing.T) {
 	// Should unenroll completely (no voice or SMS)
 	h.Twilio().WaitAndAssert()
 
+	h.FastForward(time.Minute)
+
+	h.Delay(time.Second * 15)
 	// no more messages, it should have disabled both
 }

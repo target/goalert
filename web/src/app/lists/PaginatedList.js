@@ -64,49 +64,43 @@ class PaginationControls extends React.PureComponent {
     const { classes, isLoading, onBack, onNext } = this.props
 
     return (
-      <Grid
-        item // item within main render grid
-        xs={12}
-        container // container for control items
-        spacing={1}
-        justify='flex-end'
-        alignItems='center'
-        className={classes.controls}
-      >
-        <Grid item>
-          <IconButton
-            title='back page'
-            data-cy='back-button'
-            disabled={!onBack}
-            onClick={() => {
-              onBack()
-              window.scrollTo(0, 0)
-            }}
-          >
-            <LeftIcon />
-          </IconButton>
+      <React.Fragment>
+        <Grid container justify='flex-end' className={classes.controls}>
+          <Grid item>
+            <IconButton
+              title='back page'
+              data-cy='back-button'
+              disabled={!onBack}
+              onClick={() => {
+                onBack()
+                window.scrollTo(0, 0)
+              }}
+            >
+              <LeftIcon />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <IconButton
+              title='next page'
+              data-cy='next-button'
+              disabled={!onNext}
+              onClick={() => {
+                onNext()
+                window.scrollTo(0, 0)
+              }}
+            >
+              {isLoading && !onNext && (
+                <CircularProgress
+                  color='secondary'
+                  size={24}
+                  className={classes.progress}
+                />
+              )}
+              <RightIcon />
+            </IconButton>
+          </Grid>
         </Grid>
-        <Grid item>
-          <IconButton
-            title='next page'
-            data-cy='next-button'
-            disabled={!onNext}
-            onClick={() => {
-              onNext()
-              window.scrollTo(0, 0)
-            }}
-          >
-            {isLoading && !onNext && (
-              <CircularProgress
-                color='secondary'
-                size={24}
-                className={classes.progress}
-              />
-            )}
-            <RightIcon />
-          </IconButton>
-        </Grid>
-      </Grid>
+      </React.Fragment>
     )
   }
 }
@@ -228,6 +222,23 @@ export class PaginatedList extends React.PureComponent {
       this.props.loadMore(ITEMS_PER_PAGE * 2)
   }
 
+  renderPaginationControls() {
+    let onBack = null
+    let onNext = null
+
+    if (this.state.page > 0)
+      onBack = () => this.setState({ page: this.state.page - 1 })
+    if (this.hasNextPage()) onNext = this.onNextPage
+
+    return (
+      <PaginationControls
+        onBack={onBack}
+        onNext={onNext}
+        isLoading={this.isLoading()}
+      />
+    )
+  }
+
   renderNoResults() {
     return (
       <ListItem>
@@ -300,17 +311,9 @@ export class PaginatedList extends React.PureComponent {
   }
 
   render() {
-    const { classes, headerNote } = this.props
-
-    let onBack = null
-    let onNext = null
-
-    if (this.state.page > 0)
-      onBack = () => this.setState({ page: this.state.page - 1 })
-    if (this.hasNextPage()) onNext = this.onNextPage
-
+    const { headerNote, classes } = this.props
     return (
-      <Grid container spacing={2}>
+      <React.Fragment>
         <Grid item xs={12}>
           <Card>
             <List data-cy='apollo-list'>
@@ -331,12 +334,8 @@ export class PaginatedList extends React.PureComponent {
             </List>
           </Card>
         </Grid>
-        <PaginationControls
-          onBack={onBack}
-          onNext={onNext}
-          isLoading={this.isLoading()}
-        />
-      </Grid>
+        {this.renderPaginationControls()}
+      </React.Fragment>
     )
   }
 }

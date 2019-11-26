@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/pgtype"
 	"github.com/pkg/errors"
 	"github.com/rubenv/sql-migrate/sqlparse"
 	"github.com/target/goalert/lock"
-	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -60,23 +60,19 @@ func ApplyAll(ctx context.Context, url string) (int, error) {
 }
 
 func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
-	var conn *pgx.Conn
-	err := retry.DoTemporaryError(func(int) error {
-		var err error
-		conn, err = pgx.Connect(ctx, url)
-		return err
-	},
-		retry.Log(ctx),
-		retry.Limit(12),
-		retry.FibBackoff(time.Millisecond*100),
-	)
+	cfg, err := pgx.ParseConnectionString(url)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = conn.Exec(ctx, `set lock_timeout = 15000`)
+	conn, err := pgx.Connect(cfg)
 	if err != nil {
-		conn.Close(ctx)
+		return nil, err
+	}
+
+	_, err = conn.ExecEx(ctx, `set lock_timeout = 15000`, nil)
+	if err != nil {
+		conn.Close()
 		return nil, errors.Wrap(err, "set lock timeout")
 	}
 
@@ -85,7 +81,7 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 }
 func aquireLock(ctx context.Context, conn *pgx.Conn) error {
 	for {
-		_, err := conn.Exec(ctx, `select pg_advisory_lock($1)`, lock.GlobalMigrate)
+		_, err := conn.ExecEx(ctx, `select pg_advisory_lock($1)`, nil, lock.GlobalMigrate)
 		if err == nil {
 			return nil
 		}
@@ -95,14 +91,14 @@ func aquireLock(ctx context.Context, conn *pgx.Conn) error {
 		// If the lock gets a timeout, terminate stale backends and try again.
 		if e := sqlutil.MapError(err); e != nil && e.Code == "55P03" {
 			log.Log(ctx, errors.Wrap(err, "get migration lock (will retry)"))
-			_, err = conn.Exec(ctx, `
+			_, err = conn.ExecEx(ctx, `
 				select pg_terminate_backend(l.pid)
 				from pg_locks l
 				join pg_stat_activity act on act.pid = l.pid and state = 'idle' and state_change < now() - '30 seconds'::interval
 				where locktype = 'advisory' and objid = $1 and granted
-			`, lock.GlobalMigrate)
+			`, nil, lock.GlobalMigrate)
 			if err != nil {
-				conn.Close(ctx)
+				conn.Close()
 				return errors.Wrap(err, "terminate stale backends")
 			}
 			continue
@@ -123,12 +119,12 @@ func ensureTableQuery(ctx context.Context, conn *pgx.Conn, fn func() error) erro
 		return err
 	}
 
-	_, err = conn.Exec(ctx, `
+	_, err = conn.ExecEx(ctx, `
 		CREATE TABLE IF NOT EXISTS gorp_migrations (
 			id text PRIMARY KEY,
 			applied_at timestamp with time zone
 		)
-	`)
+	`, nil)
 	if err != nil {
 		return err
 	}
@@ -150,11 +146,13 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer conn.Close(ctx)
+	defer conn.Close()
 
 	var hasLatest bool
 	err = ensureTableQuery(ctx, conn, func() error {
-		return conn.QueryRow(ctx, `select true from gorp_migrations where id = $1`, targetID).Scan(&hasLatest)
+		return conn.QueryRowEx(ctx, `select true from gorp_migrations where id = $1`, &pgx.QueryExOptions{
+			ParameterOIDs: []pgtype.OID{0},
+		}, targetID).Scan(&hasLatest)
 	})
 	if err == nil && hasLatest {
 		return 0, nil
@@ -172,7 +170,7 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 		return 0, err
 	}
 
-	rows, err := conn.Query(ctx, `select id from gorp_migrations order by id`)
+	rows, err := conn.QueryEx(ctx, `select id from gorp_migrations order by id`, nil)
 	if err != nil && err != pgx.ErrNoRows {
 		return 0, err
 	}
@@ -207,11 +205,11 @@ func Down(ctx context.Context, url, targetName string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer conn.Close(ctx)
+	defer conn.Close()
 
 	var latest string
 	err = ensureTableQuery(ctx, conn, func() error {
-		return conn.QueryRow(ctx, `select id from gorp_migrations order by id desc limit 1`).Scan(&latest)
+		return conn.QueryRowEx(ctx, `select id from gorp_migrations order by id desc limit 1`, nil).Scan(&latest)
 	})
 	if err != nil {
 		return 0, err
@@ -234,7 +232,7 @@ func Down(ctx context.Context, url, targetName string) (int, error) {
 		return 0, err
 	}
 
-	rows, err := conn.Query(ctx, `select id from gorp_migrations where id > $1 order by id desc`, targetID)
+	rows, err := conn.QueryEx(ctx, `select id from gorp_migrations where id > $1 order by id desc`, nil, targetID)
 	if err != nil {
 		return 0, err
 	}
@@ -320,13 +318,13 @@ func (step migrationStep) doneStmt() string {
 }
 func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	for i, stmt := range step.statements {
-		_, err := c.Exec(ctx, stmt)
-		if err != nil {
-			return errors.Wrapf(err, "statement #%d", i+1)
+		_, err := c.ExecEx(ctx, stmt, nil)
+		if err != nil && err != pgx.ErrNoRows {
+			return errors.Wrapf(err, "statement #%d", i)
 		}
 	}
 
-	_, err := c.Exec(ctx, step.doneStmt(), step.ID)
+	_, err := c.ExecEx(ctx, step.doneStmt(), &pgx.QueryExOptions{ParameterOIDs: []pgtype.OID{pgtype.TextOID}}, step.ID)
 	if err != nil {
 		return errors.Wrap(err, "update gorp_migrations")
 	}
@@ -334,25 +332,35 @@ func (step migrationStep) applyNoTx(ctx context.Context, c *pgx.Conn) error {
 	return nil
 }
 
-func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) error {
+func (step migrationStep) apply(ctx context.Context, c *pgx.Conn) (err error) {
 	if step.disableTx {
 		return step.applyNoTx(ctx, c)
 	}
 
-	tx, err := c.Begin(ctx)
+	tx, err := c.BeginEx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "begin tx")
 	}
-	defer tx.Rollback(ctx)
+	defer tx.Rollback()
 
-	// tx applies to the connection, so NoTx
-	// will execute correctly.
-	err = step.applyNoTx(ctx, c)
+	b := tx.BeginBatch()
+	defer b.Close()
+
+	for _, stmt := range step.statements {
+		b.Queue(stmt, nil, nil, nil)
+	}
+	b.Queue(step.doneStmt(), []interface{}{step.ID}, []pgtype.OID{pgtype.TextOID}, nil)
+
+	err = b.Send(ctx, nil)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "send statements")
+	}
+	err = b.Close()
+	if err != nil && err != pgx.ErrNoRows {
+		return errors.Wrap(err, "execute migration steps")
 	}
 
-	return errors.Wrap(tx.Commit(ctx), "commit")
+	return tx.CommitEx(ctx)
 }
 
 func performMigrations(ctx context.Context, c *pgx.Conn, applyUp bool, migrations []migration) (int, error) {

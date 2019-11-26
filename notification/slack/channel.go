@@ -274,14 +274,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
 	vals.Set("channel", msg.Destination().Value)
-	switch t := msg.(type) {
-	case notification.Alert:
-		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
-	case notification.AlertBundle:
-		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
-	default:
-		return nil, errors.Errorf("unsupported message type: %T", t)
-	}
+	vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", msg.Body(), cfg.CallbackURL("/alerts/"+strconv.Itoa(msg.SubjectID()))))
 	vals.Set("token", cfg.Slack.AccessToken)
 
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)

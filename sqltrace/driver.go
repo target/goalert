@@ -3,7 +3,7 @@ package sqltrace
 import (
 	"database/sql/driver"
 
-	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/stdlib"
 )
 
 type _Driver struct {

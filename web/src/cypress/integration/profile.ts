@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+
 import { testScreen } from '../support'
 const c = new Chance()
 
@@ -7,7 +8,6 @@ testScreen('Profile', testProfile)
 function testProfile(screen: ScreenFormat) {
   let nr: NotificationRule
   let cm: ContactMethod
-
   beforeEach(() =>
     cy
       .resetProfile()
@@ -18,7 +18,6 @@ function testProfile(screen: ScreenFormat) {
         return cy.visit('/profile')
       }),
   )
-
   it('should allow configuring status updates', () => {
     cy.get('input[name=alert-status-contact-method]').selectByLabel(cm.name)
     cy.get('input[name=alert-status-contact-method]').should(
@@ -31,7 +30,6 @@ function testProfile(screen: ScreenFormat) {
       cm.id,
     )
   })
-
   describe('Contact Methods', () => {
     it('should allow creating', () => {
       const value = '763' + c.integer({ min: 3000000, max: 3999999 })
@@ -66,7 +64,6 @@ function testProfile(screen: ScreenFormat) {
 
       cy.get('body').should('contain', `${name} (${type})`)
     })
-
     it('should allow editing', () => {
       const name = 'SM CM ' + c.word({ length: 8 })
       cy.get('ul[data-cy=contact-methods]')
@@ -84,7 +81,6 @@ function testProfile(screen: ScreenFormat) {
         `${name} (${cm.type})`,
       )
     })
-
     it('should allow deleting', () => {
       cy.get('ul[data-cy=contact-methods]')
         .contains('li', cm.name)
@@ -97,21 +93,16 @@ function testProfile(screen: ScreenFormat) {
       cy.get('body').should('contain', 'No contact methods')
       cy.get('body').should('contain', 'No notification rules')
     })
-
     it('should display notification disclaimer when enabled', () => {
-      const disclaimer = c.sentence()
+      const sentence = c.sentence()
       cy.updateConfig({
         General: {
-          NotificationDisclaimer: disclaimer,
+          NotificationDisclaimer: sentence,
         },
       })
       cy.reload()
 
-      cy.pageFab('Add Contact Method')
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog')
-        .find('span')
-        .should('contain', disclaimer)
+      cy.get('body').should('contain', sentence)
 
       cy.updateConfig({
         General: {
@@ -119,14 +110,8 @@ function testProfile(screen: ScreenFormat) {
         },
       })
       cy.reload()
-
-      cy.pageFab('Add Contact Method')
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog')
-        .find('span')
-        .should('not.contain', disclaimer)
+      cy.get('body').should('not.contain', sentence)
     })
-
     countryCodeCheck('India', '+91', '1234567890', '+91 1234 567 890')
     countryCodeCheck('UK', '+44', '7911123456', '+44 7911 123456')
 
@@ -172,7 +157,6 @@ function testProfile(screen: ScreenFormat) {
         .click()
     })
   })
-
   describe('Notification Rules', () => {
     it('should allow creating an immediate rule', () => {
       // delete existing notification rule
@@ -198,7 +182,6 @@ function testProfile(screen: ScreenFormat) {
         `Immediately notify me via ${cm.type}`,
       )
     })
-
     it('should allow creating a delayed rule', () => {
       cy.get('ul[data-cy=notification-rules]')
         .contains('li', cm.name)
@@ -222,7 +205,6 @@ function testProfile(screen: ScreenFormat) {
         `After ${delay} minutes notify me via ${cm.type}`,
       )
     })
-
     it('should allow deleting', () => {
       cy.get('ul[data-cy=notification-rules]')
         .contains('li', cm.name)

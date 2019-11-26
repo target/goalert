@@ -1,9 +1,9 @@
 package smoketest
 
 import (
-	"testing"
-
 	"github.com/target/goalert/smoketest/harness"
+	"testing"
+	"time"
 )
 
 // TestTwilioVoiceAck checks that a voice call ack is processed.
@@ -51,5 +51,8 @@ func TestTwilioVoiceAck(t *testing.T) {
 	d1.ExpectVoice("testing").ThenPress("4").ThenExpect("acknowledged")
 	tw.WaitAndAssert()
 
+	h.FastForward(time.Minute)
+
+	h.Delay(time.Second * 15)
 	// no more messages
 }

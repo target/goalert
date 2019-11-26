@@ -100,14 +100,10 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 
 	s.mx.Lock()
 	s.calls[vc.call.SID] = &vc
-	data, err := json.Marshal(vc.call)
-	if err != nil {
-		panic(err)
-	}
 	s.mx.Unlock()
 
 	w.WriteHeader(201)
-	_, err = w.Write(data)
+	err = json.NewEncoder(w).Encode(vc.call)
 	if err != nil {
 		panic(err)
 	}
