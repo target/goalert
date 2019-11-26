@@ -58,13 +58,12 @@ func TestPostCycleRules(t *testing.T) {
 
 	// ADD RULES
 	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 0)
-	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 1)
+	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 30)
 
-	h.Delay(15 * time.Second)
 	// ensure no notification for instant rule
 	tw.WaitAndAssert()
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 
 	d1.ExpectSMS("testing")
 	tw.WaitAndAssert()

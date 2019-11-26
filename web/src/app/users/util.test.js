@@ -36,4 +36,32 @@ test('formatNotificationRule', () => {
       formattedValue: '+44 7700 000000',
     }),
   ).toBe('After 5 minutes notify me via VOICE at +44 7700 000000 (myPhone)')
+  expect(
+    formatNotificationRule(3, {
+      type: 'VOICE',
+      name: 'myPhone',
+      formattedValue: '+49 89 63648018',
+    }),
+  ).toBe('After 3 minutes notify me via VOICE at +49 89 63648018 (myPhone)')
+  expect(
+    formatNotificationRule(5, {
+      type: 'VOICE',
+      name: 'myPhone',
+      formattedValue: '+852 6835 5559',
+    }),
+  ).toBe('After 5 minutes notify me via VOICE at +852 6835 5559 (myPhone)')
+  expect(
+    formatNotificationRule(5, {
+      type: 'VOICE',
+      name: 'myPhone',
+      formattedValue: '+86 185 5519 6185',
+    }),
+  ).toBe('After 5 minutes notify me via VOICE at +86 185 5519 6185 (myPhone)')
+  expect(
+    formatNotificationRule(5, {
+      type: 'VOICE',
+      name: 'myPhone',
+      formattedValue: '+502 2375 3964',
+    }),
+  ).toBe('After 5 minutes notify me via VOICE at +502 2375 3964 (myPhone)')
 })

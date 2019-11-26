@@ -23,7 +23,7 @@ func TestEscalationNotification(t *testing.T) {
 	values
 		({{uuid "uid"}}, {{uuid "c1"}}, 0),
 		({{uuid "uid"}}, {{uuid "c2"}}, 0),
-		({{uuid "uid"}}, {{uuid "c1"}}, 1);
+		({{uuid "uid"}}, {{uuid "c1"}}, 30);
 
 	insert into escalation_policies (id, name, repeat) 
 	values 
@@ -61,7 +61,7 @@ func TestEscalationNotification(t *testing.T) {
 	d2.ExpectVoice("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(2 * time.Minute) // ensure both rules have elapsed
+	h.FastForward(30 * time.Minute) // ensure both rules have elapsed
 
 	// 1 sms from the first step, 1 from the escalated one
 	d1.ExpectSMS("testing")
@@ -73,6 +73,6 @@ func TestEscalationNotification(t *testing.T) {
 	d2.ExpectVoice("testing")
 	tw.WaitAndAssert()
 
-	h.FastForward(2 * time.Minute)
+	h.FastForward(30 * time.Minute)
 	d1.ExpectSMS("testing")
 }

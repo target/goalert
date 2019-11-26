@@ -18,21 +18,28 @@ import (
 const maxGSMLen = 160
 
 type alertSMS struct {
-	ID   int
-	Body string
-	Link string
-	Code int
+	ID    int
+	Count int
+	Body  string
+	Link  string
+	Code  int
 }
 
-var smsTmpl = template.Must(template.New("alertSMS").Parse(
-	`Alert #{{.ID}}: {{.Body}}
+var smsTmpl = template.Must(template.New("alertSMS").Parse(`
+{{- if .ID}}Alert #{{.ID}}: {{.Body}}
+{{- else if .Count}}Svc '{{.Body}}': {{.Count}} unacked alert{{if gt .Count 1}}s{{end}}
+{{- end}}
 {{- if .Link }}
 
 {{.Link}}
 {{- end}}
+{{- if and .Count .ID }}
+
+{{.Count}} other alert{{if gt .Count 1}}s have{{else}} has{{end}} been updated.
+{{- end}}
 {{- if .Code}}
 
-Reply '{{.Code}}a' to ack, '{{.Code}}c' to close.
+Reply '{{.Code}}a{{if .Count}}a{{end}}' to ack{{if .Count}} all{{end}}, '{{.Code}}c{{if .Count}}c{{end}}' to close{{if .Count}} all{{end}}.
 {{- end}}`,
 ))
 

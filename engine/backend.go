@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
 
@@ -28,6 +29,7 @@ func newBackend(db *sql.DB) (*backend, error) {
 			SELECT
 				id,
 				alert_id,
+				service_id,
 				contact_method_id
 			FROM outgoing_messages
 			WHERE id = $1
@@ -40,10 +42,15 @@ func (b *backend) FindOne(ctx context.Context, id string) (*callback, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var c callback
-	err = b.findOne.QueryRowContext(ctx, id).Scan(c.fields()...)
+	var alertID sql.NullInt64
+	var serviceID sql.NullString
+	err = b.findOne.QueryRowContext(ctx, id).Scan(&c.ID, &alertID, &serviceID, &c.ContactMethodID)
 	if err != nil {
 		return nil, err
 	}
+	c.AlertID = int(alertID.Int64)
+	c.ServiceID = serviceID.String
 	return &c, nil
 }

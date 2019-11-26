@@ -236,6 +236,8 @@ type ComplexityRoot struct {
 		EscalationPolicy        func(childComplexity int, id string) int
 		HeartbeatMonitor        func(childComplexity int, id string) int
 		IntegrationKey          func(childComplexity int, id string) int
+		LabelKeys               func(childComplexity int, input *LabelKeySearchOptions) int
+		LabelValues             func(childComplexity int, input *LabelValueSearchOptions) int
 		Labels                  func(childComplexity int, input *LabelSearchOptions) int
 		Rotation                func(childComplexity int, id string) int
 		Rotations               func(childComplexity int, input *RotationSearchOptions) int
@@ -335,6 +337,11 @@ type ComplexityRoot struct {
 	}
 
 	SlackChannelConnection struct {
+		Nodes    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	StringConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
@@ -490,6 +497,8 @@ type QueryResolver interface {
 	AuthSubjectsForProvider(ctx context.Context, first *int, after *string, providerID string) (*AuthSubjectConnection, error)
 	TimeZones(ctx context.Context, input *TimeZoneSearchOptions) (*TimeZoneConnection, error)
 	Labels(ctx context.Context, input *LabelSearchOptions) (*LabelConnection, error)
+	LabelKeys(ctx context.Context, input *LabelKeySearchOptions) (*StringConnection, error)
+	LabelValues(ctx context.Context, input *LabelValueSearchOptions) (*StringConnection, error)
 	UserOverrides(ctx context.Context, input *UserOverrideSearchOptions) (*UserOverrideConnection, error)
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
@@ -1513,6 +1522,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.IntegrationKey(childComplexity, args["id"].(string)), true
 
+	case "Query.LabelKeys":
+		if e.complexity.Query.LabelKeys == nil {
+			break
+		}
+
+		args, err := ec.field_Query_labelKeys_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LabelKeys(childComplexity, args["input"].(*LabelKeySearchOptions)), true
+
+	case "Query.LabelValues":
+		if e.complexity.Query.LabelValues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_labelValues_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LabelValues(childComplexity, args["input"].(*LabelValueSearchOptions)), true
+
 	case "Query.Labels":
 		if e.complexity.Query.Labels == nil {
 			break
@@ -2079,6 +2112,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SlackChannelConnection.PageInfo(childComplexity), true
 
+	case "StringConnection.Nodes":
+		if e.complexity.StringConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.StringConnection.Nodes(childComplexity), true
+
+	case "StringConnection.PageInfo":
+		if e.complexity.StringConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.StringConnection.PageInfo(childComplexity), true
+
 	case "Target.ID":
 		if e.complexity.Target.ID == nil {
 			break
@@ -2479,6 +2526,12 @@ var parsedSchema = gqlparser.MustLoadSchema(
   # Allows searching for assigned labels.
   labels(input: LabelSearchOptions): LabelConnection!
 
+  # Allows searching for label keys.
+  labelKeys(input: LabelKeySearchOptions): StringConnection!
+
+  # Allows searching for label values.
+  labelValues(input: LabelValueSearchOptions): StringConnection!
+
   # Allows searching for user overrides.
   userOverrides(input: UserOverrideSearchOptions): UserOverrideConnection!
 
@@ -2569,8 +2622,28 @@ input LabelSearchOptions {
   omit: [ID!]
 }
 
+input LabelKeySearchOptions {
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
+input LabelValueSearchOptions {
+  key: String!
+  first: Int = 15
+  after: String = ""
+  search: String = ""
+  omit: [String!]
+}
+
 type LabelConnection {
   nodes: [Label!]!
+  pageInfo: PageInfo!
+}
+
+type StringConnection {
+  nodes: [String!]!
   pageInfo: PageInfo!
 }
 
@@ -3874,6 +3947,34 @@ func (ec *executionContext) field_Query_integrationKey_args(ctx context.Context,
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_labelKeys_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *LabelKeySearchOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOLabelKeySearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelKeySearchOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_labelValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *LabelValueSearchOptions
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -7567,6 +7668,74 @@ func (ec *executionContext) _Query_labels(ctx context.Context, field graphql.Col
 	return ec.marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_labelKeys(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_labelKeys_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LabelKeys(rctx, args["input"].(*LabelKeySearchOptions))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*StringConnection)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNStringConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStringConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_labelValues(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_labelValues_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LabelValues(rctx, args["input"].(*LabelValueSearchOptions))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*StringConnection)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNStringConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStringConnection(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_userOverrides(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -9241,6 +9410,60 @@ func (ec *executionContext) _SlackChannelConnection_pageInfo(ctx context.Context
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
 		Object:   "SlackChannelConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(PageInfo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPageInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StringConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *StringConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "StringConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StringConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *StringConnection) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "StringConnection",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -11706,6 +11929,46 @@ func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLabelKeySearchOptions(ctx context.Context, v interface{}) (LabelKeySearchOptions, error) {
+	var it LabelKeySearchOptions
+	var asMap = v.(map[string]interface{})
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 15
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "first":
+			var err error
+			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "after":
+			var err error
+			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "search":
+			var err error
+			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "omit":
+			var err error
+			it.Omit, err = ec.unmarshalOString2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context, v interface{}) (LabelSearchOptions, error) {
 	var it LabelSearchOptions
 	var asMap = v.(map[string]interface{})
@@ -11743,6 +12006,52 @@ func (ec *executionContext) unmarshalInputLabelSearchOptions(ctx context.Context
 		case "omit":
 			var err error
 			it.Omit, err = ec.unmarshalOID2ᚕstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Context, v interface{}) (LabelValueSearchOptions, error) {
+	var it LabelValueSearchOptions
+	var asMap = v.(map[string]interface{})
+
+	if _, present := asMap["first"]; !present {
+		asMap["first"] = 15
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "key":
+			var err error
+			it.Key, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "first":
+			var err error
+			it.First, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "after":
+			var err error
+			it.After, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "search":
+			var err error
+			it.Search, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "omit":
+			var err error
+			it.Omit, err = ec.unmarshalOString2ᚕstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13891,6 +14200,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "labelKeys":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_labelKeys(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
+		case "labelValues":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_labelValues(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "userOverrides":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -14648,6 +14985,38 @@ func (ec *executionContext) _SlackChannelConnection(ctx context.Context, sel ast
 			}
 		case "pageInfo":
 			out.Values[i] = ec._SlackChannelConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var stringConnectionImplementors = []string{"StringConnection"}
+
+func (ec *executionContext) _StringConnection(ctx context.Context, sel ast.SelectionSet, obj *StringConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, stringConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StringConnection")
+		case "nodes":
+			out.Values[i] = ec._StringConnection_nodes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "pageInfo":
+			out.Values[i] = ec._StringConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -16542,6 +16911,49 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return graphql.MarshalString(v)
 }
 
+func (ec *executionContext) unmarshalNString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNStringConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStringConnection(ctx context.Context, sel ast.SelectionSet, v StringConnection) graphql.Marshaler {
+	return ec._StringConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStringConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐStringConnection(ctx context.Context, sel ast.SelectionSet, v *StringConnection) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._StringConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNTarget2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx context.Context, sel ast.SelectionSet, v assignment.RawTarget) graphql.Marshaler {
 	return ec._Target(ctx, sel, &v)
 }
@@ -17672,6 +18084,18 @@ func (ec *executionContext) marshalOIntegrationKey2ᚖgithubᚗcomᚋtargetᚋgo
 	return ec._IntegrationKey(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOLabelKeySearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelKeySearchOptions(ctx context.Context, v interface{}) (LabelKeySearchOptions, error) {
+	return ec.unmarshalInputLabelKeySearchOptions(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOLabelKeySearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelKeySearchOptions(ctx context.Context, v interface{}) (*LabelKeySearchOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOLabelKeySearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelKeySearchOptions(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalOLabelSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelSearchOptions(ctx context.Context, v interface{}) (LabelSearchOptions, error) {
 	return ec.unmarshalInputLabelSearchOptions(ctx, v)
 }
@@ -17681,6 +18105,18 @@ func (ec *executionContext) unmarshalOLabelSearchOptions2ᚖgithubᚗcomᚋtarge
 		return nil, nil
 	}
 	res, err := ec.unmarshalOLabelSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelSearchOptions(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOLabelValueSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx context.Context, v interface{}) (LabelValueSearchOptions, error) {
+	return ec.unmarshalInputLabelValueSearchOptions(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx context.Context, v interface{}) (*LabelValueSearchOptions, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOLabelValueSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx, v)
 	return &res, err
 }
 

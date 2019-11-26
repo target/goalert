@@ -47,7 +47,7 @@
     "name": "Target",
     "url": "https://github.com/target/goalert/blob/master/CONTRIBUTORS"
   },
-  "license": "",
+  "license": "Apache-2.0",
   "standard": {
     "parser": "babel-eslint",
     "env": [
@@ -99,7 +99,7 @@
     "react-markdown": "4.2.2",
     "react-redux": "7.1.1",
     "react-router-dom": "5.0.1",
-    "react-select": "3.0.4",
+    "react-select": "3.0.7",
     "redux-thunk": "2.3.0",
     "reselect": "4.0.0"
   },
@@ -137,6 +137,7 @@
     "eslint-plugin-prettier": "3.1.0",
     "eslint-plugin-promise": "4.1.1",
     "eslint-plugin-react": "7.13.0",
+    "eslint-plugin-react-hooks": "^2.2.0",
     "eslint-plugin-standard": "4.0.1",
     "file-loader": "4.2.0",
     "html-webpack-plugin": "3.2.0",

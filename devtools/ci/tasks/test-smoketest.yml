@@ -1,6 +1,4 @@
 platform: linux
-params:
-  DB_URL: ""
 caches:
   - path: ../../../go/pkg
   - path: ../../../root/.cache

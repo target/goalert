@@ -32,7 +32,7 @@ values
 
 insert into escalation_policy_steps (id, escalation_policy_id, delay)
 values
-	({{uuid "es1"}}, {{uuid "eid"}}, 1),
+	({{uuid "es1"}}, {{uuid "eid"}}, 30),
 	({{uuid "es2"}}, {{uuid "eid"}}, 60);
 	
 insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
@@ -56,6 +56,6 @@ values
 	d.ExpectSMS("testing")
 	h.Twilio().WaitAndAssert()
 
-	h.FastForward(time.Minute)
+	h.FastForward(30 * time.Minute)
 	h.Twilio().Device(h.Phone("2")).ExpectSMS("testing")
 }

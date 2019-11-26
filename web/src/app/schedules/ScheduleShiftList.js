@@ -50,12 +50,12 @@ const query = gql`
 const durString = dur => {
   if (dur.months) {
     return `${dur.months} month${dur.months > 1 ? 's' : ''}`
-  } else if (dur.days % 7 === 0) {
+  }
+  if (dur.days % 7 === 0) {
     const weeks = dur.days / 7
     return `${weeks} week${weeks > 1 ? 's' : ''}`
-  } else {
-    return `${dur.days} day${dur.days > 1 ? 's' : ''}`
   }
+  return `${dur.days} day${dur.days > 1 ? 's' : ''}`
 }
 
 const mapQueryToProps = ({ data }) => {

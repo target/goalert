@@ -23,7 +23,7 @@ func TestHeartbeat(t *testing.T) {
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes)
 	values
 		({{uuid "user"}}, {{uuid "cm1"}}, 0),
-		({{uuid "user"}}, {{uuid "cm1"}}, 1);
+		({{uuid "user"}}, {{uuid "cm1"}}, 15);
 
 	insert into escalation_policies (id, name)
 	values
@@ -47,7 +47,7 @@ func TestHeartbeat(t *testing.T) {
 
 	insert into heartbeat_monitors (id, name, service_id, heartbeat_interval)
 	values
-		({{uuid "hb_key"}}, 'test', {{uuid "sid"}}, '5 minutes');
+		({{uuid "hb_key"}}, 'test', {{uuid "sid"}}, '60 minutes');
 `
 	h := harness.NewHarness(t, sql, "heartbeat-auth-log-data")
 	defer h.Close()
@@ -65,11 +65,13 @@ func TestHeartbeat(t *testing.T) {
 	}
 
 	heartbeat()
-	h.FastForward(5 * time.Minute) // expire heartbeat
+	h.FastForward(60 * time.Minute) // expire heartbeat
 	h.Twilio().Device(h.Phone("1")).ExpectSMS("heartbeat")
 	h.Twilio().WaitAndAssert()
+
 	heartbeat()
-	h.FastForward(time.Minute)
-	h.Delay(15 * time.Second)
-	// no more SMS
+	h.Trigger() // cycle engine (to close/process heartbeat) before fast-forwarding
+
+	h.FastForward(15 * time.Minute) // next notification rule
+	// no SMS, healthy
 }
