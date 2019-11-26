@@ -27,7 +27,7 @@ const mapStateToProps = state => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
   const start = urlParamSelector(state)(
-    'calendarStart',
+    'start',
     weekly
       ? moment()
           .startOf('week')
@@ -53,16 +53,10 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     setWeekly: value => dispatch(setURLParam('weekly', value)),
-    setStart: value => dispatch(setURLParam('calendarStart', value)),
+    setStart: value => dispatch(setURLParam('start', value)),
     resetFilter: () =>
       dispatch(
-        resetURLParams(
-          'userFilter',
-          'calendarStart',
-          'activeOnly',
-          'tz',
-          'weekly',
-        ),
+        resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'weekly'),
       ),
   }
 }

@@ -79,7 +79,7 @@ const mapStateToProps = state => {
   const duration = urlParamSelector(state)('duration', 'P14D')
   const zone = urlParamSelector(state)('tz', 'local')
   let start = urlParamSelector(state)(
-    'scheduleStart',
+    'start',
     DateTime.fromObject({ zone })
       .startOf('day')
       .toISO(),
@@ -110,16 +110,10 @@ const mapDispatchToProps = dispatch => {
     handleActiveOnlySwitch: value => dispatch(setURLParam('activeOnly', value)),
     handleSetDuration: value =>
       dispatch(setURLParam('duration', value, 'P14D')),
-    handleSetStart: value => dispatch(setURLParam('scheduleStart', value)),
+    handleSetStart: value => dispatch(setURLParam('start', value)),
     handleFilterReset: () =>
       dispatch(
-        resetURLParams(
-          'userFilter',
-          'scheduleStart',
-          'activeOnly',
-          'tz',
-          'duration',
-        ),
+        resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'duration'),
       ),
   }
 }
