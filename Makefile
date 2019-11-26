@@ -75,9 +75,9 @@ $(BIN_DIR)/mockslack.linux: go.sum $(shell find ./devtools/mockslack -name '*.go
 
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert.linux: $(BIN_DIR)/goalert
+$(BIN_DIR)/goalert.linux: $(BIN_DIR)/goalert web/inline_data_gen.go
 	GOOS=linux go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert.darwin: $(BIN_DIR)/goalert
+$(BIN_DIR)/goalert.darwin: $(BIN_DIR)/goalert web/inline_data_gen.go
 	GOOS=darwin go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
 $(BIN_DIR)/goalert-linux-amd64.tgz: $(BIN_DIR)/goalert.linux
