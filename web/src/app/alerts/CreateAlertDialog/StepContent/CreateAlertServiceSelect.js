@@ -211,7 +211,7 @@ export function CreateAlertServiceSelect(props) {
       />
       <Box flexGrow={1} minHeight={0}>
         <Box overflow='auto' flex={1}>
-          <List aria-label='select service options'>
+          <List data-cy='service-select' aria-label='select service options'>
             {Boolean(queryErrorMsg) && (
               <ListItem>
                 <Typography color='error'>{queryErrorMsg}</Typography>
@@ -221,6 +221,7 @@ export function CreateAlertServiceSelect(props) {
             {searchResults.map(service => (
               <ListItem
                 button
+                data-cy='service-select-item'
                 key={service.id}
                 disabled={value.length >= CREATE_ALERT_LIMIT}
                 onClick={() => onChange([...value, service.id])}
