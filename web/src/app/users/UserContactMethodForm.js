@@ -4,8 +4,7 @@ import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import { MenuItem, Typography } from '@material-ui/core'
-import exampleNumbers from 'libphonenumber-js/examples.mobile.json'
-import { getExampleNumber } from 'libphonenumber-js'
+import getExampleNumber from '../util/getExampleNumber'
 
 export default class UserContactMethodForm extends React.PureComponent {
   static propTypes = {
@@ -41,10 +40,7 @@ export default class UserContactMethodForm extends React.PureComponent {
     let exampleNumber
 
     try {
-      exampleNumber = getExampleNumber(
-        locale.countryCode,
-        exampleNumbers,
-      ).formatInternational()
+      exampleNumber = getExampleNumber(locale.countryCode)
     } catch (e) {
       exampleNumber = '+1 631 746 3748'
     }
