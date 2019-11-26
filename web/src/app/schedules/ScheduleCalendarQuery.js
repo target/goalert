@@ -31,7 +31,7 @@ const query = gql`
 const mapStateToProps = state => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
-  let start = urlParamSelector(state)(
+  const start = urlParamSelector(state)(
     'start',
     weekly
       ? moment()
@@ -42,7 +42,7 @@ const mapStateToProps = state => {
           .toISOString(),
   )
 
-  let end = moment(start)
+  const end = moment(start)
     .add(1, weekly ? 'week' : 'month')
     .toISOString()
 
@@ -53,10 +53,7 @@ const mapStateToProps = state => {
 }
 
 @withWidth()
-@connect(
-  mapStateToProps,
-  null,
-)
+@connect(mapStateToProps, null)
 export default class ScheduleCalendarQuery extends React.PureComponent {
   render() {
     if (isWidthDown('sm', this.props.width)) return null

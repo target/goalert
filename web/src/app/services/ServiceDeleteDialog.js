@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import { useDispatch } from 'react-redux'
 import gql from 'graphql-tag'
 import { useQuery, useMutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
@@ -10,7 +9,7 @@ import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
-import { push } from 'connected-react-router'
+import _ from 'lodash-es'
 
 function DeleteForm({ epName, error, value, onChange }) {
   return (
@@ -23,14 +22,18 @@ function DeleteForm({ epName, error, value, onChange }) {
             value='delete-escalation-policy'
           />
         }
-        label={`Also delete escalation policy: ${epName}`}
+        label={
+          <React.Fragment>
+            Also delete escalation policy: {epName}
+          </React.Fragment>
+        }
       />
       <FormHelperText>{error}</FormHelperText>
     </FormControl>
   )
 }
 DeleteForm.propTypes = {
-  epName: p.string.isRequired,
+  epName: p.node.isRequired,
   error: p.string,
   value: p.bool,
   onChange: p.func.isRequired,
@@ -41,8 +44,7 @@ const query = gql`
     service(id: $id) {
       id
       name
-      escalationPolicyID
-      escalationPolicy {
+      ep: escalationPolicy {
         id
         name
       }
@@ -57,22 +59,25 @@ const mutation = gql`
 
 export default function ServiceDeleteDialog({ serviceID, onClose }) {
   const [deleteEP, setDeleteEP] = useState(true)
-  const { data, loading: dataLoading } = useQuery(query, {
+  const { data, ...dataStatus } = useQuery(query, {
     variables: { id: serviceID },
   })
   const input = [{ type: 'service', id: serviceID }]
-  const dispatch = useDispatch()
-  const [deleteService, { loading, error }] = useMutation(mutation, {
+  const [deleteService, deleteServiceStatus] = useMutation(mutation, {
     variables: { input },
-    onCompleted: () => dispatch(push('/services')),
   })
 
-  if (dataLoading) return <Spinner />
+  const epID = _.get(data, 'service.ep.id')
+  const epName = _.get(
+    data,
+    'service.ep.name',
+    <Spinner text='fetching policy...' />,
+  )
 
   if (deleteEP) {
     input.push({
       type: 'escalationPolicy',
-      id: data.service.escalationPolicyID,
+      id: epID,
     })
   }
 
@@ -80,18 +85,24 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
     <FormDialog
       title='Are you sure?'
       confirm
-      subTitle={`This will delete the service: ${data.service.name}`}
+      subTitle={
+        <React.Fragment>
+          This will delete the service:{' '}
+          {_.get(data, 'service.name', <Spinner text='loading...' />)}
+        </React.Fragment>
+      }
       caption='Deleting a service will also delete all associated integration keys and alerts.'
-      loading={loading}
-      errors={nonFieldErrors(error)}
+      loading={deleteServiceStatus.loading || dataStatus.loading}
+      errors={nonFieldErrors(deleteServiceStatus.error)}
       onClose={onClose}
       onSubmit={() => deleteService()}
       form={
         <DeleteForm
-          epName={data.service.escalationPolicy.name}
+          epName={epName}
           error={
-            fieldErrors(error).find(f => f.field === 'escalationPolicyID') &&
-            'Escalation policy is currently in use.'
+            fieldErrors(deleteServiceStatus.error).find(
+              f => f.field === 'escalationPolicyID',
+            ) && 'Escalation policy is currently in use.'
           }
           onChange={deleteEP => setDeleteEP(deleteEP)}
           value={deleteEP}

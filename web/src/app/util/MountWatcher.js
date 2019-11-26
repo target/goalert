@@ -6,6 +6,7 @@ export default class MountWatcher extends React.PureComponent {
     onMount: p.func,
     onUnmount: p.func,
   }
+
   static defaultProps = {
     onMount: () => {},
     onUnmount: () => {},
@@ -14,9 +15,11 @@ export default class MountWatcher extends React.PureComponent {
   componentDidMount() {
     this.props.onMount()
   }
+
   componentWillUnmount() {
     this.props.onUnmount()
   }
+
   render() {
     return this.props.children
   }

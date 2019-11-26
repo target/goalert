@@ -109,13 +109,6 @@ export const styles = theme => ({
     top: '0.7em',
     right: '0.7em',
   },
-  searchFieldBox: {
-    borderRadius: 4,
-    backgroundColor: theme.palette.common.white,
-    border: '1px solid #ced4da',
-    fontSize: 16,
-    padding: '10px 12px',
-  },
   // use on grid items except the last one per page
   mobileGridSpacing: {
     marginBottom: '1em',

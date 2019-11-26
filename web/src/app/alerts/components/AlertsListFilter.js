@@ -57,16 +57,14 @@ const mapDispatchToProps = dispatch => ({
 
 @withStyles(styles)
 @withWidth()
-@connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class AlertsListFilter extends Component {
   static propTypes = {
     serviceID: p.string,
     allServices: p.bool.isRequired,
     filter: p.string.isRequired,
   }
+
   state = {
     show: false,
     anchorEl: null, // element in which filters form under

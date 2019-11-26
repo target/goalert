@@ -51,14 +51,13 @@ export default class UpdateAlertsSnackbar extends Component {
           {errorMessage}
         </span>
       )
-    } else {
-      return (
-        <span className={classes.message} data-cy='update-message'>
-          <CheckCircleIcon className={classes.resultIcon} />
-          {updateMessage}
-        </span>
-      )
     }
+    return (
+      <span className={classes.message} data-cy='update-message'>
+        <CheckCircleIcon className={classes.resultIcon} />
+        {updateMessage}
+      </span>
+    )
   }
 
   render() {

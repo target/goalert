@@ -1,15 +1,14 @@
 import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import Query from '../util/Query'
-import { Mutation } from 'react-apollo'
+import { useQuery, useMutation } from 'react-apollo'
 import { SetFavoriteButton } from './SetFavoriteButton'
 import { oneOfShape } from '../util/propTypes'
 
 const queries = {
   service: gql`
     query serviceFavQuery($id: ID!) {
-      service(id: $id) {
+      data: service(id: $id) {
         id
         isFavorite
       }
@@ -17,7 +16,7 @@ const queries = {
   `,
   rotation: gql`
     query rotationFavQuery($id: ID!) {
-      rotation(id: $id) {
+      data: rotation(id: $id) {
         id
         isFavorite
       }
@@ -25,7 +24,7 @@ const queries = {
   `,
   schedule: gql`
     query scheduleFavQuery($id: ID!) {
-      schedule(id: $id) {
+      data: schedule(id: $id) {
         id
         isFavorite
       }
@@ -40,8 +39,7 @@ const mutation = gql`
 `
 
 export function QuerySetFavoriteButton(props) {
-  let typeName = ''
-  let id = ''
+  let id, typeName
   if (props.rotationID) {
     typeName = 'rotation'
     id = props.rotationID
@@ -52,44 +50,24 @@ export function QuerySetFavoriteButton(props) {
     typeName = 'schedule'
     id = props.scheduleID
   } else {
-    return null
+    throw new Error('unknown type')
   }
-  return (
-    <Query
-      query={queries[typeName]}
-      variables={{ id: id }}
-      render={({ data }) => {
-        if (!data || !data[typeName]) return null
+  const { data, loading } = useQuery(queries[typeName], {
+    variables: { id },
+  })
+  const isFavorite = data && data.data && data.data.isFavorite
+  const [toggleFav] = useMutation(mutation, {
+    variables: {
+      input: { target: { id, type: typeName }, favorite: !isFavorite },
+    },
+  })
 
-        return renderMutation(data[typeName].isFavorite, id, typeName)
-      }}
-    />
-  )
-}
-
-function renderMutation(isFavorite, id, typeName) {
-  return (
-    <Mutation mutation={mutation} refetchQueries={[`${typeName}FavQuery`]}>
-      {mutation => renderSetFavButton(isFavorite, mutation, id, typeName)}
-    </Mutation>
-  )
-}
-
-function renderSetFavButton(isFavorite, mutation, id, typeName) {
   return (
     <SetFavoriteButton
       typeName={typeName}
       isFavorite={isFavorite}
-      onSubmit={() => {
-        return mutation({
-          variables: {
-            input: {
-              target: { id, type: typeName },
-              favorite: !isFavorite,
-            },
-          },
-        })
-      }}
+      loading={loading}
+      onClick={() => toggleFav()}
     />
   )
 }

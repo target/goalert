@@ -76,9 +76,6 @@ function createManyUsers(
     role: user.role || 'user',
   }))
 
-  const dbURL =
-    Cypress.env('DB_URL') || 'postgres://goalert@localhost:5432?sslmode=disable'
-
   const dbQuery =
     `insert into users (id, name, email, role) values` +
     profiles
@@ -86,14 +83,7 @@ function createManyUsers(
       .join(',') +
     `;`
 
-  return cy
-    .exec(`psql-lite -tx -d "$DB" -c "$QUERY"`, {
-      env: {
-        DB: dbURL,
-        QUERY: dbQuery,
-      },
-    })
-    .then(() => profiles)
+  return cy.sql(dbQuery).then(() => profiles)
 }
 
 function createUser(user?: UserOptions): Cypress.Chainable<Profile> {

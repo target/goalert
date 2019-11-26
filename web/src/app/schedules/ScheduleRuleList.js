@@ -68,10 +68,12 @@ export default class ScheduleRuleList extends React.PureComponent {
       />
     )
   }
+
   getHeaderNote() {
     const zone = this.props.zone
     return `Showing times in ${zone === 'local' ? 'local time' : zone}.`
   }
+
   renderList(targets, timeZone) {
     const items = []
 
@@ -111,7 +113,7 @@ export default class ScheduleRuleList extends React.PureComponent {
         <PageActions>
           <FilterContainer onReset={() => this.props.resetFilter()}>
             <Grid item xs={12}>
-              <ScheduleTZFilter scheduleTimeZone={timeZone} />
+              <ScheduleTZFilter scheduleID={this.props.scheduleID} />
             </Grid>
           </FilterContainer>
           <SpeedDial

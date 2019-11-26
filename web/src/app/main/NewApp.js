@@ -21,6 +21,7 @@ import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
+import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 
 const drawerWidth = '12em'
 
@@ -78,60 +79,63 @@ export default class App extends React.PureComponent {
     return (
       <div className={classes.root}>
         <PageActionProvider>
-          <AppBar
-            position='fixed'
-            className={classes.appBar}
-            data-cy='app-bar'
-            data-cy-format={cyFormat}
-          >
-            <SkipToContentLink />
-            <Toolbar className={classes.toolbar}>
-              <ToolbarAction
-                handleShowMobileSidebar={() =>
-                  this.setState({ showMobile: true })
-                }
-              />
-              <ToolbarTitle />
-
-              <PageActionContainer />
-            </Toolbar>
-          </AppBar>
-
-          <Hidden smDown>
-            <LazyWideSideBar>
-              <div className={classes.toolbar} />
-              <LazySideBarDrawerList
-                onWizard={() => this.setState({ showWizard: true })}
-              />
-            </LazyWideSideBar>
-          </Hidden>
-          <Hidden mdUp>
-            <LazyMobileSideBar
-              show={this.state.showMobile}
-              onChange={showMobile => this.setState({ showMobile })}
+          <SearchProvider>
+            <AppBar
+              position='fixed'
+              className={classes.appBar}
+              data-cy='app-bar'
+              data-cy-format={cyFormat}
             >
-              <LazySideBarDrawerList
-                onWizard={() => this.setState({ showWizard: true })}
-              />
-            </LazyMobileSideBar>
-          </Hidden>
+              <SkipToContentLink />
+              <Toolbar className={classes.toolbar}>
+                <ToolbarAction
+                  handleShowMobileSidebar={() =>
+                    this.setState({ showMobile: true })
+                  }
+                />
+                <ToolbarTitle />
 
-          <URLErrorDialog />
+                <PageActionContainer />
+                <SearchContainer />
+              </Toolbar>
+            </AppBar>
 
-          <main id='content' className={classes.main} style={{ marginLeft }}>
-            <div className={classes.toolbar} />
-            <ErrorBoundary>
-              <LazyNewUserSetup />
-              <Grid container justify='center'>
-                <Grid className={classes.containerClass} item>
-                  <Switch>
-                    {renderRoutes(routeConfig)}
-                    <Route component={() => <LazyPageNotFound />} />
-                  </Switch>
+            <Hidden smDown>
+              <LazyWideSideBar>
+                <div className={classes.toolbar} />
+                <LazySideBarDrawerList
+                  onWizard={() => this.setState({ showWizard: true })}
+                />
+              </LazyWideSideBar>
+            </Hidden>
+            <Hidden mdUp>
+              <LazyMobileSideBar
+                show={this.state.showMobile}
+                onChange={showMobile => this.setState({ showMobile })}
+              >
+                <LazySideBarDrawerList
+                  onWizard={() => this.setState({ showWizard: true })}
+                />
+              </LazyMobileSideBar>
+            </Hidden>
+
+            <URLErrorDialog />
+
+            <main id='content' className={classes.main} style={{ marginLeft }}>
+              <div className={classes.toolbar} />
+              <ErrorBoundary>
+                <LazyNewUserSetup />
+                <Grid container justify='center'>
+                  <Grid className={classes.containerClass} item>
+                    <Switch>
+                      {renderRoutes(routeConfig)}
+                      <Route component={() => <LazyPageNotFound />} />
+                    </Switch>
+                  </Grid>
                 </Grid>
-              </Grid>
-            </ErrorBoundary>
-          </main>
+              </ErrorBoundary>
+            </main>
+          </SearchProvider>
         </PageActionProvider>
       </div>
     )

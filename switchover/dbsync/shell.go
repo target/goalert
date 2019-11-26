@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/abiosoft/ishell"
-	_ "github.com/jackc/pgx/stdlib" // load PGX driver
+	_ "github.com/jackc/pgx/v4/stdlib" // load PGX driver
 	"github.com/pkg/errors"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/switchover"
@@ -169,7 +169,7 @@ func RunShell(oldURL, newURL string) error {
 				mpb.BarClearOnComplete(),
 				mpb.PrependDecorators(
 					decor.OnComplete(
-						decor.StaticName("Truncating tables..."),
+						decor.Name("Truncating tables..."),
 						"Truncated all destination tables.")),
 			)
 			for _, t := range process {
