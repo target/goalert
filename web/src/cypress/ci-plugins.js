@@ -1,3 +1,5 @@
-module.exports = (on, config) => {
-  require('cypress-plugin-retries/lib/plugin')(on)
+import plugin from 'cypress-plugin-retries/lib/plugin'
+
+export default (on, config) => {
+  plugin(on)
 }
