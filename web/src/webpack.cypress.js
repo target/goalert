@@ -7,6 +7,7 @@ module.exports = {
   entry: {
     'support/index': path.join(__dirname, 'cypress/support'),
     'integration/all': glob.sync(path.join(__dirname, 'cypress/integration/*')),
+    'plugin/index': path.join(__dirname, 'cypress/ci-plugins.js'),
   },
   output: {
     path: path.join(__dirname, '../../bin/integration/goalert/cypress'),
