@@ -135,6 +135,9 @@ func (db *DB) cmUserID(ctx context.Context, id string) (string, error) {
 
 	var userID string
 	err = db.getCMUserID.QueryRowContext(ctx, id).Scan(&userID)
+	if err == sql.ErrNoRows {
+		return "", validation.NewFieldError("ContactMethodID", "does not exist")
+	}
 	if err != nil {
 		return "", err
 	}

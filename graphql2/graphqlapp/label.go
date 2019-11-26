@@ -40,6 +40,7 @@ func (q *Query) LabelKeys(ctx context.Context, input *graphql2.LabelKeySearchOpt
 		return nil, err
 	}
 	conn = new(graphql2.StringConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(labelKeys) == opts.Limit {
 		labelKeys = labelKeys[:len(labelKeys)-1]
 		conn.PageInfo.HasNextPage = true
@@ -88,6 +89,7 @@ func (q *Query) LabelValues(ctx context.Context, input *graphql2.LabelValueSearc
 		return nil, err
 	}
 	conn = new(graphql2.StringConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(values) == opts.Limit {
 		values = values[:len(values)-1]
 		conn.PageInfo.HasNextPage = true
