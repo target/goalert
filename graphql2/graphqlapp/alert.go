@@ -134,6 +134,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	}
 
 	conn = new(graphql2.AlertConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(alerts) == s.Limit {
 		conn.PageInfo.HasNextPage = true
 		alerts = alerts[:len(alerts)-1]
@@ -222,6 +223,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 		return nil, err
 	}
 	conn := new(graphql2.AlertLogEntryConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(logs) == s.Limit {
 		logs = logs[:len(logs)-1]
 		conn.PageInfo.HasNextPage = true
