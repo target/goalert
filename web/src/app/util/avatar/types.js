@@ -32,7 +32,7 @@ function useAvatar(Fallback, otherProps, imgSrc) {
       data-cy={validImage ? null : 'avatar-fallback'}
       {...otherProps}
     >
-      {validImage ? null : <Fallback />}
+      {validImage ? null : <Fallback fontSize='small' />}
     </Avatar>
   )
 }

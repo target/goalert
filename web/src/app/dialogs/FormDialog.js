@@ -48,7 +48,7 @@ const styles = theme => {
 export default class FormDialog extends React.PureComponent {
   static propTypes = {
     title: p.string.isRequired,
-    subTitle: p.string,
+    subTitle: p.node,
     caption: p.string,
 
     errors: p.arrayOf(
@@ -67,8 +67,16 @@ export default class FormDialog extends React.PureComponent {
     // disables form content padding
     disableGutters: p.bool,
 
+    // overrides any of the main action button titles with this specific text
+    primaryActionLabel: p.string,
+
     onClose: p.func,
     onSubmit: p.func,
+
+    // if onNext is specified the submit button will be replaced with a 'Next' button
+    onNext: p.func,
+    // if onBack is specified the cancel button will be replaced with a 'Back' button
+    onBack: p.func,
 
     // provided by gracefulUnmount()
     isUnmounting: p.bool,
@@ -97,33 +105,34 @@ export default class FormDialog extends React.PureComponent {
       errors,
       isUnmounting,
       loading,
+      primaryActionLabel, // remove from dialogProps spread
       maxWidth,
       onClose,
       onSubmit,
       subTitle, // can't be used in dialogProps spread
       title,
       width,
+      onNext,
+      onBack,
       ...dialogProps
     } = this.props
     const isWideScreen = isWidthUp('md', width)
 
     return (
       <Dialog
-        {...dialogProps}
-        disableBackdropClick={!isWideScreen}
-        fullScreen={!isWideScreen && !confirm && !alert}
+        disableBackdropClick={!isWideScreen || alert}
+        fullScreen={!isWideScreen && !confirm}
         maxWidth={maxWidth}
         fullWidth
         open={!isUnmounting}
-        onClose={alert ? null : onClose}
+        onClose={onClose}
         TransitionComponent={
-          isWideScreen || confirm || alert
-            ? DefaultTransition
-            : FullscreenTransition
+          isWideScreen || confirm ? DefaultTransition : FullscreenTransition
         }
+        {...dialogProps}
       >
         <DialogTitleWrapper
-          fullScreen={!isWideScreen && !confirm && !alert}
+          fullScreen={!isWideScreen && !confirm}
           onClose={onClose}
           title={title}
           subTitle={subTitle}
@@ -134,7 +143,9 @@ export default class FormDialog extends React.PureComponent {
             className={classes.formContainer}
             onSubmit={(e, valid) => {
               e.preventDefault()
-              if (valid) onSubmit()
+              if (valid) {
+                onNext ? onNext() : onSubmit()
+              }
             }}
           >
             <ErrorBoundary>{this.renderForm()}</ErrorBoundary>
@@ -183,31 +194,43 @@ export default class FormDialog extends React.PureComponent {
   }
 
   renderActions = () => {
-    const { alert, confirm, classes, errors, loading, onClose } = this.props
+    const {
+      alert,
+      confirm,
+      classes,
+      errors,
+      loading,
+      primaryActionLabel,
+      onClose,
+      onBack,
+      onNext,
+    } = this.props
 
     if (alert) {
       return (
         <DialogActions>
           <Button color='primary' onClick={onClose} variant='contained'>
-            Okay
+            {primaryActionLabel || 'Okay'}
           </Button>
         </DialogActions>
       )
     }
+
+    const submitText = onNext ? 'Next' : 'Submit'
 
     return (
       <DialogActions>
         <Button
           className={classes.cancelButton}
           disabled={loading}
-          onClick={onClose}
+          onClick={onBack || onClose}
         >
-          Cancel
+          {onBack ? 'Back' : 'Cancel'}
         </Button>
         <LoadingButton
           form='dialog-form'
           attemptCount={errors.filter(e => !e.nonSubmit).length ? 1 : 0}
-          buttonText={confirm ? 'Confirm' : 'Submit'}
+          buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
           color='primary'
           loading={loading}
           type='submit'

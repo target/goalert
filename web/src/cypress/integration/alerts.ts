@@ -246,47 +246,127 @@ function testAlerts(screen: ScreenFormat) {
   describe('Alert Creation', () => {
     beforeEach(() => cy.visit('/alerts?allServices=1'))
 
-    it('should allow canceling', () => {
-      cy.pageFab()
-      cy.get('div[role=dialog]').should('contain', 'Create New Alert')
-      cy.get('div[role=dialog]')
-        .contains('button', 'Cancel')
-        .click()
-      cy.get('div[role=dialog]').should('not.exist')
+    let svc1: Service
+    let svc2: Service
+
+    beforeEach(() => {
+      cy.createService().then(s => {
+        svc1 = s
+      })
+
+      cy.createService().then(s => {
+        svc2 = s
+      })
     })
 
-    it('should create an alert when submitted', () => {
-      cy.createService().then(svc => {
-        cy.pageFab()
+    it('should create an alert for two services', () => {
+      cy.pageFab()
 
-        cy.get('div[role=dialog]').as('dialog')
+      cy.get('div[role=dialog]').as('dialog')
 
-        const summary = c.sentence({ words: 3 })
-        const details = c.word({ length: 10 })
-
-        cy.get('@dialog')
-          .find('input[name=summary]')
-          .type(summary)
-        cy.get('@dialog')
-          .find('input[name=service]')
-          .selectByLabel(svc.name)
-
-        cy.get('@dialog')
-          .find('textarea[name=details]')
-          .type(details)
-        cy.get('@dialog')
-          .contains('button', 'Submit')
-          .click()
-
-        // should be on details page
-        cy.get('*[data-cy=alert-summary]').should('contain', summary)
-        cy.get('*[data-cy=alert-details]').should('contain', details)
-
-        cy.go(-1)
-
-        cy.pageSearch(summary)
-        cy.get('body').should('contain', svc.name)
+      const summary = c.sentence({
+        words: 3,
       })
+      const details = c.word({ length: 10 })
+
+      // Alert Info
+      cy.get('@dialog')
+        .contains('button', 'Cancel')
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('input[name=summary]')
+        .type(summary)
+
+      cy.get('@dialog')
+        .find('textarea[name=details]')
+        .type(details)
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // Service Selection
+      cy.get('@dialog').contains('button', 'Next')
+
+      cy.get('@dialog')
+        .find('input[name=serviceSearch]')
+        .type(svc1.name)
+
+      cy.get('@dialog')
+        .contains('span', svc1.name)
+        .click()
+
+      cy.get('@dialog')
+        .find('input[name=serviceSearch]')
+        .clear()
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('input[name=serviceSearch]')
+        .type(svc2.name)
+
+      cy.get('@dialog')
+        .contains('span', svc2.name)
+        .click()
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog').contains('label', 'Selected Services (2)')
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // Confirm
+      cy.get('@dialog')
+        .contains('span', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('span', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('button', 'Submit')
+        .click()
+
+      // Review
+      cy.get('@dialog')
+        .contains('button', 'Back')
+        .should('not.be.visible')
+
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('li')
+        .should('have.length', 2)
+
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .click()
     })
   })
 
