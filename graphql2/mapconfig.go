@@ -11,6 +11,16 @@ import (
 	"github.com/target/goalert/validation"
 )
 
+func MapConfigHints(cfg config.Hints) []ConfigHint {
+	return []ConfigHint{
+		{ID: "GitHub.AuthCallbackURL", Value: cfg.GitHub.AuthCallbackURL},
+		{ID: "OIDC.RedirectURL", Value: cfg.OIDC.RedirectURL},
+		{ID: "Mailgun.ForwardURL", Value: cfg.Mailgun.ForwardURL},
+		{ID: "Twilio.MessageWebhookURL", Value: cfg.Twilio.MessageWebhookURL},
+		{ID: "Twilio.VoiceWebhookURL", Value: cfg.Twilio.VoiceWebhookURL},
+	}
+}
+
 // MapConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
