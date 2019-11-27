@@ -77,7 +77,7 @@ export default function ServiceDetails({ serviceID }) {
     returnPartialData: true,
   })
 
-  if (loading && !data) return <Spinner />
+  if (loading && !_.get(data, 'service.id')) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!_.get(data, 'service.id')) {
