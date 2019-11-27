@@ -7,9 +7,14 @@ module.exports = {
   entry: {
     'support/index': path.join(__dirname, 'cypress/support'),
     'integration/all': glob.sync(path.join(__dirname, 'cypress/integration/*')),
+    'plugins/index': path.join(__dirname, 'cypress/ci-plugins.js'),
   },
+  target: 'node',
   output: {
     path: path.join(__dirname, '../../bin/integration/goalert/cypress'),
+    library: '',
+    libraryTarget: 'commonjs-module',
+    libraryExport: 'default',
   },
   resolve: {
     extensions: ['.js', '.ts'],
