@@ -36,11 +36,11 @@ type Config struct {
 func DefaultConfig() *Config {
 	return &Config{
 		RateLimit: map[notification.DestType]*RateConfig{
-			notification.DestTypeSMS: &RateConfig{
+			notification.DestTypeSMS: {
 				PerSecond: 1,
 				Batch:     5 * time.Second,
 			},
-			notification.DestTypeVoice: &RateConfig{
+			notification.DestTypeVoice: {
 				PerSecond: 1,
 				Batch:     5 * time.Second,
 			},

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-NOFMT=$(gofmt -l $(find . -name '*.go' |grep -v /vendor))
+NOFMT=$(gofmt -s -l $(find . -name '*.go' |grep -v /vendor))
 
 if test "$NOFMT" != ""
 then
