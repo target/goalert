@@ -97,7 +97,7 @@ $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
 
 $(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
-	(cd web/src && yarn webpack --config webpack.cypress.js)
+	(cd web/src && yarn webpack --config webpack.cypress.js --target node)
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
