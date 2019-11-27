@@ -547,20 +547,32 @@ function testServices(screen: ScreenFormat) {
       }),
     )
 
-    it('should allow creating alerts', () => {
+    it('should create alert with prepopulated service', () => {
       cy.pageFab()
+      cy.get('div[role=dialog]').as('dialog')
+
       const summary = c.sentence({ words: 3 })
       const details = c.word({ length: 10 })
       cy.get('input[name=summary]').type(summary)
       cy.get('textarea[name=details]').type(details)
 
-      cy.get('*[role=dialog]')
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // service already selected; skip to Confirm step
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
         .contains('button', 'Submit')
         .click()
 
-      cy.location('pathname').should('contain', '/alerts/') // details page
-
-      cy.get('body').should('contain', summary)
+      // review
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .click()
     })
 
     it('should allow ack/close all alerts', () => {

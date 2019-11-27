@@ -25,7 +25,7 @@ export default function CopyText(props) {
       onClose={() => setShowTooltip(false)}
       open={showTooltip}
       title='Copied!'
-      placement='right'
+      placement={props.placement || 'right'}
     >
       <a
         className={classes.copyContainer}
@@ -44,6 +44,7 @@ export default function CopyText(props) {
 }
 
 CopyText.propTypes = {
-  title: p.string.isRequired,
+  placement: p.string,
+  title: p.string,
   value: p.string.isRequired,
 }
