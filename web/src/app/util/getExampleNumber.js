@@ -247,5 +247,8 @@ const examples = {
 }
 
 export default function getExampleNumber(countryCode) {
-  return examples[countryCode]
+  if (countryCode in examples) {
+    return examples[countryCode]
+  }
+  return examples.US // default to US
 }

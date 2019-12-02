@@ -37,14 +37,7 @@ export default class UserContactMethodForm extends React.PureComponent {
   render() {
     const locale = this.props.value
 
-    let exampleNumber
-
-    try {
-      exampleNumber = getExampleNumber(locale.countryCode)
-    } catch (e) {
-      exampleNumber = '+1 631 746 3748'
-    }
-
+    const exampleNumber = getExampleNumber(locale.countryCode)
     const dialCode = exampleNumber.split(' ')[0]
 
     const targetHQs = ['US', 'IN']
