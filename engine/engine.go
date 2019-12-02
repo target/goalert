@@ -137,9 +137,9 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	p.msg, err = message.NewDB(ctx, db, &message.Config{
 		MaxMessagesPerCycle: c.MaxMessages,
 		RateLimit: map[notification.DestType]*message.RateConfig{
-			notification.DestTypeSMS:          &message.RateConfig{PerSecond: 1, Batch: 5 * time.Second},
-			notification.DestTypeVoice:        &message.RateConfig{PerSecond: 1, Batch: 5 * time.Second},
-			notification.DestTypeSlackChannel: &message.RateConfig{PerSecond: 5, Batch: 5 * time.Second},
+			notification.DestTypeSMS:          {PerSecond: 1, Batch: 5 * time.Second},
+			notification.DestTypeVoice:        {PerSecond: 1, Batch: 5 * time.Second},
+			notification.DestTypeSlackChannel: {PerSecond: 5, Batch: 5 * time.Second},
 		},
 		Pausable: p.mgr,
 	})
