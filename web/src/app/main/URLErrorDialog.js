@@ -1,8 +1,11 @@
 import React from 'react'
 import { urlParamSelector } from '../selectors'
 import { connect } from 'react-redux'
-import FormDialog from '../dialogs/FormDialog'
 import { resetURLParams } from '../actions'
+import { Dialog, DialogContent, DialogActions } from '@material-ui/core'
+import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
+import DialogContentError from '../dialogs/components/DialogContentError'
+import LoadingButton from '../loading/components/LoadingButton'
 
 @connect(
   state => ({
@@ -24,17 +27,29 @@ export default class URLErrorDialog extends React.Component {
 
     return (
       open && (
-        <FormDialog
-          alert
-          errors={[
-            {
-              message: errorMessage || 'Oops! Something went wrong.',
-            },
-          ]}
-          maxWidth='sm'
-          onClose={this.handleDialogClose}
-          title={errorTitle || 'An error occurred'}
-        />
+        <Dialog
+          open={open}
+          onClose={() => this.onClose()}
+          aria-labelledby='alert-dialog-title'
+          aria-describedby='alert-dialog-description'
+          disableBackdropClick
+        >
+          <DialogTitleWrapper id='alert-dialog-title' title={errorTitle} />
+          <DialogContent>
+            <DialogContentError
+              id='alert-dialog-description'
+              error={errorMessage}
+              noPadding
+            />
+          </DialogContent>
+          <DialogActions>
+            <LoadingButton
+              buttonText='Okay'
+              color='primary'
+              onClick={() => this.onClose()}
+            />
+          </DialogActions>
+        </Dialog>
       )
     )
   }
