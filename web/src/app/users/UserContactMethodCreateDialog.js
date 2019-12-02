@@ -22,28 +22,23 @@ export default function UserContactMethodCreateDialog(props) {
     name: '',
     type: 'SMS',
     value: '',
+  })
+
+  const [locale, setLocale] = useState({
     countryCode: 'US', // default
     countryName: 'United States',
   })
 
   useEffect(() => {
-    async function fetchIpLocale() {
+    async function doAsync() {
       const response = await fetch('http://ip-api.com/json')
       const json = await response.json()
       const countryName = json.country
       const countryCode = json.countryCode
-      return { countryCode, countryName }
+      setLocale({ countryCode, countryName })
     }
 
-    fetchIpLocale().then(({ countryCode, countryName }) => {
-      setCmValue({
-        name: '',
-        type: 'SMS',
-        value: '',
-        countryCode,
-        countryName,
-      })
-    })
+    doAsync()
   }, [])
 
   const [createCM, createCMStatus] = useMutation(createMutation, {
@@ -74,6 +69,7 @@ export default function UserContactMethodCreateDialog(props) {
       errors={fieldErrs}
       onChange={cmValue => setCmValue(cmValue)}
       value={cmValue}
+      countryCode={locale.countryCode}
       disclaimer={props.disclaimer}
     />
   )

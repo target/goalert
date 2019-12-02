@@ -65,7 +65,7 @@ export default class UserContactMethodForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12}>
             <FormField
-              placeholder={getExampleNumber(this.props.value.countryCode)}
+              placeholder={getExampleNumber(this.props.countryCode)}
               aria-labelledby='countryCodeIndicator'
               fullWidth
               name='value'
