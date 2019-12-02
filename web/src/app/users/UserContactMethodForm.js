@@ -35,17 +35,6 @@ export default class UserContactMethodForm extends React.PureComponent {
   }
 
   render() {
-    const locale = this.props.value
-
-    const exampleNumber = getExampleNumber(locale.countryCode)
-    const dialCode = exampleNumber.split(' ')[0]
-
-    const targetHQs = ['US', 'IN']
-    let localizedHelpText = ''
-    if (!targetHQs.includes(locale.countryCode)) {
-      localizedHelpText = `${dialCode} (${locale.countryName}), `
-    }
-
     const cleanValue = val => {
       val = val.replace(/[^0-9]/g, '')
 
@@ -76,7 +65,7 @@ export default class UserContactMethodForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12}>
             <FormField
-              placeholder={exampleNumber}
+              placeholder={getExampleNumber(this.props.value.countryCode)}
               aria-labelledby='countryCodeIndicator'
               fullWidth
               name='value'
@@ -93,7 +82,8 @@ export default class UserContactMethodForm extends React.PureComponent {
                 component='p'
                 id='countryCodeIndicator'
               >
-                {`Please provide your country dialing code e.g. ${localizedHelpText}+1 (USA), +91 (India)`}
+                Please provide your country dialing code e.g. +1 (USA), +91
+                (India)
               </Typography>
             )}
           </Grid>
