@@ -90,7 +90,7 @@ func (q *queue) servicePriority(serviceA, serviceB string) (isLess, ok bool) {
 	sentB := q.serviceSent[serviceB]
 
 	if sentA.Equal(sentB) {
-		// neither has recieved a message
+		// neither has received a message
 		return false, false
 	}
 
