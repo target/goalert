@@ -40,8 +40,8 @@ export default function UserContactMethodCreateDialog(props) {
         name: '',
         type: 'SMS',
         value: '',
-        countryCode, // NOTE set to mock country code e.g. 'MZ'
-        countryName, // NOTE set to mock country name e.g. 'Mozambique'
+        countryCode,
+        countryName,
       })
     })
   }, [])
