@@ -155,7 +155,7 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 
 // IdentityProviderHandler will return a handler for the given provider ID.
 //
-// It panics if the id has not been registerd with AddIdentityProvider.
+// It panics if the id has not been registered with AddIdentityProvider.
 func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 	p, ok := h.providers[id]
 	if !ok {

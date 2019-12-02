@@ -18,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// A Task is an independant unit of work
+// A Task is an independent unit of work
 type Task struct {
 	// Name is used to identify the task in the case of errors, as well as the prefix for logs.
 	Name string
