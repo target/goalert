@@ -147,7 +147,6 @@ export default class AdminConfig extends React.PureComponent {
                           variant='filled'
                           margin='none'
                           InputProps={{
-                            margin: 'dense',
                             endAdornment: (
                               <InputAdornment position='end'>
                                 <CopyText value={h.value} placement='left' />
