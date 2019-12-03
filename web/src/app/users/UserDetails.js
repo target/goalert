@@ -26,6 +26,9 @@ const query = gql`
       id
       name
       email
+      contactMethods {
+        id
+      }
       onCallSteps {
         id
         escalationPolicy {
@@ -79,25 +82,24 @@ export default function UserDetails(props) {
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
+  const dialActions = [
+    {
+      label: 'Add Contact Method',
+      icon: <SettingsPhone />,
+      onClick: () => setCreateCM(true),
+    },
+  ]
+  if (user.contactMethods.length)
+    dialActions.push({
+      label: 'Add Notification Rule',
+      icon: <AddAlarm />,
+      onClick: () => setCreateNR(true),
+    })
 
   return (
     <React.Fragment>
       {props.readOnly ? null : (
-        <SpeedDial
-          label='Add Items'
-          actions={[
-            {
-              label: 'Add Contact Method',
-              icon: <SettingsPhone />,
-              onClick: () => setCreateCM(true),
-            },
-            {
-              label: 'Add Notification Rule',
-              icon: <AddAlarm />,
-              onClick: () => setCreateNR(true),
-            },
-          ]}
-        />
+        <SpeedDial label='Add Items' actions={dialActions} />
       )}
       {createCM && (
         <UserContactMethodCreateDialog
