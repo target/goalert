@@ -82,24 +82,29 @@ export default function UserDetails(props) {
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
-  const dialActions = [
-    {
-      label: 'Add Contact Method',
-      icon: <SettingsPhone />,
-      onClick: () => setCreateCM(true),
-    },
-  ]
-  if (user.contactMethods.length)
-    dialActions.push({
-      label: 'Add Notification Rule',
-      icon: <AddAlarm />,
-      onClick: () => setCreateNR(true),
-    })
+
+  const iconColor = user.contactMethods.length ? 'primary' : 'disabled'
+  const disableNR = user.contactMethods.length === 0
 
   return (
     <React.Fragment>
       {props.readOnly ? null : (
-        <SpeedDial label='Add Items' actions={dialActions} />
+        <SpeedDial
+          label='Add Items'
+          actions={[
+            {
+              label: 'Add Contact Method',
+              icon: <SettingsPhone />,
+              onClick: () => setCreateCM(true),
+            },
+            {
+              label: 'Add Notification Rule',
+              icon: <AddAlarm color={iconColor} />,
+              disabled: disableNR,
+              onClick: () => setCreateNR(true),
+            },
+          ]}
+        />
       )}
       {createCM && (
         <UserContactMethodCreateDialog

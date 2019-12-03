@@ -45,8 +45,9 @@ export default function CustomSpeedDial(props) {
             classes={{ staticTooltipLabel: classes.staticTooltipLabel }}
             aria-label={action.label}
             onClick={() => {
-              setOpen(false)
-              action.onClick()
+              if (!action.disabled) {
+                action.onClick()
+              }
             }}
           />
         ))}
@@ -56,6 +57,7 @@ export default function CustomSpeedDial(props) {
 
 CustomSpeedDial.propsTypes = {
   label: p.string.isRequired,
+  disabled: p.bool,
   actions: p.arrayOf(
     p.shape({
       icon: p.element.isRequired,

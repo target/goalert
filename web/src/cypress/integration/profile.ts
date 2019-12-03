@@ -98,7 +98,7 @@ function testProfile(screen: ScreenFormat) {
       cy.get('body').should('contain', 'No notification rules')
     })
 
-    it('should hide Add Notification Rule if there are no Contact Methods', () => {
+    it('should disable Add Notification Rule if there are no Contact Methods', () => {
       cy.get('ul[data-cy=contact-methods]')
         .contains('li', cm.name)
         .find('button[data-cy=other-actions]')
@@ -109,7 +109,16 @@ function testProfile(screen: ScreenFormat) {
       cy.get('button[data-cy=page-fab]')
         .should('be.visible')
         .click()
-      cy.get('body').should('not.contain', 'Add Notification Rule')
+      cy.get(
+        `span[aria-label*=${JSON.stringify(
+          'Add Notification Rule',
+        )}] button[role=menuitem]`,
+      ).click()
+      cy.get(
+        `span[aria-label*=${JSON.stringify(
+          'Add Notification Rule',
+        )}] button[role=menuitem]`,
+      ).should('not.be.visible')
     })
 
     it('should display notification disclaimer when enabled', () => {
