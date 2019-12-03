@@ -74,6 +74,7 @@ type gather struct {
 	Method    string   `xml:"method,attr,omitempty"`
 	NumDigits int      `xml:"numDigits,attr,omitempty"`
 	Say       string   `xml:"Say,omitempty"`
+	Pause     int      `xml:"Pause,omitempty"`
 }
 
 type twiMLRedirect struct {
@@ -197,7 +198,7 @@ func (v *Voice) callbackURL(ctx context.Context, params url.Values, typ CallType
 func spellNumber(n int) string {
 	s := strconv.Itoa(n)
 
-	return strings.Join(strings.Split(s, ""), ", ")
+	return strings.Join(strings.Split(s, ""), "  ")
 }
 
 // Send implements the notification.Sender interface.
@@ -392,6 +393,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 			Method:    "POST",
 			NumDigits: 1,
 			Say:       message,
+			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
@@ -560,6 +562,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 			Method:    "POST",
 			NumDigits: 1,
 			Say:       message,
+			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
@@ -588,6 +591,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 			Method:    "POST",
 			NumDigits: 1,
 			Say:       message,
+			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
@@ -619,6 +623,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 			Method:    "POST",
 			NumDigits: 1,
 			Say:       message,
+			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
@@ -684,6 +689,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			Method:    "POST",
 			NumDigits: 1,
 			Say:       message,
+			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
