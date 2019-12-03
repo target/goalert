@@ -14,6 +14,7 @@ import HeartbeatMonitorList from './HeartbeatMonitorList'
 import { searchSelector } from '../selectors'
 import { setURLParam } from '../actions'
 import ServiceLabelFilterContainer from './ServiceLabelFilterContainer'
+import getServiceLabel from '../util/getServiceLabel'
 
 const query = gql`
   query servicesQuery($input: ServiceSearchOptions) {
@@ -37,15 +38,7 @@ export default function ServiceRouter() {
   const dispatch = useDispatch()
   const setSearchParam = value => dispatch(setURLParam('search', value))
 
-  // grab key and value from the search param, if at all
-  let labelKey = ''
-  let labelValue = ''
-  if (searchParam.includes('=')) {
-    const searchSplit = searchParam.split(/(!=|=)/)
-    labelKey = searchSplit[0]
-    // the value can contain "=", so joining the rest of the match such that it doesn't get lost
-    labelValue = searchSplit.slice(2).join('')
-  }
+  const { labelKey, labelValue } = getServiceLabel(searchParam)
 
   function renderList() {
     return (

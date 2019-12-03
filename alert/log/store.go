@@ -20,14 +20,14 @@ import (
 )
 
 type Store interface {
-	FindOne(ctx context.Context, logID int) (Entry, error)
+	FindOne(ctx context.Context, logID int) (*Entry, error)
 	FindAll(ctx context.Context, alertID int) ([]Entry, error)
 	Log(ctx context.Context, alertID int, _type Type, meta interface{}) error
 	LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error
 	LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error
 	LogServiceTx(ctx context.Context, tx *sql.Tx, serviceID string, _type Type, meta interface{}) error
 	LogManyTx(ctx context.Context, tx *sql.Tx, alertIDs []int, _type Type, meta interface{}) error
-	FindLatestByType(ctx context.Context, alertID int, status Type) (Entry, error)
+	FindLatestByType(ctx context.Context, alertID int, status Type) (*Entry, error)
 	LegacySearch(ctx context.Context, opt *LegacySearchOptions) ([]Entry, int, error)
 	Search(ctx context.Context, opt *SearchOptions) ([]Entry, error)
 
@@ -276,7 +276,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		_type = TypeClosed
 	}
 
-	var r rawEntry
+	var r Entry
 	r._type = _type
 
 	if meta != nil {
@@ -411,13 +411,13 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String())
 	return err
 }
-func (db *DB) FindOne(ctx context.Context, logID int) (Entry, error) {
+func (db *DB) FindOne(ctx context.Context, logID int) (*Entry, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	var e rawEntry
+	var e Entry
 	row := db.findOne.QueryRowContext(ctx, logID)
 	err = e.scanWith(row.Scan)
 	if err != nil {
@@ -438,8 +438,8 @@ func (db *DB) FindAll(ctx context.Context, alertID int) ([]Entry, error) {
 	}
 	defer rows.Close()
 
-	var raw []rawEntry
-	var e rawEntry
+	var raw []Entry
+	var e Entry
 	for rows.Next() {
 		err := e.scanWith(rows.Scan)
 		if err != nil {
@@ -451,8 +451,8 @@ func (db *DB) FindAll(ctx context.Context, alertID int) ([]Entry, error) {
 	return dedupEvents(raw), nil
 }
 
-func dedupEvents(raw []rawEntry) []Entry {
-	var cur Entry
+func dedupEvents(raw []Entry) []Entry {
+	var cur *Entry
 	var result []Entry
 	for _, e := range raw {
 		switch e.Type() {
@@ -460,20 +460,20 @@ func dedupEvents(raw []rawEntry) []Entry {
 			// these are the ones we want to dedup
 		default:
 			if cur != nil {
-				result = append(result, cur)
+				result = append(result, *cur)
 				cur = nil
 			}
 			result = append(result, e)
 			continue
 		}
 		if cur == nil {
-			cur = e
+			cur = &e
 			continue
 		}
 
 		if e.Type() != cur.Type() {
-			result = append(result, cur)
-			cur = e
+			result = append(result, *cur)
+			cur = &e
 			continue
 		}
 
@@ -486,35 +486,35 @@ func dedupEvents(raw []rawEntry) []Entry {
 		cSub := cur.Subject()
 		if cSub == nil {
 			// old one has none, new one does
-			cur = e
+			cur = &e
 			continue
 		}
 
 		// both have subjects, only replace if the new one
 		// has a classifier
 		if eSub.Classifier != "" {
-			cur = e
+			cur = &e
 			continue
 		}
 	}
 	if cur != nil {
-		result = append(result, cur)
+		result = append(result, *cur)
 	}
 
 	return result
 }
 
 // FindLatestByType returns the latest Log Entry given alertID and status type
-func (db *DB) FindLatestByType(ctx context.Context, alertID int, status Type) (Entry, error) {
+func (db *DB) FindLatestByType(ctx context.Context, alertID int, status Type) (*Entry, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
-	var e rawEntry
+	var e Entry
 	row := db.findAllByType.QueryRowContext(ctx, alertID, status)
 	err = e.scanWith(row.Scan)
 	if err != nil {
 		return nil, err
 	}
-	return e, nil
+	return &e, nil
 }

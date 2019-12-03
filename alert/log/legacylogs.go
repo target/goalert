@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func (e *rawEntry) subjectFromMessage() *Subject {
+func (e *Entry) subjectFromMessage() *Subject {
 	switch e._type {
 	case TypeCreated:
 		return createdSubject(e.message)

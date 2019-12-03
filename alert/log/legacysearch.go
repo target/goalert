@@ -5,15 +5,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/target/goalert/util/sqlutil"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // LegacySearchOptions contains criteria for filtering alert logs. At a minimum, at least one of AlertID or ServiceID must be specified.
@@ -213,21 +212,17 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]En
 	}
 	defer rows.Close()
 
-	var result []rawEntry
+	var result []Entry
 
 	for rows.Next() {
-		var r rawEntry
+		var r Entry
 		err = r.scanWith(rows.Scan)
 		if err != nil {
 			return nil, 0, err
 		}
 		result = append(result, r)
 	}
-	var logs []Entry
-	for _, e := range result {
-		logs = append(logs, e)
-	}
 
-	return logs, total, nil
+	return result, total, nil
 
 }

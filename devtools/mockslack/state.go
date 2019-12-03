@@ -56,7 +56,7 @@ type channelState struct {
 }
 
 // SetAutoCreateChannel, if set to true, will cause messages sent to
-// non-existant channels to succeed by creating the channel automatically.
+// non-existent channels to succeed by creating the channel automatically.
 func (st *state) SetAutoCreateChannel(value bool) {
 	st.mx.Lock()
 	defer st.mx.Unlock()
