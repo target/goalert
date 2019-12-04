@@ -4,93 +4,94 @@ import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import { MenuItem, Typography } from '@material-ui/core'
-import getExampleNumber from '../util/getExampleNumber'
+import useExamplePhoneNumber from '../util/useExamplePhoneNumber'
 
-export default class UserContactMethodForm extends React.PureComponent {
-  static propTypes = {
-    value: p.shape({
-      name: p.string.isRequired,
-      type: p.oneOf(['SMS', 'VOICE']).isRequired,
-      value: p.string.isRequired,
-      // disclaimer text to display at the bottom of the form
-      disclaimer: p.string,
-    }).isRequired,
+const cleanValue = val => {
+  val = val.replace(/[^0-9]/g, '')
 
-    errors: p.arrayOf(
-      p.shape({
-        field: p.oneOf(['name', 'type', 'value']).isRequired,
-        message: p.string.isRequired,
-      }),
-    ),
-
-    onChange: p.func,
-
-    disabled: p.bool,
-
-    edit: p.bool,
+  if (!val) {
+    return ''
   }
 
-  static defaultProps = {
-    onChange: () => {},
-  }
+  return '+' + val
+}
 
-  render() {
-    const cleanValue = val => {
-      val = val.replace(/[^0-9]/g, '')
-
-      if (!val) {
-        return ''
-      }
-
-      return '+' + val
-    }
-    return (
-      <FormContainer {...this.props} optionalLabels>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={12} md={6}>
-            <FormField fullWidth name='name' required component={TextField} />
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <FormField
-              fullWidth
-              name='type'
-              required
-              select
-              disabled={this.props.edit}
-              component={TextField}
-            >
-              <MenuItem value='SMS'>SMS</MenuItem>
-              <MenuItem value='VOICE'>VOICE</MenuItem>
-            </FormField>
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              placeholder={getExampleNumber(this.props.countryCode)}
-              aria-labelledby='countryCodeIndicator'
-              fullWidth
-              name='value'
-              required
-              label='Phone Number'
-              type='tel'
-              component={TextField}
-              mapOnChangeValue={cleanValue}
-              disabled={this.props.edit}
-            />
-            {!this.props.edit && (
-              <Typography
-                variant='caption'
-                component='p'
-                id='countryCodeIndicator'
-              >
-                Please provide your country code e.g. +1 (USA)
-              </Typography>
-            )}
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant='caption'>{this.props.disclaimer}</Typography>
-          </Grid>
+export default function UserContactMethodForm(props) {
+  const examplePhoneNumber =
+    useExamplePhoneNumber(props.countryCode) || '+1 201-555-0123'
+  return (
+    <FormContainer {...props} optionalLabels>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={12} md={6}>
+          <FormField fullWidth name='name' required component={TextField} />
         </Grid>
-      </FormContainer>
-    )
-  }
+        <Grid item xs={12} sm={12} md={6}>
+          <FormField
+            fullWidth
+            name='type'
+            required
+            select
+            disabled={props.edit}
+            component={TextField}
+          >
+            <MenuItem value='SMS'>SMS</MenuItem>
+            <MenuItem value='VOICE'>VOICE</MenuItem>
+          </FormField>
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            placeholder={examplePhoneNumber}
+            aria-labelledby='countryCodeIndicator'
+            fullWidth
+            name='value'
+            required
+            label='Phone Number'
+            type='tel'
+            component={TextField}
+            mapOnChangeValue={cleanValue}
+            disabled={props.edit}
+          />
+          {!props.edit && (
+            <Typography
+              variant='caption'
+              component='p'
+              id='countryCodeIndicator'
+            >
+              Please provide your country code e.g. +1 (USA)
+            </Typography>
+          )}
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant='caption'>{props.disclaimer}</Typography>
+        </Grid>
+      </Grid>
+    </FormContainer>
+  )
+}
+
+UserContactMethodForm.defaultProps = {
+  onChange: () => {},
+}
+
+UserContactMethodForm.propTypes = {
+  value: p.shape({
+    name: p.string.isRequired,
+    type: p.oneOf(['SMS', 'VOICE']).isRequired,
+    value: p.string.isRequired,
+    // disclaimer text to display at the bottom of the form
+    disclaimer: p.string,
+  }).isRequired,
+
+  errors: p.arrayOf(
+    p.shape({
+      field: p.oneOf(['name', 'type', 'value']).isRequired,
+      message: p.string.isRequired,
+    }),
+  ),
+
+  onChange: p.func,
+
+  disabled: p.bool,
+
+  edit: p.bool,
 }
