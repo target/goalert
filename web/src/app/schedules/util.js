@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import _ from 'lodash-es'
 
 export const days = [
   'Sunday',
@@ -10,9 +11,11 @@ export const days = [
   'Saturday',
 ]
 
-// Shifts a weekdayFilter so that it matches the luxon day n
-//
-// Default is 7 (Sunday)
+/*
+ * Shifts a weekdayFilter so that it matches the luxon day, n
+ *
+ * Default is 7 (Sunday)
+ */
 export function alignWeekdayFilter(n, filter) {
   if (n === 7) return filter
 
@@ -20,13 +23,38 @@ export function alignWeekdayFilter(n, filter) {
 }
 
 export function mapRuleTZ(fromTZ, toTZ, rule) {
-  const start = parseClock(rule.start, fromTZ).setZone(toTZ)
-  const end = parseClock(rule.end, fromTZ).setZone(toTZ)
+  let start = rule.start
+  let end = rule.end
+
+  // string from backend, luxon object while editing
+  if (typeof rule.start === 'string') {
+    start = DateTime.fromFormat(rule.start, 'HH:mm', {
+      zone: fromTZ,
+      weekday: 7,
+    })
+  }
+  if (typeof rule.end === 'string') {
+    end = DateTime.fromFormat(rule.end, 'HH:mm', {
+      zone: fromTZ,
+      weekday: 7,
+    })
+  }
+
+  if (Boolean(start) && start.isValid) {
+    start = start.setZone(toTZ)
+  }
+  if (Boolean(end) && end.isValid) {
+    end = end.setZone(toTZ)
+  }
+
   return {
     ...rule,
-    start: formatClock(start),
-    end: formatClock(end),
-    weekdayFilter: alignWeekdayFilter(start.weekday, rule.weekdayFilter),
+    start,
+    end,
+    weekdayFilter: alignWeekdayFilter(
+      _.get(start, 'weekday', 7),
+      rule.weekdayFilter,
+    ),
   }
 }
 

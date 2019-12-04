@@ -81,6 +81,7 @@ export default class ScheduleRuleEditDialog extends React.Component {
         pick(r, ['id', 'start', 'end', 'weekdayFilter']),
       ),
     }
+
     return (
       <FormDialog
         onClose={this.props.onClose}
@@ -93,13 +94,18 @@ export default class ScheduleRuleEditDialog extends React.Component {
             this.props.onClose()
             return
           }
+
           commit({
             variables: {
               input: {
                 target: this.props.target,
                 scheduleID: this.props.scheduleID,
 
-                rules: this.state.value.rules,
+                rules: this.state.value.rules.map(r => ({
+                  ...r,
+                  start: r.start.toFormat('HH:mm'),
+                  end: r.end.toFormat('HH:mm'),
+                })),
               },
             },
           })

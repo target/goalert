@@ -19,13 +19,14 @@ import {
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash-es'
 import { Add, Trash } from '../icons'
-import { TimePicker } from '@material-ui/pickers'
+import { KeyboardTimePicker } from '@material-ui/pickers'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { parseClock, formatClock, mapRuleTZ } from './util'
+import { mapRuleTZ } from './util'
+import { AccessTime as ClockIcon } from '@material-ui/icons'
 
 const days = [
   'Sunday',
@@ -71,25 +72,23 @@ const renderDaysValue = value => {
   return parts.join(',')
 }
 
-const styles = theme => {
-  return {
-    noPadding: {
-      padding: 0,
-    },
-    dayFilter: {
-      padding: 0,
-      paddingRight: '1em',
-    },
-    startEnd: {
-      padding: 0,
-      minWidth: '6em',
-      paddingRight: '1em',
-    },
-    tzNote: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-  }
+const styles = {
+  noPadding: {
+    padding: 0,
+  },
+  dayFilter: {
+    padding: 0,
+    paddingRight: '1em',
+  },
+  startEnd: {
+    padding: 0,
+    minWidth: '6em',
+    paddingRight: '1em',
+  },
+  tzNote: {
+    display: 'flex',
+    alignItems: 'center',
+  },
 }
 
 const query = gql`
@@ -114,8 +113,8 @@ export default class ScheduleRuleForm extends React.PureComponent {
       targetID: p.string.isRequired,
       rules: p.arrayOf(
         p.shape({
-          start: p.string.isRequired,
-          end: p.string.isRequired,
+          start: p.oneOfType([p.string, p.object]), // empty val is null
+          end: p.oneOfType([p.string, p.object]), // empty val is null
 
           weekdayFilter: p.arrayOf(p.bool).isRequired,
         }),
@@ -234,7 +233,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
               </TableHead>
               <TableBody>
                 {this.props.value.rules.map((r, idx) =>
-                  this.renderRuleField(idx),
+                  this.renderRuleField(r, idx),
                 )}
               </TableBody>
             </Table>
@@ -244,35 +243,48 @@ export default class ScheduleRuleForm extends React.PureComponent {
     )
   }
 
-  renderRuleField(idx) {
-    const parseValue = value => parseClock(value, this.props.zone)
+  renderRuleField(r, idx) {
     const classes = this.props.classes
     return (
       <TableRow key={idx}>
         <TableCell className={classes.startEnd}>
           <FormField
+            component={KeyboardTimePicker}
             fullWidth
-            noError
-            component={TimePicker}
-            mapValue={parseValue}
-            mapOnChangeValue={formatClock}
             showTodayButton
             required
             label=''
             name={`rules[${idx}].start`}
+            mask='__:__ _M'
+            placeholder='08:00 AM'
+            format='hh:mm a'
+            keyboardIcon={<ClockIcon />}
+            invalidDateMessage={null}
+            validate={() => {
+              if (!r.start.isValid) {
+                return new Error('Invalid time')
+              }
+            }}
           />
         </TableCell>
         <TableCell className={classes.startEnd}>
           <FormField
+            component={KeyboardTimePicker}
             fullWidth
-            noError
-            component={TimePicker}
-            mapValue={parseValue}
-            mapOnChangeValue={formatClock}
             showTodayButton
             required
             label=''
             name={`rules[${idx}].end`}
+            mask='__:__ _M'
+            placeholder='05:00 PM'
+            format='hh:mm a'
+            keyboardIcon={<ClockIcon />}
+            invalidDateMessage={null}
+            validate={() => {
+              if (!r.end.isValid) {
+                return new Error('Invalid time')
+              }
+            }}
           />
         </TableCell>
         <Hidden smDown>
