@@ -58,16 +58,13 @@ export default function UserRouter() {
   return (
     <Switch>
       <Route exact path='/users' component={UserList} />
+      <Redirect exact from={`/users/${userID}`} to='/profile' />
       <Route
         exact
         path='/users/:userID'
-        render={({ match }) =>
-          match.params.userID === userID ? (
-            <Redirect to='/profile' />
-          ) : (
-            <UserDetails userID={match.params.userID} readOnly />
-          )
-        }
+        render={({ match }) => (
+          <UserDetails userID={match.params.userID} readOnly />
+        )}
       />
       <Route exact path='/profile' component={UserProfile} />
       <Route
