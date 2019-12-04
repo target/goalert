@@ -235,6 +235,7 @@ type ComplexityRoot struct {
 		Config                  func(childComplexity int, all *bool) int
 		EscalationPolicies      func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy        func(childComplexity int, id string) int
+		ExamplePhoneNumber      func(childComplexity int, input string) int
 		HeartbeatMonitor        func(childComplexity int, id string) int
 		IntegrationKey          func(childComplexity int, id string) int
 		LabelKeys               func(childComplexity int, input *LabelKeySearchOptions) int
@@ -502,6 +503,7 @@ type QueryResolver interface {
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
+	ExamplePhoneNumber(ctx context.Context, input string) (*string, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
 }
@@ -1496,6 +1498,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.EscalationPolicy(childComplexity, args["id"].(string)), true
+
+	case "Query.examplePhoneNumber":
+		if e.complexity.Query.ExamplePhoneNumber == nil {
+			break
+		}
+
+		args, err := ec.field_Query_examplePhoneNumber_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ExamplePhoneNumber(childComplexity, args["input"].(string)), true
 
 	case "Query.heartbeatMonitor":
 		if e.complexity.Query.HeartbeatMonitor == nil {
@@ -2528,6 +2542,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
 
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
+
+  # Returns an example phone number for the given country code e.g. "US"
+  examplePhoneNumber(input: String!): String
 
   # Returns the list of Slack channels available to the current user.
   slackChannels(input: SlackChannelSearchOptions): SlackChannelConnection!
@@ -3903,6 +3920,20 @@ func (ec *executionContext) field_Query_escalationPolicy_args(ctx context.Contex
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_examplePhoneNumber_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -9062,6 +9093,47 @@ func (ec *executionContext) _Query_userContactMethod(ctx context.Context, field 
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOUserContactMethod2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐContactMethod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_examplePhoneNumber(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_examplePhoneNumber_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ExamplePhoneNumber(rctx, args["input"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_slackChannels(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16736,6 +16808,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_userContactMethod(ctx, field)
+				return res
+			})
+		case "examplePhoneNumber":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_examplePhoneNumber(ctx, field)
 				return res
 			})
 		case "slackChannels":

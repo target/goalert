@@ -32,6 +32,16 @@ func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.C
 	return formatted, nil
 }
 
+func (q *Query) ExamplePhoneNumber(ctx context.Context, countryCode string) (*string, error) {
+
+	//TODO get user's locale via IP or something similar
+	phoneNumber := libphonenumber.GetExampleNumber(countryCode)
+	formatted := libphonenumber.Format(phoneNumber, libphonenumber.INTERNATIONAL)
+
+	//TODO return &formatted, error
+	return &formatted, nil
+}
+
 func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
 	return (*App)(q).FindOneCM(ctx, id)
 }

@@ -81,6 +81,9 @@ type Query {
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
+  # Returns an example phone number for the given country code e.g. "US"
+  examplePhoneNumber(input: String!): String
+
   # Returns the list of Slack channels available to the current user.
   slackChannels(input: SlackChannelSearchOptions): SlackChannelConnection!
 
