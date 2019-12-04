@@ -162,7 +162,7 @@ export default class SideBarDrawerList extends React.PureComponent {
             className={classes.logo}
             height={32}
             src={logo}
-            alt='Go Alert Logo'
+            alt='GoAlert Logo'
           />
         </div>
         <Divider />
