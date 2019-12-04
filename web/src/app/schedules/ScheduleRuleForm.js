@@ -142,26 +142,18 @@ export default class ScheduleRuleForm extends React.PureComponent {
       ...formProps
     } = this.props
 
-    let mapValue = value => value
-    let mapOnChangeValue = value => value
-
-    if (displayTZ !== scheduleTZ) {
-      // handle zone conversions for rules, from schedule TZ to display TZ
-      mapValue = value => {
-        return {
-          ...value,
-          rules: value.rules.map(rule =>
-            mapRuleTZ(scheduleTZ, displayTZ, rule),
-          ),
-        }
+    // handle zone conversions for rules, from schedule TZ to display TZ
+    const mapValue = value => {
+      return {
+        ...value,
+        rules: value.rules.map(rule => mapRuleTZ(scheduleTZ, displayTZ, rule)),
       }
-      mapOnChangeValue = value => {
-        return {
-          ...value,
-          rules: value.rules.map(rule =>
-            mapRuleTZ(displayTZ, scheduleTZ, rule),
-          ),
-        }
+    }
+
+    const mapOnChangeValue = value => {
+      return {
+        ...value,
+        rules: value.rules.map(rule => mapRuleTZ(displayTZ, scheduleTZ, rule)),
       }
     }
 

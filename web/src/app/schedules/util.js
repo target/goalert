@@ -26,26 +26,13 @@ export function mapRuleTZ(fromTZ, toTZ, rule) {
   let start = rule.start
   let end = rule.end
 
-  // string from backend, luxon object while editing
-  if (typeof rule.start === 'string') {
-    start = DateTime.fromFormat(rule.start, 'HH:mm', {
-      zone: fromTZ,
-      weekday: 7,
-    })
-  }
-  if (typeof rule.end === 'string') {
-    end = DateTime.fromFormat(rule.end, 'HH:mm', {
-      zone: fromTZ,
-      weekday: 7,
-    })
-  }
+  // initially a string from backend, luxon object while editing
+  if (typeof rule.start === 'string') start = parseClock(rule.start, fromTZ)
+  if (typeof rule.end === 'string') end = parseClock(rule.end, fromTZ)
 
-  if (Boolean(start) && start.isValid) {
-    start = start.setZone(toTZ)
-  }
-  if (Boolean(end) && end.isValid) {
-    end = end.setZone(toTZ)
-  }
+  // set to new tz
+  if (Boolean(start) && start.isValid) start = start.setZone(toTZ)
+  if (Boolean(end) && end.isValid) end = end.setZone(toTZ)
 
   return {
     ...rule,
