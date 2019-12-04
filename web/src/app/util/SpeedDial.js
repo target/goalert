@@ -13,6 +13,11 @@ const useStyles = makeStyles({
   staticTooltipLabel: {
     whiteSpace: 'nowrap',
   },
+  disabledStaticTooltipLabel: {
+    whiteSpace: 'nowrap',
+    color: 'rgb(138,138,138)',
+    backgroundColor: 'rgb(185,185,185)',
+  },
 })
 
 export default function CustomSpeedDial(props) {
@@ -42,12 +47,19 @@ export default function CustomSpeedDial(props) {
             icon={action.icon}
             tooltipTitle={action.label}
             tooltipOpen
-            classes={{ staticTooltipLabel: classes.staticTooltipLabel }}
+            classes={{
+              staticTooltipLabel: action.disabled
+                ? classes.disabledStaticTooltipLabel
+                : classes.staticTooltipLabel,
+            }}
             aria-label={action.label}
-            onClick={() => {
-              if (!action.disabled) {
-                action.onClick()
+            FabProps={{ disabled: action.disabled }}
+            onClick={e => {
+              if (action.disabled) {
+                e.stopPropagation()
+                return
               }
+              action.onClick()
             }}
           />
         ))}

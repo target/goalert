@@ -83,7 +83,6 @@ export default function UserDetails(props) {
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
 
-  const iconColor = user.contactMethods.length ? 'primary' : 'disabled'
   const disableNR = user.contactMethods.length === 0
 
   return (
@@ -99,7 +98,7 @@ export default function UserDetails(props) {
             },
             {
               label: 'Add Notification Rule',
-              icon: <AddAlarm color={iconColor} />,
+              icon: <AddAlarm />,
               disabled: disableNR,
               onClick: () => setCreateNR(true),
             },

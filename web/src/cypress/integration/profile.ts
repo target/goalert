@@ -113,12 +113,7 @@ function testProfile(screen: ScreenFormat) {
         `span[aria-label*=${JSON.stringify(
           'Add Notification Rule',
         )}] button[role=menuitem]`,
-      ).click()
-      cy.get(
-        `span[aria-label*=${JSON.stringify(
-          'Add Notification Rule',
-        )}] button[role=menuitem]`,
-      ).should('not.be.visible')
+      ).should('be.disabled')
     })
 
     it('should display notification disclaimer when enabled', () => {
