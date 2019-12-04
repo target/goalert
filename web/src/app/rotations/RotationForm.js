@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import { TimePicker } from '@material-ui/pickers'
+import { KeyboardTimePicker } from '@material-ui/pickers'
 import { TimeZoneSelect } from '../selection'
 import { TextField, Grid, MenuItem } from '@material-ui/core'
 import { startCase } from 'lodash-es'
@@ -17,7 +17,7 @@ export default class RotationForm extends React.PureComponent {
       timeZone: p.string.isRequired,
       type: p.oneOf(rotationTypes).isRequired,
       shiftLength: p.number.isRequired,
-      start: p.string.isRequired,
+      start: p.object, // empty val is null
     }).isRequired,
 
     errors: p.arrayOf(
@@ -107,11 +107,19 @@ export default class RotationForm extends React.PureComponent {
           <Grid item xs={12}>
             <FormField
               fullWidth
-              component={TimePicker}
+              component={KeyboardTimePicker}
+              mask='__:__ _M'
+              placeholder='08:00 AM'
               label='Handoff Time'
               name='start'
+              format='hh:mm a'
+              invalidDateMessage={null}
+              validate={() => {
+                if (!this.props.value.start.isValid) {
+                  return new Error('Invalid time')
+                }
+              }}
               required
-              mapOnChangeValue={value => value.toISO()}
             />
           </Grid>
           {this.props.value.type === 'weekly' && this.renderDayOfWeekField()}
