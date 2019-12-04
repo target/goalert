@@ -4,6 +4,7 @@ import { FormContainer, FormField } from '../forms'
 import { KeyboardTimePicker } from '@material-ui/pickers'
 import { TimeZoneSelect } from '../selection'
 import { TextField, Grid, MenuItem } from '@material-ui/core'
+import { AccessTime } from '@material-ui/icons'
 import { startCase } from 'lodash-es'
 import { DateTime, Info } from 'luxon'
 
@@ -113,6 +114,7 @@ export default class RotationForm extends React.PureComponent {
               label='Handoff Time'
               name='start'
               format='hh:mm a'
+              keyboardIcon={<AccessTime />}
               invalidDateMessage={null}
               validate={() => {
                 if (!this.props.value.start.isValid) {
