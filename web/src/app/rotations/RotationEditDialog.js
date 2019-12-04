@@ -2,6 +2,7 @@ import React from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
+import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 import FormDialog from '../dialogs/FormDialog'
@@ -71,6 +72,7 @@ export default class RotationEditDialog extends React.PureComponent {
             variables: {
               input: {
                 id: this.props.rotationID,
+                start: this.state.value.start.toISO(),
                 ...this.state.value,
               },
             },
@@ -87,7 +89,7 @@ export default class RotationEditDialog extends React.PureComponent {
                 timeZone: data.timeZone,
                 type: data.type,
                 shiftLength: data.shiftLength,
-                start: data.start,
+                start: DateTime.fromISO(data.start),
               }
             }
             onChange={value => this.setState({ value })}
