@@ -6,7 +6,7 @@ update_configs:
     ignored_updates:
       - match:
           dependency_name: "cypress"
-          version_requirement: "<=3.6.1"
+          version_requirement: "<=3.7.0"
       - match:
           dependency_name: "react-infinite-scroll-component"
           version_requirement: "<=5.0.3"
