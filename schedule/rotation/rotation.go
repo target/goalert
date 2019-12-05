@@ -87,7 +87,6 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 				cTime = addHoursAlwaysInc(cTime, -r.ShiftLength)
 			}
 		case TypeWeekly, TypeDaily:
-			// while cTime (rotation start) is after t
 			for cTime.After(t) {
 				last = cTime
 				// getting next end of shift
@@ -101,12 +100,10 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 
 	switch r.Type {
 	case TypeHourly:
-		// while cTime (rotation start) is before t
 		for !cTime.After(t) {
 			cTime = addHoursAlwaysInc(cTime, r.ShiftLength)
 		}
 	case TypeWeekly, TypeDaily:
-		// while cTime (rotation start) is before t
 		for !cTime.After(t) {
 			// getting end of shift
 			cTime = cTime.AddDate(0, 0, r.ShiftLength)
