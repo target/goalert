@@ -142,6 +142,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
       ...formProps
     } = this.props
 
+    // TODO: don't alter user input if the timezone switch is toggled on
     // handle zone conversions for rules, from schedule TZ to display TZ
     const mapValue = value => {
       return {
@@ -150,20 +151,8 @@ export default class ScheduleRuleForm extends React.PureComponent {
       }
     }
 
-    const mapOnChangeValue = value => {
-      return {
-        ...value,
-        rules: value.rules.map(rule => mapRuleTZ(displayTZ, scheduleTZ, rule)),
-      }
-    }
-
     return (
-      <FormContainer
-        {...formProps}
-        optionalLabels
-        mapValue={mapValue}
-        mapOnChangeValue={mapOnChangeValue}
-      >
+      <FormContainer {...formProps} optionalLabels mapValue={mapValue}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
             <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
