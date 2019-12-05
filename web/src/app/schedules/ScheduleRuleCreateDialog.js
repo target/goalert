@@ -62,7 +62,11 @@ export default class ScheduleRuleCreateDialog extends React.PureComponent {
                 },
                 scheduleID: this.props.scheduleID,
 
-                rules: this.state.value.rules,
+                rules: this.state.value.rules.map(r => ({
+                  ...r,
+                  start: r.start.toFormat('HH:mm'),
+                  end: r.end.toFormat('HH:mm'),
+                })),
               },
             },
           })
