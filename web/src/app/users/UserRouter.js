@@ -1,5 +1,5 @@
 import React from 'react'
-import { Switch, Route, Redirect } from 'react-router-dom'
+import { Switch, Route } from 'react-router-dom'
 import gql from 'graphql-tag'
 import { UserAvatar } from '../util/avatar/types'
 import QueryList from '../lists/QueryList'
@@ -57,8 +57,12 @@ export default function UserRouter() {
 
   return (
     <Switch>
+      <Route
+        exact
+        path={['/profile', `/users/${userID}`]}
+        component={UserProfile}
+      />
       <Route exact path='/users' component={UserList} />
-      <Redirect exact from={`/users/${userID}`} to='/profile' />
       <Route
         exact
         path='/users/:userID'
@@ -66,7 +70,6 @@ export default function UserRouter() {
           <UserDetails userID={match.params.userID} readOnly />
         )}
       />
-      <Route exact path='/profile' component={UserProfile} />
       <Route
         exact
         path='/profile/on-call-assignments'
