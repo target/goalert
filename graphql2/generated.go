@@ -3147,6 +3147,7 @@ enum IntegrationKeyType {
   generic
   grafana
   site24x7
+  prometheus
   email
 }
 

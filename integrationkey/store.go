@@ -71,7 +71,7 @@ func (db *DB) Authorize(ctx context.Context, id string, t Type) (context.Context
 func (db *DB) GetServiceID(ctx context.Context, id string, t Type) (string, error) {
 	err := validate.Many(
 		validate.UUID("IntegrationKeyID", id),
-		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypeGeneric, TypeEmail),
+		validate.OneOf("IntegrationType", t, TypeGrafana, TypeSite24x7, TypePrometheus, TypeGeneric, TypeEmail),
 	)
 	if err != nil {
 		return "", err
