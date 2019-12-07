@@ -8,7 +8,7 @@ describe('mapRuleTZ', () => {
     rule.weekdayFilter = fromBin(rule.f)
     expected.weekdayFilter = fromBin(expected.f)
 
-    expect(mapRuleTZ(fromTZ, toTZ, _.omit(rule, 'f'))).toEqual(
+    expect(mapRuleTZ(_.omit(rule, 'f'), fromTZ, toTZ)).toEqual(
       _.omit(expected, 'f'),
     )
   }

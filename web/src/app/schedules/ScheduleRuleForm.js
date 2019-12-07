@@ -25,7 +25,7 @@ import Query from '../util/Query'
 import gql from 'graphql-tag'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { mapRuleTZ } from './util'
+import { mapRuleToDateTime, mapRuleTZ } from './util'
 import { AccessTime as ClockIcon } from '@material-ui/icons'
 
 const days = [
@@ -109,6 +109,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
 
     scheduleID: p.string.isRequired,
 
+    onChange: p.func.isRequired,
     value: p.shape({
       targetID: p.string.isRequired,
       rules: p.arrayOf(
@@ -134,6 +135,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
   }
 
   renderForm(scheduleTZ) {
+    const { onChange, value } = this.props
     const {
       zone: displayTZ,
       targetDisabled,
@@ -142,12 +144,11 @@ export default class ScheduleRuleForm extends React.PureComponent {
       ...formProps
     } = this.props
 
-    // TODO: don't alter user input if the timezone switch is toggled on
-    // handle zone conversions for rules, from schedule TZ to display TZ
+    // map initial ClockTime string to a luxon DateTime object for editing
     const mapValue = value => {
       return {
         ...value,
-        rules: value.rules.map(rule => mapRuleTZ(scheduleTZ, displayTZ, rule)),
+        rules: value.rules.map(rule => mapRuleToDateTime(rule, displayTZ)),
       }
     }
 
@@ -165,6 +166,15 @@ export default class ScheduleRuleForm extends React.PureComponent {
             <ScheduleTZFilter
               label={tz => `Configure in ${tz}`}
               scheduleID={this.props.scheduleID}
+              onChange={() => {
+                // update value in form container with new TZ
+                onChange({
+                  ...value,
+                  rules: value.rules.map(rule =>
+                    mapRuleTZ(rule, scheduleTZ, displayTZ),
+                  ),
+                })
+              }}
             />
           </Grid>
           <Grid item xs={12}>

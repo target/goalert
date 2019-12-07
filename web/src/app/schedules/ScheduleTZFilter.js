@@ -41,7 +41,10 @@ export function ScheduleTZFilter(props) {
       control={
         <Switch
           checked={zone !== 'local'}
-          onChange={e => setZone(e.target.checked ? tz : 'local')}
+          onChange={e => {
+            setZone(e.target.checked ? tz : 'local')
+            return props.onChange()
+          }}
           value={tz}
           disabled={Boolean(loading || error)}
         />
@@ -52,8 +55,10 @@ export function ScheduleTZFilter(props) {
 }
 ScheduleTZFilter.propTypes = {
   label: p.func,
-
   scheduleID: p.string.isRequired,
+
+  // to be executed and returned after the zone is set in the URL
+  onChange: p.func,
 
   // provided by connect
   zone: p.string,
