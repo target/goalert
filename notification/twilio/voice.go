@@ -73,8 +73,8 @@ type gather struct {
 	Action    string   `xml:"action,attr,omitempty"`
 	Method    string   `xml:"method,attr,omitempty"`
 	NumDigits int      `xml:"numDigits,attr,omitempty"`
+	Timeout   int      `xml:"timeout,attr,omitempty"`
 	Say       string   `xml:"Say,omitempty"`
-	Pause     int      `xml:"Pause,omitempty"`
 }
 
 type twiMLRedirect struct {
@@ -83,12 +83,9 @@ type twiMLRedirect struct {
 }
 
 type twiMLRetry struct {
-	XMLName xml.Name `xml:"Response"`
-	Say     string   `xml:"Say"`
-	Pause   struct {
-		Seconds int `xml:"length,attr"`
-	} `xml:"Pause"`
-	RedirectURL string `xml:"Redirect"`
+	XMLName     xml.Name `xml:"Response"`
+	Say         string   `xml:"Say"`
+	RedirectURL string   `xml:"Redirect"`
 }
 
 type twiMLGather struct {
@@ -392,9 +389,10 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeStop),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
-			Pause:     5,
 		}
+
 		renderXML(w, req, twiMLGather{
 			Gather: g,
 		})
@@ -504,7 +502,6 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 				Say:         "One moment please.",
 				RedirectURL: v.callbackURL(ctx, q, CallType(q.Get("type"))),
 			}
-			retry.Pause.Seconds = 5
 			renderXML(w, req, retry)
 			return true
 		}
@@ -561,8 +558,8 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeTest),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
-			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
@@ -590,8 +587,8 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeVerify),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
-			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
@@ -622,8 +619,8 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlertStatus),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
-			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
@@ -688,8 +685,8 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlert),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
-			Pause:     5,
 		}
 		renderXML(w, req, twiMLGather{
 			Gather: g,
