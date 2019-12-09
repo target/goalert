@@ -35,7 +35,7 @@ export default function RotationUsersList(props) {
   let oldIdx = null
   let newIdx = null
   let nextActiveIdx = null
-  let userIDs = users.map(user => user.id)
+  const userIDs = users.map(user => user.id)
 
   const classes = useStyles()
   const [showErrorDialog, setShowErrorDialog] = useState(false)
@@ -235,14 +235,13 @@ export default function RotationUsersList(props) {
             expiredMessage='< 1 Minute'
           />
         )
-      } else {
-        return (
-          'Starts at ' +
-          DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE) +
-          ' ' +
-          DateTime.fromISO(time).toRelativeCalendar()
-        )
       }
+      return (
+        'Starts at ' +
+        DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE) +
+        ' ' +
+        DateTime.fromISO(time).toRelativeCalendar()
+      )
     })
   }
 }
