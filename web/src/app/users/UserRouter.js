@@ -57,12 +57,12 @@ export default function UserRouter() {
 
   return (
     <Switch>
+      <Route exact path='/users' component={UserList} />
       <Route
         exact
-        path={['/profile', `/users/${userID}`]}
+        path={[`/users/${userID}`, '/profile']}
         component={UserProfile}
       />
-      <Route exact path='/users' component={UserList} />
       <Route
         exact
         path='/users/:userID'
