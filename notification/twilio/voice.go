@@ -504,6 +504,7 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 				Say:         "One moment please.",
 				RedirectURL: v.callbackURL(ctx, q, CallType(q.Get("type"))),
 			}
+			retry.Pause.Seconds = 5
 			renderXML(w, req, retry)
 			return true
 		}
