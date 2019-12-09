@@ -62,9 +62,7 @@ export default class WizardRouter extends React.PureComponent {
         timeZone: null,
         users: [],
         rotation: {
-          startDate: DateTime.local()
-            .startOf('day')
-            .toISO(),
+          startDate: DateTime.local().startOf('day'),
           type: 'never',
           favorite: true,
         },
@@ -79,9 +77,7 @@ export default class WizardRouter extends React.PureComponent {
         timeZone: null,
         users: [],
         rotation: {
-          startDate: DateTime.local()
-            .startOf('day')
-            .toISO(),
+          startDate: DateTime.local().startOf('day'),
           type: 'never',
           favorite: true,
         },
