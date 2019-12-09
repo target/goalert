@@ -83,9 +83,12 @@ type twiMLRedirect struct {
 }
 
 type twiMLRetry struct {
-	XMLName     xml.Name `xml:"Response"`
-	Say         string   `xml:"Say"`
-	RedirectURL string   `xml:"Redirect"`
+	XMLName xml.Name `xml:"Response"`
+	Say     string   `xml:"Say"`
+	Pause   struct {
+		Seconds int `xml:"length,attr"`
+	} `xml:"Pause"`
+	RedirectURL string `xml:"Redirect"`
 }
 
 type twiMLGather struct {
@@ -392,7 +395,6 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 			Timeout:   10,
 			Say:       message,
 		}
-
 		renderXML(w, req, twiMLGather{
 			Gather: g,
 		})
