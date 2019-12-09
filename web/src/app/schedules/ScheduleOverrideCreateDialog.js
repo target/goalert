@@ -41,8 +41,8 @@ export default class ScheduleOverrideCreateDialog extends React.PureComponent {
     defaultValue: p.shape({
       addUserID: p.string,
       removeUserID: p.string,
-      start: p.string,
-      end: p.string,
+      start: p.object, // DateTime
+      end: p.object, // DateTime
     }),
   }
 
@@ -57,13 +57,10 @@ export default class ScheduleOverrideCreateDialog extends React.PureComponent {
       value: {
         addUserID: '',
         removeUserID: '',
-        start: DateTime.local()
-          .startOf('hour')
-          .toISO(),
+        start: DateTime.local().startOf('hour'),
         end: DateTime.local()
           .startOf('hour')
-          .plus({ hours: 8 })
-          .toISO(),
+          .plus({ hours: 8 }),
         ...props.defaultValue,
       },
     }
@@ -92,16 +89,18 @@ export default class ScheduleOverrideCreateDialog extends React.PureComponent {
         title={copyText[this.props.variant].title}
         subTitle={copyText[this.props.variant].desc}
         errors={nonFieldErrors(status.error)}
-        onSubmit={() =>
+        onSubmit={() => {
           commit({
             variables: {
               input: {
                 ...this.state.value,
                 scheduleID: this.props.scheduleID,
+                start: this.state.value.start.toISO(),
+                end: this.state.value.end.toISO(),
               },
             },
           })
-        }
+        }}
         form={
           <ScheduleOverrideForm
             add={this.props.variant !== 'remove'}

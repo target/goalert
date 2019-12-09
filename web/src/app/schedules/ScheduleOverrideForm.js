@@ -13,7 +13,7 @@ import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateRange } from '@material-ui/icons'
-import { DateTimePicker } from '@material-ui/pickers'
+import { KeyboardDateTimePicker } from '@material-ui/pickers'
 import { DateTime } from 'luxon'
 import { UserSelect } from '../selection'
 import gql from 'graphql-tag'
@@ -47,7 +47,8 @@ const useStyles = makeStyles({
 })
 
 export default function ScheduleOverrideForm(props) {
-  const { add, remove, errors = [], scheduleID, value, ...formProps } = props
+  const { onChange, value } = props
+  const { add, remove, errors = [], scheduleID, ...formProps } = props
 
   const classes = useStyles()
   const params = useSelector(urlParamSelector)
@@ -78,7 +79,6 @@ export default function ScheduleOverrideForm(props) {
     <FormContainer
       optionalLabels
       errors={errors.concat(userConflictErrors)}
-      value={value}
       {...formProps}
     >
       <Grid container spacing={2}>
@@ -97,6 +97,14 @@ export default function ScheduleOverrideForm(props) {
           <ScheduleTZFilter
             label={tz => `Configure in ${tz}`}
             scheduleID={scheduleID}
+            onChange={() => {
+              // update value in form container with new TZ
+              onChange({
+                ...value,
+                start: value.start.setZone(zone),
+                end: value.end.setZone(zone),
+              })
+            }}
           />
         </Grid>
         {remove && (
@@ -124,9 +132,7 @@ export default function ScheduleOverrideForm(props) {
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={DateTimePicker}
-            mapValue={value => DateTime.fromISO(value, { zone })}
-            mapOnChangeValue={value => value.toISO()}
+            component={KeyboardDateTimePicker}
             showTodayButton
             required
             name='start'
@@ -139,14 +145,24 @@ export default function ScheduleOverrideForm(props) {
                 </InputAdornment>
               ),
             }}
+            // keyboard picker props
+            format='MM/dd/yyyy, hh:mm a'
+            mask='__/__/____, __:__ _M'
+            placeholder={DateTime.local()
+              .startOf('day')
+              .toFormat('MM/dd/yyyy, hh:mm a')}
+            invalidDateMessage={null}
+            validate={() => {
+              if (!props.value.start.isValid) {
+                return new Error('Invalid time')
+              }
+            }}
           />
         </Grid>
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={DateTimePicker}
-            mapValue={value => DateTime.fromISO(value, { zone })}
-            mapOnChangeValue={value => value.toISO()}
+            component={KeyboardDateTimePicker}
             showTodayButton
             name='end'
             required
@@ -158,6 +174,18 @@ export default function ScheduleOverrideForm(props) {
                   </IconButton>
                 </InputAdornment>
               ),
+            }}
+            // keyboard picker props
+            format='MM/dd/yyyy, hh:mm a'
+            mask='__/__/____, __:__ _M'
+            placeholder={DateTime.local()
+              .endOf('day')
+              .toFormat('MM/dd/yyyy, hh:mm a')}
+            invalidDateMessage={null}
+            validate={() => {
+              if (!props.value.start.isValid) {
+                return new Error('Invalid time')
+              }
             }}
           />
         </Grid>
@@ -175,8 +203,8 @@ ScheduleOverrideForm.propTypes = {
   value: p.shape({
     addUserID: p.string.isRequired,
     removeUserID: p.string.isRequired,
-    start: p.string.isRequired,
-    end: p.string.isRequired,
+    start: p.oneOfType([p.string, p.object]), // may be null while editing
+    end: p.oneOfType([p.string, p.object]), // may be null while editing
   }).isRequired,
 
   add: p.bool,

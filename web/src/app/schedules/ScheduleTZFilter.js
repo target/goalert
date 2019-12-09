@@ -43,7 +43,9 @@ export function ScheduleTZFilter(props) {
           checked={zone !== 'local'}
           onChange={e => {
             setZone(e.target.checked ? tz : 'local')
-            return props.onChange()
+            if (typeof props.onChange === 'function') {
+              return props.onChange()
+            }
           }}
           value={tz}
           disabled={Boolean(loading || error)}

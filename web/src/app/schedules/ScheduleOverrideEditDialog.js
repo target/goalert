@@ -1,11 +1,14 @@
 import React from 'react'
 import p from 'prop-types'
 import { Mutation } from 'react-apollo'
+import { DateTime } from 'luxon'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
 import Query from '../util/Query'
+import { connect } from 'react-redux'
+import { urlParamSelector } from '../selectors'
 
 const query = gql`
   query($id: ID!) {
@@ -31,6 +34,7 @@ const mutation = gql`
   }
 `
 
+@connect(state => ({ zone: urlParamSelector(state)('tz', 'local') }))
 export default class ScheduleOverrideEditDialog extends React.PureComponent {
   static propTypes = {
     overrideID: p.string.isRequired,
@@ -66,10 +70,9 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
   }
 
   getValue(data) {
-    if (this.state.value) return this.state.value
     const value = {
-      start: data.start,
-      end: data.end,
+      start: DateTime.fromISO(data.start, { zone: this.props.zone }),
+      end: DateTime.fromISO(data.end, { zone: this.props.zone }),
     }
 
     value.addUserID = data.addUser ? data.addUser.id : ''
@@ -89,11 +92,14 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
             this.props.onClose()
             return
           }
+
           commit({
             variables: {
               input: {
                 ...this.state.value,
                 id: this.props.overrideID,
+                start: this.props.start.toISO(),
+                end: this.props.end.toISO(),
               },
             },
           })
@@ -105,7 +111,7 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
             scheduleID={data.target.id}
             disabled={status.loading}
             errors={fieldErrors(status.error)}
-            value={this.getValue(data)}
+            value={this.state.value || this.getValue(data)}
             onChange={value => this.setState({ value })}
           />
         }
