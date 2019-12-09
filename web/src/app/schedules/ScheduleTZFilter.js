@@ -42,9 +42,10 @@ export function ScheduleTZFilter(props) {
         <Switch
           checked={zone !== 'local'}
           onChange={e => {
-            setZone(e.target.checked ? tz : 'local')
+            const newZone = e.target.checked ? tz : 'local'
+            setZone(newZone)
             if (typeof props.onChange === 'function') {
-              return props.onChange()
+              return props.onChange(newZone)
             }
           }}
           value={tz}

@@ -98,8 +98,8 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
               input: {
                 ...this.state.value,
                 id: this.props.overrideID,
-                start: this.props.start.toISO(),
-                end: this.props.end.toISO(),
+                start: this.state.value.start.toISO(),
+                end: this.state.value.end.toISO(),
               },
             },
           })

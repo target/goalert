@@ -80,6 +80,7 @@ export default function ScheduleOverrideForm(props) {
       optionalLabels
       errors={errors.concat(userConflictErrors)}
       {...formProps}
+      value={value}
     >
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
@@ -97,12 +98,12 @@ export default function ScheduleOverrideForm(props) {
           <ScheduleTZFilter
             label={tz => `Configure in ${tz}`}
             scheduleID={scheduleID}
-            onChange={() => {
+            onChange={newZone => {
               // update value in form container with new TZ
               onChange({
                 ...value,
-                start: value.start.setZone(zone),
-                end: value.end.setZone(zone),
+                start: value.start.setZone(newZone),
+                end: value.end.setZone(newZone),
               })
             }}
           />
