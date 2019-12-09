@@ -198,7 +198,7 @@ func (v *Voice) callbackURL(ctx context.Context, params url.Values, typ CallType
 func spellNumber(n int) string {
 	s := strconv.Itoa(n)
 
-	return strings.Join(strings.Split(s, ""), "  ")
+	return strings.Join(strings.Split(s, ""), ". ")
 }
 
 // Send implements the notification.Sender interface.
