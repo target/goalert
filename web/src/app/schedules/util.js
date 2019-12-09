@@ -34,7 +34,6 @@ export function mapRuleToDateTime(rule, tz) {
     ...rule,
     start,
     end,
-    weekdayFilter: alignWeekdayFilter(start.weekday, rule.weekdayFilter),
   }
 }
 
