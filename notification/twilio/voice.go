@@ -257,7 +257,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		message = "This is a test message from GoAlert."
 		opts.CallType = CallTypeTest
 	case notification.Verification:
-		message = "Your verification code for GoAlert is: " + spellNumber(t.Code)
+		message = "This is a message from GoAlert to verify your voice contact method. Your verification code is: " + spellNumber(t.Code) + ". Again, your verification code is: " + spellNumber(t.Code)
 		opts.CallType = CallTypeVerify
 	default:
 		return nil, errors.Errorf("unhandled message type: %T", t)
