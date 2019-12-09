@@ -1,6 +1,7 @@
 package smoketest
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -74,7 +75,12 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		return -1
 	}, msg.Body())
 
-	code, _ := strconv.Atoi(codeStr)
+	// Since verification code is said twice during one Twilio message
+	c := splitCode(codeStr, 6)
+	c1 := strings.Join(c, "")
+
+	// string to int conversion
+	code, _ := strconv.Atoi(c1)
 
 	doQL(fmt.Sprintf(`
 		mutation {
@@ -95,4 +101,19 @@ func TestTwilioVoiceVerification(t *testing.T) {
 
 	// voice for the given number should be enabled
 	d1.ExpectVoice("test")
+}
+
+func splitCode(s string, n int) []string {
+	sub := ""
+	subs := []string{}
+
+	runes := bytes.Runes([]byte(s))
+	for i, r := range runes {
+		if i < n {
+			sub = string(r)
+			subs = append(subs, sub)
+			sub = ""
+		}
+	}
+	return subs
 }
