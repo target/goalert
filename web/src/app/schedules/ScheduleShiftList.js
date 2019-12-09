@@ -24,10 +24,11 @@ import PageActions from '../util/PageActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { setURLParam, resetURLParams } from '../actions'
-import { DatePicker } from '@material-ui/pickers'
+import { KeyboardDatePicker } from '@material-ui/pickers'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
+import { POLL_INTERVAL } from '../util/poll_intervals'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
@@ -67,13 +68,21 @@ const mapQueryToProps = ({ data }) => {
     })),
   }
 }
-const mapPropsToQueryProps = ({ scheduleID, start, end }) => ({
-  variables: {
-    id: scheduleID,
-    start,
-    end,
-  },
-})
+
+const mapPropsToQueryProps = ({ scheduleID, start, end }) => {
+  const datesValid =
+    DateTime.fromISO(start).isValid && DateTime.fromISO(end).isValid
+
+  return {
+    variables: {
+      id: scheduleID,
+      start,
+      end,
+    },
+    skip: !datesValid,
+    pollInterval: datesValid ? POLL_INTERVAL : 0,
+  }
+}
 
 const mapStateToProps = state => {
   const duration = urlParamSelector(state)('duration', 'P14D')
@@ -152,9 +161,14 @@ export default class ScheduleShiftList extends React.PureComponent {
     shifts: [],
   }
 
-  state = {
-    create: null,
-    specifyDuration: false,
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      create: null,
+      specifyDuration: false,
+      startDate: DateTime.fromISO(props.start, { zone: props.zone }) || null,
+    }
   }
 
   items() {
@@ -328,12 +342,20 @@ export default class ScheduleShiftList extends React.PureComponent {
               <ScheduleTZFilter scheduleID={this.props.scheduleID} />
             </Grid>
             <Grid item xs={12}>
-              <DatePicker
+              <KeyboardDatePicker
                 className={this.props.classes.datePicker}
                 disabled={this.props.activeOnly}
                 label='Start Date'
-                value={DateTime.fromISO(this.props.start, { zone })}
-                onChange={e => this.props.handleSetStart(e.toISO())}
+                format='MM/dd/yyyy'
+                mask='__/__/____'
+                placeholder={DateTime.local().toFormat('MM/dd/yyyy')}
+                value={this.state.startDate}
+                onChange={date => {
+                  if (date && date.isValid) {
+                    this.props.handleSetStart(date.toISO())
+                  }
+                  this.setState({ startDate: date })
+                }}
                 showTodayButton
                 autoOk
                 InputProps={{
