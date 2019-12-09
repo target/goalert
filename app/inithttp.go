@@ -42,6 +42,13 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// add app config to request context
 		func(next http.Handler) http.Handler { return config.Handler(next, app.ConfigStore) },
 
+		func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				w.Header().Set("Referrer-Policy", "same-origin")
+				next.ServeHTTP(w, req)
+			})
+		},
+
 		// request cooldown tracking (for graceful shutdown)
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -51,6 +58,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 				next.ServeHTTP(w, req)
 			})
 		},
+
+		config.ShortURLMiddleware,
 
 		// redirect http to https if public URL is https
 		func(next http.Handler) http.Handler {

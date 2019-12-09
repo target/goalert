@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/log"
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
@@ -134,12 +134,15 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	}
 
 	conn = new(graphql2.AlertConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(alerts) == s.Limit {
 		conn.PageInfo.HasNextPage = true
 		alerts = alerts[:len(alerts)-1]
 	}
 	conn.Nodes = alerts
 	if len(alerts) > 0 {
+		s.After.ID = conn.Nodes[len(conn.Nodes)-1].ID
+		s.After.Status = conn.Nodes[len(conn.Nodes)-1].Status
 		cur, err := search.Cursor(s)
 		if err != nil {
 			return nil, errors.Wrap(err, "serialize cursor")
@@ -220,6 +223,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 		return nil, err
 	}
 	conn := new(graphql2.AlertLogEntryConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(logs) == s.Limit {
 		logs = logs[:len(logs)-1]
 		conn.PageInfo.HasNextPage = true

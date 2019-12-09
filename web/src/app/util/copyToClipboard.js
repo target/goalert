@@ -1,3 +1,11 @@
+export default function copyToClipboard(text) {
+  try {
+    navigator.clipboard.writeText(text)
+  } catch (error) {
+    fallback(text)
+  }
+}
+
 /*
  * Creates a temporary text area element, selects the
  * text inside, and copies it to the clipboard.
@@ -5,7 +13,7 @@
  * If other text was highlighted before this operation,
  * that state is saved upon completion of copying.
  */
-export default function copyToClipboard(str) {
+function fallback(str) {
   const textArea = document.createElement('textArea')
   textArea.value = str // Set its value to what you want copied
   textArea.readOnly = true // Deny tampering
@@ -19,9 +27,9 @@ export default function copyToClipboard(str) {
 
   // iOS requires some special finesse
   if (isOS()) {
-    let range = document.createRange()
+    const range = document.createRange()
     range.selectNodeContents(textArea)
-    let selection = window.getSelection()
+    const selection = window.getSelection()
     selection.removeAllRanges()
     selection.addRange(range)
     textArea.setSelectionRange(0, 999999) // Big number to copy everything

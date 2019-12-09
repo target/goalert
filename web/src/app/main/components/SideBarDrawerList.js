@@ -71,10 +71,7 @@ const mapDispatchToProps = dispatch => {
 }
 
 @withStyles(styles, { withTheme: true })
-@connect(
-  null,
-  mapDispatchToProps,
-)
+@connect(null, mapDispatchToProps)
 export default class SideBarDrawerList extends React.PureComponent {
   static propTypes = {
     onWizard: p.func.isRequired,
@@ -145,6 +142,7 @@ export default class SideBarDrawerList extends React.PureComponent {
         href={url}
         className={this.props.classes.nav}
         target='_blank'
+        rel='noopener noreferrer'
         data-cy='feedback-link'
       >
         {this.renderSidebarItem(FeedbackIcon, 'Feedback')}

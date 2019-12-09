@@ -48,6 +48,7 @@ export class PageActionProvider extends React.PureComponent {
 
     this.setState({ actions })
   }
+
   setActions = debounce(this._setActions)
 
   updateMounted = mount => {

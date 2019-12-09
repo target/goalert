@@ -15,7 +15,7 @@ window.onbeforeunload = function(e) {
   if (!pendingMutations) {
     return
   }
-  let dialogText =
+  const dialogText =
     'Your changes have not finished saving. If you leave this page, they could be lost.'
   e.returnValue = dialogText
   return dialogText
@@ -23,8 +23,12 @@ window.onbeforeunload = function(e) {
 
 const trackMutation = p => {
   pendingMutations++
-  p.then(() => pendingMutations--, () => pendingMutations--)
+  p.then(
+    () => pendingMutations--,
+    () => pendingMutations--,
+  )
 }
+
 export function doFetch(body, url = '/v1/graphql') {
   const f = fetch(url, {
     credentials: 'same-origin',
@@ -112,7 +116,7 @@ const simpleCacheTypes = [
 
 // tell Apollo to use cached data for `type(id: foo) {... }` queries
 const queryCache = {}
-let cache
+
 simpleCacheTypes.forEach(name => {
   queryCache[camelCase(name)] = (_, args) =>
     args &&
@@ -123,7 +127,8 @@ simpleCacheTypes.forEach(name => {
       }),
     )
 })
-cache = new InMemoryCache({
+
+const cache = new InMemoryCache({
   cacheRedirects: {
     Query: {
       ...queryCache,
@@ -142,5 +147,16 @@ export const GraphQLClient = new ApolloClient({
   defaultOptions: {
     query: queryOpts,
     mutate: { awaitRefetchQueries: true },
+  },
+})
+
+// errorPolicy can only be set "globally" but breaks if we enable it for existing
+// code. Eventually we should transition everything to expect/handle explicit errors.
+export const GraphQLClientWithErrors = new ApolloClient({
+  link: graphql2Link,
+  cache,
+  defaultOptions: {
+    query: queryOpts,
+    mutate: { awaitRefetchQueries: true, errorPolicy: 'all' },
   },
 })

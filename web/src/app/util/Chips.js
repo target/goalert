@@ -2,44 +2,69 @@ import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Chip from '@material-ui/core/Chip'
 import { withRouter } from 'react-router-dom'
+import { push } from 'connected-react-router'
+import { useDispatch } from 'react-redux'
+import { useQuery } from 'react-apollo'
 
 import {
   Layers as PolicyIcon,
   RotateRight as RotationIcon,
   Today as ScheduleIcon,
-  VpnKey as ServiceIcon,
 } from '@material-ui/icons'
 import Avatar from '@material-ui/core/Avatar'
-import { UserAvatar } from './avatar'
+import { UserAvatar, ServiceAvatar } from './avatar'
 import { SlackBW } from '../icons'
+import gql from 'graphql-tag'
 
-@withRouter
-export class ServiceChip extends Component {
-  static propTypes = {
-    id: p.string.isRequired,
-    style: p.object,
-    name: p.string.isRequired,
-    onDelete: p.func,
+const serviceQuery = gql`
+  query service($id: ID!) {
+    service(id: $id) {
+      id
+      name
+    }
+  }
+`
+
+export function ServiceChip(props) {
+  const { className, id, name, onDelete, style, onClick } = props
+  const dispatch = useDispatch()
+
+  const { data, loading, error } = useQuery(serviceQuery, {
+    variables: {
+      id,
+    },
+    skip: Boolean(name),
+    fetchPolicy: 'cache-first',
+  })
+
+  const getLabel = () => {
+    if (name) return name
+
+    if (loading) return 'Loading...'
+
+    if (error) return `Error: ${error.message}`
+
+    return data.service.name
   }
 
-  render() {
-    const { id, history, name, onDelete, style } = this.props
-
-    return (
-      <Chip
-        data-cy='service-chip'
-        avatar={
-          <Avatar>
-            <ServiceIcon />
-          </Avatar>
-        }
-        style={style}
-        onDelete={onDelete}
-        onClick={() => history.push(`/services/${id}`)}
-        label={name}
-      />
-    )
-  }
+  return (
+    <Chip
+      className={className}
+      data-cy='service-chip'
+      avatar={<ServiceAvatar />}
+      style={style}
+      onDelete={onDelete}
+      onClick={onClick || (() => dispatch(push(`/services/${id}`)))}
+      label={getLabel()}
+    />
+  )
+}
+ServiceChip.propTypes = {
+  id: p.string.isRequired,
+  style: p.object,
+  name: p.string,
+  onDelete: p.func,
+  onClick: p.func,
 }
 
 @withRouter

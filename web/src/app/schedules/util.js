@@ -47,7 +47,7 @@ export function weekdaySummary(filter) {
       return 'Everyday'
   }
 
-  let d = []
+  const d = []
   let chain = []
   const flush = () => {
     if (chain.length < 3) {

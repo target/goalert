@@ -13,7 +13,7 @@ import { graphql } from 'react-apollo'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { getParameterByName } from '../../util/query_param'
-import CreateAlertFab from './CreateAlertFab'
+import CreateAlertFab from '../CreateAlertFab'
 import AlertsListDataWrapper from './AlertsListDataWrapper'
 import { alertsQuery } from '../queries/AlertsListQuery'
 import { connect } from 'react-redux'
@@ -208,7 +208,7 @@ export default class AlertsList extends Component {
       height: '0.875em',
     }
 
-    let loadingItems = []
+    const loadingItems = []
     for (let i = 0; i < 5; i++) {
       loadingItems.push(
         <ListItem key={i} style={{ display: 'block' }}>
@@ -283,7 +283,7 @@ export default class AlertsList extends Component {
     else if (data.alerts2 && !isLoading && !data.alerts2.items.length)
       content = this.renderNoResults()
 
-    let dataToShow = data.alerts2 ? data.alerts2.items : []
+    const dataToShow = data.alerts2 ? data.alerts2.items : []
     if (!content) {
       content = dataToShow.map(alert => (
         <AlertsListDataWrapper
@@ -322,8 +322,8 @@ export default class AlertsList extends Component {
           />
         </Snackbar>
         <CreateAlertFab
-          showFavoritesWarning={showFavoritesWarning}
           serviceID={serviceID}
+          showFavoritesWarning={showFavoritesWarning}
           transition={fullScreen && (showFavoritesWarning || actionComplete)}
         />
         <Card style={{ width: '100%' }}>

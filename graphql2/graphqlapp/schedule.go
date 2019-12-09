@@ -46,7 +46,7 @@ func (s *Schedule) Target(ctx context.Context, raw *schedule.Schedule, input ass
 
 	return &graphql2.ScheduleTarget{
 		ScheduleID: raw.ID,
-		Target:     input,
+		Target:     &input,
 		Rules:      rules,
 	}, nil
 }
@@ -65,8 +65,9 @@ func (s *Schedule) Targets(ctx context.Context, raw *schedule.Schedule) ([]graph
 
 	result := make([]graphql2.ScheduleTarget, 0, len(m))
 	for tgt, rules := range m {
+		t := tgt // need to make a copy so we can take a pointer
 		result = append(result, graphql2.ScheduleTarget{
-			Target:     tgt,
+			Target:     &t,
 			ScheduleID: raw.ID,
 			Rules:      rules,
 		})
@@ -244,6 +245,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 		return nil, err
 	}
 	conn = new(graphql2.ScheduleConnection)
+	conn.PageInfo = &graphql2.PageInfo{}
 	if len(scheds) == searchOpts.Limit {
 		scheds = scheds[:len(scheds)-1]
 		conn.PageInfo.HasNextPage = true

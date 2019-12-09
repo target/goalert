@@ -60,6 +60,135 @@ function testServices(screen: ScreenFormat) {
       cy.location('pathname').should('eq', `/services/${svc.id}`)
     })
 
+    describe('Filtering', () => {
+      let label1: Label
+      let label2: Label // uses key/value from label1
+      beforeEach(() => {
+        cy.createLabel().then(l => {
+          label1 = l
+
+          cy.createLabel({
+            key: label1.key, // same key, random value
+          }).then(l => {
+            label2 = l
+          })
+        })
+      })
+
+      it('should open and close the filter popover', () => {
+        // check that filter content doesn't exist yet
+        cy.get('div[data-cy="label-key-container"]').should('not.exist')
+        cy.get('div[data-cy="label-value-container"]').should('not.exist')
+        cy.get('button[data-cy="filter-done"]').should('not.exist')
+        cy.get('button[data-cy="filter-reset"]').should('not.exist')
+
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        // check that filter content exists
+        cy.get('div[data-cy="label-key-container"]').should('be.visible')
+        cy.get('div[data-cy="label-value-container"]').should('be.visible')
+        cy.get('button[data-cy="filter-done"]').should('be.visible')
+        cy.get('button[data-cy="filter-reset"]').should('be.visible')
+
+        // close filter
+        cy.get('button[data-cy="filter-done"]').click()
+
+        // check that filter content is removed from the dom
+        cy.get('div[data-cy="label-key-container"]').should('not.exist')
+        cy.get('div[data-cy="label-value-container"]').should('not.exist')
+        cy.get('button[data-cy="filter-done"]').should('not.exist')
+        cy.get('button[data-cy="filter-reset"]').should('not.exist')
+      })
+
+      it('should filter by label key', () => {
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        cy.get('input[name="label-key"]').selectByLabel(label1.key)
+
+        // close filter
+        cy.get('button[data-cy="filter-done"]').click()
+
+        cy.get('body')
+          .should('contain', label1.svc.name)
+          .should('contain', label1.svc.description)
+
+        cy.get('body')
+          .should('contain', label2.svc.name)
+          .should('contain', label2.svc.description)
+      })
+
+      it('should not allow searching by label value with no key selected', () => {
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        cy.get('div[name="label-value"]').should(
+          'have.attr',
+          'disabled',
+          'disabled',
+        )
+      })
+
+      it('should filter by label key and value', () => {
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        cy.get('input[name="label-key"]').selectByLabel(label1.key)
+        cy.get('input[name="label-value"]').selectByLabel(label1.value)
+
+        // close filter
+        cy.get('button[data-cy="filter-done"]').click()
+
+        cy.get('body')
+          .should('contain', label1.svc.name)
+          .should('contain', label1.svc.description)
+
+        // check that the second label with the same key but different value doesn't show
+        cy.get('body')
+          .should('not.contain', label2.svc.name)
+          .should('not.contain', label2.svc.description)
+      })
+
+      it('should reset label filters', () => {
+        // open filter
+        if (screen === 'mobile') {
+          cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+        }
+        cy.get('button[data-cy="services-filter-button"]').click()
+
+        cy.get('input[name="label-key"]').selectByLabel(label1.key)
+        cy.get('input[name="label-value"]').selectByLabel(label1.value)
+
+        cy.get('input[name="label-key"]').should('have.value', label1.key)
+        cy.get('input[name="label-value"]').should('have.value', label1.value)
+      })
+
+      it('should load in filter values from URL', () => {
+        cy.visit('/services?search=' + label1.key + '=*')
+
+        cy.get('body')
+          .should('contain', label1.svc.name)
+          .should('contain', label1.svc.description)
+
+        cy.get('body')
+          .should('contain', label2.svc.name)
+          .should('contain', label2.svc.description)
+      })
+    })
+
     describe('Creation', () => {
       it('should allow canceling', () => {
         cy.pageFab()
@@ -418,20 +547,32 @@ function testServices(screen: ScreenFormat) {
       }),
     )
 
-    it('should allow creating alerts', () => {
+    it('should create alert with prepopulated service', () => {
       cy.pageFab()
+      cy.get('div[role=dialog]').as('dialog')
+
       const summary = c.sentence({ words: 3 })
       const details = c.word({ length: 10 })
       cy.get('input[name=summary]').type(summary)
       cy.get('textarea[name=details]').type(details)
 
-      cy.get('*[role=dialog]')
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // service already selected; skip to Confirm step
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
         .contains('button', 'Submit')
         .click()
 
-      cy.location('pathname').should('contain', '/alerts/') // details page
-
-      cy.get('body').should('contain', summary)
+      // review
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .click()
     })
 
     it('should allow ack/close all alerts', () => {

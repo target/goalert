@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/alert"
-	"github.com/target/goalert/alert/log"
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/label"
@@ -25,12 +25,12 @@ import (
 
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
-	PageInfo PageInfo      `json:"pageInfo"`
+	PageInfo *PageInfo     `json:"pageInfo"`
 }
 
 type AlertLogEntryConnection struct {
 	Nodes    []alertlog.Entry `json:"nodes"`
-	PageInfo PageInfo         `json:"pageInfo"`
+	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
 type AlertRecentEventsOptions struct {
@@ -50,7 +50,7 @@ type AlertSearchOptions struct {
 
 type AuthSubjectConnection struct {
 	Nodes    []user.AuthSubject `json:"nodes"`
-	PageInfo PageInfo           `json:"pageInfo"`
+	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
 type ConfigValue struct {
@@ -153,7 +153,7 @@ type CreateUserOverrideInput struct {
 
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
-	PageInfo PageInfo            `json:"pageInfo"`
+	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
 type EscalationPolicySearchOptions struct {
@@ -165,7 +165,14 @@ type EscalationPolicySearchOptions struct {
 
 type LabelConnection struct {
 	Nodes    []label.Label `json:"nodes"`
-	PageInfo PageInfo      `json:"pageInfo"`
+	PageInfo *PageInfo     `json:"pageInfo"`
+}
+
+type LabelKeySearchOptions struct {
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
 }
 
 type LabelSearchOptions struct {
@@ -176,6 +183,14 @@ type LabelSearchOptions struct {
 	Omit       []string `json:"omit"`
 }
 
+type LabelValueSearchOptions struct {
+	Key    string   `json:"key"`
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
+}
+
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor"`
 	HasNextPage bool    `json:"hasNextPage"`
@@ -183,7 +198,7 @@ type PageInfo struct {
 
 type RotationConnection struct {
 	Nodes    []rotation.Rotation `json:"nodes"`
-	PageInfo PageInfo            `json:"pageInfo"`
+	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
 type RotationSearchOptions struct {
@@ -197,7 +212,7 @@ type RotationSearchOptions struct {
 
 type ScheduleConnection struct {
 	Nodes    []schedule.Schedule `json:"nodes"`
-	PageInfo PageInfo            `json:"pageInfo"`
+	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
 type ScheduleRuleInput struct {
@@ -217,9 +232,9 @@ type ScheduleSearchOptions struct {
 }
 
 type ScheduleTarget struct {
-	ScheduleID string               `json:"scheduleID"`
-	Target     assignment.RawTarget `json:"target"`
-	Rules      []rule.Rule          `json:"rules"`
+	ScheduleID string                `json:"scheduleID"`
+	Target     *assignment.RawTarget `json:"target"`
+	Rules      []rule.Rule           `json:"rules"`
 }
 
 type ScheduleTargetInput struct {
@@ -235,7 +250,7 @@ type SendContactMethodVerificationInput struct {
 
 type ServiceConnection struct {
 	Nodes    []service.Service `json:"nodes"`
-	PageInfo PageInfo          `json:"pageInfo"`
+	PageInfo *PageInfo         `json:"pageInfo"`
 }
 
 type ServiceSearchOptions struct {
@@ -248,8 +263,8 @@ type ServiceSearchOptions struct {
 }
 
 type SetFavoriteInput struct {
-	Target   assignment.RawTarget `json:"target"`
-	Favorite bool                 `json:"favorite"`
+	Target   *assignment.RawTarget `json:"target"`
+	Favorite bool                  `json:"favorite"`
 }
 
 type SetLabelInput struct {
@@ -260,7 +275,7 @@ type SetLabelInput struct {
 
 type SlackChannelConnection struct {
 	Nodes    []slack.Channel `json:"nodes"`
-	PageInfo PageInfo        `json:"pageInfo"`
+	PageInfo *PageInfo       `json:"pageInfo"`
 }
 
 type SlackChannelSearchOptions struct {
@@ -270,13 +285,18 @@ type SlackChannelSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type StringConnection struct {
+	Nodes    []string  `json:"nodes"`
+	PageInfo *PageInfo `json:"pageInfo"`
+}
+
 type TimeZone struct {
 	ID string `json:"id"`
 }
 
 type TimeZoneConnection struct {
 	Nodes    []TimeZone `json:"nodes"`
-	PageInfo PageInfo   `json:"pageInfo"`
+	PageInfo *PageInfo  `json:"pageInfo"`
 }
 
 type TimeZoneSearchOptions struct {
@@ -361,12 +381,12 @@ type UpdateUserOverrideInput struct {
 
 type UserConnection struct {
 	Nodes    []user.User `json:"nodes"`
-	PageInfo PageInfo    `json:"pageInfo"`
+	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
 type UserOverrideConnection struct {
 	Nodes    []override.UserOverride `json:"nodes"`
-	PageInfo PageInfo                `json:"pageInfo"`
+	PageInfo *PageInfo               `json:"pageInfo"`
 }
 
 type UserOverrideSearchOptions struct {

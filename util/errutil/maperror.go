@@ -27,6 +27,8 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("RemoveUserID", "user does not exist")
 		case "user_overrides_tgt_schedule_id_fkey":
 			return validation.NewFieldError("TargetID", "schedule does not exist")
+		case "alerts_services_id_fkey":
+			return validation.NewFieldError("ServiceID", "service does not exist")
 		}
 	case "23505": // unique constraint
 		if strings.HasPrefix(dbErr.ConstraintName, dbErr.TableName+"_name") || dbErr.ConstraintName == "auth_basic_users_username_key" {
@@ -40,6 +42,9 @@ func MapDBError(err error) error {
 		}
 		if dbErr.ConstraintName == "heartbeat_monitor_name_service_id" {
 			return validation.NewFieldError("Name", "heartbeat monitor already exists with that name")
+		}
+		if dbErr.ConstraintName == "idx_no_alert_duplicates" {
+			return validation.NewFieldError("", "duplicate alert already exists")
 		}
 	case "23514": // check constraint
 		newErr := mapLimitError(dbErr)

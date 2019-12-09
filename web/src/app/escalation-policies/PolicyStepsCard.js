@@ -31,7 +31,7 @@ export default function PolicyStepsCard(props) {
   let oldID = null
   let oldIdx = null
   let newIdx = null
-  let stepIDs = props.steps.map(step => step.id)
+  const stepIDs = props.steps.map(step => step.id)
 
   const classes = useStyles()
   const [showErrorDialog, setShowErrorDialog] = useState(false)

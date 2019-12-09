@@ -25,6 +25,7 @@ const styles = theme => {
     },
     subtitle: {
       overflowY: 'unset',
+      flexGrow: 0,
     },
     topRightActions,
     wideScreenTitle: {
@@ -45,7 +46,7 @@ export default class DialogTitleWrapper extends Component {
     closeIcon: p.object,
     toolbarItems: p.array, // list of JSX items to display on the toolbar
     title: p.string.isRequired,
-    subTitle: p.string,
+    subTitle: p.node,
     onClose: p.func,
     options: p.array, // list of options to display as list items from option icon
   }
@@ -86,9 +87,13 @@ export default class DialogTitleWrapper extends Component {
     if (subTitle) {
       subtitle = (
         <DialogContent className={classes.subtitle}>
-          <Typography variant='subtitle1' component='p'>
-            {subTitle}
-          </Typography>
+          {typeof subTitle !== 'string' ? (
+            subTitle
+          ) : (
+            <Typography variant='subtitle1' component='p'>
+              {subTitle}
+            </Typography>
+          )}
         </DialogContent>
       )
     }
@@ -109,16 +114,15 @@ export default class DialogTitleWrapper extends Component {
           {subtitle}
         </React.Fragment>
       )
-    } else {
-      return (
-        <React.Fragment>
-          <DialogTitle className={classes.wideScreenTitle} key='title'>
-            {title}
-          </DialogTitle>
-          {subtitle}
-          {menu}
-        </React.Fragment>
-      )
     }
+    return (
+      <React.Fragment>
+        <DialogTitle className={classes.wideScreenTitle} key='title'>
+          {title}
+        </DialogTitle>
+        {subtitle}
+        {menu}
+      </React.Fragment>
+    )
   }
 }

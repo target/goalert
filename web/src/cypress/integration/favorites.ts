@@ -10,11 +10,29 @@ function testFavorites(screen: ScreenFormat) {
     'services',
     (name: string, favorite: boolean) =>
       cy.createService({ name, favorite }).then(s => s.id),
-    () =>
-      cy
-        .visit(`/alerts`)
-        .pageFab()
-        .get('input[name=service]'),
+    () => {
+      cy.visit('/alerts')
+
+      cy.pageFab()
+      cy.get('div[role=dialog]').as('dialog')
+      const summary = c.sentence({
+        words: 3,
+      })
+
+      cy.get('@dialog')
+        .find('input[name=summary]')
+        .type(summary)
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      return cy.get('input[name=serviceSearch]')
+    },
+    (sel: Cypress.Chainable<JQuery<HTMLElement>>, prefix: string) =>
+      sel
+        .type(prefix)
+        .get('ul[data-cy=service-select] [data-cy=service-select-item]'),
   )
 
   check(
@@ -55,6 +73,10 @@ function check(
   urlPrefix: string,
   createFunc: (name: string, fav: boolean) => Cypress.Chainable<string>,
   getSearchSelectFunc?: () => Cypress.Chainable<JQuery<HTMLElement>>,
+  getSearchSelectItemsFunc?: (
+    sel: Cypress.Chainable<JQuery<HTMLElement>>,
+    prefix: string,
+  ) => Cypress.Chainable<JQuery<HTMLElement>>,
 ) {
   describe(typeName + ' Favorites', () => {
     it('should allow setting and unsetting as a favorite from details page ', () => {
@@ -98,12 +120,15 @@ function check(
         createFunc(name1, false)
         createFunc(name2, true)
 
-        getSearchSelectFunc()
-          .findByLabel(prefix)
-          .parent()
-          .children()
-          .should('have.length', 2)
-          .as('items')
+        const sel = getSearchSelectFunc()
+        const items = getSearchSelectItemsFunc
+          ? getSearchSelectItemsFunc(sel, prefix)
+          : sel
+              .findByLabel(prefix)
+              .parent()
+              .children()
+
+        items.should('have.length', 2).as('items')
 
         cy.get('@items')
           .first()

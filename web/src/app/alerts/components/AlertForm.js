@@ -85,7 +85,7 @@ export default class AlertForm extends Component {
     return false
   }
 
-  onSuccess = (cache, data) => {
+  handleDialogSuccess = (cache, data) => {
     const alert = data.createAlert
 
     // Get created alert ID back from the promise from mutation
@@ -204,7 +204,7 @@ export default class AlertForm extends Component {
         resetForm={this.resetForm}
         open={open}
         shouldSubmit={this.shouldSubmit}
-        onSuccess={this.onSuccess}
+        onSuccess={this.handleDialogSuccess}
         title='Create New Alert'
       />
     )

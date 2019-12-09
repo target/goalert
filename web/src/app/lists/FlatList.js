@@ -118,7 +118,9 @@ export default function FlatList(props) {
             }}
           </Draggable>
         )
-      } else if (item.subHeader) {
+      }
+
+      if (item.subHeader) {
         // render list item as subheader
         return (
           <ListSubheader key={idx} className={classes.background}>
@@ -132,10 +134,9 @@ export default function FlatList(props) {
             </Typography>
           </ListSubheader>
         )
-      } else {
-        // render standard list item
-        return renderListItem(item, idx)
       }
+      // render standard list item
+      return renderListItem(item, idx)
     })
   }
 

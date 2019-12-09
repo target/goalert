@@ -16,7 +16,7 @@ import MuiPickersUtilsProvider from './mui-pickers'
 import history from './history'
 import store from './reduxStore'
 import { GracefulUnmounterProvider } from './util/gracefulUnmount'
-import GA from './util/GoogleAnalytics'
+import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
 
 const LazyGARouteTracker = React.memo(props => {
@@ -29,11 +29,11 @@ const LazyGARouteTracker = React.memo(props => {
     debug: false,
   }
 
-  if (!GA.init(props.trackingID, GAOptions)) {
+  if (!GoogleAnalytics.init(props.trackingID, GAOptions)) {
     return null
   }
 
-  return <GA.RouteTracker />
+  return <GoogleAnalytics.RouteTracker />
 })
 
 ReactDOM.render(

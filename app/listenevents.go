@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgconn"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
@@ -23,7 +23,7 @@ func (app *App) listenEvents(ctx context.Context) error {
 
 	go func() {
 		for {
-			var n *pgx.Notification
+			var n *pgconn.Notification
 			select {
 			case n = <-l.Notifications():
 			case <-ctx.Done():

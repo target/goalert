@@ -218,7 +218,7 @@ func (d *datagen) NewEP() {
 		ID:          gofakeit.UUID(),
 		Name:        d.ids.Gen(idName("Policy")),
 		Description: gofakeit.Sentence(rand.Intn(10) + 3),
-		Repeat:      rand.Intn(5) - 1,
+		Repeat:      rand.Intn(5),
 	})
 }
 

@@ -199,52 +199,174 @@ function testAlerts(screen: ScreenFormat) {
         .parent('[role=button]')
         .should('not.contain', 'UNACKNOWLEDGED')
     })
+
+    it('should NOT acknowledge acknowledged alerts', () => {
+      //ack first two
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      //ack
+      //ack
+      //unack
+      cy.get(`[data-cy=alert-${alert1.number}]`)
+        .parent('[role=button]')
+        .should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(`[data-cy=alert-${alert2.number}]`)
+        .parent('[role=button]')
+        .should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(`[data-cy=alert-${alert3.number}]`)
+        .parent('[role=button]')
+        .should('contain', 'UNACKNOWLEDGED')
+
+      //ack first two again (noop)
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      cy.get('span[data-cy=update-message]').should(
+        'contain',
+        '0 of 2 alerts updated',
+      )
+
+      //ack all three
+      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get(`span[data-cy=alert-${alert3.number}] input`).check()
+      cy.get('button[data-cy=acknowledge]').click()
+
+      //first two already acked, third now acked
+      cy.get('span[data-cy=update-message]').should(
+        'contain',
+        '1 of 3 alerts updated',
+      )
+    })
   })
 
   describe('Alert Creation', () => {
     beforeEach(() => cy.visit('/alerts?allServices=1'))
 
-    it('should allow canceling', () => {
-      cy.pageFab()
-      cy.get('div[role=dialog]').should('contain', 'Create New Alert')
-      cy.get('div[role=dialog]')
-        .contains('button', 'Cancel')
-        .click()
-      cy.get('div[role=dialog]').should('not.exist')
+    let svc1: Service
+    let svc2: Service
+
+    beforeEach(() => {
+      cy.createService().then(s => {
+        svc1 = s
+      })
+
+      cy.createService().then(s => {
+        svc2 = s
+      })
     })
 
-    it('should create an alert when submitted', () => {
-      cy.createService().then(svc => {
-        cy.pageFab()
+    it('should create an alert for two services', () => {
+      cy.pageFab()
 
-        cy.get('div[role=dialog]').as('dialog')
+      cy.get('div[role=dialog]').as('dialog')
 
-        const summary = c.sentence({ words: 3 })
-        const details = c.word({ length: 10 })
-
-        cy.get('@dialog')
-          .find('input[name=summary]')
-          .type(summary)
-        cy.get('@dialog')
-          .find('input[name=service]')
-          .selectByLabel(svc.name)
-
-        cy.get('@dialog')
-          .find('textarea[name=details]')
-          .type(details)
-        cy.get('@dialog')
-          .contains('button', 'Submit')
-          .click()
-
-        // should be on details page
-        cy.get('*[data-cy=alert-summary]').should('contain', summary)
-        cy.get('*[data-cy=alert-details]').should('contain', details)
-
-        cy.go(-1)
-
-        cy.pageSearch(summary)
-        cy.get('body').should('contain', svc.name)
+      const summary = c.sentence({
+        words: 3,
       })
+      const details = c.word({ length: 10 })
+
+      // Alert Info
+      cy.get('@dialog')
+        .contains('button', 'Cancel')
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('input[name=summary]')
+        .type(summary)
+
+      cy.get('@dialog')
+        .find('textarea[name=details]')
+        .type(details)
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // Service Selection
+      cy.get('@dialog').contains('button', 'Next')
+
+      cy.get('@dialog')
+        .find('input[name=serviceSearch]')
+        .type(svc1.name)
+
+      cy.get('@dialog')
+        .contains('span', svc1.name)
+        .click()
+
+      cy.get('@dialog')
+        .find('input[name=serviceSearch]')
+        .clear()
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('input[name=serviceSearch]')
+        .type(svc2.name)
+
+      cy.get('@dialog')
+        .contains('span', svc2.name)
+        .click()
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('[data-cy=service-chip-container]')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog').contains('label', 'Selected Services (2)')
+
+      cy.get('@dialog')
+        .contains('button', 'Next')
+        .click()
+
+      // Confirm
+      cy.get('@dialog')
+        .contains('span', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('span', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc1.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('[data-cy=service-chip]', svc2.name)
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .contains('button', 'Submit')
+        .click()
+
+      // Review
+      cy.get('@dialog')
+        .contains('button', 'Back')
+        .should('not.be.visible')
+
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .should('be.visible')
+
+      cy.get('@dialog')
+        .find('li')
+        .should('have.length', 2)
+
+      cy.get('@dialog')
+        .contains('button', 'Done')
+        .click()
     })
   })
 
@@ -294,6 +416,28 @@ function testAlerts(screen: ScreenFormat) {
       cy.pageAction('Close')
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
+    })
+  })
+  describe('Alert Details Logs', () => {
+    let logs: AlertLogs
+    beforeEach(() => {
+      cy.createAlertLogs({ count: 200 }).then(_logs => {
+        logs = _logs
+        return cy.visit(`/alerts/${logs.alert.number}`)
+      })
+    })
+
+    it('should see load more, click, and no longer see load more', () => {
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 35)
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 184)
+      cy.get('body').should('contain', 'Load More')
+      cy.get('[data-cy=load-more-logs]').click()
+
+      // create plus any engine events should be 200+
+      cy.get('ul[data-cy=alert-logs] li').should('have.length.gt', 200)
+      cy.get('body').should('not.contain', 'Load More')
     })
   })
 }

@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/util/sqlutil"
 )
 
 var (
@@ -171,7 +171,7 @@ func (c Column) IsInteger() bool {
 	return false
 }
 func (t Table) SafeName() string {
-	return pgx.Identifier{t.Name}.Sanitize()
+	return sqlutil.QuoteID(t.Name)
 }
 func (t Table) ColumnNames() []string {
 	colNames := make([]string, len(t.Columns))
@@ -205,7 +205,7 @@ func (t Table) UpdateOneRow() string {
 		if col.Name == "id" {
 			continue
 		}
-		cols = append(cols, fmt.Sprintf(`%s = data.%s`, pgx.Identifier{col.Name}.Sanitize(), pgx.Identifier{col.Name}.Sanitize()))
+		cols = append(cols, fmt.Sprintf(`%s = data.%s`, sqlutil.QuoteID(col.Name), sqlutil.QuoteID(col.Name)))
 	}
 
 	return fmt.Sprintf(`
