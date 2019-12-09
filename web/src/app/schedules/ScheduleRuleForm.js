@@ -114,8 +114,8 @@ export default class ScheduleRuleForm extends React.PureComponent {
       targetID: p.string.isRequired,
       rules: p.arrayOf(
         p.shape({
-          start: p.oneOfType([p.string, p.object]), // may be null while editing
-          end: p.oneOfType([p.string, p.object]), // may be null while editing
+          start: p.oneOfType([p.string, p.object]), // DateTime, null when empty val
+          end: p.oneOfType([p.string, p.object]), // DateTime, null when empty val
 
           weekdayFilter: p.arrayOf(p.bool).isRequired,
         }),

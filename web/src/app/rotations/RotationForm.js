@@ -18,7 +18,7 @@ export default class RotationForm extends React.PureComponent {
       timeZone: p.string.isRequired,
       type: p.oneOf(rotationTypes).isRequired,
       shiftLength: p.number.isRequired,
-      start: p.object, // may be null while editing
+      start: p.object, // DateTime, null when empty val
     }).isRequired,
 
     errors: p.arrayOf(

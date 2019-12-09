@@ -204,8 +204,8 @@ ScheduleOverrideForm.propTypes = {
   value: p.shape({
     addUserID: p.string.isRequired,
     removeUserID: p.string.isRequired,
-    start: p.oneOfType([p.string, p.object]), // may be null while editing
-    end: p.oneOfType([p.string, p.object]), // may be null while editing
+    start: p.oneOfType([p.string, p.object]), // DateTime, null when empty val
+    end: p.oneOfType([p.string, p.object]), // DateTime, null when empty val
   }).isRequired,
 
   add: p.bool,

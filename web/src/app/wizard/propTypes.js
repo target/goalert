@@ -4,7 +4,7 @@ const scheduleShape = p.shape({
   timeZone: p.string,
   users: p.array,
   rotation: p.shape({
-    startDate: p.object, // may be null while editing
+    startDate: p.object, // DateTime, null when empty val
     type: p.string,
   }),
   followTheSunRotation: p.shape({
