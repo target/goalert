@@ -171,6 +171,24 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('p').should('contain', 'Showing shifts')
       })
     })
+
+    it('should view shifts after typing in start date', () => {
+      cy.get('li')
+        .contains('Shifts')
+        .click()
+      cy.reload()
+
+      cy.get('button[title="Filter"').click()
+      cy.get('div[data-cy="start-date"] input')
+        .clear()
+        .type('09012020')
+      cy.get('button[data-cy="filter-done"]').click()
+
+      cy.get('body').should(
+        'contain',
+        'Showing shifts up to 2 weeks from 9/1/2020',
+      )
+    })
   })
 
   describe('Schedule Assignments', () => {
