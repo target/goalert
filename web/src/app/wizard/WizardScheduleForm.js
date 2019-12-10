@@ -181,7 +181,7 @@ export default class WizardScheduleForm extends React.Component {
           <React.Fragment>
             <Grid item className={classes.fieldItem}>
               <FormField
-                data-cy='start-date'
+                data-cy={`${key}-start-date`}
                 component={KeyboardDateTimePicker}
                 name={`${key}.rotation.startDate`}
                 required

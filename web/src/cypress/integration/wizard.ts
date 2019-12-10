@@ -81,8 +81,7 @@ function testWizard(screen: ScreenFormat) {
         .find('input')
         .should('not.be.checked')
 
-      // set handoff time
-      // todo but can use default time
+      // uses default handoff time
 
       // set fts yes
       cy.get(`label[data-cy="${key}.fts.yes"]`).click()
@@ -103,19 +102,7 @@ function testWizard(screen: ScreenFormat) {
       )
     }
 
-    it('should set all fields of wizard and submit', () => {
-      // set team name
-      const teamName = c.word()
-      cy.get('input[name="teamName"]').type(teamName)
-      cy.get('input[name="teamName"]').should('have.value', teamName)
-
-      // set primary schedule fields
-      setScheduleFields('primarySchedule')
-
-      // set secondary schedule fields
-      cy.get('label[data-cy="secondary.yes"]').click()
-      setScheduleFields('secondarySchedule')
-
+    const setEPandKeyFields = () => {
       // set ep delay
       const delay = c.integer({ min: 1, max: 9000 }).toString()
       cy.get('input[name="delayMinutes"]').type(delay)
@@ -130,6 +117,23 @@ function testWizard(screen: ScreenFormat) {
       const key = c.pickone(keys)
       cy.get('input[name="key"]').selectByLabel(key.label)
       cy.get('input[name="key"]').should('have.value', key.value)
+    }
+
+    it('should set all fields of wizard and submit', () => {
+      // set team name
+      const teamName = c.word()
+      cy.get('input[name="teamName"]').type(teamName)
+      cy.get('input[name="teamName"]').should('have.value', teamName)
+
+      // set primary schedule fields
+      setScheduleFields('primarySchedule')
+
+      // set secondary schedule fields
+      cy.get('label[data-cy="secondary.yes"]').click()
+      setScheduleFields('secondarySchedule')
+
+      // set delay, repeat, and key type
+      setEPandKeyFields()
 
       cy.get('body')
         .contains('button', 'Submit')
@@ -194,6 +198,55 @@ function testWizard(screen: ScreenFormat) {
       cy.get('label[data-cy="primarySchedule.rotationType.weekly"]').click()
       cy.get('svg[data-cy="fts-tooltip"]').trigger('mouseover')
       cy.get('div[data-cy="fts-tooltip-popper"]').should('be.visible')
+    })
+
+    it('should validate typing in an invalid rotation start date, then submit', () => {
+      // set team name
+      const teamName = c.word()
+      cy.get('input[name="teamName"]').type(teamName)
+      cy.get('input[name="teamName"]').should('have.value', teamName)
+
+      // set primary schedule fields
+      setScheduleFields('primarySchedule')
+
+      // set delay, repeat, and key type
+      setEPandKeyFields()
+
+      // Type in invalid input
+      cy.get('div[data-cy="primarySchedule-start-date"] input')
+        .clear()
+        .type('88')
+
+      // Test client validation
+      cy.get('body')
+        .contains('button', 'Submit')
+        .click()
+      cy.get('p[data-cy="primarySchedule-start-date-form-helper"]').should(
+        'contain',
+        'Invalid time',
+      )
+
+      // Fix and submit
+      const start = '090120201200P'
+      cy.get('div[data-cy="primarySchedule-start-date"] input')
+        .clear()
+        .type(start)
+      cy.get('button')
+        .contains('Submit')
+        .click()
+
+      cy.get('body').should('contain', 'Success')
+      cy.get('body')
+        .contains('button', 'Close')
+        .click()
+
+      // Verify successful
+      cy.visit('/rotations')
+      cy.pageSearch(teamName)
+      cy.get('li')
+        .contains(teamName)
+        .click()
+      cy.get('body').should('contain', '12:00 PM')
     })
 
     // handles asserting when follow the sun fields should exist for primary/secondary schedules
