@@ -91,7 +91,7 @@ function testRotations(screen: ScreenFormat) {
             .should('contain', tz)
         })
 
-        it.only('should type in start date to create a rotation', () => {
+        it('should type in start date to create a rotation', () => {
           cy.pageFab()
 
           cy.get('div[role=dialog]').as('dialog')
