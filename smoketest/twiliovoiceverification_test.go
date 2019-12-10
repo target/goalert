@@ -78,7 +78,6 @@ func TestTwilioVoiceVerification(t *testing.T) {
 	// Since verification code is said twice during one Twilio message
 	assert.Len(t, codeStr, 12)
 
-	// string to int conversioN
 	code, _ := strconv.Atoi(codeStr[:6])
 
 	doQL(fmt.Sprintf(`
