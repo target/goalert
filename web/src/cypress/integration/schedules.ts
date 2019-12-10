@@ -273,6 +273,7 @@ function testSchedules(screen: ScreenFormat) {
 
         cy.get('input[name=addUserID]').selectByLabel(users[0].name)
 
+        // Type in invalid input
         cy.get('div[data-cy="start-date"] input')
           .clear()
           .type('88')
@@ -306,7 +307,7 @@ function testSchedules(screen: ScreenFormat) {
           .contains('Submit')
           .click()
 
-        // Test successful
+        // Verify successful
         cy.get('span').should('contain', users[0].name)
         cy.get('p').should('contain', 'Added from')
         cy.get('p').should('contain', 'Sep 1, 2020, 12:00 PM')
