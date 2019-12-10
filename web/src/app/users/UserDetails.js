@@ -26,6 +26,9 @@ const query = gql`
       id
       name
       email
+      contactMethods {
+        id
+      }
       onCallSteps {
         id
         escalationPolicy {
@@ -80,6 +83,8 @@ export default function UserDetails(props) {
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
 
+  const disableNR = user.contactMethods.length === 0
+
   return (
     <React.Fragment>
       {props.readOnly ? null : (
@@ -94,6 +99,7 @@ export default function UserDetails(props) {
             {
               label: 'Add Notification Rule',
               icon: <AddAlarm />,
+              disabled: disableNR,
               onClick: () => setCreateNR(true),
             },
           ]}

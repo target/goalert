@@ -73,6 +73,7 @@ type gather struct {
 	Action    string   `xml:"action,attr,omitempty"`
 	Method    string   `xml:"method,attr,omitempty"`
 	NumDigits int      `xml:"numDigits,attr,omitempty"`
+	Timeout   int      `xml:"timeout,attr,omitempty"`
 	Say       string   `xml:"Say,omitempty"`
 }
 
@@ -197,7 +198,7 @@ func (v *Voice) callbackURL(ctx context.Context, params url.Values, typ CallType
 func spellNumber(n int) string {
 	s := strconv.Itoa(n)
 
-	return strings.Join(strings.Split(s, ""), ", ")
+	return strings.Join(strings.Split(s, ""), ". ")
 }
 
 // Send implements the notification.Sender interface.
@@ -256,7 +257,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		message = "This is a test message from GoAlert."
 		opts.CallType = CallTypeTest
 	case notification.Verification:
-		message = "Your verification code for GoAlert is: " + spellNumber(t.Code)
+		message = "This is a message from GoAlert to verify your voice contact method. Your verification code is: " + spellNumber(t.Code) + ". Again, your verification code is: " + spellNumber(t.Code)
 		opts.CallType = CallTypeVerify
 	default:
 		return nil, errors.Errorf("unhandled message type: %T", t)
@@ -391,6 +392,7 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeStop),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
 		}
 		renderXML(w, req, twiMLGather{
@@ -559,6 +561,7 @@ func (v *Voice) ServeTest(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeTest),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
 		}
 		renderXML(w, req, twiMLGather{
@@ -587,6 +590,7 @@ func (v *Voice) ServeVerify(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeVerify),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
 		}
 		renderXML(w, req, twiMLGather{
@@ -618,6 +622,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlertStatus),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
 		}
 		renderXML(w, req, twiMLGather{
@@ -683,6 +688,7 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlert),
 			Method:    "POST",
 			NumDigits: 1,
+			Timeout:   10,
 			Say:       message,
 		}
 		renderXML(w, req, twiMLGather{
