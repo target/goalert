@@ -34,19 +34,13 @@ export default class UserContactMethodForm extends React.PureComponent {
     onChange: () => {},
   }
 
-  state = {
-    cmAdornment: true,
-  }
-
   render() {
     const cleanValue = val => {
       val = val.replace(/[^0-9]/g, '')
 
       if (!val) {
-        this.setState({ cmAdornment: true })
         return ''
       }
-      this.setState({ cmAdornment: false })
       return '+' + val
     }
     return (
@@ -78,13 +72,14 @@ export default class UserContactMethodForm extends React.PureComponent {
               label='Phone Number'
               type='tel'
               InputProps={{
-                startAdornment: this.state.cmAdornment && (
+                startAdornment: (
                   <InputAdornment style={{ marginBottom: '0.1em' }}>
                     +
                   </InputAdornment>
                 ),
               }}
               component={TextField}
+              mapValue={val => val.replace(/^\+/, '')}
               mapOnChangeValue={cleanValue}
               disabled={this.props.edit}
             />
