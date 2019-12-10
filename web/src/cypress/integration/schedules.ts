@@ -265,6 +265,56 @@ function testSchedules(screen: ScreenFormat) {
       })
     })
 
+    it('should type in date fields to create an override', () => {
+      cy.fixture('users').then(users => {
+        cy.get('span').should('contain', 'No results')
+
+        cy.pageFab('Add')
+
+        cy.get('input[name=addUserID]').selectByLabel(users[0].name)
+
+        cy.get('div[data-cy="start-date"] input')
+          .clear()
+          .type('88')
+        cy.get('div[data-cy="end-date"] input')
+          .clear()
+          .type('88')
+
+        // Test client validation
+        cy.get('button')
+          .contains('Submit')
+          .click()
+        cy.get('p[data-cy="start-date-form-helper"]').should(
+          'contain',
+          'Invalid time',
+        )
+        cy.get('p[data-cy="end-date-form-helper"]').should(
+          'contain',
+          'Invalid time',
+        )
+
+        // Fix and submit
+        const start = '090120201200P'
+        const end = '090220200444P'
+        cy.get('div[data-cy="start-date"] input')
+          .clear()
+          .type(start)
+        cy.get('div[data-cy="end-date"] input')
+          .clear()
+          .type(end)
+        cy.get('button')
+          .contains('Submit')
+          .click()
+
+        // Test successful
+        cy.get('span').should('contain', users[0].name)
+        cy.get('p').should('contain', 'Added from')
+        cy.get('p').should('contain', 'Sep 1, 2020, 12:00 PM')
+        cy.get('p').should('contain', 'Sep 2, 2020, 4:44 PM')
+        expect('span').to.not.contain('No results')
+      })
+    })
+
     it('should create an add override', () => {
       cy.fixture('users').then(users => {
         cy.get('span').should('contain', 'No results')
