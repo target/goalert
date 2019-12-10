@@ -9166,7 +9166,7 @@ func (ec *executionContext) _Query_configHints(ctx context.Context, field graphq
 	res := resTmp.([]ConfigHint)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHint(ctx, field.Selections, res)
+	return ec.marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHintᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_userContactMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18634,7 +18634,7 @@ func (ec *executionContext) marshalNConfigHint2githubᚗcomᚋtargetᚋgoalert�
 	return ec._ConfigHint(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHint(ctx context.Context, sel ast.SelectionSet, v []ConfigHint) graphql.Marshaler {
+func (ec *executionContext) marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHintᚄ(ctx context.Context, sel ast.SelectionSet, v []ConfigHint) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
