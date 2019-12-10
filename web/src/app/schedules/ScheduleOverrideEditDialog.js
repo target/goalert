@@ -69,7 +69,7 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
     )
   }
 
-  getValue(data) {
+  getDefaultValue(data) {
     const value = {
       start: DateTime.fromISO(data.start, { zone: this.props.zone }),
       end: DateTime.fromISO(data.end, { zone: this.props.zone }),
@@ -82,6 +82,8 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
   }
 
   renderDialog(data, commit, status) {
+    const defaultValue = this.getDefaultValue(data)
+
     return (
       <FormDialog
         onClose={this.props.onClose}
@@ -111,7 +113,7 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
             scheduleID={data.target.id}
             disabled={status.loading}
             errors={fieldErrors(status.error)}
-            value={this.state.value || this.getValue(data)}
+            value={this.state.value || defaultValue}
             onChange={value => this.setState({ value })}
           />
         }
