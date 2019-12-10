@@ -77,10 +77,9 @@ func TestTwilioVoiceVerification(t *testing.T) {
 
 	// Since verification code is said twice during one Twilio message
 	c := splitCode(codeStr, 6)
-	c1 := strings.Join(c, "")
 
 	// string to int conversion
-	code, _ := strconv.Atoi(c1)
+	code, _ := strconv.Atoi(strings.Join(c, ""))
 
 	doQL(fmt.Sprintf(`
 		mutation {
@@ -104,14 +103,12 @@ func TestTwilioVoiceVerification(t *testing.T) {
 }
 
 func splitCode(s string, n int) []string {
-	sub := ""
 	subs := []string{}
-
 	runes := bytes.Runes([]byte(s))
+
 	for i, r := range runes {
 		if i < n {
-			sub = string(r)
-			subs = append(subs, sub)
+			subs = append(subs, string(r))
 		}
 	}
 	return subs
