@@ -90,6 +90,51 @@ function testRotations(screen: ScreenFormat) {
             .should('contain', description)
             .should('contain', tz)
         })
+
+        it.only('should type in start date to create a rotation', () => {
+          cy.pageFab()
+
+          cy.get('div[role=dialog]').as('dialog')
+
+          const name = 'SM Rot ' + c.word({ length: 8 })
+          const description = c.word({ length: 10 })
+
+          cy.get('@dialog')
+            .find('input[name=name]')
+            .type(name)
+          cy.get('@dialog')
+            .find('textarea[name=description]')
+            .type(description)
+
+          // Type in invalid input
+          cy.get('div[data-cy="handoff-time"] input')
+            .clear()
+            .type('88')
+
+          // Test client validation
+          cy.get('button')
+            .contains('Submit')
+            .click()
+          cy.get('p[data-cy="handoff-time-form-helper"]').should(
+            'contain',
+            'Invalid time',
+          )
+
+          // Fix and submit
+          const start = '0832A'
+          cy.get('div[data-cy="handoff-time"] input')
+            .clear()
+            .type(start)
+          cy.get('@dialog')
+            .contains('button', 'Submit')
+            .click()
+
+          // Verify successful
+          cy.get('body')
+            .should('contain', name)
+            .should('contain', description)
+            .should('contain', '8:32 AM')
+        })
       })
     })
   })
