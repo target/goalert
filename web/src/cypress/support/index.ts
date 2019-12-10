@@ -15,6 +15,9 @@
 
 import 'cypress-plugin-retries'
 Cypress.env('RETRIES', 2)
+Cypress.Cookies.defaults({
+  whitelist: 'goalert_session.2',
+})
 
 import './alert'
 import './service'
