@@ -112,7 +112,6 @@ func splitCode(s string, n int) []string {
 		if i < n {
 			sub = string(r)
 			subs = append(subs, sub)
-			sub = ""
 		}
 	}
 	return subs
