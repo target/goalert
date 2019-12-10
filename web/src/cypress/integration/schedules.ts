@@ -254,6 +254,50 @@ function testSchedules(screen: ScreenFormat) {
         .click()
       cy.get('body').should('contain', 'Always')
     })
+
+    it('should update time fields by typing', () => {
+      cy.get('body')
+        .contains('li', rot.name)
+        .get('button[data-cy=other-actions]')
+        .menu('Edit')
+
+      // Type in invalid input
+      cy.get('div[data-cy="start-time"] input')
+        .clear()
+        .type('88')
+      cy.get('div[data-cy="end-time"] input')
+        .clear()
+        .type('88')
+
+      // Test client validation
+      cy.get('body')
+        .contains('button', 'Submit')
+        .click()
+      cy.get('p[data-cy="start-time-form-helper"]').should(
+        'contain',
+        'Invalid time',
+      )
+      cy.get('p[data-cy="end-time-form-helper"]').should(
+        'contain',
+        'Invalid time',
+      )
+
+      // Fix and submit
+      const start = '0900A'
+      const end = '0529P'
+      cy.get('div[data-cy="start-time"] input')
+        .clear()
+        .type(start)
+      cy.get('div[data-cy="end-time"] input')
+        .clear()
+        .type(end)
+      cy.get('button')
+        .contains('Submit')
+        .click()
+
+      // Verify successful
+      cy.get('body').should('contain', '9:00 AM to 5:29 PM')
+    })
   })
 
   describe('Schedule Overrides', () => {
