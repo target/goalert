@@ -175,6 +175,11 @@ export class FormField extends React.PureComponent {
     if (render) return render(props)
     const Component = component
 
+    let helperCy = null
+    if (this.props['data-cy']) {
+      helperCy = this.props['data-cy'] + '-form-helper'
+    }
+
     return (
       <FormControl fullWidth={props.fullWidth} error={Boolean(props.error)}>
         {formLabel && <FormLabel>{label}</FormLabel>}
@@ -184,7 +189,7 @@ export class FormField extends React.PureComponent {
           label={this.props.formLabel ? null : props.label}
         />
         {!noError && (props.error || props.hint) && (
-          <FormHelperText>
+          <FormHelperText data-cy={helperCy}>
             {(props.error &&
               props.error.message.replace(/^./, str => str.toUpperCase())) ||
               props.hint}

@@ -132,6 +132,7 @@ export default function ScheduleOverrideForm(props) {
         )}
         <Grid item xs={12}>
           <FormField
+            data-cy='start-date'
             fullWidth
             component={KeyboardDateTimePicker}
             showTodayButton
@@ -162,6 +163,7 @@ export default function ScheduleOverrideForm(props) {
         </Grid>
         <Grid item xs={12}>
           <FormField
+            data-cy='end-date'
             fullWidth
             component={KeyboardDateTimePicker}
             showTodayButton

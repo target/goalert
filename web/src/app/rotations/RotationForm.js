@@ -107,6 +107,7 @@ export default class RotationForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12}>
             <FormField
+              data-cy='handoff-time'
               fullWidth
               component={KeyboardTimePicker}
               mask='__:__ _M'

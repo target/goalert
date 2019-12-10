@@ -240,6 +240,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
       <TableRow key={idx}>
         <TableCell className={classes.startEnd}>
           <FormField
+            data-cy='start-time'
             component={KeyboardTimePicker}
             fullWidth
             showTodayButton
@@ -260,6 +261,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
         </TableCell>
         <TableCell className={classes.startEnd}>
           <FormField
+            data-cy='end-time'
             component={KeyboardTimePicker}
             fullWidth
             showTodayButton

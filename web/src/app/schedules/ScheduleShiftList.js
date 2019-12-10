@@ -343,6 +343,7 @@ export default class ScheduleShiftList extends React.PureComponent {
             </Grid>
             <Grid item xs={12}>
               <KeyboardDatePicker
+                data-cy='start-date'
                 className={this.props.classes.datePicker}
                 disabled={this.props.activeOnly}
                 label='Start Date'
