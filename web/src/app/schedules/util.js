@@ -21,7 +21,6 @@ export function alignWeekdayFilter(n, filter) {
   return filter.slice(7 - n).concat(filter.slice(0, 7 - n))
 }
 
-// todo: fix weekday alignment when editing/changing tz
 export function mapRuleToDateTime(rule, tz) {
   let start = rule.start
   let end = rule.end
