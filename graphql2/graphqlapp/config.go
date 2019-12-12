@@ -27,6 +27,14 @@ func (q *Query) Config(ctx context.Context, all *bool) ([]graphql2.ConfigValue, 
 
 	return graphql2.MapConfigValues(q.ConfigStore.Config()), nil
 }
+func (q *Query) ConfigHints(ctx context.Context) ([]graphql2.ConfigHint, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	return graphql2.MapConfigHints(q.ConfigStore.Config().Hints()), nil
+}
 
 func (m *Mutation) SetConfig(ctx context.Context, input []graphql2.ConfigValueInput) (bool, error) {
 	err := m.ConfigStore.UpdateConfig(ctx, func(cfg config.Config) (config.Config, error) {
