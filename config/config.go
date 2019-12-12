@@ -19,7 +19,7 @@ type Config struct {
 	fallbackURL string
 
 	General struct {
-		PublicURL              string `info:"Publicly routable URL for UI links and API calls."`
+		PublicURL              string `public:"true" info:"Publicly routable URL for UI links and API calls."`
 		GoogleAnalyticsID      string `public:"true"`
 		NotificationDisclaimer string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
 		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`

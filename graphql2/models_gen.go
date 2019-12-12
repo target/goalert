@@ -53,6 +53,11 @@ type AuthSubjectConnection struct {
 	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
+type ConfigHint struct {
+	ID    string `json:"id"`
+	Value string `json:"value"`
+}
+
 type ConfigValue struct {
 	ID          string     `json:"id"`
 	Description string     `json:"description"`

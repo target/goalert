@@ -12,6 +12,8 @@ import withStyles from '@material-ui/core/styles/withStyles'
 import AdminConfirmDialog from './AdminConfirmDialog'
 import PageActions from '../util/PageActions'
 import { Form } from '../forms'
+import { InputAdornment, TextField } from '@material-ui/core'
+import CopyText from '../util/CopyText'
 
 const query = gql`
   query getConfig {
@@ -20,6 +22,10 @@ const query = gql`
       description
       password
       type
+      value
+    }
+    configHints {
+      id
       value
     }
   }
@@ -68,16 +74,20 @@ export default class AdminConfig extends React.PureComponent {
     return (
       <Query
         query={query}
-        render={({ data }) => this.renderTabs(data.config)}
+        render={({ data }) => this.renderTabs(data.config, data.configHints)}
       />
     )
   }
 
-  renderTabs(configValues) {
+  renderTabs(configValues, hints) {
     const groups = chain(configValues)
       .map(f => f.id.split('.')[0])
       .uniq()
       .value()
+    const hintGroups = chain(hints)
+      .groupBy(f => f.id.split('.')[0])
+      .value()
+    const hintName = id => startCase(id.split('.')[1])
 
     return (
       <React.Fragment>
@@ -127,6 +137,25 @@ export default class AdminConfig extends React.PureComponent {
                           value: f.value,
                         }))}
                     />
+                    {hintGroups[groupID] &&
+                      hintGroups[groupID].map(h => (
+                        <TextField
+                          key={h.id}
+                          readOnly
+                          label={hintName(h.id)}
+                          value={h.value}
+                          variant='filled'
+                          margin='none'
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position='end'>
+                                <CopyText value={h.value} placement='left' />
+                              </InputAdornment>
+                            ),
+                          }}
+                          fullWidth
+                        />
+                      ))}
                   </Card>
                 </Form>
               </Grid>

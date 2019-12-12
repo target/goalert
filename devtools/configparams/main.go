@@ -36,10 +36,18 @@ import (
 	"github.com/target/goalert/validation"
 )
 
+func MapConfigHints(cfg config.Hints) []ConfigHint {
+	return []ConfigHint{
+		{{- range .HintFields }}
+		{ID: {{quote .ID}}, Value: {{.Value}}},
+		{{- end}}
+	}
+}
+
 // MapConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
-		{{- range . }}
+		{{- range .ConfigFields }}
 		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
 		{{- end}}
 	}
@@ -48,7 +56,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 // MapPublicConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
-		{{- range . }}
+		{{- range .ConfigFields }}
 		{{- if .Public}}
 		{ID: {{quote .ID}}, Type: {{.Type}}, Description: {{quote .Desc}}, Value: {{.Value}}{{if .Password}}, Password: true{{end}}},
 		{{- end}}
@@ -58,7 +66,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 
 // ApplyConfigValues will apply a list of ConfigValues to a Config struct.
 func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Config, error) {
-	{{- if hasStrList .}}
+	{{- if hasStrList .ConfigFields}}
 	parseStringList := func(v string) []string {
 		if v == "" {
 			return nil
@@ -66,7 +74,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 		return strings.Split(v, "\n")
 	}
 	{{- end}}
-	{{- if hasInt .}}
+	{{- if hasInt .ConfigFields}}
 	parseInt := func(id, v string) (int, error) {
 		if v == "" {
 			return 0, nil
@@ -78,7 +86,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 		return int(val), nil
 	}
 	{{- end}}
-	{{- if hasBool .}}
+	{{- if hasBool .ConfigFields}}
 	parseBool := func(id, v string) (bool, error) {
 		switch v {
 		case "true":
@@ -92,7 +100,7 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 	{{- end}}
 	for _, v := range vals {
 		switch v.ID {
-		{{- range .}}
+		{{- range .ConfigFields}}
 		case {{quote .ID}}:
 			{{- if eq .Type "ConfigTypeString"}}
 			cfg.{{.ID}} = v.Value
@@ -143,9 +151,14 @@ func main() {
 
 package graphql2`)
 
-	fields := printType("", reflect.TypeOf(config.Config{}), "", false, false)
+	var input struct {
+		ConfigFields []field
+		HintFields   []field
+	}
+	input.ConfigFields = printType("", reflect.TypeOf(config.Config{}), "", false, false)
+	input.HintFields = printType("", reflect.TypeOf(config.Hints{}), "", false, false)
 
-	err := tmpl.Execute(w, fields)
+	err := tmpl.Execute(w, input)
 	if err != nil {
 		panic(err)
 	}
