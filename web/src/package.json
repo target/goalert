@@ -85,7 +85,7 @@
     "graphql-tag": "2.10.1",
     "history": "4.10.1",
     "lodash-es": "4.17.15",
-    "luxon": "1.21.2",
+    "luxon": "1.21.3",
     "mdi-material-ui": "6.9.0",
     "moment": "2.24.0",
     "react": "16.12.0",
