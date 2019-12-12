@@ -41,8 +41,8 @@ export default class ScheduleOverrideCreateDialog extends React.PureComponent {
     defaultValue: p.shape({
       addUserID: p.string,
       removeUserID: p.string,
-      start: p.object, // DateTime, null when empty val
-      end: p.object, // DateTime, null when empty val
+      start: p.instanceOf(DateTime),
+      end: p.instanceOf(DateTime),
     }),
   }
 

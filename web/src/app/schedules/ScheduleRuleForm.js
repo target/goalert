@@ -27,6 +27,7 @@ import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { mapRuleToDateTime, mapRuleTZ } from './util'
 import { AccessTime as ClockIcon } from '@material-ui/icons'
+import { DateTime } from 'luxon'
 
 const days = [
   'Sunday',
@@ -114,8 +115,8 @@ export default class ScheduleRuleForm extends React.PureComponent {
       targetID: p.string.isRequired,
       rules: p.arrayOf(
         p.shape({
-          start: p.oneOfType([p.string, p.object]), // DateTime, null when empty val
-          end: p.oneOfType([p.string, p.object]), // DateTime, null when empty val
+          start: p.instanceOf(DateTime),
+          end: p.instanceOf(DateTime),
 
           weekdayFilter: p.arrayOf(p.bool).isRequired,
         }),

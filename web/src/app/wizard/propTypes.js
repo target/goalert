@@ -1,10 +1,11 @@
 import p from 'prop-types'
+import { DateTime } from 'luxon'
 
 const scheduleShape = p.shape({
   timeZone: p.string,
   users: p.array,
   rotation: p.shape({
-    startDate: p.object, // DateTime, null when empty val
+    startDate: p.instanceOf(DateTime),
     type: p.string,
   }),
   followTheSunRotation: p.shape({
