@@ -49,7 +49,7 @@ function testCalendar(screen: ScreenFormat) {
           ],
         }).then(() => {
           cy.visit('/schedules/' + sched.id)
-          cy.get('[data-cy=calendar]', { timeout: 15000 }).should('be.visible')
+          cy.get('[data-cy=calendar]', { timeout: 30000 }).should('be.visible')
         })
       })
     })
