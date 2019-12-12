@@ -140,7 +140,7 @@ export default class RotationForm extends React.PureComponent {
           required
           label='Day of Week'
           name='dayOfWeek'
-          value={this.dayOfWeek()}
+          value={this.props.value.start.weekday}
           onChange={e => this.setDayOfWeek(e.target.value)}
         >
           {Info.weekdaysFormat('long').map((day, idx) => {
@@ -155,19 +155,11 @@ export default class RotationForm extends React.PureComponent {
     )
   }
 
-  dayOfWeek() {
-    const { start, timeZone } = this.props.value
-    return DateTime.fromISO(start, { zone: timeZone }).weekday
-  }
-
   setDayOfWeek(weekday) {
-    const { start, timeZone, ...other } = this.props.value
+    const { start, ...value } = this.props.value
     this.props.onChange({
-      ...other,
-      timeZone,
-      start: DateTime.fromISO(start, { zone: timeZone })
-        .set({ weekday })
-        .toISO(),
+      ...value,
+      start: start.set({ weekday }),
     })
   }
 }
