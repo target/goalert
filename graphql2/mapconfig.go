@@ -11,6 +11,16 @@ import (
 	"github.com/target/goalert/validation"
 )
 
+func MapConfigHints(cfg config.Hints) []ConfigHint {
+	return []ConfigHint{
+		{ID: "GitHub.AuthCallbackURL", Value: cfg.GitHub.AuthCallbackURL},
+		{ID: "OIDC.RedirectURL", Value: cfg.OIDC.RedirectURL},
+		{ID: "Mailgun.ForwardURL", Value: cfg.Mailgun.ForwardURL},
+		{ID: "Twilio.MessageWebhookURL", Value: cfg.Twilio.MessageWebhookURL},
+		{ID: "Twilio.VoiceWebhookURL", Value: cfg.Twilio.VoiceWebhookURL},
+	}
+}
+
 // MapConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
@@ -56,6 +66,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 // MapPublicConfigValues will map a Config struct into a flat list of ConfigValue structs.
 func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 	return []ConfigValue{
+		{ID: "General.PublicURL", Type: ConfigTypeString, Description: "Publicly routable URL for UI links and API calls.", Value: cfg.General.PublicURL},
 		{ID: "General.GoogleAnalyticsID", Type: ConfigTypeString, Description: "", Value: cfg.General.GoogleAnalyticsID},
 		{ID: "General.NotificationDisclaimer", Type: ConfigTypeString, Description: "Disclaimer text for receiving pre-recorded notifications (appears on profile page).", Value: cfg.General.NotificationDisclaimer},
 		{ID: "General.DisableLabelCreation", Type: ConfigTypeBoolean, Description: "Disables the ability to create new labels for services.", Value: fmt.Sprintf("%t", cfg.General.DisableLabelCreation)},

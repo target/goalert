@@ -73,17 +73,37 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 	t = t.Truncate(time.Minute)
 	cTime := r.Start.Truncate(time.Minute)
 
+	if r.Type == TypeWeekly {
+		r.ShiftLength *= 7
+	}
+
+	if cTime.After(t) {
+		// reverse search
+		last := cTime
+		switch r.Type {
+		case TypeHourly:
+			for cTime.After(t) {
+				last = cTime
+				cTime = addHoursAlwaysInc(cTime, -r.ShiftLength)
+			}
+		case TypeWeekly, TypeDaily:
+			for cTime.After(t) {
+				last = cTime
+				// getting next end of shift
+				cTime = cTime.AddDate(0, 0, -r.ShiftLength)
+			}
+		default:
+			panic("unexpected rotation type")
+		}
+		return last
+	}
+
 	switch r.Type {
 	case TypeHourly:
-		// while cTime (rotation start) is before t
 		for !cTime.After(t) {
 			cTime = addHoursAlwaysInc(cTime, r.ShiftLength)
 		}
-	case TypeWeekly:
-		r.ShiftLength *= 7
-		fallthrough
-	case TypeDaily:
-		// while cTime (rotation start) is before t
+	case TypeWeekly, TypeDaily:
 		for !cTime.After(t) {
 			// getting end of shift
 			cTime = cTime.AddDate(0, 0, r.ShiftLength)

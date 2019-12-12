@@ -12,6 +12,11 @@ import isFullScreen from '@material-ui/core/withMobileDialog'
 import { withStyles } from '@material-ui/core/styles'
 import { getParameterByName } from '../../util/query_param'
 
+import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
+import logoSrcSet2 from '../../public/goalert-logo-scaled@1.5.webp'
+import logoSrcSet3 from '../../public/goalert-logo-scaled@2.webp'
+import logoImgSrc from '../../public/goalert-logo-scaled@2.png'
+
 const PROVIDERS = '/api/v2/identity/providers'
 const BACKGROUND_URL =
   'https://www.toptal.com/designers/subtlepatterns/patterns/dust_scratches.png'
@@ -223,17 +228,13 @@ export default class Login extends Component {
       <picture>
         <source
           srcSet={`
-              ${require('../../public/goalert-logo-scaled.webp')},
-              ${require('../../public/goalert-logo-scaled@1.5.webp')} 1.5x,
-              ${require('../../public/goalert-logo-scaled@2.webp')} 2x
+              ${logoSrcSet1},
+              ${logoSrcSet2} 1.5x,
+              ${logoSrcSet3} 2x
             `}
           type='image/webp'
         />
-        <img
-          src={require('../../public/goalert-logo-scaled@2.png')}
-          height={61}
-          alt='GoAlert'
-        />
+        <img src={logoImgSrc} height={61} alt='GoAlert' />
       </picture>
     )
 
