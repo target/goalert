@@ -249,7 +249,7 @@ function testSchedules(screen: ScreenFormat) {
       cy.get('body').contains('li', rot.name)
     })
 
-    it('should edit then delete an assignment rule', () => {
+    it('should edit and add then delete an assignment rule', () => {
       // todo: mobile dialog is completely different
       if (screen === 'mobile' || screen === 'tablet') return
 

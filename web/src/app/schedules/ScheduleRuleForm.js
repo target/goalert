@@ -211,9 +211,13 @@ export default class ScheduleRuleForm extends React.PureComponent {
                         this.props.onChange({
                           ...this.props.value,
                           rules: this.props.value.rules.concat({
-                            start: '00:00',
-                            end: '00:00',
-                            weekdayFilter: days.map(d => true),
+                            start: DateTime.fromFormat('00:00', 'HH:mm', {
+                              zone: displayTZ,
+                            }),
+                            end: DateTime.fromFormat('00:00', 'HH:mm', {
+                              zone: displayTZ,
+                            }),
+                            weekdayFilter: days.map(() => true),
                           }),
                         })
                       }
