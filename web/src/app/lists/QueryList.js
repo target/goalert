@@ -12,8 +12,9 @@ import Search from '../util/Search'
 import { GraphQLClientWithErrors } from '../apollo'
 
 const useStyles = makeStyles({
-  flexGrow: {
-    flexGrow: 1,
+  searchGridItem: {
+    display: 'flex',
+    justifyContent: 'flex-end',
   },
 })
 
@@ -81,20 +82,20 @@ export default function QueryList(props) {
 
   return (
     <Grid container spacing={2}>
-      <Grid item className={classes.flexGrow} />
-
       {/* Such that filtering/searching isn't re-rendered with the page content */}
-      <Grid item>
+      <Grid item xs={12} className={classes.searchGridItem}>
         <Search endAdornment={searchAdornment} />
       </Grid>
 
-      <PaginatedList
-        {...listProps}
-        key={urlKey}
-        items={items}
-        loadMore={loadMore}
-        isLoading={loading}
-      />
+      <Grid item xs={12}>
+        <PaginatedList
+          {...listProps}
+          key={urlKey}
+          items={items}
+          loadMore={loadMore}
+          isLoading={loading}
+        />
+      </Grid>
     </Grid>
   )
 }
