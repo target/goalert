@@ -6,13 +6,16 @@ import ScheduleRuleForm from './ScheduleRuleForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
 import { startCase } from 'lodash-es'
+import { connect } from 'react-redux'
+import { urlParamSelector } from '../selectors'
+import { DateTime } from 'luxon'
 
 const mutation = gql`
   mutation($input: ScheduleTargetInput!) {
     updateScheduleTarget(input: $input)
   }
 `
-
+@connect(state => ({ zone: urlParamSelector(state)('tz', 'local') }))
 export default class ScheduleRuleCreateDialog extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
@@ -20,17 +23,24 @@ export default class ScheduleRuleCreateDialog extends React.PureComponent {
     onClose: p.func,
   }
 
-  state = {
-    value: {
-      targetID: '',
-      rules: [
-        {
-          start: '00:00',
-          end: '00:00',
-          weekdayFilter: [true, true, true, true, true, true, true],
-        },
-      ],
-    },
+  constructor(props) {
+    super(props)
+
+    // only care about hour and minute, but it needs to be a parsable date for the time picker
+    const zeroZero = DateTime.fromFormat('00:00', 'HH:mm', { zone: props.zone })
+
+    this.state = {
+      value: {
+        targetID: '',
+        rules: [
+          {
+            start: zeroZero,
+            end: zeroZero,
+            weekdayFilter: [true, true, true, true, true, true, true],
+          },
+        ],
+      },
+    }
   }
 
   render() {

@@ -223,9 +223,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {this.props.value.rules.map((r, idx) =>
-                  this.renderRuleField(r, idx),
-                )}
+                {value.rules.map((r, idx) => this.renderRuleField(r, idx))}
               </TableBody>
             </Table>
           </Grid>

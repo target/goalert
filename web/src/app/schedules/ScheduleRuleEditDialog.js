@@ -7,6 +7,9 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
 import { startCase, pick } from 'lodash-es'
 import Query from '../util/Query'
+import { connect } from 'react-redux'
+import { urlParamSelector } from '../selectors'
+import { DateTime } from 'luxon'
 
 const query = gql`
   query($id: ID!, $tgt: TargetInput!) {
@@ -30,6 +33,7 @@ const mutation = gql`
   }
 `
 
+@connect(state => ({ zone: urlParamSelector(state)('tz', 'local') }))
 export default class ScheduleRuleEditDialog extends React.Component {
   static propTypes = {
     scheduleID: p.string.isRequired,
@@ -77,9 +81,16 @@ export default class ScheduleRuleEditDialog extends React.Component {
   renderDialog(data, commit, status) {
     const defaults = {
       targetID: this.props.target.id,
-      rules: data.rules.map(r =>
-        pick(r, ['id', 'start', 'end', 'weekdayFilter']),
-      ),
+      rules: data.rules.map(r => {
+        const rule = pick(r, ['id', 'start', 'end', 'weekdayFilter'])
+        rule.start = DateTime.fromFormat(rule.start, 'HH:mm', {
+          zone: this.props.zone,
+        })
+        rule.end = DateTime.fromFormat(rule.end, 'HH:mm', {
+          zone: this.props.zone,
+        })
+        return rule
+      }),
     }
 
     return (
