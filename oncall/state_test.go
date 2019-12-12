@@ -93,19 +93,19 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 			},
 		},
 		overrides: []override.UserOverride{
-			override.UserOverride{
+			{
 				AddUserID:    "binbaz",
 				RemoveUserID: "foobar",
 				Start:        time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
 				End:          time.Date(2018, 1, 1, 8, 45, 0, 0, time.UTC),
 			},
-			override.UserOverride{
+			{
 				AddUserID:    "binbaz2",
 				RemoveUserID: "foobar",
 				Start:        time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
 				End:          time.Date(2018, 1, 1, 8, 45, 0, 0, time.UTC),
 			},
-			override.UserOverride{
+			{
 				AddUserID:    "binbaz",
 				RemoveUserID: "foob3ar",
 				Start:        time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
@@ -287,7 +287,7 @@ func TestState_CalculateShifts(t *testing.T) {
 				}},
 			},
 			overrides: []override.UserOverride{
-				override.UserOverride{
+				{
 					AddUserID:    "binbaz",
 					RemoveUserID: "foobar",
 					Start:        time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
@@ -331,7 +331,7 @@ func TestState_CalculateShifts(t *testing.T) {
 				}},
 			},
 			overrides: []override.UserOverride{
-				override.UserOverride{
+				{
 					AddUserID: "binbaz",
 					Start:     time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
 					End:       time.Date(2018, 1, 1, 8, 45, 0, 0, time.UTC),
@@ -368,7 +368,7 @@ func TestState_CalculateShifts(t *testing.T) {
 				}},
 			},
 			overrides: []override.UserOverride{
-				override.UserOverride{
+				{
 					RemoveUserID: "foobar",
 					Start:        time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
 					End:          time.Date(2018, 1, 1, 8, 45, 0, 0, time.UTC),

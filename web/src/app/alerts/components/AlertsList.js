@@ -13,7 +13,7 @@ import { graphql } from 'react-apollo'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { getParameterByName } from '../../util/query_param'
-import CreateAlertFab from './CreateAlertFab'
+import CreateAlertFab from '../CreateAlertFab'
 import AlertsListDataWrapper from './AlertsListDataWrapper'
 import { alertsQuery } from '../queries/AlertsListQuery'
 import { connect } from 'react-redux'
@@ -322,8 +322,8 @@ export default class AlertsList extends Component {
           />
         </Snackbar>
         <CreateAlertFab
-          showFavoritesWarning={showFavoritesWarning}
           serviceID={serviceID}
+          showFavoritesWarning={showFavoritesWarning}
           transition={fullScreen && (showFavoritesWarning || actionComplete)}
         />
         <Card style={{ width: '100%' }}>

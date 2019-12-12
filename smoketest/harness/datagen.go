@@ -64,13 +64,13 @@ func (d *DataGen) Get(id string) string {
 func (d *DataGen) GetWithArg(arg, id string) string {
 	d.mx.Lock()
 	defer d.mx.Unlock()
-	if id == "" {
-		return d.g.Generate(arg)
-	}
 	key := dataGenKey{arg: arg, id: id}
 	val := dataGenKey{arg: arg, id: ""}
 	var ok bool
-	val.id, ok = d.data[key]
+	if id != "" {
+		// only return previous value if given an ID
+		val.id, ok = d.data[key]
+	}
 	if !ok {
 		val.id = d.g.Generate(arg)
 		for d.uniq[val] {

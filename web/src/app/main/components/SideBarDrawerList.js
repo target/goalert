@@ -30,6 +30,8 @@ import { connect } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 
+import logo from '../../public/goalert-alt-logo-scaled.png'
+
 const navIcons = {
   Alerts: AlertsIcon,
   Rotations: RotationsIcon,
@@ -159,8 +161,8 @@ export default class SideBarDrawerList extends React.PureComponent {
           <img
             className={classes.logo}
             height={32}
-            src={require('../../public/goalert-alt-logo-scaled.png')}
-            alt=''
+            src={logo}
+            alt='GoAlert Logo'
           />
         </div>
         <Divider />

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -74,7 +75,10 @@ func TestTwilioVoiceVerification(t *testing.T) {
 		return -1
 	}, msg.Body())
 
-	code, _ := strconv.Atoi(codeStr)
+	// Since verification code is said twice during one Twilio message
+	assert.Len(t, codeStr, 12)
+
+	code, _ := strconv.Atoi(codeStr[:6])
 
 	doQL(fmt.Sprintf(`
 		mutation {
