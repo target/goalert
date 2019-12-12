@@ -78,6 +78,9 @@ type Query {
   # then all values are returned (must be admin).
   config(all: Boolean): [ConfigValue!]!
 
+  # Returns configuration hints (must be admin).
+  configHints: [ConfigHint!]!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -111,6 +114,10 @@ type ConfigValue {
   value: String!
   type: ConfigType!
   password: Boolean!
+}
+type ConfigHint {
+  id: String!
+  value: String!
 }
 enum ConfigType {
   string

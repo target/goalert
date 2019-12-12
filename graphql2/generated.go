@@ -122,6 +122,11 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	ConfigHint struct {
+		ID    func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	ConfigValue struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -233,6 +238,7 @@ type ComplexityRoot struct {
 		Alerts                  func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider func(childComplexity int, first *int, after *string, providerID string) int
 		Config                  func(childComplexity int, all *bool) int
+		ConfigHints             func(childComplexity int) int
 		EscalationPolicies      func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy        func(childComplexity int, id string) int
 		HeartbeatMonitor        func(childComplexity int, id string) int
@@ -501,6 +507,7 @@ type QueryResolver interface {
 	UserOverrides(ctx context.Context, input *UserOverrideSearchOptions) (*UserOverrideConnection, error)
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
+	ConfigHints(ctx context.Context) ([]ConfigHint, error)
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
@@ -753,6 +760,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthSubjectConnection.PageInfo(childComplexity), true
+
+	case "ConfigHint.id":
+		if e.complexity.ConfigHint.ID == nil {
+			break
+		}
+
+		return e.complexity.ConfigHint.ID(childComplexity), true
+
+	case "ConfigHint.value":
+		if e.complexity.ConfigHint.Value == nil {
+			break
+		}
+
+		return e.complexity.ConfigHint.Value(childComplexity), true
 
 	case "ConfigValue.description":
 		if e.complexity.ConfigValue.Description == nil {
@@ -1472,6 +1493,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Config(childComplexity, args["all"].(*bool)), true
+
+	case "Query.configHints":
+		if e.complexity.Query.ConfigHints == nil {
+			break
+		}
+
+		return e.complexity.Query.ConfigHints(childComplexity), true
 
 	case "Query.escalationPolicies":
 		if e.complexity.Query.EscalationPolicies == nil {
@@ -2526,6 +2554,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
   # then all values are returned (must be admin).
   config(all: Boolean): [ConfigValue!]!
 
+  # Returns configuration hints (must be admin).
+  configHints: [ConfigHint!]!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -2559,6 +2590,10 @@ type ConfigValue {
   value: String!
   type: ConfigType!
   password: Boolean!
+}
+type ConfigHint {
+  id: String!
+  value: String!
 }
 enum ConfigType {
   string
@@ -5206,6 +5241,80 @@ func (ec *executionContext) _AuthSubjectConnection_pageInfo(ctx context.Context,
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ConfigHint_id(ctx context.Context, field graphql.CollectedField, obj *ConfigHint) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ConfigHint",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ConfigHint_value(ctx context.Context, field graphql.CollectedField, obj *ConfigHint) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ConfigHint",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ConfigValue_id(ctx context.Context, field graphql.CollectedField, obj *ConfigValue) (ret graphql.Marshaler) {
@@ -9021,6 +9130,43 @@ func (ec *executionContext) _Query_config(ctx context.Context, field graphql.Col
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNConfigValue2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigValueᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_configHints(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ConfigHints(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]ConfigHint)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHintᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_userContactMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15790,6 +15936,38 @@ func (ec *executionContext) _AuthSubjectConnection(ctx context.Context, sel ast.
 	return out
 }
 
+var configHintImplementors = []string{"ConfigHint"}
+
+func (ec *executionContext) _ConfigHint(ctx context.Context, sel ast.SelectionSet, obj *ConfigHint) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, configHintImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigHint")
+		case "id":
+			out.Values[i] = ec._ConfigHint_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._ConfigHint_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var configValueImplementors = []string{"ConfigValue"}
 
 func (ec *executionContext) _ConfigValue(ctx context.Context, sel ast.SelectionSet, obj *ConfigValue) graphql.Marshaler {
@@ -16722,6 +16900,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_config(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "configHints":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_configHints(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -18436,6 +18628,47 @@ func (ec *executionContext) marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋ
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNConfigHint2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHint(ctx context.Context, sel ast.SelectionSet, v ConfigHint) graphql.Marshaler {
+	return ec._ConfigHint(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHintᚄ(ctx context.Context, sel ast.SelectionSet, v []ConfigHint) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNConfigHint2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHint(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalNConfigType2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigType(ctx context.Context, v interface{}) (ConfigType, error) {
