@@ -1,15 +1,15 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
 import p from 'prop-types'
-import Grid from '@material-ui/core/Grid'
+import { useQuery } from '@apollo/react-hooks'
+import { Grid, makeStyles } from '@material-ui/core'
+import { once } from 'lodash-es'
 import { PaginatedList } from './PaginatedList'
 import { ITEMS_PER_PAGE } from '../config'
-import { once } from 'lodash-es'
-import { useSelector } from 'react-redux'
 import { searchSelector, urlKeySelector } from '../selectors'
-import Query from '../util/Query'
-import { fieldAlias } from '../util/graphql'
+// import { fieldAlias } from '../util/graphql'
 import Search from '../util/Search'
-import { makeStyles } from '@material-ui/core'
+import { GraphQLClientWithErrors } from '../apollo'
 
 const useStyles = makeStyles({
   flexGrow: {
@@ -17,13 +17,37 @@ const useStyles = makeStyles({
   },
 })
 
+const buildFetchMore = (fetchMore, after) => {
+  return once(num =>
+    fetchMore({
+      variables: {
+        input: {
+          first: num,
+          after,
+        },
+      },
+      updateQuery: (prev, { fetchMoreResult }) => {
+        if (!fetchMoreResult) return prev
+
+        return {
+          ...fetchMoreResult,
+          data: {
+            ...fetchMoreResult.data,
+            nodes: prev.data.nodes.concat(fetchMoreResult.data.nodes),
+          },
+        }
+      },
+    }),
+  )
+}
+
 export default function QueryList(props) {
+  const { noSearch, query, searchAdornment, ...listProps } = props
+  const { input, ...vars } = props.variables
+
   const classes = useStyles()
   const searchParam = useSelector(searchSelector)
   const urlKey = useSelector(urlKeySelector)
-
-  const { noSearch, query, searchAdornment } = props
-  const { input, ...vars } = props.variables
 
   const variables = {
     ...vars,
@@ -38,59 +62,21 @@ export default function QueryList(props) {
     delete variables.input.search
   }
 
-  const buildFetchMore = (fetchMore, after) => {
-    return once(num =>
-      fetchMore({
-        variables: {
-          input: {
-            first: num,
-            after,
-          },
-        },
-        updateQuery: (prev, { fetchMoreResult }) => {
-          if (!fetchMoreResult) return prev
+  // const aliasedQuery = fieldAlias(query, 'data')
+  // TODO use aliasedQuery
+  const { data, loading, fetchMore } = useQuery(query, {
+    client: GraphQLClientWithErrors,
+    variables,
+  })
 
-          return {
-            ...fetchMoreResult,
-            data: {
-              ...fetchMoreResult.data,
-              nodes: prev.data.nodes.concat(fetchMoreResult.data.nodes),
-            },
-          }
-        },
-      }),
-    )
-  }
+  let items = []
+  let loadMore
 
-  const renderContent = ({ data, loading, fetchMore }) => {
-    let items = []
-    let loadMore
-    const {
-      classes,
-      query,
-      mapDataNode,
-      variables,
-      noSearch,
-      search,
-      ...listProps
-    } = props
-
-    if (data && data.data && data.data.nodes) {
-      items = data.data.nodes.map(props.mapDataNode)
-      if (data.data.pageInfo.hasNextPage) {
-        loadMore = buildFetchMore(fetchMore, data.data.pageInfo.endCursor)
-      }
+  if (data && data.data && data.data.nodes) {
+    items = data.data.nodes.map(props.mapDataNode)
+    if (data.data.pageInfo.hasNextPage) {
+      loadMore = buildFetchMore(fetchMore, data.data.pageInfo.endCursor)
     }
-
-    return (
-      <PaginatedList
-        {...listProps}
-        key={urlKey}
-        items={items}
-        loadMore={loadMore}
-        isLoading={loading}
-      />
-    )
   }
 
   return (
@@ -102,16 +88,13 @@ export default function QueryList(props) {
         <Search endAdornment={searchAdornment} />
       </Grid>
 
-      <Grid item xs={12}>
-        <Query
-          query={fieldAlias(query, 'data')}
-          variables={variables}
-          noPoll
-          noSpin
-          notifyOnNetworkStatusChange
-          render={renderContent}
-        />
-      </Grid>
+      <PaginatedList
+        {...listProps}
+        key={urlKey}
+        items={items}
+        loadMore={loadMore}
+        isLoading={loading}
+      />
     </Grid>
   )
 }
