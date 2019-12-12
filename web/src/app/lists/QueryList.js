@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import p from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
@@ -7,7 +7,7 @@ import { once } from 'lodash-es'
 import { PaginatedList } from './PaginatedList'
 import { ITEMS_PER_PAGE } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
-// import { fieldAlias } from '../util/graphql'
+import { fieldAlias } from '../util/graphql'
 import Search from '../util/Search'
 import { GraphQLClientWithErrors } from '../apollo'
 
@@ -49,6 +49,7 @@ export default function QueryList(props) {
   const classes = useStyles()
   const searchParam = useSelector(searchSelector)
   const urlKey = useSelector(urlKeySelector)
+  const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
 
   const variables = {
     ...vars,
@@ -63,9 +64,7 @@ export default function QueryList(props) {
     delete variables.input.search
   }
 
-  // const aliasedQuery = fieldAlias(query, 'data')
-  // TODO use aliasedQuery
-  const { data, loading, fetchMore } = useQuery(query, {
+  const { data, loading, fetchMore } = useQuery(aliasedQuery, {
     client: GraphQLClientWithErrors,
     variables,
   })
