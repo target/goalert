@@ -14,11 +14,11 @@ import Tooltip from '@material-ui/core/Tooltip'
 import withStyles from '@material-ui/core/styles/withStyles'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
 import InfoIcon from '@material-ui/icons/Info'
-import { DateTimePicker } from '@material-ui/pickers'
 import { TimeZoneSelect, UserSelect } from '../selection'
 import { FormField } from '../forms'
 import { value as valuePropType } from './propTypes'
 import { set } from 'lodash-es'
+import { ISODateTimePicker } from '../util/DatePickers'
 
 const styles = {
   fieldItem: {
@@ -180,10 +180,9 @@ export default class WizardScheduleForm extends React.Component {
           <React.Fragment>
             <Grid item className={classes.fieldItem}>
               <FormField
-                component={DateTimePicker}
+                component={ISODateTimePicker}
                 name={`${key}.rotation.startDate`}
                 required
-                mapOnChangeValue={value => value.toISO()}
                 label='When should the rotation first hand off to the next team
               member?'
                 formLabel

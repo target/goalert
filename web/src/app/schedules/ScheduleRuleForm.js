@@ -19,13 +19,13 @@ import {
 import { UserSelect, RotationSelect } from '../selection'
 import { startCase } from 'lodash-es'
 import { Add, Trash } from '../icons'
-import { TimePicker } from '@material-ui/pickers'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { parseClock, formatClock, mapRuleTZ } from './util'
+import { mapRuleTZ } from './util'
+import { ISOTimePicker } from '../util/DatePickers'
 
 const days = [
   'Sunday',
@@ -245,7 +245,6 @@ export default class ScheduleRuleForm extends React.PureComponent {
   }
 
   renderRuleField(idx) {
-    const parseValue = value => parseClock(value, this.props.zone)
     const classes = this.props.classes
     return (
       <TableRow key={idx}>
@@ -253,9 +252,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
           <FormField
             fullWidth
             noError
-            component={TimePicker}
-            mapValue={parseValue}
-            mapOnChangeValue={formatClock}
+            component={ISOTimePicker}
             showTodayButton
             required
             label=''
@@ -266,9 +263,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
           <FormField
             fullWidth
             noError
-            component={TimePicker}
-            mapValue={parseValue}
-            mapOnChangeValue={formatClock}
+            component={ISOTimePicker}
             showTodayButton
             required
             label=''

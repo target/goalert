@@ -24,10 +24,10 @@ import PageActions from '../util/PageActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { setURLParam, resetURLParams } from '../actions'
-import { DatePicker } from '@material-ui/pickers'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
+import { ISODatePicker } from '../util/DatePickers'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
@@ -328,12 +328,12 @@ export default class ScheduleShiftList extends React.PureComponent {
               <ScheduleTZFilter scheduleID={this.props.scheduleID} />
             </Grid>
             <Grid item xs={12}>
-              <DatePicker
+              <ISODatePicker
                 className={this.props.classes.datePicker}
                 disabled={this.props.activeOnly}
                 label='Start Date'
-                value={DateTime.fromISO(this.props.start, { zone })}
-                onChange={e => this.props.handleSetStart(e.toISO())}
+                value={this.props.start}
+                onChange={v => this.props.handleSetStart(v)}
                 showTodayButton
                 autoOk
                 InputProps={{

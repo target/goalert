@@ -13,13 +13,12 @@ import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateRange } from '@material-ui/icons'
-import { DateTimePicker } from '@material-ui/pickers'
-import { DateTime } from 'luxon'
 import { UserSelect } from '../selection'
 import gql from 'graphql-tag'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import _ from 'lodash-es'
+import { ISODateTimePicker } from '../util/DatePickers'
 
 const query = gql`
   query($id: ID!) {
@@ -124,9 +123,7 @@ export default function ScheduleOverrideForm(props) {
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={DateTimePicker}
-            mapValue={value => DateTime.fromISO(value, { zone })}
-            mapOnChangeValue={value => value.toISO()}
+            component={ISODateTimePicker}
             showTodayButton
             required
             name='start'
@@ -144,9 +141,7 @@ export default function ScheduleOverrideForm(props) {
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={DateTimePicker}
-            mapValue={value => DateTime.fromISO(value, { zone })}
-            mapOnChangeValue={value => value.toISO()}
+            component={ISODateTimePicker}
             showTodayButton
             name='end'
             required
