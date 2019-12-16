@@ -24,8 +24,10 @@ function menu(
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
 
+    // open menu
     cy.wrap(sub).click()
 
+    // click menu item
     if ((options && options.forceWidescreen) || format === 'wide') {
       cy.get('ul[role=menu]')
         .contains('li', s)
