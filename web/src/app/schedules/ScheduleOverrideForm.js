@@ -186,7 +186,7 @@ export default function ScheduleOverrideForm(props) {
               .toFormat('MM/dd/yyyy, hh:mm a')}
             invalidDateMessage={null}
             validate={() => {
-              if (!props.value.start.isValid) {
+              if (!props.value.end.isValid) {
                 return new Error('Invalid time')
               }
             }}
