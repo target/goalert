@@ -218,6 +218,7 @@ function testProfile(screen: ScreenFormat) {
     })
 
     it('should allow creating a delayed rule', () => {
+      // delete default rule
       cy.get('ul[data-cy=notification-rules]')
         .contains('li', cm.name)
         .find('button')
@@ -226,16 +227,18 @@ function testProfile(screen: ScreenFormat) {
         .contains('button', 'Confirm')
         .click()
 
+      // create new rule
       const delay = c.integer({ min: 2, max: 15 })
       cy.pageFab('Notification')
       cy.get('input[name=contactMethodID]').selectByLabel(cm.name)
       cy.get('input[name=delayMinutes]')
-        .parent()
-        .type('{selectall}{backspace}{del}' + delay.toString())
+        .clear()
+        .type(delay.toString())
       cy.get('*[role=dialog]')
         .contains('button', 'Submit')
         .click()
 
+      // verify changes
       cy.get('body').should('not.contain', 'No notification rules')
       cy.get('ul[data-cy=notification-rules]').should(
         'contain',
