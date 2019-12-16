@@ -21,7 +21,7 @@ function pageFab(dialOption?: string): Cypress.Chainable {
     .find(
       `span[aria-label*=${JSON.stringify(dialOption)}] button[role=menuitem]`,
     )
-    .click()
+    .click({ force: true })
 }
 
 Cypress.Commands.add('pageFab', pageFab)
