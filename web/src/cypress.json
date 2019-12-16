@@ -2,7 +2,7 @@
   "baseUrl": "http://localhost:3030",
   "supportFile": "cypress/support/index.ts",
   "videoUploadOnPasses": false,
-  "waitForAnimations": true,
+  "waitForAnimations": false,
   "viewportWidth": 1440,
   "viewportHeight": 900,
   "requestTimeout": 15000,
