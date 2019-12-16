@@ -251,12 +251,36 @@ type Mutation {
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+
+  createCalendarSubscription(
+    input: CreateCalendarSubscriptionInput!
+  ): CalendarSubscription!
+  updateCalendarSubscription(input: UpdateCalendarSubscriptionInput!): Boolean!
 }
 
 input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+}
+
+input CreateCalendarSubscriptionInput {
+  name: String!
+  notificationMinutes: [Int!]
+  scheduleID: ID!
+}
+input UpdateCalendarSubscriptionInput {
+  id: ID!
+  name: String
+  notificationMinutes: [Int!]
+}
+type CalendarSubscription {
+  ID: ID!
+  name: String!
+  notificationMinutes: [Int!]!
+  scheduleID: ID!
+  schedule: Schedule
+  url: String # Only available upon creation.
 }
 
 input ConfigValueInput {
@@ -757,6 +781,7 @@ enum TargetType {
   notificationRule
   contactMethod
   heartbeatMonitor
+  calendarSubscription
 }
 
 type ServiceConnection {
@@ -813,6 +838,7 @@ type User {
 
   contactMethods: [UserContactMethod!]!
   notificationRules: [UserNotificationRule!]!
+  calendarSubscriptions: [CalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
 
