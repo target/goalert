@@ -8,11 +8,9 @@ const query = gql`
 `
 
 export default function useExamplePhoneNumber(countryCode) {
-  const { data } = useQuery(query, {
+  return useQuery(query, {
     variables: {
       input: countryCode,
     },
   })
-
-  return data && data.examplePhoneNumber
 }

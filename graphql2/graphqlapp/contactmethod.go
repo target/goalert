@@ -32,13 +32,16 @@ func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.C
 	return formatted, nil
 }
 
+// ExamplePhoneNumber given country code e.g. 'GB' return example phone number in International format
+// defaults to 'US'
 func (q *Query) ExamplePhoneNumber(ctx context.Context, countryCode string) (*string, error) {
 
-	//TODO get user's locale via IP or something similar
 	phoneNumber := libphonenumber.GetExampleNumber(countryCode)
-	formatted := libphonenumber.Format(phoneNumber, libphonenumber.INTERNATIONAL)
+	if phoneNumber == nil {
+		phoneNumber = libphonenumber.GetExampleNumber("US")
+	}
 
-	//TODO return &formatted, error
+	formatted := libphonenumber.Format(phoneNumber, libphonenumber.INTERNATIONAL)
 	return &formatted, nil
 }
 

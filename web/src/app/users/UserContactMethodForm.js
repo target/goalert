@@ -17,8 +17,9 @@ const cleanValue = val => {
 }
 
 export default function UserContactMethodForm(props) {
-  const examplePhoneNumber =
-    useExamplePhoneNumber(props.countryCode) || '+1 201-555-0123'
+  const { data } = useExamplePhoneNumber(props.countryCode)
+  const examplePhoneNumber = data && data.examplePhoneNumber
+
   return (
     <FormContainer {...props} optionalLabels>
       <Grid container spacing={2}>

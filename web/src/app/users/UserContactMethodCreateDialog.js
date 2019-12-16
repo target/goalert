@@ -33,8 +33,8 @@ export default function UserContactMethodCreateDialog(props) {
     async function doAsync() {
       const response = await fetch('http://ip-api.com/json')
       const json = await response.json()
-      const countryName = json.country
       const countryCode = json.countryCode
+      const countryName = json.country
       setLocale({ countryCode, countryName })
     }
 
