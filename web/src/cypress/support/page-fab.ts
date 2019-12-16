@@ -10,18 +10,19 @@ declare namespace Cypress {
 }
 
 function pageFab(dialOption?: string): Cypress.Chainable {
-  const res = cy
-    .get('button[data-cy=page-fab]')
-    .should('be.visible')
-    .click()
-  if (!dialOption) return res
+  const res = cy.get('button[data-cy=page-fab]').should('be.visible')
 
+  // standard page fab
+  if (!dialOption) return res.click()
+
+  // speed dial page fab
   return res
+    .trigger('mouseover')
     .parent()
     .find(
       `span[aria-label*=${JSON.stringify(dialOption)}] button[role=menuitem]`,
     )
-    .click({ force: true })
+    .click()
 }
 
 Cypress.Commands.add('pageFab', pageFab)
