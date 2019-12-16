@@ -22,11 +22,14 @@ import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
 const query = gql`
-  query($id: ID!) {
+  fragment TitleQuery on Schedule {
+    id
+    name
+    description
+  }
+  query scheduleDetailsQuery($id: ID!) {
     schedule(id: $id) {
-      id
-      name
-      description
+      ...TitleQuery
       timeZone
     }
   }
@@ -48,11 +51,12 @@ export default function ScheduleDetails({ scheduleID }) {
 
   const { data: _data, loading, error } = useQuery(query, {
     variables: { id: scheduleID },
+    returnPartialData: true,
   })
 
   const data = _.get(_data, 'schedule', null)
 
-  if (loading) return <Spinner />
+  if (loading && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data) {
@@ -108,7 +112,9 @@ export default function ScheduleDetails({ scheduleID }) {
         title={data.name}
         details={data.description}
         titleFooter={
-          <React.Fragment>Time Zone: {data.timeZone}</React.Fragment>
+          <React.Fragment>
+            Time Zone: {data.timeZone || 'Loading...'}
+          </React.Fragment>
         }
         links={[
           { label: 'Assignments', url: 'assignments' },

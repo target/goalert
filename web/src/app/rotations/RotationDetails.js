@@ -19,11 +19,16 @@ import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
 const query = gql`
+  fragment TitleQuery on Rotation {
+    id
+    name
+    description
+  }
+
   query rotationDetails($id: ID!) {
     rotation(id: $id) {
-      id
-      name
-      description
+      ...TitleQuery
+
       activeUserIndex
       userIDs
       type
@@ -41,11 +46,12 @@ export default function RotationDetails({ rotationID }) {
 
   const { data: _data, loading, error } = useQuery(query, {
     variables: { id: rotationID },
+    returnPartialData: true,
   })
 
   const data = _.get(_data, 'rotation', null)
 
-  if (loading) return <Spinner />
+  if (loading && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data)
