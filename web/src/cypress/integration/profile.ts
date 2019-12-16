@@ -228,8 +228,10 @@ function testProfile(screen: ScreenFormat) {
 
       const delay = c.integer({ min: 2, max: 15 })
       cy.pageFab('Notification')
-      cy.get('input[name=delayMinutes]').type(delay.toString())
       cy.get('input[name=contactMethodID]').selectByLabel(cm.name)
+      cy.get('input[name=delayMinutes]')
+        .parent()
+        .type('{selectall}{backspace}{del}' + delay.toString())
       cy.get('*[role=dialog]')
         .contains('button', 'Submit')
         .click()
