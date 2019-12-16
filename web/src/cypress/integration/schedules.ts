@@ -333,7 +333,10 @@ function testSchedules(screen: ScreenFormat) {
 
         cy.get('body').should('contain', users[0].name)
 
-        cy.get('button[data-cy=other-actions]').menu('Edit')
+        cy.get('body')
+          .contains('li', users[0].name)
+          .find('button[data-cy=other-actions]')
+          .menu('Edit')
 
         cy.get('input[name=addUserID]').selectByLabel(users[1].name)
         cy.get('button')
@@ -343,14 +346,6 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('body')
           .should('not.contain', users[0].name)
           .should('contain', users[1].name)
-
-        cy.get('button[data-cy=other-actions]').menu('Delete')
-
-        cy.get('button')
-          .contains('Confirm')
-          .click()
-
-        cy.get('body').should('contain', 'No results')
       })
     })
   })
