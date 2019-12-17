@@ -225,7 +225,7 @@ function testSchedules(screen: ScreenFormat) {
       cy.get('body').should('not.contain', rot.name)
     })
 
-    it.only('should create multiple rules on an assignment', () => {
+    it('should create multiple rules on an assignment', () => {
       cy.pageFab('Rotation')
 
       cy.get('input[name=Sunday]').click()
