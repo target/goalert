@@ -69,3 +69,65 @@ export function logTimeFormat(_to, _from) {
     return 'Last ' + to.weekdayLong + ' at ' + to.toFormat('h:mm a')
   return to.toFormat('MM/dd/yyyy')
 }
+
+const fixed = DateTime.fromObject({
+  month: 1,
+  day: 2,
+  hour: 15, // 3pm
+  minute: 4,
+  second: 5,
+  year: 2006,
+  millisecond: 99,
+}).setZone('America/Boise', { keepLocalTime: true })
+
+const localeKeys = [
+  ['yyyy', 'yy', 'y'],
+  ['LL', 'L', 'LLLL', 'LLL', 'LLLLL'],
+  ['dd', 'd'],
+  ['u', 'S'],
+  ['HH', 'H'],
+  ['hh', 'h'],
+  ['mm', 'm'],
+  ['ss', 's'],
+  ['ZZZZZ', 'ZZZZ', 'ZZZ', 'ZZ', 'Z'],
+  'z',
+  'a',
+  ['cccc', 'ccc', 'ccccc'],
+]
+
+// getFormatMask will return an input mask for a given time format.
+export const getFormatMask = format =>
+  fixed.toFormat(format).replace(/[0-9APM]/g, '_')
+
+// getPaddedLocaleFormatString will return a padded format string
+// corresponding to the current locale.
+export const getPaddedLocaleFormatString = opts =>
+  getPaddedFormatString(fixed.toLocaleString(opts))
+
+// getPaddedFormatString will return a format string with all values padded
+// that corresponds to the provided time string.
+//
+// The string should represent the time: Monday, Jan 2, 2006 at 3:04:05.099 PM, MST-7
+export const getPaddedFormatString = _s => {
+  let s = _s
+  localeKeys.forEach(_keys => {
+    const keys = Array.isArray(_keys) ? _keys : [_keys]
+    keys.some(k => {
+      const old = s
+      s = s.replace(fixed.toFormat(k), k)
+      return s !== old
+    })
+  })
+  return (
+    s
+      // ensure we always use the padded versions
+      .replace(/H+/, 'HH')
+      .replace(/h+/, 'hh')
+      .replace(/m+/, 'mm')
+      .replace(/s+/, 'ss')
+      .replace(/d+/, 'dd')
+      .replace(/\bL\b/, 'LL')
+      .replace(/\bM\b/, 'MM')
+      .replace(/\by\b/, 'yy')
+  )
+}

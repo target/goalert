@@ -6,72 +6,8 @@ import {
 } from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { DateTime, FixedOffsetZone } from 'luxon'
-
-const fixed = DateTime.fromObject({
-  month: 1,
-  day: 2,
-  hour: 15, // 3pm
-  minute: 4,
-  second: 5,
-  year: 2006,
-  millisecond: 99,
-}).setZone(FixedOffsetZone.instance(-7))
-
-const localeKeys = [
-  'yyyy',
-  'yy',
-  'y',
-
-  'LL',
-  'L',
-  'LLLL',
-  'LLL',
-  'LLLLL',
-  'dd',
-  'd',
-  'u',
-  'S',
-
-  'HH',
-  'H',
-  'hh',
-  'h',
-  'mm',
-  'm',
-  'ss',
-  's',
-
-  'ZZZZZ',
-  'ZZZZ',
-  'ZZZ',
-  'ZZ',
-  'Z',
-  'z',
-  'a',
-  'ccc',
-  'cccc',
-  'ccccc',
-]
-
-export const getPaddedLocaleFormatString = opts => {
-  let s = fixed.toLocaleString(opts)
-  localeKeys.forEach(key => {
-    s = s.replace(fixed.toFormat(key), key)
-  })
-  return (
-    s
-      // ensure we always use the padded versions
-      .replace(/H+/, 'HH')
-      .replace(/h+/, 'hh')
-      .replace(/m+/, 'mm')
-      .replace(/s+/, 'ss')
-      .replace(/d+/, 'dd')
-      .replace(/\bL\b/, 'LL')
-      .replace(/\bM\b/, 'MM')
-      .replace(/\by\b/, 'yy')
-  )
-}
+import { DateTime } from 'luxon'
+import { getPaddedLocaleFormatString, getFormatMask } from './timeFormat'
 
 function useDatePicker(value, onChange, startOf) {
   const params = useSelector(urlParamSelector)
@@ -95,6 +31,7 @@ function useDatePicker(value, onChange, startOf) {
 }
 
 const timeFormat = getPaddedLocaleFormatString('t')
+const timeMask = getFormatMask(timeFormat)
 export function ISOTimePicker(props) {
   const { value, onChange, ...otherProps } = props
   const [inputValue, handleInputChange] = useDatePicker(
@@ -106,7 +43,7 @@ export function ISOTimePicker(props) {
   return (
     <KeyboardTimePicker
       format={timeFormat}
-      mask={fixed.toFormat(timeFormat).replace(/[0-9APM]/g, '_')}
+      mask={timeMask}
       value={inputValue}
       onChange={handleInputChange}
       {...otherProps}
@@ -115,6 +52,7 @@ export function ISOTimePicker(props) {
 }
 
 const dateTimeFormat = getPaddedLocaleFormatString(DateTime.DATETIME_SHORT)
+const dateTimeMask = getFormatMask(dateTimeFormat)
 export function ISODateTimePicker(props) {
   const { value, onChange, ...otherProps } = props
   const [inputValue, handleInputChange] = useDatePicker(
@@ -126,7 +64,7 @@ export function ISODateTimePicker(props) {
   return (
     <KeyboardDateTimePicker
       format={dateTimeFormat}
-      mask={fixed.toFormat(dateTimeFormat).replace(/[0-9APM]/g, '_')}
+      mask={dateTimeMask}
       value={inputValue}
       onChange={handleInputChange}
       {...otherProps}
@@ -135,6 +73,7 @@ export function ISODateTimePicker(props) {
 }
 
 const dateFormat = getPaddedLocaleFormatString(DateTime.DATE_SHORT)
+const dateMask = getFormatMask(dateFormat)
 export function ISODatePicker(props) {
   const { value, onChange, ...otherProps } = props
   const [inputValue, handleInputChange] = useDatePicker(value, onChange)
@@ -142,7 +81,7 @@ export function ISODatePicker(props) {
   return (
     <KeyboardDatePicker
       format={dateFormat}
-      mask={fixed.toFormat(dateFormat).replace(/[0-9APM]/g, '_')}
+      mask={dateMask}
       value={inputValue}
       onChange={handleInputChange}
       {...otherProps}
