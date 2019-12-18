@@ -174,6 +174,7 @@ export class FormField extends React.PureComponent {
 
     if (render) return render(props)
     const Component = component
+    if (props.value) props.InputLabelProps = { shrink: true }
 
     return (
       <FormControl fullWidth={props.fullWidth} error={Boolean(props.error)}>
