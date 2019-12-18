@@ -36,6 +36,7 @@ const styles = theme => ({
   },
   main: {
     width: '100%',
+    overflowY: 'auto',
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
