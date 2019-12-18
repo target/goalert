@@ -1,6 +1,6 @@
 import { Chance } from 'chance'
-const c = new Chance()
 import { testScreen } from '../support'
+const c = new Chance()
 
 testScreen('Schedules', testSchedules)
 
@@ -202,6 +202,16 @@ function testSchedules(screen: ScreenFormat) {
       cy.get('body').contains('li', rot.name)
     })
 
+    it('should add a user as an assignment', () => {
+      cy.pageFab('User')
+
+      // select create rotation
+      cy.get('input[name=targetID').selectByLabel(rot.users[0].name)
+      cy.get('button')
+        .contains('Submit')
+        .click()
+    })
+
     it('should delete an assignment', () => {
       cy.get('body')
         .contains('li', rot.name)
@@ -213,6 +223,34 @@ function testSchedules(screen: ScreenFormat) {
         .click()
 
       cy.get('body').should('not.contain', rot.name)
+    })
+
+    it('should create multiple rules on an assignment', () => {
+      cy.pageFab('Rotation')
+
+      cy.get('input[name=Sunday]').click()
+      cy.get('button[aria-label="Add rule"]').click()
+
+      cy.get('td')
+        .eq(0)
+        .click()
+      cy.get('button')
+        .contains('Today')
+        .click()
+      cy.get('button')
+        .contains('AM')
+        .click()
+      cy.get('body')
+        .contains('OK')
+        .click()
+
+      cy.get('tr').should('have.length', 3)
+
+      // select create rotation
+      cy.get('input[name=targetID]').selectByLabel(rot.name)
+      cy.get('button')
+        .contains('Submit')
+        .click()
     })
 
     it('should edit an assignment', () => {
