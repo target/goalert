@@ -124,7 +124,6 @@ export default class App extends React.PureComponent {
             <URLErrorDialog />
 
             <main id='content' className={classes.main} style={{ marginLeft }}>
-              <div className={classes.toolbar} />
               <ErrorBoundary>
                 <LazyNewUserSetup />
                 <Grid container justify='center'>
