@@ -47,10 +47,13 @@ export default class MaterialSelect extends Component {
       label,
       name,
       placeholder,
-      InputLabelProps,
+      InputLabelProps: _InputLabelProps,
 
       ...props
     } = this.props
+
+    let InputLabelProps = _InputLabelProps
+    if (this.props.value) InputLabelProps = { ...InputLabelProps, shrink: true }
 
     const selectStyles = {
       input: base => ({
