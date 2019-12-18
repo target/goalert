@@ -1,80 +1,61 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import Button from '@material-ui/core/Button'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
-import withStyles from '@material-ui/core/styles/withStyles'
+import { useSelector } from 'react-redux'
+import {
+  Button,
+  ButtonGroup,
+  Grid,
+  makeStyles,
+  Typography,
+} from '@material-ui/core'
 import moment from 'moment'
-import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 
-const styles = {
-  abs: {
-    position: 'absolute',
+const useStyles = makeStyles(theme => ({
+  addOverrideGridItem: {
+    marginLeft: theme.spacing(1),
   },
   container: {
     paddingBottom: '1em',
+  },
+  labelGridItem: {
+    alignItems: 'center',
+    display: 'flex',
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    order: 3,
+    [theme.breakpoints.up('lg')]: {
+      order: 2,
+    },
   },
-  flexGrow: {
-    flexGrow: 1,
+  primaryNavBtnGroup: {
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'flex-start',
+    order: 1,
   },
-  // borderRadius: top left, top right, bottom right, bottom left
-  today: {
-    borderRadius: '4px 0 0 4px',
+  secondaryBtnGroup: {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    order: 2,
+    [theme.breakpoints.up('lg')]: {
+      justifyContent: 'flex-end',
+      order: 3,
+    },
   },
-  back: {
-    borderRadius: 0,
-    borderLeft: 0,
-    borderRight: 0,
-  },
-  next: {
-    borderRadius: '0 4px 4px 0',
-  },
-  month: {
-    borderRadius: '4px 0 0 4px',
-  },
-  week: {
-    borderRadius: '0 4px 4px 0',
-    borderLeft: 0,
-  },
-}
+}))
 
-const mapStateToProps = state => ({
-  weekly: urlParamSelector(state)('weekly', false),
-})
+export default function CalendarToolbar(props) {
+  const { date, onOverrideClick: handleAddOverrideClick, view } = props
 
-@withStyles(styles)
-@connect(mapStateToProps, null)
-export default class CalendarToolbar extends React.PureComponent {
-  static propTypes = {
-    date: p.instanceOf(Date).isRequired,
-    label: p.string.isRequired,
-    onNavigate: p.func.isRequired,
-    onOverrideClick: p.func.isRequired,
-    onView: p.func.isRequired,
-    view: p.string.isRequired,
+  const classes = useStyles()
+  const urlParams = useSelector(urlParamSelector)
+  const weekly = urlParams('weekly', false)
+
+  const handleTodayClick = e => {
+    props.onNavigate(e, moment().toDate())
   }
 
-  /*
-   * Moves the calendar to the current day in
-   * respect of the current view type.
-   *
-   * e.g. Current day: March 22, while viewing
-   * April in monthly. Clicking "Today" would
-   * reset the calendar back to March.
-   */
-  handleTodayClick = e => {
-    this.props.onNavigate(e, moment().toDate())
-  }
-
-  /*
-   * Go backwards 1 week or 1 month, depending
-   * on the current view type.
-   */
-  handleBackClick = e => {
-    const { date, weekly } = this.props
+  const handleBackClick = e => {
     const nextDate = weekly
       ? moment(date)
           .clone()
@@ -83,112 +64,86 @@ export default class CalendarToolbar extends React.PureComponent {
           .clone()
           .subtract(1, 'month')
 
-    this.props.onNavigate(e, nextDate.toDate())
+    props.onNavigate(e, nextDate.toDate())
   }
 
-  /*
-   * Advance 1 week or 1 month, depending
-   * on the current view type.
-   */
-  handleNextClick = e => {
-    const { date, weekly } = this.props
-
+  const handleNextClick = e => {
     // either month or week
     const dateCopy = moment(date).clone()
     const nextDate = weekly ? dateCopy.add(1, 'week') : dateCopy.add(1, 'month')
-    this.props.onNavigate(e, nextDate.toDate())
+    props.onNavigate(e, nextDate.toDate())
   }
 
-  /*
-   * Switches the calendar to a monthly view.
-   */
-  handleMonthViewClick = () => {
-    this.props.onView('month')
+  const handleMonthViewClick = () => {
+    props.onView('month')
   }
 
-  /*
-   * Switches the calendar to a weekly view.
-   */
-  handleWeekViewClick = () => {
-    this.props.onView('week')
+  const handleWeekViewClick = () => {
+    props.onView('week')
   }
 
-  render() {
-    const {
-      classes,
-      label,
-      onOverrideClick: handleAddOverrideClick,
-      view,
-    } = this.props
-
-    return (
-      <Grid container spacing={2} className={classes.container}>
-        <Grid item>
-          <Button
-            data-cy='show-today'
-            variant='outlined'
-            className={classes.today}
-            onClick={this.handleTodayClick}
-          >
+  return (
+    <Grid container spacing={2} className={classes.container}>
+      <Grid item xs={12} lg={4} className={classes.primaryNavBtnGroup}>
+        <ButtonGroup color='primary' aria-label='Calendar Navigation'>
+          <Button data-cy='show-today' onClick={handleTodayClick}>
             Today
           </Button>
-          <Button
-            data-cy='back'
-            variant='outlined'
-            className={classes.back}
-            onClick={this.handleBackClick}
-          >
+          <Button data-cy='back' onClick={handleBackClick}>
             Back
           </Button>
-          <Button
-            data-cy='next'
-            variant='outlined'
-            className={classes.next}
-            onClick={this.handleNextClick}
-          >
+          <Button data-cy='next' onClick={handleNextClick}>
             Next
           </Button>
-        </Grid>
-        <Grid item className={classes.flexGrow} />
-        <Grid item md={12} lg='auto'>
+        </ButtonGroup>
+      </Grid>
+
+      <Grid item xs={12} lg={4} className={classes.labelGridItem}>
+        <Typography component='p' data-cy='calendar-header' variant='subtitle1'>
+          {props.label}
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} lg={4} className={classes.secondaryBtnGroup}>
+        <ButtonGroup
+          color='primary'
+          aria-label='Toggle between Monthly and Weekly views'
+        >
           <Button
             data-cy='show-month'
-            variant='outlined'
             disabled={view === 'month'}
-            className={classes.month}
-            onClick={this.handleMonthViewClick}
+            onClick={handleMonthViewClick}
           >
             Month
           </Button>
           <Button
             data-cy='show-week'
-            variant='outlined'
             disabled={view === 'week'}
-            className={classes.week}
-            onClick={this.handleWeekViewClick}
+            onClick={handleWeekViewClick}
           >
             Week
           </Button>
-        </Grid>
-        <Grid item md={12} lg='auto'>
-          <Button
-            data-cy='add-override'
-            variant='outlined'
-            onClick={() => handleAddOverrideClick()}
-          >
-            Add Override
-          </Button>
-        </Grid>
-        <Grid item className={classes.abs}>
-          <Typography
-            component='p'
-            data-cy='calendar-header'
-            variant='subtitle1'
-          >
-            {label}
-          </Typography>
-        </Grid>
+        </ButtonGroup>
+        <Button
+          data-cy='add-override'
+          variant='outlined'
+          size='small'
+          color='primary'
+          className={classes.addOverrideGridItem}
+          onClick={() => handleAddOverrideClick()}
+        >
+          Add Override
+        </Button>
       </Grid>
-    )
-  }
+    </Grid>
+  )
+}
+
+CalendarToolbar.propTypes = {
+  date: p.instanceOf(Date).isRequired,
+  label: p.string.isRequired,
+  onNavigate: p.func.isRequired,
+  onOverrideClick: p.func.isRequired,
+  onView: p.func.isRequired,
+  view: p.string.isRequired,
 }
