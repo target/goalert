@@ -109,10 +109,11 @@ export class FormField extends React.PureComponent {
       ...otherFieldProps
     } = this.props
 
-    const InputLabelProps = {
+    let InputLabelProps = {
       required: required && !optionalLabels,
       ..._inputProps,
     }
+    if (this.props.value) InputLabelProps = { ...InputLabelProps, shrink: true }
 
     const baseLabel = typeof _label === 'string' ? _label : startCase(name)
     const label =
@@ -174,7 +175,6 @@ export class FormField extends React.PureComponent {
 
     if (render) return render(props)
     const Component = component
-    if (props.value) props.InputLabelProps = { shrink: true }
 
     return (
       <FormControl fullWidth={props.fullWidth} error={Boolean(props.error)}>
