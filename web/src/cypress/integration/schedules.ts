@@ -366,15 +366,12 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('button')
           .contains('Submit')
           .click()
+        cy.get('[role=dialog]').should('not.exist')
 
         cy.get('body').should('not.contain', 'No results')
+        cy.get('body').contains('li', users[0].name)
 
-        cy.get('body').should('contain', users[0].name)
-
-        cy.get('body')
-          .contains('li', users[0].name)
-          .find('button[data-cy=other-actions]')
-          .menu('Edit')
+        cy.get('button[data-cy=other-actions]').menu('Edit')
 
         cy.get('input[name=addUserID]').selectByLabel(users[1].name)
         cy.get('button')
