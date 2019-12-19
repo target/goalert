@@ -22,37 +22,27 @@ function login(
   }
 
   if (tokenOnly) {
-    return cy.getCookie('goalert_session.2').then(sess => {
-      const oldValue = sess && sess.value
-
-      return cy
-        .clearCookie('goalert_session.2')
-        .request({
-          url: '/api/v2/identity/providers/basic?noRedirect=1',
-          method: 'POST',
-          form: true, // indicates the body should be form urlencoded and sets Content-Type: application/x-www-form-urlencoded headers
-          body: {
-            username,
-            password,
-          },
-          followRedirect: false,
-          headers: {
-            referer: Cypress.config('baseUrl'),
-          },
-        })
-        .then(res => {
-          if (oldValue) {
-            return cy
-              .setCookie('goalert_session.2', oldValue, { path: '/' })
-              .then(() => res.body)
-          }
-          return res.body
-        })
-    })
+    return cy
+      .request({
+        url: '/api/v2/identity/providers/basic?noRedirect=1',
+        method: 'POST',
+        form: true, // indicates the body should be form urlencoded and sets Content-Type: application/x-www-form-urlencoded headers
+        body: {
+          username,
+          password,
+        },
+        followRedirect: false,
+        headers: {
+          referer: Cypress.config('baseUrl'),
+          Cookie: '',
+        },
+      })
+      .then(res => {
+        return res.body
+      })
   }
 
   return cy
-    .clearCookie('goalert_session.2')
     .request({
       url: '/api/v2/identity/providers/basic',
       method: 'POST',
@@ -64,6 +54,7 @@ function login(
       followRedirect: false,
       headers: {
         referer: Cypress.config('baseUrl'),
+        Cookie: '',
       },
     })
     .then(res => {
