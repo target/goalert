@@ -27,6 +27,25 @@ function start() {
   return [current.promise, current.done]
 }
 
+function _finally(fn) {
+  return this.then(
+    val => {
+      const v = () => val
+      return Promise.resolve(fn()).then(v, v)
+    },
+    err => {
+      const e = () => Promise.reject(err)
+      return Promise.resolve(fn()).then(e, e)
+    },
+  )
+}
+
+// polyfill finally
+if (!Promise.prototype.finally) {
+  // eslint-disable-next-line
+  Object.defineProperty(Promise.prototype, 'finally', { value: _finally })
+}
+
 // promiseBatch will wrap a promise so that it resolves at the same time as any
 // others within the delay.
 export default function promiseBatch(p) {
