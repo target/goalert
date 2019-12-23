@@ -3511,10 +3511,10 @@ cyclist@^1.0.1:
   resolved "https://registry.yarnpkg.com/cyclist/-/cyclist-1.0.1.tgz#596e9698fd0c80e12038c2b82d6eb1b35b6224d9"
   integrity sha1-WW6WmP0MgOEgOMK4LW6xs1tiJNk=
 
-cypress-plugin-retries@1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/cypress-plugin-retries/-/cypress-plugin-retries-1.5.0.tgz#717cdfd7f2a8f07f218eb23e93ff6f7aa4c95029"
-  integrity sha512-nSJx4RkbeQFGjsymPWabn7i2GmxULUu9SqtiJqoVFa1XfVtQC1Uoogxj/zZzhrWYwYJ2183xslb9HqQV6bafFQ==
+cypress-plugin-retries@1.5.2:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/cypress-plugin-retries/-/cypress-plugin-retries-1.5.2.tgz#21d5247cd77013b95bbfdd914f2de66f91f76a2e"
+  integrity sha512-o1xVIGtv4WvNVxoVJ2X08eAuvditPHrePRzHqhwwHbMKu3C2rtxCdanRCZdO5fjh8ww+q4v4V0e9GmysbOvu3A==
   dependencies:
     chalk "^3.0.0"
 
