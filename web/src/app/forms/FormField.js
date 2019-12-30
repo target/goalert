@@ -109,12 +109,6 @@ export class FormField extends React.PureComponent {
       ...otherFieldProps
     } = this.props
 
-    const InputLabelProps = {
-      required: required && !optionalLabels,
-      shrink: Boolean(this.props.value),
-      ..._inputProps,
-    }
-
     const baseLabel = typeof _label === 'string' ? _label : startCase(name)
     const label =
       !required && optionalLabels ? baseLabel + ' (optional)' : baseLabel
@@ -129,6 +123,11 @@ export class FormField extends React.PureComponent {
       error: errors.find(err => err.field === (errorName || fieldName)),
       hint,
       value: mapValue(get(value, fieldName)),
+    }
+    const InputLabelProps = {
+      required: required && !optionalLabels,
+      shrink: Boolean(props.value),
+      ..._inputProps,
     }
 
     let getValueOf = e => (e && e.target ? e.target.value : e)
