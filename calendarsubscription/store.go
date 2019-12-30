@@ -6,6 +6,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 	"time"
 )
@@ -13,6 +14,7 @@ import (
 type Store interface {
 	FindOne(context.Context, string) (*CalendarSubscription, error)
 	CreateSubscriptionTx(context.Context, *sql.Tx, *CalendarSubscription) (bool, error)
+	DeleteSubscriptionsTx(context.Context, *sql.Tx, []string) error
 }
 
 type DB struct {
@@ -20,6 +22,7 @@ type DB struct {
 
 	findOne *sql.Stmt
 	create *sql.Stmt
+	delete *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
@@ -41,6 +44,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			INSERT INTO calendar_subscriptions (id, name, user_id, last_access, disabled)
 			VALUES ($1, $2, $3, $4, $5)
 		`),
+		delete: p.P(`DELETE FROM calendar_subscriptions WHERE id = any($1)`),
 	}, p.Err
 }
 
@@ -89,4 +93,27 @@ func (db *DB) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calendar
 		return false, err
 	}
 	return true, nil
+}
+
+func (db *DB) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []string) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	if err != nil {
+		return err
+	}
+
+	if len(ids) == 0 {
+		return nil
+	}
+
+	err = validate.ManyUUID("CalendarSubscriptionID", ids, 50)
+	if err != nil {
+		return err
+	}
+
+	cs := db.delete
+	if tx != nil {
+		cs = tx.StmtContext(ctx, cs)
+	}
+	_, err = cs.ExecContext(ctx, sqlutil.UUIDArray(ids))
+	return err
 }

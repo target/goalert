@@ -3317,6 +3317,7 @@ enum TargetType {
   rotation
   service
   schedule
+  calendarSubscription
   user
   integrationKey
   userOverride
