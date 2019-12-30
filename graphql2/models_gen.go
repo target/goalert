@@ -77,6 +77,10 @@ type CreateAlertInput struct {
 	ServiceID string  `json:"serviceID"`
 }
 
+type CreateCalendarSubscriptionInput struct {
+	Name string `json:"name"`
+}
+
 type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description"`

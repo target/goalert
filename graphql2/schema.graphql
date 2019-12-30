@@ -38,6 +38,9 @@ type Query {
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
 
+  # Returns the public information of a calendar subscription
+  calendarSubscription(id: ID!): CalendarSubscription
+
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
 
@@ -293,6 +296,10 @@ input CreateScheduleInput {
   targets: [ScheduleTargetInput!]
 }
 
+input CreateCalendarSubscriptionInput {
+  name: String!
+}
+
 input ScheduleTargetInput {
   scheduleID: ID
   target: TargetInput
@@ -433,6 +440,14 @@ type Schedule {
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
+}
+
+type CalendarSubscription {
+  id: ID!
+  name: String!
+  userID: ID!
+  lastAccess: ISOTimestamp!
+  disabled: Boolean!
 }
 
 type OnCallShift {
