@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/target/goalert/calendarsubscription"
 	"net/url"
 
 	"github.com/target/goalert/alert"
@@ -116,6 +117,12 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init schedule store")
+	}
+	if app.CalendarSubscriptionStore == nil {
+		app.CalendarSubscriptionStore, err = calendarsubscription.NewDB(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init calendar subscription store")
 	}
 	if app.RotationStore == nil {
 		app.RotationStore, err = rotation.NewDB(ctx, app.db)

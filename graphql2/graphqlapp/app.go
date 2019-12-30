@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/calendarsubscription"
 	"net/http"
 	"strconv"
 	"sync"
@@ -53,6 +54,7 @@ type App struct {
 	FavoriteStore  favorite.Store
 	PolicyStore    escalation.Store
 	ScheduleStore  schedule.Store
+	CalendarSubscriptionStore calendarsubscription.Store
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
 	IntKeyStore    integrationkey.Store
