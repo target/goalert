@@ -22,14 +22,14 @@ import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
 const query = gql`
-  fragment TitleQuery on Schedule {
+  fragment ScheduleTitleQuery on Schedule {
     id
     name
     description
   }
   query scheduleDetailsQuery($id: ID!) {
     schedule(id: $id) {
-      ...TitleQuery
+      ...ScheduleTitleQuery
       timeZone
     }
   }
