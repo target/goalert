@@ -581,8 +581,8 @@ jA4jaVmixjuzzXqW8lTVxpuHo4coVaVGZXBAqMLDXr9gNok0WSAYFrSSpYLtvNNVhSlovF0l86L-z_-C
 P3T5JtQyMHJSZpn21L__ZO0UtLzRC14s7wj_KEz1n2_4ZEmTMMvDj6siTUJh36RV1JCc84fzc5ewKKBV
 hsajbZolq-xhFIzK6v99jFZ4FgTVfJigvKjlAqj1aCdyg3M5PkYmTl2DzWS-YM8SMCRN5wYhOHYorEYr
 FSQ5by5JGeXKsUssVl-bOZOhMA7mCzS2zPzAOkom5w5jmEKjjKUeD6H2A0dZtU5PEd72Ub90dTSjl-CE
-3TJAyaqM7tdpEqB9sR7_x0S5sYnWaZZERVju78u4WG2ZR5bf3hAO7IpqU_T0mC5o-HEFymk5Egt1bqe1
-wtuJ3iyX17OLhZ74Y7QuU5jaUySbBRE5P_n_AAAA__-6krVlwTEEAA==
+3TJAyaqM7tdpEqB9sR7_x0S5sYnWaZZERVju78u4WG2ZR5bf3hAO7IpqU_T0mC5o-HFFzmk-CwuVbSey
+whuI3iyX17OLhZ74Y7QuU5jTU2SZBaE4P_n_AAAA__--h7JGujEEAA==
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -804,6 +804,6 @@ wtuJ3iyX17OLhZ74Y7QuU5jaUySbBRE5P_n_AAAA__-6krVlwTEEAA==
 		{Data: dataRange(272795, 272988), Name: "migrations/20191021145356-message-bundle-versions.sql"},
 		{Data: dataRange(272988, 273297), Name: "migrations/20191021145357-message-bundle-types.sql"},
 		{Data: dataRange(273297, 274503), Name: "migrations/20191021145358-message-bundles.sql"},
-		{Data: dataRange(274503, 274881), Name: "migrations/20191230125304-calendar-subscriptions.sql"},
+		{Data: dataRange(274503, 274874), Name: "migrations/20191230125304-calendar-subscriptions.sql"},
 	}
 }
