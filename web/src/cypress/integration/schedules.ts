@@ -226,6 +226,9 @@ function testSchedules(screen: ScreenFormat) {
     })
 
     it('should create multiple rules on an assignment', () => {
+      // todo: mobile dialog is completely different
+      if (screen === 'mobile' || screen === 'tablet') return
+
       cy.pageFab('Rotation')
 
       cy.get('input[name=Sunday]').click()
