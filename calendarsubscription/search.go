@@ -30,7 +30,7 @@ type SearchCursor struct {
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
 		id, name, user_id, last_access, disabled
-	FROM calendar_subscription cs 
+	FROM calendar_subscriptions cs 
 	WHERE true
 	{{if .Omit}}
 		AND not id = any(:omit)
