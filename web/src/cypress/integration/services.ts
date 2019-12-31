@@ -503,17 +503,13 @@ function testServices(screen: ScreenFormat) {
       cy.get('ul[data-cy=alerts-list]').should('contain', 'UNACKNOWLEDGED')
 
       cy.pageAction('Acknowledge All')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogFinish('Confirm')
 
       cy.get('ul[data-cy=alerts-list]').should('contain', 'ACKNOWLEDGED')
       cy.get('ul[data-cy=alerts-list]').should('not.contain', 'UNACKNOWLEDGED')
 
       cy.pageAction('Close All')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogFinish('Confirm')
 
       cy.get('body').should('contain', 'No results')
     })
