@@ -85,7 +85,7 @@ function testAlerts(screen: ScreenFormat) {
 
         cy.visit(`/alerts?allServices=1&search=${svc.name}`)
 
-        // wait for list to fully load before begining tests
+        // wait for list to fully load before beginning tests
         return cy
           .get('[data-cy=alerts-list] [role=button]')
           .should('have.length', 3)
@@ -260,113 +260,45 @@ function testAlerts(screen: ScreenFormat) {
     })
 
     it('should create an alert for two services', () => {
-      cy.pageFab()
-
-      cy.get('div[role=dialog]').as('dialog')
-
       const summary = c.sentence({
         words: 3,
       })
       const details = c.word({ length: 10 })
 
+      cy.pageFab()
+
       // Alert Info
-      cy.get('@dialog')
-        .contains('button', 'Cancel')
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .find('input[name=summary]')
-        .type(summary)
-
-      cy.get('@dialog')
-        .find('textarea[name=details]')
-        .type(details)
-
-      cy.get('@dialog')
-        .contains('button', 'Next')
-        .click()
+      cy.dialogTitle('Create New Alert')
+      cy.dialogForm({
+        summary,
+        details,
+      })
+      cy.dialogClick('Next')
 
       // Service Selection
-      cy.get('@dialog').contains('button', 'Next')
-
-      cy.get('@dialog')
-        .find('input[name=serviceSearch]')
-        .type(svc1.name)
-
-      cy.get('@dialog')
-        .contains('span', svc1.name)
+      cy.dialogForm({ serviceSearch: svc1.name })
+      cy.get('ul')
+        .contains(svc1.name)
         .click()
-
-      cy.get('@dialog')
-        .find('input[name=serviceSearch]')
-        .clear()
-
-      cy.get('@dialog')
-        .find('[data-cy=service-chip-container]')
-        .contains('[data-cy=service-chip]', svc1.name)
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .find('input[name=serviceSearch]')
-        .type(svc2.name)
-
-      cy.get('@dialog')
-        .contains('span', svc2.name)
+      cy.dialogForm({ serviceSearch: svc2.name })
+      cy.get('ul')
+        .contains(svc2.name)
         .click()
+      cy.dialogForm({ serviceSearch: '' })
 
-      cy.get('@dialog')
-        .find('[data-cy=service-chip-container]')
-        .contains('[data-cy=service-chip]', svc2.name)
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .find('[data-cy=service-chip-container]')
-        .contains('[data-cy=service-chip]', svc1.name)
-        .should('be.visible')
-
-      cy.get('@dialog').contains('label', 'Selected Services (2)')
-
-      cy.get('@dialog')
-        .contains('button', 'Next')
-        .click()
+      cy.dialogContains('Selected Services (2)')
+      cy.dialogClick('Next')
 
       // Confirm
-      cy.get('@dialog')
-        .contains('span', svc1.name)
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .contains('span', svc2.name)
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .contains('[data-cy=service-chip]', svc1.name)
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .contains('[data-cy=service-chip]', svc2.name)
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .contains('button', 'Submit')
-        .click()
+      cy.dialogContains(svc1.name)
+      cy.dialogContains(svc2.name)
+      cy.get('[data-cy=service-chip]').contains(svc1.name)
+      cy.get('[data-cy=service-chip]').contains(svc2.name)
+      cy.dialogClick('Submit')
 
       // Review
-      cy.get('@dialog')
-        .contains('button', 'Back')
-        .should('not.be.visible')
-
-      cy.get('@dialog')
-        .contains('button', 'Done')
-        .should('be.visible')
-
-      cy.get('@dialog')
-        .find('li')
-        .should('have.length', 2)
-
-      cy.get('@dialog')
-        .contains('button', 'Done')
-        .click()
+      cy.dialogContains('Successfully created 2 alerts')
+      cy.dialogFinish('Done')
     })
   })
 
