@@ -46,10 +46,12 @@ function fillFormField(name: string, value: string | string[]) {
   })
 }
 
-function dialogForm(values: { [key: string]: string | string[] }): void {
+function dialogForm(values: { [key: string]: string | string[] | null }): void {
   dialog()
   for (let key in values) {
-    fillFormField(key, values[key])
+    const val = values[key]
+    if (val === null) continue
+    fillFormField(key, val)
   }
 }
 function dialog(): Cypress.Chainable {
