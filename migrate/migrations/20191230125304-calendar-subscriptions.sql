@@ -1,5 +1,4 @@
 -- +migrate Up
--- id, name, user_id, last_access, disabled, url(?)
 CREATE TABLE calendar_subscriptions (
     id uuid NOT NULL UNIQUE,
     name TEXT NOT NULL,

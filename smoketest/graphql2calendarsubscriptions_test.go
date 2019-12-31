@@ -7,14 +7,13 @@ import (
 	"testing"
 )
 
-// TestGraphQL2Users tests most operations on calendar subscriptions API via GraphQL2 endpoint.
+// TestGraphQL2Users tests most operations on calendar subscriptions API via GraphQL2 endpoint
 func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 	t.Parallel()
 
 	sql := `
 		insert into users (id, name, email, role) 
-		values 
-			({{uuid "user"}}, 'bob', 'joe', 'admin');
+		values ({{uuid "user"}}, 'bob', 'joe', 'admin');
 
 		insert into calendar_subscriptions (id, name, user_id)
 		values ({{uuid "cs1"}}, 'test1', {{uuid "user"}});
@@ -45,25 +44,15 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		}
 	}
 
-	var cs struct {
-		ID string
-		Name string
-		UserID string
-		LastAccess string
-		Disabled bool
-	}
-
-	var subs struct {
-		Nodes struct {
-			ID string
-			Name string
-			UserID string
-			LastAccess string
-			Disabled bool
-		}
-	}
-
 	// find one query
+	var cs struct {
+		ID         string
+		Name       string
+		UserID     string
+		LastAccess string
+		Disabled   bool
+	}
+
 	doQL(t, fmt.Sprintf(`
 		query {
 			calendarSubscription(id: "%s") {
@@ -74,12 +63,24 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 				disabled
 			}	
 		}
-	`, h.UUID("cs1") ), &cs)
+	`, h.UUID("cs1")), &cs)
 
 	// find many query
+	var subs struct {
+		Nodes struct {
+			ID         string
+			Name       string
+			UserID     string
+			LastAccess string
+			Disabled   bool
+		}
+	}
+
 	doQL(t, fmt.Sprintf(`
 		query {
-			calendarSubscriptions(input: {first: 1}) {
+			calendarSubscriptions(input: {
+				first: 3
+			}) {
 				nodes {
 					id
 					name
@@ -89,12 +90,12 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 				}
 			}	
 		}
-	`, ), &subs)
+	`), &subs)
 
 	// create
 	doQL(t, fmt.Sprintf(`
 		mutation {
-		  createCalendarSubscription(input:{
+		  createCalendarSubscription(input: {
 			name: "%s"
 		  })
 		}
@@ -103,7 +104,7 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 	// update
 	doQL(t, fmt.Sprintf(`
 		mutation {
-		  updateCalendarSubscription(input:{
+		  updateCalendarSubscription(input: {
 			id: "%s"
 			name: "%s"
 		  })
@@ -113,9 +114,10 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 	// delete
 	doQL(t, fmt.Sprintf(`
 		mutation {
-		  deleteAll(input:[{
-			id: "%s"
-			type: calendarSubscription}])
+			deleteAll(input: [{
+				id: "%s"
+				type: calendarSubscription
+			}])
 		}
 	`, h.UUID("cs3")), nil)
 }
