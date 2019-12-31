@@ -13,18 +13,9 @@ function testSchedules(screen: ScreenFormat) {
       cy.visit('/schedules')
 
       cy.pageFab()
-      cy.get('div[role=dialog]').should('contain', 'Create New Schedule')
-
-      cy.get('input[name=name]')
-        .type(name)
-        .should('have.value', name)
-      cy.get('textarea[name=description]')
-        .type(description)
-        .should('have.value', description)
-
-      cy.get('button')
-        .contains('Submit')
-        .click()
+      cy.dialogTitle('Create New Schedule')
+      cy.dialogForm({ name, description })
+      cy.dialogFinish('Submit')
 
       // verify on details by content headers
       cy.get('[data-cy=details-heading]').should('contain', name)
@@ -62,9 +53,8 @@ function testSchedules(screen: ScreenFormat) {
 
     it('should delete a schedule', () => {
       cy.pageAction('Delete Schedule')
-      cy.get('button')
-        .contains('Confirm')
-        .click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
       cy.url().should('eq', Cypress.config().baseUrl + '/schedules')
 
@@ -80,25 +70,9 @@ function testSchedules(screen: ScreenFormat) {
       const newTz = 'Africa/Accra'
 
       cy.pageAction('Edit Schedule')
-      cy.get('input[name=name]')
-        .should('have.value', sched.name)
-        .clear()
-        .should('be.empty')
-        .type(newName) // type in new name
-        .should('have.value', newName)
-
-      cy.get('textarea[name=description]')
-        .should('have.value', sched.description)
-        .clear()
-        .should('be.empty')
-        .type(newDesc) // type in new description
-        .should('have.value', newDesc)
-
-      cy.get('input[name=time-zone]').selectByLabel(newTz)
-
-      cy.get('button')
-        .contains('Submit')
-        .click()
+      cy.dialogTitle('Edit Schedule')
+      cy.dialogForm({ name: newName, description: newDesc, 'time-zone': newTz })
+      cy.dialogFinish('Submit')
 
       // verify changes occurred
       cy.reload()
@@ -193,11 +167,9 @@ function testSchedules(screen: ScreenFormat) {
     it('should add a rotation as an assignment', () => {
       cy.pageFab('Rotation')
 
-      // select create rotation
-      cy.get('input[name=targetID]').selectByLabel(rot.name)
-      cy.get('button')
-        .contains('Submit')
-        .click()
+      cy.dialogTitle('Add Rotation')
+      cy.dialogForm({ targetID: rot.name })
+      cy.dialogFinish('Submit')
 
       cy.get('body').contains('li', rot.name)
     })
@@ -205,11 +177,11 @@ function testSchedules(screen: ScreenFormat) {
     it('should add a user as an assignment', () => {
       cy.pageFab('User')
 
-      // select create rotation
-      cy.get('input[name=targetID').selectByLabel(rot.users[0].name)
-      cy.get('button')
-        .contains('Submit')
-        .click()
+      cy.dialogTitle('Add User')
+      cy.dialogForm({ targetID: rot.users[0].name })
+      cy.dialogFinish('Submit')
+
+      cy.get('body').contains('li', rot.users[0].name)
     })
 
     it('should delete an assignment', () => {
@@ -218,9 +190,8 @@ function testSchedules(screen: ScreenFormat) {
         .find('button[data-cy=other-actions]')
         .menu('Delete')
 
-      cy.get('body')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogTitle('Remove Rotation')
+      cy.dialogFinish('Confirm')
 
       cy.get('body').should('not.contain', rot.name)
     })
@@ -231,9 +202,12 @@ function testSchedules(screen: ScreenFormat) {
 
       cy.pageFab('Rotation')
 
-      cy.get('input[name=Sunday]').click()
+      cy.dialogTitle('Add Rotation')
+      cy.dialogForm({ Sunday: false, targetID: rot.name })
+
       cy.get('button[aria-label="Add rule"]').click()
 
+      // TODO: add support to dialogForm when refetch code is merged
       cy.get('td')
         .eq(0)
         .click()
@@ -249,11 +223,7 @@ function testSchedules(screen: ScreenFormat) {
 
       cy.get('tr').should('have.length', 3)
 
-      // select create rotation
-      cy.get('input[name=targetID]').selectByLabel(rot.name)
-      cy.get('button')
-        .contains('Submit')
-        .click()
+      cy.dialogFinish('Submit')
     })
 
     it('should edit an assignment', () => {
@@ -265,10 +235,10 @@ function testSchedules(screen: ScreenFormat) {
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
-      cy.get('input[name=Wednesday]').click()
-      cy.get('body')
-        .contains('button', 'Submit')
-        .click()
+      cy.dialogTitle('Edit Rules')
+      cy.dialogForm({ Wednesday: false })
+      cy.dialogFinish('Submit')
+
       cy.get('body').contains('li', rot.name)
     })
 
@@ -281,7 +251,9 @@ function testSchedules(screen: ScreenFormat) {
         .get('button[data-cy=other-actions]')
         .menu('Edit')
 
-      cy.get('input[name=Wednesday]').click()
+      cy.dialogTitle('Edit Rules')
+      cy.dialogForm({ Wednesday: true })
+
       cy.get('button[aria-label="Delete rule"]').should('not.exist')
       cy.get('button[aria-label="Add rule"').click()
       cy.get('button[aria-label="Add rule"').click()
@@ -290,9 +262,9 @@ function testSchedules(screen: ScreenFormat) {
         .should('have.length', 3)
         .first()
         .click()
-      cy.get('body')
-        .contains('button', 'Submit')
-        .click()
+
+      cy.dialogFinish('Submit')
+
       cy.get('body').should('contain', 'Always')
     })
   })
@@ -311,11 +283,9 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Add')
-
-        cy.get('input[name=addUserID]').selectByLabel(users[0].name)
-        cy.get('button')
-          .contains('Submit')
-          .click()
+        cy.dialogTitle('Add a User')
+        cy.dialogForm({ addUserID: users[0].name })
+        cy.dialogFinish('Submit')
 
         cy.get('span').should('contain', users[0].name)
         cy.get('p').should('contain', 'Added from')
@@ -328,11 +298,9 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Remove')
-
-        cy.get('input[name=removeUserID]').selectByLabel(users[0].name)
-        cy.get('button')
-          .contains('Submit')
-          .click()
+        cy.dialogTitle('Remove a User')
+        cy.dialogForm({ removeUserID: users[0].name })
+        cy.dialogFinish('Submit')
 
         cy.get('span').should('contain', users[0].name)
         cy.get('p').should('contain', 'Removed from')
@@ -345,13 +313,9 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Replace')
-
-        cy.get('input[name=removeUserID]').selectByLabel(users[0].name)
-        cy.get('input[name=addUserID]').selectByLabel(users[1].name)
-
-        cy.get('button')
-          .contains('Submit')
-          .click()
+        cy.dialogTitle('Replace a User')
+        cy.dialogForm({ removeUserID: users[0].name, addUserID: users[1].name })
+        cy.dialogFinish('Submit')
 
         cy.get('span').should('contain', users[1].name)
         cy.get('p').should('contain', `Replaces ${users[0].name} from`)
@@ -364,22 +328,18 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('body').should('contain', 'No results')
 
         cy.pageFab('Add')
-
-        cy.get('input[name=addUserID]').selectByLabel(users[0].name)
-        cy.get('button')
-          .contains('Submit')
-          .click()
-        cy.get('[role=dialog]').should('not.exist')
+        cy.dialogTitle('Add a User')
+        cy.dialogForm({ addUserID: users[0].name })
+        cy.dialogFinish('Submit')
 
         cy.get('body').should('not.contain', 'No results')
         cy.get('body').contains('li', users[0].name)
 
         cy.get('button[data-cy=other-actions]').menu('Edit')
 
-        cy.get('input[name=addUserID]').selectByLabel(users[1].name)
-        cy.get('button')
-          .contains('Submit')
-          .click()
+        cy.dialogTitle('Edit Schedule Override')
+        cy.dialogForm({ addUserID: users[1].name })
+        cy.dialogFinish('Submit')
 
         cy.get('body')
           .should('not.contain', users[0].name)
