@@ -107,9 +107,10 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		  updateCalendarSubscription(input: {
 			id: "%s"
 			name: "%s"
+			disabled: %v
 		  })
 		}
-	`, h.UUID("cs2"), "Name 2"), nil)
+	`, h.UUID("cs2"), "Name 2", true), nil)
 
 	// delete
 	doQL(t, fmt.Sprintf(`

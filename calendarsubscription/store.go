@@ -47,7 +47,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			INSERT INTO calendar_subscriptions (id, name, user_id, last_access, disabled)
 			VALUES ($1, $2, $3, $4, $5)
 		`),
-		update: p.P(`UPDATE calendar_subscriptions SET name = $2 WHERE id = $1`),
+		update: p.P(`UPDATE calendar_subscriptions SET name = $2, disabled = $3 WHERE id = $1`),
 		delete: p.P(`DELETE FROM calendar_subscriptions WHERE id = any($1)`),
 	}, p.Err
 }
@@ -120,7 +120,7 @@ func (db *DB) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calendar
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name)
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Disabled)
 	if err != nil {
 		return err
 	}

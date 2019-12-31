@@ -2904,7 +2904,8 @@ input CreateCalendarSubscriptionInput {
 
 input UpdateCalendarSubscriptionInput {
   id: ID!
-  name: String!
+  name: String
+  disabled: Boolean
 }
 
 input ScheduleTargetInput {
@@ -15832,7 +15833,13 @@ func (ec *executionContext) unmarshalInputUpdateCalendarSubscriptionInput(ctx co
 			}
 		case "name":
 			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "disabled":
+			var err error
+			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

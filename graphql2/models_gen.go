@@ -334,8 +334,9 @@ type UpdateAlertsInput struct {
 }
 
 type UpdateCalendarSubscriptionInput struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID       string  `json:"id"`
+	Name     *string `json:"name"`
+	Disabled *bool   `json:"disabled"`
 }
 
 type UpdateEscalationPolicyInput struct {

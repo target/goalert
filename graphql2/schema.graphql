@@ -309,7 +309,8 @@ input CreateCalendarSubscriptionInput {
 
 input UpdateCalendarSubscriptionInput {
   id: ID!
-  name: String!
+  name: String
+  disabled: Boolean
 }
 
 input ScheduleTargetInput {

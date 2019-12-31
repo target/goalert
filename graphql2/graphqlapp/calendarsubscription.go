@@ -36,7 +36,8 @@ func (m *Mutation) UpdateCalendarSubscription(ctx context.Context, input graphql
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cs := &calendarsubscription.CalendarSubscription{
 			ID:   input.ID,
-			Name: input.Name,
+			Name: *input.Name,
+			Disabled: *input.Disabled,
 		}
 
 		err := m.CalendarSubscriptionStore.UpdateSubscriptionTx(ctx, tx, cs)
