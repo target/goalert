@@ -33,33 +33,24 @@ function testSteps(screen: ScreenFormat) {
     })
 
     // Create a step with 2 of each type of GoAlert target
-    it('should create a step', () => {
+    it.only('should create a step', () => {
       cy.fixture('users').then(users => {
         const u1 = users[0]
         const u2 = users[1]
+        const del = c.integer({ min: 1, max: 9000 })
 
         cy.pageFab()
-        cy.get('div[role=dialog]').should('contain', 'Create Step')
-
-        cy.get('input[name=rotations]').selectByLabel(r1.name)
-        cy.get('input[name=rotations]').selectByLabel(r2.name)
+        cy.dialogTitle('Create Step')
+        cy.dialogForm({ rotations: [r1.name, r2.name] })
 
         cy.get('button[data-cy="schedules-step"]').click()
-        cy.get('input[name=schedules]').selectByLabel(s1.name)
-        cy.get('input[name=schedules]').selectByLabel(s2.name)
+        cy.dialogForm({ schedules: [s1.name, s2.name] })
 
         cy.get('button[data-cy="users-step"]').click()
-        cy.get('input[name=users]').selectByLabel(u1.name)
-        cy.get('input[name=users]').selectByLabel(u2.name)
-        const del = c.integer({ min: 1, max: 9000 })
-        const delStr = del.toString()
-        cy.get('input[name=delayMinutes]')
-          .should('have.value', '15')
-          .clear()
-          .should('be.empty')
-          .type(delStr)
-          .should('have.value', delStr)
-
+        cy.dialogForm({
+          users: [u1.name, u2.name],
+          delayMinutes: del.toString(),
+        })
         cy.dialogFinish('Submit')
 
         // verify data integrity
@@ -73,7 +64,7 @@ function testSteps(screen: ScreenFormat) {
         cy.get('div[data-cy=user-chip]').should('contain', u2.name)
         cy.get('body').should(
           'contain',
-          `Go back to step #1 after ${delStr} minutes`,
+          `Go back to step #1 after ${del.toString()} minutes`,
         )
       })
     })
@@ -86,12 +77,9 @@ function testSteps(screen: ScreenFormat) {
         const u2 = users[1]
 
         cy.pageFab()
-        cy.get('div[role=dialog]').as('dialog')
-        cy.get('div[role=dialog]').should('contain', 'Create Step')
-
+        cy.dialogTitle('Create Step')
         cy.get('button[data-cy="users-step"]').click()
-        cy.get('input[name=users]').selectByLabel(u1.name)
-        cy.get('input[name=users]').selectByLabel(u2.name)
+        cy.dialogForm({ users: [u1.name, u2.name] })
       })
     })
 
@@ -103,24 +91,18 @@ function testSteps(screen: ScreenFormat) {
           cy.reload()
         })
         .then(() => {
+          const del = c.integer({ min: 1, max: 9000 })
+
           cy.get('ul[data-cy=steps-list] :nth-child(1) li')
             .should('contain', 'Step #')
             .find('button[data-cy=other-actions]')
             .menu('Edit')
 
-          cy.get('div[role=dialog]').as('dialog')
-          cy.get('div[role=dialog]').should('contain', 'Edit Step')
-
-          cy.get('input[name=rotations]').selectByLabel(r1.name)
-
-          const del = c.integer({ min: 1, max: 9000 })
-          const delStr = del.toString()
-          cy.get('input[name=delayMinutes]')
-            .should('have.value', s1.delayMinutes.toString())
-            .clear()
-            .should('be.empty')
-            .type(delStr)
-            .should('have.value', delStr)
+          cy.dialogTitle('Edit Step')
+          cy.dialogForm({
+            rotations: r1.name,
+            delayMinutes: del.toString(),
+          })
 
           cy.dialogFinish('Submit')
 
@@ -130,7 +112,7 @@ function testSteps(screen: ScreenFormat) {
           cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
           cy.get('body').should(
             'contain',
-            `Go back to step #1 after ${delStr} minutes`,
+            `Go back to step #1 after ${del.toString()} minutes`,
           )
         })
     })
@@ -140,15 +122,13 @@ function testSteps(screen: ScreenFormat) {
       cy.reload()
 
       cy.pageFab()
-      cy.get('div[role=dialog]').should('contain', 'Create Step')
+      cy.dialogTitle('Create Step')
 
       // expand slack channels section
       cy.get('button[data-cy="slack-channels-step"]').click()
 
       // add slack channels
-      cy.get('input[name=slackChannels]').selectByLabel('general')
-      cy.get('input[name=slackChannels]').selectByLabel('foobar')
-
+      cy.dialogForm({ slackChannels: ['general', 'foobar'] })
       cy.dialogFinish('Submit')
 
       // verify data integrity
@@ -162,8 +142,7 @@ function testSteps(screen: ScreenFormat) {
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
-      // confirm edit step dialog open
-      cy.get('div[role=dialog]').should('contain', 'Edit Step')
+      cy.dialogTitle('Edit Step')
 
       // expand slack channels section
       cy.get('button[data-cy="slack-channels-step"]').click()
@@ -185,13 +164,8 @@ function testSteps(screen: ScreenFormat) {
       cy.get('ul[data-cy=steps-list] :nth-child(1) li')
         .find('button[data-cy=other-actions]')
         .menu('Delete')
-      cy.get('div[role=dialog]').as('dialog')
-
-      cy.get('div[role=dialog]').should('contain', 'Are you sure?')
-      cy.get('div[role=dialog]').should(
-        'contain',
-        'This will delete step #1 on this escalation policy.',
-      )
+      cy.dialogTitle('Are you sure?')
+      cy.dialogContains('This will delete step #1 on this escalation policy.')
       cy.dialogFinish('Confirm')
 
       cy.get('body').should(
