@@ -486,17 +486,9 @@ function testServices(screen: ScreenFormat) {
       const details = c.word({ length: 10 })
 
       cy.pageFab()
-
       cy.dialogForm({ summary, details })
-
       cy.dialogClick('Next')
-
-      // cy.get('@dialog')
-      //   .contains('[data-cy=service-chip]', svc.name)
-      //   .should('be.visible')
-
       cy.dialogContains(svc.name)
-
       cy.dialogClick('Submit')
       cy.dialogFinish('Done')
     })
