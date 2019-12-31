@@ -198,15 +198,12 @@ function testProfile(screen: ScreenFormat) {
         .contains('li', cm.name)
         .find('button')
         .click()
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogFinish('Confirm')
 
       cy.pageFab('Notification')
       cy.get('input[name=contactMethodID]').selectByLabel(cm.name)
-      cy.get('*[role=dialog]')
-        .contains('button', 'Submit')
-        .click()
+      cy.dialogFinish('Submit')
+
       cy.get('ul[data-cy=notification-rules]').should(
         'not.contain',
         'No notification rules',
