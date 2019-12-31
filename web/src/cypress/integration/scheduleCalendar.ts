@@ -163,22 +163,25 @@ function testCalendar(screen: ScreenFormat) {
   it('should add an override from the calendar', () => {
     cy.fixture('users').then(users => {
       cy.get('button[data-cy="add-override"]').click()
-      cy.get('input[name=addUserID]').selectByLabel(users[0].name)
-      cy.get('div[role=dialog]')
-        .contains('button', 'Submit')
-        .click()
-        .should('not.exist')
+      cy.dialogTitle('Add a User')
+      cy.dialogForm({ addUserID: users[0].name })
+      cy.dialogFinish('Submit')
     })
   })
 
-  it('should create a replace override from a shift tooltip', () => {
+  it.only('should create a replace override from a shift tooltip', () => {
+    const name = rot.users[0].name.split(' ')[0]
+
     cy.fixture('users').then(users => {
-      cy.get('button[data-cy="add-override"]').click()
-      cy.get('input[name=addUserID]').selectByLabel(users[0].name)
-      cy.get('div[role=dialog]')
-        .contains('button', 'Submit')
-        .click()
-        .should('not.exist')
+      cy.get('[data-cy=calendar]')
+        .should('contain', name)
+        .contains('div', name)
+        .trigger('mouseover')
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+      cy.get('button[data-cy="replace-override"]').click()
+      cy.dialogTitle('Replace a User')
+      cy.dialogForm({ addUserID: users[0].name })
+      cy.dialogFinish('Submit')
     })
   })
 
@@ -191,9 +194,7 @@ function testCalendar(screen: ScreenFormat) {
       .trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="remove-override"]').click()
-    cy.get('div[role=dialog]')
-      .contains('button', 'Submit')
-      .click()
-      .should('not.exist')
+    cy.dialogTitle('Remove a User')
+    cy.dialogFinish('Submit')
   })
 }
