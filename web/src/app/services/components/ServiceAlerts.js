@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
+import { useMutation } from 'react-apollo'
 import AlertsList from '../../alerts/components/AlertsList'
 import gql from 'graphql-tag'
 import Options from '../../util/Options'
-import ConfirmationDialog from '../../dialogs/components/ConfirmationDialog'
 import PageActions from '../../util/PageActions'
 import AlertsListFilter from '../../alerts/components/AlertsListFilter'
 import Search from '../../util/Search'
-import { sendGAEvent } from '../../util/GoogleAnalytics'
+import FormDialog from '../../dialogs/FormDialog'
+import { LegacyGraphQLClient } from '../../apollo'
 
 const mutation = gql`
   mutation UpdateAlertStatusByServiceMutation(
@@ -32,6 +33,19 @@ export default function ServiceAlerts(props) {
 
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
+  const [mutate, mutationStatus] = useMutation(mutation, {
+    refetchQueries: ['alerts'],
+    client: LegacyGraphQLClient,
+    variables: {
+      input: {
+        service_id: serviceID,
+        status: alertStatus + 'd', // closed or acknowledged
+      },
+    },
+    onCompleted: () => setShowDialog(false),
+  })
+
+  const { loading } = mutationStatus
 
   const handleClickAckAll = () => {
     setAlertStatus('acknowledge')
@@ -41,13 +55,6 @@ export default function ServiceAlerts(props) {
   const handleClickCloseAll = () => {
     setAlertStatus('close')
     setShowDialog(true)
-  }
-
-  const handleAllAlertsSuccess = () => {
-    sendGAEvent({
-      category: 'Service',
-      action: alertStatus + ' All Action Completed',
-    })
   }
 
   const getMenuOptions = () => {
@@ -70,22 +77,16 @@ export default function ServiceAlerts(props) {
         <AlertsListFilter key='filter' serviceID={serviceID} />
         <Options key='options' options={getMenuOptions()} />
       </PageActions>
-      <ConfirmationDialog
-        key='update-alerts-form'
-        mutation={mutation}
-        refetchQueries={['alerts']}
-        mutationVariables={{
-          input: {
-            service_id: serviceID,
-            status: alertStatus + 'd', // closed or acknowledged
-          },
-        }}
-        onMutationSuccess={handleAllAlertsSuccess}
-        onRequestClose={() => setShowDialog(false)}
-        open={showDialog}
-        message={`This will ${alertStatus} all the alerts for this service.`}
-        warning='This will stop all notifications from being sent out for all alerts with this service.'
-      />
+      {showDialog && (
+        <FormDialog
+          title='Are you sure?'
+          confirm
+          subTitle={`This will ${alertStatus} all the alerts for this service.\nThis will stop all notifications from being sent out for all alerts with this service.`}
+          onSubmit={mutate}
+          loading={loading}
+          onClose={() => setShowDialog(false)}
+        />
+      )}
       <AlertsList serviceID={serviceID} />
     </React.Fragment>
   )
