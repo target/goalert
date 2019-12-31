@@ -23,17 +23,17 @@ type DB struct {
 	db *sql.DB
 
 	findOne *sql.Stmt
-	create *sql.Stmt
-	update *sql.Stmt
-	delete *sql.Stmt
+	create  *sql.Stmt
+	update  *sql.Stmt
+	delete  *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &DB{
-		db:      db,
-		findOne:  p.P(`
+		db: db,
+		findOne: p.P(`
 			SELECT
 				cs.id,
 				cs.name,

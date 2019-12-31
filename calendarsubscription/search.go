@@ -25,7 +25,6 @@ type SearchOptions struct {
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
 	Name string `json:"n,omitempty"`
-
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
@@ -122,6 +121,3 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]CalendarSubscr
 
 	return result, nil
 }
-
-
-

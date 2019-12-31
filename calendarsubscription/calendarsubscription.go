@@ -6,11 +6,11 @@ import (
 )
 
 type CalendarSubscription struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	UserID		string `json:"user_id"`
-	LastAccess  time.Time `json:"last_access"`
-	Disabled    bool    `json:"disabled"`
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	UserID     string    `json:"user_id"`
+	LastAccess time.Time `json:"last_access"`
+	Disabled   bool      `json:"disabled"`
 }
 
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
