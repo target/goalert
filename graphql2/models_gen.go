@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/notification/slack"
@@ -51,6 +52,18 @@ type AlertSearchOptions struct {
 type AuthSubjectConnection struct {
 	Nodes    []user.AuthSubject `json:"nodes"`
 	PageInfo *PageInfo          `json:"pageInfo"`
+}
+
+type CalendarSubscriptionConnection struct {
+	Nodes    []calendarsubscription.CalendarSubscription `json:"nodes"`
+	PageInfo *PageInfo                                   `json:"pageInfo"`
+}
+
+type CalendarSubscriptionSearchOptions struct {
+	First  *int     `json:"first"`
+	After  *string  `json:"after"`
+	Search *string  `json:"search"`
+	Omit   []string `json:"omit"`
 }
 
 type ConfigHint struct {

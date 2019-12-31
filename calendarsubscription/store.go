@@ -16,6 +16,7 @@ type Store interface {
 	CreateSubscriptionTx(context.Context, *sql.Tx, *CalendarSubscription) (bool, error)
 	UpdateSubscriptionTx(context.Context, *sql.Tx, *CalendarSubscription) error
 	DeleteSubscriptionsTx(context.Context, *sql.Tx, []string) error
+	Search(context.Context, *SearchOptions) ([]CalendarSubscription, error)
 }
 
 type DB struct {
