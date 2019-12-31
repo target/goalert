@@ -11,16 +11,17 @@ import (
 	"text/template"
 )
 
-// SearchOptions allow filtering and paginating the list of users.
+// SearchOptions allow filtering and paginating the list of calendar subscriptions.
 type SearchOptions struct {
 	Search string       `json:"s,omitempty"`
 	After  SearchCursor `json:"a,omitempty"`
 
-	// Omit specifies a list of user IDs to exclude from the results.
+	// Omit specifies a list of subscription IDs to exclude from the results.
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
 }
+
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
 	Name string `json:"n,omitempty"`
@@ -85,13 +86,16 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]CalendarSubscr
 	if err != nil {
 		return nil, err
 	}
+
 	if opts == nil {
 		opts = &SearchOptions{}
 	}
+
 	data, err := (*renderData)(opts).Normalize()
 	if err != nil {
 		return nil, err
 	}
+
 	query, args, err := search.RenderQuery(ctx, searchTemplate, data)
 	if err != nil {
 		return nil, errors.Wrap(err, "render query")
