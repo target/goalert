@@ -15,9 +15,16 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		insert into users (id, name, email, role) 
 		values 
 			({{uuid "user"}}, 'bob', 'joe', 'admin');
+
+		insert into calendar_subscriptions (id, name, user_id)
+		values ({{uuid "cs1"}}, 'test1', {{uuid "user"}});
+		insert into calendar_subscriptions (id, name, user_id)
+		values ({{uuid "cs2"}}, 'test2', {{uuid "user"}});
+		insert into calendar_subscriptions (id, name, user_id)
+		values ({{uuid "cs3"}}, 'test3', {{uuid "user"}});
 	`
 
-	h := harness.NewHarness(t, sql, "ids-to-uuids")
+	h := harness.NewHarness(t, sql, "calendar-subscriptions")
 	defer h.Close()
 
 	doQL := func(t *testing.T, query string, res interface{}) {
@@ -46,9 +53,43 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		Disabled bool
 	}
 
+	var subs struct {
+		Nodes struct {
+			ID string
+			Name string
+			UserID string
+			LastAccess string
+			Disabled bool
+		}
+	}
+
 	// find one query
+	doQL(t, fmt.Sprintf(`
+		query {
+			calendarSubscription(id: "%s") {
+				id
+				name
+				userID
+				lastAccess
+				disabled
+			}	
+		}
+	`, h.UUID("cs1") ), &cs)
 
 	// find many query
+	doQL(t, fmt.Sprintf(`
+		query {
+			calendarSubscriptions(input: {first: 1}) {
+				nodes {
+					id
+					name
+					userID
+					lastAccess
+					disabled
+				}
+			}	
+		}
+	`, ), &subs)
 
 	// create
 	doQL(t, fmt.Sprintf(`
@@ -60,6 +101,21 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 	`, "Name 1"), nil)
 
 	// update
+	doQL(t, fmt.Sprintf(`
+		mutation {
+		  updateCalendarSubscription(input:{
+			id: "%s"
+			name: "%s"
+		  })
+		}
+	`, h.UUID("cs2"), "Name 2"), nil)
 
 	// delete
+	doQL(t, fmt.Sprintf(`
+		mutation {
+		  deleteAll(input:[{
+			id: "%s"
+			type: calendarSubscription}])
+		}
+	`, h.UUID("cs3")), nil)
 }
