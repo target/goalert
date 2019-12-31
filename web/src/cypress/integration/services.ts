@@ -192,34 +192,17 @@ function testServices(screen: ScreenFormat) {
     describe('Creation', () => {
       it('should allow canceling', () => {
         cy.pageFab()
-        cy.get('div[role=dialog]').should('contain', 'Create New Service')
-        cy.get('div[role=dialog]')
-          .contains('button', 'Cancel')
-          .click()
-        cy.get('div[role=dialog]').should('not.exist')
+        cy.dialogTitle('Create New Service')
+        cy.dialogFinish('Cancel')
       })
 
       it(`should create a service when submitted`, () => {
-        cy.pageFab()
-
-        cy.get('div[role=dialog]').as('dialog')
-
         const name = 'SM Svc ' + c.word({ length: 8 })
         const description = c.word({ length: 10 })
 
-        cy.get('@dialog')
-          .find('input[name=name]')
-          .type(name)
-        cy.get('@dialog')
-          .find('input[name=escalation-policy]')
-          .selectByLabel(svc.ep.name)
-        cy.get('@dialog')
-          .find('textarea[name=description]')
-          .type(description)
-
-        cy.get('@dialog')
-          .contains('button', 'Submit')
-          .click()
+        cy.pageFab()
+        cy.dialogForm({ name, 'escalation-policy': svc.ep.name, description })
+        cy.dialogFinish('Submit')
 
         // should be on details page
         cy.get('body')
@@ -228,23 +211,12 @@ function testServices(screen: ScreenFormat) {
       })
 
       it(`should create a service, with a generated EP, when submitted`, () => {
-        cy.pageFab()
-
-        cy.get('div[role=dialog]').as('dialog')
-
         const name = 'SM Svc ' + c.word({ length: 8 })
         const description = c.word({ length: 10 })
 
-        cy.get('@dialog')
-          .find('input[name=name]')
-          .type(name)
-        cy.get('@dialog')
-          .find('textarea[name=description]')
-          .type(description)
-
-        cy.get('@dialog')
-          .contains('button', 'Submit')
-          .click()
+        cy.pageFab()
+        cy.dialogForm({ name, description })
+        cy.dialogFinish('Submit')
 
         // should be on details page
         cy.get('body')
@@ -273,33 +245,21 @@ function testServices(screen: ScreenFormat) {
 
     it('should allow deleting the service', () => {
       cy.pageAction('Delete')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogFinish('Confirm')
       cy.location('pathname').should('eq', '/services')
       cy.pageSearch(svc.name)
       cy.get('body').should('contain', 'No results')
     })
 
     it('should handle updating information', () => {
+      const name = 'SM Svc ' + c.word({ length: 8 })
+      const description = c.word({ length: 10 })
+
       cy.createEP().then(ep => {
         cy.pageAction('Edit')
 
-        const name = 'SM Svc ' + c.word({ length: 8 })
-        const description = c.word({ length: 10 })
-
-        cy.get('input[name=name]')
-          .clear()
-          .type(name)
-        cy.get('textarea[name=description]')
-          .clear()
-          .type(description)
-        cy.get('input[name=escalation-policy]').selectByLabel(ep.name)
-        cy.get('*[role=dialog]')
-          .find('button[type=submit]')
-          .click()
-
-        cy.get('*[role=dialog]').should('not.exist')
+        cy.dialogForm({ name, description, 'escalation-policy': ep.name })
+        cy.dialogFinish('Submit')
 
         cy.get('body')
           .should('contain', name)
@@ -369,23 +329,21 @@ function testServices(screen: ScreenFormat) {
 
     it('should create a monitor', () => {
       const name = c.word({ length: 5 }) + ' Monitor'
-      let timeout = (Math.trunc(Math.random() * 10) + 5).toString()
+      const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
 
       cy.pageFab()
-      cy.get('input[name="name"]').type(name)
-      cy.get('input[name="timeoutMinutes"]').type(timeout)
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
-      cy.get('*[role=dialog]').should('not.exist')
+
+      cy.dialogForm({ name, timeoutMinutes })
+      cy.dialogFinish('Submit')
+
       cy.get('li')
         .should('contain', name)
-        .should('contain', timeout)
+        .should('contain', timeoutMinutes)
     })
 
     it('should edit a monitor', () => {
-      const newName = c.word({ length: 5 })
-      const newTimeout = (Math.trunc(Math.random() * 10) + 5).toString()
+      const name = c.word({ length: 5 })
+      const timeoutMinutes = (Math.trunc(Math.random() * 10) + 5).toString()
 
       cy.get('li')
         .should('contain', monitor.name)
@@ -393,19 +351,11 @@ function testServices(screen: ScreenFormat) {
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
-      cy.get('input[name="name"]')
-        .clear()
-        .type(newName)
-      cy.get('input[name="timeoutMinutes"]')
-        .clear()
-        .type(newTimeout)
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
+      cy.dialogForm({ name, timeoutMinutes })
+      cy.dialogFinish('Submit')
 
-      cy.get('*[role=dialog]').should('not.exist')
-      cy.get('li').should('contain', newName)
-      cy.get('li').should('contain', newTimeout)
+      cy.get('li').should('contain', name)
+      cy.get('li').should('contain', timeoutMinutes)
     })
 
     it('should delete a monitor', () => {
@@ -414,9 +364,8 @@ function testServices(screen: ScreenFormat) {
         .find('div')
         .find('button[data-cy=other-actions]')
         .menu('Delete')
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
+
+      cy.dialogFinish('Confirm')
 
       cy.get('li').should('not.contain', monitor.name)
       cy.get('li').should(
@@ -428,14 +377,8 @@ function testServices(screen: ScreenFormat) {
     it('should handle canceling', () => {
       // cancel out of create
       cy.pageFab()
-      cy.get('div[role=dialog]').should(
-        'contain',
-        'Create New Heartbeat Monitor',
-      )
-      cy.get('div[role=dialog]')
-        .contains('button', 'Cancel')
-        .click()
-      cy.get('div[role=dialog]').should('not.exist')
+      cy.dialogTitle('Create New Heartbeat Monitor')
+      cy.dialogFinish('Cancel')
 
       // cancel out of edit
       cy.get('li')
@@ -443,10 +386,7 @@ function testServices(screen: ScreenFormat) {
         .find('div')
         .find('button[data-cy=other-actions]')
         .menu('Edit')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Cancel')
-        .click()
-      cy.get('div[role=dialog]').should('not.exist')
+      cy.dialogFinish('Cancel')
 
       // cancel out of delete
       cy.get('li')
@@ -454,10 +394,7 @@ function testServices(screen: ScreenFormat) {
         .find('div')
         .find('button[data-cy=other-actions]')
         .menu('Delete')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Cancel')
-        .click()
-      cy.get('div[role=dialog]').should('not.exist')
+      cy.dialogFinish('Cancel')
     })
   })
 
@@ -472,18 +409,15 @@ function testServices(screen: ScreenFormat) {
 
     const createKey = (type: string, name: string) => {
       cy.pageFab()
-      cy.get('input[name=name]').type(name)
-      cy.get('input[name=type]').selectByLabel(type)
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
-      cy.get('*[role=dialog]').should('not.exist')
+      cy.dialogForm({ name, type })
+      cy.dialogFinish('Submit')
     }
 
     it('should allow managing integration keys', () => {
+      const name = 'SM Int ' + c.word({ length: 8 })
+
       cy.get('body').should('contain', 'No integration keys')
       ;['Generic API', 'Grafana'].forEach(type => {
-        const name = 'SM Int ' + c.word({ length: 8 })
         createKey(type, name)
 
         cy.get('ul[data-cy=int-keys]').should('contain', name)
@@ -493,16 +427,17 @@ function testServices(screen: ScreenFormat) {
           .contains('li', name)
           .find('button')
           .click()
-        cy.get('*[role=dialog]')
-          .contains('button', 'Confirm')
-          .click()
+
+        cy.dialogFinish('Confirm')
       })
     })
 
     it('should manage integration keys with mailgun disabled', () => {
+      const domain = c.domain()
+      const name = 'SM Int ' + c.word({ length: 8 })
+
       cy.get('body').should('contain', 'No integration keys')
 
-      const domain = c.domain()
       cy.updateConfig({
         Mailgun: {
           Enable: true,
@@ -512,7 +447,6 @@ function testServices(screen: ScreenFormat) {
       })
       cy.reload()
 
-      const name = 'SM Int ' + c.word({ length: 8 })
       createKey('Email', name) // set email integration key
       cy.get('ul[data-cy=int-keys')
         .contains('li', name)
@@ -548,31 +482,23 @@ function testServices(screen: ScreenFormat) {
     )
 
     it('should create alert with prepopulated service', () => {
-      cy.pageFab()
-      cy.get('div[role=dialog]').as('dialog')
-
       const summary = c.sentence({ words: 3 })
       const details = c.word({ length: 10 })
-      cy.get('input[name=summary]').type(summary)
-      cy.get('textarea[name=details]').type(details)
 
-      cy.get('@dialog')
-        .contains('button', 'Next')
-        .click()
+      cy.pageFab()
 
-      // service already selected; skip to Confirm step
-      cy.get('@dialog')
-        .contains('[data-cy=service-chip]', svc.name)
-        .should('be.visible')
+      cy.dialogForm({ summary, details })
 
-      cy.get('@dialog')
-        .contains('button', 'Submit')
-        .click()
+      cy.dialogClick('Next')
 
-      // review
-      cy.get('@dialog')
-        .contains('button', 'Done')
-        .click()
+      // cy.get('@dialog')
+      //   .contains('[data-cy=service-chip]', svc.name)
+      //   .should('be.visible')
+
+      cy.dialogContains(svc.name)
+
+      cy.dialogClick('Submit')
+      cy.dialogFinish('Done')
     })
 
     it('should allow ack/close all alerts', () => {
@@ -615,51 +541,42 @@ function testServices(screen: ScreenFormat) {
       const value = c.word({ length: 10 })
 
       cy.pageFab()
-      cy.get('input[name="key"]').selectByLabel(key)
-      cy.get('input[name=value]').type(value)
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
+      cy.dialogForm({ key, value })
+      cy.dialogFinish('Submit')
       cy.get('li').should('contain', key)
     })
 
     it('should set an existing label', () => {
+      const key = label.key
+      const value = c.word({ length: 10 })
+
       cy.createService().then(svc => {
         cy.visit(`/services/${svc.id}/labels`)
       })
 
-      const newVal = c.word({ length: 10 })
       cy.pageFab()
+      cy.dialogForm({ key, value })
+      cy.dialogFinish('Submit')
 
-      cy.get('input[name=key]').selectByLabel(label.key)
-      cy.get('input[name=value]').type(newVal)
-
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
-
-      cy.get('li').should('contain', label.key)
-      cy.get('li').should('contain', newVal)
+      cy.get('li').should('contain', key)
+      cy.get('li').should('contain', value)
     })
 
     it('should edit a label', () => {
-      const newVal = c.word({ length: 10 })
+      const key = label.key
+      const value = c.word({ length: 10 })
 
       cy.get('li')
-        .should('contain', label.key)
+        .should('contain', key)
         .find('div')
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
-      cy.get('input[name=value]')
-        .clear()
-        .type(newVal)
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
+      cy.dialogForm({ value })
+      cy.dialogFinish('Submit')
 
-      cy.get('li').should('contain', label.key)
-      cy.get('li').should('contain', newVal)
+      cy.get('li').should('contain', key)
+      cy.get('li').should('contain', value)
     })
 
     it('should delete a label', () => {
@@ -669,9 +586,7 @@ function testServices(screen: ScreenFormat) {
         .find('button[data-cy=other-actions]')
         .menu('Delete')
 
-      cy.get('*[role=dialog]')
-        .find('button[type=submit]')
-        .click()
+      cy.dialogFinish('Confirm')
 
       cy.get('li').should('not.contain', label.key)
       cy.get('li').should('not.contain', label.value)
