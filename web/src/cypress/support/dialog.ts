@@ -39,6 +39,8 @@ function fillFormField(name: string, value: string | string[]) {
       return cy.get(selector).selectByLabel(value)
     }
 
+    if (value === '') return cy.get(selector).clear()
+
     return cy
       .get(selector)
       .clear()
