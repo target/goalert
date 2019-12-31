@@ -60,11 +60,7 @@ function testSteps(screen: ScreenFormat) {
           .type(delStr)
           .should('have.value', delStr)
 
-        // submit form
-        cy.get('button[type=submit]').click()
-
-        // confirm dialog closes
-        cy.get('div[role=dialog]').should('not.exist')
+        cy.dialogFinish('Submit')
 
         // verify data integrity
         cy.get('body').should('contain', 'Notify the following:')
@@ -126,11 +122,7 @@ function testSteps(screen: ScreenFormat) {
             .type(delStr)
             .should('have.value', delStr)
 
-          // submit form
-          cy.get('button[type=submit]').click()
-
-          // confirm dialog closes
-          cy.get('div[role=dialog]').should('not.exist')
+          cy.dialogFinish('Submit')
 
           // verify data integrity
           cy.get('body').should('contain', 'Notify the following:')
@@ -157,11 +149,7 @@ function testSteps(screen: ScreenFormat) {
       cy.get('input[name=slackChannels]').selectByLabel('general')
       cy.get('input[name=slackChannels]').selectByLabel('foobar')
 
-      // submit create form
-      cy.get('button[type=submit]').click()
-
-      // confirm create dialog closes
-      cy.get('div[role=dialog]').should('not.exist')
+      cy.dialogFinish('Submit')
 
       // verify data integrity
       cy.get('body').should('contain', 'Notify the following:')
@@ -183,11 +171,7 @@ function testSteps(screen: ScreenFormat) {
       // delete foobar channel
       cy.get('input[name=slackChannels]').multiRemoveByLabel('#foobar')
 
-      // submit edit form
-      cy.get('button[type=submit]').click()
-
-      // confirm edit dialog closes
-      cy.get('div[role=dialog]').should('not.exist')
+      cy.dialogFinish('Submit')
 
       // verify data integrity
       cy.get('body').should('contain', 'Notify the following:')
@@ -208,9 +192,8 @@ function testSteps(screen: ScreenFormat) {
         'contain',
         'This will delete step #1 on this escalation policy.',
       )
-      cy.get('button[type=submit]').click()
+      cy.dialogFinish('Confirm')
 
-      cy.get('div[role=dialog]').should('not.exist')
       cy.get('body').should(
         'contain',
         'No steps currently on this Escalation Policy',

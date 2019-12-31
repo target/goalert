@@ -36,10 +36,7 @@ function testEP(screen: ScreenFormat) {
       it('should allow canceling', () => {
         cy.pageFab()
         cy.get('div[role=dialog]').should('contain', 'Create Escalation Policy')
-        cy.get('div[role=dialog]')
-          .contains('button', 'Cancel')
-          .click()
-        cy.get('div[role=dialog]').should('not.exist')
+        cy.dialogFinish('Cancel')
       })
 
       it(`should create an EP when submitted`, () => {
@@ -64,9 +61,7 @@ function testEP(screen: ScreenFormat) {
           .find('input[name=repeat]')
           .selectByLabel(repeat)
 
-        cy.get('@dialog')
-          .contains('button', 'Submit')
-          .click()
+        cy.dialogFinish('Submit')
 
         // should be on details page
         cy.get('body')
@@ -93,9 +88,8 @@ function testEP(screen: ScreenFormat) {
 
     it('should delete a policy', () => {
       cy.pageAction('Delete Escalation Policy')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogFinish('Confirm')
+
       cy.location('pathname').should('eq', '/escalation-policies')
       cy.pageSearch(ep.name)
       cy.get('body').should('contain', 'No results')
@@ -125,12 +119,7 @@ function testEP(screen: ScreenFormat) {
         .find('input[name=repeat]')
         .selectByLabel(repeat)
 
-      cy.get('@dialog')
-        .contains('button', 'Submit')
-        .click()
-
-      // confirm dialog closes
-      cy.get('@dialog').should('not.exist')
+      cy.dialogFinish('Submit')
 
       // old name and desc should not be present
       cy.get('body')
