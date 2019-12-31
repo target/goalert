@@ -169,7 +169,7 @@ function testCalendar(screen: ScreenFormat) {
     })
   })
 
-  it.only('should create a replace override from a shift tooltip', () => {
+  it('should create a replace override from a shift tooltip', () => {
     const name = rot.users[0].name.split(' ')[0]
 
     cy.fixture('users').then(users => {

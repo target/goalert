@@ -174,7 +174,7 @@ function testProfile(screen: ScreenFormat) {
     })
   })
 
-  describe.only('Notification Rules', () => {
+  describe('Notification Rules', () => {
     it('should allow creating an immediate rule', () => {
       // delete existing notification rule
       cy.get('ul[data-cy=notification-rules]')
