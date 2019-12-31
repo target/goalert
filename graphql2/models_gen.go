@@ -320,6 +320,11 @@ type UpdateAlertsInput struct {
 	NewStatus AlertStatus `json:"newStatus"`
 }
 
+type UpdateCalendarSubscriptionInput struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type UpdateEscalationPolicyInput struct {
 	ID          string   `json:"id"`
 	Name        *string  `json:"name"`

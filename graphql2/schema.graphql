@@ -236,6 +236,7 @@ type Mutation {
   createSchedule(input: CreateScheduleInput!): Schedule
 
   createCalendarSubscription(input: CreateCalendarSubscriptionInput!): Boolean!
+  updateCalendarSubscription(input: UpdateCalendarSubscriptionInput!): Boolean!
 
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
@@ -300,6 +301,11 @@ input CreateScheduleInput {
 }
 
 input CreateCalendarSubscriptionInput {
+  name: String!
+}
+
+input UpdateCalendarSubscriptionInput {
+  id: ID!
   name: String!
 }
 

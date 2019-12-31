@@ -217,6 +217,7 @@ type ComplexityRoot struct {
 		SetLabel                      func(childComplexity int, input SetLabelInput) int
 		TestContactMethod             func(childComplexity int, id string) int
 		UpdateAlerts                  func(childComplexity int, input UpdateAlertsInput) int
+		UpdateCalendarSubscription    func(childComplexity int, input UpdateCalendarSubscriptionInput) int
 		UpdateEscalationPolicy        func(childComplexity int, input UpdateEscalationPolicyInput) int
 		UpdateEscalationPolicyStep    func(childComplexity int, input UpdateEscalationPolicyStepInput) int
 		UpdateHeartbeatMonitor        func(childComplexity int, input UpdateHeartbeatMonitorInput) int
@@ -481,6 +482,7 @@ type MutationResolver interface {
 	SetLabel(ctx context.Context, input SetLabelInput) (bool, error)
 	CreateSchedule(ctx context.Context, input CreateScheduleInput) (*schedule.Schedule, error)
 	CreateCalendarSubscription(ctx context.Context, input CreateCalendarSubscriptionInput) (bool, error)
+	UpdateCalendarSubscription(ctx context.Context, input UpdateCalendarSubscriptionInput) (bool, error)
 	UpdateScheduleTarget(ctx context.Context, input ScheduleTargetInput) (bool, error)
 	CreateUserOverride(ctx context.Context, input CreateUserOverrideInput) (*override.UserOverride, error)
 	CreateUserContactMethod(ctx context.Context, input CreateUserContactMethodInput) (*contactmethod.ContactMethod, error)
@@ -1324,6 +1326,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAlerts(childComplexity, args["input"].(UpdateAlertsInput)), true
+
+	case "Mutation.updateCalendarSubscription":
+		if e.complexity.Mutation.UpdateCalendarSubscription == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCalendarSubscription_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCalendarSubscription(childComplexity, args["input"].(UpdateCalendarSubscriptionInput)), true
 
 	case "Mutation.updateEscalationPolicy":
 		if e.complexity.Mutation.UpdateEscalationPolicy == nil {
@@ -2784,6 +2798,7 @@ type Mutation {
   createSchedule(input: CreateScheduleInput!): Schedule
 
   createCalendarSubscription(input: CreateCalendarSubscriptionInput!): Boolean!
+  updateCalendarSubscription(input: UpdateCalendarSubscriptionInput!): Boolean!
 
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
@@ -2848,6 +2863,11 @@ input CreateScheduleInput {
 }
 
 input CreateCalendarSubscriptionInput {
+  name: String!
+}
+
+input UpdateCalendarSubscriptionInput {
+  id: ID!
   name: String!
 }
 
@@ -3770,6 +3790,20 @@ func (ec *executionContext) field_Mutation_updateAlerts_args(ctx context.Context
 	var arg0 UpdateAlertsInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateCalendarSubscriptionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateCalendarSubscriptionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7794,6 +7828,50 @@ func (ec *executionContext) _Mutation_createCalendarSubscription(ctx context.Con
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateCalendarSubscription(rctx, args["input"].(CreateCalendarSubscriptionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateCalendarSubscription_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateCalendarSubscription(rctx, args["input"].(UpdateCalendarSubscriptionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15520,6 +15598,30 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateCalendarSubscriptionInput(ctx context.Context, obj interface{}) (UpdateCalendarSubscriptionInput, error) {
+	var it UpdateCalendarSubscriptionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateEscalationPolicyInput(ctx context.Context, obj interface{}) (UpdateEscalationPolicyInput, error) {
 	var it UpdateEscalationPolicyInput
 	var asMap = obj.(map[string]interface{})
@@ -16926,6 +17028,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createSchedule(ctx, field)
 		case "createCalendarSubscription":
 			out.Values[i] = ec._Mutation_createCalendarSubscription(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateCalendarSubscription":
+			out.Values[i] = ec._Mutation_updateCalendarSubscription(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20290,6 +20397,10 @@ func (ec *executionContext) marshalNTimeZoneConnection2ᚖgithubᚗcomᚋtarget�
 
 func (ec *executionContext) unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsInput(ctx context.Context, v interface{}) (UpdateAlertsInput, error) {
 	return ec.unmarshalInputUpdateAlertsInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateCalendarSubscriptionInput(ctx context.Context, v interface{}) (UpdateCalendarSubscriptionInput, error) {
+	return ec.unmarshalInputUpdateCalendarSubscriptionInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateEscalationPolicyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateEscalationPolicyInput(ctx context.Context, v interface{}) (UpdateEscalationPolicyInput, error) {

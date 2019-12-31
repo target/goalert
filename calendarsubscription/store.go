@@ -14,6 +14,7 @@ import (
 type Store interface {
 	FindOne(context.Context, string) (*CalendarSubscription, error)
 	CreateSubscriptionTx(context.Context, *sql.Tx, *CalendarSubscription) (bool, error)
+	UpdateSubscriptionTx(context.Context, *sql.Tx, *CalendarSubscription) error
 	DeleteSubscriptionsTx(context.Context, *sql.Tx, []string) error
 }
 
@@ -22,6 +23,7 @@ type DB struct {
 
 	findOne *sql.Stmt
 	create *sql.Stmt
+	update *sql.Stmt
 	delete *sql.Stmt
 }
 
@@ -44,6 +46,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			INSERT INTO calendar_subscriptions (id, name, user_id, last_access, disabled)
 			VALUES ($1, $2, $3, $4, $5)
 		`),
+		update: p.P(`UPDATE calendar_subscriptions SET name = $2 WHERE id = $1`),
 		delete: p.P(`DELETE FROM calendar_subscriptions WHERE id = any($1)`),
 	}, p.Err
 }
@@ -93,6 +96,35 @@ func (db *DB) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calendar
 		return false, err
 	}
 	return true, nil
+}
+
+func (db *DB) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (err error) {
+	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	if err != nil {
+		return err
+	}
+
+	err = validate.UUID("CalendarSubscriptionID", cs.ID)
+	if err != nil {
+		return err
+	}
+
+	n, err := cs.Normalize()
+	if err != nil {
+		return err
+	}
+
+	stmt := db.update
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (db *DB) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []string) error {

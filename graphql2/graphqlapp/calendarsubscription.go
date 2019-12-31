@@ -23,8 +23,28 @@ func (m *Mutation) CreateCalendarSubscription(ctx context.Context, input graphql
 			return err
 		}
 
+		// todo: gen url for user
+
 		return err
 	})
 
 	return res, err
+}
+
+func (m *Mutation) UpdateCalendarSubscription(ctx context.Context, input graphql2.UpdateCalendarSubscriptionInput) (bool, error) {
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		cs := &calendarsubscription.CalendarSubscription{
+			ID: input.ID,
+			Name: input.Name,
+		}
+
+		err := m.CalendarSubscriptionStore.UpdateSubscriptionTx(ctx, tx, cs)
+		if err != nil {
+			return err
+		}
+
+		return err
+	})
+
+	return err == nil, err
 }
