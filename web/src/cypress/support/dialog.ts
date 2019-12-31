@@ -17,8 +17,15 @@ declare namespace Cypress {
   }
 }
 
-function fillFormField(name: string, value: string | string[]) {
+function fillFormField(name: string, value: string | string[] | boolean) {
   const selector = `[role=dialog] #dialog-form input[name=${name}],textarea[name=${name}]`
+
+  if (typeof value === 'boolean') {
+    if (!value) return cy.get(selector).uncheck()
+
+    return cy.get(selector).check()
+  }
+
   return cy.get(selector).then(el => {
     const isSelect =
       el.parents('[data-cy=material-select]').data('cy') === 'material-select'
@@ -46,10 +53,14 @@ function fillFormField(name: string, value: string | string[]) {
   })
 }
 
-function dialogForm(values: { [key: string]: string | string[] }): void {
+function dialogForm(values: {
+  [key: string]: string | string[] | null | boolean
+}): void {
   dialog()
   for (let key in values) {
-    fillFormField(key, values[key])
+    const val = values[key]
+    if (val === null) continue
+    fillFormField(key, val)
   }
 }
 function dialog(): Cypress.Chainable {
