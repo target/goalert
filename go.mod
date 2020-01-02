@@ -24,7 +24,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/trifles v0.0.0-20190809233526-a06f71cd0619 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
-	github.com/fatih/color v1.7.0
+	github.com/fatih/color v1.8.0
 	github.com/felixge/httpsnoop v1.0.1
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9
