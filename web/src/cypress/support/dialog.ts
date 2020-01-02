@@ -1,6 +1,6 @@
 declare namespace Cypress {
   interface Chainable<Subject> {
-    /** Click a dialog button with the given text and wait for it to dissapear. */
+    /** Click a dialog button with the given text and wait for it to disappear. */
     dialogFinish: typeof dialogFinish
 
     /** Click a dialog button with the given text. */
