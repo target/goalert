@@ -40,20 +40,12 @@ const escalateAlerts = gql`
   }
 `
 
-/*
- * On sm-md breakpoints checkbox actions are sticky below toolbar
- */
-const stickyBase = {
-  backgroundColor: 'lightgrey', // same color as background
-  boxShadow: '0px 0px 0px 3px rgba(211,211,211, 1)', // shadow to overlap list shadow
-  marginTop: -48, // height between checkbox and toolbar
-  paddingTop: '0.5em', // from sidebar.js wrapper padding
-  position: 'sticky', // stop moving while scrolling
-  zIndex: 1, // above alerts list
-}
-
 const styles = theme => ({
   ...globalStyles(theme),
+  checkboxGridContainer: {
+    padding: '14px',
+    paddingBottom: 0,
+  },
   hover: {
     '&:hover': {
       cursor: 'pointer',
@@ -66,27 +58,8 @@ const styles = theme => ({
   popper: {
     opacity: 1,
   },
-  whitespace: {
-    width: 11,
-  },
   hidden: {
     visibility: 'hidden',
-  },
-  stickySmall: {
-    ...stickyBase,
-    marginBottom: '2.5em', // push list down below box shadow
-    top: 56, // toolbar height on small devices
-  },
-  stickyMedium: {
-    ...stickyBase,
-    marginBottom: '2.5em', // push list down below box shadow
-    top: 64, // toolbar height on medium devices
-  },
-  stickyLarge: {
-    ...stickyBase,
-    marginBottom: '0.5em', // push list down below box shadow
-    marginTop: '-1em',
-    top: 64,
   },
 })
 
@@ -327,21 +300,8 @@ export default class CheckedAlertsFormControl extends Component {
   }
 
   render() {
-    const { actionComplete, classes, width } = this.props
+    const { actionComplete, classes } = this.props
     const { errorMessage, updateMessage } = this.state
-
-    // determine classname for container depending on current width breakpoint
-    let containerClass = null
-    switch (width) {
-      case 'xs':
-        containerClass = classnames(classes.stickySmall)
-        break
-      case 'sm':
-        containerClass = classnames(classes.stickyMedium)
-        break
-      default:
-        containerClass = classnames(classes.stickyLarge)
-    }
 
     return (
       <React.Fragment>
@@ -355,8 +315,7 @@ export default class CheckedAlertsFormControl extends Component {
           open={actionComplete}
           updateMessage={updateMessage}
         />
-        <Grid container className={containerClass}>
-          <Grid item className={classes.whitespace} />
+        <Grid container className={classes.checkboxGridContainer}>
           <Grid item>
             <Checkbox
               checked={!this.areNoneChecked()}
