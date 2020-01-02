@@ -19,7 +19,7 @@ import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
 const query = gql`
-  fragment TitleQuery on Rotation {
+  fragment RotationTitleQuery on Rotation {
     id
     name
     description
@@ -27,7 +27,7 @@ const query = gql`
 
   query rotationDetails($id: ID!) {
     rotation(id: $id) {
-      ...TitleQuery
+      ...RotationTitleQuery
 
       activeUserIndex
       userIDs

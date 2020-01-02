@@ -16,7 +16,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
 
 const query = gql`
-  fragment TitleQuery on Service {
+  fragment ServiceTitleQuery on Service {
     id
     name
     description
@@ -24,7 +24,7 @@ const query = gql`
 
   query serviceDetailsQuery($serviceID: ID!) {
     service(id: $serviceID) {
-      ...TitleQuery
+      ...ServiceTitleQuery
       ep: escalationPolicy {
         id
         name
