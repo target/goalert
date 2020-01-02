@@ -36,6 +36,7 @@ import './page-nav'
 import './page-fab'
 import './config'
 import './sql'
+import './form'
 import './dialog'
 
 export * from './util'
