@@ -33,7 +33,7 @@ func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notific
 	return a.NRStore.FindAll(ctx, obj.ID)
 }
 func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calendarsubscription.CalendarSubscription, error) {
-	return a.CalendarSubscriptionStore.FindAll(ctx, obj.ID)
+	return a.CalendarSubscriptionStore.FindAll(ctx)
 }
 
 func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error) {

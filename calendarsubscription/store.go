@@ -3,6 +3,7 @@ package calendarsubscription
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -17,7 +18,6 @@ type Store struct {
 	update  *sql.Stmt
 	delete  *sql.Stmt
 	findAll *sql.Stmt
-	getConfig *sql.Stmt
 }
 
 type Config struct {
@@ -45,8 +45,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			`),
 		update: p.P(`UPDATE user_calendar_subscriptions SET name = $2, disabled = $3, config = $4 WHERE id = $1`),
 		delete: p.P(`DELETE FROM user_calendar_subscriptions WHERE id = any($1)`),
-		findAll: p.P(`SELECT id,user_id,name FROM user_calendar_subscriptions WHERE user_id = $1`),
-		getConfig: p.P(`SELECT config from user_calendar_subscriptions WHERE id = $1`),
+		findAll: p.P(`SELECT * FROM user_calendar_subscriptions WHERE user_id = $1`),
 	}, p.Err
 }
 
@@ -121,17 +120,13 @@ func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 
 	return err
 }
-func (b *Store) FindAll(ctx context.Context, csID string) ([]CalendarSubscription, error) {
+func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
 	}
-	err = validate.UUID("CalendarSubscriptionID", csID)
-	if err != nil {
-		return nil, err
-	}
 
-	rows, err := b.findAll.QueryContext(ctx, csID)
+	rows, err := b.findAll.QueryContext(ctx, permission.UserID(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -140,10 +135,16 @@ func (b *Store) FindAll(ctx context.Context, csID string) ([]CalendarSubscriptio
 	calendarsubscriptions := []CalendarSubscription{}
 	for rows.Next() {
 		var cs CalendarSubscription
-		err = rows.Scan(&cs.ID, &cs.UserID, &cs.Name)
+		err = rows.Scan(&cs.ID, &cs.UserID, &cs.Name, &cs.LastAccess, &cs.Disabled, &cs.ScheduleID, &cs.Config)
 		if err != nil {
 			return nil, err
 		}
+		var config Config
+		err = json.Unmarshal(cs.Config, &config)
+		if err != nil {
+			return nil, err
+		}
+		cs.NotificationMinutes = config.NotificationMinutes
 		calendarsubscriptions = append(calendarsubscriptions, cs)
 	}
 

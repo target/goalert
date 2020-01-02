@@ -42,7 +42,7 @@ type Query {
   calendarSubscription(id: ID!): CalendarSubscription
 
   # Returns a paginated list of calendar subscriptions
-  calendarSubscriptions(input: CalendarSubscriptionSearchOptions): CalendarSubscriptionConnection!
+  calendarSubscriptions: [CalendarSubscription!]!
 
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
@@ -454,11 +454,6 @@ type ScheduleConnection {
   pageInfo: PageInfo!
 }
 
-type CalendarSubscriptionConnection {
-  nodes: [CalendarSubscription!]!
-  pageInfo: PageInfo!
-}
-
 type Schedule {
   id: ID!
   name: String!
@@ -601,13 +596,6 @@ input ScheduleSearchOptions {
 
   # Sort favorite services first.
   favoritesFirst: Boolean = false
-}
-
-input CalendarSubscriptionSearchOptions {
-  first: Int = 15
-  after: String = ""
-  search: String = ""
-  omit: [ID!]
 }
 
 input ServiceSearchOptions {

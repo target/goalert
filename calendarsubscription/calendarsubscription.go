@@ -12,7 +12,9 @@ type CalendarSubscription struct {
 	LastAccess time.Time `json:"last_access"`
 	Disabled   bool      `json:"disabled"`
 	Config	   []byte  `json:"config"`
-	ScheduleID string 	`json:schedule_id`
+	ScheduleID string 	`json:"schedule_id"`
+
+	NotificationMinutes []int `json:"notification_minutes"`
 
 }
 
