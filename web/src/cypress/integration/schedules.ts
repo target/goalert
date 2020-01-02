@@ -167,8 +167,9 @@ function testSchedules(screen: ScreenFormat) {
     it('should add a rotation as an assignment', () => {
       const name = rot.name
 
-      cy.pageFab('Rotation')
+      cy.get('body').should('not.contain', name)
 
+      cy.pageFab('Rotation')
       cy.dialogTitle('Add Rotation to Schedule')
       cy.dialogForm({ targetID: name })
       cy.dialogFinish('Submit')
@@ -179,8 +180,9 @@ function testSchedules(screen: ScreenFormat) {
     it('should add a user as an assignment', () => {
       const name = rot.users[0].name
 
-      cy.pageFab('User')
+      cy.get('body').should('not.contain', name)
 
+      cy.pageFab('User')
       cy.dialogTitle('Add User to Schedule')
       cy.dialogForm({ targetID: name })
       cy.dialogFinish('Submit')
