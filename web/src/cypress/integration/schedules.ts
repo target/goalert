@@ -232,6 +232,8 @@ function testSchedules(screen: ScreenFormat) {
       cy.get('table[data-cy="target-rules"] tbody tr').should('have.length', 2)
 
       cy.dialogFinish('Submit')
+
+      cy.get('body').should('contain', rot.name)
     })
 
     it('should edit an assignment', () => {
