@@ -3,7 +3,6 @@ package calendarsubscription
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -110,31 +109,12 @@ func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 		return err
 	}
 
-	stmt := b.getConfig
-	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
-	}
-	err = stmt.QueryRowContext(ctx, n.ID).Scan(&n.Config)
-	if err != nil {
-		return err
-	}
-	var config Config
-	err = json.Unmarshal(n.Config, &config)
-	if err != nil {
-		return err
-	}
-	configJson, err := json.Marshal(config)
-	if err != nil {
-		return err
-	}
-
-
-	stmt = b.update
+	stmt := b.update
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Disabled, configJson)
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Disabled, n.Config)
 	if err != nil {
 		return err
 	}
