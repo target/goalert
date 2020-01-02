@@ -3,12 +3,12 @@ package calendarsubscription
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"time"
 )
 
 type Store struct {
@@ -17,6 +17,12 @@ type Store struct {
 	create  *sql.Stmt
 	update  *sql.Stmt
 	delete  *sql.Stmt
+	findAll *sql.Stmt
+	getConfig *sql.Stmt
+}
+
+type Config struct {
+	NotificationMinutes []int `json:"notification_minutes"`
 }
 
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
@@ -31,15 +37,17 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 					cs.user_id,
 					cs.last_access,
 					cs.disabled
-				FROM calendar_subscriptions cs
+				FROM user_calendar_subscriptions cs
 				WHERE cs.id = $1
 			`),
 		create: p.P(`
-				INSERT INTO calendar_subscriptions (id, name, user_id, last_access, disabled)
+				INSERT INTO user_calendar_subscriptions (user_id, id, name, config, schedule_id)
 				VALUES ($1, $2, $3, $4, $5)
 			`),
-		update: p.P(`UPDATE calendar_subscriptions SET name = $2, disabled = $3 WHERE id = $1`),
-		delete: p.P(`DELETE FROM calendar_subscriptions WHERE id = any($1)`),
+		update: p.P(`UPDATE user_calendar_subscriptions SET name = $2, disabled = $3, config = $4 WHERE id = $1`),
+		delete: p.P(`DELETE FROM user_calendar_subscriptions WHERE id = any($1)`),
+		findAll: p.P(`SELECT id,user_id,name FROM user_calendar_subscriptions WHERE user_id = $1`),
+		getConfig: p.P(`SELECT config from user_calendar_subscriptions WHERE id = $1`),
 	}, p.Err
 }
 
@@ -62,15 +70,15 @@ func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 	return &cs, nil
 }
 
-func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (res bool, err error) {
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (*CalendarSubscription, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	n, err := cs.Normalize()
+	cs, err = cs.Normalize()
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	stmt := b.create
@@ -78,16 +86,14 @@ func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	n.ID = uuid.NewV4().String()
-	n.UserID = permission.UserID(ctx)
-	n.LastAccess = time.Now()
-	n.Disabled = false
+	cs.ID = uuid.NewV4().String()
+	cs.UserID = permission.UserID(ctx)
 
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.UserID, n.LastAccess, n.Disabled)
+	_, err = stmt.ExecContext(ctx, cs.UserID, cs.ID, cs.Name, cs.Config, cs.ScheduleID)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return cs, nil
 }
 
 func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (err error) {
@@ -95,28 +101,73 @@ func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 	if err != nil {
 		return err
 	}
-
 	err = validate.UUID("CalendarSubscriptionID", cs.ID)
 	if err != nil {
 		return err
 	}
-
 	n, err := cs.Normalize()
 	if err != nil {
 		return err
 	}
 
-	stmt := b.update
+	stmt := b.getConfig
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+	err = stmt.QueryRowContext(ctx, n.ID).Scan(&n.Config)
+	if err != nil {
+		return err
+	}
+	var config Config
+	err = json.Unmarshal(n.Config, &config)
+	if err != nil {
+		return err
+	}
+	configJson, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+
+	stmt = b.update
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Disabled)
+	_, err = stmt.ExecContext(ctx, n.ID, n.Name, n.Disabled, configJson)
 	if err != nil {
 		return err
 	}
 
 	return err
+}
+func (b *Store) FindAll(ctx context.Context, csID string) ([]CalendarSubscription, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	if err != nil {
+		return nil, err
+	}
+	err = validate.UUID("CalendarSubscriptionID", csID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := b.findAll.QueryContext(ctx, csID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	calendarsubscriptions := []CalendarSubscription{}
+	for rows.Next() {
+		var cs CalendarSubscription
+		err = rows.Scan(&cs.ID, &cs.UserID, &cs.Name)
+		if err != nil {
+			return nil, err
+		}
+		calendarsubscriptions = append(calendarsubscriptions, cs)
+	}
+
+	return calendarsubscriptions, nil
 }
 
 func (b *Store) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []string) error {

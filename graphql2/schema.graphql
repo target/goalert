@@ -238,7 +238,9 @@ type Mutation {
 
   createSchedule(input: CreateScheduleInput!): Schedule
 
-  createCalendarSubscription(input: CreateCalendarSubscriptionInput!): Boolean!
+  createCalendarSubscription(
+    input: CreateCalendarSubscriptionInput!
+  ): CalendarSubscription!
   updateCalendarSubscription(input: UpdateCalendarSubscriptionInput!): Boolean!
 
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
@@ -262,10 +264,6 @@ type Mutation {
 
   setConfig(input: [ConfigValueInput!]): Boolean!
 
-  createCalendarSubscription(
-    input: CreateCalendarSubscriptionInput!
-  ): CalendarSubscription!
-  updateCalendarSubscription(input: UpdateCalendarSubscriptionInput!): Boolean!
 }
 
 input CreateAlertInput {
@@ -283,6 +281,7 @@ input UpdateCalendarSubscriptionInput {
   id: ID!
   name: String
   notificationMinutes: [Int!]
+  disabled: Boolean
 }
 type CalendarSubscription {
   ID: ID!
@@ -325,16 +324,6 @@ input CreateScheduleInput {
   favorite: Boolean
 
   targets: [ScheduleTargetInput!]
-}
-
-input CreateCalendarSubscriptionInput {
-  name: String!
-}
-
-input UpdateCalendarSubscriptionInput {
-  id: ID!
-  name: String
-  disabled: Boolean
 }
 
 input ScheduleTargetInput {
@@ -482,14 +471,6 @@ type Schedule {
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
-}
-
-type CalendarSubscription {
-  id: ID!
-  name: String!
-  userID: ID!
-  lastAccess: ISOTimestamp!
-  disabled: Boolean!
 }
 
 type OnCallShift {
@@ -815,7 +796,6 @@ enum TargetType {
   rotation
   service
   schedule
-  calendarSubscription
   user
   integrationKey
   userOverride

@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/calendarsubscription"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/escalation"
@@ -30,6 +31,9 @@ func (a *User) ContactMethods(ctx context.Context, obj *user.User) ([]contactmet
 }
 func (a *User) NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error) {
 	return a.NRStore.FindAll(ctx, obj.ID)
+}
+func (a *User) CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calendarsubscription.CalendarSubscription, error) {
+	return a.CalendarSubscriptionStore.FindAll(ctx, obj.ID)
 }
 
 func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error) {
