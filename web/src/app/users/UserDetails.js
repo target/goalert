@@ -158,6 +158,11 @@ export default function UserDetails(props) {
               ? `On-call for ${svcCount} service${svcCount > 1 ? 's' : ''}`
               : 'Not currently on-call',
           },
+          {
+            label: 'On-Call Subscriptions',
+            url: 'on-call-subscriptions',
+            subText: 'A list of all of your calendar subscriptions',
+          },
         ]}
         titleFooter={
           props.readOnly ? null : (

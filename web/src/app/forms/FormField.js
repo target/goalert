@@ -177,7 +177,9 @@ export class FormField extends React.PureComponent {
 
     return (
       <FormControl fullWidth={props.fullWidth} error={Boolean(props.error)}>
-        {formLabel && <FormLabel>{label}</FormLabel>}
+        {formLabel && (
+          <FormLabel style={{ paddingBottom: '0.5em' }}>{label}</FormLabel>
+        )}
         <Component
           {...props}
           error={checkbox ? undefined : Boolean(props.error)}
