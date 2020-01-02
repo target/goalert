@@ -1,5 +1,6 @@
 import _ from 'lodash-es'
-// fixes bug in material where non-empty values
+
+// shrinkWorkaround fixes bug in material where non-empty values
 // fail to trigger the label text to shrink.
 //
 // Usage:
