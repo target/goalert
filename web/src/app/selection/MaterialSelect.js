@@ -3,7 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import { withStyles } from '@material-ui/core/styles'
 import Select from 'react-select'
 import { components, styles } from './MaterialSelectComponents'
-import hasValue from '../util/hasValue'
+import shrinkWorkaround from '../util/shrinkWorkaround'
 
 const valueShape = p.shape({
   label: p.string.isRequired,
@@ -54,7 +54,7 @@ export default class MaterialSelect extends Component {
     } = this.props
 
     const InputLabelProps = {
-      shrink: hasValue(this.props.value),
+      ...shrinkWorkaround(this.props.value),
       ..._InputLabelProps,
     }
 

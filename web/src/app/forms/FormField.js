@@ -5,7 +5,7 @@ import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import FormLabel from '@material-ui/core/FormLabel'
 import { get, isEmpty, startCase } from 'lodash-es'
-import hasValue from '../util/hasValue'
+import shrinkWorkaround from '../util/shrinkWorkaround'
 
 import { FormContainerContext } from './context'
 
@@ -128,7 +128,7 @@ export class FormField extends React.PureComponent {
 
     const InputLabelProps = {
       required: required && !optionalLabels,
-      shrink: hasValue(props.value),
+      ...shrinkWorkaround(props.value),
       ..._inputProps,
     }
 
