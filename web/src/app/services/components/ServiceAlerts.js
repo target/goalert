@@ -81,7 +81,8 @@ export default function ServiceAlerts(props) {
         <FormDialog
           title='Are you sure?'
           confirm
-          subTitle={`This will ${alertStatus} all the alerts for this service.\nThis will stop all notifications from being sent out for all alerts with this service.`}
+          subTitle={`This will ${alertStatus} all the alerts for this service.`}
+          caption='This will stop all notifications from being sent out for all alerts with this service.'
           onSubmit={mutate}
           loading={loading}
           onClose={() => setShowDialog(false)}
