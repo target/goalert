@@ -11,48 +11,39 @@ import (
 	"time"
 )
 
-type Store interface {
-	FindOne(context.Context, string) (*CalendarSubscription, error)
-	CreateSubscriptionTx(context.Context, *sql.Tx, *CalendarSubscription) (bool, error)
-	UpdateSubscriptionTx(context.Context, *sql.Tx, *CalendarSubscription) error
-	DeleteSubscriptionsTx(context.Context, *sql.Tx, []string) error
-	Search(context.Context, *SearchOptions) ([]CalendarSubscription, error)
-}
-
-type DB struct {
+type Store struct {
 	db *sql.DB
-
 	findOne *sql.Stmt
 	create  *sql.Stmt
 	update  *sql.Stmt
 	delete  *sql.Stmt
 }
 
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	return &DB{
+	return &Store{
 		db: db,
 		findOne: p.P(`
-			SELECT
-				cs.id,
-				cs.name,
-				cs.user_id,
-				cs.last_access,
-				cs.disabled
-			FROM calendar_subscriptions cs
-			WHERE cs.id = $1
-		`),
+				SELECT
+					cs.id,
+					cs.name,
+					cs.user_id,
+					cs.last_access,
+					cs.disabled
+				FROM calendar_subscriptions cs
+				WHERE cs.id = $1
+			`),
 		create: p.P(`
-			INSERT INTO calendar_subscriptions (id, name, user_id, last_access, disabled)
-			VALUES ($1, $2, $3, $4, $5)
-		`),
+				INSERT INTO calendar_subscriptions (id, name, user_id, last_access, disabled)
+				VALUES ($1, $2, $3, $4, $5)
+			`),
 		update: p.P(`UPDATE calendar_subscriptions SET name = $2, disabled = $3 WHERE id = $1`),
 		delete: p.P(`DELETE FROM calendar_subscriptions WHERE id = any($1)`),
 	}, p.Err
 }
 
-func (db *DB) FindOne(ctx context.Context, id string) (*CalendarSubscription, error) {
+func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -64,14 +55,14 @@ func (db *DB) FindOne(ctx context.Context, id string) (*CalendarSubscription, er
 	}
 
 	var cs CalendarSubscription
-	err = db.findOne.QueryRowContext(ctx, id).Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.Disabled)
+	err = b.findOne.QueryRowContext(ctx, id).Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.Disabled)
 	if err != nil {
 		return nil, err
 	}
 	return &cs, nil
 }
 
-func (db *DB) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (res bool, err error) {
+func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (res bool, err error) {
 	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return false, err
@@ -82,7 +73,7 @@ func (db *DB) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calendar
 		return false, err
 	}
 
-	stmt := db.create
+	stmt := b.create
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -99,7 +90,7 @@ func (db *DB) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calendar
 	return true, nil
 }
 
-func (db *DB) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (err error) {
+func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (err error) {
 	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -115,7 +106,7 @@ func (db *DB) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calendar
 		return err
 	}
 
-	stmt := db.update
+	stmt := b.update
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
@@ -128,7 +119,7 @@ func (db *DB) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calendar
 	return err
 }
 
-func (db *DB) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []string) error {
+func (b *Store) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -143,7 +134,7 @@ func (db *DB) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []strin
 		return err
 	}
 
-	cs := db.delete
+	cs := b.delete
 	if tx != nil {
 		cs = tx.StmtContext(ctx, cs)
 	}

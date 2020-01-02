@@ -54,7 +54,7 @@ type App struct {
 	FavoriteStore             favorite.Store
 	PolicyStore               escalation.Store
 	ScheduleStore             schedule.Store
-	CalendarSubscriptionStore calendarsubscription.Store
+	CalendarSubscriptionStore *calendarsubscription.Store
 	RotationStore             rotation.Store
 	OnCallStore               oncall.Store
 	IntKeyStore               integrationkey.Store

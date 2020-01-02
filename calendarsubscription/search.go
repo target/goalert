@@ -80,7 +80,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 	}
 }
 
-func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]CalendarSubscription, error) {
+func (b *Store) Search(ctx context.Context, opts *SearchOptions) ([]CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -99,8 +99,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]CalendarSubscr
 	if err != nil {
 		return nil, errors.Wrap(err, "render query")
 	}
-
-	rows, err := db.db.QueryContext(ctx, query, args...)
+	rows, err := b.db.QueryContext(ctx, query, args...)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

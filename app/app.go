@@ -90,7 +90,7 @@ type App struct {
 	ScheduleStore       schedule.Store
 	RotationStore       rotation.Store
 
-	CalendarSubscriptionStore calendarsubscription.Store
+	CalendarSubscriptionStore *calendarsubscription.Store
 	OverrideStore             override.Store
 	Resolver                  resolver.Resolver
 	LimitStore                limit.Store
