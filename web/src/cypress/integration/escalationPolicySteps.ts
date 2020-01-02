@@ -37,7 +37,7 @@ function testSteps(screen: ScreenFormat) {
       cy.fixture('users').then(users => {
         const u1 = users[0]
         const u2 = users[1]
-        const del = c.integer({ min: 1, max: 9000 })
+        const delay = c.integer({ min: 1, max: 9000 })
 
         cy.pageFab()
         cy.dialogTitle('Create Step')
@@ -49,7 +49,7 @@ function testSteps(screen: ScreenFormat) {
         cy.get('button[data-cy="users-step"]').click()
         cy.dialogForm({
           users: [u1.name, u2.name],
-          delayMinutes: del.toString(),
+          delayMinutes: delay.toString(),
         })
         cy.dialogFinish('Submit')
 
@@ -64,7 +64,7 @@ function testSteps(screen: ScreenFormat) {
         cy.get('div[data-cy=user-chip]').should('contain', u2.name)
         cy.get('body').should(
           'contain',
-          `Go back to step #1 after ${del.toString()} minutes`,
+          `Go back to step #1 after ${delay.toString()} minutes`,
         )
       })
     })
@@ -91,7 +91,7 @@ function testSteps(screen: ScreenFormat) {
           cy.reload()
         })
         .then(() => {
-          const del = c.integer({ min: 1, max: 9000 })
+          const delay = c.integer({ min: 1, max: 9000 })
 
           cy.get('ul[data-cy=steps-list] :nth-child(1) li')
             .should('contain', 'Step #')
@@ -101,7 +101,7 @@ function testSteps(screen: ScreenFormat) {
           cy.dialogTitle('Edit Step')
           cy.dialogForm({
             rotations: r1.name,
-            delayMinutes: del.toString(),
+            delayMinutes: delay.toString(),
           })
 
           cy.dialogFinish('Submit')
@@ -112,7 +112,7 @@ function testSteps(screen: ScreenFormat) {
           cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
           cy.get('body').should(
             'contain',
-            `Go back to step #1 after ${del.toString()} minutes`,
+            `Go back to step #1 after ${delay.toString()} minutes`,
           )
         })
     })
