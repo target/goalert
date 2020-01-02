@@ -331,7 +331,7 @@ function testSchedules(screen: ScreenFormat) {
       })
     })
 
-    it('should edit an override', () => {
+    it('should edit and delete an override', () => {
       cy.fixture('users').then(users => {
         cy.get('body').should('contain', 'No results')
 
@@ -352,6 +352,12 @@ function testSchedules(screen: ScreenFormat) {
         cy.get('body')
           .should('not.contain', users[0].name)
           .should('contain', users[1].name)
+
+        cy.get('li button[data-cy=other-actions]').menu('Delete')
+
+        cy.dialogFinish('Confirm')
+
+        cy.get('body').should('contain', 'No results')
       })
     })
   })
