@@ -14,11 +14,18 @@ declare namespace Cypress {
 
     /** Update a dialog's form fields with the given values. */
     dialogForm: typeof dialogForm
+
+    /** Update form fields with the given values. */
+    form: typeof form
   }
 }
 
-function fillFormField(name: string, value: string | string[] | boolean) {
-  const selector = `[role=dialog] #dialog-form input[name=${name}],textarea[name=${name}]`
+function fillFormField(
+  selPrefix: string,
+  name: string,
+  value: string | string[] | boolean,
+) {
+  const selector = `${selPrefix} input[name="${name}"],textarea[name="${name}"]`
 
   if (typeof value === 'boolean') {
     if (!value) return cy.get(selector).uncheck()
@@ -62,9 +69,20 @@ function dialogForm(values: {
   for (let key in values) {
     const val = values[key]
     if (val === null) continue
-    fillFormField(key, val)
+    fillFormField('[role=dialog] #dialog-form', key, val)
   }
 }
+
+function form(values: {
+  [key: string]: string | string[] | null | boolean
+}): void {
+  for (let key in values) {
+    const val = values[key]
+    if (val === null) continue
+    fillFormField('', key, val)
+  }
+}
+
 function dialog(): Cypress.Chainable {
   return cy
     .get('[data-cy=unmounting]')
@@ -105,3 +123,4 @@ Cypress.Commands.add('dialogTitle', dialogTitle)
 Cypress.Commands.add('dialogForm', dialogForm)
 Cypress.Commands.add('dialogContains', dialogContains)
 Cypress.Commands.add('dialogClick', dialogClick)
+Cypress.Commands.add('form', form)
