@@ -62,9 +62,9 @@ func PrometheusAlertmanagerEventsAPI(aDB alert.Store, intDB integrationkey.Store
 
 		var alertmanagerState alert.Status
 		switch alertmanager.Status {
-		case "FIRING":
+		case "firing":
 			alertmanagerState = alert.StatusTriggered
-		case "RESOLVED":
+		case "resolved":
 			alertmanagerState = alert.StatusClosed
 		default:
 			log.Logf(ctx, "bad request from prometheus alertmanager: missing or invalid state")

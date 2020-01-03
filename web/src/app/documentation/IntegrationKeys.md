@@ -72,22 +72,46 @@ To trigger an alert using Site24x7, follow these steps:
 
 ---
 
+## Prometheus Alertmanager
+
+Prometheus Alertmanager provides alerting functionality for checks as an IT automation.
+
+To trigger an alert using Prometheus Alertmanager, follow these steps:
+
+1. Within GoAlert, on the Services page, select the service you want to process the alert. Under Integration Keys:
+
+   - Key Name: Enter a name for the key.
+   - Key Type: Prometheus Alertmanager
+   - Click Add Key. Copy the generated URL and keep it handy, as you'll need it in a future step.
+
+2. In Prometheus Alertmanager, enable a webhook by adding a webhook receiver in the alertmanager configuration file:
+
+    ```yaml
+    receivers:
+    - name: 'service'
+      webhook_configs:
+      - url: '<prometheus_alertmanager_webhook_url_from_previous_step>'
+        send_resolved: true
+    ```
+
+---
+
 ## Email
 
 It is possible to create an Email integration key from the Service Details page. This will generate a unique email address that can be used for creating alerts.
 
 De-duplication happens by matching subject and body contents automatically. The email subject line will become the alert summary.
 
-You can override de-duplication if needed and use a custom key by adding  
-`+some_value here`  
+You can override de-duplication if needed and use a custom key by adding
+`+some_value here`
 before the "@" symbol. De-duplication behaves similarly to the Grafana and generic API integration keys: if there is an open alert, "duplicate suppressed" is logged, otherwise a new alert is created.
 
 ### Custom Deduplication example
 
-`b3b16257-75e0-4b9f-9436-db950ec0436c@target.goalert.me`  
-would become  
-`b3b16257-75e0-4b9f-9436-db950e 0436c+some_value_here@target.goalert.me`  
-which would match alerts created for the same service, to the same  
-`some_value_here`  
-key, regardless of the subject or body.  
+`b3b16257-75e0-4b9f-9436-db950ec0436c@target.goalert.me`
+would become
+`b3b16257-75e0-4b9f-9436-db950e 0436c+some_value_here@target.goalert.me`
+which would match alerts created for the same service, to the same
+`some_value_here`
+key, regardless of the subject or body.
 On the Service page, Add an Integration Key, select Email and SAVE Copy the Email address and use this with the email-based service that you want to alert on.

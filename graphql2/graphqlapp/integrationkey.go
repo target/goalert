@@ -47,6 +47,8 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 		return cfg.CallbackURL("/api/v2/grafana/incoming", q), nil
 	case integrationkey.TypeSite24x7:
 		return cfg.CallbackURL("/api/v2/site24x7/incoming", q), nil
+	case integrationkey.TypePrometheusAlertmanager:
+		return cfg.CallbackURL("/api/v2/prometheusalertmanager/incoming", q), nil
 	case integrationkey.TypeEmail:
 		if !cfg.Mailgun.Enable || cfg.Mailgun.EmailDomain == "" {
 			return "", nil

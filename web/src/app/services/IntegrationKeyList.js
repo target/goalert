@@ -146,6 +146,7 @@ export default class IntegrationKeyList extends React.PureComponent {
       generic: 'Generic API Key',
       grafana: 'Grafana Webhook URL',
       site24x7: 'Site24x7 Webhook URL',
+      prometheusAlertmanager: 'Prometheus Alertmanager Webhook URL',
       email: 'Email Address',
     }
 

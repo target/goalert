@@ -182,6 +182,10 @@ export default class WizardForm extends React.PureComponent {
                   value: 'site24x7',
                 },
                 {
+                  label: 'Prometheus Alertmanager Webhook URL',
+                  value: 'prometheusAlertmanager',
+                },
+                {
                   label: 'Email',
                   value: 'email',
                 },
