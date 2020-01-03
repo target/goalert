@@ -76,7 +76,6 @@ export function testScreen(
     if (!skipLogin) {
       before(() => cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']())
       it(adminLogin ? 'admin login' : 'login', () => {}) // required due to mocha skip bug
-      beforeEach(() => Cypress.Cookies.preserveOnce('goalert_session.2'))
     }
     describe(screenName(), () => fn(screen()))
   })

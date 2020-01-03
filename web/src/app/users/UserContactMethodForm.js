@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import { MenuItem, Typography } from '@material-ui/core'
+import InputAdornment from '@material-ui/core/InputAdornment'
 
 export default class UserContactMethodForm extends React.PureComponent {
   static propTypes = {
@@ -40,7 +41,6 @@ export default class UserContactMethodForm extends React.PureComponent {
       if (!val) {
         return ''
       }
-
       return '+' + val
     }
     return (
@@ -64,14 +64,22 @@ export default class UserContactMethodForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12}>
             <FormField
-              placeholder='+11235550123'
+              placeholder='11235550123'
               aria-labelledby='countryCodeIndicator'
               fullWidth
               name='value'
               required
               label='Phone Number'
               type='tel'
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment style={{ marginBottom: '0.1em' }}>
+                    +
+                  </InputAdornment>
+                ),
+              }}
               component={TextField}
+              mapValue={val => val.replace(/^\+/, '')}
               mapOnChangeValue={cleanValue}
               disabled={this.props.edit}
             />

@@ -24,7 +24,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/trifles v0.0.0-20190809233526-a06f71cd0619 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
-	github.com/fatih/color v1.7.0
+	github.com/fatih/color v1.8.0
 	github.com/felixge/httpsnoop v1.0.1
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9
@@ -52,13 +52,13 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.5.0
+	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.4.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.0.1
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
 	github.com/urfave/cli v1.22.2 // indirect
-	github.com/vbauerster/mpb/v4 v4.11.1
+	github.com/vbauerster/mpb/v4 v4.11.2
 	github.com/vektah/gqlparser v1.2.0
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191202143827-86a70503ff7e

@@ -102,7 +102,11 @@ export default class DialogTitleWrapper extends Component {
           <AppBar position='sticky' className={classes.appBar}>
             <Toolbar>
               {closeButton}
-              <Typography color='inherit' className={classes.appBarTitle}>
+              <Typography
+                color='inherit'
+                className={classes.appBarTitle}
+                data-cy='dialog-title'
+              >
                 {title}
               </Typography>
               {toolbarItems}
@@ -115,7 +119,11 @@ export default class DialogTitleWrapper extends Component {
     }
     return (
       <React.Fragment>
-        <DialogTitle className={classes.wideScreenTitle} key='title'>
+        <DialogTitle
+          className={classes.wideScreenTitle}
+          key='title'
+          data-cy='dialog-title'
+        >
           {title}
         </DialogTitle>
         {subtitle}

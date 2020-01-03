@@ -4,6 +4,7 @@ import { memoize } from 'lodash-es'
 
 export const urlQuerySelector = state => state.router.location.search
 export const urlPathSelector = state => state.router.location.pathname
+export const urlKeySelector = state => state.router.location.key
 
 export const urlSearchParamsSelector = createSelector(
   urlQuerySelector,

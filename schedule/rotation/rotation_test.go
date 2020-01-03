@@ -1,6 +1,7 @@
 package rotation
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -165,6 +166,36 @@ func TestRotation_Normalize(t *testing.T) {
 	for _, r := range invalid {
 		test(false, r)
 	}
+}
+
+func TestRotation_FutureStart(t *testing.T) {
+	rot := Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+
+		// StartTime and EndTime should work correctly even if Start
+		// is in the future.
+		Start: time.Date(2019, 0, 10, 0, 0, 0, 0, time.UTC),
+	}
+
+	assert.Equal(t, time.Date(2019, 0, 6, 0, 0, 0, 0, time.UTC),
+		rot.EndTime(time.Date(2019, 0, 5, 0, 0, 0, 0, time.UTC)),
+	)
+	assert.Equal(t, time.Date(2019, 0, 5, 0, 0, 0, 0, time.UTC),
+		rot.StartTime(time.Date(2019, 0, 5, 0, 0, 0, 0, time.UTC)),
+	)
+	assert.Equal(t, time.Date(2019, 0, 4, 0, 0, 0, 0, time.UTC),
+		rot.StartTime(time.Date(2019, 0, 5, 0, 0, 0, -1, time.UTC)),
+	)
+	assert.Equal(t, time.Date(2019, 0, 11, 0, 0, 0, 0, time.UTC),
+		rot.EndTime(time.Date(2019, 0, 10, 0, 0, 0, 0, time.UTC)),
+	)
+	assert.Equal(t, time.Date(2019, 0, 10, 0, 0, 0, 0, time.UTC),
+		rot.StartTime(time.Date(2019, 0, 10, 0, 0, 0, 0, time.UTC)),
+	)
+	assert.Equal(t, time.Date(2019, 0, 9, 0, 0, 0, 0, time.UTC),
+		rot.StartTime(time.Date(2019, 0, 10, 0, 0, 0, -1, time.UTC)),
+	)
 }
 
 func TestRotation_StartTime(t *testing.T) {
