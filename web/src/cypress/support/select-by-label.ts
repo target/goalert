@@ -22,7 +22,12 @@ type findByLabelFn = (label: string) => Cypress.Chainable
 type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
 
 function selectByLabel(sub: any, label: string): Cypress.Chainable {
-  return findByLabel(sub, label).click()
+  return findByLabel(sub, label)
+    .click()
+    .get('[data-cy=select-dropdown]')
+    .should('not.exist')
+    .get('ul[role=listbox]')
+    .should('not.exist')
 }
 
 function findByLabel(sub: any, label: string): Cypress.Chainable {
@@ -48,10 +53,10 @@ function findByLabel(sub: any, label: string): Cypress.Chainable {
         .should('be.visible')
         .type(label)
 
-      cy.get('div[data-cy=select-dropdown]').should('not.contain', 'Loading')
+      cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
 
       return cy
-        .get('div[data-cy=select-dropdown]')
+        .get('[data-cy=select-dropdown]')
         .contains('[role=menuitem]', label)
     }
 

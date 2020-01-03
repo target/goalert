@@ -132,7 +132,7 @@ export default class ScheduleRuleList extends React.PureComponent {
             ]}
           />
         </PageActions>
-        <Card style={{ width: '100%' }}>
+        <Card style={{ width: '100%', marginBottom: 64 }}>
           <FlatList headerNote={this.getHeaderNote()} items={items} />
         </Card>
 
