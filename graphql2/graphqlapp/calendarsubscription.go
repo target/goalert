@@ -55,6 +55,7 @@ func (m *Mutation) CreateCalendarSubscription(ctx context.Context, input graphql
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
 		Config:     configJson,
+		NotificationMinutes: input.NotificationMinutes,
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
@@ -71,33 +72,30 @@ func (m *Mutation) CreateCalendarSubscription(ctx context.Context, input graphql
 	return cs, err
 }
 
-func (m *Mutation) UpdateCalendarSubscription(ctx context.Context, input graphql2.UpdateCalendarSubscriptionInput) (res bool, err error) {
-	var config calendarsubscription.Config
-	var configJson []byte
-	if input.NotificationMinutes != nil {
-		config.NotificationMinutes = input.NotificationMinutes
-		configJson, err = json.Marshal(config)
-		if err != nil {
-			return res, err
-		}
-	}
-
-	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cs := &calendarsubscription.CalendarSubscription{
-			ID:       input.ID,
-			Name:     *input.Name,
-			Disabled: *input.Disabled,
-			Config:   configJson,
-		}
-
-		err := m.CalendarSubscriptionStore.UpdateSubscriptionTx(ctx, tx, cs)
+func (m *Mutation) UpdateCalendarSubscription(ctx context.Context, input graphql2.UpdateCalendarSubscriptionInput) (bool, error) {
+	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+		cs, err := m.CalendarSubscriptionStore.FindOneForUpdateTx(ctx, tx, input.ID)
 		if err != nil {
 			return err
 		}
-
-		return err
+		if input.Name != nil {
+			cs.Name = *input.Name
+		}
+		if input.Disabled != nil {
+			cs.Disabled = *input.Disabled
+		}
+		if input.NotificationMinutes != nil {
+			var config calendarsubscription.Config
+			var configJson []byte
+			config.NotificationMinutes = input.NotificationMinutes
+			configJson, err := json.Marshal(config)
+			if err != nil {
+				return err
+			}
+			cs.Config = configJson
+		}
+		return m.CalendarSubscriptionStore.UpdateSubscriptionTx(ctx, tx, cs)
 	})
-
 	return err == nil, err
 }
 

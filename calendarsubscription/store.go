@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -17,6 +18,7 @@ type Store struct {
 	update  *sql.Stmt
 	delete  *sql.Stmt
 	findAll *sql.Stmt
+	findOneUpd *sql.Stmt
 }
 
 type Config struct {
@@ -34,11 +36,19 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				VALUES ($1, $2, $3, $4, $5)
 			`),
 		update: p.P(`UPDATE user_calendar_subscriptions SET name = $3, disabled = $4, config = $5 WHERE id = $1 AND user_id = $2`),
-		delete: p.P(`DELETE FROM user_calendar_subscriptions WHERE id = any($1)`),
+		delete: p.P(`DELETE FROM user_calendar_subscriptions WHERE id = any($1) AND user_id = $2`),
 		findAll: p.P(`SELECT * FROM user_calendar_subscriptions WHERE user_id = $1`),
+		findOneUpd: p.P(`SELECT id, name, user_id, disabled, config FROM user_calendar_subscriptions WHERE id = $1 FOR UPDATE`),
 	}, p.Err
 }
 
+
+func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
+	if tx == nil {
+		return stmt
+	}
+	return tx.StmtContext(ctx, stmt)
+}
 func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
@@ -70,38 +80,58 @@ func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 		return nil, err
 	}
 
-	stmt := b.create
-	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
-	}
-
-	_, err = stmt.ExecContext(ctx, cs.UserID, cs.ID, cs.Name, cs.Config, cs.ScheduleID)
+	_, err = wrapTx(ctx, tx, b.create).ExecContext(ctx, cs.UserID, cs.ID, cs.Name, cs.Config, cs.ScheduleID)
 	if err != nil {
 		return nil, err
 	}
 	return cs, nil
 }
+func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*CalendarSubscription, error) {
+	var userID = permission.UserID(ctx)
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
+	if err != nil {
+		return nil, err
+	}
+	err = validate.UUID("CalendarSubscriptionID", id)
+	if err != nil {
+		return nil, err
+	}
 
+	var cs CalendarSubscription
+
+	row := wrapTx(ctx, tx, b.findOneUpd).QueryRowContext(ctx, id)
+	err = row.Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &cs.Config)
+	if err != nil {
+		return nil, err
+	}
+	return &cs, nil
+}
 func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return err
 	}
 
-	cs, err = cs.Normalize()
+	n, err := cs.Normalize()
 	if err != nil {
 		return err
 	}
 
-	stmt := b.update
-	if tx != nil {
-		stmt = tx.StmtContext(ctx, stmt)
-	}
-
-	_, err = stmt.ExecContext(ctx, cs.ID, cs.UserID, cs.Name, cs.Disabled, cs.Config)
+	update, err := b.FindOneForUpdateTx(ctx, tx, cs.ID)
 	if err != nil {
 		return err
 	}
+	if n.ScheduleID != update.ScheduleID {
+		return validation.NewFieldError("ScheduleID", "cannot update schedule id of calendar subscription")
+	}
+	if n.LastAccess != update.LastAccess {
+		return validation.NewFieldError("Last Access", "cannot update last access of calendar subscription")
+	}
+	if n.UserID != update.UserID {
+		return validation.NewFieldError("UserID", "cannot update owner of calendar subscription")
+	}
+
+	_, err = wrapTx(ctx, tx, b.update).ExecContext(ctx, cs.ID, cs.UserID, cs.Name, cs.Disabled, cs.Config)
 
 	return err
 }
@@ -146,10 +176,6 @@ func (b *Store) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []str
 		return err
 	}
 
-	cs := b.delete
-	if tx != nil {
-		cs = tx.StmtContext(ctx, cs)
-	}
-	_, err = cs.ExecContext(ctx, sqlutil.UUIDArray(ids))
+	_, err = wrapTx(ctx, tx, b.delete).ExecContext(ctx, sqlutil.UUIDArray(ids), permission.UserID(ctx))
 	return err
 }
