@@ -30,6 +30,15 @@ export function mapRuleTZ(fromTZ, toTZ, rule) {
   }
 }
 
+export function clockToISO(clockTime, zone) {
+  return DateTime.fromFormat(clockTime, 'HH:mm', { zone })
+    .toUTC()
+    .toISO()
+}
+export function isoToClock(isoTime, zone) {
+  return DateTime.fromISO(isoTime, { zone }).toFormat('HH:mm')
+}
+
 export function weekdaySummary(filter) {
   const bin = filter.map(f => (f ? '1' : '0')).join('')
   switch (bin) {

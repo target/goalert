@@ -12,13 +12,10 @@ import {
   Grid,
   FormControlLabel,
   Switch,
-  InputAdornment,
-  IconButton,
   TextField,
   MenuItem,
   withStyles,
 } from '@material-ui/core'
-import { DateRange } from '@material-ui/icons'
 import { UserAvatar } from '../util/avatar'
 import PageActions from '../util/PageActions'
 import FilterContainer from '../util/FilterContainer'
@@ -334,17 +331,6 @@ export default class ScheduleShiftList extends React.PureComponent {
                 label='Start Date'
                 value={this.props.start}
                 onChange={v => this.props.handleSetStart(v)}
-                showTodayButton
-                autoOk
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <IconButton>
-                        <DateRange />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
               />
             </Grid>
             <Grid item xs={12}>

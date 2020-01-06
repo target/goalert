@@ -5,11 +5,8 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import FormLabel from '@material-ui/core/FormLabel'
 import Grid from '@material-ui/core/Grid'
-import IconButton from '@material-ui/core/IconButton'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
-import DateRange from '@material-ui/icons/DateRange'
 import Tooltip from '@material-ui/core/Tooltip'
 import withStyles from '@material-ui/core/styles/withStyles'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
@@ -187,16 +184,6 @@ export default class WizardScheduleForm extends React.Component {
               member?'
                 formLabel
                 fullWidth={isWidthDown('md', width)}
-                showTodayButton
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position='end'>
-                      <IconButton>
-                        <DateRange />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
               />
             </Grid>
             <Grid item xs={12} className={classes.fieldItem}>

@@ -1,90 +1,121 @@
 import React, { useState, useEffect } from 'react'
-import {
-  KeyboardDatePicker,
-  KeyboardDateTimePicker,
-  KeyboardTimePicker,
-} from '@material-ui/pickers'
+import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
-import { getPaddedLocaleFormatString, getFormatMask } from './timeFormat'
+import { TextField, InputAdornment, IconButton } from '@material-ui/core'
 
-function useDatePicker(value, onChange, startOf) {
+import Modernizr from '../../modernizr.config'
+import { DateRange } from '@material-ui/icons'
+
+function hasInputSupport(name) {
+  return Modernizr.inputtypes[name]
+}
+
+function useISOPicker(
+  { value, onChange, ...otherProps },
+  { format, truncateTo, type, Fallback },
+) {
+  const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
   const zone = params('tz', 'local')
-  const [dtVal, setDTVal] = useState(DateTime.fromISO(value, { zone }))
+  const dtValue = DateTime.fromISO(value, { zone })
+  const [inputValue, setInputValue] = useState(dtValue.toFormat(format))
+
+  const parseInput = input => {
+    const iso = DateTime.fromISO(input)
+    if (iso.isValid) return iso
+
+    const dt = DateTime.fromFormat(input, format, { zone })
+    if (dt.isValid) {
+      if (type === 'time') {
+        return dtValue.set({
+          hour: dt.hour,
+          minute: dt.minute,
+        })
+      }
+      return dt
+    }
+
+    return null
+  }
+  const isoInput = input => {
+    const val = parseInput(input)
+    return val
+      ? val
+          .startOf(truncateTo)
+          .toUTC()
+          .toISO()
+      : ''
+  }
 
   useEffect(() => {
-    setDTVal(DateTime.fromISO(value, { zone }))
-  }, [value])
-  useEffect(() => {
-    setDTVal(dtVal.setZone(zone))
-  }, [zone])
+    setInputValue(dtValue.toFormat(format))
+  }, [value, zone])
 
-  return [
-    dtVal,
-    e => {
-      setDTVal(e)
-      if (e && e.isValid) onChange(e.startOf(startOf).toISO()) // only trigger external onChange when we have a valid value
-    },
-  ]
+  const handleChange = e => {
+    setInputValue(e.target.value)
+
+    const newVal = isoInput(e.target.value)
+    if (newVal && newVal !== value) {
+      onChange(newVal)
+    }
+  }
+
+  if (native) {
+    return (
+      <TextField
+        type={type}
+        value={inputValue}
+        onChange={handleChange}
+        {...otherProps}
+      />
+    )
+  }
+
+  return (
+    <Fallback
+      value={dtValue}
+      onChange={v => handleChange({ target: { value: v } })}
+      showTodayButton
+      autoOk
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position='end'>
+            <IconButton>
+              <DateRange />
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+      {...otherProps}
+    />
+  )
 }
 
-const timeFormat = getPaddedLocaleFormatString('t')
-const timeMask = getFormatMask(timeFormat)
 export function ISOTimePicker(props) {
-  const { value, onChange, ...otherProps } = props
-  const [inputValue, handleInputChange] = useDatePicker(
-    value,
-    onChange,
-    'minute',
-  )
-
-  return (
-    <KeyboardTimePicker
-      format={timeFormat}
-      mask={timeMask}
-      value={inputValue}
-      onChange={handleInputChange}
-      {...otherProps}
-    />
-  )
+  return useISOPicker(props, {
+    format: 'HH:mm',
+    truncateTo: 'minute',
+    type: 'time',
+    Fallback: TimePicker,
+  })
 }
 
-const dateTimeFormat = getPaddedLocaleFormatString(DateTime.DATETIME_SHORT)
-const dateTimeMask = getFormatMask(dateTimeFormat)
 export function ISODateTimePicker(props) {
-  const { value, onChange, ...otherProps } = props
-  const [inputValue, handleInputChange] = useDatePicker(
-    value,
-    onChange,
-    'minute',
-  )
-
-  return (
-    <KeyboardDateTimePicker
-      format={dateTimeFormat}
-      mask={dateTimeMask}
-      value={inputValue}
-      onChange={handleInputChange}
-      {...otherProps}
-    />
-  )
+  return useISOPicker(props, {
+    format: `yyyy-MM-dd'T'HH:mm`,
+    Fallback: DateTimePicker,
+    truncateTo: 'minute',
+    type: 'datetime-local',
+  })
 }
 
-const dateFormat = getPaddedLocaleFormatString(DateTime.DATE_SHORT)
-const dateMask = getFormatMask(dateFormat)
 export function ISODatePicker(props) {
-  const { value, onChange, ...otherProps } = props
-  const [inputValue, handleInputChange] = useDatePicker(value, onChange)
-
-  return (
-    <KeyboardDatePicker
-      format={dateFormat}
-      mask={dateMask}
-      value={inputValue}
-      onChange={handleInputChange}
-      {...otherProps}
-    />
-  )
+  return useISOPicker(props, {
+    format: 'yyyy-MM-dd',
+    Fallback: DatePicker,
+    truncateTo: 'day',
+    type: 'date',
+  })
 }

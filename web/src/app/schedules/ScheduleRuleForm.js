@@ -24,8 +24,8 @@ import Query from '../util/Query'
 import gql from 'graphql-tag'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { mapRuleTZ } from './util'
 import { ISOTimePicker } from '../util/ISOPickers'
+import { DateTime } from 'luxon'
 
 const days = [
   'Sunday',
@@ -143,36 +143,8 @@ export default class ScheduleRuleForm extends React.PureComponent {
       ...formProps
     } = this.props
 
-    let mapValue = value => value
-    let mapOnChangeValue = value => value
-
-    if (displayTZ !== scheduleTZ) {
-      // handle zone conversions for rules, from schedule TZ to display TZ
-      mapValue = value => {
-        return {
-          ...value,
-          rules: value.rules.map(rule =>
-            mapRuleTZ(scheduleTZ, displayTZ, rule),
-          ),
-        }
-      }
-      mapOnChangeValue = value => {
-        return {
-          ...value,
-          rules: value.rules.map(rule =>
-            mapRuleTZ(displayTZ, scheduleTZ, rule),
-          ),
-        }
-      }
-    }
-
     return (
-      <FormContainer
-        {...formProps}
-        optionalLabels
-        mapValue={mapValue}
-        mapOnChangeValue={mapOnChangeValue}
-      >
+      <FormContainer {...formProps} optionalLabels>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
             <Typography color='textSecondary' style={{ fontStyle: 'italic' }}>
@@ -220,8 +192,14 @@ export default class ScheduleRuleForm extends React.PureComponent {
                         this.props.onChange({
                           ...this.props.value,
                           rules: this.props.value.rules.concat({
-                            start: '00:00',
-                            end: '00:00',
+                            start: DateTime.local()
+                              .startOf('day')
+                              .toISO(),
+                            end: DateTime.local()
+                              .plus({ day: 1 })
+                              .startOf('day')
+                              .toUTC()
+                              .toISO(),
                             weekdayFilter: days.map(d => true),
                           }),
                         })
@@ -253,7 +231,6 @@ export default class ScheduleRuleForm extends React.PureComponent {
             fullWidth
             noError
             component={ISOTimePicker}
-            showTodayButton
             required
             label=''
             name={`rules[${idx}].start`}
@@ -264,7 +241,6 @@ export default class ScheduleRuleForm extends React.PureComponent {
             fullWidth
             noError
             component={ISOTimePicker}
-            showTodayButton
             required
             label=''
             name={`rules[${idx}].end`}
