@@ -16,16 +16,17 @@ func (a *App) CalendarSubscription() graphql2.CalendarSubscriptionResolver {
 }
 
 func (a *CalendarSubscription) NotificationMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
-	var err error
+	var config calendarsubscription.Config
+	err := json.Unmarshal(obj.Config, &config)
+	obj.NotificationMinutes = config.NotificationMinutes
 	return obj.NotificationMinutes, err
 }
 func (a *CalendarSubscription) ScheduleID(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (string, error) {
-	var err error
-	return "", err
+	e := *obj
+	return e.ScheduleID, nil
 }
 func (a *CalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
-	var err error
-	return nil, err
+	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
 }
 func (a *CalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
 	var err error

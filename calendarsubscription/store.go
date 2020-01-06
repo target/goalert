@@ -3,7 +3,6 @@ package calendarsubscription
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -29,16 +28,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	return &Store{
 		db: db,
-		findOne: p.P(`
-				SELECT
-					cs.id,
-					cs.name,
-					cs.user_id,
-					cs.last_access,
-					cs.disabled
-				FROM user_calendar_subscriptions cs
-				WHERE cs.id = $1
-			`),
+		findOne: p.P(`SELECT * FROM user_calendar_subscriptions cs WHERE cs.id = $1`),
 		create: p.P(`
 				INSERT INTO user_calendar_subscriptions (user_id, id, name, config, schedule_id)
 				VALUES ($1, $2, $3, $4, $5)
@@ -61,7 +51,7 @@ func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 	}
 
 	var cs CalendarSubscription
-	err = b.findOne.QueryRowContext(ctx, id).Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.Disabled)
+	err = b.findOne.QueryRowContext(ctx, id).Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.Disabled, &cs.ScheduleID, &cs.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -139,12 +129,6 @@ func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
 		if err != nil {
 			return nil, err
 		}
-		var config Config
-		err = json.Unmarshal(cs.Config, &config)
-		if err != nil {
-			return nil, err
-		}
-		cs.NotificationMinutes = config.NotificationMinutes
 		calendarsubscriptions = append(calendarsubscriptions, cs)
 	}
 
