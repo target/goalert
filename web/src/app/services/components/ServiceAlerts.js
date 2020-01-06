@@ -34,7 +34,6 @@ export default function ServiceAlerts(props) {
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
   const [mutate, mutationStatus] = useMutation(mutation, {
-    refetchQueries: ['alerts'],
     client: LegacyGraphQLClient,
     variables: {
       input: {

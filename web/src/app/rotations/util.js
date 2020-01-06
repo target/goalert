@@ -75,6 +75,8 @@ export function formatWeeklySummary(shiftLength, start, tz) {
 export function handoffSummary(rotation) {
   const tz = rotation.timeZone
 
+  if (!tz) return 'Loading handoff information...'
+
   let details = ''
   switch (rotation.type) {
     case 'hourly':
