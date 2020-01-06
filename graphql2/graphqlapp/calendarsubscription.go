@@ -36,11 +36,11 @@ func (a *CalendarSubscription) URL(ctx context.Context, obj *calendarsubscriptio
 func (q *Query) CalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
 	return q.CalendarSubscriptionStore.FindOne(ctx, id)
 }
-func (q *Query) CalendarSubscriptions(ctx context.Context) (subscription []calendarsubscription.CalendarSubscription, err error) {
+func (q *Query) CalendarSubscriptions(ctx context.Context) ([]calendarsubscription.CalendarSubscription, error) {
 	return q.CalendarSubscriptionStore.FindAll(ctx)
 }
 
-// todo: return url instead of bool once endpoint has been created
+// todo: return calendarsubscription with generated url once endpoint has been created
 func (m *Mutation) CreateCalendarSubscription(ctx context.Context, input graphql2.CreateCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
 	var config calendarsubscription.Config
 	var configJson []byte

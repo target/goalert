@@ -20,7 +20,9 @@ type CalendarSubscription struct {
 
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	err := validate.Many(
-		validate.IDName("Name", cs.Name),
+		validate.IDName("CalendarSubscriptionName", cs.Name),
+		validate.UUID("CalendarSubscriptionID", cs.ID),
+		validate.UUID("CalendarSubscriptionUserID", cs.UserID),
 	)
 	if err != nil {
 		return nil, err
