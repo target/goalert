@@ -5,6 +5,13 @@ import { Route } from 'react-router-dom'
 
 let isInitialized = false
 
+/*
+example usage:
+sendGAEvent({
+  category: 'Service',
+  action: action + '  Completed',
+})
+*/
 export function sendGAEvent(eventProps) {
   if (isInitialized) ReactGA.event(eventProps)
 }

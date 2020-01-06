@@ -1,15 +1,16 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
+import { useMutation } from 'react-apollo'
 import AlertsList from '../../alerts/components/AlertsList'
 import gql from 'graphql-tag'
 import Options from '../../util/Options'
-import ConfirmationDialog from '../../dialogs/components/ConfirmationDialog'
 import PageActions from '../../util/PageActions'
 import AlertsListFilter from '../../alerts/components/AlertsListFilter'
 import Search from '../../util/Search'
-import { sendGAEvent } from '../../util/GoogleAnalytics'
+import FormDialog from '../../dialogs/FormDialog'
+import { LegacyGraphQLClient } from '../../apollo'
 
-const updateAllAlertsMutation = gql`
+const mutation = gql`
   mutation UpdateAlertStatusByServiceMutation(
     $input: UpdateAlertStatusByServiceInput!
   ) {
@@ -27,83 +28,70 @@ const updateAllAlertsMutation = gql`
   }
 `
 
-export default class ServiceAlerts extends Component {
-  static propTypes = {
-    serviceID: p.string.isRequired,
+export default function ServiceAlerts(props) {
+  const { serviceID } = props
+
+  const [alertStatus, setAlertStatus] = useState('')
+  const [showDialog, setShowDialog] = useState(false)
+  const [mutate, mutationStatus] = useMutation(mutation, {
+    client: LegacyGraphQLClient,
+    variables: {
+      input: {
+        service_id: serviceID,
+        status: alertStatus + 'd', // closed or acknowledged
+      },
+    },
+    onCompleted: () => setShowDialog(false),
+  })
+
+  const { loading } = mutationStatus
+
+  const handleClickAckAll = () => {
+    setAlertStatus('acknowledge')
+    setShowDialog(true)
   }
 
-  state = {
-    alertStatus: '',
-    showUpdateConfirmation: false,
+  const handleClickCloseAll = () => {
+    setAlertStatus('close')
+    setShowDialog(true)
   }
 
-  handleClickAckAll = () => {
-    this.setState({ alertStatus: 'acknowledge', showUpdateConfirmation: true })
-  }
-
-  handleClickCloseAll = () => {
-    this.setState({ alertStatus: 'close', showUpdateConfirmation: true })
-  }
-
-  handleShowForm = (key, bool) => {
-    this.setState({
-      [key]: bool,
-    })
-  }
-
-  handleAllAlertsSuccess = () => {
-    sendGAEvent({
-      category: 'Service',
-      action: this.state.alertStatus + ' All Action Completed',
-    })
-  }
-
-  getMenuOptions = () => {
+  const getMenuOptions = () => {
     return [
       {
         text: 'Acknowledge All Alerts',
-        onClick: this.handleClickAckAll,
+        onClick: handleClickAckAll,
       },
       {
         text: 'Close All Alerts',
-        onClick: this.handleClickCloseAll,
+        onClick: handleClickCloseAll,
       },
     ]
   }
 
-  render() {
-    const { serviceID } = this.props
-
-    return (
-      <React.Fragment>
-        <PageActions key='actions'>
-          <Search key='search' />
-          <AlertsListFilter key='filter' serviceID={serviceID} />
-          <Options key='options' options={this.getMenuOptions()} />
-        </PageActions>
-        <ConfirmationDialog
-          key='update-alerts-form'
-          mutation={updateAllAlertsMutation}
-          mutationVariables={{
-            input: {
-              service_id: serviceID,
-              status: this.state.alertStatus + 'd', // closed or acknowledged
-            },
-          }}
-          onMutationSuccess={this.handleAllAlertsSuccess}
-          onRequestClose={() =>
-            this.handleShowForm('showUpdateConfirmation', false)
-          }
-          open={this.state.showUpdateConfirmation}
-          message={
-            'This will ' +
-            this.state.alertStatus +
-            ' all the alerts for this service.'
-          }
-          warning='This will stop all notifications from being sent out for all alerts with this service.'
+  return (
+    <React.Fragment>
+      <PageActions key='actions'>
+        <Search key='search' />
+        <AlertsListFilter key='filter' serviceID={serviceID} />
+        <Options key='options' options={getMenuOptions()} />
+      </PageActions>
+      {showDialog && (
+        <FormDialog
+          title='Are you sure?'
+          confirm
+          subTitle={`This will ${alertStatus} all the alerts for this service.`}
+          caption='This will stop all notifications from being sent out for all alerts with this service.'
+          onSubmit={mutate}
+          loading={loading}
+          onClose={() => setShowDialog(false)}
         />
-        <AlertsList serviceID={serviceID} />
-      </React.Fragment>
-    )
-  }
+      )}
+      <AlertsList serviceID={serviceID} />
+    </React.Fragment>
+  )
+}
+
+ServiceAlerts.propTypes = {
+  serviceID: p.string.isRequired,
 }

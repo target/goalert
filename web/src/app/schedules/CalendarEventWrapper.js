@@ -107,7 +107,7 @@ export default class CalendarEventWrapper extends Component {
             <Button
               className={classes.button}
               data-cy='replace-override'
-              mini
+              size='small'
               onClick={() => this.handleShowOverrideForm('replace')}
               variant='outlined'
             >

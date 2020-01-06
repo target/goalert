@@ -26,6 +26,9 @@ const useStyles = makeStyles(theme => ({
     '&:not(:last-child)': {
       marginBottom: 8,
     },
+    '&:last-child': {
+      marginBottom: 64,
+    },
   },
   iconContainer: {
     [theme.breakpoints.down('sm')]: { float: 'top' },
