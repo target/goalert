@@ -18,7 +18,7 @@ import gql from 'graphql-tag'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import _ from 'lodash-es'
-import { ISODateTimePicker } from '../util/DatePickers'
+import { ISODateTimePicker } from '../util/ISOPickers'
 
 const query = gql`
   query($id: ID!) {

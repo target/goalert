@@ -27,7 +27,7 @@ import { setURLParam, resetURLParams } from '../actions'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
-import { ISODatePicker } from '../util/DatePickers'
+import { ISODatePicker } from '../util/ISOPickers'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`

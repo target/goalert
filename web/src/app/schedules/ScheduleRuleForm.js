@@ -25,7 +25,7 @@ import gql from 'graphql-tag'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { mapRuleTZ } from './util'
-import { ISOTimePicker } from '../util/DatePickers'
+import { ISOTimePicker } from '../util/ISOPickers'
 
 const days = [
   'Sunday',

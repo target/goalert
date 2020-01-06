@@ -5,7 +5,7 @@ import { TimeZoneSelect } from '../selection'
 import { TextField, Grid, MenuItem } from '@material-ui/core'
 import { startCase } from 'lodash-es'
 import { DateTime, Info } from 'luxon'
-import { ISOTimePicker } from '../util/DatePickers'
+import { ISOTimePicker } from '../util/ISOPickers'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
