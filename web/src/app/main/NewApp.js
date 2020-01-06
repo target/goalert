@@ -36,6 +36,8 @@ const styles = theme => ({
   },
   main: {
     width: '100%',
+    overflowY: 'auto',
+    marginTop: '64px',
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
@@ -122,7 +124,6 @@ export default class App extends React.PureComponent {
             <URLErrorDialog />
 
             <main id='content' className={classes.main} style={{ marginLeft }}>
-              <div className={classes.toolbar} />
               <ErrorBoundary>
                 <LazyNewUserSetup />
                 <Grid container justify='center'>

@@ -1,9 +1,8 @@
 import React from 'react'
 import p from 'prop-types'
-import { connect } from 'react-redux'
 import { absURLSelector } from '../selectors/url'
 import statusStyles from '../util/statusStyles'
-import withStyles from '@material-ui/core/styles/withStyles'
+import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
@@ -16,15 +15,19 @@ import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import IconButton from '@material-ui/core/IconButton'
 import Markdown from '../util/Markdown'
+import { useSelector } from 'react-redux'
 
-const styles = theme => ({
-  ...statusStyles,
+const useLinkStyles = makeStyles(() => statusStyles)
+const useStyles = makeStyles(theme => ({
   spacing: {
     '&:not(:first-child)': {
       marginTop: 8,
     },
     '&:not(:last-child)': {
       marginBottom: 8,
+    },
+    '&:last-child': {
+      marginBottom: 64,
     },
   },
   iconContainer: {
@@ -35,132 +38,111 @@ const styles = theme => ({
   mainHeading: {
     fontSize: '1.5rem',
   },
-})
+}))
 
-const mapStateToProps = state => {
-  return {
-    absURL: absURLSelector(state),
+function DetailsLink({ url, label, status, subText }) {
+  const absURL = useSelector(absURLSelector)
+  const classes = useLinkStyles()
+
+  let itemClass = classes.noStatus
+  switch (status) {
+    case 'ok':
+      itemClass = classes.statusOK
+      break
+    case 'warn':
+      itemClass = classes.statusWarning
+      break
+    case 'err':
+      itemClass = classes.statusError
+      break
   }
+
+  return (
+    <ListItem component={Link} to={absURL(url)} button className={itemClass}>
+      <ListItemText
+        secondary={subText}
+        primary={label}
+        primaryTypographyProps={{ variant: 'h5' }}
+      />
+      <ListItemSecondaryAction>
+        <IconButton component={Link} to={absURL(url)}>
+          <ChevronRight />
+        </IconButton>
+      </ListItemSecondaryAction>
+    </ListItem>
+  )
+}
+DetailsLink.propTypes = {
+  label: p.string.isRequired,
+  url: p.string.isRequired,
+  status: p.oneOf(['ok', 'warn', 'err']),
+  subText: p.node,
 }
 
-@withStyles(styles)
-@connect(mapStateToProps)
-export default class DetailsPage extends React.PureComponent {
-  static propTypes = {
-    title: p.string.isRequired,
-    details: p.string.isRequired,
+export default function DetailsPage(props) {
+  const classes = useStyles()
 
-    icon: p.node,
-    links: p.arrayOf(
-      p.shape({
-        label: p.string.isRequired,
-        url: p.string.isRequired,
-        status: p.oneOf(['ok', 'warn', 'err']),
-        subText: p.node,
-      }),
-    ),
+  const { title, details, icon, titleFooter, pageFooter } = props
 
-    titleFooter: p.any,
-    pageFooter: p.any,
-  }
-
-  renderLink = ({ url, label, status, subText }, idx) => {
-    const { classes, absURL } = this.props
-    let itemClass = classes.noStatus
-    switch (status) {
-      case 'ok':
-        itemClass = classes.statusOK
-        break
-      case 'warn':
-        itemClass = classes.statusWarning
-        break
-      case 'err':
-        itemClass = classes.statusError
-        break
-    }
-
-    return (
-      <ListItem
-        key={idx}
-        component={Link}
-        to={absURL(url)}
-        button
-        className={itemClass}
-      >
-        <ListItemText
-          secondary={subText}
-          primary={label}
-          primaryTypographyProps={{ variant: 'h5' }}
-        />
-        <ListItemSecondaryAction>
-          <IconButton component={Link} to={absURL(url)}>
-            <ChevronRight />
-          </IconButton>
-        </ListItemSecondaryAction>
-      </ListItem>
-    )
-  }
-
-  renderLinks() {
-    const { links } = this.props
-
-    if (!links || !links.length) return null
-
-    return (
-      <Grid item xs={12} className={this.props.classes.spacing}>
+  let links = null
+  if (props.links && props.links.length) {
+    links = (
+      <Grid item xs={12} className={classes.spacing}>
         <Card>
-          <List>{links.map(this.renderLink)}</List>
+          <List>
+            {props.links.map((li, idx) => (
+              <DetailsLink key={idx} {...li} />
+            ))}
+          </List>
         </Card>
       </Grid>
     )
   }
 
-  render() {
-    const {
-      title,
-      details,
-      icon,
-      titleFooter,
-      pageFooter,
-      classes,
-    } = this.props
-    return (
-      <Grid container>
-        <Grid item xs={12} className={classes.spacing}>
-          <Card>
-            <CardContent>
-              {icon && <div className={classes.iconContainer}>{icon}</div>}
+  return (
+    <Grid container>
+      <Grid item xs={12} className={classes.spacing}>
+        <Card>
+          <CardContent>
+            {icon && <div className={classes.iconContainer}>{icon}</div>}
+            <Typography
+              data-cy='details-heading'
+              className={classes.mainHeading}
+              component='h2'
+            >
+              {title}
+            </Typography>
+            <Typography data-cy='details' variant='subtitle1' component='div'>
+              <Markdown value={details} />
+            </Typography>
+            {titleFooter && (
               <Typography
-                data-cy='details-heading'
-                className={classes.mainHeading}
-                component='h2'
+                component='div'
+                variant='subtitle1'
+                data-cy='title-footer'
               >
-                {title}
+                {titleFooter}
               </Typography>
-              <Typography data-cy='details' variant='subtitle1' component='div'>
-                <Markdown value={details} />
-              </Typography>
-              {titleFooter && (
-                <Typography
-                  component='div'
-                  variant='subtitle1'
-                  data-cy='title-footer'
-                >
-                  {titleFooter}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {this.renderLinks()}
-
-        {pageFooter && (
-          <Grid item xs={12} className={classes.spacing}>
-            {pageFooter}
-          </Grid>
-        )}
+            )}
+          </CardContent>
+        </Card>
       </Grid>
-    )
-  }
+      {links}
+      {pageFooter && (
+        <Grid item xs={12} className={classes.spacing}>
+          {pageFooter}
+        </Grid>
+      )}
+    </Grid>
+  )
+}
+DetailsPage.propTypes = {
+  title: p.string.isRequired,
+  details: p.string.isRequired,
+
+  icon: p.node,
+  links: p.arrayOf(p.shape(DetailsLink.propTypes)),
+
+  titleFooter: p.any,
+  pageFooter: p.any,
 }

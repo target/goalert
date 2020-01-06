@@ -46,16 +46,7 @@ export default class ScheduleEditDialog extends React.PureComponent {
 
   renderMutation(data) {
     return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        refetchQueries={() => [
-          {
-            query,
-            variables: { id: this.props.scheduleID },
-          },
-        ]}
-      >
+      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
         {(...args) => this.renderForm(data, ...args)}
       </Mutation>
     )
