@@ -10,7 +10,42 @@ import { Warning } from '../icons'
 export default function UserCalendarSubscriptionList(props) {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
 
-  function renderOtherActions() {
+  // todo: query for data here instead
+  const data = {
+    calendarSubscriptions: mockItems,
+  }
+
+  const subs = data.calendarSubscriptions.sort((a, b) => {
+    if (a.schedule.name < b.schedule.name) return -1
+    if (a.schedule.name > b.schedule.name) return 1
+
+    if (a.name > b.name) return 1
+    if (a.name < b.name) return -1
+  })
+
+  const subheaderDict = {}
+  const items = []
+
+  subs.forEach(sub => {
+    if (!subheaderDict[sub.schedule.name]) {
+      subheaderDict[sub.schedule.name] = true
+      items.push({ subHeader: sub.schedule.name })
+    }
+
+    items.push({
+      title: sub.name,
+      subText: 'Last sync: ' + sub.last_access, // todo: format iso timestamp to duration with luxon
+      secondaryAction: renderOtherActions(sub.id),
+      icon: sub.disabled ? (
+        <Tooltip title='Disabled'>
+          <Warning />
+        </Tooltip>
+      ) : null,
+    })
+  })
+
+  // todo: finish these dialogs
+  function renderOtherActions(id) {
     return (
       <OtherActions
         actions={[
@@ -33,35 +68,7 @@ export default function UserCalendarSubscriptionList(props) {
         <FlatList
           headerNote='Showing your current on-call subscriptions for all schedules'
           emptyMessage='Your are not subscribed to any schedules'
-          items={[
-            {
-              title: 'My Outlook Calendar',
-              subText: (
-                <React.Fragment>
-                  Central Business Schedule
-                  <br />
-                  Last access: 48m ago
-                </React.Fragment>
-              ),
-              secondaryAction: renderOtherActions(),
-            },
-            {
-              title: 'My iPhone Calendar',
-              icon: (
-                <Tooltip title='Disabled'>
-                  <Warning />
-                </Tooltip>
-              ),
-              subText: (
-                <React.Fragment>
-                  Target Main Schedule
-                  <br />
-                  Last access: 3h ago
-                </React.Fragment>
-              ),
-              secondaryAction: renderOtherActions(),
-            },
-          ]}
+          items={items}
         />
       </Card>
       <CreateFAB
@@ -78,3 +85,69 @@ export default function UserCalendarSubscriptionList(props) {
 UserCalendarSubscriptionList.propTypes = {
   userID: p.string.isRequired,
 }
+
+const mockItems = [
+  {
+    id: '1234',
+    name: 'asdasd (1)',
+    schedule: {
+      name: 'Test Schedule 1',
+    },
+    last_access: '48m ago',
+    disabled: false,
+  },
+  {
+    id: '1234',
+    name: 'rhgdgb (2)',
+    schedule: {
+      name: 'Test Schedule 2',
+    },
+    last_access: '48m ago',
+    disabled: false,
+  },
+  {
+    id: '1234',
+    name: 'ersefbdfb (3)',
+    schedule: {
+      name: 'Test Schedule 3',
+    },
+    last_access: '48m ago',
+    disabled: false,
+  },
+  {
+    id: '1234',
+    name: 'gfewsfbd (1)',
+    schedule: {
+      name: 'Test Schedule 1',
+    },
+    last_access: '48m ago',
+    disabled: false,
+  },
+  {
+    id: '1234',
+    name: 'wergfs (4)',
+    schedule: {
+      name: 'Test Schedule 4',
+    },
+    last_access: '48m ago',
+    disabled: false,
+  },
+  {
+    id: '1234',
+    name: 'ertbdrgb (1)',
+    schedule: {
+      name: 'Test Schedule 1',
+    },
+    last_access: '48m ago',
+    disabled: false,
+  },
+  {
+    id: '1234',
+    name: 'wergewrw (3)',
+    schedule: {
+      name: 'Test Schedule 3',
+    },
+    last_access: '48m ago',
+    disabled: true,
+  },
+]
