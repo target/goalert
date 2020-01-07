@@ -7,6 +7,8 @@ import CalendarSubscribeForm from './CalendarSubscribeForm'
 
 const MOCK_URL =
   'www.calendarlabs.com/ical-calendar/ics/22/Chicago_Cubs_-_MLB.ics'
+const SUBTITLE =
+  'Create a unique iCalendar subscription URL that can be used in your preferred calendar application.'
 
 export default function CalendarSubscribeDialog(props) {
   const [complete, setComplete] = useState(false)
@@ -42,9 +44,10 @@ export default function CalendarSubscribeDialog(props) {
               &nbsp;Success!
             </div>
           ) : (
-            'Create New Subscription'
+            'Create New Calendar Subscription'
           )
         }
+        subTitle={SUBTITLE}
         onClose={props.onClose}
         alert={complete}
         primaryActionLabel={complete ? 'Done' : null}
