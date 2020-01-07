@@ -17,7 +17,7 @@ import { urlParamSelector } from '../selectors'
 import { resetURLParams, setURLParam } from '../actions'
 import { connect } from 'react-redux'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import CalendarSubscribeButton from './CalendarSubscribeButton'
+import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 
 const query = gql`
   query($id: ID!) {
@@ -124,12 +124,14 @@ export default class ScheduleDetails extends React.PureComponent {
           title={data.name}
           details={data.description}
           titleFooter={
-            <React.Fragment>
-              Time Zone: {data.timeZone}
-              <br />
-              <br />
-              <CalendarSubscribeButton scheduleID='f94e1269-9def-4118-a076-d3bb4f9ff625' />
-            </React.Fragment>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                Time Zone: {data.timeZone}
+              </Grid>
+              <Grid item xs={12}>
+                <CalendarSubscribeButton scheduleID={this.props.scheduleID} />
+              </Grid>
+            </Grid>
           }
           links={[
             { label: 'Assignments', url: 'assignments' },
