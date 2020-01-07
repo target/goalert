@@ -81,6 +81,7 @@ type CreateCalendarSubscriptionInput struct {
 	Name                string `json:"name"`
 	NotificationMinutes []int  `json:"notificationMinutes"`
 	ScheduleID          string `json:"scheduleID"`
+	Disabled            *bool  `json:"disabled"`
 }
 
 type CreateEscalationPolicyInput struct {

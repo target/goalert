@@ -25,6 +25,7 @@ type Config struct {
 	NotificationMinutes []int `json:"notification_minutes"`
 }
 
+// NewStore will create a new Store with the given parameters.
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
@@ -32,8 +33,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 		db: db,
 		findOne: p.P(`SELECT * FROM user_calendar_subscriptions cs WHERE cs.id = $1`),
 		create: p.P(`
-				INSERT INTO user_calendar_subscriptions (user_id, id, name, config, schedule_id)
-				VALUES ($1, $2, $3, $4, $5)
+				INSERT INTO user_calendar_subscriptions (user_id, id, name, config, schedule_id, disabled)
+				VALUES ($1, $2, $3, $4, $5, $6)
 			`),
 		update: p.P(`UPDATE user_calendar_subscriptions SET name = $3, disabled = $4, config = $5 WHERE id = $1 AND user_id = $2`),
 		delete: p.P(`DELETE FROM user_calendar_subscriptions WHERE id = any($1) AND user_id = $2`),
@@ -49,6 +50,7 @@ func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	}
 	return tx.StmtContext(ctx, stmt)
 }
+// FindOne will return a single calendar subscription for the given id.
 func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
@@ -68,6 +70,7 @@ func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 	return &cs, nil
 }
 
+// CreateSubscriptionTx will return a created calendar subscription with the given input.
 func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (*CalendarSubscription, error) {
 	cs.UserID = permission.UserID(ctx)
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(cs.UserID))
@@ -80,7 +83,7 @@ func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 		return nil, err
 	}
 
-	_, err = wrapTx(ctx, tx, b.create).ExecContext(ctx, cs.UserID, cs.ID, cs.Name, cs.Config, cs.ScheduleID)
+	_, err = wrapTx(ctx, tx, b.create).ExecContext(ctx, cs.UserID, cs.ID, cs.Name, cs.Config, cs.ScheduleID, cs.Disabled)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +109,8 @@ func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (
 	}
 	return &cs, nil
 }
+
+// UpdateSubscriptionTx updates a calendar subscription with given information.
 func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(cs.UserID))
 	if err != nil {
@@ -135,6 +140,8 @@ func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 
 	return err
 }
+
+// FindAll returns all calendar subscriptions of a user.
 func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
 	var userID = permission.UserID(ctx)
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
@@ -161,6 +168,7 @@ func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
 	return calendarsubscriptions, nil
 }
 
+// DeleteSubscriptionsTx removes calendar subscriptions with the given ids.
 func (b *Store) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(permission.UserID(ctx)))
 	if err != nil {

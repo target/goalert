@@ -18,8 +18,8 @@ func (a *App) CalendarSubscription() graphql2.CalendarSubscriptionResolver {
 func (a *CalendarSubscription) NotificationMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
 	var config calendarsubscription.Config
 	err := json.Unmarshal(obj.Config, &config)
-	obj.NotificationMinutes = config.NotificationMinutes
-	return obj.NotificationMinutes, err
+	obj.NMinutes = config.NotificationMinutes
+	return obj.NMinutes, err
 }
 func (a *CalendarSubscription) ScheduleID(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (string, error) {
 	e := *obj
@@ -35,9 +35,6 @@ func (a *CalendarSubscription) URL(ctx context.Context, obj *calendarsubscriptio
 
 func (q *Query) CalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
 	return q.CalendarSubscriptionStore.FindOne(ctx, id)
-}
-func (q *Query) CalendarSubscriptions(ctx context.Context) ([]calendarsubscription.CalendarSubscription, error) {
-	return q.CalendarSubscriptionStore.FindAll(ctx)
 }
 
 // todo: return calendarsubscription with generated url once endpoint has been created
@@ -55,7 +52,8 @@ func (m *Mutation) CreateCalendarSubscription(ctx context.Context, input graphql
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
 		Config:     configJson,
-		NotificationMinutes: input.NotificationMinutes,
+		NMinutes: input.NotificationMinutes,
+		Disabled:	*input.Disabled,
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error

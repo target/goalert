@@ -14,7 +14,7 @@ type CalendarSubscription struct {
 	Config	   []byte  `json:"config"`
 	ScheduleID string 	`json:"schedule_id"`
 
-	NotificationMinutes []int `json:"notification_minutes"`
+	NMinutes []int `json:"notification_minutes"`
 
 }
 

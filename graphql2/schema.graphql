@@ -41,9 +41,6 @@ type Query {
   # Returns the public information of a calendar subscription
   calendarSubscription(id: ID!): CalendarSubscription
 
-  # Returns a paginated list of calendar subscriptions
-  calendarSubscriptions: [CalendarSubscription!]!
-
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
 
@@ -276,6 +273,7 @@ input CreateCalendarSubscriptionInput {
   name: String!
   notificationMinutes: [Int!]
   scheduleID: ID!
+  disabled: Boolean
 }
 input UpdateCalendarSubscriptionInput {
   id: ID!

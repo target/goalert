@@ -251,7 +251,6 @@ type ComplexityRoot struct {
 		Alerts                  func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider func(childComplexity int, first *int, after *string, providerID string) int
 		CalendarSubscription    func(childComplexity int, id string) int
-		CalendarSubscriptions   func(childComplexity int) int
 		Config                  func(childComplexity int, all *bool) int
 		ConfigHints             func(childComplexity int) int
 		EscalationPolicies      func(childComplexity int, input *EscalationPolicySearchOptions) int
@@ -521,7 +520,6 @@ type QueryResolver interface {
 	Rotations(ctx context.Context, input *RotationSearchOptions) (*RotationConnection, error)
 	Schedule(ctx context.Context, id string) (*schedule.Schedule, error)
 	CalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error)
-	CalendarSubscriptions(ctx context.Context) ([]calendarsubscription.CalendarSubscription, error)
 	Schedules(ctx context.Context, input *ScheduleSearchOptions) (*ScheduleConnection, error)
 	EscalationPolicy(ctx context.Context, id string) (*escalation.Policy, error)
 	EscalationPolicies(ctx context.Context, input *EscalationPolicySearchOptions) (*EscalationPolicyConnection, error)
@@ -1587,13 +1585,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.CalendarSubscription(childComplexity, args["id"].(string)), true
 
-	case "Query.calendarSubscriptions":
-		if e.complexity.Query.CalendarSubscriptions == nil {
-			break
-		}
-
-		return e.complexity.Query.CalendarSubscriptions(childComplexity), true
-
 	case "Query.config":
 		if e.complexity.Query.Config == nil {
 			break
@@ -2636,9 +2627,6 @@ var parsedSchema = gqlparser.MustLoadSchema(
   # Returns the public information of a calendar subscription
   calendarSubscription(id: ID!): CalendarSubscription
 
-  # Returns a paginated list of calendar subscriptions
-  calendarSubscriptions: [CalendarSubscription!]!
-
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
 
@@ -2871,6 +2859,7 @@ input CreateCalendarSubscriptionInput {
   name: String!
   notificationMinutes: [Int!]
   scheduleID: ID!
+  disabled: Boolean
 }
 input UpdateCalendarSubscriptionInput {
   id: ID!
@@ -9195,43 +9184,6 @@ func (ec *executionContext) _Query_calendarSubscription(ctx context.Context, fie
 	return ec.marshalOCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_calendarSubscriptions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CalendarSubscriptions(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]calendarsubscription.CalendarSubscription)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCalendarSubscription2ᚕgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscriptionᚄ(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_schedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -14730,6 +14682,12 @@ func (ec *executionContext) unmarshalInputCreateCalendarSubscriptionInput(ctx co
 			if err != nil {
 				return it, err
 			}
+		case "disabled":
+			var err error
+			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -17530,20 +17488,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_calendarSubscription(ctx, field)
-				return res
-			})
-		case "calendarSubscriptions":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_calendarSubscriptions(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "schedules":
