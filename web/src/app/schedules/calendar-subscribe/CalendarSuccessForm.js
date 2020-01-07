@@ -4,26 +4,36 @@ import {
   Grid,
   TextField,
   Typography,
+  makeStyles,
 } from '@material-ui/core'
 import { PropTypes as p } from 'prop-types'
 import React from 'react'
 
+const useStyles = makeStyles({
+  caption: {
+    width: '100%',
+  },
+  item: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+})
+
 export default function CalenderSuccessForm(props) {
-  const style = { display: 'flex', justifyContent: 'center' }
+  const classes = useStyles()
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12} style={style}>
+      <Grid item xs={12} className={classes.item}>
         <Typography>
           Your subscription has been created! You can manage your subscriptions
           from your profile at anytime.
         </Typography>
       </Grid>
-      <Grid item xs={12} style={style}>
+      <Grid item xs={12} className={classes.item}>
         <Button
           color='primary'
           variant='contained'
           href={'webcal://' + props.url}
-          style={{ marginLeft: '0.5em' }}
         >
           Subscribe
         </Button>
@@ -32,7 +42,7 @@ export default function CalenderSuccessForm(props) {
         <TextField
           value={props.url}
           onChange={() => {}}
-          style={{ width: '100%' }}
+          className={classes.caption}
         />
         <FormHelperText>
           Some applications require you copy and paste the URL directly

@@ -8,6 +8,9 @@ const useStyles = makeStyles(theme => ({
   calIcon: {
     marginRight: theme.spacing(1),
   },
+  captionContainer: {
+    display: 'grid',
+  },
 }))
 
 export default function CalendarSubscribeButton(props) {
@@ -36,7 +39,7 @@ export default function CalendarSubscribeButton(props) {
             Subscribe
           </Button>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} className={classes.captionContainer}>
           <Typography variant='caption' color='textSecondary'>
             {caption}
           </Typography>
