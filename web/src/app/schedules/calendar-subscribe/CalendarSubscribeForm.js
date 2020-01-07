@@ -1,9 +1,9 @@
 import React from 'react'
+import { PropTypes as p } from 'prop-types'
 import { FormContainer, FormField } from '../../forms'
 import { Grid, TextField } from '@material-ui/core'
 import { ScheduleSelect } from '../../selection'
 import MaterialSelect from '../../selection/MaterialSelect'
-import { PropTypes as p } from 'prop-types'
 import _ from 'lodash-es'
 
 export const reminderMinutesOptions = [

@@ -1,3 +1,5 @@
+import React from 'react'
+import { PropTypes as p } from 'prop-types'
 import {
   Button,
   FormHelperText,
@@ -6,8 +8,6 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
-import { PropTypes as p } from 'prop-types'
-import React from 'react'
 
 const useStyles = makeStyles({
   caption: {
