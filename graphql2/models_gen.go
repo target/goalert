@@ -77,13 +77,6 @@ type CreateAlertInput struct {
 	ServiceID string  `json:"serviceID"`
 }
 
-type CreateCalendarSubscriptionInput struct {
-	Name                string `json:"name"`
-	NotificationMinutes []int  `json:"notificationMinutes"`
-	ScheduleID          string `json:"scheduleID"`
-	Disabled            *bool  `json:"disabled"`
-}
-
 type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description"`
@@ -323,13 +316,6 @@ type UpdateAlertsInput struct {
 	NewStatus AlertStatus `json:"newStatus"`
 }
 
-type UpdateCalendarSubscriptionInput struct {
-	ID                  string  `json:"id"`
-	Name                *string `json:"name"`
-	NotificationMinutes []int   `json:"notificationMinutes"`
-	Disabled            *bool   `json:"disabled"`
-}
-
 type UpdateEscalationPolicyInput struct {
 	ID          string   `json:"id"`
 	Name        *string  `json:"name"`
@@ -403,6 +389,13 @@ type UserConnection struct {
 	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
+type UserCreateCalendarSubscriptionInput struct {
+	Name                string `json:"name"`
+	NotificationMinutes []int  `json:"notificationMinutes"`
+	ScheduleID          string `json:"scheduleID"`
+	Disabled            *bool  `json:"disabled"`
+}
+
 type UserOverrideConnection struct {
 	Nodes    []override.UserOverride `json:"nodes"`
 	PageInfo *PageInfo               `json:"pageInfo"`
@@ -425,6 +418,13 @@ type UserSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type UserUpdateCalendarSubscriptionInput struct {
+	ID                  string  `json:"id"`
+	Name                *string `json:"name"`
+	NotificationMinutes []int   `json:"notificationMinutes"`
+	Disabled            *bool   `json:"disabled"`
 }
 
 type VerifyContactMethodInput struct {

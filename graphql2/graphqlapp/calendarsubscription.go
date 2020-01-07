@@ -33,12 +33,12 @@ func (a *CalendarSubscription) URL(ctx context.Context, obj *calendarsubscriptio
 	return nil, err
 }
 
-func (q *Query) CalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
+func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
 	return q.CalendarSubscriptionStore.FindOne(ctx, id)
 }
 
 // todo: return calendarsubscription with generated url once endpoint has been created
-func (m *Mutation) CreateCalendarSubscription(ctx context.Context, input graphql2.CreateCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
+func (m *Mutation) UserCreateCalendarSubscription(ctx context.Context, input graphql2.UserCreateCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
 	var config calendarsubscription.Config
 	var configJson []byte
 	if input.NotificationMinutes != nil {
@@ -70,7 +70,7 @@ func (m *Mutation) CreateCalendarSubscription(ctx context.Context, input graphql
 	return cs, err
 }
 
-func (m *Mutation) UpdateCalendarSubscription(ctx context.Context, input graphql2.UpdateCalendarSubscriptionInput) (bool, error) {
+func (m *Mutation) UserUpdateCalendarSubscription(ctx context.Context, input graphql2.UserUpdateCalendarSubscriptionInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cs, err := m.CalendarSubscriptionStore.FindOneForUpdateTx(ctx, tx, input.ID)
 		if err != nil {

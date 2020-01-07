@@ -197,40 +197,40 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAuthSubject                func(childComplexity int, input user.AuthSubject) int
-		CreateAlert                   func(childComplexity int, input CreateAlertInput) int
-		CreateCalendarSubscription    func(childComplexity int, input CreateCalendarSubscriptionInput) int
-		CreateEscalationPolicy        func(childComplexity int, input CreateEscalationPolicyInput) int
-		CreateEscalationPolicyStep    func(childComplexity int, input CreateEscalationPolicyStepInput) int
-		CreateHeartbeatMonitor        func(childComplexity int, input CreateHeartbeatMonitorInput) int
-		CreateIntegrationKey          func(childComplexity int, input CreateIntegrationKeyInput) int
-		CreateRotation                func(childComplexity int, input CreateRotationInput) int
-		CreateSchedule                func(childComplexity int, input CreateScheduleInput) int
-		CreateService                 func(childComplexity int, input CreateServiceInput) int
-		CreateUserContactMethod       func(childComplexity int, input CreateUserContactMethodInput) int
-		CreateUserNotificationRule    func(childComplexity int, input CreateUserNotificationRuleInput) int
-		CreateUserOverride            func(childComplexity int, input CreateUserOverrideInput) int
-		DeleteAll                     func(childComplexity int, input []assignment.RawTarget) int
-		DeleteAuthSubject             func(childComplexity int, input user.AuthSubject) int
-		EscalateAlerts                func(childComplexity int, input []int) int
-		SendContactMethodVerification func(childComplexity int, input SendContactMethodVerificationInput) int
-		SetConfig                     func(childComplexity int, input []ConfigValueInput) int
-		SetFavorite                   func(childComplexity int, input SetFavoriteInput) int
-		SetLabel                      func(childComplexity int, input SetLabelInput) int
-		TestContactMethod             func(childComplexity int, id string) int
-		UpdateAlerts                  func(childComplexity int, input UpdateAlertsInput) int
-		UpdateCalendarSubscription    func(childComplexity int, input UpdateCalendarSubscriptionInput) int
-		UpdateEscalationPolicy        func(childComplexity int, input UpdateEscalationPolicyInput) int
-		UpdateEscalationPolicyStep    func(childComplexity int, input UpdateEscalationPolicyStepInput) int
-		UpdateHeartbeatMonitor        func(childComplexity int, input UpdateHeartbeatMonitorInput) int
-		UpdateRotation                func(childComplexity int, input UpdateRotationInput) int
-		UpdateSchedule                func(childComplexity int, input UpdateScheduleInput) int
-		UpdateScheduleTarget          func(childComplexity int, input ScheduleTargetInput) int
-		UpdateService                 func(childComplexity int, input UpdateServiceInput) int
-		UpdateUser                    func(childComplexity int, input UpdateUserInput) int
-		UpdateUserContactMethod       func(childComplexity int, input UpdateUserContactMethodInput) int
-		UpdateUserOverride            func(childComplexity int, input UpdateUserOverrideInput) int
-		VerifyContactMethod           func(childComplexity int, input VerifyContactMethodInput) int
+		AddAuthSubject                 func(childComplexity int, input user.AuthSubject) int
+		CreateAlert                    func(childComplexity int, input CreateAlertInput) int
+		CreateEscalationPolicy         func(childComplexity int, input CreateEscalationPolicyInput) int
+		CreateEscalationPolicyStep     func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateHeartbeatMonitor         func(childComplexity int, input CreateHeartbeatMonitorInput) int
+		CreateIntegrationKey           func(childComplexity int, input CreateIntegrationKeyInput) int
+		CreateRotation                 func(childComplexity int, input CreateRotationInput) int
+		CreateSchedule                 func(childComplexity int, input CreateScheduleInput) int
+		CreateService                  func(childComplexity int, input CreateServiceInput) int
+		CreateUserContactMethod        func(childComplexity int, input CreateUserContactMethodInput) int
+		CreateUserNotificationRule     func(childComplexity int, input CreateUserNotificationRuleInput) int
+		CreateUserOverride             func(childComplexity int, input CreateUserOverrideInput) int
+		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
+		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
+		EscalateAlerts                 func(childComplexity int, input []int) int
+		SendContactMethodVerification  func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
+		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
+		SetLabel                       func(childComplexity int, input SetLabelInput) int
+		TestContactMethod              func(childComplexity int, id string) int
+		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
+		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
+		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
+		UpdateRotation                 func(childComplexity int, input UpdateRotationInput) int
+		UpdateSchedule                 func(childComplexity int, input UpdateScheduleInput) int
+		UpdateScheduleTarget           func(childComplexity int, input ScheduleTargetInput) int
+		UpdateService                  func(childComplexity int, input UpdateServiceInput) int
+		UpdateUser                     func(childComplexity int, input UpdateUserInput) int
+		UpdateUserContactMethod        func(childComplexity int, input UpdateUserContactMethodInput) int
+		UpdateUserOverride             func(childComplexity int, input UpdateUserOverrideInput) int
+		UserCreateCalendarSubscription func(childComplexity int, input UserCreateCalendarSubscriptionInput) int
+		UserUpdateCalendarSubscription func(childComplexity int, input UserUpdateCalendarSubscriptionInput) int
+		VerifyContactMethod            func(childComplexity int, input VerifyContactMethodInput) int
 	}
 
 	OnCallShift struct {
@@ -247,33 +247,33 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Alert                   func(childComplexity int, id int) int
-		Alerts                  func(childComplexity int, input *AlertSearchOptions) int
-		AuthSubjectsForProvider func(childComplexity int, first *int, after *string, providerID string) int
-		CalendarSubscription    func(childComplexity int, id string) int
-		Config                  func(childComplexity int, all *bool) int
-		ConfigHints             func(childComplexity int) int
-		EscalationPolicies      func(childComplexity int, input *EscalationPolicySearchOptions) int
-		EscalationPolicy        func(childComplexity int, id string) int
-		HeartbeatMonitor        func(childComplexity int, id string) int
-		IntegrationKey          func(childComplexity int, id string) int
-		LabelKeys               func(childComplexity int, input *LabelKeySearchOptions) int
-		LabelValues             func(childComplexity int, input *LabelValueSearchOptions) int
-		Labels                  func(childComplexity int, input *LabelSearchOptions) int
-		Rotation                func(childComplexity int, id string) int
-		Rotations               func(childComplexity int, input *RotationSearchOptions) int
-		Schedule                func(childComplexity int, id string) int
-		Schedules               func(childComplexity int, input *ScheduleSearchOptions) int
-		Service                 func(childComplexity int, id string) int
-		Services                func(childComplexity int, input *ServiceSearchOptions) int
-		SlackChannel            func(childComplexity int, id string) int
-		SlackChannels           func(childComplexity int, input *SlackChannelSearchOptions) int
-		TimeZones               func(childComplexity int, input *TimeZoneSearchOptions) int
-		User                    func(childComplexity int, id *string) int
-		UserContactMethod       func(childComplexity int, id string) int
-		UserOverride            func(childComplexity int, id string) int
-		UserOverrides           func(childComplexity int, input *UserOverrideSearchOptions) int
-		Users                   func(childComplexity int, input *UserSearchOptions, first *int, after *string, search *string) int
+		Alert                    func(childComplexity int, id int) int
+		Alerts                   func(childComplexity int, input *AlertSearchOptions) int
+		AuthSubjectsForProvider  func(childComplexity int, first *int, after *string, providerID string) int
+		Config                   func(childComplexity int, all *bool) int
+		ConfigHints              func(childComplexity int) int
+		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
+		EscalationPolicy         func(childComplexity int, id string) int
+		HeartbeatMonitor         func(childComplexity int, id string) int
+		IntegrationKey           func(childComplexity int, id string) int
+		LabelKeys                func(childComplexity int, input *LabelKeySearchOptions) int
+		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
+		Labels                   func(childComplexity int, input *LabelSearchOptions) int
+		Rotation                 func(childComplexity int, id string) int
+		Rotations                func(childComplexity int, input *RotationSearchOptions) int
+		Schedule                 func(childComplexity int, id string) int
+		Schedules                func(childComplexity int, input *ScheduleSearchOptions) int
+		Service                  func(childComplexity int, id string) int
+		Services                 func(childComplexity int, input *ServiceSearchOptions) int
+		SlackChannel             func(childComplexity int, id string) int
+		SlackChannels            func(childComplexity int, input *SlackChannelSearchOptions) int
+		TimeZones                func(childComplexity int, input *TimeZoneSearchOptions) int
+		User                     func(childComplexity int, id *string) int
+		UserCalendarSubscription func(childComplexity int, id string) int
+		UserContactMethod        func(childComplexity int, id string) int
+		UserOverride             func(childComplexity int, id string) int
+		UserOverrides            func(childComplexity int, input *UserOverrideSearchOptions) int
+		Users                    func(childComplexity int, input *UserSearchOptions, first *int, after *string, search *string) int
 	}
 
 	Rotation struct {
@@ -490,8 +490,8 @@ type MutationResolver interface {
 	CreateHeartbeatMonitor(ctx context.Context, input CreateHeartbeatMonitorInput) (*heartbeat.Monitor, error)
 	SetLabel(ctx context.Context, input SetLabelInput) (bool, error)
 	CreateSchedule(ctx context.Context, input CreateScheduleInput) (*schedule.Schedule, error)
-	CreateCalendarSubscription(ctx context.Context, input CreateCalendarSubscriptionInput) (*calendarsubscription.CalendarSubscription, error)
-	UpdateCalendarSubscription(ctx context.Context, input UpdateCalendarSubscriptionInput) (bool, error)
+	UserCreateCalendarSubscription(ctx context.Context, input UserCreateCalendarSubscriptionInput) (*calendarsubscription.CalendarSubscription, error)
+	UserUpdateCalendarSubscription(ctx context.Context, input UserUpdateCalendarSubscriptionInput) (bool, error)
 	UpdateScheduleTarget(ctx context.Context, input ScheduleTargetInput) (bool, error)
 	CreateUserOverride(ctx context.Context, input CreateUserOverrideInput) (*override.UserOverride, error)
 	CreateUserContactMethod(ctx context.Context, input CreateUserContactMethodInput) (*contactmethod.ContactMethod, error)
@@ -519,7 +519,7 @@ type QueryResolver interface {
 	Rotation(ctx context.Context, id string) (*rotation.Rotation, error)
 	Rotations(ctx context.Context, input *RotationSearchOptions) (*RotationConnection, error)
 	Schedule(ctx context.Context, id string) (*schedule.Schedule, error)
-	CalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error)
+	UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error)
 	Schedules(ctx context.Context, input *ScheduleSearchOptions) (*ScheduleConnection, error)
 	EscalationPolicy(ctx context.Context, id string) (*escalation.Policy, error)
 	EscalationPolicies(ctx context.Context, input *EscalationPolicySearchOptions) (*EscalationPolicyConnection, error)
@@ -1104,18 +1104,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateAlert(childComplexity, args["input"].(CreateAlertInput)), true
 
-	case "Mutation.createCalendarSubscription":
-		if e.complexity.Mutation.CreateCalendarSubscription == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createCalendarSubscription_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateCalendarSubscription(childComplexity, args["input"].(CreateCalendarSubscriptionInput)), true
-
 	case "Mutation.createEscalationPolicy":
 		if e.complexity.Mutation.CreateEscalationPolicy == nil {
 			break
@@ -1344,18 +1332,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateAlerts(childComplexity, args["input"].(UpdateAlertsInput)), true
 
-	case "Mutation.updateCalendarSubscription":
-		if e.complexity.Mutation.UpdateCalendarSubscription == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateCalendarSubscription_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateCalendarSubscription(childComplexity, args["input"].(UpdateCalendarSubscriptionInput)), true
-
 	case "Mutation.updateEscalationPolicy":
 		if e.complexity.Mutation.UpdateEscalationPolicy == nil {
 			break
@@ -1476,6 +1452,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserOverride(childComplexity, args["input"].(UpdateUserOverrideInput)), true
 
+	case "Mutation.userCreateCalendarSubscription":
+		if e.complexity.Mutation.UserCreateCalendarSubscription == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_userCreateCalendarSubscription_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UserCreateCalendarSubscription(childComplexity, args["input"].(UserCreateCalendarSubscriptionInput)), true
+
+	case "Mutation.userUpdateCalendarSubscription":
+		if e.complexity.Mutation.UserUpdateCalendarSubscription == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_userUpdateCalendarSubscription_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UserUpdateCalendarSubscription(childComplexity, args["input"].(UserUpdateCalendarSubscriptionInput)), true
+
 	case "Mutation.verifyContactMethod":
 		if e.complexity.Mutation.VerifyContactMethod == nil {
 			break
@@ -1572,18 +1572,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.AuthSubjectsForProvider(childComplexity, args["first"].(*int), args["after"].(*string), args["providerID"].(string)), true
-
-	case "Query.calendarSubscription":
-		if e.complexity.Query.CalendarSubscription == nil {
-			break
-		}
-
-		args, err := ec.field_Query_calendarSubscription_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.CalendarSubscription(childComplexity, args["id"].(string)), true
 
 	case "Query.config":
 		if e.complexity.Query.Config == nil {
@@ -1807,6 +1795,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.User(childComplexity, args["id"].(*string)), true
+
+	case "Query.userCalendarSubscription":
+		if e.complexity.Query.UserCalendarSubscription == nil {
+			break
+		}
+
+		args, err := ec.field_Query_userCalendarSubscription_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserCalendarSubscription(childComplexity, args["id"].(string)), true
 
 	case "Query.userContactMethod":
 		if e.complexity.Query.UserContactMethod == nil {
@@ -2625,7 +2625,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
   schedule(id: ID!): Schedule
 
   # Returns the public information of a calendar subscription
-  calendarSubscription(id: ID!): CalendarSubscription
+  userCalendarSubscription(id: ID!): CalendarSubscription
 
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
@@ -2821,10 +2821,10 @@ type Mutation {
 
   createSchedule(input: CreateScheduleInput!): Schedule
 
-  createCalendarSubscription(
-    input: CreateCalendarSubscriptionInput!
+  userCreateCalendarSubscription(
+    input: UserCreateCalendarSubscriptionInput!
   ): CalendarSubscription!
-  updateCalendarSubscription(input: UpdateCalendarSubscriptionInput!): Boolean!
+  userUpdateCalendarSubscription(input: UserUpdateCalendarSubscriptionInput!): Boolean!
 
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
@@ -2855,13 +2855,13 @@ input CreateAlertInput {
   serviceID: ID!
 }
 
-input CreateCalendarSubscriptionInput {
+input UserCreateCalendarSubscriptionInput {
   name: String!
   notificationMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
 }
-input UpdateCalendarSubscriptionInput {
+input UserUpdateCalendarSubscriptionInput {
   id: ID!
   name: String
   notificationMinutes: [Int!]
@@ -3550,20 +3550,6 @@ func (ec *executionContext) field_Mutation_createAlert_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 CreateCalendarSubscriptionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNCreateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateCalendarSubscriptionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_createEscalationPolicyStep_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3830,20 +3816,6 @@ func (ec *executionContext) field_Mutation_updateAlerts_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 UpdateCalendarSubscriptionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNUpdateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateCalendarSubscriptionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateEscalationPolicyStep_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3984,6 +3956,34 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_userCreateCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UserCreateCalendarSubscriptionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUserCreateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserCreateCalendarSubscriptionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_userUpdateCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UserUpdateCalendarSubscriptionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUserUpdateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserUpdateCalendarSubscriptionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_verifyContactMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4067,20 +4067,6 @@ func (ec *executionContext) field_Query_authSubjectsForProvider_args(ctx context
 		}
 	}
 	args["providerID"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_calendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -4319,6 +4305,20 @@ func (ec *executionContext) field_Query_timeZones_args(ctx context.Context, rawA
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_userCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -7864,7 +7864,7 @@ func (ec *executionContext) _Mutation_createSchedule(ctx context.Context, field 
 	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_userCreateCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -7881,7 +7881,7 @@ func (ec *executionContext) _Mutation_createCalendarSubscription(ctx context.Con
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createCalendarSubscription_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_userCreateCalendarSubscription_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -7890,7 +7890,7 @@ func (ec *executionContext) _Mutation_createCalendarSubscription(ctx context.Con
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateCalendarSubscription(rctx, args["input"].(CreateCalendarSubscriptionInput))
+		return ec.resolvers.Mutation().UserCreateCalendarSubscription(rctx, args["input"].(UserCreateCalendarSubscriptionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7908,7 +7908,7 @@ func (ec *executionContext) _Mutation_createCalendarSubscription(ctx context.Con
 	return ec.marshalNCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_userUpdateCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -7925,7 +7925,7 @@ func (ec *executionContext) _Mutation_updateCalendarSubscription(ctx context.Con
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateCalendarSubscription_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_userUpdateCalendarSubscription_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -7934,7 +7934,7 @@ func (ec *executionContext) _Mutation_updateCalendarSubscription(ctx context.Con
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateCalendarSubscription(rctx, args["input"].(UpdateCalendarSubscriptionInput))
+		return ec.resolvers.Mutation().UserUpdateCalendarSubscription(rctx, args["input"].(UserUpdateCalendarSubscriptionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9143,7 +9143,7 @@ func (ec *executionContext) _Query_schedule(ctx context.Context, field graphql.C
 	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_calendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_userCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -9160,7 +9160,7 @@ func (ec *executionContext) _Query_calendarSubscription(ctx context.Context, fie
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_calendarSubscription_args(ctx, rawArgs)
+	args, err := ec.field_Query_userCalendarSubscription_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -9169,7 +9169,7 @@ func (ec *executionContext) _Query_calendarSubscription(ctx context.Context, fie
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().CalendarSubscription(rctx, args["id"].(string))
+		return ec.resolvers.Query().UserCalendarSubscription(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14658,42 +14658,6 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputCreateCalendarSubscriptionInput(ctx context.Context, obj interface{}) (CreateCalendarSubscriptionInput, error) {
-	var it CreateCalendarSubscriptionInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "name":
-			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "notificationMinutes":
-			var err error
-			it.NotificationMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "scheduleID":
-			var err error
-			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "disabled":
-			var err error
-			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx context.Context, obj interface{}) (CreateEscalationPolicyInput, error) {
 	var it CreateEscalationPolicyInput
 	var asMap = obj.(map[string]interface{})
@@ -15716,42 +15680,6 @@ func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateCalendarSubscriptionInput(ctx context.Context, obj interface{}) (UpdateCalendarSubscriptionInput, error) {
-	var it UpdateCalendarSubscriptionInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "notificationMinutes":
-			var err error
-			it.NotificationMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "disabled":
-			var err error
-			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputUpdateEscalationPolicyInput(ctx context.Context, obj interface{}) (UpdateEscalationPolicyInput, error) {
 	var it UpdateEscalationPolicyInput
 	var asMap = obj.(map[string]interface{})
@@ -16106,6 +16034,42 @@ func (ec *executionContext) unmarshalInputUpdateUserOverrideInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUserCreateCalendarSubscriptionInput(ctx context.Context, obj interface{}) (UserCreateCalendarSubscriptionInput, error) {
+	var it UserCreateCalendarSubscriptionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "notificationMinutes":
+			var err error
+			it.NotificationMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "scheduleID":
+			var err error
+			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "disabled":
+			var err error
+			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserOverrideSearchOptions(ctx context.Context, obj interface{}) (UserOverrideSearchOptions, error) {
 	var it UserOverrideSearchOptions
 	var asMap = obj.(map[string]interface{})
@@ -16207,6 +16171,42 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 		case "omit":
 			var err error
 			it.Omit, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUserUpdateCalendarSubscriptionInput(ctx context.Context, obj interface{}) (UserUpdateCalendarSubscriptionInput, error) {
+	var it UserUpdateCalendarSubscriptionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "notificationMinutes":
+			var err error
+			it.NotificationMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "disabled":
+			var err error
+			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17182,13 +17182,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createSchedule":
 			out.Values[i] = ec._Mutation_createSchedule(ctx, field)
-		case "createCalendarSubscription":
-			out.Values[i] = ec._Mutation_createCalendarSubscription(ctx, field)
+		case "userCreateCalendarSubscription":
+			out.Values[i] = ec._Mutation_userCreateCalendarSubscription(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateCalendarSubscription":
-			out.Values[i] = ec._Mutation_updateCalendarSubscription(ctx, field)
+		case "userUpdateCalendarSubscription":
+			out.Values[i] = ec._Mutation_userUpdateCalendarSubscription(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17479,7 +17479,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_schedule(ctx, field)
 				return res
 			})
-		case "calendarSubscription":
+		case "userCalendarSubscription":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -17487,7 +17487,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_calendarSubscription(ctx, field)
+				res = ec._Query_userCalendarSubscription(ctx, field)
 				return res
 			})
 		case "schedules":
@@ -19541,10 +19541,6 @@ func (ec *executionContext) unmarshalNCreateAlertInput2githubᚗcomᚋtargetᚋg
 	return ec.unmarshalInputCreateAlertInput(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNCreateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateCalendarSubscriptionInput(ctx context.Context, v interface{}) (CreateCalendarSubscriptionInput, error) {
-	return ec.unmarshalInputCreateCalendarSubscriptionInput(ctx, v)
-}
-
 func (ec *executionContext) unmarshalNCreateEscalationPolicyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyInput(ctx context.Context, v interface{}) (CreateEscalationPolicyInput, error) {
 	return ec.unmarshalInputCreateEscalationPolicyInput(ctx, v)
 }
@@ -20620,10 +20616,6 @@ func (ec *executionContext) unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋ
 	return ec.unmarshalInputUpdateAlertsInput(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNUpdateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateCalendarSubscriptionInput(ctx context.Context, v interface{}) (UpdateCalendarSubscriptionInput, error) {
-	return ec.unmarshalInputUpdateCalendarSubscriptionInput(ctx, v)
-}
-
 func (ec *executionContext) unmarshalNUpdateEscalationPolicyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateEscalationPolicyInput(ctx context.Context, v interface{}) (UpdateEscalationPolicyInput, error) {
 	return ec.unmarshalInputUpdateEscalationPolicyInput(ctx, v)
 }
@@ -20756,6 +20748,10 @@ func (ec *executionContext) marshalNUserContactMethod2ᚕgithubᚗcomᚋtarget�
 	return ret
 }
 
+func (ec *executionContext) unmarshalNUserCreateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserCreateCalendarSubscriptionInput(ctx context.Context, v interface{}) (UserCreateCalendarSubscriptionInput, error) {
+	return ec.unmarshalInputUserCreateCalendarSubscriptionInput(ctx, v)
+}
+
 func (ec *executionContext) marshalNUserNotificationRule2githubᚗcomᚋtargetᚋgoalertᚋuserᚋnotificationruleᚐNotificationRule(ctx context.Context, sel ast.SelectionSet, v notificationrule.NotificationRule) graphql.Marshaler {
 	return ec._UserNotificationRule(ctx, sel, &v)
 }
@@ -20859,6 +20855,10 @@ func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋtargetᚋgoalert�
 
 func (ec *executionContext) marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx context.Context, sel ast.SelectionSet, v UserRole) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNUserUpdateCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserUpdateCalendarSubscriptionInput(ctx context.Context, v interface{}) (UserUpdateCalendarSubscriptionInput, error) {
+	return ec.unmarshalInputUserUpdateCalendarSubscriptionInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyContactMethodInput(ctx context.Context, v interface{}) (VerifyContactMethodInput, error) {
