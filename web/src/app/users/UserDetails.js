@@ -159,9 +159,8 @@ export default function UserDetails(props) {
               : 'Not currently on-call',
           },
           {
-            label: 'On-Call Subscriptions',
-            url: 'on-call-subscriptions',
-            subText: 'A list of all of your calendar subscriptions',
+            label: 'Schedule Calendar Subscriptions',
+            url: 'calendar-subscriptions',
           },
         ]}
         titleFooter={

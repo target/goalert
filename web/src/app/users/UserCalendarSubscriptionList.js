@@ -7,7 +7,7 @@ import CreateFAB from '../lists/CreateFAB'
 import CalendarSubscribeDialog from '../schedules/calendar-subscribe/CalendarSubscribeDialog'
 import { Warning } from '../icons'
 
-export default function UserOnCallSubscriptionList(props) {
+export default function UserCalendarSubscriptionList(props) {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   function renderOtherActions() {
@@ -76,6 +76,6 @@ export default function UserOnCallSubscriptionList(props) {
   )
 }
 
-UserOnCallSubscriptionList.propTypes = {
+UserCalendarSubscriptionList.propTypes = {
   userID: p.string.isRequired,
 }
