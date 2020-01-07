@@ -3,6 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import { Button, Grid, makeStyles, Typography } from '@material-ui/core/index'
 import CalendarIcon from 'mdi-material-ui/Calendar'
 import CalendarSubscribeDialog from './CalendarSubscribeDialog'
+import { Link } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
   calIcon: {
@@ -42,6 +43,11 @@ export default function CalendarSubscribeButton(props) {
         <Grid item xs={12} className={classes.captionContainer}>
           <Typography variant='caption' color='textSecondary'>
             {caption}
+          </Typography>
+          <Typography variant='caption'>
+            <Link to='/profile/calendar-subscriptions'>
+              Manage subscriptions
+            </Link>
           </Typography>
         </Grid>
       </Grid>
