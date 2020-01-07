@@ -68,10 +68,9 @@ export default function UserCalendarSubscriptionList(props) {
         title='Create Subscription'
         onClick={() => setShowCreateDialog(true)}
       />
-      <CalendarSubscribeDialog
-        open={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
-      />
+      {showCreateDialog && (
+        <CalendarSubscribeDialog onClose={() => setShowCreateDialog(false)} />
+      )}
     </React.Fragment>
   )
 }

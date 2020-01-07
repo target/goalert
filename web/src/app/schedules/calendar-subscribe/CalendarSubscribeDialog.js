@@ -33,33 +33,30 @@ export default function CalendarSubscribeDialog(props) {
   )
 
   return (
-    props.open && (
-      <FormDialog
-        title={
-          complete ? (
-            <div
-              style={{ color: 'green', display: 'flex', alignItems: 'center' }}
-            >
-              <SuccessIcon />
-              &nbsp;Success!
-            </div>
-          ) : (
-            'Create New Calendar Subscription'
-          )
-        }
-        subTitle={SUBTITLE}
-        onClose={props.onClose}
-        alert={complete}
-        primaryActionLabel={complete ? 'Done' : null}
-        onSubmit={() => (complete ? props.onClose() : submit())}
-        form={form}
-      />
-    )
+    <FormDialog
+      title={
+        complete ? (
+          <div
+            style={{ color: 'green', display: 'flex', alignItems: 'center' }}
+          >
+            <SuccessIcon />
+            &nbsp;Success!
+          </div>
+        ) : (
+          'Create New Calendar Subscription'
+        )
+      }
+      subTitle={SUBTITLE}
+      onClose={props.onClose}
+      alert={complete}
+      primaryActionLabel={complete ? 'Done' : null}
+      onSubmit={() => (complete ? props.onClose() : submit())}
+      form={form}
+    />
   )
 }
 
 CalendarSubscribeDialog.propTypes = {
-  open: p.bool.isRequired,
   onClose: p.func.isRequired,
   scheduleID: p.string,
 }
