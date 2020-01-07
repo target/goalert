@@ -4,7 +4,7 @@ import { Card, Tooltip } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
-import CalendarSubscribeDialog from '../schedules/CalendarSubscribeDialog'
+import CalendarSubscribeDialog from '../schedules/calendar-subscribe/CalendarSubscribeDialog'
 import { Warning } from '../icons'
 
 export default function UserOnCallSubscriptionList(props) {
@@ -20,14 +20,6 @@ export default function UserOnCallSubscriptionList(props) {
           },
           {
             label: 'Delete',
-            onClick: () => {},
-          },
-          {
-            label: 'Disable',
-            onClick: () => {},
-          },
-          {
-            label: 'Regenerate URL',
             onClick: () => {},
           },
         ]}
