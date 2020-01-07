@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
+import { makeStyles } from '@material-ui/core'
 import { CheckCircleOutline as SuccessIcon } from '@material-ui/icons'
 import FormDialog from '../../dialogs/FormDialog'
 import CalenderSuccessForm from './CalendarSuccessForm'
@@ -10,7 +11,16 @@ const MOCK_URL =
 const SUBTITLE =
   'Create a unique iCalendar subscription URL that can be used in your preferred calendar application.'
 
+const useStyles = makeStyles({
+  successTitle: {
+    color: 'green',
+    display: 'flex',
+    alignItems: 'center',
+  },
+})
+
 export default function CalendarSubscribeDialog(props) {
+  const classes = useStyles()
   const [complete, setComplete] = useState(false)
   const [value, setValue] = useState({
     name: '',
@@ -36,9 +46,7 @@ export default function CalendarSubscribeDialog(props) {
     <FormDialog
       title={
         complete ? (
-          <div
-            style={{ color: 'green', display: 'flex', alignItems: 'center' }}
-          >
+          <div className={classes.successTitle}>
             <SuccessIcon />
             &nbsp;Success!
           </div>
