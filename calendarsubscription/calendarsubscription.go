@@ -11,11 +11,10 @@ type CalendarSubscription struct {
 	UserID     string    `json:"user_id"`
 	LastAccess time.Time `json:"last_access"`
 	Disabled   bool      `json:"disabled"`
-	Config	   []byte  `json:"config"`
-	ScheduleID string 	`json:"schedule_id"`
+	Config     []byte    `json:"config"`
+	ScheduleID string    `json:"schedule_id"`
 
 	NMinutes []int `json:"notification_minutes"`
-
 }
 
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {

@@ -52,8 +52,8 @@ func (m *Mutation) UserCreateCalendarSubscription(ctx context.Context, input gra
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
 		Config:     configJson,
-		NMinutes: input.NotificationMinutes,
-		Disabled:	*input.Disabled,
+		NMinutes:   input.NotificationMinutes,
+		Disabled:   *input.Disabled,
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
@@ -96,4 +96,3 @@ func (m *Mutation) UserUpdateCalendarSubscription(ctx context.Context, input gra
 	})
 	return err == nil, err
 }
-

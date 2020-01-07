@@ -12,12 +12,12 @@ import (
 )
 
 type Store struct {
-	db *sql.DB
-	findOne *sql.Stmt
-	create  *sql.Stmt
-	update  *sql.Stmt
-	delete  *sql.Stmt
-	findAll *sql.Stmt
+	db         *sql.DB
+	findOne    *sql.Stmt
+	create     *sql.Stmt
+	update     *sql.Stmt
+	delete     *sql.Stmt
+	findAll    *sql.Stmt
 	findOneUpd *sql.Stmt
 }
 
@@ -30,19 +30,18 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{
-		db: db,
+		db:      db,
 		findOne: p.P(`SELECT * FROM user_calendar_subscriptions cs WHERE cs.id = $1`),
 		create: p.P(`
 				INSERT INTO user_calendar_subscriptions (user_id, id, name, config, schedule_id, disabled)
 				VALUES ($1, $2, $3, $4, $5, $6)
 			`),
-		update: p.P(`UPDATE user_calendar_subscriptions SET name = $3, disabled = $4, config = $5 WHERE id = $1 AND user_id = $2`),
-		delete: p.P(`DELETE FROM user_calendar_subscriptions WHERE id = any($1) AND user_id = $2`),
-		findAll: p.P(`SELECT * FROM user_calendar_subscriptions WHERE user_id = $1`),
+		update:     p.P(`UPDATE user_calendar_subscriptions SET name = $3, disabled = $4, config = $5 WHERE id = $1 AND user_id = $2`),
+		delete:     p.P(`DELETE FROM user_calendar_subscriptions WHERE id = any($1) AND user_id = $2`),
+		findAll:    p.P(`SELECT * FROM user_calendar_subscriptions WHERE user_id = $1`),
 		findOneUpd: p.P(`SELECT id, name, user_id, disabled, config FROM user_calendar_subscriptions WHERE id = $1 FOR UPDATE`),
 	}, p.Err
 }
-
 
 func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	if tx == nil {
@@ -50,6 +49,7 @@ func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	}
 	return tx.StmtContext(ctx, stmt)
 }
+
 // FindOne will return a single calendar subscription for the given id.
 func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
