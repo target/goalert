@@ -21,6 +21,10 @@ export class FormField extends React.PureComponent {
     // passed to the parent form's state.
     mapOnChangeValue: p.func,
 
+    // if passed, this will be used instead of the onChange from FormContainer
+    // use with care
+    overrideOnChange: p.func,
+
     // Adjusts props for usage with a Checkbox component.
     checkbox: p.bool,
 
@@ -104,6 +108,7 @@ export class FormField extends React.PureComponent {
       InputLabelProps: _inputProps,
       mapValue,
       mapOnChangeValue,
+      overrideOnChange,
       checkbox,
 
       ...otherFieldProps
@@ -145,8 +150,12 @@ export class FormField extends React.PureComponent {
       props.InputLabelProps = InputLabelProps
     }
 
-    props.onChange = value =>
-      onChange(fieldName, mapOnChangeValue(getValueOf(value)))
+    if (overrideOnChange) {
+      props.onChange = value => overrideOnChange(value)
+    } else {
+      props.onChange = value =>
+        onChange(fieldName, mapOnChangeValue(getValueOf(value)))
+    }
 
     return (
       <MountWatcher

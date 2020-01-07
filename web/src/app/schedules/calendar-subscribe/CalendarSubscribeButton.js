@@ -15,7 +15,7 @@ export default function CalendarSubscribeButton(props) {
   const classes = useStyles()
 
   const caption =
-    'Subscribe to your upcoming shifts via your preferred calendar'
+    'Subscribe to your shifts on this calendar from your preferred calendar app'
   // const caption = 'You have 1 active subscription for this schedule'
 
   return (
@@ -33,7 +33,7 @@ export default function CalendarSubscribeButton(props) {
             variant='contained'
           >
             <CalendarIcon className={classes.calIcon} />
-            Subscribe to My Shifts
+            Subscribe
           </Button>
         </Grid>
         <Grid item xs={12}>
