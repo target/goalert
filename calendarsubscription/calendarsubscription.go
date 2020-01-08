@@ -14,7 +14,7 @@ type CalendarSubscription struct {
 	Config     []byte    `json:"config"`
 	ScheduleID string    `json:"schedule_id"`
 
-	NMinutes []int `json:"notification_minutes"`
+	ReminderMinutes []int `json:"reminder_minutes"`
 }
 
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {

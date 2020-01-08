@@ -390,10 +390,10 @@ type UserConnection struct {
 }
 
 type UserCreateCalendarSubscriptionInput struct {
-	Name                string `json:"name"`
-	NotificationMinutes []int  `json:"notificationMinutes"`
-	ScheduleID          string `json:"scheduleID"`
-	Disabled            *bool  `json:"disabled"`
+	Name            string `json:"name"`
+	ReminderMinutes []int  `json:"reminderMinutes"`
+	ScheduleID      string `json:"scheduleID"`
+	Disabled        *bool  `json:"disabled"`
 }
 
 type UserOverrideConnection struct {
@@ -421,10 +421,10 @@ type UserSearchOptions struct {
 }
 
 type UserUpdateCalendarSubscriptionInput struct {
-	ID                  string  `json:"id"`
-	Name                *string `json:"name"`
-	NotificationMinutes []int   `json:"notificationMinutes"`
-	Disabled            *bool   `json:"disabled"`
+	ID              string  `json:"id"`
+	Name            *string `json:"name"`
+	ReminderMinutes []int   `json:"reminderMinutes"`
+	Disabled        *bool   `json:"disabled"`
 }
 
 type VerifyContactMethodInput struct {

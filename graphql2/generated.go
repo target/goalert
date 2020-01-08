@@ -125,12 +125,12 @@ type ComplexityRoot struct {
 	}
 
 	CalendarSubscription struct {
-		ID                  func(childComplexity int) int
-		Name                func(childComplexity int) int
-		NotificationMinutes func(childComplexity int) int
-		Schedule            func(childComplexity int) int
-		ScheduleID          func(childComplexity int) int
-		URL                 func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Name            func(childComplexity int) int
+		ReminderMinutes func(childComplexity int) int
+		Schedule        func(childComplexity int) int
+		ScheduleID      func(childComplexity int) int
+		URL             func(childComplexity int) int
 	}
 
 	ConfigHint struct {
@@ -445,8 +445,6 @@ type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
 }
 type CalendarSubscriptionResolver interface {
-	NotificationMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error)
-
 	Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error)
 	URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error)
 }
@@ -800,12 +798,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CalendarSubscription.Name(childComplexity), true
 
-	case "CalendarSubscription.notificationMinutes":
-		if e.complexity.CalendarSubscription.NotificationMinutes == nil {
+	case "CalendarSubscription.reminderMinutes":
+		if e.complexity.CalendarSubscription.ReminderMinutes == nil {
 			break
 		}
 
-		return e.complexity.CalendarSubscription.NotificationMinutes(childComplexity), true
+		return e.complexity.CalendarSubscription.ReminderMinutes(childComplexity), true
 
 	case "CalendarSubscription.schedule":
 		if e.complexity.CalendarSubscription.Schedule == nil {
@@ -2857,20 +2855,20 @@ input CreateAlertInput {
 
 input UserCreateCalendarSubscriptionInput {
   name: String!
-  notificationMinutes: [Int!]
+  reminderMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
 }
 input UserUpdateCalendarSubscriptionInput {
   id: ID!
   name: String
-  notificationMinutes: [Int!]
+  reminderMinutes: [Int!]
   disabled: Boolean
 }
 type CalendarSubscription {
   ID: ID!
   name: String!
-  notificationMinutes: [Int!]!
+  reminderMinutes: [Int!]!
   scheduleID: ID!
   schedule: Schedule
   url: String # Only available upon creation.
@@ -5502,7 +5500,7 @@ func (ec *executionContext) _CalendarSubscription_name(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CalendarSubscription_notificationMinutes(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+func (ec *executionContext) _CalendarSubscription_reminderMinutes(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -5515,13 +5513,13 @@ func (ec *executionContext) _CalendarSubscription_notificationMinutes(ctx contex
 		Object:   "CalendarSubscription",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CalendarSubscription().NotificationMinutes(rctx, obj)
+		return obj.ReminderMinutes, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16046,9 +16044,9 @@ func (ec *executionContext) unmarshalInputUserCreateCalendarSubscriptionInput(ct
 			if err != nil {
 				return it, err
 			}
-		case "notificationMinutes":
+		case "reminderMinutes":
 			var err error
-			it.NotificationMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			it.ReminderMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16198,9 +16196,9 @@ func (ec *executionContext) unmarshalInputUserUpdateCalendarSubscriptionInput(ct
 			if err != nil {
 				return it, err
 			}
-		case "notificationMinutes":
+		case "reminderMinutes":
 			var err error
-			it.NotificationMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			it.ReminderMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16596,20 +16594,11 @@ func (ec *executionContext) _CalendarSubscription(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "notificationMinutes":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CalendarSubscription_notificationMinutes(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+		case "reminderMinutes":
+			out.Values[i] = ec._CalendarSubscription_reminderMinutes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "scheduleID":
 			out.Values[i] = ec._CalendarSubscription_scheduleID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

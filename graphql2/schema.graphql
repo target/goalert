@@ -271,20 +271,20 @@ input CreateAlertInput {
 
 input UserCreateCalendarSubscriptionInput {
   name: String!
-  notificationMinutes: [Int!]
+  reminderMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
 }
 input UserUpdateCalendarSubscriptionInput {
   id: ID!
   name: String
-  notificationMinutes: [Int!]
+  reminderMinutes: [Int!]
   disabled: Boolean
 }
 type CalendarSubscription {
   ID: ID!
   name: String!
-  notificationMinutes: [Int!]!
+  reminderMinutes: [Int!]!
   scheduleID: ID!
   schedule: Schedule
   url: String # Only available upon creation.

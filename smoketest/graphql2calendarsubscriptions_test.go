@@ -19,7 +19,7 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		values ({{uuid "sched1"}}, 'default', 'America/Chicago');
 
 		insert into user_calendar_subscriptions (id, name, user_id, config, schedule_id)
-		values ({{uuid "cs1"}}, 'test1', {{uuid "user"}}, '{ "notification_minutes": [2, 4, 8, 16]}', {{uuid "sched1"}});
+		values ({{uuid "cs1"}}, 'test1', {{uuid "user"}}, '{ "reminder_minutes": [2, 4, 8, 16]}', {{uuid "sched1"}});
 
 	`
 
@@ -80,7 +80,7 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		  userCreateCalendarSubscription(input: {
 			name: "%s"
 			scheduleID: "%s"
-			notificationMinutes: [%d]
+			reminderMinutes: [%d]
 			disabled: %v
 		  }) {
 			ID
@@ -96,7 +96,7 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		  userCreateCalendarSubscription(input: {
 			name: "%s"
 			scheduleID: "%s"
-			notificationMinutes: [%d]
+			reminderMinutes: [%d]
 			disabled: %v
 		  }) {
 			ID
@@ -145,7 +145,7 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 				calendarSubscriptions {
 				  ID
 				  name
-				  notificationMinutes
+				  reminderMinutes
 				  schedule {
 					id
 				  }

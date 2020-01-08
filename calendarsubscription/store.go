@@ -22,7 +22,7 @@ type Store struct {
 }
 
 type Config struct {
-	NotificationMinutes []int `json:"notification_minutes"`
+	ReminderMinutes []int `json:"reminder_minutes"`
 }
 
 // NewStore will create a new Store with the given parameters.

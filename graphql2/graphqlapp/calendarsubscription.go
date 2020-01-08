@@ -15,11 +15,11 @@ func (a *App) CalendarSubscription() graphql2.CalendarSubscriptionResolver {
 	return (*CalendarSubscription)(a)
 }
 
-func (a *CalendarSubscription) NotificationMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
+func (a *CalendarSubscription) ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
 	var config calendarsubscription.Config
 	err := json.Unmarshal(obj.Config, &config)
-	obj.NMinutes = config.NotificationMinutes
-	return obj.NMinutes, err
+	obj.ReminderMinutes = config.ReminderMinutes
+	return obj.ReminderMinutes, err
 }
 func (a *CalendarSubscription) ScheduleID(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (string, error) {
 	e := *obj
@@ -41,8 +41,8 @@ func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calen
 func (m *Mutation) UserCreateCalendarSubscription(ctx context.Context, input graphql2.UserCreateCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
 	var config calendarsubscription.Config
 	var configJson []byte
-	if input.NotificationMinutes != nil {
-		config.NotificationMinutes = input.NotificationMinutes
+	if input.ReminderMinutes != nil {
+		config.ReminderMinutes = input.ReminderMinutes
 		configJson, err = json.Marshal(config)
 		if err != nil {
 			return nil, err
@@ -52,7 +52,7 @@ func (m *Mutation) UserCreateCalendarSubscription(ctx context.Context, input gra
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
 		Config:     configJson,
-		NMinutes:   input.NotificationMinutes,
+		ReminderMinutes:   input.ReminderMinutes,
 		Disabled:   *input.Disabled,
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
@@ -82,10 +82,10 @@ func (m *Mutation) UserUpdateCalendarSubscription(ctx context.Context, input gra
 		if input.Disabled != nil {
 			cs.Disabled = *input.Disabled
 		}
-		if input.NotificationMinutes != nil {
+		if input.ReminderMinutes != nil {
 			var config calendarsubscription.Config
 			var configJson []byte
-			config.NotificationMinutes = input.NotificationMinutes
+			config.ReminderMinutes = input.ReminderMinutes
 			configJson, err := json.Marshal(config)
 			if err != nil {
 				return err
