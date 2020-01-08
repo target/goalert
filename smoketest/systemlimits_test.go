@@ -31,8 +31,7 @@ func TestSystemLimits(t *testing.T) {
 			({{uuid "tgt_user1"}}, 'Target 1'),
 			({{uuid "tgt_user2"}}, 'Target 2'),
 			({{uuid "tgt_user3"}}, 'Target 3'),
-			({{uuid "tgt_user4"}}, 'Target 4'),
-			({{uuid "cal_sub_user"}}, 'Cal Sub User');
+			({{uuid "tgt_user4"}}, 'Target 4');
 		
 		insert into schedules (id, name, time_zone)
 		values
@@ -69,11 +68,6 @@ func TestSystemLimits(t *testing.T) {
 			({{uuid "hb_svc"}}, 'Heartbeat Test', {{uuid "hb_ep"}}),
 			({{uuid "unack_svc1"}}, 'Unack Test 1', {{uuid "unack_ep1"}}),
 			({{uuid "unack_svc2"}}, 'Unack Test 2', {{uuid "unack_ep2"}});
-		
-		insert into calendar_subscriptions (id, name, user_id)
-		values 
-			({{uuid "cs1"}}, 'Calendar Subscription Test 1', {{uuid "cal_sub_user"}});
-
 `
 
 	h := harness.NewHarness(t, sql, "limit-configuration")
