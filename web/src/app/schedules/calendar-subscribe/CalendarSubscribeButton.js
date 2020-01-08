@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { Button, Grid, makeStyles, Typography } from '@material-ui/core/index'
 import CalendarIcon from 'mdi-material-ui/Calendar'
-import CalendarSubscribeDialog from './CalendarSubscribeDialog'
+import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { Link } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
@@ -25,7 +25,7 @@ export default function CalendarSubscribeButton(props) {
   return (
     <React.Fragment>
       {showDialog && (
-        <CalendarSubscribeDialog
+        <CalendarSubscribeCreateDialog
           onClose={() => setShowDialog(false)}
           scheduleID={props.scheduleID}
         />
