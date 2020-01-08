@@ -4,11 +4,15 @@ import { Card, Tooltip } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
-import CalendarSubscribeDialog from '../schedules/calendar-subscribe/CalendarSubscribeDialog'
+import CalendarSubscribeCreateDialog from '../schedules/calendar-subscribe/CalendarSubscribeCreateDialog'
 import { Warning } from '../icons'
+import CalendarSubscribeDeleteDialog from '../schedules/calendar-subscribe/CalendarSubscribeDeleteDialog'
+import CalendarSubscribeEditDialog from '../schedules/calendar-subscribe/CalendarSubscribeEditDialog'
 
 export default function UserCalendarSubscriptionList(props) {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [showEditDialogByID, setShowEditDialogByID] = useState(null)
+  const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
   // todo: query for data here instead
   const data = {
@@ -51,11 +55,11 @@ export default function UserCalendarSubscriptionList(props) {
         actions={[
           {
             label: 'Edit',
-            onClick: () => {},
+            onClick: () => setShowEditDialogByID(id),
           },
           {
             label: 'Delete',
-            onClick: () => {},
+            onClick: () => setShowDeleteDialogByID(id),
           },
         ]}
       />
@@ -76,7 +80,21 @@ export default function UserCalendarSubscriptionList(props) {
         onClick={() => setShowCreateDialog(true)}
       />
       {showCreateDialog && (
-        <CalendarSubscribeDialog onClose={() => setShowCreateDialog(false)} />
+        <CalendarSubscribeCreateDialog
+          onClose={() => setShowCreateDialog(false)}
+        />
+      )}
+      {showEditDialogByID && (
+        <CalendarSubscribeEditDialog
+          calSubscriptionID={showEditDialogByID}
+          onClose={() => setShowEditDialogByID(null)}
+        />
+      )}
+      {showDeleteDialogByID && (
+        <CalendarSubscribeDeleteDialog
+          calSubscriptionID={showDeleteDialogByID}
+          onClose={() => setShowDeleteDialogByID(null)}
+        />
       )}
     </React.Fragment>
   )
