@@ -121,7 +121,6 @@ func (app *App) initStores(ctx context.Context) error {
 
 	if app.CalendarSubscriptionStore == nil {
 		app.CalendarSubscriptionStore, err = calendarsubscription.NewStore(ctx, app.db)
-		//app.CalendarSubscriptionStore, err = calendarsubscription.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init calendar subscription store")
