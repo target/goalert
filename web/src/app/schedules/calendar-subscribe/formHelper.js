@@ -24,6 +24,14 @@ export function FormTitle(isComplete, defaultTitle) {
   )
 }
 
+export function getSubtitle(isComplete, defaultSubtitle) {
+  const completedSubtitle =
+    'Your subscription has been created! You can' +
+    ' manage your subscriptions from your profile at any time.'
+
+  return isComplete ? completedSubtitle : defaultSubtitle
+}
+
 export function getForm(isComplete, defaultForm, url) {
   return isComplete ? <CalenderSuccessForm url={url} /> : defaultForm
 }

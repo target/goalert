@@ -3,7 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
 import { useMutation } from '@apollo/react-hooks'
 import FormDialog from '../../dialogs/FormDialog'
-import { getForm, FormTitle } from './formHelper'
+import { getForm, FormTitle, getSubtitle } from './formHelper'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
 
 const SUBTITLE =
@@ -61,7 +61,7 @@ export default function CalendarSubscribeEditDialog(props) {
   return (
     <FormDialog
       title={FormTitle(isComplete, 'Create New Calendar Subscription')}
-      subTitle={SUBTITLE}
+      subTitle={getSubtitle(isComplete, SUBTITLE)}
       onClose={props.onClose}
       alert={isComplete}
       primaryActionLabel={isComplete ? 'Done' : null}

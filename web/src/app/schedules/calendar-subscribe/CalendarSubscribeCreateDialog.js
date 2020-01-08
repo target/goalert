@@ -2,10 +2,11 @@ import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import FormDialog from '../../dialogs/FormDialog'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
-import { getForm, FormTitle } from './formHelper'
+import { getForm, FormTitle, getSubtitle } from './formHelper'
 
 const MOCK_URL =
   'www.calendarlabs.com/ical-calendar/ics/22/Chicago_Cubs_-_MLB.ics'
+
 const SUBTITLE =
   'Create a unique iCalendar subscription URL that can be used in your preferred calendar application.'
 
@@ -32,7 +33,7 @@ export default function CalendarSubscribeCreateDialog(props) {
   return (
     <FormDialog
       title={FormTitle(isComplete, 'Create New Calendar Subscription')}
-      subTitle={SUBTITLE}
+      subTitle={getSubtitle(isComplete, SUBTITLE)}
       onClose={props.onClose}
       alert={isComplete}
       primaryActionLabel={isComplete ? 'Done' : null}
