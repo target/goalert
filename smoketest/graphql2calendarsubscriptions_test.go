@@ -15,12 +15,12 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		insert into users (id, name, email, role) 
 		values ({{uuid "user"}}, 'bob', 'joe', 'admin');
 
-		insert into calendar_subscriptions (id, name, user_id)
-		values ({{uuid "cs1"}}, 'test1', {{uuid "user"}});
-		insert into calendar_subscriptions (id, name, user_id)
-		values ({{uuid "cs2"}}, 'test2', {{uuid "user"}});
-		insert into calendar_subscriptions (id, name, user_id)
-		values ({{uuid "cs3"}}, 'test3', {{uuid "user"}});
+		insert into schedules (id, name, time_zone) 
+		values ({{uuid "sched1"}}, 'default', 'America/Chicago');
+
+		insert into user_calendar_subscriptions (id, name, user_id, config, schedule_id)
+		values ({{uuid "cs1"}}, 'test1', {{uuid "user"}}, '{ "notification_minutes": [2, 4, 8, 16]}', {{uuid "sched1"}});
+
 	`
 
 	h := harness.NewHarness(t, sql, "calendar-subscriptions")
@@ -44,73 +44,120 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 		}
 	}
 
-	// find one query
 	var cs struct {
-		ID         string
-		Name       string
-		UserID     string
-		LastAccess string
-		Disabled   bool
-	}
-
-	doQL(t, fmt.Sprintf(`
-		query {
-			calendarSubscription(id: "%s") {
-				id
-				name
-				userID
-				lastAccess
-				disabled
-			}	
-		}
-	`, h.UUID("cs1")), &cs)
-
-	// find many query
-	var subs struct {
-		Nodes struct {
-			ID         string
-			Name       string
-			UserID     string
-			LastAccess string
-			Disabled   bool
+		UserCalendarSubscription struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
 		}
 	}
 
-	doQL(t, fmt.Sprintf(`
-		query {
-			calendarSubscriptions(input: {
-				first: 3
-			}) {
-				nodes {
-					id
-					name
-					userID
-					lastAccess
-					disabled
-				}
-			}	
+	var csCreate struct {
+		UserCreateCalendarSubscription struct {
+			ID         string `json:"id"`
+			Name       string `json:"name"`
+			ScheduleID string `json:"scheduleID"`
 		}
-	`), &subs)
+	}
+
+	var csMany struct {
+		User struct {
+			CalendarSubscriptions []struct {
+				ID         string `json:"id"`
+				Name       string `json:"name"`
+				Disabled   bool   `json:"disabled"`
+				ScheduleID string `json:"scheduleID"`
+			}
+		}
+	}
+
+	var delete struct {
+		DeleteAll bool
+	}
 
 	// create
 	doQL(t, fmt.Sprintf(`
 		mutation {
-		  createCalendarSubscription(input: {
+		  userCreateCalendarSubscription(input: {
 			name: "%s"
-		  })
+			scheduleID: "%s"
+			notificationMinutes: [%d]
+			disabled: %v
+		  }) {
+			ID
+			name
+			scheduleID
+		  }
 		}
-	`, "Name 1"), nil)
+	`, "Name 1", h.UUID("sched1"), 32, false), nil)
+
+	// create
+	doQL(t, fmt.Sprintf(`
+		mutation {
+		  userCreateCalendarSubscription(input: {
+			name: "%s"
+			scheduleID: "%s"
+			notificationMinutes: [%d]
+			disabled: %v
+		  }) {
+			ID
+			name
+			scheduleID
+		  }
+		}
+	`, "Name 1", h.UUID("sched1"), 32, false), &csCreate)
+
+	if csCreate.UserCreateCalendarSubscription.Name != "Name 1" {
+		t.Fatalf("ERROR: CalendarSubscription %s Name=%s; want 'Name 1'", csCreate.UserCreateCalendarSubscription.ID, csCreate.UserCreateCalendarSubscription.Name)
+	}
+	if csCreate.UserCreateCalendarSubscription.ScheduleID != h.UUID("sched1") {
+		t.Fatalf("ERROR: CalendarSubscription %s ScheduleID=%s; want %s", csCreate.UserCreateCalendarSubscription.ID, csCreate.UserCreateCalendarSubscription.ScheduleID, h.UUID("sched1"))
+	}
 
 	// update
 	doQL(t, fmt.Sprintf(`
 		mutation {
-		  updateCalendarSubscription(input: {
+		  userUpdateCalendarSubscription(input: {
 			id: "%s"
 			name: "%s"
 			disabled: %v
 		  })
 		}
-	`, h.UUID("cs2"), "Name 2", true), nil)
+	`, csCreate.UserCreateCalendarSubscription.ID, "updated", true), nil)
+
+	// find one
+	doQL(t, fmt.Sprintf(`
+		query {
+			userCalendarSubscription(id: "%s") {
+				ID
+				name
+			}
+		}
+	`, csCreate.UserCreateCalendarSubscription.ID), &cs)
+
+	if cs.UserCalendarSubscription.Name != "updated" {
+		t.Fatalf("ERROR: CalendarSubscription %s Name=%s; want 'updated'", cs.UserCalendarSubscription.ID, cs.UserCalendarSubscription.Name)
+	}
+
+	// find many
+	doQL(t, fmt.Sprintf(`
+		query{
+			user(id: "%s") {
+				calendarSubscriptions {
+				  ID
+				  name
+				  notificationMinutes
+				  schedule {
+					id
+				  }
+				  scheduleID
+				}
+		  }
+		}
+	`, h.UUID("user")), &csMany)
+
+	if len(csMany.User.CalendarSubscriptions) != 2 {
+		t.Fatalf("ERROR: Did not find all of the subscriptions created")
+	}
 
 	// delete
 	doQL(t, fmt.Sprintf(`
@@ -120,5 +167,9 @@ func TestGraphQL2CalendarSubscriptions(t *testing.T) {
 				type: calendarSubscription
 			}])
 		}
-	`, h.UUID("cs3")), nil)
+	`, cs.UserCalendarSubscription.ID), &delete)
+
+	if !delete.DeleteAll {
+		t.Fatalf("ERROR: Did not delete CalendarSubscription %s", cs.UserCalendarSubscription.ID)
+	}
 }
