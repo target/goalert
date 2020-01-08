@@ -3,6 +3,7 @@ package app
 import (
 	"crypto/tls"
 	"database/sql"
+	"github.com/target/goalert/calendarsubscription"
 	"net"
 	"net/http"
 
@@ -89,10 +90,11 @@ type App struct {
 	ScheduleStore       schedule.Store
 	RotationStore       rotation.Store
 
-	OverrideStore  override.Store
-	Resolver       resolver.Resolver
-	LimitStore     limit.Store
-	HeartbeatStore heartbeat.Store
+	CalendarSubscriptionStore *calendarsubscription.Store
+	OverrideStore             override.Store
+	Resolver                  resolver.Resolver
+	LimitStore                limit.Store
+	HeartbeatStore            heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring

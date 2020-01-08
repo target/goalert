@@ -389,6 +389,13 @@ type UserConnection struct {
 	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
+type UserCreateCalendarSubscriptionInput struct {
+	Name            string `json:"name"`
+	ReminderMinutes []int  `json:"reminderMinutes"`
+	ScheduleID      string `json:"scheduleID"`
+	Disabled        *bool  `json:"disabled"`
+}
+
 type UserOverrideConnection struct {
 	Nodes    []override.UserOverride `json:"nodes"`
 	PageInfo *PageInfo               `json:"pageInfo"`
@@ -411,6 +418,13 @@ type UserSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type UserUpdateCalendarSubscriptionInput struct {
+	ID              string  `json:"id"`
+	Name            *string `json:"name"`
+	ReminderMinutes []int   `json:"reminderMinutes"`
+	Disabled        *bool   `json:"disabled"`
 }
 
 type VerifyContactMethodInput struct {

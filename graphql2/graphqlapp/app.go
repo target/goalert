@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
@@ -42,26 +43,27 @@ import (
 )
 
 type App struct {
-	DB             *sql.DB
-	UserStore      user.Store
-	CMStore        contactmethod.Store
-	NRStore        notificationrule.Store
-	NCStore        notificationchannel.Store
-	AlertStore     alert.Store
-	AlertLogStore  alertlog.Store
-	ServiceStore   service.Store
-	FavoriteStore  favorite.Store
-	PolicyStore    escalation.Store
-	ScheduleStore  schedule.Store
-	RotationStore  rotation.Store
-	OnCallStore    oncall.Store
-	IntKeyStore    integrationkey.Store
-	LabelStore     label.Store
-	RuleStore      rule.Store
-	OverrideStore  override.Store
-	ConfigStore    *config.Store
-	SlackStore     *slack.ChannelSender
-	HeartbeatStore heartbeat.Store
+	DB                        *sql.DB
+	UserStore                 user.Store
+	CMStore                   contactmethod.Store
+	NRStore                   notificationrule.Store
+	NCStore                   notificationchannel.Store
+	AlertStore                alert.Store
+	AlertLogStore             alertlog.Store
+	ServiceStore              service.Store
+	FavoriteStore             favorite.Store
+	PolicyStore               escalation.Store
+	ScheduleStore             schedule.Store
+	CalendarSubscriptionStore *calendarsubscription.Store
+	RotationStore             rotation.Store
+	OnCallStore               oncall.Store
+	IntKeyStore               integrationkey.Store
+	LabelStore                label.Store
+	RuleStore                 rule.Store
+	OverrideStore             override.Store
+	ConfigStore               *config.Store
+	SlackStore                *slack.ChannelSender
+	HeartbeatStore            heartbeat.Store
 
 	NotificationStore notification.Store
 

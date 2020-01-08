@@ -38,6 +38,9 @@ type Query {
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
 
+  # Returns the public information of a calendar subscription
+  userCalendarSubscription(id: ID!): CalendarSubscription
+
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
 
@@ -231,6 +234,12 @@ type Mutation {
   setLabel(input: SetLabelInput!): Boolean!
 
   createSchedule(input: CreateScheduleInput!): Schedule
+
+  userCreateCalendarSubscription(
+    input: UserCreateCalendarSubscriptionInput!
+  ): CalendarSubscription!
+  userUpdateCalendarSubscription(input: UserUpdateCalendarSubscriptionInput!): Boolean!
+
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
 
@@ -251,12 +260,34 @@ type Mutation {
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+
 }
 
 input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+}
+
+input UserCreateCalendarSubscriptionInput {
+  name: String!
+  reminderMinutes: [Int!]
+  scheduleID: ID!
+  disabled: Boolean
+}
+input UserUpdateCalendarSubscriptionInput {
+  id: ID!
+  name: String
+  reminderMinutes: [Int!]
+  disabled: Boolean
+}
+type CalendarSubscription {
+  ID: ID!
+  name: String!
+  reminderMinutes: [Int!]!
+  scheduleID: ID!
+  schedule: Schedule
+  url: String # Only available upon creation.
 }
 
 input ConfigValueInput {
@@ -757,6 +788,7 @@ enum TargetType {
   notificationRule
   contactMethod
   heartbeatMonitor
+  calendarSubscription
 }
 
 type ServiceConnection {
@@ -813,6 +845,7 @@ type User {
 
   contactMethods: [UserContactMethod!]!
   notificationRules: [UserNotificationRule!]!
+  calendarSubscriptions: [CalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
 
