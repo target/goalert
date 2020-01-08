@@ -31,12 +31,14 @@ func TestSystemLimits(t *testing.T) {
 			({{uuid "tgt_user1"}}, 'Target 1'),
 			({{uuid "tgt_user2"}}, 'Target 2'),
 			({{uuid "tgt_user3"}}, 'Target 3'),
-			({{uuid "tgt_user4"}}, 'Target 4');
+			({{uuid "tgt_user4"}}, 'Target 4'),
+			({{uuid "cal_sub_user"}}, 'Cal Sub User');
 		
 		insert into schedules (id, name, time_zone)
 		values
 			({{uuid "rule_sched"}}, 'Rule Test', 'UTC'),
-			({{uuid "tgt_sched"}}, 'Target Test', 'UTC');
+			({{uuid "tgt_sched"}}, 'Target Test', 'UTC'),
+			({{uuid "cal_sub_sched"}}, 'Calendar Subscription Test', 'UTC');
 		
 		insert into rotations (id, name, type, time_zone)
 		values
@@ -67,6 +69,11 @@ func TestSystemLimits(t *testing.T) {
 			({{uuid "hb_svc"}}, 'Heartbeat Test', {{uuid "hb_ep"}}),
 			({{uuid "unack_svc1"}}, 'Unack Test 1', {{uuid "unack_ep1"}}),
 			({{uuid "unack_svc2"}}, 'Unack Test 2', {{uuid "unack_ep2"}});
+		
+		insert into calendar_subscriptions (id, name, user_id)
+		values 
+			({{uuid "cs1"}}, 'Calendar Subscription Test 1', {{uuid "cal_sub_user"}});
+
 `
 
 	h := harness.NewHarness(t, sql, "limit-configuration")
@@ -379,6 +386,18 @@ func TestSystemLimits(t *testing.T) {
 		},
 		func(_ int, id string) string {
 			return fmt.Sprintf(`mutation{updateAlertStatus(input:{id:%s, status: closed}){id}}`, id)
+		},
+		nil,
+	)
+
+	doTest(
+		limit.CalendarSubscriptionsPerUser,
+		"calendar subscriptions",
+		func(int) string {
+			return fmt.Sprintf(`mutation{userCreateCalendarSubscription(input:{name: "%s", notificationMinutes: "%s", scheduleID: "%s", disabled: "%s"})}`, name(), "[5, 3, 1]", h.UUID("cal_sub_sched"), "false")
+		},
+		func(_ int, id string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: calendarSubscription},])}`, id)
 		},
 		nil,
 	)
