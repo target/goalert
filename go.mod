@@ -59,7 +59,7 @@ require (
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
 	github.com/urfave/cli v1.22.2 // indirect
 	github.com/vbauerster/mpb/v4 v4.11.2
-	github.com/vektah/gqlparser v1.2.0
+	github.com/vektah/gqlparser v1.2.1
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191202143827-86a70503ff7e
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933
