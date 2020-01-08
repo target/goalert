@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"errors"
+
 	"github.com/target/goalert/limit"
 
 	g "github.com/graphql-go/graphql"
@@ -10,17 +11,18 @@ import (
 var limitID = g.NewEnum(g.EnumConfig{
 	Name: "LimitID",
 	Values: g.EnumValueConfigMap{
-		"notification_rules_per_user":    &g.EnumValueConfig{Value: limit.NotificationRulesPerUser},
-		"contact_methods_per_user":       &g.EnumValueConfig{Value: limit.ContactMethodsPerUser},
-		"ep_steps_per_policy":            &g.EnumValueConfig{Value: limit.EPStepsPerPolicy},
-		"ep_actions_per_step":            &g.EnumValueConfig{Value: limit.EPActionsPerStep},
-		"participants_per_rotation":      &g.EnumValueConfig{Value: limit.ParticipantsPerRotation},
-		"rules_per_schedule":             &g.EnumValueConfig{Value: limit.RulesPerSchedule},
-		"integration_keys_per_service":   &g.EnumValueConfig{Value: limit.IntegrationKeysPerService},
-		"unacked_alerts_per_service":     &g.EnumValueConfig{Value: limit.UnackedAlertsPerService},
-		"targets_per_schedule":           &g.EnumValueConfig{Value: limit.TargetsPerSchedule},
-		"heartbeat_monitors_per_service": &g.EnumValueConfig{Value: limit.HeartbeatMonitorsPerService},
-		"user_overrides_per_schedule":    &g.EnumValueConfig{Value: limit.UserOverridesPerSchedule},
+		"notification_rules_per_user":     &g.EnumValueConfig{Value: limit.NotificationRulesPerUser},
+		"contact_methods_per_user":        &g.EnumValueConfig{Value: limit.ContactMethodsPerUser},
+		"ep_steps_per_policy":             &g.EnumValueConfig{Value: limit.EPStepsPerPolicy},
+		"ep_actions_per_step":             &g.EnumValueConfig{Value: limit.EPActionsPerStep},
+		"participants_per_rotation":       &g.EnumValueConfig{Value: limit.ParticipantsPerRotation},
+		"rules_per_schedule":              &g.EnumValueConfig{Value: limit.RulesPerSchedule},
+		"integration_keys_per_service":    &g.EnumValueConfig{Value: limit.IntegrationKeysPerService},
+		"unacked_alerts_per_service":      &g.EnumValueConfig{Value: limit.UnackedAlertsPerService},
+		"targets_per_schedule":            &g.EnumValueConfig{Value: limit.TargetsPerSchedule},
+		"heartbeat_monitors_per_service":  &g.EnumValueConfig{Value: limit.HeartbeatMonitorsPerService},
+		"user_overrides_per_schedule":     &g.EnumValueConfig{Value: limit.UserOverridesPerSchedule},
+		"calendar_subscriptions_per_user": &g.EnumValueConfig{Value: limit.CalendarSubscriptionsPerUser},
 	},
 })
 
