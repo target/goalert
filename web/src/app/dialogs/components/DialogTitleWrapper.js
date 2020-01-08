@@ -43,7 +43,7 @@ export default class DialogTitleWrapper extends Component {
     fullScreen: p.bool.isRequired,
     closeIcon: p.object,
     toolbarItems: p.array, // list of JSX items to display on the toolbar
-    title: p.string.isRequired,
+    title: p.node.isRequired,
     subTitle: p.node,
     onClose: p.func,
     options: p.array, // list of options to display as list items from option icon
@@ -102,9 +102,13 @@ export default class DialogTitleWrapper extends Component {
           <AppBar position='sticky' className={classes.appBar}>
             <Toolbar>
               {closeButton}
-              <Typography color='inherit' className={classes.appBarTitle}>
-                {title}
-              </Typography>
+              {typeof title === 'string' ? (
+                <Typography color='inherit' className={classes.appBarTitle}>
+                  {title}
+                </Typography>
+              ) : (
+                title
+              )}
               {toolbarItems}
               {menu}
             </Toolbar>
