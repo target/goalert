@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+// Store allows the lookup and management of calendar subscriptions
 type Store struct {
 	db         *sql.DB
 	findOne    *sql.Stmt
@@ -21,6 +22,7 @@ type Store struct {
 	findOneUpd *sql.Stmt
 }
 
+// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)
 type Config struct {
 	ReminderMinutes []int `json:"reminder_minutes"`
 }
@@ -90,7 +92,7 @@ func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 	return cs, nil
 }
 func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*CalendarSubscription, error) {
-	var userID = permission.UserID(ctx)
+	userID := permission.UserID(ctx)
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
 		return nil, err
@@ -110,8 +112,8 @@ func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (
 	return &cs, nil
 }
 
-// UpdateSubscriptionTx updates a calendar subscription with given information.
-func (b *Store) UpdateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) error {
+// UpdateTx updates a calendar subscription with given information.
+func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return err
@@ -155,7 +157,7 @@ func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
 	}
 	defer rows.Close()
 
-	calendarsubscriptions := []CalendarSubscription{}
+	var calendarsubscriptions []CalendarSubscription
 	for rows.Next() {
 		var cs CalendarSubscription
 		err = rows.Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.Disabled, &cs.ScheduleID, &cs.Config)
@@ -168,9 +170,9 @@ func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
 	return calendarsubscriptions, nil
 }
 
-// DeleteSubscriptionsTx removes calendar subscriptions with the given ids.
-func (b *Store) DeleteSubscriptionsTx(ctx context.Context, tx *sql.Tx, ids []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(permission.UserID(ctx)))
+// DeleteTx removes calendar subscriptions with the given ids.
+func (b *Store) DeleteTx(ctx context.Context, tx *sql.Tx, ids ...string) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
 	}

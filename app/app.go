@@ -3,9 +3,10 @@ package app
 import (
 	"crypto/tls"
 	"database/sql"
-	"github.com/target/goalert/calendarsubscription"
 	"net"
 	"net/http"
+
+	"github.com/target/goalert/calendarsubscription"
 
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"

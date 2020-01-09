@@ -21,16 +21,8 @@ func (a *CalendarSubscription) ReminderMinutes(ctx context.Context, obj *calenda
 	obj.ReminderMinutes = config.ReminderMinutes
 	return obj.ReminderMinutes, err
 }
-func (a *CalendarSubscription) ScheduleID(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (string, error) {
-	e := *obj
-	return e.ScheduleID, nil
-}
 func (a *CalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
-}
-func (a *CalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
-	var err error
-	return nil, err
 }
 
 func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
@@ -38,7 +30,7 @@ func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calen
 }
 
 // todo: return calendarsubscription with generated url once endpoint has been created
-func (m *Mutation) UserCreateCalendarSubscription(ctx context.Context, input graphql2.UserCreateCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
+func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
 	var config calendarsubscription.Config
 	var configJson []byte
 	if input.ReminderMinutes != nil {
@@ -70,7 +62,7 @@ func (m *Mutation) UserCreateCalendarSubscription(ctx context.Context, input gra
 	return cs, err
 }
 
-func (m *Mutation) UserUpdateCalendarSubscription(ctx context.Context, input graphql2.UserUpdateCalendarSubscriptionInput) (bool, error) {
+func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input graphql2.UpdateUserCalendarSubscriptionInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		cs, err := m.CalendarSubscriptionStore.FindOneForUpdateTx(ctx, tx, input.ID)
 		if err != nil {
@@ -92,7 +84,7 @@ func (m *Mutation) UserUpdateCalendarSubscription(ctx context.Context, input gra
 			}
 			cs.Config = configJson
 		}
-		return m.CalendarSubscriptionStore.UpdateSubscriptionTx(ctx, tx, cs)
+		return m.CalendarSubscriptionStore.UpdateTx(ctx, tx, cs)
 	})
 	return err == nil, err
 }

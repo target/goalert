@@ -99,7 +99,7 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 		case assignment.TargetTypeSchedule:
 			err = errors.Wrap(a.ScheduleStore.DeleteManyTx(ctx, tx, ids), "delete schedules")
 		case assignment.TargetTypeCalendarSubscription:
-			err = errors.Wrap(a.CalendarSubscriptionStore.DeleteSubscriptionsTx(ctx, tx, ids), "delete calendar subscriptions")
+			err = errors.Wrap(a.CalendarSubscriptionStore.DeleteTx(ctx, tx, ids...), "delete calendar subscriptions")
 		case assignment.TargetTypeRotation:
 			err = errors.Wrap(a.RotationStore.DeleteManyTx(ctx, tx, ids), "delete rotations")
 		case assignment.TargetTypeContactMethod:

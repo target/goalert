@@ -235,10 +235,10 @@ type Mutation {
 
   createSchedule(input: CreateScheduleInput!): Schedule
 
-  userCreateCalendarSubscription(
-    input: UserCreateCalendarSubscriptionInput!
+  createUserCalendarSubscription(
+    input: CreateUserCalendarSubscriptionInput!
   ): CalendarSubscription!
-  userUpdateCalendarSubscription(input: UserUpdateCalendarSubscriptionInput!): Boolean!
+  updateUserCalendarSubscription(input: UpdateUserCalendarSubscriptionInput!): Boolean!
 
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
@@ -269,13 +269,13 @@ input CreateAlertInput {
   serviceID: ID!
 }
 
-input UserCreateCalendarSubscriptionInput {
+input CreateUserCalendarSubscriptionInput {
   name: String!
   reminderMinutes: [Int!]
   scheduleID: ID!
   disabled: Boolean
 }
-input UserUpdateCalendarSubscriptionInput {
+input UpdateUserCalendarSubscriptionInput {
   id: ID!
   name: String
   reminderMinutes: [Int!]
@@ -287,7 +287,6 @@ type CalendarSubscription {
   reminderMinutes: [Int!]!
   scheduleID: ID!
   schedule: Schedule
-  url: String # Only available upon creation.
 }
 
 input ConfigValueInput {
