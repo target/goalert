@@ -8,7 +8,6 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -78,7 +77,6 @@ func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 
 // CreateSubscriptionTx will return a created calendar subscription with the given input.
 func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) (*CalendarSubscription, error) {
-	cs.UserID = permission.UserID(ctx)
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return nil, err
@@ -104,8 +102,7 @@ func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 	return cs, nil
 }
 func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*CalendarSubscription, error) {
-	userID := permission.UserID(ctx)
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
 	}
@@ -136,25 +133,6 @@ func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return err
-	}
-
-	n, err := cs.Normalize()
-	if err != nil {
-		return err
-	}
-
-	update, err := b.FindOneForUpdateTx(ctx, tx, cs.ID)
-	if err != nil {
-		return err
-	}
-	if n.ScheduleID != update.ScheduleID {
-		return validation.NewFieldError("ScheduleID", "cannot update schedule id of calendar subscription")
-	}
-	if n.LastAccess != update.LastAccess {
-		return validation.NewFieldError("Last Access", "cannot update last access of calendar subscription")
-	}
-	if n.UserID != update.UserID {
-		return validation.NewFieldError("UserID", "cannot update owner of calendar subscription")
 	}
 
 	var config []byte

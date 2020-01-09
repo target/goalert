@@ -270,6 +270,7 @@ input CreateAlertInput {
 }
 
 input CreateUserCalendarSubscriptionInput {
+  userID: ID!
   name: String!
   reminderMinutes: [Int!]
   scheduleID: ID!

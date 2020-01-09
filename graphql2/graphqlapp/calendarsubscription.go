@@ -33,6 +33,7 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 		ScheduleID:      input.ScheduleID,
 		Config:          config,
 		Disabled:        *input.Disabled,
+		UserID:			 input.UserID,
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
