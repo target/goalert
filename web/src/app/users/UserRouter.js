@@ -84,7 +84,7 @@ export default function UserRouter() {
       />
       <Route
         exact
-        path='/profile/calendar-subscriptions'
+        path='/profile/schedule-calendar-subscriptions'
         component={UserOnCallSubscriptions}
       />
       <Route

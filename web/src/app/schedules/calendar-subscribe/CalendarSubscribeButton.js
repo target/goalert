@@ -46,7 +46,7 @@ export default function CalendarSubscribeButton(props) {
             {caption}
           </Typography>
           <Typography variant='caption'>
-            <Link to='/profile/calendar-subscriptions'>
+            <Link to='/profile/schedule-calendar-subscriptions'>
               Manage subscriptions
             </Link>
           </Typography>

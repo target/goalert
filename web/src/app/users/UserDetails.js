@@ -160,7 +160,7 @@ export default function UserDetails(props) {
           },
           {
             label: 'Schedule Calendar Subscriptions',
-            url: 'calendar-subscriptions',
+            url: 'schedule-calendar-subscriptions',
           },
         ]}
         titleFooter={
