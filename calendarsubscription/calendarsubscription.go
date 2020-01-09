@@ -9,11 +9,18 @@ type CalendarSubscription struct {
 	ID         string
 	Name       string
 	UserID     string
-	LastAccess time.Time
-	Disabled   bool
-	Config     []byte
 	ScheduleID string
 
+	LastAccess time.Time
+	LastUpdated time.Time
+
+	Disabled   bool
+
+	Config     Config
+}
+
+// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)
+type Config struct {
 	ReminderMinutes []int
 }
 

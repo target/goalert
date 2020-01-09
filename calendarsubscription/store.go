@@ -3,6 +3,7 @@ package calendarsubscription
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -20,11 +21,6 @@ type Store struct {
 	delete     *sql.Stmt
 	findAll    *sql.Stmt
 	findOneUpd *sql.Stmt
-}
-
-// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)
-type Config struct {
-	ReminderMinutes []int `json:"reminder_minutes"`
 }
 
 // NewStore will create a new Store with the given parameters.
@@ -65,10 +61,18 @@ func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 	}
 
 	var cs CalendarSubscription
-	err = b.findOne.QueryRowContext(ctx, id).Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.Disabled, &cs.ScheduleID, &cs.Config)
+	var config []byte
+
+	err = b.findOne.QueryRowContext(ctx, id).Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.LastUpdated, &cs.Disabled, &cs.ScheduleID, &config)
 	if err != nil {
 		return nil, err
 	}
+
+	err = json.Unmarshal(config, &cs.Config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &cs, nil
 }
 
@@ -85,7 +89,15 @@ func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 		return nil, err
 	}
 
-	_, err = wrapTx(ctx, tx, b.create).ExecContext(ctx, cs.UserID, cs.ID, cs.Name, cs.Config, cs.ScheduleID, cs.Disabled)
+	var config []byte
+	if cs.Config.ReminderMinutes != nil {
+		config, err = json.Marshal(cs.Config)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = wrapTx(ctx, tx, b.create).ExecContext(ctx, cs.UserID, cs.ID, cs.Name, config, cs.ScheduleID, cs.Disabled)
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +115,19 @@ func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (
 	}
 
 	var cs CalendarSubscription
+	var config []byte
 
 	row := wrapTx(ctx, tx, b.findOneUpd).QueryRowContext(ctx, id)
-	err = row.Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &cs.Config)
+	err = row.Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &config)
 	if err != nil {
 		return nil, err
 	}
+
+	err = json.Unmarshal(config, &cs.Config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &cs, nil
 }
 
@@ -138,7 +157,15 @@ func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 		return validation.NewFieldError("UserID", "cannot update owner of calendar subscription")
 	}
 
-	_, err = wrapTx(ctx, tx, b.update).ExecContext(ctx, cs.ID, cs.UserID, cs.Name, cs.Disabled, cs.Config)
+	var config []byte
+	if cs.Config.ReminderMinutes != nil {
+		config, err = json.Marshal(cs.Config)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = wrapTx(ctx, tx, b.update).ExecContext(ctx, cs.ID, cs.UserID, cs.Name, cs.Disabled, config)
 
 	return err
 }
@@ -160,7 +187,12 @@ func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
 	var calendarsubscriptions []CalendarSubscription
 	for rows.Next() {
 		var cs CalendarSubscription
-		err = rows.Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.Disabled, &cs.ScheduleID, &cs.Config)
+		var config []byte
+		err = rows.Scan(&cs.ID, &cs.Name, &cs.UserID, &cs.LastAccess, &cs.LastUpdated, &cs.Disabled, &cs.ScheduleID, &config)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(config, &cs.Config)
 		if err != nil {
 			return nil, err
 		}
