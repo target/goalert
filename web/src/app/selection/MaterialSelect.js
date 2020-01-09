@@ -88,7 +88,7 @@ export default class MaterialSelect extends Component {
           }}
           name={name}
           classes={classes}
-          isClearable={!required}
+          isClearable
           isDisabled={disabled}
           isMulti={multiple}
           value={value}
