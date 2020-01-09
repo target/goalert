@@ -56,6 +56,7 @@ function testRotations(screen: ScreenFormat) {
             type,
             dayOfWeek: type === 'Weekly' ? start.weekdayLong : null,
             shiftLength: shiftLength.toString(),
+            start: '15:04',
           })
           cy.dialogFinish('Submit')
 

@@ -329,6 +329,7 @@ export default class ScheduleShiftList extends React.PureComponent {
                 className={this.props.classes.datePicker}
                 disabled={this.props.activeOnly}
                 label='Start Date'
+                name='filterStart'
                 value={this.props.start}
                 onChange={v => this.props.handleSetStart(v)}
               />

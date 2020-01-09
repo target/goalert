@@ -124,9 +124,10 @@ function setScheduleTarget(
     }
   }`
   const { scheduleID, target } = tgt
+  const { schedule, ...params } = tgt
   return cy
     .graphql2(mutation, {
-      input: tgt,
+      input: params,
     })
     .then(() => {
       return cy

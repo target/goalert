@@ -9,22 +9,26 @@ import Modernizr from '../../modernizr.config'
 import { DateRange } from '@material-ui/icons'
 
 function hasInputSupport(name) {
+  if (new URLSearchParams(location.search).get('nativeInput') === '0') {
+    return false
+  }
+
   return Modernizr.inputtypes[name]
 }
 
 function useISOPicker(
-  { value, onChange, ...otherProps },
+  { value, onChange, timeZone, ...otherProps },
   { format, truncateTo, type, Fallback },
 ) {
   const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
-  const zone = params('tz', 'local')
+  const zone = timeZone || params('tz', 'local')
   const dtValue = DateTime.fromISO(value, { zone })
   const [inputValue, setInputValue] = useState(dtValue.toFormat(format))
 
   const parseInput = input => {
-    const iso = DateTime.fromISO(input)
-    if (iso.isValid) return iso
+    if (input instanceof DateTime) return input
+    if (!input) return null
 
     const dt = DateTime.fromFormat(input, format, { zone })
     if (dt.isValid) {
@@ -36,6 +40,9 @@ function useISOPicker(
       }
       return dt
     }
+
+    const iso = DateTime.fromISO(input)
+    if (iso.isValid) return iso
 
     return null
   }
@@ -73,13 +80,23 @@ function useISOPicker(
     )
   }
 
+  const extraProps = {}
+  if (type !== 'time') {
+    extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
+    extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
+  }
+
   return (
     <Fallback
       value={dtValue}
       onChange={v => handleChange({ target: { value: v } })}
       showTodayButton
       autoOk
+      DialogProps={{
+        'data-cy': 'picker-fallback',
+      }}
       InputProps={{
+        'data-cy-fallback-type': type,
         endAdornment: (
           <InputAdornment position='end'>
             <IconButton>
@@ -88,6 +105,7 @@ function useISOPicker(
           </InputAdornment>
         ),
       }}
+      {...extraProps}
       {...otherProps}
     />
   )
