@@ -102,7 +102,7 @@ func (b *Store) CreateSubscriptionTx(ctx context.Context, tx *sql.Tx, cs *Calend
 	return cs, nil
 }
 func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (*CalendarSubscription, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
@@ -130,17 +130,20 @@ func (b *Store) FindOneForUpdateTx(ctx context.Context, tx *sql.Tx, id string) (
 
 // UpdateTx updates a calendar subscription with given information.
 func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscription) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(cs.UserID))
+	var config []byte
+	config, err := json.Marshal(cs.Config)
 	if err != nil {
 		return err
 	}
 
-	var config []byte
-	if cs.Config.ReminderMinutes != nil {
-		config, err = json.Marshal(cs.Config)
-		if err != nil {
-			return err
-		}
+	if permission.Admin(ctx) {
+		_, err := wrapTx(ctx, tx, b.update).ExecContext(ctx, cs.ID, cs.UserID, cs.Name, cs.Disabled, config)
+		return err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.MatchUser(cs.UserID))
+	if err != nil {
+		return err
 	}
 
 	_, err = wrapTx(ctx, tx, b.update).ExecContext(ctx, cs.ID, cs.UserID, cs.Name, cs.Disabled, config)
