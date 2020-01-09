@@ -109,4 +109,63 @@ function testTimePickers(screen: ScreenFormat) {
       )
     })
   })
+
+  describe('DateTime', () => {
+    const check = (name: string, params: string, display: string) =>
+      it(name, () => {
+        cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
+          cy.visit(`/schedules/${s.id}/overrides${params}`),
+        )
+
+        cy.pageFab('Add a User')
+        cy.dialogTitle('Temporarily Add a User')
+        const month = DateTime.utc().month
+        const start = DateTime.fromJSDate(
+          c.date({
+            year: DateTime.utc().year + 2,
+            month: month === 12 ? 11 : month + 1,
+          }) as Date,
+        )
+
+        cy.fixture('users').then(users => {
+          const userName: string = (c.pickone(users) as Profile).name
+          cy.dialogForm({
+            addUserID: userName,
+            start,
+            end: start.plus({ days: 1 }),
+          })
+        })
+
+        cy.dialogFinish('Submit')
+
+        // sanity check
+        cy.get('body').contains(start.toLocaleString(DateTime.DATETIME_MED))
+      })
+
+    describe('Native', () => {
+      check(
+        'should allow managing date values in the same zone',
+        '?tz=America/New_York',
+        '1/2/2006',
+      )
+      check(
+        'should allow managing date values in the alt. zone',
+        '?tz=America/Boise',
+        '1/1/2006',
+      )
+    })
+
+    describe('Fallback', () => {
+      check(
+        'should allow managing date values in the same zone',
+        '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
+        '1/2/2006',
+      )
+      check(
+        'should allow managing date values in the alt. zone',
+        '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
+        '1/1/2006',
+      )
+    })
+  })
 }

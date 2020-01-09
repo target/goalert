@@ -20,21 +20,17 @@ const clickArc = (pct: number) => (el: any) => {
 }
 
 // materialClock will control a material time-picker from an input field
-function materialClock(selector: string, time: string) {
-  const parts = time.split(':')
-  let hour = +parts[0]
-  const min = +parts[1]
+function materialClock(time: string | DateTime) {
+  const dt = DateTime.isDateTime(time)
+    ? time
+    : DateTime.fromFormat(time, 'HH:mm')
+
+  let hour = dt.hour
 
   const isAM = hour < 12
   if (!isAM) hour -= 12
 
   return cy
-    .get(selector)
-    .click() // open dialog
-
-    .get('[role=dialog][data-cy=picker-fallback]')
-    .should('be.visible')
-
     .contains('button', isAM ? 'AM' : 'PM')
     .click() // select AM or PM
 
@@ -44,20 +40,25 @@ function materialClock(selector: string, time: string) {
 
     .get('[role=dialog][data-cy=picker-fallback] [role=menu]')
     .parent()
-    .then(clickArc(min / 60)) // minutes
+    .then(clickArc(dt.minute / 60)) // minutes
+}
 
-    .get('[role=dialog][data-cy=picker-fallback]')
-    .should('not.exist') // wait for dialog to dissapear
+const openPicker = (selector: string) => {
+  cy.get(selector).click() // open dialog
+  cy.get('[role=dialog][data-cy=picker-fallback]').should('be.visible')
+}
+const finishPicker = () => {
+  // wait for dialog to dissapear
+  cy.get('[role=dialog][data-cy=picker-fallback]').should('not.exist')
 }
 
 // materialCalendar will control a material date-picker from an input field
-function materialCalendar(selector: string, date: string) {
-  const dt = DateTime.fromFormat(date, 'yyyy-MM-dd')
+function materialCalendar(date: string | DateTime) {
+  const dt = DateTime.isDateTime(date)
+    ? date
+    : DateTime.fromFormat(date, 'yyyy-MM-dd')
 
-  cy.get(selector).click() // open dialog
   cy.get('[role=dialog][data-cy=picker-fallback]')
-    .should('be.visible')
-
     .find('button')
     .first()
     .click() // open year selection
@@ -94,24 +95,17 @@ function materialCalendar(selector: string, date: string) {
         )
     }
 
-    cy.wait(3000)
-
     // click on the day
     cy.get('body')
-      .contains('button', dt.day)
-      .last()
-      .should('have.length', 1)
+      .contains('button', new RegExp(`^${dt.day.toString()}$`))
       .click({ force: true })
-
-    // wait for dialog to dissapear
-    cy.get('[role=dialog][data-cy=picker-fallback]').should('not.exist')
   })
 }
 
 function fillFormField(
   selPrefix: string,
   name: string,
-  value: string | string[] | boolean,
+  value: string | string[] | boolean | DateTime,
 ) {
   const selector = `${selPrefix} input[name="${name}"],textarea[name="${name}"]`
 
@@ -128,6 +122,11 @@ function fillFormField(
       .parents('[data-cy-fallback-type]')
       .data('cyFallbackType')
     if (isSelect) {
+      if (DateTime.isDateTime(value)) {
+        throw new TypeError(
+          'DateTime only supported for time, date, or datetime-local types',
+        )
+      }
       if (Array.isArray(value)) {
         value.forEach(val => cy.get(selector).selectByLabel(val))
         return
@@ -141,29 +140,64 @@ function fillFormField(
 
     if (value === '') return cy.get(selector).clear()
 
-    // material Select
-    if (el.attr('type') === 'hidden')
-      return cy.get(selector).selectByLabel(value)
-
     if (pickerFallback) {
       switch (pickerFallback) {
         case 'time':
-          return materialClock(selector, value)
+          openPicker(selector)
+          materialClock(value)
+          finishPicker()
+          return
         case 'date':
-          return materialCalendar(selector, value)
+          openPicker(selector)
+          materialCalendar(value)
+          finishPicker()
+          return
+        case 'datetime-local':
+          openPicker(selector)
+          materialCalendar(value)
+          materialClock(value)
+          finishPicker()
+          return
+        default:
+          if (DateTime.isDateTime(value)) {
+            throw new TypeError(
+              'DateTime only supported for time, date, or datetime-local types',
+            )
+          }
       }
     }
 
     return cy
       .get(selector)
       .clear()
-      .type(value)
+      .then(el => {
+        if (!DateTime.isDateTime(value)) {
+          if (el.attr('type') === 'hidden') {
+            return cy.get(selector).selectByLabel(value)
+          }
+          return cy.wrap(el).type(value)
+        }
+
+        // material Select
+        switch (el.attr('type')) {
+          case 'time':
+            return cy.wrap(el).type(value.toFormat('HH:mm'))
+          case 'date':
+            return cy.wrap(el).type(value.toFormat('yyyy-MM-dd'))
+          case 'datetime-local':
+            return cy.wrap(el).type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
+          default:
+            throw new TypeError(
+              'DateTime only supported for time, date, or datetime-local types',
+            )
+        }
+      })
   })
 }
 
 function form(
   values: {
-    [key: string]: string | string[] | null | boolean
+    [key: string]: string | string[] | null | boolean | DateTime
   },
   selectorPrefix = '',
 ): void {
