@@ -171,8 +171,7 @@ func (b *Store) UpdateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 }
 
 // FindAll returns all calendar subscriptions of a user.
-func (b *Store) FindAll(ctx context.Context) ([]CalendarSubscription, error) {
-	var userID = permission.UserID(ctx)
+func (b *Store) FindAll(ctx context.Context, userID string) ([]CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
 	if err != nil {
 		return nil, err
