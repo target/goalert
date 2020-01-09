@@ -1,9 +1,4 @@
-import {
-  formatTimeSince,
-  logTimeFormat,
-  getPaddedFormatString,
-  getFormatMask,
-} from './timeFormat'
+import { formatTimeSince, logTimeFormat } from './timeFormat'
 import { DateTime, Duration } from 'luxon'
 
 describe('formatTimeSince', () => {
@@ -44,26 +39,4 @@ describe('logTimeFormat', () => {
   check(to, from, 'Last Saturday at 12:00 AM')
   from = from.plus({ days: 7 })
   check(to, from, '05/25/2019')
-})
-
-describe('getPaddedFormatString', () => {
-  const check = (input, expected) => {
-    it('format string', () =>
-      expect(getPaddedFormatString(input)).toEqual(expected))
-  }
-
-  check('2006', 'yyyy')
-  check('06', 'yy')
-  check('1/2/2006 3:04:05.099 PM', 'LL/dd/yyyy hh:mm:ss.u a')
-  check('Mon, Jan 2', 'ccc, LLL dd')
-})
-
-describe('getFormatMask', () => {
-  const check = (input, expected) => {
-    it('format string', () => expect(getFormatMask(input)).toEqual(expected))
-  }
-
-  check('yyyy', '____')
-
-  check('LL/dd/yyyy hh:mm:ss.u a', '__/__/____ __:__:__.___ __')
 })
