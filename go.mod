@@ -3,14 +3,14 @@ module github.com/target/goalert
 go 1.13
 
 require (
-	cloud.google.com/go v0.49.0
+	cloud.google.com/go v0.50.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.8
 	github.com/99designs/gqlgen v0.10.2
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.0.3 // indirect
-	github.com/alecthomas/chroma v0.7.0
+	github.com/alecthomas/chroma v0.7.1
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
 	github.com/alexeyco/simpletable v0.0.0-20191023080658-fe3ac9971811
@@ -59,15 +59,13 @@ require (
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
 	github.com/urfave/cli v1.22.2 // indirect
 	github.com/vbauerster/mpb/v4 v4.11.2
-	github.com/vektah/gqlparser v1.2.0
+	github.com/vektah/gqlparser v1.2.1
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191202143827-86a70503ff7e
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
 	golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e // indirect
-	golang.org/x/tools v0.0.0-20191203134012-c197fd4bf371
-	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
-	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11 // indirect
+	golang.org/x/tools v0.0.0-20191216173652-a0e659d51361
 	google.golang.org/grpc v1.25.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect
