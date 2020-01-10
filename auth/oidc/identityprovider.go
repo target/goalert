@@ -12,6 +12,7 @@ import (
 	"time"
 
 	oidc "github.com/coreos/go-oidc"
+	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/config"
@@ -65,6 +66,11 @@ func (p *Provider) oaConfig(ctx context.Context) (*oauth2.Config, *oidc.IDTokenV
 		return nil, nil, err
 	}
 	cfg := config.FromContext(ctx)
+	scopes := cfg.OIDC.Scopes
+	// "openid" is a required scope for OpenID Connect flows.
+	if len(scopes) == 0 {
+		scopes = "openid profile email"
+	}
 
 	return &oauth2.Config{
 		ClientID:     cfg.OIDC.ClientID,
@@ -72,8 +78,7 @@ func (p *Provider) oaConfig(ctx context.Context) (*oauth2.Config, *oidc.IDTokenV
 
 		Endpoint: provider.Endpoint(),
 
-		// "openid" is a required scope for OpenID Connect flows.
-		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
+		Scopes: strings.Split(scopes, " "),
 	}, provider.Verifier(&oidc.Config{ClientID: cfg.OIDC.ClientID}), nil
 }
 
@@ -159,6 +164,14 @@ func (p *Provider) validateStateToken(ctx context.Context, nonce []byte, state s
 	}
 
 	return true, nil
+}
+
+type claimsData struct {
+	Name       string `json:"name"`
+	GivenName  string `json:"given_name"`
+	FamilyName string `json:"family_name"`
+	Email      string `json:"email"`
+	Verified   bool   `json:"email_verified"`
 }
 
 // ExtractIdentity will return a redirect error for new auth requests, and provide a users identity
@@ -261,21 +274,34 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	}
 
 	// Extract custom claims
-	var claims struct {
-		Name       string `json:"name"`
-		GivenName  string `json:"given_name"`
-		FamilyName string `json:"family_name"`
-		Email      string `json:"email"`
-		Verified   bool   `json:"email_verified"`
-	}
+	var claims claimsData
 	if err := idToken.Claims(&claims); err != nil {
 		log.Log(ctx, errors.Wrap(err, "parse claims"))
 		return nil, auth.Error(fmt.Sprintf("Invalid response from %s server.", name))
 	}
+
 	if claims.Name == "" {
 		// We *should* always get name with the profile scope, but fall back to joining the given and family names
 		// for misbehaving servers.
 		claims.Name = strings.TrimSpace(claims.GivenName + " " + claims.FamilyName)
+	}
+
+	if claims.Email == "" || claims.Name == "" {
+		provider, err := p.provider(ctx)
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "retrieving OIDC provider from config"))
+			return nil, auth.Error("Cannot retrieve OIDC provider from config")
+		}
+
+		info, err := provider.UserInfo(ctx, oaCfg.TokenSource(ctx, oauth2Token))
+		if err != nil {
+			log.Log(ctx, errors.Wrapf(err, "fetching userinfo for user %s", idToken.Subject))
+			return nil, auth.Error("Cannot fetch OIDC user info")
+		}
+
+		if err := p.fetchUserInfo(ctx, &claims, info); err != nil {
+			return nil, err
+		}
 	}
 
 	return &auth.Identity{
@@ -284,4 +310,65 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 		EmailVerified: claims.Verified,
 		SubjectID:     idToken.Subject,
 	}, nil
+}
+
+func (p *Provider) fetchUserInfo(ctx context.Context, claims *claimsData, info *oidc.UserInfo) error {
+	var buf interface{}
+
+	cfg := config.FromContext(ctx)
+
+	if err := info.Claims(&buf); err != nil {
+		log.Log(ctx, errors.Wrap(err, "parsing userinfo"))
+		return auth.Error("Cannot fetch OIDC user info")
+	}
+
+	for _, column := range []struct {
+		name    string
+		claim   *string
+		setting string
+		defval  string
+	}{
+		{
+			"email address",
+			&claims.Email,
+			cfg.OIDC.EmailPath,
+			"email",
+		}, {
+			"name",
+			&claims.Name,
+			cfg.OIDC.NamePath,
+			"name || cn || join(' ', firstname, lastname)",
+		},
+	} {
+		if *column.claim == "" {
+			setting := column.setting
+			if setting == "" {
+				setting = column.defval
+			}
+
+			item, err := extractValue(ctx, buf, setting)
+			if err != nil {
+				log.Log(ctx, errors.Wrapf(err, "searching for %s in userinfo", column.name))
+				return auth.Error(fmt.Sprintf("Cannot determine OIDC user %s", column.name))
+			}
+
+			*column.claim = item
+		}
+	}
+
+	return nil
+}
+
+func extractValue(ctx context.Context, buf interface{}, setting string) (string, error) {
+	raw, err := jmespath.Search(setting, buf)
+	if err != nil {
+		return "", err
+	}
+
+	strVal, ok := raw.(string)
+	if !ok {
+		return "", errors.Errorf("%q returned %T", setting, raw)
+	}
+
+	return strVal, nil
 }

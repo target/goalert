@@ -60,6 +60,10 @@ type Config struct {
 		IssuerURL    string
 		ClientID     string
 		ClientSecret string `password:"true"`
+
+		Scopes    string `info:"OpenID Connect scopes (default: openid profile email)"`
+		EmailPath string `info:"Email attribute path in JMESPath notion (default: email)"`
+		NamePath  string `info:"Full name attribute path in JMESPath notion (default: name || cn || join(' ', firstname, lastname))"`
 	}
 
 	Mailgun struct {
