@@ -48,6 +48,9 @@ const openPicker = (selector: string) => {
   cy.get('[role=dialog][data-cy=picker-fallback]').should('be.visible')
 }
 const finishPicker = () => {
+  cy.get('[role=dialog][data-cy=picker-fallback]')
+    .contains('button', 'OK')
+    .click()
   // wait for dialog to dissapear
   cy.get('[role=dialog][data-cy=picker-fallback]').should('not.exist')
 }

@@ -98,7 +98,6 @@ function useISOPicker(
       value={dtValue}
       onChange={v => handleChange({ target: { value: v } })}
       showTodayButton
-      autoOk
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
