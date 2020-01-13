@@ -30,13 +30,18 @@ export function mapRuleTZ(fromTZ, toTZ, rule) {
   }
 }
 
-export function clockToISO(clockTime, zone) {
-  return DateTime.fromFormat(clockTime, 'HH:mm', { zone })
+// clockTimeToISO will return an ISO timestamp in the provided zone
+// at the given 24-hour time.
+export function clockTimeToISO(time, zone) {
+  return DateTime.fromFormat(time, 'HH:mm', { zone })
     .toUTC()
     .toISO()
 }
-export function isoToClock(isoTime, zone) {
-  return DateTime.fromISO(isoTime, { zone }).toFormat('HH:mm')
+
+// isoToClockTime will return the 24-hour time in the provided zone
+// at the given ISO timestamp.
+export function isoToClockTime(timestamp, zone) {
+  return DateTime.fromISO(timestamp, { zone }).toFormat('HH:mm')
 }
 
 export function weekdaySummary(filter) {

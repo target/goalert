@@ -7,7 +7,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
 import { startCase } from 'lodash-es'
 import { DateTime } from 'luxon'
-import { isoToClock } from './util'
+import { isoToClockTime } from './util'
 
 const mutation = gql`
   mutation($input: ScheduleTargetInput!) {
@@ -68,8 +68,8 @@ export default function ScheduleRuleCreateDialog(props) {
 
               rules: value.rules.map(r => ({
                 ...r,
-                start: isoToClock(r.start, data.schedule.timeZone),
-                end: isoToClock(r.end, data.schedule.timeZone),
+                start: isoToClockTime(r.start, data.schedule.timeZone),
+                end: isoToClockTime(r.end, data.schedule.timeZone),
               })),
             },
           },

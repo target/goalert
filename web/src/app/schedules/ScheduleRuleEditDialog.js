@@ -7,7 +7,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
 import _ from 'lodash-es'
 import Query from '../util/Query'
-import { clockToISO, isoToClock } from './util'
+import { clockTimeToISO, isoToClockTime } from './util'
 
 const query = gql`
   query($id: ID!, $tgt: TargetInput!) {
@@ -79,8 +79,8 @@ export default class ScheduleRuleEditDialog extends React.Component {
       targetID: this.props.target.id,
       rules: data.rules.map(r => ({
         ..._.pick(r, ['id', 'weekdayFilter']),
-        start: clockToISO(r.start, zone),
-        end: clockToISO(r.end, zone),
+        start: clockTimeToISO(r.start, zone),
+        end: clockTimeToISO(r.end, zone),
       })),
     }
     return (
@@ -103,8 +103,8 @@ export default class ScheduleRuleEditDialog extends React.Component {
 
                 rules: this.state.value.rules.map(r => ({
                   ...r,
-                  start: isoToClock(r.start, zone),
-                  end: isoToClock(r.end, zone),
+                  start: isoToClockTime(r.start, zone),
+                  end: isoToClockTime(r.end, zone),
                 })),
               },
             },
