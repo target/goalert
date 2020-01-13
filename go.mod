@@ -36,7 +36,7 @@ require (
 	github.com/graphql-go/graphql v0.7.8
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/jackc/pgconn v1.1.0
-	github.com/jackc/pgtype v1.0.3
+	github.com/jackc/pgtype v1.1.0
 	github.com/jackc/pgx/v4 v4.1.2
 	github.com/joho/godotenv v1.3.0
 	github.com/mattn/go-colorable v0.1.4
