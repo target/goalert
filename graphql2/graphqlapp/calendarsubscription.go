@@ -29,11 +29,11 @@ func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calen
 func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
 	config := calendarsubscription.Config{ReminderMinutes: input.ReminderMinutes}
 	cs = &calendarsubscription.CalendarSubscription{
-		Name:            input.Name,
-		ScheduleID:      input.ScheduleID,
-		Config:          config,
-		Disabled:        *input.Disabled,
-		UserID:			 input.UserID,
+		Name:       input.Name,
+		ScheduleID: input.ScheduleID,
+		Config:     config,
+		Disabled:   *input.Disabled,
+		UserID:     input.UserID,
 	}
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error

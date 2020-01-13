@@ -6,13 +6,12 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/target/goalert/calendarsubscription"
-
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/nonce"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/engine/resolver"
