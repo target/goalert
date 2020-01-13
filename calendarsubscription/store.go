@@ -126,7 +126,7 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 	if err != nil {
 		return nil, err
 	}
-	return cs, nil
+	return n, nil
 }
 
 // FindOneForUpdateTx will return a CalendarSubscription for the given userID that is locked for updating.

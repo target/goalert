@@ -135,7 +135,6 @@ type CreateServiceInput struct {
 }
 
 type CreateUserCalendarSubscriptionInput struct {
-	UserID          string `json:"userID"`
 	Name            string `json:"name"`
 	ReminderMinutes []int  `json:"reminderMinutes"`
 	ScheduleID      string `json:"scheduleID"`

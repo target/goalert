@@ -8,7 +8,9 @@ CREATE TABLE user_calendar_subscriptions (
     last_update TIMESTAMPTZ NOT NULL DEFAULT now(),
     disabled BOOLEAN NOT NULL DEFAULT FALSE,
     schedule_id UUID NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
-    config JSONB NOT NULL
+    config JSONB NOT NULL,
+
+    UNIQUE(name, schedule_id)
 );
 
 -- +migrate Down

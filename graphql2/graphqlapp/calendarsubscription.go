@@ -37,7 +37,7 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 	cs = &calendarsubscription.CalendarSubscription{
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
-		UserID:     input.UserID,
+		UserID:     permission.UserID(ctx),
 	}
 	if input.Disabled != nil {
 		cs.Disabled = *input.Disabled

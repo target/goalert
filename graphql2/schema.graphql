@@ -238,7 +238,9 @@ type Mutation {
   createUserCalendarSubscription(
     input: CreateUserCalendarSubscriptionInput!
   ): CalendarSubscription!
-  updateUserCalendarSubscription(input: UpdateUserCalendarSubscriptionInput!): Boolean!
+  updateUserCalendarSubscription(
+    input: UpdateUserCalendarSubscriptionInput!
+  ): Boolean!
 
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
@@ -260,7 +262,6 @@ type Mutation {
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
-
 }
 
 input CreateAlertInput {
@@ -270,7 +271,6 @@ input CreateAlertInput {
 }
 
 input CreateUserCalendarSubscriptionInput {
-  userID: ID!
   name: String!
   reminderMinutes: [Int!]
   scheduleID: ID!
@@ -283,11 +283,12 @@ input UpdateUserCalendarSubscriptionInput {
   disabled: Boolean
 }
 type CalendarSubscription {
-  ID: ID!
+  id: ID!
   name: String!
   reminderMinutes: [Int!]!
   scheduleID: ID!
   schedule: Schedule
+  lastAccess: ISOTimestamp!
 }
 
 input ConfigValueInput {
