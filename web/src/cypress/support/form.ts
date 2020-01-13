@@ -167,31 +167,40 @@ function fillFormField(
       }
     }
 
-    return cy
-      .get(selector)
-      .clear()
-      .then(el => {
-        if (!DateTime.isDateTime(value)) {
-          if (el.attr('type') === 'hidden') {
-            return cy.get(selector).selectByLabel(value)
-          }
-          return cy.wrap(el).type(value)
+    return cy.get(selector).then(el => {
+      if (!DateTime.isDateTime(value)) {
+        if (el.attr('type') === 'hidden') {
+          return cy.get(selector).selectByLabel(value)
         }
+        return cy
+          .wrap(el)
+          .clear()
+          .type(value)
+      }
 
-        // material Select
-        switch (el.attr('type')) {
-          case 'time':
-            return cy.wrap(el).type(value.toFormat('HH:mm'))
-          case 'date':
-            return cy.wrap(el).type(value.toFormat('yyyy-MM-dd'))
-          case 'datetime-local':
-            return cy.wrap(el).type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
-          default:
-            throw new TypeError(
-              'DateTime only supported for time, date, or datetime-local types',
-            )
-        }
-      })
+      // material Select
+      switch (el.attr('type')) {
+        case 'time':
+          return cy
+            .wrap(el)
+            .clear()
+            .type(value.toFormat('HH:mm'))
+        case 'date':
+          return cy
+            .wrap(el)
+            .clear()
+            .type(value.toFormat('yyyy-MM-dd'))
+        case 'datetime-local':
+          return cy
+            .wrap(el)
+            .clear()
+            .type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
+        default:
+          throw new TypeError(
+            'DateTime only supported for time, date, or datetime-local types',
+          )
+      }
+    })
   })
 }
 
