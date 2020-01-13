@@ -78,7 +78,8 @@ export default class ScheduleRuleEditDialog extends React.Component {
     const defaults = {
       targetID: this.props.target.id,
       rules: data.rules.map(r => ({
-        ..._.pick(r, ['id', 'weekdayFilter']),
+        id: r.id,
+        weekdayFilter: r.weekdayFilter,
         start: clockTimeToISO(r.start, zone),
         end: clockTimeToISO(r.end, zone),
       })),
