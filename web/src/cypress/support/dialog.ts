@@ -55,7 +55,7 @@ function dialogFinish(s: string): Cypress.Chainable {
       return cy
         .dialogClick(s)
         .get(`[data-cy-gu=${id}]`)
-        .should('not.exist')
+        .should('not.exist', { timeout: 15000 })
     })
 }
 
