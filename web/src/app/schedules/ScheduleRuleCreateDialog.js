@@ -43,11 +43,26 @@ export default function ScheduleRuleCreateDialog(props) {
     ],
   })
 
-  const [mutate, mutationStatus] = useMutation(mutation, {
-    onCompleted: onClose,
-  })
   const { data, ...queryStatus } = useQuery(query, {
     variables: { id: scheduleID },
+  })
+  const [mutate, mutationStatus] = useMutation(mutation, {
+    onCompleted: onClose,
+    variables: {
+      input: {
+        target: {
+          type: targetType,
+          id: value.targetID,
+        },
+        scheduleID,
+
+        rules: value.rules.map(r => ({
+          ...r,
+          start: isoToClockTime(r.start, data.schedule.timeZone),
+          end: isoToClockTime(r.end, data.schedule.timeZone),
+        })),
+      },
+    },
   })
 
   return (
@@ -56,24 +71,9 @@ export default function ScheduleRuleCreateDialog(props) {
       title={`Add ${startCase(targetType)} to Schedule`}
       errors={nonFieldErrors(mutationStatus.error)}
       maxWidth='md'
+      loading={queryStatus.loading || mutationStatus.loading}
       onSubmit={() => {
-        mutate({
-          variables: {
-            input: {
-              target: {
-                type: targetType,
-                id: value.targetID,
-              },
-              scheduleID,
-
-              rules: value.rules.map(r => ({
-                ...r,
-                start: isoToClockTime(r.start, data.schedule.timeZone),
-                end: isoToClockTime(r.end, data.schedule.timeZone),
-              })),
-            },
-          },
-        })
+        mutate()
       }}
       form={
         <ScheduleRuleForm
