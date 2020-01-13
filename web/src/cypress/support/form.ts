@@ -121,16 +121,19 @@ function fillFormField(
     const pickerFallback = el
       .parents('[data-cy-fallback-type]')
       .data('cyFallbackType')
+
     if (isSelect) {
       if (DateTime.isDateTime(value)) {
         throw new TypeError(
           'DateTime only supported for time, date, or datetime-local types',
         )
       }
+
       if (Array.isArray(value)) {
         value.forEach(val => cy.get(selector).selectByLabel(val))
         return
       }
+
       return cy.get(selector).selectByLabel(value)
     }
 
