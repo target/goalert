@@ -123,8 +123,9 @@ function setScheduleTarget(
       }
     }
   }`
-  const { scheduleID, target } = tgt
+
   const { schedule, ...params } = tgt
+
   return cy
     .graphql2(mutation, {
       input: params,
@@ -132,8 +133,8 @@ function setScheduleTarget(
     .then(() => {
       return cy
         .graphql2(query, {
-          id: scheduleID,
-          tgt: target,
+          id: params.scheduleID,
+          tgt: params.target,
         })
         .then(res => {
           const { target, ...schedule } = res.schedule
