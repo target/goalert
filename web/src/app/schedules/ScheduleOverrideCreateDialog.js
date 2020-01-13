@@ -72,7 +72,7 @@ export default function ScheduleOverrideCreateDialog(props) {
           disabled={loading}
           errors={fieldErrors(error)}
           value={value}
-          onChange={newValue => setValue({ ...value, ...newValue })}
+          onChange={newValue => setValue(newValue)}
         />
       }
     />
