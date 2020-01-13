@@ -55,7 +55,6 @@ type Config struct {
 type ResolverRoot interface {
 	Alert() AlertResolver
 	AlertLogEntry() AlertLogEntryResolver
-	CalendarSubscription() CalendarSubscriptionResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
@@ -69,6 +68,7 @@ type ResolverRoot interface {
 	Service() ServiceResolver
 	Target() TargetResolver
 	User() UserResolver
+	UserCalendarSubscription() UserCalendarSubscriptionResolver
 	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
@@ -122,15 +122,6 @@ type ComplexityRoot struct {
 	AuthSubjectConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
-	}
-
-	CalendarSubscription struct {
-		ID              func(childComplexity int) int
-		LastAccess      func(childComplexity int) int
-		Name            func(childComplexity int) int
-		ReminderMinutes func(childComplexity int) int
-		Schedule        func(childComplexity int) int
-		ScheduleID      func(childComplexity int) int
 	}
 
 	ConfigHint struct {
@@ -395,6 +386,16 @@ type ComplexityRoot struct {
 		Role                  func(childComplexity int) int
 	}
 
+	UserCalendarSubscription struct {
+		Disabled        func(childComplexity int) int
+		ID              func(childComplexity int) int
+		LastAccess      func(childComplexity int) int
+		Name            func(childComplexity int) int
+		ReminderMinutes func(childComplexity int) int
+		Schedule        func(childComplexity int) int
+		ScheduleID      func(childComplexity int) int
+	}
+
 	UserConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
@@ -443,11 +444,6 @@ type AlertResolver interface {
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
-}
-type CalendarSubscriptionResolver interface {
-	ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error)
-
-	Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error)
 }
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
@@ -577,6 +573,11 @@ type UserResolver interface {
 
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
+}
+type UserCalendarSubscriptionResolver interface {
+	ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error)
+
+	Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error)
 }
 type UserContactMethodResolver interface {
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
@@ -784,48 +785,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthSubjectConnection.PageInfo(childComplexity), true
-
-	case "CalendarSubscription.id":
-		if e.complexity.CalendarSubscription.ID == nil {
-			break
-		}
-
-		return e.complexity.CalendarSubscription.ID(childComplexity), true
-
-	case "CalendarSubscription.lastAccess":
-		if e.complexity.CalendarSubscription.LastAccess == nil {
-			break
-		}
-
-		return e.complexity.CalendarSubscription.LastAccess(childComplexity), true
-
-	case "CalendarSubscription.name":
-		if e.complexity.CalendarSubscription.Name == nil {
-			break
-		}
-
-		return e.complexity.CalendarSubscription.Name(childComplexity), true
-
-	case "CalendarSubscription.reminderMinutes":
-		if e.complexity.CalendarSubscription.ReminderMinutes == nil {
-			break
-		}
-
-		return e.complexity.CalendarSubscription.ReminderMinutes(childComplexity), true
-
-	case "CalendarSubscription.schedule":
-		if e.complexity.CalendarSubscription.Schedule == nil {
-			break
-		}
-
-		return e.complexity.CalendarSubscription.Schedule(childComplexity), true
-
-	case "CalendarSubscription.scheduleID":
-		if e.complexity.CalendarSubscription.ScheduleID == nil {
-			break
-		}
-
-		return e.complexity.CalendarSubscription.ScheduleID(childComplexity), true
 
 	case "ConfigHint.id":
 		if e.complexity.ConfigHint.ID == nil {
@@ -2367,6 +2326,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Role(childComplexity), true
 
+	case "UserCalendarSubscription.disabled":
+		if e.complexity.UserCalendarSubscription.Disabled == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.Disabled(childComplexity), true
+
+	case "UserCalendarSubscription.id":
+		if e.complexity.UserCalendarSubscription.ID == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.ID(childComplexity), true
+
+	case "UserCalendarSubscription.lastAccess":
+		if e.complexity.UserCalendarSubscription.LastAccess == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.LastAccess(childComplexity), true
+
+	case "UserCalendarSubscription.name":
+		if e.complexity.UserCalendarSubscription.Name == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.Name(childComplexity), true
+
+	case "UserCalendarSubscription.reminderMinutes":
+		if e.complexity.UserCalendarSubscription.ReminderMinutes == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.ReminderMinutes(childComplexity), true
+
+	case "UserCalendarSubscription.schedule":
+		if e.complexity.UserCalendarSubscription.Schedule == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.Schedule(childComplexity), true
+
+	case "UserCalendarSubscription.scheduleID":
+		if e.complexity.UserCalendarSubscription.ScheduleID == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.ScheduleID(childComplexity), true
+
 	case "UserConnection.nodes":
 		if e.complexity.UserConnection.Nodes == nil {
 			break
@@ -2624,7 +2632,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
   schedule(id: ID!): Schedule
 
   # Returns the public information of a calendar subscription
-  userCalendarSubscription(id: ID!): CalendarSubscription
+  userCalendarSubscription(id: ID!): UserCalendarSubscription
 
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
@@ -2822,7 +2830,7 @@ type Mutation {
 
   createUserCalendarSubscription(
     input: CreateUserCalendarSubscriptionInput!
-  ): CalendarSubscription!
+  ): UserCalendarSubscription!
   updateUserCalendarSubscription(
     input: UpdateUserCalendarSubscriptionInput!
   ): Boolean!
@@ -2867,13 +2875,14 @@ input UpdateUserCalendarSubscriptionInput {
   reminderMinutes: [Int!]
   disabled: Boolean
 }
-type CalendarSubscription {
+type UserCalendarSubscription {
   id: ID!
   name: String!
   reminderMinutes: [Int!]!
   scheduleID: ID!
   schedule: Schedule
   lastAccess: ISOTimestamp!
+  disabled: Boolean!
 }
 
 input ConfigValueInput {
@@ -3431,7 +3440,7 @@ type User {
 
   contactMethods: [UserContactMethod!]!
   notificationRules: [UserNotificationRule!]!
-  calendarSubscriptions: [CalendarSubscription!]!
+  calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
 
@@ -5426,225 +5435,6 @@ func (ec *executionContext) _AuthSubjectConnection_pageInfo(ctx context.Context,
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CalendarSubscription_id(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CalendarSubscription",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CalendarSubscription_name(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CalendarSubscription",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CalendarSubscription_reminderMinutes(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CalendarSubscription",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CalendarSubscription().ReminderMinutes(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CalendarSubscription_scheduleID(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CalendarSubscription",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ScheduleID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CalendarSubscription_schedule(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CalendarSubscription",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CalendarSubscription().Schedule(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*schedule.Schedule)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CalendarSubscription_lastAccess(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CalendarSubscription",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastAccess, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ConfigHint_id(ctx context.Context, field graphql.CollectedField, obj *ConfigHint) (ret graphql.Marshaler) {
@@ -7908,7 +7698,7 @@ func (ec *executionContext) _Mutation_createUserCalendarSubscription(ctx context
 	res := resTmp.(*calendarsubscription.CalendarSubscription)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
+	return ec.marshalNUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateUserCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9184,7 +8974,7 @@ func (ec *executionContext) _Query_userCalendarSubscription(ctx context.Context,
 	res := resTmp.(*calendarsubscription.CalendarSubscription)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
+	return ec.marshalOUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_schedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12428,7 +12218,7 @@ func (ec *executionContext) _User_calendarSubscriptions(ctx context.Context, fie
 	res := resTmp.([]calendarsubscription.CalendarSubscription)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCalendarSubscription2ᚕgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscriptionᚄ(ctx, field.Selections, res)
+	return ec.marshalNUserCalendarSubscription2ᚕgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscriptionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_statusUpdateContactMethodID(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
@@ -12540,6 +12330,262 @@ func (ec *executionContext) _User_onCallSteps(ctx context.Context, field graphql
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtargetᚋgoalertᚋescalationᚐStepᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_id(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_name(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_reminderMinutes(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserCalendarSubscription().ReminderMinutes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_scheduleID(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduleID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_schedule(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserCalendarSubscription().Schedule(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*schedule.Schedule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_lastAccess(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAccess, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_disabled(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Disabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *UserConnection) (ret graphql.Marshaler) {
@@ -16578,73 +16624,6 @@ func (ec *executionContext) _AuthSubjectConnection(ctx context.Context, sel ast.
 	return out
 }
 
-var calendarSubscriptionImplementors = []string{"CalendarSubscription"}
-
-func (ec *executionContext) _CalendarSubscription(ctx context.Context, sel ast.SelectionSet, obj *calendarsubscription.CalendarSubscription) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, calendarSubscriptionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("CalendarSubscription")
-		case "id":
-			out.Values[i] = ec._CalendarSubscription_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "name":
-			out.Values[i] = ec._CalendarSubscription_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "reminderMinutes":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CalendarSubscription_reminderMinutes(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "scheduleID":
-			out.Values[i] = ec._CalendarSubscription_scheduleID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "schedule":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CalendarSubscription_schedule(ctx, field, obj)
-				return res
-			})
-		case "lastAccess":
-			out.Values[i] = ec._CalendarSubscription_lastAccess(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var configHintImplementors = []string{"ConfigHint"}
 
 func (ec *executionContext) _ConfigHint(ctx context.Context, sel ast.SelectionSet, obj *ConfigHint) graphql.Marshaler {
@@ -18641,6 +18620,78 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
+var userCalendarSubscriptionImplementors = []string{"UserCalendarSubscription"}
+
+func (ec *executionContext) _UserCalendarSubscription(ctx context.Context, sel ast.SelectionSet, obj *calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, userCalendarSubscriptionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserCalendarSubscription")
+		case "id":
+			out.Values[i] = ec._UserCalendarSubscription_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._UserCalendarSubscription_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "reminderMinutes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserCalendarSubscription_reminderMinutes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "scheduleID":
+			out.Values[i] = ec._UserCalendarSubscription_scheduleID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "schedule":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserCalendarSubscription_schedule(ctx, field, obj)
+				return res
+			})
+		case "lastAccess":
+			out.Values[i] = ec._UserCalendarSubscription_lastAccess(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "disabled":
+			out.Values[i] = ec._UserCalendarSubscription_disabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userConnectionImplementors = []string{"UserConnection"}
 
 func (ec *executionContext) _UserConnection(ctx context.Context, sel ast.SelectionSet, obj *UserConnection) graphql.Marshaler {
@@ -19358,57 +19409,6 @@ func (ec *executionContext) marshalNBoolean2ᚕboolᚄ(ctx context.Context, sel 
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalNCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v calendarsubscription.CalendarSubscription) graphql.Marshaler {
-	return ec._CalendarSubscription(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCalendarSubscription2ᚕgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscriptionᚄ(ctx context.Context, sel ast.SelectionSet, v []calendarsubscription.CalendarSubscription) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v *calendarsubscription.CalendarSubscription) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._CalendarSubscription(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, v interface{}) (rule.Clock, error) {
@@ -20698,6 +20698,57 @@ func (ec *executionContext) marshalNUser2ᚕgithubᚗcomᚋtargetᚋgoalertᚋus
 	return ret
 }
 
+func (ec *executionContext) marshalNUserCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	return ec._UserCalendarSubscription(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserCalendarSubscription2ᚕgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscriptionᚄ(ctx context.Context, sel ast.SelectionSet, v []calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v *calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserCalendarSubscription(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNUserConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v UserConnection) graphql.Marshaler {
 	return ec._UserConnection(ctx, sel, &v)
 }
@@ -21287,17 +21338,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
-}
-
-func (ec *executionContext) marshalOCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v calendarsubscription.CalendarSubscription) graphql.Marshaler {
-	return ec._CalendarSubscription(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v *calendarsubscription.CalendarSubscription) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._CalendarSubscription(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOClockTime2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, v interface{}) (rule.Clock, error) {
@@ -21959,6 +21999,17 @@ func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋtargetᚋgoalertᚋus
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	return ec._UserCalendarSubscription(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v *calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserCalendarSubscription(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUserContactMethod2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐContactMethod(ctx context.Context, sel ast.SelectionSet, v contactmethod.ContactMethod) graphql.Marshaler {

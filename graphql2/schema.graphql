@@ -39,7 +39,7 @@ type Query {
   schedule(id: ID!): Schedule
 
   # Returns the public information of a calendar subscription
-  userCalendarSubscription(id: ID!): CalendarSubscription
+  userCalendarSubscription(id: ID!): UserCalendarSubscription
 
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
@@ -237,7 +237,7 @@ type Mutation {
 
   createUserCalendarSubscription(
     input: CreateUserCalendarSubscriptionInput!
-  ): CalendarSubscription!
+  ): UserCalendarSubscription!
   updateUserCalendarSubscription(
     input: UpdateUserCalendarSubscriptionInput!
   ): Boolean!
@@ -282,13 +282,14 @@ input UpdateUserCalendarSubscriptionInput {
   reminderMinutes: [Int!]
   disabled: Boolean
 }
-type CalendarSubscription {
+type UserCalendarSubscription {
   id: ID!
   name: String!
   reminderMinutes: [Int!]!
   scheduleID: ID!
   schedule: Schedule
   lastAccess: ISOTimestamp!
+  disabled: Boolean!
 }
 
 input ConfigValueInput {
@@ -846,7 +847,7 @@ type User {
 
   contactMethods: [UserContactMethod!]!
   notificationRules: [UserNotificationRule!]!
-  calendarSubscriptions: [CalendarSubscription!]!
+  calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
 

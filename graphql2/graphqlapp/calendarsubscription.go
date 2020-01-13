@@ -11,19 +11,19 @@ import (
 	"github.com/target/goalert/validation"
 )
 
-type CalendarSubscription App
+type UserCalendarSubscription App
 
-func (a *App) CalendarSubscription() graphql2.CalendarSubscriptionResolver {
-	return (*CalendarSubscription)(a)
+func (a *App) UserCalendarSubscription() graphql2.UserCalendarSubscriptionResolver {
+	return (*UserCalendarSubscription)(a)
 }
 
-func (a *CalendarSubscription) ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
+func (a *UserCalendarSubscription) ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
 	return obj.Config.ReminderMinutes, nil
 }
-func (a *CalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
+func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
 }
-func (a *CalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
+func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
 	// URL generation out-of-scope at this stage
 	return nil, validation.NewFieldError("URL", "not implemented")
 }
@@ -32,7 +32,7 @@ func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calen
 	return q.CalendarSubscriptionStore.FindOne(ctx, id)
 }
 
-// todo: return calendarsubscription with generated url once endpoint has been created
+// todo: return UserCalendarSubscription with generated url once endpoint has been created
 func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
 	cs = &calendarsubscription.CalendarSubscription{
 		Name:       input.Name,
