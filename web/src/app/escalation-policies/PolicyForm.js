@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import MaterialSelect from '../selection/MaterialSelect'
+import _ from 'lodash-es'
 
 export default class PolicyForm extends PureComponent {
   static propTypes = {
@@ -73,7 +74,7 @@ export default class PolicyForm extends PureComponent {
                 { label: '5', value: '5' },
               ]}
               required
-              value={this.props.value.repeat.value}
+              value={_.get(this.props.value, 'repeat.value')}
             />
           </Grid>
         </Grid>
