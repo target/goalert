@@ -7,7 +7,7 @@ const c = new Chance()
 testScreen('Time Pickers', testTimePickers)
 
 function testTimePickers(screen: ScreenFormat) {
-  describe('Time', () => {
+  describe('Time (schedule assignments)', () => {
     const check = (name: string, params: string, display: string) =>
       it(name, () => {
         cy.setScheduleTarget({
@@ -67,7 +67,7 @@ function testTimePickers(screen: ScreenFormat) {
     })
   })
 
-  describe('Date', () => {
+  describe('Date (schedule shifts)', () => {
     const check = (name: string, params: string, display: string) =>
       it(name, () => {
         cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
@@ -110,7 +110,7 @@ function testTimePickers(screen: ScreenFormat) {
     })
   })
 
-  describe('DateTime', () => {
+  describe('DateTime (schedule overrides)', () => {
     const check = (name: string, params: string, display: string) =>
       it(name, () => {
         cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
