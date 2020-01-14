@@ -5,10 +5,9 @@ import FormDialog from '../../dialogs/FormDialog'
 import { useMutation } from '@apollo/react-hooks'
 import { nonFieldErrors } from '../../util/errutil'
 
-// todo: update type
 const mutation = gql`
   mutation($id: ID!) {
-    deleteAll(input: [{ id: $id, type: contactMethod }])
+    deleteAll(input: [{ id: $id, type: calendarSubscription }])
   }
 `
 
