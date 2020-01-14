@@ -36,6 +36,8 @@ export const reminderMinutesOptions = [
 export default function CalendarSubscribeForm(props) {
   return (
     <FormContainer
+      disabled={props.loading}
+      errors={props.errors}
       onChange={value => props.onChange(value)}
       optionalLabels
       value={props.value}
@@ -142,5 +144,7 @@ export default function CalendarSubscribeForm(props) {
 CalendarSubscribeForm.propTypes = {
   disableSchedField: p.bool,
   onChange: p.func.isRequired,
-  value: p.object.isRequired,
+  errors: p.array,
+  loading: p.bool,
+  value: p.object.isRequired, // todo: shape this
 }
