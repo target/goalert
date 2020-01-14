@@ -11,7 +11,6 @@ import (
 var limitID = g.NewEnum(g.EnumConfig{
 	Name: "LimitID",
 	Values: g.EnumValueConfigMap{
-		"calendar_subscriptions_per_user": &g.EnumValueConfig{Value: limit.CalendarSubscriptionsPerUser},
 		"notification_rules_per_user":     &g.EnumValueConfig{Value: limit.NotificationRulesPerUser},
 		"contact_methods_per_user":        &g.EnumValueConfig{Value: limit.ContactMethodsPerUser},
 		"ep_steps_per_policy":             &g.EnumValueConfig{Value: limit.EPStepsPerPolicy},
@@ -23,6 +22,7 @@ var limitID = g.NewEnum(g.EnumConfig{
 		"targets_per_schedule":            &g.EnumValueConfig{Value: limit.TargetsPerSchedule},
 		"heartbeat_monitors_per_service":  &g.EnumValueConfig{Value: limit.HeartbeatMonitorsPerService},
 		"user_overrides_per_schedule":     &g.EnumValueConfig{Value: limit.UserOverridesPerSchedule},
+		"calendar_subscriptions_per_user": &g.EnumValueConfig{Value: limit.CalendarSubscriptionsPerUser},
 	},
 })
 
