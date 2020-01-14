@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -97,11 +98,11 @@ func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 
 	var cs CalendarSubscription
 	err = cs.scanFrom(b.findOne.QueryRowContext(ctx, id).Scan)
-	if err != nil {
-		return nil, err
+	if err == sql.ErrNoRows {
+		return nil, validation.NewFieldError("ID", "Not found")
 	}
 
-	return &cs, nil
+	return &cs, err
 }
 
 // CreateTx will return a created calendar subscription with the given input.

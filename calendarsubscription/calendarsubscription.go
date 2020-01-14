@@ -29,6 +29,7 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	}
 
 	err := validate.Many(
+		validate.ArrayLength("ReminderMinutes", cs.Config.ReminderMinutes, 15),
 		validate.IDName("Name", cs.Name),
 		validate.UUID("ID", cs.ID),
 		validate.UUID("UserID", cs.UserID),
