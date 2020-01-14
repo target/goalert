@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+// CalendarSubscription stores the information from user subscriptions
 type CalendarSubscription struct {
 	ID         string
 	Name       string
@@ -21,6 +22,7 @@ type CalendarSubscription struct {
 	}
 }
 
+// Normalize will validate and produce a normalized CalendarSubscription struct.
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	if cs.ID == "" {
 		cs.ID = uuid.NewV4().String()

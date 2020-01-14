@@ -10,7 +10,7 @@ CREATE TABLE user_calendar_subscriptions (
     schedule_id UUID NOT NULL REFERENCES schedules (id) ON DELETE CASCADE,
     config JSONB NOT NULL,
 
-    UNIQUE(name, schedule_id)
+    UNIQUE(name, schedule_id, user_id)
 );
 
 -- +migrate Down
