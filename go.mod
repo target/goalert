@@ -16,8 +16,6 @@ require (
 	github.com/alexeyco/simpletable v0.0.0-20191023080658-fe3ac9971811
 	github.com/aws/aws-sdk-go v1.25.38 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
-	github.com/chzyer/logex v1.1.10 // indirect
-	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -27,7 +25,7 @@ require (
 	github.com/fatih/color v1.8.0
 	github.com/felixge/httpsnoop v1.0.1
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
-	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9
+	github.com/golang/groupcache v0.0.0-20191227052852-215e87163ea7
 	github.com/golang/mock v1.3.1
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -62,11 +60,9 @@ require (
 	github.com/vektah/gqlparser v1.2.1
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20191202143827-86a70503ff7e
-	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	golang.org/x/oauth2 v0.0.0-20191202225959-858c2ad4c8b6
-	golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e // indirect
-	golang.org/x/tools v0.0.0-20191216173652-a0e659d51361
-	google.golang.org/grpc v1.25.1 // indirect
+	golang.org/x/tools v0.0.0-20191227053925-7b8e75db28f4
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
