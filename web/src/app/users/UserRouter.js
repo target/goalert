@@ -77,6 +77,7 @@ export default function UserRouter() {
           <UserDetails userID={match.params.userID} readOnly />
         )}
       />
+
       <Route
         exact
         path='/profile/on-call-assignments'
@@ -84,14 +85,22 @@ export default function UserRouter() {
       />
       <Route
         exact
+        path='/users/:userID/on-call-assignments'
+        render={({ match }) => (
+          <UserOnCallAssignmentList userID={match.params.userID} />
+        )}
+      />
+
+      <Route
+        exact
         path='/profile/schedule-calendar-subscriptions'
         component={UserOnCallSubscriptions}
       />
       <Route
         exact
-        path='/users/:userID/on-call-assignments'
+        path='/users/:userID/schedule-calendar-subscriptions'
         render={({ match }) => (
-          <UserOnCallAssignmentList userID={match.params.userID} />
+          <UserOnCallSubscriptions userID={match.params.userID} />
         )}
       />
 
