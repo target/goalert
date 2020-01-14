@@ -40,7 +40,6 @@ require (
 	github.com/jackc/pgx/v4 v4.1.2
 	github.com/joho/godotenv v1.3.0
 	github.com/mattn/go-colorable v0.1.4
-	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
