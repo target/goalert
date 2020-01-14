@@ -134,6 +134,13 @@ type CreateServiceInput struct {
 	NewHeartbeatMonitors []CreateHeartbeatMonitorInput `json:"newHeartbeatMonitors"`
 }
 
+type CreateUserCalendarSubscriptionInput struct {
+	Name            string `json:"name"`
+	ReminderMinutes []int  `json:"reminderMinutes"`
+	ScheduleID      string `json:"scheduleID"`
+	Disabled        *bool  `json:"disabled"`
+}
+
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
 	Type                    contactmethod.Type               `json:"type"`
@@ -362,6 +369,13 @@ type UpdateServiceInput struct {
 	EscalationPolicyID *string `json:"escalationPolicyID"`
 }
 
+type UpdateUserCalendarSubscriptionInput struct {
+	ID              string  `json:"id"`
+	Name            *string `json:"name"`
+	ReminderMinutes []int   `json:"reminderMinutes"`
+	Disabled        *bool   `json:"disabled"`
+}
+
 type UpdateUserContactMethodInput struct {
 	ID    string  `json:"id"`
 	Name  *string `json:"name"`
@@ -389,13 +403,6 @@ type UserConnection struct {
 	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
-type UserCreateCalendarSubscriptionInput struct {
-	Name            string `json:"name"`
-	ReminderMinutes []int  `json:"reminderMinutes"`
-	ScheduleID      string `json:"scheduleID"`
-	Disabled        *bool  `json:"disabled"`
-}
-
 type UserOverrideConnection struct {
 	Nodes    []override.UserOverride `json:"nodes"`
 	PageInfo *PageInfo               `json:"pageInfo"`
@@ -418,13 +425,6 @@ type UserSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
-}
-
-type UserUpdateCalendarSubscriptionInput struct {
-	ID              string  `json:"id"`
-	Name            *string `json:"name"`
-	ReminderMinutes []int   `json:"reminderMinutes"`
-	Disabled        *bool   `json:"disabled"`
 }
 
 type VerifyContactMethodInput struct {

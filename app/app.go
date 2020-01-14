@@ -3,7 +3,6 @@ package app
 import (
 	"crypto/tls"
 	"database/sql"
-	"github.com/target/goalert/calendarsubscription"
 	"net"
 	"net/http"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/nonce"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/engine/resolver"

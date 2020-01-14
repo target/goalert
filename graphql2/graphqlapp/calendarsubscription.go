@@ -3,76 +3,58 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/validation"
 )
 
-type CalendarSubscription App
+type UserCalendarSubscription App
 
-func (a *App) CalendarSubscription() graphql2.CalendarSubscriptionResolver {
-	return (*CalendarSubscription)(a)
+func (a *App) UserCalendarSubscription() graphql2.UserCalendarSubscriptionResolver {
+	return (*UserCalendarSubscription)(a)
 }
 
-func (a *CalendarSubscription) ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
-	var config calendarsubscription.Config
-	err := json.Unmarshal(obj.Config, &config)
-	obj.ReminderMinutes = config.ReminderMinutes
-	return obj.ReminderMinutes, err
+func (a *UserCalendarSubscription) ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error) {
+	return obj.Config.ReminderMinutes, nil
 }
-func (a *CalendarSubscription) ScheduleID(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (string, error) {
-	e := *obj
-	return e.ScheduleID, nil
-}
-func (a *CalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
+func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error) {
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
 }
-func (a *CalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
-	var err error
-	return nil, err
+func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
+	// URL generation out-of-scope at this stage
+	return nil, validation.NewFieldError("URL", "not implemented")
 }
 
 func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
 	return q.CalendarSubscriptionStore.FindOne(ctx, id)
 }
 
-// todo: return calendarsubscription with generated url once endpoint has been created
-func (m *Mutation) UserCreateCalendarSubscription(ctx context.Context, input graphql2.UserCreateCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
-	var config calendarsubscription.Config
-	var configJson []byte
-	if input.ReminderMinutes != nil {
-		config.ReminderMinutes = input.ReminderMinutes
-		configJson, err = json.Marshal(config)
-		if err != nil {
-			return nil, err
-		}
-	}
+// todo: return UserCalendarSubscription with generated url once endpoint has been created
+func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input graphql2.CreateUserCalendarSubscriptionInput) (cs *calendarsubscription.CalendarSubscription, err error) {
 	cs = &calendarsubscription.CalendarSubscription{
 		Name:       input.Name,
 		ScheduleID: input.ScheduleID,
-		Config:     configJson,
-		ReminderMinutes:   input.ReminderMinutes,
-		Disabled:   *input.Disabled,
+		UserID:     permission.UserID(ctx),
 	}
+	if input.Disabled != nil {
+		cs.Disabled = *input.Disabled
+	}
+	cs.Config.ReminderMinutes = input.ReminderMinutes
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		cs, err = m.CalendarSubscriptionStore.CreateSubscriptionTx(ctx, tx, cs)
-		if err != nil {
-			return err
-		}
-
-		// todo: gen url for user
-
+		cs, err = m.CalendarSubscriptionStore.CreateTx(ctx, tx, cs)
 		return err
 	})
 
 	return cs, err
 }
 
-func (m *Mutation) UserUpdateCalendarSubscription(ctx context.Context, input graphql2.UserUpdateCalendarSubscriptionInput) (bool, error) {
+func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input graphql2.UpdateUserCalendarSubscriptionInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cs, err := m.CalendarSubscriptionStore.FindOneForUpdateTx(ctx, tx, input.ID)
+		cs, err := m.CalendarSubscriptionStore.FindOneForUpdateTx(ctx, tx, permission.UserID(ctx), input.ID)
 		if err != nil {
 			return err
 		}
@@ -83,16 +65,9 @@ func (m *Mutation) UserUpdateCalendarSubscription(ctx context.Context, input gra
 			cs.Disabled = *input.Disabled
 		}
 		if input.ReminderMinutes != nil {
-			var config calendarsubscription.Config
-			var configJson []byte
-			config.ReminderMinutes = input.ReminderMinutes
-			configJson, err := json.Marshal(config)
-			if err != nil {
-				return err
-			}
-			cs.Config = configJson
+			cs.Config.ReminderMinutes = input.ReminderMinutes
 		}
-		return m.CalendarSubscriptionStore.UpdateSubscriptionTx(ctx, tx, cs)
+		return m.CalendarSubscriptionStore.UpdateTx(ctx, tx, cs)
 	})
 	return err == nil, err
 }

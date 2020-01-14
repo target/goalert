@@ -1,27 +1,38 @@
 package calendarsubscription
 
 import (
-	"github.com/target/goalert/validation/validate"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
+	"github.com/target/goalert/validation/validate"
 )
 
+// CalendarSubscription stores the information from user subscriptions
 type CalendarSubscription struct {
-	ID         string    `json:"id"`
-	Name       string    `json:"name"`
-	UserID     string    `json:"user_id"`
-	LastAccess time.Time `json:"last_access"`
-	Disabled   bool      `json:"disabled"`
-	Config     []byte    `json:"config"`
-	ScheduleID string    `json:"schedule_id"`
+	ID         string
+	Name       string
+	UserID     string
+	ScheduleID string
+	LastAccess time.Time
+	Disabled   bool
 
-	ReminderMinutes []int `json:"reminder_minutes"`
+	// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)
+	Config struct {
+		ReminderMinutes []int
+	}
 }
 
+// Normalize will validate and produce a normalized CalendarSubscription struct.
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
+	if cs.ID == "" {
+		cs.ID = uuid.NewV4().String()
+	}
+
 	err := validate.Many(
-		validate.IDName("CalendarSubscriptionName", cs.Name),
-		validate.UUID("CalendarSubscriptionID", cs.ID),
-		validate.UUID("CalendarSubscriptionUserID", cs.UserID),
+		validate.Range("ReminderMinutes", len(cs.Config.ReminderMinutes), 0, 15),
+		validate.IDName("Name", cs.Name),
+		validate.UUID("ID", cs.ID),
+		validate.UUID("UserID", cs.UserID),
 	)
 	if err != nil {
 		return nil, err

@@ -2,12 +2,12 @@ package app
 
 import (
 	"context"
-	"github.com/target/goalert/calendarsubscription"
 	"net/url"
 
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/auth/nonce"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
