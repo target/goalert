@@ -3,7 +3,7 @@ module github.com/target/goalert
 go 1.13
 
 require (
-	cloud.google.com/go v0.50.0
+	cloud.google.com/go v0.51.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.8
 	github.com/99designs/gqlgen v0.10.2
