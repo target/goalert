@@ -54,9 +54,11 @@ function testRotations(screen: ScreenFormat) {
             description,
             timeZone: tz,
             type,
-            dayOfWeek: type === 'Weekly' ? start.weekdayLong : null,
             shiftLength: shiftLength.toString(),
           })
+          if (type === 'Weekly') {
+            cy.dialogForm({ dayOfWeek: start.weekdayLong })
+          }
           cy.dialogFinish('Submit')
 
           // should be on details page
