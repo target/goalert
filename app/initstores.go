@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/auth/nonce"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
@@ -116,6 +117,13 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init schedule store")
+	}
+
+	if app.CalendarSubscriptionStore == nil {
+		app.CalendarSubscriptionStore, err = calendarsubscription.NewStore(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init calendar subscription store")
 	}
 	if app.RotationStore == nil {
 		app.RotationStore, err = rotation.NewDB(ctx, app.db)

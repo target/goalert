@@ -14,19 +14,20 @@ func _() {
 	_ = x[TargetTypeRotation-3]
 	_ = x[TargetTypeService-4]
 	_ = x[TargetTypeSchedule-5]
-	_ = x[TargetTypeUser-6]
-	_ = x[TargetTypeNotificationChannel-7]
-	_ = x[TargetTypeSlackChannel-8]
-	_ = x[TargetTypeIntegrationKey-9]
-	_ = x[TargetTypeUserOverride-10]
-	_ = x[TargetTypeNotificationRule-11]
-	_ = x[TargetTypeContactMethod-12]
-	_ = x[TargetTypeHeartbeatMonitor-13]
+	_ = x[TargetTypeCalendarSubscription-6]
+	_ = x[TargetTypeUser-7]
+	_ = x[TargetTypeNotificationChannel-8]
+	_ = x[TargetTypeSlackChannel-9]
+	_ = x[TargetTypeIntegrationKey-10]
+	_ = x[TargetTypeUserOverride-11]
+	_ = x[TargetTypeNotificationRule-12]
+	_ = x[TargetTypeContactMethod-13]
+	_ = x[TargetTypeHeartbeatMonitor-14]
 }
 
-const _TargetType_name = "TargetTypeUnspecifiedTargetTypeEscalationPolicyTargetTypeNotificationPolicyTargetTypeRotationTargetTypeServiceTargetTypeScheduleTargetTypeUserTargetTypeNotificationChannelTargetTypeSlackChannelTargetTypeIntegrationKeyTargetTypeUserOverrideTargetTypeNotificationRuleTargetTypeContactMethodTargetTypeHeartbeatMonitor"
+const _TargetType_name = "TargetTypeUnspecifiedTargetTypeEscalationPolicyTargetTypeNotificationPolicyTargetTypeRotationTargetTypeServiceTargetTypeScheduleTargetTypeCalendarSubscriptionTargetTypeUserTargetTypeNotificationChannelTargetTypeSlackChannelTargetTypeIntegrationKeyTargetTypeUserOverrideTargetTypeNotificationRuleTargetTypeContactMethodTargetTypeHeartbeatMonitor"
 
-var _TargetType_index = [...]uint16{0, 21, 47, 75, 93, 110, 128, 142, 171, 193, 217, 239, 265, 288, 314}
+var _TargetType_index = [...]uint16{0, 21, 47, 75, 93, 110, 128, 158, 172, 201, 223, 247, 269, 295, 318, 344}
 
 func (i TargetType) String() string {
 	if i < 0 || i >= TargetType(len(_TargetType_index)-1) {
