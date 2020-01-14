@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
+import { useQuery } from '@apollo/react-hooks'
+import gql from 'graphql-tag'
 import { Card, Tooltip } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
@@ -8,18 +10,45 @@ import CalendarSubscribeCreateDialog from '../schedules/calendar-subscribe/Calen
 import { Warning } from '../icons'
 import CalendarSubscribeDeleteDialog from '../schedules/calendar-subscribe/CalendarSubscribeDeleteDialog'
 import CalendarSubscribeEditDialog from '../schedules/calendar-subscribe/CalendarSubscribeEditDialog'
+import { GenericError, ObjectNotFound } from '../error-pages'
+import _ from 'lodash-es'
+import Spinner from '../loading/components/Spinner'
+import { formatTimeSince } from '../util/timeFormat'
+
+const query = gql`
+  query calendarSubscriptions($id: ID!) {
+    user(id: $id) {
+      id
+      calendarSubscriptions {
+        id
+        name
+        reminderMinutes
+        scheduleID
+        schedule {
+          name
+        }
+        lastAccess
+        disabled
+      }
+    }
+  }
+`
 
 export default function UserCalendarSubscriptionList(props) {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
-  // todo: query for data here instead
-  const data = {
-    calendarSubscriptions: mockItems,
-  }
+  const { data, loading, error } = useQuery(query, {
+    variables: {
+      id: props.userID,
+    },
+  })
 
-  const subs = data.calendarSubscriptions.sort((a, b) => {
+  if (error) return <GenericError error={error.message} />
+  if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
+
+  const subs = data.user.calendarSubscriptions.sort((a, b) => {
     if (a.schedule.name < b.schedule.name) return -1
     if (a.schedule.name > b.schedule.name) return 1
 
@@ -38,7 +67,7 @@ export default function UserCalendarSubscriptionList(props) {
 
     items.push({
       title: sub.name,
-      subText: 'Last sync: ' + sub.last_access, // todo: format iso timestamp to duration with luxon
+      subText: 'Last sync: ' + (formatTimeSince(sub.lastAccess) || 'Never'),
       secondaryAction: renderOtherActions(sub.id),
       icon: sub.disabled ? (
         <Tooltip title='Disabled'>
@@ -48,7 +77,7 @@ export default function UserCalendarSubscriptionList(props) {
     })
   })
 
-  // todo: finish these dialogs
+  // todo: check if current user here and don't render if not their profile
   function renderOtherActions(id) {
     return (
       <OtherActions
@@ -103,69 +132,3 @@ export default function UserCalendarSubscriptionList(props) {
 UserCalendarSubscriptionList.propTypes = {
   userID: p.string.isRequired,
 }
-
-const mockItems = [
-  {
-    id: '1234',
-    name: 'asdasd (1)',
-    schedule: {
-      name: 'Test Schedule 1',
-    },
-    last_access: '48m ago',
-    disabled: false,
-  },
-  {
-    id: '1234',
-    name: 'rhgdgb (2)',
-    schedule: {
-      name: 'Test Schedule 2',
-    },
-    last_access: '48m ago',
-    disabled: false,
-  },
-  {
-    id: '1234',
-    name: 'ersefbdfb (3)',
-    schedule: {
-      name: 'Test Schedule 3',
-    },
-    last_access: '48m ago',
-    disabled: false,
-  },
-  {
-    id: '1234',
-    name: 'gfewsfbd (1)',
-    schedule: {
-      name: 'Test Schedule 1',
-    },
-    last_access: '48m ago',
-    disabled: false,
-  },
-  {
-    id: '1234',
-    name: 'wergfs (4)',
-    schedule: {
-      name: 'Test Schedule 4',
-    },
-    last_access: '48m ago',
-    disabled: false,
-  },
-  {
-    id: '1234',
-    name: 'ertbdrgb (1)',
-    schedule: {
-      name: 'Test Schedule 1',
-    },
-    last_access: '48m ago',
-    disabled: false,
-  },
-  {
-    id: '1234',
-    name: 'wergewrw (3)',
-    schedule: {
-      name: 'Test Schedule 3',
-    },
-    last_access: '48m ago',
-    disabled: true,
-  },
-]
