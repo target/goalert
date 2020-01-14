@@ -30,17 +30,18 @@ export function mapRuleTZ(fromTZ, toTZ, rule) {
   }
 }
 
-// clockTimeToISO will return an ISO timestamp in the provided zone
-// at the given 24-hour time.
-export function clockTimeToISO(time, zone) {
+// gqlClockTimeToISO will return an ISO timestamp representing
+// the given GraphQL ClockTime value at the current date in the
+// provided time zone.
+export function gqlClockTimeToISO(time, zone) {
   return DateTime.fromFormat(time, 'HH:mm', { zone })
     .toUTC()
     .toISO()
 }
 
-// isoToClockTime will return the 24-hour time in the provided zone
-// at the given ISO timestamp.
-export function isoToClockTime(timestamp, zone) {
+// isoToGQLClockTime will return a GraphQL ClockTime value for
+// the given ISO timestamp, with respect to the provided time zone.
+export function isoToGQLClockTime(timestamp, zone) {
   return DateTime.fromISO(timestamp, { zone }).toFormat('HH:mm')
 }
 
