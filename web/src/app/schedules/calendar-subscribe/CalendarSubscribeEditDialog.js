@@ -15,7 +15,6 @@ import { fieldErrors } from '../../util/errutil'
 const SUBTITLE =
   'Editing the schedule or alarm will result in a new URL being generated.'
 
-// todo: update input and names
 const query = gql`
   query($id: ID!) {
     userCalendarSubscription(id: $id) {
