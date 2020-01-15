@@ -147,8 +147,7 @@ func TestSystemLimits(t *testing.T) {
 			}
 			setLimit := func(max int) {
 				t.Helper()
-				// noErr(doQLErr(t, fmt.Sprintf(`mutation{setConfig(input:{id: "%s", value: "%d"})}`, limitID, max), parseID))
-				// TODO create mutation for setting updating limits in database
+				h.SetSystemLimit(limitID, max)
 			}
 			ids := []string{ // create 3
 				noErr(doQLErr(t, addQuery(1), parseID)),
@@ -182,7 +181,7 @@ func TestSystemLimits(t *testing.T) {
 			return fmt.Sprintf(`mutation{createUserContactMethod(input:{type: SMS, name: "%s", value: "%s", userID: "%s"}){id}}`, name(), h.Phone(""), h.UUID("cm_user"))
 		},
 		func(_ int, id string) string {
-			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: userContactMethod}])}`, id)
+			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: contactMethod}])}`, id)
 		},
 		nil,
 	)
