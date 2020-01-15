@@ -231,11 +231,12 @@ func TestSystemLimits(t *testing.T) {
 	// 	nil,
 	// )
 
+	// TODO need a way to dynamically create users
 	// doTest(
 	// 	limit.ParticipantsPerRotation,
 	// 	"participants",
 	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{addRotationParticipant(input:{user_id: "%s", rotation_id: "%s"}){id}}`, h.UUID("part_user"), h.UUID("part_rot"))
+	// 		return fmt.Sprintf(`mutation{updateRotation(input:{userIDs: ["%s"], id: "%s"})}`, h.UUID("part_user"), h.UUID("part_rot"))
 	// 	},
 	// 	func(_ int, id string) string {
 	// 		return fmt.Sprintf(`mutation{deleteRotationParticipant(input:{id: "%s"}){id: deleted_id}}`, id)
@@ -358,27 +359,28 @@ func TestSystemLimits(t *testing.T) {
 	// 	},
 	// )
 
-	// doTest(
-	// 	limit.UnackedAlertsPerService,
-	// 	"unacknowledged alerts",
-	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{createAlert(input:{service_id: "%s", description: "%s"}){id: _id}}`, h.UUID("unack_svc1"), name())
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{updateAlertStatus(input:{id:%s, status: acknowledged}){id}}`, id)
-	// 	},
-	// 	nil,
-	// )
-	// doTest(
-	// 	limit.UnackedAlertsPerService,
-	// 	"unacknowledged alerts",
-	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{createAlert(input:{service_id: "%s", description: "%s"}){id: _id}}`, h.UUID("unack_svc2"), name())
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{updateAlertStatus(input:{id:%s, status: closed}){id}}`, id)
-	// 	},
-	// 	nil,
-	// )
+	doTest(
+		limit.UnackedAlertsPerService,
+		"unacknowledged alerts",
+		func(int) string {
+			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc1"), name())
+		},
+		func(_ int, id string) string {
+			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusAcknowledged}){id}}`, id)
+		},
+		nil,
+	)
+
+	doTest(
+		limit.UnackedAlertsPerService,
+		"unacknowledged alerts",
+		func(int) string {
+			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc2"), name())
+		},
+		func(_ int, id string) string {
+			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusClosed}){id}}`, id)
+		},
+		nil,
+	)
 
 }
