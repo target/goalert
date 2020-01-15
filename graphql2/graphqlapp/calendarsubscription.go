@@ -3,12 +3,13 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
+	"net/url"
 
 	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
-	"github.com/target/goalert/validation"
 )
 
 type UserCalendarSubscription App
@@ -24,8 +25,17 @@ func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calendarsu
 	return a.ScheduleStore.FindOne(ctx, obj.ScheduleID)
 }
 func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
-	// URL generation out-of-scope at this stage
-	return nil, validation.NewFieldError("URL", "not implemented")
+	tok := obj.Token()
+	if tok == "" {
+		return nil, nil
+	}
+
+	v := make(url.Values)
+	v.Set("token", tok)
+
+	cfg := config.FromContext(ctx)
+	callback := cfg.CallbackURL("/api/v2/calendar", v)
+	return &callback, nil
 }
 
 func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
