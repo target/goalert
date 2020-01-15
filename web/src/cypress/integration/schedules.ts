@@ -209,25 +209,18 @@ function testSchedules(screen: ScreenFormat) {
       cy.pageFab('Rotation')
 
       cy.dialogTitle('Add Rotation')
-      cy.dialogForm({ Sunday: false, targetID: rot.name })
+      cy.dialogForm({
+        Sunday: false,
+        targetID: rot.name,
+        'rules[0].start': '02:34',
+        'rules[0].end': '15:34',
+      })
 
       cy.get('table[data-cy="target-rules"] tbody tr').should('have.length', 1)
 
       cy.get('button[aria-label="Add rule"]').click()
 
-      // TODO: add support to dialogForm when refetch code is merged
-      cy.get('table[data-cy="target-rules"] td')
-        .eq(0)
-        .click()
-      cy.get('button')
-        .contains('Today')
-        .click()
-      cy.get('button')
-        .contains('AM')
-        .click()
-      cy.get('body')
-        .contains('OK')
-        .click()
+      cy.dialogForm({ 'rules[1].start': '01:23' })
 
       cy.get('table[data-cy="target-rules"] tbody tr').should('have.length', 2)
 

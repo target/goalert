@@ -1,79 +1,96 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
-import { Mutation } from 'react-apollo'
+import { useMutation, useQuery } from 'react-apollo'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
 import { startCase } from 'lodash-es'
+import { DateTime } from 'luxon'
+import { isoToGQLClockTime } from './util'
 
 const mutation = gql`
   mutation($input: ScheduleTargetInput!) {
     updateScheduleTarget(input: $input)
   }
 `
-
-export default class ScheduleRuleCreateDialog extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
-    targetType: p.oneOf(['rotation', 'user']).isRequired,
-    onClose: p.func,
+const query = gql`
+  query($id: ID!) {
+    schedule(id: $id) {
+      id
+      timeZone
+    }
   }
+`
 
-  state = {
-    value: {
-      targetID: '',
-      rules: [
-        {
-          start: '00:00',
-          end: '00:00',
-          weekdayFilter: [true, true, true, true, true, true, true],
+export default function ScheduleRuleCreateDialog(props) {
+  const { scheduleID, targetType, onClose } = props
+  const [value, setValue] = useState({
+    targetID: '',
+    rules: [
+      {
+        start: DateTime.local()
+          .startOf('day')
+          .toUTC()
+          .toISO(),
+        end: DateTime.local()
+          .plus({ day: 1 })
+          .startOf('day')
+          .toUTC()
+          .toISO(),
+        weekdayFilter: [true, true, true, true, true, true, true],
+      },
+    ],
+  })
+
+  const { data, ...queryStatus } = useQuery(query, {
+    variables: { id: scheduleID },
+  })
+  const [mutate, mutationStatus] = useMutation(mutation, {
+    onCompleted: onClose,
+    variables: {
+      input: {
+        target: {
+          type: targetType,
+          id: value.targetID,
         },
-      ],
+        scheduleID,
+
+        rules: value.rules.map(r => ({
+          ...r,
+          start: isoToGQLClockTime(r.start, data.schedule.timeZone),
+          end: isoToGQLClockTime(r.end, data.schedule.timeZone),
+        })),
+      },
     },
-  }
+  })
 
-  render() {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {this.renderDialog}
-      </Mutation>
-    )
-  }
+  return (
+    <FormDialog
+      onClose={onClose}
+      title={`Add ${startCase(targetType)} to Schedule`}
+      errors={nonFieldErrors(mutationStatus.error)}
+      maxWidth='md'
+      loading={queryStatus.loading || mutationStatus.loading}
+      onSubmit={() => {
+        mutate()
+      }}
+      form={
+        <ScheduleRuleForm
+          targetType={targetType}
+          scheduleID={scheduleID}
+          disabled={queryStatus.loading || mutationStatus.loading}
+          errors={fieldErrors(mutationStatus.error)}
+          value={value}
+          onChange={setValue}
+        />
+      }
+    />
+  )
+}
 
-  renderDialog = (commit, status) => {
-    return (
-      <FormDialog
-        onClose={this.props.onClose}
-        title={`Add ${startCase(this.props.targetType)} to Schedule`}
-        errors={nonFieldErrors(status.error)}
-        maxWidth='md'
-        onSubmit={() => {
-          commit({
-            variables: {
-              input: {
-                target: {
-                  type: this.props.targetType,
-                  id: this.state.value.targetID,
-                },
-                scheduleID: this.props.scheduleID,
-
-                rules: this.state.value.rules,
-              },
-            },
-          })
-        }}
-        form={
-          <ScheduleRuleForm
-            targetType={this.props.targetType}
-            scheduleID={this.props.scheduleID}
-            disabled={status.loading}
-            errors={fieldErrors(status.error)}
-            value={this.state.value}
-            onChange={value => this.setState({ value })}
-          />
-        }
-      />
-    )
-  }
+ScheduleRuleCreateDialog.propTypes = {
+  scheduleID: p.string.isRequired,
+  targetType: p.oneOf(['rotation', 'user']).isRequired,
+  onClose: p.func,
 }
