@@ -1,14 +1,9 @@
 package oncall
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
-	"text/template"
+
 	"time"
 
 	"github.com/target/goalert/assignment"
@@ -16,7 +11,6 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 
@@ -27,12 +21,9 @@ import (
 type Store interface {
 	OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error)
 
-	// HistoryBySchedule(ctx context.Context, stepID string, start, end time.Time) ([]Shift, error)
 	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
 
-	ServeICal(w http.ResponseWriter, req *http.Request)
-
-	ServeICalendar(ctx context.Context, schedID string, userID string, start, end time.Time) (*os.File, error)
+	//	ServeICal(w http.ResponseWriter, req *http.Request)
 }
 
 // ServiceOnCallUser represents a currently on-call user for a service.
@@ -301,110 +292,40 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 	return s.CalculateShifts(start, end), nil
 }
 
-func (db *DB) ServeICalendar(ctx context.Context, schedID string, userID string, start, end time.Time) (*os.File, error) {
-	shifts, err := db.GetShifts(ctx, schedID, userID, start, end)
-	if err != nil {
-		return nil, err
-	}
-	// todo: set proper value for valarm
-	// as per graphql PR, config {reminderminutes} is the valarm bit we need here
-
-	file, err := ICal(shifts, start, end, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return file, nil
-}
-
-func ICal(shifts []Shift, start, end time.Time, valarm bool) (*os.File, error) {
-	type iCalOptions struct {
-		Shifts []Shift   `json:"s,omitempty"`
-		Start  time.Time `json:"st,omitempty"`
-		End    time.Time `json:"e,omitempty"`
-		Valarm bool      `json:"v, omitempty"`
-	}
-
-	// todo: valarm trigger time (always in minutes?)
-
-	var iCalTemplate = `
-		BEGIN:VCALENDAR
-		VERSION:2.0
-		PRODID:-//ZContent.net//Zap Calendar 1.0//EN
-		CALSCALE:GREGORIAN
-		METHOD:PUBLISH
-		{{range .Shifts}}
-		BEGIN:VEVENT
-		SUMMARY:On-Call
-		DTSTART:{{.Start}}
-		DTEND:{{.End}}
-		END:VEVENT
-		{{end}}
-
-		{{if .VAlarm}}
-		BEGIN:VALARM
-		ACTION:DISPLAY
-		DESCRIPTION:REMINDER
-		TRIGGER:-PT15M
-		END:VALARM
-		{{end}}
-
-		END:VCALENDAR`
-
-	iCal, err := template.New("iCal").Parse(iCalTemplate)
-	if err != nil {
-
-		return nil, err
-	}
-
-	i := iCalOptions{shifts, start, end, valarm}
-
-	// Create output file
-	file, err := os.Create("iCal.ics")
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	err = iCal.Execute(buf, i)
-	if err != nil {
-		log.Fatal("render:", err)
-	}
-
-	// Write output to ics file
-	err = ioutil.WriteFile("iCal.ics", buf.Bytes(), 0644)
-	if err != nil {
-		log.Fatal("save:", err)
-	}
-	return file, nil
-}
-
-func (db *DB) GetShifts(ctx context.Context, schedID string, userID string, start, end time.Time) ([]Shift, error) {
-	shifts, err := db.HistoryBySchedule(ctx, schedID, start, end)
-	if err != nil {
-		return nil, err
-	}
-
-	var uShifts []Shift
-	for _, s := range shifts {
-		if s.UserID == userID {
-			uShifts = append(uShifts, s)
-		}
-	}
-	return uShifts, nil
-}
-
-func (db *DB) ServeICal(w http.ResponseWriter, req *http.Request) {
+/* func (db *DB) ServeICal(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
 	// todo: Sample input arguments for now
 	// does token provide all these inputs??
+	// get schedID, userID, config from db
+
+	// subscriptionID := "8ee45887-0f6c-4be7-b86e-9203f0928ebd"
+
 
 	t1, _ := time.Parse(time.RFC3339, "2020-01-01T22:08:41+00:00")
 	t2, _ := time.Parse(time.RFC3339, "2020-01-07T22:08:41+00:00")
 
-	_, err := db.ServeICalendar(ctx, "59aea4b0-75f0-4af3-9824-644abf8dd29a", "cb75f78a-0f7c-42fa-99f8-6b30e92a9518", t1, t2)
+	shifts, err := db.HistoryBySchedule(ctx, "59aea4b0-75f0-4af3-9824-644abf8dd29a", t1, t2)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var uShifts []Shift
+	for _, s := range shifts {
+		if s.UserID == "cb75f78a-0f7c-42fa-99f8-6b30e92a9518" {
+			uShifts = append(uShifts, s)
+		}
+	}
+
+	// todo: set proper value for valarm
+	// as per graphql PR, config {reminderminutes} is the valarm bit we need here
+
+	// using token, get subscription ID, then query for userCalendarSubscription object
+	// use that reminderMinutes to pass onto ICal()
+
+	_, err = ICal(shifts, t1, t2, false)
+
 	if errutil.HTTPError(ctx, w, errors.Wrap(err, "serve iCalendar")) {
 		return
 	}
@@ -413,4 +334,4 @@ func (db *DB) ServeICal(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	return
-}
+} */

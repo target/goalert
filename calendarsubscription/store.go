@@ -1,9 +1,17 @@
 package calendarsubscription
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
+	"html/template"
+	"io/ioutil"
+	"log"
+	"os"
+	"time"
+
+	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -229,4 +237,70 @@ func (b *Store) DeleteTx(ctx context.Context, tx *sql.Tx, userID string, ids ...
 
 	_, err = wrapTx(ctx, tx, b.delete).ExecContext(ctx, sqlutil.UUIDArray(ids), userID)
 	return err
+}
+
+// ICal ...
+func ICal(shifts []oncall.Shift, start, end time.Time, valarm bool) (*os.File, error) {
+	type iCalOptions struct {
+		Shifts []oncall.Shift `json:"s,omitempty"`
+		Start  time.Time      `json:"st,omitempty"`
+		End    time.Time      `json:"e,omitempty"`
+		Valarm bool           `jso n:"v, omitempty"`
+	}
+
+	// todo: valarm trigger time (always in minutes?)
+	// todo: handle negative valarm values too
+	// todo: fetch valarm from config column db
+
+	var iCalTemplate = `
+		BEGIN:VCALENDAR
+		VERSION:2.0
+		PRODID:-//ZContent.net//Zap Calendar 1.0//EN
+		CALSCALE:GREGORIAN
+		METHOD:PUBLISH
+		{{range .Shifts}}
+		BEGIN:VEVENT
+		SUMMARY:On-Call
+		DTSTART:{{.Start}}
+		DTEND:{{.End}}
+		END:VEVENT
+		{{end}}
+
+		{{if .Valarm}}
+		BEGIN:VALARM
+		ACTION:DISPLAY
+		DESCRIPTION:REMINDER
+		TRIGGER:-PT15M
+		END:VALARM
+		{{end}}
+
+		END:VCALENDAR`
+
+	iCal, err := template.New("iCal").Parse(iCalTemplate)
+	if err != nil {
+
+		return nil, err
+	}
+
+	i := iCalOptions{shifts, start, end, valarm}
+
+	// Create output file
+	file, err := os.Create("iCal.ics")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	buf := bytes.NewBuffer(nil)
+	err = iCal.Execute(buf, i)
+	if err != nil {
+		log.Fatal("render:", err)
+	}
+
+	// Write output to ics file
+	err = ioutil.WriteFile("iCal.ics", buf.Bytes(), 0644)
+	if err != nil {
+		log.Fatal("save:", err)
+	}
+	return file, nil
 }
