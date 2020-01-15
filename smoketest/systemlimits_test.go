@@ -388,7 +388,7 @@ func TestSystemLimits(t *testing.T) {
 		limit.CalendarSubscriptionsPerUser,
 		"calendar subscriptions",
 		func(int) string {
-			return fmt.Sprintf(`mutation{userCreateCalendarSubscription(input:{name: "%s", notificationMinutes: "%s", scheduleID: "%s", disabled: "%s"})}`, name(), "[5, 3, 1]", h.UUID("cal_sub_sched"), "false")
+			return fmt.Sprintf(`mutation{createUserCalendarSubscription(input:{ name: "%s", scheduleID: "%s", reminderMinutes: "%s", disabled: "%s"})}`, name(), h.UUID("cal_sub_sched"), "[5, 3, 1]", "false")
 		},
 		func(_ int, id string) string {
 			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: calendarSubscription},])}`, id)
