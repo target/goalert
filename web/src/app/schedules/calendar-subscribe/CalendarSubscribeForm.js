@@ -81,7 +81,7 @@ export default function CalendarSubscribeForm(props) {
           <FormField
             fullWidth
             component={MaterialSelect}
-            name='reminderMinutes'
+            name={`reminderMinutes[${i}]`}
             label={getAlarmLabel(i)}
             required={i === 0}
             options={reminderMinutesOptions}
