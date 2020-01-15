@@ -41,6 +41,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 	return &Store{
 		db:   db,
 		keys: apiKeyring,
+		oc:   oc,
 
 		now: p.P(`SELECT now()`),
 
