@@ -57,14 +57,10 @@ export default function CalendarSubscribeForm(props) {
           <FormField
             component={ScheduleSelect}
             disabled={props.disableSchedField}
-            fieldName='scheduleID'
             fullWidth
             required
             label='Schedule'
-            name='schedule'
-            InputLabelProps={{
-              shrink: Boolean(props.value.schedule),
-            }}
+            name='scheduleID'
           />
         </Grid>
         {renderReminderMinutesFields()}
