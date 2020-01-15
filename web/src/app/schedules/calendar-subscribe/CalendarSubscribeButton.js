@@ -29,6 +29,7 @@ export default function CalendarSubscribeButton(props) {
     },
   })
 
+  const totalSubs = _.get(data, 'user.calendarSubscriptions', [])
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(
     cs => cs.scheduleID === props.scheduleID && !cs.disabled,
   ).length
@@ -36,12 +37,12 @@ export default function CalendarSubscribeButton(props) {
   let caption =
     'Subscribe to your shifts on this calendar from your preferred calendar app'
   if (!loading && !error && numSubs > 0) {
-    if (numSubs < 99) {
+    if (totalSubs < 15) {
       caption = `You have ${numSubs} active subscription${
         numSubs > 1 ? 's' : ''
       } for this schedule`
     } else {
-      caption = 'You have 99+ active subscriptions for this schedule'
+      caption = 'You have the maximum amount of subscriptions'
     }
   }
 
@@ -57,6 +58,7 @@ export default function CalendarSubscribeButton(props) {
         <Grid item xs={12}>
           <Button
             color='primary'
+            disabled={totalSubs === 15}
             onClick={() => setShowDialog(true)}
             variant='contained'
           >
