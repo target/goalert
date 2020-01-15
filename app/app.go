@@ -98,6 +98,7 @@ type App struct {
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
+	APIKeyring     keyring.Keyring
 
 	NonceStore    nonce.Store
 	LabelStore    label.Store

@@ -4,8 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/target/goalert/keyring"
+	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -20,14 +25,32 @@ type Store struct {
 	delete     *sql.Stmt
 	findAll    *sql.Stmt
 	findOneUpd *sql.Stmt
+	authUser   *sql.Stmt
+	now        *sql.Stmt
+
+	keys keyring.Keyring
+	oc   oncall.Store
 }
 
+const tokenAudience = "ga-cal-sub"
+
 // NewStore will create a new Store with the given parameters.
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc oncall.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{
-		db: db,
+		db:   db,
+		keys: apiKeyring,
+
+		now: p.P(`SELECT now()`),
+
+		authUser: p.P(`
+			SELECT
+				user_id
+			FROM user_calendar_subscriptions
+			WHERE NOT disabled AND id = $1
+		`),
+
 		findOne: p.P(`
 			SELECT
 				id, name, user_id, disabled, schedule_id, config, last_access
@@ -84,6 +107,40 @@ func (cs *CalendarSubscription) scanFrom(scanFn func(...interface{}) error) erro
 	return err
 }
 
+// Authorize will return an authorized context associated with the given token. If the token is invalid
+// or otherwise can not be authenticated, an error is returned.
+func (b *Store) Authorize(ctx context.Context, token string) (context.Context, error) {
+	var c jwt.StandardClaims
+	_, err := b.keys.VerifyJWT(token, &c)
+	if err != nil {
+		log.Debug(ctx, err)
+		return ctx, validation.NewFieldError("token", "verification failed")
+	}
+
+	if !c.VerifyAudience(tokenAudience, true) {
+		return ctx, validation.NewFieldError("aud", "invalid audience")
+	}
+
+	err = validate.UUID("sub", c.Subject)
+	if err != nil {
+		return ctx, err
+	}
+
+	var userID string
+	err = b.authUser.QueryRowContext(ctx, c.Subject).Scan(&userID)
+	if err == sql.ErrNoRows {
+		return ctx, validation.NewFieldError("sub", "invalid")
+	}
+	if err != nil {
+		return ctx, err
+	}
+
+	return permission.UserSourceContext(ctx, userID, permission.RoleUser, &permission.SourceInfo{
+		Type: permission.SourceTypeCalendarSubscription,
+		ID:   c.Subject,
+	}), nil
+}
+
 // FindOne will return a single calendar subscription for the given id.
 func (b *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
@@ -129,7 +186,12 @@ func (b *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 	if err != nil {
 		return nil, err
 	}
-	return n, nil
+
+	n.token, err = b.keys.SignJWT(jwt.StandardClaims{
+		Subject:  n.ID,
+		Audience: tokenAudience,
+	})
+	return n, err
 }
 
 // FindOneForUpdateTx will return a CalendarSubscription for the given userID that is locked for updating.
