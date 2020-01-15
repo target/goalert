@@ -57,7 +57,7 @@ export default function CalendarSubscribeForm(props) {
           <FormField
             component={ScheduleSelect}
             disabled={props.disableSchedField}
-            fieldName='schedule'
+            fieldName='scheduleID'
             fullWidth
             required
             label='Schedule'

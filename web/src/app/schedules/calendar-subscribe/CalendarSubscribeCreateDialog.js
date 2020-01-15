@@ -25,19 +25,20 @@ export default function CalendarSubscribeCreateDialog(props) {
   const [isComplete, setIsComplete] = useState(false)
   const [value, setValue] = useState({
     name: '',
-    schedule: props.scheduleID || null,
+    scheduleID: props.scheduleID || null,
     reminderMinutes: [],
   })
 
   const [createSubscription, status] = useMutation(mutation, {
     variables: {
       input: {
-        scheduleID: props.scheduleID,
+        scheduleID: value.scheduleID,
         name: value.name,
         reminderMinutes: value.reminderMinutes.map(r => parseInt(r.value)),
         disabled: false,
       },
     },
+    refetchQueries: ['calendarSubscriptions'],
     onCompleted: () => setIsComplete(true),
   })
 
