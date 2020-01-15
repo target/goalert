@@ -43,7 +43,7 @@ func (b *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	calData := []byte("not implemented")
-	// calData := renderICalFromShifts(shifts, cs.Config)
+	// calData := renderICalFromShifts(filtered, cs.Config)
 
 	w.Header().Set("Content-Type", "text/calendar")
 	w.Write(calData)
