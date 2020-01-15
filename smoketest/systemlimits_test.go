@@ -244,17 +244,17 @@ func TestSystemLimits(t *testing.T) {
 	// 	nil,
 	// )
 
-	// doTest(
-	// 	limit.IntegrationKeysPerService,
-	// 	"integration keys",
-	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{createIntegrationKey(input:{service_id: "%s", type: generic, name:"%s"}){id}}`, h.UUID("int_key_svc"), name())
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteIntegrationKey(input:{id: "%s"}){id: deleted_id}}`, id)
-	// 	},
-	// 	nil,
-	// )
+	doTest(
+		limit.IntegrationKeysPerService,
+		"integration keys",
+		func(int) string {
+			return fmt.Sprintf(`mutation{createIntegrationKey(input:{serviceID: "%s", type: generic, name:"%s"}){id}}`, h.UUID("int_key_svc"), name())
+		},
+		func(_ int, id string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: integrationKey}])}`, id)
+		},
+		nil,
+	)
 
 	doTest(
 		limit.HeartbeatMonitorsPerService,
