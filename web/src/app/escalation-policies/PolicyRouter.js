@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react'
+import React from 'react'
 import gql from 'graphql-tag'
 import { Switch, Route } from 'react-router-dom'
 import PolicyCreateDialog from './PolicyCreateDialog'
@@ -23,8 +23,8 @@ const query = gql`
   }
 `
 
-export default class PolicyRouter extends PureComponent {
-  renderList = () => (
+export default function PolicyRouter() {
+  const renderList = () => (
     <SimpleListPage
       query={query}
       mapDataNode={n => ({
@@ -37,30 +37,28 @@ export default class PolicyRouter extends PureComponent {
     />
   )
 
-  renderDetails = ({ match }) => (
+  const renderDetails = ({ match }) => (
     <PolicyDetails escalationPolicyID={match.params.escalationPolicyID} />
   )
 
-  renderServices = ({ match }) => (
+  const renderServices = ({ match }) => (
     <PolicyServicesQuery escalationPolicyID={match.params.escalationPolicyID} />
   )
 
-  render() {
-    return (
-      <Switch>
-        <Route exact path='/escalation-policies' component={this.renderList} />
-        <Route
-          exact
-          path='/escalation-policies/:escalationPolicyID'
-          component={this.renderDetails}
-        />
-        <Route
-          exact
-          path='/escalation-policies/:escalationPolicyID/services'
-          component={this.renderServices}
-        />
-        <Route component={PageNotFound} />
-      </Switch>
-    )
-  }
+  return (
+    <Switch>
+      <Route exact path='/escalation-policies' component={renderList} />
+      <Route
+        exact
+        path='/escalation-policies/:escalationPolicyID'
+        component={renderDetails}
+      />
+      <Route
+        exact
+        path='/escalation-policies/:escalationPolicyID/services'
+        component={renderServices}
+      />
+      <Route component={PageNotFound} />
+    </Switch>
+  )
 }

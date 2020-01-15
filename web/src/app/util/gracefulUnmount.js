@@ -65,6 +65,7 @@ export class GracefulUnmounterProvider extends React.PureComponent {
         item.render({
           key: 'graceful_' + item.id,
           isUnmounting: item.isUnmounting,
+          'data-cy-gu': 'id_' + item.id,
           onExited: () => this.onExited(item.id),
         }),
       )

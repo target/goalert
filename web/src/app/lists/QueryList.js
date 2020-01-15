@@ -5,7 +5,7 @@ import { useQuery } from '@apollo/react-hooks'
 import { Grid, makeStyles } from '@material-ui/core'
 import { once } from 'lodash-es'
 import { PaginatedList } from './PaginatedList'
-import { ITEMS_PER_PAGE } from '../config'
+import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
 import { fieldAlias } from '../util/graphql'
 import Search from '../util/Search'
@@ -18,9 +18,10 @@ const useStyles = makeStyles({
   },
 })
 
-const buildFetchMore = (fetchMore, after) => {
-  return once(num =>
-    fetchMore({
+const buildFetchMore = (fetchMore, after, stopPolling) => {
+  return once(num => {
+    stopPolling()
+    return fetchMore({
       variables: {
         input: {
           first: num,
@@ -38,8 +39,8 @@ const buildFetchMore = (fetchMore, after) => {
           },
         }
       },
-    }),
-  )
+    })
+  })
 }
 
 export default function QueryList(props) {
@@ -64,9 +65,11 @@ export default function QueryList(props) {
     delete variables.input.search
   }
 
-  const { data, loading, fetchMore } = useQuery(aliasedQuery, {
+  const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
     client: GraphQLClientWithErrors,
     variables,
+    fetchPolicy: 'network-only',
+    pollInterval: POLL_INTERVAL,
   })
 
   let items = []
@@ -75,7 +78,11 @@ export default function QueryList(props) {
   if (data && data.data && data.data.nodes) {
     items = data.data.nodes.map(props.mapDataNode)
     if (data.data.pageInfo.hasNextPage) {
-      loadMore = buildFetchMore(fetchMore, data.data.pageInfo.endCursor)
+      loadMore = buildFetchMore(
+        fetchMore,
+        data.data.pageInfo.endCursor,
+        stopPolling,
+      )
     }
   }
 

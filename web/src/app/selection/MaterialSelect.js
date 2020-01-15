@@ -3,6 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import { withStyles } from '@material-ui/core/styles'
 import Select from 'react-select'
 import { components, styles } from './MaterialSelectComponents'
+import shrinkWorkaround from '../util/shrinkWorkaround'
 
 const valueShape = p.shape({
   label: p.string.isRequired,
@@ -47,10 +48,15 @@ export default class MaterialSelect extends Component {
       label,
       name,
       placeholder,
-      InputLabelProps,
+      InputLabelProps: _InputLabelProps,
 
       ...props
     } = this.props
+
+    const InputLabelProps = {
+      ...shrinkWorkaround(this.props.value),
+      ..._InputLabelProps,
+    }
 
     const selectStyles = {
       input: base => ({

@@ -23,7 +23,6 @@ const mutation = gql`
 
 export default function HeartbeatMonitorDeleteDialog(props) {
   const [deleteHeartbeat, { loading, error }] = useMutation(mutation, {
-    refetchQueries: props.refetchQueries,
     variables: { id: props.monitorID },
   })
 
@@ -57,5 +56,4 @@ export default function HeartbeatMonitorDeleteDialog(props) {
 HeartbeatMonitorDeleteDialog.propTypes = {
   monitorID: p.string.isRequired,
   onClose: p.func,
-  refetchQueries: p.arrayOf(p.string),
 }

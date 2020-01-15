@@ -12,7 +12,7 @@ The only hard requirement for GoAlert is a running Postgres instance/database.
 
 We recommend using Postgres 11 for new installations as newer features will be used in the future.
 
-GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION 'pgcrypto';`).
+GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREATE EXTENSION pgcrypto;`).
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
 in your setup.
 

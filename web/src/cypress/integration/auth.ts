@@ -12,17 +12,16 @@ function testAuth(screen: ScreenFormat) {
 
   it('should authenticate a user', () => {
     cy.fixture('profile').then(prof => {
+      cy.form(
+        {
+          username: prof.username,
+          password: prof.password,
+        },
+        'form#auth-basic',
+      )
       cy.get('form#auth-basic').as('form')
 
-      cy.get('@form')
-        .find('input[name=username]')
-        .type(prof.username)
-      cy.get('@form')
-        .find('input[name=password]')
-        .type(prof.password)
-      cy.get('@form')
-        .find('button[type=submit]')
-        .click()
+      cy.get('button[type=submit]').click()
 
       cy.get('form#auth-basic').should('not.exist')
       cy.reload()

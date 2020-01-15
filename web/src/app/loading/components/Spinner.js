@@ -20,6 +20,9 @@ export default class Spinner extends React.PureComponent {
 
     // onReady is called once the spinner has spun for `waitMs`.
     onReady: p.func,
+
+    // text indicates being used as a text placeholder
+    text: p.string,
   }
 
   static defaultProps = {
@@ -50,10 +53,15 @@ export default class Spinner extends React.PureComponent {
   render() {
     if (this.props.delayMs && !this.state.spin) return null
 
+    const style = this.props.text
+      ? { height: '1em', color: 'gray' }
+      : { position: 'absolute', top: '50%', left: '50%' }
+
     return (
-      <div style={{ position: 'absolute', top: '50%', left: '50%' }}>
-        <CircularProgress />
-      </div>
+      <span style={style}>
+        <CircularProgress size={this.props.text ? '1em' : null} />
+        &nbsp;{this.props.text}
+      </span>
     )
   }
 }
