@@ -15,7 +15,7 @@ import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
 
-const query = gql`
+export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
     user(id: $id) {
       id
@@ -39,7 +39,7 @@ export default function UserCalendarSubscriptionList(props) {
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
-  const { data, loading, error } = useQuery(query, {
+  const { data, loading, error } = useQuery(calendarSubscriptionsQuery, {
     variables: {
       id: props.userID,
     },
