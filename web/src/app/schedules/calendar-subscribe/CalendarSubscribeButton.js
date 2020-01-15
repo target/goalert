@@ -30,7 +30,7 @@ export default function CalendarSubscribeButton(props) {
   })
 
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(
-    cs => cs.scheduleID === props.scheduleID,
+    cs => cs.scheduleID === props.scheduleID && !cs.disabled,
   ).length
 
   let caption =
