@@ -256,24 +256,17 @@ func TestSystemLimits(t *testing.T) {
 	// 	nil,
 	// )
 
-	// doTest(
-	// 	limit.HeartbeatMonitorsPerService,
-	// 	"heartbeat monitors",
-	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{createAll(input:{heartbeat_monitors: [{interval_minutes:5,service_id: "%s", name: "%s"}]}){heartbeat_monitors {id}}}`, h.UUID("hb_svc"), name())
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteHeartbeatMonitor(input:{id: "%s"}){id: deleted_id}}`, id)
-	// 	},
-	// 	func(m map[string]interface{}) (string, bool) {
-	// 		c, ok := m["createAll"].(map[string]interface{})
-	// 		if !ok {
-	// 			return "", false
-	// 		}
-	// 		asn := c["heartbeat_monitors"].([]interface{})
-	// 		return asn[0].(map[string]interface{})["id"].(string), true
-	// 	},
-	// )
+	doTest(
+		limit.HeartbeatMonitorsPerService,
+		"heartbeat monitors",
+		func(int) string {
+			return fmt.Sprintf(`mutation{createHeartbeatMonitor(input:{serviceID: "%s", name: "%s", timeoutMinutes: 5 }){id}}`, h.UUID("hb_svc"), name())
+		},
+		func(_ int, id string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: heartbeatMonitor}])}`, id)
+		},
+		nil,
+	)
 
 	// // schedule tests (need custom parser)
 	// s := time.Date(2005, 0, 0, 0, 0, 0, 0, time.UTC)
