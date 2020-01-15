@@ -6,7 +6,7 @@ import { DateTime } from 'luxon'
 import { TextField, InputAdornment, IconButton } from '@material-ui/core'
 
 import Modernizr from '../../modernizr.config'
-import { DateRange } from '@material-ui/icons'
+import { DateRange, AccessTime } from '@material-ui/icons'
 
 function hasInputSupport(name) {
   if (new URLSearchParams(location.search).get('nativeInput') === '0') {
@@ -93,6 +93,7 @@ function useISOPicker(
     extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
   }
 
+  const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
       value={dtValue}
@@ -106,7 +107,7 @@ function useISOPicker(
         endAdornment: (
           <InputAdornment position='end'>
             <IconButton>
-              <DateRange />
+              <FallbackIcon />
             </IconButton>
           </InputAdornment>
         ),
