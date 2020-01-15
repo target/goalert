@@ -1,25 +1,17 @@
 import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import {
-  Grid,
-  InputAdornment,
-  IconButton,
-  Typography,
-  makeStyles,
-} from '@material-ui/core'
+import { Grid, Typography, makeStyles } from '@material-ui/core'
 import { useQuery } from 'react-apollo'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { DateRange } from '@material-ui/icons'
-import { DateTimePicker } from '@material-ui/pickers'
-import { DateTime } from 'luxon'
 import { UserSelect } from '../selection'
 import gql from 'graphql-tag'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import _ from 'lodash-es'
+import { ISODateTimePicker } from '../util/ISOPickers'
 
 const query = gql`
   query($id: ID!) {
@@ -124,41 +116,17 @@ export default function ScheduleOverrideForm(props) {
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={DateTimePicker}
-            mapValue={value => DateTime.fromISO(value, { zone })}
-            mapOnChangeValue={value => value.toISO()}
-            showTodayButton
+            component={ISODateTimePicker}
             required
             name='start'
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position='end'>
-                  <IconButton>
-                    <DateRange />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
           />
         </Grid>
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={DateTimePicker}
-            mapValue={value => DateTime.fromISO(value, { zone })}
-            mapOnChangeValue={value => value.toISO()}
-            showTodayButton
+            component={ISODateTimePicker}
             name='end'
             required
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position='end'>
-                  <IconButton>
-                    <DateRange />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
           />
         </Grid>
         {conflictingUserFieldError && (

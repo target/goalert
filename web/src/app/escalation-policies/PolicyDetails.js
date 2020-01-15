@@ -1,8 +1,11 @@
-import React, { PureComponent } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
+import { useQuery } from '@apollo/react-hooks'
+import { Redirect } from 'react-router-dom'
+import _ from 'lodash-es'
+
 import PageActions from '../util/PageActions'
-import Query from '../util/Query'
 import PolicyStepsQuery from './PolicyStepsQuery'
 import OtherActions from '../util/OtherActions'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
@@ -10,10 +13,9 @@ import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import DetailsPage from '../details/DetailsPage'
 import PolicyEditDialog from './PolicyEditDialog'
-import { setURLParam } from '../actions/main'
-import { connect } from 'react-redux'
-import { urlParamSelector } from '../selectors'
-import { resetURLParams } from '../actions'
+import { useResetURLParams, useURLParam } from '../actions'
+import { GenericError, ObjectNotFound } from '../error-pages'
+import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query($id: ID!) {
@@ -25,88 +27,83 @@ const query = gql`
   }
 `
 
-@connect(
-  state => ({
-    createStep: urlParamSelector(state)('createStep'),
-  }),
-  dispatch => ({
-    setCreateStep: value => dispatch(setURLParam('createStep', value, false)),
-    resetCreateStep: () => dispatch(resetURLParams('createStep')),
-  }),
-)
-export default class PolicyDetails extends PureComponent {
-  static propTypes = {
-    escalationPolicyID: p.string.isRequired,
+export default function PolicyDetails(props) {
+  const stepNumParam = 'createStep'
+  const [createStep, setCreateStep] = useURLParam(stepNumParam)
+  const resetCreateStep = useResetURLParams(stepNumParam)
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+
+  const { loading, error, data: _data } = useQuery(query, {
+    variables: {
+      id: props.escalationPolicyID,
+    },
+  })
+
+  const data = _.get(_data, 'escalationPolicy', null)
+
+  if (loading) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+
+  if (!data) {
+    return showDeleteDialog ? (
+      <Redirect to='/escalation-policies' push />
+    ) : (
+      <ObjectNotFound />
+    )
   }
 
-  state = {
-    delete: false,
-    edit: false,
-  }
-
-  renderData = ({ data }) => {
-    return (
-      <React.Fragment>
-        <PageActions>
-          <OtherActions
-            actions={[
-              {
-                label: 'Edit Escalation Policy',
-                onClick: () => this.setState({ edit: true }),
-              },
-              {
-                label: 'Delete Escalation Policy',
-                onClick: () => this.setState({ delete: true }),
-              },
-            ]}
-          />
-        </PageActions>
-        <DetailsPage
-          title={data.escalationPolicy.name}
-          details={data.escalationPolicy.description}
-          links={[
+  return (
+    <React.Fragment>
+      <PageActions>
+        <OtherActions
+          actions={[
             {
-              label: 'Services',
-              url: 'services',
+              label: 'Edit Escalation Policy',
+              onClick: () => setShowEditDialog(true),
+            },
+            {
+              label: 'Delete Escalation Policy',
+              onClick: () => setShowDeleteDialog(true),
             },
           ]}
-          pageFooter={
-            <PolicyStepsQuery escalationPolicyID={data.escalationPolicy.id} />
-          }
         />
-        <CreateFAB
-          onClick={() => this.props.setCreateStep(true)}
-          title='Create Step'
-        />
-        {this.props.createStep && (
-          <PolicyStepCreateDialog
-            escalationPolicyID={data.escalationPolicy.id}
-            onClose={() => this.props.resetCreateStep()}
-          />
-        )}
-        {this.state.edit && (
-          <PolicyEditDialog
-            escalationPolicyID={data.escalationPolicy.id}
-            onClose={() => this.setState({ edit: false })}
-          />
-        )}
-        {this.state.delete && (
-          <PolicyDeleteDialog
-            escalationPolicyID={data.escalationPolicy.id}
-            onClose={() => this.setState({ delete: false })}
-          />
-        )}
-      </React.Fragment>
-    )
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        render={this.renderData}
-        variables={{ id: this.props.escalationPolicyID }}
+      </PageActions>
+      <DetailsPage
+        title={data.name}
+        details={data.description}
+        links={[
+          {
+            label: 'Services',
+            url: 'services',
+          },
+        ]}
+        pageFooter={<PolicyStepsQuery escalationPolicyID={data.id} />}
       />
-    )
-  }
+      <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
+      {createStep && (
+        <PolicyStepCreateDialog
+          escalationPolicyID={data.id}
+          onClose={resetCreateStep}
+        />
+      )}
+      {showEditDialog && (
+        <PolicyEditDialog
+          escalationPolicyID={data.id}
+          onClose={() => setShowEditDialog(false)}
+        />
+      )}
+      {showDeleteDialog && (
+        <PolicyDeleteDialog
+          escalationPolicyID={data.id}
+          onClose={() => setShowDeleteDialog(false)}
+        />
+      )}
+    </React.Fragment>
+  )
+}
+
+PolicyDetails.propTypes = {
+  escalationPolicyID: p.string.isRequired,
 }

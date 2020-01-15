@@ -43,7 +43,6 @@ export default function UserContactMethodVerificationDialog(props) {
         code: value.code,
       },
     },
-    refetchQueries: ['cmList'],
     onCompleted: props.onClose,
   })
   const [fromNumber] = useConfigValue('Twilio.FromNumber')

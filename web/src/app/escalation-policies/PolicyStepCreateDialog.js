@@ -23,23 +23,6 @@ const mutation = gql`
   }
 `
 
-const refetchQuery = gql`
-  query($id: ID!) {
-    escalationPolicy(id: $id) {
-      id
-      steps {
-        id
-        delayMinutes
-        targets {
-          id
-          name
-          type
-        }
-      }
-    }
-  }
-`
-
 @connect(
   state => ({
     errorMessage: urlParamSelector(state)('errorMessage'),
@@ -110,17 +93,7 @@ export default class PolicyStepCreateDialog extends React.Component {
     }
 
     return (
-      <Mutation
-        mutation={mutation}
-        refetchQueries={() => [
-          {
-            query: refetchQuery,
-            variables: {
-              id: this.props.escalationPolicyID,
-            },
-          },
-        ]}
-      >
+      <Mutation mutation={mutation}>
         {(commit, status) => this.renderDialog(defaultValue, commit, status)}
       </Mutation>
     )

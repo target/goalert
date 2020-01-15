@@ -47,9 +47,9 @@ const styles = theme => {
 @gracefulUnmount()
 export default class FormDialog extends React.PureComponent {
   static propTypes = {
-    title: p.string.isRequired,
+    title: p.node.isRequired,
     subTitle: p.node,
-    caption: p.string,
+    caption: p.node,
 
     errors: p.arrayOf(
       p.shape({

@@ -30,6 +30,21 @@ export function mapRuleTZ(fromTZ, toTZ, rule) {
   }
 }
 
+// gqlClockTimeToISO will return an ISO timestamp representing
+// the given GraphQL ClockTime value at the current date in the
+// provided time zone.
+export function gqlClockTimeToISO(time, zone) {
+  return DateTime.fromFormat(time, 'HH:mm', { zone })
+    .toUTC()
+    .toISO()
+}
+
+// isoToGQLClockTime will return a GraphQL ClockTime value for
+// the given ISO timestamp, with respect to the provided time zone.
+export function isoToGQLClockTime(timestamp, zone) {
+  return DateTime.fromISO(timestamp, { zone }).toFormat('HH:mm')
+}
+
 export function weekdaySummary(filter) {
   const bin = filter.map(f => (f ? '1' : '0')).join('')
   switch (bin) {

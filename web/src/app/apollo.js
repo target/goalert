@@ -9,6 +9,7 @@ import { authLogout } from './actions'
 
 import reduxStore from './reduxStore'
 import { POLL_INTERVAL } from './config'
+import promiseBatch from './util/promiseBatch'
 
 let pendingMutations = 0
 window.onbeforeunload = function(e) {
@@ -43,7 +44,7 @@ export function doFetch(body, url = '/v1/graphql') {
   if (body.query && body.query.startsWith && body.query.startsWith('mutation'))
     trackMutation(f)
 
-  return f.then(res => {
+  return promiseBatch(f).then(res => {
     if (res.ok) {
       return res
     }
@@ -74,25 +75,6 @@ const retryLink = new RetryLink({
       )
     },
   },
-})
-
-const defaultHttpLink = createHttpLink({
-  uri: '/v1/graphql',
-  fetch: (url, opts) => {
-    return doFetch(opts.body)
-  },
-})
-
-// compose links
-const defaultLink = ApolloLink.from([
-  retryLink,
-  defaultHttpLink, // terminating link must be last: apollographql.com/docs/link/overview.html#terminating
-])
-
-export const LegacyGraphQLClient = new ApolloClient({
-  link: defaultLink,
-  cache: new InMemoryCache(),
-  defaultOptions: { errorPolicy: 'all' },
 })
 
 const graphql2HttpLink = createHttpLink({
@@ -146,7 +128,35 @@ export const GraphQLClient = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
-    mutate: { awaitRefetchQueries: true },
+  },
+})
+
+// refetch all *active* polling queries on mutation
+const mutate = GraphQLClient.mutate
+GraphQLClient.mutate = (...args) => {
+  return mutate.call(GraphQLClient, ...args).then(result => {
+    return GraphQLClient.reFetchObservableQueries(true).then(() => result)
+  })
+}
+
+// Legacy client
+const legacyHttpLink = createHttpLink({
+  uri: '/v1/graphql',
+  fetch: (url, opts) => {
+    return doFetch(opts.body)
+  },
+})
+
+const legacyLink = ApolloLink.from([
+  retryLink,
+  legacyHttpLink, // terminating link must be last: apollographql.com/docs/link/overview.html#terminating
+])
+
+export const LegacyGraphQLClient = new ApolloClient({
+  link: legacyLink,
+  cache: new InMemoryCache(),
+  defaultOptions: {
+    query: { errorPolicy: 'all' },
   },
 })
 

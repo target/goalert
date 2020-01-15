@@ -15,7 +15,6 @@ const mutation = gql`
 export default function PolicyDeleteDialog(props) {
   const dispatch = useDispatch()
   const [deletePolicy, deletePolicyStatus] = useMutation(mutation, {
-    refetchQueries: ['epsQuery'],
     variables: {
       input: [
         {
