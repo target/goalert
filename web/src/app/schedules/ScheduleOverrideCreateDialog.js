@@ -63,7 +63,7 @@ export default function ScheduleOverrideCreateDialog(props) {
       title={copyText[props.variant].title}
       subTitle={copyText[props.variant].desc}
       errors={nonFieldErrors(error)}
-      onSubmit={mutate}
+      onSubmit={() => mutate()}
       form={
         <ScheduleOverrideForm
           add={props.variant !== 'remove'}
