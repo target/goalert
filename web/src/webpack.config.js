@@ -33,6 +33,10 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /modernizr.config.js$/,
+        use: ['modernizr-loader'],
+      },
+      {
         test: /\.jsx?$/,
         use: [
           'react-hot-loader/webpack',

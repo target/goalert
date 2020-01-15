@@ -11,21 +11,16 @@ function testFavorites(screen: ScreenFormat) {
     (name: string, favorite: boolean) =>
       cy.createService({ name, favorite }).then(s => s.id),
     () => {
-      cy.visit('/alerts')
-
-      cy.pageFab()
-      cy.get('div[role=dialog]').as('dialog')
       const summary = c.sentence({
         words: 3,
       })
 
-      cy.get('@dialog')
-        .find('input[name=summary]')
-        .type(summary)
+      cy.visit('/alerts')
 
-      cy.get('@dialog')
-        .contains('button', 'Next')
-        .click()
+      cy.pageFab()
+      cy.dialogTitle('New Alert')
+      cy.dialogForm({ summary })
+      cy.dialogClick('Next')
 
       return cy.get('input[name=serviceSearch]')
     },

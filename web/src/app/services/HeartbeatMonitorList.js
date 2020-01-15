@@ -19,7 +19,6 @@ import CopyText from '../util/CopyText'
 const HEARTBEAT_MONITOR_DESCRIPTION =
   'Heartbeat monitors create an alert if no heartbeat is received (a POST request) before the configured timeout.'
 
-const refetchQueries = ['monitorQuery', 'serviceDetailsQuery']
 const query = gql`
   query monitorQuery($serviceID: ID!) {
     service(id: $serviceID) {
@@ -128,21 +127,18 @@ export default function HeartbeatMonitorList(props) {
       {showCreateDialog && (
         <HeartbeatMonitorCreateDialog
           serviceID={props.serviceID}
-          refetchQueries={refetchQueries}
           onClose={() => setShowCreateDialog(false)}
         />
       )}
       {showEditDialogByID && (
         <HeartbeatMonitorEditDialog
           monitorID={showEditDialogByID}
-          refetchQueries={refetchQueries}
           onClose={() => setShowEditDialogByID(null)}
         />
       )}
       {showDeleteDialogByID && (
         <HeartbeatMonitorDeleteDialog
           monitorID={showDeleteDialogByID}
-          refetchQueries={refetchQueries}
           onClose={() => setShowDeleteDialogByID(null)}
         />
       )}
