@@ -1,11 +1,11 @@
 import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
-import { TimePicker } from '@material-ui/pickers'
 import { TimeZoneSelect } from '../selection'
 import { TextField, Grid, MenuItem } from '@material-ui/core'
 import { startCase } from 'lodash-es'
 import { DateTime, Info } from 'luxon'
+import { ISOTimePicker } from '../util/ISOPickers'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
@@ -107,11 +107,10 @@ export default class RotationForm extends React.PureComponent {
           <Grid item xs={12}>
             <FormField
               fullWidth
-              component={TimePicker}
+              component={ISOTimePicker}
               label='Handoff Time'
               name='start'
               required
-              mapOnChangeValue={value => value.toISO()}
             />
           </Grid>
           {this.props.value.type === 'weekly' && this.renderDayOfWeekField()}

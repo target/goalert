@@ -34,31 +34,22 @@ function testProfile(screen: ScreenFormat) {
 
   describe('Contact Methods', () => {
     it('should allow creating', () => {
-      const value = '763' + c.integer({ min: 3000000, max: 3999999 })
+      const value = '+1763' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'SM CM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
-      const usCountryCode = '+1'
 
       cy.pageFab('Contact')
-      cy.get('div[role=dialog]').as('dialog')
-
-      cy.get('@dialog')
-        .find('input[name=name]')
-        .type(name)
-      cy.get('@dialog')
-        .find('input[name=type]')
-        .selectByLabel(type)
-      cy.get('@dialog')
-        .find('input[name=value]')
-        .type(usCountryCode + value)
-      cy.get('@dialog')
-        .find('button[type=submit]')
-        .click()
+      cy.dialogTitle('Create New Contact Method')
+      cy.dialogForm({
+        name,
+        type,
+        value,
+      })
+      cy.dialogFinish('Submit')
 
       // todo: closing form pending twilio mock server verification
-      cy.get(`[data-cy='verify-form']`)
-        .contains('button[type=button]', 'Cancel')
-        .click()
+      cy.dialogTitle('Verify Contact Method')
+      cy.dialogFinish('Cancel')
 
       cy.get('ul[data-cy="contact-methods"]')
         .contains('li', `${name} (${type})`)
@@ -74,10 +65,9 @@ function testProfile(screen: ScreenFormat) {
         .find('button[data-cy=other-actions]')
         .menu('Edit')
 
-      cy.get('input[name=name]')
-        .clear()
-        .type(name)
-      cy.get('button[type=submit]').click()
+      cy.dialogTitle('Edit Contact Method')
+      cy.dialogForm({ name })
+      cy.dialogFinish('Submit')
 
       cy.get('ul[data-cy=contact-methods]').should(
         'contain',
@@ -90,9 +80,9 @@ function testProfile(screen: ScreenFormat) {
         .contains('li', cm.name)
         .find('button[data-cy=other-actions]')
         .menu('Delete')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
+
       cy.get('body').should('not.contain', cm.name)
       cy.get('body').should('contain', 'No contact methods')
       cy.get('body').should('contain', 'No notification rules')
@@ -103,9 +93,10 @@ function testProfile(screen: ScreenFormat) {
         .contains('li', cm.name)
         .find('button[data-cy=other-actions]')
         .menu('Delete')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
+
       cy.get('button[data-cy=page-fab]')
         .should('be.visible')
         .click()
@@ -126,23 +117,19 @@ function testProfile(screen: ScreenFormat) {
       cy.reload()
 
       cy.pageFab('Add Contact Method')
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog')
-        .find('span')
-        .should('contain', disclaimer)
+      cy.dialogTitle('New Contact Method')
+      cy.dialogContains(disclaimer)
 
       cy.updateConfig({
         General: {
-          NotificationDisclaimer: '',
+          NotificationDisclaimer: 'new disclaimer',
         },
       })
       cy.reload()
 
       cy.pageFab('Add Contact Method')
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog')
-        .find('span')
-        .should('not.contain', disclaimer)
+      cy.dialogTitle('New Contact Method')
+      cy.dialogContains('new disclaimer')
     })
 
     countryCodeCheck('India', '+91', '1234567890', '+91 1234 567 890')
@@ -155,10 +142,13 @@ function testProfile(screen: ScreenFormat) {
       const fakeCountryCode = '+555'
 
       cy.pageFab('Contact')
-      cy.get('input[name=name]').type(name)
-      cy.get('input[name=type]').selectByLabel(type)
-      cy.get('input[name=value]').type(fakeCountryCode + value)
-      cy.get('button[type=submit]').click()
+      cy.dialogTitle('New Contact Method')
+      cy.dialogForm({
+        name,
+        type,
+        value,
+      })
+      cy.dialogClick('Submit')
       cy.get('[aria-labelledby=countryCodeIndicator]')
         .siblings()
         .contains('Must be a valid number')
@@ -167,27 +157,20 @@ function testProfile(screen: ScreenFormat) {
     it('should set and verify contact method on first login', () => {
       cy.visit(`/alerts?isFirstLogin=1`)
 
-      const value = '763' + c.integer({ min: 3000000, max: 3999999 })
+      const value = '+1763' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'SM CM ' + c.word({ length: 8 })
-      const usCountryCode = '+1'
 
       cy.get('body').should('contain', 'Welcome to GoAlert')
 
-      cy.get('div[role=dialog]').as('dialog')
+      cy.dialogTitle('Welcome to GoAlert')
+      cy.dialogForm({
+        name,
+        value,
+      })
+      cy.dialogFinish('Submit')
 
-      cy.get('@dialog')
-        .find('input[name=name]')
-        .type(name)
-      cy.get('@dialog')
-        .find('input[name=value]')
-        .type(usCountryCode + value)
-      cy.get('@dialog')
-        .find('button[type=submit]')
-        .click()
-
-      cy.get(`[data-cy='verify-form']`)
-        .contains('button[type=button]', 'Cancel')
-        .click()
+      cy.dialogTitle('Verify')
+      cy.dialogFinish('Cancel')
     })
   })
 
@@ -198,15 +181,14 @@ function testProfile(screen: ScreenFormat) {
         .contains('li', cm.name)
         .find('button')
         .click()
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
       cy.pageFab('Notification')
-      cy.get('input[name=contactMethodID]').selectByLabel(cm.name)
-      cy.get('*[role=dialog]')
-        .contains('button', 'Submit')
-        .click()
+      cy.dialogTitle('New Notification Rule')
+      cy.dialogForm({ contactMethodID: cm.name })
+      cy.dialogFinish('Submit')
+
       cy.get('ul[data-cy=notification-rules]').should(
         'not.contain',
         'No notification rules',
@@ -218,22 +200,25 @@ function testProfile(screen: ScreenFormat) {
     })
 
     it('should allow creating a delayed rule', () => {
+      // delete default rule
       cy.get('ul[data-cy=notification-rules]')
         .contains('li', cm.name)
         .find('button')
         .click()
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
+      // create new rule
       const delay = c.integer({ min: 2, max: 15 })
       cy.pageFab('Notification')
-      cy.get('input[name=delayMinutes]').type(delay.toString())
-      cy.get('input[name=contactMethodID]').selectByLabel(cm.name)
-      cy.get('*[role=dialog]')
-        .contains('button', 'Submit')
-        .click()
+      cy.dialogTitle('New Notification Rule')
+      cy.dialogForm({
+        contactMethodID: cm.name,
+        delayMinutes: delay.toString(),
+      })
+      cy.dialogFinish('Submit')
 
+      // verify changes
       cy.get('body').should('not.contain', 'No notification rules')
       cy.get('ul[data-cy=notification-rules]').should(
         'contain',
@@ -246,9 +231,9 @@ function testProfile(screen: ScreenFormat) {
         .contains('li', cm.name)
         .find('button')
         .click()
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
       cy.get('body').should('contain', 'No notification rules')
     })

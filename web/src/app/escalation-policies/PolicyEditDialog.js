@@ -37,16 +37,7 @@ export default class PolicyEditDialog extends PureComponent {
 
   renderMutation = defaultValue => {
     return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        refetchQueries={() => [
-          {
-            query,
-            variables: { id: this.props.escalationPolicyID },
-          },
-        ]}
-      >
+      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
         {(commit, status) => this.renderDialog(defaultValue, commit, status)}
       </Mutation>
     )

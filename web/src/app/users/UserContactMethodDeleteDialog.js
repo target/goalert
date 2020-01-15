@@ -18,11 +18,7 @@ export default class UserContactMethodDeleteDialog extends React.PureComponent {
 
   render() {
     return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        refetchQueries={['nrList', 'cmList']}
-      >
+      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
         {(commit, status) => this.renderDialog(commit, status)}
       </Mutation>
     )
