@@ -194,6 +194,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
                           rules: this.props.value.rules.concat({
                             start: DateTime.local()
                               .startOf('day')
+                              .toUTC()
                               .toISO(),
                             end: DateTime.local()
                               .plus({ day: 1 })
