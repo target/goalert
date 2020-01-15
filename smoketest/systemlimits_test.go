@@ -186,19 +186,19 @@ func TestSystemLimits(t *testing.T) {
 		nil,
 	)
 
-	// nrDelay := 0
-	// doTest(
-	// 	limit.NotificationRulesPerUser,
-	// 	"notification rules",
-	// 	func(int) string {
-	// 		nrDelay++
-	// 		return fmt.Sprintf(`mutation{createNotificationRule(input:{contact_method_id: "%s", delay_minutes: %d, user_id: "%s"}){id}}`, h.UUID("nr_cm"), nrDelay, h.UUID("nr_user"))
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteNotificationRule(input:{id: "%s"}){id: deleted_id}}`, id)
-	// 	},
-	// 	nil,
-	// )
+	nrDelay := 0
+	doTest(
+		limit.NotificationRulesPerUser,
+		"notification rules",
+		func(int) string {
+			nrDelay++
+			return fmt.Sprintf(`mutation{createUserNotificationRule(input:{contactMethodID: "%s", delayMinutes: %d, userID: "%s"}){id}}`, h.UUID("nr_cm"), nrDelay, h.UUID("nr_user"))
+		},
+		func(_ int, id string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: notificationRule}])}`, id)
+		},
+		nil,
+	)
 
 	// doTest(
 	// 	limit.EPStepsPerPolicy,
