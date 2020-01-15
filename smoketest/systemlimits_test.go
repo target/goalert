@@ -94,7 +94,7 @@ func TestSystemLimits(t *testing.T) {
 	}
 
 	doQLErr := func(t *testing.T, query string, getID idParser) (string, string) {
-		g := h.GraphQLQueryT(t, query, "/v1/graphql")
+		g := h.GraphQLQuery2(query)
 		errs := len(g.Errors)
 		if errs > 1 {
 			for _, err := range g.Errors {
