@@ -29,7 +29,7 @@ export default function CalendarSubscribeButton(props) {
     },
   })
 
-  const totalSubs = _.get(data, 'user.calendarSubscriptions', [])
+  const totalSubs = _.get(data, 'user.calendarSubscriptions', []).length
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(
     cs => cs.scheduleID === props.scheduleID && !cs.disabled,
   ).length
