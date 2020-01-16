@@ -1,11 +1,9 @@
 import React from 'react'
 import p from 'prop-types'
-import { urlParamSelector } from '../selectors'
-import { setURLParam } from '../actions'
 import gql from 'graphql-tag'
 import { FormControlLabel, Switch } from '@material-ui/core'
 import { useQuery } from 'react-apollo'
-import { useSelector, useDispatch } from 'react-redux'
+import { useURLParam } from '../actions/hooks'
 
 const tzQuery = gql`
   query($id: ID!) {
@@ -17,10 +15,7 @@ const tzQuery = gql`
 `
 
 export function ScheduleTZFilter(props) {
-  const params = useSelector(urlParamSelector)
-  const zone = params('tz', 'local')
-  const dispatch = useDispatch()
-  const setZone = value => dispatch(setURLParam('tz', value, 'local'))
+  const [zone, setZone] = useURLParam('tz', 'local')
   const { data, loading, error } = useQuery(tzQuery, {
     pollInterval: 0,
     variables: { id: props.scheduleID },

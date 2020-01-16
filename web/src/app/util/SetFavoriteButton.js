@@ -3,13 +3,18 @@ import p from 'prop-types'
 import IconButton from '@material-ui/core/IconButton'
 import FavoriteFilledIcon from '@material-ui/icons/Star'
 import FavoriteBorderIcon from '@material-ui/icons/StarBorder'
+import Spinner from '../loading/components/Spinner'
 
-export function SetFavoriteButton({ typeName, isFavorite, onSubmit }) {
+export function SetFavoriteButton({ typeName, isFavorite, loading, onClick }) {
+  let icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
+  if (loading) {
+    icon = <Spinner />
+  }
   return (
     <form
       onSubmit={e => {
         e.preventDefault()
-        onSubmit()
+        onClick()
       }}
     >
       <IconButton
@@ -22,7 +27,7 @@ export function SetFavoriteButton({ typeName, isFavorite, onSubmit }) {
         color='inherit'
         data-cy='set-fav'
       >
-        {isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />}
+        {icon}
       </IconButton>
     </form>
   )
@@ -30,6 +35,7 @@ export function SetFavoriteButton({ typeName, isFavorite, onSubmit }) {
 
 SetFavoriteButton.propTypes = {
   typeName: p.oneOf(['rotation', 'service', 'schedule']),
-  onSubmit: p.func,
+  onClick: p.func,
   isFavorite: p.bool,
+  loading: p.bool,
 }

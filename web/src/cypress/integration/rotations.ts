@@ -36,53 +36,29 @@ function testRotations(screen: ScreenFormat) {
     describe('Creation', () => {
       it('should allow canceling', () => {
         cy.pageFab()
-        cy.get('div[role=dialog]').should('contain', 'Create Rotation')
-        cy.get('div[role=dialog]')
-          .contains('button', 'Cancel')
-          .click()
-        cy.get('div[role=dialog]').should('not.exist')
+        cy.dialogTitle('Create Rotation')
+        cy.dialogFinish('Cancel')
       })
       ;['Hourly', 'Daily', 'Weekly'].forEach(type => {
         it(`should create a ${type} rotation when submitted`, () => {
-          cy.pageFab()
-
-          cy.get('div[role=dialog]').as('dialog')
-
           const name = 'SM Rot ' + c.word({ length: 8 })
           const description = c.word({ length: 10 })
           const tz = c.pickone(['America/Chicago', 'Africa/Accra', 'Etc/UTC'])
           const shiftLength = c.integer({ min: 1, max: 10 })
           const start = DateTime.fromISO((c.date() as Date).toISOString())
 
-          cy.get('@dialog')
-            .find('input[name=name]')
-            .type(name)
-          cy.get('@dialog')
-            .find('textarea[name=description]')
-            .type(description)
-
-          cy.get('@dialog')
-            .find('input[name=timeZone]')
-            .selectByLabel(tz)
-
-          cy.get('@dialog')
-            .find('input[name=type]')
-            .selectByLabel(type)
-
-          if (type === 'Weekly') {
-            cy.get('@dialog')
-              .find('input[name=dayOfWeek]')
-              .selectByLabel(start.weekdayLong)
-          }
-
-          cy.get('@dialog')
-            .find('input[name=shiftLength]')
-            .clear()
-            .type(shiftLength.toString())
-
-          cy.get('@dialog')
-            .contains('button', 'Submit')
-            .click()
+          cy.pageFab()
+          cy.dialogTitle('Create Rotation')
+          cy.dialogForm({
+            name,
+            description,
+            timeZone: tz,
+            type,
+            dayOfWeek: type === 'Weekly' ? start.weekdayLong : null,
+            shiftLength: shiftLength.toString(),
+            start: '15:04',
+          })
+          cy.dialogFinish('Submit')
 
           // should be on details page
           cy.get('body')
@@ -126,20 +102,16 @@ function testRotations(screen: ScreenFormat) {
         .find('button')
         .menu('Remove')
 
-      cy.get('button')
-        .contains('Confirm')
-        .click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
       cy.get('@parts').should('not.contain', rot.users[1].name)
 
       // add again
       cy.pageFab()
-      cy.get('div[role=dialog]').as('dialog')
-      cy.get('@dialog').should('contain', 'Add User')
-      cy.get('input[name=users]').selectByLabel(rot.users[1].name)
-      cy.get('button')
-        .contains('Submit')
-        .click()
+      cy.dialogTitle('Add User')
+      cy.dialogForm({ users: rot.users[1].name })
+      cy.dialogFinish('Submit')
 
       cy.get('ul[data-cy=users]')
         .find('li')
@@ -199,9 +171,8 @@ function testRotations(screen: ScreenFormat) {
         .find('button')
         .menu('Set Active')
 
-      cy.get('button')
-        .contains('Confirm')
-        .click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
       cy.get('@parts')
         .eq(1)
@@ -219,9 +190,10 @@ function testRotations(screen: ScreenFormat) {
 
     it('should allow deleting the rotation', () => {
       cy.pageAction('Delete')
-      cy.get('*[role=dialog]')
-        .contains('button', 'Confirm')
-        .click()
+
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
+
       cy.location('pathname').should('eq', '/rotations')
       cy.pageSearch(rot.name)
       cy.get('body').should('contain', 'No results')
@@ -237,21 +209,16 @@ function testRotations(screen: ScreenFormat) {
       cy.visit(`/rotations/${r.id}`)
       cy.pageAction('Edit Rotation')
 
-      cy.get('input[name=name]')
-        .clear()
-        .type(newName)
+      cy.dialogTitle('Edit Rotation')
+      cy.dialogForm({
+        name: newName,
+        description: newDesc,
+        timeZone: newTz,
+        type: 'Weekly',
+        shiftLength: '5',
+      })
+      cy.dialogFinish('Submit')
 
-      cy.get('textarea[name=description]')
-        .clear()
-        .type(newDesc)
-
-      cy.get('input[name=timeZone]').selectByLabel(newTz)
-      cy.get('input[name=type]').selectByLabel('Weekly')
-      cy.get('input[name=shiftLength]')
-        .clear()
-        .type('5')
-
-      cy.get('button[data-cy=loading-button]').click()
       cy.get('body')
         .should('contain', newName)
         .should('contain', newDesc)
