@@ -69,7 +69,7 @@ func (cs CalendarSubscription) RenderICalFromShifts(shifts []oncall.Shift, remin
 		BEGIN:VALARM
 		ACTION:DISPLAY
 		DESCRIPTION:REMINDER
-		TRIGGER:-PT{.}M
+		TRIGGER:-PT{{.}}M
 		END:VALARM
 		{{end}}
 
