@@ -57,6 +57,8 @@ export default function CalendarSubscribeButton(props) {
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <Button
+            data-cy='subscribe-btn'
+            aria-label='Subscribe to this schedule'
             color='primary'
             disabled={totalSubs === 15}
             onClick={() => setShowDialog(true)}
@@ -71,7 +73,7 @@ export default function CalendarSubscribeButton(props) {
             {caption}
           </Typography>
           <Typography variant='caption'>
-            <Link to='/profile/schedule-calendar-subscriptions'>
+            <Link data-cy='manage-subscriptions-link' to='/profile/schedule-calendar-subscriptions'>
               Manage subscriptions
             </Link>
           </Typography>

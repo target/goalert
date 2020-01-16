@@ -121,7 +121,7 @@ export default class FlatList extends React.PureComponent {
           <ListItemText
             disableTypography
             secondary={
-              <Typography variant='caption'>
+              <Typography data-cy='empty-message-cptn' variant='caption'>
                 {this.props.emptyMessage}
               </Typography>
             }
