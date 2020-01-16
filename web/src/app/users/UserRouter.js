@@ -53,7 +53,7 @@ function UserOnCallAssignments() {
   return <UserOnCallAssignmentList userID={userID} currentUser />
 }
 
-function UserOnCallSubscriptions() {
+function UseCalendarSubscriptions() {
   const { userID, ready } = useSessionInfo()
   if (!ready) return <Spinner />
   return <UserCalendarSubscriptionList userID={userID} />
@@ -94,13 +94,13 @@ export default function UserRouter() {
       <Route
         exact
         path='/profile/schedule-calendar-subscriptions'
-        component={UserOnCallSubscriptions}
+        component={UseCalendarSubscriptions}
       />
       <Route
         exact
         path='/users/:userID/schedule-calendar-subscriptions'
         render={({ match }) => (
-          <UserOnCallSubscriptions userID={match.params.userID} />
+          <UserCalendarSubscriptionList userID={match.params.userID} />
         )}
       />
 
