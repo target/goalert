@@ -22,8 +22,6 @@ type Store interface {
 	OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error)
 
 	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
-
-	//	ServeICal(w http.ResponseWriter, req *http.Request)
 }
 
 // ServiceOnCallUser represents a currently on-call user for a service.
@@ -291,47 +289,3 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 
 	return s.CalculateShifts(start, end), nil
 }
-
-/* func (db *DB) ServeICal(w http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
-
-	// todo: Sample input arguments for now
-	// does token provide all these inputs??
-	// get schedID, userID, config from db
-
-	// subscriptionID := "8ee45887-0f6c-4be7-b86e-9203f0928ebd"
-
-
-	t1, _ := time.Parse(time.RFC3339, "2020-01-01T22:08:41+00:00")
-	t2, _ := time.Parse(time.RFC3339, "2020-01-07T22:08:41+00:00")
-
-	shifts, err := db.HistoryBySchedule(ctx, "59aea4b0-75f0-4af3-9824-644abf8dd29a", t1, t2)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	var uShifts []Shift
-	for _, s := range shifts {
-		if s.UserID == "cb75f78a-0f7c-42fa-99f8-6b30e92a9518" {
-			uShifts = append(uShifts, s)
-		}
-	}
-
-	// todo: set proper value for valarm
-	// as per graphql PR, config {reminderminutes} is the valarm bit we need here
-
-	// using token, get subscription ID, then query for userCalendarSubscription object
-	// use that reminderMinutes to pass onto ICal()
-
-	_, err = ICal(shifts, t1, t2, false)
-
-	if errutil.HTTPError(ctx, w, errors.Wrap(err, "serve iCalendar")) {
-		return
-	}
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	return
-} */
