@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver/propagation"
-	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/genericapi"
 	"github.com/target/goalert/grafana"
@@ -162,8 +161,6 @@ func (app *App) initHTTP(ctx context.Context) error {
 	oidcAuth := app.authHandler.IdentityProviderHandler("oidc")
 	mux.HandleFunc("/api/v2/identity/providers/oidc", oidcAuth)
 	mux.HandleFunc("/api/v2/identity/providers/oidc/callback", oidcAuth)
-
-	mux.HandleFunc("/api/v2/calendar", calendarsubscription.CSToEventsAPI(app.OnCallStore, app.db))
 
 	mux.HandleFunc("/api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))

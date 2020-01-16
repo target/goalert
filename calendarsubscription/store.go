@@ -1,17 +1,10 @@
 package calendarsubscription
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
-	"html/template"
-	"io/ioutil"
-	"log"
-	"os"
-	"time"
 
-	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -240,7 +233,7 @@ func (b *Store) DeleteTx(ctx context.Context, tx *sql.Tx, userID string, ids ...
 }
 
 // ICal ...
-func ICal(shifts []oncall.Shift, start, end time.Time, valarm bool) (*os.File, error) {
+/*func ICal(shifts []oncall.Shift, start, end time.Time, valarm bool) (*os.File, error) {
 	type iCalOptions struct {
 		Shifts []oncall.Shift `json:"s,omitempty"`
 		Start  time.Time      `json:"st,omitempty"`
@@ -303,4 +296,4 @@ func ICal(shifts []oncall.Shift, start, end time.Time, valarm bool) (*os.File, e
 		log.Fatal("save:", err)
 	}
 	return file, nil
-}
+}*/

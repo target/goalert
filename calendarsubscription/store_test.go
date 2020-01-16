@@ -2,7 +2,6 @@ package calendarsubscription
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -12,24 +11,26 @@ import (
 
 // shifts in, iCal out
 
-func TestICalGeneration(t *testing.T) {
+func TestRenderICalFromShifts(t *testing.T) {
 	check := func(ctx context.Context, schedID string, userID string, start time.Time, end time.Time) {
 		t.Run("ical", func(t *testing.T) {
 			// todo: Sample input arguments for now
 
+			cs := CalendarSubscription{}
+
 			t1, _ := time.Parse(time.RFC3339, "2020-01-01T22:08:41+00:00")
 			t2, _ := time.Parse(time.RFC3339, "2020-01-07T22:08:41+00:00")
+
+			reminderMinutes := make([]int, 2)
+			reminderMinutes[0] = 5
+			reminderMinutes[1] = 10
 
 			s1 := oncall.Shift{UserID: "cb75f78a-0f7c-42fa-99f8-6b30e92a9518", Start: t1, End: t2}
 			shifts := []oncall.Shift{}
 			shifts = append(shifts, s1)
 
-			_, err := ICal(shifts, start, end, false)
+			_, err := cs.RenderICalFromShifts(shifts, reminderMinutes, start, end)
 			if err != nil {
-				t.Errorf("err = %v; want nil", err)
-			}
-			_, err = os.Stat("iCal.ics")
-			if os.IsNotExist(err) {
 				t.Errorf("err = %v; want nil", err)
 			}
 		})
