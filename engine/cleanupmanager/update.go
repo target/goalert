@@ -43,6 +43,15 @@ func (db *DB) update(ctx context.Context) error {
 			return err
 		}
 	}
+	if cfg.Maintenance.APIKeyExpireDays > 0 {
+		var dur pgtype.Interval
+		dur.Days = int32(cfg.Maintenance.APIKeyExpireDays)
+		dur.Status = pgtype.Present
+		_, err = db.cleanupAPIKeys.ExecContext(ctx, &dur)
+		if err != nil {
+			return err
+		}
+	}
 
 	return tx.Commit()
 }
