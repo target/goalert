@@ -50,6 +50,7 @@ export default class FlatList extends React.PureComponent {
           url: p.string,
           icon: p.element, // renders a list item icon (or avatar)
           id: p.string, // required for drag and drop
+          inset: p.bool, // indent list item text if no icon present
         }),
         p.shape({
           subHeader: p.string.isRequired,
@@ -104,6 +105,7 @@ export default class FlatList extends React.PureComponent {
           primary={item.title}
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
+          inset={item.inset && !item.icon}
         />
         {item.secondaryAction && (
           <ListItemSecondaryAction>
