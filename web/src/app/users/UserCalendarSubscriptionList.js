@@ -100,7 +100,7 @@ export default function UserCalendarSubscriptionList(props) {
       <Card>
         <FlatList
           headerNote='Showing your current on-call subscriptions for all schedules'
-          emptyMessage='Your are not subscribed to any schedules'
+          emptyMessage='You are not subscribed to any schedules.'
           items={items}
         />
       </Card>
