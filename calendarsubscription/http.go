@@ -42,6 +42,7 @@ func (b *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		filtered = append(filtered, s)
 	}
 
+	_ = filtered
 	calData := []byte("not implemented")
 	// calData := renderICalFromShifts(filtered, cs.Config)
 

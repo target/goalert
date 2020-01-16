@@ -46,10 +46,10 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 		now: p.P(`SELECT now()`),
 
 		authUser: p.P(`
-			SELECT
-				user_id
-			FROM user_calendar_subscriptions
+			UPDATE user_calendar_subscriptions
+			SET last_access = now()
 			WHERE NOT disabled AND id = $1
+			RETURNING user_id
 		`),
 
 		findOne: p.P(`
