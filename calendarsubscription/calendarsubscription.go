@@ -45,11 +45,9 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	return &cs, nil
 }
 
-func (cs CalendarSubscription) RenderICalFromShifts(shifts []oncall.Shift, reminderMinutes []int, start, end time.Time) ([]byte, error) {
+func (cs CalendarSubscription) RenderICalFromShifts(shifts []oncall.Shift, reminderMinutes []int) ([]byte, error) {
 	type iCalOptions struct {
 		Shifts          []oncall.Shift `json:"s,omitempty"`
-		Start           time.Time      `json:"st,omitempty"`
-		End             time.Time      `json:"e,omitempty"`
 		ReminderMinutes []int          `json:"r, omitempty"`
 	}
 
@@ -67,18 +65,18 @@ func (cs CalendarSubscription) RenderICalFromShifts(shifts []oncall.Shift, remin
 		END:VEVENT
 		{{end}}
 
-		{{if .ReminderMinutes}}
+		{{range .ReminderMinutes}}
 		BEGIN:VALARM
 		ACTION:DISPLAY
 		DESCRIPTION:REMINDER
-		TRIGGER:-PT{.ReminderMinutes}M
+		TRIGGER:-PT{.}M
 		END:VALARM
 		{{end}}
 
 		END:VCALENDAR`
 
 	iCal := template.Must(template.New("iCal").Parse(iCalTemplate))
-	i := iCalOptions{shifts, start, end, reminderMinutes}
+	i := iCalOptions{shifts, reminderMinutes}
 
 	buf := bytes.NewBuffer(nil)
 	err := iCal.Execute(buf, i)
