@@ -23,8 +23,9 @@ declare global {
     name: string
     reminderMinutes: Array<number>
     scheduleID: string
-    lastAccess?: string
-    disabled?: boolean
+    schedule: Schedule
+    lastAccess: string
+    disabled: boolean
   }
 
   interface CalendarSubscriptionOptions {
@@ -42,7 +43,7 @@ function chanceReminderMinutes(): Array<number> {
   const len = c.integer({ min: 1, max: 5 })
   let reminderMinutes: Array<number> = []
   for (let i = 0; i < len; i++) {
-    reminderMinutes.push(c.integer({ min: 0, max: 1440 }))
+    reminderMinutes.push(c.pickone([0, 5, 10, 30, 60, 1440]))
   }
   return reminderMinutes
 }
@@ -55,6 +56,9 @@ function createCalendarSubscription(cs?: CalendarSubscriptionOptions): Cypress.C
         name
         reminderMinutes
         scheduleID
+        schedule {
+          name
+        }
         lastAccess
         disabled
       }
@@ -98,6 +102,7 @@ function createManyCalendarSubscriptions(count: number, scheduleID: string): Cyp
 
     let subs: Array<CalendarSubscription> = []
     for (let i = 0; i < count; i++) {
+      // @ts-ignore: returning a CS array however we aren't pushing all of CS's keys into the DB
       subs.push({
         id: c.guid(),
         name: 'SM Subscription ' + c.word({ length: 8 }),
