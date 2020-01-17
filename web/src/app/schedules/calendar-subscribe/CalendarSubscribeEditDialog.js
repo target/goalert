@@ -102,7 +102,7 @@ export function CalendarSubscribeEditDialogContent(props) {
 
   return (
     <FormDialog
-      title={FormTitle(isComplete, 'Create New Calendar Subscription')}
+      title={FormTitle(isComplete, 'Edit Calendar Subscription')}
       subTitle={getSubtitle(isComplete, SUBTITLE)}
       onClose={onClose}
       alert={isComplete}
