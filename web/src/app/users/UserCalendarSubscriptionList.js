@@ -85,7 +85,6 @@ export default function UserCalendarSubscriptionList(props) {
     })
   })
 
-  // todo: check if current user here and don't render if not their profile
   function renderOtherActions(id) {
     return (
       <OtherActions
@@ -107,6 +106,7 @@ export default function UserCalendarSubscriptionList(props) {
     <React.Fragment>
       <Card>
         <FlatList
+          data-cy='calendar-subscriptions'
           headerNote='Showing your current on-call subscriptions for all schedules'
           emptyMessage='You are not subscribed to any schedules.'
           items={items}
