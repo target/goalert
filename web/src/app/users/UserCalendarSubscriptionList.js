@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
+import { Link } from 'react-router-dom'
 import { Card, Tooltip } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
@@ -62,7 +63,13 @@ export default function UserCalendarSubscriptionList(props) {
   subs.forEach(sub => {
     if (!subheaderDict[sub.schedule.name]) {
       subheaderDict[sub.schedule.name] = true
-      items.push({ subHeader: sub.schedule.name })
+      items.push({
+        subHeader: (
+          <Link to={`/schedules/${sub.schedule.id}`}>
+            {sub.schedule.name}
+          </Link>
+        )
+      })
     }
 
     items.push({
