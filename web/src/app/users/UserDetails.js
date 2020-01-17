@@ -18,7 +18,7 @@ import { useQuery } from '@apollo/react-hooks'
 import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import { useConfigValue } from '../util/RequireConfig'
+import {useConfigValue, useSessionInfo} from '../util/RequireConfig'
 
 const query = gql`
   query userInfo($id: ID!) {
@@ -68,6 +68,7 @@ function serviceCount(onCallSteps = []) {
 export default function UserDetails(props) {
   const classes = useStyles()
 
+  const { userID: currentUserID } = useSessionInfo()
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
@@ -84,6 +85,23 @@ export default function UserDetails(props) {
   const svcCount = serviceCount(user.onCallSteps)
 
   const disableNR = user.contactMethods.length === 0
+
+  let links = [
+    {
+      label: 'On-Call Assignments',
+      url: 'on-call-assignments',
+      subText: svcCount
+        ? `On-call for ${svcCount} service${svcCount > 1 ? 's' : ''}`
+        : 'Not currently on-call',
+    }
+  ]
+
+  if (props.userID === currentUserID) {
+    links.push({
+      label: 'Schedule Calendar Subscriptions',
+      url: 'schedule-calendar-subscriptions',
+    })
+  }
 
   return (
     <React.Fragment>
@@ -150,19 +168,7 @@ export default function UserDetails(props) {
             </Typography>
           </React.Fragment>
         }
-        links={[
-          {
-            label: 'On-Call Assignments',
-            url: 'on-call-assignments',
-            subText: svcCount
-              ? `On-call for ${svcCount} service${svcCount > 1 ? 's' : ''}`
-              : 'Not currently on-call',
-          },
-          {
-            label: 'Schedule Calendar Subscriptions',
-            url: 'schedule-calendar-subscriptions',
-          },
-        ]}
+        links={links}
         titleFooter={
           props.readOnly ? null : (
             <StatusUpdateNotification userID={props.userID} />
