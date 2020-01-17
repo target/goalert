@@ -76,11 +76,7 @@ export default function UserCalendarSubscriptionList(props) {
       title: sub.name,
       subText: 'Last sync: ' + (formatTimeSince(sub.lastAccess) || 'Never'),
       secondaryAction: renderOtherActions(sub.id),
-      icon: sub.disabled ? (
-        <Tooltip title='Disabled'>
-          <Warning />
-        </Tooltip>
-      ) : null,
+      icon: sub.disabled ? <Warning message='disabled' /> : null,
       inset: true,
     })
   })
