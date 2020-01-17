@@ -10,8 +10,11 @@ declare global {
        */
       createCalendarSubscription: typeof createCalendarSubscription
 
-      /** Delete the calendar subscription with the specified ID */
-      // deleteCalendarSubscription: typeof deleteCalendarSubscription
+      /**
+       * Creates an amount of random calendar subscriptions given
+       * by a specified count.
+       */
+      createManyCalendarSubscriptions: typeof createManyCalendarSubscriptions
     }
   }
 
@@ -20,8 +23,8 @@ declare global {
     name: string
     reminderMinutes: Array<number>
     scheduleID: string
-    lastAccess: string
-    disabled: boolean
+    lastAccess?: string
+    disabled?: boolean
   }
 
   interface CalendarSubscriptionOptions {
@@ -30,6 +33,18 @@ declare global {
     scheduleID?: string
     disabled?: boolean
   }
+}
+
+/*
+ * Generate a random array for the reminderMinutes variable
+ */
+function chanceReminderMinutes(): Array<number> {
+  const len = c.integer({ min: 1, max: 5 })
+  let reminderMinutes: Array<number> = []
+  for (let i = 0; i < len; i++) {
+    reminderMinutes.push(c.integer({ min: 0, max: 1440 }))
+  }
+  return reminderMinutes
 }
 
 function createCalendarSubscription(cs?: CalendarSubscriptionOptions): Cypress.Chainable<CalendarSubscription> {
@@ -56,11 +71,7 @@ function createCalendarSubscription(cs?: CalendarSubscriptionOptions): Cypress.C
   // create reminderMinutes array if not provided
   let reminderMinutes = cs?.reminderMinutes
   if (!reminderMinutes) {
-    const len = c.integer({ min: 1, max: 5 })
-    reminderMinutes = []
-    for (let i = 0; i < len; i++) {
-      reminderMinutes.push(c.integer({ min: 0, max: 1440 }))
-    }
+    reminderMinutes = chanceReminderMinutes()
   }
 
   // create and return subscription
@@ -74,4 +85,37 @@ function createCalendarSubscription(cs?: CalendarSubscriptionOptions): Cypress.C
   }).then(res => res.createUserCalendarSubscription)
 }
 
+function createManyCalendarSubscriptions(count: number, scheduleID: string): Cypress.Chainable<Array<CalendarSubscription>> {
+  return cy.fixture('profile').then(prof => {
+    const userID = prof.id
+
+    // create schedule if no ID is provided
+    if (!scheduleID) {
+      return cy
+        .createSchedule()
+        .then(s => createManyCalendarSubscriptions(count, s.id))
+    }
+
+    let subs: Array<CalendarSubscription> = []
+    for (let i = 0; i < count; i++) {
+      subs.push({
+        id: c.guid(),
+        name: 'SM Subscription ' + c.word({ length: 8 }),
+        reminderMinutes: chanceReminderMinutes(),
+        scheduleID: scheduleID,
+      })
+    }
+
+    const dbQuery =
+      `insert into user_calendar_subscriptions (id, name, user_id, schedule_id, config) values` +
+      subs
+        .map(p => `('${p.id}', '${p.name}', '${userID}', '${p.scheduleID}', '${JSON.stringify({ ReminderMinutes: p.reminderMinutes })}')`)
+        .join(',') +
+      `;`
+
+    return cy.sql(dbQuery).then(() => subs)
+  })
+}
+
 Cypress.Commands.add('createCalendarSubscription', createCalendarSubscription)
+Cypress.Commands.add('createManyCalendarSubscriptions', createManyCalendarSubscriptions)
