@@ -81,6 +81,7 @@ export default function UserCalendarSubscriptionList(props) {
           <Warning />
         </Tooltip>
       ) : null,
+      inset: true,
     })
   })
 
