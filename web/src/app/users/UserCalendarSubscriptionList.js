@@ -65,7 +65,7 @@ export default function UserCalendarSubscriptionList(props) {
       subheaderDict[sub.schedule.name] = true
       items.push({
         subHeader: (
-          <Link to={`/schedules/${sub.schedule.id}`}>
+          <Link to={`/schedules/${sub.scheduleID}`}>
             {sub.schedule.name}
           </Link>
         )
