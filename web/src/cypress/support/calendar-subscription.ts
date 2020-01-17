@@ -15,6 +15,12 @@ declare global {
        * by a specified count.
        */
       createManyCalendarSubscriptions: typeof createManyCalendarSubscriptions
+
+      /**
+       * Deletes all calendar subscriptions given the specified user ID.
+       * Will default to deleting all subscriptions for 'profile' if no ID provided.
+       */
+      cleanupCalendarSubscriptions: typeof cleanupCalendarSubscriptions
     }
   }
 
@@ -84,7 +90,7 @@ function createCalendarSubscription(cs?: CalendarSubscriptionOptions): Cypress.C
       name: cs?.name || 'SM Subscription ' + c.word({ length: 8 }),
       reminderMinutes,
       scheduleID: cs.scheduleID,
-      disabled: false,
+      disabled: cs?.disabled || false,
     }
   }).then(res => res.createUserCalendarSubscription)
 }
@@ -122,5 +128,17 @@ function createManyCalendarSubscriptions(count: number, scheduleID: string): Cyp
   })
 }
 
+function cleanupCalendarSubscriptions(userID?: string): Cypress.Chainable<void> {
+  if (!userID) {
+    return cy.fixture('profile').then(prof => {
+      cleanupCalendarSubscriptions(prof.id)
+    })
+  }
+
+  const dbQuery = `delete from user_calendar_subscriptions where user_id = '${userID}'`
+  return cy.sql(dbQuery)
+}
+
 Cypress.Commands.add('createCalendarSubscription', createCalendarSubscription)
 Cypress.Commands.add('createManyCalendarSubscriptions', createManyCalendarSubscriptions)
+Cypress.Commands.add('cleanupCalendarSubscriptions', cleanupCalendarSubscriptions)
