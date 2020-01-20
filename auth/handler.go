@@ -15,6 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/keyring"
@@ -47,6 +48,7 @@ type HandlerConfig struct {
 	UserStore      user.Store
 	SessionKeyring keyring.Keyring
 	IntKeyStore    integrationkey.Store
+	CalSubStore    *calendarsubscription.Store
 }
 
 // Handler will serve authentication requests for registered identity providers.
@@ -430,6 +432,8 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeGrafana)
 	case "/api/v2/site24x7/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeSite24x7)
+	case "/api/v2/calendar":
+		ctx, err = h.cfg.CalSubStore.Authorize(ctx, tok)
 	default:
 		return false
 	}
