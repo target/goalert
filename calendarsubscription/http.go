@@ -9,7 +9,7 @@ import (
 )
 
 // ServeICalData will return an iCal file for the subscription associated with the current request.
-func (b *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
+func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	src := permission.Source(ctx)
 	if src.Type != permission.SourceTypeCalendarSubscription {
@@ -17,18 +17,18 @@ func (b *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	cs, err := b.FindOne(ctx, src.ID)
+	cs, err := s.FindOne(ctx, src.ID)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 
 	var n time.Time
-	err = b.now.QueryRowContext(ctx).Scan(&n)
+	err = s.now.QueryRowContext(ctx).Scan(&n)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
 
-	shifts, err := b.oc.HistoryBySchedule(ctx, cs.ScheduleID, n, n.AddDate(0, 1, 0))
+	shifts, err := s.oc.HistoryBySchedule(ctx, cs.ScheduleID, n, n.AddDate(0, 1, 0))
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
