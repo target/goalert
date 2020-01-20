@@ -39,7 +39,7 @@ func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscri
 }
 
 func (q *Query) UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error) {
-	return q.CalendarSubscriptionStore.FindOne(ctx, id)
+	return q.CalSubStore.FindOne(ctx, id)
 }
 
 // todo: return UserCalendarSubscription with generated url once endpoint has been created
@@ -55,7 +55,7 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 	cs.Config.ReminderMinutes = input.ReminderMinutes
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
-		cs, err = m.CalendarSubscriptionStore.CreateTx(ctx, tx, cs)
+		cs, err = m.CalSubStore.CreateTx(ctx, tx, cs)
 		return err
 	})
 
@@ -64,7 +64,7 @@ func (m *Mutation) CreateUserCalendarSubscription(ctx context.Context, input gra
 
 func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input graphql2.UpdateUserCalendarSubscriptionInput) (bool, error) {
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
-		cs, err := m.CalendarSubscriptionStore.FindOneForUpdateTx(ctx, tx, permission.UserID(ctx), input.ID)
+		cs, err := m.CalSubStore.FindOneForUpdateTx(ctx, tx, permission.UserID(ctx), input.ID)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func (m *Mutation) UpdateUserCalendarSubscription(ctx context.Context, input gra
 		if input.ReminderMinutes != nil {
 			cs.Config.ReminderMinutes = input.ReminderMinutes
 		}
-		return m.CalendarSubscriptionStore.UpdateTx(ctx, tx, cs)
+		return m.CalSubStore.UpdateTx(ctx, tx, cs)
 	})
 	return err == nil, err
 }

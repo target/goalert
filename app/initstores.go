@@ -236,8 +236,8 @@ func (app *App) initStores(ctx context.Context) error {
 		app.TimeZoneStore = timezone.NewStore(ctx, app.db)
 	}
 
-	if app.CalendarSubscriptionStore == nil {
-		app.CalendarSubscriptionStore, err = calendarsubscription.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
+	if app.CalSubStore == nil {
+		app.CalSubStore, err = calendarsubscription.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init calendar subscription store")

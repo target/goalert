@@ -90,11 +90,11 @@ type App struct {
 	ScheduleStore       schedule.Store
 	RotationStore       rotation.Store
 
-	CalendarSubscriptionStore *calendarsubscription.Store
-	OverrideStore             override.Store
-	Resolver                  resolver.Resolver
-	LimitStore                limit.Store
-	HeartbeatStore            heartbeat.Store
+	CalSubStore    *calendarsubscription.Store
+	OverrideStore  override.Store
+	Resolver       resolver.Resolver
+	LimitStore     limit.Store
+	HeartbeatStore heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring

@@ -48,7 +48,7 @@ type HandlerConfig struct {
 	UserStore      user.Store
 	SessionKeyring keyring.Keyring
 	IntKeyStore    integrationkey.Store
-	CalStore       *calendarsubscription.Store
+	CalSubStore    *calendarsubscription.Store
 }
 
 // Handler will serve authentication requests for registered identity providers.
@@ -433,7 +433,7 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 	case "/api/v2/site24x7/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeSite24x7)
 	case "/api/v2/calendar":
-		ctx, err = h.cfg.CalStore.Authorize(ctx, tok)
+		ctx, err = h.cfg.CalSubStore.Authorize(ctx, tok)
 	default:
 		return false
 	}

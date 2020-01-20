@@ -43,27 +43,27 @@ import (
 )
 
 type App struct {
-	DB                        *sql.DB
-	UserStore                 user.Store
-	CMStore                   contactmethod.Store
-	NRStore                   notificationrule.Store
-	NCStore                   notificationchannel.Store
-	AlertStore                alert.Store
-	AlertLogStore             alertlog.Store
-	ServiceStore              service.Store
-	FavoriteStore             favorite.Store
-	PolicyStore               escalation.Store
-	ScheduleStore             schedule.Store
-	CalendarSubscriptionStore *calendarsubscription.Store
-	RotationStore             rotation.Store
-	OnCallStore               oncall.Store
-	IntKeyStore               integrationkey.Store
-	LabelStore                label.Store
-	RuleStore                 rule.Store
-	OverrideStore             override.Store
-	ConfigStore               *config.Store
-	SlackStore                *slack.ChannelSender
-	HeartbeatStore            heartbeat.Store
+	DB             *sql.DB
+	UserStore      user.Store
+	CMStore        contactmethod.Store
+	NRStore        notificationrule.Store
+	NCStore        notificationchannel.Store
+	AlertStore     alert.Store
+	AlertLogStore  alertlog.Store
+	ServiceStore   service.Store
+	FavoriteStore  favorite.Store
+	PolicyStore    escalation.Store
+	ScheduleStore  schedule.Store
+	CalSubStore    *calendarsubscription.Store
+	RotationStore  rotation.Store
+	OnCallStore    oncall.Store
+	IntKeyStore    integrationkey.Store
+	LabelStore     label.Store
+	RuleStore      rule.Store
+	OverrideStore  override.Store
+	ConfigStore    *config.Store
+	SlackStore     *slack.ChannelSender
+	HeartbeatStore heartbeat.Store
 
 	NotificationStore notification.Store
 
