@@ -21,11 +21,9 @@ func TestRenderICalFromShifts(t *testing.T) {
 			shifts := []oncall.Shift{}
 			shifts = append(shifts, s1)
 
-			reminderMinutes := make([]int, 2)
-			reminderMinutes[0] = 5
-			reminderMinutes[1] = 10
+			reminderMinutes := []int{5, 10}
 
-			_, err := cs.RenderICalFromShifts(shifts, reminderMinutes)
+			_, err := cs.renderICalFromShifts(shifts, reminderMinutes, "test")
 			if err != nil {
 				t.Errorf("err = %v; want nil", err)
 			}

@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
@@ -30,6 +31,7 @@ type Store struct {
 
 	keys keyring.Keyring
 	oc   oncall.Store
+	sc   schedule.Store
 }
 
 const tokenAudience = "ga-cal-sub"

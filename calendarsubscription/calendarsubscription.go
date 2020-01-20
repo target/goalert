@@ -51,21 +51,23 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	return &cs, nil
 }
 
-func (cs CalendarSubscription) RenderICalFromShifts(shifts []oncall.Shift, reminderMinutes []int) ([]byte, error) {
+func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, reminderMinutes []int, scheduleName string) ([]byte, error) {
 	type iCalOptions struct {
 		Shifts          []oncall.Shift `json:"s,omitempty"`
-		ReminderMinutes []int          `json:"r, omitempty"`
+		ReminderMinutes []int          `json:"r,omitempty"`
+		ScheduleName    string         `json:"n,omitempty"`
 	}
 
 	var iCalTemplate = `
 		BEGIN:VCALENDAR
 		VERSION:2.0
 		PRODID:-//ZContent.net//Zap Calendar 1.0//EN
+		NAME:{{.ScheduleName}}
 		CALSCALE:GREGORIAN
 		METHOD:PUBLISH
 		{{range .Shifts}}
 		BEGIN:VEVENT
-		SUMMARY:On-Call
+		SUMMARY:On-Call Shift
 		DTSTART:{{.Start}}
 		DTEND:{{.End}}
 		END:VEVENT
@@ -82,7 +84,7 @@ func (cs CalendarSubscription) RenderICalFromShifts(shifts []oncall.Shift, remin
 		END:VCALENDAR`
 
 	iCal := template.Must(template.New("iCal").Parse(iCalTemplate))
-	i := iCalOptions{shifts, reminderMinutes}
+	i := iCalOptions{shifts, reminderMinutes, scheduleName}
 
 	buf := bytes.NewBuffer(nil)
 	err := iCal.Execute(buf, i)

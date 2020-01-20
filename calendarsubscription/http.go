@@ -43,8 +43,16 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	}
 
 	_ = filtered
-	calData := []byte("not implemented")
-	// calData := renderICalFromShifts(filtered, cs.Config)
+
+	sched, err := s.sc.FindOne(ctx, cs.ScheduleID)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+
+	calData, err := cs.renderICalFromShifts(filtered, cs.Config.ReminderMinutes, sched.Name)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
 
 	w.Header().Set("Content-Type", "text/calendar")
 	w.Write(calData)
