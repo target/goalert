@@ -9,6 +9,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/validation/validate"
+	"github.com/target/goalert/version"
 )
 
 // CalendarSubscription stores the information from user subscriptions
@@ -31,6 +32,7 @@ type CalendarSubscription struct {
 type iCalOptions struct {
 	Shifts          []oncall.Shift `json:"s,omitempty"`
 	ReminderMinutes []int          `json:"r,omitempty"`
+	Version         string         `json:"v,omitempty"`
 }
 
 var iCalTemplate = template.Must(template.New("ical").Parse(`
@@ -82,7 +84,7 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift) ([]byte, error) {
-	i := iCalOptions{shifts, cs.Config.ReminderMinutes}
+	i := iCalOptions{shifts, cs.Config.ReminderMinutes, version.GitVersion()}
 	buf := bytes.NewBuffer(nil)
 
 	err := iCalTemplate.Execute(buf, i)
