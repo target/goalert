@@ -142,5 +142,9 @@ CalendarSubscribeForm.propTypes = {
   onChange: p.func.isRequired,
   errors: p.array,
   loading: p.bool,
-  value: p.object.isRequired, // todo: shape this
+  value: p.shape({
+    scheduleID: p.string,
+    name: p.string,
+    reminderMinutes: p.array,
+  }).isRequired,
 }
