@@ -23,7 +23,7 @@ func TestRenderICalFromShifts(t *testing.T) {
 
 			reminderMinutes := []int{5, 10}
 
-			_, err := cs.renderICalFromShifts(shifts, reminderMinutes, "test")
+			_, err := cs.renderICalFromShifts(shifts, reminderMinutes)
 			if err != nil {
 				t.Errorf("err = %v; want nil", err)
 			}

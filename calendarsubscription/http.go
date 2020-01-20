@@ -44,12 +44,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 
 	_ = filtered
 
-	sched, err := s.sc.FindOne(ctx, cs.ScheduleID)
-	if errutil.HTTPError(ctx, w, err) {
-		return
-	}
-
-	calData, err := cs.renderICalFromShifts(filtered, cs.Config.ReminderMinutes, sched.Name)
+	calData, err := cs.renderICalFromShifts(filtered, cs.Config.ReminderMinutes)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}
