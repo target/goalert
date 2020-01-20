@@ -62,6 +62,7 @@ func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, remin
 		BEGIN:VCALENDAR
 		VERSION:2.0
 		PRODID:-//GoAlert//Calendar Subscriptions//EN
+		Name:{{.ScheduleName}}
 		CALSCALE:GREGORIAN
 		METHOD:PUBLISH
 		{{range .Shifts}}
