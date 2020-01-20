@@ -44,7 +44,7 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 
 	_ = filtered
 
-	calData, err := cs.renderICalFromShifts(filtered, cs.Config.ReminderMinutes)
+	calData, err := cs.renderICalFromShifts(filtered)
 	if errutil.HTTPError(ctx, w, err) {
 		return
 	}

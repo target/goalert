@@ -28,6 +28,35 @@ type CalendarSubscription struct {
 	token string
 }
 
+type iCalOptions struct {
+	Shifts          []oncall.Shift `json:"s,omitempty"`
+	ReminderMinutes []int          `json:"r,omitempty"`
+}
+
+var iCalTemplate = template.Must(template.New("ical").Parse(`
+	BEGIN:VCALENDAR
+	PRODID:-//GoAlert//{{.Version}}//EN
+	CALSCALE:GREGORIAN
+	METHOD:PUBLISH
+	{{range .Shifts}}
+	BEGIN:VEVENT
+	SUMMARY:On-Call Shift
+	DTSTART:{{.Start}}
+	DTEND:{{.End}}
+	END:VEVENT
+	{{end}}
+
+	{{range .ReminderMinutes}}
+	BEGIN:VALARM
+	ACTION:DISPLAY
+	DESCRIPTION:REMINDER
+	TRIGGER:-PT{{.}}M
+	END:VALARM
+	{{end}}
+
+	END:VCALENDAR
+`))
+
 // Token returns the authorization token associated with this CalendarSubscription. It
 // is only available when calling CreateTx.
 func (cs CalendarSubscription) Token() string { return cs.token }
@@ -51,41 +80,12 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	return &cs, nil
 }
 
-func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, reminderMinutes []int) ([]byte, error) {
-	type iCalOptions struct {
-		Shifts          []oncall.Shift `json:"s,omitempty"`
-		ReminderMinutes []int          `json:"r,omitempty"`
-	}
-
-	var iCalTemplate = `
-		BEGIN:VCALENDAR
-		VERSION:2.0
-		PRODID:-//GoAlert//Calendar Subscriptions//EN
-		CALSCALE:GREGORIAN
-		METHOD:PUBLISH
-		{{range .Shifts}}
-		BEGIN:VEVENT
-		SUMMARY:On-Call Shift
-		DTSTART:{{.Start}}
-		DTEND:{{.End}}
-		END:VEVENT
-		{{end}}
-
-		{{range .ReminderMinutes}}
-		BEGIN:VALARM
-		ACTION:DISPLAY
-		DESCRIPTION:REMINDER
-		TRIGGER:-PT{{.}}M
-		END:VALARM
-		{{end}}
-
-		END:VCALENDAR`
-
-	iCal := template.Must(template.New("iCal").Parse(iCalTemplate))
-	i := iCalOptions{shifts, reminderMinutes}
-
+// RFC can be found at https://tools.ietf.org/html/rfc5545
+func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift) ([]byte, error) {
+	i := iCalOptions{shifts, cs.Config.ReminderMinutes}
 	buf := bytes.NewBuffer(nil)
-	err := iCal.Execute(buf, i)
+
+	err := iCalTemplate.Execute(buf, i)
 	if err != nil {
 		return nil, errors.Wrap(err, "render ical template:")
 	}

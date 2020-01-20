@@ -3,7 +3,6 @@ package oncall
 import (
 	"context"
 	"database/sql"
-
 	"time"
 
 	"github.com/target/goalert/assignment"

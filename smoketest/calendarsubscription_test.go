@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,15 +57,13 @@ func TestICal(t *testing.T) {
 		}
 	`, "foobar", 5, h.UUID("schedId")), &cs)
 
-	// get token
-	s := strings.Split(cs.CreateUserCalendarSubscription.URL, "token=")
-	v := make(url.Values)
-	v.Set("token", s[1])
+	u, err := url.Parse(cs.CreateUserCalendarSubscription.URL)
+	assert.Nil(t, err)
+	assert.Contains(t, u.Path, "/api/v2/calendar")
 
-	resp, err := http.PostForm(h.URL()+"/api/v2/calendar", v)
+	resp, err := http.Get(cs.CreateUserCalendarSubscription.URL)
 	assert.Nil(t, err)
 	if !assert.Equal(t, 200, resp.StatusCode, "serve iCalendar") {
 		return
 	}
-
 }

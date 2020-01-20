@@ -12,18 +12,13 @@ import (
 func TestRenderICalFromShifts(t *testing.T) {
 	check := func(ctx context.Context, schedID string, userID string) {
 		t.Run("ical", func(t *testing.T) {
-			cs := CalendarSubscription{}
+			var cs CalendarSubscription
 
-			t1, _ := time.Parse(time.RFC3339, "2020-01-01T22:08:41+00:00")
-			t2, _ := time.Parse(time.RFC3339, "2020-01-07T22:08:41+00:00")
+			shifts := []oncall.Shift{{UserID: "cb75f78a-0f7c-42fa-99f8-6b30e92a9518", Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
 
-			s1 := oncall.Shift{UserID: "cb75f78a-0f7c-42fa-99f8-6b30e92a9518", Start: t1, End: t2}
-			shifts := []oncall.Shift{}
-			shifts = append(shifts, s1)
+			cs.Config.ReminderMinutes = []int{5, 10}
 
-			reminderMinutes := []int{5, 10}
-
-			_, err := cs.renderICalFromShifts(shifts, reminderMinutes)
+			_, err := cs.renderICalFromShifts(shifts)
 			if err != nil {
 				t.Errorf("err = %v; want nil", err)
 			}
