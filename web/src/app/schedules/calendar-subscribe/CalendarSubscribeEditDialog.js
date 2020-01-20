@@ -3,7 +3,6 @@ import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery, useMutation } from '@apollo/react-hooks'
 import FormDialog from '../../dialogs/FormDialog'
-import { getForm, FormTitle, getSubtitle } from './formHelper'
 import CalendarSubscribeForm, {
   reminderMinutesOptions,
 } from './CalendarSubscribeForm'
@@ -11,9 +10,6 @@ import { GenericError, ObjectNotFound } from '../../error-pages'
 import _ from 'lodash-es'
 import Spinner from '../../loading/components/Spinner'
 import { fieldErrors } from '../../util/errutil'
-
-const SUBTITLE =
-  'Editing the schedule or alarm will result in a new URL being generated.'
 
 const query = gql`
   query($id: ID!) {
@@ -68,7 +64,6 @@ export function CalendarSubscribeEditDialogContent(props) {
   })
 
   // setup the mutation
-  const [isComplete, setIsComplete] = useState(false)
   const [updateSubscription, updateSubscriptionStatus] = useMutation(mutation, {
     variables: {
       input: {
@@ -78,8 +73,6 @@ export function CalendarSubscribeEditDialogContent(props) {
       },
     },
     onCompleted: () => {
-      // todo: handle if new URL is generated
-      // setIsComplete(true)
       props.onClose()
     },
     refetchQueries: () => [
@@ -90,26 +83,21 @@ export function CalendarSubscribeEditDialogContent(props) {
     ],
   })
 
-  const form = (
-    <CalendarSubscribeForm
-      disableSchedField
-      errors={fieldErrors(updateSubscriptionStatus.error)}
-      loading={updateSubscriptionStatus.loading}
-      onChange={setValue}
-      value={value}
-    />
-  )
-
   return (
     <FormDialog
-      title={FormTitle(isComplete, 'Edit Calendar Subscription')}
-      subTitle={getSubtitle(isComplete, SUBTITLE)}
+      title='Edit Calendar Subscription'
       onClose={onClose}
-      alert={isComplete}
       loading={updateSubscriptionStatus.loading}
-      primaryActionLabel={isComplete ? 'Done' : null}
-      onSubmit={() => (isComplete ? props.onClose() : updateSubscription())}
-      form={getForm(isComplete, form, 'url')}
+      onSubmit={() => updateSubscription()}
+      form={(
+        <CalendarSubscribeForm
+          disableSchedField
+          errors={fieldErrors(updateSubscriptionStatus.error)}
+          loading={updateSubscriptionStatus.loading}
+          onChange={setValue}
+          value={value}
+        />
+      )}
     />
   )
 }
