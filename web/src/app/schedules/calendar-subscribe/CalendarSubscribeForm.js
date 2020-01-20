@@ -69,8 +69,7 @@ export default function CalendarSubscribeForm(props) {
   )
 
   function renderReminderMinutesFields() {
-    let arr = _.get(props, 'value.reminderMinutes', [])
-    arr = arr.slice()
+    let arr = _.get(props, 'value.reminderMinutes', []).slice()
 
     const fields = []
     // push 1 more field than there are values, max of 5 fields
@@ -87,8 +86,8 @@ export default function CalendarSubscribeForm(props) {
             options={reminderMinutesOptions}
             mapValue={() => (arr[i] ? arr[i] : null)}
             overrideOnChange={value => {
-              // if the next value is empty and certain criteria are met, remove that
-              // index from the array instead of setting to null. this will remove the
+              // if the next value is empty and it's not the first index, remove that
+              // index field from the array instead of setting to null. this will remove the
               // form field from the dom
               const newReminderMinutes = props.value.reminderMinutes.slice()
               if (!value && i !== 0) {

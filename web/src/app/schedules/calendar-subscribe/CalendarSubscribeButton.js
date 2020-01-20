@@ -48,12 +48,6 @@ export default function CalendarSubscribeButton(props) {
 
   return (
     <React.Fragment>
-      {showDialog && (
-        <CalendarSubscribeCreateDialog
-          onClose={() => setShowDialog(false)}
-          scheduleID={props.scheduleID}
-        />
-      )}
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <Button
@@ -82,6 +76,12 @@ export default function CalendarSubscribeButton(props) {
           </Typography>
         </Grid>
       </Grid>
+      {showDialog && (
+        <CalendarSubscribeCreateDialog
+          onClose={() => setShowDialog(false)}
+          scheduleID={props.scheduleID}
+        />
+      )}
     </React.Fragment>
   )
 }

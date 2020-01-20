@@ -72,9 +72,7 @@ export function CalendarSubscribeEditDialogContent(props) {
         reminderMinutes: value.reminderMinutes.map(r => r && parseInt(r.value)),
       },
     },
-    onCompleted: () => {
-      props.onClose()
-    },
+    onCompleted: () => props.onClose(),
     refetchQueries: () => [
       {
         query,

@@ -49,6 +49,7 @@ export default function UserCalendarSubscriptionList(props) {
   if (error) return <GenericError error={error.message} />
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
 
+  // sort by schedule names, then subscription names
   const subs = data.user.calendarSubscriptions.sort((a, b) => {
     if (a.schedule.name < b.schedule.name) return -1
     if (a.schedule.name > b.schedule.name) return 1
@@ -60,6 +61,7 @@ export default function UserCalendarSubscriptionList(props) {
   const subheaderDict = {}
   const items = []
 
+  // push schedule names as subheaders now that the array is sorted
   subs.forEach(sub => {
     if (!subheaderDict[sub.schedule.name]) {
       subheaderDict[sub.schedule.name] = true
@@ -70,6 +72,7 @@ export default function UserCalendarSubscriptionList(props) {
       })
     }
 
+    // push subscriptions under relevant schedule subheaders
     items.push({
       title: sub.name,
       subText: 'Last sync: ' + (formatTimeSince(sub.lastAccess) || 'Never'),
