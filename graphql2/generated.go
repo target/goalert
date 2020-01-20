@@ -394,6 +394,7 @@ type ComplexityRoot struct {
 		ReminderMinutes func(childComplexity int) int
 		Schedule        func(childComplexity int) int
 		ScheduleID      func(childComplexity int) int
+		URL             func(childComplexity int) int
 	}
 
 	UserConnection struct {
@@ -578,6 +579,8 @@ type UserCalendarSubscriptionResolver interface {
 	ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error)
 
 	Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error)
+
+	URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error)
 }
 type UserContactMethodResolver interface {
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
@@ -2375,6 +2378,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserCalendarSubscription.ScheduleID(childComplexity), true
 
+	case "UserCalendarSubscription.url":
+		if e.complexity.UserCalendarSubscription.URL == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.URL(childComplexity), true
+
 	case "UserConnection.nodes":
 		if e.complexity.UserConnection.Nodes == nil {
 			break
@@ -2883,6 +2893,9 @@ type UserCalendarSubscription {
   schedule: Schedule
   lastAccess: ISOTimestamp!
   disabled: Boolean!
+
+  # Subscription url, only available upon creation.
+  url: String
 }
 
 input ConfigValueInput {
@@ -12588,6 +12601,40 @@ func (ec *executionContext) _UserCalendarSubscription_disabled(ctx context.Conte
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserCalendarSubscription_url(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserCalendarSubscription().URL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *UserConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -18681,6 +18728,17 @@ func (ec *executionContext) _UserCalendarSubscription(ctx context.Context, sel a
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "url":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserCalendarSubscription_url(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

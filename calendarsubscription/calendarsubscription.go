@@ -24,7 +24,13 @@ type CalendarSubscription struct {
 	Config struct {
 		ReminderMinutes []int
 	}
+
+	token string
 }
+
+// Token returns the authorization token associated with this CalendarSubscription. It
+// is only available when calling CreateTx.
+func (cs CalendarSubscription) Token() string { return cs.token }
 
 // Normalize will validate and produce a normalized CalendarSubscription struct.
 func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {

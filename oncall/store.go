@@ -20,7 +20,6 @@ import (
 // Store allows retrieving and calculating on-call information.
 type Store interface {
 	OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error)
-
 	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
 }
 
