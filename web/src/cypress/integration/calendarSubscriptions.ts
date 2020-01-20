@@ -232,10 +232,7 @@ function testSubs(screen: ScreenFormat) {
       )
     })
 
-    // todo: test editing a subscription with a new URL returned
-    it.skip('should edit a subscription and receive a new url', () => {})
-
-    it('should edit a subscription without generating a new url', () => {
+    it('should edit a subscription', () => {
       const name = 'SM Subscription ' + c.word({ length: 8 })
 
       cy.get('ul[data-cy=calendar-subscriptions]').should('contain', cs.name)

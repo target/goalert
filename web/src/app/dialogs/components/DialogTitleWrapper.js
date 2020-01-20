@@ -104,9 +104,9 @@ export default class DialogTitleWrapper extends Component {
               {closeButton}
               {typeof title === 'string' ? (
                 <Typography
+                  data-cy='dialog-title'
                   color='inherit'
                   className={classes.appBarTitle}
-                  data-cy='dialog-title'
                 >
                   {title}
                 </Typography>
