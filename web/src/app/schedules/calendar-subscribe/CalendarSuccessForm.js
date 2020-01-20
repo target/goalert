@@ -7,17 +7,21 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import CopyText from '../../util/CopyText'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   caption: {
     width: '100%',
+  },
+  newTabIcon: {
+    marginLeft: theme.spacing(1),
   },
   subscribeButtonContainer: {
     display: 'flex',
     justifyContent: 'center',
   },
-})
+}))
 
 export default function CalenderSuccessForm(props) {
   const classes = useStyles()
@@ -28,8 +32,11 @@ export default function CalenderSuccessForm(props) {
           color='primary'
           variant='contained'
           href={'webcal://' + props.url}
+          target='_blank'
+          rel='noopener noreferrer'
         >
           Subscribe
+          <OpenInNewIcon fontSize='small' className={classes.newTabIcon} />
         </Button>
       </Grid>
       <Grid item xs={12}>
