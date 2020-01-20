@@ -60,7 +60,7 @@ func (cs CalendarSubscription) RenderICalFromShifts(shifts []oncall.Shift, remin
 	var iCalTemplate = `
 		BEGIN:VCALENDAR
 		VERSION:2.0
-		PRODID:-//ZContent.net//Zap Calendar 1.0//EN
+		PRODID:-//GoAlert//Calendar Subscriptions//EN
 		CALSCALE:GREGORIAN
 		METHOD:PUBLISH
 		{{range .Shifts}}
