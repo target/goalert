@@ -54,7 +54,9 @@ function chanceReminderMinutes(): Array<number> {
   return reminderMinutes
 }
 
-function createCalendarSubscription(cs?: CalendarSubscriptionOptions): Cypress.Chainable<CalendarSubscription> {
+function createCalendarSubscription(
+  cs?: CalendarSubscriptionOptions,
+): Cypress.Chainable<CalendarSubscription> {
   const mutation = `
     mutation($input: CreateUserCalendarSubscriptionInput!) {
       createUserCalendarSubscription(input: $input) {
@@ -85,17 +87,22 @@ function createCalendarSubscription(cs?: CalendarSubscriptionOptions): Cypress.C
   }
 
   // create and return subscription
-  return cy.graphql2(mutation, {
-    input: {
-      name: cs?.name || 'SM Subscription ' + c.word({ length: 8 }),
-      reminderMinutes,
-      scheduleID: cs.scheduleID,
-      disabled: cs?.disabled || false,
-    }
-  }).then(res => res.createUserCalendarSubscription)
+  return cy
+    .graphql2(mutation, {
+      input: {
+        name: cs?.name || 'SM Subscription ' + c.word({ length: 8 }),
+        reminderMinutes,
+        scheduleID: cs.scheduleID,
+        disabled: cs?.disabled || false,
+      },
+    })
+    .then(res => res.createUserCalendarSubscription)
 }
 
-function createManyCalendarSubscriptions(count: number, scheduleID: string): Cypress.Chainable<Array<CalendarSubscription>> {
+function createManyCalendarSubscriptions(
+  count: number,
+  scheduleID: string,
+): Cypress.Chainable<Array<CalendarSubscription>> {
   return cy.fixture('profile').then(prof => {
     const userID = prof.id
 
@@ -120,7 +127,12 @@ function createManyCalendarSubscriptions(count: number, scheduleID: string): Cyp
     const dbQuery =
       `insert into user_calendar_subscriptions (id, name, user_id, schedule_id, config) values` +
       subs
-        .map(p => `('${p.id}', '${p.name}', '${userID}', '${p.scheduleID}', '${JSON.stringify({ ReminderMinutes: p.reminderMinutes })}')`)
+        .map(
+          p =>
+            `('${p.id}', '${p.name}', '${userID}', '${
+              p.scheduleID
+            }', '${JSON.stringify({ ReminderMinutes: p.reminderMinutes })}')`,
+        )
         .join(',') +
       `;`
 
@@ -128,7 +140,9 @@ function createManyCalendarSubscriptions(count: number, scheduleID: string): Cyp
   })
 }
 
-function cleanupCalendarSubscriptions(userID?: string): Cypress.Chainable<void> {
+function cleanupCalendarSubscriptions(
+  userID?: string,
+): Cypress.Chainable<void> {
   if (!userID) {
     return cy.fixture('profile').then(prof => {
       cleanupCalendarSubscriptions(prof.id)
@@ -140,5 +154,11 @@ function cleanupCalendarSubscriptions(userID?: string): Cypress.Chainable<void> 
 }
 
 Cypress.Commands.add('createCalendarSubscription', createCalendarSubscription)
-Cypress.Commands.add('createManyCalendarSubscriptions', createManyCalendarSubscriptions)
-Cypress.Commands.add('cleanupCalendarSubscriptions', cleanupCalendarSubscriptions)
+Cypress.Commands.add(
+  'createManyCalendarSubscriptions',
+  createManyCalendarSubscriptions,
+)
+Cypress.Commands.add(
+  'cleanupCalendarSubscriptions',
+  cleanupCalendarSubscriptions,
+)

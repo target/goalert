@@ -20,7 +20,8 @@ function testSubs(screen: ScreenFormat) {
 
     it('should create a subscription from a schedule', () => {
       const name = c.word({ length: 5 })
-      const defaultCptn = 'Subscribe to your shifts on this calendar from your preferred calendar app'
+      const defaultCptn =
+        'Subscribe to your shifts on this calendar from your preferred calendar app'
 
       cy.visit(`/schedules/${sched.id}`)
 
@@ -32,7 +33,7 @@ function testSubs(screen: ScreenFormat) {
       cy.dialogTitle('Create New Calendar Subscription')
       cy.dialogForm({
         name,
-        'reminderMinutes[0]': 'At time of shift'
+        'reminderMinutes[0]': 'At time of shift',
       })
       cy.dialogClick('Submit')
       cy.dialogTitle('Success!')
@@ -48,7 +49,10 @@ function testSubs(screen: ScreenFormat) {
 
       cy.visit('/profile/schedule-calendar-subscriptions')
 
-      cy.get('span[data-cy="empty-message-cptn"]').should('contain', 'You are not subscribed to any schedules.')
+      cy.get('span[data-cy="empty-message-cptn"]').should(
+        'contain',
+        'You are not subscribed to any schedules.',
+      )
       cy.get('ul[data-cy=calendar-subscriptions]').should('not.contain', name)
 
       // fill form out and submit
@@ -57,7 +61,7 @@ function testSubs(screen: ScreenFormat) {
       cy.dialogForm({
         name,
         scheduleID: sched.name,
-        'reminderMinutes[0]': 'At time of shift'
+        'reminderMinutes[0]': 'At time of shift',
       })
       cy.dialogClick('Submit')
       cy.dialogTitle('Success!')
@@ -73,11 +77,21 @@ function testSubs(screen: ScreenFormat) {
       cy.pageFab()
 
       const check = (shouldExist: Array<boolean>) => {
-        cy.get('input[name="reminderMinutes[0]"]').should(shouldExist[0] ? 'exist' : 'not.exist')
-        cy.get('input[name="reminderMinutes[1]"]').should(shouldExist[1] ? 'exist' : 'not.exist')
-        cy.get('input[name="reminderMinutes[2]"]').should(shouldExist[2] ? 'exist' : 'not.exist')
-        cy.get('input[name="reminderMinutes[3]"]').should(shouldExist[3] ? 'exist' : 'not.exist')
-        cy.get('input[name="reminderMinutes[4]"]').should(shouldExist[4] ? 'exist' : 'not.exist')
+        cy.get('input[name="reminderMinutes[0]"]').should(
+          shouldExist[0] ? 'exist' : 'not.exist',
+        )
+        cy.get('input[name="reminderMinutes[1]"]').should(
+          shouldExist[1] ? 'exist' : 'not.exist',
+        )
+        cy.get('input[name="reminderMinutes[2]"]').should(
+          shouldExist[2] ? 'exist' : 'not.exist',
+        )
+        cy.get('input[name="reminderMinutes[3]"]').should(
+          shouldExist[3] ? 'exist' : 'not.exist',
+        )
+        cy.get('input[name="reminderMinutes[4]"]').should(
+          shouldExist[4] ? 'exist' : 'not.exist',
+        )
       }
 
       // only 1st valarm field should exist to start
@@ -96,13 +110,25 @@ function testSubs(screen: ScreenFormat) {
       check([true, true, true, true, true])
 
       // clearing the optional valarm fields should remove the redundant fields
-      cy.get('input[name="reminderMinutes[3]"]').parent().find('svg').first().click()
+      cy.get('input[name="reminderMinutes[3]"]')
+        .parent()
+        .find('svg')
+        .first()
+        .click()
       check([true, true, true, true, false])
 
-      cy.get('input[name="reminderMinutes[2]"]').parent().find('svg').first().click()
+      cy.get('input[name="reminderMinutes[2]"]')
+        .parent()
+        .find('svg')
+        .first()
+        .click()
       check([true, true, true, false, false])
 
-      cy.get('input[name="reminderMinutes[1]"]').parent().find('svg').first().click()
+      cy.get('input[name="reminderMinutes[1]"]')
+        .parent()
+        .find('svg')
+        .first()
+        .click()
 
       // final check, cannot clear first required field to remove second
       check([true, true, false, false, false])
@@ -119,17 +145,22 @@ function testSubs(screen: ScreenFormat) {
     })
 
     it('should go to the profile subscriptions list from a schedule', () => {
-      const flatListHeader = 'Showing your current on-call subscriptions for all schedules'
+      const flatListHeader =
+        'Showing your current on-call subscriptions for all schedules'
 
       cy.get('body').should('not.contain', flatListHeader)
-      cy.get('a[data-cy="manage-subscriptions-link"]').should('contain', 'Manage subscriptions').click()
+      cy.get('a[data-cy="manage-subscriptions-link"]')
+        .should('contain', 'Manage subscriptions')
+        .click()
       cy.get('body').should('contain', flatListHeader)
     })
 
     it('should update button caption text after a subscription is created', () => {
-      const defaultCptn = 'Subscribe to your shifts on this calendar from your preferred calendar app'
+      const defaultCptn =
+        'Subscribe to your shifts on this calendar from your preferred calendar app'
       const oneSubCptn = 'You have 1 active subscription for this schedule'
-      const multipleSubsCptn = 'You have 2 active subscriptions for this schedule'
+      const multipleSubsCptn =
+        'You have 2 active subscriptions for this schedule'
 
       cy.get('body').should('contain', defaultCptn)
       cy.get('body').should('not.contain', oneSubCptn)
@@ -153,7 +184,8 @@ function testSubs(screen: ScreenFormat) {
     })
 
     it('should update button caption text after max amount of subscriptions are created', () => {
-      const defaultCptn = 'Subscribe to your shifts on this calendar from your preferred calendar app'
+      const defaultCptn =
+        'Subscribe to your shifts on this calendar from your preferred calendar app'
       const maxSubsCptn = 'You have the maximum amount of subscriptions'
 
       cy.get('body').should('contain', defaultCptn)
@@ -189,9 +221,15 @@ function testSubs(screen: ScreenFormat) {
     })
 
     it('should view the subscriptions list', () => {
-      cy.get('body').should('contain', 'Showing your current on-call subscriptions for all schedules')
+      cy.get('body').should(
+        'contain',
+        'Showing your current on-call subscriptions for all schedules',
+      )
       cy.get('ul[data-cy=calendar-subscriptions]').should('contain', cs.name)
-      cy.get('ul[data-cy=calendar-subscriptions]').should('contain', 'Last sync: Never')
+      cy.get('ul[data-cy=calendar-subscriptions]').should(
+        'contain',
+        'Last sync: Never',
+      )
     })
 
     // todo: test editing a subscription with a new URL returned
@@ -201,7 +239,10 @@ function testSubs(screen: ScreenFormat) {
       const name = 'SM Subscription ' + c.word({ length: 8 })
 
       cy.get('ul[data-cy=calendar-subscriptions]').should('contain', cs.name)
-      cy.get('ul[data-cy=calendar-subscriptions]').should('contain', 'Last sync: Never')
+      cy.get('ul[data-cy=calendar-subscriptions]').should(
+        'contain',
+        'Last sync: Never',
+      )
 
       cy.get('ul[data-cy=calendar-subscriptions]')
         .contains('li', cs.name)
@@ -213,7 +254,10 @@ function testSubs(screen: ScreenFormat) {
       cy.dialogFinish('Submit')
 
       cy.get('ul[data-cy=calendar-subscriptions]').should('contain', name)
-      cy.get('ul[data-cy=calendar-subscriptions]').should('contain', 'Last sync: Never')
+      cy.get('ul[data-cy=calendar-subscriptions]').should(
+        'contain',
+        'Last sync: Never',
+      )
     })
 
     it('should delete a subscription', () => {
@@ -227,8 +271,14 @@ function testSubs(screen: ScreenFormat) {
 
       cy.dialogFinish('Confirm')
 
-      cy.get('span[data-cy="empty-message-cptn"]').should('contain', 'You are not subscribed to any schedules.')
-      cy.get('ul[data-cy=calendar-subscriptions]').should('not.contain', cs.name)
+      cy.get('span[data-cy="empty-message-cptn"]').should(
+        'contain',
+        'You are not subscribed to any schedules.',
+      )
+      cy.get('ul[data-cy=calendar-subscriptions]').should(
+        'not.contain',
+        cs.name,
+      )
     })
 
     it('should visit a schedule from the subheader link', () => {
@@ -244,7 +294,10 @@ function testSubs(screen: ScreenFormat) {
     it('should not show route link unless on personal profile', () => {
       cy.fixture('users').then(users => {
         cy.visit(`/users/${users[0].id}`)
-        cy.get('ul[data-cy="route-links"]').should('not.contain', 'Schedule Calendar Subscriptions')
+        cy.get('ul[data-cy="route-links"]').should(
+          'not.contain',
+          'Schedule Calendar Subscriptions',
+        )
       })
     })
 
@@ -253,11 +306,15 @@ function testSubs(screen: ScreenFormat) {
         cy.reload()
 
         cy.get('ul[data-cy=calendar-subscriptions] li')
-          .contains(cs.name).find('svg[data-cy="warning-icon"]')
+          .contains(cs.name)
+          .find('svg[data-cy="warning-icon"]')
           .should('not.exist')
 
         cy.get('ul[data-cy=calendar-subscriptions] li')
-          .contains(disabledCs.name).parent().parent().find('svg[data-cy="warning-icon"]') // two divs of separation
+          .contains(disabledCs.name)
+          .parent()
+          .parent()
+          .find('svg[data-cy="warning-icon"]') // two divs of separation
           .should('exist')
       })
     })

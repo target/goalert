@@ -18,7 +18,7 @@ import { useQuery } from '@apollo/react-hooks'
 import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import {useConfigValue, useSessionInfo} from '../util/RequireConfig'
+import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 
 const query = gql`
   query userInfo($id: ID!) {
@@ -86,14 +86,14 @@ export default function UserDetails(props) {
 
   const disableNR = user.contactMethods.length === 0
 
-  let links = [
+  const links = [
     {
       label: 'On-Call Assignments',
       url: 'on-call-assignments',
       subText: svcCount
         ? `On-call for ${svcCount} service${svcCount > 1 ? 's' : ''}`
         : 'Not currently on-call',
-    }
+    },
   ]
 
   if (props.userID === currentUserID) {

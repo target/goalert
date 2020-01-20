@@ -73,7 +73,10 @@ export default function CalendarSubscribeButton(props) {
             {caption}
           </Typography>
           <Typography variant='caption'>
-            <Link data-cy='manage-subscriptions-link' to='/profile/schedule-calendar-subscriptions'>
+            <Link
+              data-cy='manage-subscriptions-link'
+              to='/profile/schedule-calendar-subscriptions'
+            >
               Manage subscriptions
             </Link>
           </Typography>
