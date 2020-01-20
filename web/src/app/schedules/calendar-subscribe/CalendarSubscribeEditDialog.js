@@ -78,8 +78,8 @@ export function CalendarSubscribeEditDialogContent(props) {
       },
     },
     onCompleted: () => {
-      // todo: skip success form if no new URL is generated
-      setIsComplete(true)
+      // todo: handle if new URL is generated
+      // setIsComplete(true)
       props.onClose()
     },
     refetchQueries: () => [
