@@ -185,6 +185,7 @@ export default class FlatList extends React.PureComponent {
       emptyMessage,
       headerNote,
       items,
+      inset, // don't include in spread
       ...otherProps
     } = this.props
     return (
