@@ -22,7 +22,6 @@ const SUBTITLE =
   'Create a unique iCalendar subscription URL that can be used in your preferred calendar application.'
 
 export default function CalendarSubscribeCreateDialog(props) {
-  const [isComplete, setIsComplete] = useState(false)
   const [value, setValue] = useState({
     name: '',
     scheduleID: props.scheduleID || null,
@@ -38,8 +37,10 @@ export default function CalendarSubscribeCreateDialog(props) {
         disabled: false,
       },
     },
-    onCompleted: () => setIsComplete(true),
   })
+
+  // todo: status?.data?.href
+  const isComplete = status.called && status.data && !status.error && !status.loading
 
   const form = (
     <CalendarSubscribeForm
