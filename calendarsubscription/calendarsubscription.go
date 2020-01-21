@@ -35,28 +35,26 @@ type iCalOptions struct {
 	Version         string         `json:"v,omitempty"`
 }
 
-var iCalTemplate = template.Must(template.New("ical").Parse(`
-	BEGIN:VCALENDAR
-	PRODID:-//GoAlert//{{.Version}}//EN
-	CALSCALE:GREGORIAN
-	METHOD:PUBLISH
-	{{range .Shifts}}
-	BEGIN:VEVENT
-	SUMMARY:On-Call Shift
-	DTSTART:{{.Start}}
-	DTEND:{{.End}}
-	END:VEVENT
-	{{end}}
-
-	{{range .ReminderMinutes}}
-	BEGIN:VALARM
-	ACTION:DISPLAY
-	DESCRIPTION:REMINDER
-	TRIGGER:-PT{{.}}M
-	END:VALARM
-	{{end}}
-
-	END:VCALENDAR
+// RFC can be found at https://tools.ietf.org/html/rfc5545
+var iCalTemplate = template.Must(template.New("ical").Parse(`BEGIN:VCALENDAR
+PRODID:-//GoAlert//{{.Version}}//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+{{range .Shifts}}
+BEGIN:VEVENT
+SUMMARY:On-Call Shift
+DTSTART:{{.Start}}
+DTEND:{{.End}}
+{{range .ReminderMinutes}}
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:REMINDER
+TRIGGER:-PT{{.}}M
+END:VALARM
+{{end}}
+END:VEVENT
+{{end}}
+END:VCALENDAR
 `))
 
 // Token returns the authorization token associated with this CalendarSubscription. It
@@ -82,7 +80,6 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	return &cs, nil
 }
 
-// RFC can be found at https://tools.ietf.org/html/rfc5545
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift) ([]byte, error) {
 	i := iCalOptions{shifts, cs.Config.ReminderMinutes, version.GitVersion()}
 	buf := bytes.NewBuffer(nil)
