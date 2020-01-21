@@ -15,6 +15,8 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
+import { useSelector } from 'react-redux'
+import { absURLSelector } from "../selectors"
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -36,6 +38,7 @@ export const calendarSubscriptionsQuery = gql`
 `
 
 export default function UserCalendarSubscriptionList(props) {
+  const absURL = useSelector(absURLSelector)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
@@ -67,7 +70,7 @@ export default function UserCalendarSubscriptionList(props) {
       subheaderDict[sub.schedule.name] = true
       items.push({
         subHeader: (
-          <Link to={`/schedules/${sub.scheduleID}`}>{sub.schedule.name}</Link>
+          <Link to={absURL(`/schedules/${sub.scheduleID}`)}>{sub.schedule.name}</Link>
         ),
       })
     }

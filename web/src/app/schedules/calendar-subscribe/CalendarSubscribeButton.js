@@ -8,6 +8,8 @@ import { useQuery } from '@apollo/react-hooks'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash-es'
+import { useSelector } from 'react-redux'
+import { absURLSelector } from "../../selectors"
 
 const useStyles = makeStyles(theme => ({
   calIcon: {
@@ -19,6 +21,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export default function CalendarSubscribeButton(props) {
+  const absURL = useSelector(absURLSelector)
   const [showDialog, setShowDialog] = useState(false)
   const classes = useStyles()
   const { userID } = useSessionInfo()
@@ -62,7 +65,7 @@ export default function CalendarSubscribeButton(props) {
           <Typography variant='caption'>
             <Link
               data-cy='manage-subscriptions-link'
-              to='/profile/schedule-calendar-subscriptions'
+              to={absURL('/profile/schedule-calendar-subscriptions')}
             >
               Manage subscriptions
             </Link>
