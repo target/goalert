@@ -58,7 +58,7 @@ export function CalendarSubscribeEditDialogContent(props) {
     name: _.get(data, 'name', ''),
     scheduleID: _.get(data, 'scheduleID', null),
     reminderMinutes: _.get(data, 'reminderMinutes', []).map(r =>
-      reminderMinutesOptions.find(opt => opt.value === r.toString()),
+      reminderMinutesOptions.find(opt => opt.value === r),
     ),
   })
 
@@ -68,7 +68,7 @@ export function CalendarSubscribeEditDialogContent(props) {
       input: {
         id: props.data.id,
         name: value.name,
-        reminderMinutes: value.reminderMinutes.map(r => r && parseInt(r.value, 10)),
+        reminderMinutes: value.reminderMinutes.map(r => r && r.value),
       },
     },
     onCompleted: () => props.onClose(),

@@ -7,7 +7,7 @@ import shrinkWorkaround from '../util/shrinkWorkaround'
 
 const valueShape = p.shape({
   label: p.string.isRequired,
-  value: p.string.isRequired,
+  value: p.any.isRequired,
   icon: p.element,
 })
 

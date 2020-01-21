@@ -9,27 +9,27 @@ import _ from 'lodash-es'
 export const reminderMinutesOptions = [
   {
     label: 'At time of shift',
-    value: '0',
+    value: 0,
   },
   {
     label: '5 minutes before',
-    value: '5',
+    value: 5,
   },
   {
     label: '10 minutes before',
-    value: '10',
+    value: 10,
   },
   {
     label: '30 minutes before',
-    value: '30',
+    value: 30,
   },
   {
     label: '1 hour before',
-    value: '60',
+    value: 60,
   },
   {
     label: '1 day before',
-    value: '1440',
+    value: 1440,
   },
 ]
 
