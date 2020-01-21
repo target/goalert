@@ -42,8 +42,6 @@ func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 		filtered = append(filtered, s)
 	}
 
-	_ = filtered
-
 	calData, err := cs.renderICalFromShifts(filtered)
 	if errutil.HTTPError(ctx, w, err) {
 		return
