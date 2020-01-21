@@ -38,7 +38,6 @@ export default function CalendarSubscribeCreateDialog(props) {
         disabled: false,
       },
     },
-    refetchQueries: ['calendarSubscriptions'],
     onCompleted: () => setIsComplete(true),
   })
 

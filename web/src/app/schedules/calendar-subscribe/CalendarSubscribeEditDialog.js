@@ -35,7 +35,6 @@ const mutation = gql`
 export default function CalendarSubscribeEditDialog(props) {
   const { data, loading, error } = useQuery(query, {
     variables: { id: props.calSubscriptionID },
-    pollInterval: 0,
   })
 
   if (error) return <GenericError error={error.message} />
@@ -73,12 +72,6 @@ export function CalendarSubscribeEditDialogContent(props) {
       },
     },
     onCompleted: () => props.onClose(),
-    refetchQueries: () => [
-      {
-        query,
-        variables: { id: data.id },
-      },
-    ],
   })
 
   return (

@@ -16,7 +16,6 @@ export default function CalendarSubscribeDeleteDialog(props) {
     variables: {
       id: props.calSubscriptionID,
     },
-    refetchQueries: ['calendarSubscriptions'],
     onCompleted: props.onClose,
   })
 
