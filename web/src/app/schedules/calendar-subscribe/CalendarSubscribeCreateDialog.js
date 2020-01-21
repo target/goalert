@@ -34,7 +34,7 @@ export default function CalendarSubscribeCreateDialog(props) {
       input: {
         scheduleID: value.scheduleID,
         name: value.name,
-        reminderMinutes: value.reminderMinutes.map(r => parseInt(r.value)),
+        reminderMinutes: value.reminderMinutes.map(r => parseInt(r.value, 10)),
         disabled: false,
       },
     },
