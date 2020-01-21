@@ -49,7 +49,7 @@ function testSubs(screen: ScreenFormat) {
 
       cy.visit('/profile/schedule-calendar-subscriptions')
 
-      cy.get('span[data-cy="empty-message-cptn"]').should(
+      cy.get('span[data-cy="list-empty-message"]').should(
         'contain',
         'You are not subscribed to any schedules.',
       )
@@ -68,7 +68,7 @@ function testSubs(screen: ScreenFormat) {
       // todo: verify url generation
       cy.dialogFinish('Done')
 
-      cy.get('span[data-cy="empty-message-cptn"]').should('not', 'exist')
+      cy.get('span[data-cy="list-empty-message"]').should('not', 'exist')
       cy.get('ul[data-cy=calendar-subscriptions]').should('contain', name)
     })
 
@@ -242,7 +242,7 @@ function testSubs(screen: ScreenFormat) {
     })
 
     it('should delete a subscription', () => {
-      cy.get('span[data-cy="empty-message-cptn"]').should('not', 'exist')
+      cy.get('span[data-cy="list-empty-message"]').should('not', 'exist')
       cy.get('ul[data-cy=calendar-subscriptions]').should('contain', cs.name)
 
       cy.get('ul[data-cy=calendar-subscriptions]')
@@ -252,7 +252,7 @@ function testSubs(screen: ScreenFormat) {
 
       cy.dialogFinish('Confirm')
 
-      cy.get('span[data-cy="empty-message-cptn"]').should(
+      cy.get('span[data-cy="list-empty-message"]').should(
         'contain',
         'You are not subscribed to any schedules.',
       )
