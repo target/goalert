@@ -43,10 +43,10 @@ export default function CalendarSubscribeCreateDialog(props) {
 
   const form = (
     <CalendarSubscribeForm
-      disableSchedField={Boolean(props.scheduleID)}
       errors={fieldErrors(status.error)}
       loading={status.loading}
       onChange={setValue}
+      scheduleReadOnly={Boolean(props.scheduleID)}
       value={value}
     />
   )

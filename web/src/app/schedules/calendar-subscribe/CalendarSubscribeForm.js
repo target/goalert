@@ -56,7 +56,7 @@ export default function CalendarSubscribeForm(props) {
         <Grid item xs={12}>
           <FormField
             component={ScheduleSelect}
-            disabled={props.disableSchedField}
+            disabled={props.scheduleReadOnly}
             fullWidth
             required
             label='Schedule'
@@ -137,10 +137,10 @@ export default function CalendarSubscribeForm(props) {
 }
 
 CalendarSubscribeForm.propTypes = {
-  disableSchedField: p.bool,
-  onChange: p.func.isRequired,
   errors: p.array,
   loading: p.bool,
+  onChange: p.func.isRequired,
+  scheduleReadOnly: p.bool,
   value: p.shape({
     scheduleID: p.string,
     name: p.string,
