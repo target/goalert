@@ -72,7 +72,7 @@ function testSubs(screen: ScreenFormat) {
       cy.get('[data-cy=calendar-subscriptions]').should('contain', name)
     })
 
-    it('should add and remove additional valarms', () => {
+    it.only('should add and remove additional valarms', () => {
       cy.visit('/profile/schedule-calendar-subscriptions')
       cy.pageFab()
 
@@ -110,25 +110,13 @@ function testSubs(screen: ScreenFormat) {
       check([true, true, true, true, true])
 
       // clearing the optional valarm fields should remove the redundant fields
-      cy.get('input[name="reminderMinutes[3]"]')
-        .parent()
-        .find('svg')
-        .first()
-        .click()
+      cy.dialogForm({ 'reminderMinutes[3]': '' })
       check([true, true, true, true, false])
 
-      cy.get('input[name="reminderMinutes[2]"]')
-        .parent()
-        .find('svg')
-        .first()
-        .click()
+      cy.dialogForm({ 'reminderMinutes[2]': '' })
       check([true, true, true, false, false])
 
-      cy.get('input[name="reminderMinutes[1]"]')
-        .parent()
-        .find('svg')
-        .first()
-        .click()
+      cy.dialogForm({ 'reminderMinutes[1]': '' })
 
       // final check, cannot clear first required field to remove second
       check([true, true, false, false, false])
