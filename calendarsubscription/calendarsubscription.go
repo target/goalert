@@ -40,12 +40,13 @@ var iCalTemplate = template.Must(template.New("ical").Parse(`BEGIN:VCALENDAR
 PRODID:-//GoAlert//{{.Version}}//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
+{{ $mins := .ReminderMinutes }}
 {{range .Shifts}}
 BEGIN:VEVENT
 SUMMARY:On-Call Shift
 DTSTART:{{.Start}}
 DTEND:{{.End}}
-{{range .ReminderMinutes}}
+{{range $mins}}
 BEGIN:VALARM
 ACTION:DISPLAY
 DESCRIPTION:REMINDER
