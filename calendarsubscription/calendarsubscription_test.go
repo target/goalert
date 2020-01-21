@@ -10,13 +10,12 @@ import (
 )
 
 func TestRenderICalFromShifts(t *testing.T) {
-	check := func(ctx context.Context, schedID string, userID string) {
+	check := func(ctx context.Context, userID string) {
 		t.Run("ical", func(t *testing.T) {
 			var cs CalendarSubscription
-
-			shifts := []oncall.Shift{{UserID: "cb75f78a-0f7c-42fa-99f8-6b30e92a9518", Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
-
 			cs.Config.ReminderMinutes = []int{5, 10}
+			cs.UserID = userID
+			shifts := []oncall.Shift{{UserID: cs.UserID, Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
 
 			_, err := cs.renderICalFromShifts(shifts)
 			if err != nil {
@@ -25,6 +24,7 @@ func TestRenderICalFromShifts(t *testing.T) {
 		})
 	}
 
-	ctx := permission.UserContext(context.Background(), "cb75f78a-0f7c-42fa-99f8-6b30e92a9518", permission.RoleUser)
-	check(ctx, "59aea4b0-75f0-4af3-9824-644abf8dd29a", "cb75f78a-0f7c-42fa-99f8-6b30e92a9518")
+	ctx := permission.UserContext(context.Background(), "00000000-0000-0000-0000-000000000000", permission.RoleUser)
+	check(ctx, permission.UserID(ctx))
+
 }
