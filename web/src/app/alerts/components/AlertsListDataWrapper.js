@@ -5,7 +5,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import Typography from '@material-ui/core/Typography'
-import moment from 'moment'
+import { DateTime } from 'luxon'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
@@ -48,26 +48,6 @@ export default class AlertsListDataWrapper extends Component {
   static propTypes = {
     alert: p.object.isRequired,
     onServicePage: p.bool,
-  }
-
-  componentWillMount() {
-    moment.updateLocale('en', {
-      relativeTime: {
-        future: 'in %s',
-        past: '%s ago',
-        s: '< 1m',
-        m: '1m',
-        mm: '%dm',
-        h: '1h',
-        hh: '%dh',
-        d: '1d',
-        dd: '%dd',
-        M: '1mo',
-        MM: '%dmo',
-        y: '1y',
-        yy: '%dy',
-      },
-    })
   }
 
   componentWillReceiveProps(nextProps, nextContext) {
@@ -154,9 +134,9 @@ export default class AlertsListDataWrapper extends Component {
         <ListItemSecondaryAction>
           <ListItemText disableTypography>
             <Typography variant='caption'>
-              {moment(alert.created_at)
-                .local()
-                .fromNow()}
+              {DateTime.fromISO(alert.created_at)
+                .toLocal()
+                .toRelative({ style: 'narrow' })}
             </Typography>
           </ListItemText>
         </ListItemSecondaryAction>
