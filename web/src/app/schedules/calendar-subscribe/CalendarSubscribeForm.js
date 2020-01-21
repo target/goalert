@@ -49,7 +49,7 @@ export default function CalendarSubscribeForm(props) {
             component={TextField}
             name='name'
             label='Subscription Name'
-            placeholder='My iOS Calendar'
+            placeholder='My iCloud Calendar'
             required
           />
         </Grid>

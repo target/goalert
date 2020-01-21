@@ -53,7 +53,7 @@ function UserOnCallAssignments() {
   return <UserOnCallAssignmentList userID={userID} currentUser />
 }
 
-function UseCalendarSubscriptions() {
+function UserCalendarSubscriptions() {
   const { userID, ready } = useSessionInfo()
   if (!ready) return <Spinner />
   return <UserCalendarSubscriptionList userID={userID} />
@@ -94,7 +94,7 @@ export default function UserRouter() {
       <Route
         exact
         path='/profile/schedule-calendar-subscriptions'
-        component={UseCalendarSubscriptions}
+        component={UserCalendarSubscriptions}
       />
       <Route
         exact
