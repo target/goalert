@@ -14,7 +14,7 @@ declare global {
        * Deletes all calendar subscriptions given the specified user ID.
        * Will default to deleting all subscriptions for 'profile' if no ID provided.
        */
-      cleanupCalendarSubscriptions: typeof cleanupCalendarSubscriptions
+      resetCalendarSubscriptions: typeof resetCalendarSubscriptions
     }
   }
 
@@ -93,12 +93,12 @@ function createCalendarSubscription(
     .then(res => res.createUserCalendarSubscription)
 }
 
-function cleanupCalendarSubscriptions(
+function resetCalendarSubscriptions(
   userID?: string,
 ): Cypress.Chainable<void> {
   if (!userID) {
     return cy.fixture('profile').then(prof => {
-      cleanupCalendarSubscriptions(prof.id)
+      resetCalendarSubscriptions(prof.id)
     })
   }
 
@@ -108,6 +108,6 @@ function cleanupCalendarSubscriptions(
 
 Cypress.Commands.add('createCalendarSubscription', createCalendarSubscription)
 Cypress.Commands.add(
-  'cleanupCalendarSubscriptions',
-  cleanupCalendarSubscriptions,
+  'resetCalendarSubscriptions',
+  resetCalendarSubscriptions,
 )

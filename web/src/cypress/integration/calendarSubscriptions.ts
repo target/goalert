@@ -6,8 +6,8 @@ const c = new Chance()
 testScreen('Calendar Subscriptions', testSubs)
 
 function testSubs(screen: ScreenFormat) {
-  afterEach(() => {
-    cy.cleanupCalendarSubscriptions()
+  beforeEach(() => {
+    cy.resetCalendarSubscriptions()
   })
 
   describe('Creation', () => {
