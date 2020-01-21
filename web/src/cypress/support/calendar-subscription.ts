@@ -32,6 +32,7 @@ declare global {
     name?: string
     reminderMinutes?: Array<number>
     scheduleID?: string
+    schedule?: ScheduleOptions
     disabled?: boolean
   }
 }
@@ -70,7 +71,7 @@ function createCalendarSubscription(
   // create schedule if no ID is provided
   if (!cs?.scheduleID) {
     return cy
-      .createSchedule()
+      .createSchedule(cs?.schedule)
       .then(s => createCalendarSubscription({ ...cs, scheduleID: s.id }))
   }
 
