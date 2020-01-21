@@ -78,7 +78,6 @@ export default function UserCalendarSubscriptionList(props) {
       subText: 'Last sync: ' + (formatTimeSince(sub.lastAccess) || 'Never'),
       secondaryAction: renderOtherActions(sub.id),
       icon: sub.disabled ? <Warning message='Disabled' /> : null,
-      inset: true,
     })
   })
 
@@ -107,6 +106,7 @@ export default function UserCalendarSubscriptionList(props) {
           headerNote='Showing your current on-call subscriptions for all schedules'
           emptyMessage='You are not subscribed to any schedules.'
           items={items}
+          inset
         />
       </Card>
       <CreateFAB
