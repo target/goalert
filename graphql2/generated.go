@@ -387,6 +387,7 @@ type ComplexityRoot struct {
 	}
 
 	UserCalendarSubscription struct {
+		CreatedAt       func(childComplexity int) int
 		Disabled        func(childComplexity int) int
 		ID              func(childComplexity int) int
 		LastAccess      func(childComplexity int) int
@@ -2329,6 +2330,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Role(childComplexity), true
 
+	case "UserCalendarSubscription.createdAt":
+		if e.complexity.UserCalendarSubscription.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.CreatedAt(childComplexity), true
+
 	case "UserCalendarSubscription.disabled":
 		if e.complexity.UserCalendarSubscription.Disabled == nil {
 			break
@@ -2893,6 +2901,7 @@ type UserCalendarSubscription {
   schedule: Schedule
   lastAccess: ISOTimestamp!
   disabled: Boolean!
+  createdAt: ISOTimestamp!
 
   # Subscription url, only available upon creation.
   url: String
@@ -12601,6 +12610,43 @@ func (ec *executionContext) _UserCalendarSubscription_disabled(ctx context.Conte
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserCalendarSubscription_createdAt(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserCalendarSubscription_url(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -18725,6 +18771,11 @@ func (ec *executionContext) _UserCalendarSubscription(ctx context.Context, sel a
 			}
 		case "disabled":
 			out.Values[i] = ec._UserCalendarSubscription_disabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._UserCalendarSubscription_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

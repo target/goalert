@@ -3,8 +3,11 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"net/url"
+	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
@@ -27,6 +30,18 @@ func (a *UserCalendarSubscription) Schedule(ctx context.Context, obj *calendarsu
 func (a *UserCalendarSubscription) URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error) {
 	tok := obj.Token()
 	if tok == "" {
+		return nil, nil
+	}
+	decoded, err := jwt.DecodeSegment(strings.Split(tok, ".")[1])
+	if err != nil {
+		return nil, err
+	}
+	var payload jwt.StandardClaims
+	err = json.Unmarshal(decoded, &payload)
+	if err != nil {
+		return nil, err
+	}
+	if obj.CreatedAt.Unix() != payload.IssuedAt {
 		return nil, nil
 	}
 

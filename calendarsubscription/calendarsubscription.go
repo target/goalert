@@ -14,6 +14,7 @@ type CalendarSubscription struct {
 	UserID     string
 	ScheduleID string
 	LastAccess time.Time
+	CreatedAt  time.Time
 	Disabled   bool
 
 	// Config provides necessary parameters CalendarSubscription Config (i.e. ReminderMinutes)

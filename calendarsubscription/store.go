@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/target/goalert/keyring"
@@ -54,7 +55,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 
 		findOne: p.P(`
 			SELECT
-				id, name, user_id, disabled, schedule_id, config, last_access
+				id, name, user_id, disabled, schedule_id, config, last_access, created_at
 			FROM user_calendar_subscriptions
 			WHERE id = $1
 		`),
@@ -98,7 +99,7 @@ func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 func (cs *CalendarSubscription) scanFrom(scanFn func(...interface{}) error) error {
 	var lastAccess sql.NullTime
 	var cfgData []byte
-	err := scanFn(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &cs.ScheduleID, &cfgData, &lastAccess)
+	err := scanFn(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &cs.ScheduleID, &cfgData, &lastAccess, &cs.CreatedAt)
 	if err != nil {
 		return err
 	}
@@ -188,9 +189,16 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 		return nil, err
 	}
 
+	var now time.Time
+	err = s.now.QueryRowContext(ctx).Scan(&now)
+	if err != nil {
+		return nil, err
+	}
+
 	n.token, err = s.keys.SignJWT(jwt.StandardClaims{
 		Subject:  n.ID,
 		Audience: tokenAudience,
+		IssuedAt: now.Unix(),
 	})
 	return n, err
 }
