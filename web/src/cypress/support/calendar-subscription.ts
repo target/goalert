@@ -11,12 +11,6 @@ declare global {
       createCalendarSubscription: typeof createCalendarSubscription
 
       /**
-       * Creates an amount of random calendar subscriptions given
-       * by a specified count.
-       */
-      createManyCalendarSubscriptions: typeof createManyCalendarSubscriptions
-
-      /**
        * Deletes all calendar subscriptions given the specified user ID.
        * Will default to deleting all subscriptions for 'profile' if no ID provided.
        */
@@ -99,47 +93,6 @@ function createCalendarSubscription(
     .then(res => res.createUserCalendarSubscription)
 }
 
-function createManyCalendarSubscriptions(
-  count: number,
-  scheduleID: string,
-): Cypress.Chainable<Array<CalendarSubscription>> {
-  return cy.fixture('profile').then(prof => {
-    const userID = prof.id
-
-    // create schedule if no ID is provided
-    if (!scheduleID) {
-      return cy
-        .createSchedule()
-        .then(s => createManyCalendarSubscriptions(count, s.id))
-    }
-
-    let subs: Array<CalendarSubscription> = []
-    for (let i = 0; i < count; i++) {
-      // @ts-ignore: returning a CS array however we aren't pushing all of CS's keys into the DB
-      subs.push({
-        id: c.guid(),
-        name: 'SM Subscription ' + c.word({ length: 8 }),
-        reminderMinutes: chanceReminderMinutes(),
-        scheduleID: scheduleID,
-      })
-    }
-
-    const dbQuery =
-      `insert into user_calendar_subscriptions (id, name, user_id, schedule_id, config) values` +
-      subs
-        .map(
-          p =>
-            `('${p.id}', '${p.name}', '${userID}', '${
-              p.scheduleID
-            }', '${JSON.stringify({ ReminderMinutes: p.reminderMinutes })}')`,
-        )
-        .join(',') +
-      `;`
-
-    return cy.sql(dbQuery).then(() => subs)
-  })
-}
-
 function cleanupCalendarSubscriptions(
   userID?: string,
 ): Cypress.Chainable<void> {
@@ -154,10 +107,6 @@ function cleanupCalendarSubscriptions(
 }
 
 Cypress.Commands.add('createCalendarSubscription', createCalendarSubscription)
-Cypress.Commands.add(
-  'createManyCalendarSubscriptions',
-  createManyCalendarSubscriptions,
-)
 Cypress.Commands.add(
   'cleanupCalendarSubscriptions',
   cleanupCalendarSubscriptions,

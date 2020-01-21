@@ -182,22 +182,6 @@ function testSubs(screen: ScreenFormat) {
         })
       })
     })
-
-    it('should update button caption text after max amount of subscriptions are created', () => {
-      const defaultCptn =
-        'Subscribe to your shifts on this calendar from your preferred calendar app'
-      const maxSubsCptn = 'You have the maximum amount of subscriptions'
-
-      cy.get('body').should('contain', defaultCptn)
-      cy.get('body').should('not.contain', maxSubsCptn)
-
-      cy.createManyCalendarSubscriptions(15, sched.id).then(() => {
-        cy.reload()
-
-        cy.get('body').should('not.contain', defaultCptn)
-        cy.get('body').should('contain', maxSubsCptn)
-      })
-    })
   })
 
   describe('Profile', () => {
