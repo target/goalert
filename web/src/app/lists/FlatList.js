@@ -52,7 +52,7 @@ export default class FlatList extends React.PureComponent {
           id: p.string, // required for drag and drop
         }),
         p.shape({
-          subHeader: p.string.isRequired,
+          subHeader: p.node.isRequired,
         }),
       ]),
     ),
