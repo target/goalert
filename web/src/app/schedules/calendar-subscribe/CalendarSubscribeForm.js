@@ -84,33 +84,6 @@ export default function CalendarSubscribeForm(props) {
             label={getReminderLabel(i)}
             options={reminderMinutesOptions}
             mapValue={() => (arr[i] ? arr[i] : null)}
-            overrideOnChange={value => {
-              // if the next value is empty, remove thatindex field from the array
-              // instead of setting to null. this will remove the form field
-              // from the dom
-              const newReminderMinutes = props.value.reminderMinutes.slice()
-              if (!value) {
-                // cleanup value array to remove null value
-                newReminderMinutes.splice(i, 1)
-                props.onChange({
-                  ...props.value,
-                  reminderMinutes: newReminderMinutes,
-                })
-              } else if (arr[i]) {
-                // update index with new value
-                newReminderMinutes[i] = value
-                props.onChange({
-                  ...props.value,
-                  reminderMinutes: newReminderMinutes,
-                })
-              } else {
-                // concat new value to array
-                props.onChange({
-                  ...props.value,
-                  reminderMinutes: newReminderMinutes.concat(value),
-                })
-              }
-            }}
           />
         </Grid>,
       )

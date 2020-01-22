@@ -152,12 +152,8 @@ export class FormField extends React.PureComponent {
       props.InputLabelProps = InputLabelProps
     }
 
-    if (overrideOnChange) {
-      props.onChange = value => overrideOnChange(value)
-    } else {
-      props.onChange = value =>
-        onChange(fieldName, mapOnChangeValue(getValueOf(value)))
-    }
+    props.onChange = value =>
+      onChange(fieldName, mapOnChangeValue(getValueOf(value)))
 
     return (
       <MountWatcher

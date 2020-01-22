@@ -79,12 +79,24 @@ export class FormContainer extends React.PureComponent {
   }
 
   onChange = (fieldName, e) => {
-    let value = e
-    if (e && e.target) {
-      value = e.target.value
-    }
     const { value: oldValue, mapValue, mapOnChangeValue } = this.props
-    this.props.onChange(
+
+    let value = e
+    if (e && e.target) value = e.target.value
+
+    // remove idx from array if new value is null when fieldName includes index
+    // e.g. don't set array to something like [3, null, 6, 2, 9]
+    // if "array[1]" is null, but rather set to [3, 6, 2, 9]
+    if (!value && fieldName.charAt(fieldName.length - 1) === ']') {
+      const arrayPath = fieldName.substr(0, fieldName.indexOf('['))
+      const idx = fieldName.split(/[\[\]]/)[1]
+
+      return this.props.onChange(
+        set(oldValue, arrayPath, get(oldValue, arrayPath, []).filter((_, i) => i === idx))
+      )
+    }
+
+    return this.props.onChange(
       mapOnChangeValue(
         set(
           mapValue({
