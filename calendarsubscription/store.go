@@ -130,7 +130,7 @@ func (s *Store) Authorize(ctx context.Context, token string) (context.Context, e
 	}
 
 	var userID string
-	err = s.authUser.QueryRowContext(ctx, c.Subject, c.IssuedAt).Scan(&userID)
+	err = s.authUser.QueryRowContext(ctx, c.Subject, time.Unix(c.IssuedAt, 0)).Scan(&userID)
 	if err == sql.ErrNoRows {
 		return ctx, validation.NewFieldError("sub", "invalid")
 	}
