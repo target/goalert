@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/target/goalert/keyring"
@@ -48,7 +49,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 		authUser: p.P(`
 			UPDATE user_calendar_subscriptions
 			SET last_access = now()
-			WHERE NOT disabled AND id = $1
+			WHERE NOT disabled AND id = $1 AND date_trunc('second', created_at) = $2
 			RETURNING user_id
 		`),
 
@@ -63,6 +64,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 				id, name, user_id, disabled, schedule_id, config
 			)
 			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING created_at
 		`),
 		update: p.P(`
 			UPDATE user_calendar_subscriptions
@@ -128,7 +130,7 @@ func (s *Store) Authorize(ctx context.Context, token string) (context.Context, e
 	}
 
 	var userID string
-	err = s.authUser.QueryRowContext(ctx, c.Subject).Scan(&userID)
+	err = s.authUser.QueryRowContext(ctx, c.Subject, time.Unix(c.IssuedAt, 0)).Scan(&userID)
 	if err == sql.ErrNoRows {
 		return ctx, validation.NewFieldError("sub", "invalid")
 	}
@@ -183,7 +185,9 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 		return nil, err
 	}
 
-	_, err = wrapTx(ctx, tx, s.create).ExecContext(ctx, n.ID, n.Name, n.UserID, n.Disabled, n.ScheduleID, cfgData)
+	var now time.Time
+	row := wrapTx(ctx, tx, s.create).QueryRowContext(ctx, n.ID, n.Name, n.UserID, n.Disabled, n.ScheduleID, cfgData)
+	err = row.Scan(&now)
 	if err != nil {
 		return nil, err
 	}
@@ -191,6 +195,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 	n.token, err = s.keys.SignJWT(jwt.StandardClaims{
 		Subject:  n.ID,
 		Audience: tokenAudience,
+		IssuedAt: now.Unix(),
 	})
 	return n, err
 }
