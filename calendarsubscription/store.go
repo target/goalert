@@ -49,7 +49,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 		authUser: p.P(`
 			UPDATE user_calendar_subscriptions
 			SET last_access = now()
-			WHERE NOT disabled AND id = $1
+			WHERE NOT disabled AND id = $1 AND created_at = $2
 			RETURNING user_id
 		`),
 
@@ -64,6 +64,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 				id, name, user_id, disabled, schedule_id, config
 			)
 			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING created_at
 		`),
 		update: p.P(`
 			UPDATE user_calendar_subscriptions
@@ -99,7 +100,7 @@ func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 func (cs *CalendarSubscription) scanFrom(scanFn func(...interface{}) error) error {
 	var lastAccess sql.NullTime
 	var cfgData []byte
-	err := scanFn(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &cs.ScheduleID, &cfgData, &lastAccess, &cs.CreatedAt)
+	err := scanFn(&cs.ID, &cs.Name, &cs.UserID, &cs.Disabled, &cs.ScheduleID, &cfgData, &lastAccess)
 	if err != nil {
 		return err
 	}
@@ -129,7 +130,7 @@ func (s *Store) Authorize(ctx context.Context, token string) (context.Context, e
 	}
 
 	var userID string
-	err = s.authUser.QueryRowContext(ctx, c.Subject).Scan(&userID)
+	err = s.authUser.QueryRowContext(ctx, c.Subject, c.IssuedAt).Scan(&userID)
 	if err == sql.ErrNoRows {
 		return ctx, validation.NewFieldError("sub", "invalid")
 	}
@@ -184,13 +185,9 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 		return nil, err
 	}
 
-	_, err = wrapTx(ctx, tx, s.create).ExecContext(ctx, n.ID, n.Name, n.UserID, n.Disabled, n.ScheduleID, cfgData)
-	if err != nil {
-		return nil, err
-	}
-
 	var now time.Time
-	err = s.now.QueryRowContext(ctx).Scan(&now)
+	row := wrapTx(ctx, tx, s.create).QueryRowContext(ctx, n.ID, n.Name, n.UserID, n.Disabled, n.ScheduleID, cfgData)
+	err = row.Scan(&now)
 	if err != nil {
 		return nil, err
 	}

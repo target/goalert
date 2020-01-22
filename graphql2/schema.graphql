@@ -290,7 +290,6 @@ type UserCalendarSubscription {
   schedule: Schedule
   lastAccess: ISOTimestamp!
   disabled: Boolean!
-  createdAt: ISOTimestamp!
 
   # Subscription url, only available upon creation.
   url: String
