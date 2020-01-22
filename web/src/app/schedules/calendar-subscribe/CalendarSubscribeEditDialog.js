@@ -50,6 +50,11 @@ export default function CalendarSubscribeEditDialog(props) {
   )
 }
 
+CalendarSubscribeEditDialog.propTypes = {
+  calSubscriptionID: p.string.isRequired,
+  onClose: p.func.isRequired,
+}
+
 export function CalendarSubscribeEditDialogContent(props) {
   const { data, onClose } = props
 
@@ -91,11 +96,6 @@ export function CalendarSubscribeEditDialogContent(props) {
       )}
     />
   )
-}
-
-CalendarSubscribeEditDialog.propTypes = {
-  calSubscriptionID: p.string.isRequired,
-  onClose: p.func.isRequired,
 }
 
 CalendarSubscribeEditDialogContent.propTypes = {
