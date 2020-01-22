@@ -5,7 +5,8 @@ import ScheduleCalendar from './ScheduleCalendar'
 import { urlParamSelector } from '../selectors'
 import { connect } from 'react-redux'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth/index'
-import moment from 'moment/moment'
+import { getLuxonStartOfWeek } from '../util/luxon-helpers'
+import { DateTime } from 'luxon'
 
 const query = gql`
   query scheduleCalendarShifts(
@@ -34,17 +35,19 @@ const mapStateToProps = state => {
   const start = urlParamSelector(state)(
     'start',
     weekly
-      ? moment()
-          .startOf('week')
-          .toISOString()
-      : moment()
+      ? getLuxonStartOfWeek()
+          .toUTC()
+          .toISO()
+      : DateTime.utc()
           .startOf('month')
-          .toISOString(),
+          .toISO(),
   )
 
-  const end = moment(start)
-    .add(1, weekly ? 'week' : 'month')
-    .toISOString()
+  const unitToAdd = weekly ? { weeks: 1 } : { months: 1 }
+  const end = DateTime.fromISO(start)
+    .plus(unitToAdd)
+    .toUTC()
+    .toISO()
 
   return {
     start,
