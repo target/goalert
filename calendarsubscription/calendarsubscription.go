@@ -3,8 +3,8 @@ package calendarsubscription
 import (
 	"bytes"
 	"html/template"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
