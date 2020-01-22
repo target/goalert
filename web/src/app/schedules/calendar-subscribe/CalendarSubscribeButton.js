@@ -54,7 +54,7 @@ export default function CalendarSubscribeButton(props) {
             variant='contained'
           >
             <CalendarIcon className={classes.calIcon} />
-            Subscribe
+            Create Subscription
           </Button>
         </Grid>
         <Grid item xs={12} className={classes.captionContainer}>
