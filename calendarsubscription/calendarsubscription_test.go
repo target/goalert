@@ -1,30 +1,43 @@
 package calendarsubscription
 
 import (
-	"context"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/oncall"
-	"github.com/target/goalert/permission"
 )
 
 func TestRenderICalFromShifts(t *testing.T) {
-	check := func(ctx context.Context, userID string) {
-		t.Run("ical", func(t *testing.T) {
-			var cs CalendarSubscription
-			cs.Config.ReminderMinutes = []int{5, 10}
-			cs.UserID = userID
-			shifts := []oncall.Shift{{UserID: cs.UserID, Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
+	var cs CalendarSubscription
+	cs.Config.ReminderMinutes = []int{5, 10}
+	shifts := []oncall.Shift{{Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
 
-			_, err := cs.renderICalFromShifts(shifts)
-			if err != nil {
-				t.Errorf("err = %v; want nil", err)
-			}
-		})
-	}
-
-	ctx := permission.UserContext(context.Background(), "00000000-0000-0000-0000-000000000000", permission.RoleUser)
-	check(ctx, permission.UserID(ctx))
-
+	iCal, err := cs.renderICalFromShifts(shifts)
+	assert.NoError(t, err)
+	expected := strings.Join([]string{
+		"BEGIN:VCALENDAR",
+		"PRODID:-//GoAlert//dev//EN",
+		"CALSCALE:GREGORIAN",
+		"METHOD:PUBLISH",
+		"BEGIN:VEVENT",
+		"SUMMARY:On-Call Shift",
+		"DTSTART:20200101T080000Z",
+		"DTEND:20200115T080000Z",
+		"BEGIN:VALARM",
+		"ACTION:DISPLAY",
+		"DESCRIPTION:REMINDER",
+		"TRIGGER:-PT5M",
+		"END:VALARM",
+		"BEGIN:VALARM",
+		"ACTION:DISPLAY",
+		"DESCRIPTION:REMINDER",
+		"TRIGGER:-PT10M",
+		"END:VALARM",
+		"END:VEVENT",
+		"END:VCALENDAR",
+		"",
+	}, "\r\n")
+	assert.Equal(t, expected, string(iCal))
 }

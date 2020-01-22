@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"time"
+	"strings"
 
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -36,27 +37,27 @@ type iCalOptions struct {
 }
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
-var iCalTemplate = template.Must(template.New("ical").Parse(`BEGIN:VCALENDAR
+var iCalTemplate = template.Must(template.New("ical").Parse(strings.ReplaceAll(`BEGIN:VCALENDAR
 PRODID:-//GoAlert//{{.Version}}//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-{{ $mins := .ReminderMinutes }}
-{{range .Shifts}}
+{{- $mins := .ReminderMinutes }}
+{{- range .Shifts}}
 BEGIN:VEVENT
 SUMMARY:On-Call Shift
-DTSTART:{{.Start}}
-DTEND:{{.End}}
-{{range $mins}}
+DTSTART:{{.Start.Format "20060102T150405Z"}}
+DTEND:{{.End.Format "20060102T150405Z"}}
+{{- range $mins}}
 BEGIN:VALARM
 ACTION:DISPLAY
 DESCRIPTION:REMINDER
 TRIGGER:-PT{{.}}M
 END:VALARM
-{{end}}
+{{- end}}
 END:VEVENT
-{{end}}
+{{- end}}
 END:VCALENDAR
-`))
+`, "\n", "\r\n")))
 
 // Token returns the authorization token associated with this CalendarSubscription. It
 // is only available when calling CreateTx.
