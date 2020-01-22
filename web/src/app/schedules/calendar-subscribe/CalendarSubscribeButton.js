@@ -39,8 +39,7 @@ export default function CalendarSubscribeButton(props) {
   let caption =
     'Subscribe to your shifts on this calendar from your preferred calendar app'
   if (!loading && !error && numSubs > 0) {
-    caption = `You have ${numSubs} active subscription
-      ${numSubs > 1 ? 's' : ''} for this schedule`
+    caption = `You have ${numSubs} active subscription${numSubs > 1 ? 's' : ''} for this schedule`
   }
 
   return (
