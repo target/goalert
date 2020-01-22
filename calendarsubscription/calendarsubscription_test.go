@@ -9,7 +9,7 @@ import (
 	"github.com/target/goalert/oncall"
 )
 
-func TestRenderICalFromShifts(t *testing.T) {
+func TestCalendarSubscription_RenderICalFromShifts(t *testing.T) {
 	var cs CalendarSubscription
 	cs.Config.ReminderMinutes = []int{5, 10}
 	shifts := []oncall.Shift{{Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
