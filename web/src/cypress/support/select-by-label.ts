@@ -24,7 +24,7 @@ type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
 function isSearchSelect(sub: any): Cypress.Chainable<boolean> {
   return cy.wrap(sub).then(el => {
     return el.parents('[data-cy=material-select]').data('cy') === 'material-select'
-  })
+  }).then(res => res)
 }
 
 function selectByLabel(sub: any, label: string): Cypress.Chainable {
