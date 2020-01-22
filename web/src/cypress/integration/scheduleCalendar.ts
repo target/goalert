@@ -10,7 +10,7 @@ const weekHeaderFormat = (t: DateTime) => {
   const end = t.endOf('week').minus({ day: 1 })
 
   return (
-    start.toFormat('MMMM dd – ') +
+    start.toFormat('MMMM dd — ') +
     end.toFormat(end.month === start.month ? 'dd' : 'MMMM dd')
   )
 }
