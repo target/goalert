@@ -22,10 +22,6 @@ export class FormField extends React.PureComponent {
     // passed to the parent form's state.
     mapOnChangeValue: p.func,
 
-    // if passed, this will be used instead of the onChange from FormContainer
-    // use with care
-    overrideOnChange: p.func,
-
     // Adjusts props for usage with a Checkbox component.
     checkbox: p.bool,
 
