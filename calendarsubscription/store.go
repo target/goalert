@@ -55,7 +55,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 
 		findOne: p.P(`
 			SELECT
-				id, name, user_id, disabled, schedule_id, config, last_access, created_at
+				id, name, user_id, disabled, schedule_id, config, last_access
 			FROM user_calendar_subscriptions
 			WHERE id = $1
 		`),
