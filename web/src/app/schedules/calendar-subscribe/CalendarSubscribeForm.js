@@ -81,16 +81,15 @@ export default function CalendarSubscribeForm(props) {
             fullWidth
             component={MaterialSelect}
             name={`reminderMinutes[${i}]`}
-            label={getAlarmLabel(i)}
-            required={i === 0}
+            label={getReminderLabel(i)}
             options={reminderMinutesOptions}
             mapValue={() => (arr[i] ? arr[i] : null)}
             overrideOnChange={value => {
-              // if the next value is empty and it's not the first index, remove that
-              // index field from the array instead of setting to null. this will remove the
-              // form field from the dom
+              // if the next value is empty, remove thatindex field from the array
+              // instead of setting to null. this will remove the form field
+              // from the dom
               const newReminderMinutes = props.value.reminderMinutes.slice()
-              if (!value && i !== 0) {
+              if (!value) {
                 // cleanup value array to remove null value
                 newReminderMinutes.splice(i, 1)
                 props.onChange({
@@ -120,18 +119,18 @@ export default function CalendarSubscribeForm(props) {
     return fields
   }
 
-  function getAlarmLabel(idx) {
+  function getReminderLabel(idx) {
     switch (idx) {
       case 0:
-        return 'Alarm'
+        return 'Reminder'
       case 1:
-        return 'Second Alarm'
+        return 'Second Reminder'
       case 2:
-        return 'Third Alarm'
+        return 'Third Reminder'
       case 3:
-        return 'Fourth Alarm'
+        return 'Fourth Reminder'
       case 4:
-        return 'Fifth Alarm'
+        return 'Fifth Reminder'
     }
   }
 }
