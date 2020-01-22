@@ -82,11 +82,11 @@ export function CalendarSubscribeEditDialogContent(props) {
       onSubmit={() => updateSubscription()}
       form={(
         <CalendarSubscribeForm
-          disableSchedField
           errors={fieldErrors(updateSubscriptionStatus.error)}
           loading={updateSubscriptionStatus.loading}
           onChange={setValue}
           value={value}
+          scheduleReadOnly
         />
       )}
     />
