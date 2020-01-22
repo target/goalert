@@ -24,21 +24,23 @@ type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
 function isSearchSelect(sub: any): Cypress.Chainable<boolean> {
   return cy.wrap(sub).then(el => {
     return el.parents('[data-cy=material-select]').data('cy') === 'material-select'
-  }).then(res => res)
+  })
 }
 
 function selectByLabel(sub: any, label: string): Cypress.Chainable {
-  // clear value in search select
-  if ((!label || label === '{backspace}') && isSearchSelect(sub)) {
-    return clearSelect(sub)
-  }
+  return isSearchSelect(sub).then(isSearchSelect => {
+    // clear value in search select
+    if ((!label || label === '{backspace}') && isSearchSelect) {
+      return clearSelect(sub)
+    }
 
-  return findByLabel(sub, label)
-    .click()
-    .get('[data-cy=select-dropdown]')
-    .should('not.exist')
-    .get('ul[role=listbox]')
-    .should('not.exist')
+    return findByLabel(sub, label)
+      .click()
+      .get('[data-cy=select-dropdown]')
+      .should('not.exist')
+      .get('ul[role=listbox]')
+      .should('not.exist')
+  })
 }
 
 function clearSelect(sub: any): Cypress.Chainable {
@@ -57,49 +59,53 @@ function clearSelect(sub: any): Cypress.Chainable {
 }
 
 function findByLabel(sub: any, label: string): Cypress.Chainable {
-  if (isSearchSelect(sub)) {
+  return isSearchSelect(sub).then(isSearchSelect => {
+    if (isSearchSelect) {
+      cy.wrap(sub)
+        .parents('[data-cy=material-select]')
+        .should('have.attr', 'data-cy-ready', 'true')
+        .find('[data-cy=search-select-input]')
+        .children()
+        .last() // skip the chips
+        .children()
+        .last() // ignore the clear button
+        .find('svg') // drop-down icon
+        .should('have.length', 1)
+        .should('be.visible')
+        .click()
+        .should('not.have.focus')
+
+      cy.focused()
+        .should('be.visible')
+        .type(label)
+
+      cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
+
+      return cy
+        .get('[data-cy=select-dropdown]')
+        .contains('[role=menuitem]', label)
+    }
+
     cy.wrap(sub)
-      .parents('[data-cy=material-select]')
-      .should('have.attr', 'data-cy-ready', 'true')
-      .find('[data-cy=search-select-input]')
-      .children()
-      .last() // skip the chips
-      .children()
-      .last() // ignore the clear button
-      .find('svg') // drop-down icon
-      .should('have.length', 1)
-      .should('be.visible')
+      .parent()
+      .find('[role=button]')
       .click()
-      .should('not.have.focus')
 
-    cy.focused()
-      .should('be.visible')
-      .type(label)
-
-    cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
-
-    return cy
-      .get('[data-cy=select-dropdown]')
-      .contains('[role=menuitem]', label)
-  }
-
-  cy.wrap(sub)
-    .parent()
-    .find('[role=button]')
-    .click()
-
-  return cy.get('ul[role=listbox]').contains('li', label)
+    return cy.get('ul[role=listbox]').contains('li', label)
+  })
 }
 
 function multiRemoveByLabel(sub: any, label: string): Cypress.Chainable {
-  // must be a multi search select
-  if (!isSearchSelect(sub)) return cy.wrap(sub)
+  return isSearchSelect(sub).then(isSearchSelect => {
+    // must be a multi search select
+    if (!isSearchSelect) return cy.wrap(sub)
 
-  return cy.wrap(sub)
-    .parents('[data-cy=material-select]')
-    .contains('[data-cy=multi-value]', label)
-    .find('svg')
-    .click()
+    return cy.wrap(sub)
+      .parents('[data-cy=material-select]')
+      .contains('[data-cy=multi-value]', label)
+      .find('svg')
+      .click()
+  })
 }
 
 Cypress.Commands.add('selectByLabel', { prevSubject: 'element' }, selectByLabel)
