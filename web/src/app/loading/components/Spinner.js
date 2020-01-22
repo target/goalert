@@ -59,7 +59,7 @@ export default class Spinner extends React.PureComponent {
 
     return (
       <span style={style}>
-        <CircularProgress size={this.props.text ? '1em' : '5em'} />
+        <CircularProgress size={this.props.text ? '1em' : '40px'} />
         &nbsp;{this.props.text}
       </span>
     )
