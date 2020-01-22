@@ -11,7 +11,7 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-func TestICal(t *testing.T) {
+func TestCalendarSubscription(t *testing.T) {
 	t.Parallel()
 
 	const sql = `
