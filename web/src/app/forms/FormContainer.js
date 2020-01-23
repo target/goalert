@@ -91,8 +91,12 @@ export class FormContainer extends React.PureComponent {
       const arrayPath = fieldName.substr(0, fieldName.indexOf('['))
       const idx = fieldName.split(/[\[\]]/)[1]
 
+      let newArr = get(oldValue, arrayPath, []).filter((_, i) => {
+        return i !== parseInt(idx, 10)
+      })
+
       return this.props.onChange(
-        set(oldValue, arrayPath, get(oldValue, arrayPath, []).filter((_, i) => i === idx))
+        set(oldValue, arrayPath, newArr)
       )
     }
 
