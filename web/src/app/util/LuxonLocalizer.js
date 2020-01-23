@@ -33,11 +33,11 @@ export const formats = {
   timeGutterFormat: 't',
 
   monthHeaderFormat: 'MMMM yyyy',
-  dayHeaderFormat: 'dddd MMM dd',
+  dayHeaderFormat: 'cccc MMM dd',
   dayRangeHeaderFormat: weekRangeFormat,
   agendaHeaderFormat: dateRangeFormat,
 
-  agendaDateFormat: 'EEE MMM dd',
+  agendaDateFormat: 'ccc MMM dd',
   agendaTimeFormat: 't',
   agendaTimeRangeFormat: timeRangeFormat,
 }
