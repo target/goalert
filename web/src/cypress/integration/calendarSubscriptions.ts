@@ -72,7 +72,7 @@ function testSubs(screen: ScreenFormat) {
       cy.get('[data-cy=calendar-subscriptions]').should('contain', name)
     })
 
-    it.only('should add and remove additional valarms', () => {
+    it('should add and remove additional valarms', () => {
       cy.visit('/profile/schedule-calendar-subscriptions')
       cy.pageFab()
 
@@ -117,9 +117,10 @@ function testSubs(screen: ScreenFormat) {
       check([true, true, true, false, false])
 
       cy.dialogForm({ 'reminderMinutes[1]': '' })
-
-      // final check, cannot clear first required field to remove second
       check([true, true, false, false, false])
+
+      cy.dialogForm({ 'reminderMinutes[0]': '' })
+      check([true, false, false, false, false])
     })
   })
 
@@ -143,31 +144,36 @@ function testSubs(screen: ScreenFormat) {
       cy.get('body').should('contain', flatListHeader)
     })
 
-    // todo: why is this failing?
-    it.skip('should update button caption text after a subscription is created', () => {
+    it('should update button caption text after a subscription is created', () => {
       const defaultCptn =
         'Subscribe to your shifts on this calendar from your preferred calendar app'
       const oneSubCptn = 'You have 1 active subscription for this schedule'
       const multipleSubsCptn =
         'You have 2 active subscriptions for this schedule'
 
-      cy.get('body').should('contain', defaultCptn)
-      cy.get('body').should('not.contain', oneSubCptn)
-      cy.get('body').should('not.contain', multipleSubsCptn)
+      const caption = '[data-cy="subscribe-btn-txt"]'
+      const captionLoading = '[data-cy="subscribe-btn-txt-loading"]'
+
+      cy.get(captionLoading).should('not.exist')
+      cy.get(caption).should('contain', defaultCptn)
+      cy.get(caption).should('not.contain', oneSubCptn)
+      cy.get(caption).should('not.contain', multipleSubsCptn)
 
       cy.createCalendarSubscription({ scheduleID: sched.id }).then(() => {
         cy.reload()
+        cy.get(captionLoading).should('not.exist')
 
-        cy.get('body').should('not.contain', defaultCptn)
-        cy.get('body').should('contain', oneSubCptn)
-        cy.get('body').should('not.contain', multipleSubsCptn)
+        cy.get(caption).should('not.contain', defaultCptn)
+        cy.get(caption).should('contain', oneSubCptn)
+        cy.get(caption).should('not.contain', multipleSubsCptn)
 
         cy.createCalendarSubscription({ scheduleID: sched.id }).then(() => {
           cy.reload()
+          cy.get(captionLoading).should('not.exist')
 
-          cy.get('body').should('not.contain', defaultCptn)
-          cy.get('body').should('not.contain', oneSubCptn)
-          cy.get('body').should('contain', multipleSubsCptn)
+          cy.get(caption).should('not.contain', defaultCptn)
+          cy.get(caption).should('not.contain', oneSubCptn)
+          cy.get(caption).should('contain', multipleSubsCptn)
         })
       })
     })

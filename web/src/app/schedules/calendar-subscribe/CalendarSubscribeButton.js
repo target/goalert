@@ -58,7 +58,10 @@ export default function CalendarSubscribeButton(props) {
           </Button>
         </Grid>
         <Grid item xs={12} className={classes.captionContainer}>
-          <Typography variant='caption' color='textSecondary'>
+          <Typography
+            data-cy={loading ? 'subscribe-btn-txt-loading' : 'subscribe-btn-txt'}
+            variant='caption' color='textSecondary'
+          >
             {caption}
           </Typography>
           <Typography variant='caption'>
