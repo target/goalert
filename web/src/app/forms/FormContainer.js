@@ -89,7 +89,10 @@ export class FormContainer extends React.PureComponent {
     // if "array[1]" is null, but rather set to [3, 6, 2, 9]
     if (!value && fieldName.charAt(fieldName.length - 1) === ']') {
       const arrayPath = fieldName.substring(0, fieldName.lastIndexOf('['))
-      const idx = fieldName.substring(fieldName.lastIndexOf('[') + 1, fieldName.lastIndexOf(']'))
+      const idx = fieldName.substring(
+        fieldName.lastIndexOf('[') + 1,
+        fieldName.lastIndexOf(']'),
+      )
 
       const newArr = get(oldValue, arrayPath, []).filter((_, i) => {
         return i !== parseInt(idx, 10)

@@ -3,7 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
 import { Link } from 'react-router-dom'
-import { Card, Tooltip } from '@material-ui/core'
+import { Card } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
@@ -16,7 +16,7 @@ import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
 import { useSelector } from 'react-redux'
-import { absURLSelector } from "../selectors"
+import { absURLSelector } from '../selectors'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -70,7 +70,9 @@ export default function UserCalendarSubscriptionList(props) {
       subheaderDict[sub.schedule.name] = true
       items.push({
         subHeader: (
-          <Link to={absURL(`/schedules/${sub.scheduleID}`)}>{sub.schedule.name}</Link>
+          <Link to={absURL(`/schedules/${sub.scheduleID}`)}>
+            {sub.schedule.name}
+          </Link>
         ),
       })
     }

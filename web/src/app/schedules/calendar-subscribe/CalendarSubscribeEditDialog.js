@@ -85,7 +85,7 @@ export function CalendarSubscribeEditDialogContent(props) {
       onClose={onClose}
       loading={updateSubscriptionStatus.loading}
       onSubmit={() => updateSubscription()}
-      form={(
+      form={
         <CalendarSubscribeForm
           errors={fieldErrors(updateSubscriptionStatus.error)}
           loading={updateSubscriptionStatus.loading}
@@ -93,7 +93,7 @@ export function CalendarSubscribeEditDialogContent(props) {
           value={value}
           scheduleReadOnly
         />
-      )}
+      }
     />
   )
 }

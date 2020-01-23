@@ -5,9 +5,9 @@ import gql from 'graphql-tag'
 import FormDialog from '../../dialogs/FormDialog'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
-import { makeStyles } from "@material-ui/core"
-import { CheckCircleOutline as SuccessIcon } from "@material-ui/icons"
-import CalenderSuccessForm from "./CalendarSuccessForm"
+import { makeStyles } from '@material-ui/core'
+import { CheckCircleOutline as SuccessIcon } from '@material-ui/icons'
+import CalenderSuccessForm from './CalendarSuccessForm'
 
 const mutation = gql`
   mutation($input: CreateUserCalendarSubscriptionInput!) {
@@ -67,7 +67,8 @@ export default function CalendarSubscribeCreateDialog(props) {
   })
 
   // todo: status?.data?.href
-  const isComplete = status.called && status.data && !status.error && !status.loading
+  const isComplete =
+    status.called && status.data && !status.error && !status.loading
 
   const form = (
     <CalendarSubscribeForm
@@ -81,12 +82,16 @@ export default function CalendarSubscribeCreateDialog(props) {
 
   return (
     <FormDialog
-      title={isComplete ? (
-        <div className={classes.successTitle}>
-          <SuccessIcon className={classes.successIcon} />
-          Success!
-        </div>
-      ) : 'Create New Calendar Subscription'}
+      title={
+        isComplete ? (
+          <div className={classes.successTitle}>
+            <SuccessIcon className={classes.successIcon} />
+            Success!
+          </div>
+        ) : (
+          'Create New Calendar Subscription'
+        )
+      }
       subTitle={getSubtitle(isComplete, SUBTITLE)}
       onClose={props.onClose}
       alert={isComplete}

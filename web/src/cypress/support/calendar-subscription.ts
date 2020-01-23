@@ -94,9 +94,7 @@ function createCalendarSubscription(
     .then(res => res.createUserCalendarSubscription)
 }
 
-function resetCalendarSubscriptions(
-  userID?: string,
-): Cypress.Chainable<void> {
+function resetCalendarSubscriptions(userID?: string): Cypress.Chainable<void> {
   if (!userID) {
     return cy.fixture('profile').then(prof => {
       resetCalendarSubscriptions(prof.id)
@@ -108,7 +106,4 @@ function resetCalendarSubscriptions(
 }
 
 Cypress.Commands.add('createCalendarSubscription', createCalendarSubscription)
-Cypress.Commands.add(
-  'resetCalendarSubscriptions',
-  resetCalendarSubscriptions,
-)
+Cypress.Commands.add('resetCalendarSubscriptions', resetCalendarSubscriptions)

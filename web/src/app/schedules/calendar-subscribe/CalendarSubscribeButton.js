@@ -9,7 +9,7 @@ import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscription
 import { useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash-es'
 import { useSelector } from 'react-redux'
-import { absURLSelector } from "../../selectors"
+import { absURLSelector } from '../../selectors'
 
 const useStyles = makeStyles(theme => ({
   calIcon: {
@@ -39,7 +39,9 @@ export default function CalendarSubscribeButton(props) {
   let caption =
     'Subscribe to your shifts on this calendar from your preferred calendar app'
   if (!loading && !error && numSubs > 0) {
-    caption = `You have ${numSubs} active subscription${numSubs > 1 ? 's' : ''} for this schedule`
+    caption = `You have ${numSubs} active subscription${
+      numSubs > 1 ? 's' : ''
+    } for this schedule`
   }
 
   return (
@@ -59,8 +61,11 @@ export default function CalendarSubscribeButton(props) {
         </Grid>
         <Grid item xs={12} className={classes.captionContainer}>
           <Typography
-            data-cy={loading ? 'subscribe-btn-txt-loading' : 'subscribe-btn-txt'}
-            variant='caption' color='textSecondary'
+            data-cy={
+              loading ? 'subscribe-btn-txt-loading' : 'subscribe-btn-txt'
+            }
+            variant='caption'
+            color='textSecondary'
           >
             {caption}
           </Typography>

@@ -69,7 +69,7 @@ export default function CalendarSubscribeForm(props) {
   )
 
   function renderReminderMinutesFields() {
-    let arr = _.get(props, 'value.reminderMinutes', []).slice()
+    const arr = _.get(props, 'value.reminderMinutes', []).slice()
 
     const fields = []
     // push 1 more field than there are values, max of 5 fields

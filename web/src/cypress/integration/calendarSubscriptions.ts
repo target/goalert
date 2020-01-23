@@ -251,10 +251,7 @@ function testSubs(screen: ScreenFormat) {
         'contain',
         'You are not subscribed to any schedules.',
       )
-      cy.get('[data-cy=calendar-subscriptions]').should(
-        'not.contain',
-        cs.name,
-      )
+      cy.get('[data-cy=calendar-subscriptions]').should('not.contain', cs.name)
     })
 
     it('should visit a schedule from the subheader link', () => {

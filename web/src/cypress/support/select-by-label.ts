@@ -23,7 +23,9 @@ type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
 
 function isSearchSelect(sub: any): Cypress.Chainable<boolean> {
   return cy.wrap(sub).then(el => {
-    return el.parents('[data-cy=material-select]').data('cy') === 'material-select'
+    return (
+      el.parents('[data-cy=material-select]').data('cy') === 'material-select'
+    )
   })
 }
 
@@ -44,7 +46,8 @@ function selectByLabel(sub: any, label: string): Cypress.Chainable {
 }
 
 function clearSelect(sub: any): Cypress.Chainable {
-  return cy.wrap(sub)
+  return cy
+    .wrap(sub)
     .parents('[data-cy=material-select]')
     .should('have.attr', 'data-cy-ready', 'true')
     .find('[data-cy=search-select-input]')
@@ -100,7 +103,8 @@ function multiRemoveByLabel(sub: any, label: string): Cypress.Chainable {
     // must be a multi search select
     if (!isSearchSelect) return cy.wrap(sub)
 
-    return cy.wrap(sub)
+    return cy
+      .wrap(sub)
       .parents('[data-cy=material-select]')
       .contains('[data-cy=multi-value]', label)
       .find('svg')
