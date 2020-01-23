@@ -105,7 +105,6 @@ export class FormField extends React.PureComponent {
       InputLabelProps: _inputProps,
       mapValue,
       mapOnChangeValue,
-      overrideOnChange,
       checkbox,
 
       ...otherFieldProps
