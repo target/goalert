@@ -38,8 +38,9 @@ const mapStateToProps = state => {
       ? getLuxonStartOfWeek()
           .toUTC()
           .toISO()
-      : DateTime.utc()
+      : DateTime.local()
           .startOf('month')
+          .toUTC()
           .toISO(),
   )
 
