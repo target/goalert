@@ -160,7 +160,7 @@
     "stylelint-config-standard": "19.0.0",
     "terser-webpack-plugin": "2.3.2",
     "ts-loader": "6.2.1",
-    "typescript": "3.7.4",
+    "typescript": "3.7.5",
     "webpack": "4.41.5",
     "webpack-cli": "3.3.10",
     "webpack-dev-server": "3.10.1"
