@@ -10,8 +10,10 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/migrate"
+	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util/sqlutil"
 
+	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
@@ -98,6 +100,11 @@ func fillDB(ctx context.Context, url string) error {
 			log.Fatal(err)
 		}
 	}
+	asTime := func(c rule.Clock) (t pgtype.Time) {
+		t.Status = pgtype.Present
+		t.Microseconds = time.Duration(c).Microseconds()
+		return t
+	}
 	asUUID := func(id string) (res [16]byte) {
 		copy(res[:], uuid.FromStringOrNil(id).Bytes())
 		return res
@@ -171,8 +178,8 @@ func fillDB(ctx context.Context, url string) error {
 				asUUID(r.ID),
 				asUUID(r.ScheduleID),
 				r.Day(0), r.Day(1), r.Day(2), r.Day(3), r.Day(4), r.Day(5), r.Day(6),
-				pgTime(r.Start),
-				pgTime(r.End),
+				asTime(r.Start),
+				asTime(r.End),
 				usr,
 				rot,
 			}

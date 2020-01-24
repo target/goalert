@@ -34,7 +34,6 @@ export default function ServiceAlerts(props) {
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
   const [mutate, mutationStatus] = useMutation(mutation, {
-    refetchQueries: ['alerts'],
     client: LegacyGraphQLClient,
     variables: {
       input: {
@@ -83,7 +82,7 @@ export default function ServiceAlerts(props) {
           confirm
           subTitle={`This will ${alertStatus} all the alerts for this service.`}
           caption='This will stop all notifications from being sent out for all alerts with this service.'
-          onSubmit={mutate}
+          onSubmit={() => mutate()}
           loading={loading}
           onClose={() => setShowDialog(false)}
         />
