@@ -36,7 +36,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/jackc/pgconn v1.2.1
 	github.com/jackc/pgtype v1.1.0
-	github.com/jackc/pgx/v4 v4.2.1
+	github.com/jackc/pgx/v4 v4.3.0
 	github.com/joho/godotenv v1.3.0
 	github.com/mattn/go-colorable v0.1.4
 	github.com/pelletier/go-toml v1.6.0
