@@ -34,7 +34,7 @@ require (
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/graphql-go/graphql v0.7.8
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
-	github.com/jackc/pgconn v1.2.1
+	github.com/jackc/pgconn v1.3.0
 	github.com/jackc/pgtype v1.1.0
 	github.com/jackc/pgx/v4 v4.2.1
 	github.com/joho/godotenv v1.3.0
