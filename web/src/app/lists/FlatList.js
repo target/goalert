@@ -52,10 +52,14 @@ export default class FlatList extends React.PureComponent {
           id: p.string, // required for drag and drop
         }),
         p.shape({
-          subHeader: p.string.isRequired,
+          subHeader: p.node.isRequired,
         }),
       ]),
     ),
+
+    // indent text of each list item if no icon is present
+    inset: p.bool,
+
     // If specified, enables drag and drop
     //
     // onReorder(id, oldIndex, newIndex)
@@ -104,6 +108,7 @@ export default class FlatList extends React.PureComponent {
           primary={item.title}
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
+          inset={this.props.inset && !item.icon}
         />
         {item.secondaryAction && (
           <ListItemSecondaryAction>
@@ -121,7 +126,7 @@ export default class FlatList extends React.PureComponent {
           <ListItemText
             disableTypography
             secondary={
-              <Typography variant='caption'>
+              <Typography data-cy='list-empty-message' variant='caption'>
                 {this.props.emptyMessage}
               </Typography>
             }
@@ -180,6 +185,7 @@ export default class FlatList extends React.PureComponent {
       emptyMessage,
       headerNote,
       items,
+      inset, // don't include in spread
       ...otherProps
     } = this.props
     return (
