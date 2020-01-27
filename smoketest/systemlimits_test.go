@@ -24,7 +24,10 @@ func TestSystemLimits(t *testing.T) {
 			({{uuid "ep_act_user2"}}, 'Step 2'),
 			({{uuid "ep_act_user3"}}, 'Step 3'),
 			({{uuid "ep_act_user4"}}, 'Step 4'),
-			({{uuid "part_user"}}, 'Part User'),
+			({{uuid "rotation_user1"}}, 'Rot User1'),
+			({{uuid "rotation_user2"}}, 'Rot User2'),
+			({{uuid "rotation_user3"}}, 'Rot User3'),
+			({{uuid "rotation_user4"}}, 'Rot User4'),
 			({{uuid "rule_user"}}, 'Sched Rule User'),
 			({{uuid "tgt_user1"}}, 'Target 1'),
 			({{uuid "tgt_user2"}}, 'Target 2'),
@@ -268,18 +271,20 @@ func TestSystemLimits(t *testing.T) {
 		true,
 	)
 
-	// TODO need a way to dynamically create users
-	// doTest(
-	// 	limit.ParticipantsPerRotation,
-	// 	"participants",
-	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{updateRotation(input:{userIDs: ["%s"], id: "%s"})}`, h.UUID("part_user"), h.UUID("part_rot"))
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteRotationParticipant(input:{id: "%s"}){id: deleted_id}}`, id)
-	// 	},
-	// 	nil,
-	// )
+	rotationUsersList := [4]string{h.UUID("rotation_user1"), h.UUID("rotation_user2"), h.UUID("rotation_user3"), h.UUID("rotation_user4")}
+	doTest(
+		limit.ParticipantsPerRotation,
+		"participants",
+		func(numToAdd int) string {
+			usersToAdd := rotationUsersList[:numToAdd]
+			return fmt.Sprintf(`mutation{updateRotation(input:{id: "%s", userIDs: ["%s"]})}`, h.UUID("part_rot"), strings.Join(usersToAdd, `", "`))
+		},
+		func(_ int, id string) string {
+			return "unused function stub"
+		},
+		nil,
+		true,
+	)
 
 	doTest(
 		limit.IntegrationKeysPerService,
