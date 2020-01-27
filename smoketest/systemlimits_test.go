@@ -220,7 +220,7 @@ func TestSystemLimits(t *testing.T) {
 		false,
 	)
 
-	//TODO this keeps failing but I think it's because our code is broken
+	//TODO test looks alright, check if code limit is being enforced
 	// epStepIDs := [4]string{h.UUID("ep_step1"), h.UUID("ep_step2"), h.UUID("ep_step3"), h.UUID("ep_step4")}
 	// // epStepIDs := [4]string{"one", "two", "three", "four"}
 	// doTest(
@@ -355,45 +355,33 @@ func TestSystemLimits(t *testing.T) {
 	// 	},
 	// )
 
-	// tgtUsersList := []string{h.UUID("tgt_user1"), h.UUID("tgt_user2"), h.UUID("tgt_user3"), h.UUID("tgt_user4")}
+	//TODO test looks alright, check if code limit is being enforced
 	// doTest(
 	// 	limit.TargetsPerSchedule,
 	// 	"targets",
-	// 	func(n int) string {
-	// 		return fmt.Sprintf(`mutation{createScheduleRule(input:{
-	// 			schedule_id: "%s",
-	// 			target_id: "%s",
-	// 			target_type: user,
-	// 			sunday: false,monday: false,tuesday: false,wednesday: false,thursday: false,friday: false,saturday: false,
-	// 			start: "%s",
-	// 			end: "%s"
-	// 		}){assignments(start_time: "%s", end_time: "%s"){rules{id, start}}}}`,
-	// 			h.UUID("tgt_sched"),
-	// 			tgtUsersList[n-1],
-	// 			startTime(),
-	// 			startTime(),
-	// 			s.Format(time.RFC3339),
-	// 			s.Format(time.RFC3339),
+	// 	func(numToAdd int) string {
+
+	// 		usersToAdd := `[`
+	// 		for i := 0; i < numToAdd; i++ {
+	// 			usersToAdd += fmt.Sprintf(`{scheduleID: "%s", target: {id: "%s", type: user}, rules: []}`, h.UUID("tgt_sched"), h.UUID(fmt.Sprintf("tgt_user%d", i+1)))
+	// 			if i != numToAdd-1 {
+	// 				usersToAdd += ", "
+	// 			}
+	// 		}
+	// 		usersToAdd += "]"
+
+	// 		// targets := `{scheduleID: "%s", target: {id: "%s", type: user}, rules: []}`
+	// 		// usersToAdd := strings.Trim(strings.Join(tgts[:numToAdd], `", "`), `"`)
+	// 		return fmt.Sprintf(`mutation{createSchedule(input:{name: "%s", description: "test tgts per sched", favorite: true, timeZone: "America/Chicago", targets: %s}){id}}`,
+	// 			name(),
+	// 			usersToAdd,
 	// 		)
 	// 	},
 	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteScheduleRule(input:{id: "%s"}){id}}`, id)
+	// 		return "unused function stub"
 	// 	},
-	// 	func(m map[string]interface{}) (string, bool) {
-	// 		sched, ok := m["createScheduleRule"].(map[string]interface{})
-	// 		if !ok {
-	// 			return "", false
-	// 		}
-	// 		asn := sched["assignments"].([]interface{})
-	// 		var rules []interface{}
-	// 		for _, a := range asn {
-	// 			rules = append(rules, a.(map[string]interface{})["rules"].([]interface{})...)
-	// 		}
-	// 		sort.Slice(rules, func(i, j int) bool {
-	// 			return rules[i].(map[string]interface{})["start"].(string) < rules[j].(map[string]interface{})["start"].(string)
-	// 		})
-	// 		return rules[len(rules)-1].(map[string]interface{})["id"].(string), true
-	// 	},
+	// 	nil,
+	// 	true,
 	// )
 
 	doTest(
