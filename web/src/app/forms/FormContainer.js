@@ -83,7 +83,12 @@ export class FormContainer extends React.PureComponent {
   }
 
   onChange = (fieldName, e) => {
-    const { mapValue, mapOnChangeValue, value: oldValue, removeFalseyIdxs } = this.props
+    const {
+      mapValue,
+      mapOnChangeValue,
+      value: oldValue,
+      removeFalseyIdxs,
+    } = this.props
 
     let value = e
     if (e && e.target) value = e.target.value
@@ -91,7 +96,11 @@ export class FormContainer extends React.PureComponent {
     // remove idx from array if new value is null when fieldName includes index
     // e.g. don't set array to something like [3, null, 6, 2, 9]
     // if "array[1]" is null, but rather set to [3, 6, 2, 9]
-    if (!value && fieldName.charAt(fieldName.length - 1) === ']' && removeFalseyIdxs) {
+    if (
+      !value &&
+      fieldName.charAt(fieldName.length - 1) === ']' &&
+      removeFalseyIdxs
+    ) {
       const arrayPath = fieldName.substring(0, fieldName.lastIndexOf('['))
       const idx = fieldName.substring(
         fieldName.lastIndexOf('[') + 1,
