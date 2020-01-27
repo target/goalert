@@ -135,7 +135,7 @@ export class FormField extends React.PureComponent {
     let getValueOf = e => (e && e.target ? e.target.value : e)
     if (checkbox) {
       props.checked = props.value
-      props.value = props.value.toString()
+      props.value = props.value ? 'true' : 'false'
       getValueOf = e => e.target.checked
     } else if (otherFieldProps.type === 'number') {
       props.label = label

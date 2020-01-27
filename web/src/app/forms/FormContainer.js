@@ -25,6 +25,10 @@ export class FormContainer extends React.PureComponent {
     // If true, will render optional fields with `(optional)` appended to the label.
     // In addition, required fields will not be appended with `*`.
     optionalLabels: p.bool,
+
+    // Enables functionality to remove an incoming value at it's index from
+    // an array field if the new value is falsey.
+    removeFalseyIdxs: p.bool,
   }
 
   static defaultProps = {
@@ -79,7 +83,7 @@ export class FormContainer extends React.PureComponent {
   }
 
   onChange = (fieldName, e) => {
-    const { value: oldValue, mapValue, mapOnChangeValue } = this.props
+    const { mapValue, mapOnChangeValue, value: oldValue, removeFalseyIdxs } = this.props
 
     let value = e
     if (e && e.target) value = e.target.value
@@ -87,7 +91,7 @@ export class FormContainer extends React.PureComponent {
     // remove idx from array if new value is null when fieldName includes index
     // e.g. don't set array to something like [3, null, 6, 2, 9]
     // if "array[1]" is null, but rather set to [3, 6, 2, 9]
-    if (!value && fieldName.charAt(fieldName.length - 1) === ']') {
+    if (!value && fieldName.charAt(fieldName.length - 1) === ']' && removeFalseyIdxs) {
       const arrayPath = fieldName.substring(0, fieldName.lastIndexOf('['))
       const idx = fieldName.substring(
         fieldName.lastIndexOf('[') + 1,

@@ -40,6 +40,7 @@ export default function CalendarSubscribeForm(props) {
       errors={props.errors}
       onChange={value => props.onChange(value)}
       optionalLabels
+      removeFalseyIdxs
       value={props.value}
     >
       <Grid container spacing={2}>
