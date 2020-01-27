@@ -57,7 +57,11 @@ func TestSystemLimits(t *testing.T) {
 		insert into escalation_policy_steps (id, escalation_policy_id, delay)
 		values
 			({{uuid "act_ep_step"}}, {{uuid "act_ep"}}, 15),
-			({{uuid "act_ep_step2"}}, {{uuid "act_ep2"}}, 15);
+			({{uuid "act_ep_step2"}}, {{uuid "act_ep2"}}, 15),
+			({{uuid "ep_step1"}}, {{uuid "step_ep"}}, 15),
+			({{uuid "ep_step2"}}, {{uuid "step_ep"}}, 15),
+			({{uuid "ep_step3"}}, {{uuid "step_ep"}}, 15),
+			({{uuid "ep_step4"}}, {{uuid "step_ep"}}, 15);
 		
 		insert into services (id, name, escalation_policy_id)
 		values
@@ -115,7 +119,7 @@ func TestSystemLimits(t *testing.T) {
 		return "", g.Errors[0].Message
 	}
 
-	doTest := func(limitID limit.ID, expErrMsg string, addQuery func(int) string, delQuery func(int, string) string, parseID idParser) {
+	doTest := func(limitID limit.ID, expErrMsg string, addQuery func(int) string, delQuery func(int, string) string, parseID idParser, isMultiInsert bool) {
 		if parseID == nil {
 			parseID = getID
 		}
@@ -149,6 +153,17 @@ func TestSystemLimits(t *testing.T) {
 				t.Helper()
 				h.SetSystemLimit(limitID, max)
 			}
+
+			if isMultiInsert {
+				noErr(doQLErr(t, addQuery(3), parseID))
+				setLimit(2)
+				mustErr(doQLErr(t, addQuery(4), parseID))
+				noErr(doQLErr(t, addQuery(1), parseID))
+				noErr(doQLErr(t, addQuery(2), parseID))
+				mustErr(doQLErr(t, addQuery(3), parseID))
+				return
+			}
+
 			ids := []string{ // create 3
 				noErr(doQLErr(t, addQuery(1), parseID)),
 				noErr(doQLErr(t, addQuery(2), parseID)),
@@ -184,6 +199,7 @@ func TestSystemLimits(t *testing.T) {
 			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: contactMethod}])}`, id)
 		},
 		nil,
+		false,
 	)
 
 	nrDelay := 0
@@ -198,38 +214,59 @@ func TestSystemLimits(t *testing.T) {
 			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: notificationRule}])}`, id)
 		},
 		nil,
+		false,
 	)
 
+	//TODO this keeps failing but I think it's because our code is broken
+	// epStepIDs := [4]string{h.UUID("ep_step1"), h.UUID("ep_step2"), h.UUID("ep_step3"), h.UUID("ep_step4")}
+	// // epStepIDs := [4]string{"one", "two", "three", "four"}
 	// doTest(
 	// 	limit.EPStepsPerPolicy,
 	// 	"steps",
-	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{createOrUpdateEscalationPolicyStep(input:{escalation_policy_id: "%s", delay_minutes: 10, user_ids: [], schedule_ids: []}){escalation_policy_step{id}}}`, h.UUID("step_ep"))
+	// 	func(numToAdd int) string {
+	// 		return fmt.Sprintf(`mutation{updateEscalationPolicy(input:{id: "%s", stepIDs: ["%s"]})}`, h.UUID("step_ep"), strings.Join(epStepIDs[:numToAdd], `", "`))
 	// 	},
 	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteEscalationPolicyStep(input:{id:"%s"}){id: deleted_id}}`, id)
+	// 		return fmt.Sprintf(`mutation{updateEscalationPolicy(input:{id: "%s", stepIDs: ["%s"]})}`, h.UUID("step_ep"), epStepIDs[0])
 	// 	},
 	// 	nil,
+	// 	true,
 	// )
 
-	// actUsersList := []string{h.UUID("ep_act_user1"), h.UUID("ep_act_user2"), h.UUID("ep_act_user3"), h.UUID("ep_act_user4")}
-	// doTest(
-	// 	limit.EPActionsPerStep,
-	// 	"actions",
-	// 	func(n int) string {
-	// 		return fmt.Sprintf(`mutation{addEscalationPolicyStepTarget(input:{step_id:"%s", target_id: "%s", target_type: user}){id: target_id}}`,
-	// 			h.UUID("act_ep_step2"),
-	// 			actUsersList[n-1],
-	// 		)
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteEscalationPolicyStepTarget(input:{step_id:"%s", target_id: "%s", target_type: user}){id: target_id}}`,
-	// 			h.UUID("act_ep_step2"),
-	// 			id,
-	// 		)
-	// 	},
-	// 	nil,
-	// )
+	//TODO delete this comment block
+	// type TargetInput struct {
+	// 	ID   string `json:"id"`
+	// 	Type string `json:"type"`
+	// }
+	// userTargetsList := []TargetInput{TargetInput{h.UUID("ep_act_user1"), "user"}, TargetInput{h.UUID("ep_act_user1"), "User"}, TargetInput{h.UUID("ep_act_user1"), "User"}, TargetInput{h.UUID("ep_act_user1"), "User"}}
+	// usersToAdd := userTargetsList[:numToAdd]
+	// bytes, _ := json.Marshal(usersToAdd)
+	// usersToAddstr := string(bytes)
+
+	doTest(
+		limit.EPActionsPerStep,
+		"actions",
+		func(numToAdd int) string {
+			usersToAdd := `[`
+			for i := 0; i < numToAdd; i++ {
+				usersToAdd += fmt.Sprintf(`{id:"%s", type:user}`, h.UUID(fmt.Sprintf("ep_act_user%d", i+1)))
+				if i != numToAdd-1 {
+					usersToAdd += ", "
+				}
+			}
+			usersToAdd += "]"
+
+			return fmt.Sprintf(`mutation{updateEscalationPolicyStep(input:{id:"%s", targets: %s})}`,
+				h.UUID("act_ep_step"),
+				usersToAdd,
+			)
+		},
+		func(_ int, id string) string {
+			return "unused function stub"
+		},
+		nil,
+		true,
+	)
 
 	// TODO need a way to dynamically create users
 	// doTest(
@@ -254,6 +291,7 @@ func TestSystemLimits(t *testing.T) {
 			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: integrationKey}])}`, id)
 		},
 		nil,
+		false,
 	)
 
 	doTest(
@@ -266,6 +304,7 @@ func TestSystemLimits(t *testing.T) {
 			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: heartbeatMonitor}])}`, id)
 		},
 		nil,
+		false,
 	)
 
 	// // schedule tests (need custom parser)
@@ -362,6 +401,7 @@ func TestSystemLimits(t *testing.T) {
 			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusAcknowledged}){id}}`, id)
 		},
 		nil,
+		false,
 	)
 
 	doTest(
@@ -374,6 +414,7 @@ func TestSystemLimits(t *testing.T) {
 			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusClosed}){id}}`, id)
 		},
 		nil,
+		false,
 	)
 
 }
