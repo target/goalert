@@ -56,7 +56,11 @@ function navigateToAndFrom(
     // verify back on details page
     cy.get('[data-cy=app-bar]')
       .should('contain', pageName)
-      .should('not.contain', targetName)
+
+    if (!route.includes('profile')) {
+      cy.get('[data-cy=app-bar]')
+        .should('not.contain', targetName)
+    }
   }
 }
 
