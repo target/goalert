@@ -85,7 +85,7 @@
     "graphql-tag": "2.10.1",
     "history": "4.10.1",
     "lodash-es": "4.17.15",
-    "luxon": "1.21.3",
+    "luxon": "1.22.0",
     "mdi-material-ui": "6.11.0",
     "modernizr": "3.8.0",
     "modernizr-loader": "1.0.1",
