@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"github.com/target/goalert/config"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -45,14 +46,12 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 		oc:   oc,
 
 		now: p.P(`SELECT now()`),
-
 		authUser: p.P(`
 			UPDATE user_calendar_subscriptions
 			SET last_access = now()
 			WHERE NOT disabled AND id = $1 AND date_trunc('second', created_at) = $2
 			RETURNING user_id
 		`),
-
 		findOne: p.P(`
 			SELECT
 				id, name, user_id, disabled, schedule_id, config, last_access
@@ -88,6 +87,11 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 			WHERE id = $1 AND user_id = $2
 		`),
 	}, p.Err
+}
+
+func isCreationDisabled (ctx context.Context) bool {
+	cfg := config.FromContext(ctx)
+	return cfg.General.DisableCalendarSubscriptions
 }
 
 func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
