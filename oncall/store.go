@@ -3,6 +3,8 @@ package oncall
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
@@ -10,7 +12,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	"github.com/pkg/errors"
 )
