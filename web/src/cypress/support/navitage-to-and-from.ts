@@ -54,12 +54,10 @@ function navigateToAndFrom(
     cy.get('button[data-cy=nav-back-icon]').click()
 
     // verify back on details page
-    cy.get('[data-cy=app-bar]')
-      .should('contain', pageName)
+    cy.get('[data-cy=app-bar]').should('contain', pageName)
 
     if (!route.includes('profile')) {
-      cy.get('[data-cy=app-bar]')
-        .should('not.contain', targetName)
+      cy.get('[data-cy=app-bar]').should('not.contain', targetName)
     }
   }
 }

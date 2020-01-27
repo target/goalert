@@ -99,9 +99,7 @@ export class FormContainer extends React.PureComponent {
       })
 
       return this.props.onChange(
-        mapOnChangeValue(
-          set(mapValue({ ...oldValue }), arrayPath, newArr)
-        )
+        mapOnChangeValue(set(mapValue({ ...oldValue }), arrayPath, newArr)),
       )
     }
 
