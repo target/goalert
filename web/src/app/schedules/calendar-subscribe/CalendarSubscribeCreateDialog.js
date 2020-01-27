@@ -13,6 +13,7 @@ const mutation = gql`
   mutation($input: CreateUserCalendarSubscriptionInput!) {
     createUserCalendarSubscription(input: $input) {
       id
+      url
     }
   }
 `
@@ -28,9 +29,6 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const MOCK_URL =
-  'www.calendarlabs.com/ical-calendar/ics/22/Chicago_Cubs_-_MLB.ics'
-
 const SUBTITLE =
   'Create a unique iCalendar subscription URL that can be used in your preferred calendar application.'
 
@@ -42,8 +40,12 @@ export function getSubtitle(isComplete, defaultSubtitle) {
   return isComplete ? completedSubtitle : defaultSubtitle
 }
 
-export function getForm(isComplete, defaultForm, url) {
-  return isComplete ? <CalenderSuccessForm url={url} /> : defaultForm
+export function getForm(isComplete, defaultForm, data) {
+  return isComplete ? (
+    <CalenderSuccessForm url={data.createUserCalendarSubscription.url} />
+  ) : (
+    defaultForm
+  )
 }
 
 export default function CalendarSubscribeCreateDialog(props) {
@@ -98,7 +100,7 @@ export default function CalendarSubscribeCreateDialog(props) {
       errors={nonFieldErrors(status.error)}
       primaryActionLabel={isComplete ? 'Done' : null}
       onSubmit={() => (isComplete ? props.onClose() : createSubscription())}
-      form={getForm(isComplete, form, MOCK_URL)}
+      form={getForm(isComplete, form, status.data)}
     />
   )
 }
