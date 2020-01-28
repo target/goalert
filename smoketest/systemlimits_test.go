@@ -338,34 +338,31 @@ func TestSystemLimits(t *testing.T) {
 		true,
 	)
 
-	//TODO test looks alright, check if code limit is being enforced
-	// doTest(
-	// 	limit.TargetsPerSchedule,
-	// 	"targets",
-	// 	func(numToAdd int) string {
+	doTest(
+		limit.TargetsPerSchedule,
+		"targets",
+		func(numToAdd int) string {
 
-	// 		usersToAdd := `[`
-	// 		for i := 0; i < numToAdd; i++ {
-	// 			usersToAdd += fmt.Sprintf(`{scheduleID: "%s", target: {id: "%s", type: user}, rules: []}`, h.UUID("tgt_sched"), h.UUID(fmt.Sprintf("tgt_user%d", i+1)))
-	// 			if i != numToAdd-1 {
-	// 				usersToAdd += ", "
-	// 			}
-	// 		}
-	// 		usersToAdd += "]"
+			usersToAdd := `[`
+			for i := 0; i < numToAdd; i++ {
+				usersToAdd += fmt.Sprintf(`{target: {id: "%s", type: user}, rules: [{}]}`, h.UUID(fmt.Sprintf("tgt_user%d", i+1)))
+				if i != numToAdd-1 {
+					usersToAdd += ", "
+				}
+			}
+			usersToAdd += "]"
 
-	// 		// targets := `{scheduleID: "%s", target: {id: "%s", type: user}, rules: []}`
-	// 		// usersToAdd := strings.Trim(strings.Join(tgts[:numToAdd], `", "`), `"`)
-	// 		return fmt.Sprintf(`mutation{createSchedule(input:{name: "%s", description: "test tgts per sched", favorite: true, timeZone: "America/Chicago", targets: %s}){id}}`,
-	// 			name(),
-	// 			usersToAdd,
-	// 		)
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return "unused function stub"
-	// 	},
-	// 	nil,
-	// 	true,
-	// )
+			return fmt.Sprintf(`mutation{createSchedule(input:{name: "%s", description: "test tgts per sched", favorite: true, timeZone: "America/Chicago", targets: %s}){id}}`,
+				name(),
+				usersToAdd,
+			)
+		},
+		func(_ int, id string) string {
+			return "unused function stub"
+		},
+		nil,
+		true,
+	)
 
 	doTest(
 		limit.UnackedAlertsPerService,
