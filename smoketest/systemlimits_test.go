@@ -223,7 +223,6 @@ func TestSystemLimits(t *testing.T) {
 		false,
 	)
 
-	//TODO test looks alright, check if code limit is being enforced
 	// updateEscalationPolicy should never trigger limit
 	// test createEscalationPolicy, get id,
 
@@ -240,16 +239,6 @@ func TestSystemLimits(t *testing.T) {
 	// 	nil,
 	// 	true,
 	// )
-
-	//TODO delete this comment block
-	// type TargetInput struct {
-	// 	ID   string `json:"id"`
-	// 	Type string `json:"type"`
-	// }
-	// userTargetsList := []TargetInput{TargetInput{h.UUID("ep_act_user1"), "user"}, TargetInput{h.UUID("ep_act_user1"), "User"}, TargetInput{h.UUID("ep_act_user1"), "User"}, TargetInput{h.UUID("ep_act_user1"), "User"}}
-	// usersToAdd := userTargetsList[:numToAdd]
-	// bytes, _ := json.Marshal(usersToAdd)
-	// usersToAddstr := string(bytes)
 
 	doTest(
 		limit.EPActionsPerStep,
