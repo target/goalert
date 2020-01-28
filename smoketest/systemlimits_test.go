@@ -37,8 +37,7 @@ func TestSystemLimits(t *testing.T) {
 		
 		insert into schedules (id, name, time_zone)
 		values
-			({{uuid "rule_sched"}}, 'Rule Test', 'UTC'),
-			({{uuid "tgt_sched"}}, 'Target Test', 'UTC');
+			({{uuid "rule_sched"}}, 'Rule Test', 'UTC');
 		
 		insert into rotations (id, name, type, time_zone)
 		values
