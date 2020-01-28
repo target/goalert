@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/smoketest/harness"
@@ -164,6 +165,8 @@ func TestSystemLimits(t *testing.T) {
 				noErr(doQLErr(t, addQuery(1), parseID))
 				noErr(doQLErr(t, addQuery(2), parseID))
 				mustErr(doQLErr(t, addQuery(3), parseID))
+				setLimit(-1)
+				noErr(doQLErr(t, addQuery(4), parseID))
 				return
 			}
 
@@ -221,8 +224,10 @@ func TestSystemLimits(t *testing.T) {
 	)
 
 	//TODO test looks alright, check if code limit is being enforced
+	// updateEscalationPolicy should never trigger limit
+	// test createEscalationPolicy, get id,
+
 	// epStepIDs := [4]string{h.UUID("ep_step1"), h.UUID("ep_step2"), h.UUID("ep_step3"), h.UUID("ep_step4")}
-	// // epStepIDs := [4]string{"one", "two", "three", "four"}
 	// doTest(
 	// 	limit.EPStepsPerPolicy,
 	// 	"steps",
@@ -312,48 +317,37 @@ func TestSystemLimits(t *testing.T) {
 		false,
 	)
 
-	// // schedule tests (need custom parser)
-	// s := time.Date(2005, 0, 0, 0, 0, 0, 0, time.UTC)
-	// startTime := func() string {
-	// 	s = s.Add(time.Minute)
-	// 	return s.Format("15:04")
-	// }
-	// doTest(
-	// 	limit.RulesPerSchedule,
-	// 	"rules",
-	// 	func(int) string {
-	// 		return fmt.Sprintf(`mutation{createScheduleRule(input:{
-	// 			schedule_id: "%s",
-	// 			target_id: "%s",
-	// 			target_type: user,
-	// 			sunday: false,monday: false,tuesday: false,wednesday: false,thursday: false,friday: false,saturday: false,
-	// 			start: "%s",
-	// 			end: "%s"
-	// 		}){assignments(start_time: "%s", end_time: "%s"){rules{id, start}}}}`,
-	// 			h.UUID("rule_sched"),
-	// 			h.UUID("rule_user"),
-	// 			startTime(),
-	// 			startTime(),
-	// 			s.Format(time.RFC3339),
-	// 			s.Format(time.RFC3339),
-	// 		)
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{deleteScheduleRule(input:{id: "%s"}){id}}`, id)
-	// 	},
-	// 	func(m map[string]interface{}) (string, bool) {
-	// 		sched, ok := m["createScheduleRule"].(map[string]interface{})
-	// 		if !ok {
-	// 			return "", false
-	// 		}
-	// 		asn := sched["assignments"].([]interface{})
-	// 		rules := asn[0].(map[string]interface{})["rules"].([]interface{})
-	// 		sort.Slice(rules, func(i, j int) bool {
-	// 			return rules[i].(map[string]interface{})["start"].(string) < rules[j].(map[string]interface{})["start"].(string)
-	// 		})
-	// 		return rules[len(rules)-1].(map[string]interface{})["id"].(string), true
-	// 	},
-	// )
+	s := time.Date(2005, 0, 0, 0, 0, 0, 0, time.UTC)
+	startTime := func() string {
+		s = s.Add(time.Minute)
+		return s.Format("15:04")
+	}
+	doTest(
+		limit.RulesPerSchedule,
+		"rules",
+		func(numToAdd int) string {
+
+			rulesToAdd := ``
+			for i := 0; i < numToAdd; i++ {
+				rulesToAdd += fmt.Sprintf("{ start: \"%s\" }", startTime())
+				if i != numToAdd-1 {
+					rulesToAdd += ", "
+				}
+			}
+
+			return fmt.Sprintf(`mutation{createSchedule(input:{name: "%s", description: "test rules per sched", favorite: true, timeZone: "America/Chicago", targets: [{scheduleID: "%s", target: {id: "%s", type: user}, rules: [%s]}]  }){id}}`,
+				name(),
+				h.UUID("rule_sched"),
+				h.UUID(fmt.Sprintf("rule_user")),
+				rulesToAdd,
+			)
+		},
+		func(_ int, id string) string {
+			return "unused function stub"
+		},
+		nil,
+		true,
+	)
 
 	//TODO test looks alright, check if code limit is being enforced
 	// doTest(
