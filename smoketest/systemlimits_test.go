@@ -223,22 +223,27 @@ func TestSystemLimits(t *testing.T) {
 		false,
 	)
 
-	// updateEscalationPolicy should never trigger limit
-	// test createEscalationPolicy, get id,
+	doTest(
+		limit.EPStepsPerPolicy,
+		"steps",
+		func(numToAdd int) string {
+			stepsToAdd := `[`
+			for i := 0; i < numToAdd; i++ {
+				stepsToAdd += "{delayMinutes: 5}"
+				if i != numToAdd-1 {
+					stepsToAdd += ", "
+				}
+			}
+			stepsToAdd += "]"
 
-	// epStepIDs := [4]string{h.UUID("ep_step1"), h.UUID("ep_step2"), h.UUID("ep_step3"), h.UUID("ep_step4")}
-	// doTest(
-	// 	limit.EPStepsPerPolicy,
-	// 	"steps",
-	// 	func(numToAdd int) string {
-	// 		return fmt.Sprintf(`mutation{updateEscalationPolicy(input:{id: "%s", stepIDs: ["%s"]})}`, h.UUID("step_ep"), strings.Join(epStepIDs[:numToAdd], `", "`))
-	// 	},
-	// 	func(_ int, id string) string {
-	// 		return fmt.Sprintf(`mutation{updateEscalationPolicy(input:{id: "%s", stepIDs: ["%s"]})}`, h.UUID("step_ep"), epStepIDs[0])
-	// 	},
-	// 	nil,
-	// 	true,
-	// )
+			return fmt.Sprintf(`mutation{createEscalationPolicy(input:{name: "%s", steps: %s}){id}}`, name(), stepsToAdd)
+		},
+		func(_ int, id string) string {
+			return "unused function stub"
+		},
+		nil,
+		true,
+	)
 
 	doTest(
 		limit.EPActionsPerStep,
