@@ -68,7 +68,7 @@ func (p *Provider) oaConfig(ctx context.Context) (*oauth2.Config, *oidc.IDTokenV
 	cfg := config.FromContext(ctx)
 	scopes := cfg.OIDC.Scopes
 	// "openid" is a required scope for OpenID Connect flows.
-	if len(scopes) == 0 {
+	if scopes == "" {
 		scopes = "openid profile email"
 	}
 
