@@ -61,9 +61,9 @@ type Config struct {
 		ClientID     string
 		ClientSecret string `password:"true"`
 
-		Scopes    string `info:"OpenID Connect scopes (default: openid profile email)"`
-		EmailPath string `info:"Email attribute path in JMESPath notion (default: email)"`
-		NamePath  string `info:"Full name attribute path in JMESPath notion (default: name || cn || join(' ', firstname, lastname))"`
+		Scopes        string `info:"OpenID Connect scopes (default: openid profile email)"`
+		UserInfoEmail string `info:"JMESPath expression to find email address in UserInfo (suggestion: email)"`
+		UserInfoName  string `info:"JMESPath expression to find full name in UserInfo (suggestion: name || cn || join(' ', [firstname, lastname]))"`
 	}
 
 	Mailgun struct {

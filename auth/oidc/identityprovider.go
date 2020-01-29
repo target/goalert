@@ -286,21 +286,21 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 		claims.Name = strings.TrimSpace(claims.GivenName + " " + claims.FamilyName)
 	}
 
-	if claims.Email == "" || claims.Name == "" {
-		provider, err := p.provider(ctx)
+	if (claims.Email == "" && cfg.OIDC.UserInfoEmail != "") ||
+		(claims.Name == "" && cfg.OIDC.UserInfoName != "") {
+		rawInfo, err := p.userInfo(ctx, idToken.Subject, oaCfg.TokenSource(ctx, oauth2Token))
 		if err != nil {
-			log.Log(ctx, errors.Wrap(err, "retrieving OIDC provider from config"))
-			return nil, auth.Error("Cannot retrieve OIDC provider from config")
-		}
-
-		info, err := provider.UserInfo(ctx, oaCfg.TokenSource(ctx, oauth2Token))
-		if err != nil {
-			log.Log(ctx, errors.Wrapf(err, "fetching userinfo for user %s", idToken.Subject))
-			return nil, auth.Error("Cannot fetch OIDC user info")
-		}
-
-		if err := p.fetchUserInfo(ctx, &claims, info); err != nil {
 			return nil, err
+		}
+
+		cfg := config.FromContext(ctx)
+
+		if err := userInfoData(rawInfo, cfg.OIDC.UserInfoEmail, &claims.Email); err != nil {
+			log.Log(ctx, errors.Wrap(err, "search for email in userinfo"))
+		}
+
+		if err := userInfoData(rawInfo, cfg.OIDC.UserInfoName, &claims.Name); err != nil {
+			log.Log(ctx, errors.Wrap(err, "search for name in userinfo"))
 		}
 	}
 
@@ -312,55 +312,46 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	}, nil
 }
 
-func (p *Provider) fetchUserInfo(ctx context.Context, claims *claimsData, info *oidc.UserInfo) error {
-	var buf interface{}
+func (p *Provider) userInfo(ctx context.Context, subj string, token oauth2.TokenSource) (interface{}, error) {
+	provider, err := p.provider(ctx)
+	if err != nil {
+		log.Log(ctx, errors.Wrap(err, "retrieving OIDC provider from config"))
+		return nil, auth.Error("Cannot retrieve OIDC provider from config")
+	}
 
-	cfg := config.FromContext(ctx)
+	info, err := provider.UserInfo(ctx, token)
+	if err != nil {
+		log.Log(ctx, errors.Wrapf(err, "fetching userinfo for user %s", subj))
+		return nil, auth.Error("Cannot fetch OIDC user info")
+	}
 
-	if err := info.Claims(&buf); err != nil {
+	var rawInfo interface{}
+
+	if err := info.Claims(&rawInfo); err != nil {
 		log.Log(ctx, errors.Wrap(err, "parsing userinfo"))
-		return auth.Error("Cannot fetch OIDC user info")
+		return nil, auth.Error("Cannot fetch OIDC user info")
 	}
 
-	for _, column := range []struct {
-		name    string
-		claim   *string
-		setting string
-		defval  string
-	}{
-		{
-			"email address",
-			&claims.Email,
-			cfg.OIDC.EmailPath,
-			"email",
-		}, {
-			"name",
-			&claims.Name,
-			cfg.OIDC.NamePath,
-			"name || cn || join(' ', firstname, lastname)",
-		},
-	} {
-		if *column.claim == "" {
-			setting := column.setting
-			if setting == "" {
-				setting = column.defval
-			}
+	return rawInfo, nil
+}
 
-			item, err := extractValue(ctx, buf, setting)
-			if err != nil {
-				log.Log(ctx, errors.Wrapf(err, "searching for %s in userinfo", column.name))
-				return auth.Error(fmt.Sprintf("Cannot determine OIDC user %s", column.name))
-			}
-
-			*column.claim = item
-		}
+func userInfoData(rawInfo interface{}, setting string, claim *string) error {
+	if *claim != "" {
+		return nil
 	}
+
+	item, err := extractValue(rawInfo, setting)
+	if err != nil {
+		return err
+	}
+
+	*claim = item
 
 	return nil
 }
 
-func extractValue(ctx context.Context, buf interface{}, setting string) (string, error) {
-	raw, err := jmespath.Search(setting, buf)
+func extractValue(rawInfo interface{}, setting string) (string, error) {
+	raw, err := jmespath.Search(setting, rawInfo)
 	if err != nil {
 		return "", err
 	}
