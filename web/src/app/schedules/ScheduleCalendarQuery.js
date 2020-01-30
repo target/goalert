@@ -5,7 +5,7 @@ import ScheduleCalendar from './ScheduleCalendar'
 import { urlParamSelector } from '../selectors'
 import { connect } from 'react-redux'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth/index'
-import { getLuxonStartOfWeek } from '../util/luxon-helpers'
+import { getStartOfWeek } from '../util/luxon-helpers'
 import { DateTime } from 'luxon'
 
 const query = gql`
@@ -35,7 +35,7 @@ const mapStateToProps = state => {
   const start = urlParamSelector(state)(
     'start',
     weekly
-      ? getLuxonStartOfWeek()
+      ? getStartOfWeek()
           .toUTC()
           .toISO()
       : DateTime.local()

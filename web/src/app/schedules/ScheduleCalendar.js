@@ -13,7 +13,7 @@ import { resetURLParams, setURLParam } from '../actions'
 import { urlParamSelector } from '../selectors'
 import { DateTime, Interval } from 'luxon'
 import { theme } from '../mui'
-import { getLuxonStartOfWeek, getLuxonEndOfWeek } from '../util/luxon-helpers'
+import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import LuxonLocalizer from '../util/LuxonLocalizer'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
@@ -30,7 +30,7 @@ const mapStateToProps = state => {
   const start = urlParamSelector(state)(
     'start',
     weekly
-      ? getLuxonStartOfWeek()
+      ? getStartOfWeek()
           .toUTC()
           .toISO()
       : DateTime.local()
@@ -92,7 +92,7 @@ export default class ScheduleCalendar extends React.PureComponent {
   handleCalNavigate = nextDate => {
     if (this.props.weekly) {
       this.props.setStart(
-        getLuxonStartOfWeek(nextDate)
+        getStartOfWeek(DateTime.fromJSDate(nextDate))
           .toUTC()
           .toISO(),
       )
@@ -129,7 +129,7 @@ export default class ScheduleCalendar extends React.PureComponent {
     if (nextView === 'week' && prevStartMonth === currMonth) {
       this.props.setWeekly(true)
       this.props.setStart(
-        getLuxonStartOfWeek()
+        getStartOfWeek()
           .toUTC()
           .toISO(),
       )
@@ -152,7 +152,7 @@ export default class ScheduleCalendar extends React.PureComponent {
       this.props.setWeekly(false)
 
       this.props.setStart(
-        getLuxonEndOfWeek(new Date(start))
+        getEndOfWeek(DateTime.fromJSDate(new Date(start)))
           .toLocal()
           .startOf('month')
           .toUTC()
