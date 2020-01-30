@@ -7,7 +7,3 @@ update_configs:
       - match:
           dependency_name: "@date-io/luxon"
           version_requirement: "<=2.0.1"
-
-  - package_manager: "go:modules"
-    directory: "/"
-    update_schedule: "daily"
