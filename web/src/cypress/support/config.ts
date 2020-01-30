@@ -19,6 +19,7 @@ interface ConfigInput {
     PublicURL?: String
     DisableLabelCreation?: Boolean
     NotificationDisclaimer?: string
+    DisableCalendarSubscriptions?: Boolean
   }
   Auth?: {
     RefererURLs?: [String]
