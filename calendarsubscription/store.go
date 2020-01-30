@@ -180,7 +180,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 	}
 
 	if isCreationDisabled(ctx) {
-		return nil, validation.NewGenericError("creation disabled by administrator")
+		return nil, validation.NewGenericError("disabled by administrator")
 	}
 
 	n, err := cs.Normalize()
