@@ -89,7 +89,7 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 	}, p.Err
 }
 
-func isCreationDisabled (ctx context.Context) bool {
+func isCreationDisabled(ctx context.Context) bool {
 	cfg := config.FromContext(ctx)
 	return cfg.General.DisableCalendarSubscriptions
 }

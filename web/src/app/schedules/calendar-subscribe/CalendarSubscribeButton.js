@@ -6,7 +6,7 @@ import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/react-hooks'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
-import {useConfigValue, useSessionInfo} from '../../util/RequireConfig'
+import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash-es'
 import { useSelector } from 'react-redux'
 import { absURLSelector } from '../../selectors'
@@ -21,7 +21,9 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export default function CalendarSubscribeButton(props) {
-  const [creationDisabled] = useConfigValue('General.DisableCalendarSubscriptions')
+  const [creationDisabled] = useConfigValue(
+    'General.DisableCalendarSubscriptions',
+  )
 
   const absURL = useSelector(absURLSelector)
   const [showDialog, setShowDialog] = useState(false)
@@ -45,7 +47,8 @@ export default function CalendarSubscribeButton(props) {
       numSubs > 1 ? 's' : ''
     } for this schedule`
   } else if (creationDisabled) {
-    caption = 'Creating subscriptions is currently disabled by your administrator'
+    caption =
+      'Creating subscriptions is currently disabled by your administrator'
   }
 
   return (

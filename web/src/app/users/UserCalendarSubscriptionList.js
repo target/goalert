@@ -18,7 +18,7 @@ import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
 import { useSelector } from 'react-redux'
 import { absURLSelector } from '../selectors'
-import {useConfigValue} from "../util/RequireConfig"
+import { useConfigValue } from '../util/RequireConfig'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -41,7 +41,9 @@ export const calendarSubscriptionsQuery = gql`
 
 export default function UserCalendarSubscriptionList(props) {
   const absURL = useSelector(absURLSelector)
-  const [creationDisabled] = useConfigValue('General.DisableCalendarSubscriptions')
+  const [creationDisabled] = useConfigValue(
+    'General.DisableCalendarSubscriptions',
+  )
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
@@ -108,7 +110,11 @@ export default function UserCalendarSubscriptionList(props) {
 
   return (
     <React.Fragment>
-      <Alert data-cy='subs-disabled-warning' severity="warning" style={{ marginBottom: '1em' }}>
+      <Alert
+        data-cy='subs-disabled-warning'
+        severity='warning'
+        style={{ marginBottom: '1em' }}
+      >
         Calendar subscriptions are currently disabled by your administrator
       </Alert>
       <Card>
