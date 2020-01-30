@@ -12,7 +12,7 @@ import (
 func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	src := permission.Source(ctx)
-	if src.Type != permission.SourceTypeCalendarSubscription {
+	if src.Type != permission.SourceTypeCalendarSubscription || isCreationDisabled(ctx) {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}
