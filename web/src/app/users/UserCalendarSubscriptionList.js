@@ -3,8 +3,8 @@ import { PropTypes as p } from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
 import { Link } from 'react-router-dom'
-import { Card, Snackbar } from '@material-ui/core'
-import { Alert as MuiAlert } from '@material-ui/lab'
+import { Card } from '@material-ui/core'
+import { Alert } from '@material-ui/lab'
 import FlatList from '../lists/FlatList'
 import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
@@ -39,14 +39,9 @@ export const calendarSubscriptionsQuery = gql`
   }
 `
 
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />
-}
-
 export default function UserCalendarSubscriptionList(props) {
   const absURL = useSelector(absURLSelector)
   const [creationDisabled] = useConfigValue('General.DisableCalendarSubscriptions')
-  const [showWarning, setShowWarning] = useState(creationDisabled)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
@@ -111,12 +106,11 @@ export default function UserCalendarSubscriptionList(props) {
     )
   }
 
-  function handleWarningClose () {
-    return setShowWarning(false)
-  }
-
   return (
     <React.Fragment>
+      <Alert data-cy='subs-disabled-warning' severity="warning" style={{ marginBottom: '1em' }}>
+        Calendar subscriptions are currently disabled by your administrator
+      </Alert>
       <Card>
         <FlatList
           data-cy='calendar-subscriptions'
@@ -126,25 +120,6 @@ export default function UserCalendarSubscriptionList(props) {
           inset
         />
       </Card>
-      {creationDisabled && (
-        <Snackbar
-          open={showWarning}
-          onClose={handleWarningClose}
-          ClickAwayListenerProps={{
-            // force manual closing of snackbar
-            mouseEvent: false,
-            touchEvent: false,
-          }}
-          anchorOrigin={{
-            horizontal: 'center',
-            vertical: 'top',
-          }}
-        >
-          <Alert onClose={handleWarningClose} severity="warning">
-            Calendar subscriptions are currently disabled by your administrator
-          </Alert>
-        </Snackbar>
-      )}
       {!creationDisabled && (
         <CreateFAB
           title='Create Subscription'
