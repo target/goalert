@@ -10,7 +10,3 @@ update_configs:
       - match:
           dependency_name: "react-infinite-scroll-component"
           version_requirement: "<=5.0.3"
-
-  - package_manager: "go:modules"
-    directory: "/"
-    update_schedule: "daily"
