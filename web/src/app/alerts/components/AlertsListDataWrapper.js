@@ -5,7 +5,6 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import Typography from '@material-ui/core/Typography'
-import { DateTime } from 'luxon'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
@@ -13,6 +12,7 @@ import { setCheckedAlerts } from '../../actions'
 import { bindActionCreators } from 'redux'
 import statusStyles from '../../util/statusStyles'
 import { alertFilterSelector } from '../../selectors'
+import { formatTimeSince } from '../../util/timeFormat'
 
 const styles = {
   checkBox: {
@@ -134,9 +134,7 @@ export default class AlertsListDataWrapper extends Component {
         <ListItemSecondaryAction>
           <ListItemText disableTypography>
             <Typography variant='caption'>
-              {DateTime.fromISO(alert.created_at)
-                .toLocal()
-                .toRelative({ style: 'narrow' })}
+              {formatTimeSince(alert.created_at)}
             </Typography>
           </ListItemText>
         </ListItemSecondaryAction>
