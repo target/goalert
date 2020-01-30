@@ -25,7 +25,7 @@ LD_FLAGS+=-X github.com/target/goalert/version.gitTreeState=$(GIT_TREE)
 LD_FLAGS+=-X github.com/target/goalert/version.buildDate=$(BUILD_DATE)
 
 export CY_ACTION = open
-export CY_BROWSER = chrome
+# export CY_BROWSER = chrome
 export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
 
 ifdef LOG_DIR
