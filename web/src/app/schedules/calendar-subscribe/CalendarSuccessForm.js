@@ -32,7 +32,7 @@ export default function CalenderSuccessForm(props) {
         <Button
           color='primary'
           variant='contained'
-          href={'webcal://' + url}
+          href={url}
           target='_blank'
           rel='noopener noreferrer'
         >
