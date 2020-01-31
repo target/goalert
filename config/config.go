@@ -206,6 +206,50 @@ func validateEnable(prefix string, isEnabled bool, vals ...string) error {
 	return err
 }
 
+func validateScopes(item, value string) error {
+	var err error
+
+	if strings.HasPrefix(value, " ") {
+		err = validate.Many(err, validation.NewFieldError(item, "starts with extra space"))
+	}
+
+	if strings.HasSuffix(value, " ") {
+		err = validate.Many(err, validation.NewFieldError(item, "ends with extra space"))
+	}
+
+	value = strings.TrimSpace(value)
+
+	if strings.Contains(value, "  ") {
+		err = validate.Many(err, validation.NewFieldError(item, "has double spaces"))
+	}
+
+	names := map[string]int{}
+
+	for _, name := range strings.Split(value, " ") {
+		if name == "" {
+			continue
+		}
+
+		if _, ok := names[name]; ok {
+			names[name]++
+		} else {
+			names[name] = 1
+		}
+	}
+
+	if _, ok := names["openid"]; !ok {
+		err = validate.Many(err, validation.NewFieldError(item, "does not contain required \"openid\" scope"))
+	}
+
+	for name, count := range names {
+		if count > 1 {
+			err = validate.Many(err, validation.NewFieldError(item, fmt.Sprintf("contains %q %d times", name, count)))
+		}
+	}
+
+	return err
+}
+
 // Validate will check that the Config values are valid.
 func (cfg Config) Validate() error {
 	var err error
@@ -234,6 +278,9 @@ func (cfg Config) Validate() error {
 
 	if cfg.OIDC.IssuerURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("OIDC.IssuerURL", cfg.OIDC.IssuerURL))
+	}
+	if cfg.OIDC.Scopes != "" {
+		err = validate.Many(err, validateScopes("OIDC.Scopes", cfg.OIDC.Scopes))
 	}
 	if cfg.GitHub.EnterpriseURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("GitHub.EnterpriseURL", cfg.GitHub.EnterpriseURL))
