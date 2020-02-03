@@ -72,10 +72,6 @@ func (h *Harness) SetSystemLimit(id limit.ID, value int) {
 		SET max = %d
 		WHERE id='%s'; 
 	`, value, id))
-
-	// wait for engine cycle to complete to ensure next action
-	// uses new config only
-	h.Trigger()
 }
 
 // GraphQLQueryT will perform a GraphQL query against the backend, internally
