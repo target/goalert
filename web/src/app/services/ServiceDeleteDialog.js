@@ -7,6 +7,7 @@ import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
+import Typography from '@material-ui/core/Typography'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 import _ from 'lodash-es'
@@ -80,16 +81,16 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
       id: epID,
     })
   }
-
+  
   return (
     <FormDialog
       title='Are you sure?'
       confirm
       subTitle={
-        <React.Fragment>
+        <Typography>
           This will delete the service:{' '}
           {_.get(data, 'service.name', <Spinner text='loading...' />)}
-        </React.Fragment>
+        </Typography>
       }
       caption='Deleting a service will also delete all associated integration keys and alerts.'
       loading={deleteServiceStatus.loading || dataStatus.loading}
