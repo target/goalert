@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
@@ -45,14 +46,12 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 		oc:   oc,
 
 		now: p.P(`SELECT now()`),
-
 		authUser: p.P(`
 			UPDATE user_calendar_subscriptions
 			SET last_access = now()
 			WHERE NOT disabled AND id = $1 AND date_trunc('second', created_at) = $2
 			RETURNING user_id
 		`),
-
 		findOne: p.P(`
 			SELECT
 				id, name, user_id, disabled, schedule_id, config, last_access
@@ -173,6 +172,11 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 	err := permission.LimitCheckAny(ctx, permission.MatchUser(cs.UserID))
 	if err != nil {
 		return nil, err
+	}
+
+	cfg := config.FromContext(ctx)
+	if cfg.General.DisableCalendarSubscriptions {
+		return nil, validation.NewGenericError("disabled by administrator")
 	}
 
 	n, err := cs.Normalize()
