@@ -102,11 +102,6 @@ function resetCalendarSubscriptions(userID?: string): Cypress.Chainable<void> {
   }
 
   return cy
-    .setConfig({
-      General: {
-        DisableCalendarSubscriptions: false,
-      },
-    })
     .then(() => {
       const dbQuery = `delete from user_calendar_subscriptions where user_id = '${userID}'`
       return cy.sql(dbQuery)
