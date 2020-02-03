@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/smoketest/harness"
 )
@@ -21,24 +22,18 @@ func TestSystemLimits(t *testing.T) {
 		values
 			({{uuid "cm_user"}}, 'CM User'),
 			({{uuid "nr_user"}}, 'NR User'),
-			({{uuid "ep_act_user1"}}, 'Step 1'),
-			({{uuid "ep_act_user2"}}, 'Step 2'),
-			({{uuid "ep_act_user3"}}, 'Step 3'),
-			({{uuid "ep_act_user4"}}, 'Step 4'),
-			({{uuid "rotation_user1"}}, 'Rot User1'),
-			({{uuid "rotation_user2"}}, 'Rot User2'),
-			({{uuid "rotation_user3"}}, 'Rot User3'),
-			({{uuid "rotation_user4"}}, 'Rot User4'),
-			({{uuid "rule_user"}}, 'Sched Rule User'),
-			({{uuid "tgt_user1"}}, 'Target 1'),
-			({{uuid "tgt_user2"}}, 'Target 2'),
-			({{uuid "tgt_user3"}}, 'Target 3'),
-			({{uuid "tgt_user4"}}, 'Target 4');
+			({{uuid "generic_user1"}}, 'User 1'),
+			({{uuid "generic_user2"}}, 'User 2'),
+			({{uuid "generic_user3"}}, 'User 3'),
+			({{uuid "generic_user4"}}, 'User 4'),
+			({{uuid "generic_user5"}}, 'User 5');
 		
 		insert into schedules (id, name, time_zone)
 		values
-			({{uuid "rule_sched"}}, 'Rule Test', 'UTC');
-		
+			({{uuid "rule_sched"}}, 'Rule Test', 'UTC'),
+			({{uuid "tgt_sched"}}, 'Target Test', 'UTC'),
+			({{uuid "override_sched"}}, 'Override Test', 'UTC');
+
 		insert into rotations (id, name, type, time_zone)
 		values
 			({{uuid "part_rot"}}, 'Part Rotation', 'daily', 'UTC');
@@ -46,7 +41,7 @@ func TestSystemLimits(t *testing.T) {
 		insert into user_contact_methods (id, user_id, name, type, value)
 		values
 			({{uuid "nr_cm"}}, {{uuid "nr_user"}}, 'Test', 'SMS', {{phone "nr"}});
-		
+
 		insert into escalation_policies (id, name)
 		values
 			({{uuid "unack_ep1"}}, 'Unack Test 1'),
@@ -54,17 +49,12 @@ func TestSystemLimits(t *testing.T) {
 			({{uuid "int_key_ep"}}, 'Int Key Test'),
 			({{uuid "hb_ep"}}, 'Heartbeat Test'),
 			({{uuid "step_ep"}}, 'Step Test'),
-			({{uuid "act_ep"}}, 'Action Test'),
-			({{uuid "act_ep2"}}, 'Action Test 2');
+			({{uuid "act_ep"}}, 'Action Test');
 
 		insert into escalation_policy_steps (id, escalation_policy_id, delay)
 		values
-			({{uuid "act_ep_step"}}, {{uuid "act_ep"}}, 15),
-			({{uuid "act_ep_step2"}}, {{uuid "act_ep2"}}, 15),
-			({{uuid "ep_step1"}}, {{uuid "step_ep"}}, 15),
-			({{uuid "ep_step2"}}, {{uuid "step_ep"}}, 15),
-			({{uuid "ep_step3"}}, {{uuid "step_ep"}}, 15),
-			({{uuid "ep_step4"}}, {{uuid "step_ep"}}, 15);
+			({{uuid "act_ep_step"}}, {{uuid "act_ep"}}, 1);
+
 		
 		insert into services (id, name, escalation_policy_id)
 		values
@@ -98,17 +88,16 @@ func TestSystemLimits(t *testing.T) {
 		return "", false
 	}
 
-	doQLErr := func(t *testing.T, query string, getID idParser) (string, string) {
+	doQL := func(t *testing.T, query string) (string, string) {
+		t.Helper()
 		g := h.GraphQLQuery2(query)
-		errs := len(g.Errors)
-		if errs > 1 {
+		if len(g.Errors) > 1 {
 			for _, err := range g.Errors {
 				t.Logf(err.Message)
 			}
 			t.Fatalf("got %d errors; want 0 or 1", len(g.Errors))
 		}
 		if len(g.Errors) == 0 {
-
 			var m map[string]interface{}
 
 			err := json.Unmarshal(g.Data, &m)
@@ -122,276 +111,234 @@ func TestSystemLimits(t *testing.T) {
 		return "", g.Errors[0].Message
 	}
 
-	doTest := func(limitID limit.ID, expErrMsg string, addQuery func(int) string, delQuery func(int, string) string, parseID idParser, isMultiInsert bool) {
-		if parseID == nil {
-			parseID = getID
-		}
+	doQuery := func(t *testing.T, query string) string {
+		id, errMsg := doQL(t, query)
+		assert.Empty(t, errMsg, "error message")
+		return id
+	}
+	doQueryExpectError := func(t *testing.T, query, expErr string) {
+		_, errMsg := doQL(t, query)
+		assert.Contains(t, errMsg, expErr, "error message")
+	}
+
+	checkMultiInsert := func(limitID limit.ID, expErrMsg string, addQuery func(num int) string) {
+		t.Run(string(limitID), func(t *testing.T) {
+			doQuery(t, addQuery(4))
+			h.SetSystemLimit(limitID, 2)
+			doQueryExpectError(t, addQuery(5), expErrMsg)
+			doQuery(t, addQuery(3)) // 4->3 should work
+			doQuery(t, addQuery(2))
+			doQueryExpectError(t, addQuery(3), expErrMsg) // 2->3 should fail
+			h.SetSystemLimit(limitID, -1)
+			doQuery(t, addQuery(4))
+		})
+	}
+
+	checkSingleInsert := func(limitID limit.ID, expErrMsg string, addQuery func(index int) string, delQuery func(ids []string) string) {
 		t.Run(string(limitID), func(t *testing.T) {
 			/*
 				Sequence:
-				1. create 3
+				1. create 4
 				2. set limit to 2
 				3. create (should fail)
-				4. delete x2
+				4. delete x3
 				5. create (should work)
 				6. create (should fail)
 				7. set limit to -1
 				8. create (should work)
 			*/
-			noErr := func(id, res string) string {
-				t.Helper()
-				if res == "" {
-					return id
-				}
-				t.Fatalf("got err='%s'; want nil", res)
-				panic("test did not abort")
-			}
-			mustErr := func(id, res string) {
-				t.Helper()
-				if !strings.Contains(res, expErrMsg) {
-					t.Fatalf("err='%s'; want substring '%s'", res, expErrMsg)
-				}
-			}
-			setLimit := func(max int) {
-				t.Helper()
-				h.SetSystemLimit(limitID, max)
-			}
 
-			if isMultiInsert {
-				noErr(doQLErr(t, addQuery(3), parseID))
-				setLimit(2)
-				mustErr(doQLErr(t, addQuery(4), parseID))
-				noErr(doQLErr(t, addQuery(1), parseID))
-				noErr(doQLErr(t, addQuery(2), parseID))
-				mustErr(doQLErr(t, addQuery(3), parseID))
-				setLimit(-1)
-				noErr(doQLErr(t, addQuery(4), parseID))
-				return
+			ids := []string{ // create 4
+				doQuery(t, addQuery(0)),
+				doQuery(t, addQuery(1)),
+				doQuery(t, addQuery(2)),
+				doQuery(t, addQuery(3)),
 			}
+			h.SetSystemLimit(limitID, 2)
+			doQueryExpectError(t, addQuery(4), expErrMsg) // create should fail
+			doQuery(t, delQuery(ids))
+			ids = ids[1:] // delQuery should always remove the first ID in the list
+			doQuery(t, delQuery(ids))
+			ids = ids[1:]
+			doQuery(t, delQuery(ids))
+			ids = ids[1:]
 
-			ids := []string{ // create 3
-				noErr(doQLErr(t, addQuery(1), parseID)),
-				noErr(doQLErr(t, addQuery(2), parseID)),
-				noErr(doQLErr(t, addQuery(3), parseID)),
-			}
-			setLimit(2)                                     // set limit to 2
-			mustErr(doQLErr(t, addQuery(4), parseID))       // create should fail
-			noErr(doQLErr(t, delQuery(2, ids[2]), parseID)) // delete 2
-			noErr(doQLErr(t, delQuery(1, ids[1]), parseID))
+			doQuery(t, addQuery(0))                       // should be able to create 1 more
+			doQueryExpectError(t, addQuery(1), expErrMsg) // but only one
 
-			noErr(doQLErr(t, addQuery(2), parseID))   // should be able to create 1 more
-			mustErr(doQLErr(t, addQuery(3), parseID)) // but only one
+			h.SetSystemLimit(limitID, -1)
 
-			setLimit(-1)
-
-			noErr(doQLErr(t, addQuery(3), parseID)) // no more limit
+			doQuery(t, addQuery(1)) // no more limit
 		})
 	}
 
+	userIDs := []string{h.UUID("generic_user1"), h.UUID("generic_user2"), h.UUID("generic_user3"), h.UUID("generic_user4"), h.UUID("generic_user5")}
 	var n int
-	name := func() string {
+	uniqName := func() string {
 		n++
 		return fmt.Sprintf("Thing %d", n)
 	}
+	s := time.Now().AddDate(1, 0, 0)
+	uniqTime := func() time.Time {
+		s = s.AddDate(0, 0, 1)
+		return s
+	}
+	mapIDs := func(ids []string, fn func(string) string) string {
+		if fn == nil {
+			// default wrap in quotes
+			fn = func(id string) string { return `"` + id + `"` }
+		}
+		res := make([]string, len(ids))
+		for i, id := range ids {
+			res[i] = fn(id)
+		}
+		return strings.Join(res, ",")
+	}
 
-	doTest(
+	checkSingleInsert(
 		limit.ContactMethodsPerUser,
 		"contact methods",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createUserContactMethod(input:{type: SMS, name: "%s", value: "%s", userID: "%s"}){id}}`, name(), h.Phone(""), h.UUID("cm_user"))
+			return fmt.Sprintf(`mutation{createUserContactMethod(input:{type: SMS, name: "%s", value: "%s", userID: "%s"}){id}}`, uniqName(), h.Phone(""), h.UUID("cm_user"))
 		},
-		func(_ int, id string) string {
-			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: contactMethod}])}`, id)
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: contactMethod}])}`, ids[0])
 		},
-		nil,
-		false,
 	)
 
 	nrDelay := 0
-	doTest(
+	checkSingleInsert(
 		limit.NotificationRulesPerUser,
 		"notification rules",
 		func(int) string {
 			nrDelay++
 			return fmt.Sprintf(`mutation{createUserNotificationRule(input:{contactMethodID: "%s", delayMinutes: %d, userID: "%s"}){id}}`, h.UUID("nr_cm"), nrDelay, h.UUID("nr_user"))
 		},
-		func(_ int, id string) string {
-			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: notificationRule}])}`, id)
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: notificationRule}])}`, ids[0])
 		},
-		nil,
-		false,
 	)
 
-	doTest(
+	checkSingleInsert(
 		limit.EPStepsPerPolicy,
 		"steps",
-		func(numToAdd int) string {
-			stepsToAdd := `[`
-			for i := 0; i < numToAdd; i++ {
-				stepsToAdd += "{delayMinutes: 5}"
-				if i != numToAdd-1 {
-					stepsToAdd += ", "
-				}
-			}
-			stepsToAdd += "]"
-
-			return fmt.Sprintf(`mutation{createEscalationPolicy(input:{name: "%s", steps: %s}){id}}`, name(), stepsToAdd)
+		func(int) string {
+			return fmt.Sprintf(`mutation{createEscalationPolicyStep(input:{escalationPolicyID: "%s", delayMinutes: 1}){id}}`, h.UUID("step_ep"))
 		},
-		func(_ int, id string) string {
-			return "unused function stub"
-		},
-		nil,
-		true,
-	)
-
-	doTest(
-		limit.EPActionsPerStep,
-		"actions",
-		func(numToAdd int) string {
-			usersToAdd := `[`
-			for i := 0; i < numToAdd; i++ {
-				usersToAdd += fmt.Sprintf(`{id:"%s", type:user}`, h.UUID(fmt.Sprintf("ep_act_user%d", i+1)))
-				if i != numToAdd-1 {
-					usersToAdd += ", "
-				}
-			}
-			usersToAdd += "]"
-
-			return fmt.Sprintf(`mutation{updateEscalationPolicyStep(input:{id:"%s", targets: %s})}`,
-				h.UUID("act_ep_step"),
-				usersToAdd,
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{updateEscalationPolicy(input: {id: "%s", stepIDs: [%s]})}`,
+				h.UUID("step_ep"),
+				mapIDs(ids[1:], nil),
 			)
 		},
-		func(_ int, id string) string {
-			return "unused function stub"
-		},
-		nil,
-		true,
 	)
 
-	rotationUsersList := [4]string{h.UUID("rotation_user1"), h.UUID("rotation_user2"), h.UUID("rotation_user3"), h.UUID("rotation_user4")}
-	doTest(
+	checkMultiInsert(
+		limit.EPActionsPerStep,
+		"actions",
+		func(num int) string {
+			return fmt.Sprintf(`mutation{updateEscalationPolicyStep(input:{id:"%s", targets: [%s]})}`,
+				h.UUID("act_ep_step"),
+				mapIDs(userIDs[:num], func(id string) string { return fmt.Sprintf(`{type: user, id: "%s"}`, id) }),
+			)
+		},
+	)
+
+	checkMultiInsert(
 		limit.ParticipantsPerRotation,
 		"participants",
-		func(numToAdd int) string {
-			usersToAdd := rotationUsersList[:numToAdd]
-			return fmt.Sprintf(`mutation{updateRotation(input:{id: "%s", userIDs: ["%s"]})}`, h.UUID("part_rot"), strings.Join(usersToAdd, `", "`))
+		func(num int) string {
+			return fmt.Sprintf(`mutation{updateRotation(input:{id: "%s", userIDs: [%s]})}`, h.UUID("part_rot"), mapIDs(userIDs[:num], nil))
 		},
-		func(_ int, id string) string {
-			return "unused function stub"
-		},
-		nil,
-		true,
 	)
 
-	doTest(
+	checkSingleInsert(
 		limit.IntegrationKeysPerService,
 		"integration keys",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createIntegrationKey(input:{serviceID: "%s", type: generic, name:"%s"}){id}}`, h.UUID("int_key_svc"), name())
+			return fmt.Sprintf(`mutation{createIntegrationKey(input:{serviceID: "%s", type: generic, name:"%s"}){id}}`, h.UUID("int_key_svc"), uniqName())
 		},
-		func(_ int, id string) string {
-			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: integrationKey}])}`, id)
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: integrationKey}])}`, ids[0])
 		},
-		nil,
-		false,
 	)
 
-	doTest(
+	checkSingleInsert(
 		limit.HeartbeatMonitorsPerService,
 		"heartbeat monitors",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createHeartbeatMonitor(input:{serviceID: "%s", name: "%s", timeoutMinutes: 5 }){id}}`, h.UUID("hb_svc"), name())
+			return fmt.Sprintf(`mutation{createHeartbeatMonitor(input:{serviceID: "%s", name: "%s", timeoutMinutes: 5 }){id}}`, h.UUID("hb_svc"), uniqName())
 		},
-		func(_ int, id string) string {
-			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: heartbeatMonitor}])}`, id)
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: heartbeatMonitor}])}`, ids[0])
 		},
-		nil,
-		false,
 	)
 
-	s := time.Date(2005, 0, 0, 0, 0, 0, 0, time.UTC)
-	startTime := func() string {
-		s = s.Add(time.Minute)
-		return s.Format("15:04")
-	}
-	doTest(
+	checkMultiInsert(
 		limit.RulesPerSchedule,
 		"rules",
-		func(numToAdd int) string {
-
-			rulesToAdd := ``
-			for i := 0; i < numToAdd; i++ {
-				rulesToAdd += fmt.Sprintf("{ start: \"%s\" }", startTime())
-				if i != numToAdd-1 {
-					rulesToAdd += ", "
-				}
-			}
-
-			return fmt.Sprintf(`mutation{createSchedule(input:{name: "%s", description: "test rules per sched", favorite: true, timeZone: "America/Chicago", targets: [{scheduleID: "%s", target: {id: "%s", type: user}, rules: [%s]}]  }){id}}`,
-				name(),
+		func(num int) string {
+			toAdd := make([]string, num)
+			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "%s", target: {id: "%s", type: user}, rules: [%s]})}`,
 				h.UUID("rule_sched"),
-				h.UUID(fmt.Sprintf("rule_user")),
-				rulesToAdd,
+				userIDs[0],
+				mapIDs(toAdd, func(string) string {
+					return `{}`
+				}),
 			)
 		},
-		func(_ int, id string) string {
-			return "unused function stub"
-		},
-		nil,
-		true,
 	)
 
-	doTest(
+	checkSingleInsert(
 		limit.TargetsPerSchedule,
 		"targets",
-		func(numToAdd int) string {
+		func(index int) string {
+			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "%s", target:{type:user, id: "%s"}, rules: [{}]})}`, h.UUID("tgt_sched"), userIDs[index])
+		},
+		func(ids []string) string {
+			// can't use IDs since the update mutation won't return a usable ID so they will all be blank
+			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "%s", target:{type:user, id: "%s"}, rules: []})}`, h.UUID("tgt_sched"), userIDs[4-len(ids)])
+		},
+	)
 
-			usersToAdd := `[`
-			for i := 0; i < numToAdd; i++ {
-				usersToAdd += fmt.Sprintf(`{target: {id: "%s", type: user}, rules: [{}]}`, h.UUID(fmt.Sprintf("tgt_user%d", i+1)))
-				if i != numToAdd-1 {
-					usersToAdd += ", "
-				}
-			}
-			usersToAdd += "]"
+	// ack
+	checkSingleInsert(
+		limit.UnackedAlertsPerService,
+		"unacknowledged alerts",
+		func(int) string {
+			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc1"), uniqName())
+		},
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusAcknowledged}){id}}`, ids[0])
+		},
+	)
 
-			return fmt.Sprintf(`mutation{createSchedule(input:{name: "%s", description: "test tgts per sched", favorite: true, timeZone: "America/Chicago", targets: %s}){id}}`,
-				name(),
-				usersToAdd,
+	// close
+	checkSingleInsert(
+		limit.UnackedAlertsPerService,
+		"unacknowledged alerts",
+		func(int) string {
+			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc2"), uniqName())
+		},
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusClosed}){id}}`, ids[0])
+		},
+	)
+
+	checkSingleInsert(
+		limit.UserOverridesPerSchedule,
+		"overrides",
+		func(int) string {
+			return fmt.Sprintf(`mutation{createUserOverride(input:{scheduleID: "%s", addUserID: "%s", start: "%s", end: "%s"}){id}}`,
+				h.UUID("override_sched"),
+				userIDs[0],
+				uniqTime().Format(time.RFC3339),
+				uniqTime().Format(time.RFC3339),
 			)
 		},
-		func(_ int, id string) string {
-			return "unused function stub"
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input:[{type: userOverride, id: "%s"}])}`, ids[0])
 		},
-		nil,
-		true,
-	)
-
-	doTest(
-		limit.UnackedAlertsPerService,
-		"unacknowledged alerts",
-		func(int) string {
-			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc1"), name())
-		},
-		func(_ int, id string) string {
-			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusAcknowledged}){id}}`, id)
-		},
-		nil,
-		false,
-	)
-
-	doTest(
-		limit.UnackedAlertsPerService,
-		"unacknowledged alerts",
-		func(int) string {
-			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc2"), name())
-		},
-		func(_ int, id string) string {
-			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusClosed}){id}}`, id)
-		},
-		nil,
-		false,
 	)
 
 }
