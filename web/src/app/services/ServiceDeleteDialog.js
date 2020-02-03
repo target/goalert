@@ -81,7 +81,7 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
       id: epID,
     })
   }
-  
+
   return (
     <FormDialog
       title='Are you sure?'
