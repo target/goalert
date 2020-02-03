@@ -110,13 +110,13 @@ export default function UserCalendarSubscriptionList(props) {
 
   return (
     <React.Fragment>
-      <Alert
+      {creationDisabled && (<Alert
         data-cy='subs-disabled-warning'
         severity='warning'
         style={{ marginBottom: '1em' }}
       >
         Calendar subscriptions are currently disabled by your administrator
-      </Alert>
+      </Alert>)}
       <Card>
         <FlatList
           data-cy='calendar-subscriptions'
