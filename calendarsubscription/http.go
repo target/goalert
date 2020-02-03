@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/target/goalert/config"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 )
@@ -12,7 +14,8 @@ import (
 func (s *Store) ServeICalData(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	src := permission.Source(ctx)
-	if src.Type != permission.SourceTypeCalendarSubscription || isCreationDisabled(ctx) {
+	cfg := config.FromContext(ctx)
+	if src.Type != permission.SourceTypeCalendarSubscription || cfg.General.DisableCalendarSubscriptions {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}

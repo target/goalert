@@ -89,11 +89,6 @@ func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc on
 	}, p.Err
 }
 
-func isCreationDisabled(ctx context.Context) bool {
-	cfg := config.FromContext(ctx)
-	return cfg.General.DisableCalendarSubscriptions
-}
-
 func wrapTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	if tx == nil {
 		return stmt
@@ -179,7 +174,8 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 		return nil, err
 	}
 
-	if isCreationDisabled(ctx) {
+	cfg := config.FromContext(ctx)
+	if cfg.General.DisableCalendarSubscriptions {
 		return nil, validation.NewGenericError("disabled by administrator")
 	}
 
