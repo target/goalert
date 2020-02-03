@@ -42,7 +42,6 @@ const styles = theme => {
 }
 
 @withStyles(styles)
-@withMobileDialog()
 @withWidth()
 @gracefulUnmount()
 export default class FormDialog extends React.PureComponent {
