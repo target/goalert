@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"github.com/target/goalert/config"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/target/goalert/config"
+
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"

@@ -3,11 +3,12 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/target/goalert/smoketest/harness"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/target/goalert/smoketest/harness"
 )
 
 func TestCalendarSubscription(t *testing.T) {
