@@ -132,7 +132,7 @@ func TestSystemLimits(t *testing.T) {
 				5. update to 2 (should work)
 				6. update to 3 (should fail)
 				7. set limit to -1
-				8. update to 4 (should fail)
+				8. update to 4 (should work)
 			*/
 			doQuery(t, addQuery(4))
 			h.SetSystemLimit(limitID, 2)
@@ -172,7 +172,6 @@ func TestSystemLimits(t *testing.T) {
 			doQuery(t, delQuery(ids))
 			ids = ids[1:]
 			doQuery(t, delQuery(ids))
-			ids = ids[1:]
 
 			doQuery(t, addQuery(0))                       // should be able to create 1 more
 			doQueryExpectError(t, addQuery(1), expErrMsg) // but only one

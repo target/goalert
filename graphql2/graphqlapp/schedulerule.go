@@ -79,7 +79,10 @@ func (m *Mutation) UpdateScheduleTarget(ctx context.Context, input graphql2.Sche
 			for i, r := range rules[len(input.Rules):] {
 				toDelete[i] = r.ID
 			}
-			errors.Wrap(m.RuleStore.DeleteManyTx(ctx, tx, toDelete), "delete old rules")
+			err := errors.Wrap(m.RuleStore.DeleteManyTx(ctx, tx, toDelete), "delete old rules")
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
