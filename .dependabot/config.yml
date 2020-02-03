@@ -6,4 +6,4 @@ update_configs:
     ignored_updates:
       - match:
           dependency_name: "@date-io/luxon"
-          version_requirement: "<=2.0.1"
+          version_requirement: "<=2.2.0"
