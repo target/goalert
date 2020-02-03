@@ -123,6 +123,17 @@ func TestSystemLimits(t *testing.T) {
 
 	checkMultiInsert := func(limitID limit.ID, expErrMsg string, addQuery func(num int) string) {
 		t.Run(string(limitID), func(t *testing.T) {
+			/*
+				Sequence:
+				1. update to 4
+				2. set limit to 2
+				3. update to 5 (should fail)
+				4. update to 3 (should work)
+				5. update to 2 (should work)
+				6. update to 3 (should fail)
+				7. set limit to -1
+				8. update to 4 (should fail)
+			*/
 			doQuery(t, addQuery(4))
 			h.SetSystemLimit(limitID, 2)
 			doQueryExpectError(t, addQuery(5), expErrMsg)
