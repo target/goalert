@@ -56,6 +56,7 @@ export default class AdminDialog extends React.PureComponent {
             },
           })
         }
+        primaryActionLabel='Confirm'
         errors={nonFieldErrors(error).concat(
           fieldErrors(error).map(e => ({
             message: `${e.field}: ${e.message}`,
