@@ -17,7 +17,7 @@ const mutation = gql`
   }
 `
 
-export default class AdminConfirmDialog extends React.PureComponent {
+export default class AdminDialog extends React.PureComponent {
   static propTypes = {
     configValues: p.array.isRequired,
     fieldValues: p.object.isRequired,
@@ -46,7 +46,6 @@ export default class AdminConfirmDialog extends React.PureComponent {
 
     return (
       <FormDialog
-        confirm
         disableGutters
         title={`Apply Configuration Change${changes.length > 1 ? 's' : ''}?`}
         onClose={this.props.onClose}
