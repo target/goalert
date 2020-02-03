@@ -99,7 +99,7 @@ export default class CalendarEventWrapper extends Component {
     const { classes, event } = this.props
 
     let overrideCtrls = null
-    if (DateTime.fromJSDate(event.end).toUTC() > DateTime.utc()) {
+    if (DateTime.fromJSDate(event.end) > DateTime.utc()) {
       overrideCtrls = (
         <React.Fragment>
           <Grid item className={classes.buttonContainer}>
