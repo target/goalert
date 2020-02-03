@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/target/goalert/config"
-
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 )

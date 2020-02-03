@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/target/goalert/config"
-
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
