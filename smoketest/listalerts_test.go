@@ -27,12 +27,16 @@ func TestListAlerts(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	resp := h.GraphQLQuery(`
+	resp := h.GraphQLQuery2(`
 		query {
 			alerts {
-				id: _id
-				service_id
-				service {id, name}
+				nodes {
+					id
+					service {
+						id
+						name
+					}
+				}
 			}
 		}
 	`)
@@ -41,9 +45,14 @@ func TestListAlerts(t *testing.T) {
 	}
 
 	var res struct {
-		Alerts []struct {
-			ID      int
-			Service struct{ Name string }
+		Alerts struct {
+			Nodes []struct {
+				ID      int `json:"id,string"`
+				Service struct {
+					ID   string
+					Name string
+				}
+			}
 		}
 	}
 
@@ -52,10 +61,10 @@ func TestListAlerts(t *testing.T) {
 		t.Fatal("failed to parse response:", err)
 	}
 
-	if len(res.Alerts) == 0 {
+	if len(res.Alerts.Nodes) == 0 {
 		t.Error("got 0 alerts; expected at least 1")
 	}
-	for _, a := range res.Alerts {
+	for _, a := range res.Alerts.Nodes {
 		name := "s" + strconv.Itoa(a.ID-1)
 		if a.Service.Name != name {
 			t.Errorf("Alert[%d].Service.Name = %s; want %s", a.ID, a.Service.Name, name)
