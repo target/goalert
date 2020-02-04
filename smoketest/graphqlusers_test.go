@@ -2,9 +2,9 @@ package smoketest
 
 import (
 	"encoding/json"
-	"github.com/target/goalert/smoketest/harness"
-	"github.com/target/goalert/user"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLUsers tests that listing users works properly.
@@ -22,7 +22,7 @@ func TestGraphQLUsers(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -40,19 +40,24 @@ func TestGraphQLUsers(t *testing.T) {
 	}
 
 	var res struct {
-		Users []user.User
+		Users struct {
+			Nodes []struct {
+				ID string `json:"id"`
+			} `json:"nodes"`
+		} `json:"users"`
 	}
+
 	doQL(`
 		query {
-			users {
-				id
-				name
-				role
+			users(first: 100) {
+				nodes {
+					id
+				}
 			}
 		}
 	`, &res)
-	if len(res.Users) != 3 {
+	if len(res.Users.Nodes) != 3 {
 		// 3 because the 'GraphQL User' will be implicitly added.
-		t.Errorf("got %d users; want 3", len(res.Users))
+		t.Errorf("got %d users; want 3", len(res.Users.Nodes))
 	}
 }
