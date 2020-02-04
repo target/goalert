@@ -640,7 +640,7 @@ func (h *Harness) CreateUser() (u *user.User) {
 func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) {
 	h.t.Helper()
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			h.t.Error("GraphQL Error:", err.Message)
 		}
@@ -659,26 +659,26 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	getUsers := func() []string {
 		var result struct {
 			Service struct {
-				OnCall []struct {
-					UserID   string `json:"user_id"`
-					UserName string `json:"user_name"`
-				} `json:"on_call_users"`
+				OnCallUsers []struct {
+					UserID   string `json:"userID"`
+					UserName string `json:"userName"`
+				} `json:"onCallUsers"`
 			}
 		}
 
 		doQL(fmt.Sprintf(`
-			query {
-				service(id: "%s") {
-					on_call_users{
-						user_id
-						user_name
+			query{
+				service(id: "%s"){
+					onCallUsers{
+						userID
+						userName
 					}
 				}
 			}
 		`, serviceID), &result)
 
 		var ids []string
-		for _, oc := range result.Service.OnCall {
+		for _, oc := range result.Service.OnCallUsers {
 			ids = append(ids, oc.UserID)
 		}
 		if len(ids) == 0 {
