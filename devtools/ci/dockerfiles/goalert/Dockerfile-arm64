@@ -1,0 +1,12 @@
+FROM multiarch/qemu-user-static:x86_64-aarch64 AS qemu
+
+FROM scratch AS extract
+ADD bin/goalert-linux-arm64.tgz /files/
+
+FROM arm64v8/alpine
+COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/
+RUN apk --no-cache add tzdata ca-certificates
+ENV GOALERT_LISTEN :8081
+CMD ["/usr/bin/goalert"]
+
+COPY --from=extract /files/goalert/bin/goalert /usr/bin/goalert
