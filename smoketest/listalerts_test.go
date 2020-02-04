@@ -2,9 +2,10 @@ package smoketest
 
 import (
 	"encoding/json"
-	"github.com/target/goalert/smoketest/harness"
 	"strconv"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 func TestListAlerts(t *testing.T) {
