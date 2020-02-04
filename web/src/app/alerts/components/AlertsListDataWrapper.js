@@ -25,6 +25,9 @@ const styles = {
   listItem: {
     width: '100%',
   },
+  summaryText: {
+    marginLeft: '0.5em',
+  },
   ...statusStyles,
 }
 
@@ -145,9 +148,11 @@ export default class AlertsListDataWrapper extends Component {
             {alert.status.toUpperCase()}
           </Typography>
           {onServicePage ? null : (
-            <Typography variant='caption'>{alert.service.name}</Typography>
+            <Typography variant='caption'>
+              {alert.service.name + ':'}
+            </Typography>
           )}
-          <Typography variant='caption' noWrap>
+          <Typography variant='caption' noWrap className={classes.summaryText}>
             {alert.summary}
           </Typography>
         </ListItemText>
