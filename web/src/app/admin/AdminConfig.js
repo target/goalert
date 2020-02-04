@@ -9,7 +9,7 @@ import { chain, startCase, isEmpty } from 'lodash-es'
 import AdminConfigSection from './AdminConfigSection'
 
 import withStyles from '@material-ui/core/styles/withStyles'
-import AdminConfirmDialog from './AdminConfirmDialog'
+import AdminDialog from './AdminDialog'
 import PageActions from '../util/PageActions'
 import { Form } from '../forms'
 import { InputAdornment, TextField } from '@material-ui/core'
@@ -191,7 +191,7 @@ export default class AdminConfig extends React.PureComponent {
           </Button>
         </PageActions>
         {this.state.confirm && (
-          <AdminConfirmDialog
+          <AdminDialog
             configValues={configValues}
             fieldValues={this.state.value}
             onClose={() => this.setState({ confirm: false })}
