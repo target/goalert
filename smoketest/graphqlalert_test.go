@@ -118,43 +118,61 @@ func TestGraphQLAlert(t *testing.T) {
 
 	var sched struct {
 		CreateSchedule struct {
-			ID        string
-			Rotations []struct{ ID string }
+			ID      string
+			Name    string
+			Targets []struct {
+				ScheduleID string
+				Target     struct{ ID string }
+			}
 		}
 	}
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			createSchedule(input:{
-				name: "default",
-				description: "default testing",
-				time_zone: "America/Chicago",
-				default_rotation: {
-					type: daily,
-					start_time: "%s",
-    				shift_length:1,
-  				}
-			}){
+			createSchedule(
+				input: {
+					name: "default"
+					description: "default testing"
+					timeZone: "America/Chicago"
+					targets: {
+						newRotation: {
+							name: "foobar"
+							timeZone: "America/Chicago"
+							start: "%s"
+							type: daily
+						}
+						rules: {
+							start: "00:00"
+							end: "23:00"
+							weekdayFilter: [true, true, true, true, true]
+						}
+					}
+				}
+			) {
 				id
-				rotations {
-					id
+				name
+				targets {
+					scheduleID
+					target {
+						id
+					}
 				}
 			}
 		}
-	
 	`, time.Now().Add(-time.Hour).In(loc).Format(time.RFC3339)), &sched)
 
-	if len(sched.CreateSchedule.Rotations) != 1 {
-		t.Fatal("createSchedule did not create (or did not return) default rotation")
+	if len(sched.CreateSchedule.Targets) != 1 {
+		t.Errorf("got %d schedule targets; want 1", len(sched.CreateSchedule.Targets))
 	}
-	rotID := sched.CreateSchedule.Rotations[0].ID
+
+	rotID := sched.CreateSchedule.Targets[0].Target.ID
 
 	doQL(fmt.Sprintf(`
 		mutation {
 			updateRotation(input:{
 				id: "%s",
 				userIDs: ["%s"]
-			}) {id}
+			})
 		}
 	
 	`, rotID, uid1), nil)
