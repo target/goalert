@@ -3,9 +3,9 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
-	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLUpdateRotation tests that all steps like creating and updating rotations are carried out without any errors.
@@ -23,7 +23,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -42,82 +42,100 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 
 	var sched struct {
 		CreateSchedule struct {
-			ID        string
-			Rotations []struct{ ID string }
+			ID      string
+			Name    string
+			Targets []struct {
+				Target struct {
+					ID string
+				}
+			}
 		}
 	}
 	doQL(fmt.Sprintf(`
 		mutation {
-			createSchedule(input:{
-				name: "default",
-				description: "default testing",
-				time_zone: "America/Chicago",
-				default_rotation: {
-					type: daily,
-					start_time: "%s",
-    				shift_length:1,
-  				}
-			}){
+			createSchedule(
+				input: {
+					name: "default"
+					description: "default testing"
+					timeZone: "America/Chicago"
+					targets: {
+						newRotation: {
+							name: "foobar"
+							timeZone: "America/Chicago"
+							start: "2020-02-04T12:08:25-06:00"
+							type: daily
+						}
+						rules: {
+							start: "00:00"
+							end: "23:00"
+							weekdayFilter: [true, true, true, true, true]
+						}
+					}
+				}
+			) {
 				id
-				rotations {
-					id
+				name
+				targets {
+					target {
+						id
+					}
 				}
 			}
 		}
-	
-	`, time.Now().Format(time.RFC3339)), &sched)
+	`), &sched)
 
-	sID := sched.CreateSchedule.ID
-	var rotation struct {
-		CreateOrUpdateRotation struct {
-			Rotation struct {
-				ID   string
-				Name string
-			}
-		}
-	}
+	rotationID := sched.CreateSchedule.Targets[0].Target.ID
+
 	doQL(fmt.Sprintf(`
 		mutation {
-			createOrUpdateRotation(input:{
+			updateRotation(input:{
 				id: "%s",
-				name: "default",
-				start: "2017-08-15T19:00:00Z",
-				type: daily,
-				shift_length: 2,
-				schedule_id: "%s"
-			}){
-				rotation {
-					id
-					name
-				}
-			}
+				name: "new name",
+			})
 		}
 	
-	`, sched.CreateSchedule.Rotations[0].ID, sID), &rotation)
+	`, rotationID), nil)
 
 	var newSched struct {
 		Schedule struct {
-			Rotations []struct {
-				ShiftLength int `json:"shift_length"`
+			ID      string
+			Name    string
+			Targets []struct {
+				ScheduleID string
+				Target     struct{ ID string }
 			}
 		}
 	}
 	doQL(fmt.Sprintf(`
 		query {
 			schedule(id: "%s") {
-				rotations {
-					id
-					shift_length
+				targets {
+					target {
+						id
+					}
 				}
 			}
 		}
 	
-	`, sID), &newSched)
+	`, sched.CreateSchedule.ID), &newSched)
 
-	if len(newSched.Schedule.Rotations) != 1 {
-		t.Errorf("got %d rotations; want 1", len(newSched.Schedule.Rotations))
+	if len(newSched.Schedule.Targets) != 1 {
+		t.Errorf("got %d rotations; want 1", len(newSched.Schedule.Targets))
 	}
-	if newSched.Schedule.Rotations[0].ShiftLength != 2 {
-		t.Errorf("got shift_length of %d; want 2", newSched.Schedule.Rotations[0].ShiftLength)
+
+	var updatedRotation struct {
+		Rotation struct {
+			Name string
+		}
+	}
+	doQL(fmt.Sprintf(`
+		query{
+		rotation(id: "%s"){
+			name
+		}
+	}`, rotationID), &updatedRotation)
+
+	if updatedRotation.Rotation.Name != "new name" {
+		t.Errorf("got name of %s; want 'new name'", updatedRotation.Rotation.Name)
 	}
 }
