@@ -3,6 +3,8 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -89,6 +91,65 @@ func TestGraphQLAlert(t *testing.T) {
 			}
 		}
 	`, uid2, phone2), &cm2)
+
+	doQL(fmt.Sprintf(`
+		mutation {
+			sendContactMethodVerification(input:{
+				contactMethodID: "%s"
+			})
+		}
+	`, cm1.CreateUserContactMethod.ID), nil)
+
+	doQL(fmt.Sprintf(`
+		mutation {
+			sendContactMethodVerification(input:{
+				contactMethodID: "%s"
+			})
+		}
+	`, cm2.CreateUserContactMethod.ID), nil)
+
+	tw := h.Twilio()
+	d1 := tw.Device(phone1)
+	d2 := tw.Device(phone2)
+
+	msg1 := d1.ExpectSMS("verification")
+	msg2 := d2.ExpectSMS("verification")
+	tw.WaitAndAssert() // wait for code, and ensure no notifications went out
+
+	codeStr1 := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, msg1.Body())
+
+	codeStr2 := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, msg2.Body())
+
+	code1, _ := strconv.Atoi(codeStr1)
+	code2, _ := strconv.Atoi(codeStr2)
+
+	doQL(fmt.Sprintf(`
+		mutation {
+			verifyContactMethod(input:{
+				contactMethodID:  "%s",
+				code: %d
+			})
+		}
+	`, cm1.CreateUserContactMethod.ID, code1), nil)
+
+	doQL(fmt.Sprintf(`
+		mutation {
+			verifyContactMethod(input:{
+				contactMethodID:  "%s",
+				code: %d
+			})
+		}
+	`, cm2.CreateUserContactMethod.ID, code2), nil)
 
 	doQL(fmt.Sprintf(`
 		mutation {
