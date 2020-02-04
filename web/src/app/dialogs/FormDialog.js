@@ -6,7 +6,6 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import Typography from '@material-ui/core/Typography'
-import withMobileDialog from '@material-ui/core/withMobileDialog'
 import { DefaultTransition, FullscreenTransition } from '../util/Transitions'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth/index'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -42,7 +41,6 @@ const styles = theme => {
 }
 
 @withStyles(styles)
-@withMobileDialog()
 @withWidth()
 @gracefulUnmount()
 export default class FormDialog extends React.PureComponent {
