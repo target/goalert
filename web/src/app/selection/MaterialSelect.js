@@ -20,6 +20,14 @@ function valueCheck(props, ...args) {
 
 @withStyles(styles, { withTheme: true })
 export default class MaterialSelect extends Component {
+  constructor(props) {
+    super(props)
+    this.clearButtonRef = React.createRef()
+    this.state = {
+      isCleared: false,
+    }
+  }
+
   static propTypes = {
     multiple: p.bool, // allow selecting multiple values
     required: p.bool,
@@ -44,6 +52,7 @@ export default class MaterialSelect extends Component {
       classes,
       disabled,
       required,
+      onBlur,
 
       label,
       name,
@@ -72,6 +81,7 @@ export default class MaterialSelect extends Component {
       InputLabelProps,
       value: value ? (multiple ? value.join(',') : value.value) : '',
     }
+    const { isCleared } = this.state
 
     return (
       <div
@@ -88,12 +98,27 @@ export default class MaterialSelect extends Component {
           }}
           name={name}
           classes={classes}
-          isClearable={!required}
+          isClearable
           isDisabled={disabled}
           isMulti={multiple}
-          value={value}
+          value={isCleared && required ? { label: '', value: '' } : value}
+          clearButtonRef={this.clearButtonRef}
           components={components}
-          onChange={onChange}
+          onBlur={e => {
+            if (
+              isCleared &&
+              e.relatedTarget !== this.clearButtonRef.current &&
+              required
+            ) {
+              this.setState({ isCleared: false })
+              onChange(value)
+            }
+          }}
+          onChange={val => {
+            if (!required) onChange(val)
+            if (val !== null) onChange(val)
+            else this.setState({ isCleared: true })
+          }}
           textFieldProps={textFieldProps}
           placeholder=''
           {...props}
