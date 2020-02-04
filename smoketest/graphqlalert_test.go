@@ -3,9 +3,10 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLAlert tests that all steps up to, and including, generating
@@ -17,8 +18,8 @@ import (
 // - createSchedule
 // - updateSchedule
 // - addRotationParticipant
-// - createOrUpdateEscalationPolicy
-// - createOrUpdateEscalationPolicyStep
+// - createEscalationPolicy
+// - createEscalationPolicyStep
 // - createService
 // - createAlert
 func TestGraphQLAlert(t *testing.T) {
@@ -39,7 +40,7 @@ func TestGraphQLAlert(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -59,11 +60,15 @@ func TestGraphQLAlert(t *testing.T) {
 	uid1, uid2 := h.UUID("u1"), h.UUID("u2")
 	phone1, phone2 := h.Phone("u1"), h.Phone("u2")
 
-	var cm1, cm2 struct{ CreateContactMethod struct{ ID string } }
+	var cm1, cm2 struct {
+		CreateUserContactMethod struct {
+			ID string `json:"id"`
+		} `json:"createUserContactMethod"`
+	}
 	doQL(fmt.Sprintf(`
 		mutation {
-			createContactMethod(input:{
-				user_id: "%s",
+			createUserContactMethod(input:{
+				userID: "%s",
 				name: "default",
 				type: SMS,
 				value: "%s"
@@ -74,8 +79,8 @@ func TestGraphQLAlert(t *testing.T) {
 	`, uid1, phone1), &cm1)
 	doQL(fmt.Sprintf(`
 		mutation {
-			createContactMethod(input:{
-				user_id: "%s",
+			createUserContactMethod(input:{
+				userID: "%s",
 				name: "default",
 				type: SMS,
 				value: "%s"
@@ -87,29 +92,29 @@ func TestGraphQLAlert(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			createNotificationRule(input:{
-				user_id: "%s"
-				contact_method_id: "%s",
-				delay_minutes: 0
+			createUserNotificationRule(input:{
+				userID: "%s",
+				contactMethodID: "%s",
+				delayMinutes: 0
 			}){
 				id
 			}
 		}
 	
-	`, uid1, cm1.CreateContactMethod.ID), nil)
+	`, uid1, cm1.CreateUserContactMethod.ID), nil)
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			createNotificationRule(input:{
-				user_id: "%s"
-				contact_method_id: "%s",
-				delay_minutes: 0
+			createUserNotificationRule(input:{
+				userID: "%s",
+				contactMethodID: "%s",
+				delayMinutes: 0
 			}){
 				id
 			}
 		}
 	
-	`, uid2, cm2.CreateContactMethod.ID), nil)
+	`, uid2, cm2.CreateUserContactMethod.ID), nil)
 
 	var sched struct {
 		CreateSchedule struct {
@@ -146,18 +151,18 @@ func TestGraphQLAlert(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			addRotationParticipant(input:{
-				user_id: "%s",
-				rotation_id: "%s"
+			updateRotation(input:{
+				id: "%s",
+				userIDs: ["%s"]
 			}) {id}
 		}
 	
-	`, uid1, rotID), nil)
+	`, rotID, uid1), nil)
 
-	var esc struct{ CreateOrUpdateEscalationPolicy struct{ ID string } }
+	var esc struct{ CreateEscalationPolicy struct{ ID string } }
 	doQL(`
 		mutation {
-			createOrUpdateEscalationPolicy(input:{
+			createEscalationPolicy(input:{
 				repeat: 0,
 				name: "default"
 			}){id}
@@ -165,36 +170,34 @@ func TestGraphQLAlert(t *testing.T) {
 	`, &esc)
 
 	var step struct {
-		CreateOrUpdateEscalationPolicyStep struct{ Step struct{ ID string } }
+		CreateEscalationPolicyStep struct{ Step struct{ ID string } }
 	}
 	doQL(fmt.Sprintf(`
 		mutation {
-			createOrUpdateEscalationPolicyStep(input:{
-				delay_minutes: 60,
-				escalation_policy_id: "%s",
-				user_ids: ["%s"],
-				schedule_ids: ["%s"]
+			createEscalationPolicyStep(input:{
+				delayMinutes: 60,
+				escalationPolicyID: "%s"
 			}){
-				step: escalation_policy_step {id}
+				id
 			}
 		}
-	`, esc.CreateOrUpdateEscalationPolicy.ID, uid2, sched.CreateSchedule.ID), &step)
+	`, esc.CreateEscalationPolicy.ID), &step)
 	var svc struct{ CreateService struct{ ID string } }
 	doQL(fmt.Sprintf(`
 		mutation {
 			createService(input:{
 				name: "default",
-				escalation_policy_id: "%s"
+				escalationPolicyID: "%s"
 			}){id}
 		}
-	`, esc.CreateOrUpdateEscalationPolicy.ID), &svc)
+	`, esc.CreateEscalationPolicy.ID), &svc)
 
 	// finally.. we can create the alert
 	doQL(fmt.Sprintf(`
 		mutation {
 			createAlert(input:{
-				description: "brok",
-				service_id: "%s"
+				summary: "brok",
+				serviceID: "%s"
 			}){id}
 		}
 	`, svc.CreateService.ID), nil)
