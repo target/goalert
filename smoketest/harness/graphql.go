@@ -65,6 +65,7 @@ func (h *Harness) SetConfigValue(id, value string) {
 }
 
 // SetSystemLimit will update the value of a system limit given an id (e.g. `RulesPerSchedule`).
+// TODO repalce SetSystemLimit with new mutation (work anticipated to be done with Admin Config view)
 func (h *Harness) SetSystemLimit(id limit.ID, value int) {
 	h.t.Helper()
 	h.execQuery(fmt.Sprintf(`
