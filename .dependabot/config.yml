@@ -5,8 +5,5 @@ update_configs:
     update_schedule: "daily"
     ignored_updates:
       - match:
-          dependency_name: "cypress"
-          version_requirement: "<=3.7.0"
-      - match:
-          dependency_name: "react-infinite-scroll-component"
-          version_requirement: "<=5.0.3"
+          dependency_name: "@date-io/luxon"
+          version_requirement: "<=2.2.0"
