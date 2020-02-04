@@ -194,12 +194,13 @@ func TestGraphQLAlert(t *testing.T) {
 		mutation {
 			createEscalationPolicyStep(input:{
 				delayMinutes: 60,
-				escalationPolicyID: "%s"
+				escalationPolicyID: "%s",
+				targets: [{id: "%s", type: user}, {id: "%s", type: schedule}]
 			}){
 				id
 			}
 		}
-	`, esc.CreateEscalationPolicy.ID), &step)
+	`, esc.CreateEscalationPolicy.ID, uid2, sched.CreateSchedule.ID), &step)
 	var svc struct{ CreateService struct{ ID string } }
 	doQL(fmt.Sprintf(`
 		mutation {
