@@ -2940,7 +2940,7 @@ input ScheduleTargetInput {
 }
 
 input ScheduleRuleInput {
-  id: ID
+  id: ID @deprecated(reason: "ignored")
   start: ClockTime
   end: ClockTime
 
@@ -3089,7 +3089,7 @@ type ScheduleTarget {
 }
 
 type ScheduleRule {
-  id: ID!
+  id: ID! @deprecated(reason: "no longer used")
   scheduleID: ID!
 
   start: ClockTime!
