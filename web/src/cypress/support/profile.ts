@@ -222,14 +222,14 @@ function resetProfile(prof?: Profile): Cypress.Chainable<boolean> {
     return cy.fixture('profile').then(resetProfile)
   }
 
-  const query = `
+  const mutation = `
     mutation updateUser($input: UpdateUserInput!) {
       updateUser(input: $input)
     }
   `
 
   return clearContactMethods(prof.id)
-    .graphql2(query, {
+    .graphql2(mutation, {
       input: {
         id: prof.id,
         name: prof.name,
