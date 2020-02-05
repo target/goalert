@@ -61,7 +61,7 @@ func TestGraphQLUserFavorites(t *testing.T) {
 
 	var s struct {
 		Service struct {
-			IsFavoite bool `json:"isFavorite"`
+			IsFavorite bool
 		}
 	}
 
@@ -73,8 +73,8 @@ func TestGraphQLUserFavorites(t *testing.T) {
 		}
 	`, h.UUID("sid1")), &s)
 
-	if s.Service.IsFavoite != true {
-		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want true", h.UUID("sid1"), s.Service.IsFavoite)
+	if s.Service.IsFavorite != true {
+		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want true", h.UUID("sid1"), s.Service.IsFavorite)
 	}
 
 	doQL(fmt.Sprintf(`
@@ -85,8 +85,8 @@ func TestGraphQLUserFavorites(t *testing.T) {
 		}
 	`, h.UUID("sid2")), &s)
 
-	if s.Service.IsFavoite != false {
-		t.Fatalf("ERROR: ServiceID %s IsFavoite=%t; want false", h.UUID("sid2"), s.Service.IsFavoite)
+	if s.Service.IsFavorite != false {
+		t.Fatalf("ERROR: ServiceID %s IsFavorite=%t; want false", h.UUID("sid2"), s.Service.IsFavorite)
 	}
 
 	// Again Setting as user-favorite should result in no change
@@ -122,8 +122,8 @@ func TestGraphQLUserFavorites(t *testing.T) {
 		}
 	`, h.UUID("sid2")), &s)
 
-	if s.Service.IsFavoite != false {
-		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want false", h.UUID("sid2"), s.Service.IsFavoite)
+	if s.Service.IsFavorite != false {
+		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want false", h.UUID("sid2"), s.Service.IsFavorite)
 	}
 
 }
