@@ -42,9 +42,9 @@ func TestGraphQLUsers(t *testing.T) {
 	var res struct {
 		Users struct {
 			Nodes []struct {
-				ID string `json:"id"`
-			} `json:"nodes"`
-		} `json:"users"`
+				ID string
+			}
+		}
 	}
 
 	doQL(`
