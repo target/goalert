@@ -331,19 +331,34 @@ export default class AlertsList extends Component {
             <Hidden mdDown>
               <AlertsListControls />
             </Hidden>
-            <List id='alerts-list' style={{ padding: 0 }} data-cy='alerts-list'>
-              <InfiniteScroll
-                scrollableTarget='content'
-                next={() => loadMore(this.getQueryData(offset))}
-                dataLength={len}
-                hasMore={hasMore}
-                loader={null}
-                scrollThreshold={(len - 20) / len}
-                style={{ overflow: 'hidden' }}
+            {isLoading && (
+              <List
+                id='alerts-list'
+                style={{ padding: 0 }}
+                data-cy='alerts-list-loading'
               >
                 {content}
-              </InfiniteScroll>
-            </List>
+              </List>
+            )}
+            {!isLoading && (
+              <List
+                id='alerts-list'
+                style={{ padding: 0 }}
+                data-cy='alerts-list'
+              >
+                <InfiniteScroll
+                  scrollableTarget='content'
+                  next={() => loadMore(this.getQueryData(offset))}
+                  dataLength={len}
+                  hasMore={hasMore}
+                  loader={null}
+                  scrollThreshold={(len - 20) / len}
+                  style={{ overflow: 'hidden' }}
+                >
+                  {content}
+                </InfiniteScroll>
+              </List>
+            )}
           </Card>
         </div>
       </React.Fragment>

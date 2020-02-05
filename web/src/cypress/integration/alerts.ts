@@ -53,6 +53,22 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('not.contain', 'No results') // mock alerts should show again
     })
 
+    it('should load more list items when scrolling to the bottom', () => {
+      cy.generateManyAlerts(50).then(() => {
+        cy.visit('/alerts?allServices=1&filter=all')
+        cy.get('[data-cy=alerts-list-loading]').should('not.exist')
+        cy.get('[data-cy=alerts-list] li')
+          .its('length')
+          .should('eq', 25)
+        cy.get('[id="content"]')
+          .scrollTo('bottom')
+          .wait(1500)
+        cy.get('[data-cy=alerts-list] li')
+          .its('length')
+          .should('be.gt', 49)
+      })
+    })
+
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.number.toString()))
       it('should link to the details page', () => {
