@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -135,7 +136,5 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 		}
 	}`, rotationID), &updatedRotation)
 
-	if updatedRotation.Rotation.Name != "new name" {
-		t.Errorf("got name of %s; want 'new name'", updatedRotation.Rotation.Name)
-	}
+	assert.Equal(t, "new name", updatedRotation.Rotation.Name)
 }
