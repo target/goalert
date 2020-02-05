@@ -61,10 +61,12 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 					timeZone: "America/Chicago"
 					targets: {
 						newRotation: {
-							name: "foobar"
+							name: "old name"
+							description: "old description"
 							timeZone: "America/Chicago"
 							start: "2020-02-04T12:08:25-06:00"
 							type: daily
+							shiftLength: 6
 						}
 						rules: {
 							start: "00:00"
@@ -92,6 +94,11 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 			updateRotation(input:{
 				id: "%s",
 				name: "new name",
+				description: "new description"
+				timeZone: "America/New_York"
+				start: "1997-11-26T12:08:25-05:00"
+				type: hourly
+				shiftLength: 12
 			})
 		}
 	
@@ -126,15 +133,30 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 
 	var updatedRotation struct {
 		Rotation struct {
-			Name string
+			Name        string
+			Description string
+			TimeZone    string
+			Start       string
+			Type        string
+			ShiftLength int
 		}
 	}
 	doQL(fmt.Sprintf(`
 		query{
 		rotation(id: "%s"){
 			name
+			description
+			timeZone
+			start
+			type
+			shiftLength
 		}
 	}`, rotationID), &updatedRotation)
 
 	assert.Equal(t, "new name", updatedRotation.Rotation.Name)
+	assert.Equal(t, "new description", updatedRotation.Rotation.Description)
+	assert.Equal(t, "America/New_York", updatedRotation.Rotation.TimeZone)
+	assert.Equal(t, "1997-11-26T12:08:00-05:00", updatedRotation.Rotation.Start) // truncate to minute
+	assert.Equal(t, "hourly", updatedRotation.Rotation.Type)
+	assert.Equal(t, 12, updatedRotation.Rotation.ShiftLength)
 }
