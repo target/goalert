@@ -228,15 +228,14 @@ function resetProfile(prof?: Profile): Cypress.Chainable {
     }
   `
 
-  return clearContactMethods(prof.id)
-    .graphql2(mutation, {
-      input: {
-        id: prof.id,
-        name: prof.name,
-        email: prof.email,
-        role: prof.role,
-      },
-    })
+  return clearContactMethods(prof.id).graphql2(mutation, {
+    input: {
+      id: prof.id,
+      name: prof.name,
+      email: prof.email,
+      role: prof.role,
+    },
+  })
 }
 
 Cypress.Commands.add('createUser', createUser)
