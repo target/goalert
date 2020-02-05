@@ -31,7 +31,7 @@ func TestListAlerts(t *testing.T) {
 		query {
 			alerts {
 				nodes {
-					id
+					alertID
 					service {
 						id
 						name
@@ -47,7 +47,7 @@ func TestListAlerts(t *testing.T) {
 	var res struct {
 		Alerts struct {
 			Nodes []struct {
-				ID      int `json:"id,string"`
+				ID      int `json:"alertID"`
 				Service struct {
 					ID   string
 					Name string
