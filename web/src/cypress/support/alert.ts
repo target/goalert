@@ -8,7 +8,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       createAlert: typeof createAlert
-      generateManyAlerts: typeof generateManyAlerts
+      createManyAlerts: typeof createManyAlerts
       closeAlert: typeof closeAlert
       createAlertLogs: typeof createAlertLogs
     }
@@ -176,24 +176,23 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
     .then(res => res.createAlert)
 }
 
-function generateManyAlerts(
+function createManyAlerts(
   count: number,
   alertOptions?: AlertOptions,
 ): Cypress.Chainable {
   if (!alertOptions?.serviceID) {
     return cy
       .createService(alertOptions?.service)
-      .then(res => generateManyAlerts(count, { serviceID: res.id }))
+      .then(res => createManyAlerts(count, { serviceID: res.id }))
   }
 
   // build query
-  let query = 'insert into alerts (service_id, summary, dedup_key) values '
+  let query = 'insert into alerts (service_id, summary, details, dedup_key) values '
   let rows: Array<string> = []
   for (let i = 0; i < count; i++) {
+    const details = alertOptions.details || c.sentence()
     rows.push(
-      `('${alertOptions?.serviceID}', '${c.word() + i}', 'auto:1:${sha512(
-        i.toString(),
-      )}')`,
+      `('${alertOptions?.serviceID}', '${alertOptions.summary || c.word() + i}', '${details}', 'auto:1:${sha512(details)}')`,
     )
   }
   query = query + rows.join(',') + ';'
@@ -212,6 +211,6 @@ function closeAlert(id: number): Cypress.Chainable<Alert> {
 }
 
 Cypress.Commands.add('createAlert', createAlert)
-Cypress.Commands.add('generateManyAlerts', generateManyAlerts)
+Cypress.Commands.add('createManyAlerts', createManyAlerts)
 Cypress.Commands.add('createAlertLogs', createAlertLogs)
 Cypress.Commands.add('closeAlert', closeAlert)

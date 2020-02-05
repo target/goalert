@@ -54,7 +54,7 @@ function testAlerts(screen: ScreenFormat) {
     })
 
     it('should load more list items when scrolling to the bottom', () => {
-      cy.generateManyAlerts(50).then(() => {
+      cy.createManyAlerts(50).then(() => {
         cy.visit('/alerts?allServices=1&filter=all')
         cy.get('[data-cy=alerts-list-loading]').should('not.exist')
         cy.get('[data-cy=alerts-list] li')
