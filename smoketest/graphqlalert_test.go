@@ -64,8 +64,8 @@ func TestGraphQLAlert(t *testing.T) {
 
 	var cm1, cm2 struct {
 		CreateUserContactMethod struct {
-			ID string `json:"id"`
-		} `json:"createUserContactMethod"`
+			ID string
+		}
 	}
 	doQL(fmt.Sprintf(`
 		mutation {
