@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function CalenderSuccessForm(props) {
   const classes = useStyles()
-  const url = props.url.replace('https://', 'webcal://')
+  const url = props.url.replace(/^https?:\/\//, 'webcal://')
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} className={classes.subscribeButtonContainer}>
