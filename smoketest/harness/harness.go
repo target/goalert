@@ -660,9 +660,9 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 		var result struct {
 			Service struct {
 				OnCallUsers []struct {
-					UserID   string `json:"userID"`
-					UserName string `json:"userName"`
-				} `json:"onCallUsers"`
+					UserID   string
+					UserName string
+				}
 			}
 		}
 
