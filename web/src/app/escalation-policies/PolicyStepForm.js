@@ -140,7 +140,7 @@ export default class PolicyStepForm extends React.Component {
                       icon={<RotationsIcon />}
                       optional={optionalText}
                       onClick={this.handleStepChange(0)}
-                      tabindex='-1'
+                      tabIndex='-1'
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('rotation')(value.targets).length,
@@ -168,7 +168,7 @@ export default class PolicyStepForm extends React.Component {
                       icon={<SchedulesIcon />}
                       optional={optionalText}
                       onClick={this.handleStepChange(1)}
-                      tabindex='-1'
+                      tabIndex='-1'
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('schedule')(value.targets).length,
@@ -197,7 +197,7 @@ export default class PolicyStepForm extends React.Component {
                         icon={<SlackIcon />}
                         optional={optionalText}
                         onClick={this.handleStepChange(2)}
-                        tabindex='-1'
+                        tabIndex='-1'
                       >
                         {badgeMeUpScotty(
                           getTargetsByType('slackChannel')(value.targets)
@@ -229,7 +229,7 @@ export default class PolicyStepForm extends React.Component {
                       onClick={this.handleStepChange(
                         cfg['Slack.Enable'] ? 3 : 2,
                       )}
-                      tabindex='-1'
+                      tabIndex='-1'
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('user')(value.targets).length,
