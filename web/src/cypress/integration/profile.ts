@@ -14,7 +14,7 @@ function testProfile(screen: ScreenFormat) {
       .addNotificationRule()
       .then(rule => {
         nr = rule
-        cm = rule.cm
+        cm = rule.contactMethod
         return cy.visit('/profile')
       }),
   )

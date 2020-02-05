@@ -31,6 +31,7 @@ declare global {
     email: string
     role: UserRole
   }
+
   interface UserOptions {
     name?: string
     email?: string
@@ -45,24 +46,27 @@ declare global {
     type: ContactMethodType
     value: string
   }
+
   interface ContactMethodOptions {
     userID?: string
     name?: string
     type?: ContactMethodType
     value?: string
   }
+
   interface NotificationRule {
     id: string
     userID: string
-    cmID: string
-    cm: ContactMethod
-    delay: number
+    contactMethodID: string
+    contactMethod: ContactMethod
+    delayMinutes: number
   }
+
   interface NotificationRuleOptions {
     userID?: string
-    delay?: number
-    cmID?: string
-    cm?: ContactMethodOptions
+    delayMinutes?: number
+    contactMethodID?: string
+    contactMethod?: ContactMethodOptions
   }
 }
 
@@ -101,31 +105,34 @@ function addContactMethod(
       .then(prof => addContactMethod({ ...cm, userID: prof.id }))
   }
 
-  const query = `mutation addCM($input: CreateContactMethodInput!){
-        createContactMethod(input: $input) {
-            id
-            name
-            type
-            value
-        }
-    }`
+  const mutation = `
+    mutation ($input: CreateUserContactMethodInput!) {
+      createUserContactMethod(input: $input) {
+        id
+        name
+        type
+        value
+      }
+    }
+  `
 
   const newPhone = '+1763' + c.integer({ min: 3000000, max: 3999999 })
   return cy
-    .graphql(query, {
+    .graphql2(mutation, {
       input: {
-        user_id: cm.userID,
+        userID: cm.userID,
         name: cm.name || 'SM CM ' + c.word({ length: 8 }),
         type: cm.type || c.pickone(['SMS', 'VOICE']),
         value: cm.value || newPhone,
       },
     })
-    .then(newCM => {
-      newCM = newCM.createContactMethod
-      newCM.userID = cm && cm.userID
-      return newCM
+    .then(res => {
+      res = res.createUserContactMethod
+      res.userID = cm && cm.userID
+      return res
     })
 }
+
 function addNotificationRule(
   nr?: NotificationRuleOptions,
 ): Cypress.Chainable<NotificationRule> {
@@ -135,75 +142,94 @@ function addNotificationRule(
       .fixture('profile')
       .then(prof => addNotificationRule({ ...nr, userID: prof.id }))
   }
-  if (!nr.cmID) {
+
+  if (!nr.contactMethodID) {
     return cy
-      .addContactMethod({ ...nr.cm, userID: nr.userID })
-      .then(cm => addNotificationRule({ ...nr, cmID: cm.id }))
+      .addContactMethod({ ...nr.contactMethod, userID: nr.userID })
+      .then(cm => addNotificationRule({ ...nr, contactMethodID: cm.id }))
   }
 
-  const query = `mutation addNR($input: CreateNotificationRuleInput!){
-        createNotificationRule(input: $input) {
-            id
-            delay: delay_minutes
-            cmID: contact_method_id
-            cm: contact_method {
-                id
-                name
-                type
-                value
-            }
+  const mutation = `
+    mutation ($input: CreateUserNotificationRuleInput!) {
+      createUserNotificationRule(input: $input) {
+        id
+        delayMinutes
+        contactMethodID
+        contactMethod {
+          id
+          name
+          type
+          value
         }
-    }`
+      }
+    }
+  `
 
   return cy
-    .graphql(query, {
+    .graphql2(mutation, {
       input: {
-        user_id: nr.userID,
-        delay_minutes: nr.delay || c.integer({ min: 0, max: 15 }),
-        contact_method_id: nr.cmID,
+        userID: nr.userID,
+        contactMethodID: nr.contactMethodID,
+        delayMinutes: nr.delayMinutes || c.integer({ min: 0, max: 15 }),
       },
     })
-    .then(newNR => {
-      newNR = newNR.createNotificationRule
+    .then(res => {
+      res = res.createUserNotificationRule
+
       const userID = nr && nr.userID
-      newNR.userID = userID
-      newNR.cm.userID = userID
-      return newNR
+      res.userID = userID
+      res.contactMethod.userID = userID
+
+      return res
     })
 }
+
 function clearContactMethods(id: string): Cypress.Chainable {
-  const list = `{
-        user(id: "${id}") {
-            contact_methods { id }
+  const query = `
+    query($id: ID!) {
+      user(id: $id) {
+        contactMethods {
+          id
         }
-    }`
-  return cy.graphql(list).then(res => {
-    if (!res.user.contact_methods.length) return
-    res.user.contact_methods.forEach((cm: any) => {
-      cy.graphql(`
-                mutation{
-                    deleteContactMethod(input:{id:"${cm.id}"}) {deleted_id}
-                }
-            `)
+      }
+    }
+  `
+
+  const mutation = `
+    mutation($input: [TargetInput!]!) {
+      deleteAll(input: $input)
+    }
+  `
+
+  return cy.graphql2(query, { id }).then(res => {
+    if (!res.user.contactMethods.length) return
+
+    res.user.contactMethods.forEach((cm: any) => {
+      cy.graphql2(mutation, {
+        input: [
+          {
+            type: 'contactMethod',
+            id: cm.id,
+          },
+        ],
+      })
     })
   })
 }
-function resetProfile(prof?: Profile): Cypress.Chainable<Profile> {
+
+function resetProfile(prof?: Profile): Cypress.Chainable<boolean> {
   if (!prof) {
     return cy.fixture('profile').then(resetProfile)
   }
 
-  const query = `mutation updateUser($input: UpdateUserInput!){
-          updateUser(input: $input) {
-              id
-              name
-              email
-              role
-          }
-      }`
+  const query = `
+    mutation updateUser($input: UpdateUserInput!) {
+      updateUser(input: $input)
+    }
+  `
 
   return clearContactMethods(prof.id)
-    .graphql(query, {
+    .graphql2(query, {
       input: {
         id: prof.id,
         name: prof.name,
