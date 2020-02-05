@@ -103,6 +103,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 				start: "1997-11-26T12:08:25-05:00"
 				type: hourly
 				shiftLength: 12
+				activeUserIndex: 0
 				userIDs: ["%s", "%s"]
 			})
 		}
@@ -138,13 +139,14 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 
 	var updatedRotation struct {
 		Rotation struct {
-			Name        string
-			Description string
-			TimeZone    string
-			Start       string
-			Type        string
-			ShiftLength int
-			Users       []struct {
+			Name            string
+			Description     string
+			TimeZone        string
+			Start           string
+			Type            string
+			ShiftLength     int
+			ActiveUserIndex int
+			Users           []struct {
 				ID string
 			}
 		}
@@ -158,6 +160,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 			start
 			type
 			shiftLength
+			activeUserIndex
 			users {
 				id
 			}
@@ -170,6 +173,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 	assert.Equal(t, "1997-11-26T12:08:00-05:00", updatedRotation.Rotation.Start) // truncate to minute
 	assert.Equal(t, "hourly", updatedRotation.Rotation.Type)
 	assert.Equal(t, 12, updatedRotation.Rotation.ShiftLength)
+	assert.Equal(t, 0, updatedRotation.Rotation.ActiveUserIndex)
 	assert.Equal(t, u1UUID, updatedRotation.Rotation.Users[0].ID)
 	assert.Equal(t, u2UUID, updatedRotation.Rotation.Users[1].ID)
 }
