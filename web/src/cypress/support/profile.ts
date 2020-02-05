@@ -217,7 +217,7 @@ function clearContactMethods(id: string): Cypress.Chainable {
   })
 }
 
-function resetProfile(prof?: Profile): Cypress.Chainable<boolean> {
+function resetProfile(prof?: Profile): Cypress.Chainable {
   if (!prof) {
     return cy.fixture('profile').then(resetProfile)
   }
@@ -237,7 +237,6 @@ function resetProfile(prof?: Profile): Cypress.Chainable<boolean> {
         role: prof.role,
       },
     })
-    .then(res => res.updateUser)
 }
 
 Cypress.Commands.add('createUser', createUser)
