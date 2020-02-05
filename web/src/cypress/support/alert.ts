@@ -176,16 +176,25 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
     .then(res => res.createAlert)
 }
 
-function generateManyAlerts(count: number, alertOptions?: AlertOptions): Cypress.Chainable {
+function generateManyAlerts(
+  count: number,
+  alertOptions?: AlertOptions,
+): Cypress.Chainable {
   if (!alertOptions?.serviceID) {
-    return cy.createService(alertOptions?.service).then(res => generateManyAlerts(count, { serviceID: res.id }))
+    return cy
+      .createService(alertOptions?.service)
+      .then(res => generateManyAlerts(count, { serviceID: res.id }))
   }
 
   // build query
   let query = 'insert into alerts (service_id, summary, dedup_key) values '
   let rows: Array<string> = []
-  for(let i = 0; i < count; i++) {
-    rows.push(`('${alertOptions?.serviceID}', '${c.word() + i}', 'auto:1:${sha512(i.toString())}')`)
+  for (let i = 0; i < count; i++) {
+    rows.push(
+      `('${alertOptions?.serviceID}', '${c.word() + i}', 'auto:1:${sha512(
+        i.toString(),
+      )}')`,
+    )
   }
   query = query + rows.join(',') + ';'
 
