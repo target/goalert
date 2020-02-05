@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/limit"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 )
@@ -61,6 +62,17 @@ func (h *Harness) SetConfigValue(id, value string) {
 	// wait for engine cycle to complete to ensure next action
 	// uses new config only
 	h.Trigger()
+}
+
+// SetSystemLimit will update the value of a system limit given an id (e.g. `RulesPerSchedule`).
+// TODO repalce SetSystemLimit with new mutation (work anticipated to be done with Admin Config view)
+func (h *Harness) SetSystemLimit(id limit.ID, value int) {
+	h.t.Helper()
+	h.execQuery(fmt.Sprintf(`
+		UPDATE config_limits
+		SET max = %d
+		WHERE id='%s'; 
+	`, value, id))
 }
 
 // GraphQLQueryT will perform a GraphQL query against the backend, internally

@@ -3,14 +3,12 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"strconv"
 	"time"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rule"
-	"github.com/target/goalert/validation"
 
 	"github.com/pkg/errors"
 )
@@ -53,16 +51,8 @@ func (m *Mutation) UpdateScheduleTarget(ctx context.Context, input graphql2.Sche
 			rulesByID[rules[i].ID] = &rules[i]
 		}
 
-		updated := make(map[string]bool, len(rules))
-		for i, inputRule := range input.Rules {
+		for ruleIndex, inputRule := range input.Rules {
 			r := rule.NewAlwaysActive(schedID, input.Target)
-			if inputRule.ID != nil {
-				// doing an update
-				if rulesByID[*inputRule.ID] == nil {
-					return validation.NewFieldError("rules["+strconv.Itoa(i)+"]", "does not exist")
-				}
-				r = rulesByID[*inputRule.ID]
-			}
 			if inputRule.Start != nil {
 				r.Start = *inputRule.Start
 			}
@@ -72,9 +62,8 @@ func (m *Mutation) UpdateScheduleTarget(ctx context.Context, input graphql2.Sche
 			for i, v := range inputRule.WeekdayFilter {
 				r.WeekdayFilter.SetDay(time.Weekday(i), v)
 			}
-
-			if inputRule.ID != nil {
-				updated[*inputRule.ID] = true
+			if ruleIndex < len(rules) {
+				r.ID = rules[ruleIndex].ID
 				err = errors.Wrap(m.RuleStore.UpdateTx(ctx, tx, r), "update rule")
 			} else {
 				_, err = m.RuleStore.CreateRuleTx(ctx, tx, r)
@@ -85,15 +74,17 @@ func (m *Mutation) UpdateScheduleTarget(ctx context.Context, input graphql2.Sche
 			}
 		}
 
-		toDelete := make([]string, 0, len(rules)-len(updated))
-		for _, rule := range rules {
-			if updated[rule.ID] {
-				continue
+		if len(rules) > len(input.Rules) {
+			toDelete := make([]string, len(rules)-len(input.Rules))
+			for i, r := range rules[len(input.Rules):] {
+				toDelete[i] = r.ID
 			}
-			toDelete = append(toDelete, rule.ID)
+			err := errors.Wrap(m.RuleStore.DeleteManyTx(ctx, tx, toDelete), "delete old rules")
+			if err != nil {
+				return err
+			}
 		}
-
-		return errors.Wrap(m.RuleStore.DeleteManyTx(ctx, tx, toDelete), "delete old rules")
+		return nil
 	})
 	return err == nil, err
 }
