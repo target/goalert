@@ -173,6 +173,8 @@ function testCalendar(screen: ScreenFormat) {
     const name = rot.users[0].name.split(' ')[0]
 
     cy.fixture('users').then(users => {
+      let addUserName = users[0].name
+      if (rot.users[0].id === users[0].id) addUserName = users[1].name
       cy.get('[data-cy=calendar]')
         .should('contain', name)
         .contains('div', name)
@@ -180,7 +182,7 @@ function testCalendar(screen: ScreenFormat) {
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="replace-override"]').click()
       cy.dialogTitle('Replace a User')
-      cy.dialogForm({ addUserID: users[0].name })
+      cy.dialogForm({ addUserID: addUserName })
       cy.dialogFinish('Submit')
     })
   })

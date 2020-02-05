@@ -291,5 +291,21 @@ function testSubs(screen: ScreenFormat) {
           .should('exist')
       })
     })
+
+    it('should show warning message when disabled in config', () => {
+      cy.setConfig({
+        General: {
+          DisableCalendarSubscriptions: true,
+        },
+      }).then(() => {
+        cy.reload()
+
+        cy.get('[data-cy="subs-disabled-warning"]').should('exist')
+        cy.get('[data-cy="subs-disabled-warning"]').should(
+          'contain',
+          'Calendar subscriptions are currently disabled by your administrator',
+        )
+      })
+    })
   })
 }

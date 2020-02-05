@@ -162,7 +162,7 @@ export function CreateAlertServiceSelect(props) {
           {value.length > 0 ? selectedServiceChips : notice}
         </Paper>
         {Boolean(props.error) && (
-          <FormHelperText c={console.log(props.error)}>
+          <FormHelperText>
             {props.error.message.replace(/^./, str => str.toUpperCase())}
           </FormHelperText>
         )}

@@ -15,12 +15,12 @@ func TestCalendarSubscription(t *testing.T) {
 	t.Parallel()
 
 	const sql = `
-	insert into users (id, name, email)
-	values
-		({{uuid "user"}}, 'bob', 'joe');
-	insert into schedules (id, name, time_zone, description) 
-	values
-		({{uuid "schedId"}},'sched', 'America/Chicago', 'test description here');
+		insert into users (id, name, email)
+		values
+			({{uuid "user"}}, 'bob', 'joe');
+		insert into schedules (id, name, time_zone, description) 
+		values
+			({{uuid "schedId"}},'sched', 'America/Chicago', 'test description here');
 	`
 	h := harness.NewHarness(t, sql, "calendar-subscriptions")
 	defer h.Close()
@@ -45,7 +45,7 @@ func TestCalendarSubscription(t *testing.T) {
 
 	var cs struct{ CreateUserCalendarSubscription struct{ URL string } }
 
-	doQL(fmt.Sprintf(`
+	const mut = `
 		mutation {
 			createUserCalendarSubscription (input: {
 				name: "%s",
@@ -55,7 +55,10 @@ func TestCalendarSubscription(t *testing.T) {
 				url
 			}
 		}
-	`, "foobar", 5, h.UUID("schedId")), &cs)
+	`
+
+	// create subscription
+	doQL(fmt.Sprintf(mut, "foobar", 5, h.UUID("schedId")), &cs)
 
 	u, err := url.Parse(cs.CreateUserCalendarSubscription.URL)
 	assert.Nil(t, err)
@@ -66,4 +69,18 @@ func TestCalendarSubscription(t *testing.T) {
 	if !assert.Equal(t, 200, resp.StatusCode, "serve iCalendar") {
 		return
 	}
+
+	// toggle admin config switch to disable subscriptions
+	h.SetConfigValue("General.DisableCalendarSubscriptions", "true")
+
+	// assert forbidden response when disabled
+	resp, err = http.Get(cs.CreateUserCalendarSubscription.URL)
+	assert.Nil(t, err)
+	if !assert.Equal(t, 403, resp.StatusCode, "Forbidden") {
+		return
+	}
+
+	// attempt to create a subscription while disabled in config
+	g := h.GraphQLQuery2(fmt.Sprintf(mut, "baz", 5, h.UUID("schedId")))
+	assert.Contains(t, g.Errors[0].Message, "disabled by administrator")
 }

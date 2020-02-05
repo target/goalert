@@ -104,7 +104,6 @@ type DB struct {
 	rmState   *sql.Stmt
 	partRotID *sql.Stmt
 
-	addParticipants         *sql.Stmt
 	deleteParticipants      *sql.Stmt
 	updateParticipantUserID *sql.Stmt
 	setActiveIndex          *sql.Stmt
@@ -247,10 +246,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		rmState: p.P(`
 			DELETE FROM rotation_state WHERE rotation_id = $1
-		`),
-
-		addParticipants: p.P(`
-			INSERT INTO rotation_participants (rotation_id, user_id) SELECT $1, unnest FROM unnest($2::UUID[])
 		`),
 
 		deleteParticipants: p.P(`
@@ -860,13 +855,18 @@ func (db *DB) AddRotationUsersTx(ctx context.Context, tx *sql.Tx, rotationID str
 		return err
 	}
 
-	stmt := db.addParticipants
+	stmt := db.addParticipant
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, rotationID, sqlutil.UUIDArray(userIDs))
+	for _, userID := range userIDs {
+		_, err = stmt.ExecContext(ctx, uuid.NewV4().String(), rotationID, userID)
+		if err != nil {
+			return err
+		}
+	}
 
-	return err
+	return nil
 }
 
 func (db *DB) DeleteRotationParticipantsTx(ctx context.Context, tx *sql.Tx, partIDs []string) error {

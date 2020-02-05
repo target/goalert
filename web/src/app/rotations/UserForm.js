@@ -26,6 +26,7 @@ export default class UserForm extends React.Component {
             label='Select User(s)'
             multiple
             name='users'
+            required
             value={this.props.value.users}
           />
         </Grid>
