@@ -136,6 +136,7 @@ export default class PolicyStepForm extends React.Component {
                   <Step>
                     <StepButton
                       aria-label='Show Rotations Select'
+                      aria-expanded={(step === 0).toString()}
                       data-cy='rotations-step'
                       icon={<RotationsIcon />}
                       optional={optionalText}
@@ -164,6 +165,7 @@ export default class PolicyStepForm extends React.Component {
                   <Step>
                     <StepButton
                       aria-label='Show Schedules Select'
+                      aria-expanded={(step === 1).toString()}
                       data-cy='schedules-step'
                       icon={<SchedulesIcon />}
                       optional={optionalText}
@@ -193,6 +195,7 @@ export default class PolicyStepForm extends React.Component {
                     <Step>
                       <StepButton
                         aria-label='Show Slack Channels Select'
+                        aria-expanded={(step === 2).toString()}
                         data-cy='slack-channels-step'
                         icon={<SlackIcon />}
                         optional={optionalText}
@@ -223,6 +226,7 @@ export default class PolicyStepForm extends React.Component {
                   <Step>
                     <StepButton
                       aria-label='Show Users Select'
+                      aria-expanded={(step === 3).toString()}
                       data-cy='users-step'
                       icon={<UsersIcon />}
                       optional={optionalText}
