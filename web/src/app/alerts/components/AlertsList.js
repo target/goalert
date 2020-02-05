@@ -333,6 +333,7 @@ export default class AlertsList extends Component {
             </Hidden>
             <List id='alerts-list' style={{ padding: 0 }} data-cy='alerts-list'>
               <InfiniteScroll
+                scrollableTarget='content'
                 next={() => loadMore(this.getQueryData(offset))}
                 dataLength={len}
                 hasMore={hasMore}
