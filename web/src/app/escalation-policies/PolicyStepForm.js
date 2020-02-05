@@ -133,13 +133,14 @@ export default class PolicyStepForm extends React.Component {
                     root: classes.stepperRoot,
                   }}
                 >
-                  <Step tabindex='0'>
+                  <Step>
                     <StepButton
                       aria-label='Show Rotations Select'
                       data-cy='rotations-step'
                       icon={<RotationsIcon />}
                       optional={optionalText}
                       onClick={this.handleStepChange(0)}
+                      tabindex='-1'
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('rotation')(value.targets).length,
@@ -160,13 +161,14 @@ export default class PolicyStepForm extends React.Component {
                       />
                     </StepContent>
                   </Step>
-                  <Step tabindex='0'>
+                  <Step>
                     <StepButton
                       aria-label='Show Schedules Select'
                       data-cy='schedules-step'
                       icon={<SchedulesIcon />}
                       optional={optionalText}
                       onClick={this.handleStepChange(1)}
+                      tabindex='-1'
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('schedule')(value.targets).length,
@@ -188,13 +190,14 @@ export default class PolicyStepForm extends React.Component {
                     </StepContent>
                   </Step>
                   {cfg['Slack.Enable'] && (
-                    <Step tabindex='0'>
+                    <Step>
                       <StepButton
                         aria-label='Show Slack Channels Select'
                         data-cy='slack-channels-step'
                         icon={<SlackIcon />}
                         optional={optionalText}
                         onClick={this.handleStepChange(2)}
+                        tabindex='-1'
                       >
                         {badgeMeUpScotty(
                           getTargetsByType('slackChannel')(value.targets)
@@ -217,7 +220,7 @@ export default class PolicyStepForm extends React.Component {
                       </StepContent>
                     </Step>
                   )}
-                  <Step tabindex='0'>
+                  <Step>
                     <StepButton
                       aria-label='Show Users Select'
                       data-cy='users-step'
@@ -226,6 +229,7 @@ export default class PolicyStepForm extends React.Component {
                       onClick={this.handleStepChange(
                         cfg['Slack.Enable'] ? 3 : 2,
                       )}
+                      tabindex='-1'
                     >
                       {badgeMeUpScotty(
                         getTargetsByType('user')(value.targets).length,
