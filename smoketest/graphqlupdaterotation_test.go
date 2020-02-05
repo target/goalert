@@ -23,6 +23,9 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
+	u1UUID := h.UUID("u1")
+	u2UUID := h.UUID("u2")
+
 	doQL := func(query string, res interface{}) {
 		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
@@ -67,6 +70,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 							start: "2020-02-04T12:08:25-06:00"
 							type: daily
 							shiftLength: 6
+							userIDs: ["%s"]
 						}
 						rules: {
 							start: "00:00"
@@ -85,7 +89,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 				}
 			}
 		}
-	`), &sched)
+	`, u1UUID), &sched)
 
 	rotationID := sched.CreateSchedule.Targets[0].Target.ID
 
@@ -99,10 +103,11 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 				start: "1997-11-26T12:08:25-05:00"
 				type: hourly
 				shiftLength: 12
+				userIDs: ["%s", "%s"]
 			})
 		}
 	
-	`, rotationID), nil)
+	`, rotationID, u1UUID, u2UUID), nil)
 
 	var newSched struct {
 		Schedule struct {
@@ -139,6 +144,9 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 			Start       string
 			Type        string
 			ShiftLength int
+			Users       []struct {
+				ID string
+			}
 		}
 	}
 	doQL(fmt.Sprintf(`
@@ -150,6 +158,9 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 			start
 			type
 			shiftLength
+			users {
+				id
+			}
 		}
 	}`, rotationID), &updatedRotation)
 
@@ -159,4 +170,6 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 	assert.Equal(t, "1997-11-26T12:08:00-05:00", updatedRotation.Rotation.Start) // truncate to minute
 	assert.Equal(t, "hourly", updatedRotation.Rotation.Type)
 	assert.Equal(t, 12, updatedRotation.Rotation.ShiftLength)
+	assert.Equal(t, u1UUID, updatedRotation.Rotation.Users[0].ID)
+	assert.Equal(t, u2UUID, updatedRotation.Rotation.Users[1].ID)
 }
