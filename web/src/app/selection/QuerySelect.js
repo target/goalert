@@ -96,7 +96,7 @@ function makeUseValues(query, mapNode) {
 
     const result = value.map((v, i) => {
       const name = 'data' + i
-      if (!data || !data[name] || _.isEmpty(data[name]))
+      if (!data || _.isEmpty(data[name]))
         return { value: v, label: 'Loading...' }
 
       return mapNode(data[name])
