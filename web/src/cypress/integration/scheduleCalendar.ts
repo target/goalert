@@ -77,13 +77,13 @@ function testCalendar(screen: ScreenFormat) {
     }
 
     for (let i = 0; i < check; i++) {
-      cy.get('body').should('contain', rot.users[i].name.split(' ')[0])
+      cy.get('body').should('contain', rot.users[i].name)
     }
   })
 
   it(`should view a shift's tooltip`, () => {
     cy.get('div')
-      .contains(rot.users[0].name.split(' ')[0])
+      .contains(rot.users[0].name)
       .trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="replace-override"]').should('be.visible')
@@ -170,7 +170,7 @@ function testCalendar(screen: ScreenFormat) {
   })
 
   it('should create a replace override from a shift tooltip', () => {
-    const name = rot.users[0].name.split(' ')[0]
+    const name = rot.users[0].name
 
     cy.fixture('users').then(users => {
       let addUserName = users[0].name
@@ -188,7 +188,7 @@ function testCalendar(screen: ScreenFormat) {
   })
 
   it('should create a remove override from a shift tooltip', () => {
-    const name = rot.users[0].name.split(' ')[0]
+    const name = rot.users[0].name
 
     cy.get('[data-cy=calendar]')
       .should('contain', name)

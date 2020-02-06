@@ -25,18 +25,15 @@
   },
   "lint-staged": {
     "*.{json,yml,yaml,ts,html}": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ],
     "*.js": [
       "prettier --write",
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ],
     "*.css": [
       "prettier --write",
-      "stylelint",
-      "git add"
+      "stylelint"
     ]
   },
   "repository": {
@@ -148,7 +145,7 @@
     "ifdef-loader": "2.1.4",
     "jest": "25.1.0",
     "json-loader": "0.5.7",
-    "lint-staged": "9.5.0",
+    "lint-staged": "10.0.7",
     "postcss-loader": "3.0.0",
     "prettier": "1.19.1",
     "raw-loader": "4.0.0",
