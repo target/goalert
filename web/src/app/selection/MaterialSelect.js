@@ -4,6 +4,7 @@ import { withStyles } from '@material-ui/core/styles'
 import Select from 'react-select'
 import { components, styles } from './MaterialSelectComponents'
 import shrinkWorkaround from '../util/shrinkWorkaround'
+import _ from 'lodash-es'
 
 const valueShape = p.shape({
   label: p.string.isRequired,
@@ -81,6 +82,10 @@ export default class MaterialSelect extends Component {
       value: value ? (multiple ? value.join(',') : value.value) : '',
     }
     const { isCleared } = this.state
+    const getValue = () => {
+      if (multiple) return
+      return isCleared && required ? { label: '', value: '' } : value
+    }
 
     return (
       <div
@@ -100,7 +105,7 @@ export default class MaterialSelect extends Component {
           isClearable
           isDisabled={disabled}
           isMulti={multiple}
-          value={isCleared && required ? { label: '', value: '' } : value}
+          value={getValue()}
           clearButtonRef={this.clearButtonRef}
           components={components}
           onBlur={e => {
@@ -113,7 +118,7 @@ export default class MaterialSelect extends Component {
             }
           }}
           onChange={val => {
-            if (required && val === null) {
+            if (required && _.isEmpty(val)) {
               this.setState({ isCleared: true })
               return
             }
