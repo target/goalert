@@ -184,7 +184,9 @@ function createManyAlerts(
   if (!alertOptions?.serviceID) {
     return cy
       .createService(alertOptions?.service)
-      .then(res => createManyAlerts(count, { ...alertOptions, serviceID: res.id }))
+      .then(res =>
+        createManyAlerts(count, { ...alertOptions, serviceID: res.id }),
+      )
   }
 
   // build query
@@ -196,7 +198,9 @@ function createManyAlerts(
     const details = alertOptions.details || c.sentence()
     const dedupKey = 'manual:1:createManyAlerts_' + i
 
-    rows.push(`('${alertOptions?.serviceID}', '${summary}', '${details}', '${dedupKey}')`)
+    rows.push(
+      `('${alertOptions?.serviceID}', '${summary}', '${details}', '${dedupKey}')`,
+    )
   }
   query = query + rows.join(',') + ';'
 

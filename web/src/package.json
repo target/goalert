@@ -84,7 +84,6 @@
     "graphql": "14.5.8",
     "graphql-tag": "2.10.1",
     "history": "4.10.1",
-    "js-sha512": "^0.8.0",
     "lodash-es": "4.17.15",
     "luxon": "1.22.0",
     "mdi-material-ui": "6.11.0",

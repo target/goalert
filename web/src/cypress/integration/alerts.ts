@@ -58,12 +58,9 @@ function testAlerts(screen: ScreenFormat) {
 
       cy.createManyAlerts(50, { summary }).then(() => {
         cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
-        cy.get('[data-cy=alerts-list] li')
-          .should('have.length', 25)
-        cy.get('[id="content"]')
-          .scrollTo('bottom')
-        cy.get('[data-cy=alerts-list] li')
-          .should('have.length', 50)
+        cy.get('[data-cy=alerts-list] li').should('have.length', 25)
+        cy.get('[id="content"]').scrollTo('bottom')
+        cy.get('[data-cy=alerts-list] li').should('have.length', 50)
       })
     })
 
