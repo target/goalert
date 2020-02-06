@@ -104,7 +104,7 @@ export default class PolicyStepForm extends React.Component {
           badge: classes.badge,
         }}
         tabIndex='0'
-        aria-label={`toggle ${txt}`}
+        aria-label={`Toggle ${txt}`}
       >
         <Typography className={classes.label}>{txt}</Typography>
       </Badge>
