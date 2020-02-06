@@ -26,7 +26,7 @@ function testMaterialSelect(screen: ScreenFormat) {
           cy.dialogForm({ users: [u1.name, u2.name] })
 
           // Should clear field
-          cy.dialogClearField('users')
+          cy.dialogForm({ users: '' })
           cy.get(`[role=dialog] #dialog-form input[name="rotations"]`)
             .should('not.contain', u1.name)
             .should('not.contain', u2.name)
@@ -54,7 +54,7 @@ function testMaterialSelect(screen: ScreenFormat) {
         cy.dialogTitle('Create Escalation Policy')
 
         // Clears field
-        cy.dialogClearField('repeat')
+        cy.dialogForm({ repeat: '' })
         cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
           'not.contain',
           defaultVal,
@@ -76,7 +76,7 @@ function testMaterialSelect(screen: ScreenFormat) {
         cy.dialogForm({ name, description, repeat })
 
         // Clears field
-        cy.dialogClearField('repeat')
+        cy.dialogForm({ repeat: '' })
         cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
           'not.contain',
           repeat,

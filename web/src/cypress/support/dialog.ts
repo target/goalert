@@ -16,9 +16,6 @@ declare global {
 
       /** Update a dialog's form fields with the given values. */
       dialogForm: typeof dialogForm
-
-      /** Clear a dialog field with the given name. */
-      dialogClearField: typeof dialogClearField
     }
   }
 }
@@ -65,23 +62,8 @@ function dialogFinish(s: string): Cypress.Chainable {
     })
 }
 
-function dialogClearField(s: string): Cypress.Chainable {
-  const selector = `[role=dialog] #dialog-form input[name="${s}"]`
-  return dialog()
-    .get(selector)
-    .then(el => {
-      if (
-        el.parents('[data-cy=material-select]').data('cy') === 'material-select'
-      ) {
-        return cy.get(`[data-cy="select-clear"]`).click()
-      }
-      return cy.get(selector).clear()
-    })
-}
-
 Cypress.Commands.add('dialogFinish', dialogFinish)
 Cypress.Commands.add('dialogTitle', dialogTitle)
 Cypress.Commands.add('dialogForm', dialogForm)
 Cypress.Commands.add('dialogContains', dialogContains)
 Cypress.Commands.add('dialogClick', dialogClick)
-Cypress.Commands.add('dialogClearField', dialogClearField)
