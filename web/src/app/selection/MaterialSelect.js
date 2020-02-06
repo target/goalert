@@ -52,7 +52,6 @@ export default class MaterialSelect extends Component {
       classes,
       disabled,
       required,
-      onBlur,
 
       label,
       name,
@@ -111,13 +110,16 @@ export default class MaterialSelect extends Component {
               required
             ) {
               this.setState({ isCleared: false })
-              onChange(value)
             }
+            onChange(value)
           }}
           onChange={val => {
-            if (!required) onChange(val)
-            if (val !== null) onChange(val)
-            else this.setState({ isCleared: true })
+            if (required && val === null) {
+              this.setState({ isCleared: true })
+              return
+            }
+            if (required && val !== null) this.setState({ isCleared: false })
+            onChange(val)
           }}
           textFieldProps={textFieldProps}
           placeholder=''
