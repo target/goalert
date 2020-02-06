@@ -28,7 +28,6 @@ import {
 } from '../../selectors/url'
 import AlertsListControls from '../components/AlertsListControls'
 import { LegacyGraphQLClient } from '../../apollo'
-import Spinner from '../../loading/components/Spinner'
 
 const LIMIT = 25
 
@@ -354,7 +353,7 @@ export default class AlertsList extends Component {
                   next={() => loadMore(this.getQueryData(offset))}
                   dataLength={len}
                   hasMore={hasMore}
-                  loader={<h4>Loading...</h4>}
+                  loader={null}
                   scrollThreshold={(len - 20) / len}
                   style={{ overflow: 'hidden' }}
                 >

@@ -54,18 +54,16 @@ function testAlerts(screen: ScreenFormat) {
     })
 
     it('should load more list items when scrolling to the bottom', () => {
-      cy.createManyAlerts(50).then(() => {
-        cy.visit('/alerts?allServices=1&filter=all')
-        cy.get('[data-cy=alerts-list-no-data]').should('not.exist')
+      const summary = c.word()
+
+      cy.createManyAlerts(50, { summary }).then(() => {
+        cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
         cy.get('[data-cy=alerts-list] li')
-          .its('length')
-          .should('eq', 25)
+          .should('have.length', 25)
         cy.get('[id="content"]')
           .scrollTo('bottom')
-          .wait(1500)
         cy.get('[data-cy=alerts-list] li')
-          .its('length')
-          .should('be.gt', 49)
+          .should('have.length', 50)
       })
     })
 
@@ -179,7 +177,7 @@ function testAlerts(screen: ScreenFormat) {
         .click()
 
       cy.get('button[data-cy=close]').click()
-      cy.get('ul[data-cy=alerts-list]').should('contain', 'No results')
+      cy.get('ul[data-cy=alerts-list-no-data]').should('contain', 'No results')
     })
 
     it('should update some alerts', () => {

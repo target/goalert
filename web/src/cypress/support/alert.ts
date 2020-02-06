@@ -1,6 +1,5 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
-import { sha512 } from 'js-sha512'
 
 const c = new Chance()
 
@@ -13,6 +12,7 @@ declare global {
       createAlertLogs: typeof createAlertLogs
     }
   }
+
   interface Alert {
     number: number
     id: number
@@ -121,6 +121,7 @@ function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
 
   return next([], '')
 }
+
 function getAlert(id: number): Cypress.Chainable<Alert> {
   const query = `query GetAlert($id: Int!) {
     alert(id: $id) {
@@ -183,7 +184,7 @@ function createManyAlerts(
   if (!alertOptions?.serviceID) {
     return cy
       .createService(alertOptions?.service)
-      .then(res => createManyAlerts(count, { serviceID: res.id }))
+      .then(res => createManyAlerts(count, { ...alertOptions, serviceID: res.id }))
   }
 
   // build query
@@ -191,11 +192,11 @@ function createManyAlerts(
     'insert into alerts (service_id, summary, details, dedup_key) values '
   let rows: Array<string> = []
   for (let i = 0; i < count; i++) {
+    const summary = alertOptions.summary || c.word()
     const details = alertOptions.details || c.sentence()
-    rows.push(
-      `('${alertOptions?.serviceID}', '${alertOptions.summary ||
-        c.word() + i}', '${details}', 'auto:1:${sha512(details)}')`,
-    )
+    const dedupKey = 'manual:1:createManyAlerts_' + i
+
+    rows.push(`('${alertOptions?.serviceID}', '${summary}', '${details}', '${dedupKey}')`)
   }
   query = query + rows.join(',') + ';'
 
