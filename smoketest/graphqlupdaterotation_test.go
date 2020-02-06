@@ -3,9 +3,10 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
-	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLUpdateRotation tests that all steps like creating and updating rotations are carried out without any errors.
@@ -22,8 +23,11 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
+	u1UUID := h.UUID("u1")
+	u2UUID := h.UUID("u2")
+
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -42,82 +46,134 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 
 	var sched struct {
 		CreateSchedule struct {
-			ID        string
-			Rotations []struct{ ID string }
+			ID      string
+			Name    string
+			Targets []struct {
+				Target struct {
+					ID string
+				}
+			}
 		}
 	}
 	doQL(fmt.Sprintf(`
 		mutation {
-			createSchedule(input:{
-				name: "default",
-				description: "default testing",
-				time_zone: "America/Chicago",
-				default_rotation: {
-					type: daily,
-					start_time: "%s",
-    				shift_length:1,
-  				}
-			}){
+			createSchedule(
+				input: {
+					name: "default"
+					description: "default testing"
+					timeZone: "America/Chicago"
+					targets: {
+						newRotation: {
+							name: "old name"
+							description: "old description"
+							timeZone: "America/Chicago"
+							start: "2020-02-04T12:08:25-06:00"
+							type: daily
+							shiftLength: 6
+							userIDs: ["%s"]
+						}
+						rules: {
+							start: "00:00"
+							end: "23:00"
+							weekdayFilter: [true, true, true, true, true]
+						}
+					}
+				}
+			) {
 				id
-				rotations {
-					id
+				name
+				targets {
+					target {
+						id
+					}
 				}
 			}
 		}
-	
-	`, time.Now().Format(time.RFC3339)), &sched)
+	`, u1UUID), &sched)
 
-	sID := sched.CreateSchedule.ID
-	var rotation struct {
-		CreateOrUpdateRotation struct {
-			Rotation struct {
-				ID   string
-				Name string
-			}
-		}
-	}
+	rotationID := sched.CreateSchedule.Targets[0].Target.ID
+
 	doQL(fmt.Sprintf(`
 		mutation {
-			createOrUpdateRotation(input:{
+			updateRotation(input:{
 				id: "%s",
-				name: "default",
-				start: "2017-08-15T19:00:00Z",
-				type: daily,
-				shift_length: 2,
-				schedule_id: "%s"
-			}){
-				rotation {
-					id
-					name
-				}
-			}
+				name: "new name",
+				description: "new description"
+				timeZone: "America/New_York"
+				start: "1997-11-26T12:08:25-05:00"
+				type: hourly
+				shiftLength: 12
+				activeUserIndex: 0
+				userIDs: ["%s", "%s"]
+			})
 		}
 	
-	`, sched.CreateSchedule.Rotations[0].ID, sID), &rotation)
+	`, rotationID, u1UUID, u2UUID), nil)
 
 	var newSched struct {
 		Schedule struct {
-			Rotations []struct {
-				ShiftLength int `json:"shift_length"`
+			ID      string
+			Name    string
+			Targets []struct {
+				ScheduleID string
+				Target     struct{ ID string }
 			}
 		}
 	}
 	doQL(fmt.Sprintf(`
 		query {
 			schedule(id: "%s") {
-				rotations {
-					id
-					shift_length
+				targets {
+					target {
+						id
+					}
 				}
 			}
 		}
 	
-	`, sID), &newSched)
+	`, sched.CreateSchedule.ID), &newSched)
 
-	if len(newSched.Schedule.Rotations) != 1 {
-		t.Errorf("got %d rotations; want 1", len(newSched.Schedule.Rotations))
+	if len(newSched.Schedule.Targets) != 1 {
+		t.Errorf("got %d rotations; want 1", len(newSched.Schedule.Targets))
 	}
-	if newSched.Schedule.Rotations[0].ShiftLength != 2 {
-		t.Errorf("got shift_length of %d; want 2", newSched.Schedule.Rotations[0].ShiftLength)
+
+	var updatedRotation struct {
+		Rotation struct {
+			Name            string
+			Description     string
+			TimeZone        string
+			Start           string
+			Type            string
+			ShiftLength     int
+			ActiveUserIndex int
+			Users           []struct {
+				ID string
+			}
+		}
 	}
+	doQL(fmt.Sprintf(`
+		query{
+		rotation(id: "%s"){
+			name
+			description
+			timeZone
+			start
+			type
+			shiftLength
+			activeUserIndex
+			users {
+				id
+			}
+		}
+	}`, rotationID), &updatedRotation)
+
+	assert.Equal(t, "new name", updatedRotation.Rotation.Name)
+	assert.Equal(t, "new description", updatedRotation.Rotation.Description)
+	assert.Equal(t, "America/New_York", updatedRotation.Rotation.TimeZone)
+	assert.Equal(t, "1997-11-26T12:08:00-05:00", updatedRotation.Rotation.Start) // truncate to minute
+	assert.Equal(t, "hourly", updatedRotation.Rotation.Type)
+	assert.Equal(t, 12, updatedRotation.Rotation.ShiftLength)
+	assert.Equal(t, 0, updatedRotation.Rotation.ActiveUserIndex)
+	assert.Equal(t, u1UUID, updatedRotation.Rotation.Users[0].ID)
+	assert.Equal(t, u2UUID, updatedRotation.Rotation.Users[1].ID)
 }
