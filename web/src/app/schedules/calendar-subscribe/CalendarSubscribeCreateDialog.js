@@ -68,9 +68,11 @@ export default function CalendarSubscribeCreateDialog(props) {
     },
   })
 
-  // todo: status?.data?.href
   const isComplete =
-    status.called && status.data && !status.error && !status.loading
+    status.called &&
+    status?.data?.createUserCalendarSubscription?.url &&
+    !status.error &&
+    !status.loading
 
   const form = (
     <CalendarSubscribeForm

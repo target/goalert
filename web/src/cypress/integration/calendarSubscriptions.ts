@@ -37,7 +37,7 @@ function testSubs(screen: ScreenFormat) {
       })
       cy.dialogClick('Submit')
       cy.dialogTitle('Success!')
-      // todo: verify url generation
+      cy.dialogContains(Cypress.config().baseUrl + '/api/v2/calendar?token=')
       cy.dialogFinish('Done')
 
       cy.get('body').should('not.contain', defaultCptn)
@@ -65,7 +65,7 @@ function testSubs(screen: ScreenFormat) {
       })
       cy.dialogClick('Submit')
       cy.dialogTitle('Success!')
-      // todo: verify url generation
+      cy.dialogContains(Cypress.config().baseUrl + '/api/v2/calendar?token=')
       cy.dialogFinish('Done')
 
       cy.get('[data-cy="list-empty-message"]').should('not', 'exist')
