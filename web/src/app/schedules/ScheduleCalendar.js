@@ -138,7 +138,7 @@ export default class ScheduleCalendar extends React.PureComponent {
     } else if (nextView === 'week' && prevStartMonth !== currMonth) {
       this.props.setWeekly(true)
       this.props.setStart(
-        DateTime.fromJSDate(this.props.start)
+        DateTime.fromISO(this.props.start)
           .toLocal()
           .startOf('month')
           .toUTC()
