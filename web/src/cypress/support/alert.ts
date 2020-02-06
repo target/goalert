@@ -177,6 +177,8 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
     .then(res => res.createAlert)
 }
 
+// global scope if createManyAlerts is called more than once in a given test suite
+let dedupIdx = 0
 function createManyAlerts(
   count: number,
   alertOptions?: AlertOptions,
@@ -196,11 +198,13 @@ function createManyAlerts(
   for (let i = 0; i < count; i++) {
     const summary = alertOptions.summary || c.word()
     const details = alertOptions.details || c.sentence()
-    const dedupKey = 'manual:1:createManyAlerts_' + i
+    const dedupKey = 'manual:1:createManyAlerts_' + dedupIdx
 
     rows.push(
       `('${alertOptions?.serviceID}', '${summary}', '${details}', '${dedupKey}')`,
     )
+
+    dedupIdx++
   }
   query = query + rows.join(',') + ';'
 
