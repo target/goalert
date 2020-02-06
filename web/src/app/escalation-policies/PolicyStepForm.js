@@ -104,6 +104,7 @@ export default class PolicyStepForm extends React.Component {
           badge: classes.badge,
         }}
         tabIndex='0'
+        aria-label={`toggle ${txt}`}
       >
         <Typography className={classes.label}>{txt}</Typography>
       </Badge>
@@ -135,7 +136,6 @@ export default class PolicyStepForm extends React.Component {
                 >
                   <Step>
                     <StepButton
-                      aria-label='Show Rotations Select'
                       aria-expanded={(step === 0).toString()}
                       data-cy='rotations-step'
                       icon={<RotationsIcon />}
@@ -164,7 +164,6 @@ export default class PolicyStepForm extends React.Component {
                   </Step>
                   <Step>
                     <StepButton
-                      aria-label='Show Schedules Select'
                       aria-expanded={(step === 1).toString()}
                       data-cy='schedules-step'
                       icon={<SchedulesIcon />}
@@ -194,7 +193,6 @@ export default class PolicyStepForm extends React.Component {
                   {cfg['Slack.Enable'] && (
                     <Step>
                       <StepButton
-                        aria-label='Show Slack Channels Select'
                         aria-expanded={(step === 2).toString()}
                         data-cy='slack-channels-step'
                         icon={<SlackIcon />}
@@ -225,7 +223,6 @@ export default class PolicyStepForm extends React.Component {
                   )}
                   <Step>
                     <StepButton
-                      aria-label='Show Users Select'
                       aria-expanded={(step === 3).toString()}
                       data-cy='users-step'
                       icon={<UsersIcon />}
