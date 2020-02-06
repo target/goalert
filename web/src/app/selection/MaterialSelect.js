@@ -111,7 +111,6 @@ export default class MaterialSelect extends Component {
             ) {
               this.setState({ isCleared: false })
             }
-            onChange(value)
           }}
           onChange={val => {
             if (required && val === null) {
