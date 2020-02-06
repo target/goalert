@@ -28,6 +28,7 @@ import {
 } from '../../selectors/url'
 import AlertsListControls from '../components/AlertsListControls'
 import { LegacyGraphQLClient } from '../../apollo'
+import Spinner from '../../loading/components/Spinner'
 
 const LIMIT = 25
 
@@ -284,7 +285,9 @@ export default class AlertsList extends Component {
       content = this.renderNoResults()
 
     const dataToShow = data.alerts2 ? data.alerts2.items : []
+    let hasData = false
     if (!content) {
+      hasData = true
       content = dataToShow.map(alert => (
         <AlertsListDataWrapper
           key={alert.id}
@@ -331,16 +334,16 @@ export default class AlertsList extends Component {
             <Hidden mdDown>
               <AlertsListControls />
             </Hidden>
-            {isLoading && (
+            {!hasData && (
               <List
                 id='alerts-list'
                 style={{ padding: 0 }}
-                data-cy='alerts-list-loading'
+                data-cy='alerts-list-no-data'
               >
                 {content}
               </List>
             )}
-            {!isLoading && (
+            {hasData && (
               <List
                 id='alerts-list'
                 style={{ padding: 0 }}
@@ -351,7 +354,7 @@ export default class AlertsList extends Component {
                   next={() => loadMore(this.getQueryData(offset))}
                   dataLength={len}
                   hasMore={hasMore}
-                  loader={null}
+                  loader={<h4>Loading...</h4>}
                   scrollThreshold={(len - 20) / len}
                   style={{ overflow: 'hidden' }}
                 >
