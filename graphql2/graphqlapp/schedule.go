@@ -200,6 +200,14 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 			}
 		}
 
+		for i, override := range input.NewUserOverrides {
+			override.ScheduleID = &sched.ID
+			_, err = m.CreateUserOverride(ctx, override)
+			if err != nil {
+				return validation.AddPrefix("newUserOverride["+strconv.Itoa(i)+"].", err)
+			}
+		}
+
 		return nil
 	})
 
