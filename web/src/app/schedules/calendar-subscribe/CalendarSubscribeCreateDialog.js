@@ -68,11 +68,7 @@ export default function CalendarSubscribeCreateDialog(props) {
     },
   })
 
-  const isComplete =
-    status.called &&
-    status?.data?.createUserCalendarSubscription?.url &&
-    !status.error &&
-    !status.loading
+  const isComplete = Boolean(status?.data?.createUserCalendarSubscription?.url)
 
   const form = (
     <CalendarSubscribeForm
