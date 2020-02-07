@@ -82,10 +82,6 @@ export default class MaterialSelect extends Component {
       value: value ? (multiple ? value.join(',') : value.value) : '',
     }
     const { isCleared } = this.state
-    const getValue = () => {
-      if (multiple) return
-      return isCleared && required ? { label: '', value: '' } : value
-    }
 
     return (
       <div
@@ -105,7 +101,7 @@ export default class MaterialSelect extends Component {
           isClearable
           isDisabled={disabled}
           isMulti={multiple}
-          value={getValue()}
+          value={isCleared && required ? { label: '', value: '' } : value}
           clearButtonRef={this.clearButtonRef}
           components={components}
           onBlur={e => {
@@ -118,11 +114,12 @@ export default class MaterialSelect extends Component {
             }
           }}
           onChange={val => {
-            if (required && _.isEmpty(val)) {
+            if (required && _.isEmpty(val) && !multiple) {
               this.setState({ isCleared: true })
               return
             }
-            if (required && val !== null) this.setState({ isCleared: false })
+            if (required && val !== null && !multiple)
+              this.setState({ isCleared: false })
             onChange(val)
           }}
           textFieldProps={textFieldProps}
