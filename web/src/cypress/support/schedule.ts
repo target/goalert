@@ -183,13 +183,20 @@ const randClock = () =>
   `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
 function deleteSchedule(id: string): Cypress.Chainable<void> {
-  const query = `
-    mutation deleteSchedule($input: DeleteScheduleInput!){
-      deleteSchedule(input: $input) { deleted_id }
+  const mutation = `
+    mutation($input: [TargetInput!]!) {
+      deleteAll(input: $input)
     }
   `
 
-  return cy.graphql(query, { input: { id } })
+  return cy.graphql2(mutation, {
+    input: [
+      {
+        type: 'schedule',
+        id,
+      },
+    ],
+  })
 }
 
 Cypress.Commands.add('createSchedule', createSchedule)

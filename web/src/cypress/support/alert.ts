@@ -1,15 +1,18 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
+
 const c = new Chance()
 
 declare global {
   namespace Cypress {
     interface Chainable {
       createAlert: typeof createAlert
+      createManyAlerts: typeof createManyAlerts
       closeAlert: typeof closeAlert
       createAlertLogs: typeof createAlertLogs
     }
   }
+
   interface Alert {
     number: number
     id: number
@@ -118,6 +121,7 @@ function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
 
   return next([], '')
 }
+
 function getAlert(id: number): Cypress.Chainable<Alert> {
   const query = `query GetAlert($id: Int!) {
     alert(id: $id) {
@@ -137,6 +141,7 @@ function getAlert(id: number): Cypress.Chainable<Alert> {
 
   return cy.graphql(query, { id }).then(res => res.alert)
 }
+
 function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
   if (!a) a = {}
   const query = `mutation CreateAlert($input: CreateAlertInput){
@@ -172,6 +177,40 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
     .then(res => res.createAlert)
 }
 
+// global scope if createManyAlerts is called more than once in a given test suite
+let dedupIdx = 0
+function createManyAlerts(
+  count: number,
+  alertOptions?: AlertOptions,
+): Cypress.Chainable {
+  if (!alertOptions?.serviceID) {
+    return cy
+      .createService(alertOptions?.service)
+      .then(res =>
+        createManyAlerts(count, { ...alertOptions, serviceID: res.id }),
+      )
+  }
+
+  // build query
+  let query =
+    'insert into alerts (service_id, summary, details, dedup_key) values '
+  let rows: Array<string> = []
+  for (let i = 0; i < count; i++) {
+    const summary = alertOptions.summary || c.word()
+    const details = alertOptions.details || c.sentence()
+    const dedupKey = 'manual:1:createManyAlerts_' + dedupIdx
+
+    rows.push(
+      `('${alertOptions?.serviceID}', '${summary}', '${details}', '${dedupKey}')`,
+    )
+
+    dedupIdx++
+  }
+  query = query + rows.join(',') + ';'
+
+  return cy.sql(query)
+}
+
 function closeAlert(id: number): Cypress.Chainable<Alert> {
   const query = `
     mutation {
@@ -183,5 +222,6 @@ function closeAlert(id: number): Cypress.Chainable<Alert> {
 }
 
 Cypress.Commands.add('createAlert', createAlert)
+Cypress.Commands.add('createManyAlerts', createManyAlerts)
 Cypress.Commands.add('createAlertLogs', createAlertLogs)
 Cypress.Commands.add('closeAlert', closeAlert)
