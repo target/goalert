@@ -148,68 +148,268 @@ func TestGraphQLOnCall(t *testing.T) {
 		}
 	`, true, false)
 
-	// // Active schedule rule, user is replaced
-	// check("User EP Schedule Replace Override", `
-	// 	escalation_policies: [{ id_placeholder: "ep", name: "generated", description: "1"}]
-	// 	escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 	services: [{id_placeholder: "svc", description: "ok", name: "generated", escalation_policy_id: "ep"}]
-	// 	schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generated", description: "1"}]
-	// 	schedule_rules: [{target:{target_type:user, target_id:"u2"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 	user_overrides: [{add_user_id: "u1", remove_user_id: "u2", start_time: "1006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// `, true, false)
+	// Active schedule rule, user is replaced
+	check("User EP Schedule Add Override", `
+		mutation {
+			createService(
+				input: {
+					name: "{{.UniqName}}"
+					newEscalationPolicy: {
+						name: "{{.UniqName}}"
+						steps: [
+							{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{.UniqName}}"
+									timeZone: "UTC"
+									targets: [
+										{
+											target: { id: "{{.User2.ID}}", type: user }
+											rules: [
+												{
+													start: "00:00"
+													end: "23:59"
+													weekdayFilter: [true, true, true, true, true, true, true]
+												}
+											]
+										}
+									]
+									newUserOverrides: [
+										{
+											addUserID: "{{.User1.ID}}"
+											removeUserID: "{{.User2.ID}}",
+											start: "1006-01-02T15:04:05Z"
+											end: "4006-01-02T15:04:05Z"
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			) {
+				id
+			}
+			}
+	`, true, false)
 
-	// // Same scenario, user is NOT replaced (no override)
-	// check("User EP Schedule Replace Override Absent", `
-	// 		escalation_policies: [{ id_placeholder: "ep", name: "generated", description: "1"}]
-	// 		escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 		services: [{id_placeholder: "svc", description: "ok", name: "generated", escalation_policy_id: "ep"}]
-	// 		schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generated", description: "1"}]
-	// 		schedule_rules: [{target:{target_type:user, target_id:"u2"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 	`, false, true)
+	// Same scenario, user is NOT replaced (no override)
+	check("User EP Schedule Add Override", `
+		mutation {
+			createService(
+				input: {
+					name: "{{.UniqName}}"
+					newEscalationPolicy: {
+						name: "{{.UniqName}}"
+						steps: [
+							{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{.UniqName}}"
+									timeZone: "UTC"
+									targets: [
+										{
+											target: { id: "{{.User2.ID}}", type: user }
+											rules: [
+												{
+													start: "00:00"
+													end: "23:59"
+													weekdayFilter: [true, true, true, true, true, true, true]
+												}
+											]
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			) {
+				id
+			}
+			}
+	`, false, true)
 
-	// // Active schedule rule, active rotation participant is replaced
-	// check("User EP Schedule Replace Rotation Override", `
-	// 	escalation_policies: [{ id_placeholder: "ep", name: "generated", description: "1"}]
-	// 	escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 	services: [{id_placeholder: "svc", description: "ok", name: "generated", escalation_policy_id: "ep"}]
-	// 	schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generated", description: "1"}]
-	// 	schedule_rules: [{target:{target_type:rotation, target_id:"rot"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 	rotations: [{id_placeholder: "rot", time_zone: "UTC", shift_length: 1, type: weekly, start: "2006-01-02T15:04:05Z", name: "generated", description: "1"}]
-	// 	rotation_participants: [{rotation_id: "rot", user_id: "u2"}]
-	// 	user_overrides: [{add_user_id: "u1", remove_user_id: "u2", start_time: "1006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// `, true, false)
+	// Active schedule rule, active rotation participant is replaced
+	check("User EP Schedule Add Override", `
+		mutation {
+			createService(
+				input: {
+					name: "{{.UniqName}}"
+					newEscalationPolicy: {
+						name: "{{.UniqName}}"
+						steps: [
+							{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{.UniqName}}"
+									timeZone: "UTC"
+									targets: [
+										{
+											newRotation: {
+												name: "{{.UniqName}}",
+												type: weekly,
+												start: "2006-01-02T15:04:05Z",
+												timeZone: "UTC",
+												userIDs: ["{{.User2.ID}}"]
+											}
+											rules: [{}]
+										}
+									]
+									newUserOverrides: [
+										{
+											addUserID: "{{.User1.ID}}"
+											removeUserID: "{{.User2.ID}}",
+											start: "1006-01-02T15:04:05Z"
+											end: "4006-01-02T15:04:05Z"
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			) {
+				id
+			}
+			}
+	`, true, false)
 
-	// // Active schedule rule, active rotation participant is NOT replaced (no override)
-	// check("User EP Schedule Replace Rotation Override Absent", `
-	// 	escalation_policies: [{ id_placeholder: "ep", name: "generated", description: "1"}]
-	// 	escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 	services: [{id_placeholder: "svc", description: "ok", name: "generated", escalation_policy_id: "ep"}]
-	// 	schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generated", description: "1"}]
-	// 	schedule_rules: [{target:{target_type:rotation, target_id:"rot"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 	rotations: [{id_placeholder: "rot", time_zone: "UTC", shift_length: 1, type: weekly, start: "2006-01-02T15:04:05Z", name: "generated", description: "1"}]
-	// 	rotation_participants: [{rotation_id: "rot", user_id: "u2"}]
-	// `, false, true)
+	// Active schedule rule, active rotation participant is NOT replaced (no override)
+	check("User EP Schedule Add Override", `
+		mutation {
+			createService(
+				input: {
+					name: "{{.UniqName}}"
+					newEscalationPolicy: {
+						name: "{{.UniqName}}"
+						steps: [
+							{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{.UniqName}}"
+									timeZone: "UTC"
+									targets: [
+										{
+											newRotation: {
+												name: "{{.UniqName}}",
+												type: weekly,
+												start: "2006-01-02T15:04:05Z",
+												timeZone: "UTC",
+												userIDs: ["{{.User2.ID}}"]
+											}
+											rules: [
+												{
+													start: "00:00"
+													end: "23:59"
+													weekdayFilter: [true, true, true, true, true, true, true]
+												}
+											]
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			) {
+				id
+			}
+			}
+	`, false, true)
 
-	// // Active schedule rule, active rotation participant is removed
-	// check("User EP Schedule Remove Rotation Override", `
-	// 	escalation_policies: [{ id_placeholder: "ep", name: "generated", description: "1"}]
-	// 	escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 	services: [{id_placeholder: "svc", description: "ok", name: "generated", escalation_policy_id: "ep"}]
-	// 	schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generated", description: "1"}]
-	// 	schedule_rules: [{target:{target_type:rotation, target_id:"rot"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 	rotations: [{id_placeholder: "rot", time_zone: "UTC", shift_length: 1, type: weekly, start: "2006-01-02T15:04:05Z", name: "generated", description: "1"}]
-	// 	rotation_participants: [{rotation_id: "rot", user_id: "u2"}]
-	// 	user_overrides: [{ remove_user_id: "u2", start_time: "1006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// `, false, false)
+	// Active schedule rule, active rotation participant is removed
+	check("User EP Schedule Add Override", `
+		mutation {
+			createService(
+				input: {
+					name: "{{.UniqName}}"
+					newEscalationPolicy: {
+						name: "{{.UniqName}}"
+						steps: [
+							{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{.UniqName}}"
+									timeZone: "UTC"
+									targets: [
+										{
+											newRotation: {
+												name: "{{.UniqName}}",
+												type: weekly,
+												start: "2006-01-02T15:04:05Z",
+												timeZone: "UTC",
+												userIDs: ["{{.User2.ID}}"]
+											}
+											rules: [
+												{
+													start: "00:00"
+													end: "23:59"
+													weekdayFilter: [true, true, true, true, true, true, true]
+												}
+											]
+										}
+									]
+									newUserOverrides: [
+										{
+											removeUserID: "{{.User2.ID}}",
+											start: "1006-01-02T15:04:05Z"
+											end: "4006-01-02T15:04:05Z"
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			) {
+				id
+			}
+			}
+	`, false, false)
 
-	// // Active schedule rule, user is removed
-	// check("User EP Schedule Remove Override", `
-	// 	escalation_policies: [{ id_placeholder: "ep", name: "generated", description: "1"}]
-	// 	escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 	services: [{id_placeholder: "svc", description: "ok", name: "generated", escalation_policy_id: "ep"}]
-	// 	schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generated", description: "1"}]
-	// 	schedule_rules: [{target:{target_type:user, target_id:"u2"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 	user_overrides: [{remove_user_id: "u2", start_time: "1006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// `, false, false)
+	// Active schedule rule, user is removed
+	check("User EP Schedule Add Override", `
+		mutation {
+			createService(
+				input: {
+					name: "{{.UniqName}}"
+					newEscalationPolicy: {
+						name: "{{.UniqName}}"
+						steps: [
+							{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{.UniqName}}"
+									timeZone: "UTC"
+									targets: [
+										{
+											target: { id: "{{.User2.ID}}", type: user }
+											rules: [
+												{
+													start: "00:00"
+													end: "23:59"
+													weekdayFilter: [true, true, true, true, true, true, true]
+												}
+											]
+										}
+									]
+									newUserOverrides: [
+										{
+											removeUserID: "{{.User2.ID}}",
+											start: "1006-01-02T15:04:05Z"
+											end: "4006-01-02T15:04:05Z"
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			) {
+				id
+			}
+			}
+	`, false, false)
 
 }
