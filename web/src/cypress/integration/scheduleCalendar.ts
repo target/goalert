@@ -10,9 +10,15 @@ const weekHeaderFormat = (t: DateTime) => {
   const end = t.endOf('week').minus({ day: 1 })
 
   return (
-    start.toFormat('MMMM dd – ') +
+    start.toFormat('MMMM dd — ') +
     end.toFormat(end.month === start.month ? 'dd' : 'MMMM dd')
   )
+}
+
+const weekSpansTwoMonths = (t: DateTime) => {
+  const start = t.startOf('week').minus({ day: 1 })
+  const end = t.endOf('week').minus({ day: 1 })
+  return start.month !== end.month
 }
 
 function testCalendar(screen: ScreenFormat) {
@@ -113,13 +119,15 @@ function testCalendar(screen: ScreenFormat) {
     )
   })
 
-  it.skip('should switch between weekly and monthly views', () => {
+  it('should switch between weekly and monthly views', () => {
+    // defaults to current month
     cy.get('button[data-cy="show-month"]').should('be.disabled')
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
       monthHeaderFormat(now),
     )
 
+    // click weekly
     cy.get('button[data-cy="show-week"]').click()
     cy.get('button[data-cy="show-week"]').should('be.disabled')
     cy.get('[data-cy="calendar-header"]').should(
@@ -127,11 +135,14 @@ function testCalendar(screen: ScreenFormat) {
       weekHeaderFormat(now),
     )
 
+    // go from week to monthly view
+    // e.g. if navigating to an overlap of two months such as
+    // Jan 27 - Feb 2, show the latter month (February)
     cy.get('button[data-cy="show-month"]').click()
     cy.get('button[data-cy="show-month"]').should('be.disabled')
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
-      monthHeaderFormat(now),
+      monthHeaderFormat(now.plus({ months: weekSpansTwoMonths(now) ? 1 : 0 })),
     )
   })
 
