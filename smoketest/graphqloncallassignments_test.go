@@ -148,6 +148,11 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 			sortAssertions(expected)
 			sortAssertions(actualOnCall)
 
+			if len(expected) == 0 {
+				assert.Empty(t, actualOnCall)
+				return
+			}
+
 			assert.EqualValues(t, expected, actualOnCall, "On-call assignments.")
 		})
 	}
@@ -271,8 +276,8 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		},
 	)
 
-	// EP -> Schedule, where there is an ADD for a user
-	check("User EP Schedule Add Override", `
+	// EP -> Schedule, where there is an active ADD for a user
+	check("User EP Schedule Add an Active Override", `
 		mutation {
 			createService(input:{
 				name: "{{name  "svc"}}",
@@ -281,7 +286,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 					steps: [{
 								delayMinutes: 1
 								newSchedule: {
-									name: "sched1"
+									name: "{{name "sched"}}"
 									timeZone: "UTC"
 									newUserOverrides: [
 										{
@@ -300,19 +305,32 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		},
 	)
 
-	// 	// EP -> Schedule, where there is an inactive ADD for a user
-	// 	check("User EP Schedule Inactive Add Override", `
-	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 			services: [{id_placeholder: "svc", description: "ok", name: "generatedA", escalation_policy_id: "ep"}]
-	// 			schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generatedA", description: "1"}]
-	// 			user_overrides: [{add_user_id: "u1", start_time: "3006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// 		`,
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", ScheduleName: "generatedA", Level: 0, IsActive: false},
-	// 		},
-	// 		nil,
-	// 	)
+	// EP -> Schedule, where there is an inactive ADD for a user
+	check("User EP Schedule Inactive Add Override", `
+		mutation {
+			createService(input:{
+				name: "{{name  "svc"}}",
+				newEscalationPolicy: {
+					name: "{{name "ep"}}",
+					steps: [{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{name "sched"}}"
+									timeZone: "UTC"
+									newUserOverrides: [
+										{
+											addUserID: "{{userID "sam"}}"
+											start: "3006-01-02T15:04:05Z"
+											end: "4006-01-02T15:04:05Z"
+										}
+									]
+								}
+							}]
+				}
+			}){id}
+		}`,
+		[]onCallAssertion{},
+	)
 
 	// 	// Active schedule rule, user is replaced
 	// 	check("User EP Schedule Replace Override", `
