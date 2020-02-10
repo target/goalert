@@ -13,9 +13,9 @@ func TestCalendarSubscription_RenderICalFromShifts(t *testing.T) {
 	var cs CalendarSubscription
 	cs.Config.ReminderMinutes = []int{5, 10}
 	shifts := []oncall.Shift{{Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
-	generated := time.Date(2020, 1, 1, 5, 0, 0, 0, time.UTC)
+	generatedAt := time.Date(2020, 1, 1, 5, 0, 0, 0, time.UTC)
 
-	iCal, err := cs.renderICalFromShifts(shifts, generated)
+	iCal, err := cs.renderICalFromShifts(shifts, generatedAt)
 	assert.NoError(t, err)
 	expected := strings.Join([]string{
 		"BEGIN:VCALENDAR",
