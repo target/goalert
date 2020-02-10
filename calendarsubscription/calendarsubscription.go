@@ -44,7 +44,7 @@ VERSION:2.0
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 {{- $mins := .ReminderMinutes }}
-{{- $generatedat := .GeneratedAt }}
+{{- $genTime := .GeneratedAt }}
 {{- range .Shifts}}
 BEGIN:VEVENT
 SUMMARY:On-Call Shift
