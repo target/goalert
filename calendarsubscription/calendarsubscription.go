@@ -31,10 +31,10 @@ type CalendarSubscription struct {
 }
 
 type iCalRenderData struct {
-	Shifts          []oncall.Shift `json:"s,omitempty"`
-	ReminderMinutes []int          `json:"r,omitempty"`
-	Version         string         `json:"v,omitempty"`
-	GeneratedAt     time.Time      `json:"g,omitempty"`
+	Shifts          []oncall.Shift
+	ReminderMinutes []int
+	Version         string
+	GeneratedAt     time.Time
 }
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
