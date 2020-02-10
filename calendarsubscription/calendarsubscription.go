@@ -34,17 +34,21 @@ type iCalOptions struct {
 	Shifts          []oncall.Shift `json:"s,omitempty"`
 	ReminderMinutes []int          `json:"r,omitempty"`
 	Version         string         `json:"v,omitempty"`
+	Generated       time.Time      `json:"g,omitempty"`
 }
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
 var iCalTemplate = template.Must(template.New("ical").Parse(strings.ReplaceAll(`BEGIN:VCALENDAR
 PRODID:-//GoAlert//{{.Version}}//EN
+VERSION:2.0
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 {{- $mins := .ReminderMinutes }}
+{{- $generated := .Generated }}
 {{- range .Shifts}}
 BEGIN:VEVENT
 SUMMARY:On-Call Shift
+DTSTAMP:{{$generated.UTC.Format "20060102T150405Z"}}
 DTSTART:{{.Start.UTC.Format "20060102T150405Z"}}
 DTEND:{{.End.UTC.Format "20060102T150405Z"}}
 {{- range $mins}}
@@ -82,8 +86,8 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 	return &cs, nil
 }
 
-func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift) ([]byte, error) {
-	i := iCalOptions{shifts, cs.Config.ReminderMinutes, version.GitVersion()}
+func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generated time.Time) ([]byte, error) {
+	i := iCalOptions{shifts, cs.Config.ReminderMinutes, version.GitVersion(), generated}
 	buf := bytes.NewBuffer(nil)
 
 	err := iCalTemplate.Execute(buf, i)
