@@ -198,33 +198,41 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 			{User: "bob", EP: "ep", Service: "svc"},
 		},
 	)
-	// 	check("User EP Rotation Direct", `
-	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: rotation, target_id: "rot" }] }]
-	// 			services: [{id_placeholder: "svc", description: "ok", name: "generatedA", escalation_policy_id: "ep"}]
-	// 			rotations: [{id_placeholder: "rot", time_zone: "UTC", shift_length: 1, type: weekly, start: "2006-01-02T15:04:05Z", name: "generatedA", description: "1"}]
-	// 			rotation_participants: [{rotation_id: "rot", user_id: "u1"}]
-	// 		`,
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", RotationName: "generatedA", Level: 0, IsActive: true},
-	// 		},
-	// 		nil,
-	// 	)
 
-	// 	// Active participant directly on EP is always on call, rotation directly on EP but no participant, user has no assignments
-	// 	check("Only One User EP Rotation Direct", `
-	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: rotation, target_id: "rot" }, {target_type: rotation, target_id: "rot2" }] }]
-	// 			services: [{id_placeholder: "svc", description: "ok", name: "generatedA", escalation_policy_id: "ep"}]
-	// 			rotations: [{id_placeholder: "rot", time_zone: "UTC", shift_length: 1, type: weekly, start: "3006-01-02T15:04:05Z", name: "generatedA", description: "1"},
-	// 						{id_placeholder: "rot2", time_zone: "UTC", shift_length: 1, type: weekly, start: "2016-01-02T15:04:05Z", name: "generatedB", description: "2"} ]
-	// 			rotation_participants: [{rotation_id: "rot2", user_id: "u2"}]
-	// 		`,
-	// 		nil,
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", RotationName: "generatedB", Level: 0, IsActive: true},
-	// 		},
-	// 	)
+	check("Only One User EP Rotation Direct", `
+		mutation {
+			createService(input:{
+				name: "{{name  "svc"}}",
+				newEscalationPolicy: {
+					name: "{{name "ep"}}",
+					steps: [{
+						delayMinutes: 4,
+						newRotation: {
+							name: "{{name  "rot1"}}",
+							type: weekly,
+							shiftLength: 1,
+							timeZone: "UTC",
+							start: "2006-01-02T15:04:05Z"
+							userIDs: []
+						}
+					},{
+						delayMinutes: 4,
+						newRotation: {
+							name: "{{name  "rot2"}}",
+							type: weekly,
+							shiftLength: 1,
+							timeZone: "UTC",
+							start: "2006-01-02T15:04:05Z"
+							userIDs: ["{{userID "joe"}}"]
+						}
+					}]
+				}
+			}){id}
+		}`,
+		[]onCallAssertion{
+			{Service: "svc", EP: "ep", StepNumber: 1, User: "joe"},
+		},
+	)
 
 	// 	// Different users on different rotations, users are on call but with different assignment rotations
 	check("Multiple Users EP Rotation Direct", `
