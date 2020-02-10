@@ -444,18 +444,36 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	)
 
 	// 	// Same scenario, user is NOT replaced (no override), inactive schedule rule
-	// 	check("User EP Schedule No Days Replace Override Absent", `
-	// 		escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 		escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 		services: [{id_placeholder: "svc", description: "ok", name: "generatedA", escalation_policy_id: "ep"}]
-	// 		schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generatedA", description: "1"}]
-	// 		schedule_rules: [{target:{target_type:user, target_id:"u2"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: false, monday:false, tuesday:false, wednesday: false, thursday: false, friday: false, saturday: false}]
-	// 	`,
-	// 		[]resolver.OnCallAssignment{},
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", ScheduleName: "generatedA", Level: 0, IsActive: false},
-	// 		},
-	// 	)
+	check("User EP Schedule No Days Replace Override Absent", `
+		mutation {
+			createService(input:{
+				name: "{{name  "svc"}}",
+				newEscalationPolicy: {
+					name: "{{name "ep"}}",
+					steps: [{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{name "sched"}}"
+									timeZone: "UTC"
+									targets: [
+									{
+										target: {id:"{{userID "joe"}}", type:user}
+										rules: [
+											{
+												start: "00:00"
+												end: "23:59"
+												weekdayFilter: [false, false, false, false, false, false, false]
+											}
+										]
+									}
+								]
+								}
+							}]
+				}
+			}){id}
+		}`,
+		[]onCallAssertion{},
+	)
 
 	// 	// Active schedule rule, active rotation participant is replaced
 	// 	check("User EP Schedule Replace Rotation Override", `
