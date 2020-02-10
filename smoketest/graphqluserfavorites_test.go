@@ -29,7 +29,7 @@ func TestGraphQLUserFavorites(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery2(query)
+		g := h.GraphQLQueryT(t, query, "/api/graphql")
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
