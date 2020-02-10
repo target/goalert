@@ -371,22 +371,45 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "bob"}},
 	)
 
-	// 	// Active schedule rule, user is replaced but in the future (inactive replacement)
-	// 	check("User EP Schedule Inactive Replace Override", `
-	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 			services: [{id_placeholder: "svc", description: "ok", name: "generatedA", escalation_policy_id: "ep"}]
-	// 			schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generatedA", description: "1"}]
-	// 			schedule_rules: [{target:{target_type:user, target_id:"u2"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 			user_overrides: [{add_user_id: "u1", remove_user_id: "u2", start_time: "3006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// 		`,
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", ScheduleName: "generatedA", Level: 0, IsActive: false},
-	// 		},
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", ScheduleName: "generatedA", Level: 0, IsActive: true},
-	// 		},
-	// 	)
+	//  Active schedule rule, user is replaced but in the future (inactive replacement)
+	check("User EP Schedule Inactive Replace Override", `
+		mutation {
+			createService(input:{
+				name: "{{name  "svc"}}",
+				newEscalationPolicy: {
+					name: "{{name "ep"}}",
+					steps: [{
+								delayMinutes: 1
+								newSchedule: {
+									name: "{{name "sched"}}"
+									timeZone: "UTC"
+									targets: [
+									{
+										target: {id:"{{userID "joe"}}", type:user}
+										rules: [
+											{
+												start: "00:00"
+												end: "23:59"
+												weekdayFilter: [true, true, true, true, true, true, true]
+											}
+										]
+									}
+								]
+									newUserOverrides: [
+										{
+											addUserID: "{{userID "bob"}}"
+											removeUserID: "{{userID "joe"}}"
+											start: "3006-01-02T15:04:05Z"
+											end: "4006-01-02T15:04:05Z"
+										}
+									]
+								}
+							}]
+				}
+			}){id}
+		}`,
+		[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "joe"}},
+	)
 
 	// 	// Same scenario, user is NOT replaced (no override)
 	// 	check("User EP Schedule Replace Override Absent", `
