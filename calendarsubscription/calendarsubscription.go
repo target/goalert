@@ -87,10 +87,10 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 }
 
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
-	i := iCalRenderData{shifts, cs.Config.ReminderMinutes, version.GitVersion(), generatedAt}
+	data := iCalRenderData{Shifts: shifts, ReminderMinutes: cs.Config.ReminderMinutes, Version: version.GitVersion(), GeneratedAt: generatedAt}
 	buf := bytes.NewBuffer(nil)
 
-	err := iCalTemplate.Execute(buf, i)
+	err := iCalTemplate.Execute(buf, data)
 	if err != nil {
 		return nil, errors.Wrap(err, "render ical template:")
 	}
