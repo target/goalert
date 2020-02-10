@@ -79,7 +79,7 @@
     "diff": "4.0.2",
     "except": "0.1.3",
     "graphql": "14.5.8",
-    "graphql-tag": "2.10.1",
+    "graphql-tag": "2.10.3",
     "history": "4.10.1",
     "lodash-es": "4.17.15",
     "luxon": "1.22.0",
