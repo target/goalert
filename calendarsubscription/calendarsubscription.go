@@ -48,7 +48,7 @@ METHOD:PUBLISH
 {{- range .Shifts}}
 BEGIN:VEVENT
 SUMMARY:On-Call Shift
-DTSTAMP:{{$generatedat.UTC.Format "20060102T150405Z"}}
+DTSTAMP:{{$genTime.UTC.Format "20060102T150405Z"}}
 DTSTART:{{.Start.UTC.Format "20060102T150405Z"}}
 DTEND:{{.End.UTC.Format "20060102T150405Z"}}
 {{- range $mins}}
