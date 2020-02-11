@@ -885,7 +885,10 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 			id
 		}
 	}`,
-		[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "bob"}, {Service: "svc", EP: "ep", StepNumber: 0, User: "joe"}},
+		[]onCallAssertion{
+			{Service: "svc", EP: "ep", StepNumber: 0, User: "bob"},
+			{Service: "svc", EP: "ep", StepNumber: 0, User: "joe"},
+		},
 	)
 
 }
