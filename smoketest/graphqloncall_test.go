@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
+	"text/template"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
