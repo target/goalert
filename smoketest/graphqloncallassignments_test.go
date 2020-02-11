@@ -697,7 +697,57 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "joe"}},
 	)
 
-	// 	// Active schedule rule, active rotation participant is removed
+	// 	Active schedule rule, active rotation participant is removed
+	check("User EP Schedule Replace Rotation Override Absent", `
+		mutation {
+		createService(
+			input: {
+				name: "{{name  "svc"}}"
+				newEscalationPolicy: {
+					name: "{{name  "ep"}}"
+					steps: [
+						{
+							delayMinutes: 1
+							newSchedule: {
+								name: "{{name  "sched"}}"
+								timeZone: "UTC"
+								targets: [
+									{
+										newRotation: {
+											name: "{{name  "rot"}}"
+											type: weekly
+											shiftLength: 1
+											timeZone: "UTC"
+											start: "2006-01-02T15:04:05Z"
+											userIDs: ["{{userID "joe"}}"]
+										}
+										rules: [
+											{
+												start: "00:00"
+												end: "23:59"
+												weekdayFilter: [true, true, true, true, true, true, true]
+											}
+										]
+									}
+								]
+								newUserOverrides: [
+									{
+										removeUserID: "{{userID "joe"}}"
+										start: "1006-01-02T15:04:05Z"
+										end: "4006-01-02T15:04:05Z"
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		) {
+			id
+		}
+	}`,
+		[]onCallAssertion{},
+	)
 	// 	check("User EP Schedule Remove Rotation Override", `
 	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
 	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
