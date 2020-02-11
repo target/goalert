@@ -453,7 +453,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "joe"}},
 	)
 
-	// 	// Same scenario, user is NOT replaced (no override), inactive schedule rule
+	// Same scenario, user is NOT replaced (no override), inactive schedule rule
 	check("User EP Schedule No Days Replace Override Absent", `
 		mutation {
 			createService(input:{
