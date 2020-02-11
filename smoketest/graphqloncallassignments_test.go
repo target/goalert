@@ -581,19 +581,55 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "joe"}},
 	)
 
-	// 	// Same as above, but no service assignment
-	// 	check("User EP Schedule Replace Rotation Override No Service", `
-	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 			schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generatedA", description: "1"}]
-	// 			schedule_rules: [{target:{target_type:rotation, target_id:"rot"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 			rotations: [{id_placeholder: "rot", time_zone: "UTC", shift_length: 1, type: weekly, start: "2006-01-02T15:04:05Z", name: "generatedA", description: "1"}]
-	// 			rotation_participants: [{rotation_id: "rot", user_id: "u2"}]
-	// 			user_overrides: [{add_user_id: "u1", remove_user_id: "u2", start_time: "1006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// 		`,
-	// 		[]resolver.OnCallAssignment{},
-	// 		[]resolver.OnCallAssignment{},
-	// 	)
+	// Same as above, but no service assignment
+	check("User EP Schedule Replace Rotation Override No Service", `
+		mutation {
+		createEscalationPolicy(
+			input: {
+				name: "{{name  "ep"}}"
+				steps: [
+					{
+						delayMinutes: 1
+						newSchedule: {
+							name: "{{name  "sched"}}"
+							timeZone: "UTC"
+							targets: [
+								{
+									newRotation: {
+										name: "{{name  "rot"}}"
+										type: weekly
+										shiftLength: 1
+										timeZone: "UTC"
+										start: "2006-01-02T15:04:05Z"
+										userIDs: ["{{userID "joe"}}"]
+									}
+									rules: [
+										{
+											start: "00:00"
+											end: "23:59"
+											weekdayFilter: [true, true, true, true, true, true, true]
+										}
+									]
+								}
+							]
+							newUserOverrides: [
+								{
+									addUserID: "{{userID "bob"}}"
+									removeUserID: "{{userID "joe"}}"
+									start: "1006-01-02T15:04:05Z"
+									end: "4006-01-02T15:04:05Z"
+								}
+							]
+						}
+					}
+				]
+			}
+		) {
+			id
+		}
+	}`,
+		[]onCallAssertion{},
+	)
 
 	// 	// Same as above, but 2 service assignments
 	// 	check("User EP Schedule Replace Rotation Override Double Service", `
