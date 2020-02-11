@@ -690,7 +690,10 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 			id
 		}
 	}`, h.UUID("eid"), h.UUID("eid"), h.UUID("eid")),
-		[]onCallAssertion{{Service: "svc1", EPName: "esc policy", StepNumber: 0, User: "bob"}, {Service: "svc2", EPName: "esc policy", StepNumber: 0, User: "bob"}},
+		[]onCallAssertion{
+			{Service: "svc1", EPName: "esc policy", StepNumber: 0, User: "bob"},
+			{Service: "svc2", EPName: "esc policy", StepNumber: 0, User: "bob"},
+		},
 	)
 
 	// Active schedule rule, active rotation participant is NOT replaced (no override)
