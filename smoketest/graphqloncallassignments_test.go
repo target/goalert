@@ -26,7 +26,10 @@ var onCallAsnQueryTmpl = template.Must(template.New("query").Parse(`
 func TestGraphQLOnCallAssignments(t *testing.T) {
 	t.Parallel()
 
-	h := harness.NewHarness(t, "", "escalation-policy-step-reorder")
+	sql := `insert into escalation_policies (id, name) 
+					values ({{uuid "eid"}}, 'esc policy');`
+
+	h := harness.NewHarness(t, sql, "escalation-policy-step-reorder")
 	defer h.Close()
 
 	type onCallAssertion struct {
@@ -631,7 +634,57 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		[]onCallAssertion{},
 	)
 
-	// 	// Same as above, but 2 service assignments
+	// User EP Schedule Replace Rotation Override Double Service
+	// check("User EP Schedule Replace Rotation Override Double Service", fmt.Sprintf(`
+	// 	mutation {
+	// 	alias0: createService(input: { name: "{{name "svc1"}}", escalationPolicyID: "%s" }) {
+	// 		id
+	// 	}
+	// 	alias1: createService(input: { name: "{{name "svc2"}}", escalationPolicyID: "%s" }) {
+	// 		id
+	// 	}
+	// 	createEscalationPolicyStep(
+	// 		input: {
+	// 			escalationPolicyID: "%s"
+	// 			delayMinutes: 1
+	// 			newSchedule: {
+	// 				name: "{{name "sched"}}"
+	// 				timeZone: "UTC"
+	// 				targets: [
+	// 					{
+	// 						newRotation: {
+	// 							name: "{{name "rot"}}"
+	// 							type: weekly
+	// 							shiftLength: 1
+	// 							timeZone: "UTC"
+	// 							start: "2006-01-02T15:04:05Z"
+	// 							userIDs: ["{{name "joe"}}"]
+	// 						}
+	// 						rules: [
+	// 							{
+	// 								start: "00:00"
+	// 								end: "23:59"
+	// 								weekdayFilter: [true, true, true, true, true, true, true]
+	// 							}
+	// 						]
+	// 					}
+	// 				]
+	// 				newUserOverrides: [
+	// 					{
+	// 						addUserID: "{{userID "bob"}}"
+	// 						removeUserID: "{{userID "joe"}}"
+	// 						start: "1006-01-02T15:04:05Z"
+	// 						end: "4006-01-02T15:04:05Z"
+	// 					}
+	// 				]
+	// 			}
+	// 		}
+	// 	) {
+	// 		id
+	// 	}
+	// }`, h.UUID("eip"), h.UUID("eip"), h.UUID("eip")),
+	// 	[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "bob"}, {Service: "svc", EP: "ep", StepNumber: 0, User: "joe"}},
+	// )
 	// 	check("User EP Schedule Replace Rotation Override Double Service", `
 	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
 	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
