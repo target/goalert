@@ -51,6 +51,7 @@ export default class MaterialSelect extends Component {
       theme,
       value,
       onChange,
+      onInputChange,
       classes,
       disabled,
       required,
@@ -101,7 +102,7 @@ export default class MaterialSelect extends Component {
           if (isDescendent(this.clearButtonRef.current, e.target))
             this.buttonClicked = true
         }}
-        onClick={() => {
+        onClickCapture={() => {
           this.buttonClicked = false
         }}
       >
@@ -131,6 +132,10 @@ export default class MaterialSelect extends Component {
             if (required && val !== null && !multiple)
               this.setState({ isCleared: false })
             onChange(val)
+          }}
+          onInputChange={val => {
+            this.buttonClicked = false
+            if (onInputChange) onInputChange(val)
           }}
           textFieldProps={textFieldProps}
           placeholder=''
