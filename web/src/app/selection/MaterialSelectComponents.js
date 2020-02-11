@@ -187,6 +187,7 @@ const ClearIndicator = props => {
       {...props.innerProps}
       ref={props.selectProps.clearButtonRef}
       size='small'
+      tabIndex={-1}
       data-cy='select-clear'
     >
       <Clear />
