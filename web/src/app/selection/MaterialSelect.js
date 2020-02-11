@@ -27,6 +27,7 @@ export default class MaterialSelect extends Component {
     this.state = {
       isCleared: false,
     }
+    this.buttonClicked = false
   }
 
   static propTypes = {
@@ -83,11 +84,26 @@ export default class MaterialSelect extends Component {
     }
     const { isCleared } = this.state
 
+    const isDescendent = (parent, child) => {
+      if (!child) return false
+      if (child.isSameNode(parent)) return true
+      return isDescendent(parent, child.parentNode)
+    }
+
     return (
+      // going to look into replacing component with material-ui autocomplete component
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
       <div
         data-cy='material-select'
         data-cy-ready={!props.isLoading}
         className={classes.root}
+        onMouseDownCapture={e => {
+          if (isDescendent(this.clearButtonRef.current, e.target))
+            this.buttonClicked = true
+        }}
+        onClick={() => {
+          this.buttonClicked = false
+        }}
       >
         <Select
           menuPortalTarget={document.body}
@@ -104,14 +120,8 @@ export default class MaterialSelect extends Component {
           value={isCleared && required ? { label: '', value: '' } : value}
           clearButtonRef={this.clearButtonRef}
           components={components}
-          onBlur={e => {
-            if (
-              isCleared &&
-              e.relatedTarget !== this.clearButtonRef.current &&
-              required
-            ) {
-              this.setState({ isCleared: false })
-            }
+          onBlur={() => {
+            if (!this.buttonClicked) this.setState({ isCleared: false })
           }}
           onChange={val => {
             if (required && _.isEmpty(val) && !multiple) {
