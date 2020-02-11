@@ -802,20 +802,50 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		[]onCallAssertion{},
 	)
 
-	// 	// Active schedule rule, user is removed
-	// 	check("User EP Schedule Remove Override", `
-	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 			services: [{id_placeholder: "svc", description: "ok", name: "generatedA", escalation_policy_id: "ep"}]
-	// 			schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generatedA", description: "1"}]
-	// 			schedule_rules: [{target:{target_type:user, target_id:"u2"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 			user_overrides: [{remove_user_id: "u2", start_time: "1006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// 		`,
-	// 		[]resolver.OnCallAssignment{},
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", ScheduleName: "generatedA", Level: 0, IsActive: false},
-	// 		},
-	// 	)
+	// Active schedule rule, user is removed
+	check("User EP Schedule Remove Override", `
+		mutation {
+		createService(
+			input: {
+				name: "{{name  "svc"}}"
+				newEscalationPolicy: {
+					name: "{{name  "ep"}}"
+					steps: [
+						{
+							delayMinutes: 1
+							newSchedule: {
+								name: "{{name  "sched"}}"
+								timeZone: "UTC"
+								targets: [
+									{
+										target: {id:"{{userID "joe"}}", type:user}
+										rules: [
+											{
+												start: "00:00"
+												end: "23:59"
+												weekdayFilter: [true, true, true, true, true, true, true]
+											}
+										]
+									}
+								]
+								newUserOverrides: [
+									{
+										removeUserID: "{{userID "joe"}}"
+										start: "1006-01-02T15:04:05Z"
+										end: "4006-01-02T15:04:05Z"
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		) {
+			id
+		}
+	}`,
+		[]onCallAssertion{},
+	)
 
 	// 	// Multiple add overrides, active schedule rules
 	// 	check("User EP Schedule Multiple Overrides", `
