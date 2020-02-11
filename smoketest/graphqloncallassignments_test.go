@@ -33,8 +33,8 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	defer h.Close()
 
 	type onCallAssertion struct {
-		Service, EP, User string
-		StepNumber        int
+		Service, EP, EPName, User string
+		StepNumber                int
 	}
 
 	doQL := func(t *testing.T, query string, res interface{}) {
@@ -119,9 +119,16 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 			for id, state := range onCallState {
 				for _, step := range state.OnCallSteps {
 					for _, svc := range step.EscalationPolicy.AssignedTo {
+						ep := namesRev[step.EscalationPolicy.Name]
+						var epName string
+
+						if ep == "" {
+							epName = step.EscalationPolicy.Name
+						}
+
 						actualOnCall = append(actualOnCall, onCallAssertion{
 							User: id, StepNumber: step.StepNumber,
-							Service: namesRev[svc.Name], EP: namesRev[step.EscalationPolicy.Name],
+							Service: namesRev[svc.Name], EP: ep, EPName: epName,
 						})
 					}
 				}
@@ -683,7 +690,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 			id
 		}
 	}`, h.UUID("eid"), h.UUID("eid"), h.UUID("eid")),
-		[]onCallAssertion{{Service: "svc1", EP: "", StepNumber: 0, User: "bob"}, {Service: "svc2", EP: "", StepNumber: 0, User: "bob"}},
+		[]onCallAssertion{{Service: "svc1", EPName: "esc policy", StepNumber: 0, User: "bob"}, {Service: "svc2", EPName: "esc policy", StepNumber: 0, User: "bob"}},
 	)
 
 	// Active schedule rule, active rotation participant is NOT replaced (no override)
@@ -731,7 +738,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		[]onCallAssertion{{Service: "svc", EP: "ep", StepNumber: 0, User: "joe"}},
 	)
 
-	// 	Active schedule rule, active rotation participant is removed
+	//	Active schedule rule, active rotation participant is removed
 	check("User EP Schedule Remove Rotation Override", `
 		mutation {
 		createService(
