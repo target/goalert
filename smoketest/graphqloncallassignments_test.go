@@ -698,7 +698,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	)
 
 	// 	Active schedule rule, active rotation participant is removed
-	check("User EP Schedule Replace Rotation Override Absent", `
+	check("User EP Schedule Remove Rotation Override", `
 		mutation {
 		createService(
 			input: {
@@ -748,21 +748,6 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	}`,
 		[]onCallAssertion{},
 	)
-	// 	check("User EP Schedule Remove Rotation Override", `
-	// 			escalation_policies: [{ id_placeholder: "ep", name: "generatedA", description: "1"}]
-	// 			escalation_policy_steps: [{escalation_policy_id: "ep", delay_minutes: 1, targets: [{target_type: schedule, target_id: "s" }] }]
-	// 			services: [{id_placeholder: "svc", description: "ok", name: "generatedA", escalation_policy_id: "ep"}]
-	// 			schedules: [{id_placeholder: "s", time_zone: "UTC", name: "generatedA", description: "1"}]
-	// 			schedule_rules: [{target:{target_type:rotation, target_id:"rot"}, start:"00:00", end:"23:59", schedule_id: "s", sunday: true, monday:true, tuesday:true, wednesday: true, thursday: true, friday: true, saturday: true}]
-	// 			rotations: [{id_placeholder: "rot", time_zone: "UTC", shift_length: 1, type: weekly, start: "2006-01-02T15:04:05Z", name: "generatedA", description: "1"}]
-	// 			rotation_participants: [{rotation_id: "rot", user_id: "u2"}]
-	// 			user_overrides: [{ remove_user_id: "u2", start_time: "1006-01-02T15:04:05Z", end_time: "4006-01-02T15:04:05Z", target_type: schedule, target_id: "s"}]
-	// 		`,
-	// 		[]resolver.OnCallAssignment{},
-	// 		[]resolver.OnCallAssignment{
-	// 			{ServiceName: "generatedA", EPName: "generatedA", ScheduleName: "generatedA", Level: 0, IsActive: false},
-	// 		},
-	// 	)
 
 	// 	// Active schedule rule, user is removed
 	// 	check("User EP Schedule Remove Override", `
