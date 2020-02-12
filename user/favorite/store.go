@@ -3,7 +3,6 @@ package favorite
 import (
 	"context"
 	"database/sql"
-
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
@@ -199,16 +198,18 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 	var targets []assignment.Target
 
 	for rows.Next() {
-		var svc, rot sql.NullString
-		err = rows.Scan(&svc)
+		var svc, sched, rot sql.NullString
+		err = rows.Scan(&svc, &sched, &rot)
 		if err != nil {
 			return nil, err
 		}
 		switch {
-		case svc.Valid:
-			targets = append(targets, assignment.ServiceTarget(svc.String))
-		case rot.Valid:
-			targets = append(targets, assignment.RotationTarget(rot.String))
+			case svc.Valid:
+				targets = append(targets, assignment.ServiceTarget(svc.String))
+			case sched.Valid:
+				targets = append(targets, assignment.ScheduleTarget(sched.String))
+			case rot.Valid:
+				targets = append(targets, assignment.RotationTarget(rot.String))
 		}
 	}
 	return targets, nil
