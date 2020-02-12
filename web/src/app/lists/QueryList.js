@@ -139,7 +139,7 @@ QueryList.propTypes = {
   // the left of the search text field
   filter: p.node,
 
-  // filters that enchance the search string, set within the search text field
+  // filters that enhance the search string, set within the search text field
   searchAdornment: p.node,
 }
 
