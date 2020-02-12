@@ -162,6 +162,8 @@ export class PaginatedList extends React.PureComponent {
       }),
     ),
 
+    itemsPerPage: p.number,
+
     isLoading: p.bool,
     loadMore: p.func,
 
@@ -174,13 +176,16 @@ export class PaginatedList extends React.PureComponent {
 
   static defaultProps = {
     emptyMessage: 'No results',
+    itemsPerPage: ITEMS_PER_PAGE,
   }
 
   state = {
     page: 0,
   }
 
-  pageCount = () => Math.ceil((this.props.items || []).length / ITEMS_PER_PAGE)
+  pageCount = () => {
+    return Math.ceil((this.props.items || []).length / this.props.itemsPerPage)
+  }
 
   // isLoading returns true if the parent says we are, or
   // we are currently on an incomplete page and `loadMore` is available.
@@ -190,7 +195,7 @@ export class PaginatedList extends React.PureComponent {
     // We are on a future/incomplete page and loadMore is true
     const itemCount = (this.props.items || []).length
     if (
-      (this.state.page + 1) * ITEMS_PER_PAGE > itemCount &&
+      (this.state.page + 1) * this.props.itemsPerPage > itemCount &&
       this.props.loadMore
     )
       return true
@@ -224,8 +229,9 @@ export class PaginatedList extends React.PureComponent {
       (nextPage >= this.pageCount() ||
         (nextPage > 1 && nextPage + 1 === this.pageCount())) &&
       this.props.loadMore
-    )
-      this.props.loadMore(ITEMS_PER_PAGE * 2)
+    ) {
+      this.props.loadMore(this.props.itemsPerPage * 2)
+    }
   }
 
   renderNoResults() {
@@ -278,15 +284,15 @@ export class PaginatedList extends React.PureComponent {
       return this.renderNoResults()
 
     const { page } = this.state
-    const { width, noPlaceholder } = this.props
+    const { itemsPerPage, width, noPlaceholder } = this.props
 
     const items = (this.props.items || [])
-      .slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE)
+      .slice(page * itemsPerPage, (page + 1) * itemsPerPage)
       .map(this.renderItem)
 
     // Display full list when loading
     if (!noPlaceholder) {
-      while (this.isLoading() && items.length < ITEMS_PER_PAGE) {
+      while (this.isLoading() && items.length < itemsPerPage) {
         items.push(
           <LoadingItem
             dense={isWidthUp('md', width)}

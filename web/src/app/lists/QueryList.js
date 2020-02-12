@@ -98,6 +98,7 @@ export default function QueryList(props) {
           {...listProps}
           key={urlKey}
           items={items}
+          itemsPerPage={variables.input.first}
           loadMore={loadMore}
           isLoading={loading}
         />
