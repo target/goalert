@@ -39,7 +39,7 @@ const styles = theme => ({
     backgroundColor: 'transparent',
     color: 'grey',
   },
-  headerNote: {
+  listHeader: {
     fontStyle: 'italic',
   },
   controls: {
@@ -148,8 +148,11 @@ const mapStateToProps = state => {
 @connect(mapStateToProps)
 export class PaginatedList extends React.PureComponent {
   static propTypes = {
-    // headerNote will be displayed at the top of the list.
-    headerNote: p.oneOfType([p.string, p.element]),
+    // cardHeader will be displayed at the top of the card
+    cardHeader: p.node,
+
+    // listHeader will be displayed at the top of the list
+    listHeader: p.oneOfType([p.string, p.element]),
 
     items: p.arrayOf(
       p.shape({
@@ -306,7 +309,7 @@ export class PaginatedList extends React.PureComponent {
   }
 
   render() {
-    const { classes, headerNote } = this.props
+    const { cardHeader, classes, listHeader } = this.props
 
     let onBack = null
     let onNext = null
@@ -319,15 +322,16 @@ export class PaginatedList extends React.PureComponent {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Card>
+            {cardHeader}
             <List data-cy='apollo-list'>
-              {headerNote && (
+              {listHeader && (
                 <ListItem>
                   <ListItemText
-                    className={classes.headerNote}
+                    className={classes.listHeader}
                     disableTypography
                     secondary={
                       <Typography color='textSecondary'>
-                        {headerNote}
+                        {listHeader}
                       </Typography>
                     }
                   />

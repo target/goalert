@@ -141,6 +141,10 @@ QueryList.propTypes = {
 
   // filters that enhance the search string, set within the search text field
   searchAdornment: p.node,
+
+  /**
+   * All other props are passed to PaginatedList
+   */
 }
 
 QueryList.defaultProps = {
