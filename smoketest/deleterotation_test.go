@@ -2,8 +2,9 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestDeleteRotation tests that it is possible to delete a rotation with participants
@@ -30,7 +31,7 @@ func TestDeleteRotation(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -42,9 +43,7 @@ func TestDeleteRotation(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			deleteRotation(input:{id: "%s"}) {
-				deleted_id
-			}
+			deleteAll(input:{id: "%s", type: rotation})
 		}
 	`, h.UUID("r1")))
 }

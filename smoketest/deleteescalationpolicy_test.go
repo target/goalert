@@ -2,8 +2,9 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestDeleteEscalationPolicy tests that it is possible to delete an escalation policy
@@ -25,7 +26,7 @@ func TestDeleteEscalationPolicy(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -37,9 +38,7 @@ func TestDeleteEscalationPolicy(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			deleteEscalationPolicy(input:{id: "%s"}) {
-				deleted_id
-			}
+			deleteAll(input:{id: "%s", type: escalationPolicy})
 		}
 	`, h.UUID("ep1")))
 }

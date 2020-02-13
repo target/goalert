@@ -53,6 +53,17 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('not.contain', 'No results') // mock alerts should show again
     })
 
+    it('should load more list items when scrolling to the bottom', () => {
+      const summary = c.word()
+
+      cy.createManyAlerts(50, { summary }).then(() => {
+        cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
+        cy.get('[data-cy=alerts-list] li').should('have.length', 25)
+        cy.get('[id="content"]').scrollTo('bottom')
+        cy.get('[data-cy=alerts-list] li').should('have.length', 50)
+      })
+    })
+
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.number.toString()))
       it('should link to the details page', () => {
@@ -163,7 +174,7 @@ function testAlerts(screen: ScreenFormat) {
         .click()
 
       cy.get('button[data-cy=close]').click()
-      cy.get('ul[data-cy=alerts-list]').should('contain', 'No results')
+      cy.get('ul[data-cy=alerts-list-no-data]').should('contain', 'No results')
     })
 
     it('should update some alerts', () => {

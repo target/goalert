@@ -16,7 +16,6 @@ module.exports = {
       '@material-ui/lab',
       '@material-ui/pickers',
       'luxon',
-      'moment',
       'lodash-es',
       'apollo-client',
       'apollo-link',

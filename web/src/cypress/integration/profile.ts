@@ -14,7 +14,7 @@ function testProfile(screen: ScreenFormat) {
       .addNotificationRule()
       .then(rule => {
         nr = rule
-        cm = rule.cm
+        cm = rule.contactMethod
         return cy.visit('/profile')
       }),
   )
@@ -139,7 +139,6 @@ function testProfile(screen: ScreenFormat) {
       const value = '810' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'CM SM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
-      const fakeCountryCode = '+555'
 
       cy.pageFab('Contact')
       cy.dialogTitle('New Contact Method')

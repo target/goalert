@@ -3,9 +3,10 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLCreateScheduleWithDefaultRotation tests that all steps for creating a schedule with default rotation are carried out without any errors.
@@ -22,7 +23,7 @@ func TestGraphQLCreateScheduleWithDefaultRotation(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -48,19 +49,32 @@ func TestGraphQLCreateScheduleWithDefaultRotation(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			createSchedule(input:{
-				name: "default_testing",
-				description: "default testing",
-				time_zone: "America/Chicago",
-				default_rotation: {
-					type: daily,
-					start_time: "%s",
-    				shift_length:1,
-  				}
-			}){
+			createSchedule(
+				input: {
+					name: "default_testing"
+					description: "default testing"
+					timeZone: "America/Chicago"
+					targets: {
+						newRotation: {
+							name: "foobar"
+							timeZone: "America/Chicago"
+							start: "%s"
+							type: daily
+						}
+						rules: {
+							start: "01:00"
+							end: "23:00"
+							weekdayFilter: [true, true, true, true, true]
+						}
+					}
+				}
+			) {
 				id
-				rotations {
-					id
+				name
+				targets {
+					target {
+						id
+					}
 				}
 			}
 		}
@@ -72,14 +86,22 @@ func TestGraphQLCreateScheduleWithDefaultRotation(t *testing.T) {
 
 	var newSched struct {
 		Schedule struct {
-			Rotations []struct{}
+			ID      string
+			Name    string
+			Targets []struct {
+				ScheduleID string
+				Target     struct{ ID string }
+			}
 		}
 	}
 	doQL(fmt.Sprintf(`
 		query {
 			schedule(id: "%s") {
-				rotations {
-					id
+				targets {
+					target {
+						id
+						type
+					}
 				}
 			}
 		}
@@ -88,7 +110,7 @@ func TestGraphQLCreateScheduleWithDefaultRotation(t *testing.T) {
 
 	t.Log("Number of rotations:", newSched)
 
-	if len(newSched.Schedule.Rotations) != 1 {
-		t.Errorf("got %d rotations; want 1", len(newSched.Schedule.Rotations))
+	if len(newSched.Schedule.Targets) != 1 {
+		t.Errorf("got %d rotations; want 1", len(newSched.Schedule.Targets))
 	}
 }
