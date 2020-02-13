@@ -1,12 +1,13 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-// import { makeStyles } from '@material-ui/core'
+import { Hidden, makeStyles } from '@material-ui/core'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
 import gql from 'graphql-tag'
 import CreateAlertFab from './CreateAlertFab'
 import AlertsListFilter from './components/AlertsListFilter'
+import AlertsListControls from './components/AlertsListControls'
 
 const query = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -94,6 +95,11 @@ export default function AlertsList(props) {
           },
         }}
         filter={<AlertsListFilter />}
+        cardHeader={
+          <Hidden mdDown>
+            <AlertsListControls />
+          </Hidden>
+        }
       />
       <CreateAlertFab
         serviceID={props.serviceID}
