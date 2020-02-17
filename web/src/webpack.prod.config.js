@@ -24,13 +24,21 @@ module.exports = {
     publicPath: '/',
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.css'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
   },
   module: {
     rules: [
       {
         test: /modernizr.config.js$/,
         use: ['modernizr-loader'],
+      },
+      {
+        test: /\.tsx?$/,
+        use: [
+          'ts-loader',
+          { loader: 'ifdef-loader', options: { production: true, HMR: false } },
+        ],
+        include: [APP],
       },
       {
         test: /\.jsx?$/,
