@@ -26,6 +26,8 @@ import gql from 'graphql-tag'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 import { urlParamSelector } from '../selectors'
 import { alertsListQuery } from './AlertsList'
+import Spinner from '../loading/components/Spinner'
+import { GenericError } from '../error-pages'
 
 const updateMutation = gql`
   mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
@@ -65,7 +67,23 @@ const useStyles = makeStyles({
   },
 })
 
-export default function AlertsCheckboxControls(props) {
+export default function AlertsCheckboxControlsQuery(props) {
+  const { loading, error, data } = useQuery(alertsListQuery, {
+    variables: props.variables,
+  })
+
+  if (loading && !data) return null
+  // todo: test what this looks like
+  if (error) return <GenericError error={error.message} />
+
+  return <AlertsCheckboxControls alerts={data.alerts.nodes} />
+}
+
+AlertsCheckboxControlsQuery.propTypes = {
+  variables: p.object.isRequired,
+}
+
+export function AlertsCheckboxControls(props) {
   const classes = useStyles()
 
   const [errorMessage, setErrorMessage] = useState('')
@@ -82,17 +100,11 @@ export default function AlertsCheckboxControls(props) {
     dispatch(_setAlertsActionComplete(bool))
 
   useEffect(() => {
-    return () => {
-      setCheckedAlerts([])
-    }
+    return () => setCheckedAlerts([])
   }, [])
 
-  const { loading, error, data } = useQuery(alertsListQuery, {
-    variables: props.variables,
-  })
-
   function visibleAlertIDs() {
-    const items = data?.alerts?.nodes ?? []
+    const items = props.alerts
     if (!items.length) return []
     return items.filter(a => a.status !== 'closed').map(a => a.id)
   }
@@ -165,7 +177,7 @@ export default function AlertsCheckboxControls(props) {
   function onUpdate(numUpdated) {
     setAlertsActionComplete(true) // for create fab transition
     setUpdateMessage(
-      `${numUpdated} of ${this.checkedAlertIDs().length} alerts updated`,
+      `${numUpdated} of ${checkedAlertIDs().length} alerts updated`,
     )
     setCheckedAlerts([])
   }
@@ -294,5 +306,5 @@ export default function AlertsCheckboxControls(props) {
 }
 
 AlertsCheckboxControls.propTypes = {
-  variables: p.object.isRequired,
+  alerts: p.array.isRequired,
 }
