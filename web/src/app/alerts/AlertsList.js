@@ -1,6 +1,12 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Checkbox, Grid, Hidden, makeStyles } from '@material-ui/core'
+import {
+  Checkbox,
+  Grid,
+  Hidden,
+  Typography,
+  makeStyles,
+} from '@material-ui/core'
 import { useDispatch, useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
@@ -11,6 +17,7 @@ import AlertsListControls from './components/AlertsListControls'
 import CheckedAlertsFormControl from './AlertsCheckboxControls'
 import statusStyles from '../util/statusStyles'
 import { setCheckedAlerts as _setCheckedAlerts } from '../actions'
+import { formatTimeSince } from '../util/timeFormat'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -142,6 +149,11 @@ export default function AlertsList(props) {
             .toUpperCase()
             .replace('STATUS', '')}`,
           subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
+          action: (
+            <Typography variant='caption'>
+              {formatTimeSince(a.createdAt)}
+            </Typography>
+          ),
         })}
         variables={variables}
         controls={
