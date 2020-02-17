@@ -17,7 +17,6 @@ import CreateAlertFab from '../CreateAlertFab'
 import AlertsListDataWrapper from './AlertsListDataWrapper'
 import { alertsQuery } from '../queries/AlertsListQuery'
 import { connect } from 'react-redux'
-import CheckedAlertsFormControl from './CheckedAlertsFormControl'
 import { GenericError } from '../../error-pages'
 import { withRouter } from 'react-router-dom'
 import Hidden from '@material-ui/core/Hidden'
@@ -328,7 +327,6 @@ export default class AlertsList extends Component {
           transition={fullScreen && (showFavoritesWarning || actionComplete)}
         />
         <div>
-          <CheckedAlertsFormControl data={data} refetch={this.refetch} />
           <Card style={{ width: '100%' }}>
             <Hidden mdDown>
               <AlertsListControls />

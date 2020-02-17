@@ -1,6 +1,6 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, makeStyles } from '@material-ui/core'
+import { Grid, Hidden, makeStyles } from '@material-ui/core'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
@@ -8,8 +8,10 @@ import gql from 'graphql-tag'
 import CreateAlertFab from './CreateAlertFab'
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
+import CheckedAlertsFormControl from './AlertsCheckboxControls'
+import { useApolloClient } from '@apollo/react-hooks'
 
-const query = gql`
+export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
     alerts(input: $input) {
       nodes {
@@ -76,25 +78,36 @@ export default function AlertsList(props) {
   const filter = params('filter', 'active')
   // const isFirstLogin = params('isFirstLogin')
 
+  const variables = {
+    input: {
+      filterByStatus: getStatusFilter(filter),
+      first: 25,
+      // default to favorites only, unless viewing alerts from a service's page
+      favoritesOnly: !props.serviceID && !allServices,
+    },
+  }
+
   return (
     <React.Fragment>
       <QueryList
-        query={query}
+        query={alertsListQuery}
         mapDataNode={a => ({
           title: `${a.alertID}: ${a.status
             .toUpperCase()
             .replace('STATUS', '')}`,
           subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
         })}
-        variables={{
-          input: {
-            filterByStatus: getStatusFilter(filter),
-            first: 25,
-            // default to favorites only, unless viewing alerts from a service's page
-            favoritesOnly: !props.serviceID && !allServices,
-          },
-        }}
-        filter={<AlertsListFilter />}
+        variables={variables}
+        controls={
+          <React.Fragment>
+            <Grid item>
+              <CheckedAlertsFormControl variables={variables} />
+            </Grid>
+            <Grid item>
+              <AlertsListFilter />
+            </Grid>
+          </React.Fragment>
+        }
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />
