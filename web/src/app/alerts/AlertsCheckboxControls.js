@@ -94,7 +94,7 @@ export default function AlertsCheckboxControls(props) {
   function visibleAlertIDs() {
     const items = data?.alerts?.nodes ?? []
     if (!items.length) return []
-    return items.filter(a => a.status !== 'closed').map(a => a.number)
+    return items.filter(a => a.status !== 'closed').map(a => a.id)
   }
 
   function checkedAlertIDs() {
