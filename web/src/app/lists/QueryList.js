@@ -44,7 +44,7 @@ const buildFetchMore = (fetchMore, after, stopPolling) => {
 }
 
 export default function QueryList(props) {
-  const { noSearch, query, filter, searchAdornment, ...listProps } = props
+  const { controls, noSearch, query, searchAdornment, ...listProps } = props
   const { input, ...vars } = props.variables
 
   const classes = useStyles()
@@ -89,9 +89,17 @@ export default function QueryList(props) {
   return (
     <Grid container spacing={2}>
       {/* Such that filtering/searching isn't re-rendered with the page content */}
-      <Grid item xs={12} className={classes.searchGridItem}>
-        {filter}
-        <Search endAdornment={searchAdornment} />
+      <Grid
+        container
+        spacing={2}
+        item
+        xs={12}
+        className={classes.searchGridItem}
+      >
+        {controls}
+        <Grid item>
+          <Search endAdornment={searchAdornment} />
+        </Grid>
       </Grid>
 
       <Grid item xs={12}>
@@ -135,9 +143,9 @@ QueryList.propTypes = {
   // If set, the search string param is ignored.
   noSearch: p.bool,
 
-  // filters unrelated to search, but still modify results, rendered to
+  // controls unrelated to search, but still modify results, rendered to
   // the left of the search text field
-  filter: p.node,
+  controls: p.node,
 
   // filters that enhance the search string, set within the search text field
   searchAdornment: p.node,
