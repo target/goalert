@@ -1,7 +1,7 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Grid, Hidden, makeStyles } from '@material-ui/core'
-import { useSelector } from 'react-redux'
+import { Checkbox, Grid, Hidden, makeStyles } from '@material-ui/core'
+import { useDispatch, useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
 import gql from 'graphql-tag'
@@ -9,8 +9,8 @@ import CreateAlertFab from './CreateAlertFab'
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import CheckedAlertsFormControl from './AlertsCheckboxControls'
-import { useApolloClient } from '@apollo/react-hooks'
 import statusStyles from '../util/statusStyles'
+import { setCheckedAlerts as _setCheckedAlerts } from '../actions'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -77,8 +77,12 @@ export default function AlertsList(props) {
   const params = useSelector(urlParamSelector)
   // const actionComplete = useSelector(state => state.alerts.actionComplete)
   const allServices = params('allServices')
+  const checkedAlerts = useSelector(state => state.alerts.checkedAlerts)
   const filter = params('filter', 'active')
   // const isFirstLogin = params('isFirstLogin')
+
+  const dispatch = useDispatch()
+  const setCheckedAlerts = arr => dispatch(_setCheckedAlerts(arr))
 
   const variables = {
     input: {
@@ -87,6 +91,19 @@ export default function AlertsList(props) {
       // default to favorites only, unless viewing alerts from a service's page
       favoritesOnly: !props.serviceID && !allServices,
     },
+  }
+
+  function toggleChecked(id) {
+    const czechedAlerts = checkedAlerts.slice()
+
+    if (czechedAlerts.includes(id)) {
+      const idx = czechedAlerts.indexOf(id)
+      czechedAlerts.splice(idx, 1)
+      setCheckedAlerts(czechedAlerts)
+    } else {
+      czechedAlerts.push(id)
+      setCheckedAlerts(czechedAlerts)
+    }
   }
 
   function getStatusClassName(s) {
@@ -106,6 +123,21 @@ export default function AlertsList(props) {
         query={alertsListQuery}
         mapDataNode={a => ({
           className: getStatusClassName(a.status),
+          icon: (
+            <Checkbox
+              checked={
+                checkedAlerts.includes(a.id) && a.status !== 'StatusClosed'
+              }
+              disabled={a.status === 'StatusClosed'}
+              data-cy={'alert-' + a.id}
+              tabIndex={-1}
+              onClick={e => {
+                e.stopPropagation()
+                e.preventDefault()
+                toggleChecked(a.id)
+              }}
+            />
+          ),
           title: `${a.alertID}: ${a.status
             .toUpperCase()
             .replace('STATUS', '')}`,
