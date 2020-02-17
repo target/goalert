@@ -10,6 +10,7 @@ import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import CheckedAlertsFormControl from './AlertsCheckboxControls'
 import { useApolloClient } from '@apollo/react-hooks'
+import statusStyles from '../util/statusStyles'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -36,22 +37,23 @@ export const alertsListQuery = gql`
 `
 
 // todo: which global styles do we need
-// const useStyles = makeStyles(theme => ({
-//   snackbar: {
-//     backgroundColor: theme.palette.primary['500'],
-//     height: '6.75em',
-//     width: '20em', // only triggers on desktop, 100% on mobile devices
-//   },
-//   snackbarIcon: {
-//     fontSize: 20,
-//     opacity: 0.9,
-//     marginRight: theme.spacing(1),
-//   },
-//   snackbarMessage: {
-//     display: 'flex',
-//     alignItems: 'center',
-//   },
-// }))
+const useStyles = makeStyles(theme => ({
+  // snackbar: {
+  //   backgroundColor: theme.palette.primary['500'],
+  //   height: '6.75em',
+  //   width: '20em', // only triggers on desktop, 100% on mobile devices
+  // },
+  // snackbarIcon: {
+  //   fontSize: 20,
+  //   opacity: 0.9,
+  //   marginRight: theme.spacing(1),
+  // },
+  // snackbarMessage: {
+  //   display: 'flex',
+  //   alignItems: 'center',
+  // },
+  ...statusStyles,
+}))
 
 function getStatusFilter(s) {
   switch (s) {
@@ -70,7 +72,7 @@ function getStatusFilter(s) {
 }
 
 export default function AlertsList(props) {
-  // const classes = useStyles()
+  const classes = useStyles()
 
   const params = useSelector(urlParamSelector)
   // const actionComplete = useSelector(state => state.alerts.actionComplete)
@@ -87,11 +89,23 @@ export default function AlertsList(props) {
     },
   }
 
+  function getStatusClassName(s) {
+    switch (s) {
+      case 'StatusAcknowledged':
+        return classes.statusWarning
+      case 'StatusUnacknowledged':
+        return classes.statusError
+      default:
+        return classes.noStatus
+    }
+  }
+
   return (
     <React.Fragment>
       <QueryList
         query={alertsListQuery}
         mapDataNode={a => ({
+          className: getStatusClassName(a.status),
           title: `${a.alertID}: ${a.status
             .toUpperCase()
             .replace('STATUS', '')}`,

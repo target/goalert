@@ -162,6 +162,7 @@ export class PaginatedList extends React.PureComponent {
         isFavorite: p.bool,
         icon: p.element, // renders a list item icon (or avatar)
         action: p.element,
+        className: p.string,
       }),
     ),
 
@@ -266,6 +267,7 @@ export class PaginatedList extends React.PureComponent {
 
     return (
       <ListItem
+        className={item.className}
         dense={isWidthUp('md', width)}
         key={'list_' + idx}
         component={item.url ? Link : null}
