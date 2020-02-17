@@ -24,7 +24,7 @@ module.exports = {
     publicPath: '/',
   },
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.css'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       'react-dom': '@hot-loader/react-dom',
     },
@@ -65,7 +65,7 @@ module.exports = {
         use: 'raw-loader',
       },
       {
-        test: /\.ts$/,
+        test: /\.tsx?$/,
         exclude: [/node_modules/],
         use: [
           {
