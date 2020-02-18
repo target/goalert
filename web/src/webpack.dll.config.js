@@ -36,7 +36,6 @@ module.exports = {
       'react-beautiful-dnd',
       'react-ga',
       'history',
-      'react-select',
       'react-apollo',
       'react-countdown-now',
       'connected-react-router',
