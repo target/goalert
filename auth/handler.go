@@ -1,10 +1,8 @@
 package auth
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -15,10 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
-	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/integrationkey"
-	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
@@ -41,14 +38,6 @@ type registeredProvider struct {
 	URL string
 
 	ProviderInfo
-}
-
-// HandlerConfig provides configuration for the auth handler.
-type HandlerConfig struct {
-	UserStore      user.Store
-	SessionKeyring keyring.Keyring
-	IntKeyStore    integrationkey.Store
-	CalSubStore    *calendarsubscription.Store
 }
 
 // Handler will serve authentication requests for registered identity providers.
@@ -354,7 +343,12 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		}, "Created new user.")
 	}
 
-	sessToken, sessID, err := h.CreateSession(ctx, req.UserAgent(), userID)
+	tok, err := h.CreateSession(ctx, req.UserAgent(), userID)
+	if err != nil {
+		errRedirect(err)
+		return
+	}
+	tokStr, err := tok.Encode(h.cfg.SessionKeyring.Sign)
 	if err != nil {
 		errRedirect(err)
 		return
@@ -363,15 +357,15 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	sp.Annotate([]trace.Attribute{
 		trace.BoolAttribute("auth.login", true),
 		trace.StringAttribute("auth.userID", userID),
-		trace.StringAttribute("auth.sessionID", sessID),
+		trace.StringAttribute("auth.sessionID", tok.ID.String()),
 	}, "User authenticated.")
 
 	if noRedirect {
-		io.WriteString(w, sessToken)
+		io.WriteString(w, tokStr)
 		return
 	}
 
-	h.setSessionCookie(w, req, sessToken)
+	h.setSessionCookie(w, req, tokStr)
 
 	if newUser {
 		q := refU.Query()
@@ -383,23 +377,18 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 }
 
 // CreateSession will start a new session for the given UserID, returning a newly signed token.
-func (h *Handler) CreateSession(ctx context.Context, userAgent, userID string) (token, id string, err error) {
-	sessID := uuid.NewV4()
-	_, err = h.startSession.ExecContext(ctx, sessID.String(), userAgent, userID)
+func (h *Handler) CreateSession(ctx context.Context, userAgent, userID string) (*authtoken.Token, error) {
+	tok := &authtoken.Token{
+		Version: 1,
+		Type:    authtoken.TypeSession,
+		ID:      uuid.NewV4(),
+	}
+	_, err := h.startSession.ExecContext(ctx, tok.ID.String(), userAgent, userID)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	var buf bytes.Buffer
-	buf.WriteByte('S') // session IDs will be prefixed with an "S"
-	buf.Write(sessID.Bytes())
-	sig, err := h.cfg.SessionKeyring.Sign(buf.Bytes())
-	if err != nil {
-		return "", "", err
-	}
-	buf.Write(sig)
-
-	return base64.URLEncoding.EncodeToString(buf.Bytes()), sessID.String(), nil
+	return tok, nil
 }
 
 func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val string) {
@@ -418,22 +407,27 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		return true
 	}
 
-	tok := GetToken(req)
-	if tok == "" {
+	tokStr := GetToken(req)
+	if tokStr == "" {
 		return false
+	}
+
+	tok, _, err := authtoken.Parse(tokStr, h.cfg.APIKeyring.Verify)
+	if errutil.HTTPError(req.Context(), w, err) {
+		return true
 	}
 
 	// TODO: update once scopes are implemented
 	ctx := req.Context()
 	switch req.URL.Path {
 	case "/v1/api/alerts", "/api/v2/generic/incoming":
-		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeGeneric)
+		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeGeneric)
 	case "/v1/webhooks/grafana", "/api/v2/grafana/incoming":
-		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeGrafana)
+		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeGrafana)
 	case "/api/v2/site24x7/incoming":
-		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, tok, integrationkey.TypeSite24x7)
+		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeSite24x7)
 	case "/api/v2/calendar":
-		ctx, err = h.cfg.CalSubStore.Authorize(ctx, tok)
+		ctx, err = h.cfg.CalSubStore.Authorize(ctx, *tok)
 	default:
 		return false
 	}
@@ -465,45 +459,29 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 
 		// User session flow
 		ctx := req.Context()
-		tok := GetToken(req)
+		tokStr := GetToken(req)
 		var fromCookie bool
-		if tok == "" {
+		if tokStr == "" {
 			c, err := req.Cookie(CookieName)
 			if err == nil {
 				fromCookie = true
-				tok = c.Value
+				tokStr = c.Value
 			}
 		}
-		if tok == "" {
+		if tokStr == "" {
 			c, err := req.Cookie(v1CookieName)
 			if err == nil {
 				fromCookie = true
-				tok = c.Value
+				tokStr = c.Value
 			}
 		}
 
-		if tok == "" {
+		if tokStr == "" {
 			// no cookie value
 			wrapped.ServeHTTP(w, req)
 			return
 		}
-		data, err := base64.URLEncoding.DecodeString(tok)
-		if err != nil {
-			if fromCookie {
-				h.setSessionCookie(w, req, "")
-			}
-			wrapped.ServeHTTP(w, req)
-			return
-		}
-		if len(data) == 0 || data[0] != 'S' || len(data) < 17 {
-			if fromCookie {
-				h.setSessionCookie(w, req, "")
-			}
-			wrapped.ServeHTTP(w, req)
-			return
-		}
-
-		id, err := uuid.FromBytes(data[1:17])
+		tok, isOld, err := authtoken.Parse(tokStr, h.cfg.SessionKeyring.Verify)
 		if err != nil {
 			if fromCookie {
 				h.setSessionCookie(w, req, "")
@@ -512,36 +490,23 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 			return
 		}
 
-		valid, isOld := h.cfg.SessionKeyring.Verify(data[:17], data[17:])
-		if !valid {
-			if fromCookie {
-				h.setSessionCookie(w, req, "")
-			}
-			wrapped.ServeHTTP(w, req)
-			return
-		}
 		if fromCookie && isOld {
 			// send new signature back if it was signed with an old key
-			sig, err := h.cfg.SessionKeyring.Sign(data[:17])
+			newSignedToken, err := tok.Encode(h.cfg.SessionKeyring.Sign)
 			if err != nil {
 				log.Log(ctx, errors.Wrap(err, "failed to sign/issue new session token"))
 			} else {
-				data = append(data[:17], sig...)
-				h.setSessionCookie(w, req, base64.URLEncoding.EncodeToString(data))
-
-				_, err = h.updateUA.ExecContext(ctx, id.String(), req.UserAgent())
+				h.setSessionCookie(w, req, newSignedToken)
+				_, err = h.updateUA.ExecContext(ctx, tok.ID.String(), req.UserAgent())
 				if err != nil {
 					log.Log(ctx, errors.Wrap(err, "update user agent (session key refresh)"))
 				}
 			}
-		} else if fromCookie {
-			// compat, always set cookie (for transition from /v1 to /api)
-			h.setSessionCookie(w, req, tok)
 		}
 
 		var userID string
 		var userRole permission.Role
-		err = h.fetchSession.QueryRowContext(ctx, id.String()).Scan(&userID, &userRole)
+		err = h.fetchSession.QueryRowContext(ctx, tok.ID.String()).Scan(&userID, &userRole)
 		if err == sql.ErrNoRows {
 			if fromCookie {
 				h.setSessionCookie(w, req, "")
@@ -560,7 +525,7 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 			userRole,
 			&permission.SourceInfo{
 				Type: permission.SourceTypeAuthProvider,
-				ID:   id.String(),
+				ID:   tok.ID.String(),
 			},
 		)
 		req = req.WithContext(ctx)

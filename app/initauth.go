@@ -18,6 +18,7 @@ func (app *App) initAuth(ctx context.Context) error {
 		SessionKeyring: app.SessionKeyring,
 		IntKeyStore:    app.IntegrationKeyStore,
 		CalSubStore:    app.CalSubStore,
+		APIKeyring:     app.APIKeyring,
 	})
 	if err != nil {
 		return errors.Wrap(err, "init auth handler")
