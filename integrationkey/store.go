@@ -3,6 +3,8 @@ package integrationkey
 import (
 	"context"
 	"database/sql"
+
+	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -14,7 +16,7 @@ import (
 )
 
 type Store interface {
-	Authorize(ctx context.Context, id string, integrationType Type) (context.Context, error)
+	Authorize(ctx context.Context, tok authtoken.Token, integrationType Type) (context.Context, error)
 	GetServiceID(ctx context.Context, id string, integrationType Type) (string, error)
 	Create(ctx context.Context, i *IntegrationKey) (*IntegrationKey, error)
 	CreateKeyTx(context.Context, *sql.Tx, *IntegrationKey) (*IntegrationKey, error)
@@ -49,11 +51,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-func (db *DB) Authorize(ctx context.Context, id string, t Type) (context.Context, error) {
+func (db *DB) Authorize(ctx context.Context, tok authtoken.Token, t Type) (context.Context, error) {
 	var serviceID string
 	var err error
 	permission.SudoContext(ctx, func(c context.Context) {
-		serviceID, err = db.GetServiceID(c, id, t)
+		serviceID, err = db.GetServiceID(c, tok.ID.String(), t)
 	})
 	if err == sql.ErrNoRows {
 		return ctx, validation.NewFieldError("IntegrationKeyID", "not found")
@@ -63,7 +65,7 @@ func (db *DB) Authorize(ctx context.Context, id string, t Type) (context.Context
 	}
 	ctx = permission.ServiceSourceContext(ctx, serviceID, &permission.SourceInfo{
 		Type: permission.SourceTypeIntegrationKey,
-		ID:   id,
+		ID:   tok.ID.String(),
 	})
 	return ctx, nil
 }
