@@ -1,10 +1,151 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import { withStyles } from '@material-ui/core/styles'
-import Select from 'react-select'
-import { components, styles } from './MaterialSelectComponents'
-import shrinkWorkaround from '../util/shrinkWorkaround'
-import _ from 'lodash-es'
+import {
+  TextField,
+  makeStyles,
+  MenuItem,
+  ListItemIcon,
+  Typography,
+} from '@material-ui/core'
+import { Autocomplete } from '@material-ui/lab'
+import { emphasize } from '@material-ui/core/styles/colorManipulator'
+
+export const styles = theme => ({
+  root: {
+    flexGrow: 1,
+  },
+  input: {
+    display: 'flex',
+    padding: 0,
+    height: 'fit-content',
+  },
+  valueContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    flex: 1,
+    alignItems: 'center',
+    wordBreak: 'break-word',
+  },
+  chip: {
+    margin: `${theme.spacing(1) / 2}px ${theme.spacing(1) / 4}px`,
+  },
+  chipFocused: {
+    backgroundColor: emphasize(
+      theme.palette.type === 'light'
+        ? theme.palette.grey[300]
+        : theme.palette.grey[700],
+      0.08,
+    ),
+  },
+  listItemIcon: {
+    minWidth: 0,
+  },
+  menuItem: {
+    display: 'flex',
+    flex: 1,
+    justifyContent: 'space-between',
+    wordBreak: 'break-word',
+    whiteSpace: 'pre-wrap',
+  },
+  message: {
+    float: 'left',
+    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
+  },
+  singleValue: {
+    fontSize: 16,
+  },
+  placeholder: {
+    position: 'absolute',
+    left: 2,
+    fontSize: 16,
+  },
+  paper: {
+    position: 'absolute',
+    zIndex: 1,
+    marginTop: theme.spacing(1),
+    left: 0,
+    right: 0,
+  },
+})
+
+const useStyles = makeStyles(styles)
+
+export default function MaterialSelect(props) {
+  const classes = useStyles()
+  const {
+    disabled,
+    // fullWidth,
+    // hint,
+    isLoading,
+    label,
+    multiple,
+    name,
+    // noOptionsMessage,
+    onChange,
+    onInputChange,
+    options,
+    required,
+    // theme,
+    value,
+
+    // classes
+    // placeholder: string
+    // error: boolean
+  } = props
+
+  return (
+    <div data-cy='material-select' data-cy-ready={!isLoading}>
+      {/* TODO addd name prop to input field */}
+      <Autocomplete
+        autoComplete
+        defaultValue={value}
+        disableClearable={required}
+        disabled={disabled}
+        multiple={multiple}
+        onChange={(event, valueObj) => {
+          console.log('onchange', valueObj)
+          if (valueObj === null) {
+            onChange(null)
+          } else {
+            onChange(valueObj)
+          }
+        }}
+        onInputChange={(event, value) => {
+          if (onInputChange) onInputChange(value)
+        }}
+        loading={isLoading}
+        getOptionLabel={option => option.label}
+        options={options}
+        renderInput={params => {
+          // console.log(params)
+          return (
+            <TextField
+              {...params}
+              inputProps={{
+                ...params.inputProps,
+                name,
+                'data-cy': 'search-select-input',
+              }}
+              data-cy='search-select'
+              fullWidth
+              label={label}
+            />
+          )
+        }}
+        renderOption={({ label, value, icon }) => (
+          <MenuItem className={classes.menuItem}>
+            <Typography noWrap>{label}</Typography>
+            {icon && (
+              <ListItemIcon className={classes.listItemIcon}>
+                {icon}
+              </ListItemIcon>
+            )}
+          </MenuItem>
+        )}
+      />
+    </div>
+  )
+}
 
 const valueShape = p.shape({
   label: p.string.isRequired,
@@ -19,129 +160,16 @@ function valueCheck(props, ...args) {
   return valueShape(props, ...args)
 }
 
-@withStyles(styles, { withTheme: true })
-export default class MaterialSelect extends Component {
-  constructor(props) {
-    super(props)
-    this.clearButtonRef = React.createRef()
-    this.state = {
-      isCleared: false,
-    }
-    this.buttonClicked = false
-  }
+MaterialSelect.propTypes = {
+  multiple: p.bool, // allow selecting multiple values
+  required: p.bool,
+  onChange: p.func.isRequired,
+  onInputChange: p.func,
+  options: p.arrayOf(valueShape).isRequired,
+  placeholder: p.string,
+  value: valueCheck,
+}
 
-  static propTypes = {
-    multiple: p.bool, // allow selecting multiple values
-    required: p.bool,
-    onChange: p.func.isRequired,
-    onInputChange: p.func,
-    options: p.arrayOf(valueShape).isRequired,
-    placeholder: p.string,
-    value: valueCheck,
-  }
-
-  static defaultProps = {
-    options: [],
-  }
-
-  render() {
-    const {
-      multiple,
-      noClear,
-      theme,
-      value,
-      onChange,
-      onInputChange,
-      classes,
-      disabled,
-      required,
-
-      label,
-      name,
-      placeholder,
-      InputLabelProps: _InputLabelProps,
-
-      ...props
-    } = this.props
-
-    const InputLabelProps = {
-      ...shrinkWorkaround(this.props.value),
-      ..._InputLabelProps,
-    }
-
-    const selectStyles = {
-      input: base => ({
-        ...base,
-        color: theme.palette.text.primary,
-      }),
-    }
-
-    const textFieldProps = {
-      required,
-      label,
-      placeholder,
-      InputLabelProps,
-      value: value ? (multiple ? value.join(',') : value.value) : '',
-    }
-    const { isCleared } = this.state
-
-    const isDescendent = (parent, child) => {
-      if (!child) return false
-      if (child.isSameNode(parent)) return true
-      return isDescendent(parent, child.parentNode)
-    }
-
-    return (
-      // going to look into replacing component with material-ui autocomplete component
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
-      <div
-        data-cy='material-select'
-        data-cy-ready={!props.isLoading}
-        className={classes.root}
-        onMouseDownCapture={e => {
-          if (isDescendent(this.clearButtonRef.current, e.target))
-            this.buttonClicked = true
-        }}
-        onClickCapture={() => {
-          this.buttonClicked = false
-        }}
-      >
-        <Select
-          menuPortalTarget={document.body}
-          menuPlacement='auto'
-          styles={{
-            ...selectStyles,
-            menuPortal: base => ({ ...base, zIndex: 9999 }),
-          }}
-          name={name}
-          classes={classes}
-          isClearable
-          isDisabled={disabled}
-          isMulti={multiple}
-          value={isCleared && required ? { label: '', value: '' } : value}
-          clearButtonRef={this.clearButtonRef}
-          components={components}
-          onBlur={() => {
-            if (!this.buttonClicked) this.setState({ isCleared: false })
-          }}
-          onChange={val => {
-            if (required && _.isEmpty(val) && !multiple) {
-              this.setState({ isCleared: true })
-              return
-            }
-            if (required && val !== null && !multiple)
-              this.setState({ isCleared: false })
-            onChange(val)
-          }}
-          onInputChange={val => {
-            this.buttonClicked = false
-            if (onInputChange) onInputChange(val)
-          }}
-          textFieldProps={textFieldProps}
-          placeholder=''
-          {...props}
-        />
-      </div>
-    )
-  }
+MaterialSelect.defaultProps = {
+  options: [],
 }
