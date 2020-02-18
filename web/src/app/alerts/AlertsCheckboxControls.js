@@ -89,6 +89,9 @@ export function AlertsCheckboxControls(props) {
 
   const params = useSelector(urlParamSelector)
   const filter = params('filter', 'active')
+  const alerts = useSelector(state => state.alerts.alerts).filter(
+    a => a.status !== 'StatusClosed',
+  )
   const actionComplete = useSelector(state => state.alerts.actionComplete)
   const checkedAlerts = useSelector(state => state.alerts.checkedAlerts)
 
@@ -98,28 +101,13 @@ export function AlertsCheckboxControls(props) {
     dispatch(_setAlertsActionComplete(bool))
 
   useEffect(() => {
-    return () => setCheckedAlerts([])
+    return () => setNone()
   }, [])
-
-  function visibleAlertIDs() {
-    const items = props.alerts
-    if (!items.length) return []
-    return items.filter(a => a.status !== 'closed').map(a => a.id)
-  }
-
-  function checkedAlertIDs() {
-    const alerts = {}
-    visibleAlertIDs().forEach(id => {
-      alerts[id] = true
-    })
-
-    return checkedAlerts.filter(id => alerts[id])
-  }
 
   const [ackAlerts] = useMutation(updateMutation, {
     variables: {
       input: {
-        alertIDs: checkedAlertIDs(),
+        alertIDs: checkedAlerts,
         newStatus: 'StatusAcknowledged',
       },
     },
@@ -133,7 +121,7 @@ export function AlertsCheckboxControls(props) {
   const [closeAlerts] = useMutation(updateMutation, {
     variables: {
       input: {
-        alertIDs: checkedAlertIDs(),
+        alertIDs: checkedAlerts,
         newStatus: 'StatusClosed',
       },
     },
@@ -146,7 +134,7 @@ export function AlertsCheckboxControls(props) {
 
   const [escalateAlerts] = useMutation(escalateMutation, {
     variables: {
-      input: checkedAlertIDs(),
+      input: checkedAlerts,
     },
     onError: err => {
       setAlertsActionComplete(true)
@@ -155,36 +143,36 @@ export function AlertsCheckboxControls(props) {
     update: (cache, { data }) => onUpdate(data?.escalateAlerts?.length ?? 0),
   })
 
-  function areAllChecked() {
-    return visibleAlertIDs().length === checkedAlertIDs().length
-  }
-
   function areNoneChecked() {
-    return checkedAlertIDs().length === 0
+    return checkedAlerts.length === 0
   }
 
   function setAll() {
-    setCheckedAlerts(visibleAlertIDs())
+    setCheckedAlerts(alerts.map(a => a.id))
+  }
+
+  function setNone() {
+    return setCheckedAlerts([])
   }
 
   function handleToggleSelectAll() {
-    if (areNoneChecked()) return setAll()
-    return setCheckedAlerts([])
+    if (areNoneChecked()) {
+      return setAll()
+    }
+    return setNone()
   }
 
   function onUpdate(numUpdated) {
     setAlertsActionComplete(true) // for create fab transition
-    setUpdateMessage(
-      `${numUpdated} of ${checkedAlertIDs().length} alerts updated`,
-    )
-    setCheckedAlerts([])
+    setUpdateMessage(`${numUpdated} of ${checkedAlerts.length} alerts updated`)
+    setNone()
   }
 
   return (
     <React.Fragment>
       <UpdateAlertsSnackbar
         errorMessage={errorMessage}
-        numberChecked={checkedAlertIDs().length}
+        numberChecked={checkedAlerts.length}
         onClose={() => setAlertsActionComplete(false)}
         onExited={() => {
           setErrorMessage('')
@@ -196,9 +184,11 @@ export function AlertsCheckboxControls(props) {
       <Grid container className={classes.checkboxGridContainer}>
         <Grid item>
           <Checkbox
-            checked={!areNoneChecked()}
+            checked={alerts.length === checkedAlerts.length}
             data-cy='select-all'
-            indeterminate={!areNoneChecked() && !areAllChecked()}
+            indeterminate={
+              checkedAlerts.length > 0 && alerts.length !== checkedAlerts.length
+            }
             tabIndex={-1}
             onChange={handleToggleSelectAll}
           />
@@ -221,7 +211,7 @@ export function AlertsCheckboxControls(props) {
               },
               {
                 label: 'None',
-                onClick: () => setCheckedAlerts([]),
+                onClick: setNone,
               },
             ]}
             placement='right'

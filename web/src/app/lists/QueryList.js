@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import p from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
@@ -43,7 +43,14 @@ const buildFetchMore = (fetchMore, after, stopPolling) => {
 }
 
 export default function QueryList(props) {
-  const { controls, noSearch, query, searchAdornment, ...listProps } = props
+  const {
+    controls,
+    noSearch,
+    onDataChange,
+    query,
+    searchAdornment,
+    ...listProps
+  } = props
   const { input, ...vars } = props.variables
 
   const classes = useStyles()
@@ -71,10 +78,12 @@ export default function QueryList(props) {
     pollInterval: POLL_INTERVAL,
   })
 
+  let nodes = []
   let items = []
   let loadMore
 
   if (data && data.data && data.data.nodes) {
+    nodes = data.data.nodes
     items = data.data.nodes.map(props.mapDataNode)
     if (data.data.pageInfo.hasNextPage) {
       loadMore = buildFetchMore(
@@ -84,6 +93,10 @@ export default function QueryList(props) {
       )
     }
   }
+
+  useEffect(() => {
+    onDataChange(nodes)
+  }, [nodes.length])
 
   return (
     <Grid container spacing={2}>
@@ -142,6 +155,9 @@ QueryList.propTypes = {
 
   // filters that enhance the search string, set within the search text field
   searchAdornment: p.node,
+
+  // invoked when the amount of items queried changes
+  onDataChange: p.func,
 
   /**
    * All other props are passed to PaginatedList

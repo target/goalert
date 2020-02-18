@@ -11,12 +11,16 @@ import { useDispatch, useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
 import gql from 'graphql-tag'
+
 import CreateAlertFab from './CreateAlertFab'
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import CheckedAlertsFormControl from './AlertsCheckboxControls'
 import statusStyles from '../util/statusStyles'
-import { setCheckedAlerts as _setCheckedAlerts } from '../actions'
+import {
+  setCheckedAlerts as _setCheckedAlerts,
+  setAlerts as _setAlerts,
+} from '../actions'
 import { formatTimeSince } from '../util/timeFormat'
 
 export const alertsListQuery = gql`
@@ -93,6 +97,7 @@ export default function AlertsList(props) {
 
   const dispatch = useDispatch()
   const setCheckedAlerts = arr => dispatch(_setCheckedAlerts(arr))
+  const setAlerts = arr => dispatch(_setAlerts(arr))
 
   const variables = {
     input: {
@@ -136,9 +141,7 @@ export default function AlertsList(props) {
           className: getStatusClassName(a.status),
           icon: (
             <Checkbox
-              checked={
-                checkedAlerts.includes(a.id) && a.status !== 'StatusClosed'
-              }
+              checked={checkedAlerts.includes(a.id)}
               disabled={a.status === 'StatusClosed'}
               data-cy={'alert-' + a.id}
               tabIndex={-1}
@@ -160,6 +163,10 @@ export default function AlertsList(props) {
           ),
         })}
         variables={variables}
+        onDataChange={items => {
+          // used for checkbox controls
+          setAlerts(items)
+        }}
         controls={
           <React.Fragment>
             <Grid item className={classes.checkbox}>

@@ -1,8 +1,13 @@
-import { SET_ALERTS_CHECKED, SET_ALERTS_ACTION_COMPLETE } from '../actions'
+import {
+  SET_ALERTS_CHECKED,
+  SET_ALERTS_ACTION_COMPLETE,
+  SET_ALERTS,
+} from '../actions'
 
 const initialState = () => {
   return {
     actionComplete: false,
+    alerts: [],
     checkedAlerts: [],
   }
 }
@@ -24,6 +29,12 @@ export default function alertsReducer(state = initialState(), action) {
       return {
         ...state,
         actionComplete: action.payload,
+      }
+    }
+    case SET_ALERTS: {
+      return {
+        ...state,
+        alerts: action.payload,
       }
     }
   }
