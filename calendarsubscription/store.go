@@ -34,8 +34,6 @@ type Store struct {
 	oc   oncall.Store
 }
 
-const tokenAudience = "ga-cal-sub"
-
 // NewStore will create a new Store with the given parameters.
 func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc oncall.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
