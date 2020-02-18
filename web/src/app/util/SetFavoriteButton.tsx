@@ -6,7 +6,7 @@ import Spinner from '../loading/components/Spinner'
 
 interface SetFavoriteButtonInput {
   typeName: 'rotation' | 'service' | 'schedule'
-  isFavorite: boolean
+  isFavorite?: boolean
   loading: boolean
   onClick: Function
 }

@@ -130,6 +130,7 @@
     "babel-jest": "25.1.0",
     "babel-loader": "8.0.6",
     "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-plugin-typescript-to-proptypes": "1.2.1",
     "chance": "1.1.4",
     "css-loader": "3.4.2",
     "cssnano": "4.1.10",

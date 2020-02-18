@@ -11,7 +11,9 @@
     "isolatedModules": true,
     "noEmit": true,
     "experimentalDecorators": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["./app/"],
   "exclude": ["./node_modules/", "./build/"]
