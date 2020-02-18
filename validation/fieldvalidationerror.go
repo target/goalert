@@ -23,6 +23,9 @@ type MultiFieldError interface {
 type validation interface {
 	Validation() bool
 }
+type client interface {
+	ClientError() bool
+}
 
 type fieldError struct {
 	stack     errors.StackTrace
@@ -99,6 +102,14 @@ func NewFieldError(fieldName string, reason string) FieldError {
 // IsValidationError will determine if an error's cause is a field validation error.
 func IsValidationError(err error) bool {
 	if e, ok := errors.Cause(err).(validation); ok && e.Validation() {
+		return true
+	}
+	return false
+}
+
+// IsClientError will determine if an error's cause is due to request/client error.
+func IsClientError(err error) bool {
+	if e, ok := errors.Cause(err).(client); ok && e.ClientError() {
 		return true
 	}
 	return false
