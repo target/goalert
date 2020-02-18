@@ -11,18 +11,19 @@ import Grid from '@material-ui/core/Grid'
 import IconButton from '@material-ui/core/IconButton'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
+import InfiniteScroll from 'react-infinite-scroll-component'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
 
 import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
 
 // gray boxes on load
 // disable overflow
@@ -176,10 +177,15 @@ export class PaginatedList extends React.PureComponent {
 
     // provide a message to display if there are no results
     emptyMessage: p.string,
+
+    // renders as an infinite list instead of the default
+    // page by page behavior
+    infiniteScroll: p.bool,
   }
 
   static defaultProps = {
     emptyMessage: 'No results',
+    items: [],
     itemsPerPage: ITEMS_PER_PAGE,
   }
 
@@ -188,7 +194,7 @@ export class PaginatedList extends React.PureComponent {
   }
 
   pageCount = () => {
-    return Math.ceil((this.props.items || []).length / this.props.itemsPerPage)
+    return Math.ceil(this.props.items.length / this.props.itemsPerPage)
   }
 
   // isLoading returns true if the parent says we are, or
@@ -197,7 +203,7 @@ export class PaginatedList extends React.PureComponent {
     if (this.props.isLoading) return true
 
     // We are on a future/incomplete page and loadMore is true
-    const itemCount = (this.props.items || []).length
+    const itemCount = this.props.items.length
     if (
       (this.state.page + 1) * this.props.itemsPerPage > itemCount &&
       this.props.loadMore
@@ -291,9 +297,11 @@ export class PaginatedList extends React.PureComponent {
     const { page } = this.state
     const { itemsPerPage, width, noPlaceholder } = this.props
 
-    const items = (this.props.items || [])
-      .slice(page * itemsPerPage, (page + 1) * itemsPerPage)
-      .map(this.renderItem)
+    let items = this.props.items
+    if (!this.props.infiniteScroll) {
+      items = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
+    }
+    items = items.map(this.renderItem)
 
     // Display full list when loading
     if (!noPlaceholder) {
@@ -311,7 +319,7 @@ export class PaginatedList extends React.PureComponent {
   }
 
   render() {
-    const { cardHeader, classes, listHeader } = this.props
+    const { cardHeader, infiniteScroll } = this.props
 
     let onBack = null
     let onNext = null
@@ -325,30 +333,57 @@ export class PaginatedList extends React.PureComponent {
         <Grid item xs={12}>
           <Card>
             {cardHeader}
-            <List data-cy='apollo-list'>
-              {listHeader && (
-                <ListItem>
-                  <ListItemText
-                    className={classes.listHeader}
-                    disableTypography
-                    secondary={
-                      <Typography color='textSecondary'>
-                        {listHeader}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-              )}
-              {this.renderListItems()}
-            </List>
+            {infiniteScroll
+              ? this.renderAsInfiniteScroll(onNext)
+              : this.renderList()}
           </Card>
         </Grid>
-        <PaginationControls
-          onBack={onBack}
-          onNext={onNext}
-          isLoading={this.isLoading()}
-        />
+        {!infiniteScroll && (
+          <PaginationControls
+            onBack={onBack}
+            onNext={onNext}
+            isLoading={this.isLoading()}
+          />
+        )}
       </Grid>
+    )
+  }
+
+  renderList() {
+    const { classes, listHeader } = this.props
+
+    return (
+      <List data-cy='apollo-list'>
+        {listHeader && (
+          <ListItem>
+            <ListItemText
+              className={classes.listHeader}
+              disableTypography
+              secondary={
+                <Typography color='textSecondary'>{listHeader}</Typography>
+              }
+            />
+          </ListItem>
+        )}
+        {this.renderListItems()}
+      </List>
+    )
+  }
+
+  renderAsInfiniteScroll(onNext) {
+    const len = this.props.items.length
+
+    return (
+      <InfiniteScroll
+        scrollableTarget='content'
+        next={onNext}
+        hasMore={this.hasNextPage()}
+        loader={null}
+        dataLength={len}
+        scrollThreshold={(len - 20) / len}
+      >
+        {this.renderList()}
+      </InfiniteScroll>
     )
   }
 }

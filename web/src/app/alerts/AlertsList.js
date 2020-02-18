@@ -131,6 +131,7 @@ export default function AlertsList(props) {
     <React.Fragment>
       <QueryList
         query={alertsListQuery}
+        infiniteScroll
         mapDataNode={a => ({
           className: getStatusClassName(a.status),
           icon: (
