@@ -95,7 +95,9 @@ export default function QueryList(props) {
   }
 
   useEffect(() => {
-    onDataChange(nodes)
+    if (onDataChange) {
+      onDataChange(nodes)
+    }
   }, [nodes.length])
 
   return (
