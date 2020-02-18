@@ -26,7 +26,6 @@ import gql from 'graphql-tag'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 import { urlParamSelector } from '../selectors'
 import { alertsListQuery } from './AlertsList'
-import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 
 const updateMutation = gql`
@@ -50,8 +49,7 @@ const escalateMutation = gql`
 const useStyles = makeStyles({
   // todo: fill in as needed
   checkboxGridContainer: {
-    padding: '14px',
-    paddingBottom: 0,
+    paddingLeft: '1em',
   },
   hover: {
     '&:hover': {

@@ -59,6 +59,9 @@ const useStyles = makeStyles(theme => ({
   //   display: 'flex',
   //   alignItems: 'center',
   // },
+  checkbox: {
+    marginRight: 'auto',
+  },
   ...statusStyles,
 }))
 
@@ -158,7 +161,7 @@ export default function AlertsList(props) {
         variables={variables}
         controls={
           <React.Fragment>
-            <Grid item>
+            <Grid item className={classes.checkbox}>
               <CheckedAlertsFormControl variables={variables} />
             </Grid>
             <Grid item>

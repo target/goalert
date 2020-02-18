@@ -12,9 +12,8 @@ import Search from '../util/Search'
 import { GraphQLClientWithErrors } from '../apollo'
 
 const useStyles = makeStyles({
-  searchGridItem: {
-    display: 'flex',
-    justifyContent: 'flex-end',
+  search: {
+    paddingLeft: '0.5em',
   },
 })
 
@@ -89,15 +88,9 @@ export default function QueryList(props) {
   return (
     <Grid container spacing={2}>
       {/* Such that filtering/searching isn't re-rendered with the page content */}
-      <Grid
-        container
-        spacing={2}
-        item
-        xs={12}
-        className={classes.searchGridItem}
-      >
+      <Grid container item xs={12} justify='flex-end' alignItems='center'>
         {controls}
-        <Grid item>
+        <Grid item className={classes.search}>
           <Search endAdornment={searchAdornment} />
         </Grid>
       </Grid>
