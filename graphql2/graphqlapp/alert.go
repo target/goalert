@@ -43,11 +43,15 @@ func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
 	return (*App)(q).FindOneAlert(ctx, alertID)
 }
 
+/*
+ * Merges favorites and user-specified serviceIDs in opts.FilterByServiceID
+ */
 func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, error) {
 	targets, err := q.FavoriteStore.FindAll(ctx, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
 	if err != nil {
 		return nil, err
 	}
+
 	if len(svcs) == 0 {
 		for _, t := range targets {
 			svcs = append(svcs, t.TargetID())
@@ -67,8 +71,8 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 			}
 			svcs = append(svcs, t.TargetID())
 		}
-		// Here we have the intersection of favorites and user-specified serviceIDs in opts.FilterByServiceID
 	}
+
 	return svcs, nil
 }
 
@@ -111,9 +115,15 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 			if err != nil {
 				return nil, err
 			}
+			if len(s.Services) == 0 {
+				return &graphql2.AlertConnection{
+					PageInfo: &graphql2.PageInfo{},
+				}, nil
+			}
 		} else {
 			s.Services = opts.FilterByServiceID
 		}
+
 		for _, f := range opts.FilterByStatus {
 			switch f {
 			case graphql2.AlertStatusStatusAcknowledged:
