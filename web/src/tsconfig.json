@@ -2,18 +2,17 @@
   "compilerOptions": {
     "strict": true,
     "lib": ["es6", "dom"],
-    "outDir": "./dist/", // path to output directory
-    "sourceMap": true, // allow sourcemap support
-    "module": "commonjs", // specify module code generation
-    "jsx": "react", // use typescript to transpile jsx to js
-    "target": "es5", // specify ECMAScript target version
-    "allowJs": true, // allow a partial TypeScript and JavaScript codebase
-    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "jsx": "react",
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "experimentalDecorators": true,
     "noImplicitThis": true
   },
   "include": ["./app/"],
-  "exclude": ["./node_modules/", "./build/", "./dist/"]
+  "exclude": ["./node_modules/", "./build/"]
 }

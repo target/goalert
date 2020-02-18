@@ -37,7 +37,7 @@ module.exports = {
         use: ['modernizr-loader'],
       },
       {
-        test: /\.jsx?$/,
+        test: /\.(t|j)sx?$/,
         use: [
           'react-hot-loader/webpack',
           {
@@ -63,15 +63,6 @@ module.exports = {
       {
         test: /\.md$/,
         use: 'raw-loader',
-      },
-      {
-        test: /\.tsx?$/,
-        exclude: [/node_modules/],
-        use: [
-          {
-            loader: 'ts-loader',
-          },
-        ],
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico|webp)$/i,

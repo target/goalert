@@ -33,15 +33,7 @@ module.exports = {
         use: ['modernizr-loader'],
       },
       {
-        test: /\.tsx?$/,
-        use: [
-          'ts-loader',
-          { loader: 'ifdef-loader', options: { production: true, HMR: false } },
-        ],
-        include: [APP],
-      },
-      {
-        test: /\.jsx?$/,
+        test: /\.(t|j)sx?$/,
         use: [
           'babel-loader',
           { loader: 'ifdef-loader', options: { production: true, HMR: false } },
