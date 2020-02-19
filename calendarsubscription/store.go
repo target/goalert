@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	uuid "github.com/satori/go.uuid"
+	"github.com/target/goalert/auth/authtoken"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -33,8 +33,6 @@ type Store struct {
 	keys keyring.Keyring
 	oc   oncall.Store
 }
-
-const tokenAudience = "ga-cal-sub"
 
 // NewStore will create a new Store with the given parameters.
 func NewStore(ctx context.Context, db *sql.DB, apiKeyring keyring.Keyring, oc oncall.Store) (*Store, error) {
@@ -111,25 +109,13 @@ func (cs *CalendarSubscription) scanFrom(scanFn func(...interface{}) error) erro
 
 // Authorize will return an authorized context associated with the given token. If the token is invalid
 // or otherwise can not be authenticated, an error is returned.
-func (s *Store) Authorize(ctx context.Context, token string) (context.Context, error) {
-	var c jwt.StandardClaims
-	_, err := s.keys.VerifyJWT(token, &c)
-	if err != nil {
-		log.Debug(ctx, err)
-		return ctx, validation.NewFieldError("token", "verification failed")
-	}
-
-	if !c.VerifyAudience(tokenAudience, true) {
-		return ctx, validation.NewFieldError("aud", "invalid audience")
-	}
-
-	err = validate.UUID("sub", c.Subject)
-	if err != nil {
-		return ctx, err
+func (s *Store) Authorize(ctx context.Context, tok authtoken.Token) (context.Context, error) {
+	if tok.Type != authtoken.TypeCalSub {
+		return ctx, validation.NewFieldError("token", "invalid type")
 	}
 
 	var userID string
-	err = s.authUser.QueryRowContext(ctx, c.Subject, time.Unix(c.IssuedAt, 0)).Scan(&userID)
+	err := s.authUser.QueryRowContext(ctx, tok.ID, tok.CreatedAt).Scan(&userID)
 	if err == sql.ErrNoRows {
 		return ctx, validation.NewFieldError("sub", "invalid")
 	}
@@ -139,7 +125,7 @@ func (s *Store) Authorize(ctx context.Context, token string) (context.Context, e
 
 	return permission.UserSourceContext(ctx, userID, permission.RoleUser, &permission.SourceInfo{
 		Type: permission.SourceTypeCalendarSubscription,
-		ID:   c.Subject,
+		ID:   tok.ID.String(),
 	}), nil
 }
 
@@ -196,11 +182,12 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, cs *CalendarSubscripti
 		return nil, err
 	}
 
-	n.token, err = s.keys.SignJWT(jwt.StandardClaims{
-		Subject:  n.ID,
-		Audience: tokenAudience,
-		IssuedAt: now.Unix(),
-	})
+	n.token, err = authtoken.Token{
+		Type:      authtoken.TypeCalSub,
+		Version:   2,
+		CreatedAt: now,
+		ID:        uuid.FromStringOrNil(n.ID),
+	}.Encode(s.keys.Sign)
 	return n, err
 }
 

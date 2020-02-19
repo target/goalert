@@ -50,7 +50,7 @@ func HTTPError(ctx context.Context, w http.ResponseWriter, err error) bool {
 		http.Error(w, errors.Cause(err).Error(), http.StatusForbidden)
 		return true
 	}
-	if validation.IsValidationError(err) {
+	if validation.IsClientError(err) {
 		log.Debug(ctx, err)
 		http.Error(w, errors.Cause(err).Error(), http.StatusBadRequest)
 		return true
