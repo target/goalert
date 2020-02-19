@@ -412,7 +412,13 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		return false
 	}
 
-	tok, _, err := authtoken.Parse(tokStr, h.cfg.APIKeyring.Verify)
+	tok, _, err := authtoken.Parse(tokStr, func(t authtoken.Type, p, sig []byte) (bool, bool) {
+		if t == authtoken.TypeSession {
+			return h.cfg.SessionKeyring.Verify(p, sig)
+		}
+
+		return h.cfg.APIKeyring.Verify(p, sig)
+	})
 	if errutil.HTTPError(req.Context(), w, err) {
 		return true
 	}
@@ -481,7 +487,10 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 			wrapped.ServeHTTP(w, req)
 			return
 		}
-		tok, isOld, err := authtoken.Parse(tokStr, h.cfg.SessionKeyring.Verify)
+		tok, isOld, err := authtoken.Parse(tokStr, func(t authtoken.Type, p, sig []byte) (bool, bool) {
+			// only session tokens are supported for cookies
+			return h.cfg.SessionKeyring.Verify(p, sig)
+		})
 		if err != nil {
 			if fromCookie {
 				h.setSessionCookie(w, req, "")

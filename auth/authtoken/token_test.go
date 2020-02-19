@@ -45,7 +45,8 @@ func TestToken_Version1(t *testing.T) {
 		exp.WriteString("sig")    // Signature
 		assert.Equal(t, exp.Bytes(), dec)
 
-		parsed, isOld, err := Parse(s, func(p, sig []byte) (bool, bool) {
+		parsed, isOld, err := Parse(s, func(typ Type, p, sig []byte) (bool, bool) {
+			assert.Equal(t, TypeSession, typ)
 			assert.Equal(t, exp.Bytes()[:exp.Len()-3], p)
 			assert.Equal(t, []byte("sig"), sig)
 			return true, true
@@ -57,7 +58,7 @@ func TestToken_Version1(t *testing.T) {
 
 	t.Run("existing key", func(t *testing.T) {
 		const exampleKey = "U9obklyVC0wduWIy75nbivABDxwc-rANyqNA4CZQzhkJHuNlUCfJDPpcG6W9bEIPddqPbh-sxMS1Km87jC9yLASp3i1UWtdDu2udCzM="
-		parsed, isOld, err := Parse(exampleKey, func([]byte, []byte) (bool, bool) { return true, true })
+		parsed, isOld, err := Parse(exampleKey, func(Type, []byte, []byte) (bool, bool) { return true, true })
 		assert.NoError(t, err)
 		assert.True(t, isOld)
 		assert.EqualValues(t, &Token{
@@ -90,7 +91,8 @@ func TestToken_Version2(t *testing.T) {
 	exp.WriteString("sig")                                             // Signature
 	assert.Equal(t, exp.Bytes(), dec)
 
-	parsed, isOld, err := Parse(s, func(p, sig []byte) (bool, bool) {
+	parsed, isOld, err := Parse(s, func(typ Type, p, sig []byte) (bool, bool) {
+		assert.Equal(t, TypeCalSub, typ)
 		assert.Equal(t, exp.Bytes()[:exp.Len()-3], p)
 		assert.Equal(t, sig, []byte("sig"))
 		return true, true

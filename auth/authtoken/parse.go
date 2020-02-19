@@ -9,12 +9,12 @@ import (
 	"github.com/target/goalert/validation"
 )
 
-// A VerifyFunc will verify that the signature is valid for the given payload. Additionally,
+// A VerifyFunc will verify that the signature is valid for the given type and payload. Additionally,
 // if supported, it indicates if an old-but-still-valid key (since been rotated) was used
 // to generate the signature.
-type VerifyFunc func(payload, signature []byte) (isValid, isOldKey bool)
+type VerifyFunc func(t Type, payload, signature []byte) (isValid, isOldKey bool)
 
-func alwaysValid([]byte, []byte) (bool, bool) { return true, false }
+func alwaysValid(Type, []byte, []byte) (bool, bool) { return true, false }
 
 // Parse will parse a token string, optionally verifying it's signature.
 // If verifyFn is nil, the signature is ignored.
@@ -51,7 +51,7 @@ func Parse(s string, verifyFn VerifyFunc) (*Token, bool, error) {
 		if len(data) < 17 {
 			return nil, false, validation.NewGenericError("invalid length")
 		}
-		valid, isOldKey := verifyFn(data[:17], data[17:])
+		valid, isOldKey := verifyFn(TypeSession, data[:17], data[17:])
 		if !valid {
 			return nil, false, validation.NewGenericError("invalid signature")
 		}
@@ -73,13 +73,13 @@ func Parse(s string, verifyFn VerifyFunc) (*Token, bool, error) {
 		if len(data) < 26 {
 			return nil, false, validation.NewGenericError("invalid length")
 		}
-		valid, isOldKey := verifyFn(data[:27], data[27:])
-		if !valid {
-			return nil, false, validation.NewGenericError("invalid signature")
-		}
 		t := &Token{
 			Version: 2,
 			Type:    Type(data[2]),
+		}
+		valid, isOldKey := verifyFn(t.Type, data[:27], data[27:])
+		if !valid {
+			return nil, false, validation.NewGenericError("invalid signature")
 		}
 		copy(t.ID[:], data[3:])
 		t.CreatedAt = time.Unix(int64(binary.BigEndian.Uint64(data[19:])), 0)
