@@ -215,7 +215,7 @@ web/src/build/index.html: web/src/webpack.prod.config.js web/src/yarn.lock $(she
 	rm -rf web/src/build/static
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js)
 
-web/inline_data_gen.go: web/src/build/index.html $(CFGPARAMS) $(INLINER)
+web/inline_data_gen.go: web/src/build/* web/src/build/static/* web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
 web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js

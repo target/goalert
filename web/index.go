@@ -1,0 +1,71 @@
+package web
+
+import (
+	"html/template"
+	"time"
+
+	"github.com/target/goalert/version"
+)
+
+type renderData struct {
+	// Prefix is the URL prefix for the GoAlert application.
+	Prefix string
+
+	// ExtraScripts can be used to load additional javascript files
+	// before `app.js`.
+	ExtraScripts []string
+}
+
+func (r renderData) BuildStamp() string   { return version.BuildDate().UTC().Format(time.RFC3339) }
+func (r renderData) GitCommit() string    { return version.GitCommit() }
+func (r renderData) GitVersion() string   { return version.GitVersion() }
+func (r renderData) GitTreeState() string { return version.GitTreeState() }
+
+var indexTmpl = template.Must(template.New("index.html").Parse(`<!DOCTYPE html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta http-equiv="x-goalert-version" content="{{.GitVersion}}" />
+	<meta http-equiv="x-goalert-build-date" content="{{.BuildStamp}}" />
+	<meta http-equiv="x-goalert-git-commit" content="{{.GitCommit}}" />
+	<meta http-equiv="x-goalert-git-tree-state" content="{{.GitTreeState}}" />
+	
+    <title>GoAlert</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://gravatar.com" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      sizes="16x16"
+      href="{{.Prefix}}/favicon-16.png"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      sizes="32x32"
+      href="{{.Prefix}}/favicon-32.png"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      sizes="64x64"
+      href="{{.Prefix}}/favicon-64.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="{{.Prefix}}/favicon-192.png"
+    />
+  </head>
+  <body>
+    <div id="app"></div>
+	<div id="graceful-unmount"></div>
+	{{- $prefix := .Prefix}}
+    {{- range .ExtraScripts}}
+    <script src="{{$prefix}}/{{.}}"></script>
+	{{- end}}
+	<script src="{{.Prefix}}/app.js"></script>
+  </body>
+</html>
+`))

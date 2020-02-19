@@ -2,7 +2,6 @@ package web
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -13,21 +12,49 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/version"
+	"github.com/target/goalert/util/log"
 )
+
+func pathPrefix(req *http.Request) string {
+	return "/static"
+}
 
 // NewHandler creates a new http.Handler that will serve UI files
 // using bundled assets or by proxying to urlStr if set.
 func NewHandler(urlStr string) (http.Handler, error) {
+	mux := http.NewServeMux()
+
+	var extraScripts []string
 	if urlStr == "" {
-		return newMemoryHandler(), nil
-	}
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse url")
+		mux.Handle("/static/", newMemoryHandler())
+	} else {
+		u, err := url.Parse(urlStr)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse url")
+		}
+		px := httputil.NewSingleHostReverseProxy(u)
+		p := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			log.Logf(req.Context(), "PATH: %s", req.URL.Path)
+			px.ServeHTTP(w, req)
+		})
+		mux.Handle("/static/", p)
+		mux.Handle("/build/", p)
+
+		// dev mode
+		extraScripts = []string{"../build/vendorPackages.dll.js"}
 	}
 
-	return httputil.NewSingleHostReverseProxy(u), nil
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		err := indexTmpl.Execute(w, renderData{
+			Prefix:       pathPrefix(req),
+			ExtraScripts: extraScripts,
+		})
+		if err != nil {
+			log.Log(req.Context(), err)
+		}
+	})
+
+	return mux, nil
 }
 
 type memoryHandler struct {
@@ -41,38 +68,12 @@ type memoryFile struct {
 	size int
 }
 
-func (m *memoryHandler) index() (*memoryFile, error) {
-	m.loadIndex.Do(func() {
-		f, ok := m.files["src/build/index.html"]
-		if !ok {
-			return
-		}
-		stamp := []byte(fmt.Sprintf("\n\n<!-- Version: %s -->\n<!-- GitCommit: %s (%s) -->\n<!-- BuildDate: %s -->\n\n</html>",
-			version.GitVersion(), version.GitCommit(), version.GitTreeState(), version.BuildDate().UTC().Format(time.RFC3339)))
-		data := make([]byte, len(f.Data()), len(f.Data())+len(stamp))
-		copy(data, f.Data())
-		data = bytes.Replace(data, []byte("</html>"), stamp, 1)
-		m.indexData = data
-	})
-
-	if len(m.indexData) == 0 {
-		return nil, errors.New("not found")
-	}
-
-	return &memoryFile{Reader: bytes.NewReader(m.indexData), name: "src/build/index.html", size: len(m.indexData)}, nil
-}
-
 func (m *memoryHandler) Open(file string) (http.File, error) {
-	if file == "/index.html" {
-		return m.index()
-	}
-
 	if f, ok := m.files["src/build"+file]; ok {
 		return &memoryFile{Reader: bytes.NewReader(f.Data()), name: f.Name, size: len(f.Data())}, nil
 	}
 
-	// fallback to loading the index page
-	return m.index()
+	return nil, os.ErrNotExist
 }
 
 func (m *memoryFile) Close() error { return nil }
@@ -114,7 +115,6 @@ func newMemoryHandler() http.Handler {
 	for _, f := range Files {
 		m.files[f.Name] = f
 	}
-	go m.index()
 
 	return rootFSFix(http.FileServer(m))
 }
