@@ -96,33 +96,40 @@ export default function MaterialSelect(props) {
     // error: boolean
   } = props
 
-  const value = propsValue === null ? { label: '', value: '' } : propsValue
+  // let value = propsValue
+  // if (!value) {
+  //   if (multiple) value = []
+  //   else value = { label: '', value: '' }
+  // }
+  let value
+  if (multiple && !propsValue) value = []
+  else if (!multiple && !propsValue) value = { label: '', value: '' }
+  else if (multiple && propsValue) value = propsValue
+  else if (!multiple && propsValue) value = propsValue
 
-  const [inputValue, setInputValue] = useState(value.label)
+  const [inputValue, setInputValue] = useState(multiple ? '' : value.label)
 
   return (
     <div data-cy='material-select' data-cy-ready={!isLoading}>
       <Autocomplete
         classes={{ option: classes.option }}
-        value={value.value}
+        value={multiple ? value : value.value}
         inputValue={inputValue}
         disableClearable={required}
         disabled={disabled}
         multiple={multiple}
+        filterSelectedOptions
         onChange={(event, valueObj) => {
-          console.log('onChange', valueObj)
-
           if (valueObj === null) {
             onChange(null)
           } else {
             onChange(valueObj)
-            setInputValue(valueObj.label)
+            setInputValue(multiple ? '' : valueObj.label)
           }
         }}
         onInputChange={(event, inputVal, reason) => {
-          console.log('onInputChange', inputVal, reason)
           if (reason === 'reset') {
-            setInputValue(value.label)
+            setInputValue(multiple ? '' : value.label)
           } else {
             setInputValue(inputVal)
             if (onInputChange) onInputChange(inputVal)
