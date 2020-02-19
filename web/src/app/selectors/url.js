@@ -41,6 +41,9 @@ export const alertAllServicesSelector = createSelector(
 export const absURLSelector = createSelector(urlPathSelector, base =>
   memoize(
     path =>
-      path && (path.startsWith('/') ? joinURL(path) : joinURL(base, path)),
+      path &&
+      (path.startsWith('/')
+        ? joinURL(global.pathPrefix, path)
+        : joinURL(base, path)),
   ),
 )

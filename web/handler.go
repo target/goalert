@@ -12,11 +12,45 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/util/log"
 )
 
+func sameURLHost(host, urlStr string) bool {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return false
+	}
+
+	return u.Host == host
+}
+
+func urlStaticPath(urlStr string) string {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return ""
+	}
+
+	u.Host = ""
+	u.Scheme = ""
+
+	return u.String()
+}
+
 func pathPrefix(req *http.Request) string {
-	return "/static"
+	cfg := config.FromContext(req.Context())
+
+	if sameURLHost(req.Host, cfg.PublicURL()) {
+		return urlStaticPath(cfg.PublicURL())
+	}
+
+	for _, a := range cfg.Auth.RefererURLs {
+		if sameURLHost(req.Host, a) {
+			return urlStaticPath(a)
+		}
+	}
+
+	return ""
 }
 
 // NewHandler creates a new http.Handler that will serve UI files

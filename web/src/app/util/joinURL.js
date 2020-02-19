@@ -1,4 +1,5 @@
 export default function joinURL(...parts) {
+  parts = parts.filter(p => p) // remove empty segments
   if (!parts || parts.length === 0) return ''
 
   return parts

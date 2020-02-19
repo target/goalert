@@ -30,7 +30,7 @@ const trackMutation = p => {
   )
 }
 
-export function doFetch(body, url = '/v1/graphql') {
+export function doFetch(body, url = global.pathPrefix + '/v1/graphql') {
   const f = fetch(url, {
     credentials: 'same-origin',
     method: 'POST',
@@ -78,7 +78,7 @@ const retryLink = new RetryLink({
 })
 
 const graphql2HttpLink = createHttpLink({
-  uri: '/api/graphql',
+  uri: global.pathPrefix + '/api/graphql',
   fetch: (url, opts) => {
     return doFetch(opts.body, url)
   },

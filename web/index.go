@@ -2,6 +2,7 @@ package web
 
 import (
 	"html/template"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/version"
@@ -16,6 +17,7 @@ type renderData struct {
 	ExtraScripts []string
 }
 
+func (r renderData) PathPrefix() string   { return strings.TrimSuffix(r.Prefix, "/") }
 func (r renderData) BuildStamp() string   { return version.BuildDate().UTC().Format(time.RFC3339) }
 func (r renderData) GitCommit() string    { return version.GitCommit() }
 func (r renderData) GitVersion() string   { return version.GitVersion() }
@@ -38,34 +40,37 @@ var indexTmpl = template.Must(template.New("index.html").Parse(`<!DOCTYPE html>
       rel="shortcut icon"
       type="image/png"
       sizes="16x16"
-      href="{{.Prefix}}/favicon-16.png"
+      href="{{.Prefix}}/static/favicon-16.png"
     />
     <link
       rel="shortcut icon"
       type="image/png"
       sizes="32x32"
-      href="{{.Prefix}}/favicon-32.png"
+      href="{{.Prefix}}/static/favicon-32.png"
     />
     <link
       rel="shortcut icon"
       type="image/png"
       sizes="64x64"
-      href="{{.Prefix}}/favicon-64.png"
+      href="{{.Prefix}}/static/favicon-64.png"
     />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="{{.Prefix}}/favicon-192.png"
+      href="{{.Prefix}}/static/favicon-192.png"
     />
   </head>
   <body>
     <div id="app"></div>
-	<div id="graceful-unmount"></div>
+  <div id="graceful-unmount"></div>
+  <script>
+    pathPrefix = {{.PathPrefix}};
+  </script>
 	{{- $prefix := .Prefix}}
     {{- range .ExtraScripts}}
-    <script src="{{$prefix}}/{{.}}"></script>
+    <script src="{{$prefix}}/static/{{.}}"></script>
 	{{- end}}
-	<script src="{{.Prefix}}/app.js"></script>
+	<script src="{{.Prefix}}/static/app.js"></script>
   </body>
 </html>
 `))

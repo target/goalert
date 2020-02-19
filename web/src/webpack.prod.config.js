@@ -17,7 +17,6 @@ module.exports = {
   output: {
     path: BUILD,
     filename: 'static/[name].js',
-    publicPath: '/',
   },
   resolve: {
     extensions: ['.js', '.jsx', '.css'],

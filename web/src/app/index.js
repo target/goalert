@@ -1,3 +1,4 @@
+// set webpack public path for loading additional assets
 /// #if HMR
 import './rhl'
 /// #endif
@@ -18,6 +19,8 @@ import store from './reduxStore'
 import { GracefulUnmounterProvider } from './util/gracefulUnmount'
 import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
+
+global.__webpack_public_path__ = global.pathPrefix || '/'
 
 const LazyGARouteTracker = React.memo(props => {
   if (!props.trackingID) {
