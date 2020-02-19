@@ -81,6 +81,9 @@ type Query {
   # Returns configuration hints (must be admin).
   configHints: [ConfigHint!]!
 
+  # Returns configuration limits
+  systemLimits: [SystemLimit!]!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -108,6 +111,17 @@ type SlackChannelConnection {
   pageInfo: PageInfo!
 }
 
+type SystemLimit {
+  id: SystemLimitID!
+  description: String!
+  value: Int!
+}
+
+input SystemLimitInput {
+  id: SystemLimitID!
+  value: Int!
+}
+
 type ConfigValue {
   id: String!
   description: String!
@@ -124,6 +138,19 @@ enum ConfigType {
   stringList
   integer
   boolean
+}
+enum SystemLimitID {
+  NotificationRulesPerUser
+  ContactMethodsPerUser
+  EPStepsPerPolicy
+  EPActionsPerStep
+  ParticipantsPerRotation
+  RulesPerSchedule
+  IntegrationKeysPerService
+  UnackedAlertsPerService
+  TargetsPerSchedule
+  HeartbeatMonitorsPerService
+  UserOverridesPerSchedule
 }
 
 input UserOverrideSearchOptions {
@@ -251,6 +278,7 @@ type Mutation {
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+  setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 }
 
 input CreateAlertInput {

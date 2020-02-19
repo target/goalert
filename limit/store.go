@@ -9,32 +9,19 @@ import (
 )
 
 // A Store allows getting and setting system limits.
-type Store interface {
-	// ResetAll will reset all configurable limits to the default (no-limit).
-	ResetAll(context.Context) error
-
-	// Max will return the current max value for the given limit.
-	Max(context.Context, ID) (int, error)
-
-	// SetMax allows setting the max value for a limit.
-	SetMax(context.Context, ID, int) error
-
-	// All will get the current value of all limits.
-	All(context.Context) (Limits, error)
-}
-
-// DB implements the Store interface against a Postgres DB.
-type DB struct {
+type Store struct {
+	db 		 *sql.DB
+	update *sql.Stmt
 	findAll  *sql.Stmt
 	findOne  *sql.Stmt
 	setOne   *sql.Stmt
 	resetAll *sql.Stmt
 }
-
-// NewDB creates a new DB and prepares all necessary SQL statements.
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+// NewStore creates a new DB and prepares all necessary SQL statements.
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
-	return &DB{
+	return &Store{
+		update: p.P(`update config_limits set max = $2 where id = $1`),
 		findAll: p.P(`select id, max from config_limits`),
 		findOne: p.P(`select max from config_limits where id = $1`),
 		setOne: p.P(`
@@ -47,18 +34,35 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-// ResetAll implements the Store interface.
-func (db *DB) ResetAll(ctx context.Context) error {
+// Update will update all configurable limits.
+func (s *Store) UpdateLimitsTx(ctx context.Context, tx *sql.Tx, id string, max int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return err
 	}
-	_, err = db.resetAll.ExecContext(ctx)
+	stmt := s.update
+	if tx != nil {
+		stmt = tx.Stmt(stmt)
+	}
+	_, err = s.update.ExecContext(ctx, id, max)
+	if err != nil {
+		return err
+	}
 	return err
 }
 
-// Max implements the Store interface.
-func (db *DB) Max(ctx context.Context, id ID) (int, error) {
+// ResetAll will reset all configurable limits to the default (no-limit).
+func (s *Store) ResetAll(ctx context.Context) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return err
+	}
+	_, err = s.resetAll.ExecContext(ctx)
+	return err
+}
+
+// Max will return the current max value for the given limit.
+func (s *Store) Max(ctx context.Context, id ID) (int, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return 0, err
@@ -68,7 +72,7 @@ func (db *DB) Max(ctx context.Context, id ID) (int, error) {
 		return 0, err
 	}
 	var max int
-	err = db.findOne.QueryRowContext(ctx, id).Scan(&max)
+	err = s.findOne.QueryRowContext(ctx, id).Scan(&max)
 	if err == sql.ErrNoRows {
 		return -1, nil
 	}
@@ -78,13 +82,13 @@ func (db *DB) Max(ctx context.Context, id ID) (int, error) {
 	return max, nil
 }
 
-// All implements the Store interface.
-func (db *DB) All(ctx context.Context) (Limits, error) {
+// All will get the current value of all limits.
+func (s *Store) All(ctx context.Context) (Limits, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.findAll.QueryContext(ctx)
+	rows, err := s.findAll.QueryContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +97,7 @@ func (db *DB) All(ctx context.Context) (Limits, error) {
 	var max int
 	l := make(Limits, 8)
 	for rows.Next() {
-		err = rows.Scan(&id, max)
+		err = rows.Scan(&id, &max)
 		if err != nil {
 			return nil, err
 		}
@@ -102,8 +106,8 @@ func (db *DB) All(ctx context.Context) (Limits, error) {
 	return l, nil
 }
 
-// SetMax implements the Store interface.
-func (db *DB) SetMax(ctx context.Context, id ID, max int) error {
+// SetMax allows setting the max value for a limit.
+func (s *Store) SetMax(ctx context.Context, id ID, max int) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
 		return err
@@ -113,6 +117,6 @@ func (db *DB) SetMax(ctx context.Context, id ID, max int) error {
 		return err
 	}
 
-	_, err = db.setOne.ExecContext(ctx, id, max)
+	_, err = s.setOne.ExecContext(ctx, id, max)
 	return err
 }
