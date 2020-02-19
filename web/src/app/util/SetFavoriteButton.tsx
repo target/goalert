@@ -4,7 +4,7 @@ import FavoriteFilledIcon from '@material-ui/icons/Star'
 import FavoriteBorderIcon from '@material-ui/icons/StarBorder'
 import Spinner from '../loading/components/Spinner'
 
-interface SetFavoriteButtonInput {
+interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule'
   isFavorite?: boolean
   loading: boolean
@@ -16,7 +16,7 @@ export function SetFavoriteButton({
   isFavorite,
   loading,
   onClick,
-}: SetFavoriteButtonInput) {
+}: SetFavoriteButtonProps) {
   let icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
   if (loading) {
     icon = <Spinner />
