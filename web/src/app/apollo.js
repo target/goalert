@@ -141,7 +141,7 @@ GraphQLClient.mutate = (...args) => {
 
 // Legacy client
 const legacyHttpLink = createHttpLink({
-  uri: '/v1/graphql',
+  uri: global.pathPrefix + '/v1/graphql',
   fetch: (url, opts) => {
     return doFetch(opts.body)
   },

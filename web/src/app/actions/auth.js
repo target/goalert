@@ -10,7 +10,7 @@ export function authLogout(performFetch = false) {
   const payload = { type: AUTH_LOGOUT }
   if (!performFetch) return payload
   return dispatch =>
-    fetch('/api/v2/identity/logout', {
+    fetch(global.pathPrefix + '/api/v2/identity/logout', {
       credentials: 'same-origin',
       method: 'POST',
     }).then(dispatch(payload))
