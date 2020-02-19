@@ -96,7 +96,7 @@ export default function MaterialSelect(props) {
     // error: boolean
   } = props
 
-  let value = { value: '', label: '' }
+  let value = { label: '', value: '' }
   if (propsValue !== null) {
     value = propsValue
   }
