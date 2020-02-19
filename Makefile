@@ -151,6 +151,12 @@ start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/
 	make bin/goalert BUILD_TAGS+=sql_highlight
 	bin/runjson <devtools/runjson/localdev.json
 
+start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
+	# force rebuild to ensure build-flags are set
+	touch cmd/goalert/main.go
+	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
+	bin/runjson <devtools/runjson/localdev-prod.json
+
 jest: web/src/node_modules
 	cd web/src && node_modules/.bin/jest $(JEST_ARGS)
 
