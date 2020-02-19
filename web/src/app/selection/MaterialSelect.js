@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import {
   TextField,
@@ -86,38 +86,48 @@ export default function MaterialSelect(props) {
     options,
     required,
     // theme,
-    value,
+    value: propsValue,
 
     // classes
     // placeholder: string
     // error: boolean
   } = props
 
+  let value = { value: '', label: '' }
+  if (propsValue !== null) {
+    value = propsValue
+  }
+
+  const [inputValue, setInputValue] = useState(value.label)
+
   return (
     <div data-cy='material-select' data-cy-ready={!isLoading}>
-      {/* TODO addd name prop to input field */}
       <Autocomplete
-        autoComplete
-        defaultValue={value}
+        value={value.value}
+        inputValue={inputValue}
         disableClearable={required}
         disabled={disabled}
         multiple={multiple}
         onChange={(event, valueObj) => {
-          console.log('onchange', valueObj)
           if (valueObj === null) {
             onChange(null)
           } else {
             onChange(valueObj)
+            setInputValue(valueObj.label)
           }
         }}
-        onInputChange={(event, value) => {
-          if (onInputChange) onInputChange(value)
+        onBlur={() => {
+          if (required) setInputValue(value.label)
+        }}
+        onInputChange={(event, value, reason) => {
+          if (reason === 'clear') {
+            setInputValue('')
+          }
         }}
         loading={isLoading}
-        getOptionLabel={option => option.label}
+        getOptionLabel={option => option.label || 'Loading...'}
         options={options}
         renderInput={params => {
-          // console.log(params)
           return (
             <TextField
               {...params}
@@ -126,6 +136,10 @@ export default function MaterialSelect(props) {
                 name,
                 'data-cy': 'search-select-input',
               }}
+              onChange={event => {
+                setInputValue(event.target.value)
+                if (onInputChange) onInputChange(event.target.value)
+              }}
               data-cy='search-select'
               fullWidth
               label={label}
@@ -133,7 +147,7 @@ export default function MaterialSelect(props) {
           )
         }}
         renderOption={({ label, value, icon }) => (
-          <MenuItem className={classes.menuItem}>
+          <MenuItem component='span' className={classes.menuItem}>
             <Typography noWrap>{label}</Typography>
             {icon && (
               <ListItemIcon className={classes.listItemIcon}>
