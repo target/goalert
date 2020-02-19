@@ -14,6 +14,9 @@ export const styles = theme => ({
   root: {
     flexGrow: 1,
   },
+  option: {
+    padding: 0,
+  },
   input: {
     display: 'flex',
     padding: 0,
@@ -103,6 +106,7 @@ export default function MaterialSelect(props) {
   return (
     <div data-cy='material-select' data-cy-ready={!isLoading}>
       <Autocomplete
+        classes={{ option: classes.option }}
         value={value.value}
         inputValue={inputValue}
         disableClearable={required}
