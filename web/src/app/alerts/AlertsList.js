@@ -94,7 +94,8 @@ export default function AlertsList(props) {
   const width = useWidth()
   const isFullScreen = isWidthDown('md', width)
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  // always open unless clicked away from or there are services present
+  const [snackbarOpen, setSnackbarOpen] = useState(true)
 
   const params = useSelector(urlParamSelector)
   const actionComplete = useSelector(state => state.alerts.actionComplete)
