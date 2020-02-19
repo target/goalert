@@ -2,7 +2,6 @@
   "compilerOptions": {
     "strict": true,
     "lib": ["es6", "dom"],
-    "moduleResolution": "node",
     "jsx": "react",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
