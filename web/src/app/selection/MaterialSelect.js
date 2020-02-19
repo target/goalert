@@ -96,10 +96,7 @@ export default function MaterialSelect(props) {
     // error: boolean
   } = props
 
-  let value = { label: '', value: '' }
-  if (propsValue !== null) {
-    value = propsValue
-  }
+  const value = propsValue === null ? { label: '', value: '' } : propsValue
 
   const [inputValue, setInputValue] = useState(value.label)
 
@@ -113,6 +110,8 @@ export default function MaterialSelect(props) {
         disabled={disabled}
         multiple={multiple}
         onChange={(event, valueObj) => {
+          console.log('onChange', valueObj)
+
           if (valueObj === null) {
             onChange(null)
           } else {
@@ -120,16 +119,17 @@ export default function MaterialSelect(props) {
             setInputValue(valueObj.label)
           }
         }}
-        onBlur={() => {
-          if (required) setInputValue(value.label)
-        }}
-        onInputChange={(event, value, reason) => {
-          if (reason === 'clear') {
-            setInputValue('')
+        onInputChange={(event, inputVal, reason) => {
+          console.log('onInputChange', inputVal, reason)
+          if (reason === 'reset') {
+            setInputValue(value.label)
+          } else {
+            setInputValue(inputVal)
+            if (onInputChange) onInputChange(inputVal)
           }
         }}
         loading={isLoading}
-        getOptionLabel={option => option.label || 'Loading...'}
+        getOptionLabel={option => option.label || ''}
         options={options}
         renderInput={params => {
           return (
@@ -139,10 +139,6 @@ export default function MaterialSelect(props) {
                 ...params.inputProps,
                 name,
                 'data-cy': 'search-select-input',
-              }}
-              onChange={event => {
-                setInputValue(event.target.value)
-                if (onInputChange) onInputChange(event.target.value)
               }}
               data-cy='search-select'
               fullWidth
