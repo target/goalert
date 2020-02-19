@@ -184,7 +184,9 @@ export function AlertsCheckboxControls(props) {
       <Grid container className={classes.checkboxGridContainer}>
         <Grid item>
           <Checkbox
-            checked={alerts.length === checkedAlerts.length}
+            checked={
+              alerts.length === checkedAlerts.length && alerts.length !== 0
+            }
             data-cy='select-all'
             indeterminate={
               checkedAlerts.length > 0 && alerts.length !== checkedAlerts.length
