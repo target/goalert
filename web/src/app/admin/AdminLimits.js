@@ -3,36 +3,27 @@ import Query from '../util/Query'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
 import gql from 'graphql-tag'
-import { chain, startCase, isEmpty } from 'lodash-es'
-import AdminConfigSection from './AdminConfigSection'
+import { chain, isEmpty } from 'lodash-es'
+import AdminLimitsSection from './AdminLimitsSection'
 
 import withStyles from '@material-ui/core/styles/withStyles'
 import AdminDialog from './AdminDialog'
 import PageActions from '../util/PageActions'
 import { Form } from '../forms'
-import { InputAdornment, TextField } from '@material-ui/core'
-import CopyText from '../util/CopyText'
 
 const query = gql`
   query getConfig {
-    config(all: true) {
+    systemLimits {
       id
       description
-      password
-      type
-      value
-    }
-    configHints {
-      id
       value
     }
   }
 `
 const mutation = gql`
-  mutation($input: [ConfigValueInput!]) {
-    setConfig(input: $input)
+  mutation($input: [SystemLimitInput!]!) {
+    setSystemLimits(input: $input)
   }
 `
 
@@ -56,7 +47,7 @@ const styles = theme => ({
 })
 
 @withStyles(styles)
-export default class AdminConfig extends React.PureComponent {
+export default class AdminLimits extends React.PureComponent {
   state = {
     tab: 0,
     confirm: false,
@@ -79,21 +70,16 @@ export default class AdminConfig extends React.PureComponent {
     return (
       <Query
         query={query}
-        render={({ data }) => this.renderTabs(data.config, data.configHints)}
+        render={({ data }) => this.renderTabs(data.systemLimits)}
       />
     )
   }
 
-  renderTabs(configValues, hints) {
-    const groups = chain(configValues)
-      .map(f => f.id.split('.')[0])
+  renderTabs(limitValues) {
+    const fields = chain(limitValues)
+      .map(f => f.id.replace(/([a-z])([A-Z])/g, '$1 $2'))
       .uniq()
       .value()
-    const hintGroups = chain(hints)
-      .groupBy(f => f.id.split('.')[0])
-      .value()
-    const hintName = id => startCase(id.split('.')[1])
-
     return (
       <React.Fragment>
         <Grid
@@ -101,7 +87,7 @@ export default class AdminConfig extends React.PureComponent {
           spacing={2}
           className={this.props.classes.gridContainer}
         >
-          {groups.map((groupID, index) => (
+          {fields.map((fieldID, index) => (
             <Grid
               key={index}
               container // contains title above card/card itself
@@ -110,57 +96,26 @@ export default class AdminConfig extends React.PureComponent {
               className={this.props.classes.gridItem}
             >
               <Grid item xs={12}>
-                <Typography
-                  component='h2'
-                  variant='subtitle1'
-                  color='textSecondary'
-                  classes={{
-                    subtitle1: this.props.classes.groupTitle,
-                  }}
-                >
-                  {startCase(groupID).replace('Git Hub', 'GitHub')}
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
                 <Form>
                   <Card>
-                    <AdminConfigSection
+                    <AdminLimitsSection
                       value={this.state.value}
                       onChange={(id, value) => this.updateValue(id, value)}
-                      fields={configValues
-                        .filter(f => f.id.split('.')[0] === groups[index])
+                      fields={limitValues
+                        .filter(
+                          f =>
+                            f.id.replace(/([a-z])([A-Z])/g, '$1 $2') ===
+                            fields[index],
+                        )
                         .map(f => ({
                           id: f.id,
-                          label: chain(f.id.split('.'))
-                            .last()
-                            .startCase()
-                            .value()
-                            .replace(/R Ls\b/, 'RLs'), // fix usages of `URLs`
                           description: f.description,
-                          password: f.password,
-                          type: f.type,
                           value: f.value,
+                          label: chain(f.id.replace(/([a-z])([A-Z])/g, '$1 $2'))
+                            .startCase()
+                            .value(),
                         }))}
                     />
-                    {hintGroups[groupID] &&
-                      hintGroups[groupID].map(h => (
-                        <TextField
-                          key={h.id}
-                          readOnly
-                          label={hintName(h.id)}
-                          value={h.value}
-                          variant='filled'
-                          margin='none'
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position='end'>
-                                <CopyText value={h.value} placement='left' />
-                              </InputAdornment>
-                            ),
-                          }}
-                          fullWidth
-                        />
-                      ))}
                   </Card>
                 </Form>
               </Grid>
@@ -198,7 +153,7 @@ export default class AdminConfig extends React.PureComponent {
         {this.state.confirm && (
           <AdminDialog
             mutation={mutation}
-            values={configValues}
+            values={limitValues}
             fieldValues={this.state.value}
             onClose={() => this.setState({ confirm: false })}
             onComplete={() => this.setState({ confirm: false, value: {} })}

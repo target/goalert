@@ -4,22 +4,16 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
-import gql from 'graphql-tag'
 import { omit } from 'lodash-es'
 import FormDialog from '../dialogs/FormDialog'
 import { Mutation } from 'react-apollo'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Diff from '../util/Diff'
 
-const mutation = gql`
-  mutation($input: [ConfigValueInput!]) {
-    setConfig(input: $input)
-  }
-`
-
 export default class AdminDialog extends React.PureComponent {
   static propTypes = {
-    configValues: p.array.isRequired,
+    mutation: p.object.isRequired,
+    values: p.array.isRequired,
     fieldValues: p.object.isRequired,
     onClose: p.func.isRequired,
     onComplete: p.func.isRequired,
@@ -27,7 +21,10 @@ export default class AdminDialog extends React.PureComponent {
 
   render() {
     return (
-      <Mutation mutation={mutation} onCompleted={this.props.onComplete}>
+      <Mutation
+        mutation={this.props.mutation}
+        onCompleted={this.props.onComplete}
+      >
         {(commit, status) => this.renderConfirm(commit, status)}
       </Mutation>
     )
@@ -35,11 +32,11 @@ export default class AdminDialog extends React.PureComponent {
 
   renderConfirm(commit, { error }) {
     const changeKeys = Object.keys(this.props.fieldValues)
-    const changes = this.props.configValues
+    const changes = this.props.values
       .filter(v => changeKeys.includes(v.id))
       .map(orig => ({
         id: orig.id,
-        oldValue: orig.value,
+        oldValue: orig.value.toString(),
         value: this.props.fieldValues[orig.id],
         type: orig.type,
       }))
