@@ -16,7 +16,7 @@ import gql from 'graphql-tag'
 import CreateAlertFab from './CreateAlertFab'
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import CheckedAlertsFormControl from './AlertsCheckboxControls'
+import AlertsCheckboxControls from './AlertsCheckboxControls'
 import statusStyles from '../util/statusStyles'
 import {
   setCheckedAlerts as _setCheckedAlerts,
@@ -201,7 +201,7 @@ export default function AlertsList(props) {
         controls={
           <React.Fragment>
             <Grid item className={classes.checkbox}>
-              <CheckedAlertsFormControl variables={variables} />
+              <AlertsCheckboxControls />
             </Grid>
             <Grid item>
               <AlertsListFilter />

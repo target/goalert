@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useQuery, useMutation } from '@apollo/react-hooks'
+import { useMutation } from '@apollo/react-hooks'
 import { useDispatch, useSelector } from 'react-redux'
-import { PropTypes as p } from 'prop-types'
 import {
   setCheckedAlerts as _setCheckedAlerts,
   setAlertsActionComplete as _setAlertsActionComplete,
@@ -25,8 +24,6 @@ import classnames from 'classnames'
 import gql from 'graphql-tag'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 import { urlParamSelector } from '../selectors'
-import { alertsListQuery } from './AlertsList'
-import { GenericError } from '../error-pages'
 
 const updateMutation = gql`
   mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
@@ -68,23 +65,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function AlertsCheckboxControlsQuery(props) {
-  const { loading, error, data } = useQuery(alertsListQuery, {
-    variables: props.variables,
-  })
-
-  if (loading && !data) return null
-  // todo: test what this looks like
-  if (error) return <GenericError error={error.message} />
-
-  return <AlertsCheckboxControls alerts={data.alerts.nodes} />
-}
-
-AlertsCheckboxControlsQuery.propTypes = {
-  variables: p.object.isRequired,
-}
-
-export function AlertsCheckboxControls(props) {
+export default function AlertsCheckboxControls() {
   const classes = useStyles()
 
   const [errorMessage, setErrorMessage] = useState('')
@@ -303,8 +284,4 @@ export function AlertsCheckboxControls(props) {
       </Grid>
     )
   }
-}
-
-AlertsCheckboxControls.propTypes = {
-  alerts: p.array.isRequired,
 }
