@@ -128,13 +128,11 @@ export default function MaterialSelect(props) {
           }
         }}
         onInputChange={(event, inputVal, reason) => {
-          if (reason === 'reset') {
-            setInputValue(multiple ? '' : value.label)
-          } else {
-            setInputValue(inputVal)
-            if (onInputChange) onInputChange(inputVal)
+          if (reason === 'clear' && !multiple) {
+            setInputValue('')
           }
         }}
+        onBlur={() => setInputValue(multiple ? '' : value.label)}
         loading={isLoading}
         getOptionLabel={option => option.label || ''}
         options={options}
@@ -150,6 +148,11 @@ export default function MaterialSelect(props) {
               data-cy='search-select'
               fullWidth
               label={label}
+              onChange={({ target }) => {
+                const newInputVal = target.value
+                setInputValue(newInputVal)
+                if (onInputChange) onInputChange(newInputVal)
+              }}
             />
           )
         }}
