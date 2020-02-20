@@ -6,6 +6,8 @@ import {
   MenuItem,
   ListItemIcon,
   Typography,
+  Paper,
+  Chip,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 
@@ -124,6 +126,19 @@ export default function MaterialSelect(props) {
             )}
           </MenuItem>
         )}
+        PaperComponent={params => (
+          <Paper data-cy='select-dropdown' {...params} />
+        )}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              key={index.toString()}
+              data-cy='multi-value'
+              label={option.label}
+              {...getTagProps({ index })}
+            />
+          ))
+        }
       />
     </div>
   )
