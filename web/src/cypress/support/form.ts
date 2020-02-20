@@ -126,7 +126,7 @@ function fillFormField(
       .data('cyFallbackType')
 
     if (isSelect) {
-      if (value === '') return cy.get(`[data-cy="select-clear"]`).click()
+      if (value === '') return cy.get(selector).clear()
 
       if (DateTime.isDateTime(value)) {
         throw new TypeError(
