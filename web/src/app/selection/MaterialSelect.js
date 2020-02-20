@@ -8,38 +8,8 @@ import {
   Typography,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
-import { emphasize } from '@material-ui/core/styles/colorManipulator'
 
-export const styles = theme => ({
-  root: {
-    flexGrow: 1,
-  },
-  option: {
-    padding: 0,
-  },
-  input: {
-    display: 'flex',
-    padding: 0,
-    height: 'fit-content',
-  },
-  valueContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    flex: 1,
-    alignItems: 'center',
-    wordBreak: 'break-word',
-  },
-  chip: {
-    margin: `${theme.spacing(1) / 2}px ${theme.spacing(1) / 4}px`,
-  },
-  chipFocused: {
-    backgroundColor: emphasize(
-      theme.palette.type === 'light'
-        ? theme.palette.grey[300]
-        : theme.palette.grey[700],
-      0.08,
-    ),
-  },
+export const styles = () => ({
   listItemIcon: {
     minWidth: 0,
   },
@@ -50,24 +20,8 @@ export const styles = theme => ({
     wordBreak: 'break-word',
     whiteSpace: 'pre-wrap',
   },
-  message: {
-    float: 'left',
-    padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
-  },
-  singleValue: {
-    fontSize: 16,
-  },
-  placeholder: {
-    position: 'absolute',
-    left: 2,
-    fontSize: 16,
-  },
-  paper: {
-    position: 'absolute',
-    zIndex: 1,
-    marginTop: theme.spacing(1),
-    left: 0,
-    right: 0,
+  option: {
+    padding: 0,
   },
 })
 
