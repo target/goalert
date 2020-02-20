@@ -109,7 +109,7 @@ export default function AlertsList(props) {
   const setCheckedAlerts = arr => dispatch(_setCheckedAlerts(arr))
   const setAlerts = arr => dispatch(_setAlerts(arr))
 
-  // need noFavorites?
+  // todo: need noFavorites?
   const showFavoritesWarning =
     snackbarOpen && !allServices && !props.serviceID && !isFirstLogin
 

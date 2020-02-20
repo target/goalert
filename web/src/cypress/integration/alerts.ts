@@ -54,11 +54,12 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('not.contain', 'No results') // mock alerts should show again
     })
 
-    it.skip('should load more list items when scrolling to the bottom', () => {
+    it('should load more list items when scrolling to the bottom', () => {
       const summary = c.word()
 
       cy.createManyAlerts(50, { summary }).then(() => {
         cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
+        cy.get('[data-cy=apollo-list] li').should('contain', summary)
         cy.get('[data-cy=apollo-list] li').should('have.length', 25)
         cy.get('[id="content"]').scrollTo('bottom')
         cy.get('[data-cy=apollo-list] li').should('have.length', 50)
@@ -206,7 +207,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('not.contain', 'UNACKNOWLEDGED')
     })
 
-    it('should NOT acknowledge acknowledged alerts', () => {
+    it('should not acknowledge acknowledged alerts', () => {
       // ack first two
       cy.get(`span[data-cy=alert-${alert1.id}] input`).check()
       cy.get(`span[data-cy=alert-${alert2.id}] input`).check()
