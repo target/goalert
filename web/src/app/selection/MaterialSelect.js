@@ -34,23 +34,23 @@ export default function MaterialSelect(props) {
   const {
     canCreate,
     disabled,
-    // fullWidth,
-    // hint,
     isLoading,
     label,
     multiple,
     name,
-    // noOptionsMessage,
     onChange,
     onInputChange,
     options,
     required,
-    // theme,
     value: propsValue,
 
     // classes
-    // placeholder: string
     // error: boolean
+    // fullWidth,
+    // hint,
+    // noOptionsMessage,
+    // placeholder: string
+    // theme,
   } = props
 
   let value = propsValue
