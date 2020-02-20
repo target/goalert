@@ -62,90 +62,86 @@ export default function MaterialSelect(props) {
   const [inputValue, setInputValue] = useState(multiple ? '' : value.label)
 
   return (
-    <div data-cy='material-select' data-cy-ready={!isLoading}>
-      <Autocomplete
-        classes={{ option: classes.option }}
-        value={multiple ? value : value.value}
-        inputValue={inputValue}
-        disableClearable={required}
-        closeIcon={null}
-        disabled={disabled}
-        multiple={multiple}
-        filterSelectedOptions
-        onChange={(event, valueObj) => {
-          if (valueObj === null) {
-            onChange(null)
-          } else {
-            onChange(valueObj)
+    <Autocomplete
+      data-cy='material-select'
+      data-cy-ready={!isLoading}
+      classes={{ option: classes.option }}
+      value={multiple ? value : value.value}
+      inputValue={inputValue}
+      disableClearable={required}
+      closeIcon={null}
+      disabled={disabled}
+      multiple={multiple}
+      filterSelectedOptions
+      onChange={(event, valueObj) => {
+        if (valueObj === null) {
+          onChange(null)
+        } else {
+          onChange(valueObj)
 
-            let newInputVal = ''
-            if (!multiple) {
-              if (canCreate && valueObj.label.startsWith('Create "')) {
-                newInputVal = valueObj.label.match(/"(.*?)"/)[0]
-              } else {
-                newInputVal = valueObj.label
-              }
+          let newInputVal = ''
+          if (!multiple) {
+            if (canCreate && valueObj.label.startsWith('Create "')) {
+              newInputVal = valueObj.label.match(/"(.*?)"/)[0]
+            } else {
+              newInputVal = valueObj.label
             }
-            setInputValue(newInputVal)
           }
-        }}
-        onInputChange={(event, inputVal, reason) => {
-          if (reason === 'clear' && !multiple) {
-            setInputValue('')
-          }
-        }}
-        onBlur={() => setInputValue(multiple ? '' : value.label)}
-        loading={isLoading}
-        getOptionLabel={option => option.label || ''}
-        options={options}
-        renderInput={params => {
-          return (
-            <TextField
-              {...params}
-              inputProps={{
-                ...params.inputProps,
-                name,
-              }}
-              InputProps={{
-                ...params.InputProps,
-                'data-cy': 'search-select-input',
-              }}
-              data-cy='search-select'
-              fullWidth
-              label={label}
-              onChange={({ target }) => {
-                const newInputVal = target.value
-                setInputValue(newInputVal)
-                if (onInputChange) onInputChange(newInputVal)
-              }}
-            />
-          )
-        }}
-        renderOption={({ label, value, icon }) => (
-          <MenuItem component='span' className={classes.menuItem}>
-            <Typography noWrap>{label}</Typography>
-            {icon && (
-              <ListItemIcon className={classes.listItemIcon}>
-                {icon}
-              </ListItemIcon>
-            )}
-          </MenuItem>
-        )}
-        PaperComponent={params => (
-          <Paper data-cy='select-dropdown' {...params} />
-        )}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              key={index.toString()}
-              data-cy='multi-value'
-              label={option.label}
-              {...getTagProps({ index })}
-            />
-          ))
+          setInputValue(newInputVal)
         }
-      />
-    </div>
+      }}
+      onInputChange={(event, inputVal, reason) => {
+        if (reason === 'clear' && !multiple) {
+          setInputValue('')
+        }
+      }}
+      onBlur={() => setInputValue(multiple ? '' : value.label)}
+      loading={isLoading}
+      getOptionLabel={option => option.label || ''}
+      options={options}
+      renderInput={params => {
+        return (
+          <TextField
+            {...params}
+            inputProps={{
+              ...params.inputProps,
+              name,
+            }}
+            InputProps={{
+              ...params.InputProps,
+              'data-cy': 'search-select-input',
+            }}
+            data-cy='search-select'
+            fullWidth
+            label={label}
+            onChange={({ target }) => {
+              const newInputVal = target.value
+              setInputValue(newInputVal)
+              if (onInputChange) onInputChange(newInputVal)
+            }}
+          />
+        )
+      }}
+      renderOption={({ label, value, icon }) => (
+        <MenuItem component='span' className={classes.menuItem}>
+          <Typography noWrap>{label}</Typography>
+          {icon && (
+            <ListItemIcon className={classes.listItemIcon}>{icon}</ListItemIcon>
+          )}
+        </MenuItem>
+      )}
+      PaperComponent={params => <Paper data-cy='select-dropdown' {...params} />}
+      renderTags={(value, getTagProps) =>
+        value.map((option, index) => (
+          <Chip
+            key={index.toString()}
+            data-cy='multi-value'
+            label={option.label}
+            {...getTagProps({ index })}
+          />
+        ))
+      }
+    />
   )
 }
 
