@@ -3,6 +3,7 @@ package limit
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
@@ -10,18 +11,18 @@ import (
 
 // A Store allows getting and setting system limits.
 type Store struct {
-	db 		 *sql.DB
-	update *sql.Stmt
+	update   *sql.Stmt
 	findAll  *sql.Stmt
 	findOne  *sql.Stmt
 	setOne   *sql.Stmt
 	resetAll *sql.Stmt
 }
+
 // NewStore creates a new DB and prepares all necessary SQL statements.
 func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 	return &Store{
-		update: p.P(`update config_limits set max = $2 where id = $1`),
+		update:  p.P(`update config_limits set max = $2 where id = $1`),
 		findAll: p.P(`select id, max from config_limits`),
 		findOne: p.P(`select max from config_limits where id = $1`),
 		setOne: p.P(`
@@ -44,7 +45,7 @@ func (s *Store) UpdateLimitsTx(ctx context.Context, tx *sql.Tx, id string, max i
 	if tx != nil {
 		stmt = tx.Stmt(stmt)
 	}
-	_, err = s.update.ExecContext(ctx, id, max)
+	_, err = stmt.ExecContext(ctx, id, max)
 	if err != nil {
 		return err
 	}

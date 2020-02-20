@@ -61,7 +61,7 @@ type App struct {
 	RuleStore      rule.Store
 	OverrideStore  override.Store
 	ConfigStore    *config.Store
-	LimitStore 	   *limit.Store
+	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
 	HeartbeatStore heartbeat.Store
 

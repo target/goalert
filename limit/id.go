@@ -7,10 +7,10 @@ type ID string
 
 // IDs of configurable limits.
 const (
-	NotificationRulesPerUser    ID = "notification_rules_per_user"
-	ContactMethodsPerUser       ID = "contact_methods_per_user"
+	NotificationRulesPerUser ID = "notification_rules_per_user"
+	ContactMethodsPerUser    ID = "contact_methods_per_user"
 	// Maximum steps on a single escalation policy step
-	EPStepsPerPolicy            ID = "ep_steps_per_policy"
+	EPStepsPerPolicy ID = "ep_steps_per_policy"
 	// Maximum actions on a single escalation policy step
 	EPActionsPerStep            ID = "ep_actions_per_step"
 	ParticipantsPerRotation     ID = "participants_per_rotation"

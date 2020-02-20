@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/permission"
