@@ -47,7 +47,6 @@ const escalateMutation = gql`
 `
 
 const useStyles = makeStyles({
-  // todo: fill in as needed
   checkboxGridContainer: {
     paddingLeft: '1em',
   },
