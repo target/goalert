@@ -81,11 +81,13 @@ export default function QueryList(props) {
   let nodes = []
   let items = []
   let loadMore
+  let hasNextPage = false
 
   if (data && data.data && data.data.nodes) {
     nodes = data.data.nodes
     items = data.data.nodes.map(props.mapDataNode)
     if (data.data.pageInfo.hasNextPage) {
+      hasNextPage = true
       loadMore = buildFetchMore(
         fetchMore,
         data.data.pageInfo.endCursor,
@@ -114,6 +116,7 @@ export default function QueryList(props) {
         <PaginatedList
           {...listProps}
           key={urlKey}
+          hasMore={hasNextPage}
           items={items}
           itemsPerPage={variables.input.first}
           loadMore={loadMore}

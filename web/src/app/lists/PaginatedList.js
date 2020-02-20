@@ -188,6 +188,9 @@ export class PaginatedList extends React.PureComponent {
     // renders as an infinite list instead of the default
     // page by page behavior
     infiniteScroll: p.bool,
+
+    // to be used if using the infinite scroller
+    hasMore: p.bool,
   }
 
   static defaultProps = {
@@ -340,9 +343,7 @@ export class PaginatedList extends React.PureComponent {
         <Grid item xs={12}>
           <Card>
             {cardHeader}
-            {infiniteScroll
-              ? this.renderAsInfiniteScroll(onNext)
-              : this.renderList()}
+            {infiniteScroll ? this.renderAsInfiniteScroll() : this.renderList()}
           </Card>
         </Grid>
         {!infiniteScroll && (
@@ -377,15 +378,15 @@ export class PaginatedList extends React.PureComponent {
     )
   }
 
-  renderAsInfiniteScroll(onNext) {
+  renderAsInfiniteScroll() {
     const classes = this.props.classes
     const len = this.props.items.length
 
     return (
       <InfiniteScroll
         scrollableTarget='content'
-        next={onNext}
-        hasMore={this.hasNextPage()}
+        next={this.props.loadMore}
+        hasMore={this.props.hasMore}
         endMessage={
           len === 0 ? null : (
             <Typography
