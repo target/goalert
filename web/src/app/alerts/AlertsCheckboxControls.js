@@ -86,6 +86,7 @@ export function AlertsCheckboxControls(props) {
   const [errorMessage, setErrorMessage] = useState('')
   const [updateMessage, setUpdateMessage] = useState('')
 
+  // get redux vars
   const params = useSelector(urlParamSelector)
   const filter = params('filter', 'active')
   const alerts = useSelector(state => state.alerts.alerts).filter(
@@ -94,15 +95,18 @@ export function AlertsCheckboxControls(props) {
   const actionComplete = useSelector(state => state.alerts.actionComplete)
   const checkedAlerts = useSelector(state => state.alerts.checkedAlerts)
 
+  // setup redux actions
   const dispatch = useDispatch()
   const setCheckedAlerts = arr => dispatch(_setCheckedAlerts(arr))
   const setAlertsActionComplete = bool =>
     dispatch(_setAlertsActionComplete(bool))
 
+  // reset checkedAlerts list on unmount
   useEffect(() => {
     return () => setNone()
   }, [])
 
+  // ack mutation
   const [ackAlerts] = useMutation(updateMutation, {
     variables: {
       input: {
@@ -117,6 +121,7 @@ export function AlertsCheckboxControls(props) {
     update: (cache, { data }) => onUpdate(data?.updateAlerts?.length ?? 0),
   })
 
+  // close mutation
   const [closeAlerts] = useMutation(updateMutation, {
     variables: {
       input: {
@@ -131,6 +136,7 @@ export function AlertsCheckboxControls(props) {
     update: (cache, { data }) => onUpdate(data?.updateAlerts?.length ?? 0),
   })
 
+  // escalate mutation
   const [escalateAlerts] = useMutation(escalateMutation, {
     variables: {
       input: checkedAlerts,

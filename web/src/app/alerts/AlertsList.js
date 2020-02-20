@@ -97,6 +97,7 @@ export default function AlertsList(props) {
   // always open unless clicked away from or there are services present
   const [snackbarOpen, setSnackbarOpen] = useState(true)
 
+  // get redux vars
   const absURL = useSelector(absURLSelector)
   const params = useSelector(urlParamSelector)
   const actionComplete = useSelector(state => state.alerts.actionComplete)
@@ -105,6 +106,7 @@ export default function AlertsList(props) {
   const filter = params('filter', 'active')
   const isFirstLogin = params('isFirstLogin')
 
+  // setup redux actions
   const dispatch = useDispatch()
   const setCheckedAlerts = arr => dispatch(_setCheckedAlerts(arr))
   const setAlerts = arr => dispatch(_setAlerts(arr))
@@ -135,6 +137,10 @@ export default function AlertsList(props) {
     }
   }
 
+  /*
+   * Adds border of color depending on each alert's status
+   * on left side of each list item
+   */
   function getStatusClassName(s) {
     switch (s) {
       case 'StatusAcknowledged':
