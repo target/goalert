@@ -32,6 +32,7 @@ const useStyles = makeStyles(styles)
 export default function MaterialSelect(props) {
   const classes = useStyles()
   const {
+    canCreate,
     disabled,
     // fullWidth,
     // hint,
@@ -81,7 +82,16 @@ export default function MaterialSelect(props) {
             onChange(null)
           } else {
             onChange(valueObj)
-            setInputValue(multiple ? '' : valueObj.label)
+
+            let newInputVal = ''
+            if (!multiple) {
+              if (canCreate && valueObj.label.startsWith('Create "')) {
+                newInputVal = valueObj.label.match(/"(.*?)"/)[0]
+              } else {
+                newInputVal = valueObj.label
+              }
+            }
+            setInputValue(newInputVal)
           }
         }}
         onInputChange={(event, inputVal, reason) => {
@@ -158,6 +168,7 @@ function valueCheck(props, ...args) {
 }
 
 MaterialSelect.propTypes = {
+  canCreate: p.bool, // allow creating when no options
   multiple: p.bool, // allow selecting multiple values
   required: p.bool,
   onChange: p.func.isRequired,
