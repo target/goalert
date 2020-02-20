@@ -204,12 +204,12 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 			return nil, err
 		}
 		switch {
-			case svc.Valid:
-				targets = append(targets, assignment.ServiceTarget(svc.String))
-			case sched.Valid:
-				targets = append(targets, assignment.ScheduleTarget(sched.String))
-			case rot.Valid:
-				targets = append(targets, assignment.RotationTarget(rot.String))
+		case svc.Valid:
+			targets = append(targets, assignment.ServiceTarget(svc.String))
+		case sched.Valid:
+			targets = append(targets, assignment.ScheduleTarget(sched.String))
+		case rot.Valid:
+			targets = append(targets, assignment.RotationTarget(rot.String))
 		}
 	}
 	return targets, nil
