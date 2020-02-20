@@ -124,6 +124,10 @@ export default function AlertsList(props) {
     },
   }
 
+  if (props.serviceID) {
+    variables.input.filterByServiceID = [props.serviceID]
+  }
+
   function toggleChecked(id) {
     const czechedAlerts = checkedAlerts.slice()
 
