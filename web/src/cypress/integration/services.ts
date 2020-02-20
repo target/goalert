@@ -132,7 +132,7 @@ function testServices(screen: ScreenFormat) {
         }
         cy.get('button[data-cy="services-filter-button"]').click()
 
-        cy.get('div[name="label-value"]').should(
+        cy.get('input[name="label-value"]').should(
           'have.attr',
           'disabled',
           'disabled',
@@ -599,7 +599,9 @@ function testServices(screen: ScreenFormat) {
     })
 
     it('should not be able to create a label when DisableLabelCreation is true', () => {
-      const randomWord = c.word({ length: 7 })
+      const randomWord = c.word({
+        length: 7,
+      })
       cy.pageFab()
       cy.get('input[name=key]').findByLabel(`Create "${randomWord}"`)
 
@@ -611,9 +613,8 @@ function testServices(screen: ScreenFormat) {
       cy.reload()
 
       cy.pageFab()
-      cy.get('input[name=key]')
-        .findByLabel(`Create "${randomWord}"`)
-        .should('not.exist')
+      cy.get('input[name=key]').type(`Create "${randomWord}"`)
+      cy.get('[data-cy="select-dropdown"]').should('contain', 'No options')
     })
   })
 }
