@@ -380,7 +380,6 @@ export class PaginatedList extends React.PureComponent {
         hasMore={this.hasNextPage()}
         loader={null}
         dataLength={len}
-        scrollThreshold={(len - 20) / len}
       >
         {this.renderList()}
       </InfiniteScroll>
