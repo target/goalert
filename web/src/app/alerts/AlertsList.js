@@ -9,7 +9,7 @@ import {
   isWidthDown,
 } from '@material-ui/core'
 import { useDispatch, useSelector } from 'react-redux'
-import { urlParamSelector } from '../selectors'
+import { absURLSelector, urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
 import gql from 'graphql-tag'
 
@@ -97,6 +97,7 @@ export default function AlertsList(props) {
   // always open unless clicked away from or there are services present
   const [snackbarOpen, setSnackbarOpen] = useState(true)
 
+  const absURL = useSelector(absURLSelector)
   const params = useSelector(urlParamSelector)
   const actionComplete = useSelector(state => state.alerts.actionComplete)
   const allServices = params('allServices')
@@ -180,6 +181,7 @@ export default function AlertsList(props) {
               {formatTimeSince(a.createdAt)}
             </Typography>
           ),
+          url: absURL(`/alerts/${a.id}`),
         })}
         variables={variables}
         onDataChange={items => {
