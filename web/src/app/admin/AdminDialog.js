@@ -36,9 +36,9 @@ export default class AdminDialog extends React.PureComponent {
       .filter(v => changeKeys.includes(v.id))
       .map(orig => ({
         id: orig.id,
-        oldValue: orig.value.toString(),
+        oldValue: orig.value,
         value: this.props.fieldValues[orig.id],
-        type: orig.type,
+        type: orig.type || typeof orig.value,
       }))
 
     return (
@@ -46,13 +46,16 @@ export default class AdminDialog extends React.PureComponent {
         disableGutters
         title={`Apply Configuration Change${changes.length > 1 ? 's' : ''}?`}
         onClose={this.props.onClose}
-        onSubmit={() =>
-          commit({
+        onSubmit={() => {
+          return commit({
             variables: {
-              input: changes.map(c => omit(c, ['oldValue', 'type'])),
+              input: changes.map(c => {
+                c.value = c.value === '' && c.type === 'number' ? '0' : c.value
+                return omit(c, ['oldValue', 'type'])
+              }),
             },
           })
-        }
+        }}
         primaryActionLabel='Confirm'
         errors={nonFieldErrors(error).concat(
           fieldErrors(error).map(e => ({
@@ -70,12 +73,12 @@ export default class AdminDialog extends React.PureComponent {
                       oldValue={
                         c.type === 'stringList'
                           ? c.oldValue.split(/\n/).join(', ')
-                          : c.oldValue
+                          : c.oldValue.toString()
                       }
                       newValue={
                         c.type === 'stringList'
                           ? c.value.split(/\n/).join(', ')
-                          : c.value
+                          : c.value.toString()
                       }
                       type={c.type === 'boolean' ? 'words' : 'chars'}
                     />

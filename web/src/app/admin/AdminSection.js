@@ -38,7 +38,7 @@ const styles = {
 }
 
 @withStyles(styles)
-export default class AdminConfigSection extends React.PureComponent {
+export default class AdminSection extends React.PureComponent {
   static propTypes = {
     fields: p.arrayOf(
       p.shape({

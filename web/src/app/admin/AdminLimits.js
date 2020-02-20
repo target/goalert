@@ -5,12 +5,12 @@ import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
 import gql from 'graphql-tag'
 import { chain, isEmpty } from 'lodash-es'
-import AdminLimitsSection from './AdminLimitsSection'
 
 import withStyles from '@material-ui/core/styles/withStyles'
 import AdminDialog from './AdminDialog'
 import PageActions from '../util/PageActions'
 import { Form } from '../forms'
+import AdminSection from './AdminSection'
 
 const query = gql`
   query getConfig {
@@ -70,16 +70,12 @@ export default class AdminLimits extends React.PureComponent {
     return (
       <Query
         query={query}
-        render={({ data }) => this.renderTabs(data.systemLimits)}
+        render={({ data }) => this.renderForm(data.systemLimits)}
       />
     )
   }
 
-  renderTabs(limitValues) {
-    const fields = chain(limitValues)
-      .map(f => f.id.replace(/([a-z])([A-Z])/g, '$1 $2'))
-      .uniq()
-      .value()
+  renderForm(limitValues) {
     return (
       <React.Fragment>
         <Grid
@@ -87,40 +83,28 @@ export default class AdminLimits extends React.PureComponent {
           spacing={2}
           className={this.props.classes.gridContainer}
         >
-          {fields.map((fieldID, index) => (
-            <Grid
-              key={index}
-              container // contains title above card/card itself
-              item // for each admin config section
-              xs={12}
-              className={this.props.classes.gridItem}
-            >
-              <Grid item xs={12}>
-                <Form>
-                  <Card>
-                    <AdminLimitsSection
-                      value={this.state.value}
-                      onChange={(id, value) => this.updateValue(id, value)}
-                      fields={limitValues
-                        .filter(
-                          f =>
-                            f.id.replace(/([a-z])([A-Z])/g, '$1 $2') ===
-                            fields[index],
-                        )
-                        .map(f => ({
-                          id: f.id,
-                          description: f.description,
-                          value: f.value,
-                          label: chain(f.id.replace(/([a-z])([A-Z])/g, '$1 $2'))
-                            .startCase()
-                            .value(),
-                        }))}
-                    />
-                  </Card>
-                </Form>
-              </Grid>
+          <Grid item xs={12} className={this.props.classes.gridItem}>
+            <Grid item xs={12}>
+              <Form>
+                <Card>
+                  <AdminSection
+                    value={this.state.value}
+                    onChange={(id, value) => this.updateValue(id, value)}
+                    fields={limitValues.map(f => ({
+                      id: f.id,
+                      type: 'integer',
+                      description: f.description,
+                      value: f.value.toString(),
+                      label: chain(f.id.replace(/([a-z])([A-Z])/g, '$1 $2'))
+                        .startCase()
+                        .value(),
+                      password: false,
+                    }))}
+                  />
+                </Card>
+              </Form>
             </Grid>
-          ))}
+          </Grid>
         </Grid>
         <PageActions>
           <Button

@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import gql from 'graphql-tag'
 import { chain, startCase, isEmpty } from 'lodash-es'
-import AdminConfigSection from './AdminConfigSection'
+import AdminSection from './AdminSection'
 
 import withStyles from '@material-ui/core/styles/withStyles'
 import AdminDialog from './AdminDialog'
@@ -124,7 +124,7 @@ export default class AdminConfig extends React.PureComponent {
               <Grid item xs={12}>
                 <Form>
                   <Card>
-                    <AdminConfigSection
+                    <AdminSection
                       value={this.state.value}
                       onChange={(id, value) => this.updateValue(id, value)}
                       fields={configValues
