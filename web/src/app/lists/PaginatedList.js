@@ -4,7 +4,6 @@ import withStyles from '@material-ui/core/styles/withStyles'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth/index'
 
 import Avatar from '@material-ui/core/Avatar'
-import FavoriteIcon from '@material-ui/icons/Star'
 import Card from '@material-ui/core/Card'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Grid from '@material-ui/core/Grid'
@@ -16,14 +15,17 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 
+import FavoriteIcon from '@material-ui/icons/Star'
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
+
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { Link } from 'react-router-dom'
 import { connect } from 'react-redux'
 
 import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
+import Spinner from '../loading/components/Spinner'
 
 // gray boxes on load
 // disable overflow
@@ -32,6 +34,11 @@ import { absURLSelector } from '../selectors/url'
 // - on details, don't have accesses to search param
 
 const styles = theme => ({
+  infiniteScrollFooter: {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0.25em 0 0.25em 0',
+  },
   progress: {
     color: theme.palette.secondary['500'],
     position: 'absolute',
@@ -371,6 +378,7 @@ export class PaginatedList extends React.PureComponent {
   }
 
   renderAsInfiniteScroll(onNext) {
+    const classes = this.props.classes
     const len = this.props.items.length
 
     return (
@@ -378,7 +386,22 @@ export class PaginatedList extends React.PureComponent {
         scrollableTarget='content'
         next={onNext}
         hasMore={this.hasNextPage()}
-        loader={null}
+        endMessage={
+          len === 0 ? null : (
+            <Typography
+              className={classes.infiniteScrollFooter}
+              color='textSecondary'
+              variant='body2'
+            >
+              Displaying all results.
+            </Typography>
+          )
+        }
+        loader={
+          <div className={classes.infiniteScrollFooter}>
+            <Spinner text='Loading...' />
+          </div>
+        }
         dataLength={len}
       >
         {this.renderList()}
