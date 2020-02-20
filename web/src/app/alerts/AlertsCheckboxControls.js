@@ -47,6 +47,10 @@ const escalateMutation = gql`
 `
 
 const useStyles = makeStyles({
+  checkbox: {
+    marginTop: 4,
+    marginBottom: 4,
+  },
   checkboxGridContainer: {
     paddingLeft: '1em',
   },
@@ -189,6 +193,7 @@ export function AlertsCheckboxControls(props) {
       <Grid container className={classes.checkboxGridContainer}>
         <Grid item>
           <Checkbox
+            className={classes.checkbox}
             checked={
               alerts.length === checkedAlerts.length && alerts.length !== 0
             }
