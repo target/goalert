@@ -53,16 +53,11 @@ export default function MaterialSelect(props) {
     // error: boolean
   } = props
 
-  // let value = propsValue
-  // if (!value) {
-  //   if (multiple) value = []
-  //   else value = { label: '', value: '' }
-  // }
-  let value
-  if (multiple && !propsValue) value = []
-  else if (!multiple && !propsValue) value = { label: '', value: '' }
-  else if (multiple && propsValue) value = propsValue
-  else if (!multiple && propsValue) value = propsValue
+  let value = propsValue
+  if (!value) {
+    if (multiple) value = []
+    else value = { label: '', value: '' }
+  }
 
   const [inputValue, setInputValue] = useState(multiple ? '' : value.label)
 
