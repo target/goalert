@@ -52,7 +52,7 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
   if (!opts.alertID) {
     return cy
       .createAlert(opts.alert)
-      .then(alert => createAlertLogs({ ...opts, alertID: alert.number }))
+      .then(alert => createAlertLogs({ ...opts, alertID: alert.id }))
   }
 
   const genMeta = () =>
@@ -92,20 +92,22 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
 }
 
 function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
-  const query = `query GetLogs($id: Int!, $after: String!) {
-    alert(id: $id) {
-      recentEvents(input:{limit:149, after: $after}) {
-        nodes {
-          timestamp
-          message
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
+  const query = `
+    query GetLogs($id: Int!, $after: String!) {
+      alert(id: $id) {
+        recentEvents(input: { limit: 149, after: $after }) {
+          nodes {
+            timestamp
+            message
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
     }
-  }`
+  `
 
   const next = (logs: Array<AlertLog>, after: string): any =>
     cy.graphql2(query, { id, after }).then(res => {
@@ -123,34 +125,19 @@ function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
 }
 
 function getAlert(id: number): Cypress.Chainable<Alert> {
-  const query = `query GetAlert($id: Int!) {
-    alert(id: $id) {
-      number: _id, id, summary, details, serviceID: service_id,
-      service {
-        id, name, description
-        epID: escalation_policy_id,
-        ep: escalation_policy {
-            id
-            name
-            description
-            repeat
-        }
-      }
-    }
-  }`
-
-  return cy.graphql(query, { id }).then(res => res.alert)
-}
-
-function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
-  if (!a) a = {}
-  const query = `mutation CreateAlert($input: CreateAlertInput){
-      createAlert(input: $input) {
-        number: _id, id, summary, details, serviceID: service_id,
+  const query = `
+    query GetAlert($id: Int!) {
+      alert(id: $id) {
+        id
+        summary
+        details
+        serviceID
         service {
-          id, name, description
-          epID: escalation_policy_id,
-          ep: escalation_policy {
+          id
+          name
+          description
+          epID: escalationPolicyID,
+          ep: escalationPolicy {
               id
               name
               description
@@ -158,7 +145,36 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
           }
         }
       }
-    }`
+    }
+  `
+
+  return cy.graphql2(query, { id }).then(res => res.alert)
+}
+
+function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
+  if (!a) a = {}
+  const query = `
+    mutation CreateAlert($input: CreateAlertInput!){
+      createAlert(input: $input) {
+        id
+        summary
+        details
+        serviceID
+        service {
+          id
+          name
+          description
+          epID: escalationPolicyID
+          ep: escalationPolicy {
+            id
+            name
+            description
+            repeat
+          }
+        }
+      }
+    }
+  `
 
   if (!a.serviceID) {
     return cy
@@ -167,9 +183,9 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
   }
 
   return cy
-    .graphql(query, {
+    .graphql2(query, {
       input: {
-        service_id: a.serviceID,
+        serviceID: a.serviceID,
         summary: a.summary || c.sentence({ words: 3 }),
         details: a.details || c.sentence({ words: 5 }),
       },
