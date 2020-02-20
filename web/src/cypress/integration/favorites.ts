@@ -121,6 +121,7 @@ function check(
           : sel
               .findByLabel(prefix)
               .parent()
+              .parent()
               .children()
 
         items.should('have.length', 2).as('items')
