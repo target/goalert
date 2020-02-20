@@ -303,7 +303,7 @@ input UpdateUserOverrideInput {
 }
 
 input CreateUserOverrideInput {
-  scheduleID: ID!
+  scheduleID: ID
 
   start: ISOTimestamp!
   end: ISOTimestamp!
@@ -319,6 +319,7 @@ input CreateScheduleInput {
   favorite: Boolean
 
   targets: [ScheduleTargetInput!]
+  newUserOverrides: [CreateUserOverrideInput!]
 }
 
 input ScheduleTargetInput {

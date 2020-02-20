@@ -117,11 +117,12 @@ type CreateRotationInput struct {
 }
 
 type CreateScheduleInput struct {
-	Name        string                `json:"name"`
-	Description *string               `json:"description"`
-	TimeZone    string                `json:"timeZone"`
-	Favorite    *bool                 `json:"favorite"`
-	Targets     []ScheduleTargetInput `json:"targets"`
+	Name             string                    `json:"name"`
+	Description      *string                   `json:"description"`
+	TimeZone         string                    `json:"timeZone"`
+	Favorite         *bool                     `json:"favorite"`
+	Targets          []ScheduleTargetInput     `json:"targets"`
+	NewUserOverrides []CreateUserOverrideInput `json:"newUserOverrides"`
 }
 
 type CreateServiceInput struct {
@@ -150,7 +151,7 @@ type CreateUserNotificationRuleInput struct {
 }
 
 type CreateUserOverrideInput struct {
-	ScheduleID   string    `json:"scheduleID"`
+	ScheduleID   *string   `json:"scheduleID"`
 	Start        time.Time `json:"start"`
 	End          time.Time `json:"end"`
 	AddUserID    *string   `json:"addUserID"`
