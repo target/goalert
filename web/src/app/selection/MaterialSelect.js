@@ -70,6 +70,7 @@ export default function MaterialSelect(props) {
         value={multiple ? value : value.value}
         inputValue={inputValue}
         disableClearable={required}
+        closeIcon={null}
         disabled={disabled}
         multiple={multiple}
         filterSelectedOptions
@@ -97,6 +98,9 @@ export default function MaterialSelect(props) {
               inputProps={{
                 ...params.inputProps,
                 name,
+              }}
+              InputProps={{
+                ...params.InputProps,
                 'data-cy': 'search-select-input',
               }}
               data-cy='search-select'
