@@ -229,6 +229,7 @@ postgres:
 	docker run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
+		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
 		postgres:11-alpine || docker start goalert-postgres

@@ -19,7 +19,7 @@ module.exports = {
     filename: 'static/[name].js',
   },
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.css'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       'react-dom': '@hot-loader/react-dom',
     },
@@ -32,7 +32,7 @@ module.exports = {
         use: ['modernizr-loader'],
       },
       {
-        test: /\.jsx?$/,
+        test: /\.(t|j)sx?$/,
         use: [
           'react-hot-loader/webpack',
           {
@@ -58,15 +58,6 @@ module.exports = {
       {
         test: /\.md$/,
         use: 'raw-loader',
-      },
-      {
-        test: /\.ts$/,
-        exclude: [/node_modules/],
-        use: [
-          {
-            loader: 'ts-loader',
-          },
-        ],
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico|webp)$/i,
