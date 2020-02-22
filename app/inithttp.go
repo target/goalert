@@ -102,8 +102,9 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// max request time
 		timeout(2 * time.Minute),
 
-		// remove public URL prefix
-		stripPrefixMiddleware(),
+		func(next http.Handler) http.Handler {
+			return http.StripPrefix(app.cfg.HTTPPrefix, next)
+		},
 
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
@@ -177,31 +178,33 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	// Legacy (v1) API mappings
 	mux.HandleFunc("/v1/graphql", app.graphql.ServeHTTP)
-	muxRewrite(mux, "/v1/graphql2", "/api/graphql")
-	muxRedirect(mux, "/v1/graphql2/explore", "/api/graphql/explore")
-	muxRewrite(mux, "/v1/config", "/api/v2/config")
-	muxRewrite(mux, "/v1/identity/providers", "/api/v2/identity/providers")
-	muxRewritePrefix(mux, "/v1/identity/providers/", "/api/v2/identity/providers/")
-	muxRewrite(mux, "/v1/identity/logout", "/api/v2/identity/logout")
 
-	muxRewrite(mux, "/v1/webhooks/mailgun", "/api/v2/mailgun/incoming")
-	muxRewrite(mux, "/v1/webhooks/grafana", "/api/v2/grafana/incoming")
-	muxRewrite(mux, "/v1/api/alerts", "/api/v2/generic/incoming")
-	muxRewritePrefix(mux, "/v1/api/heartbeat/", "/api/v2/heartbeat/")
-	muxRewriteWith(mux, "/v1/api/users/", func(req *http.Request) *http.Request {
+	topMux := http.NewServeMux()
+	muxRewrite(topMux, "/v1/graphql2", "/api/graphql")
+	muxRedirect(topMux, "/v1/graphql2/explore", "/api/graphql/explore")
+	muxRewrite(topMux, "/v1/config", "/api/v2/config")
+	muxRewrite(topMux, "/v1/identity/providers", "/api/v2/identity/providers")
+	muxRewritePrefix(topMux, "/v1/identity/providers/", "/api/v2/identity/providers/")
+	muxRewrite(topMux, "/v1/identity/logout", "/api/v2/identity/logout")
+
+	muxRewrite(topMux, "/v1/webhooks/mailgun", "/api/v2/mailgun/incoming")
+	muxRewrite(topMux, "/v1/webhooks/grafana", "/api/v2/grafana/incoming")
+	muxRewrite(topMux, "/v1/api/alerts", "/api/v2/generic/incoming")
+	muxRewritePrefix(topMux, "/v1/api/heartbeat/", "/api/v2/heartbeat/")
+	muxRewriteWith(topMux, "/v1/api/users/", func(req *http.Request) *http.Request {
 		parts := strings.Split(strings.TrimSuffix(req.URL.Path, "/avatar"), "/")
 		req.URL.Path = "/api/v2/user-avatar/" + parts[len(parts)-1]
 		return req
 	})
 
-	muxRewrite(mux, "/v1/twilio/sms/messages", "/api/v2/twilio/message")
-	muxRewrite(mux, "/v1/twilio/sms/status", "/api/v2/twilio/message/status")
-	muxRewrite(mux, "/v1/twilio/voice/call", "/api/v2/twilio/call?type=alert")
-	muxRewrite(mux, "/v1/twilio/voice/alert-status", "/api/v2/twilio/call?type=alert-status")
-	muxRewrite(mux, "/v1/twilio/voice/test", "/api/v2/twilio/call?type=test")
-	muxRewrite(mux, "/v1/twilio/voice/stop", "/api/v2/twilio/call?type=stop")
-	muxRewrite(mux, "/v1/twilio/voice/verify", "/api/v2/twilio/call?type=verify")
-	muxRewrite(mux, "/v1/twilio/voice/status", "/api/v2/twilio/call/status")
+	muxRewrite(topMux, "/v1/twilio/sms/messages", "/api/v2/twilio/message")
+	muxRewrite(topMux, "/v1/twilio/sms/status", "/api/v2/twilio/message/status")
+	muxRewrite(topMux, "/v1/twilio/voice/call", "/api/v2/twilio/call?type=alert")
+	muxRewrite(topMux, "/v1/twilio/voice/alert-status", "/api/v2/twilio/call?type=alert-status")
+	muxRewrite(topMux, "/v1/twilio/voice/test", "/api/v2/twilio/call?type=test")
+	muxRewrite(topMux, "/v1/twilio/voice/stop", "/api/v2/twilio/call?type=stop")
+	muxRewrite(topMux, "/v1/twilio/voice/verify", "/api/v2/twilio/call?type=verify")
+	muxRewrite(topMux, "/v1/twilio/voice/status", "/api/v2/twilio/call/status")
 
 	twilioHandler := twilio.WrapValidation(
 		// go back to the regular mux after validation
@@ -209,11 +212,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		*app.twilioConfig,
 	)
 
-	topMux := http.NewServeMux()
-
-	// twilio calls should go through the validation handler first
-	// since the signature is based on the original URL
-	topMux.Handle("/v1/twilio/", twilioHandler)
+	// Twilio calls should go through the validation handler first
 	topMux.Handle("/api/v2/twilio/", twilioHandler)
 
 	topMux.Handle("/v1/", mux)
@@ -222,7 +221,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	topMux.HandleFunc("/health", app.healthCheck)
 	topMux.HandleFunc("/health/engine", app.engineStatus)
 
-	webH, err := web.NewHandler(app.cfg.UIURL)
+	webH, err := web.NewHandler(app.cfg.UIURL, app.cfg.HTTPPrefix)
 	if err != nil {
 		return err
 	}
