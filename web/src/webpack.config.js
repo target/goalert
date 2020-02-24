@@ -8,7 +8,7 @@ const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
 const PORT = process.env.PORT || 3032
 
-module.exports = env => ({
+module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   mode: 'development',
   // Paths and extensions
   entry: {
