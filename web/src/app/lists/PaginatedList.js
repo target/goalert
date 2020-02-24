@@ -185,8 +185,9 @@ export class PaginatedList extends React.PureComponent {
     // provide a message to display if there are no results
     emptyMessage: p.string,
 
-    // renders as an infinite list instead of the default
-    // page by page behavior
+    // if set, loadMore will be called when the user
+    // scrolls to the bottom of the list. appends list
+    // items to the list rather than rendering a new page
     infiniteScroll: p.bool,
   }
 
