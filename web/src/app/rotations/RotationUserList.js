@@ -12,7 +12,7 @@ import CountDown from '../util/CountDown'
 import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { DateTime } from 'luxon'
-import { UserAvatar } from '../util/avatar'
+import { UserAvatar } from '../util/avatars'
 import { withStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
 
