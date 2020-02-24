@@ -114,5 +114,8 @@ func main() {
 	s := SystemLimitScanner{}
 	ast.Walk(&s, f)
 	sort.Slice(s.data, func(i, j int) bool { return s.data[i].ID < s.data[j].ID })
-	tmpl.Execute(w, s.data)
+	err = tmpl.Execute(w, s.data)
+	if err != nil {
+		panic(err)
+	}
 }

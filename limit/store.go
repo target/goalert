@@ -37,7 +37,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 // Update will update all configurable limits.
 func (s *Store) UpdateLimitsTx(ctx context.Context, tx *sql.Tx, id string, max int) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin)
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (s *Store) Max(ctx context.Context, id ID) (int, error) {
 
 // All will get the current value of all limits.
 func (s *Store) All(ctx context.Context) (Limits, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin)
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
 		return nil, err
 	}
