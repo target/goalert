@@ -12,7 +12,7 @@ The only hard requirement for GoAlert is a running Postgres instance/database.
 
 When running GoAlert behind a reverse proxy:
 
-- Specify the `--http-prefix` flag or `GOALERT_HTTP_PREFIX` env var for any instances behind the proxy with a path prefix
+- Specify the `--http-prefix` flag or `GOALERT_HTTP_PREFIX` env var for any instances behind the proxy with a path prefix _without_ the trailing slash
 - Ensure the proxy passes the complete path, including prefix, if applicable
 - Ensure the proxy passes the original host header (used for validating Twilio requests)
 - Ensure the `General.PublicPath` contains the prefix in the URL, if applicable
