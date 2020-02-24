@@ -60,7 +60,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{end}}
 	{{ if .Search }}
 		AND (
-			CAST(a.id AS TEXT) ilike :search OR
+			CAST(a.id AS TEXT) = substring(:search FROM '\%(.*?)\%') OR
 			a.summary ilike :search OR
 			svc.name ilike :search
 		)
