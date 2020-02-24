@@ -133,10 +133,6 @@ export default function AlertsCheckboxControls() {
     update: (cache, { data }) => onUpdate(data?.escalateAlerts?.length ?? 0),
   })
 
-  function areNoneChecked() {
-    return checkedAlerts.length === 0
-  }
-
   function setAll() {
     setCheckedAlerts(alerts.map(a => a.id))
   }
@@ -146,7 +142,8 @@ export default function AlertsCheckboxControls() {
   }
 
   function handleToggleSelectAll() {
-    if (areNoneChecked()) {
+    // if none are checked, set all
+    if (checkedAlerts.length === 0) {
       return setAll()
     }
     return setNone()
