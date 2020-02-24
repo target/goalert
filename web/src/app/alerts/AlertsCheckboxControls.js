@@ -103,7 +103,7 @@ export default function AlertsCheckboxControls() {
       setAlertsActionComplete(true)
       setErrorMessage(err.message)
     },
-    update: (cache, { data }) => onUpdate(data?.updateAlerts?.length ?? 0),
+    onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0),
   })
 
   // close mutation
@@ -118,7 +118,7 @@ export default function AlertsCheckboxControls() {
       setAlertsActionComplete(true)
       setErrorMessage(err.message)
     },
-    update: (cache, { data }) => onUpdate(data?.updateAlerts?.length ?? 0),
+    onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0),
   })
 
   // escalate mutation
@@ -130,7 +130,7 @@ export default function AlertsCheckboxControls() {
       setAlertsActionComplete(true)
       setErrorMessage(err.message)
     },
-    update: (cache, { data }) => onUpdate(data?.escalateAlerts?.length ?? 0),
+    onCompleted: data => onCompleted(data?.escalateAlerts?.length ?? 0),
   })
 
   function setAll() {
@@ -149,7 +149,7 @@ export default function AlertsCheckboxControls() {
     return setNone()
   }
 
-  function onUpdate(numUpdated) {
+  function onCompleted(numUpdated) {
     setAlertsActionComplete(true) // for create fab transition
     setUpdateMessage(`${numUpdated} of ${checkedAlerts.length} alerts updated`)
     setNone()
