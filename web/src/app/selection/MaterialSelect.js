@@ -25,6 +25,9 @@ export const styles = () => ({
   option: {
     padding: 0,
   },
+  clearIndicator: {
+    display: 'none',
+  },
 })
 
 const useStyles = makeStyles(styles)
@@ -65,11 +68,13 @@ export default function MaterialSelect(props) {
     <Autocomplete
       data-cy='material-select'
       data-cy-ready={!isLoading}
-      classes={{ option: classes.option }}
+      classes={{
+        option: classes.option,
+        clearIndicator: classes.clearIndicator,
+      }}
       value={multiple ? value : value.value}
       inputValue={inputValue}
       disableClearable={required}
-      closeIcon={null}
       disabled={disabled}
       multiple={multiple}
       filterSelectedOptions
