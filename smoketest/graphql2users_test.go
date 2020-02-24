@@ -15,7 +15,8 @@ func TestGraphQL2Users(t *testing.T) {
 	sql := `
 	insert into users (id, name, email, role) 
 	values 
-		({{uuid "user"}}, 'bob', 'joe', 'admin');
+		({{uuid "user"}}, 'bob', 'bobEmail', 'admin'),
+		({{uuid "user2"}}, 'joe', 'joeEmail', 'admin');
 `
 
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
@@ -101,4 +102,27 @@ func TestGraphQL2Users(t *testing.T) {
 	if len(a.Nodes.ProviderID) != 0 {
 		t.Fatalf("ERROR: retrieved Nodes=%s; want nil", a.Nodes.ProviderID)
 	}
+
+	var res struct {
+		Users struct {
+			Nodes []struct {
+				ID string
+			}
+		}
+	}
+
+	doQL(t,
+		`query {
+			users(first: 100) {
+				nodes {
+					id
+				}
+			}
+		}
+	`, &res)
+	if len(res.Users.Nodes) != 3 {
+		// 3 because the 'GraphQL User' will be implicitly added.
+		t.Errorf("got %d users; want 3", len(res.Users.Nodes))
+	}
+
 }
