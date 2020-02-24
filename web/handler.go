@@ -92,25 +92,11 @@ func (m *memoryFile) ModTime() time.Time {
 func (m *memoryFile) IsDir() bool      { return false }
 func (m *memoryFile) Sys() interface{} { return nil }
 
-func rootFSFix(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.URL.Path == "/" {
-			// necessary to avoid redirect loop
-			req.URL.Path = "/alerts"
-		}
-		if strings.Contains(req.URL.Path, "/static/") {
-			w.Header().Add("Cache-Control", "public, immutable, max-age=315360000")
-		}
-
-		h.ServeHTTP(w, req)
-	})
-}
-
 func newMemoryHandler() http.Handler {
 	m := &memoryHandler{files: make(map[string]File, len(Files))}
 	for _, f := range Files {
 		m.files[f.Name] = f
 	}
 
-	return rootFSFix(http.FileServer(m))
+	return http.FileServer(m)
 }
