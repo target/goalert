@@ -2,9 +2,26 @@
 
 package migrate
 
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"sync"
+)
+
 type File struct {
-	Name string
-	Data func() []byte
+	Name     string
+	Data     func() []byte
+	hash     string
+	hashCalc sync.Once
+}
+
+func (f *File) Hash256() string {
+	f.hashCalc.Do(func() {
+		h := sha256.New()
+		h.Write(f.Data())
+		f.hash = hex.EncodeToString(h.Sum(nil))
+	})
+	return f.hash
 }
 
 var Files []File
