@@ -1,12 +1,67 @@
 import { Chance } from 'chance'
-const c = new Chance()
 import { testScreen } from '../support'
+const c = new Chance()
 
 testScreen('Admin', testAdmin, false, true)
 
 function testAdmin(screen: ScreenFormat) {
-  let cfg: Config
-  describe('Admin Page', () => {
+  describe.only('Admin System Limits Page', () => {
+    beforeEach(() => {
+      let limits: Limits
+      // cy.getLimits().then(l => {
+      //   limits = l
+      //   return cy.visit('/admin/limits')
+      // })
+      return cy.visit('/admin/limits')
+    })
+
+    it('should allow updating system limits values', () => {
+      const newNotificationRules = c.integer({ min: 0, max: 1000 })
+      const newContactMethods = c.integer({ min: 0, max: 1000 })
+
+      cy.form({
+        NotificationRulesPerUser: newNotificationRules.toString(),
+        ContactMethodsPerUser: newContactMethods.toString(),
+      })
+      cy.get('button[data-cy=save]').click()
+
+      cy.dialogTitle('Apply Configuration Changes?')
+      // cy.dialogContains('-' + limits.NotificationRulesPerUser)
+      // cy.dialogContains('-' + limits.ContactMethodsPerUser)
+      // cy.dialogContains('+' + newNotificationRules)
+      // cy.dialogContains('+' + newContactMethods)
+      cy.dialogFinish('Confirm')
+
+      cy.get('input[name="NotificationRulesPerUser"]').should(
+        'have.value',
+        newNotificationRules.toString(),
+      )
+      cy.get('input[name="ContactMethodsPerUser"]').should(
+        'have.value',
+        newContactMethods.toString(),
+      )
+    })
+
+    it('should reset pending system limit value changes', () => {
+      cy.form({
+        NotificationRulesPerUser: c.integer({ min: 0, max: 1000 }).toString(),
+        ContactMethodsPerUser: c.integer({ min: 0, max: 1000 }).toString(),
+      })
+
+      cy.get('button[data-cy="reset"]').click()
+
+      // cy.get('input[name="NotificationRulesPerUser"]').should(
+      //   'have.value',
+      //   limits.NotificationRulesPerUser.toString(),
+      // )
+      // cy.get('input[name="ContactMethodsPerUser"]').should(
+      //   'have.value',
+      //   limits.ContactMethodsPerUser.toString(),
+      // )
+    })
+  })
+  describe('Admin Config Page', () => {
+    let cfg: Config
     beforeEach(() => {
       return cy
         .resetConfig()

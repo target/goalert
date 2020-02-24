@@ -13,7 +13,7 @@ import { Form } from '../forms'
 import AdminSection from './AdminSection'
 
 const query = gql`
-  query getConfig {
+  query getLimits {
     systemLimits {
       id
       description
