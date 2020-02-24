@@ -35,6 +35,7 @@ type iCalRenderData struct {
 	ReminderMinutes []int
 	Version         string
 	GeneratedAt     time.Time
+	EventIDs        []string
 }
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
@@ -45,8 +46,10 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 {{- $mins := .ReminderMinutes }}
 {{- $genTime := .GeneratedAt }}
-{{- range .Shifts}}
+{{- $eid := .EventIDs}}
+{{- range $index, $element := .Shifts}}
 BEGIN:VEVENT
+UID:{{index $eid $index}}
 SUMMARY:On-Call Shift
 DTSTAMP:{{$genTime.UTC.Format "20060102T150405Z"}}
 DTSTART:{{.Start.UTC.Format "20060102T150405Z"}}
@@ -87,7 +90,11 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 }
 
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
-	data := iCalRenderData{Shifts: shifts, ReminderMinutes: cs.Config.ReminderMinutes, Version: version.GitVersion(), GeneratedAt: generatedAt}
+	var ids []string
+	for i := 0; i < len(shifts); i++ {
+		ids = append(ids, uuid.NewV4().String())
+	}
+	data := iCalRenderData{Shifts: shifts, ReminderMinutes: cs.Config.ReminderMinutes, Version: version.GitVersion(), GeneratedAt: generatedAt, EventIDs: ids}
 	buf := bytes.NewBuffer(nil)
 
 	err := iCalTemplate.Execute(buf, data)
