@@ -28,7 +28,7 @@ enum ID {
   UserOverridesPerSchedule = 'user_overrides_per_schedule',
 }
 
-function getLimits(): Cypress.Chainable<Limits> {
+function getLimits(): Cypress.Chainable<Limits[]> {
   const query = `query getLimits() {
     systemLimits {
       id
