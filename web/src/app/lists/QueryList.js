@@ -78,22 +78,16 @@ export default function QueryList(props) {
     pollInterval: POLL_INTERVAL,
   })
 
-  let nodes = []
-  let items = []
+  const nodes = data?.data?.nodes ?? []
+  const items = nodes.map(props.mapDataNode)
   let loadMore
-  let hasNextPage = false
 
-  if (data && data.data && data.data.nodes) {
-    nodes = data.data.nodes
-    items = data.data.nodes.map(props.mapDataNode)
-    if (data.data.pageInfo.hasNextPage) {
-      hasNextPage = true
-      loadMore = buildFetchMore(
-        fetchMore,
-        data.data.pageInfo.endCursor,
-        stopPolling,
-      )
-    }
+  if (data?.data?.pageInfo?.hasNextPage) {
+    loadMore = buildFetchMore(
+      fetchMore,
+      data.data.pageInfo.endCursor,
+      stopPolling,
+    )
   }
 
   useEffect(() => {
