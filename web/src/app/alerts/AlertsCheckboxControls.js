@@ -173,7 +173,7 @@ export default function AlertsCheckboxControls() {
           <Checkbox
             className={classes.checkbox}
             checked={
-              alerts.length === checkedAlerts.length && alerts.length !== 0
+              alerts.length === checkedAlerts.length && alerts.length > 0
             }
             data-cy='select-all'
             indeterminate={
