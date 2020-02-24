@@ -27,12 +27,12 @@ var indexTmpl = template.Must(template.New("index.html").Parse(`<!DOCTYPE html>
 <html class="no-js" lang="en">
   <head>
     <meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-	<meta http-equiv="x-goalert-version" content="{{.GitVersion}}" />
-	<meta http-equiv="x-goalert-build-date" content="{{.BuildStamp}}" />
-	<meta http-equiv="x-goalert-git-commit" content="{{.GitCommit}}" />
-	<meta http-equiv="x-goalert-git-tree-state" content="{{.GitTreeState}}" />
-	
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta http-equiv="x-goalert-version" content="{{.GitVersion}}" />
+    <meta http-equiv="x-goalert-build-date" content="{{.BuildStamp}}" />
+    <meta http-equiv="x-goalert-git-commit" content="{{.GitCommit}}" />
+    <meta http-equiv="x-goalert-git-tree-state" content="{{.GitTreeState}}" />
+    
     <title>GoAlert</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="preconnect" href="https://gravatar.com" />

@@ -2,13 +2,15 @@ package web
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"path"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -40,23 +42,29 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 		extraScripts = []string{"../build/vendorPackages.dll.js"}
 	}
 
+	var buf bytes.Buffer
+	err := indexTmpl.Execute(&buf, renderData{
+		Prefix:       prefix,
+		ExtraScripts: extraScripts,
+	})
+	if err != nil {
+		return nil, err
+	}
+	h := sha256.New()
+	h.Write(buf.Bytes())
+	indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		err := indexTmpl.Execute(w, renderData{
-			Prefix:       prefix,
-			ExtraScripts: extraScripts,
-		})
-		if err != nil {
-			log.Log(req.Context(), err)
-		}
+		w.Header().Set("Cache-Control", "private; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
+		w.Header().Set("ETag", indexETag)
+		http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
 	})
 
 	return mux, nil
 }
 
 type memoryHandler struct {
-	files     map[string]File
-	loadIndex sync.Once
-	indexData []byte
+	files map[string]File
 }
 type memoryFile struct {
 	*bytes.Reader
@@ -70,6 +78,19 @@ func (m *memoryHandler) Open(file string) (http.File, error) {
 	}
 
 	return nil, os.ErrNotExist
+}
+func (m *memoryHandler) ETag(url string) string {
+	if !strings.HasPrefix(url, "/") {
+		url = "/" + url
+	}
+	url = path.Clean(url)
+
+	f, ok := m.files["src/build"+url]
+	if !ok {
+		return ""
+	}
+
+	return `"sha256-` + f.Hash256() + `"`
 }
 
 func (m *memoryFile) Close() error { return nil }
@@ -93,10 +114,19 @@ func (m *memoryFile) IsDir() bool      { return false }
 func (m *memoryFile) Sys() interface{} { return nil }
 
 func newMemoryHandler() http.Handler {
-	m := &memoryHandler{files: make(map[string]File, len(Files))}
+	m := &memoryHandler{
+		files: make(map[string]File, len(Files)),
+	}
 	for _, f := range Files {
 		m.files[f.Name] = f
 	}
-
-	return http.FileServer(m)
+	fs := http.FileServer(m)
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		etag := m.ETag(req.URL.Path)
+		if etag != "" {
+			w.Header().Set("ETag", etag)
+			w.Header().Set("Cache-Control", "public; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
+		}
+		fs.ServeHTTP(w, req)
+	})
 }
