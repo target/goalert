@@ -149,7 +149,7 @@ start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
-	bin/runjson <devtools/runjson/localdev.json
+	GOALERT_VERSION=$(GIT_VERSION) bin/runjson <devtools/runjson/localdev.json
 
 start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
 	# force rebuild to ensure build-flags are set

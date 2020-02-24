@@ -19,9 +19,25 @@ import store from './reduxStore'
 import { GracefulUnmounterProvider } from './util/gracefulUnmount'
 import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
+import { warn } from './util/debug'
 
 global.__webpack_public_path__ = global.pathPrefix || '/'
 global.GOALERT_VERSION = process.env.GOALERT_VERSION || 'dev'
+
+if (
+  document
+    .querySelector('meta[http-equiv=x-goalert-version]')
+    .getAttribute('content') !== global.GOALERT_VERSION
+) {
+  warn(
+    'app.js version does not match HTML version',
+    'index.html=' +
+      document
+        .querySelector('meta[http-equiv=x-goalert-version]')
+        .getAttribute('content'),
+    'app.js=' + global.GOALERT_VERSION,
+  )
+}
 
 const LazyGARouteTracker = React.memo(props => {
   if (!props.trackingID) {
