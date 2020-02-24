@@ -3,10 +3,12 @@ import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
 import { useSessionInfo } from './RequireConfig'
 import { Avatar, AvatarTypeMap, SvgIconProps } from '@material-ui/core'
 import { OverridableComponent } from '@material-ui/core/OverridableComponent'
+import _ from 'lodash-es'
 
-type IconProps = (props: SvgIconProps) => JSX.Element //type alias
-interface AvatarProps extends OverridableComponent<AvatarTypeMap> {
-  userID?: string
+type IconProps = (props: SvgIconProps) => JSX.Element
+type AvatarProps = OverridableComponent<AvatarTypeMap>
+interface UserAvatarProps extends AvatarProps {
+  userID: string
 }
 
 function useValidImage(srcURL?: string) {
@@ -30,12 +32,12 @@ function useValidImage(srcURL?: string) {
 
 function useAvatar(
   Fallback: IconProps,
-  otherProps: AvatarProps,
+  otherProps: AvatarProps | UserAvatarProps,
   imgSrc?: string,
 ) {
   const validImage = useValidImage(imgSrc)
 
-  const { userID, ...DOMProps } = otherProps
+  const DOMProps = _.omit(otherProps, 'userID')
 
   return (
     <Avatar
@@ -49,13 +51,13 @@ function useAvatar(
   )
 }
 
-export function UserAvatar(props: AvatarProps) {
+export function UserAvatar(props: UserAvatarProps) {
   const { userID } = props
-  return useAvatar(Person, props, userID && `/api/v2/user-avatar/${userID}`)
+  return useAvatar(Person, props, `/api/v2/user-avatar/${userID}`)
 }
 
 export function CurrentUserAvatar(props: AvatarProps) {
-  const { ready, userID } = useSessionInfo()
+  const { ready, userID }: any = useSessionInfo() // TODO remove "any" when useSessionInfo is converted to ts
   return useAvatar(Person, props, ready && `/api/v2/user-avatar/${userID}`)
 }
 
