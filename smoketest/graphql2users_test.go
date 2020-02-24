@@ -3,8 +3,9 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQL2Users tests most operations on users API via GraphQL2 endpoint.
