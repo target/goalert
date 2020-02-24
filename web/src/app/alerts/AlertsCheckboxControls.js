@@ -51,14 +51,14 @@ const useStyles = makeStyles({
   checkboxGridContainer: {
     paddingLeft: '1em',
   },
+  controlsContainer: {
+    alignItems: 'center',
+    display: 'flex',
+  },
   hover: {
     '&:hover': {
       cursor: 'pointer',
     },
-  },
-  icon: {
-    alignItems: 'center',
-    display: 'flex',
   },
   popper: {
     opacity: 1,
@@ -185,7 +185,7 @@ export default function AlertsCheckboxControls() {
         </Grid>
         <Grid
           item
-          className={classnames(classes.hover, classes.icon)}
+          className={classnames(classes.hover, classes.controlsContainer)}
           data-cy='checkboxes-menu'
         >
           <OtherActions
@@ -274,7 +274,7 @@ export default function AlertsCheckboxControls() {
     }
 
     return (
-      <Grid item className={classes.icon}>
+      <Grid item className={classes.controlsContainer}>
         {ack}
         {close}
         {escalate}
