@@ -17,13 +17,13 @@ const useStyles = makeStyles({
   },
 })
 
-const buildFetchMore = (fetchMore, after, stopPolling) => {
-  return once(num => {
+const buildFetchMore = (fetchMore, after, stopPolling, itemsPerPage) => {
+  return once(() => {
     stopPolling()
     return fetchMore({
       variables: {
         input: {
-          first: num,
+          first: itemsPerPage,
           after,
         },
       },
@@ -87,6 +87,7 @@ export default function QueryList(props) {
       fetchMore,
       data.data.pageInfo.endCursor,
       stopPolling,
+      variables.input.first,
     )
   }
 
