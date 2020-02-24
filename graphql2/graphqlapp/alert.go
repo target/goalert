@@ -115,6 +115,9 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 			if err != nil {
 				return nil, err
 			}
+
+			// favorites only with no returned services will
+			// return an empty result set
 			if len(s.Services) == 0 {
 				return &graphql2.AlertConnection{
 					PageInfo: &graphql2.PageInfo{},
