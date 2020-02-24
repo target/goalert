@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/util/log"
 )
 
 // NewHandler creates a new http.Handler that will serve UI files
@@ -30,13 +29,9 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "parse url")
 		}
-		px := httputil.NewSingleHostReverseProxy(u)
-		p := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			log.Logf(req.Context(), "PATH: %s", req.URL.Path)
-			px.ServeHTTP(w, req)
-		})
-		mux.Handle("/static/", p)
-		mux.Handle("/build/", p)
+		proxy := httputil.NewSingleHostReverseProxy(u)
+		mux.Handle("/static/", proxy)
+		mux.Handle("/build/", proxy)
 
 		// dev mode
 		extraScripts = []string{"../build/vendorPackages.dll.js"}
