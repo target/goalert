@@ -79,15 +79,13 @@ export default function MaterialSelect(props) {
       multiple={multiple}
       filterSelectedOptions
       onChange={(event, valueObj) => {
-        if (valueObj === null) {
-          onChange(null)
-        } else {
-          onChange(valueObj)
+        onChange(valueObj)
 
+        if (valueObj !== null) {
           let newInputVal = ''
           if (!multiple) {
-            if (canCreate && valueObj.label.startsWith('Create "')) {
-              newInputVal = valueObj.label.match(/"(.*?)"/)[0]
+            if (canCreate && options.length === 1) {
+              newInputVal = options[0].value
             } else {
               newInputVal = valueObj.label
             }
