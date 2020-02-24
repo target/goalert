@@ -213,7 +213,7 @@ web/src/node_modules/.bin/cypress: web/src/yarn.lock
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
 	rm -rf web/src/build/static
-	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js)
+	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION))
 
 web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web

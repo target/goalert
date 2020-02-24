@@ -9,7 +9,7 @@ const path = require('path')
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
 
-module.exports = {
+module.exports = env => ({
   mode: 'production',
   entry: {
     app: APP,
@@ -75,6 +75,7 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production'), // eslint-disable-line quote-props
+        GOALERT_VERSION: JSON.stringify(env.GOALERT_VERSION), // eslint-disable-line quote-props
       },
     }),
     new CopyPlugin(
@@ -95,4 +96,4 @@ module.exports = {
     // minify javascript
     minimize: true,
   },
-}
+})

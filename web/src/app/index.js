@@ -21,6 +21,7 @@ import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
 
 global.__webpack_public_path__ = global.pathPrefix || '/'
+global.GOALERT_VERSION = process.env.GOALERT_VERSION || 'dev'
 
 const LazyGARouteTracker = React.memo(props => {
   if (!props.trackingID) {
