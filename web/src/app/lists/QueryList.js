@@ -116,7 +116,6 @@ export default function QueryList(props) {
         <PaginatedList
           {...listProps}
           key={urlKey}
-          hasMore={hasNextPage}
           items={items}
           itemsPerPage={variables.input.first}
           loadMore={loadMore}

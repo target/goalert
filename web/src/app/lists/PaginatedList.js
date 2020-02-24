@@ -188,9 +188,6 @@ export class PaginatedList extends React.PureComponent {
     // renders as an infinite list instead of the default
     // page by page behavior
     infiniteScroll: p.bool,
-
-    // to be used if using the infinite scroller
-    hasMore: p.bool,
   }
 
   static defaultProps = {
@@ -386,7 +383,7 @@ export class PaginatedList extends React.PureComponent {
       <InfiniteScroll
         scrollableTarget='content'
         next={this.props.loadMore}
-        hasMore={this.props.hasMore}
+        hasMore={Boolean(this.props.loadMore)}
         endMessage={
           len === 0 ? null : (
             <Typography
