@@ -211,11 +211,11 @@ web/src/node_modules: web/src/node_modules/.bin/cypress
 web/src/node_modules/.bin/cypress: web/src/yarn.lock
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
 
-web/src/build/index.html: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
+web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
 	rm -rf web/src/build/static
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js)
 
-web/inline_data_gen.go: web/src/build/* web/src/build/static/* web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
+web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
 web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
