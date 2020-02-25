@@ -131,7 +131,7 @@ function LoadingItem(props: { dense?: boolean }) {
 export interface PaginatedListProps {
   headerNote?: ReactNode
 
-  items: PaginatedListItem[]
+  items: PaginatedListItemProps[]
 
   isLoading?: boolean
   loadMore?: (numberToLoad: number) => void
@@ -141,7 +141,7 @@ export interface PaginatedListProps {
   emptyMessage?: string
 }
 
-export interface PaginatedListItem {
+export interface PaginatedListItemProps {
   url?: string
   title: string
   subText?: string
@@ -213,7 +213,7 @@ export function PaginatedList(props: PaginatedListProps) {
     )
   }
 
-  function renderItem(item: PaginatedListItem, idx: number) {
+  function renderItem(item: PaginatedListItemProps, idx: number) {
     let favIcon = <ListItemSecondaryAction />
     if (item.isFavorite) {
       favIcon = (
@@ -255,11 +255,11 @@ export function PaginatedList(props: PaginatedListProps) {
 
     // Display full list when loading
     if (!noPlaceholder) {
-      while (isLoading && items.length < ITEMS_PER_PAGE) {
+      while (isLoading && renderedItems.length < ITEMS_PER_PAGE) {
         renderedItems.push(
           <LoadingItem
             dense={isWidthUp('md', width)}
-            key={'list_' + items.length}
+            key={'list_' + renderedItems.length}
           />,
         )
       }
