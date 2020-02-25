@@ -1,6 +1,5 @@
 import React from 'react'
-import p from 'prop-types'
-import { diffChars, diffWords } from 'diff'
+import { diffChars, diffWords, Change } from 'diff'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 
@@ -28,17 +27,23 @@ const useStyles = makeStyles({
   },
 })
 
+interface DiffProps {
+  oldValue: string
+  newValue: string
+  type: 'chars' | 'words'
+}
+
 /*
  * Diff displays a difference in characters
  * or words from an old and new value
  */
-export default function Diff(props) {
+export default function Diff(props: DiffProps) {
   const { oldValue, newValue, type } = props
 
   const classes = useStyles()
   const { oldLine, removed, newLine, added } = classes
 
-  let diff = []
+  let diff: Change[] = []
   if (type === 'chars') diff = diffChars(oldValue, newValue)
   if (type === 'words') diff = diffWords(oldValue, newValue)
 
@@ -46,7 +51,7 @@ export default function Diff(props) {
     if (part.added) return
 
     return (
-      <span key={idx} className={part.removed ? removed : null}>
+      <span key={idx} className={part.removed ? removed : undefined}>
         {part.value}
       </span>
     )
@@ -56,7 +61,7 @@ export default function Diff(props) {
     if (part.removed) return
 
     return (
-      <span key={idx} className={part.added ? added : null}>
+      <span key={idx} className={part.added ? added : undefined}>
         {part.value}
       </span>
     )
@@ -66,7 +71,7 @@ export default function Diff(props) {
   const hideAdded = diff.length === 1 && diff[0].removed // deleted whole string
 
   return (
-    <React.Fragment>
+    <>
       {!hideRemoved && (
         <Typography className={oldLine} data-cy='old'>
           <span className={classes.symbol}>&nbsp;-</span>
@@ -79,18 +84,6 @@ export default function Diff(props) {
           {newWithAdded}
         </Typography>
       )}
-    </React.Fragment>
+    </>
   )
-}
-
-Diff.propTypes = {
-  oldValue: p.string,
-  newValue: p.string,
-  type: p.oneOf(['chars', 'words']),
-}
-
-Diff.defaultProps = {
-  oldValue: '',
-  newValue: '',
-  type: 'chars',
 }
