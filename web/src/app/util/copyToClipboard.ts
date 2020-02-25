@@ -14,7 +14,7 @@ export default function copyToClipboard(text: string) {
  * that state is saved upon completion of copying.
  */
 function fallback(str: string) {
-  const textArea = <HTMLTextAreaElement>document.createElement('textArea')
+  const textArea = document.createElement('textArea') as HTMLTextAreaElement
   textArea.value = str // Set its value to what you want copied
   textArea.readOnly = true // Deny tampering
   document.body.appendChild(textArea)
