@@ -1,5 +1,5 @@
 import React, { ReactNode, useState, ReactElement } from 'react'
-import { isWidthUp } from '@material-ui/core/withWidth/index'
+import { isWidthUp } from '@material-ui/core/withWidth'
 import { useSelector } from 'react-redux'
 
 import Avatar from '@material-ui/core/Avatar'
@@ -158,10 +158,11 @@ export function PaginatedList(props: PaginatedListProps) {
   const {
     items = [],
     loadMore,
-    emptyMessage,
+    emptyMessage = 'No results',
     noPlaceholder,
     headerNote,
   } = props
+
   const pageCount = Math.ceil(items.length / ITEMS_PER_PAGE)
   const width = useWidth()
 
@@ -230,6 +231,7 @@ export function PaginatedList(props: PaginatedListProps) {
       button: true as any,
       to: absURL(item.url),
     }
+
     return (
       <ListItem
         dense={isWidthUp('md', width)}
