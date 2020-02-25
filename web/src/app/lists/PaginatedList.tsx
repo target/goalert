@@ -116,7 +116,7 @@ const loadingStyle = {
 const useLoadingStyles = makeStyles({
   item: {
     display: 'block',
-    minHeight: dense => dense ? 57 : 71,
+    minHeight: dense => (dense ? 57 : 71),
   },
   lineOne: {
     ...loadingStyle,
@@ -130,7 +130,7 @@ const useLoadingStyles = makeStyles({
   lineThree: {
     ...loadingStyle,
     width: '65%',
-  }
+  },
 })
 
 // LoadingItem is used as a placeholder for loading content
