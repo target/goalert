@@ -115,7 +115,8 @@ const loadingStyle = {
 
 const useLoadingStyles = makeStyles({
   item: {
-    display: 'block'
+    display: 'block',
+    minHeight: dense => dense ? 57 : 71,
   },
   lineOne: {
     ...loadingStyle,
@@ -134,11 +135,10 @@ const useLoadingStyles = makeStyles({
 
 // LoadingItem is used as a placeholder for loading content
 function LoadingItem(props: { dense?: boolean }) {
-  const classes = useLoadingStyles()
-  const minHeight = props.dense ? 57 : 71
+  const classes = useLoadingStyles(props.dense)
 
   return (
-    <ListItem className={classes.item} dense={props.dense} style={{ minHeight }}>
+    <ListItem className={classes.item} dense={props.dense}>
       <ListItemText className={classes.lineOne} />
       <ListItemText className={classes.lineTwo} />
       <ListItemText className={classes.lineThree} />
