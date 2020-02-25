@@ -71,7 +71,7 @@ export default function Diff(props: DiffProps) {
   const hideAdded = diff.length === 1 && diff[0].removed // deleted whole string
 
   return (
-    <>
+    <React.Fragment>
       {!hideRemoved && (
         <Typography className={oldLine} data-cy='old'>
           <span className={classes.symbol}>&nbsp;-</span>
@@ -84,6 +84,6 @@ export default function Diff(props: DiffProps) {
           {newWithAdded}
         </Typography>
       )}
-    </>
+    </React.Fragment>
   )
 }
