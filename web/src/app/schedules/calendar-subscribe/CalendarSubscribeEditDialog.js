@@ -3,9 +3,7 @@ import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery, useMutation } from '@apollo/react-hooks'
 import FormDialog from '../../dialogs/FormDialog'
-import CalendarSubscribeForm, {
-  reminderMinutesOptions,
-} from './CalendarSubscribeForm'
+import CalendarSubscribeForm from './CalendarSubscribeForm'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import _ from 'lodash-es'
 import Spinner from '../../loading/components/Spinner'
@@ -16,7 +14,6 @@ const query = gql`
     userCalendarSubscription(id: $id) {
       id
       name
-      reminderMinutes
       scheduleID
     }
   }
@@ -62,9 +59,6 @@ export function CalendarSubscribeEditDialogContent(props) {
   const [value, setValue] = useState({
     name: _.get(data, 'name', ''),
     scheduleID: _.get(data, 'scheduleID', null),
-    reminderMinutes: _.get(data, 'reminderMinutes', []).map(r =>
-      reminderMinutesOptions.find(opt => opt.value === r),
-    ),
   })
 
   // setup the mutation
@@ -73,7 +67,6 @@ export function CalendarSubscribeEditDialogContent(props) {
       input: {
         id: props.data.id,
         name: value.name,
-        reminderMinutes: value.reminderMinutes.map(r => r && r.value),
       },
     },
     onCompleted: () => props.onClose(),
