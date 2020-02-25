@@ -113,17 +113,35 @@ const loadingStyle = {
   height: '10.3333px',
 }
 
+const useLoadingStyles = makeStyles({
+  item: {
+    display: 'block'
+  },
+  lineOne: {
+    ...loadingStyle,
+    width: '50%',
+  },
+  lineTwo: {
+    ...loadingStyle,
+    width: '35%',
+    margin: '5px 0 5px 0',
+  },
+  lineThree: {
+    ...loadingStyle,
+    width: '65%',
+  }
+})
+
 // LoadingItem is used as a placeholder for loading content
 function LoadingItem(props: { dense?: boolean }) {
+  const classes = useLoadingStyles()
   const minHeight = props.dense ? 57 : 71
 
   return (
-    <ListItem dense={props.dense} style={{ display: 'block', minHeight }}>
-      <ListItemText style={{ ...loadingStyle, width: '50%' }} />
-      <ListItemText
-        style={{ ...loadingStyle, width: '35%', margin: '5px 0 5px 0' }}
-      />
-      <ListItemText style={{ ...loadingStyle, width: '65%' }} />
+    <ListItem className={classes.item} dense={props.dense} style={{ minHeight }}>
+      <ListItemText className={classes.lineOne} />
+      <ListItemText className={classes.lineTwo} />
+      <ListItemText className={classes.lineThree} />
     </ListItem>
   )
 }
