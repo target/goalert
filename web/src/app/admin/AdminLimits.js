@@ -1,16 +1,16 @@
-import React from 'react'
-import Query from '../util/Query'
+import React, { useState } from 'react'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
+import { makeStyles } from '@material-ui/core/styles'
 import gql from 'graphql-tag'
 import { chain, isEmpty } from 'lodash-es'
-
-import withStyles from '@material-ui/core/styles/withStyles'
 import AdminDialog from './AdminDialog'
 import PageActions from '../util/PageActions'
 import { Form } from '../forms'
 import AdminSection from './AdminSection'
+import { useQuery } from '@apollo/react-hooks'
+import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query getLimits {
@@ -27,7 +27,7 @@ const mutation = gql`
   }
 `
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   gridContainer: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',
@@ -44,18 +44,21 @@ const styles = theme => ({
   saveDisabled: {
     color: 'rgba(255, 255, 255, 0.5)',
   },
-})
+}))
 
-@withStyles(styles)
-export default class AdminLimits extends React.PureComponent {
-  state = {
-    tab: 0,
-    confirm: false,
-    value: {},
+export default function AdminLimitsLegacy() {
+  const classes = useStyles()
+  const [confirm, setConfirm] = useState(false)
+  const [values, setValues] = useState({})
+
+  const { data, loading } = useQuery(query)
+
+  if (loading && !data) {
+    return <Spinner />
   }
 
-  updateValue = (id, value) => {
-    const newVal = { ...this.state.value }
+  const updateValue = (id, value) => {
+    const newVal = { ...values }
 
     if (value === null) {
       delete newVal[id]
@@ -63,34 +66,50 @@ export default class AdminLimits extends React.PureComponent {
       newVal[id] = value
     }
 
-    this.setState({ value: newVal })
+    setValues(newVal)
   }
 
-  render() {
+  const renderPageActions = () => {
     return (
-      <Query
-        query={query}
-        render={({ data }) => this.renderForm(data.systemLimits)}
-      />
+      <PageActions>
+        <Button
+          color='inherit'
+          data-cy='reset'
+          disabled={isEmpty(values)}
+          onClick={() => setValues({})}
+          classes={{
+            label: isEmpty(values) ? classes.saveDisabled : null,
+          }}
+        >
+          Reset
+        </Button>
+        <Button
+          color='inherit'
+          data-cy='save'
+          disabled={isEmpty(values)}
+          onClick={() => setConfirm(true)}
+          classes={{
+            label: isEmpty(values) ? classes.saveDisabled : null,
+          }}
+        >
+          Save
+        </Button>
+      </PageActions>
     )
   }
 
-  renderForm(limitValues) {
+  const render = () => {
     return (
-      <React.Fragment>
-        <Grid
-          container
-          spacing={2}
-          className={this.props.classes.gridContainer}
-        >
-          <Grid item xs={12} className={this.props.classes.gridItem}>
+      <div>
+        <Grid container spacing={2} className={classes.gridContainer}>
+          <Grid item xs={12} className={classes.gridItem}>
             <Grid item xs={12}>
               <Form>
                 <Card>
                   <AdminSection
-                    value={this.state.value}
-                    onChange={(id, value) => this.updateValue(id, value)}
-                    fields={limitValues.map(f => ({
+                    value={values}
+                    onChange={(id, value) => updateValue(id, value)}
+                    fields={data.systemLimits.map(f => ({
                       id: f.id,
                       type: 'integer',
                       description: f.description,
@@ -106,44 +125,22 @@ export default class AdminLimits extends React.PureComponent {
             </Grid>
           </Grid>
         </Grid>
-        <PageActions>
-          <Button
-            color='inherit'
-            data-cy='reset'
-            disabled={isEmpty(this.state.value)}
-            onClick={() => this.setState({ value: {} })}
-            classes={{
-              label: isEmpty(this.state.value)
-                ? this.props.classes.saveDisabled
-                : null,
-            }}
-          >
-            Reset
-          </Button>
-          <Button
-            color='inherit'
-            data-cy='save'
-            disabled={isEmpty(this.state.value)}
-            onClick={() => this.setState({ confirm: true })}
-            classes={{
-              label: isEmpty(this.state.value)
-                ? this.props.classes.saveDisabled
-                : null,
-            }}
-          >
-            Save
-          </Button>
-        </PageActions>
-        {this.state.confirm && (
+        {renderPageActions()}
+        {confirm && (
           <AdminDialog
             mutation={mutation}
-            values={limitValues}
-            fieldValues={this.state.value}
-            onClose={() => this.setState({ confirm: false })}
-            onComplete={() => this.setState({ confirm: false, value: {} })}
+            values={data.systemLimits}
+            fieldValues={values}
+            onClose={() => setConfirm(false)}
+            onComplete={() => {
+              setValues({})
+              setConfirm(false)
+            }}
           />
         )}
-      </React.Fragment>
+      </div>
     )
   }
+
+  return render()
 }
