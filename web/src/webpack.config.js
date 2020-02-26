@@ -65,7 +65,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
           {
             loader: 'file-loader',
             options: {
-              name: 'static/[hash].[ext]',
+              name: '/static/[hash].[ext]',
             },
           },
         ],
@@ -79,16 +79,11 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   devServer: {
     disableHostCheck: true,
     hot: true,
-    historyApiFallback: true,
 
     stats: 'errors-only',
 
     // host: HOST,
     port: PORT,
-
-    // CopyWebpackPlugin: This is required for webpack-dev-server.
-    // The path should be an absolute path to your build destination.
-    // outputPath: BUILD
   },
 
   // Webpack plugins
