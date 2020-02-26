@@ -21,16 +21,6 @@ import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
 
-declare global {
-  namespace NodeJS {
-    interface Global {
-      __webpack_public_path__: string
-      pathPrefix: string
-      GOALERT_VERSION: string
-    }
-  }
-}
-
 global.__webpack_public_path__ = global.pathPrefix || '/'
 global.GOALERT_VERSION = process.env.GOALERT_VERSION || 'dev'
 
