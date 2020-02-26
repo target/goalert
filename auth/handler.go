@@ -131,6 +131,7 @@ func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
 func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := req.Context()
+	cfg := config.FromContext(ctx)
 	info := make([]registeredProvider, 0, len(h.providers))
 
 	for id, p := range h.providers {
@@ -140,7 +141,7 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 
 		info = append(info, registeredProvider{
 			ID:           id,
-			URL:          "/api/v2/identity/providers/" + url.PathEscape(id),
+			URL:          cfg.CallbackURL("/api/v2/identity/providers/" + url.PathEscape(id)),
 			ProviderInfo: p.Info(ctx),
 		})
 	}
