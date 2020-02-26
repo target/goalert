@@ -1,4 +1,6 @@
 // set webpack public path for loading additional assets
+import './setPath'
+
 /// #if HMR
 import './rhl'
 /// #endif
@@ -21,9 +23,7 @@ import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
 
-global.__webpack_public_path__ = global.pathPrefix || '/'
 global.GOALERT_VERSION = process.env.GOALERT_VERSION || 'dev'
-
 if (
   document
     .querySelector('meta[http-equiv=x-goalert-version]')
