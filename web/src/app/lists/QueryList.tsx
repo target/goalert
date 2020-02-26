@@ -71,17 +71,17 @@ export default function QueryList(props: {
   query: object
 
   // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
-  mapDataNode: (n: ObjectMap) => PaginatedListItemProps
+  mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
-  variables: ObjectMap
+  variables?: ObjectMap
 
   // if set, the search string param is ignored
-  noSearch: boolean
+  noSearch?: boolean
 
   // filters additional to search, set in the search text field
-  searchAdornment: ReactElement
+  searchAdornment?: ReactElement
 }) {
   const { noSearch, query, searchAdornment, ...listProps } = props
   const { input, ...vars } = props.variables
