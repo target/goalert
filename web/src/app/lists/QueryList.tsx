@@ -75,7 +75,7 @@ export default function QueryList(props: {
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
-  variables?: ObjectMap
+  variables?: any
 
   // if set, the search string param is ignored
   noSearch?: boolean
