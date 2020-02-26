@@ -21,25 +21,35 @@ import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
 
+declare global {
+  namespace NodeJS {
+    interface Global {
+      __webpack_public_path__: string
+      pathPrefix: string
+      GOALERT_VERSION: string
+    }
+  }
+}
+
 global.__webpack_public_path__ = global.pathPrefix || '/'
 global.GOALERT_VERSION = process.env.GOALERT_VERSION || 'dev'
 
 if (
   document
     .querySelector('meta[http-equiv=x-goalert-version]')
-    .getAttribute('content') !== global.GOALERT_VERSION
+    ?.getAttribute('content') !== global.GOALERT_VERSION
 ) {
   warn(
     'app.js version does not match HTML version',
     'index.html=' +
       document
         .querySelector('meta[http-equiv=x-goalert-version]')
-        .getAttribute('content'),
+        ?.getAttribute('content'),
     'app.js=' + global.GOALERT_VERSION,
   )
 }
 
-const LazyGARouteTracker = React.memo(props => {
+const LazyGARouteTracker = React.memo((props: { trackingID?: string }) => {
   if (!props.trackingID) {
     return null
   }
@@ -64,7 +74,7 @@ ReactDOM.render(
           <MuiPickersUtilsProvider>
             <ConfigProvider>
               <Config>
-                {config => (
+                {(config: { 'General.GoogleAnalyticsID': string }) => (
                   <LazyGARouteTracker
                     trackingID={config['General.GoogleAnalyticsID']}
                   />
