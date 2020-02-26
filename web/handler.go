@@ -59,7 +59,7 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 }
 
 type memoryHandler struct {
-	files map[string]File
+	files map[string]*File
 }
 type memoryFile struct {
 	*bytes.Reader
@@ -110,7 +110,7 @@ func (m *memoryFile) Sys() interface{} { return nil }
 
 func newMemoryHandler() http.Handler {
 	m := &memoryHandler{
-		files: make(map[string]File, len(Files)),
+		files: make(map[string]*File, len(Files)),
 	}
 	for _, f := range Files {
 		m.files[f.Name] = f

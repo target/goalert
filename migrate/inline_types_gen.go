@@ -24,4 +24,4 @@ func (f *File) Hash256() string {
 	return f.hash
 }
 
-var Files []File
+var Files []*File
