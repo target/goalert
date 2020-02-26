@@ -31,10 +31,7 @@ function testSubs(screen: ScreenFormat) {
       // fill form out and submit
       cy.get('[data-cy="subscribe-btn"]').click()
       cy.dialogTitle('Create New Calendar Subscription')
-      cy.dialogForm({
-        name,
-        'reminderMinutes[0]': 'At time of shift',
-      })
+      cy.dialogForm({ name })
       cy.dialogClick('Submit')
       cy.dialogTitle('Success!')
       cy.dialogContains(Cypress.config().baseUrl + '/api/v2/calendar?token=')
@@ -61,7 +58,6 @@ function testSubs(screen: ScreenFormat) {
       cy.dialogForm({
         name,
         scheduleID: sched.name,
-        'reminderMinutes[0]': 'At time of shift',
       })
       cy.dialogClick('Submit')
       cy.dialogTitle('Success!')
@@ -70,57 +66,6 @@ function testSubs(screen: ScreenFormat) {
 
       cy.get('[data-cy="list-empty-message"]').should('not', 'exist')
       cy.get('[data-cy=calendar-subscriptions]').should('contain', name)
-    })
-
-    it('should add and remove additional valarms', () => {
-      cy.visit('/profile/schedule-calendar-subscriptions')
-      cy.pageFab()
-
-      const check = (shouldExist: Array<boolean>) => {
-        cy.get('input[name="reminderMinutes[0]"]').should(
-          shouldExist[0] ? 'exist' : 'not.exist',
-        )
-        cy.get('input[name="reminderMinutes[1]"]').should(
-          shouldExist[1] ? 'exist' : 'not.exist',
-        )
-        cy.get('input[name="reminderMinutes[2]"]').should(
-          shouldExist[2] ? 'exist' : 'not.exist',
-        )
-        cy.get('input[name="reminderMinutes[3]"]').should(
-          shouldExist[3] ? 'exist' : 'not.exist',
-        )
-        cy.get('input[name="reminderMinutes[4]"]').should(
-          shouldExist[4] ? 'exist' : 'not.exist',
-        )
-      }
-
-      // only 1st valarm field should exist to start
-      check([true, false, false, false, false])
-
-      cy.dialogForm({ 'reminderMinutes[0]': 'At time of shift' })
-      check([true, true, false, false, false])
-
-      cy.dialogForm({ 'reminderMinutes[1]': 'At time of shift' })
-      check([true, true, true, false, false])
-
-      cy.dialogForm({ 'reminderMinutes[2]': 'At time of shift' })
-      check([true, true, true, true, false])
-
-      cy.dialogForm({ 'reminderMinutes[3]': 'At time of shift' })
-      check([true, true, true, true, true])
-
-      // clearing the optional valarm fields should remove the redundant fields
-      cy.dialogForm({ 'reminderMinutes[3]': '' })
-      check([true, true, true, true, false])
-
-      cy.dialogForm({ 'reminderMinutes[2]': '' })
-      check([true, true, true, false, false])
-
-      cy.dialogForm({ 'reminderMinutes[1]': '' })
-      check([true, true, false, false, false])
-
-      cy.dialogForm({ 'reminderMinutes[0]': '' })
-      check([true, false, false, false, false])
     })
   })
 

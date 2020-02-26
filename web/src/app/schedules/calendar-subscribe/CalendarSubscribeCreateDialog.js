@@ -62,7 +62,7 @@ export default function CalendarSubscribeCreateDialog(props) {
       input: {
         scheduleID: value.scheduleID,
         name: value.name,
-        reminderMinutes: value.reminderMinutes.map(r => r && r.value),
+        reminderMinutes: [0], // default reminder at shift start time
         disabled: false,
       },
     },
