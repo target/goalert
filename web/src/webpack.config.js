@@ -65,7 +65,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
           {
             loader: 'file-loader',
             options: {
-              name: '/static/[hash].[ext]',
+              name: 'static/[hash].[ext]',
             },
           },
         ],

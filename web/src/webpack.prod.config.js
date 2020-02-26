@@ -58,7 +58,7 @@ module.exports = env => ({
           {
             loader: 'file-loader',
             options: {
-              name: '/static/[hash].[ext]',
+              name: 'static/[hash].[ext]',
             },
           },
         ],
