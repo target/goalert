@@ -1,6 +1,5 @@
 import React, { ReactElement, useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import p from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
 import { Grid, makeStyles } from '@material-ui/core'
 import { once } from 'lodash-es'
