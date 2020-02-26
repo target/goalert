@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
-import { Link, Redirect } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 import _ from 'lodash-es'
 
 import PageActions from '../util/PageActions'
@@ -14,6 +14,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
+import { AppLink } from '../util/AppLink'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -108,9 +109,9 @@ export default function ServiceDetails({ serviceID }) {
           <div>
             Escalation Policy:{' '}
             {_.get(data, 'service.ep') ? (
-              <Link to={`/escalation-policies/${data.service.ep.id}`}>
+              <AppLink to={`/escalation-policies/${data.service.ep.id}`}>
                 {data.service.ep.name}
-              </Link>
+              </AppLink>
             ) : (
               <Spinner text='Looking up policy...' />
             )}

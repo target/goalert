@@ -5,14 +5,12 @@ import {
   ListItem,
   ListItemText,
   Typography,
-  Link,
   makeStyles,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import { useSelector } from 'react-redux'
 
 import gql from 'graphql-tag'
-import { absURLSelector } from '../../../selectors'
+import { AppLink } from '../../../util/AppLink'
 
 const serviceQuery = gql`
   query service($id: ID!) {
@@ -35,7 +33,6 @@ export default function CreateAlertServiceListItem(props) {
   const { id, err } = props
 
   const classes = useStyles()
-  const absURL = useSelector(absURLSelector)
 
   const { data, loading, error: queryError } = useQuery(serviceQuery, {
     variables: {
@@ -48,25 +45,25 @@ export default function CreateAlertServiceListItem(props) {
   if (loading) return 'Loading...'
   if (queryError) return 'Error fetching data.'
 
-  const serviceURL = absURL('/services/' + id + '/alerts')
+  const serviceURL = '/services/' + id + '/alerts'
 
   return (
     <ListItem key={id} divider>
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
-            <Link href={serviceURL} target='_blank' rel='noopener noreferrer'>
+            <AppLink to={serviceURL} target='_blank' rel='noopener noreferrer'>
               {service.name}
-            </Link>
+            </AppLink>
           </Typography>
           <Typography color='error' variant='caption'>
             {err}
           </Typography>
         </span>
 
-        <a href={serviceURL} target='_blank' rel='noopener noreferrer'>
+        <AppLink to={serviceURL} target='_blank' rel='noopener noreferrer'>
           <OpenInNewIcon fontSize='small' />
-        </a>
+        </AppLink>
       </ListItemText>
     </ListItem>
   )
