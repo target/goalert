@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { ReactElement, useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import p from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
 import { Grid, makeStyles } from '@material-ui/core'
 import { once } from 'lodash-es'
-import { PaginatedList } from './PaginatedList'
+import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
 import { fieldAlias } from '../util/graphql'
@@ -17,7 +16,18 @@ const useStyles = makeStyles({
   },
 })
 
-const buildFetchMore = (fetchMore, after, stopPolling, itemsPerPage) => {
+// any && object type map
+// used for objects with unknown key/values from parent
+interface ObjectMap {
+  [key: string]: any
+}
+
+const buildFetchMore = (
+  fetchMore: Function,
+  after: string,
+  stopPolling: Function,
+  itemsPerPage: number,
+) => {
   return once(() => {
     stopPolling()
     return fetchMore({
@@ -27,7 +37,7 @@ const buildFetchMore = (fetchMore, after, stopPolling, itemsPerPage) => {
           after,
         },
       },
-      updateQuery: (prev, { fetchMoreResult }) => {
+      updateQuery: (prev: ObjectMap, { fetchMoreResult }: ObjectMap) => {
         if (!fetchMoreResult) return prev
 
         return {
@@ -42,23 +52,56 @@ const buildFetchMore = (fetchMore, after, stopPolling, itemsPerPage) => {
   })
 }
 
-export default function QueryList(props) {
-  const {
-    controls,
-    noSearch,
-    onDataChange,
-    query,
-    searchAdornment,
-    ...listProps
-  } = props
-  const { input, ...vars } = props.variables
+export default function QueryList(props: {
+  // query must provide a single field that returns nodes
+  //
+  // For example:
+  // ```graphql
+  // query Services {
+  //   services {
+  //     nodes {
+  //       id
+  //       name
+  //       description
+  //     }
+  //   }
+  // }
+  // ```
+  query: object
+
+  // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
+  mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
+
+  // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
+  // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
+  variables?: any
+
+  // if set, the search string param is ignored
+  noSearch?: boolean
+
+  // controls unrelated to search, but still modify results, rendered to
+  // the left of the search text field
+  controls: ReactElement
+
+  // filters additional to search, set in the search text field
+  searchAdornment?: ReactElement
+
+  // invoked when the amount of items queried changes
+  onDataChange: (nodes: Array<ObjectMap>) => void
+}) {
+  const { query, mapDataNode = (n: ObjectMap) => ({
+    title: n.name,
+    url: n.id,
+    subText: n.description,
+  }), noSearch, controls, searchAdornment, onDataChange, variables = {}, ...listProps } = props
+  const { input, ...vars } = variables
 
   const classes = useStyles()
   const searchParam = useSelector(searchSelector)
   const urlKey = useSelector(urlKeySelector)
   const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
 
-  const variables = {
+  const queryVariables = {
     ...vars,
     input: {
       first: ITEMS_PER_PAGE,
@@ -68,18 +111,18 @@ export default function QueryList(props) {
   }
 
   if (noSearch) {
-    delete variables.input.search
+    delete queryVariables.input.search
   }
 
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
     client: GraphQLClientWithErrors,
-    variables,
+    variables: queryVariables,
     fetchPolicy: 'network-only',
     pollInterval: POLL_INTERVAL,
   })
 
   const nodes = data?.data?.nodes ?? []
-  const items = nodes.map(props.mapDataNode)
+  const items = nodes.map(mapDataNode)
   let loadMore
 
   if (data?.data?.pageInfo?.hasNextPage) {
@@ -87,7 +130,7 @@ export default function QueryList(props) {
       fetchMore,
       data.data.pageInfo.endCursor,
       stopPolling,
-      variables.input.first,
+      queryVariables.input.first,
     )
   }
 
@@ -112,58 +155,11 @@ export default function QueryList(props) {
           {...listProps}
           key={urlKey}
           items={items}
-          itemsPerPage={variables.input.first}
+          itemsPerPage={queryVariables.input.first}
           loadMore={loadMore}
           isLoading={loading}
         />
       </Grid>
     </Grid>
   )
-}
-
-QueryList.propTypes = {
-  // query must provide a single field that returns nodes
-  //
-  // For example:
-  // ```graphql
-  // query Services {
-  //   services {
-  //     nodes {
-  //       id
-  //       name
-  //       description
-  //     }
-  //   }
-  // }
-  // ```
-  query: p.object.isRequired,
-
-  // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item.
-  mapDataNode: p.func,
-
-  // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters.
-  // Note: The `input.search` and `input.first` parameters are included by default, but can be overridden.
-  variables: p.object,
-
-  // If set, the search string param is ignored.
-  noSearch: p.bool,
-
-  // controls unrelated to search, but still modify results, rendered to
-  // the left of the search text field
-  controls: p.node,
-
-  // filters that enhance the search string, set within the search text field
-  searchAdornment: p.node,
-
-  // invoked when the amount of items queried changes
-  onDataChange: p.func,
-
-  /**
-   * All other props are passed to PaginatedList
-   */
-}
-
-QueryList.defaultProps = {
-  mapDataNode: n => ({ title: n.name, url: n.id, subText: n.description }),
-  variables: {},
 }
