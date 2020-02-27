@@ -2,6 +2,8 @@ package calendarsubscription
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"html/template"
 	"strings"
 	"time"
@@ -92,7 +94,8 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
 	var ids []string
 	for i := 0; i < len(shifts); i++ {
-		ids = append(ids, uuid.NewV4().String())
+		sum := sha256.Sum256([]byte(cs.UserID + cs.ScheduleID + shifts[i].Start.String() + shifts[i].End.String()))
+		ids = append(ids, hex.EncodeToString(sum[:]))
 	}
 	data := iCalRenderData{Shifts: shifts, ReminderMinutes: cs.Config.ReminderMinutes, Version: version.GitVersion(), GeneratedAt: generatedAt, EventIDs: ids}
 	buf := bytes.NewBuffer(nil)
