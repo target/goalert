@@ -45,13 +45,8 @@ export default function MaterialSelect(props) {
     required,
     value: propsValue,
 
-    // classes
-    // error: boolean
-    // fullWidth,
-    // hint,
-    // noOptionsMessage,
-    // placeholder: string
-    // theme,
+    noOptionsText,
+    // placeholder // TODO verify if still needed or wanted
   } = props
 
   let value = propsValue
@@ -76,6 +71,7 @@ export default function MaterialSelect(props) {
       disabled={disabled}
       multiple={multiple}
       filterSelectedOptions
+      noOptionsText={noOptionsText}
       onChange={(event, valueObj) => {
         onChange(valueObj)
 
