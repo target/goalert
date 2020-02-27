@@ -19,11 +19,11 @@ function testAdmin(screen: ScreenFormat) {
       const newEPActions = c.integer({ min: 0, max: 1000 })
 
       const ContactMethodsPerUser = limits.get('ContactMethodsPerUser') || {
-        value: 0,
+        value: -1,
         description: '',
       }
       const EPActionsPerStep = limits.get('EPActionsPerStep') || {
-        value: 0,
+        value: -1,
         description: '',
       }
 
