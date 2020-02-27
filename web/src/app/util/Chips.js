@@ -35,6 +35,7 @@ export function ServiceChip(props) {
     },
     skip: Boolean(name),
     fetchPolicy: 'cache-first',
+    pollInterval: 0,
   })
 
   const getLabel = () => {

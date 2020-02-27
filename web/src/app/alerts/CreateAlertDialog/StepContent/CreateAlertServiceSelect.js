@@ -87,7 +87,9 @@ export function CreateAlertServiceSelect(props) {
 
   const fieldRef = useRef()
   const classes = useStyles()
-  const searchResults = _.get(data, 'services.nodes', [])
+  const searchResults = _.get(data, 'services.nodes', []).filter(
+    id => !value.includes(id),
+  )
 
   const queryErrorMsg = allErrors(queryError)
     .map(e => e.message)
@@ -224,7 +226,12 @@ export function CreateAlertServiceSelect(props) {
                 data-cy='service-select-item'
                 key={service.id}
                 disabled={value.length >= CREATE_ALERT_LIMIT}
-                onClick={() => onChange([...value, service.id])}
+                onClick={() =>
+                  onChange([
+                    ...value.filter(id => id !== service.id),
+                    service.id,
+                  ])
+                }
               >
                 <ListItemText primary={service.name} />
                 {service.isFavorite && (
