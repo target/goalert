@@ -1,7 +1,4 @@
 export const ITEMS_PER_PAGE = 15
-export default {
-  BASE_API_URL: process.env.GO_ALERT_BASE_API_URL || '/api',
-}
 export const POLL_INTERVAL = global.Cypress ? 1000 : 3500
 export const POLL_ERROR_INTERVAL = global.Cypress ? 1000 : 30000
 

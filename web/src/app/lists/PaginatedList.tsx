@@ -1,6 +1,5 @@
 import React, { ReactNode, useState, ReactElement } from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
-import { useSelector } from 'react-redux'
 
 import Avatar from '@material-ui/core/Avatar'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -16,13 +15,12 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
-import { Link } from 'react-router-dom'
 import useWidth from '../util/useWidth'
 
 import { ITEMS_PER_PAGE } from '../config'
-import { absURLSelector } from '../selectors/url'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { makeStyles } from '@material-ui/core'
+import { AppLink } from '../util/AppLink'
 
 // gray boxes on load
 // disable overflow
@@ -171,7 +169,6 @@ export interface PaginatedListItemProps {
 export function PaginatedList(props: PaginatedListProps) {
   const [page, setPage] = useState(0)
   const classes = useStyles()
-  const absURL = useSelector(absURLSelector)
 
   const {
     items = [],
@@ -245,9 +242,9 @@ export function PaginatedList(props: PaginatedListProps) {
     }
 
     const extraProps = item.url && {
-      component: Link,
+      component: AppLink,
       button: true as any,
-      to: absURL(item.url),
+      to: item.url,
     }
 
     return (
