@@ -6,7 +6,6 @@ import { sortBy, values } from 'lodash-es'
 import { useQuery } from 'react-apollo'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
-import { useSelector } from 'react-redux'
 
 const query = gql`
   query userInfo($id: ID!) {
