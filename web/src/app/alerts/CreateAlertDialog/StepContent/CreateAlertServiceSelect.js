@@ -96,7 +96,7 @@ export function CreateAlertServiceSelect(props) {
   let placeholderMsg = null
   if (queryErrorMsg) {
     placeholderMsg = null
-  } else if (loading || searchQueryInput !== searchUserInput) {
+  } else if ((!data && loading) || searchQueryInput !== searchUserInput) {
     placeholderMsg = 'Loading...'
   } else if (searchResults.length === 0) {
     placeholderMsg = 'No services found'

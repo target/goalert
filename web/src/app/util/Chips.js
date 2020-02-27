@@ -40,7 +40,7 @@ export function ServiceChip(props) {
   const getLabel = () => {
     if (name) return name
 
-    if (loading) return 'Loading...'
+    if (!data && loading) return 'Loading...'
 
     if (error) return `Error: ${error.message}`
 
