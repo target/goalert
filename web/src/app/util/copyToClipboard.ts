@@ -1,4 +1,4 @@
-export default function copyToClipboard(text) {
+export default function copyToClipboard(text: string) {
   try {
     navigator.clipboard.writeText(text)
   } catch (error) {
@@ -13,25 +13,32 @@ export default function copyToClipboard(text) {
  * If other text was highlighted before this operation,
  * that state is saved upon completion of copying.
  */
-function fallback(str) {
-  const textArea = document.createElement('textArea')
+function fallback(str: string) {
+  const textArea = document.createElement('textArea') as HTMLTextAreaElement
   textArea.value = str // Set its value to what you want copied
   textArea.readOnly = true // Deny tampering
   document.body.appendChild(textArea)
 
   // Check if there is any content selected previously
+  const docSelection = document.getSelection()
   const selected =
-    document.getSelection().rangeCount > 0
-      ? document.getSelection().getRangeAt(0) // Store selection if found
+    docSelection && docSelection.rangeCount > 0
+      ? docSelection.getRangeAt(0) // Store selection if found
       : false
 
   // iOS requires some special finesse
   if (isOS()) {
     const range = document.createRange()
     range.selectNodeContents(textArea)
-    const selection = window.getSelection()
-    selection.removeAllRanges()
-    selection.addRange(range)
+    const windowSelection = window.getSelection()
+
+    if (windowSelection) {
+      windowSelection.removeAllRanges()
+      windowSelection.addRange(range)
+    } else {
+      return console.error('Failed to copy')
+    }
+
     textArea.setSelectionRange(0, 999999) // Big number to copy everything
   } else {
     textArea.select()
@@ -42,11 +49,14 @@ function fallback(str) {
 
   // If a selection existed before copying
   if (selected) {
-    document.getSelection().removeAllRanges() // Unselect everything on the HTML document
-    document.getSelection().addRange(selected) // Restore the original selection
+    let docSelection = document.getSelection()
+    if (docSelection) docSelection.removeAllRanges() // Unselect everything on the HTML document
+
+    docSelection = document.getSelection()
+    if (docSelection) docSelection.addRange(selected) // Restore the original selection
   }
 }
 
 function isOS() {
-  return navigator.userAgent.match(/ipad|ipod|iphone/i)
+  return Boolean(navigator.userAgent.match(/ipad|ipod|iphone/i))
 }

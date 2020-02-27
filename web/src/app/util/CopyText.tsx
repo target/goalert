@@ -3,8 +3,8 @@ import { makeStyles } from '@material-ui/core/styles'
 import p from 'prop-types'
 import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
-import Tooltip from '@material-ui/core/Tooltip'
 import { AppLink } from './AppLink'
+import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 
 const useStyles = makeStyles({
   copyContainer: {
@@ -17,7 +17,13 @@ const useStyles = makeStyles({
   },
 })
 
-export default function CopyText(props) {
+interface CopyTextProps {
+  placement?: TooltipProps['placement']
+  title?: string
+  value: string
+}
+
+export default function CopyText(props: CopyTextProps) {
   const classes = useStyles()
   const [showTooltip, setShowTooltip] = useState(false)
 

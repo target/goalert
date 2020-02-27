@@ -42,7 +42,7 @@ export default function CreateAlertServiceListItem(props) {
 
   const { service } = data || {}
 
-  if (loading) return 'Loading...'
+  if (!data && loading) return 'Loading...'
   if (queryError) return 'Error fetching data.'
 
   const serviceURL = '/services/' + id + '/alerts'
