@@ -6,28 +6,37 @@ testScreen('Admin', testAdmin, false, true)
 
 function testAdmin(screen: ScreenFormat) {
   describe('Admin System Limits Page', () => {
-    let limits: Limits[]
+    let limits: Limits = new Map()
     beforeEach(() => {
       cy.getLimits().then(l => {
         limits = l
         return cy.visit('/admin/limits')
       })
-      return cy.visit('/admin/limits')
     })
 
     it('should allow updating system limits values', () => {
       const newContactMethods = c.integer({ min: 0, max: 1000 })
       const newEPActions = c.integer({ min: 0, max: 1000 })
 
+      const ContactMethodsPerUser = limits.get('ContactMethodsPerUser') || {
+        value: 0,
+        description: '',
+      }
+      const EPActionsPerStep = limits.get('EPActionsPerStep') || {
+        value: 0,
+        description: '',
+      }
+
       cy.form({
         ContactMethodsPerUser: newContactMethods.toString(),
         EPActionsPerStep: newEPActions.toString(),
       })
-      cy.get('button[data-cy=save]').click()
 
+      cy.get('button[data-cy=save]').click()
       cy.dialogTitle('Apply Configuration Changes?')
-      cy.dialogContains('-' + limits[0].value.toString())
-      cy.dialogContains('-' + limits[1].value.toString())
+
+      cy.dialogContains('-' + ContactMethodsPerUser.value.toString())
+      cy.dialogContains('-' + EPActionsPerStep.value.toString())
       cy.dialogContains('+' + newContactMethods)
       cy.dialogContains('+' + newEPActions)
       cy.dialogFinish('Confirm')
@@ -43,6 +52,15 @@ function testAdmin(screen: ScreenFormat) {
     })
 
     it('should reset pending system limit value changes', () => {
+      const ContactMethodsPerUser = limits.get('ContactMethodsPerUser') || {
+        value: 0,
+        description: '',
+      }
+      const EPActionsPerStep = limits.get('EPActionsPerStep') || {
+        value: 0,
+        description: '',
+      }
+
       cy.form({
         ContactMethodsPerUser: c.integer({ min: 0, max: 1000 }).toString(),
         EPActionsPerStep: c.integer({ min: 0, max: 1000 }).toString(),
@@ -50,13 +68,13 @@ function testAdmin(screen: ScreenFormat) {
 
       cy.get('button[data-cy="reset"]').click()
 
-      cy.get('input[name="EPActionsPerStep"]').should(
-        'have.value',
-        limits[1].value.toString(),
-      )
       cy.get('input[name="ContactMethodsPerUser"]').should(
         'have.value',
-        limits[0].value.toString(),
+        ContactMethodsPerUser.value.toString(),
+      )
+      cy.get('input[name="EPActionsPerStep"]').should(
+        'have.value',
+        EPActionsPerStep.value.toString(),
       )
     })
   })
