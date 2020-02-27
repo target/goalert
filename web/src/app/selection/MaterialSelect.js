@@ -11,7 +11,7 @@ import {
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 
-export const styles = () => ({
+const useStyles = makeStyles({
   listItemIcon: {
     minWidth: 0,
   },
@@ -29,8 +29,6 @@ export const styles = () => ({
     display: 'none',
   },
 })
-
-const useStyles = makeStyles(styles)
 
 export default function MaterialSelect(props) {
   const classes = useStyles()
