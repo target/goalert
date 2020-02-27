@@ -24,7 +24,7 @@ module.exports = {
     publicPath: '/',
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.css'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
   },
   module: {
     rules: [
@@ -33,7 +33,7 @@ module.exports = {
         use: ['modernizr-loader'],
       },
       {
-        test: /\.jsx?$/,
+        test: /\.(t|j)sx?$/,
         use: [
           'babel-loader',
           { loader: 'ifdef-loader', options: { production: true, HMR: false } },
