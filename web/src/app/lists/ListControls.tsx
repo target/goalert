@@ -1,7 +1,4 @@
-import React, {
-  ReactElement,
-  useEffect,
-} from 'react'
+import React, { ReactElement, useEffect } from 'react'
 import {
   Checkbox,
   Grid,
