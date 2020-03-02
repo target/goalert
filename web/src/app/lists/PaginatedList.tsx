@@ -1,6 +1,10 @@
-import React, { ReactNode, useState, ReactElement } from 'react'
+import React, {
+  ReactNode,
+  useState,
+  ReactElement,
+} from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import Avatar from '@material-ui/core/Avatar'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -21,8 +25,11 @@ import useWidth from '../util/useWidth'
 
 import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
+import { setCheckedItems as _setCheckedItems } from '../actions'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import { makeStyles } from '@material-ui/core'
+import {Checkbox, CheckboxProps, makeStyles} from '@material-ui/core'
+import InfiniteScroll from 'react-infinite-scroll-component'
+import Spinner from '../loading/components/Spinner'
 
 // gray boxes on load
 // disable overflow
@@ -31,6 +38,11 @@ import { makeStyles } from '@material-ui/core'
 // - on details, don't have accesses to search param
 
 const useStyles = makeStyles(theme => ({
+  infiniteScrollFooter: {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0.25em 0 0.25em 0',
+  },
   progress: {
     color: theme.palette.secondary.main,
     position: 'absolute',
@@ -39,7 +51,7 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: 'transparent',
     color: 'grey',
   },
-  headerNote: {
+  listHeader: {
     fontStyle: 'italic',
   },
   controls: {
@@ -51,6 +63,283 @@ const useStyles = makeStyles(theme => ({
     },
   },
 }))
+
+export interface PaginatedListProps {
+  // cardHeader will be displayed at the top of the card
+  cardHeader?: ReactNode
+
+  // listHeader will be displayed at the top of the list
+  listHeader?: ReactNode
+
+  items: PaginatedListItemProps[]
+
+  // renders checkboxes for ListControls actions next to each list item
+  // NOTE: this will replace any icons set on each item with a checkbox
+  withCheckboxes?: boolean
+
+  itemsPerPage: number
+
+  isLoading?: boolean
+  loadMore?: any
+
+  // disables the placeholder display during loading
+  noPlaceholder?: boolean
+
+  // provide a custom message to display if there are no results
+  emptyMessage?: string
+
+  // if set, loadMore will be called when the user
+  // scrolls to the bottom of the list. appends list
+  // items to the list rather than rendering a new page
+  infiniteScroll?: boolean
+}
+
+export interface PaginatedListItemProps {
+  id: string
+  url?: string
+  title: string
+  subText?: string
+  isFavorite?: boolean
+  icon?: ReactElement // renders a list item icon (or avatar)
+  action?: ReactNode
+  className?: string
+
+  CheckboxProps?: CheckboxProps
+}
+
+export function PaginatedList(props: PaginatedListProps) {
+  const {
+    cardHeader,
+    listHeader,
+    items = [],
+    itemsPerPage = ITEMS_PER_PAGE,
+    infiniteScroll,
+    loadMore,
+    emptyMessage = 'No results',
+    noPlaceholder,
+    withCheckboxes,
+  } = props
+
+  const classes = useStyles()
+  const absURL = useSelector(absURLSelector)
+
+  const dispatch = useDispatch()
+  // @ts-ignore
+  const checkedItems = useSelector(state => state.list.checkedItems)
+  const setCheckedItems = (array: Array<any>) =>
+    dispatch(_setCheckedItems(array))
+
+  const [page, setPage] = useState(0)
+
+  const pageCount = Math.ceil(items.length / itemsPerPage)
+  const width = useWidth()
+
+  // isLoading returns true if the parent says we are, or
+  // we are currently on an incomplete page and `loadMore` is available.
+  const isLoading = (() => {
+    if (props.isLoading) return true
+
+    // We are on a future/incomplete page and loadMore is true
+    const itemCount = items.length
+    if ((page + 1) * itemsPerPage > itemCount && loadMore) return true
+
+    return false
+  })()
+
+  const hasNextPage = (() => {
+    const nextPage = page + 1
+
+    // Check that we have at least 1 item already for the next page
+    if (nextPage < pageCount) return true
+
+    // If we're on the last page, not already loading, and can load more
+    if (nextPage === pageCount && !isLoading && loadMore) {
+      return true
+    }
+
+    return false
+  })()
+
+  function handleNextPage() {
+    const nextPage = page + 1
+    setPage(nextPage)
+
+    // If we're on a not-fully-loaded page, or the last page when > the first page
+    if (
+      (nextPage >= pageCount || (nextPage > 1 && nextPage + 1 === pageCount)) &&
+      loadMore
+    )
+      loadMore()
+  }
+
+  function renderNoResults() {
+    return (
+      <ListItem>
+        <ListItemText
+          disableTypography
+          secondary={<Typography variant='caption'>{emptyMessage}</Typography>}
+        />
+      </ListItem>
+    )
+  }
+
+  function renderItem(item: PaginatedListItemProps, idx: number) {
+    let favIcon = <ListItemSecondaryAction />
+
+    if (item.isFavorite) {
+      favIcon = (
+        <ListItemSecondaryAction>
+          <Avatar className={classes.favoriteIcon}>
+            <FavoriteIcon data-cy='fav-icon' />
+          </Avatar>
+        </ListItemSecondaryAction>
+      )
+    }
+
+    // must be explicitly set when using, in accordance with TS definitions
+    const urlProps = item.url && {
+      component: Link,
+      button: true as any,
+      to: absURL(item.url),
+    }
+
+    let checkbox = null
+    if (withCheckboxes) {
+      const checked = checkedItems.includes(item.id)
+      checkbox = (
+        <Checkbox
+          checked={checked}
+          data-cy={'item-' + item.id}
+          onClick={e => {
+            e.stopPropagation()
+            e.preventDefault()
+
+            if (checked) {
+              const idx = checkedItems.indexOf(item.id)
+              const newItems = checkedItems.slice()
+              newItems.splice(idx, 1)
+              setCheckedItems(newItems)
+            } else {
+              setCheckedItems([...checkedItems, item.id])
+            }
+          }}
+          {...item.CheckboxProps}
+        />
+      )
+    }
+
+    return (
+      <ListItem
+        className={item.className}
+        dense={isWidthUp('md', width)}
+        key={'list_' + idx}
+        {...urlProps}
+      >
+        {checkbox && <ListItemIcon>{checkbox}</ListItemIcon>}
+        {item.icon && !checkbox && <ListItemIcon>{item.icon}</ListItemIcon>}
+        <ListItemText primary={item.title} secondary={item.subText} />
+        {favIcon}
+        {item.action && (
+          <ListItemSecondaryAction>{item.action}</ListItemSecondaryAction>
+        )}
+      </ListItem>
+    )
+  }
+
+  function renderListItems() {
+    if (pageCount === 0 && !isLoading) return renderNoResults()
+
+    let renderedItems: any = items
+    if (!infiniteScroll) {
+      renderedItems = items.slice(
+        page * itemsPerPage,
+        (page + 1) * itemsPerPage,
+      )
+    }
+    renderedItems = renderedItems.map(renderItem)
+
+    // Display full list when loading
+    if (!noPlaceholder) {
+      while (isLoading && renderedItems.length < itemsPerPage) {
+        renderedItems.push(
+          <LoadingItem
+            dense={isWidthUp('md', width)}
+            key={'list_' + renderedItems.length}
+          />,
+        )
+      }
+    }
+
+    return renderedItems
+  }
+
+  let onBack = page > 0 ? () => setPage(page - 1) : undefined
+  let onNext = hasNextPage ? handleNextPage : undefined
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Card>
+          {cardHeader}
+          {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
+        </Card>
+      </Grid>
+      {!infiniteScroll && (
+        <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
+      )}
+    </Grid>
+  )
+
+  function renderList() {
+    return (
+      <List data-cy='apollo-list'>
+        {listHeader && (
+          <ListItem>
+            <ListItemText
+              className={classes.listHeader}
+              disableTypography
+              secondary={
+                <Typography color='textSecondary'>{listHeader}</Typography>
+              }
+            />
+          </ListItem>
+        )}
+        {renderListItems()}
+      </List>
+    )
+  }
+
+  function renderAsInfiniteScroll() {
+    const len = items.length
+
+    return (
+      <InfiniteScroll
+        scrollableTarget='content'
+        next={loadMore}
+        hasMore={Boolean(loadMore)}
+        endMessage={
+          len === 0 ? null : (
+            <Typography
+              className={classes.infiniteScrollFooter}
+              color='textSecondary'
+              variant='body2'
+            >
+              Displaying all results.
+            </Typography>
+          )
+        }
+        loader={
+          <div className={classes.infiniteScrollFooter}>
+            <Spinner text='Loading...' />
+          </div>
+        }
+        dataLength={len}
+      >
+        {renderList()}
+      </InfiniteScroll>
+    )
+  }
+}
 
 function PageControls(props: {
   isLoading: boolean
@@ -143,175 +432,5 @@ function LoadingItem(props: { dense?: boolean }) {
       <ListItemText className={classes.lineTwo} />
       <ListItemText className={classes.lineThree} />
     </ListItem>
-  )
-}
-
-export interface PaginatedListProps {
-  headerNote?: ReactNode
-
-  items: PaginatedListItemProps[]
-
-  isLoading?: boolean
-  loadMore?: (numberToLoad: number) => void
-
-  noPlaceholder?: boolean
-
-  emptyMessage?: string
-}
-
-export interface PaginatedListItemProps {
-  url?: string
-  title: string
-  subText?: string
-  isFavorite?: boolean
-  icon?: ReactElement
-  action?: ReactNode
-}
-
-export function PaginatedList(props: PaginatedListProps) {
-  const [page, setPage] = useState(0)
-  const classes = useStyles()
-  const absURL = useSelector(absURLSelector)
-
-  const {
-    items = [],
-    loadMore,
-    emptyMessage = 'No results',
-    noPlaceholder,
-    headerNote,
-  } = props
-
-  const pageCount = Math.ceil(items.length / ITEMS_PER_PAGE)
-  const width = useWidth()
-
-  // isLoading returns true if the parent says we are, or
-  // we are currently on an incomplete page and `loadMore` is available.
-  const isLoading = (() => {
-    if (props.isLoading) return true
-
-    // We are on a future/incomplete page and loadMore is true
-    const itemCount = items.length
-    if ((page + 1) * ITEMS_PER_PAGE > itemCount && loadMore) return true
-
-    return false
-  })()
-
-  const hasNextPage = (() => {
-    const nextPage = page + 1
-    // Check that we have at least 1 item already for the next page
-    if (nextPage < pageCount) return true
-
-    // If we're on the last page, not already loading, and can load more
-    if (nextPage === pageCount && !isLoading && loadMore) {
-      return true
-    }
-
-    return false
-  })()
-
-  function handleNextPage() {
-    const nextPage = page + 1
-    setPage(nextPage)
-
-    // If we're on a not-fully-loaded page, or the last page when > the first page
-    if (
-      (nextPage >= pageCount || (nextPage > 1 && nextPage + 1 === pageCount)) &&
-      loadMore
-    )
-      loadMore(ITEMS_PER_PAGE * 2)
-  }
-
-  function renderNoResults() {
-    return (
-      <ListItem>
-        <ListItemText
-          disableTypography
-          secondary={<Typography variant='caption'>{emptyMessage}</Typography>}
-        />
-      </ListItem>
-    )
-  }
-
-  function renderItem(item: PaginatedListItemProps, idx: number) {
-    let favIcon = <ListItemSecondaryAction />
-    if (item.isFavorite) {
-      favIcon = (
-        <ListItemSecondaryAction>
-          <Avatar className={classes.favoriteIcon}>
-            <FavoriteIcon data-cy='fav-icon' />
-          </Avatar>
-        </ListItemSecondaryAction>
-      )
-    }
-
-    const extraProps = item.url && {
-      component: Link,
-      button: true as any,
-      to: absURL(item.url),
-    }
-
-    return (
-      <ListItem
-        dense={isWidthUp('md', width)}
-        key={'list_' + idx}
-        {...extraProps}
-      >
-        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-        <ListItemText primary={item.title} secondary={item.subText} />
-        {favIcon}
-        {item.action && (
-          <ListItemSecondaryAction>{item.action}</ListItemSecondaryAction>
-        )}
-      </ListItem>
-    )
-  }
-
-  function renderListItems() {
-    if (pageCount === 0 && !isLoading) return renderNoResults()
-
-    const renderedItems = items
-      .slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE)
-      .map(renderItem)
-
-    // Display full list when loading
-    if (!noPlaceholder) {
-      while (isLoading && renderedItems.length < ITEMS_PER_PAGE) {
-        renderedItems.push(
-          <LoadingItem
-            dense={isWidthUp('md', width)}
-            key={'list_' + renderedItems.length}
-          />,
-        )
-      }
-    }
-
-    return renderedItems
-  }
-
-  let onBack = page > 0 ? () => setPage(page - 1) : undefined
-  let onNext = hasNextPage ? handleNextPage : undefined
-
-  return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Card>
-          <List data-cy='apollo-list'>
-            {headerNote && (
-              <ListItem>
-                <ListItemText
-                  className={classes.headerNote}
-                  disableTypography
-                  secondary={
-                    <Typography color='textSecondary'>{headerNote}</Typography>
-                  }
-                />
-              </ListItem>
-            )}
-            {renderListItems()}
-          </List>
-        </Card>
-      </Grid>
-      <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
-    </Grid>
   )
 }
