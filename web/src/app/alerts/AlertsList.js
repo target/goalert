@@ -228,20 +228,31 @@ export default function AlertsList(props) {
       <QueryList
         query={alertsListQuery}
         infiniteScroll
-        mapDataNode={a => ({
-          id: a.id,
-          className: getStatusClassName(a.status),
-          title: `${a.alertID}: ${a.status
-            .toUpperCase()
-            .replace('STATUS', '')}`,
-          subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-          action: (
-            <Typography variant='caption'>
-              {formatTimeSince(a.createdAt)}
-            </Typography>
-          ),
-          url: absURL(`/alerts/${a.id}`),
-        })}
+        mapDataNode={a => {
+          let item = {
+            id: a.id,
+            className: getStatusClassName(a.status),
+            title: `${a.alertID}: ${a.status
+              .toUpperCase()
+              .replace('STATUS', '')}`,
+            subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
+            action: (
+              <Typography variant='caption'>
+                {formatTimeSince(a.createdAt)}
+              </Typography>
+            ),
+            url: absURL(`/alerts/${a.id}`),
+          }
+
+          if (a.status === 'StatusClosed') {
+            item.CheckboxProps = {
+              disabled: true,
+              onClick: () => {},
+            }
+          }
+
+          return item
+        }}
         variables={variables}
         filter={<AlertsListFilter />}
         cardHeader={
@@ -262,7 +273,6 @@ export default function AlertsList(props) {
         open={actionComplete}
         updateMessage={updateMessage}
       />
-      {/* TODO: Move back in here */}
       <AlertsListFloatingItems serviceID={props.serviceID} />
     </React.Fragment>
   )

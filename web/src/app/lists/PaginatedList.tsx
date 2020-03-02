@@ -103,6 +103,8 @@ export interface PaginatedListItemProps {
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
   className?: string
+
+  CheckboxProps?: CheckboxProps
 }
 
 export function PaginatedList(props: PaginatedListProps) {
@@ -204,7 +206,6 @@ export function PaginatedList(props: PaginatedListProps) {
     let checkbox = null
     if (withCheckboxes) {
       const checked = checkedItems.includes(item.id)
-      // TODO: custom props, e.g. disabled for closed alerts
       checkbox = (
         <Checkbox
           checked={checked}
@@ -222,6 +223,7 @@ export function PaginatedList(props: PaginatedListProps) {
               setCheckedItems([...checkedItems, item.id])
             }
           }}
+          {...item.CheckboxProps}
         />
       )
     }
