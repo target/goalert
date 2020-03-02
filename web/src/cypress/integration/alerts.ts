@@ -108,39 +108,39 @@ function testAlerts(screen: ScreenFormat) {
     it('should select and deselect all alerts from the header checkbox', () => {
       cy.get('span[data-cy=select-all] input').check()
 
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert3.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}] input`).should('be.checked')
 
       cy.get('span[data-cy=select-all] input').uncheck()
 
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert3.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}] input`).should('not.be.checked')
     })
 
     it('should select some alerts and deselect all from the header checkbox', () => {
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
 
       cy.get('span[data-cy=select-all] input').click()
 
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('not.be.checked')
     })
 
     it('should select and deselect all alerts from the header checkbox menu', () => {
       cy.get('[data-cy=checkboxes-menu] [data-cy=other-actions]').menu('All')
 
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert3.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}] input`).should('be.checked')
 
       cy.get('[data-cy=checkboxes-menu] [data-cy=other-actions]').menu('None')
-      cy.get(`span[data-cy=alert-${alert1.id}]`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert2.id}]`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert3.id}]`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}]`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}]`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}]`).should('not.be.checked')
     })
 
     it('should acknowledge, escalate, and close multiple alerts', () => {
@@ -169,7 +169,7 @@ function testAlerts(screen: ScreenFormat) {
 
     it('should update some alerts', () => {
       // prep
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get('button[data-cy=acknowledge]').click()
       cy.get('button[data-cy=acknowledge]').should('not.exist')
 
@@ -209,8 +209,8 @@ function testAlerts(screen: ScreenFormat) {
 
     it('should not acknowledge acknowledged alerts', () => {
       // ack first two
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get('button[data-cy=acknowledge]').click()
 
       // ack
@@ -230,8 +230,8 @@ function testAlerts(screen: ScreenFormat) {
       )
 
       // ack first two again (noop)
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get('button[data-cy=acknowledge]').click()
 
       cy.get('span[data-cy=update-message]').should(
@@ -240,9 +240,9 @@ function testAlerts(screen: ScreenFormat) {
       )
 
       // ack all three
-      cy.get(`span[data-cy=alert-${alert1.id}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.id}] input`).check()
-      cy.get(`span[data-cy=alert-${alert3.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert3.id}] input`).check()
       cy.get('button[data-cy=acknowledge]').click()
 
       // first two already acked, third now acked
@@ -371,15 +371,15 @@ function testAlerts(screen: ScreenFormat) {
     })
 
     it('should see load more, click, and no longer see load more', () => {
-      cy.get('ul[data-cy=alert-logs] li').should('have.length', 35)
+      cy.get('ul[data-cy=item-logs] li').should('have.length', 35)
       cy.get('body').should('contain', 'Load More')
       cy.get('[data-cy=load-more-logs]').click()
-      cy.get('ul[data-cy=alert-logs] li').should('have.length', 184)
+      cy.get('ul[data-cy=item-logs] li').should('have.length', 184)
       cy.get('body').should('contain', 'Load More')
       cy.get('[data-cy=load-more-logs]').click()
 
       // create plus any engine events should be 200+
-      cy.get('ul[data-cy=alert-logs] li').should('have.length.gt', 200)
+      cy.get('ul[data-cy=item-logs] li').should('have.length.gt', 200)
       cy.get('body').should('not.contain', 'Load More')
     })
   })

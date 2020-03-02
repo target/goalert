@@ -1,12 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import {
-  Checkbox,
-  Grid,
-  Hidden,
-  Typography,
-  makeStyles,
-} from '@material-ui/core'
+import { Hidden, Typography, makeStyles } from '@material-ui/core'
 import { useDispatch, useSelector } from 'react-redux'
 import { absURLSelector, urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
@@ -14,14 +8,20 @@ import gql from 'graphql-tag'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import AlertsCheckboxControls from './AlertsCheckboxControls'
 import AlertsListFloatingItems from './AlertsListFloatingItems'
 import statusStyles from '../util/statusStyles'
 import {
-  setCheckedAlerts as _setCheckedAlerts,
-  setAlerts as _setAlerts,
+  setAlertsActionComplete as _setAlertsActionComplete,
+  setCheckedItems as _setCheckedItems,
 } from '../actions'
 import { formatTimeSince } from '../util/timeFormat'
+import { useMutation } from '@apollo/react-hooks'
+import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
+import {
+  ArrowUpward as EscalateIcon,
+  Check as AcknowledgeIcon,
+  Close as CloseIcon,
+} from '@material-ui/icons'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -43,6 +43,24 @@ export const alertsListQuery = gql`
         endCursor
         hasNextPage
       }
+    }
+  }
+`
+
+const updateMutation = gql`
+  mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
+    updateAlerts(input: $input) {
+      alertID
+      id
+    }
+  }
+`
+
+const escalateMutation = gql`
+  mutation EscalateAlertsMutation($input: [Int!]) {
+    escalateAlerts(input: $input) {
+      alertID
+      id
     }
   }
 `
@@ -73,17 +91,23 @@ function getStatusFilter(s) {
 export default function AlertsList(props) {
   const classes = useStyles()
 
+  const [errorMessage, setErrorMessage] = useState('')
+  const [updateMessage, setUpdateMessage] = useState('')
+
   // get redux vars
   const absURL = useSelector(absURLSelector)
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
-  const checkedAlerts = useSelector(state => state.alerts.checkedAlerts)
   const filter = params('filter', 'active')
 
-  // setup redux actions
   const dispatch = useDispatch()
-  const setCheckedAlerts = arr => dispatch(_setCheckedAlerts(arr))
-  const setAlerts = arr => dispatch(_setAlerts(arr))
+
+  const actionComplete = useSelector(state => state.alerts.actionComplete)
+  const setAlertsActionComplete = bool =>
+    dispatch(_setAlertsActionComplete(bool))
+
+  const checkedItems = useSelector(state => state.list.checkedItems)
+  const setCheckedItems = array => dispatch(_setCheckedItems(array))
 
   // alerts list query variables
   const variables = {
@@ -99,18 +123,53 @@ export default function AlertsList(props) {
     variables.input.filterByServiceID = [props.serviceID]
   }
 
-  function toggleChecked(id) {
-    const czechedAlerts = checkedAlerts.slice()
-
-    if (czechedAlerts.includes(id)) {
-      const idx = czechedAlerts.indexOf(id)
-      czechedAlerts.splice(idx, 1)
-      setCheckedAlerts(czechedAlerts)
-    } else {
-      czechedAlerts.push(id)
-      setCheckedAlerts(czechedAlerts)
-    }
+  function onCompleted(numUpdated) {
+    setAlertsActionComplete(true) // for create fab transition
+    setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
+    setCheckedItems([])
   }
+
+  // ack mutation
+  const [ackAlerts] = useMutation(updateMutation, {
+    variables: {
+      input: {
+        alertIDs: checkedItems,
+        newStatus: 'StatusAcknowledged',
+      },
+    },
+    onError: err => {
+      setAlertsActionComplete(true)
+      setErrorMessage(err.message)
+    },
+    onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0),
+  })
+
+  // close mutation
+  const [closeAlerts] = useMutation(updateMutation, {
+    variables: {
+      input: {
+        alertIDs: checkedItems,
+        newStatus: 'StatusClosed',
+      },
+    },
+    onError: err => {
+      setAlertsActionComplete(true)
+      setErrorMessage(err.message)
+    },
+    onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0),
+  })
+
+  // escalate mutation
+  const [escalateAlerts] = useMutation(escalateMutation, {
+    variables: {
+      input: checkedItems,
+    },
+    onError: err => {
+      setAlertsActionComplete(true)
+      setErrorMessage(err.message)
+    },
+    onCompleted: data => onCompleted(data?.escalateAlerts?.length ?? 0),
+  })
 
   /*
    * Adds border of color depending on each alert's status
@@ -127,26 +186,54 @@ export default function AlertsList(props) {
     }
   }
 
+  /*
+   * Passes the proper actions to ListControls depending
+   * on which tab is currently filtering the alerts list
+   */
+  function getActions() {
+    const actions = []
+    if (!checkedItems.length) return actions
+
+    if (filter !== 'closed' && filter !== 'acknowledged') {
+      actions.push({
+        icon: <AcknowledgeIcon />,
+        tooltip: 'Acknowledge',
+        onClick: ackAlerts,
+        ariaLabel: 'Acknowledge Selected Alerts',
+        dataCy: 'acknowledge',
+      })
+    }
+
+    if (filter !== 'closed') {
+      actions.push(
+        {
+          icon: <CloseIcon />,
+          tooltip: 'Close',
+          onClick: closeAlerts,
+          ariaLabel: 'Close Selected Alerts',
+          dataCy: 'close',
+        },
+        {
+          icon: <EscalateIcon />,
+          tooltip: 'Escalate',
+          onClick: escalateAlerts,
+          ariaLabel: 'Escalate Selected Alerts',
+          dataCy: 'escalate',
+        },
+      )
+    }
+
+    return actions
+  }
+
   return (
     <React.Fragment>
       <QueryList
         query={alertsListQuery}
         infiniteScroll
         mapDataNode={a => ({
+          id: a.id,
           className: getStatusClassName(a.status),
-          icon: (
-            <Checkbox
-              checked={checkedAlerts.includes(a.id)}
-              disabled={a.status === 'StatusClosed'}
-              data-cy={'alert-' + a.id}
-              tabIndex={-1}
-              onClick={e => {
-                e.stopPropagation()
-                e.preventDefault()
-                toggleChecked(a.id)
-              }}
-            />
-          ),
           title: `${a.alertID}: ${a.status
             .toUpperCase()
             .replace('STATUS', '')}`,
@@ -159,26 +246,26 @@ export default function AlertsList(props) {
           url: absURL(`/alerts/${a.id}`),
         })}
         variables={variables}
-        onDataChange={items => {
-          // used for checkbox controls
-          setAlerts(items)
-        }}
-        controls={
-          <React.Fragment>
-            <Grid item className={classes.checkbox}>
-              <AlertsCheckboxControls />
-            </Grid>
-            <Grid item>
-              <AlertsListFilter />
-            </Grid>
-          </React.Fragment>
-        }
+        filter={<AlertsListFilter />}
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />
           </Hidden>
         }
+        actions={getActions()}
       />
+      <UpdateAlertsSnackbar
+        errorMessage={errorMessage}
+        numberChecked={checkedItems.length}
+        onClose={() => setAlertsActionComplete(false)}
+        onExited={() => {
+          setErrorMessage('')
+          setUpdateMessage('')
+        }}
+        open={actionComplete}
+        updateMessage={updateMessage}
+      />
+      {/* TODO: Move back in here */}
       <AlertsListFloatingItems serviceID={props.serviceID} />
     </React.Fragment>
   )

@@ -1,20 +1,14 @@
-import React, { ReactElement, useEffect, useMemo } from 'react'
+import React, { ReactElement, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useQuery } from '@apollo/react-hooks'
-import { Grid, makeStyles } from '@material-ui/core'
+import { Grid } from '@material-ui/core'
 import { once } from 'lodash-es'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
 import { fieldAlias } from '../util/graphql'
-import Search from '../util/Search'
 import { GraphQLClientWithErrors } from '../apollo'
-
-const useStyles = makeStyles({
-  search: {
-    paddingLeft: '0.5em',
-  },
-})
+import ListControls, { CheckboxActions } from './ListControls'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -76,27 +70,37 @@ export default function QueryList(props: {
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
   variables?: any
 
-  // if set, the search string param is ignored
-  noSearch?: boolean
-
-  // controls unrelated to search, but still modify results, rendered to
+  // TODO: Clean up pass through props to ListControls
+  // filter results, rendered to
   // the left of the search text field
-  controls: ReactElement
+  filter?: ReactElement
+
+  // disables rendering list controls component with URL controlled search
+  noSearch?: boolean
 
   // filters additional to search, set in the search text field
   searchAdornment?: ReactElement
 
-  // invoked when the amount of items queried changes
-  onDataChange: (nodes: Array<ObjectMap>) => void
+  // renders list controls component with checkbox actions
+  // NOTE: this will replace any icons set on each item with a checkbox
+  actions?: CheckboxActions[]
 }) {
-  const { query, mapDataNode = (n: ObjectMap) => ({
-    title: n.name,
-    url: n.id,
-    subText: n.description,
-  }), noSearch, controls, searchAdornment, onDataChange, variables = {}, ...listProps } = props
+  const {
+    mapDataNode = (n: ObjectMap) => ({
+      title: n.name,
+      url: n.id,
+      subText: n.description,
+    }),
+    query,
+    filter,
+    searchAdornment,
+    variables = {},
+    actions,
+    noSearch,
+    ...listProps
+  } = props
   const { input, ...vars } = variables
 
-  const classes = useStyles()
   const searchParam = useSelector(searchSelector)
   const urlKey = useSelector(urlKeySelector)
   const aliasedQuery = useMemo(() => fieldAlias(query, 'data'), [query])
@@ -134,21 +138,17 @@ export default function QueryList(props: {
     )
   }
 
-  useEffect(() => {
-    if (onDataChange) {
-      onDataChange(nodes)
-    }
-  }, [nodes.length])
-
   return (
     <Grid container spacing={2}>
       {/* Such that filtering/searching isn't re-rendered with the page content */}
-      <Grid container item xs={12} justify='flex-end' alignItems='center'>
-        {controls}
-        <Grid item className={classes.search}>
-          <Search endAdornment={searchAdornment} />
-        </Grid>
-      </Grid>
+      {(actions || !noSearch) && (
+        <ListControls
+          actions={actions}
+          filter={filter}
+          itemIDs={items.map((i: any) => i.id)}
+          withSearch={!noSearch}
+        />
+      )}
 
       <Grid item xs={12}>
         <PaginatedList
@@ -158,6 +158,7 @@ export default function QueryList(props: {
           itemsPerPage={queryVariables.input.first}
           loadMore={loadMore}
           isLoading={loading}
+          withCheckboxes={Boolean(actions)}
         />
       </Grid>
     </Grid>
