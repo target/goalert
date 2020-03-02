@@ -68,15 +68,15 @@ export default function ListControls(props: {
   const classes = useStyles()
 
   const dispatch = useDispatch()
-  // @ts-ignore
-  const checkedItems = useSelector(state => state.list.checkedItems)
+  const checkedItems = useSelector((state: any) => state.list.checkedItems)
   const setCheckedItems = (array: Array<any>) =>
     dispatch(_setCheckedItems(array))
 
   // reset checkedItems array on unmount
-  // @ts-ignore
   useEffect(() => {
-    return () => setCheckedItems([])
+    return () => {
+      setCheckedItems([])
+    }
   }, [])
 
   function setAll() {

@@ -76,7 +76,7 @@ export interface PaginatedListProps {
   itemsPerPage: number
 
   isLoading?: boolean
-  loadMore?: any
+  loadMore?: (numberToLoad?: number) => void
 
   // disables the placeholder display during loading
   noPlaceholder?: boolean
@@ -120,8 +120,7 @@ export function PaginatedList(props: PaginatedListProps) {
   const absURL = useSelector(absURLSelector)
 
   const dispatch = useDispatch()
-  // @ts-ignore
-  const checkedItems = useSelector(state => state.list.checkedItems)
+  const checkedItems = useSelector((state: any) => state.list.checkedItems)
   const setCheckedItems = (array: Array<any>) =>
     dispatch(_setCheckedItems(array))
 
@@ -308,11 +307,19 @@ export function PaginatedList(props: PaginatedListProps) {
   function renderAsInfiniteScroll() {
     const len = items.length
 
+    // explicitly set props to load more, if loader function present
+    let loadProps: any = {}
+    if (Boolean(loadMore)) {
+      loadProps.hasMore = true
+      loadProps.next = loadMore
+    } else {
+      loadProps.hasMore = false
+    }
+
     return (
       <InfiniteScroll
+        {...loadProps}
         scrollableTarget='content'
-        next={loadMore}
-        hasMore={Boolean(loadMore)}
         endMessage={
           len === 0 ? null : (
             <Typography
