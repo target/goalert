@@ -145,6 +145,7 @@ export default function QueryList(props: {
           actions={actions}
           filter={filter}
           itemIDs={items.map((i: any) => i.id)}
+          searchAdornment={searchAdornment}
           withSearch={!noSearch}
         />
       )}
