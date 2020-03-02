@@ -12,6 +12,7 @@
 // the project's config changing)
 
 const wp = require('@cypress/webpack-preprocessor')
+const fs = require('fs')
 
 module.exports = (on, config) => {
   require('cypress-plugin-retries/lib/plugin')(on)
@@ -43,4 +44,11 @@ module.exports = (on, config) => {
     },
   }
   on('file:preprocessor', wp(options))
+  on('task', {
+    'engine:trigger': () => {
+      const data = fs.readFileSync('../../runjson/Backend.pid')
+      process.kill(parseInt(data.toString(), 10), 'SIGUSR2')
+      return null
+    },
+  })
 }

@@ -46,6 +46,7 @@ function testProfile(screen: ScreenFormat) {
               targets: [{ type: 'user', id: p.id }],
             })
           })
+          .task('engine:trigger')
           .then(() => svc.id)
       })
       .then(svcID => {
