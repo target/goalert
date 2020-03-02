@@ -35,18 +35,18 @@ export default function MaterialSelect(props) {
   const {
     canCreate,
     disabled,
+    error,
     isLoading,
     label,
     multiple,
     name,
+    noOptionsText,
     onChange,
     onInputChange,
     options,
+    placeholder,
     required,
     value: propsValue,
-
-    noOptionsText,
-    // placeholder // TODO verify if still needed or wanted
   } = props
 
   let value = propsValue
@@ -111,11 +111,13 @@ export default function MaterialSelect(props) {
             data-cy='search-select'
             fullWidth
             label={label}
+            placeholder={placeholder}
             onChange={({ target }) => {
               const newInputVal = target.value
               setInputValue(newInputVal)
               if (onInputChange) onInputChange(newInputVal)
             }}
+            error={error}
           />
         )
       }}
