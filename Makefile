@@ -31,6 +31,7 @@ export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
 ifdef LOG_DIR
 RUNJSON_ARGS += -logs=$(LOG_DIR)
 endif
+RUNJSON_ARGS += -pid=runjson
 
 export CGO_ENABLED = 0
 export PATH := $(PWD)/bin:$(PATH)
