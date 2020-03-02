@@ -93,7 +93,7 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
         </Typography>
       }
       caption='Deleting a service will also delete all associated integration keys and alerts.'
-      loading={deleteServiceStatus.loading || dataStatus.loading}
+      loading={deleteServiceStatus.loading || (!data && dataStatus.loading)}
       errors={nonFieldErrors(deleteServiceStatus.error)}
       onClose={onClose}
       onSubmit={() => deleteService()}

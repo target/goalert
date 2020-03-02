@@ -52,7 +52,7 @@ export default function ServiceEditDialog({ serviceID, onClose }) {
   return (
     <FormDialog
       title='Edit Service'
-      loading={saveStatus.loading || dataStatus.loading}
+      loading={saveStatus.loading || (!data && dataStatus.loading)}
       errors={nonFieldErrors(saveStatus.error).concat(
         nonFieldErrors(dataStatus.error),
       )}
@@ -63,7 +63,9 @@ export default function ServiceEditDialog({ serviceID, onClose }) {
           epRequired
           errors={fieldErrs}
           disabled={Boolean(
-            saveStatus.loading || dataStatus.loading || dataStatus.error,
+            saveStatus.loading ||
+              (!data && dataStatus.loading) ||
+              dataStatus.error,
           )}
           value={value || defaults}
           onChange={value => setValue(value)}
