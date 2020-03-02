@@ -137,6 +137,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
           noPlaceholder
           query={query}
           mapDataNode={n => ({
+            id: n.id,
             title: n.addUser ? n.addUser.name : n.removeUser.name,
             subText: subText(n),
             icon: (
