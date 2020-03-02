@@ -66,9 +66,6 @@ const escalateMutation = gql`
 `
 
 const useStyles = makeStyles(theme => ({
-  checkbox: {
-    marginRight: 'auto',
-  },
   ...statusStyles,
 }))
 

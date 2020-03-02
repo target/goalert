@@ -1,9 +1,6 @@
 import React, {
-  Dispatch,
   ReactElement,
-  SetStateAction,
   useEffect,
-  useState,
 } from 'react'
 import {
   Checkbox,
@@ -31,9 +28,6 @@ const useStyles = makeStyles({
   checkbox: {
     marginTop: 4,
     marginBottom: 4,
-  },
-  checkboxGridContainer: {
-    paddingLeft: '1em',
   },
   controlsContainer: {
     alignItems: 'center',
@@ -131,7 +125,6 @@ export default function ListControls(props: {
             indeterminate={
               checkedItems.length > 0 && itemIDs.length !== checkedItems.length
             }
-            tabIndex={-1}
             onChange={handleToggleSelectAll}
           />
         </Grid>

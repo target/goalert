@@ -1,4 +1,4 @@
-import React, { ReactElement, useMemo, useState } from 'react'
+import React, { ReactElement, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { useQuery } from '@apollo/react-hooks'
 import { Grid } from '@material-ui/core'
@@ -70,7 +70,6 @@ export default function QueryList(props: {
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
   variables?: any
 
-  // TODO: Clean up pass through props to ListControls
   // filter results, rendered to
   // the left of the search text field
   filter?: ReactElement
