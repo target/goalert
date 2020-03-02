@@ -152,11 +152,13 @@ func (t *Task) run(ctx context.Context, pad int, attr color.Attribute, w io.Writ
 
 		err := cmd.Start()
 		if err != nil && !t.IgnoreErrors {
+			cancel()
 			return errors.Wrapf(err, "run %s", t.Name)
 		}
 		if pidDir != "" {
 			err = ioutil.WriteFile(filepath.Join(pidDir, t.Name+".pid"), []byte(strconv.Itoa(cmd.Process.Pid)), 0644)
 			if err != nil && !t.IgnoreErrors {
+				cancel()
 				return errors.Wrapf(err, " record pid %s", t.Name)
 			}
 		}
