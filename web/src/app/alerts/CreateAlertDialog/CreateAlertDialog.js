@@ -17,8 +17,7 @@ import { fieldErrors, allErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
-import { useSelector } from 'react-redux'
-import { absURLSelector } from '../../selectors'
+import { AppLink } from '../../util/AppLink'
 
 const pluralize = num => (num !== 1 ? 's' : '')
 
@@ -35,7 +34,6 @@ const useStyles = makeStyles(theme => ({
 
 export default function CreateAlertDialog(props) {
   const classes = useStyles()
-  const absURL = useSelector(absURLSelector)
   const [step, setStep] = useState(0)
   const [value, setValue] = useState({
     summary: '',
@@ -102,14 +100,12 @@ export default function CreateAlertDialog(props) {
             variant='contained'
             color='primary'
             size='small'
+            component={AppLink}
             endIcon={<OpenInNewIcon />}
-            href={absURL(
-              `/alerts?allServices=1&filter=all&search=${encodeURIComponent(
-                value.summary,
-              )}`,
-            )}
-            target='_blank'
-            rel='noopener noreferrer'
+            to={`/alerts?allServices=1&filter=all&search=${encodeURIComponent(
+              value.summary,
+            )}`}
+            newTab
           >
             Monitor Alerts
           </Button>
