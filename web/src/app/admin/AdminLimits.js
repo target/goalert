@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
+import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import gql from 'graphql-tag'
 import { chain, isEmpty } from 'lodash-es'
@@ -46,7 +47,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default function AdminLimitsLegacy() {
+export default function AdminLimits() {
   const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})
@@ -102,6 +103,18 @@ export default function AdminLimitsLegacy() {
     return (
       <div>
         <Grid container spacing={2} className={classes.gridContainer}>
+          <Grid container item xs={12} className={classes.gridItem}>
+            <Grid item xs={12}>
+              <Typography
+                component='h2'
+                variant='subtitle1'
+                color='textSecondary'
+                classes={{ subtitle1: classes.groupTitle }}
+              >
+                System Limits
+              </Typography>
+            </Grid>
+          </Grid>
           <Grid item xs={12} className={classes.gridItem}>
             <Grid item xs={12}>
               <Form>

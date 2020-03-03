@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import List from '@material-ui/core/List'
 import { makeStyles } from '@material-ui/core/styles'
@@ -48,10 +48,17 @@ const useStyles = makeStyles(theme => {
 })
 
 export default function NavSubMenu(props) {
-  const { parentIcon, parentTitle, path, subMenuRoutes } = props
+  const {
+    parentIcon,
+    parentTitle,
+    path,
+    subMenuRoutes,
+    preventRedirect,
+  } = props
   const classes = useStyles()
   const pathname = useSelector(urlPathSelector)
   const isRoute = pathname.startsWith(path)
+  const [open, setOpen] = useState(isRoute)
 
   function renderParentLink(IconComponent, label) {
     return (
@@ -107,11 +114,26 @@ export default function NavSubMenu(props) {
 
   return (
     <React.Fragment>
-      <NavLink to={path} className={classes.nav}>
+      <NavLink
+        to={path}
+        className={classes.nav}
+        onClick={e => {
+          if (preventRedirect) e.preventDefault()
+          if (open) return setOpen(false)
+          return setOpen(true)
+        }}
+      >
         {renderParentLink(parentIcon, parentTitle)}
       </NavLink>
-      <Collapse in={isRoute} mountOnEnter>
-        <List className={classes.subMenu}>{renderSubMenu(subMenuRoutes)}</List>
+      <Collapse in={isRoute || open} mountOnEnter>
+        <List
+          className={classes.subMenu}
+          onBlur={() => {
+            setOpen(false)
+          }}
+        >
+          {renderSubMenu(subMenuRoutes)}
+        </List>
       </Collapse>
     </React.Fragment>
   )
@@ -122,4 +144,5 @@ NavSubMenu.propTypes = {
   parentTitle: p.string.isRequired,
   path: p.string.isRequired,
   subMenuRoutes: p.array.isRequired,
+  preventRedirect: p.bool,
 }
