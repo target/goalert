@@ -13,16 +13,16 @@ import (
 func MapLimitValues(l limit.Limits) []SystemLimit {
 	return []SystemLimit{
 		{ID: "ContactMethodsPerUser", Description: "", Value: l[limit.ContactMethodsPerUser]},
-		{ID: "EPActionsPerStep", Description: "Maximum actions on a single escalation policy step", Value: l[limit.EPActionsPerStep]},
-		{ID: "EPStepsPerPolicy", Description: "Maximum steps on a single escalation policy step", Value: l[limit.EPStepsPerPolicy]},
+		{ID: "EPActionsPerStep", Description: "Maximum actions on a single escalation policy step.", Value: l[limit.EPActionsPerStep]},
+		{ID: "EPStepsPerPolicy", Description: "Maximum steps on a single escalation policy step.", Value: l[limit.EPStepsPerPolicy]},
 		{ID: "HeartbeatMonitorsPerService", Description: "", Value: l[limit.HeartbeatMonitorsPerService]},
 		{ID: "IntegrationKeysPerService", Description: "", Value: l[limit.IntegrationKeysPerService]},
 		{ID: "NotificationRulesPerUser", Description: "", Value: l[limit.NotificationRulesPerUser]},
 		{ID: "ParticipantsPerRotation", Description: "", Value: l[limit.ParticipantsPerRotation]},
-		{ID: "RulesPerSchedule", Description: "", Value: l[limit.RulesPerSchedule]},
+		{ID: "RulesPerSchedule", Description: "Pertains to all rules for all assignments/targets.", Value: l[limit.RulesPerSchedule]},
 		{ID: "TargetsPerSchedule", Description: "", Value: l[limit.TargetsPerSchedule]},
-		{ID: "UnackedAlertsPerService", Description: "", Value: l[limit.UnackedAlertsPerService]},
-		{ID: "UserOverridesPerSchedule", Description: "", Value: l[limit.UserOverridesPerSchedule]},
+		{ID: "UnackedAlertsPerService", Description: "Only affects newly created alerts, but not re-escalated ones.", Value: l[limit.UnackedAlertsPerService]},
+		{ID: "UserOverridesPerSchedule", Description: "Only limits future overrides (e.g. end in the future).", Value: l[limit.UserOverridesPerSchedule]},
 	}
 }
 
