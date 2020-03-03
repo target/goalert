@@ -94,7 +94,11 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
 	var eventUIDs []string
 	for _, s := range shifts {
-		sum := sha256.Sum256([]byte(s.UserID + cs.ScheduleID + s.Start.String() + s.End.String()))
+		t := s.End
+		if s.Truncated {
+			t = s.Start
+		}
+		sum := sha256.Sum256([]byte(s.UserID + cs.ScheduleID + t.Format(time.RFC3339)))
 		eventUIDs = append(eventUIDs, hex.EncodeToString(sum[:]))
 	}
 	data := iCalRenderData{
