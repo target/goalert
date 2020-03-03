@@ -157,7 +157,7 @@ export default function QueryList(props: {
           items={items}
           itemsPerPage={queryVariables.input.first}
           loadMore={loadMore}
-          isLoading={loading}
+          isLoading={!data && loading}
           withCheckboxes={Boolean(actions)}
         />
       </Grid>
