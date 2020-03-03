@@ -5,7 +5,7 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import gql from 'graphql-tag'
-import { chain, isEmpty } from 'lodash-es'
+import { startCase, isEmpty } from 'lodash-es'
 import AdminDialog from './AdminDialog'
 import PageActions from '../util/PageActions'
 import { Form } from '../forms'
@@ -47,6 +47,10 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
+interface LimitsValues {
+  [id: string]: string
+}
+
 export default function AdminLimits() {
   const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
@@ -58,8 +62,8 @@ export default function AdminLimits() {
     return <Spinner />
   }
 
-  const updateValue = (id, value) => {
-    const newVal = { ...values }
+  const updateValue = (id: string, value: string) => {
+    const newVal: LimitsValues = { ...values }
 
     if (value === null) {
       delete newVal[id]
@@ -79,7 +83,7 @@ export default function AdminLimits() {
           disabled={isEmpty(values)}
           onClick={() => setValues({})}
           classes={{
-            label: isEmpty(values) ? classes.saveDisabled : null,
+            label: isEmpty(values) ? classes.saveDisabled : undefined,
           }}
         >
           Reset
@@ -90,7 +94,7 @@ export default function AdminLimits() {
           disabled={isEmpty(values)}
           onClick={() => setConfirm(true)}
           classes={{
-            label: isEmpty(values) ? classes.saveDisabled : null,
+            label: isEmpty(values) ? classes.saveDisabled : undefined,
           }}
         >
           Save
@@ -121,17 +125,25 @@ export default function AdminLimits() {
                 <Card>
                   <AdminSection
                     value={values}
-                    onChange={(id, value) => updateValue(id, value)}
-                    fields={data.systemLimits.map(f => ({
-                      id: f.id,
-                      type: 'integer',
-                      description: f.description,
-                      value: f.value.toString(),
-                      label: chain(f.id.replace(/([a-z])([A-Z])/g, '$1 $2'))
-                        .startCase()
-                        .value(),
-                      password: false,
-                    }))}
+                    onChange={(id: string, value: string) =>
+                      updateValue(id, value)
+                    }
+                    fields={data.systemLimits.map(
+                      (f: {
+                        id: string
+                        description: string
+                        value: number
+                      }) => ({
+                        id: f.id,
+                        type: 'integer',
+                        description: f.description,
+                        value: f.value.toString(),
+                        label: startCase(
+                          f.id.replace(/([a-z])([A-Z])/g, '$1 $2'),
+                        ),
+                        password: false,
+                      }),
+                    )}
                   />
                 </Card>
               </Form>

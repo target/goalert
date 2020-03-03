@@ -130,7 +130,6 @@ export default class SideBarDrawerList extends React.PureComponent {
       <NavSubMenu
         parentIcon={navIcons[cfg.title]}
         parentTitle={cfg.title}
-        preventRedirect
         path={getPath(cfg)}
         subMenuRoutes={cfg.subRoutes}
       >
