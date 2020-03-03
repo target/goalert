@@ -105,8 +105,7 @@ export default function CreateAlertDialog(props) {
             to={`/alerts?allServices=1&filter=all&search=${encodeURIComponent(
               value.summary,
             )}`}
-            target='_blank'
-            rel='noopener noreferrer'
+            newTab
           >
             Monitor Alerts
           </Button>

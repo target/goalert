@@ -55,3 +55,4 @@ vendor.orig
 ngrok.log
 
 smoketest_db_dump
+*.pid

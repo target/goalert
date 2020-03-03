@@ -63,7 +63,7 @@ export default class IntegrationKeyForm extends React.PureComponent {
                     endAdornment: (
                       <InputAdornment position='end'>
                         <Tooltip title='API Documentation' placement='right'>
-                          <AppLink to='/docs' target='_blank'>
+                          <AppLink to='/docs' newTab>
                             <Help className={classes.infoIcon} />
                           </AppLink>
                         </Tooltip>

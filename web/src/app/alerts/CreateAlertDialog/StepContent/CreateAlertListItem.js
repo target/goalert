@@ -37,7 +37,7 @@ export default function CreateAlertListItem(props) {
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
-            <AppLink to={alertURL} target='_blank' rel='noopener noreferrer'>
+            <AppLink to={alertURL} newTab>
               #{id}
             </AppLink>
           </Typography>
@@ -45,12 +45,7 @@ export default function CreateAlertListItem(props) {
 
         <span className={classes.endLinks}>
           <CopyText value={alertURL} placement='left' />
-          <AppLink
-            to={alertURL}
-            target='_blank'
-            rel='noopener noreferrer'
-            className={classes.openInNewTab}
-          >
+          <AppLink to={alertURL} newTab className={classes.openInNewTab}>
             <OpenInNewIcon fontSize='small' />
           </AppLink>
         </span>

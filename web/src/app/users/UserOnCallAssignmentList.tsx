@@ -89,7 +89,7 @@ export default function UserOnCallAssignmentList(props: {
     variables: { id: props.userID },
   })
 
-  if (loading) {
+  if (!data && loading) {
     return <Spinner />
   }
   if (error) {
