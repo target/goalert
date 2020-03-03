@@ -128,6 +128,7 @@ export const GraphQLClient = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
+    watchQuery: queryOpts,
   },
 })
 
@@ -167,6 +168,7 @@ export const GraphQLClientWithErrors = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
+    watchQuery: queryOpts,
     mutate: { awaitRefetchQueries: true, errorPolicy: 'all' },
   },
 })

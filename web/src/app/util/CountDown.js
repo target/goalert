@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import withStyles from '@material-ui/core/styles/withStyles'
-import moment from 'moment'
+import { DateTime } from 'luxon'
 import { styles } from '../styles/materialStyles'
 
 export function formatTimeRemaining(
@@ -68,7 +68,8 @@ export default class CountDown extends Component {
     super(props)
 
     this.state = {
-      timeRemaining: moment(props.end).unix() - moment(Date.now()).unix(),
+      timeRemaining:
+        DateTime.fromISO(props.end).toSeconds() - DateTime.local().toSeconds(),
     }
   }
 
@@ -108,7 +109,8 @@ export default class CountDown extends Component {
       if (this.state.timeRemaining > 0) {
         this.setState({
           timeRemaining:
-            moment(this.props.end).unix() - moment(Date.now()).unix(),
+            DateTime.fromISO(this.props.end).toSeconds() -
+            DateTime.local().toSeconds(),
         })
       }
     }, 1000)

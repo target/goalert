@@ -7,6 +7,8 @@ import Chip from '@material-ui/core/Chip'
 import MenuItem from '@material-ui/core/MenuItem'
 import { emphasize } from '@material-ui/core/styles/colorManipulator'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
+import IconButton from '@material-ui/core/IconButton'
+import { Clear } from '@material-ui/icons'
 
 export const styles = theme => ({
   root: {
@@ -179,9 +181,24 @@ export const Menu = props => (
   </Paper>
 )
 
+const ClearIndicator = props => {
+  return (
+    <IconButton
+      {...props.innerProps}
+      ref={props.selectProps.clearButtonRef}
+      size='small'
+      tabIndex={-1}
+      data-cy='select-clear'
+    >
+      <Clear />
+    </IconButton>
+  )
+}
+
 export const components = {
   Option,
   Control,
+  ClearIndicator,
   LoadingMessage,
   NoOptionsMessage,
   Placeholder,

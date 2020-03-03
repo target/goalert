@@ -1,4 +1,4 @@
-export default function joinURL(...parts) {
+export default function joinURL(...parts: string[]) {
   if (!parts || parts.length === 0) return ''
 
   return parts

@@ -4,6 +4,7 @@ import { withStyles } from '@material-ui/core/styles'
 import Select from 'react-select'
 import { components, styles } from './MaterialSelectComponents'
 import shrinkWorkaround from '../util/shrinkWorkaround'
+import _ from 'lodash-es'
 
 const valueShape = p.shape({
   label: p.string.isRequired,
@@ -20,6 +21,15 @@ function valueCheck(props, ...args) {
 
 @withStyles(styles, { withTheme: true })
 export default class MaterialSelect extends Component {
+  constructor(props) {
+    super(props)
+    this.clearButtonRef = React.createRef()
+    this.state = {
+      isCleared: false,
+    }
+    this.buttonClicked = false
+  }
+
   static propTypes = {
     multiple: p.bool, // allow selecting multiple values
     required: p.bool,
@@ -41,6 +51,7 @@ export default class MaterialSelect extends Component {
       theme,
       value,
       onChange,
+      onInputChange,
       classes,
       disabled,
       required,
@@ -72,12 +83,28 @@ export default class MaterialSelect extends Component {
       InputLabelProps,
       value: value ? (multiple ? value.join(',') : value.value) : '',
     }
+    const { isCleared } = this.state
+
+    const isDescendent = (parent, child) => {
+      if (!child) return false
+      if (child.isSameNode(parent)) return true
+      return isDescendent(parent, child.parentNode)
+    }
 
     return (
+      // going to look into replacing component with material-ui autocomplete component
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
       <div
         data-cy='material-select'
         data-cy-ready={!props.isLoading}
         className={classes.root}
+        onMouseDownCapture={e => {
+          if (isDescendent(this.clearButtonRef.current, e.target))
+            this.buttonClicked = true
+        }}
+        onClickCapture={() => {
+          this.buttonClicked = false
+        }}
       >
         <Select
           menuPortalTarget={document.body}
@@ -88,12 +115,28 @@ export default class MaterialSelect extends Component {
           }}
           name={name}
           classes={classes}
-          isClearable={!required}
+          isClearable
           isDisabled={disabled}
           isMulti={multiple}
-          value={value}
+          value={isCleared && required ? { label: '', value: '' } : value}
+          clearButtonRef={this.clearButtonRef}
           components={components}
-          onChange={onChange}
+          onBlur={() => {
+            if (!this.buttonClicked) this.setState({ isCleared: false })
+          }}
+          onChange={val => {
+            if (required && _.isEmpty(val) && !multiple) {
+              this.setState({ isCleared: true })
+              return
+            }
+            if (required && val !== null && !multiple)
+              this.setState({ isCleared: false })
+            onChange(val)
+          }}
+          onInputChange={val => {
+            this.buttonClicked = false
+            if (onInputChange) onInputChange(val)
+          }}
           textFieldProps={textFieldProps}
           placeholder=''
           {...props}

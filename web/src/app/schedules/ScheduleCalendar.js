@@ -4,8 +4,7 @@ import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
-import moment from 'moment'
-import { Calendar, momentLocalizer } from 'react-big-calendar'
+import { Calendar } from 'react-big-calendar'
 import '../../node_modules/react-big-calendar/lib/css/react-big-calendar.css'
 import CalendarEventWrapper from './CalendarEventWrapper'
 import CalendarToolbar from './CalendarToolbar'
@@ -14,8 +13,10 @@ import { resetURLParams, setURLParam } from '../actions'
 import { urlParamSelector } from '../selectors'
 import { DateTime, Interval } from 'luxon'
 import { theme } from '../mui'
+import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
+import LuxonLocalizer from '../util/LuxonLocalizer'
 
-const localizer = momentLocalizer(moment)
+const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
 const styles = {
   calendarContainer: {
@@ -29,17 +30,22 @@ const mapStateToProps = state => {
   const start = urlParamSelector(state)(
     'start',
     weekly
-      ? moment()
-          .startOf('week')
-          .toISOString()
-      : moment()
+      ? getStartOfWeek()
+          .toUTC()
+          .toISO()
+      : DateTime.local()
           .startOf('month')
-          .toISOString(),
+          .toUTC()
+          .toISO(),
   )
 
-  const end = moment(start)
-    .add(1, weekly ? 'week' : 'month')
-    .toISOString()
+  const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+
+  const end = DateTime.fromISO(start)
+    .toLocal()
+    .plus(timeUnit)
+    .toUTC()
+    .toISO()
 
   return {
     start,
@@ -86,17 +92,17 @@ export default class ScheduleCalendar extends React.PureComponent {
   handleCalNavigate = nextDate => {
     if (this.props.weekly) {
       this.props.setStart(
-        moment(nextDate)
-          .startOf('week')
-          .startOf('day')
-          .toISOString(),
+        getStartOfWeek(DateTime.fromJSDate(nextDate))
+          .toUTC()
+          .toISO(),
       )
     } else {
       this.props.setStart(
-        moment(nextDate)
+        DateTime.fromJSDate(nextDate)
+          .toLocal()
           .startOf('month')
-          .startOf('day')
-          .toISOString(),
+          .toUTC()
+          .toISO(),
       )
     }
   }
@@ -116,26 +122,27 @@ export default class ScheduleCalendar extends React.PureComponent {
    */
   handleViewChange = nextView => {
     const start = this.props.start
-    const prevStartMonth = moment(start).month()
-    const currMonth = moment().month()
+    const prevStartMonth = DateTime.fromISO(start).toLocal().month
+    const currMonth = DateTime.local().month
 
     // if viewing the current month, show the current week
     if (nextView === 'week' && prevStartMonth === currMonth) {
       this.props.setWeekly(true)
       this.props.setStart(
-        moment()
-          .startOf('week')
-          .toISOString(),
+        getStartOfWeek()
+          .toUTC()
+          .toISO(),
       )
 
       // if not on the current month, show the first week of the month
     } else if (nextView === 'week' && prevStartMonth !== currMonth) {
       this.props.setWeekly(true)
       this.props.setStart(
-        moment(this.props.start)
+        DateTime.fromISO(this.props.start)
+          .toLocal()
           .startOf('month')
-          .startOf('week')
-          .toISOString(),
+          .toUTC()
+          .toISO(),
       )
 
       // go from week to monthly view
@@ -145,10 +152,11 @@ export default class ScheduleCalendar extends React.PureComponent {
       this.props.setWeekly(false)
 
       this.props.setStart(
-        moment(start)
-          .endOf('week')
+        getEndOfWeek(DateTime.fromJSDate(new Date(start)))
+          .toLocal()
           .startOf('month')
-          .toISOString(),
+          .toUTC()
+          .toISO(),
       )
     }
   }
@@ -171,7 +179,11 @@ export default class ScheduleCalendar extends React.PureComponent {
    * the default light blue
    */
   dayPropGetter = date => {
-    if (moment(date).isSame(moment(), 'd')) {
+    if (
+      DateTime.fromJSDate(date)
+        .toLocal()
+        .hasSame(DateTime.local(), 'day')
+    ) {
       return {
         style: {
           backgroundColor: '#FFECEC',

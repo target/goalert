@@ -3,8 +3,9 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLUserFavorites tests that services can be set and unset as user favorites
@@ -27,8 +28,8 @@ func TestGraphQLUserFavorites(t *testing.T) {
 	h := harness.NewHarness(t, sql, "UserFavorites")
 	defer h.Close()
 
-	doQL := func(t *testing.T, query string, res interface{}) {
-		g := h.GraphQLQueryT(t, query, "/v1/graphql")
+	doQL := func(query string, res interface{}) {
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -46,77 +47,83 @@ func TestGraphQLUserFavorites(t *testing.T) {
 		}
 	}
 
-	doQL(t, fmt.Sprintf(`
-		mutation {
-			setUserFavorite (input: {
-				target_type: service ,target_id: "%s"
-			}) {
-				target_id
-			}
+	doQL(fmt.Sprintf(`
+		mutation{
+			setFavorite(input:{
+				target:{
+					id: "%s"
+					type: service
+				}
+				favorite: true
+			})
 		}
 	`, h.UUID("sid1")), nil)
 
 	var s struct {
 		Service struct {
-			IsUserFav bool `json:"is_user_favorite"`
+			IsFavorite bool
 		}
 	}
 
-	doQL(t, fmt.Sprintf(`
+	doQL(fmt.Sprintf(`
 		query {
 			service(id: "%s") { 
-				is_user_favorite 
+				isFavorite 
 			}	
 		}
 	`, h.UUID("sid1")), &s)
 
-	if s.Service.IsUserFav != true {
-		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want true", h.UUID("sid1"), s.Service.IsUserFav)
+	if s.Service.IsFavorite != true {
+		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want true", h.UUID("sid1"), s.Service.IsFavorite)
 	}
 
-	doQL(t, fmt.Sprintf(`
+	doQL(fmt.Sprintf(`
 		query {
 			service(id: "%s") { 
-				is_user_favorite 
+				isFavorite 
 			}	
 		}
 	`, h.UUID("sid2")), &s)
 
-	if s.Service.IsUserFav != false {
-		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want false", h.UUID("sid2"), s.Service.IsUserFav)
+	if s.Service.IsFavorite != false {
+		t.Fatalf("ERROR: ServiceID %s IsFavorite=%t; want false", h.UUID("sid2"), s.Service.IsFavorite)
 	}
 
 	// Again Setting as user-favorite should result in no change
-	doQL(t, fmt.Sprintf(`
-		mutation {
-			setUserFavorite (input: {
-				target_type: service ,target_id: "%s"
-			}) {
-				target_id
-			}
+	doQL(fmt.Sprintf(`
+		mutation{
+			setFavorite(input:{
+				target:{
+					id: "%s"
+					type: service
+				}
+				favorite: true
+			})
 		}
 	`, h.UUID("sid2")), nil)
 
-	doQL(t, fmt.Sprintf(`
-		mutation {
-			unsetUserFavorite (input: {
-				target_type: service ,target_id: "%s"
-			}) {
-				target_id
-			}
+	doQL(fmt.Sprintf(`
+		mutation{
+			setFavorite(input:{
+				target:{
+					id: "%s"
+					type: service
+				}
+				favorite: false
+			})
 		}
 	`, h.UUID("sid2")), nil)
 
-	doQL(t, fmt.Sprintf(`
+	doQL(fmt.Sprintf(`
 		query {
 			service(id: "%s") { 
-				is_user_favorite 
+				isFavorite 
 			}	
 		}
 	`, h.UUID("sid2")), &s)
 
-	if s.Service.IsUserFav != false {
-		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want false", h.UUID("sid2"), s.Service.IsUserFav)
+	if s.Service.IsFavorite != false {
+		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want false", h.UUID("sid2"), s.Service.IsFavorite)
 	}
 
 }

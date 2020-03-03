@@ -7,7 +7,6 @@ import RemoveIcon from '@material-ui/icons/Delete'
 import Tooltip from '@material-ui/core/Tooltip'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
-import moment from 'moment'
 import { urlParamSelector } from '../selectors'
 import { DateTime, Duration } from 'luxon'
 
@@ -100,7 +99,7 @@ export default class CalendarEventWrapper extends Component {
     const { classes, event } = this.props
 
     let overrideCtrls = null
-    if (moment(event.end).isAfter(moment())) {
+    if (DateTime.fromJSDate(event.end) > DateTime.utc()) {
       overrideCtrls = (
         <React.Fragment>
           <Grid item className={classes.buttonContainer}>
@@ -128,12 +127,13 @@ export default class CalendarEventWrapper extends Component {
       )
     }
 
+    const formatJSDate = JSDate =>
+      DateTime.fromJSDate(JSDate).toLocaleString(DateTime.DATETIME_FULL)
+
     return (
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          {moment(event.start).format('LLL')}
-          {' – '}
-          {moment(event.end).format('LLL')}
+          {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
         </Grid>
         {overrideCtrls}
       </Grid>
