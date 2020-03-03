@@ -113,11 +113,11 @@ func (db *DB) DisableByValue(ctx context.Context, t Type, v string) error {
 
 	if err == nil {
 		// NOTE: maintain a record of consent/dissent
-		logctx := log.WithFields(ctx, log.Fields{
+		logCtx := log.WithFields(ctx, log.Fields{
 			"contactMethodID": id,
 		})
 
-		log.Logf(logctx, "Contact method STOP received.")
+		log.Logf(logCtx, "Contact method STOP received.")
 	}
 	return err
 }

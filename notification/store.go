@@ -272,11 +272,11 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	}
 
 	// NOTE: maintain a record of consent/dissent
-	logctx := log.WithFields(ctx, log.Fields{
+	logCtx := log.WithFields(ctx, log.Fields{
 		"contactMethodID": cmID,
 	})
 
-	log.Logf(logctx, "Contact method ENABLED/VERIFIED.")
+	log.Logf(logCtx, "Contact method ENABLED/VERIFIED.")
 
 	return nil
 }
