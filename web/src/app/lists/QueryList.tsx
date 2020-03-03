@@ -137,7 +137,7 @@ export default function QueryList(props: {
           key={urlKey}
           items={items}
           loadMore={loadMore}
-          isLoading={loading}
+          isLoading={!data && loading}
         />
       </Grid>
     </Grid>

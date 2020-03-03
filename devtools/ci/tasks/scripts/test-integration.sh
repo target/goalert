@@ -2,6 +2,7 @@
 
 export GOALERT_DB_URL="$DB_URL"
 export CYPRESS_DB_URL="$DB_URL"
+export DBNAME="$DB_URL"
 set -x
 start_postgres
 
@@ -16,7 +17,7 @@ then
   DEBUG_SUFFIX=mobile
 fi
 
-trap "stop_postgres; tar czf ../../debug/debug-$(date +%Y%m%d%H%M%S)-$COMMIT-$DEBUG_SUFFIX.tgz cypress" EXIT
+trap "pg_dump >cypress/db.sql; cp -r logs cypress/; stop_postgres; tar czf ../../debug/debug-$(date +%Y%m%d%H%M%S)-$COMMIT-$DEBUG_SUFFIX.tgz cypress" EXIT
 
 mockslack \
   -client-id=000000000000.000000000000 \
@@ -28,7 +29,9 @@ mockslack \
 simpleproxy -addr=localhost:3030 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042 >logs/simpleproxy.log 2>&1 &
 
 goalert migrate
-goalert --api-only --listen=:3042 --slack-base-url=http://127.0.0.1:3046/slack >logs/goalert.log 2>&1 &
+goalert --listen=:3042 --slack-base-url=http://127.0.0.1:3046/slack >logs/goalert.log 2>&1 &
+
+echo "$!" >backend.pid
 
 if [ "$MOBILE" = "1" ]
 then
