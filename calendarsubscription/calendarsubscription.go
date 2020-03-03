@@ -2,6 +2,8 @@ package calendarsubscription
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"html/template"
 	"strings"
 	"time"
@@ -35,6 +37,7 @@ type iCalRenderData struct {
 	ReminderMinutes []int
 	Version         string
 	GeneratedAt     time.Time
+	EventUIDs       []string
 }
 
 // RFC can be found at https://tools.ietf.org/html/rfc5545
@@ -45,8 +48,10 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 {{- $mins := .ReminderMinutes }}
 {{- $genTime := .GeneratedAt }}
-{{- range .Shifts}}
+{{- $eventUIDs := .EventUIDs}}
+{{- range $i, $s := .Shifts}}
 BEGIN:VEVENT
+UID:{{index $eventUIDs $i}}
 SUMMARY:On-Call Shift
 DTSTAMP:{{$genTime.UTC.Format "20060102T150405Z"}}
 DTSTART:{{.Start.UTC.Format "20060102T150405Z"}}
@@ -87,7 +92,22 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 }
 
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
-	data := iCalRenderData{Shifts: shifts, ReminderMinutes: cs.Config.ReminderMinutes, Version: version.GitVersion(), GeneratedAt: generatedAt}
+	var eventUIDs []string
+	for _, s := range shifts {
+		t := s.End
+		if s.Truncated {
+			t = s.Start
+		}
+		sum := sha256.Sum256([]byte(s.UserID + cs.ScheduleID + t.Format(time.RFC3339)))
+		eventUIDs = append(eventUIDs, hex.EncodeToString(sum[:]))
+	}
+	data := iCalRenderData{
+		Shifts:          shifts,
+		ReminderMinutes: cs.Config.ReminderMinutes,
+		Version:         version.GitVersion(),
+		GeneratedAt:     generatedAt,
+		EventUIDs:       eventUIDs,
+	}
 	buf := bytes.NewBuffer(nil)
 
 	err := iCalTemplate.Execute(buf, data)
