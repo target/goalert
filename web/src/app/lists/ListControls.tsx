@@ -75,7 +75,7 @@ export default function ListControls(props: {
   // reset checkedItems array on unmount
   useEffect(() => {
     return () => {
-      setCheckedItems([])
+      setNone()
     }
   }, [])
 
@@ -84,15 +84,16 @@ export default function ListControls(props: {
   }
 
   function setNone() {
-    return setCheckedItems([])
+    setCheckedItems([])
   }
 
   function handleToggleSelectAll() {
     // if none are checked, set all
     if (checkedItems.length === 0) {
-      return setAll()
+      setAll()
+    } else {
+      setNone()
     }
-    return setNone()
   }
 
   return (
@@ -107,7 +108,7 @@ export default function ListControls(props: {
     </Grid>
   )
 
-  function renderActions() {
+  function renderActions(): ReactElement | null {
     if (!actions) return null
 
     return (

@@ -164,10 +164,10 @@ export function PaginatedList(props: PaginatedListProps) {
       (nextPage >= pageCount || (nextPage > 1 && nextPage + 1 === pageCount)) &&
       loadMore
     )
-      loadMore()
+      loadMore(itemsPerPage * 2)
   }
 
-  function renderNoResults() {
+  function renderNoResults(): ReactElement {
     return (
       <ListItem>
         <ListItemText
@@ -178,7 +178,7 @@ export function PaginatedList(props: PaginatedListProps) {
     )
   }
 
-  function renderItem(item: PaginatedListItemProps, idx: number) {
+  function renderItem(item: PaginatedListItemProps, idx: number): ReactElement {
     let favIcon = <ListItemSecondaryAction />
 
     if (item.isFavorite) {
@@ -189,13 +189,6 @@ export function PaginatedList(props: PaginatedListProps) {
           </Avatar>
         </ListItemSecondaryAction>
       )
-    }
-
-    // must be explicitly set when using, in accordance with TS definitions
-    const urlProps = item.url && {
-      component: Link,
-      button: true as any,
-      to: absURL(item.url),
     }
 
     let checkbox = null
@@ -223,6 +216,13 @@ export function PaginatedList(props: PaginatedListProps) {
       )
     }
 
+    // must be explicitly set when using, in accordance with TS definitions
+    const urlProps = item.url && {
+      component: Link,
+      button: true as any,
+      to: absURL(item.url),
+    }
+
     return (
       <ListItem
         className={item.className}
@@ -241,21 +241,21 @@ export function PaginatedList(props: PaginatedListProps) {
     )
   }
 
-  function renderListItems() {
+  function renderListItems(): ReactElement | ReactElement[] {
     if (pageCount === 0 && !isLoading) return renderNoResults()
 
-    let renderedItems: any = items
+    let newItems: Array<PaginatedListItemProps> = items.slice()
     if (!infiniteScroll) {
-      renderedItems = items.slice(
+      newItems = items.slice(
         page * itemsPerPage,
         (page + 1) * itemsPerPage,
       )
     }
-    renderedItems = renderedItems.map(renderItem)
+    let renderedItems: ReactElement[] = newItems.map(renderItem)
 
     // Display full list when loading
     if (!noPlaceholder) {
-      while (isLoading && renderedItems.length < itemsPerPage) {
+      while (isLoading && newItems.length < itemsPerPage) {
         renderedItems.push(
           <LoadingItem
             dense={isWidthUp('md', width)}
@@ -285,7 +285,7 @@ export function PaginatedList(props: PaginatedListProps) {
     </Grid>
   )
 
-  function renderList() {
+  function renderList(): ReactElement {
     return (
       <List data-cy='apollo-list'>
         {listHeader && (
@@ -304,7 +304,7 @@ export function PaginatedList(props: PaginatedListProps) {
     )
   }
 
-  function renderAsInfiniteScroll() {
+  function renderAsInfiniteScroll(): ReactElement {
     const len = items.length
 
     // explicitly set props to load more, if loader function present
