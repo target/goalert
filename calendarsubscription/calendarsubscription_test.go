@@ -12,9 +12,12 @@ import (
 func TestCalendarSubscription_RenderICalFromShifts(t *testing.T) {
 	var cs CalendarSubscription
 	cs.Config.ReminderMinutes = []int{5, 10}
-	shifts := []oncall.Shift{{Start: time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC), End: time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC)}}
+	shifts := []oncall.Shift{{
+		UserID: "01020304-0506-0708-090a-0b0c0d0e0f10",
+		Start:  time.Date(2020, 1, 1, 8, 0, 0, 0, time.UTC),
+		End:    time.Date(2020, 1, 15, 8, 0, 0, 0, time.UTC),
+	}}
 	generatedAt := time.Date(2020, 1, 1, 5, 0, 0, 0, time.UTC)
-	cs.UserID = "01020304-0506-0708-090a-0b0c0d0e0f10"
 	cs.ScheduleID = "100f0e0d-0c0b-0a09-0807-060504030201"
 	iCal, err := cs.renderICalFromShifts(shifts, generatedAt)
 	assert.NoError(t, err)

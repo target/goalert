@@ -48,10 +48,10 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 {{- $mins := .ReminderMinutes }}
 {{- $genTime := .GeneratedAt }}
-{{- $euid := .EventUIDs}}
-{{- range $index, $element := .Shifts}}
+{{- $eventUIDs := .EventUIDs}}
+{{- range $i, $s := .Shifts}}
 BEGIN:VEVENT
-UID:{{index $euid $index}}
+UID:{{index $eventUIDs $i}}
 SUMMARY:On-Call Shift
 DTSTAMP:{{$genTime.UTC.Format "20060102T150405Z"}}
 DTSTART:{{.Start.UTC.Format "20060102T150405Z"}}
@@ -92,12 +92,18 @@ func (cs CalendarSubscription) Normalize() (*CalendarSubscription, error) {
 }
 
 func (cs CalendarSubscription) renderICalFromShifts(shifts []oncall.Shift, generatedAt time.Time) ([]byte, error) {
-	var uids []string
-	for i := 0; i < len(shifts); i++ {
-		sum := sha256.Sum256([]byte(cs.UserID + cs.ScheduleID + shifts[i].Start.String() + shifts[i].End.String()))
-		uids = append(uids, hex.EncodeToString(sum[:]))
+	var eventUIDs []string
+	for _, s := range shifts {
+		sum := sha256.Sum256([]byte(s.UserID + cs.ScheduleID + s.Start.String() + s.End.String()))
+		eventUIDs = append(eventUIDs, hex.EncodeToString(sum[:]))
 	}
-	data := iCalRenderData{Shifts: shifts, ReminderMinutes: cs.Config.ReminderMinutes, Version: version.GitVersion(), GeneratedAt: generatedAt, EventUIDs: uids}
+	data := iCalRenderData{
+		Shifts:          shifts,
+		ReminderMinutes: cs.Config.ReminderMinutes,
+		Version:         version.GitVersion(),
+		GeneratedAt:     generatedAt,
+		EventUIDs:       eventUIDs,
+	}
 	buf := bytes.NewBuffer(nil)
 
 	err := iCalTemplate.Execute(buf, data)
