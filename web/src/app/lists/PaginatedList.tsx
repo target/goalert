@@ -26,6 +26,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { Checkbox, CheckboxProps, makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
+import {ControlledPaginatedListItemProps} from "./ControlledPaginatedList";
 
 // gray boxes on load
 // disable overflow
@@ -67,22 +68,18 @@ export interface PaginatedListProps {
   // listHeader will be displayed at the top of the list
   listHeader?: ReactNode
 
-  items: PaginatedListItemProps[]
 
-  // renders checkboxes for ListControls actions next to each list item
-  // NOTE: this will replace any icons set on each item with a checkbox
-  withCheckboxes?: boolean
+  items: PaginatedListItemProps[] | ControlledPaginatedListItemProps[]
+  itemsPerPage?: number
 
-  itemsPerPage: number
-
-  isLoading?: boolean
-  loadMore?: (numberToLoad?: number) => void
+  isLoading?: boolean;
+  loadMore?: (numberToLoad?: number) => void;
 
   // disables the placeholder display during loading
-  noPlaceholder?: boolean
+  noPlaceholder?: boolean;
 
   // provide a custom message to display if there are no results
-  emptyMessage?: string
+  emptyMessage?: string;
 
   // if set, loadMore will be called when the user
   // scrolls to the bottom of the list. appends list
@@ -91,16 +88,15 @@ export interface PaginatedListProps {
 }
 
 export interface PaginatedListItemProps {
-  id: string
   url?: string
   title: string
   subText?: string
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
-  className?: string
 
-  CheckboxProps?: CheckboxProps
+  // todo: needed?
+  className?: string
 }
 
 export function PaginatedList(props: PaginatedListProps) {
@@ -113,7 +109,6 @@ export function PaginatedList(props: PaginatedListProps) {
     loadMore,
     emptyMessage = 'No results',
     noPlaceholder,
-    withCheckboxes,
   } = props
 
   const classes = useStyles()
@@ -191,31 +186,6 @@ export function PaginatedList(props: PaginatedListProps) {
       )
     }
 
-    let checkbox = null
-    if (withCheckboxes) {
-      const checked = checkedItems.includes(item.id)
-      checkbox = (
-        <Checkbox
-          checked={checked}
-          data-cy={'item-' + item.id}
-          onClick={e => {
-            e.stopPropagation()
-            e.preventDefault()
-
-            if (checked) {
-              const idx = checkedItems.indexOf(item.id)
-              const newItems = checkedItems.slice()
-              newItems.splice(idx, 1)
-              setCheckedItems(newItems)
-            } else {
-              setCheckedItems([...checkedItems, item.id])
-            }
-          }}
-          {...item.CheckboxProps}
-        />
-      )
-    }
-
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
       component: Link,
@@ -230,8 +200,7 @@ export function PaginatedList(props: PaginatedListProps) {
         key={'list_' + idx}
         {...urlProps}
       >
-        {checkbox && <ListItemIcon>{checkbox}</ListItemIcon>}
-        {item.icon && !checkbox && <ListItemIcon>{item.icon}</ListItemIcon>}
+        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText primary={item.title} secondary={item.subText} />
         {favIcon}
         {item.action && (

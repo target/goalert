@@ -1,4 +1,4 @@
-import React, { ReactElement, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { useQuery } from '@apollo/react-hooks'
 import { Grid } from '@material-ui/core'
@@ -8,7 +8,7 @@ import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
 import { fieldAlias } from '../util/graphql'
 import { GraphQLClientWithErrors } from '../apollo'
-import ListControls, { CheckboxActions } from './ListControls'
+import ControlledPaginatedList, {ControlledPaginatedListProps} from "./ControlledPaginatedList";
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -46,21 +46,23 @@ const buildFetchMore = (
   })
 }
 
-export default function QueryList(props: {
-  // query must provide a single field that returns nodes
-  //
-  // For example:
-  // ```graphql
-  // query Services {
-  //   services {
-  //     nodes {
-  //       id
-  //       name
-  //       description
-  //     }
-  //   }
-  // }
-  // ```
+export interface QueryListProps extends ControlledPaginatedListProps {
+  /*
+   * query must provide a single field that returns nodes
+   *
+   * For example:
+   *   ```graphql
+   *   query Services {
+   *     services {
+   *       nodes {
+   *         id
+   *         name
+   *         description
+   *       }
+   *     }
+   *   }
+   *  ```
+   */
   query: object
 
   // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
@@ -69,21 +71,9 @@ export default function QueryList(props: {
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
   variables?: any
+}
 
-  // filter results, rendered to
-  // the left of the search text field
-  filter?: ReactElement
-
-  // disables rendering list controls component with URL controlled search
-  noSearch?: boolean
-
-  // filters additional to search, set in the search text field
-  searchAdornment?: ReactElement
-
-  // renders list controls component with checkbox actions
-  // NOTE: this will replace any icons set on each item with a checkbox
-  actions?: CheckboxActions[]
-}) {
+export default function QueryList(props: QueryListProps) {
   const {
     mapDataNode = (n: ObjectMap) => ({
       title: n.name,
@@ -91,10 +81,7 @@ export default function QueryList(props: {
       subText: n.description,
     }),
     query,
-    filter,
-    searchAdornment,
     variables = {},
-    actions,
     noSearch,
     ...listProps
   } = props
@@ -137,30 +124,32 @@ export default function QueryList(props: {
     )
   }
 
-  return (
-    <Grid container spacing={2}>
-      {/* Such that filtering/searching isn't re-rendered with the page content */}
-      {(actions || !noSearch) && (
-        <ListControls
-          actions={actions}
-          filter={filter}
-          itemIDs={items.map((i: any) => i.id)}
-          searchAdornment={searchAdornment}
-          withSearch={!noSearch}
-        />
-      )}
-
-      <Grid item xs={12}>
-        <PaginatedList
+  if (Boolean(props.checkboxActions) || !props.noSearch) {
+    return (
+      <Grid container spacing={2}>
+        <ControlledPaginatedList
           {...listProps}
-          key={urlKey}
           items={items}
           itemsPerPage={queryVariables.input.first}
           loadMore={loadMore}
           isLoading={!data && loading}
-          withCheckboxes={Boolean(actions)}
         />
       </Grid>
-    </Grid>
-  )
+    )
+  } else {
+    return (
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <PaginatedList
+            {...listProps}
+            key={urlKey}
+            items={items}
+            itemsPerPage={queryVariables.input.first}
+            loadMore={loadMore}
+            isLoading={!data && loading}
+          />
+        </Grid>
+      </Grid>
+    )
+  }
 }
