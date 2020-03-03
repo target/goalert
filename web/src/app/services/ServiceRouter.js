@@ -46,7 +46,6 @@ export default function ServiceRouter() {
         query={query}
         variables={{ input: { favoritesFirst: true } }}
         mapDataNode={n => ({
-          id: n.id,
           title: n.name,
           subText: n.description,
           url: n.id,

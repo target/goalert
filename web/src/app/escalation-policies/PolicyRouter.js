@@ -28,7 +28,6 @@ export default function PolicyRouter() {
     <SimpleListPage
       query={query}
       mapDataNode={n => ({
-        id: n.id,
         title: n.name,
         subText: n.description,
         url: n.id,
