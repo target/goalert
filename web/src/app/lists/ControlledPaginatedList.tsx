@@ -78,7 +78,7 @@ export interface ControlledPaginatedListAction {
 
 export interface ControlledPaginatedListItemProps
   extends PaginatedListItemProps {
-  // id to be passed to the action callback
+  // used to track checked items
   id: string | number
 
   /*
