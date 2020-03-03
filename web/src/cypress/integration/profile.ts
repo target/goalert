@@ -14,7 +14,7 @@ function testProfile(screen: ScreenFormat) {
       .addNotificationRule()
       .then(rule => {
         nr = rule
-        cm = rule.cm
+        cm = rule.contactMethod
         return cy.visit('/profile')
       }),
   )
@@ -30,6 +30,36 @@ function testProfile(screen: ScreenFormat) {
       'not.have.value',
       cm.id,
     )
+  })
+
+  it('should list and link on-call services', () => {
+    const name = 'SVC ' + c.word({ length: 8 })
+
+    return cy
+      .createService({ name })
+      .then(svc => {
+        return cy
+          .fixture('profile')
+          .then((p: Profile) => {
+            return cy.createEPStep({
+              epID: svc.epID,
+              targets: [{ type: 'user', id: p.id }],
+            })
+          })
+          .task('engine:trigger')
+          .then(() => svc.id)
+      })
+      .then(svcID => {
+        cy.get('body')
+          .contains('a', 'On-Call')
+          .click()
+
+        cy.get('body')
+          .contains('a', name)
+          .click()
+
+        cy.url().should('eq', Cypress.config().baseUrl + '/services/' + svcID)
+      })
   })
 
   describe('Contact Methods', () => {
@@ -139,7 +169,6 @@ function testProfile(screen: ScreenFormat) {
       const value = '810' + c.integer({ min: 3000000, max: 3999999 })
       const name = 'CM SM ' + c.word({ length: 8 })
       const type = c.pickone(['SMS', 'VOICE'])
-      const fakeCountryCode = '+555'
 
       cy.pageFab('Contact')
       cy.dialogTitle('New Contact Method')

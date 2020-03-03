@@ -2,8 +2,9 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioVoice checks that a test voice call is processed.
@@ -22,7 +23,7 @@ func TestTwilioVoice(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -31,17 +32,11 @@ func TestTwilioVoice(t *testing.T) {
 		}
 	}
 
-	cm1 := h.UUID("cm1")
-
 	doQL(fmt.Sprintf(`
 		mutation {
-			sendContactMethodTest(input:{
-				contact_method_id:  "%s",
-			}){
-				id
-			}
+			testContactMethod(id: "%s")
 		}
-		`, cm1))
+		`, h.UUID("cm1")))
 
 	h.Twilio().Device(h.Phone("1")).ExpectVoice("test")
 }

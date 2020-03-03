@@ -35,9 +35,9 @@ function graphql(
     }
     if (data.errors && data.errors[0]) {
       // causes error message to be shown
-      expect(data.errors[0].message).to.be.empty
+      expect(data.errors[0].message).to.be.undefined
     }
-    expect(data.errors, 'graphql errors').to.be.empty
+    expect(data.errors, 'graphql errors').to.be.undefined
 
     return data.data
   })

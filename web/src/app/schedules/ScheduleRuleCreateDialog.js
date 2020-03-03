@@ -71,7 +71,7 @@ export default function ScheduleRuleCreateDialog(props) {
       title={`Add ${startCase(targetType)} to Schedule`}
       errors={nonFieldErrors(mutationStatus.error)}
       maxWidth='md'
-      loading={queryStatus.loading || mutationStatus.loading}
+      loading={(!data && queryStatus.loading) || mutationStatus.loading}
       onSubmit={() => {
         mutate()
       }}
@@ -79,7 +79,7 @@ export default function ScheduleRuleCreateDialog(props) {
         <ScheduleRuleForm
           targetType={targetType}
           scheduleID={scheduleID}
-          disabled={queryStatus.loading || mutationStatus.loading}
+          disabled={(!data && queryStatus.loading) || mutationStatus.loading}
           errors={fieldErrors(mutationStatus.error)}
           value={value}
           onChange={setValue}

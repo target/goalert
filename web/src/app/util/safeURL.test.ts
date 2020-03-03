@@ -1,9 +1,14 @@
 import { safeURL } from './safeURL'
 
 describe('safeURL', () => {
-  const checkIt = (desc, { true: trueVals, false: falseVals }) => {
+  interface RunValuesObj {
+    true: string[]
+    false: string[]
+  }
+
+  const checkIt = (desc: string, runValues: RunValuesObj) => {
     describe(desc, () => {
-      const run = (vals, exp) =>
+      const run = (vals: string[], exp: boolean) =>
         (vals || []).forEach(v => {
           const parts = v
             .replace(/^\[/, '')
@@ -17,8 +22,8 @@ describe('safeURL', () => {
           })
         })
 
-      run(trueVals, true)
-      run(falseVals, false)
+      run(runValues.true, true)
+      run(runValues.false, false)
     })
   }
 

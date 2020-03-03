@@ -2914,7 +2914,7 @@ input UpdateUserOverrideInput {
 }
 
 input CreateUserOverrideInput {
-  scheduleID: ID!
+  scheduleID: ID
 
   start: ISOTimestamp!
   end: ISOTimestamp!
@@ -2930,6 +2930,7 @@ input CreateScheduleInput {
   favorite: Boolean
 
   targets: [ScheduleTargetInput!]
+  newUserOverrides: [CreateUserOverrideInput!]
 }
 
 input ScheduleTargetInput {
@@ -14996,6 +14997,12 @@ func (ec *executionContext) unmarshalInputCreateScheduleInput(ctx context.Contex
 			if err != nil {
 				return it, err
 			}
+		case "newUserOverrides":
+			var err error
+			it.NewUserOverrides, err = ec.unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -15178,7 +15185,7 @@ func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Co
 		switch k {
 		case "scheduleID":
 			var err error
-			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			it.ScheduleID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -21555,6 +21562,26 @@ func (ec *executionContext) unmarshalOCreateUserNotificationRuleInput2ᚖgithub�
 	}
 	res, err := ec.unmarshalOCreateUserNotificationRuleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserNotificationRuleInput(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInputᚄ(ctx context.Context, v interface{}) ([]CreateUserOverrideInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]CreateUserOverrideInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNCreateUserOverrideInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOEscalationPolicy2githubᚗcomᚋtargetᚋgoalertᚋescalationᚐPolicy(ctx context.Context, sel ast.SelectionSet, v escalation.Policy) graphql.Marshaler {

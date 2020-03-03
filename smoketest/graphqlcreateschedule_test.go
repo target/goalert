@@ -3,8 +3,9 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLCreateSchedule tests that all steps for creating a schedule (without default rotation) are carried out without any errors.
@@ -21,7 +22,7 @@ func TestGraphQLCreateSchedule(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -40,39 +41,57 @@ func TestGraphQLCreateSchedule(t *testing.T) {
 
 	var sched struct {
 		CreateSchedule struct {
-			ID        string
-			Rotations []struct{ ID string }
+			ID      string
+			Name    string
+			Targets []struct {
+				ScheduleID string
+				Target     struct{ ID string }
+			}
 		}
 	}
 
-	doQL(fmt.Sprintf(`
-		mutation {
-			createSchedule(input:{
-				name: "default_testing",
-				description: "default testing",
-				time_zone: "America/Chicago",
-			}){
-				id
-				rotations {
-					id
+	doQL(`mutation {
+					createSchedule(
+						input: {
+							name: "defsslt"
+							description: "default testing"
+							timeZone: "America/Chicago"
+						}
+					) {
+						id
+						name
+						targets {
+							scheduleID
+							target {
+								id
+							}
+						}
+					}
 				}
-			}
-		}
-	`), &sched)
+	`, &sched)
 
 	sID := sched.CreateSchedule.ID
 	t.Log("Created Schedule ID :", sID)
 
 	var newSched struct {
 		Schedule struct {
-			Rotations []struct{}
+			ID      string
+			Name    string
+			Targets []struct {
+				ScheduleID string
+				Target     struct{ ID string }
+			}
 		}
 	}
+
 	doQL(fmt.Sprintf(`
 		query {
 			schedule(id: "%s") {
-				rotations {
-					id
+				targets {
+					target {
+						id
+						type
+					}
 				}
 			}
 		}
@@ -81,7 +100,7 @@ func TestGraphQLCreateSchedule(t *testing.T) {
 
 	t.Log("Number of rotations:", newSched)
 
-	if len(newSched.Schedule.Rotations) != 0 {
-		t.Errorf("got %d rotations; want 0", len(newSched.Schedule.Rotations))
+	if len(newSched.Schedule.Targets) != 0 {
+		t.Errorf("got %d rotations; want 0", len(newSched.Schedule.Targets))
 	}
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
-import { memoize, omit, isEmpty } from 'lodash-es'
+import _, { memoize, omit } from 'lodash-es'
 import MaterialSelect from './MaterialSelect'
 import { mergeFields, fieldAlias, mapInputVars } from '../util/graphql'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -96,13 +96,8 @@ function makeUseValues(query, mapNode) {
 
     const result = value.map((v, i) => {
       const name = 'data' + i
-      if (
-        !data ||
-        !data[name] ||
-        (typeof data[name] === 'object' && isEmpty(data[name]))
-      ) {
+      if (!data || _.isEmpty(data[name]))
         return { value: v, label: 'Loading...' }
-      }
 
       return mapNode(data[name])
     })
@@ -141,7 +136,7 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       result = data.data.nodes.map(mapNode)
     }
 
-    return [result, { loading, error }]
+    return [result, { loading: !data && loading, error }]
   }
 }
 

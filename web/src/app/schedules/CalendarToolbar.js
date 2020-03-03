@@ -8,7 +8,7 @@ import {
   makeStyles,
   Typography,
 } from '@material-ui/core'
-import moment from 'moment'
+import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
 
 const useStyles = makeStyles(theme => ({
@@ -52,26 +52,25 @@ export default function CalendarToolbar(props) {
   const weekly = urlParams('weekly', false)
 
   const handleTodayClick = e => {
-    props.onNavigate(e, moment().toDate())
+    props.onNavigate(e, DateTime.local().toJSDate())
   }
 
   const handleBackClick = e => {
-    const nextDate = weekly
-      ? moment(date)
-          .clone()
-          .subtract(1, 'week')
-      : moment(date)
-          .clone()
-          .subtract(1, 'month')
+    const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+    const nextDate = DateTime.fromJSDate(date)
+      .minus(timeUnit)
+      .toJSDate()
 
-    props.onNavigate(e, nextDate.toDate())
+    props.onNavigate(e, nextDate)
   }
 
   const handleNextClick = e => {
-    // either month or week
-    const dateCopy = moment(date).clone()
-    const nextDate = weekly ? dateCopy.add(1, 'week') : dateCopy.add(1, 'month')
-    props.onNavigate(e, nextDate.toDate())
+    const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+    const nextDate = DateTime.fromJSDate(date)
+      .plus(timeUnit)
+      .toJSDate()
+
+    props.onNavigate(e, nextDate)
   }
 
   const handleMonthViewClick = () => {
