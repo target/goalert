@@ -52,7 +52,7 @@ export default function CreateAlertServiceListItem(props) {
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
-            <AppLink to={serviceURL} target='_blank' rel='noopener noreferrer'>
+            <AppLink to={serviceURL} newTab>
               {service.name}
             </AppLink>
           </Typography>
@@ -61,7 +61,7 @@ export default function CreateAlertServiceListItem(props) {
           </Typography>
         </span>
 
-        <AppLink to={serviceURL} target='_blank' rel='noopener noreferrer'>
+        <AppLink to={serviceURL} newTab>
           <OpenInNewIcon fontSize='small' />
         </AppLink>
       </ListItemText>

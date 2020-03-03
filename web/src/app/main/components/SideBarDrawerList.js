@@ -141,15 +141,14 @@ export default class SideBarDrawerList extends React.PureComponent {
 
   renderFeedback(url) {
     return (
-      <a
-        href={url}
+      <AppLink
+        to={url}
         className={this.props.classes.nav}
-        target='_blank'
-        rel='noopener noreferrer'
+        newTab
         data-cy='feedback-link'
       >
         {this.renderSidebarItem(FeedbackIcon, 'Feedback')}
-      </a>
+      </AppLink>
     )
   }
 

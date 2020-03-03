@@ -6,11 +6,17 @@ import joinURL from './joinURL'
 
 interface AppLinkProps extends LinkProps {
   to: string
+  newTab?: boolean
 }
 
 export function AppLink(props: AppLinkProps) {
-  const { to: _to, ...other } = props
+  const { to: _to, newTab, ...other } = props
   const path = useSelector(urlPathSelector)
+
+  if (newTab) {
+    other.target = '_blank'
+    other.rel = 'noopener noreferrer'
+  }
 
   if (/^(mailto:|https?:\/\/)/.test(_to)) {
     return <a href={_to} {...other} />
