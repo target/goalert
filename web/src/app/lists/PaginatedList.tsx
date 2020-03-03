@@ -26,7 +26,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { Checkbox, CheckboxProps, makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
-import {ControlledPaginatedListItemProps} from "./ControlledPaginatedList";
+import { ControlledPaginatedListItemProps } from './ControlledPaginatedList'
 
 // gray boxes on load
 // disable overflow
@@ -68,18 +68,17 @@ export interface PaginatedListProps {
   // listHeader will be displayed at the top of the list
   listHeader?: ReactNode
 
-
   items: PaginatedListItemProps[] | ControlledPaginatedListItemProps[]
   itemsPerPage?: number
 
-  isLoading?: boolean;
-  loadMore?: (numberToLoad?: number) => void;
+  isLoading?: boolean
+  loadMore?: (numberToLoad?: number) => void
 
   // disables the placeholder display during loading
-  noPlaceholder?: boolean;
+  noPlaceholder?: boolean
 
   // provide a custom message to display if there are no results
-  emptyMessage?: string;
+  emptyMessage?: string
 
   // if set, loadMore will be called when the user
   // scrolls to the bottom of the list. appends list
@@ -215,10 +214,7 @@ export function PaginatedList(props: PaginatedListProps) {
 
     let newItems: Array<PaginatedListItemProps> = items.slice()
     if (!infiniteScroll) {
-      newItems = items.slice(
-        page * itemsPerPage,
-        (page + 1) * itemsPerPage,
-      )
+      newItems = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
     }
     let renderedItems: ReactElement[] = newItems.map(renderItem)
 

@@ -8,7 +8,9 @@ import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
 import { fieldAlias } from '../util/graphql'
 import { GraphQLClientWithErrors } from '../apollo'
-import ControlledPaginatedList, {ControlledPaginatedListProps} from "./ControlledPaginatedList";
+import ControlledPaginatedList, {
+  ControlledPaginatedListProps,
+} from './ControlledPaginatedList'
 
 // any && object type map
 // used for objects with unknown key/values from parent

@@ -1,13 +1,24 @@
-import react, {ReactElement, useEffect, useState} from "react";
-import {Checkbox, Grid, Icon, IconButton, makeStyles, Tooltip} from "@material-ui/core";
-import {PaginatedList, PaginatedListItemProps, PaginatedListProps} from "./PaginatedList";
-import React from "react";
-import {useSelector} from "react-redux";
-import {urlKeySelector} from "../selectors/url";
-import classnames from "classnames";
-import OtherActions from "../util/OtherActions";
-import {ArrowDropDown} from "@material-ui/icons";
-import Search from "../util/Search";
+import react, { ReactElement, useEffect, useState } from 'react'
+import {
+  Checkbox,
+  Grid,
+  Icon,
+  IconButton,
+  makeStyles,
+  Tooltip,
+} from '@material-ui/core'
+import {
+  PaginatedList,
+  PaginatedListItemProps,
+  PaginatedListProps,
+} from './PaginatedList'
+import React from 'react'
+import { useSelector } from 'react-redux'
+import { urlKeySelector } from '../selectors/url'
+import classnames from 'classnames'
+import OtherActions from '../util/OtherActions'
+import { ArrowDropDown } from '@material-ui/icons'
+import Search from '../util/Search'
 
 const useStyles = makeStyles({
   actionsContainer: {
@@ -59,13 +70,14 @@ export interface ControlledPaginatedListAction {
   label: string
 
   // Callback that will be passed a list of selected items
-  onClick: (selectedIDs: (string|number)[]) => void
+  onClick: (selectedIDs: (string | number)[]) => void
 
   ariaLabel?: string
   dataCy?: string
 }
 
-export interface ControlledPaginatedListItemProps extends PaginatedListItemProps {
+export interface ControlledPaginatedListItemProps
+  extends PaginatedListItemProps {
   // id to be passed to the action callback
   id: string | number
 
@@ -78,9 +90,18 @@ export interface ControlledPaginatedListItemProps extends PaginatedListItemProps
   selectable?: boolean
 }
 
-export default function ControlledPaginatedList (props: ControlledPaginatedListProps) {
+export default function ControlledPaginatedList(
+  props: ControlledPaginatedListProps,
+) {
   const classes = useStyles()
-  const { checkboxActions, filter, noSearch, searchAdornment, items, ...listProps } = props
+  const {
+    checkboxActions,
+    filter,
+    noSearch,
+    searchAdornment,
+    items,
+    ...listProps
+  } = props
 
   const [checkedItems, setCheckedItems] = useState<Array<string | number>>([])
   const urlKey = useSelector(urlKeySelector)
