@@ -63,7 +63,7 @@ export default class AlertDetailPage extends Component {
         pollInterval={POLL_INTERVAL}
       >
         {({ loading, error, data, startPolling }) => {
-          if (loading) return <Spinner />
+          if (!data && loading) return <Spinner />
           if (error) {
             startPolling(POLL_ERROR_INTERVAL)
             return <GenericError error={error.message} />

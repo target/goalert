@@ -94,7 +94,7 @@ export default class Query extends React.PureComponent {
       return this.props.render(args)
     }
 
-    if (loading) {
+    if (!data && loading) {
       if (this.props.partialQuery) {
         try {
           const data = this.props.client.readQuery({
