@@ -52,7 +52,9 @@ METHOD:PUBLISH
 {{- range $i, $s := .Shifts}}
 BEGIN:VEVENT
 UID:{{index $eventUIDs $i}}
-SUMMARY:On-Call Shift
+SUMMARY:On-Call Shift{{if $s.Truncated}} Begins*
+DESCRIPTION:The end time of this shift is unknown and will continue beyond what is displayed.
+{{- end }}
 DTSTAMP:{{$genTime.UTC.Format "20060102T150405Z"}}
 DTSTART:{{.Start.UTC.Format "20060102T150405Z"}}
 DTEND:{{.End.UTC.Format "20060102T150405Z"}}

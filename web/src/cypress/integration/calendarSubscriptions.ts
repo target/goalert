@@ -97,30 +97,25 @@ function testSubs(screen: ScreenFormat) {
         'You have 2 active subscriptions for this schedule'
 
       const caption = '[data-cy="subscribe-btn-txt"]'
-      const captionLoading = '[data-cy="subscribe-btn-txt-loading"]'
 
-      cy.get(captionLoading).should('not.exist')
-      cy.get(caption).should('contain', defaultCptn)
-      cy.get(caption).should('not.contain', oneSubCptn)
-      cy.get(caption).should('not.contain', multipleSubsCptn)
+      cy.get(caption)
+        .should('contain', defaultCptn)
+        .should('not.contain', oneSubCptn)
+        .should('not.contain', multipleSubsCptn)
 
-      cy.createCalendarSubscription({ scheduleID: sched.id }).then(() => {
-        cy.reload()
-        cy.get(captionLoading).should('not.exist')
+      cy.createCalendarSubscription({ scheduleID: sched.id })
 
-        cy.get(caption).should('not.contain', defaultCptn)
-        cy.get(caption).should('contain', oneSubCptn)
-        cy.get(caption).should('not.contain', multipleSubsCptn)
+      cy.get(caption)
+        .should('not.contain', defaultCptn)
+        .should('contain', oneSubCptn)
+        .should('not.contain', multipleSubsCptn)
 
-        cy.createCalendarSubscription({ scheduleID: sched.id }).then(() => {
-          cy.reload()
-          cy.get(captionLoading).should('not.exist')
+      cy.createCalendarSubscription({ scheduleID: sched.id })
 
-          cy.get(caption).should('not.contain', defaultCptn)
-          cy.get(caption).should('not.contain', oneSubCptn)
-          cy.get(caption).should('contain', multipleSubsCptn)
-        })
-      })
+      cy.get(caption)
+        .should('not.contain', defaultCptn)
+        .should('not.contain', oneSubCptn)
+        .should('contain', multipleSubsCptn)
     })
   })
 
