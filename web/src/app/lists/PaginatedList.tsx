@@ -1,6 +1,5 @@
 import React, { ReactNode, useState, ReactElement } from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
-import { useSelector } from 'react-redux'
 
 import Avatar from '@material-ui/core/Avatar'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -16,16 +15,15 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
-import { Link } from 'react-router-dom'
 import useWidth from '../util/useWidth'
 
 import { ITEMS_PER_PAGE } from '../config'
-import { absURLSelector } from '../selectors/url'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { Checkbox, CheckboxProps, makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { ControlledPaginatedListItemProps } from './ControlledPaginatedList'
+import { AppLink } from '../util/AppLink'
 
 // gray boxes on load
 // disable overflow
@@ -179,9 +177,9 @@ export function PaginatedList(props: PaginatedListProps) {
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
-      component: Link,
+      component: AppLink,
       button: true as any,
-      to: absURL(item.url),
+      to: item.url,
     }
 
     return (
