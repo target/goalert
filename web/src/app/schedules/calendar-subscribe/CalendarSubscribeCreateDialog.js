@@ -5,7 +5,7 @@ import gql from 'graphql-tag'
 import FormDialog from '../../dialogs/FormDialog'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles, Typography } from '@material-ui/core'
 import { CheckCircleOutline as SuccessIcon } from '@material-ui/icons'
 import CalenderSuccessForm from './CalendarSuccessForm'
 
@@ -23,7 +23,6 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(1),
   },
   successTitle: {
-    color: 'green',
     display: 'flex',
     alignItems: 'center',
   },
@@ -86,7 +85,7 @@ export default function CalendarSubscribeCreateDialog(props) {
         isComplete ? (
           <div className={classes.successTitle}>
             <SuccessIcon className={classes.successIcon} />
-            Success!
+            <Typography>Success!</Typography>
           </div>
         ) : (
           'Create New Calendar Subscription'
