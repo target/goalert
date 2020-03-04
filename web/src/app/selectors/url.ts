@@ -2,6 +2,7 @@ import { createSelector } from 'reselect'
 import joinURL from '../util/joinURL'
 import { memoize } from 'lodash-es'
 import { History } from 'history'
+import { pathPrefix } from '../env'
 
 // TODO: move to ../reducers and define rest of state
 export interface ReduxState {
@@ -57,7 +58,7 @@ export const absURLSelector = createSelector(urlPathSelector, base =>
       path &&
       location.origin +
         (path.startsWith('/')
-          ? joinURL(global.pathPrefix, path)
+          ? joinURL(pathPrefix, path)
           : joinURL(base, path)),
   ),
 )

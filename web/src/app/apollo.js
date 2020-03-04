@@ -10,6 +10,7 @@ import { authLogout } from './actions'
 import reduxStore from './reduxStore'
 import { POLL_INTERVAL } from './config'
 import promiseBatch from './util/promiseBatch'
+import { pathPrefix } from './env'
 
 let pendingMutations = 0
 window.onbeforeunload = function(e) {
@@ -30,7 +31,7 @@ const trackMutation = p => {
   )
 }
 
-export function doFetch(body, url = global.pathPrefix + '/v1/graphql') {
+export function doFetch(body, url = pathPrefix + '/v1/graphql') {
   const f = fetch(url, {
     credentials: 'same-origin',
     method: 'POST',
@@ -78,7 +79,7 @@ const retryLink = new RetryLink({
 })
 
 const graphql2HttpLink = createHttpLink({
-  uri: global.pathPrefix + '/api/graphql',
+  uri: pathPrefix + '/api/graphql',
   fetch: (url, opts) => {
     return doFetch(opts.body, url)
   },
@@ -142,7 +143,7 @@ GraphQLClient.mutate = (...args) => {
 
 // Legacy client
 const legacyHttpLink = createHttpLink({
-  uri: global.pathPrefix + '/v1/graphql',
+  uri: pathPrefix + '/v1/graphql',
   fetch: (url, opts) => {
     return doFetch(opts.body)
   },

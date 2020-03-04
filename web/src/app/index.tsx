@@ -1,5 +1,5 @@
 // set webpack public path for loading additional assets
-import './setPath'
+import { GOALERT_VERSION } from './env'
 
 /// #if HMR
 import './rhl'
@@ -23,11 +23,11 @@ import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
 
-global.GOALERT_VERSION = process.env.GOALERT_VERSION || 'dev'
+// version check
 if (
   document
     .querySelector('meta[http-equiv=x-goalert-version]')
-    ?.getAttribute('content') !== global.GOALERT_VERSION
+    ?.getAttribute('content') !== GOALERT_VERSION
 ) {
   warn(
     'app.js version does not match HTML version',
@@ -35,7 +35,7 @@ if (
       document
         .querySelector('meta[http-equiv=x-goalert-version]')
         ?.getAttribute('content'),
-    'app.js=' + global.GOALERT_VERSION,
+    'app.js=' + GOALERT_VERSION,
   )
 }
 

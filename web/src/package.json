@@ -25,7 +25,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "tsc --allowJs --jsx react --noEmit --isolatedModules --noImplicitAny --strict --noImplicitThis --lib es6,dom --esModuleInterop --noFallthroughCasesInSwitch --experimentalDecorators app/global.d.ts"
+      "tsc --allowJs --jsx react --noEmit --isolatedModules --noImplicitAny --strict --noImplicitThis --lib es6,dom --esModuleInterop --noFallthroughCasesInSwitch --experimentalDecorators"
     ],
     "*.{json,yml,yaml,ts,tsx,html}": [
       "prettier --write"
