@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { PropTypes as p } from 'prop-types'
+import React, { useState, ReactNode, ReactElement, ChangeEvent } from 'react'
 import {
   TextField,
   makeStyles,
@@ -10,6 +9,12 @@ import {
   Chip,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
+
+function asArray(value: any) {
+  if (!value) return []
+
+  return Array.isArray(value) ? value : [value]
+}
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -30,7 +35,30 @@ const useStyles = makeStyles({
   },
 })
 
-export default function MaterialSelect(props) {
+interface SelectOption {
+  icon?: ReactElement
+  isCreate?: boolean
+  label: string
+  value: string
+}
+
+interface MaterialSelectProps {
+  disabled?: boolean
+  error?: boolean
+  isLoading?: boolean
+  label?: string
+  multiple?: boolean // allow selecting multiple values
+  noOptionsText?: ReactNode
+  name?: string
+  required?: boolean
+  onChange: Function
+  onInputChange?: Function
+  options: SelectOption[]
+  placeholder?: string
+  value?: SelectOption[] | SelectOption
+}
+
+export default function MaterialSelect(props: MaterialSelectProps) {
   const classes = useStyles()
   const {
     disabled,
@@ -45,16 +73,13 @@ export default function MaterialSelect(props) {
     options,
     placeholder,
     required,
-    value: propsValue,
+    value: _value,
   } = props
 
-  let value = propsValue
-  if (!value) {
-    if (multiple) value = []
-    else value = { label: '', value: '' }
-  }
+  let value: SelectOption[] = asArray(_value)
+  if (!multiple && !_value) value = [{ label: '', value: '' }]
 
-  const [inputValue, setInputValue] = useState(multiple ? '' : value.label)
+  const [inputValue, setInputValue] = useState(multiple ? '' : value[0].label)
 
   return (
     <Autocomplete
@@ -64,30 +89,33 @@ export default function MaterialSelect(props) {
         option: classes.option,
         clearIndicator: classes.clearIndicator,
       }}
-      value={multiple ? value : value.value}
+      value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      multiple={multiple}
+      multiple={multiple as any} // Autocomplete types as 'true' | omitted; we can't omit
       filterSelectedOptions
       noOptionsText={noOptionsText}
-      onChange={(event, valueObj) => {
-        if (valueObj !== null) {
-          if (multiple) {
+      onChange={(
+        event: ChangeEvent<{}>,
+        selected: SelectOption | SelectOption[],
+      ) => {
+        if (selected !== null) {
+          if (Array.isArray(selected)) {
             setInputValue('')
           } else {
-            setInputValue(valueObj.isCreate ? valueObj.value : valueObj.label)
+            setInputValue(selected.isCreate ? selected.value : selected.label)
           }
         }
 
-        onChange(valueObj)
+        onChange(selected)
       }}
       onInputChange={(event, inputVal, reason) => {
         if (reason === 'clear' && !multiple) {
           setInputValue('')
         }
       }}
-      onBlur={() => setInputValue(multiple ? '' : value.label)}
+      onBlur={() => setInputValue(multiple ? '' : value[0].label)}
       loading={isLoading}
       getOptionLabel={option => option.label || ''}
       options={options}
@@ -99,10 +127,12 @@ export default function MaterialSelect(props) {
               ...params.inputProps,
               name,
             }}
-            InputProps={{
-              ...params.InputProps,
-              'data-cy': 'search-select-input',
-            }}
+            InputProps={
+              {
+                ...params.InputProps,
+                'data-cy': 'search-select-input',
+              } as any // just adding a data-cy attr
+            }
             data-cy='search-select'
             fullWidth
             label={label}
@@ -137,31 +167,4 @@ export default function MaterialSelect(props) {
       }
     />
   )
-}
-
-const valueShape = p.shape({
-  label: p.string.isRequired,
-  value: p.string.isRequired,
-  icon: p.element,
-})
-
-// valueCheck ensures the type is `arrayOf(p.string)` if `multiple` is set
-// and `p.string` otherwise.
-function valueCheck(props, ...args) {
-  if (props.multiple) return p.arrayOf(valueShape).isRequired(props, ...args)
-  return valueShape(props, ...args)
-}
-
-MaterialSelect.propTypes = {
-  multiple: p.bool, // allow selecting multiple values
-  required: p.bool,
-  onChange: p.func.isRequired,
-  onInputChange: p.func,
-  options: p.arrayOf(valueShape).isRequired,
-  placeholder: p.string,
-  value: valueCheck,
-}
-
-MaterialSelect.defaultProps = {
-  options: [],
 }
