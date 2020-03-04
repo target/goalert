@@ -1,6 +1,7 @@
-import react, { ReactElement, useEffect, useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import {
   Checkbox,
+  CheckboxProps,
   Grid,
   Icon,
   IconButton,
@@ -12,7 +13,6 @@ import {
   PaginatedListItemProps,
   PaginatedListProps,
 } from './PaginatedList'
-import React from 'react'
 import { useSelector } from 'react-redux'
 import { urlKeySelector } from '../selectors/url'
 import classnames from 'classnames'
@@ -71,9 +71,6 @@ export interface ControlledPaginatedListAction {
 
   // Callback that will be passed a list of selected items
   onClick: (selectedIDs: (string | number)[]) => void
-
-  ariaLabel?: string
-  dataCy?: string
 }
 
 export interface ControlledPaginatedListItemProps
@@ -88,6 +85,8 @@ export interface ControlledPaginatedListItemProps
    * defaults to true
    */
   selectable?: boolean
+
+  CheckboxProps?: CheckboxProps
 }
 
 export default function ControlledPaginatedList(
@@ -105,14 +104,7 @@ export default function ControlledPaginatedList(
 
   const [checkedItems, setCheckedItems] = useState<Array<string | number>>([])
   const urlKey = useSelector(urlKeySelector)
-  const itemIDs = items.map(i => i.id)
-
-  // reset checkedItems array on unmount
-  useEffect(() => {
-    return () => {
-      setNone()
-    }
-  }, [])
+  const itemIDs = items.filter(i => i.selectable !== false).map(i => i.id)
 
   function setAll() {
     setCheckedItems(itemIDs)
@@ -131,34 +123,6 @@ export default function ControlledPaginatedList(
     }
   }
 
-  function getItems(): Array<ControlledPaginatedListItemProps> {
-    return items.map(item => {
-      const checked = checkedItems.includes(item.id)
-      return {
-        ...item,
-        icon: (
-          <Checkbox
-            checked={checked}
-            data-cy={'item-' + item.id}
-            onClick={e => {
-              e.stopPropagation()
-              e.preventDefault()
-
-              if (checked) {
-                const idx = checkedItems.indexOf(item.id)
-                const newItems = checkedItems.slice()
-                newItems.splice(idx, 1)
-                setCheckedItems(newItems)
-              } else {
-                setCheckedItems([...checkedItems, item.id])
-              }
-            }}
-          />
-        ),
-      }
-    })
-  }
-
   return (
     <React.Fragment>
       <Grid container item xs={12} justify='flex-end' alignItems='center'>
@@ -175,7 +139,7 @@ export default function ControlledPaginatedList(
         <PaginatedList
           key={urlKey}
           {...listProps}
-          items={Boolean(checkboxActions) ? getItems() : items}
+          items={items.map(item => ({ ...item, icon: getItemIcon(item) }))}
         />
       </Grid>
     </React.Fragment>
@@ -232,17 +196,38 @@ export default function ControlledPaginatedList(
               placement='bottom'
               classes={{ popper: classes.popper }}
             >
-              <IconButton
-                aria-label={a.ariaLabel}
-                data-cy={a.dataCy}
-                onClick={() => a.onClick(checkedItems)}
-              >
+              <IconButton onClick={() => a.onClick(checkedItems)}>
                 {a.icon}
               </IconButton>
             </Tooltip>
           </Grid>
         ))}
       </Grid>
+    )
+  }
+
+  function getItemIcon(item: ControlledPaginatedListItemProps) {
+    if (!checkboxActions) return item.icon
+
+    const checked = checkedItems.includes(item.id)
+
+    return (
+      <Checkbox
+        checked={checked}
+        data-cy={'item-' + item.id}
+        disabled={item.selectable === false}
+        onClick={e => {
+          e.stopPropagation()
+          e.preventDefault()
+
+          if (checked) {
+            setCheckedItems(checkedItems.filter(id => id !== item.id))
+          } else {
+            setCheckedItems([...checkedItems, item.id])
+          }
+        }}
+        {...item.CheckboxProps}
+      />
     )
   }
 }

@@ -138,20 +138,20 @@ export default function QueryList(props: QueryListProps) {
         />
       </Grid>
     )
-  } else {
-    return (
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <PaginatedList
-            {...listProps}
-            key={urlKey}
-            items={items}
-            itemsPerPage={queryVariables.input.first}
-            loadMore={loadMore}
-            isLoading={!data && loading}
-          />
-        </Grid>
-      </Grid>
-    )
   }
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <PaginatedList
+          {...listProps}
+          key={urlKey}
+          items={items}
+          itemsPerPage={queryVariables.input.first}
+          loadMore={loadMore}
+          isLoading={!data && loading}
+        />
+      </Grid>
+    </Grid>
+  )
 }

@@ -1,6 +1,6 @@
 import React, { ReactNode, useState, ReactElement } from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import Avatar from '@material-ui/core/Avatar'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -21,7 +21,6 @@ import useWidth from '../util/useWidth'
 
 import { ITEMS_PER_PAGE } from '../config'
 import { absURLSelector } from '../selectors/url'
-import { setCheckedItems as _setCheckedItems } from '../actions'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { Checkbox, CheckboxProps, makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
@@ -93,8 +92,6 @@ export interface PaginatedListItemProps {
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
-
-  // todo: needed?
   className?: string
 }
 
@@ -112,11 +109,6 @@ export function PaginatedList(props: PaginatedListProps) {
 
   const classes = useStyles()
   const absURL = useSelector(absURLSelector)
-
-  const dispatch = useDispatch()
-  const checkedItems = useSelector((state: any) => state.list.checkedItems)
-  const setCheckedItems = (array: Array<any>) =>
-    dispatch(_setCheckedItems(array))
 
   const [page, setPage] = useState(0)
 
