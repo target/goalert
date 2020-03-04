@@ -33,7 +33,6 @@ const useStyles = makeStyles({
 export default function MaterialSelect(props) {
   const classes = useStyles()
   const {
-    canCreate,
     disabled,
     error,
     isLoading,
@@ -74,15 +73,11 @@ export default function MaterialSelect(props) {
       noOptionsText={noOptionsText}
       onChange={(event, valueObj) => {
         if (valueObj !== null) {
-          let newInputVal = ''
-          if (!multiple) {
-            if (canCreate && options.length === 1) {
-              newInputVal = options[0].value
-            } else {
-              newInputVal = valueObj.label
-            }
+          if (multiple) {
+            setInputValue('')
+          } else {
+            setInputValue(valueObj.isCreate ? valueObj.value : valueObj.label)
           }
-          setInputValue(newInputVal)
         }
 
         onChange(valueObj)
@@ -158,7 +153,6 @@ function valueCheck(props, ...args) {
 }
 
 MaterialSelect.propTypes = {
-  canCreate: p.bool, // allow creating when no options
   multiple: p.bool, // allow selecting multiple values
   required: p.bool,
   onChange: p.func.isRequired,
