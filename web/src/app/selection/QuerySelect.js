@@ -252,7 +252,6 @@ export function makeQuerySelect(displayName, options) {
 
     let noOptionsText = 'No options'
     if (optionsError) {
-      noOptionsText = optionsError.message || optionsError
       noOptionsText = (
         <ErrorMessage value={optionsError.message || optionsError} />
       )
