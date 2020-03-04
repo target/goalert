@@ -7,17 +7,18 @@ type ID string
 
 // IDs of configurable limits.
 const (
-	NotificationRulesPerUser    ID = "notification_rules_per_user"
-	ContactMethodsPerUser       ID = "contact_methods_per_user"
-	EPStepsPerPolicy            ID = "ep_steps_per_policy"
-	EPActionsPerStep            ID = "ep_actions_per_step"
-	ParticipantsPerRotation     ID = "participants_per_rotation"
-	RulesPerSchedule            ID = "rules_per_schedule"
-	IntegrationKeysPerService   ID = "integration_keys_per_service"
-	UnackedAlertsPerService     ID = "unacked_alerts_per_service"
-	TargetsPerSchedule          ID = "targets_per_schedule"
-	HeartbeatMonitorsPerService ID = "heartbeat_monitors_per_service"
-	UserOverridesPerSchedule    ID = "user_overrides_per_schedule"
+	NotificationRulesPerUser     ID = "notification_rules_per_user"
+	ContactMethodsPerUser        ID = "contact_methods_per_user"
+	EPStepsPerPolicy             ID = "ep_steps_per_policy"
+	EPActionsPerStep             ID = "ep_actions_per_step"
+	ParticipantsPerRotation      ID = "participants_per_rotation"
+	RulesPerSchedule             ID = "rules_per_schedule"
+	IntegrationKeysPerService    ID = "integration_keys_per_service"
+	UnackedAlertsPerService      ID = "unacked_alerts_per_service"
+	TargetsPerSchedule           ID = "targets_per_schedule"
+	HeartbeatMonitorsPerService  ID = "heartbeat_monitors_per_service"
+	UserOverridesPerSchedule     ID = "user_overrides_per_schedule"
+	CalendarSubscriptionsPerUser ID = "calendar_subscriptions_per_user"
 )
 
 // Valid returns nil if a given ID is valid, a validation error is returned otherwise.
@@ -34,5 +35,6 @@ func (id ID) Valid() error {
 		TargetsPerSchedule,
 		HeartbeatMonitorsPerService,
 		UserOverridesPerSchedule,
+		CalendarSubscriptionsPerUser,
 	)
 }

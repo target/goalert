@@ -35,12 +35,13 @@ export function ServiceChip(props) {
     },
     skip: Boolean(name),
     fetchPolicy: 'cache-first',
+    pollInterval: 0,
   })
 
   const getLabel = () => {
     if (name) return name
 
-    if (loading) return 'Loading...'
+    if (!data && loading) return 'Loading...'
 
     if (error) return `Error: ${error.message}`
 

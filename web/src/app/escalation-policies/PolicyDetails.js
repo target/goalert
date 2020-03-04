@@ -43,7 +43,7 @@ export default function PolicyDetails(props) {
 
   const data = _.get(_data, 'escalationPolicy', null)
 
-  if (loading) return <Spinner />
+  if (!data && loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data) {

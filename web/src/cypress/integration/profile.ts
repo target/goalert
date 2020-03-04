@@ -32,6 +32,36 @@ function testProfile(screen: ScreenFormat) {
     )
   })
 
+  it('should list and link on-call services', () => {
+    const name = 'SVC ' + c.word({ length: 8 })
+
+    return cy
+      .createService({ name })
+      .then(svc => {
+        return cy
+          .fixture('profile')
+          .then((p: Profile) => {
+            return cy.createEPStep({
+              epID: svc.epID,
+              targets: [{ type: 'user', id: p.id }],
+            })
+          })
+          .task('engine:trigger')
+          .then(() => svc.id)
+      })
+      .then(svcID => {
+        cy.get('body')
+          .contains('a', 'On-Call')
+          .click()
+
+        cy.get('body')
+          .contains('a', name)
+          .click()
+
+        cy.url().should('eq', Cypress.config().baseUrl + '/services/' + svcID)
+      })
+  })
+
   describe('Contact Methods', () => {
     it('should allow creating', () => {
       const value = '+1763' + c.integer({ min: 3000000, max: 3999999 })

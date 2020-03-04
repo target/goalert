@@ -86,12 +86,18 @@ export function weekdaySummary(filter) {
 }
 
 export function parseClock(s, zone) {
-  return DateTime.fromObject({
+  const dt = DateTime.fromObject({
     hours: parseInt(s.split(':')[0], 10),
     minutes: parseInt(s.split(':')[1], 10),
     weekday: 7, // sunday
     zone,
   })
+
+  // backtrack if we jumped over DST
+  if (dt.offset !== DateTime.utc().setZone('zone').offset)
+    return dt.minus({ weeks: 1 })
+
+  return dt
 }
 
 export function formatClock(dt) {

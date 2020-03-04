@@ -63,7 +63,7 @@ export default function ServiceOnCallList({ serviceID }) {
       },
     ]
     style.color = 'gray'
-  } else if (loading) {
+  } else if (!data && loading) {
     items = [
       {
         title: 'Fetching users...',

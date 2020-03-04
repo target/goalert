@@ -9,9 +9,7 @@ import Typography from '@material-ui/core/Typography'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import withStyles from '@material-ui/core/styles/withStyles'
 import ListSubheader from '@material-ui/core/ListSubheader'
-import { Link } from 'react-router-dom'
-import { absURLSelector } from '../selectors'
-import { connect } from 'react-redux'
+import { AppLink } from '../util/AppLink'
 
 const styles = {
   background: { backgroundColor: 'white' },
@@ -24,14 +22,7 @@ const styles = {
   },
 }
 
-const mapStateToProps = state => {
-  return {
-    absURL: absURLSelector(state),
-  }
-}
-
 @withStyles(styles)
-@connect(mapStateToProps)
 export default class FlatList extends React.PureComponent {
   static propTypes = {
     // headerNote will be displayed at the top of the list.
@@ -52,10 +43,14 @@ export default class FlatList extends React.PureComponent {
           id: p.string, // required for drag and drop
         }),
         p.shape({
-          subHeader: p.string.isRequired,
+          subHeader: p.node.isRequired,
         }),
       ]),
     ),
+
+    // indent text of each list item if no icon is present
+    inset: p.bool,
+
     // If specified, enables drag and drop
     //
     // onReorder(id, oldIndex, newIndex)
@@ -86,8 +81,8 @@ export default class FlatList extends React.PureComponent {
     let itemProps = {}
     if (item.url) {
       itemProps = {
-        component: Link,
-        to: this.props.absURL(item.url),
+        component: AppLink,
+        to: item.url,
         button: true,
       }
     }
@@ -104,6 +99,7 @@ export default class FlatList extends React.PureComponent {
           primary={item.title}
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
+          inset={this.props.inset && !item.icon}
         />
         {item.secondaryAction && (
           <ListItemSecondaryAction>
@@ -121,7 +117,7 @@ export default class FlatList extends React.PureComponent {
           <ListItemText
             disableTypography
             secondary={
-              <Typography variant='caption'>
+              <Typography data-cy='list-empty-message' variant='caption'>
                 {this.props.emptyMessage}
               </Typography>
             }
@@ -173,13 +169,13 @@ export default class FlatList extends React.PureComponent {
 
   renderList() {
     const {
-      absURL,
       dispatch,
       onReorder,
       classes,
       emptyMessage,
       headerNote,
       items,
+      inset, // don't include in spread
       ...otherProps
     } = this.props
     return (

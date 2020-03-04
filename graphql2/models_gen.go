@@ -135,6 +135,13 @@ type CreateServiceInput struct {
 	NewHeartbeatMonitors []CreateHeartbeatMonitorInput `json:"newHeartbeatMonitors"`
 }
 
+type CreateUserCalendarSubscriptionInput struct {
+	Name            string `json:"name"`
+	ReminderMinutes []int  `json:"reminderMinutes"`
+	ScheduleID      string `json:"scheduleID"`
+	Disabled        *bool  `json:"disabled"`
+}
+
 type CreateUserContactMethodInput struct {
 	UserID                  string                           `json:"userID"`
 	Type                    contactmethod.Type               `json:"type"`
@@ -361,6 +368,13 @@ type UpdateServiceInput struct {
 	Name               *string `json:"name"`
 	Description        *string `json:"description"`
 	EscalationPolicyID *string `json:"escalationPolicyID"`
+}
+
+type UpdateUserCalendarSubscriptionInput struct {
+	ID              string  `json:"id"`
+	Name            *string `json:"name"`
+	ReminderMinutes []int   `json:"reminderMinutes"`
+	Disabled        *bool   `json:"disabled"`
 }
 
 type UpdateUserContactMethodInput struct {

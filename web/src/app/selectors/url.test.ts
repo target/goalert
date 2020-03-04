@@ -1,24 +1,30 @@
-import { urlParamSelector, searchSelector, absURLSelector } from './url'
+import {
+  urlParamSelector,
+  searchSelector,
+  absURLSelector,
+  ReduxState,
+} from './url'
 
 describe('urlParamSelector', () => {
-  ;[
+  ;([
     { search: '?search=foo', expected: { search: 'foo' } },
     { search: '', expected: {} },
     { search: '?&search=foo', expected: { search: 'foo' } },
     { search: '?search=foo&&&', expected: { search: 'foo' } },
     { search: '?foo=bar&bin=baz', expected: { foo: 'bar', bin: 'baz' } },
     { search: '?search=asdf%26%3D', expected: { search: 'asdf&=' } },
-  ].forEach(cfg =>
-    test(cfg.search || '(empty)', () => {
-      const res = urlParamSelector({
-        router: {
-          location: { search: cfg.search },
-        },
-      })
-      for (const key in cfg.expected) {
-        expect(res(key)).toBe(cfg.expected[key])
-      }
-    }),
+  ] as { search: string; expected: { [index: string]: string } }[]).forEach(
+    cfg =>
+      test(cfg.search || '(empty)', () => {
+        const res = urlParamSelector({
+          router: {
+            location: { search: cfg.search },
+          },
+        } as ReduxState)
+        for (const key in cfg.expected) {
+          expect(res(key)).toBe(cfg.expected[key])
+        }
+      }),
   )
 })
 
@@ -27,14 +33,14 @@ describe('searchSelector', () => {
     expect(
       searchSelector({
         router: { location: { search: '?search=testing' } },
-      }),
+      } as ReduxState),
     ).toBe('testing')
   })
   test('always return a string', () => {
     expect(
       searchSelector({
         router: { location: { search: '' } },
-      }),
+      } as ReduxState),
     ).toBe('')
   })
 })
@@ -42,7 +48,7 @@ describe('searchSelector', () => {
 describe('absURLSelector', () => {
   const sel = absURLSelector({
     router: { location: { pathname: '/base' } },
-  })
+  } as ReduxState)
   test('clean urls', () => {
     expect(sel('/foo/.')).toBe('/foo')
     expect(sel('foo/././/')).toBe('/base/foo')
@@ -56,9 +62,11 @@ describe('absURLSelector', () => {
   })
 
   test('handle .. appropriately', () => {
-    const check = (base, path, expected) =>
+    const check = (base: string, path: string, expected: string) =>
       expect(
-        absURLSelector({ router: { location: { pathname: base } } })(path),
+        absURLSelector({
+          router: { location: { pathname: base } },
+        } as ReduxState)(path),
       ).toBe(expected)
 
     check('/foo/bar', '..', '/foo')
