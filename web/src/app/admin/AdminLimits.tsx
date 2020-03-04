@@ -12,6 +12,7 @@ import { Form } from '../forms'
 import AdminSection from './AdminSection'
 import { useQuery } from '@apollo/react-hooks'
 import Spinner from '../loading/components/Spinner'
+import { GenericError } from '../error-pages'
 
 const query = gql`
   query getLimits {
@@ -56,7 +57,11 @@ export default function AdminLimits() {
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})
 
-  const { data, loading } = useQuery(query)
+  const { data, loading, error } = useQuery(query)
+
+  if (error) {
+    return <GenericError error={error.message} />
+  }
 
   if (loading && !data) {
     return <Spinner />
@@ -103,69 +108,63 @@ export default function AdminLimits() {
     )
   }
 
-  const render = () => {
-    return (
-      <div>
-        <Grid container spacing={2} className={classes.gridContainer}>
-          <Grid container item xs={12} className={classes.gridItem}>
-            <Grid item xs={12}>
-              <Typography
-                component='h2'
-                variant='subtitle1'
-                color='textSecondary'
-                classes={{ subtitle1: classes.groupTitle }}
-              >
-                System Limits
-              </Typography>
-            </Grid>
+  return (
+    <div>
+      <Grid container spacing={2} className={classes.gridContainer}>
+        <Grid item xs={12} className={classes.gridItem}>
+          <Grid item xs={12}>
+            <Typography
+              component='h2'
+              variant='subtitle1'
+              color='textSecondary'
+              classes={{ subtitle1: classes.groupTitle }}
+            >
+              System Limits
+            </Typography>
           </Grid>
-          <Grid item xs={12} className={classes.gridItem}>
-            <Grid item xs={12}>
-              <Form>
-                <Card>
-                  <AdminSection
-                    value={values}
-                    onChange={(id: string, value: string) =>
-                      updateValue(id, value)
-                    }
-                    fields={data.systemLimits.map(
-                      (f: {
-                        id: string
-                        description: string
-                        value: number
-                      }) => ({
-                        id: f.id,
-                        type: 'integer',
-                        description: f.description,
-                        value: f.value.toString(),
-                        label: startCase(
-                          f.id.replace(/([a-z])([A-Z])/g, '$1 $2'),
-                        ),
-                        password: false,
-                      }),
-                    )}
-                  />
-                </Card>
-              </Form>
-            </Grid>
+          <Grid item xs={12}>
+            <Form>
+              <Card>
+                <AdminSection
+                  value={values}
+                  onChange={(id: string, value: string) =>
+                    updateValue(id, value)
+                  }
+                  fields={data.systemLimits.map(
+                    (f: {
+                      id: string
+                      description: string
+                      value: number
+                    }) => ({
+                      id: f.id,
+                      type: 'integer',
+                      description: f.description,
+                      value: f.value.toString(),
+                      label: startCase(
+                        f.id.replace(/([a-z])([A-Z])/g, '$1 $2'),
+                      ),
+                      password: false,
+                    }),
+                  )}
+                />
+              </Card>
+            </Form>
           </Grid>
         </Grid>
-        {renderPageActions()}
-        {confirm && (
-          <AdminDialog
-            mutation={mutation}
-            values={data.systemLimits}
-            fieldValues={values}
-            onClose={() => setConfirm(false)}
-            onComplete={() => {
-              setValues({})
-              setConfirm(false)
-            }}
-          />
-        )}
-      </div>
-    )
-  }
-
-  return render()
+      </Grid>
+      {renderPageActions()}
+      {confirm && (
+        <AdminDialog
+          mutation={mutation}
+          values={data.systemLimits}
+          fieldValues={values}
+          onClose={() => setConfirm(false)}
+          onComplete={() => {
+            setValues({})
+            setConfirm(false)
+          }}
+        />
+      )}
+    </div>
+  )
 }

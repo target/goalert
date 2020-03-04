@@ -46,8 +46,8 @@ export default class AdminDialog extends React.PureComponent {
         disableGutters
         title={`Apply Configuration Change${changes.length > 1 ? 's' : ''}?`}
         onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
+        onSubmit={() =>
+          commit({
             variables: {
               input: changes.map(c => {
                 c.value = c.value === '' && c.type === 'number' ? '0' : c.value
@@ -55,7 +55,7 @@ export default class AdminDialog extends React.PureComponent {
               }),
             },
           })
-        }}
+        }
         primaryActionLabel='Confirm'
         errors={nonFieldErrors(error).concat(
           fieldErrors(error).map(e => ({
