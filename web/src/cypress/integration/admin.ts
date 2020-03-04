@@ -15,49 +15,49 @@ function testAdmin(screen: ScreenFormat) {
     })
 
     it('should allow updating system limits values', () => {
-      const newContactMethods = c.integer({ min: 0, max: 1000 })
-      const newEPActions = c.integer({ min: 0, max: 1000 })
+      const newContactMethods = c.integer({ min: 0, max: 1000 }).toString()
+      const newEPActions = c.integer({ min: 0, max: 1000 }).toString()
 
       const ContactMethodsPerUser = limits.get('ContactMethodsPerUser') || {
-        value: -1,
+        value: '-1',
         description: '',
       }
       const EPActionsPerStep = limits.get('EPActionsPerStep') || {
-        value: -1,
+        value: '-1',
         description: '',
       }
 
       cy.form({
-        ContactMethodsPerUser: newContactMethods.toString(),
-        EPActionsPerStep: newEPActions.toString(),
+        ContactMethodsPerUser: newContactMethods,
+        EPActionsPerStep: newEPActions,
       })
 
       cy.get('button[data-cy=save]').click()
       cy.dialogTitle('Apply Configuration Changes?')
 
-      cy.dialogContains('-' + ContactMethodsPerUser.value.toString())
-      cy.dialogContains('-' + EPActionsPerStep.value.toString())
+      cy.dialogContains('-' + ContactMethodsPerUser.value)
+      cy.dialogContains('-' + EPActionsPerStep.value)
       cy.dialogContains('+' + newContactMethods)
       cy.dialogContains('+' + newEPActions)
       cy.dialogFinish('Confirm')
 
       cy.get('input[name="EPActionsPerStep"]').should(
         'have.value',
-        newEPActions.toString(),
+        newEPActions,
       )
       cy.get('input[name="ContactMethodsPerUser"]').should(
         'have.value',
-        newContactMethods.toString(),
+        newContactMethods,
       )
     })
 
     it('should reset pending system limit value changes', () => {
       const ContactMethodsPerUser = limits.get('ContactMethodsPerUser') || {
-        value: 0,
+        value: '0',
         description: '',
       }
       const EPActionsPerStep = limits.get('EPActionsPerStep') || {
-        value: 0,
+        value: '0',
         description: '',
       }
 
