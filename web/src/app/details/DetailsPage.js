@@ -1,13 +1,11 @@
 import React from 'react'
 import p from 'prop-types'
-import { absURLSelector } from '../selectors/url'
 import statusStyles from '../util/statusStyles'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
-import { Link } from 'react-router-dom'
 import { ChevronRight } from '@material-ui/icons'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
@@ -15,7 +13,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import IconButton from '@material-ui/core/IconButton'
 import Markdown from '../util/Markdown'
-import { useSelector } from 'react-redux'
+import { AppLink } from '../util/AppLink'
 
 const useLinkStyles = makeStyles(() => statusStyles)
 const useStyles = makeStyles(theme => ({
@@ -41,7 +39,6 @@ const useStyles = makeStyles(theme => ({
 }))
 
 function DetailsLink({ url, label, status, subText }) {
-  const absURL = useSelector(absURLSelector)
   const classes = useLinkStyles()
 
   let itemClass = classes.noStatus
@@ -58,14 +55,14 @@ function DetailsLink({ url, label, status, subText }) {
   }
 
   return (
-    <ListItem component={Link} to={absURL(url)} button className={itemClass}>
+    <ListItem component={AppLink} to={url} button className={itemClass}>
       <ListItemText
         secondary={subText}
         primary={label}
         primaryTypographyProps={{ variant: 'h5' }}
       />
       <ListItemSecondaryAction>
-        <IconButton component={Link} to={absURL(url)}>
+        <IconButton component={AppLink} to={url}>
           <ChevronRight />
         </IconButton>
       </ListItemSecondaryAction>

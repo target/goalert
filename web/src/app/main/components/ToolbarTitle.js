@@ -1,15 +1,14 @@
 import React from 'react'
 import p from 'prop-types'
 import Typography from '@material-ui/core/Typography'
-import { Switch, Route, Link } from 'react-router-dom'
+import { Switch, Route } from 'react-router-dom'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth'
 import { ChevronRight } from '@material-ui/icons'
 import withStyles from '@material-ui/core/styles/withStyles'
 import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
 import { startCase } from 'lodash-es'
-import { connect } from 'react-redux'
-import { absURLSelector } from '../../selectors/url'
+import { AppLink } from '../../util/AppLink'
 
 const styles = {
   backPage: {
@@ -101,15 +100,8 @@ class NameLoader extends React.PureComponent {
   }
 }
 
-const mapStateToProps = state => {
-  return {
-    absURL: absURLSelector(state),
-  }
-}
-
 @withWidth()
 @withStyles(styles)
-@connect(mapStateToProps)
 export default class ToolbarTitle extends React.Component {
   renderTitle = title => {
     document.title = `GoAlert - ${title}`
@@ -138,12 +130,12 @@ export default class ToolbarTitle extends React.Component {
     return (
       <div className={this.props.classes.div}>
         <Typography
-          component={Link}
+          component={AppLink}
           className={this.props.classes.backPage}
           color='inherit'
           noWrap
           variant='h6'
-          to={this.props.absURL('..')}
+          to='..'
           replace
         >
           <NameLoader

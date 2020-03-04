@@ -9,9 +9,7 @@ import Typography from '@material-ui/core/Typography'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import withStyles from '@material-ui/core/styles/withStyles'
 import ListSubheader from '@material-ui/core/ListSubheader'
-import { Link } from 'react-router-dom'
-import { absURLSelector } from '../selectors'
-import { connect } from 'react-redux'
+import { AppLink } from '../util/AppLink'
 
 const styles = {
   background: { backgroundColor: 'white' },
@@ -24,14 +22,7 @@ const styles = {
   },
 }
 
-const mapStateToProps = state => {
-  return {
-    absURL: absURLSelector(state),
-  }
-}
-
 @withStyles(styles)
-@connect(mapStateToProps)
 export default class FlatList extends React.PureComponent {
   static propTypes = {
     // headerNote will be displayed at the top of the list.
@@ -90,8 +81,8 @@ export default class FlatList extends React.PureComponent {
     let itemProps = {}
     if (item.url) {
       itemProps = {
-        component: Link,
-        to: this.props.absURL(item.url),
+        component: AppLink,
+        to: item.url,
         button: true,
       }
     }
@@ -178,7 +169,6 @@ export default class FlatList extends React.PureComponent {
 
   renderList() {
     const {
-      absURL,
       dispatch,
       onReorder,
       classes,

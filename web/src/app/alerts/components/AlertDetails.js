@@ -15,7 +15,6 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import isFullScreen from '@material-ui/core/withMobileDialog'
 import Countdown from 'react-countdown-now'
-import { Link } from 'react-router-dom'
 import { ScheduleLink, ServiceLink, UserLink } from '../../links'
 import { styles } from '../../styles/materialStyles'
 import Options from '../../util/Options'
@@ -23,6 +22,7 @@ import gql from 'graphql-tag'
 import PageActions from '../../util/PageActions'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
+import { AppLink } from '../../util/AppLink'
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
@@ -234,11 +234,11 @@ export default class AlertDetails extends Component {
       <Card className={this.getCardClassName()} style={{ overflowX: 'auto' }}>
         <CardContent>
           <Typography component='h3' variant='h5'>
-            <Link
+            <AppLink
               to={`/escalation-policies/${alert.service.escalation_policy_id}`}
             >
               Escalation Policy
-            </Link>
+            </AppLink>
           </Typography>
         </CardContent>
         <CardContent className={this.props.classes.tableCardContent}>
