@@ -3,13 +3,11 @@ import { PropTypes as p } from 'prop-types'
 import { Button, Grid, makeStyles, Typography } from '@material-ui/core/index'
 import CalendarIcon from 'mdi-material-ui/Calendar'
 import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
-import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/react-hooks'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash-es'
-import { useSelector } from 'react-redux'
-import { absURLSelector } from '../../selectors'
+import { AppLink } from '../../util/AppLink'
 
 const useStyles = makeStyles(theme => ({
   calIcon: {
@@ -25,12 +23,11 @@ export default function CalendarSubscribeButton(props) {
     'General.DisableCalendarSubscriptions',
   )
 
-  const absURL = useSelector(absURLSelector)
   const [showDialog, setShowDialog] = useState(false)
   const classes = useStyles()
   const { userID } = useSessionInfo()
 
-  const { data, loading, error } = useQuery(calendarSubscriptionsQuery, {
+  const { data, error } = useQuery(calendarSubscriptionsQuery, {
     variables: {
       id: userID,
     },
@@ -42,7 +39,7 @@ export default function CalendarSubscribeButton(props) {
 
   let caption =
     'Subscribe to your shifts on this calendar from your preferred calendar app'
-  if (!loading && !error && numSubs > 0) {
+  if (!error && numSubs > 0) {
     caption = `You have ${numSubs} active subscription${
       numSubs > 1 ? 's' : ''
     } for this schedule`
@@ -69,21 +66,19 @@ export default function CalendarSubscribeButton(props) {
         </Grid>
         <Grid item xs={12} className={classes.captionContainer}>
           <Typography
-            data-cy={
-              loading ? 'subscribe-btn-txt-loading' : 'subscribe-btn-txt'
-            }
+            data-cy='subscribe-btn-txt'
             variant='caption'
             color='textSecondary'
           >
             {caption}
           </Typography>
           <Typography variant='caption'>
-            <Link
+            <AppLink
               data-cy='manage-subscriptions-link'
-              to={absURL('/profile/schedule-calendar-subscriptions')}
+              to='/profile/schedule-calendar-subscriptions'
             >
               Manage subscriptions
-            </Link>
+            </AppLink>
           </Typography>
         </Grid>
       </Grid>
