@@ -19,17 +19,19 @@ type Config struct {
 	fallbackURL string
 
 	General struct {
-		PublicURL              string `public:"true" info:"Publicly routable URL for UI links and API calls."`
-		GoogleAnalyticsID      string `public:"true"`
-		NotificationDisclaimer string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
-		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`
-		MessageBundles         bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
-		ShortURL               string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
-		DisableSMSLinks        bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
+		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
+		GoogleAnalyticsID            string `public:"true"`
+		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
+		MessageBundles               bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
+		ShortURL                     string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
+		DisableSMSLinks              bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
+		DisableLabelCreation         bool   `public:"true" info:"Disables the ability to create new labels for services."`
+		DisableCalendarSubscriptions bool   `public:"true" info:"If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions."`
 	}
 
 	Maintenance struct {
 		AlertCleanupDays int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
+		APIKeyExpireDays int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
 	}
 
 	Auth struct {
@@ -226,6 +228,7 @@ func (cfg Config) Validate() error {
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
+		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {

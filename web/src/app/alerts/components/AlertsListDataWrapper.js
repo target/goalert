@@ -7,12 +7,12 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
-import { Link } from 'react-router-dom'
 import { setCheckedAlerts } from '../../actions'
 import { bindActionCreators } from 'redux'
 import statusStyles from '../../util/statusStyles'
 import { alertFilterSelector } from '../../selectors'
 import { formatTimeSince } from '../../util/timeFormat'
+import { AppLink } from '../../util/AppLink'
 
 const styles = {
   checkBox: {
@@ -117,7 +117,7 @@ export default class AlertsListDataWrapper extends Component {
       <ListItem
         button
         className={statusClass}
-        component={Link}
+        component={AppLink}
         to={`/alerts/${alert.number}`}
       >
         {checkbox}

@@ -43,6 +43,8 @@ models:
     model: github.com/target/goalert/schedule/rotation.Rotation
   Schedule:
     model: github.com/target/goalert/schedule.Schedule
+  UserCalendarSubscription:
+    model: github.com/target/goalert/calendarsubscription.CalendarSubscription
   ServiceOnCallUser:
     model: github.com/target/goalert/oncall.ServiceOnCallUser
   EscalationPolicyStep:
