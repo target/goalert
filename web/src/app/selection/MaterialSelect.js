@@ -73,8 +73,6 @@ export default function MaterialSelect(props) {
       filterSelectedOptions
       noOptionsText={noOptionsText}
       onChange={(event, valueObj) => {
-        onChange(valueObj)
-
         if (valueObj !== null) {
           let newInputVal = ''
           if (!multiple) {
@@ -86,6 +84,8 @@ export default function MaterialSelect(props) {
           }
           setInputValue(newInputVal)
         }
+
+        onChange(valueObj)
       }}
       onInputChange={(event, inputVal, reason) => {
         if (reason === 'clear' && !multiple) {
