@@ -19,6 +19,7 @@ import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
+import { AppLink } from '../util/AppLink'
 
 const query = gql`
   query userInfo($id: ID!) {
@@ -158,13 +159,9 @@ export default function UserDetails(props) {
             />
             <Typography variant='caption' className={classes.gravatarText}>
               Provided by{' '}
-              <a
-                href='https://gravatar.com'
-                target='_blank'
-                rel='noopener noreferrer'
-              >
+              <AppLink to='https://gravatar.com' newTab>
                 Gravatar
-              </a>
+              </AppLink>
             </Typography>
           </React.Fragment>
         }

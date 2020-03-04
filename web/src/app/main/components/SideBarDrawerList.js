@@ -22,7 +22,7 @@ import {
 
 import routeConfig, { getPath } from '../routes'
 
-import { Link, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { CurrentUserAvatar } from '../../util/avatar'
 import { authLogout } from '../../actions'
@@ -31,6 +31,7 @@ import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 
 import logo from '../../public/goalert-alt-logo-scaled.png'
+import { AppLink } from '../../util/AppLink'
 
 const navIcons = {
   Alerts: AlertsIcon,
@@ -82,9 +83,9 @@ export default class SideBarDrawerList extends React.PureComponent {
 
   renderSidebarLink = (icon, path, label, props = {}) => {
     return (
-      <Link to={path} className={this.props.classes.nav} {...props}>
+      <AppLink to={path} className={this.props.classes.nav} {...props}>
         {this.renderSidebarItem(icon, label)}
-      </Link>
+      </AppLink>
     )
   }
 
@@ -140,15 +141,14 @@ export default class SideBarDrawerList extends React.PureComponent {
 
   renderFeedback(url) {
     return (
-      <a
-        href={url}
+      <AppLink
+        to={url}
         className={this.props.classes.nav}
-        target='_blank'
-        rel='noopener noreferrer'
+        newTab
         data-cy='feedback-link'
       >
         {this.renderSidebarItem(FeedbackIcon, 'Feedback')}
-      </a>
+      </AppLink>
     )
   }
 

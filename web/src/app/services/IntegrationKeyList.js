@@ -5,7 +5,6 @@ import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import withStyles from '@material-ui/core/styles/withStyles'
 import gql from 'graphql-tag'
-import { Link } from 'react-router-dom'
 import CreateFAB from '../lists/CreateFAB'
 import FlatList from '../lists/FlatList'
 import Query from '../util/Query'
@@ -15,6 +14,7 @@ import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
 import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
 import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
+import { AppLink } from '../util/AppLink'
 
 const query = gql`
   query($serviceID: ID!) {
@@ -175,7 +175,7 @@ export default class IntegrationKeyList extends React.PureComponent {
         data-cy='int-keys'
         headerNote={
           <React.Fragment>
-            API Documentation is available <Link to='/docs'>here</Link>.
+            API Documentation is available <AppLink to='/docs'>here</AppLink>.
           </React.Fragment>
         }
         emptyMessage='No integration keys exist for this service.'
