@@ -11,6 +11,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     display: 'flex',
     width: 'fit-content',
+    wordBreak: 'break-all',
   },
   icon: {
     paddingRight: 4,

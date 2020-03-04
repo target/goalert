@@ -20,6 +20,7 @@ Cypress.Cookies.defaults({
 })
 
 import './alert'
+import './calendar-subscription'
 import './service'
 import './ep'
 import './rotation'

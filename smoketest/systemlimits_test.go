@@ -32,7 +32,8 @@ func TestSystemLimits(t *testing.T) {
 		values
 			({{uuid "rule_sched"}}, 'Rule Test', 'UTC'),
 			({{uuid "tgt_sched"}}, 'Target Test', 'UTC'),
-			({{uuid "override_sched"}}, 'Override Test', 'UTC');
+			({{uuid "override_sched"}}, 'Override Test', 'UTC'),
+			({{uuid "cal_sub_sched"}}, 'Calendar Subscriptions Test', 'UTC');
 
 		insert into rotations (id, name, type, time_zone)
 		values
@@ -348,6 +349,28 @@ func TestSystemLimits(t *testing.T) {
 		},
 		func(ids []string) string {
 			return fmt.Sprintf(`mutation{deleteAll(input:[{type: userOverride, id: "%s"}])}`, ids[0])
+		},
+	)
+
+	checkSingleInsert(
+		limit.CalendarSubscriptionsPerUser,
+		"subscriptions",
+		func(int) string {
+			return fmt.Sprintf(`
+			mutation {
+				createUserCalendarSubscription(
+					input: {
+						name: "%s"
+						scheduleID: "%s"
+						reminderMinutes: [5, 3, 1]
+						disabled: false
+					}
+				) { id }
+			}
+			`, uniqName(), h.UUID("cal_sub_sched"))
+		},
+		func(ids []string) string {
+			return fmt.Sprintf(`mutation{deleteAll(input:[{type: calendarSubscription, id: "%s"}])}`, ids[0])
 		},
 	)
 
