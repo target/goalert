@@ -12,17 +12,17 @@ const (
 	// Maximum steps on a single escalation policy step.
 	EPStepsPerPolicy ID = "ep_steps_per_policy"
 	// Maximum actions on a single escalation policy step.
-	EPActionsPerStep            ID = "ep_actions_per_step"
-	ParticipantsPerRotation     ID = "participants_per_rotation"
+	EPActionsPerStep        ID = "ep_actions_per_step"
+	ParticipantsPerRotation ID = "participants_per_rotation"
 	// Pertains to all rules for all assignments/targets.
-	RulesPerSchedule            ID = "rules_per_schedule"
-	IntegrationKeysPerService   ID = "integration_keys_per_service"
+	RulesPerSchedule          ID = "rules_per_schedule"
+	IntegrationKeysPerService ID = "integration_keys_per_service"
 	// Only affects newly created alerts, but not re-escalated ones.
 	UnackedAlertsPerService     ID = "unacked_alerts_per_service"
 	TargetsPerSchedule          ID = "targets_per_schedule"
 	HeartbeatMonitorsPerService ID = "heartbeat_monitors_per_service"
 	// Only limits future overrides (e.g. end in the future).
-	UserOverridesPerSchedule    ID = "user_overrides_per_schedule"
+	UserOverridesPerSchedule ID = "user_overrides_per_schedule"
 )
 
 // Valid returns nil if a given ID is valid, a validation error is returned otherwise.
