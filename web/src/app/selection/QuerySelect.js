@@ -278,7 +278,6 @@ export function makeQuerySelect(displayName, options) {
           (defaultQueryVariables && !searchInput ? 'Start typing...' : null)
         }
         onChange={val => handleChange(val)}
-        canCreate={Boolean(_onCreate)}
         {...otherProps}
       />
     )
