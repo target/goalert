@@ -2797,6 +2797,7 @@ enum ConfigType {
   boolean
 }
 enum SystemLimitID {
+  CalendarSubscriptionsPerUser
   NotificationRulesPerUser
   ContactMethodsPerUser
   EPStepsPerPolicy
