@@ -130,6 +130,7 @@ export default function AdminLimits() {
                   onChange={(id: string, value: string) =>
                     updateValue(id, value)
                   }
+                  headerNote='Set limits to -1 to disable.'
                   fields={data.systemLimits.map(
                     (f: {
                       id: string

@@ -3,6 +3,7 @@ import p from 'prop-types'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import Typography from '@material-ui/core/Typography'
 import { FormContainer } from '../forms'
 import { defaultTo } from 'lodash-es'
 import {
@@ -40,6 +41,7 @@ const styles = {
 @withStyles(styles)
 export default class AdminSection extends React.PureComponent {
   static propTypes = {
+    headerNote: p.string,
     fields: p.arrayOf(
       p.shape({
         id: p.string.isRequired,
@@ -57,15 +59,26 @@ export default class AdminSection extends React.PureComponent {
     fields: [],
   }
 
+  // TODO: add 'reset to default' buttons
   render() {
-    const { classes, fields, value } = this.props
+    const { classes, fields, value, headerNote } = this.props
 
     return (
       <FormContainer>
         <List>
+          {headerNote && (
+            <ListItem>
+              <ListItemText
+                disableTypography
+                secondary={
+                  <Typography color='textSecondary'>{headerNote}</Typography>
+                }
+                style={{ fontStyle: 'italic' }}
+              />
+            </ListItem>
+          )}
           {fields.map((f, idx) => {
             const Field = components[f.type]
-
             return (
               <ListItem
                 key={f.id}
