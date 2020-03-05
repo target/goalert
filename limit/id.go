@@ -22,7 +22,7 @@ const (
 	TargetsPerSchedule          ID = "targets_per_schedule"
 	HeartbeatMonitorsPerService ID = "heartbeat_monitors_per_service"
 	// Only limits future overrides (i.e. end in the future).
-	UserOverridesPerSchedule ID = "user_overrides_per_schedule"
+	UserOverridesPerSchedule     ID = "user_overrides_per_schedule"
 	CalendarSubscriptionsPerUser ID = "calendar_subscriptions_per_user"
 )
 
