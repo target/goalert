@@ -29,6 +29,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		FavoriteStore:     app.FavoriteStore,
 		PolicyStore:       app.EscalationStore,
 		ScheduleStore:     app.ScheduleStore,
+		CalSubStore:       app.CalSubStore,
 		RotationStore:     app.RotationStore,
 		OnCallStore:       app.OnCallStore,
 		TimeZoneStore:     app.TimeZoneStore,

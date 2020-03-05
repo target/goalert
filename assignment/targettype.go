@@ -20,6 +20,7 @@ const (
 	TargetTypeRotation
 	TargetTypeService
 	TargetTypeSchedule
+	TargetTypeCalendarSubscription
 	TargetTypeUser
 	TargetTypeNotificationChannel
 	TargetTypeSlackChannel
@@ -48,6 +49,8 @@ func (tt *TargetType) UnmarshalGQL(v interface{}) error {
 		*tt = TargetTypeService
 	case "schedule":
 		*tt = TargetTypeSchedule
+	case "calendarSubscription":
+		*tt = TargetTypeCalendarSubscription
 	case "user":
 		*tt = TargetTypeUser
 	case "integrationKey":
@@ -84,6 +87,8 @@ func (tt TargetType) MarshalGQL(w io.Writer) {
 		graphql.MarshalString("service").MarshalGQL(w)
 	case TargetTypeSchedule:
 		graphql.MarshalString("schedule").MarshalGQL(w)
+	case TargetTypeCalendarSubscription:
+		graphql.MarshalString("calendarSubscription").MarshalGQL(w)
 	case TargetTypeUser:
 		graphql.MarshalString("user").MarshalGQL(w)
 	case TargetTypeIntegrationKey:

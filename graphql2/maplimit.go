@@ -12,6 +12,7 @@ import (
 // MapLimitValues will map a Limit struct into a flat list of SystemLimit structs.
 func MapLimitValues(l limit.Limits) []SystemLimit {
 	return []SystemLimit{
+		{ID: "CalendarSubscriptionsPerUser", Description: "", Value: l[limit.CalendarSubscriptionsPerUser]},
 		{ID: "ContactMethodsPerUser", Description: "", Value: l[limit.ContactMethodsPerUser]},
 		{ID: "EPActionsPerStep", Description: "Maximum actions on a single escalation policy step.", Value: l[limit.EPActionsPerStep]},
 		{ID: "EPStepsPerPolicy", Description: "Maximum steps on a single escalation policy step.", Value: l[limit.EPStepsPerPolicy]},
@@ -30,6 +31,8 @@ func MapLimitValues(l limit.Limits) []SystemLimit {
 func ApplyLimitValues(l limit.Limits, vals []SystemLimitInput) (limit.Limits, error) {
 	for _, v := range vals {
 		switch v.ID {
+		case "CalendarSubscriptionsPerUser":
+			l[limit.CalendarSubscriptionsPerUser] = v.Value
 		case "ContactMethodsPerUser":
 			l[limit.ContactMethodsPerUser] = v.Value
 		case "EPActionsPerStep":

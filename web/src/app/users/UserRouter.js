@@ -8,6 +8,7 @@ import { PageNotFound } from '../error-pages/Errors'
 import { useSessionInfo } from '../util/RequireConfig'
 import UserOnCallAssignmentList from './UserOnCallAssignmentList'
 import Spinner from '../loading/components/Spinner'
+import UserCalendarSubscriptionList from './UserCalendarSubscriptionList'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -52,6 +53,12 @@ function UserOnCallAssignments() {
   return <UserOnCallAssignmentList userID={userID} currentUser />
 }
 
+function UserCalendarSubscriptions() {
+  const { userID, ready } = useSessionInfo()
+  if (!ready) return <Spinner />
+  return <UserCalendarSubscriptionList userID={userID} />
+}
+
 export default function UserRouter() {
   const { userID } = useSessionInfo()
 
@@ -70,6 +77,7 @@ export default function UserRouter() {
           <UserDetails userID={match.params.userID} readOnly />
         )}
       />
+
       <Route
         exact
         path='/profile/on-call-assignments'
@@ -80,6 +88,19 @@ export default function UserRouter() {
         path='/users/:userID/on-call-assignments'
         render={({ match }) => (
           <UserOnCallAssignmentList userID={match.params.userID} />
+        )}
+      />
+
+      <Route
+        exact
+        path='/profile/schedule-calendar-subscriptions'
+        component={UserCalendarSubscriptions}
+      />
+      <Route
+        exact
+        path='/users/:userID/schedule-calendar-subscriptions'
+        render={({ match }) => (
+          <UserCalendarSubscriptionList userID={match.params.userID} />
         )}
       />
 

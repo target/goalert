@@ -23,6 +23,7 @@ const (
 	HeartbeatMonitorsPerService ID = "heartbeat_monitors_per_service"
 	// Only limits future overrides (e.g. end in the future).
 	UserOverridesPerSchedule ID = "user_overrides_per_schedule"
+	CalendarSubscriptionsPerUser ID = "calendar_subscriptions_per_user"
 )
 
 // Valid returns nil if a given ID is valid, a validation error is returned otherwise.
@@ -39,5 +40,6 @@ func (id ID) Valid() error {
 		TargetsPerSchedule,
 		HeartbeatMonitorsPerService,
 		UserOverridesPerSchedule,
+		CalendarSubscriptionsPerUser,
 	)
 }
