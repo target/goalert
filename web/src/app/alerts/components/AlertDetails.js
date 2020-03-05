@@ -90,7 +90,7 @@ export default class AlertDetails extends Component {
           style={{ paddingBottom: 0 }}
         >
           <AlertDetailLogs
-            alertID={this.props.data.number}
+            alertID={this.props.data.alertID}
             showExactTimes={this.state.showExactTimes}
           />
         </CardContent>
@@ -127,21 +127,23 @@ export default class AlertDetails extends Component {
    * for easier use in functions.
    */
   epsHelper() {
-    const eps = this.props.data.escalation_policy_snapshot
+    const ep = this.props.data.service.escalationPolicy
     const alert = this.props.data
+    const state = this.props.data.state
+
     return {
-      repeat: eps.repeat,
-      numSteps: eps.steps.length,
-      steps: eps.steps,
+      repeat: state?.repeatCount,
+      numSteps: ep.steps.length,
+      steps: ep.steps,
       status: alert.status.toLowerCase(),
-      currentLevel: eps.current_level,
-      lastEscalation: eps.last_escalation,
+      currentLevel: state?.stepNumber,
+      lastEscalation: state?.lastEscalation,
     }
   }
 
   canAutoEscalate() {
     const { repeat, numSteps, status, currentLevel } = this.epsHelper()
-    if (status !== 'unacknowledged') return false
+    if (status !== 'statusunacknowledged') return false
     if (repeat === -1) return true
     return currentLevel + 1 < numSteps * (repeat + 1)
   }
@@ -192,17 +194,20 @@ export default class AlertDetails extends Component {
     }
 
     return steps.map((step, index) => {
-      const { schedules, delay_minutes: delayMinutes, users } = step
+      const { delayMinutes, id, targets } = step
+
+      const users = targets.filter(t => t.type === 'user')
+      const schedules = targets.filter(t => t.type === 'schedule')
 
       let usersRender
       if (users.length > 0) {
-        usersRender = <div>Users: {this.renderUsers(users, step.id)}</div>
+        usersRender = <div>Users: {this.renderUsers(users, id)}</div>
       }
 
       let schedulesRender
       if (schedules.length > 0) {
         schedulesRender = (
-          <div>Schedules: {this.renderSchedules(schedules, step.id)}</div>
+          <div>Schedules: {this.renderSchedules(schedules, id)}</div>
         )
       }
 
@@ -215,7 +220,7 @@ export default class AlertDetails extends Component {
         <TableRow key={index} className={className}>
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
-            {!users.length && !schedules.length && (
+            {!targets.length && (
               <Typography>&mdash;</Typography>
             )}
             {usersRender}
@@ -235,7 +240,7 @@ export default class AlertDetails extends Component {
         <CardContent>
           <Typography component='h3' variant='h5'>
             <AppLink
-              to={`/escalation-policies/${alert.service.escalation_policy_id}`}
+              to={`/escalation-policies/${alert.service.escalationPolicy.id}`}
             >
               Escalation Policy
             </AppLink>
@@ -332,23 +337,12 @@ export default class AlertDetails extends Component {
    * Options to show for alert details menu
    */
   getMenuOptions = () => {
-    const {
-      escalation_level: escalationLevel,
-      number: id,
-      status,
-    } = this.props.data
-    if (status.toLowerCase() === 'closed') return [] // no options to show if alert is already closed
+    const { id, status } = this.props.data
+
+    if (status.toLowerCase() === 'statusclosed') return [] // no options to show if alert is already closed
     const updateStatusMutation = gql`
-      mutation UpdateAlertStatusMutation($input: UpdateAlertStatusInput!) {
-        updateAlertStatus(input: $input) {
-          id
-          status: status_2
-          logs_2 {
-            event
-            message
-            timestamp
-          }
-        }
+      mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
+        updateAlerts(input: $input) { id }
       }
     `
     const options = []
@@ -358,8 +352,8 @@ export default class AlertDetails extends Component {
         query: updateStatusMutation,
         variables: {
           input: {
-            id,
-            status_2: 'acknowledged',
+            alertIDs: [id],
+            newStatus: 'StatusAcknowledged',
           },
         },
       },
@@ -369,23 +363,12 @@ export default class AlertDetails extends Component {
       text: 'Escalate',
       mutation: {
         query: gql`
-          mutation EscalateAlertMutation($input: EscalateAlertInput!) {
-            escalateAlert(input: $input) {
-              id
-              status: status_2
-              logs_2 {
-                event
-                message
-                timestamp
-              }
-            }
+          mutation EscalateAlertMutation($input: [Int!]) {
+            escalateAlerts(input: $input) { id }
           }
         `,
         variables: {
-          input: {
-            id,
-            current_escalation_level: escalationLevel,
-          },
+          input: [id],
         },
       },
     }
@@ -396,14 +379,14 @@ export default class AlertDetails extends Component {
         query: updateStatusMutation,
         variables: {
           input: {
-            id,
-            status_2: 'closed',
+            alertIDs: [id],
+            newStatus: 'StatusClosed',
           },
         },
       },
     }
 
-    if (status.toLowerCase() === 'unacknowledged') options.push(ack)
+    if (status.toLowerCase() === 'statusunacknowledged') options.push(ack)
     options.push(close)
     options.push(esc)
     return options
@@ -435,12 +418,12 @@ export default class AlertDetails extends Component {
                 </Grid>
                 <Grid item xs={12}>
                   <Typography component='h2' variant='h5'>
-                    {alert.number}: {alert.summary}
+                    {alert.alertID}: {alert.summary}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant='body1' data-cy='alert-status'>
-                    {alert.status.toUpperCase()}
+                    {alert.status.toUpperCase().replace('STATUS', '')}
                   </Typography>
                 </Grid>
               </Grid>
