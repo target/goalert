@@ -109,7 +109,7 @@ function check(
     })
     if (getSearchSelectFunc) {
       it('should sort favorites-first in a search-select', () => {
-        const prefix = c.word({ length: 12 })
+        const prefix = c.word({ length: 20 })
         const name1 = prefix + 'A'
         const name2 = prefix + 'Z'
         createFunc(name1, false)
