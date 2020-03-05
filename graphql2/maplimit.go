@@ -12,17 +12,17 @@ import (
 // MapLimitValues will map a Limit struct into a flat list of SystemLimit structs.
 func MapLimitValues(l limit.Limits) []SystemLimit {
 	return []SystemLimit{
-		{ID: "CalendarSubscriptionsPerUser", Description: "Limits the number of calender subscriptions per user.", Value: l[limit.CalendarSubscriptionsPerUser]},
-		{ID: "ContactMethodsPerUser", Description: "Limits the number of contact methods per user.", Value: l[limit.ContactMethodsPerUser]},
+		{ID: "CalendarSubscriptionsPerUser", Description: "Maximum the number of calendar subscriptions per user.", Value: l[limit.CalendarSubscriptionsPerUser]},
+		{ID: "ContactMethodsPerUser", Description: "Maximum the number of contact methods per user.", Value: l[limit.ContactMethodsPerUser]},
 		{ID: "EPActionsPerStep", Description: "Maximum actions on a single escalation policy step.", Value: l[limit.EPActionsPerStep]},
-		{ID: "EPStepsPerPolicy", Description: "Maximum steps on a single escalation policy step.", Value: l[limit.EPStepsPerPolicy]},
-		{ID: "HeartbeatMonitorsPerService", Description: "Limits the number of heartbeat monitors per service.", Value: l[limit.HeartbeatMonitorsPerService]},
-		{ID: "IntegrationKeysPerService", Description: "Limits the number of integrations keys per service.", Value: l[limit.IntegrationKeysPerService]},
-		{ID: "NotificationRulesPerUser", Description: "Limits the number of notification rules per user.", Value: l[limit.NotificationRulesPerUser]},
-		{ID: "ParticipantsPerRotation", Description: "Limits the number of participants per rotations.", Value: l[limit.ParticipantsPerRotation]},
+		{ID: "EPStepsPerPolicy", Description: "Maximum steps on a single escalation policy.", Value: l[limit.EPStepsPerPolicy]},
+		{ID: "HeartbeatMonitorsPerService", Description: "Maximum the number of heartbeat monitors per service.", Value: l[limit.HeartbeatMonitorsPerService]},
+		{ID: "IntegrationKeysPerService", Description: "Maximum the number of integration keys per service.", Value: l[limit.IntegrationKeysPerService]},
+		{ID: "NotificationRulesPerUser", Description: "Maximum the number of notification rules per user.", Value: l[limit.NotificationRulesPerUser]},
+		{ID: "ParticipantsPerRotation", Description: "Maximum the number of participants per rotation.", Value: l[limit.ParticipantsPerRotation]},
 		{ID: "RulesPerSchedule", Description: "Pertains to all rules for all assignments/targets.", Value: l[limit.RulesPerSchedule]},
-		{ID: "TargetsPerSchedule", Description: "Limits the number of targets per schedule.", Value: l[limit.TargetsPerSchedule]},
-		{ID: "UnackedAlertsPerService", Description: "Only affects newly created alerts, but not re-escalated ones.", Value: l[limit.UnackedAlertsPerService]},
+		{ID: "TargetsPerSchedule", Description: "Maximum the number of targets per schedule.", Value: l[limit.TargetsPerSchedule]},
+		{ID: "UnackedAlertsPerService", Description: "Only affects newly created alerts but not re-escalated ones.", Value: l[limit.UnackedAlertsPerService]},
 		{ID: "UserOverridesPerSchedule", Description: "Only limits future overrides (i.e. end in the future).", Value: l[limit.UserOverridesPerSchedule]},
 	}
 }
