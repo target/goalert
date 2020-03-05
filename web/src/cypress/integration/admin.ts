@@ -18,14 +18,10 @@ function testAdmin(screen: ScreenFormat) {
       const newContactMethods = c.integer({ min: 0, max: 1000 }).toString()
       const newEPActions = c.integer({ min: 0, max: 1000 }).toString()
 
-      const ContactMethodsPerUser = limits.get('ContactMethodsPerUser') || {
-        value: '-1',
-        description: '',
-      }
-      const EPActionsPerStep = limits.get('EPActionsPerStep') || {
-        value: '-1',
-        description: '',
-      }
+      const ContactMethodsPerUser = limits.get(
+        'ContactMethodsPerUser',
+      ) as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
 
       cy.form({
         ContactMethodsPerUser: newContactMethods,
@@ -52,14 +48,10 @@ function testAdmin(screen: ScreenFormat) {
     })
 
     it('should reset pending system limit value changes', () => {
-      const ContactMethodsPerUser = limits.get('ContactMethodsPerUser') || {
-        value: '0',
-        description: '',
-      }
-      const EPActionsPerStep = limits.get('EPActionsPerStep') || {
-        value: '0',
-        description: '',
-      }
+      const ContactMethodsPerUser = limits.get(
+        'ContactMethodsPerUser',
+      ) as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
 
       cy.form({
         ContactMethodsPerUser: c.integer({ min: 0, max: 1000 }).toString(),
