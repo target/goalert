@@ -22,8 +22,9 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { Checkbox, CheckboxProps, makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
-import { ControlledPaginatedListItemProps } from './ControlledPaginatedList'
+import { CheckboxItemsProps } from './ControlledPaginatedList'
 import { AppLink } from '../util/AppLink'
+import { render } from 'react-dom'
 
 // gray boxes on load
 // disable overflow
@@ -65,7 +66,7 @@ export interface PaginatedListProps {
   // listHeader will be displayed at the top of the list
   listHeader?: ReactNode
 
-  items: PaginatedListItemProps[] | ControlledPaginatedListItemProps[]
+  items: PaginatedListItemProps[] | CheckboxItemsProps[]
   itemsPerPage?: number
 
   isLoading?: boolean
@@ -106,7 +107,6 @@ export function PaginatedList(props: PaginatedListProps) {
   } = props
 
   const classes = useStyles()
-  const absURL = useSelector(absURLSelector)
 
   const [page, setPage] = useState(0)
 
@@ -210,7 +210,7 @@ export function PaginatedList(props: PaginatedListProps) {
 
     // Display full list when loading
     if (!noPlaceholder) {
-      while (isLoading && newItems.length < itemsPerPage) {
+      while (isLoading && renderedItems.length < itemsPerPage) {
         renderedItems.push(
           <LoadingItem
             dense={isWidthUp('md', width)}

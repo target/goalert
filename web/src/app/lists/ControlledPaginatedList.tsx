@@ -1,7 +1,6 @@
 import React, { ReactElement, useState } from 'react'
 import {
   Checkbox,
-  CheckboxProps,
   Grid,
   Icon,
   IconButton,
@@ -50,7 +49,7 @@ const useStyles = makeStyles({
 })
 
 export interface ControlledPaginatedListProps extends PaginatedListProps {
-  checkboxActions: ControlledPaginatedListAction[]
+  checkboxActions?: ControlledPaginatedListAction[]
   filter?: ReactElement
 
   // if set, the search string param is ignored
@@ -59,7 +58,7 @@ export interface ControlledPaginatedListProps extends PaginatedListProps {
   // filters additional to search, set in the search text field
   searchAdornment?: ReactElement
 
-  items: ControlledPaginatedListItemProps[]
+  items: CheckboxItemsProps[] | PaginatedListItemProps[]
 }
 
 export interface ControlledPaginatedListAction {
@@ -73,8 +72,10 @@ export interface ControlledPaginatedListAction {
   onClick: (selectedIDs: (string | number)[]) => void
 }
 
-export interface ControlledPaginatedListItemProps
-  extends PaginatedListItemProps {
+// used if checkBoxActions is set to true
+export interface CheckboxItemsProps extends PaginatedListItemProps {
+  type: 'checkbox'
+
   // used to track checked items
   id: string | number
 
@@ -85,8 +86,6 @@ export interface ControlledPaginatedListItemProps
    * defaults to true
    */
   selectable?: boolean
-
-  CheckboxProps?: CheckboxProps
 }
 
 export default function ControlledPaginatedList(
@@ -104,10 +103,21 @@ export default function ControlledPaginatedList(
 
   const [checkedItems, setCheckedItems] = useState<Array<string | number>>([])
   const urlKey = useSelector(urlKeySelector)
-  const itemIDs = items.filter(i => i.selectable !== false).map(i => i.id)
+
+  function isCheckboxItems(items: any): items is CheckboxItemsProps[] {
+    return items[0]?.type === 'checkbox' ?? false
+  }
+
+  function getSelectableIDs(): Array<string | number> {
+    if (isCheckboxItems(items)) {
+      return items.filter(i => i.selectable !== false).map(i => i.id)
+    } else {
+      return []
+    }
+  }
 
   function setAll() {
-    setCheckedItems(itemIDs)
+    setCheckedItems(getSelectableIDs())
   }
 
   function setNone() {
@@ -123,6 +133,14 @@ export default function ControlledPaginatedList(
     }
   }
 
+  function getItems() {
+    if (isCheckboxItems(items)) {
+      return items.map(item => ({ ...item, icon: getItemIcon(item) }))
+    }
+
+    return items
+  }
+
   return (
     <React.Fragment>
       <Grid container item xs={12} justify='flex-end' alignItems='center'>
@@ -136,17 +154,14 @@ export default function ControlledPaginatedList(
       </Grid>
 
       <Grid item xs={12}>
-        <PaginatedList
-          key={urlKey}
-          {...listProps}
-          items={items.map(item => ({ ...item, icon: getItemIcon(item) }))}
-        />
+        <PaginatedList key={urlKey} {...listProps} items={getItems()} />
       </Grid>
     </React.Fragment>
   )
 
   function renderActions(): ReactElement | null {
     if (!checkboxActions) return null
+    const itemIDs = getSelectableIDs()
 
     return (
       <Grid className={classes.actionsContainer} item container spacing={2}>
@@ -206,7 +221,7 @@ export default function ControlledPaginatedList(
     )
   }
 
-  function getItemIcon(item: ControlledPaginatedListItemProps) {
+  function getItemIcon(item: CheckboxItemsProps) {
     if (!checkboxActions) return item.icon
 
     const checked = checkedItems.includes(item.id)
@@ -226,7 +241,6 @@ export default function ControlledPaginatedList(
             setCheckedItems([...checkedItems, item.id])
           }
         }}
-        {...item.CheckboxProps}
       />
     )
   }
