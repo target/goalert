@@ -25,7 +25,7 @@ const (
 	UnackedAlertsPerService ID = "unacked_alerts_per_service"
 	// Limits the number of targets per schedule.
 	TargetsPerSchedule ID = "targets_per_schedule"
-	// Limits the heartbeat monitors per service.
+	// Limits the number of heartbeat monitors per service.
 	HeartbeatMonitorsPerService ID = "heartbeat_monitors_per_service"
 	// Only limits future overrides (i.e. end in the future).
 	UserOverridesPerSchedule ID = "user_overrides_per_schedule"
