@@ -17,7 +17,7 @@ func MapLimitValues(l limit.Limits) []SystemLimit {
 		{ID: "EPActionsPerStep", Description: "Maximum actions on a single escalation policy step.", Value: l[limit.EPActionsPerStep]},
 		{ID: "EPStepsPerPolicy", Description: "Maximum steps on a single escalation policy step.", Value: l[limit.EPStepsPerPolicy]},
 		{ID: "HeartbeatMonitorsPerService", Description: "Limits the number of heartbeat monitors per service.", Value: l[limit.HeartbeatMonitorsPerService]},
-		{ID: "IntegrationKeysPerService", Description: "Limits the number of integrations keys per service", Value: l[limit.IntegrationKeysPerService]},
+		{ID: "IntegrationKeysPerService", Description: "Limits the number of integrations keys per service.", Value: l[limit.IntegrationKeysPerService]},
 		{ID: "NotificationRulesPerUser", Description: "Limits the number of notification rules per user.", Value: l[limit.NotificationRulesPerUser]},
 		{ID: "ParticipantsPerRotation", Description: "Limits the number of participants per rotations.", Value: l[limit.ParticipantsPerRotation]},
 		{ID: "RulesPerSchedule", Description: "Pertains to all rules for all assignments/targets.", Value: l[limit.RulesPerSchedule]},

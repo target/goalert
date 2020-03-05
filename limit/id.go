@@ -19,7 +19,7 @@ const (
 	ParticipantsPerRotation ID = "participants_per_rotation"
 	// Pertains to all rules for all assignments/targets.
 	RulesPerSchedule ID = "rules_per_schedule"
-	// Limits the number of integrations keys per service
+	// Limits the number of integrations keys per service.
 	IntegrationKeysPerService ID = "integration_keys_per_service"
 	// Only affects newly created alerts, but not re-escalated ones.
 	UnackedAlertsPerService ID = "unacked_alerts_per_service"
