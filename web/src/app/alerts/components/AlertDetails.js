@@ -15,7 +15,7 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import isFullScreen from '@material-ui/core/withMobileDialog'
 import Countdown from 'react-countdown-now'
-import {RotationLink, ScheduleLink, ServiceLink, UserLink} from '../../links'
+import { RotationLink, ScheduleLink, ServiceLink, UserLink } from '../../links'
 import { styles } from '../../styles/materialStyles'
 import Options from '../../util/Options'
 import gql from 'graphql-tag'
@@ -214,7 +214,9 @@ export default class AlertDetails extends Component {
 
       let rotationsRender
       if (rotations.length > 0) {
-        rotationsRender = <div>Rotations: {this.renderRotations(rotations, id)}</div>
+        rotationsRender = (
+          <div>Rotations: {this.renderRotations(rotations, id)}</div>
+        )
       }
 
       let schedulesRender
@@ -238,13 +240,10 @@ export default class AlertDetails extends Component {
         <TableRow key={index} className={className}>
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
-            {!targets.length && (
-              <Typography>&mdash;</Typography>
-            )}
+            {!targets.length && <Typography>&mdash;</Typography>}
             {rotationsRender}
             {schedulesRender}
             {usersRender}
-
           </TableCell>
           <TableCell>{this.renderTimer(index, delayMinutes)}</TableCell>
         </TableRow>
@@ -362,7 +361,9 @@ export default class AlertDetails extends Component {
     if (status.toLowerCase() === 'statusclosed') return [] // no options to show if alert is already closed
     const updateStatusMutation = gql`
       mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
-        updateAlerts(input: $input) { id }
+        updateAlerts(input: $input) {
+          id
+        }
       }
     `
     const options = []
@@ -384,7 +385,9 @@ export default class AlertDetails extends Component {
       mutation: {
         query: gql`
           mutation EscalateAlertMutation($input: [Int!]) {
-            escalateAlerts(input: $input) { id }
+            escalateAlerts(input: $input) {
+              id
+            }
           }
         `,
         variables: {
