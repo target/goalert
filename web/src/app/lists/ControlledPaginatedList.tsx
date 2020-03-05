@@ -101,7 +101,9 @@ export default function ControlledPaginatedList(
     ...listProps
   } = props
 
-  const [checkedItems, setCheckedItems] = useState<Array<string | number>>([])
+  const [_checkedItems, setCheckedItems] = useState<Array<string | number>>([])
+  // covers the use case where an item may no longer be selectable after an update
+  const checkedItems = _checkedItems.filter(id => getSelectableIDs().includes(id))
   const urlKey = useSelector(urlKeySelector)
 
   function isCheckboxItems(items: any): items is CheckboxItemsProps[] {
