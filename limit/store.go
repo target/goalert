@@ -35,7 +35,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	}, p.Err
 }
 
-// Update will update all configurable limits.
+// UpdateLimitsTx updates all configurable limits.
 func (s *Store) UpdateLimitsTx(ctx context.Context, tx *sql.Tx, id string, max int) error {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
