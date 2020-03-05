@@ -24,12 +24,12 @@ const buildFetchMore = (
   stopPolling: Function,
   itemsPerPage: number,
 ) => {
-  return once(() => {
+  return once(newLimit => {
     stopPolling()
     return fetchMore({
       variables: {
         input: {
-          first: itemsPerPage,
+          first: newLimit || itemsPerPage,
           after,
         },
       },
