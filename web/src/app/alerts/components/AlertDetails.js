@@ -15,7 +15,7 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import isFullScreen from '@material-ui/core/withMobileDialog'
 import Countdown from 'react-countdown-now'
-import { ScheduleLink, ServiceLink, UserLink } from '../../links'
+import {RotationLink, ScheduleLink, ServiceLink, UserLink} from '../../links'
 import { styles } from '../../styles/materialStyles'
 import Options from '../../util/Options'
 import gql from 'graphql-tag'
@@ -98,13 +98,13 @@ export default class AlertDetails extends Component {
     )
   }
 
-  renderUsers(users, stepID) {
-    return users.map((user, i) => {
+  renderRotations(rotations, stepID) {
+    return rotations.map((rotation, i) => {
       const sep = i === 0 ? '' : ', '
       return (
-        <span key={stepID + user.id}>
+        <span key={stepID + rotation.id}>
           {sep}
-          {UserLink(user)}
+          {RotationLink(rotation)}
         </span>
       )
     })
@@ -117,6 +117,18 @@ export default class AlertDetails extends Component {
         <span key={stepID + schedule.id}>
           {sep}
           {ScheduleLink(schedule)}
+        </span>
+      )
+    })
+  }
+
+  renderUsers(users, stepID) {
+    return users.map((user, i) => {
+      const sep = i === 0 ? '' : ', '
+      return (
+        <span key={stepID + user.id}>
+          {sep}
+          {UserLink(user)}
         </span>
       )
     })
@@ -196,12 +208,13 @@ export default class AlertDetails extends Component {
     return steps.map((step, index) => {
       const { delayMinutes, id, targets } = step
 
-      const users = targets.filter(t => t.type === 'user')
+      const rotations = targets.filter(t => t.type === 'rotation')
       const schedules = targets.filter(t => t.type === 'schedule')
+      const users = targets.filter(t => t.type === 'user')
 
-      let usersRender
-      if (users.length > 0) {
-        usersRender = <div>Users: {this.renderUsers(users, id)}</div>
+      let rotationsRender
+      if (rotations.length > 0) {
+        rotationsRender = <div>Rotations: {this.renderRotations(rotations, id)}</div>
       }
 
       let schedulesRender
@@ -209,6 +222,11 @@ export default class AlertDetails extends Component {
         schedulesRender = (
           <div>Schedules: {this.renderSchedules(schedules, id)}</div>
         )
+      }
+
+      let usersRender
+      if (users.length > 0) {
+        usersRender = <div>Users: {this.renderUsers(users, id)}</div>
       }
 
       let className
@@ -223,8 +241,10 @@ export default class AlertDetails extends Component {
             {!targets.length && (
               <Typography>&mdash;</Typography>
             )}
-            {usersRender}
+            {rotationsRender}
             {schedulesRender}
+            {usersRender}
+
           </TableCell>
           <TableCell>{this.renderTimer(index, delayMinutes)}</TableCell>
         </TableRow>
