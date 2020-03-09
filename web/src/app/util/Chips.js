@@ -12,7 +12,7 @@ import {
   Today as ScheduleIcon,
 } from '@material-ui/icons'
 import Avatar from '@material-ui/core/Avatar'
-import { UserAvatar, ServiceAvatar } from './avatar'
+import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'
 import gql from 'graphql-tag'
 
