@@ -12,7 +12,8 @@
     "experimentalDecorators": true,
     "noImplicitThis": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["./app/", "./cypress/"],
   "exclude": ["./node_modules/", "./build/"]
