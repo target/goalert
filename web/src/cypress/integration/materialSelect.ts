@@ -55,10 +55,10 @@ function testMaterialSelect(screen: ScreenFormat) {
 
         // Clears field
         cy.dialogForm({ repeat: '' })
-        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
-          'not.have.value',
-          defaultVal,
-        )
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]')
+          .should('not.have.value', defaultVal)
+          .type('{esc}')
+
         // Default value returns
         cy.get('[role=dialog] #dialog-form').click()
         cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
