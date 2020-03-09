@@ -39,6 +39,7 @@ import './config'
 import './sql'
 import './form'
 import './dialog'
+import './limits'
 
 export * from './util'
 

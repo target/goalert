@@ -207,7 +207,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.LimitStore == nil {
-		app.LimitStore, err = limit.NewDB(ctx, app.db)
+		app.LimitStore, err = limit.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init limit config store")

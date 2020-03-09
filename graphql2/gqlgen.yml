@@ -71,3 +71,5 @@ models:
     model: github.com/target/goalert/heartbeat.Monitor
   HeartbeatMonitorState:
     model: github.com/target/goalert/heartbeat.State
+  SystemLimitID:
+    model: github.com/target/goalert/limit.ID
