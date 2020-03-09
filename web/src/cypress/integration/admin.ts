@@ -1,12 +1,77 @@
 import { Chance } from 'chance'
-const c = new Chance()
 import { testScreen } from '../support'
+const c = new Chance()
 
 testScreen('Admin', testAdmin, false, true)
 
 function testAdmin(screen: ScreenFormat) {
-  let cfg: Config
-  describe('Admin Page', () => {
+  describe('Admin System Limits Page', () => {
+    let limits: Limits = new Map()
+    beforeEach(() => {
+      cy.getLimits().then(l => {
+        limits = l
+        return cy.visit('/admin/limits')
+      })
+    })
+
+    it('should allow updating system limits values', () => {
+      const newContactMethods = c.integer({ min: 0, max: 1000 }).toString()
+      const newEPActions = c.integer({ min: 0, max: 1000 }).toString()
+
+      const ContactMethodsPerUser = limits.get(
+        'ContactMethodsPerUser',
+      ) as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
+
+      cy.form({
+        ContactMethodsPerUser: newContactMethods,
+        EPActionsPerStep: newEPActions,
+      })
+
+      cy.get('button[data-cy=save]').click()
+      cy.dialogTitle('Apply Configuration Changes?')
+
+      cy.dialogContains('-' + ContactMethodsPerUser.value)
+      cy.dialogContains('-' + EPActionsPerStep.value)
+      cy.dialogContains('+' + newContactMethods)
+      cy.dialogContains('+' + newEPActions)
+      cy.dialogFinish('Confirm')
+
+      cy.get('input[name="EPActionsPerStep"]').should(
+        'have.value',
+        newEPActions,
+      )
+      cy.get('input[name="ContactMethodsPerUser"]').should(
+        'have.value',
+        newContactMethods,
+      )
+    })
+
+    it('should reset pending system limit value changes', () => {
+      const ContactMethodsPerUser = limits.get(
+        'ContactMethodsPerUser',
+      ) as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
+
+      cy.form({
+        ContactMethodsPerUser: c.integer({ min: 0, max: 1000 }).toString(),
+        EPActionsPerStep: c.integer({ min: 0, max: 1000 }).toString(),
+      })
+
+      cy.get('button[data-cy="reset"]').click()
+
+      cy.get('input[name="ContactMethodsPerUser"]').should(
+        'have.value',
+        ContactMethodsPerUser.value.toString(),
+      )
+      cy.get('input[name="EPActionsPerStep"]').should(
+        'have.value',
+        EPActionsPerStep.value.toString(),
+      )
+    })
+  })
+  describe('Admin Config Page', () => {
+    let cfg: Config
     beforeEach(() => {
       return cy
         .resetConfig()

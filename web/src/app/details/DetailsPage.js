@@ -86,7 +86,7 @@ export default function DetailsPage(props) {
     links = (
       <Grid item xs={12} className={classes.spacing}>
         <Card>
-          <List>
+          <List data-cy='route-links'>
             {props.links.map((li, idx) => (
               <DetailsLink key={idx} {...li} />
             ))}

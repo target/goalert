@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import gql from 'graphql-tag'
 import { chain, startCase, isEmpty } from 'lodash-es'
-import AdminConfigSection from './AdminConfigSection'
+import AdminSection from './AdminSection'
 
 import withStyles from '@material-ui/core/styles/withStyles'
 import AdminDialog from './AdminDialog'
@@ -28,6 +28,11 @@ const query = gql`
       id
       value
     }
+  }
+`
+const mutation = gql`
+  mutation($input: [ConfigValueInput!]) {
+    setConfig(input: $input)
   }
 `
 
@@ -119,7 +124,7 @@ export default class AdminConfig extends React.PureComponent {
               <Grid item xs={12}>
                 <Form>
                   <Card>
-                    <AdminConfigSection
+                    <AdminSection
                       value={this.state.value}
                       onChange={(id, value) => this.updateValue(id, value)}
                       fields={configValues
@@ -192,7 +197,8 @@ export default class AdminConfig extends React.PureComponent {
         </PageActions>
         {this.state.confirm && (
           <AdminDialog
-            configValues={configValues}
+            mutation={mutation}
+            values={configValues}
             fieldValues={this.state.value}
             onClose={() => this.setState({ confirm: false })}
             onComplete={() => this.setState({ confirm: false, value: {} })}

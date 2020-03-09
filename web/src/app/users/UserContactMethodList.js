@@ -61,7 +61,7 @@ function UserContactMethodList(props) {
   const getIcon = cm => {
     if (!cm.disabled) return null
     if (props.readOnly) {
-      return <Warning title='Contact method disabled' />
+      return <Warning message='Contact method disabled' />
     }
 
     return (
@@ -73,7 +73,7 @@ function UserContactMethodList(props) {
         color='primary'
         disabled={props.readOnly}
       >
-        <Warning title='Contact method disabled' />
+        <Warning message='Contact method disabled' />
       </IconButton>
     )
   }

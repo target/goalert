@@ -11,6 +11,7 @@ import (
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/nonce"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/engine/resolver"
@@ -89,13 +90,15 @@ type App struct {
 	ScheduleStore       schedule.Store
 	RotationStore       rotation.Store
 
+	CalSubStore    *calendarsubscription.Store
 	OverrideStore  override.Store
 	Resolver       resolver.Resolver
-	LimitStore     limit.Store
+	LimitStore     *limit.Store
 	HeartbeatStore heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
+	APIKeyring     keyring.Keyring
 
 	NonceStore    nonce.Store
 	LabelStore    label.Store

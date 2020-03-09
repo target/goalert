@@ -24,7 +24,7 @@ import routeConfig, { getPath } from '../routes'
 
 import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import { CurrentUserAvatar } from '../../util/avatar'
+import { CurrentUserAvatar } from '../../util/avatars'
 import { authLogout } from '../../actions'
 import { connect } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
