@@ -5,6 +5,8 @@ import {
   ReduxState,
 } from './url'
 
+import { expect } from '../util/jest-types'
+
 describe('urlParamSelector', () => {
   ;([
     { search: '?search=foo', expected: { search: 'foo' } },

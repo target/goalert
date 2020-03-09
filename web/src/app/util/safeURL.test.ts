@@ -1,4 +1,5 @@
 import { safeURL } from './safeURL'
+import { expect } from './jest-types'
 
 describe('safeURL', () => {
   interface RunValuesObj {

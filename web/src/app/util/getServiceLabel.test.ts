@@ -1,4 +1,5 @@
 import getServiceLabel from './getServiceLabel'
+import { expect } from './jest-types'
 
 test('it should split service labels correctly', () => {
   const check = (search: string, labelKey: string, labelValue: string) =>

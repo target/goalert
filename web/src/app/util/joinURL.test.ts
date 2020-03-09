@@ -1,4 +1,5 @@
 import joinURL from './joinURL'
+import { expect } from './jest-types'
 
 test('it should join URLs correctly', () => {
   expect(joinURL('foo', 'bar')).toBe('foo/bar')
