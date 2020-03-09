@@ -1,6 +1,8 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support'
+import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
+
+// import { beforeEach } from '../cypress-types'
 
 testScreen('Admin', testAdmin, false, true)
 
@@ -21,7 +23,7 @@ function testAdmin(screen: ScreenFormat) {
       const ContactMethodsPerUser = limits.get(
         'ContactMethodsPerUser',
       ) as SystemLimits
-      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep')
 
       cy.form({
         ContactMethodsPerUser: newContactMethods,
