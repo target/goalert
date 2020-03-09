@@ -19,9 +19,9 @@ interface ObjectMap {
 }
 
 const buildFetchMore = (
-  fetchMore: Function,
+  fetchMore: (variables: ObjectMap) => void,
   after: string,
-  stopPolling: Function,
+  stopPolling: () => void,
   itemsPerPage: number,
 ) => {
   return once(newLimit => {
