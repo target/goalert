@@ -21,7 +21,7 @@ function testAdmin(screen: ScreenFormat) {
       const ContactMethodsPerUser = limits.get(
         'ContactMethodsPerUser',
       ) as SystemLimits
-      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep')
 
       cy.form({
         ContactMethodsPerUser: newContactMethods,
