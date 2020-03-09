@@ -20,17 +20,17 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "tsc -p ./tsconfig.json && lint-staged"
     }
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "tsc --allowJs --jsx react --noEmit --isolatedModules --noImplicitAny --strict --noImplicitThis --lib es6,dom --esModuleInterop --noFallthroughCasesInSwitch --experimentalDecorators"
-    ],
     "*.{json,yml,yaml,ts,tsx,html}": [
       "prettier --write"
     ],
-    "*.js": [
+    "*.{ts,tsx}": [
+      "prettier --write"
+    ],
+    "*.{js,jsx}": [
       "prettier --write",
       "eslint --fix"
     ],
