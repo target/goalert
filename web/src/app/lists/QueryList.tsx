@@ -11,6 +11,7 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
+import { QueryResult } from '@apollo/react-common'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -19,9 +20,9 @@ interface ObjectMap {
 }
 
 const buildFetchMore = (
-  fetchMore: (variables: ObjectMap) => void,
+  fetchMore: QueryResult['fetchMore'],
   after: string,
-  stopPolling: () => void,
+  stopPolling: QueryResult['stopPolling'],
   itemsPerPage: number,
 ) => {
   return once(newLimit => {

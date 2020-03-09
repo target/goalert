@@ -19,12 +19,11 @@ import useWidth from '../util/useWidth'
 
 import { ITEMS_PER_PAGE } from '../config'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import { Checkbox, CheckboxProps, makeStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import { AppLink } from '../util/AppLink'
-import { render } from 'react-dom'
 
 // gray boxes on load
 // disable overflow
