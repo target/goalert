@@ -79,6 +79,7 @@ export interface QueryListProps extends ControlledPaginatedListProps {
 export default function QueryList(props: QueryListProps) {
   const {
     mapDataNode = (n: ObjectMap) => ({
+      id: n.id,
       title: n.name,
       url: n.id,
       subText: n.description,
