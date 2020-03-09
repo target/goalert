@@ -46,7 +46,7 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: 'transparent',
     color: 'grey',
   },
-  listHeader: {
+  headerNote: {
     fontStyle: 'italic',
   },
   controls: {
@@ -63,8 +63,8 @@ export interface PaginatedListProps {
   // cardHeader will be displayed at the top of the card
   cardHeader?: ReactNode
 
-  // listHeader will be displayed at the top of the list
-  listHeader?: ReactNode
+  // headerNote will be displayed at the top of the list
+  headerNote?: string
 
   items: PaginatedListItemProps[] | CheckboxItemsProps[]
   itemsPerPage?: number
@@ -97,7 +97,7 @@ export interface PaginatedListItemProps {
 export function PaginatedList(props: PaginatedListProps) {
   const {
     cardHeader,
-    listHeader,
+    headerNote,
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,
     infiniteScroll,
@@ -243,13 +243,13 @@ export function PaginatedList(props: PaginatedListProps) {
   function renderList(): ReactElement {
     return (
       <List data-cy='apollo-list'>
-        {listHeader && (
+        {headerNote && (
           <ListItem>
             <ListItemText
-              className={classes.listHeader}
+              className={classes.headerNote}
               disableTypography
               secondary={
-                <Typography color='textSecondary'>{listHeader}</Typography>
+                <Typography color='textSecondary'>{headerNote}</Typography>
               }
             />
           </ListItem>
