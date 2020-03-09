@@ -1,7 +1,9 @@
-declare namespace Cypress {
-  interface Chainable {
-    /** Executes a query directly against the test DB (no results). */
-    sql: typeof sql
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Executes a query directly against the test DB (no results). */
+      sql: typeof sql
+    }
   }
 }
 
@@ -18,3 +20,5 @@ function sql(query: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('sql', sql)
+
+export {}

@@ -1,7 +1,9 @@
-declare namespace Cypress {
-  interface Chainable {
-    login: typeof login
-    adminLogin: typeof adminLogin
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login: typeof login
+      adminLogin: typeof adminLogin
+    }
   }
 }
 
@@ -78,3 +80,5 @@ function adminLogin(tokenOnly: boolean = false): Cypress.Chainable<string> {
 
 Cypress.Commands.add('login', login)
 Cypress.Commands.add('adminLogin', adminLogin)
+
+export {}

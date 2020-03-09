@@ -1,7 +1,9 @@
-declare namespace Cypress {
-  interface Chainable {
-    /** Navigate to a link on the side/nav bar. */
-    pageNav: typeof pageNav
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /** Navigate to a link on the side/nav bar. */
+      pageNav: typeof pageNav
+    }
   }
 }
 
@@ -24,3 +26,5 @@ function pageNav(s: string, skipClick?: boolean): Cypress.Chainable {
 }
 
 Cypress.Commands.add('pageNav', pageNav)
+
+export {}
