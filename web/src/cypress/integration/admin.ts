@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support'
+import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
 testScreen('Admin', testAdmin, false, true)
