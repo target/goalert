@@ -6,7 +6,7 @@ const c = new Chance()
 
 testScreen('Rotations', testRotations)
 
-function testRotations(screen: ScreenFormat) {
+function testRotations() {
   describe('List Page', () => {
     let rot: Rotation
     beforeEach(() => {

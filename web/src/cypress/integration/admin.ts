@@ -4,7 +4,7 @@ const c = new Chance()
 
 testScreen('Admin', testAdmin, false, true)
 
-function testAdmin(screen: ScreenFormat) {
+function testAdmin() {
   describe('Admin System Limits Page', () => {
     let limits: Limits = new Map()
     beforeEach(() => {

@@ -17,7 +17,7 @@ interface SystemLimits {
 type Limits = Map<string, { value: number; description: string }>
 
 function getLimits(): Cypress.Chainable<Limits> {
-  let limits = new Map()
+  const limits = new Map()
   const query = `query getLimits() {
     systemLimits {
       id
@@ -34,7 +34,7 @@ function getLimits(): Cypress.Chainable<Limits> {
   })
 }
 
-function updateLimits(input: SystemLimitInput[]): Cypress.Chainable<Boolean> {
+function updateLimits(input: SystemLimitInput[]): Cypress.Chainable<boolean> {
   const query = `mutation updateLimits($input: [SystemLimitInput!]!){
     setSystemLimits(input: $input)
   }`
