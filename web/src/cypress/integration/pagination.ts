@@ -1,9 +1,9 @@
 import { Chance } from 'chance'
+
+import { testScreen } from '../support'
 const c = new Chance()
 
 const itemsPerPage = 15
-
-import { testScreen } from '../support'
 
 testScreen('Pagination', testPagination)
 
@@ -12,20 +12,20 @@ const padZeros = (val: string) => {
   return val
 }
 
-interface createOpts {
+interface CreateOpts {
   name: string
 }
-type createOneFunc = (opts: createOpts) => Cypress.Chainable<any>
-type createManyFunc = (names: Array<createOpts>) => Cypress.Chainable<any>
+type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<any>
+type createManyFunc = (names: Array<CreateOpts>) => Cypress.Chainable<any>
 
 function createOne(fn: createOneFunc) {
-  return (names: Array<createOpts>) => {
+  return (names: Array<CreateOpts>) => {
     names.forEach(name => fn(name))
     return cy
   }
 }
 
-function testPagination(screen: ScreenFormat) {
+function testPagination() {
   testPaginating('Rotations', 'rotations', createOne(cy.createRotation))
   testPaginating('Schedules', 'schedules', createOne(cy.createSchedule))
   testPaginating(
@@ -39,7 +39,7 @@ function testPagination(screen: ScreenFormat) {
 
 function testPaginating(label: string, url: string, create: createManyFunc) {
   let names: Array<string> = []
-  let nameSubstr: string = ''
+  let nameSubstr = ''
 
   describe(label, () => {
     before(() => {

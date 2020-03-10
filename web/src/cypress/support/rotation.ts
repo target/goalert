@@ -45,9 +45,6 @@ declare global {
   }
 }
 
-type Part = { pos: number }
-const sortParts = (a: Part, b: Part) => (a.pos < b.pos ? -1 : 1)
-
 function createRotation(rot?: RotationOptions): Cypress.Chainable<Rotation> {
   const query = `mutation createRotation($input: CreateRotationInput!){
           createRotation(input: $input) {

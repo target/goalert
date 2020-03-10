@@ -6,7 +6,7 @@ const c = new Chance()
 
 testScreen('Time Pickers', testTimePickers)
 
-function testTimePickers(screen: ScreenFormat) {
+function testTimePickers() {
   describe('Time (schedule assignments)', () => {
     const check = (name: string, params: string, display: string) =>
       it(name, () => {
@@ -111,7 +111,7 @@ function testTimePickers(screen: ScreenFormat) {
   })
 
   describe('DateTime (schedule overrides)', () => {
-    const check = (name: string, params: string, display: string) =>
+    const check = (name: string, params: string) =>
       it(name, () => {
         cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
           cy.visit(`/schedules/${s.id}/overrides${params}`),

@@ -190,7 +190,7 @@ function createHeartbeatMonitor(
   }
 
   const name = monitor.name || c.word({ length: 5 }) + ' Monitor'
-  let timeout = monitor.timeoutMinutes || Math.trunc(Math.random() * 30) + 5
+  const timeout = monitor.timeoutMinutes || Math.trunc(Math.random() * 30) + 5
   const svcID = monitor.svcID
 
   const query = `

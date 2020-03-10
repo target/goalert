@@ -1,4 +1,6 @@
 import { Chance } from 'chance'
+import * as _ from 'lodash-es'
+
 const c = new Chance()
 
 declare global {
@@ -80,7 +82,7 @@ function setScheduleTarget(
   if (!tgt.target) {
     tgt.target = { rotation: {} }
   }
-  const rotation = (<TargetRotationOptions>tgt.target).rotation
+  const rotation = (tgt.target as TargetRotationOptions).rotation
   if (rotation) {
     return cy
       .createRotation(rotation)
@@ -124,7 +126,7 @@ function setScheduleTarget(
     }
   }`
 
-  const { schedule, ...params } = tgt
+  const params = _.omit(tgt, 'schedule')
 
   return cy
     .graphql2(mutation, {

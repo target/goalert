@@ -5,7 +5,7 @@ const c = new Chance()
 
 testScreen('Escalation Policy Steps', testSteps)
 
-function testSteps(screen: ScreenFormat) {
+function testSteps() {
   describe('Steps', () => {
     let ep: EP
     let r1: Rotation
@@ -83,11 +83,9 @@ function testSteps(screen: ScreenFormat) {
       })
     })
 
-    it('should edit a step', () => {
-      let s1: EPStep
+    it.only('should edit a step', () => {
       cy.createEPStep({ epID: ep.id })
-        .then(x => {
-          s1 = x
+        .then(() => {
           cy.reload()
         })
         .then(() => {

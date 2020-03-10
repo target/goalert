@@ -169,6 +169,7 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
   return cy
     .graphql(query, {
       input: {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         service_id: a.serviceID,
         summary: a.summary || c.sentence({ words: 3 }),
         details: a.details || c.sentence({ words: 5 }),
@@ -194,7 +195,7 @@ function createManyAlerts(
   // build query
   let query =
     'insert into alerts (service_id, summary, details, dedup_key) values '
-  let rows: Array<string> = []
+  const rows: Array<string> = []
   for (let i = 0; i < count; i++) {
     const summary = alertOptions.summary || c.word()
     const details = alertOptions.details || c.sentence()

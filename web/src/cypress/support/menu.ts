@@ -12,7 +12,7 @@ interface MenuSelectOptions {
    *
    * Useful on pages that haven't been made mobile friendly yet.
    */
-  forceWidescreen?: Boolean
+  forceWidescreen?: boolean
 }
 
 type menuFn = (label: string, options?: MenuSelectOptions) => Cypress.Chainable
