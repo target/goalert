@@ -90,7 +90,6 @@ export interface PaginatedListItemProps {
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
-  className?: string
 }
 
 export function PaginatedList(props: PaginatedListProps) {
@@ -183,7 +182,6 @@ export function PaginatedList(props: PaginatedListProps) {
 
     return (
       <ListItem
-        className={item.className}
         dense={isWidthUp('md', width)}
         key={'list_' + idx}
         {...urlProps}
