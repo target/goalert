@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"sort"
 	"strings"
 	"time"
@@ -122,19 +123,17 @@ func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
 func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := req.Context()
-	cfg := config.FromContext(ctx)
 	info := make([]registeredProvider, 0, len(h.providers))
 
-	// We want to remove the host/schema for provider URLs so we don't
-	// unexpectedly redirect across domains (e.g. during first-time setup).
-	u, err := url.Parse(cfg.CallbackURL("/api/v2/identity/providers/"))
-	if err != nil {
-		// should not be possible
-		panic(err)
+	u, err := url.Parse(req.RequestURI)
+	if errutil.HTTPError(ctx, w, err) {
+		return
 	}
-	u.Scheme = ""
-	u.Host = ""
-	callbackPrefix := u.String()
+	// Detect current pathPrefix instead of using CallbackURL since it
+	// will be used for browser linking.
+	//
+	// Also handles edge cases around first-time setup/localhost/etc...
+	pathPrefix := strings.TrimSuffix(u.Path, req.URL.Path)
 
 	for id, p := range h.providers {
 		if !p.Info(ctx).Enabled {
@@ -143,7 +142,7 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 
 		info = append(info, registeredProvider{
 			ID:           id,
-			URL:          callbackPrefix + url.PathEscape(id),
+			URL:          path.Join(pathPrefix, "/api/v2/identity/providers", url.PathEscape(id)),
 			ProviderInfo: p.Info(ctx),
 		})
 	}
