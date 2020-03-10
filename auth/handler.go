@@ -125,6 +125,17 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 	cfg := config.FromContext(ctx)
 	info := make([]registeredProvider, 0, len(h.providers))
 
+	// We want to remove the host/schema for provider URLs so we don't
+	// unexpectedly redirect across domains (e.g. during first-time setup).
+	u, err := url.Parse(cfg.CallbackURL("/api/v2/identity/providers/"))
+	if err != nil {
+		// should not be possible
+		panic(err)
+	}
+	u.Scheme = ""
+	u.Host = ""
+	callbackPrefix := u.String()
+
 	for id, p := range h.providers {
 		if !p.Info(ctx).Enabled {
 			continue
@@ -132,7 +143,7 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 
 		info = append(info, registeredProvider{
 			ID:           id,
-			URL:          cfg.CallbackURL("/api/v2/identity/providers/" + url.PathEscape(id)),
+			URL:          callbackPrefix + url.PathEscape(id),
 			ProviderInfo: p.Info(ctx),
 		})
 	}
