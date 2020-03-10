@@ -16,10 +16,12 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -67,6 +69,7 @@ type ResolverRoot interface {
 	Service() ServiceResolver
 	Target() TargetResolver
 	User() UserResolver
+	UserCalendarSubscription() UserCalendarSubscriptionResolver
 	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
@@ -186,38 +189,41 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAuthSubject                func(childComplexity int, input user.AuthSubject) int
-		CreateAlert                   func(childComplexity int, input CreateAlertInput) int
-		CreateEscalationPolicy        func(childComplexity int, input CreateEscalationPolicyInput) int
-		CreateEscalationPolicyStep    func(childComplexity int, input CreateEscalationPolicyStepInput) int
-		CreateHeartbeatMonitor        func(childComplexity int, input CreateHeartbeatMonitorInput) int
-		CreateIntegrationKey          func(childComplexity int, input CreateIntegrationKeyInput) int
-		CreateRotation                func(childComplexity int, input CreateRotationInput) int
-		CreateSchedule                func(childComplexity int, input CreateScheduleInput) int
-		CreateService                 func(childComplexity int, input CreateServiceInput) int
-		CreateUserContactMethod       func(childComplexity int, input CreateUserContactMethodInput) int
-		CreateUserNotificationRule    func(childComplexity int, input CreateUserNotificationRuleInput) int
-		CreateUserOverride            func(childComplexity int, input CreateUserOverrideInput) int
-		DeleteAll                     func(childComplexity int, input []assignment.RawTarget) int
-		DeleteAuthSubject             func(childComplexity int, input user.AuthSubject) int
-		EscalateAlerts                func(childComplexity int, input []int) int
-		SendContactMethodVerification func(childComplexity int, input SendContactMethodVerificationInput) int
-		SetConfig                     func(childComplexity int, input []ConfigValueInput) int
-		SetFavorite                   func(childComplexity int, input SetFavoriteInput) int
-		SetLabel                      func(childComplexity int, input SetLabelInput) int
-		TestContactMethod             func(childComplexity int, id string) int
-		UpdateAlerts                  func(childComplexity int, input UpdateAlertsInput) int
-		UpdateEscalationPolicy        func(childComplexity int, input UpdateEscalationPolicyInput) int
-		UpdateEscalationPolicyStep    func(childComplexity int, input UpdateEscalationPolicyStepInput) int
-		UpdateHeartbeatMonitor        func(childComplexity int, input UpdateHeartbeatMonitorInput) int
-		UpdateRotation                func(childComplexity int, input UpdateRotationInput) int
-		UpdateSchedule                func(childComplexity int, input UpdateScheduleInput) int
-		UpdateScheduleTarget          func(childComplexity int, input ScheduleTargetInput) int
-		UpdateService                 func(childComplexity int, input UpdateServiceInput) int
-		UpdateUser                    func(childComplexity int, input UpdateUserInput) int
-		UpdateUserContactMethod       func(childComplexity int, input UpdateUserContactMethodInput) int
-		UpdateUserOverride            func(childComplexity int, input UpdateUserOverrideInput) int
-		VerifyContactMethod           func(childComplexity int, input VerifyContactMethodInput) int
+		AddAuthSubject                 func(childComplexity int, input user.AuthSubject) int
+		CreateAlert                    func(childComplexity int, input CreateAlertInput) int
+		CreateEscalationPolicy         func(childComplexity int, input CreateEscalationPolicyInput) int
+		CreateEscalationPolicyStep     func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateHeartbeatMonitor         func(childComplexity int, input CreateHeartbeatMonitorInput) int
+		CreateIntegrationKey           func(childComplexity int, input CreateIntegrationKeyInput) int
+		CreateRotation                 func(childComplexity int, input CreateRotationInput) int
+		CreateSchedule                 func(childComplexity int, input CreateScheduleInput) int
+		CreateService                  func(childComplexity int, input CreateServiceInput) int
+		CreateUserCalendarSubscription func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
+		CreateUserContactMethod        func(childComplexity int, input CreateUserContactMethodInput) int
+		CreateUserNotificationRule     func(childComplexity int, input CreateUserNotificationRuleInput) int
+		CreateUserOverride             func(childComplexity int, input CreateUserOverrideInput) int
+		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
+		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
+		EscalateAlerts                 func(childComplexity int, input []int) int
+		SendContactMethodVerification  func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
+		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
+		SetLabel                       func(childComplexity int, input SetLabelInput) int
+		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
+		TestContactMethod              func(childComplexity int, id string) int
+		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
+		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
+		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
+		UpdateRotation                 func(childComplexity int, input UpdateRotationInput) int
+		UpdateSchedule                 func(childComplexity int, input UpdateScheduleInput) int
+		UpdateScheduleTarget           func(childComplexity int, input ScheduleTargetInput) int
+		UpdateService                  func(childComplexity int, input UpdateServiceInput) int
+		UpdateUser                     func(childComplexity int, input UpdateUserInput) int
+		UpdateUserCalendarSubscription func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
+		UpdateUserContactMethod        func(childComplexity int, input UpdateUserContactMethodInput) int
+		UpdateUserOverride             func(childComplexity int, input UpdateUserOverrideInput) int
+		VerifyContactMethod            func(childComplexity int, input VerifyContactMethodInput) int
 	}
 
 	OnCallShift struct {
@@ -234,32 +240,34 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Alert                   func(childComplexity int, id int) int
-		Alerts                  func(childComplexity int, input *AlertSearchOptions) int
-		AuthSubjectsForProvider func(childComplexity int, first *int, after *string, providerID string) int
-		Config                  func(childComplexity int, all *bool) int
-		ConfigHints             func(childComplexity int) int
-		EscalationPolicies      func(childComplexity int, input *EscalationPolicySearchOptions) int
-		EscalationPolicy        func(childComplexity int, id string) int
-		HeartbeatMonitor        func(childComplexity int, id string) int
-		IntegrationKey          func(childComplexity int, id string) int
-		LabelKeys               func(childComplexity int, input *LabelKeySearchOptions) int
-		LabelValues             func(childComplexity int, input *LabelValueSearchOptions) int
-		Labels                  func(childComplexity int, input *LabelSearchOptions) int
-		Rotation                func(childComplexity int, id string) int
-		Rotations               func(childComplexity int, input *RotationSearchOptions) int
-		Schedule                func(childComplexity int, id string) int
-		Schedules               func(childComplexity int, input *ScheduleSearchOptions) int
-		Service                 func(childComplexity int, id string) int
-		Services                func(childComplexity int, input *ServiceSearchOptions) int
-		SlackChannel            func(childComplexity int, id string) int
-		SlackChannels           func(childComplexity int, input *SlackChannelSearchOptions) int
-		TimeZones               func(childComplexity int, input *TimeZoneSearchOptions) int
-		User                    func(childComplexity int, id *string) int
-		UserContactMethod       func(childComplexity int, id string) int
-		UserOverride            func(childComplexity int, id string) int
-		UserOverrides           func(childComplexity int, input *UserOverrideSearchOptions) int
-		Users                   func(childComplexity int, input *UserSearchOptions, first *int, after *string, search *string) int
+		Alert                    func(childComplexity int, id int) int
+		Alerts                   func(childComplexity int, input *AlertSearchOptions) int
+		AuthSubjectsForProvider  func(childComplexity int, first *int, after *string, providerID string) int
+		Config                   func(childComplexity int, all *bool) int
+		ConfigHints              func(childComplexity int) int
+		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
+		EscalationPolicy         func(childComplexity int, id string) int
+		HeartbeatMonitor         func(childComplexity int, id string) int
+		IntegrationKey           func(childComplexity int, id string) int
+		LabelKeys                func(childComplexity int, input *LabelKeySearchOptions) int
+		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
+		Labels                   func(childComplexity int, input *LabelSearchOptions) int
+		Rotation                 func(childComplexity int, id string) int
+		Rotations                func(childComplexity int, input *RotationSearchOptions) int
+		Schedule                 func(childComplexity int, id string) int
+		Schedules                func(childComplexity int, input *ScheduleSearchOptions) int
+		Service                  func(childComplexity int, id string) int
+		Services                 func(childComplexity int, input *ServiceSearchOptions) int
+		SlackChannel             func(childComplexity int, id string) int
+		SlackChannels            func(childComplexity int, input *SlackChannelSearchOptions) int
+		SystemLimits             func(childComplexity int) int
+		TimeZones                func(childComplexity int, input *TimeZoneSearchOptions) int
+		User                     func(childComplexity int, id *string) int
+		UserCalendarSubscription func(childComplexity int, id string) int
+		UserContactMethod        func(childComplexity int, id string) int
+		UserOverride             func(childComplexity int, id string) int
+		UserOverrides            func(childComplexity int, input *UserOverrideSearchOptions) int
+		Users                    func(childComplexity int, input *UserSearchOptions, first *int, after *string, search *string) int
 	}
 
 	Rotation struct {
@@ -353,6 +361,12 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	SystemLimit struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Value       func(childComplexity int) int
+	}
+
 	Target struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
@@ -369,15 +383,27 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		AlertStatusCMID   func(childComplexity int) int
-		AuthSubjects      func(childComplexity int) int
-		ContactMethods    func(childComplexity int) int
-		Email             func(childComplexity int) int
-		ID                func(childComplexity int) int
-		Name              func(childComplexity int) int
-		NotificationRules func(childComplexity int) int
-		OnCallSteps       func(childComplexity int) int
-		Role              func(childComplexity int) int
+		AlertStatusCMID       func(childComplexity int) int
+		AuthSubjects          func(childComplexity int) int
+		CalendarSubscriptions func(childComplexity int) int
+		ContactMethods        func(childComplexity int) int
+		Email                 func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		Name                  func(childComplexity int) int
+		NotificationRules     func(childComplexity int) int
+		OnCallSteps           func(childComplexity int) int
+		Role                  func(childComplexity int) int
+	}
+
+	UserCalendarSubscription struct {
+		Disabled        func(childComplexity int) int
+		ID              func(childComplexity int) int
+		LastAccess      func(childComplexity int) int
+		Name            func(childComplexity int) int
+		ReminderMinutes func(childComplexity int) int
+		Schedule        func(childComplexity int) int
+		ScheduleID      func(childComplexity int) int
+		URL             func(childComplexity int) int
 	}
 
 	UserConnection struct {
@@ -469,6 +495,8 @@ type MutationResolver interface {
 	CreateHeartbeatMonitor(ctx context.Context, input CreateHeartbeatMonitorInput) (*heartbeat.Monitor, error)
 	SetLabel(ctx context.Context, input SetLabelInput) (bool, error)
 	CreateSchedule(ctx context.Context, input CreateScheduleInput) (*schedule.Schedule, error)
+	CreateUserCalendarSubscription(ctx context.Context, input CreateUserCalendarSubscriptionInput) (*calendarsubscription.CalendarSubscription, error)
+	UpdateUserCalendarSubscription(ctx context.Context, input UpdateUserCalendarSubscriptionInput) (bool, error)
 	UpdateScheduleTarget(ctx context.Context, input ScheduleTargetInput) (bool, error)
 	CreateUserOverride(ctx context.Context, input CreateUserOverrideInput) (*override.UserOverride, error)
 	CreateUserContactMethod(ctx context.Context, input CreateUserContactMethodInput) (*contactmethod.ContactMethod, error)
@@ -480,6 +508,7 @@ type MutationResolver interface {
 	UpdateUserOverride(ctx context.Context, input UpdateUserOverrideInput) (bool, error)
 	UpdateHeartbeatMonitor(ctx context.Context, input UpdateHeartbeatMonitorInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
+	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
 }
 type OnCallShiftResolver interface {
 	User(ctx context.Context, obj *oncall.Shift) (*user.User, error)
@@ -496,6 +525,7 @@ type QueryResolver interface {
 	Rotation(ctx context.Context, id string) (*rotation.Rotation, error)
 	Rotations(ctx context.Context, input *RotationSearchOptions) (*RotationConnection, error)
 	Schedule(ctx context.Context, id string) (*schedule.Schedule, error)
+	UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error)
 	Schedules(ctx context.Context, input *ScheduleSearchOptions) (*ScheduleConnection, error)
 	EscalationPolicy(ctx context.Context, id string) (*escalation.Policy, error)
 	EscalationPolicies(ctx context.Context, input *EscalationPolicySearchOptions) (*EscalationPolicyConnection, error)
@@ -508,6 +538,7 @@ type QueryResolver interface {
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
+	SystemLimits(ctx context.Context) ([]SystemLimit, error)
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
@@ -550,9 +581,17 @@ type UserResolver interface {
 
 	ContactMethods(ctx context.Context, obj *user.User) ([]contactmethod.ContactMethod, error)
 	NotificationRules(ctx context.Context, obj *user.User) ([]notificationrule.NotificationRule, error)
+	CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calendarsubscription.CalendarSubscription, error)
 
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
+}
+type UserCalendarSubscriptionResolver interface {
+	ReminderMinutes(ctx context.Context, obj *calendarsubscription.CalendarSubscription) ([]int, error)
+
+	Schedule(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*schedule.Schedule, error)
+
+	URL(ctx context.Context, obj *calendarsubscription.CalendarSubscription) (*string, error)
 }
 type UserContactMethodResolver interface {
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
@@ -1121,6 +1160,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateService(childComplexity, args["input"].(CreateServiceInput)), true
 
+	case "Mutation.createUserCalendarSubscription":
+		if e.complexity.Mutation.CreateUserCalendarSubscription == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUserCalendarSubscription_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUserCalendarSubscription(childComplexity, args["input"].(CreateUserCalendarSubscriptionInput)), true
+
 	case "Mutation.createUserContactMethod":
 		if e.complexity.Mutation.CreateUserContactMethod == nil {
 			break
@@ -1241,6 +1292,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetLabel(childComplexity, args["input"].(SetLabelInput)), true
 
+	case "Mutation.setSystemLimits":
+		if e.complexity.Mutation.SetSystemLimits == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setSystemLimits_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetSystemLimits(childComplexity, args["input"].([]SystemLimitInput)), true
+
 	case "Mutation.testContactMethod":
 		if e.complexity.Mutation.TestContactMethod == nil {
 			break
@@ -1360,6 +1423,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(UpdateUserInput)), true
+
+	case "Mutation.updateUserCalendarSubscription":
+		if e.complexity.Mutation.UpdateUserCalendarSubscription == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserCalendarSubscription_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserCalendarSubscription(childComplexity, args["input"].(UpdateUserCalendarSubscriptionInput)), true
 
 	case "Mutation.updateUserContactMethod":
 		if e.complexity.Mutation.UpdateUserContactMethod == nil {
@@ -1681,6 +1756,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SlackChannels(childComplexity, args["input"].(*SlackChannelSearchOptions)), true
 
+	case "Query.systemLimits":
+		if e.complexity.Query.SystemLimits == nil {
+			break
+		}
+
+		return e.complexity.Query.SystemLimits(childComplexity), true
+
 	case "Query.timeZones":
 		if e.complexity.Query.TimeZones == nil {
 			break
@@ -1704,6 +1786,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.User(childComplexity, args["id"].(*string)), true
+
+	case "Query.userCalendarSubscription":
+		if e.complexity.Query.UserCalendarSubscription == nil {
+			break
+		}
+
+		args, err := ec.field_Query_userCalendarSubscription_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserCalendarSubscription(childComplexity, args["id"].(string)), true
 
 	case "Query.userContactMethod":
 		if e.complexity.Query.UserContactMethod == nil {
@@ -2153,6 +2247,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StringConnection.PageInfo(childComplexity), true
 
+	case "SystemLimit.description":
+		if e.complexity.SystemLimit.Description == nil {
+			break
+		}
+
+		return e.complexity.SystemLimit.Description(childComplexity), true
+
+	case "SystemLimit.id":
+		if e.complexity.SystemLimit.ID == nil {
+			break
+		}
+
+		return e.complexity.SystemLimit.ID(childComplexity), true
+
+	case "SystemLimit.value":
+		if e.complexity.SystemLimit.Value == nil {
+			break
+		}
+
+		return e.complexity.SystemLimit.Value(childComplexity), true
+
 	case "Target.id":
 		if e.complexity.Target.ID == nil {
 			break
@@ -2209,6 +2324,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.AuthSubjects(childComplexity), true
 
+	case "User.calendarSubscriptions":
+		if e.complexity.User.CalendarSubscriptions == nil {
+			break
+		}
+
+		return e.complexity.User.CalendarSubscriptions(childComplexity), true
+
 	case "User.contactMethods":
 		if e.complexity.User.ContactMethods == nil {
 			break
@@ -2257,6 +2379,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Role(childComplexity), true
+
+	case "UserCalendarSubscription.disabled":
+		if e.complexity.UserCalendarSubscription.Disabled == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.Disabled(childComplexity), true
+
+	case "UserCalendarSubscription.id":
+		if e.complexity.UserCalendarSubscription.ID == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.ID(childComplexity), true
+
+	case "UserCalendarSubscription.lastAccess":
+		if e.complexity.UserCalendarSubscription.LastAccess == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.LastAccess(childComplexity), true
+
+	case "UserCalendarSubscription.name":
+		if e.complexity.UserCalendarSubscription.Name == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.Name(childComplexity), true
+
+	case "UserCalendarSubscription.reminderMinutes":
+		if e.complexity.UserCalendarSubscription.ReminderMinutes == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.ReminderMinutes(childComplexity), true
+
+	case "UserCalendarSubscription.schedule":
+		if e.complexity.UserCalendarSubscription.Schedule == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.Schedule(childComplexity), true
+
+	case "UserCalendarSubscription.scheduleID":
+		if e.complexity.UserCalendarSubscription.ScheduleID == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.ScheduleID(childComplexity), true
+
+	case "UserCalendarSubscription.url":
+		if e.complexity.UserCalendarSubscription.URL == nil {
+			break
+		}
+
+		return e.complexity.UserCalendarSubscription.URL(childComplexity), true
 
 	case "UserConnection.nodes":
 		if e.complexity.UserConnection.Nodes == nil {
@@ -2514,6 +2692,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
 
+  # Returns the public information of a calendar subscription
+  userCalendarSubscription(id: ID!): UserCalendarSubscription
+
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
 
@@ -2557,6 +2738,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
   # Returns configuration hints (must be admin).
   configHints: [ConfigHint!]!
 
+  # Returns configuration limits
+  systemLimits: [SystemLimit!]!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -2584,6 +2768,17 @@ type SlackChannelConnection {
   pageInfo: PageInfo!
 }
 
+type SystemLimit {
+  id: SystemLimitID!
+  description: String!
+  value: Int!
+}
+
+input SystemLimitInput {
+  id: SystemLimitID!
+  value: Int!
+}
+
 type ConfigValue {
   id: String!
   description: String!
@@ -2600,6 +2795,20 @@ enum ConfigType {
   stringList
   integer
   boolean
+}
+enum SystemLimitID {
+  CalendarSubscriptionsPerUser
+  NotificationRulesPerUser
+  ContactMethodsPerUser
+  EPStepsPerPolicy
+  EPActionsPerStep
+  ParticipantsPerRotation
+  RulesPerSchedule
+  IntegrationKeysPerService
+  UnackedAlertsPerService
+  TargetsPerSchedule
+  HeartbeatMonitorsPerService
+  UserOverridesPerSchedule
 }
 
 input UserOverrideSearchOptions {
@@ -2707,6 +2916,14 @@ type Mutation {
   setLabel(input: SetLabelInput!): Boolean!
 
   createSchedule(input: CreateScheduleInput!): Schedule
+
+  createUserCalendarSubscription(
+    input: CreateUserCalendarSubscriptionInput!
+  ): UserCalendarSubscription!
+  updateUserCalendarSubscription(
+    input: UpdateUserCalendarSubscriptionInput!
+  ): Boolean!
+
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
 
@@ -2727,12 +2944,38 @@ type Mutation {
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+  setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 }
 
 input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+}
+
+input CreateUserCalendarSubscriptionInput {
+  name: String!
+  reminderMinutes: [Int!]
+  scheduleID: ID!
+  disabled: Boolean
+}
+input UpdateUserCalendarSubscriptionInput {
+  id: ID!
+  name: String
+  reminderMinutes: [Int!]
+  disabled: Boolean
+}
+type UserCalendarSubscription {
+  id: ID!
+  name: String!
+  reminderMinutes: [Int!]!
+  scheduleID: ID!
+  schedule: Schedule
+  lastAccess: ISOTimestamp!
+  disabled: Boolean!
+
+  # Subscription url, only available upon creation.
+  url: String
 }
 
 input ConfigValueInput {
@@ -3234,6 +3477,7 @@ enum TargetType {
   notificationRule
   contactMethod
   heartbeatMonitor
+  calendarSubscription
 }
 
 type ServiceConnection {
@@ -3290,6 +3534,7 @@ type User {
 
   contactMethods: [UserContactMethod!]!
   notificationRules: [UserNotificationRule!]!
+  calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
 
@@ -3506,6 +3751,20 @@ func (ec *executionContext) field_Mutation_createService_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createUserCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateUserCalendarSubscriptionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNCreateUserCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserCalendarSubscriptionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createUserContactMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3646,6 +3905,20 @@ func (ec *executionContext) field_Mutation_setLabel_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setSystemLimits_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []SystemLimitInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_testContactMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3764,6 +4037,20 @@ func (ec *executionContext) field_Mutation_updateService_args(ctx context.Contex
 	var arg0 UpdateServiceInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNUpdateServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateServiceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateUserCalendarSubscriptionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateUserCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateUserCalendarSubscriptionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4135,6 +4422,20 @@ func (ec *executionContext) field_Query_timeZones_args(ctx context.Context, rawA
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_userCalendarSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -7464,6 +7765,94 @@ func (ec *executionContext) _Mutation_createSchedule(ctx context.Context, field 
 	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createUserCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createUserCalendarSubscription_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateUserCalendarSubscription(rctx, args["input"].(CreateUserCalendarSubscriptionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*calendarsubscription.CalendarSubscription)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateUserCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateUserCalendarSubscription_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserCalendarSubscription(rctx, args["input"].(UpdateUserCalendarSubscriptionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_updateScheduleTarget(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -7922,6 +8311,50 @@ func (ec *executionContext) _Mutation_setConfig(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().SetConfig(rctx, args["input"].([]ConfigValueInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setSystemLimits(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setSystemLimits_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetSystemLimits(rctx, args["input"].([]SystemLimitInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8655,6 +9088,47 @@ func (ec *executionContext) _Query_schedule(ctx context.Context, field graphql.C
 	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_userCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_userCalendarSubscription_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserCalendarSubscription(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*calendarsubscription.CalendarSubscription)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_schedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -9168,6 +9642,43 @@ func (ec *executionContext) _Query_configHints(ctx context.Context, field graphq
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_systemLimits(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SystemLimits(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]SystemLimit)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNSystemLimit2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_userContactMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11421,6 +11932,117 @@ func (ec *executionContext) _StringConnection_pageInfo(ctx context.Context, fiel
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SystemLimit_id(ctx context.Context, field graphql.CollectedField, obj *SystemLimit) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SystemLimit",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(limit.ID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SystemLimit_description(ctx context.Context, field graphql.CollectedField, obj *SystemLimit) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SystemLimit",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SystemLimit_value(ctx context.Context, field graphql.CollectedField, obj *SystemLimit) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SystemLimit",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Target_id(ctx context.Context, field graphql.CollectedField, obj *assignment.RawTarget) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -11862,6 +12484,43 @@ func (ec *executionContext) _User_notificationRules(ctx context.Context, field g
 	return ec.marshalNUserNotificationRule2ᚕgithubᚗcomᚋtargetᚋgoalertᚋuserᚋnotificationruleᚐNotificationRuleᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_calendarSubscriptions(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().CalendarSubscriptions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]calendarsubscription.CalendarSubscription)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUserCalendarSubscription2ᚕgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscriptionᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_statusUpdateContactMethodID(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -11971,6 +12630,296 @@ func (ec *executionContext) _User_onCallSteps(ctx context.Context, field graphql
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtargetᚋgoalertᚋescalationᚐStepᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_id(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_name(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_reminderMinutes(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserCalendarSubscription().ReminderMinutes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2ᚕintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_scheduleID(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ScheduleID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_schedule(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserCalendarSubscription().Schedule(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*schedule.Schedule)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_lastAccess(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAccess, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_disabled(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Disabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserCalendarSubscription_url(ctx context.Context, field graphql.CollectedField, obj *calendarsubscription.CalendarSubscription) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserCalendarSubscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserCalendarSubscription().URL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *UserConnection) (ret graphql.Marshaler) {
@@ -14406,6 +15355,42 @@ func (ec *executionContext) unmarshalInputCreateServiceInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateUserCalendarSubscriptionInput(ctx context.Context, obj interface{}) (CreateUserCalendarSubscriptionInput, error) {
+	var it CreateUserCalendarSubscriptionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reminderMinutes":
+			var err error
+			it.ReminderMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "scheduleID":
+			var err error
+			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "disabled":
+			var err error
+			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx context.Context, obj interface{}) (CreateUserContactMethodInput, error) {
 	var it CreateUserContactMethodInput
 	var asMap = obj.(map[string]interface{})
@@ -15032,6 +16017,30 @@ func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, obj interface{}) (SystemLimitInput, error) {
+	var it SystemLimitInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+			it.Value, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj interface{}) (assignment.RawTarget, error) {
 	var it assignment.RawTarget
 	var asMap = obj.(map[string]interface{})
@@ -15351,6 +16360,42 @@ func (ec *executionContext) unmarshalInputUpdateServiceInput(ctx context.Context
 		case "escalationPolicyID":
 			var err error
 			it.EscalationPolicyID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateUserCalendarSubscriptionInput(ctx context.Context, obj interface{}) (UpdateUserCalendarSubscriptionInput, error) {
+	var it UpdateUserCalendarSubscriptionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reminderMinutes":
+			var err error
+			it.ReminderMinutes, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "disabled":
+			var err error
+			it.Disabled, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16477,6 +17522,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createSchedule":
 			out.Values[i] = ec._Mutation_createSchedule(ctx, field)
+		case "createUserCalendarSubscription":
+			out.Values[i] = ec._Mutation_createUserCalendarSubscription(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateUserCalendarSubscription":
+			out.Values[i] = ec._Mutation_updateUserCalendarSubscription(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "updateScheduleTarget":
 			out.Values[i] = ec._Mutation_updateScheduleTarget(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -16520,6 +17575,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "setConfig":
 			out.Values[i] = ec._Mutation_setConfig(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "setSystemLimits":
+			out.Values[i] = ec._Mutation_setSystemLimits(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -16764,6 +17824,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_schedule(ctx, field)
 				return res
 			})
+		case "userCalendarSubscription":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_userCalendarSubscription(ctx, field)
+				return res
+			})
 		case "schedules":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -16921,6 +17992,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_configHints(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "systemLimits":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_systemLimits(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -17690,6 +18775,43 @@ func (ec *executionContext) _StringConnection(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var systemLimitImplementors = []string{"SystemLimit"}
+
+func (ec *executionContext) _SystemLimit(ctx context.Context, sel ast.SelectionSet, obj *SystemLimit) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, systemLimitImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemLimit")
+		case "id":
+			out.Values[i] = ec._SystemLimit_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._SystemLimit_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._SystemLimit_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var targetImplementors = []string{"Target"}
 
 func (ec *executionContext) _Target(ctx context.Context, sel ast.SelectionSet, obj *assignment.RawTarget) graphql.Marshaler {
@@ -17860,6 +18982,20 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "calendarSubscriptions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_calendarSubscriptions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "statusUpdateContactMethodID":
 			out.Values[i] = ec._User_statusUpdateContactMethodID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -17891,6 +19027,89 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userCalendarSubscriptionImplementors = []string{"UserCalendarSubscription"}
+
+func (ec *executionContext) _UserCalendarSubscription(ctx context.Context, sel ast.SelectionSet, obj *calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, userCalendarSubscriptionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserCalendarSubscription")
+		case "id":
+			out.Values[i] = ec._UserCalendarSubscription_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._UserCalendarSubscription_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "reminderMinutes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserCalendarSubscription_reminderMinutes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "scheduleID":
+			out.Values[i] = ec._UserCalendarSubscription_scheduleID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "schedule":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserCalendarSubscription_schedule(ctx, field, obj)
+				return res
+			})
+		case "lastAccess":
+			out.Values[i] = ec._UserCalendarSubscription_lastAccess(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "disabled":
+			out.Values[i] = ec._UserCalendarSubscription_disabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "url":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserCalendarSubscription_url(ctx, field, obj)
 				return res
 			})
 		default:
@@ -18776,6 +19995,10 @@ func (ec *executionContext) unmarshalNCreateScheduleInput2githubᚗcomᚋtarget�
 
 func (ec *executionContext) unmarshalNCreateServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateServiceInput(ctx context.Context, v interface{}) (CreateServiceInput, error) {
 	return ec.unmarshalInputCreateServiceInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNCreateUserCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserCalendarSubscriptionInput(ctx context.Context, v interface{}) (CreateUserCalendarSubscriptionInput, error) {
+	return ec.unmarshalInputCreateUserCalendarSubscriptionInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNCreateUserContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserContactMethodInput(ctx context.Context, v interface{}) (CreateUserContactMethodInput, error) {
@@ -19694,6 +20917,86 @@ func (ec *executionContext) marshalNStringConnection2ᚖgithubᚗcomᚋtargetᚋ
 	return ec._StringConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSystemLimit2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimit(ctx context.Context, sel ast.SelectionSet, v SystemLimit) graphql.Marshaler {
+	return ec._SystemLimit(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSystemLimit2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitᚄ(ctx context.Context, sel ast.SelectionSet, v []SystemLimit) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSystemLimit2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimit(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx context.Context, v interface{}) (limit.ID, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return limit.ID(tmp), err
+}
+
+func (ec *executionContext) marshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx context.Context, sel ast.SelectionSet, v limit.ID) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNSystemLimitInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInput(ctx context.Context, v interface{}) (SystemLimitInput, error) {
+	return ec.unmarshalInputSystemLimitInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ(ctx context.Context, v interface{}) ([]SystemLimitInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]SystemLimitInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNSystemLimitInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalNTarget2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx context.Context, sel ast.SelectionSet, v assignment.RawTarget) graphql.Marshaler {
 	return ec._Target(ctx, sel, &v)
 }
@@ -19849,6 +21152,10 @@ func (ec *executionContext) unmarshalNUpdateServiceInput2githubᚗcomᚋtarget�
 	return ec.unmarshalInputUpdateServiceInput(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNUpdateUserCalendarSubscriptionInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateUserCalendarSubscriptionInput(ctx context.Context, v interface{}) (UpdateUserCalendarSubscriptionInput, error) {
+	return ec.unmarshalInputUpdateUserCalendarSubscriptionInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNUpdateUserContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateUserContactMethodInput(ctx context.Context, v interface{}) (UpdateUserContactMethodInput, error) {
 	return ec.unmarshalInputUpdateUserContactMethodInput(ctx, v)
 }
@@ -19900,6 +21207,57 @@ func (ec *executionContext) marshalNUser2ᚕgithubᚗcomᚋtargetᚋgoalertᚋus
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNUserCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	return ec._UserCalendarSubscription(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserCalendarSubscription2ᚕgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscriptionᚄ(ctx context.Context, sel ast.SelectionSet, v []calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v *calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserCalendarSubscription(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUserConnection2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v UserConnection) graphql.Marshaler {
@@ -21172,6 +22530,17 @@ func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋtargetᚋgoalertᚋus
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserCalendarSubscription2githubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	return ec._UserCalendarSubscription(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOUserCalendarSubscription2ᚖgithubᚗcomᚋtargetᚋgoalertᚋcalendarsubscriptionᚐCalendarSubscription(ctx context.Context, sel ast.SelectionSet, v *calendarsubscription.CalendarSubscription) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserCalendarSubscription(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUserContactMethod2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐContactMethod(ctx context.Context, sel ast.SelectionSet, v contactmethod.ContactMethod) graphql.Marshaler {

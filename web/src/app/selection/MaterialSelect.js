@@ -8,7 +8,7 @@ import _ from 'lodash-es'
 
 const valueShape = p.shape({
   label: p.string.isRequired,
-  value: p.string.isRequired,
+  value: p.any.isRequired,
   icon: p.element,
 })
 

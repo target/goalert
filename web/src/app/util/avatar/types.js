@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
 import { useSessionInfo } from '../RequireConfig'
 import { Avatar } from '@material-ui/core'
+import { absURLSelector } from '../../selectors'
+import { useSelector } from 'react-redux'
 
 function useValidImage(srcURL) {
   const [valid, setValid] = useState(false)
@@ -38,10 +40,11 @@ function useAvatar(Fallback, otherProps, imgSrc) {
 }
 
 export function UserAvatar({ userID, ...otherProps }) {
+  const absURL = useSelector(absURLSelector)
   return useAvatar(
     Person,
     otherProps,
-    userID ? `/api/v2/user-avatar/${userID}` : null,
+    userID ? absURL(`/api/v2/user-avatar/${userID}`) : null,
   )
 }
 

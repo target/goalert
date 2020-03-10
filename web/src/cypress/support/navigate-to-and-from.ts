@@ -25,7 +25,7 @@ function navigateToAndFrom(
 ) {
   // navigate to extended details view
   cy.get('[data-cy=app-bar]').should('contain', pageName)
-  cy.get('li')
+  cy.get('ul[data-cy="route-links"] li')
     .contains(detailsName)
     .click()
 
@@ -54,9 +54,11 @@ function navigateToAndFrom(
     cy.get('button[data-cy=nav-back-icon]').click()
 
     // verify back on details page
-    cy.get('[data-cy=app-bar]')
-      .should('contain', pageName)
-      .should('not.contain', targetName)
+    cy.get('[data-cy=app-bar]').should('contain', pageName)
+
+    if (!route.includes('profile')) {
+      cy.get('[data-cy=app-bar]').should('not.contain', targetName)
+    }
   }
 }
 
