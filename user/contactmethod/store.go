@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -39,7 +40,6 @@ type DB struct {
 	findAll      *sql.Stmt
 	lookupUserID *sql.Stmt
 	disable      *sql.Stmt
-	disablePhone *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -52,12 +52,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			SET disabled = true
 			WHERE type = $1
 				AND value = $2
-		`),
-		disablePhone: p.P(`
-			UPDATE user_contact_methods
-			SET disabled = true
-			WHERE (type = 'SMS' or type = 'VOICE')
-				AND value = $1
+			RETURNING id
 		`),
 		lookupUserID: p.P(`
 			SELECT DISTINCT user_id
@@ -102,20 +97,27 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 }
 
 func (db *DB) DisableByValue(ctx context.Context, t Type, v string) error {
+	err := permission.LimitCheckAny(ctx, permission.System)
+	if err != nil {
+		return err
+	}
+
 	c := ContactMethod{Name: "Disable", Type: t, Value: v}
 	n, err := c.Normalize()
 	if err != nil {
 		return err
 	}
-	err = permission.LimitCheckAny(ctx, permission.System)
-	if err != nil {
-		return err
-	}
-	switch t {
-	case TypeSMS, TypeVoice:
-		_, err = db.disablePhone.ExecContext(ctx, n.Value)
-	default:
-		_, err = db.disable.ExecContext(ctx, n.Type, n.Value)
+
+	var id string
+	err = db.disable.QueryRowContext(ctx, n.Type, n.Value).Scan(&id)
+
+	if err == nil {
+		// NOTE: maintain a record of consent/dissent
+		logCtx := log.WithFields(ctx, log.Fields{
+			"contactMethodID": id,
+		})
+
+		log.Logf(logCtx, "Contact method STOP received.")
 	}
 	return err
 }

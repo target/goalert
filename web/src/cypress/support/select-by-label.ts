@@ -21,19 +21,48 @@ type selectByLabelFn = (label: string) => Cypress.Chainable
 type findByLabelFn = (label: string) => Cypress.Chainable
 type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
 
+function isSearchSelect(sub: any): Cypress.Chainable<boolean> {
+  return cy.wrap(sub).then(el => {
+    return (
+      el.parents('[data-cy=material-select]').data('cy') === 'material-select'
+    )
+  })
+}
+
 function selectByLabel(sub: any, label: string): Cypress.Chainable {
-  return findByLabel(sub, label)
+  return isSearchSelect(sub).then(isSearchSelect => {
+    // clear value in search select
+    if ((!label || label === '{backspace}') && isSearchSelect) {
+      return clearSelect(sub)
+    }
+
+    return findByLabel(sub, label)
+      .click()
+      .get('[data-cy=select-dropdown]')
+      .should('not.exist')
+      .get('ul[role=listbox]')
+      .should('not.exist')
+  })
+}
+
+function clearSelect(sub: any): Cypress.Chainable {
+  return cy
+    .wrap(sub)
+    .parents('[data-cy=material-select]')
+    .should('have.attr', 'data-cy-ready', 'true')
+    .find('[data-cy=search-select-input]')
+    .children()
+    .last() // skip the chips
+    .children()
+    .first() // get the clear button
+    .find('svg') // clear field icon
+    .should('have.length', 1)
+    .should('be.visible')
     .click()
-    .get('[data-cy=select-dropdown]')
-    .should('not.exist')
-    .get('ul[role=listbox]')
-    .should('not.exist')
 }
 
 function findByLabel(sub: any, label: string): Cypress.Chainable {
-  return cy.wrap(sub).then(el => {
-    const isSearchSelect =
-      el.parents('[data-cy=material-select]').data('cy') === 'material-select'
+  return isSearchSelect(sub).then(isSearchSelect => {
     if (isSearchSelect) {
       cy.wrap(sub)
         .parents('[data-cy=material-select]')
@@ -70,14 +99,12 @@ function findByLabel(sub: any, label: string): Cypress.Chainable {
 }
 
 function multiRemoveByLabel(sub: any, label: string): Cypress.Chainable {
-  return cy.wrap(sub).then(el => {
-    const isSearchSelect =
-      el.parents('[data-cy=material-select]').data('cy') === 'material-select'
-
+  return isSearchSelect(sub).then(isSearchSelect => {
     // must be a multi search select
-    if (!isSearchSelect) return
+    if (!isSearchSelect) return cy.wrap(sub)
 
-    cy.wrap(sub)
+    return cy
+      .wrap(sub)
       .parents('[data-cy=material-select]')
       .contains('[data-cy=multi-value]', label)
       .find('svg')

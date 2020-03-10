@@ -5,49 +5,35 @@ import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
 import AlertDetails from '../components/AlertDetails'
 import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../../util/poll_intervals'
-import { LegacyGraphQLClient } from '../../apollo'
 
 const query = gql`
   query AlertDetailsPageQuery($id: Int!) {
     alert(id: $id) {
-      number: _id
       id
-      status: status_2
-      escalation_level
-      description
-      details
+      alertID
+      status
       summary
-      service_id
-      source
-      assignments {
-        id
-        name
-      }
+      details
+      createdAt
       service {
         id
         name
-        escalation_policy_id
-      }
-      logs_2 {
-        event
-        message
-        timestamp
-      }
-      escalation_policy_snapshot {
-        repeat
-        current_level
-        last_escalation
-        steps {
-          delay_minutes
-          users {
-            id
-            name
-          }
-          schedules {
-            id
-            name
+        escalationPolicy {
+          id
+          steps {
+            delayMinutes
+            targets {
+              id
+              type
+              name
+            }
           }
         }
+      }
+      state {
+        lastEscalation
+        stepNumber
+        repeatCount
       }
     }
   }
@@ -58,12 +44,11 @@ export default class AlertDetailPage extends Component {
     return (
       <Query
         query={query}
-        client={LegacyGraphQLClient}
         variables={{ id: this.props.match.params.alertID }}
         pollInterval={POLL_INTERVAL}
       >
         {({ loading, error, data, startPolling }) => {
-          if (loading) return <Spinner />
+          if (!data && loading) return <Spinner />
           if (error) {
             startPolling(POLL_ERROR_INTERVAL)
             return <GenericError error={error.message} />

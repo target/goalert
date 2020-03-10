@@ -9,6 +9,7 @@ import Tooltip from '@material-ui/core/Tooltip'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
+import { AppLink } from '../util/AppLink'
 
 const styles = theme => ({
   infoIcon: {
@@ -62,9 +63,9 @@ export default class IntegrationKeyForm extends React.PureComponent {
                     endAdornment: (
                       <InputAdornment position='end'>
                         <Tooltip title='API Documentation' placement='right'>
-                          <a href='/docs' target='_blank'>
+                          <AppLink to='/docs' newTab>
                             <Help className={classes.infoIcon} />
-                          </a>
+                          </AppLink>
                         </Tooltip>
                       </InputAdornment>
                     ),

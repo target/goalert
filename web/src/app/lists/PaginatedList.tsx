@@ -1,10 +1,5 @@
-import React, {
-  ReactNode,
-  useState,
-  ReactElement,
-} from 'react'
+import React, { ReactNode, useState, ReactElement } from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
-import { useDispatch, useSelector } from 'react-redux'
 
 import Avatar from '@material-ui/core/Avatar'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -20,16 +15,15 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
-import { Link } from 'react-router-dom'
 import useWidth from '../util/useWidth'
 
 import { ITEMS_PER_PAGE } from '../config'
-import { absURLSelector } from '../selectors/url'
-import { setCheckedItems as _setCheckedItems } from '../actions'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import {Checkbox, CheckboxProps, makeStyles} from '@material-ui/core'
+import { makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
+import { CheckboxItemsProps } from './ControlledPaginatedList'
+import { AppLink } from '../util/AppLink'
 
 // gray boxes on load
 // disable overflow
@@ -51,7 +45,7 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: 'transparent',
     color: 'grey',
   },
-  listHeader: {
+  headerNote: {
     fontStyle: 'italic',
   },
   controls: {
@@ -68,19 +62,14 @@ export interface PaginatedListProps {
   // cardHeader will be displayed at the top of the card
   cardHeader?: ReactNode
 
-  // listHeader will be displayed at the top of the list
-  listHeader?: ReactNode
+  // headerNote will be displayed at the top of the list
+  headerNote?: string
 
-  items: PaginatedListItemProps[]
-
-  // renders checkboxes for ListControls actions next to each list item
-  // NOTE: this will replace any icons set on each item with a checkbox
-  withCheckboxes?: boolean
-
-  itemsPerPage: number
+  items: PaginatedListItemProps[] | CheckboxItemsProps[]
+  itemsPerPage?: number
 
   isLoading?: boolean
-  loadMore?: any
+  loadMore?: (numberToLoad?: number) => void
 
   // disables the placeholder display during loading
   noPlaceholder?: boolean
@@ -95,39 +84,27 @@ export interface PaginatedListProps {
 }
 
 export interface PaginatedListItemProps {
-  id: string
   url?: string
   title: string
   subText?: string
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
-  className?: string
-
-  CheckboxProps?: CheckboxProps
 }
 
 export function PaginatedList(props: PaginatedListProps) {
   const {
     cardHeader,
-    listHeader,
+    headerNote,
     items = [],
     itemsPerPage = ITEMS_PER_PAGE,
     infiniteScroll,
     loadMore,
     emptyMessage = 'No results',
     noPlaceholder,
-    withCheckboxes,
   } = props
 
   const classes = useStyles()
-  const absURL = useSelector(absURLSelector)
-
-  const dispatch = useDispatch()
-  // @ts-ignore
-  const checkedItems = useSelector(state => state.list.checkedItems)
-  const setCheckedItems = (array: Array<any>) =>
-    dispatch(_setCheckedItems(array))
 
   const [page, setPage] = useState(0)
 
@@ -169,10 +146,10 @@ export function PaginatedList(props: PaginatedListProps) {
       (nextPage >= pageCount || (nextPage > 1 && nextPage + 1 === pageCount)) &&
       loadMore
     )
-      loadMore()
+      loadMore(itemsPerPage * 2)
   }
 
-  function renderNoResults() {
+  function renderNoResults(): ReactElement {
     return (
       <ListItem>
         <ListItemText
@@ -183,7 +160,7 @@ export function PaginatedList(props: PaginatedListProps) {
     )
   }
 
-  function renderItem(item: PaginatedListItemProps, idx: number) {
+  function renderItem(item: PaginatedListItemProps, idx: number): ReactElement {
     let favIcon = <ListItemSecondaryAction />
 
     if (item.isFavorite) {
@@ -198,45 +175,18 @@ export function PaginatedList(props: PaginatedListProps) {
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
-      component: Link,
+      component: AppLink,
       button: true as any,
-      to: absURL(item.url),
-    }
-
-    let checkbox = null
-    if (withCheckboxes) {
-      const checked = checkedItems.includes(item.id)
-      checkbox = (
-        <Checkbox
-          checked={checked}
-          data-cy={'item-' + item.id}
-          onClick={e => {
-            e.stopPropagation()
-            e.preventDefault()
-
-            if (checked) {
-              const idx = checkedItems.indexOf(item.id)
-              const newItems = checkedItems.slice()
-              newItems.splice(idx, 1)
-              setCheckedItems(newItems)
-            } else {
-              setCheckedItems([...checkedItems, item.id])
-            }
-          }}
-          {...item.CheckboxProps}
-        />
-      )
+      to: item.url,
     }
 
     return (
       <ListItem
-        className={item.className}
         dense={isWidthUp('md', width)}
         key={'list_' + idx}
         {...urlProps}
       >
-        {checkbox && <ListItemIcon>{checkbox}</ListItemIcon>}
-        {item.icon && !checkbox && <ListItemIcon>{item.icon}</ListItemIcon>}
+        {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText primary={item.title} secondary={item.subText} />
         {favIcon}
         {item.action && (
@@ -246,17 +196,14 @@ export function PaginatedList(props: PaginatedListProps) {
     )
   }
 
-  function renderListItems() {
+  function renderListItems(): ReactElement | ReactElement[] {
     if (pageCount === 0 && !isLoading) return renderNoResults()
 
-    let renderedItems: any = items
+    let newItems: Array<PaginatedListItemProps> = items.slice()
     if (!infiniteScroll) {
-      renderedItems = items.slice(
-        page * itemsPerPage,
-        (page + 1) * itemsPerPage,
-      )
+      newItems = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
     }
-    renderedItems = renderedItems.map(renderItem)
+    let renderedItems: ReactElement[] = newItems.map(renderItem)
 
     // Display full list when loading
     if (!noPlaceholder) {
@@ -290,16 +237,16 @@ export function PaginatedList(props: PaginatedListProps) {
     </Grid>
   )
 
-  function renderList() {
+  function renderList(): ReactElement {
     return (
       <List data-cy='apollo-list'>
-        {listHeader && (
+        {headerNote && (
           <ListItem>
             <ListItemText
-              className={classes.listHeader}
+              className={classes.headerNote}
               disableTypography
               secondary={
-                <Typography color='textSecondary'>{listHeader}</Typography>
+                <Typography color='textSecondary'>{headerNote}</Typography>
               }
             />
           </ListItem>
@@ -309,14 +256,22 @@ export function PaginatedList(props: PaginatedListProps) {
     )
   }
 
-  function renderAsInfiniteScroll() {
+  function renderAsInfiniteScroll(): ReactElement {
     const len = items.length
+
+    // explicitly set props to load more, if loader function present
+    let loadProps: any = {}
+    if (Boolean(loadMore)) {
+      loadProps.hasMore = true
+      loadProps.next = loadMore
+    } else {
+      loadProps.hasMore = false
+    }
 
     return (
       <InfiniteScroll
+        {...loadProps}
         scrollableTarget='content'
-        next={loadMore}
-        hasMore={Boolean(loadMore)}
         endMessage={
           len === 0 ? null : (
             <Typography

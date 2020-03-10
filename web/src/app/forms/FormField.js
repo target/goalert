@@ -135,7 +135,7 @@ export class FormField extends React.PureComponent {
     let getValueOf = e => (e && e.target ? e.target.value : e)
     if (checkbox) {
       props.checked = props.value
-      props.value = props.value.toString()
+      props.value = props.value ? 'true' : 'false'
       getValueOf = e => e.target.checked
     } else if (otherFieldProps.type === 'number') {
       props.label = label
@@ -179,7 +179,9 @@ export class FormField extends React.PureComponent {
 
     return (
       <FormControl fullWidth={props.fullWidth} error={Boolean(props.error)}>
-        {formLabel && <FormLabel>{label}</FormLabel>}
+        {formLabel && (
+          <FormLabel style={{ paddingBottom: '0.5em' }}>{label}</FormLabel>
+        )}
         <Component
           {...props}
           error={checkbox ? undefined : Boolean(props.error)}

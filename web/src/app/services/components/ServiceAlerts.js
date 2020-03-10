@@ -74,7 +74,7 @@ export default function ServiceAlerts(props) {
       <PageActions key='actions'>
         <Search key='search' />
         <AlertsListFilter key='filter' serviceID={serviceID} />
-        <Options key='options' options={getMenuOptions()} />
+        <Options key='options' options={getMenuOptions()} legacyClient />
       </PageActions>
       {showDialog && (
         <FormDialog

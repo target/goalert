@@ -36,7 +36,7 @@ export default function ScheduleDeleteDialog(props) {
     },
   })
 
-  if (dataLoading) return <Spinner />
+  if (!data && dataLoading) return <Spinner />
 
   return (
     <FormDialog
