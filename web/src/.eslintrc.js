@@ -32,11 +32,15 @@ module.exports = {
     // handled by prettier
     'react/jsx-curly-newline': 'off',
     'react/jsx-indent': 'off',
+
+    // typescript-eslint rules
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/camelcase': 'off',
   },
   settings: {
     react: { version: 'detect' },
