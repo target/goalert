@@ -78,6 +78,11 @@ const (
 // NewServer will create a new Server with a global pathPrefix and using
 // the provided `authSecret` to require valid tokens for any connecting clients.
 func NewServer(authSecret []byte, prefix string) *Server {
+	prefix = path.Join("/", prefix, "/")
+
+	if prefix != "/" {
+		prefix += "/"
+	}
 	mux := http.NewServeMux()
 	s := &Server{
 		Handler:       mux,
@@ -86,6 +91,7 @@ func NewServer(authSecret []byte, prefix string) *Server {
 		sessions:      make(map[string]*yamux.Session),
 		authSecret:    authSecret,
 		connectSecret: make([]byte, 32),
+		prefix:        prefix,
 	}
 	_, err := rand.Read(s.connectSecret)
 	if err != nil {
@@ -112,19 +118,19 @@ func NewServer(authSecret []byte, prefix string) *Server {
 		Transport: transport,
 	}
 
-	mux.HandleFunc(path.Join(prefix, "/"), s.servePrefix)
+	mux.HandleFunc(prefix, s.servePrefix)
 	return s
 }
 
 func (s *Server) servePrefix(w http.ResponseWriter, req *http.Request) {
-	parts := strings.SplitN(req.URL.Path, "/", 3)
+	parts := strings.SplitN(strings.TrimPrefix(req.URL.Path, s.prefix), "/", 2)
 	if len(parts) < 2 {
 		http.NotFound(w, req)
 		return
 	}
 
 	s.routeMx.RLock()
-	hostID := s.routes[parts[1]]
+	hostID := s.routes[parts[0]]
 	s.routeMx.RUnlock()
 
 	if hostID == "" {
