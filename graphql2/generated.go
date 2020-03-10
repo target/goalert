@@ -21,6 +21,7 @@ import (
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -208,6 +209,7 @@ type ComplexityRoot struct {
 		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
 		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
 		SetLabel                       func(childComplexity int, input SetLabelInput) int
+		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
 		TestContactMethod              func(childComplexity int, id string) int
 		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
 		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
@@ -258,6 +260,7 @@ type ComplexityRoot struct {
 		Services                 func(childComplexity int, input *ServiceSearchOptions) int
 		SlackChannel             func(childComplexity int, id string) int
 		SlackChannels            func(childComplexity int, input *SlackChannelSearchOptions) int
+		SystemLimits             func(childComplexity int) int
 		TimeZones                func(childComplexity int, input *TimeZoneSearchOptions) int
 		User                     func(childComplexity int, id *string) int
 		UserCalendarSubscription func(childComplexity int, id string) int
@@ -356,6 +359,12 @@ type ComplexityRoot struct {
 	StringConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	SystemLimit struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Value       func(childComplexity int) int
 	}
 
 	Target struct {
@@ -499,6 +508,7 @@ type MutationResolver interface {
 	UpdateUserOverride(ctx context.Context, input UpdateUserOverrideInput) (bool, error)
 	UpdateHeartbeatMonitor(ctx context.Context, input UpdateHeartbeatMonitorInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
+	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
 }
 type OnCallShiftResolver interface {
 	User(ctx context.Context, obj *oncall.Shift) (*user.User, error)
@@ -528,6 +538,7 @@ type QueryResolver interface {
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
+	SystemLimits(ctx context.Context) ([]SystemLimit, error)
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
@@ -1281,6 +1292,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetLabel(childComplexity, args["input"].(SetLabelInput)), true
 
+	case "Mutation.setSystemLimits":
+		if e.complexity.Mutation.SetSystemLimits == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setSystemLimits_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetSystemLimits(childComplexity, args["input"].([]SystemLimitInput)), true
+
 	case "Mutation.testContactMethod":
 		if e.complexity.Mutation.TestContactMethod == nil {
 			break
@@ -1732,6 +1755,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SlackChannels(childComplexity, args["input"].(*SlackChannelSearchOptions)), true
+
+	case "Query.systemLimits":
+		if e.complexity.Query.SystemLimits == nil {
+			break
+		}
+
+		return e.complexity.Query.SystemLimits(childComplexity), true
 
 	case "Query.timeZones":
 		if e.complexity.Query.TimeZones == nil {
@@ -2217,6 +2247,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StringConnection.PageInfo(childComplexity), true
 
+	case "SystemLimit.description":
+		if e.complexity.SystemLimit.Description == nil {
+			break
+		}
+
+		return e.complexity.SystemLimit.Description(childComplexity), true
+
+	case "SystemLimit.id":
+		if e.complexity.SystemLimit.ID == nil {
+			break
+		}
+
+		return e.complexity.SystemLimit.ID(childComplexity), true
+
+	case "SystemLimit.value":
+		if e.complexity.SystemLimit.Value == nil {
+			break
+		}
+
+		return e.complexity.SystemLimit.Value(childComplexity), true
+
 	case "Target.id":
 		if e.complexity.Target.ID == nil {
 			break
@@ -2687,6 +2738,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
   # Returns configuration hints (must be admin).
   configHints: [ConfigHint!]!
 
+  # Returns configuration limits
+  systemLimits: [SystemLimit!]!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -2714,6 +2768,17 @@ type SlackChannelConnection {
   pageInfo: PageInfo!
 }
 
+type SystemLimit {
+  id: SystemLimitID!
+  description: String!
+  value: Int!
+}
+
+input SystemLimitInput {
+  id: SystemLimitID!
+  value: Int!
+}
+
 type ConfigValue {
   id: String!
   description: String!
@@ -2730,6 +2795,20 @@ enum ConfigType {
   stringList
   integer
   boolean
+}
+enum SystemLimitID {
+  CalendarSubscriptionsPerUser
+  NotificationRulesPerUser
+  ContactMethodsPerUser
+  EPStepsPerPolicy
+  EPActionsPerStep
+  ParticipantsPerRotation
+  RulesPerSchedule
+  IntegrationKeysPerService
+  UnackedAlertsPerService
+  TargetsPerSchedule
+  HeartbeatMonitorsPerService
+  UserOverridesPerSchedule
 }
 
 input UserOverrideSearchOptions {
@@ -2865,6 +2944,7 @@ type Mutation {
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
+  setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 }
 
 input CreateAlertInput {
@@ -3817,6 +3897,20 @@ func (ec *executionContext) field_Mutation_setLabel_args(ctx context.Context, ra
 	var arg0 SetLabelInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNSetLabelInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetLabelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setSystemLimits_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []SystemLimitInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8234,6 +8328,50 @@ func (ec *executionContext) _Mutation_setConfig(ctx context.Context, field graph
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_setSystemLimits(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setSystemLimits_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetSystemLimits(rctx, args["input"].([]SystemLimitInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _OnCallShift_userID(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -9504,6 +9642,43 @@ func (ec *executionContext) _Query_configHints(ctx context.Context, field graphq
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_systemLimits(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SystemLimits(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]SystemLimit)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNSystemLimit2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_userContactMethod(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11755,6 +11930,117 @@ func (ec *executionContext) _StringConnection_pageInfo(ctx context.Context, fiel
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SystemLimit_id(ctx context.Context, field graphql.CollectedField, obj *SystemLimit) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SystemLimit",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(limit.ID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SystemLimit_description(ctx context.Context, field graphql.CollectedField, obj *SystemLimit) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SystemLimit",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SystemLimit_value(ctx context.Context, field graphql.CollectedField, obj *SystemLimit) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SystemLimit",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Target_id(ctx context.Context, field graphql.CollectedField, obj *assignment.RawTarget) (ret graphql.Marshaler) {
@@ -15731,6 +16017,30 @@ func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSystemLimitInput(ctx context.Context, obj interface{}) (SystemLimitInput, error) {
+	var it SystemLimitInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+			it.Value, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTargetInput(ctx context.Context, obj interface{}) (assignment.RawTarget, error) {
 	var it assignment.RawTarget
 	var asMap = obj.(map[string]interface{})
@@ -17268,6 +17578,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "setSystemLimits":
+			out.Values[i] = ec._Mutation_setSystemLimits(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17677,6 +17992,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_configHints(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "systemLimits":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_systemLimits(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -18432,6 +18761,43 @@ func (ec *executionContext) _StringConnection(ctx context.Context, sel ast.Selec
 			}
 		case "pageInfo":
 			out.Values[i] = ec._StringConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var systemLimitImplementors = []string{"SystemLimit"}
+
+func (ec *executionContext) _SystemLimit(ctx context.Context, sel ast.SelectionSet, obj *SystemLimit) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, systemLimitImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemLimit")
+		case "id":
+			out.Values[i] = ec._SystemLimit_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._SystemLimit_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._SystemLimit_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -20549,6 +20915,86 @@ func (ec *executionContext) marshalNStringConnection2ᚖgithubᚗcomᚋtargetᚋ
 		return graphql.Null
 	}
 	return ec._StringConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSystemLimit2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimit(ctx context.Context, sel ast.SelectionSet, v SystemLimit) graphql.Marshaler {
+	return ec._SystemLimit(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSystemLimit2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitᚄ(ctx context.Context, sel ast.SelectionSet, v []SystemLimit) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSystemLimit2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimit(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx context.Context, v interface{}) (limit.ID, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return limit.ID(tmp), err
+}
+
+func (ec *executionContext) marshalNSystemLimitID2githubᚗcomᚋtargetᚋgoalertᚋlimitᚐID(ctx context.Context, sel ast.SelectionSet, v limit.ID) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNSystemLimitInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInput(ctx context.Context, v interface{}) (SystemLimitInput, error) {
+	return ec.unmarshalInputSystemLimitInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ(ctx context.Context, v interface{}) ([]SystemLimitInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]SystemLimitInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNSystemLimitInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalNTarget2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx context.Context, sel ast.SelectionSet, v assignment.RawTarget) graphql.Marshaler {

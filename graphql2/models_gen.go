@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -301,6 +302,17 @@ type SlackChannelSearchOptions struct {
 type StringConnection struct {
 	Nodes    []string  `json:"nodes"`
 	PageInfo *PageInfo `json:"pageInfo"`
+}
+
+type SystemLimit struct {
+	ID          limit.ID `json:"id"`
+	Description string   `json:"description"`
+	Value       int      `json:"value"`
+}
+
+type SystemLimitInput struct {
+	ID    limit.ID `json:"id"`
+	Value int      `json:"value"`
 }
 
 type TimeZone struct {

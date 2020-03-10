@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/limit"
 	"net/http"
 	"strconv"
 	"sync"
@@ -62,6 +63,7 @@ type App struct {
 	RuleStore      rule.Store
 	OverrideStore  override.Store
 	ConfigStore    *config.Store
+	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
 	HeartbeatStore heartbeat.Store
 

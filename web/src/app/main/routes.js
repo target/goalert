@@ -130,6 +130,11 @@ export default [
         path: '/admin/config',
         component: AdminRouter,
       },
+      {
+        title: 'System Limits',
+        path: '/admin/limits',
+        component: AdminRouter,
+      },
     ],
   },
   {

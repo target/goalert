@@ -93,7 +93,7 @@ type App struct {
 	CalSubStore    *calendarsubscription.Store
 	OverrideStore  override.Store
 	Resolver       resolver.Resolver
-	LimitStore     limit.Store
+	LimitStore     *limit.Store
 	HeartbeatStore heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
