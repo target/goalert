@@ -74,8 +74,6 @@ export interface ControlledPaginatedListAction {
 
 // used if checkBoxActions is set to true
 export interface CheckboxItemsProps extends PaginatedListItemProps {
-  type: 'checkbox'
-
   // used to track checked items
   id: string | number
 
@@ -108,12 +106,17 @@ export default function ControlledPaginatedList(
   )
   const urlKey = useSelector(urlKeySelector)
 
-  function isCheckboxItems(items: any): items is CheckboxItemsProps[] {
-    return items[0]?.type === 'checkbox' ?? false
+  /*
+   * ensures item type is of CheckboxItemsProps and not PaginatedListItemProps
+   * filters out items with no id present, returns true if result is empty
+   */
+  function itemsHaveID(items: any): items is CheckboxItemsProps[] {
+    const x = items.filter((i: CheckboxItemsProps) => !i.id)
+    return x.length === 0
   }
 
   function getSelectableIDs(): Array<string | number> {
-    if (isCheckboxItems(items)) {
+    if (itemsHaveID(items)) {
       return items.filter(i => i.selectable !== false).map(i => i.id)
     } else {
       return []
@@ -138,7 +141,7 @@ export default function ControlledPaginatedList(
   }
 
   function getItems() {
-    if (isCheckboxItems(items)) {
+    if (itemsHaveID(items)) {
       return items.map(item => ({ ...item, icon: getItemIcon(item) }))
     }
 
