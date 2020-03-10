@@ -12,7 +12,6 @@ import AlertsListFloatingItems from './AlertsListFloatingItems'
 import statusStyles from '../util/statusStyles'
 import {
   setAlertsActionComplete as _setAlertsActionComplete,
-  setCheckedItems as _setCheckedItems,
 } from '../actions'
 import { formatTimeSince } from '../util/timeFormat'
 import { useMutation } from '@apollo/react-hooks'
@@ -103,9 +102,6 @@ export default function AlertsList(props) {
   const setAlertsActionComplete = bool =>
     dispatch(_setAlertsActionComplete(bool))
 
-  const checkedItems = useSelector(state => state.list.checkedItems)
-  const setCheckedItems = array => dispatch(_setCheckedItems(array))
-
   // alerts list query variables
   const variables = {
     input: {
@@ -120,53 +116,19 @@ export default function AlertsList(props) {
     variables.input.filterByServiceID = [props.serviceID]
   }
 
-  function onCompleted(numUpdated) {
+  function onCompleted(numUpdated, checkedItems) {
     setAlertsActionComplete(true) // for create fab transition
     setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
-    setCheckedItems([])
   }
 
   // ack mutation
-  const [ackAlerts] = useMutation(updateMutation, {
-    variables: {
-      input: {
-        alertIDs: checkedItems,
-        newStatus: 'StatusAcknowledged',
-      },
-    },
-    onError: err => {
-      setAlertsActionComplete(true)
-      setErrorMessage(err.message)
-    },
-    onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0),
-  })
+  const [ackAlerts] = useMutation(updateMutation)
 
   // close mutation
-  const [closeAlerts] = useMutation(updateMutation, {
-    variables: {
-      input: {
-        alertIDs: checkedItems,
-        newStatus: 'StatusClosed',
-      },
-    },
-    onError: err => {
-      setAlertsActionComplete(true)
-      setErrorMessage(err.message)
-    },
-    onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0),
-  })
+  const [closeAlerts] = useMutation(updateMutation)
 
   // escalate mutation
-  const [escalateAlerts] = useMutation(escalateMutation, {
-    variables: {
-      input: checkedItems,
-    },
-    onError: err => {
-      setAlertsActionComplete(true)
-      setErrorMessage(err.message)
-    },
-    onCompleted: data => onCompleted(data?.escalateAlerts?.length ?? 0),
-  })
+  const [escalateAlerts] = useMutation(escalateMutation)
 
   /*
    * Adds border of color depending on each alert's status
@@ -189,15 +151,28 @@ export default function AlertsList(props) {
    */
   function getActions() {
     const actions = []
-    if (!checkedItems.length) return actions
+    // todo: don't show actions with nothing checked
+    // if (!checkedItems.length) return actions
 
     if (filter !== 'closed' && filter !== 'acknowledged') {
       actions.push({
         icon: <AcknowledgeIcon />,
-        tooltip: 'Acknowledge',
-        onClick: ackAlerts,
-        ariaLabel: 'Acknowledge Selected Alerts',
-        dataCy: 'acknowledge',
+        label: 'Acknowledge',
+        onClick: checkedItems => ackAlerts({
+          variables: {
+            input: {
+              alertIDs: checkedItems,
+              newStatus: 'StatusAcknowledged',
+            },
+          },
+          onError: err => {
+            setAlertsActionComplete(true)
+            setErrorMessage(err.message)
+          },
+          onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0, checkedItems)
+        }),
+        // ariaLabel: 'Acknowledge Selected Alerts',
+        // dataCy: 'acknowledge',
       })
     }
 
@@ -205,17 +180,38 @@ export default function AlertsList(props) {
       actions.push(
         {
           icon: <CloseIcon />,
-          tooltip: 'Close',
-          onClick: closeAlerts,
-          ariaLabel: 'Close Selected Alerts',
-          dataCy: 'close',
+          label: 'Close',
+          onClick: checkedItems => closeAlerts({
+            variables: {
+              input: {
+                alertIDs: checkedItems,
+                newStatus: 'StatusClosed',
+              },
+            },
+            onError: err => {
+              setAlertsActionComplete(true)
+              setErrorMessage(err.message)
+            },
+            onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0, checkedItems),
+          }),
+          // ariaLabel: 'Close Selected Alerts',
+          // dataCy: 'close',
         },
         {
           icon: <EscalateIcon />,
-          tooltip: 'Escalate',
-          onClick: escalateAlerts,
-          ariaLabel: 'Escalate Selected Alerts',
-          dataCy: 'escalate',
+          label: 'Escalate',
+          onClick: checkedItems => escalateAlerts({
+            variables: {
+              input: checkedItems,
+            },
+            onError: err => {
+              setAlertsActionComplete(true)
+              setErrorMessage(err.message)
+            },
+            onCompleted: data => onCompleted(data?.escalateAlerts?.length ?? 0, checkedItems),
+          }),
+          // ariaLabel: 'Escalate Selected Alerts',
+          // dataCy: 'escalate',
         },
       )
     }
@@ -228,31 +224,21 @@ export default function AlertsList(props) {
       <QueryList
         query={alertsListQuery}
         infiniteScroll
-        mapDataNode={a => {
-          let item = {
-            id: a.id,
-            className: getStatusClassName(a.status),
-            title: `${a.alertID}: ${a.status
-              .toUpperCase()
-              .replace('STATUS', '')}`,
-            subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-            action: (
-              <Typography variant='caption'>
-                {formatTimeSince(a.createdAt)}
-              </Typography>
-            ),
-            url: absURL(`/alerts/${a.id}`),
-          }
-
-          if (a.status === 'StatusClosed') {
-            item.CheckboxProps = {
-              disabled: true,
-              onClick: () => {},
-            }
-          }
-
-          return item
-        }}
+        mapDataNode={a => ({
+          id: a.id,
+          className: getStatusClassName(a.status),
+          title: `${a.alertID}: ${a.status
+            .toUpperCase()
+            .replace('STATUS', '')}`,
+          subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
+          action: (
+            <Typography variant='caption'>
+              {formatTimeSince(a.createdAt)}
+            </Typography>
+          ),
+          url: absURL(`/alerts/${a.id}`),
+          selectable: a.status !== 'StatusClosed'
+        })}
         variables={variables}
         filter={<AlertsListFilter />}
         cardHeader={
@@ -260,11 +246,10 @@ export default function AlertsList(props) {
             <AlertsListControls />
           </Hidden>
         }
-        actions={getActions()}
+        checkboxActions={getActions()}
       />
       <UpdateAlertsSnackbar
         errorMessage={errorMessage}
-        numberChecked={checkedItems.length}
         onClose={() => setAlertsActionComplete(false)}
         onExited={() => {
           setErrorMessage('')
