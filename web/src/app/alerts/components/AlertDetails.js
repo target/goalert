@@ -147,7 +147,7 @@ export default class AlertDetails extends Component {
       repeat: state?.repeatCount,
       numSteps: ep.steps.length,
       steps: ep.steps,
-      status: alert.status.toLowerCase(),
+      status: alert.status,
       currentLevel: state?.stepNumber,
       lastEscalation: state?.lastEscalation,
     }
@@ -155,7 +155,7 @@ export default class AlertDetails extends Component {
 
   canAutoEscalate() {
     const { repeat, numSteps, status, currentLevel } = this.epsHelper()
-    if (status !== 'statusunacknowledged') return false
+    if (status !== 'StatusUnacknowledged') return false
     if (repeat === -1) return true
     return currentLevel + 1 < numSteps * (repeat + 1)
   }
@@ -358,7 +358,7 @@ export default class AlertDetails extends Component {
   getMenuOptions = () => {
     const { id, status } = this.props.data
 
-    if (status.toLowerCase() === 'statusclosed') return [] // no options to show if alert is already closed
+    if (status === 'StatusClosed') return [] // no options to show if alert is already closed
     const updateStatusMutation = gql`
       mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
         updateAlerts(input: $input) {
@@ -409,7 +409,7 @@ export default class AlertDetails extends Component {
       },
     }
 
-    if (status.toLowerCase() === 'statusunacknowledged') options.push(ack)
+    if (status === 'StatusUnacknowledged') options.push(ack)
     options.push(close)
     options.push(esc)
     return options
