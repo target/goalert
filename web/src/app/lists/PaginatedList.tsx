@@ -271,8 +271,8 @@ export function PaginatedList(props: PaginatedListProps) {
       .map(renderItem)
 
     // Display full list when loading
-    if (!noPlaceholder) {
-      while (isLoading && renderedItems.length < ITEMS_PER_PAGE) {
+    if (!noPlaceholder && isLoading) {
+      while (renderedItems.length < ITEMS_PER_PAGE) {
         renderedItems.push(
           <LoadingItem
             dense={isWidthUp('md', width)}
@@ -285,8 +285,8 @@ export function PaginatedList(props: PaginatedListProps) {
     return renderedItems
   }
 
-  let onBack = page > 0 ? () => setPage(page - 1) : undefined
-  let onNext = hasNextPage ? handleNextPage : undefined
+  const onBack = page > 0 ? () => setPage(page - 1) : undefined
+  const onNext = hasNextPage ? handleNextPage : undefined
 
   return (
     <Grid container spacing={2}>
