@@ -108,11 +108,11 @@ export default function ControlledPaginatedList(
 
   /*
    * ensures item type is of CheckboxItemsProps and not PaginatedListItemProps
-   * filters out items with no id present, returns true if result is empty
+   * checks all items against having no id present
+   * returns true if all items have an id
    */
   function itemsHaveID(items: any): items is CheckboxItemsProps[] {
-    const x = items.filter((i: CheckboxItemsProps) => !i.id)
-    return x.length === 0
+    return !items.some((i: CheckboxItemsProps) => !i.id)
   }
 
   function getSelectableIDs(): Array<string | number> {
