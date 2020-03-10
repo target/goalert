@@ -26,10 +26,10 @@
     }
   },
   "lint-staged": {
-    "*.{json,yml,yaml,ts,tsx,html}": [
+    "*.{json,yml,yaml,html}": [
       "prettier --write"
     ],
-    "*.js": [
+    "*.{js,jsx,ts,tsx}": [
       "prettier --write",
       "eslint --fix"
     ],
@@ -131,6 +131,8 @@
     "@types/react-redux": "7.1.7",
     "@types/react-router": "5.1.4",
     "@types/react-router-dom": "5.1.3",
+    "@typescript-eslint/eslint-plugin": "^2.24.0",
+    "@typescript-eslint/parser": "^2.24.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "25.1.0",
     "babel-loader": "8.0.6",
