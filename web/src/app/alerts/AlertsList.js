@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { Hidden, Typography, makeStyles } from '@material-ui/core'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { absURLSelector, urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
 import gql from 'graphql-tag'
@@ -10,9 +10,6 @@ import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import AlertsListFloatingItems from './AlertsListFloatingItems'
 import statusStyles from '../util/statusStyles'
-import {
-  setAlertsActionComplete as _setAlertsActionComplete,
-} from '../actions'
 import { formatTimeSince } from '../util/timeFormat'
 import { useMutation } from '@apollo/react-hooks'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
@@ -89,18 +86,13 @@ export default function AlertsList(props) {
 
   const [errorMessage, setErrorMessage] = useState('')
   const [updateMessage, setUpdateMessage] = useState('')
+  const [updateComplete, setUpdateComplete] = useState(false)
 
   // get redux vars
   const absURL = useSelector(absURLSelector)
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
   const filter = params('filter', 'active')
-
-  const dispatch = useDispatch()
-
-  const actionComplete = useSelector(state => state.alerts.actionComplete)
-  const setAlertsActionComplete = bool =>
-    dispatch(_setAlertsActionComplete(bool))
 
   // alerts list query variables
   const variables = {
@@ -116,19 +108,14 @@ export default function AlertsList(props) {
     variables.input.filterByServiceID = [props.serviceID]
   }
 
+  const [ackAlerts] = useMutation(updateMutation)
+  const [closeAlerts] = useMutation(updateMutation)
+  const [escalateAlerts] = useMutation(escalateMutation)
+
   function onCompleted(numUpdated, checkedItems) {
-    setAlertsActionComplete(true) // for create fab transition
+    setUpdateComplete(true) // for create fab transition
     setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
   }
-
-  // ack mutation
-  const [ackAlerts] = useMutation(updateMutation)
-
-  // close mutation
-  const [closeAlerts] = useMutation(updateMutation)
-
-  // escalate mutation
-  const [escalateAlerts] = useMutation(escalateMutation)
 
   /*
    * Adds border of color depending on each alert's status
@@ -166,7 +153,7 @@ export default function AlertsList(props) {
             },
           },
           onError: err => {
-            setAlertsActionComplete(true)
+            setUpdateComplete(true)
             setErrorMessage(err.message)
           },
           onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0, checkedItems)
@@ -189,7 +176,7 @@ export default function AlertsList(props) {
               },
             },
             onError: err => {
-              setAlertsActionComplete(true)
+              setUpdateComplete(true)
               setErrorMessage(err.message)
             },
             onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0, checkedItems),
@@ -205,7 +192,7 @@ export default function AlertsList(props) {
               input: checkedItems,
             },
             onError: err => {
-              setAlertsActionComplete(true)
+              setUpdateComplete(true)
               setErrorMessage(err.message)
             },
             onCompleted: data => onCompleted(data?.escalateAlerts?.length ?? 0, checkedItems),
@@ -250,15 +237,15 @@ export default function AlertsList(props) {
       />
       <UpdateAlertsSnackbar
         errorMessage={errorMessage}
-        onClose={() => setAlertsActionComplete(false)}
+        onClose={() => setUpdateComplete(false)}
         onExited={() => {
           setErrorMessage('')
           setUpdateMessage('')
         }}
-        open={actionComplete}
+        open={updateComplete}
         updateMessage={updateMessage}
       />
-      <AlertsListFloatingItems serviceID={props.serviceID} />
+      <AlertsListFloatingItems serviceID={props.serviceID} updateComplete={updateComplete} />
     </React.Fragment>
   )
 }

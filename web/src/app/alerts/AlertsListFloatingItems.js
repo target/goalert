@@ -44,7 +44,6 @@ export default function AlertsListFloatingItems(props) {
   const params = useSelector(urlParamSelector)
   const isFirstLogin = params('isFirstLogin')
   const allServices = params('allServices')
-  const actionComplete = useSelector(state => state.alerts.actionComplete)
 
   // always open unless clicked away from or there are services present
   const [snackbarOpen, setSnackbarOpen] = useState(true)
@@ -111,7 +110,7 @@ export default function AlertsListFloatingItems(props) {
       <CreateAlertFab
         serviceID={props.serviceID}
         showFavoritesWarning={showFavoritesWarning}
-        transition={isFullScreen && (showFavoritesWarning || actionComplete)}
+        transition={isFullScreen && (showFavoritesWarning || props.updateComplete)}
       />
     </React.Fragment>
   )
@@ -119,4 +118,5 @@ export default function AlertsListFloatingItems(props) {
 
 AlertsListFloatingItems.propTypes = {
   serviceID: p.string,
+  updateComplete: p.bool,
 }
