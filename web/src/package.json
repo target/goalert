@@ -27,7 +27,7 @@
     "*.{json,yml,yaml,ts,tsx,html}": [
       "prettier --write"
     ],
-    "*.{js,jsx}": [
+    "*.{js,jsx,ts,tsx}": [
       "prettier --write",
       "eslint --fix"
     ],
