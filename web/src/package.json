@@ -20,14 +20,11 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "tsc -p ./tsconfig.json && lint-staged"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
     "*.{json,yml,yaml,ts,tsx,html}": [
-      "prettier --write"
-    ],
-    "*.{ts,tsx}": [
       "prettier --write"
     ],
     "*.{js,jsx}": [

@@ -5,7 +5,7 @@ import {
   ReduxState,
 } from './url'
 
-import { expect } from '../util/jest-types'
+import { expect, describe, test } from '../util/jest-types'
 
 describe('urlParamSelector', () => {
   ;([
