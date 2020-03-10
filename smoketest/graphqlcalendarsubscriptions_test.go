@@ -19,8 +19,8 @@ type calSubWithID struct {
 	calSub
 }
 
-// TestGraphQL2Users tests most operations on calendar subscriptions API via GraphQL2 endpoint
-func TestGraphQL2CalendarSubscriptions(t *testing.T) {
+// TestGraphQLCalendarSubscriptions tests operations on calendar subscriptions API
+func TestGraphQLCalendarSubscriptions(t *testing.T) {
 	t.Parallel()
 
 	sql := `
