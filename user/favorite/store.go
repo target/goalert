@@ -3,6 +3,7 @@ package favorite
 import (
 	"context"
 	"database/sql"
+
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
