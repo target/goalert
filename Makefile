@@ -59,6 +59,8 @@ $(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go migrate/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	go build $(BUILD_FLAGS) -o $@ ./devtools/mockslack/cmd/mockslack
+$(BIN_DIR)/sendit: go.sum $(shell find ./devtools/sendit -name '*.go')
+	go build $(BUILD_FLAGS) -o $@ ./devtools/sendit/cmd/sendit
 
 $(BIN_DIR)/runjson.linux: go.sum devtools/runjson/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
@@ -72,6 +74,8 @@ $(BIN_DIR)/resetdb.linux: go.sum devtools/resetdb/*.go migrate/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
 $(BIN_DIR)/mockslack.linux: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/mockslack/cmd/mockslack
+$(BIN_DIR)/sendit.linux: go.sum $(shell find ./devtools/sendit -name '*.go')
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/sendit/cmd/sendit
 
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
