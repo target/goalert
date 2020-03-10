@@ -132,7 +132,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
           />
         </PageActions>
         <QueryList
-          listHeader={note}
+          headerNote={note}
           noSearch
           noPlaceholder
           query={query}
