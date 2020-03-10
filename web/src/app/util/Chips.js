@@ -12,7 +12,7 @@ import {
   Today as ScheduleIcon,
 } from '@material-ui/icons'
 import Avatar from '@material-ui/core/Avatar'
-import { UserAvatar, ServiceAvatar } from './avatar'
+import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'
 import gql from 'graphql-tag'
 
@@ -35,12 +35,13 @@ export function ServiceChip(props) {
     },
     skip: Boolean(name),
     fetchPolicy: 'cache-first',
+    pollInterval: 0,
   })
 
   const getLabel = () => {
     if (name) return name
 
-    if (loading) return 'Loading...'
+    if (!data && loading) return 'Loading...'
 
     if (error) return `Error: ${error.message}`
 

@@ -85,13 +85,26 @@ export function weekdaySummary(filter) {
   return d.join(', ')
 }
 
+// dstWeekOffset will return dt forward or backward a week
+// if `dt.offset` does not match the `expectedOffset`.
+function dstWeekOffset(expectedOffset, dt) {
+  if (dt.offset === expectedOffset) return dt
+
+  dt = dt.minus({ weeks: 1 })
+  if (dt.offset === expectedOffset) return dt
+
+  return dt.plus({ weeks: 2 })
+}
+
 export function parseClock(s, zone) {
-  return DateTime.fromObject({
+  const dt = DateTime.fromObject({
     hours: parseInt(s.split(':')[0], 10),
     minutes: parseInt(s.split(':')[1], 10),
     weekday: 7, // sunday
     zone,
   })
+
+  return dstWeekOffset(DateTime.utc().setZone('zone').offset, dt)
 }
 
 export function formatClock(dt) {

@@ -2,7 +2,7 @@ import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
-import { UserAvatar } from '../util/avatar'
+import { UserAvatar } from '../util/avatars'
 import { CircularProgress, makeStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
@@ -63,7 +63,7 @@ export default function ServiceOnCallList({ serviceID }) {
       },
     ]
     style.color = 'gray'
-  } else if (loading) {
+  } else if (!data && loading) {
     items = [
       {
         title: 'Fetching users...',

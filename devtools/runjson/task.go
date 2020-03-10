@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -149,7 +150,20 @@ func (t *Task) run(ctx context.Context, pad int, attr color.Attribute, w io.Writ
 			log.Println(c.Sprint("Starting"), cb.Sprintf("%s[%s]", t.Name, hash), c.Sprint(bin+" "+strings.Join(t.Command[1:], " ")))
 		}
 
-		err := cmd.Run()
+		err := cmd.Start()
+		if err != nil && !t.IgnoreErrors {
+			cancel()
+			return errors.Wrapf(err, "run %s", t.Name)
+		}
+		if pidDir != "" {
+			err = ioutil.WriteFile(filepath.Join(pidDir, t.Name+".pid"), []byte(strconv.Itoa(cmd.Process.Pid)), 0644)
+			if err != nil && !t.IgnoreErrors {
+				cancel()
+				return errors.Wrapf(err, " record pid %s", t.Name)
+			}
+		}
+
+		err = cmd.Wait()
 		cancel()
 		if err != nil && !t.IgnoreErrors {
 			return errors.Wrapf(err, "run %s", t.Name)

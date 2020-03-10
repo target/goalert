@@ -1,10 +1,18 @@
 import { createSelector } from 'reselect'
 import joinURL from '../util/joinURL'
 import { memoize } from 'lodash-es'
+import { History } from 'history'
 
-export const urlQuerySelector = state => state.router.location.search
-export const urlPathSelector = state => state.router.location.pathname
-export const urlKeySelector = state => state.router.location.key
+// TODO: move to ../reducers and define rest of state
+export interface ReduxState {
+  router: History
+}
+
+export const urlQuerySelector = (state: ReduxState) =>
+  state.router.location.search
+export const urlPathSelector = (state: ReduxState) =>
+  state.router.location.pathname
+export const urlKeySelector = (state: ReduxState) => state.router.location.key
 
 export const urlSearchParamsSelector = createSelector(
   urlQuerySelector,
@@ -14,12 +22,15 @@ export const urlSearchParamsSelector = createSelector(
 
 export const urlParamSelector = createSelector(
   urlSearchParamsSelector,
-  params => (name, _default = null) => {
+  params => (
+    name: string,
+    _default: string | boolean | number | string[] | null = null,
+  ) => {
     if (!params.has(name)) return _default
 
     if (Array.isArray(_default)) return params.getAll(name)
     if (typeof _default === 'boolean') return Boolean(params.get(name))
-    if (typeof _default === 'number') return +params.get(name)
+    if (typeof _default === 'number') return +(params.get(name) as string) // already checked .has()
 
     return params.get(name)
   },
@@ -40,7 +51,7 @@ export const alertAllServicesSelector = createSelector(
 
 export const absURLSelector = createSelector(urlPathSelector, base =>
   memoize(
-    path =>
+    (path: string) =>
       path && (path.startsWith('/') ? joinURL(path) : joinURL(base, path)),
   ),
 )

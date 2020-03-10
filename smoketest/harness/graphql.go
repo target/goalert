@@ -33,9 +33,14 @@ func (h *Harness) insertGraphQLUser() {
 		h.t.Fatal(errors.Wrap(err, "create GraphQL user"))
 	}
 
-	h.sessToken, _, err = h.authH.CreateSession(context.Background(), "goalert-smoketest", "bcefacc0-4764-012d-7bfb-002500d5decb")
+	tok, err := h.authH.CreateSession(context.Background(), "goalert-smoketest", "bcefacc0-4764-012d-7bfb-002500d5decb")
 	if err != nil {
 		h.t.Fatal(errors.Wrap(err, "create auth session"))
+	}
+
+	h.sessToken, err = tok.Encode(h.sessKey.Sign)
+	if err != nil {
+		h.t.Fatal(errors.Wrap(err, "sign auth session"))
 	}
 }
 
