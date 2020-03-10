@@ -1,7 +1,9 @@
-declare namespace Cypress {
-  interface Chainable {
-    graphql: typeof graphql
-    graphql2: typeof graphql
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      graphql: typeof graphql
+      graphql2: typeof graphql
+    }
   }
 }
 
@@ -10,16 +12,12 @@ interface GraphQLResponse {
   errors: [any]
 }
 
-function graphql2(query: string, variables?: any): Cypress.Chainable<any> {
+function graphql2(query: string, variables?: any) {
   return graphql(query, variables, '/api/graphql')
 }
 
 // runs a graphql query returning the data response (after asserting no errors)
-function graphql(
-  query: string,
-  variables?: any,
-  url = '/v1/graphql',
-): Cypress.Chainable<any> {
+function graphql(query: string, variables?: any, url = '/v1/graphql') {
   if (!variables) variables = {}
 
   return cy.request('POST', url, { query, variables }).then(res => {
@@ -45,3 +43,5 @@ function graphql(
 
 Cypress.Commands.add('graphql', graphql)
 Cypress.Commands.add('graphql2', graphql2)
+
+export {}
