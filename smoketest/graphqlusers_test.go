@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestGraphQLUsers tests most operations on users API via GraphQL2 endpoint.
+// TestGraphQLUsers tests most operations on users API via GraphQL endpoint.
 func TestGraphQLUsers(t *testing.T) {
 	t.Parallel()
 
