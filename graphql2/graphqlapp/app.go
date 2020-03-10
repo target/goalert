@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/limit"
 	"net/http"
 	"strconv"
 	"sync"
@@ -13,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
@@ -53,6 +55,7 @@ type App struct {
 	FavoriteStore  favorite.Store
 	PolicyStore    escalation.Store
 	ScheduleStore  schedule.Store
+	CalSubStore    *calendarsubscription.Store
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
 	IntKeyStore    integrationkey.Store
@@ -60,6 +63,7 @@ type App struct {
 	RuleStore      rule.Store
 	OverrideStore  override.Store
 	ConfigStore    *config.Store
+	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
 	HeartbeatStore heartbeat.Store
 

@@ -16,7 +16,7 @@ import {
   MenuItem,
   withStyles,
 } from '@material-ui/core'
-import { UserAvatar } from '../util/avatar'
+import { UserAvatar } from '../util/avatars'
 import PageActions from '../util/PageActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'

@@ -35,6 +35,7 @@ export class Warning extends Component {
 
     const warningIcon = (
       <WarningIcon
+        data-cy='warning-icon'
         className={classes.warningColor}
         {...except(this.props, 'classes')}
       />

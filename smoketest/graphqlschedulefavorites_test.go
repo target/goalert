@@ -3,12 +3,13 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestGraphQL2ScheduleFavorites tests that schedules can be set and unset as user favorites
-func TestGraphQL2ScheduleFavorites(t *testing.T) {
+// TestGraphQLScheduleFavorites tests that schedules can be set and unset as user favorites
+func TestGraphQLScheduleFavorites(t *testing.T) {
 	t.Parallel()
 
 	sql := `

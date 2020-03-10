@@ -14,11 +14,12 @@ func _() {
 	_ = x[SourceTypeContactMethod-3]
 	_ = x[SourceTypeHeartbeat-4]
 	_ = x[SourceTypeNotificationChannel-5]
+	_ = x[SourceTypeCalendarSubscription-6]
 }
 
-const _SourceType_name = "SourceTypeNotificationCallbackSourceTypeIntegrationKeySourceTypeAuthProviderSourceTypeContactMethodSourceTypeHeartbeatSourceTypeNotificationChannel"
+const _SourceType_name = "SourceTypeNotificationCallbackSourceTypeIntegrationKeySourceTypeAuthProviderSourceTypeContactMethodSourceTypeHeartbeatSourceTypeNotificationChannelSourceTypeCalendarSubscription"
 
-var _SourceType_index = [...]uint8{0, 30, 54, 76, 99, 118, 147}
+var _SourceType_index = [...]uint8{0, 30, 54, 76, 99, 118, 147, 177}
 
 func (i SourceType) String() string {
 	if i < 0 || i >= SourceType(len(_SourceType_index)-1) {
