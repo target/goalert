@@ -10,7 +10,7 @@ import {
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 
-function asArray(value: any) {
+function asArray<T>(value?: T | T[]): T[] {
   if (!value) return []
 
   return Array.isArray(value) ? value : [value]
@@ -87,7 +87,7 @@ export default function MaterialSelect(
     value: _value,
   } = props
 
-  let value: SelectOption[] = asArray(_value)
+  let value = asArray(_value)
   if (!multiple && !_value) value = [{ label: '', value: '' }]
 
   const [inputValue, setInputValue] = useState(multiple ? '' : value[0].label)
