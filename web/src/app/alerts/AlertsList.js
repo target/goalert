@@ -212,21 +212,24 @@ export default function AlertsList(props) {
       actions.push({
         icon: <AcknowledgeIcon />,
         label: 'Acknowledge',
-        onClick: checkedItems => ackAlerts({
-          variables: {
-            input: {
-              alertIDs: checkedItems,
-              newStatus: 'StatusAcknowledged',
+        ariaLabel: 'Acknowledge Selected Alerts',
+        onClick: checkedItems => {
+          ackAlerts({
+            variables: {
+              input: {
+                alertIDs: checkedItems,
+                newStatus: 'StatusAcknowledged',
+              },
             },
-          },
-          onError: err => {
-            setUpdateComplete(true)
-            setErrorMessage(err.message)
-          },
-          onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0, checkedItems)
-        }),
-        // ariaLabel: 'Acknowledge Selected Alerts',
-        // dataCy: 'acknowledge',
+          })
+            .then(res =>
+              onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
+            )
+            .catch(err => {
+              setUpdateComplete(true)
+              setErrorMessage(err.message)
+            })
+        },
       })
     }
 
@@ -235,37 +238,46 @@ export default function AlertsList(props) {
         {
           icon: <CloseIcon />,
           label: 'Close',
-          onClick: checkedItems => closeAlerts({
-            variables: {
-              input: {
-                alertIDs: checkedItems,
-                newStatus: 'StatusClosed',
+          ariaLabel: 'Close Selected Alerts',
+          onClick: checkedItems => {
+            closeAlerts({
+              variables: {
+                input: {
+                  alertIDs: checkedItems,
+                  newStatus: 'StatusClosed',
+                },
               },
-            },
-            onError: err => {
-              setUpdateComplete(true)
-              setErrorMessage(err.message)
-            },
-            onCompleted: data => onCompleted(data?.updateAlerts?.length ?? 0, checkedItems),
-          }),
-          // ariaLabel: 'Close Selected Alerts',
-          // dataCy: 'close',
+            })
+              .then(res =>
+                onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
+              )
+              .catch(err => {
+                setUpdateComplete(true)
+                setErrorMessage(err.message)
+              })
+          },
         },
         {
           icon: <EscalateIcon />,
           label: 'Escalate',
-          onClick: checkedItems => escalateAlerts({
-            variables: {
-              input: checkedItems,
-            },
-            onError: err => {
-              setUpdateComplete(true)
-              setErrorMessage(err.message)
-            },
-            onCompleted: data => onCompleted(data?.escalateAlerts?.length ?? 0, checkedItems),
-          }),
-          // ariaLabel: 'Escalate Selected Alerts',
-          // dataCy: 'escalate',
+          ariaLabel: 'Escalate Selected Alerts',
+          onClick: checkedItems => {
+            escalateAlerts({
+              variables: {
+                input: checkedItems,
+              },
+            })
+              .then(res =>
+                onCompleted(
+                  res?.data?.escalateAlerts?.length ?? 0,
+                  checkedItems,
+                ),
+              )
+              .catch(err => {
+                setUpdateComplete(true)
+                setErrorMessage(err.message)
+              })
+          },
         },
       )
     }

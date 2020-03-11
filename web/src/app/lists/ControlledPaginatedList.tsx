@@ -67,6 +67,7 @@ export interface ControlledPaginatedListAction {
 
   // label to display (e.g. "Close alerts")
   label: string
+  ariaLabel?: string
 
   // Callback that will be passed a list of selected items
   onClick: (selectedIDs: (string | number)[]) => void
