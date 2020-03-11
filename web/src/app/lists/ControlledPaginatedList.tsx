@@ -217,11 +217,11 @@ export default function ControlledPaginatedList(
             <Grid item key={idx}>
               <Tooltip
                 title={a.label}
-                ariaLabel={a.ariaLabel}
                 placement='bottom'
                 classes={{ popper: classes.popper }}
               >
                 <IconButton
+                  aria-label={a.ariaLabel}
                   onClick={() => {
                     a.onClick(checkedItems)
                     setNone()
