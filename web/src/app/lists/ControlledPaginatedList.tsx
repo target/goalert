@@ -211,19 +211,26 @@ export default function ControlledPaginatedList(
           />
         </Grid>
 
-        {checkboxActions.map((a, idx) => (
-          <Grid item key={idx}>
-            <Tooltip
-              title={a.label}
-              placement='bottom'
-              classes={{ popper: classes.popper }}
-            >
-              <IconButton onClick={() => a.onClick(checkedItems)}>
-                {a.icon}
-              </IconButton>
-            </Tooltip>
-          </Grid>
-        ))}
+        {checkedItems.length > 0 &&
+          checkboxActions.map((a, idx) => (
+            <Grid item key={idx}>
+              <Tooltip
+                title={a.label}
+                ariaLabel={a.ariaLabel}
+                placement='bottom'
+                classes={{ popper: classes.popper }}
+              >
+                <IconButton
+                  onClick={() => {
+                    a.onClick(checkedItems)
+                    setNone()
+                  }}
+                >
+                  {a.icon}
+                </IconButton>
+              </Tooltip>
+            </Grid>
+          ))}
       </Grid>
     )
   }
