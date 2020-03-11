@@ -148,7 +148,7 @@ function testAlerts(screen: ScreenFormat) {
         .should('not.be.checked')
         .click()
 
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get('button[title=Acknowledge]').click()
 
       cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
 
@@ -156,22 +156,22 @@ function testAlerts(screen: ScreenFormat) {
         .should('not.be.checked')
         .click()
 
-      cy.get('button[data-cy=escalate]').click()
+      cy.get('button[title=Escalate]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
 
       cy.get('span[data-cy=select-all] input')
         .should('not.be.checked')
         .click()
 
-      cy.get('button[data-cy=close]').click()
+      cy.get('button[title=Close]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
     })
 
     it('should update some alerts', () => {
       // prep
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
-      cy.get('button[data-cy=acknowledge]').should('not.exist')
+      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[title=Acknowledge]').should('not.exist')
 
       cy.get(`[href="/alerts/${alert1.id}"]`).should(
         'not.contain',
@@ -188,7 +188,7 @@ function testAlerts(screen: ScreenFormat) {
 
       cy.get(`[data-cy=select-all] input`).check()
 
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get('button[title=Acknowledge]').click()
       cy.get('span[data-cy=update-message]').should(
         'contain',
         '2 of 3 alerts updated',
@@ -211,7 +211,7 @@ function testAlerts(screen: ScreenFormat) {
       // ack first two
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get('button[title=Acknowledge]').click()
 
       // ack
       // ack
@@ -232,7 +232,7 @@ function testAlerts(screen: ScreenFormat) {
       // ack first two again (noop)
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get('button[title=Acknowledge]').click()
 
       cy.get('span[data-cy=update-message]').should(
         'contain',
@@ -243,7 +243,7 @@ function testAlerts(screen: ScreenFormat) {
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get(`span[data-cy=item-${alert3.id}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get('button[title=Acknowledge]').click()
 
       // first two already acked, third now acked
       cy.get('span[data-cy=update-message]').should(
