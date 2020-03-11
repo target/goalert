@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import {Hidden, Typography, makeStyles, isWidthDown} from '@material-ui/core'
+import { Hidden, Typography, makeStyles, isWidthDown } from '@material-ui/core'
 import { useSelector } from 'react-redux'
 import { absURLSelector, urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
@@ -8,20 +8,19 @@ import gql from 'graphql-tag'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import statusStyles from '../util/statusStyles'
 import { formatTimeSince } from '../util/timeFormat'
-import {useMutation, useQuery} from '@apollo/react-hooks'
+import { useMutation, useQuery } from '@apollo/react-hooks'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
 } from '@material-ui/icons'
-import Snackbar from "@material-ui/core/Snackbar"
-import SnackbarContent from "@material-ui/core/SnackbarContent"
-import InfoIcon from "@material-ui/icons/Info"
-import CreateAlertFab from "./CreateAlertFab"
-import useWidth from "../util/useWidth"
+import Snackbar from '@material-ui/core/Snackbar'
+import SnackbarContent from '@material-ui/core/SnackbarContent'
+import InfoIcon from '@material-ui/icons/Info'
+import CreateAlertFab from './CreateAlertFab'
+import useWidth from '../util/useWidth'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -80,7 +79,6 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'center',
   },
-  ...statusStyles,
 }))
 
 function getStatusFilter(s) {
@@ -192,14 +190,14 @@ export default function AlertsList(props) {
    * Adds border of color depending on each alert's status
    * on left side of each list item
    */
-  function getStatusClassName(s) {
+  function getListItemStatus(s) {
     switch (s) {
       case 'StatusAcknowledged':
-        return classes.statusWarning
+        return 'warn'
       case 'StatusUnacknowledged':
-        return classes.statusError
-      default:
-        return classes.noStatus
+        return 'err'
+      case 'StatusClosed':
+        return 'ok'
     }
   }
 
@@ -209,8 +207,6 @@ export default function AlertsList(props) {
    */
   function getActions() {
     const actions = []
-    // todo: don't show actions with nothing checked
-    // if (!checkedItems.length) return actions
 
     if (filter !== 'closed' && filter !== 'acknowledged') {
       actions.push({
@@ -285,7 +281,7 @@ export default function AlertsList(props) {
         infiniteScroll
         mapDataNode={a => ({
           id: a.id,
-          className: getStatusClassName(a.status),
+          status: getListItemStatus(a.status),
           title: `${a.alertID}: ${a.status
             .toUpperCase()
             .replace('STATUS', '')}`,
@@ -296,7 +292,7 @@ export default function AlertsList(props) {
             </Typography>
           ),
           url: absURL(`/alerts/${a.id}`),
-          selectable: a.status !== 'StatusClosed'
+          selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
         filter={<AlertsListFilter />}
