@@ -53,7 +53,7 @@ export default class AlertsListDataWrapper extends Component {
     onServicePage: p.bool,
   }
 
-  componentWillReceiveProps(nextProps, nextContext) {
+  componentWillReceiveProps(nextProps) {
     const { allChecked, checkedAlerts, setCheckedAlerts } = this.props
     const { alert, allChecked: nextChecked } = nextProps
 

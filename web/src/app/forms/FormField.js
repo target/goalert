@@ -5,6 +5,7 @@ import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import FormLabel from '@material-ui/core/FormLabel'
 import { get, isEmpty, startCase } from 'lodash-es'
+import * as _ from 'lodash-es'
 import shrinkWorkaround from '../util/shrinkWorkaround'
 
 import { FormContainerContext } from './context'
@@ -92,13 +93,8 @@ export class FormField extends React.PureComponent {
     const {
       errorName,
       name,
-      noError,
-      component: Component,
-      render,
       fieldName: _fieldName,
-      formLabel,
       required,
-      validate,
       disabled: fieldDisabled,
       hint,
       label: _label,
@@ -106,9 +102,14 @@ export class FormField extends React.PureComponent {
       mapValue,
       mapOnChangeValue,
       checkbox,
-
       ...otherFieldProps
-    } = this.props
+    } = _.omit(this.props, [
+      'noError',
+      'component',
+      'render',
+      'formLabel',
+      'validate',
+    ])
 
     const baseLabel = typeof _label === 'string' ? _label : startCase(name)
     const label =

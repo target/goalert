@@ -47,7 +47,6 @@ export default class MaterialSelect extends Component {
   render() {
     const {
       multiple,
-      noClear,
       theme,
       value,
       onChange,
