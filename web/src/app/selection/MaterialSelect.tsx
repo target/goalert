@@ -42,23 +42,40 @@ interface SelectOption {
   value: string
 }
 
-interface MaterialSelectProps {
+interface CommonSelectProps {
   disabled?: boolean
   error?: boolean
   isLoading?: boolean
   label?: string
-  multiple?: boolean // allow selecting multiple values
   noOptionsText?: ReactNode
   name?: string
   required?: boolean
-  onChange: (value: SelectOption | SelectOption[]) => void
   onInputChange?: (value: string) => void
   options: SelectOption[]
   placeholder?: string
-  value?: SelectOption[] | SelectOption
 }
 
-export default function MaterialSelect(props: MaterialSelectProps) {
+interface SingleSelectProps extends CommonSelectProps {
+  multiple?: false
+  value?: SelectOption
+  onChange: (value: SelectOption) => void
+}
+
+interface MultiSelectProps extends CommonSelectProps {
+  multiple: true
+  value?: SelectOption[]
+  onChange: (value: SelectOption[]) => void
+}
+
+function isMultiSelect(
+  opts: SelectOption | SelectOption[],
+): opts is SelectOption[] {
+  return Array.isArray(opts)
+}
+
+export default function MaterialSelect(
+  props: SingleSelectProps | MultiSelectProps,
+) {
   const classes = useStyles()
   const {
     disabled,
