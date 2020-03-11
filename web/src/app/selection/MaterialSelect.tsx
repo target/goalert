@@ -58,19 +58,13 @@ interface CommonSelectProps {
 interface SingleSelectProps extends CommonSelectProps {
   multiple?: false
   value?: SelectOption
-  onChange: (value: SelectOption) => void
+  onChange: (value: SelectOption | null) => void
 }
 
 interface MultiSelectProps extends CommonSelectProps {
   multiple: true
   value?: SelectOption[]
   onChange: (value: SelectOption[]) => void
-}
-
-function isMultiSelect(
-  opts: SelectOption | SelectOption[],
-): opts is SelectOption[] {
-  return Array.isArray(opts)
 }
 
 export default function MaterialSelect(
@@ -115,7 +109,7 @@ export default function MaterialSelect(
       noOptionsText={noOptionsText}
       onChange={(
         event: ChangeEvent<{}>,
-        selected: SelectOption | SelectOption[],
+        selected: SelectOption | SelectOption[] | null,
       ) => {
         if (selected !== null) {
           if (Array.isArray(selected)) {
@@ -125,7 +119,7 @@ export default function MaterialSelect(
           }
         }
 
-        onChange(selected)
+        onChange(selected as any) //NOTE typeof selected switches based on multiple; ts can't infer this
       }}
       onInputChange={(event, inputVal, reason) => {
         if (reason === 'clear' && !multiple) {
