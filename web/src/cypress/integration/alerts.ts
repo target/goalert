@@ -371,15 +371,15 @@ function testAlerts(screen: ScreenFormat) {
     })
 
     it('should see load more, click, and no longer see load more', () => {
-      cy.get('ul[data-cy=item-logs] li').should('have.length', 35)
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 35)
       cy.get('body').should('contain', 'Load More')
       cy.get('[data-cy=load-more-logs]').click()
-      cy.get('ul[data-cy=item-logs] li').should('have.length', 184)
+      cy.get('ul[data-cy=alert-logs] li').should('have.length', 184)
       cy.get('body').should('contain', 'Load More')
       cy.get('[data-cy=load-more-logs]').click()
 
       // create plus any engine events should be 200+
-      cy.get('ul[data-cy=item-logs] li').should('have.length.gt', 200)
+      cy.get('ul[data-cy=alert-logs] li').should('have.length.gt', 200)
       cy.get('body').should('not.contain', 'Load More')
     })
   })
