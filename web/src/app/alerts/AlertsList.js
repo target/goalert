@@ -1,7 +1,14 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
-import { Hidden, Snackbar, SnackbarContent, Typography, makeStyles, isWidthDown } from '@material-ui/core'
+import {
+  Hidden,
+  Snackbar,
+  SnackbarContent,
+  Typography,
+  makeStyles,
+  isWidthDown,
+} from '@material-ui/core'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
