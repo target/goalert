@@ -51,8 +51,8 @@ interface MaterialSelectProps {
   noOptionsText?: ReactNode
   name?: string
   required?: boolean
-  onChange: Function
-  onInputChange?: Function
+  onChange: (value: SelectOption | SelectOption[]) => void
+  onInputChange?: (value: string) => void
   options: SelectOption[]
   placeholder?: string
   value?: SelectOption[] | SelectOption
@@ -138,7 +138,7 @@ export default function MaterialSelect(props: MaterialSelectProps) {
             label={label}
             placeholder={placeholder}
             onChange={({ target }) => {
-              const newInputVal = target.value
+              const newInputVal: string = target.value
               setInputValue(newInputVal)
               if (onInputChange) onInputChange(newInputVal)
             }}
