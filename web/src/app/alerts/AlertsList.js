@@ -1,25 +1,24 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, Typography, makeStyles, isWidthDown } from '@material-ui/core'
-import { useSelector } from 'react-redux'
-import { absURLSelector, urlParamSelector } from '../selectors'
-import QueryList from '../lists/QueryList'
 import gql from 'graphql-tag'
-
-import AlertsListFilter from './components/AlertsListFilter'
-import AlertsListControls from './components/AlertsListControls'
-import { formatTimeSince } from '../util/timeFormat'
-import { useMutation, useQuery } from '@apollo/react-hooks'
-import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
+import { Hidden, Snackbar, SnackbarContent, Typography, makeStyles, isWidthDown } from '@material-ui/core'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
+  Info as InfoIcon,
 } from '@material-ui/icons'
-import Snackbar from '@material-ui/core/Snackbar'
-import SnackbarContent from '@material-ui/core/SnackbarContent'
-import InfoIcon from '@material-ui/icons/Info'
+import { useSelector } from 'react-redux'
+
+import AlertsListFilter from './components/AlertsListFilter'
+import AlertsListControls from './components/AlertsListControls'
 import CreateAlertFab from './CreateAlertFab'
+import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
+
+import { formatTimeSince } from '../util/timeFormat'
+import { urlParamSelector } from '../selectors'
+import { useMutation, useQuery } from '@apollo/react-hooks'
+import QueryList from '../lists/QueryList'
 import useWidth from '../util/useWidth'
 
 export const alertsListQuery = gql`
@@ -107,14 +106,13 @@ export default function AlertsList(props) {
   const [updateMessage, setUpdateMessage] = useState('')
   const [updateComplete, setUpdateComplete] = useState(false)
 
-  // get redux vars
-  const absURL = useSelector(absURLSelector)
+  // get redux url vars
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
   const filter = params('filter', 'active')
   const isFirstLogin = params('isFirstLogin')
 
-  // always open unless clicked away from or there are services present
+  // always open unless clicked away from or there are favorite services present
   const [_showNoFavoritesWarning, setShowNoFavoritesWarning] = useState(true)
 
   // query to see if the current user has any favorited services
@@ -148,7 +146,7 @@ export default function AlertsList(props) {
 
   /*
    * Closes the no favorites warning snackbar only if clicking
-   * away to lose focus.
+   * away to lose focus
    */
   function handleCloseNoFavoritesWarning(event, reason) {
     if (reason === 'clickaway') {
@@ -178,10 +176,9 @@ export default function AlertsList(props) {
   /*
    * Called on the successful completion of a checkbox action.
    * Sets showing the update snackbar and sets the message to be
-   * displayed.
+   * displayed
    */
   function onCompleted(numUpdated, checkedItems) {
-    console.log('on complete')
     setUpdateComplete(true) // for create fab transition
     setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
   }
@@ -303,7 +300,7 @@ export default function AlertsList(props) {
               {formatTimeSince(a.createdAt)}
             </Typography>
           ),
-          url: absURL(`/alerts/${a.id}`),
+          url: `/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
