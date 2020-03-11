@@ -104,6 +104,7 @@ export default function AlertsList(props) {
   const width = useWidth()
   const isFullScreen = isWidthDown('md', width)
 
+  // state initialization
   const [errorMessage, setErrorMessage] = useState('')
   const [updateMessage, setUpdateMessage] = useState('')
   const [updateComplete, setUpdateComplete] = useState(false)
@@ -138,6 +139,7 @@ export default function AlertsList(props) {
     },
   )
 
+  // checks to show no favorites warning
   const noFavorites = !favoritesQueryStatus.data?.nodes?.length
   const showNoFavoritesWarning =
     _showNoFavoritesWarning &&
@@ -146,6 +148,10 @@ export default function AlertsList(props) {
     !isFirstLogin &&
     noFavorites
 
+  /*
+   * Closes the no favorites warning snackbar only if clicking
+   * away to lose focus.
+   */
   function handleCloseNoFavoritesWarning(event, reason) {
     if (reason === 'clickaway') {
       setShowNoFavoritesWarning(false)
@@ -166,10 +172,16 @@ export default function AlertsList(props) {
     variables.input.filterByServiceID = [props.serviceID]
   }
 
+  // checkbox action mutations
   const [ackAlerts] = useMutation(updateMutation)
   const [closeAlerts] = useMutation(updateMutation)
   const [escalateAlerts] = useMutation(escalateMutation)
 
+  /*
+   * Called on the successful completion of a checkbox action.
+   * Sets showing the update snackbar and sets the message to be
+   * displayed.
+   */
   function onCompleted(numUpdated, checkedItems) {
     console.log('on complete')
     setUpdateComplete(true) // for create fab transition
@@ -265,6 +277,7 @@ export default function AlertsList(props) {
     return actions
   }
 
+  // render the goodies
   return (
     <React.Fragment>
       <QueryList
