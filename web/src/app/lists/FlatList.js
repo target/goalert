@@ -9,6 +9,7 @@ import Typography from '@material-ui/core/Typography'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import withStyles from '@material-ui/core/styles/withStyles'
 import ListSubheader from '@material-ui/core/ListSubheader'
+import * as _ from 'lodash-es'
 import { AppLink } from '../util/AppLink'
 
 const styles = {
@@ -168,16 +169,15 @@ export default class FlatList extends React.PureComponent {
   }
 
   renderList() {
-    const {
-      dispatch,
-      onReorder,
-      classes,
-      emptyMessage,
-      headerNote,
-      items,
-      inset, // don't include in spread
-      ...otherProps
-    } = this.props
+    const { headerNote, ...otherProps } = _.omit(this.props, [
+      'dispatch',
+      'onReorder',
+      'classes',
+      'emptyMessage',
+      'items',
+      'inset',
+    ])
+
     return (
       <List {...otherProps}>
         {headerNote && (
@@ -203,7 +203,7 @@ export default class FlatList extends React.PureComponent {
         onDragEnd={this.handleDragEnd}
       >
         <Droppable droppableId='droppable'>
-          {(provided, _) => (
+          {provided => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
               {this.renderList()}
               {provided.placeholder}

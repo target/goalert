@@ -1,5 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
+import * as _ from 'lodash-es'
 import { FormContext } from './context'
 
 /*
@@ -32,7 +33,7 @@ export class Form extends React.PureComponent {
   }
 
   render() {
-    const { onSubmit, disabled, ...formProps } = this.props
+    const { disabled, ...formProps } = _.omit(this.props, ['onSubmit'])
 
     return (
       <form {...formProps} onSubmit={this.handleFormSubmit}>

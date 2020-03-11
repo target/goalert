@@ -3,6 +3,7 @@ import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import withStyles from '@material-ui/core/styles/withStyles'
+import * as _ from 'lodash-es'
 import { FormContainer, FormField } from '../forms'
 
 const styles = theme => ({
@@ -39,7 +40,7 @@ export default class HeartbeatMonitorForm extends React.PureComponent {
   }
 
   render() {
-    const { classes, ...formProps } = this.props
+    const formProps = _.omit(this.props, 'classes')
     return (
       <FormContainer {...formProps} optionalLabels>
         <Grid container spacing={2}>

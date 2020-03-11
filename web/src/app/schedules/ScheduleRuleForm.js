@@ -71,7 +71,7 @@ const renderDaysValue = value => {
   return parts.join(',')
 }
 
-const styles = theme => {
+const styles = () => {
   return {
     noPadding: {
       padding: 0,
@@ -134,7 +134,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
     )
   }
 
-  renderForm(scheduleTZ) {
+  renderForm() {
     const {
       zone: displayTZ,
       targetDisabled,
@@ -201,7 +201,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
                               .startOf('day')
                               .toUTC()
                               .toISO(),
-                            weekdayFilter: days.map(d => true),
+                            weekdayFilter: Array(days.length).fill(true),
                           }),
                         })
                       }
