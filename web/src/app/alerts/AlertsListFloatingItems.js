@@ -74,7 +74,7 @@ export default function AlertsListFloatingItems(props) {
     },
   )
 
-  if (error || loading) return null
+  if (!data && (error || loading)) return null
 
   const noFavorites = !data?.nodes?.length
   const showFavoritesWarning =
