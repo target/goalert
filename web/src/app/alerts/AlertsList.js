@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Hidden, Typography, makeStyles } from '@material-ui/core'
+import {Hidden, Typography, makeStyles, isWidthDown} from '@material-ui/core'
 import { useSelector } from 'react-redux'
 import { absURLSelector, urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
@@ -8,16 +8,20 @@ import gql from 'graphql-tag'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import AlertsListFloatingItems from './AlertsListFloatingItems'
 import statusStyles from '../util/statusStyles'
 import { formatTimeSince } from '../util/timeFormat'
-import { useMutation } from '@apollo/react-hooks'
+import {useMutation, useQuery} from '@apollo/react-hooks'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
 } from '@material-ui/icons'
+import Snackbar from "@material-ui/core/Snackbar"
+import SnackbarContent from "@material-ui/core/SnackbarContent"
+import InfoIcon from "@material-ui/icons/Info"
+import CreateAlertFab from "./CreateAlertFab"
+import useWidth from "../util/useWidth"
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -62,6 +66,20 @@ const escalateMutation = gql`
 `
 
 const useStyles = makeStyles(theme => ({
+  snackbar: {
+    backgroundColor: theme.palette.primary['500'],
+    height: '6.75em',
+    width: '20em', // only triggers on desktop, 100% on mobile devices
+  },
+  snackbarIcon: {
+    fontSize: 20,
+    opacity: 0.9,
+    marginRight: theme.spacing(1),
+  },
+  snackbarMessage: {
+    display: 'flex',
+    alignItems: 'center',
+  },
   ...statusStyles,
 }))
 
@@ -83,6 +101,8 @@ function getStatusFilter(s) {
 
 export default function AlertsList(props) {
   const classes = useStyles()
+  const width = useWidth()
+  const isFullScreen = isWidthDown('md', width)
 
   const [errorMessage, setErrorMessage] = useState('')
   const [updateMessage, setUpdateMessage] = useState('')
@@ -93,6 +113,44 @@ export default function AlertsList(props) {
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
   const filter = params('filter', 'active')
+  const isFirstLogin = params('isFirstLogin')
+
+  // always open unless clicked away from or there are services present
+  const [_showNoFavoritesWarning, setShowNoFavoritesWarning] = useState(true)
+
+  // query to see if the current user has any favorited services
+  // if allServices is not true
+  const favoritesQueryStatus = useQuery(
+    gql`
+      query($input: ServiceSearchOptions) {
+        services(input: $input) {
+          nodes {
+            id
+          }
+        }
+      }
+    `,
+    {
+      variables: {
+        favoritesOnly: true,
+        first: 1,
+      },
+    },
+  )
+
+  const noFavorites = !favoritesQueryStatus.data?.nodes?.length
+  const showNoFavoritesWarning =
+    _showNoFavoritesWarning &&
+    !allServices &&
+    !props.serviceID &&
+    !isFirstLogin &&
+    noFavorites
+
+  function handleCloseNoFavoritesWarning(event, reason) {
+    if (reason === 'clickaway') {
+      setShowNoFavoritesWarning(false)
+    }
+  }
 
   // alerts list query variables
   const variables = {
@@ -113,6 +171,7 @@ export default function AlertsList(props) {
   const [escalateAlerts] = useMutation(escalateMutation)
 
   function onCompleted(numUpdated, checkedItems) {
+    console.log('on complete')
     setUpdateComplete(true) // for create fab transition
     setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
   }
@@ -235,6 +294,14 @@ export default function AlertsList(props) {
         }
         checkboxActions={getActions()}
       />
+
+      <CreateAlertFab
+        serviceID={props.serviceID}
+        showFavoritesWarning={showNoFavoritesWarning}
+        transition={isFullScreen && (showNoFavoritesWarning || updateComplete)}
+      />
+
+      {/* Update message after using checkbox actions */}
       <UpdateAlertsSnackbar
         errorMessage={errorMessage}
         onClose={() => setUpdateComplete(false)}
@@ -245,7 +312,29 @@ export default function AlertsList(props) {
         open={updateComplete}
         updateMessage={updateMessage}
       />
-      <AlertsListFloatingItems serviceID={props.serviceID} updateComplete={updateComplete} />
+
+      {/* No favorites warning when viewing alerts */}
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        open={showNoFavoritesWarning}
+        onClose={handleCloseNoFavoritesWarning}
+      >
+        <SnackbarContent
+          className={classes.snackbar}
+          aria-describedby='client-snackbar'
+          message={
+            <span id='client-snackbar' className={classes.snackbarMessage}>
+              <InfoIcon className={classes.snackbarIcon} />
+              It looks like you have no favorited services. Visit your most used
+              services to set them as a favorite, or enable the filter to view
+              alerts for all services.
+            </span>
+          }
+        />
+      </Snackbar>
     </React.Fragment>
   )
 }
