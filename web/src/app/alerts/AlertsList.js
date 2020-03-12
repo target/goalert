@@ -119,8 +119,8 @@ export default function AlertsList(props) {
   const filter = params('filter', 'active')
   const isFirstLogin = params('isFirstLogin')
 
-  // always open unless clicked away from or there are favorite services present
-  const [_showNoFavoritesWarning, setShowNoFavoritesWarning] = useState(true)
+  // defaults to open unless favorited services are present or warning is dismissed
+  const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(false)
 
   // query to see if the current user has any favorited services
   // if allServices is not true
@@ -136,20 +136,22 @@ export default function AlertsList(props) {
     `,
     {
       variables: {
-        favoritesOnly: true,
-        first: 1,
+        input: {
+          favoritesOnly: true,
+          first: 1,
+        }
       },
     },
   )
 
   // checks to show no favorites warning
-  const noFavorites = !favoritesQueryStatus.data?.nodes?.length
+  const noFavorites = !favoritesQueryStatus.data?.services?.nodes?.length && !favoritesQueryStatus.loading
   const showNoFavoritesWarning =
-    _showNoFavoritesWarning &&
-    !allServices &&
-    !props.serviceID &&
-    !isFirstLogin &&
-    noFavorites
+    !favoritesWarningDismissed && // has not been dismissed
+    !allServices &&               // all services aren't being queries
+    !props.serviceID &&           // not viewing alerts from services page
+    !isFirstLogin &&              // don't show two pop-ups at the same time
+    noFavorites                   // and lastly, user has no favorited services
 
   /*
    * Closes the no favorites warning snackbar only if clicking
@@ -157,7 +159,7 @@ export default function AlertsList(props) {
    */
   function handleCloseNoFavoritesWarning(event, reason) {
     if (reason === 'clickaway') {
-      setShowNoFavoritesWarning(false)
+      setFavoritesWarningDismissed(false)
     }
   }
 
