@@ -2,6 +2,7 @@ import { createSelector } from 'reselect'
 import joinURL from '../util/joinURL'
 import { memoize } from 'lodash-es'
 import { History } from 'history'
+import { pathPrefix } from '../env'
 
 // TODO: move to ../reducers and define rest of state
 export interface ReduxState {
@@ -49,9 +50,15 @@ export const alertAllServicesSelector = createSelector(
   params => params('allServices', false),
 )
 
+// absURLSelector will return an absolute URL (including protocol) for the given
+// relative or from-root path. It will automatically add any path prefix.
 export const absURLSelector = createSelector(urlPathSelector, base =>
   memoize(
     (path: string) =>
-      path && (path.startsWith('/') ? joinURL(path) : joinURL(base, path)),
+      path &&
+      location.origin +
+        (path.startsWith('/')
+          ? joinURL(pathPrefix, path)
+          : joinURL(base, path)),
   ),
 )

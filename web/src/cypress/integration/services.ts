@@ -4,6 +4,11 @@ const c = new Chance()
 
 testScreen('Services', testServices)
 
+function basePrefix(): string {
+  const u = new URL(Cypress.config('baseUrl') as string)
+  return u.pathname.replace(/\/$/, '')
+}
+
 function testServices(screen: ScreenFormat) {
   beforeEach(() => {
     window.localStorage.setItem('show_services_new_feature_popup', 'false')
@@ -57,7 +62,7 @@ function testServices(screen: ScreenFormat) {
       cy.get('#app')
         .contains(svc.name)
         .click()
-      cy.location('pathname').should('eq', `/services/${svc.id}`)
+      cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
     describe('Filtering', () => {
@@ -240,13 +245,17 @@ function testServices(screen: ScreenFormat) {
         .should('contain', svc.name)
         .should('contain', svc.description)
         .contains('a', svc.ep.name)
-        .should('have.attr', 'href', `/escalation-policies/${svc.ep.id}`)
+        .should(
+          'have.attr',
+          'href',
+          basePrefix() + `/escalation-policies/${svc.ep.id}`,
+        )
     })
 
     it('should allow deleting the service', () => {
       cy.pageAction('Delete')
       cy.dialogFinish('Confirm')
-      cy.location('pathname').should('eq', '/services')
+      cy.url().should('eq', Cypress.config().baseUrl + '/services')
       cy.pageSearch(svc.name)
       cy.get('body').should('contain', 'No results')
     })
@@ -265,7 +274,11 @@ function testServices(screen: ScreenFormat) {
           .should('contain', name)
           .should('contain', description)
           .contains('a', ep.name)
-          .should('have.attr', 'href', `/escalation-policies/${ep.id}`)
+          .should(
+            'have.attr',
+            'href',
+            basePrefix() + `/escalation-policies/${ep.id}`,
+          )
       })
     })
 

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"sort"
 	"strings"
 	"time"
@@ -124,6 +125,16 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	info := make([]registeredProvider, 0, len(h.providers))
 
+	u, err := url.Parse(req.RequestURI)
+	if errutil.HTTPError(ctx, w, err) {
+		return
+	}
+	// Detect current pathPrefix instead of using CallbackURL since it
+	// will be used for browser linking.
+	//
+	// Also handles edge cases around first-time setup/localhost/etc...
+	pathPrefix := strings.TrimSuffix(u.Path, req.URL.Path)
+
 	for id, p := range h.providers {
 		if !p.Info(ctx).Enabled {
 			continue
@@ -131,7 +142,7 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 
 		info = append(info, registeredProvider{
 			ID:           id,
-			URL:          "/api/v2/identity/providers/" + url.PathEscape(id),
+			URL:          path.Join(pathPrefix, "/api/v2/identity/providers", url.PathEscape(id)),
 			ProviderInfo: p.Info(ctx),
 		})
 	}

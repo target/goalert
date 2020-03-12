@@ -5,6 +5,11 @@ declare namespace Cypress {
   }
 }
 
+function normalizeURL(url: string | null): string {
+  if (!url) throw new Error('url required')
+  return new URL(url).toString()
+}
+
 function login(
   username?: string,
   password?: string,
@@ -59,7 +64,7 @@ function login(
     })
     .then(res => {
       expect(res.redirectedToUrl, 'response redirect').to.eq(
-        Cypress.config('baseUrl') + '/',
+        normalizeURL(Cypress.config('baseUrl')),
       )
       return ''
     }) as Cypress.Chainable<string>

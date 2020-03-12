@@ -41,6 +41,7 @@ func (app *App) initStores(ctx context.Context) error {
 		var fallback url.URL
 		fallback.Scheme = "http"
 		fallback.Host = app.l.Addr().String()
+		fallback.Path = app.cfg.HTTPPrefix
 		app.ConfigStore, err = config.NewStore(ctx, app.db, app.cfg.EncryptionKeys, fallback.String())
 	}
 	if err != nil {
