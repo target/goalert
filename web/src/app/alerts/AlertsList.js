@@ -96,7 +96,7 @@ function getStatusFilter(s) {
     case 'closed':
       return ['StatusClosed']
     case 'all':
-      return ['StatusAcknowledged', 'StatusUnacknowledged', 'StatusClosed']
+      return [] // empty array returns all statuses
     // active is the default tab
     default:
       return ['StatusAcknowledged', 'StatusUnacknowledged']
