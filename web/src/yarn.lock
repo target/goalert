@@ -5791,10 +5791,10 @@ ieee754@^1.1.4:
   resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.1.13.tgz#ec168558e95aa181fd87d37f55c32bbcb6708b84"
   integrity sha512-4vf7I2LYV/HaWerSo3XmlMkp5eZ83i+/CDluXi/IGTs/O1sejBNhTtnxzmRZfvOUqj7lZjqHkeTvpgSFDlWZTg==
 
-ifdef-loader@2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/ifdef-loader/-/ifdef-loader-2.1.4.tgz#1f0c22f7e92cf216132511b148ca1c3a31d77635"
-  integrity sha512-jwlI3q7PbOU5NlN6pB8atrpx4Yg8gdVNKQIOymlbuHblbShivEZUjsC3Oxwmf9bRApL5NckIiCdB0TGikuHbGQ==
+ifdef-loader@2.1.5:
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/ifdef-loader/-/ifdef-loader-2.1.5.tgz#f9c3505a7335daffb8593e6d9ecfc8dcdd59409e"
+  integrity sha512-GMUW5L8ZjsKRGABV3iXLdNFe2l7qFp9jeGYS55I6RNZLgQpicKxUfdH5oLDJ1cu+udb0hZiglwW6nX2kzgy86w==
   dependencies:
     loader-utils "^1.1.0"
 
