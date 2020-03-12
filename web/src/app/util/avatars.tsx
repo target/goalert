@@ -3,6 +3,7 @@ import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
 import { useSessionInfo } from './RequireConfig'
 import { Avatar, AvatarTypeMap, SvgIconProps } from '@material-ui/core'
 import { OverridableComponent } from '@material-ui/core/OverridableComponent'
+import { pathPrefix } from '../env'
 
 type IconProps = (props: SvgIconProps) => JSX.Element
 type AvatarProps = OverridableComponent<AvatarTypeMap>
@@ -51,13 +52,17 @@ export function UserAvatar(props: UserAvatarProps) {
   return useAvatar(
     Person,
     otherProps as AvatarProps,
-    `/api/v2/user-avatar/${userID}`,
+    pathPrefix + `/api/v2/user-avatar/${userID}`,
   )
 }
 
 export function CurrentUserAvatar(props: AvatarProps) {
   const { ready, userID }: any = useSessionInfo() // TODO remove "any" when useSessionInfo is converted to ts
-  return useAvatar(Person, props, ready && `/api/v2/user-avatar/${userID}`)
+  return useAvatar(
+    Person,
+    props,
+    ready && pathPrefix + `/api/v2/user-avatar/${userID}`,
+  )
 }
 
 export function ServiceAvatar(props: AvatarProps) {

@@ -483,6 +483,8 @@ func getConfig() (appConfig, error) {
 
 		TLSListenAddr: viper.GetString("listen-tls"),
 
+		HTTPPrefix: viper.GetString("http-prefix"),
+
 		SlackBaseURL:  viper.GetString("slack-base-url"),
 		TwilioBaseURL: viper.GetString("twilio-base-url"),
 
@@ -538,6 +540,8 @@ func init() {
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
+
+	RootCmd.Flags().String("http-prefix", "", "Specify the HTTP prefix of the application.")
 
 	RootCmd.Flags().Bool("api-only", false, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 

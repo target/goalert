@@ -9,7 +9,6 @@ import (
 
 	"github.com/felixge/httpsnoop"
 	"github.com/pkg/errors"
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -19,16 +18,6 @@ type _reqInfoCtxKey string
 
 const reqInfoCtxKey = _reqInfoCtxKey("request-info-fields")
 
-func stripPrefixMiddleware() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			cfg := config.FromContext(r.Context())
-			prefix := strings.TrimSuffix(cfg.General.PublicURL, "/")
-			r.URL.Path = strings.TrimPrefix(r.URL.Path, prefix)
-			next.ServeHTTP(w, r)
-		})
-	}
-}
 func maxBodySizeMiddleware(size int64) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		if size == 0 {

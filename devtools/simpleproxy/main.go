@@ -11,6 +11,7 @@ import (
 
 func main() {
 	addr := flag.String("addr", ":3040", "Address to listen for HTTP traffic.")
+	trim := flag.Bool("trim", false, "Trim matching URL path before forwarding request.")
 	flag.Parse()
 
 	log.SetFlags(log.Lshortfile)
@@ -27,7 +28,11 @@ func main() {
 		}
 
 		p := httputil.NewSingleHostReverseProxy(u)
-		mux.Handle(parts[0], p)
+		h := http.Handler(p)
+		if *trim {
+			h = http.StripPrefix(parts[0], h)
+		}
+		mux.Handle(parts[0], h)
 		log.Printf("Registered: %s -> %s", parts[0], parts[1])
 	}
 

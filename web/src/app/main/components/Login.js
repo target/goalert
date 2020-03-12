@@ -16,8 +16,9 @@ import logoSrcSet1 from '../../public/goalert-logo-scaled.webp'
 import logoSrcSet2 from '../../public/goalert-logo-scaled@1.5.webp'
 import logoSrcSet3 from '../../public/goalert-logo-scaled@2.webp'
 import logoImgSrc from '../../public/goalert-logo-scaled@2.png'
+import { pathPrefix } from '../../env'
 
-const PROVIDERS = '/api/v2/identity/providers'
+const PROVIDERS = pathPrefix + '/api/v2/identity/providers'
 const BACKGROUND_URL =
   'https://www.toptal.com/designers/subtlepatterns/patterns/dust_scratches.png'
 
