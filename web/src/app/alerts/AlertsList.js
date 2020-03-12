@@ -38,8 +38,8 @@ export const alertsListQuery = gql`
         summary
         details
         createdAt
-        serviceID
         service {
+          id
           name
         }
       }
