@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/target/goalert/devtools/sendit"
@@ -36,7 +35,7 @@ func main() {
 	if addr == "" {
 		addr = "127.0.0.1:5050"
 	}
-	flag.StringVar(&addr, "addr", addr, "Local address to listen or connect to.")
+	flag.StringVar(&addr, "addr", addr, "Local address to listen on (server mode).")
 	server := flag.Bool("server", false, "Run in server mode.")
 	secret := flag.String("secret", os.Getenv("SENDIT_SECRET"), "Secret signing string (server mode) or auth token (client mode).")
 	prefix := flag.String("http-prefix", os.Getenv("SENDIT_HTTP_PREFIX"), "HTTP prefix (server mode).")
@@ -47,13 +46,10 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	if !*server {
-		if strings.Contains(flag.Arg(0), addr) {
-			log.Fatal("ERROR: addr must not be part of connect URL.")
-		}
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
 		for {
-			log.Println("ERROR:", sendit.ConnectAndServe(flag.Arg(0), addr, *secret, *connTTL))
+			log.Println("ERROR:", sendit.ConnectAndServe(flag.Arg(0), flag.Arg(1), *secret, *connTTL))
 			<-t.C
 		}
 	}

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 	"log"
-	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"path"
 	"strings"
@@ -14,12 +14,6 @@ import (
 
 	"github.com/hashicorp/yamux"
 )
-
-func forward(a, b net.Conn) {
-	defer a.Close()
-	defer b.Close()
-	io.Copy(a, b)
-}
 
 func postWriter(urlStr string) (io.WriteCloser, error) {
 	pr, pw := io.Pipe()
@@ -65,14 +59,17 @@ func postReader(urlStr string) (io.ReadCloser, error) {
 // ConnectAndServe will connect to the server at `urlStr` and start serving/routing
 // traffic to the local `addr`. If ttl > 0 then connections in each direction
 // will be refreshed at the specified interval.
-func ConnectAndServe(urlStr, addr, token string, ttl time.Duration) error {
+func ConnectAndServe(urlStr, dstURLStr, token string, ttl time.Duration) error {
+	dstU, err := url.Parse(dstURLStr)
+	if err != nil {
+		return err
+	}
+
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return err
 	}
-	if u.Host == addr {
-		return errors.New("connect address must not match URL host")
-	}
+
 	serverPrefix, routePrefix := path.Split(u.Path)
 	u.Path = path.Join(serverPrefix, pathOpen)
 	v := make(url.Values)
@@ -148,22 +145,7 @@ func ConnectAndServe(urlStr, addr, token string, ttl time.Duration) error {
 	}
 	defer sess.Close()
 
-	log.Printf("Ready; Forwarding %s -> %s", urlStr, addr)
-	for {
-		remoteConn, err := sess.Accept()
-		if err != nil {
-			log.Println("ERROR: accept connection:", err)
-			return err
-		}
-
-		localConn, err := net.Dial("tcp", addr)
-		if err != nil {
-			log.Println("ERROR: connect:", err)
-			remoteConn.Close()
-			continue
-		}
-
-		go forward(remoteConn, localConn)
-		go forward(localConn, remoteConn)
-	}
+	log.Printf("Ready; Forwarding %s -> %s", urlStr, dstURLStr)
+	proxy := httputil.NewSingleHostReverseProxy(dstU)
+	return http.Serve(sess, proxy)
 }
