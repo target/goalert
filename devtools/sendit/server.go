@@ -143,6 +143,15 @@ func (s *Server) DialContext(ctx context.Context, network, addr string) (net.Con
 
 // serveOpen will perform initial authentication and esablish a tunnel session.
 func (s *Server) serveOpen(w http.ResponseWriter, req *http.Request) {
+	if len(s.authSecret) > 0 {
+		_, err := TokenSubject(s.authSecret, TokenAudienceAuth, req.FormValue("token"))
+		if err != nil {
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
+		}
+	}
 	sess, err := s.newSession(req.FormValue("prefix"))
 	if err != nil {
 		log.Println("ERROR:", err)
