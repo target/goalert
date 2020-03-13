@@ -34,7 +34,7 @@ func FlipWriter(w io.Writer) io.Writer {
 }
 
 type Stream struct {
-	readCh  chan io.Reader
+	readCh  chan []io.ReadCloser
 	writeCh chan io.WriteCloser
 	closeCh chan struct{}
 	mx      sync.Mutex
@@ -47,7 +47,7 @@ type Stream struct {
 
 func NewStream() *Stream {
 	s := &Stream{
-		readCh:  make(chan io.Reader, 1),
+		readCh:  make(chan []io.ReadCloser, 1),
 		writeCh: make(chan io.WriteCloser, 1),
 		closeCh: make(chan struct{}),
 		readyCh: make(chan struct{}),
@@ -71,14 +71,25 @@ func (s *Stream) Write(p []byte) (int, error) {
 	return n, err
 }
 func (s *Stream) Read(p []byte) (int, error) {
-	var r io.Reader
+	var r []io.ReadCloser
 	select {
 	case r = <-s.readCh:
 	case <-s.closeCh:
 		return 0, io.EOF
 	}
+	if len(r) == 0 {
+		return 0, io.EOF
+	}
 
-	n, err := r.Read(p)
+	n, err := r[0].Read(p)
+	if err == io.EOF {
+		r[0].Close()
+		r = r[1:]
+		if n == 0 {
+			s.readCh <- r
+			return s.Read(p)
+		}
+	}
 	s.readCh <- r
 	return n, err
 }
@@ -103,14 +114,16 @@ func (s *Stream) Close() (err error) {
 	case <-s.closeCh:
 		return io.ErrClosedPipe
 	}
-	<-s.readCh
+	for _, r := range <-s.readCh {
+		r.Close()
+	}
 	close(s.closeCh)
 
 	return err
 }
 
 // SetPipe will swap the io.Reader and WriteCloser with the underlying Stream safely.
-func (s *Stream) SetPipe(r io.Reader, wc io.WriteCloser) error {
+func (s *Stream) SetPipe(r io.ReadCloser, wc io.WriteCloser) error {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 
@@ -131,14 +144,20 @@ func (s *Stream) SetPipe(r io.Reader, wc io.WriteCloser) error {
 		return errors.New("expected SYN")
 	}
 
+	var bufCloser struct {
+		*bufio.Reader
+		io.Closer
+	}
+	bufCloser.Reader = br
+	bufCloser.Closer = r
 	// We have SYN so we know the read half is ready, so swap that first so we don't get an unexpected EOF.
 	//
 	// The reader has to be ready before we send our SYNACK message, which gives the other end the OK
 	// to flush and close their current writer (our previous reader).
 	if s.isReady {
-		s.readCh <- io.MultiReader(<-s.readCh, br)
+		s.readCh <- append(<-s.readCh, bufCloser)
 	} else {
-		s.readCh <- br
+		s.readCh <- []io.ReadCloser{bufCloser}
 	}
 
 	// Now that Read calls will safely transition to the next pipe, we can give the other end the OK

@@ -134,6 +134,8 @@ func (sess *session) End() {
 		close(sess.doneCh)
 	}
 
+	defer log.Printf("Session ended; %s [%s]", sess.Prefix, sess.ID)
+
 	sess.start.Do(sess.init)
 	if sess.ym != nil {
 		sess.ym.Close()
@@ -196,13 +198,7 @@ func (sess *session) UseReader(ctx context.Context, r io.Reader) {
 	defer cancel()
 
 	ioCtx := &ioContext{
-		fn: func(p []byte) (n int, err error) {
-			n, err = r.Read(p)
-			if err == io.EOF {
-				cancel()
-			}
-			return n, err
-		},
+		fn:     r.Read,
 		cancel: cancel,
 	}
 	sess.reader <- ioCtx
