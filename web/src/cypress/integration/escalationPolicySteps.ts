@@ -83,7 +83,7 @@ function testSteps() {
       })
     })
 
-    it.only('should edit a step', () => {
+    it('should edit a step', () => {
       cy.createEPStep({ epID: ep.id })
         .then(() => {
           cy.reload()
