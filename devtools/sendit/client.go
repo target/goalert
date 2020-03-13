@@ -2,6 +2,7 @@ package sendit
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"io"
 	"log"
@@ -15,7 +16,7 @@ import (
 	"github.com/hashicorp/yamux"
 )
 
-func postWriter(urlStr string) (io.WriteCloser, error) {
+func postWriter(ctx context.Context, urlStr string) (io.WriteCloser, error) {
 	pr, pw := io.Pipe()
 	req, err := http.NewRequest("POST", urlStr, pr)
 	if err != nil {
@@ -24,13 +25,13 @@ func postWriter(urlStr string) (io.WriteCloser, error) {
 	req.Header.Set("Transfer-Encoding", "chunked")
 
 	go func() {
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 		if err != nil {
 			pr.CloseWithError(err)
 			return
 		}
 		if resp.StatusCode != 200 {
-			pr.CloseWithError(errors.New(resp.Status))
+			pr.CloseWithError(errors.New("open write stream: " + resp.Status))
 			return
 		}
 		pr.Close()
@@ -38,20 +39,20 @@ func postWriter(urlStr string) (io.WriteCloser, error) {
 
 	return pw, nil
 }
-func postReader(urlStr string) (io.ReadCloser, error) {
+func postReader(ctx context.Context, urlStr string) (io.ReadCloser, error) {
 	req, err := http.NewRequest("POST", urlStr, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Transfer-Encoding", "chunked")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
 		resp.Body.Close()
-		return nil, errors.New(resp.Status)
+		return nil, errors.New("open read stream: " + resp.Status)
 	}
 	return resp.Body, nil
 }
@@ -96,15 +97,18 @@ func ConnectAndServe(urlStr, dstURLStr, token string, ttl time.Duration) error {
 
 	stream := NewStream()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	setPipe := func() error {
 		u.Path = path.Join(serverPrefix, pathClientRead)
-		reader, err := postReader(u.String())
+		reader, err := postReader(ctx, u.String())
 		if err != nil {
 			return err
 		}
 
 		u.Path = path.Join(serverPrefix, pathClientWrite)
-		writer, err := postWriter(u.String())
+		writer, err := postWriter(ctx, u.String())
 		if err != nil {
 			reader.Close()
 			return err
@@ -124,14 +128,30 @@ func ConnectAndServe(urlStr, dstURLStr, token string, ttl time.Duration) error {
 		return err
 	}
 
+	srv := &http.Server{
+		Handler: httputil.NewSingleHostReverseProxy(dstU),
+	}
+
 	go func() {
+		defer cancel()
 		defer stream.Close()
 		t := time.NewTicker(ttl)
 		defer t.Stop()
-		for range t.C {
-			err := setPipe()
-			if err != nil {
-				log.Println("ERROR:", err)
+		defer srv.Close()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			select {
+			case <-t.C:
+				err := setPipe()
+				if err != nil {
+					log.Println("ERROR: set pipe:", err)
+					return
+				}
+			case <-ctx.Done():
 				return
 			}
 		}
@@ -146,6 +166,5 @@ func ConnectAndServe(urlStr, dstURLStr, token string, ttl time.Duration) error {
 	defer sess.Close()
 
 	log.Printf("Ready; Forwarding %s -> %s", urlStr, dstURLStr)
-	proxy := httputil.NewSingleHostReverseProxy(dstU)
-	return http.Serve(sess, proxy)
+	return srv.Serve(sess)
 }

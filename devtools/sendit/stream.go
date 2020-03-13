@@ -78,6 +78,7 @@ func (s *Stream) Read(p []byte) (int, error) {
 		return 0, io.EOF
 	}
 	if len(r) == 0 {
+		s.readCh <- r
 		return 0, io.EOF
 	}
 
