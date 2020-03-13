@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -161,8 +162,11 @@ func (sess *session) UseWriter(ctx context.Context, w io.Writer) {
 	defer cancel()
 
 	wCtx := &ioContext{
-		fn:     w.Write,
-		cancel: cancel,
+		fn: w.Write,
+		cancel: func() {
+			w.(http.Flusher).Flush() // ensure we explicitly flush before returning
+			cancel()
+		},
 	}
 
 	err := sess.stream.SetPipe(rCtx, wCtx)
