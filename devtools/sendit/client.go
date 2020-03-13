@@ -21,9 +21,51 @@ func forward(a, b net.Conn) {
 	io.Copy(a, b)
 }
 
+func postWriter(urlStr string) (io.WriteCloser, error) {
+	pr, pw := io.Pipe()
+	req, err := http.NewRequest("POST", urlStr, pr)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Transfer-Encoding", "chunked")
+
+	go func() {
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			pr.CloseWithError(err)
+			return
+		}
+		if resp.StatusCode != 200 {
+			pr.CloseWithError(errors.New(resp.Status))
+			return
+		}
+		pr.Close()
+	}()
+
+	return pw, nil
+}
+func postReader(urlStr string) (io.ReadCloser, error) {
+	req, err := http.NewRequest("POST", urlStr, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Transfer-Encoding", "chunked")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		resp.Body.Close()
+		return nil, errors.New(resp.Status)
+	}
+	return resp.Body, nil
+}
+
 // ConnectAndServe will connect to the server at `urlStr` and start serving/routing
-// traffic to the local `addr`.
-func ConnectAndServe(urlStr, addr, token string) error {
+// traffic to the local `addr`. If ttl > 0 then connections in each direction
+// will be refreshed at the specified interval.
+func ConnectAndServe(urlStr, addr, token string, ttl time.Duration) error {
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return err
@@ -32,7 +74,7 @@ func ConnectAndServe(urlStr, addr, token string) error {
 		return errors.New("connect address must not match URL host")
 	}
 	serverPrefix, routePrefix := path.Split(u.Path)
-	u.Path = path.Join(serverPrefix, readPath)
+	u.Path = path.Join(serverPrefix, pathOpen)
 	v := make(url.Values)
 	v.Set("prefix", routePrefix)
 	v.Set("token", strings.TrimSpace(token))
@@ -47,60 +89,81 @@ func ConnectAndServe(urlStr, addr, token string) error {
 
 	r := bufio.NewReader(resp.Body)
 	tok, err := r.ReadString('\n')
-
-	pipeRead, pipeWrite := io.Pipe()
-
-	go func() {
-		defer pipeWrite.Close()
-		var rwc struct {
-			io.Reader
-			io.WriteCloser
-		}
-		rwc.WriteCloser = pipeWrite
-		rwc.Reader = r
-
-		cfg := yamux.DefaultConfig()
-		cfg.KeepAliveInterval = 3 * time.Second
-		sess, err := yamux.Client(rwc, cfg)
-		if err != nil {
-			log.Println("ERROR: establish session:", err)
-			return
-		}
-		defer sess.Close()
-
-		log.Printf("Routing '%s' -> %s", urlStr, addr)
-
-		for {
-			remoteConn, err := sess.Accept()
-			if err != nil {
-				log.Println("ERROR: accept connection:", err)
-				return
-			}
-
-			localConn, err := net.Dial("tcp", addr)
-			if err != nil {
-				log.Println("ERROR: connect:", err)
-				remoteConn.Close()
-				continue
-			}
-			go forward(remoteConn, localConn)
-			go forward(localConn, remoteConn)
-		}
-	}()
-
-	u.Path = path.Join(serverPrefix, writePath)
-
-	q := u.Query()
-	q.Set("token", strings.TrimSpace(tok))
-	u.RawQuery = q.Encode()
-
-	req, err := http.NewRequest("POST", u.String(), pipeRead)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Transfer-Encoding", "chunked")
-	req.Header.Set("Content-Type", "application/octet-stream")
 
-	_, err = http.DefaultClient.Do(req)
-	return err
+	v = make(url.Values)
+	v.Set("token", strings.TrimSpace(tok))
+	u.RawQuery = v.Encode()
+
+	stream := NewStream()
+
+	setPipe := func() error {
+		u.Path = path.Join(serverPrefix, pathClientRead)
+		reader, err := postReader(u.String())
+		if err != nil {
+			return err
+		}
+
+		u.Path = path.Join(serverPrefix, pathClientWrite)
+		writer, err := postWriter(u.String())
+		if err != nil {
+			reader.Close()
+			return err
+		}
+
+		err = stream.SetPipe(reader, writer)
+		if err != nil {
+			reader.Close()
+			writer.Close()
+			return err
+		}
+
+		return nil
+	}
+	err = setPipe()
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		defer stream.Close()
+		t := time.NewTicker(ttl)
+		defer t.Stop()
+		for range t.C {
+			err := setPipe()
+			if err != nil {
+				log.Println("ERROR:", err)
+				return
+			}
+		}
+	}()
+
+	cfg := yamux.DefaultConfig()
+	cfg.KeepAliveInterval = 3 * time.Second
+	sess, err := yamux.Client(stream, cfg)
+	if err != nil {
+		return err
+	}
+	defer sess.Close()
+
+	log.Printf("Ready; Forwarding %s -> %s", urlStr, addr)
+	for {
+		remoteConn, err := sess.Accept()
+		if err != nil {
+			log.Println("ERROR: accept connection:", err)
+			return err
+		}
+
+		localConn, err := net.Dial("tcp", addr)
+		if err != nil {
+			log.Println("ERROR: connect:", err)
+			remoteConn.Close()
+			continue
+		}
+
+		go forward(remoteConn, localConn)
+		go forward(localConn, remoteConn)
+	}
 }

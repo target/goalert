@@ -41,6 +41,7 @@ func main() {
 	secret := flag.String("secret", os.Getenv("SENDIT_SECRET"), "Secret signing string (server mode) or auth token (client mode).")
 	prefix := flag.String("http-prefix", os.Getenv("SENDIT_HTTP_PREFIX"), "HTTP prefix (server mode).")
 	httpsRedir := flag.Bool("https-redir", os.Getenv("SENDIT_HTTPS_REDIR") == "1", "Enable HTTP -> HTTPS redirect if X-Forwarded-Proto == http")
+	connTTL := flag.Duration("max-ttl", 15*time.Second, "Maximum time for a tunnel to exist before making a new request.")
 	flag.Parse()
 
 	log.SetFlags(log.Lshortfile)
@@ -52,7 +53,7 @@ func main() {
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
 		for {
-			log.Println("ERROR:", sendit.ConnectAndServe(flag.Arg(0), addr, *secret))
+			log.Println("ERROR:", sendit.ConnectAndServe(flag.Arg(0), addr, *secret, *connTTL))
 			<-t.C
 		}
 	}

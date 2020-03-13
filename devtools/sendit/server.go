@@ -3,7 +3,6 @@ package sendit
 import (
 	"context"
 	"crypto/rand"
-	"encoding/hex"
 	"io"
 	"log"
 	"net"
@@ -12,9 +11,12 @@ import (
 	"path"
 	"strings"
 	"sync"
-	"time"
+)
 
-	"github.com/hashicorp/yamux"
+const (
+	pathOpen        = "/.well-known/sendit/v1/open"
+	pathClientRead  = "/.well-known/sendit/v1/read"
+	pathClientWrite = "/.well-known/sendit/v1/write"
 )
 
 type serverContextValue int
@@ -29,51 +31,16 @@ type Server struct {
 	http.Handler
 	proxy *httputil.ReverseProxy
 
-	pending  map[string]*pendingSession
-	routes   map[string]string
-	sessions map[string]*yamux.Session
+	sessionsByID     map[string]*session
+	sessionsByPrefix map[string]*session
 
-	routeMx sync.RWMutex
-	sessMx  sync.Mutex
+	mx sync.RWMutex
 
 	authSecret    []byte
 	connectSecret []byte
 
 	prefix string
 }
-
-type pendingSession struct {
-	context.Context
-	ch chan sessionReader
-}
-
-type sessionReader struct {
-	io.Reader
-	io.Closer
-	context.Context
-}
-
-type listenerSession struct {
-	ctx    context.Context
-	cancel func()
-
-	w     io.Writer
-	flush func()
-}
-
-func genID() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(b), nil
-}
-
-const (
-	readPath  = "/.well-known/sendit/v1/read"
-	writePath = "/.well-known/sendit/v1/write"
-)
 
 // NewServer will create a new Server with a global pathPrefix and using
 // the provided `authSecret` to require valid tokens for any connecting clients.
@@ -85,25 +52,29 @@ func NewServer(authSecret []byte, prefix string) *Server {
 	}
 	mux := http.NewServeMux()
 	s := &Server{
-		Handler:       mux,
-		pending:       make(map[string]*pendingSession),
-		routes:        make(map[string]string),
-		sessions:      make(map[string]*yamux.Session),
-		authSecret:    authSecret,
-		connectSecret: make([]byte, 32),
-		prefix:        prefix,
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			log.Printf("REQUEST: %s %s", req.Method, req.URL.Path)
+			mux.ServeHTTP(w, req)
+		}),
+		sessionsByPrefix: make(map[string]*session),
+		sessionsByID:     make(map[string]*session),
+		authSecret:       authSecret,
+		connectSecret:    make([]byte, 32),
+		prefix:           prefix,
 	}
+
 	_, err := rand.Read(s.connectSecret)
 	if err != nil {
 		panic(err)
 	}
-	mux.HandleFunc(path.Join(prefix, readPath), s.serveRead)
-	mux.HandleFunc(path.Join(prefix, writePath), s.serveWrite)
+	mux.HandleFunc(path.Join(prefix, pathOpen), s.serveOpen)
+	mux.HandleFunc(path.Join(prefix, pathClientRead), s.serveClientRead)
+	mux.HandleFunc(path.Join(prefix, pathClientWrite), s.serveClientWrite)
 
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.DialContext = nil
+	transport.DialContext = s.DialContext
 	transport.DialTLS = nil
-	transport.Dial = s.Dial
+	transport.Dial = nil
 
 	s.proxy = &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
@@ -119,7 +90,21 @@ func NewServer(authSecret []byte, prefix string) *Server {
 	}
 
 	mux.HandleFunc(prefix, s.servePrefix)
+	if prefix != "/" {
+		mux.HandleFunc(strings.TrimSuffix(prefix, "/"), s.servePrefix)
+	}
 	return s
+}
+
+func (s *Server) sessionByPrefix(prefix string) *session {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
+	return s.sessionsByPrefix[prefix]
+}
+func (s *Server) sessionByID(id string) *session {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
+	return s.sessionsByID[id]
 }
 
 func (s *Server) servePrefix(w http.ResponseWriter, req *http.Request) {
@@ -129,233 +114,107 @@ func (s *Server) servePrefix(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	s.routeMx.RLock()
-	hostID := s.routes[parts[0]]
-	s.routeMx.RUnlock()
-
-	if hostID == "" {
+	sess := s.sessionByPrefix(parts[0])
+	if sess == nil {
 		http.NotFound(w, req)
 	}
 
 	s.proxy.ServeHTTP(w, req.WithContext(
-		context.WithValue(req.Context(), serverContextValueHost, hostID),
+		context.WithValue(req.Context(), serverContextValueHost, sess.ID),
 	))
 }
 
-// Dial will return a new `net.Conn` for the given `addr`. `network` is ignored.
+// DialContext will return a new `net.Conn` for the given `addr`. `network` is ignored.
 //
 // It will only connect to "hosts" that match an active session ID.
-func (s *Server) Dial(network, addr string) (net.Conn, error) {
+func (s *Server) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
 		return nil, err
 	}
-	s.routeMx.RLock()
-	sess := s.sessions[host]
-	s.routeMx.RUnlock()
 
+	sess := s.sessionByID(host)
 	if sess == nil {
 		return nil, &net.AddrError{Addr: addr, Err: "unknown host"}
 	}
 
-	return sess.Open()
+	return sess.OpenContext(ctx)
 }
 
-// ValidPath will return true if `p` is a valid prefix path.
-func ValidPath(p string) bool {
-	if len(p) < 3 {
-		return false
-	}
-	if len(p) > 64 {
-		return false
-	}
-	for _, r := range p {
-		if r == '-' {
-			continue
-		}
-		if r >= '0' && r <= '9' {
-			continue
-		}
-		if r >= 'a' && r <= 'z' {
-			continue
-		}
-		return false
-	}
-
-	return true
-}
-
-func (s *Server) reserveRoutePrefix(prefix string) bool {
-	s.routeMx.Lock()
-	defer s.routeMx.Unlock()
-	_, hasRoute := s.routes[prefix]
-	if hasRoute {
-		return false
-	}
-	// reserve the route, but don't assign host ID yet
-	// this way we can't have multiple registrations in-flight
-	// but still return 404 until the session is established.
-	s.routes[prefix] = ""
-
-	return true
-}
-
-func (s *Server) cleanupPrefix(prefix, id string) {
-	s.routeMx.Lock()
-	defer s.routeMx.Unlock()
-
-	delete(s.routes, prefix)
-	if id != "" {
-		delete(s.sessions, id)
-	}
-}
-
-func (s *Server) getSession(ctx context.Context, w io.Writer, prefix, id string) (context.Context, *yamux.Session, error) {
-	waitCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	tok, err := GenerateToken(s.connectSecret, TokenAudienceConnect, id)
+// serveOpen will perform initial authentication and esablish a tunnel session.
+func (s *Server) serveOpen(w http.ResponseWriter, req *http.Request) {
+	sess, err := s.newSession(req.FormValue("prefix"))
 	if err != nil {
-		return nil, nil, err
-	}
-
-	ch := make(chan sessionReader, 1)
-	s.sessMx.Lock()
-	s.pending[id] = &pendingSession{Context: ctx, ch: ch}
-	s.sessMx.Unlock()
-	defer func() {
-		s.sessMx.Lock()
-		delete(s.pending, id)
-		s.sessMx.Unlock()
-	}()
-
-	w = FlushWriter(w)
-	_, err = io.WriteString(w, tok+"\n")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var rwc struct {
-		sessionReader
-		io.Writer
-	}
-	rwc.Writer = w
-	select {
-	case rwc.sessionReader = <-ch:
-	case <-waitCtx.Done():
-		return nil, nil, waitCtx.Err()
-	}
-
-	cfg := yamux.DefaultConfig()
-	cfg.KeepAliveInterval = 3 * time.Second
-	sess, err := yamux.Server(rwc, cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	s.routeMx.Lock()
-	s.routes[prefix] = id
-	s.sessions[id] = sess
-	s.routeMx.Unlock()
-
-	return rwc.Context, sess, nil
-}
-
-// serveRead will respond with a fixed-length "secret" that
-// can be passed to the `/write` endpoint to establish a tunnel.
-func (s *Server) serveRead(w http.ResponseWriter, req *http.Request) {
-	if len(s.authSecret) > 0 {
-		token := req.FormValue("token")
-		_, err := TokenSubject(s.authSecret, TokenAudienceAuth, token)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-			return
-		}
-	}
-
-	prefix := req.FormValue("prefix")
-	if !ValidPath(prefix) {
-		http.Error(w, "invalid or missing prefix value", http.StatusBadRequest)
+		log.Println("ERROR:", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if !s.reserveRoutePrefix(prefix) {
-		http.Error(w, "prefix already active", http.StatusConflict)
-		return
-	}
-	defer s.cleanupPrefix(prefix, "")
 
-	id, err := genID()
+	token, err := GenerateToken(s.connectSecret, TokenAudienceConnect, sess.ID)
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("NEW session. prefix=%s client=%s id=%s", prefix, req.RemoteAddr, id)
-	defer log.Printf("END session. prefix=%s client=%s id=%s", prefix, req.RemoteAddr, id)
+	w.Header().Set("Transfer-Encoding", "chunked")
+	w.Header().Set("Cache-Control", "private, no-cache, no-store")
+	_, err = io.WriteString(w, token+"\n")
+	if err != nil {
+		log.Println("ERROR:", err)
+		return
+	}
+	w.(http.Flusher).Flush()
+
+	select {
+	case <-req.Context().Done():
+		log.Println("ERROR: request terminated before session established")
+		sess.End()
+		return
+	case <-sess.stream.Ready():
+	}
+
+	// Session initiated.
+}
+
+// serveOpen will perform initial authentication and esablish a tunnel session.
+func (s *Server) serveClientRead(w http.ResponseWriter, req *http.Request) {
+	id, err := TokenSubject(s.connectSecret, TokenAudienceConnect, req.URL.Query().Get("token"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	sess := s.sessionByID(id)
+	if sess == nil {
+		http.NotFound(w, req)
+		return
+	}
+
+	w.Header().Set("Transfer-Encoding", "chunked")
+	w.Header().Set("Cache-Control", "private, no-cache, no-store")
+	w.WriteHeader(http.StatusOK)
+	w.(http.Flusher).Flush()
+
+	sess.UseWriter(req.Context(), FlushWriter(w))
+}
+
+// serveClientWrite handles connecting.
+func (s *Server) serveClientWrite(w http.ResponseWriter, req *http.Request) {
+	id, err := TokenSubject(s.connectSecret, TokenAudienceConnect, req.URL.Query().Get("token"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	sess := s.sessionByID(id)
+	if sess == nil {
+		http.NotFound(w, req)
+		return
+	}
 
 	w.Header().Set("Transfer-Encoding", "chunked")
 	w.Header().Set("Cache-Control", "private, no-cache, no-store")
 
-	ctx, cancel := context.WithCancel(req.Context())
-	defer cancel()
-
-	sessCtx, sess, err := s.getSession(ctx, w, prefix, id)
-	if err != nil {
-		log.Println("ERROR: getSession:", err)
-		return
-	}
-	defer sess.Close()
-	defer s.cleanupPrefix(prefix, id)
-
-	log.Printf("ACTIVE session. prefix=%s client=%s id=%s", prefix, req.RemoteAddr, id)
-
-	// wait for either end to hangup
-	select {
-	case <-sessCtx.Done():
-	case <-ctx.Done():
-	}
-}
-
-func (s *Server) getPendingSession(id string) *pendingSession {
-	s.sessMx.Lock()
-	defer s.sessMx.Unlock()
-	defer delete(s.pending, id)
-	return s.pending[id]
-}
-
-// serveWrite will read a fixed-length "secret" from the request body
-// and establish the other side of a tunnel.
-//
-// If successful, the tunnel will then be passed/provided to the next
-// Accept call.
-func (s *Server) serveWrite(w http.ResponseWriter, req *http.Request) {
-	tok := req.URL.Query().Get("token")
-	id, err := TokenSubject(s.connectSecret, TokenAudienceConnect, tok)
-	if err != nil {
-		log.Println("ERROR: verify token:", err)
-		http.Error(w, err.Error(), http.StatusForbidden)
-		return
-	}
-
-	p := s.getPendingSession(id)
-	if p == nil {
-		http.Error(w, "invalid session ID", http.StatusForbidden)
-		return
-	}
-
-	ctx, cancel := context.WithCancel(req.Context())
-	defer cancel()
-
-	sess := sessionReader{
-		Reader:  req.Body,
-		Closer:  req.Body,
-		Context: ctx,
-	}
-	p.ch <- sess
-
-	// wait for either end to hangup
-	select {
-	case <-sess.Done():
-	case <-p.Done():
-	}
+	sess.UseReader(req.Context(), req.Body)
 }

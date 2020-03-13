@@ -1,6 +1,8 @@
 package sendit
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -49,4 +51,37 @@ func TokenSubject(secret []byte, aud, token string) (string, error) {
 	}
 
 	return claims.Subject, nil
+}
+
+func genID() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+
+// ValidPath will return true if `p` is a valid prefix path.
+func ValidPath(p string) bool {
+	if len(p) < 3 {
+		return false
+	}
+	if len(p) > 64 {
+		return false
+	}
+	for _, r := range p {
+		if r == '-' {
+			continue
+		}
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r >= 'a' && r <= 'z' {
+			continue
+		}
+		return false
+	}
+
+	return true
 }
