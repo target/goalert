@@ -34,15 +34,13 @@ import './page-fab'
 import './sql'
 import './form'
 import './dialog'
-
-export * from './config'
-export * from './limits'
-export * from './util'
-
 import './fail-fast'
+
 Cypress.env('RETRIES', 2)
 Cypress.Cookies.defaults({
   whitelist: 'goalert_session.2',
 })
 
+export * from './config'
+export * from './limits'
 export * from './util'
