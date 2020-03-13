@@ -11,7 +11,6 @@ import (
 	"path"
 	"strings"
 	"sync"
-	"time"
 )
 
 const (
@@ -54,7 +53,6 @@ func NewServer(authSecret []byte, prefix string) *Server {
 	mux := http.NewServeMux()
 	s := &Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			log.Printf("REQUEST: %s %s", req.Method, req.URL.Path)
 			mux.ServeHTTP(w, req)
 		}),
 		sessionsByPrefix: make(map[string]*session),
@@ -194,6 +192,7 @@ func (s *Server) serveOpen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Session initiated.
+	log.Printf("Session Started; %s -> %s [%s]", sess.Prefix, req.RemoteAddr, sess.ID)
 }
 
 // serveOpen will perform initial authentication and esablish a tunnel session.
@@ -214,10 +213,7 @@ func (s *Server) serveClientRead(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Cache-Control", "private, no-cache, no-store")
 	w.WriteHeader(http.StatusOK)
 
-	ctx := req.Context()
-	FlushWriter(ctx, w, 50*time.Millisecond)
-
-	sess.UseWriter(req.Context(), w)
+	sess.UseWriter(req.Context(), FlushWriter(w))
 }
 
 // serveClientWrite handles connecting.

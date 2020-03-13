@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"net/http"
 	"sync"
 	"time"
 
@@ -102,6 +101,17 @@ func (sess *session) init() {
 }
 
 func (sess *session) OpenContext(ctx context.Context) (net.Conn, error) {
+	sess.mx.Lock()
+	defer sess.mx.Unlock()
+
+	select {
+	case <-sess.doneCh:
+		return nil, io.ErrClosedPipe
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	select {
 	case <-sess.doneCh:
 		return nil, io.ErrClosedPipe
@@ -119,6 +129,7 @@ func (sess *session) End() {
 
 	select {
 	case <-sess.doneCh:
+		return
 	default:
 		close(sess.doneCh)
 	}
@@ -162,11 +173,8 @@ func (sess *session) UseWriter(ctx context.Context, w io.Writer) {
 	defer cancel()
 
 	wCtx := &ioContext{
-		fn: w.Write,
-		cancel: func() {
-			w.(http.Flusher).Flush() // ensure we explicitly flush before returning
-			cancel()
-		},
+		fn:     w.Write,
+		cancel: cancel,
 	}
 
 	err := sess.stream.SetPipe(rCtx, wCtx)

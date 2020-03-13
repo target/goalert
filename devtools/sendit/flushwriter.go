@@ -1,28 +1,31 @@
 package sendit
 
 import (
-	"context"
 	"io"
 	"net/http"
-	"time"
 )
 
-// FlushWriter will spawn a goroutine that will constantly flush the writer every
-// delay interval. It exits when the context expires.
+type flushWriter struct {
+	write io.Writer
+	flush func()
+}
+
+func (f *flushWriter) Write(p []byte) (n int, err error) {
+	n, err = f.write.Write(p)
+	if err == nil {
+		f.flush()
+	}
+	return n, err
+}
+
+// FlushWriter will call .Flush() immediately after every call to .Write() on the returned io.Writer.
 //
 // If w does not implement http.Flusher, it panics.
-func FlushWriter(ctx context.Context, w io.Writer, delay time.Duration) {
-	f := w.(http.Flusher)
-	go func() {
-		t := time.NewTicker(delay)
-		defer t.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-t.C:
-				f.Flush()
-			}
-		}
-	}()
+func FlushWriter(w io.Writer) io.Writer {
+	flush := w.(http.Flusher).Flush
+	flush()
+	return &flushWriter{
+		write: w,
+		flush: flush,
+	}
 }
