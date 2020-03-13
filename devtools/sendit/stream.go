@@ -34,10 +34,11 @@ func FlipWriter(w io.Writer) io.Writer {
 }
 
 type Stream struct {
-	readCh  chan []io.ReadCloser
-	writeCh chan io.WriteCloser
-	closeCh chan struct{}
-	mx      sync.Mutex
+	readCh    chan io.ReadCloser
+	readEOFCh chan io.ReadCloser
+	writeCh   chan io.WriteCloser
+	closeCh   chan struct{}
+	mx        sync.Mutex
 
 	readyCh chan struct{}
 
@@ -47,10 +48,11 @@ type Stream struct {
 
 func NewStream() *Stream {
 	s := &Stream{
-		readCh:  make(chan []io.ReadCloser, 1),
-		writeCh: make(chan io.WriteCloser, 1),
-		closeCh: make(chan struct{}),
-		readyCh: make(chan struct{}),
+		readCh:    make(chan io.ReadCloser, 1),
+		readEOFCh: make(chan io.ReadCloser, 1),
+		writeCh:   make(chan io.WriteCloser, 1),
+		closeCh:   make(chan struct{}),
+		readyCh:   make(chan struct{}),
 	}
 	return s
 }
@@ -71,27 +73,22 @@ func (s *Stream) Write(p []byte) (int, error) {
 	return n, err
 }
 func (s *Stream) Read(p []byte) (int, error) {
-	var r []io.ReadCloser
+	var r io.ReadCloser
 	select {
 	case r = <-s.readCh:
 	case <-s.closeCh:
 		return 0, io.EOF
 	}
-	if len(r) == 0 {
-		s.readCh <- r
-		return 0, io.EOF
-	}
 
-	n, err := r[0].Read(p)
+	n, err := r.Read(p)
 	if err == io.EOF {
-		r[0].Close()
-		r = r[1:]
+		s.readEOFCh <- r
 		if n == 0 {
-			s.readCh <- r
 			return s.Read(p)
 		}
+	} else {
+		s.readCh <- r
 	}
-	s.readCh <- r
 	return n, err
 }
 
@@ -115,7 +112,10 @@ func (s *Stream) Close() (err error) {
 	case <-s.closeCh:
 		return io.ErrClosedPipe
 	}
-	for _, r := range <-s.readCh {
+	select {
+	case r := <-s.readCh:
+		r.Close()
+	case r := <-s.readEOFCh:
 		r.Close()
 	}
 	close(s.closeCh)
@@ -123,7 +123,18 @@ func (s *Stream) Close() (err error) {
 	return err
 }
 
-// SetPipe will swap the io.Reader and WriteCloser with the underlying Stream safely.
+type waitReadCloser struct {
+	wait chan struct{}
+	io.Reader
+	io.Closer
+}
+
+func (w *waitReadCloser) Read(p []byte) (int, error) {
+	<-w.wait
+	return w.Reader.Read(p)
+}
+
+// SetPipe will swap the io.ReadCloser and WriteCloser with the underlying Stream safely.
 func (s *Stream) SetPipe(r io.ReadCloser, wc io.WriteCloser) error {
 	s.mx.Lock()
 	defer s.mx.Unlock()
@@ -136,29 +147,18 @@ func (s *Stream) SetPipe(r io.ReadCloser, wc io.WriteCloser) error {
 	if err != nil {
 		return err
 	}
-	br := bufio.NewReader(r)
-	str, err := br.ReadString('\n')
+	var bufClose struct {
+		*bufio.Reader
+		io.Closer
+	}
+	bufClose.Reader = bufio.NewReader(r)
+	bufClose.Closer = r
+	str, err := bufClose.ReadString('\n')
 	if err != nil {
 		return err
 	}
 	if str != "SYN\n" {
 		return errors.New("expected SYN")
-	}
-
-	var bufCloser struct {
-		*bufio.Reader
-		io.Closer
-	}
-	bufCloser.Reader = br
-	bufCloser.Closer = r
-	// We have SYN so we know the read half is ready, so swap that first so we don't get an unexpected EOF.
-	//
-	// The reader has to be ready before we send our SYNACK message, which gives the other end the OK
-	// to flush and close their current writer (our previous reader).
-	if s.isReady {
-		s.readCh <- append(<-s.readCh, bufCloser)
-	} else {
-		s.readCh <- []io.ReadCloser{bufCloser}
 	}
 
 	// Now that Read calls will safely transition to the next pipe, we can give the other end the OK
@@ -167,7 +167,7 @@ func (s *Stream) SetPipe(r io.ReadCloser, wc io.WriteCloser) error {
 	if err != nil {
 		return err
 	}
-	str, err = br.ReadString('\n')
+	str, err = bufClose.Reader.ReadString('\n')
 	if err != nil {
 		return err
 	}
@@ -175,23 +175,49 @@ func (s *Stream) SetPipe(r io.ReadCloser, wc io.WriteCloser) error {
 		return errors.New("expected SYNACK")
 	}
 
-	// Now both sides know it's OK to flush and terminate the old write connection.
-	if s.isReady {
-		oldWriter := <-s.writeCh
-		err := oldWriter.Close()
-		if err != nil {
-			// Stream is in an unknown state, we failed to close/flush our end properly, terminate everything
-			wc.Close()
-			s.isClosed = true
-			close(s.closeCh)
-			return err
-		}
-	} else {
-		close(s.readyCh)
+	if !s.isReady {
+		s.writeCh <- wc
+		s.readCh <- bufClose
 		s.isReady = true
+		close(s.readyCh)
+		return nil
 	}
 
-	s.writeCh <- wc
+	closeOld := func(c io.Closer) bool {
+		err = c.Close()
+		if err != nil {
+			wc.Close()
+			r.Close()
+			s.isClosed = true
+			close(s.closeCh)
+			return false
+		}
+		return true
+	}
+
+	// Now we've established the new pipe, we just need to swap and close the read/writers.
+	select {
+	case oldWriter := <-s.writeCh:
+		s.writeCh <- wc
+		if !closeOld(oldWriter) {
+			return err
+		}
+		oldReader := <-s.readEOFCh
+		s.readCh <- bufClose
+		if !closeOld(oldReader) {
+			return err
+		}
+	case oldReader := <-s.readEOFCh:
+		s.readCh <- bufClose
+		if !closeOld(oldReader) {
+			return err
+		}
+		oldWriter := <-s.writeCh
+		s.writeCh <- wc
+		if !closeOld(oldWriter) {
+			return err
+		}
+	}
 
 	return nil
 }

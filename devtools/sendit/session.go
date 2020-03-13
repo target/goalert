@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/hashicorp/yamux"
@@ -29,7 +30,7 @@ type session struct {
 	doneCh  chan struct{}
 	readyCh chan struct{}
 
-	wg sync.WaitGroup
+	pending int32
 }
 
 func (s *Server) newSession(prefix string) (*session, error) {
@@ -94,10 +95,6 @@ func (sess *session) init() {
 
 	sess.ym = ym
 	close(sess.readyCh)
-	go func() {
-		sess.wg.Wait()
-		sess.End()
-	}()
 }
 
 func (sess *session) OpenContext(ctx context.Context) (net.Conn, error) {
@@ -158,11 +155,17 @@ func (ctx *ioContext) Read(p []byte) (int, error)  { return ctx.fn(p) }
 func (ctx *ioContext) Write(p []byte) (int, error) { return ctx.fn(p) }
 func (ctx *ioContext) Close() error                { ctx.cancel(); return nil }
 
+func (sess *session) done() {
+	if atomic.AddInt32(&sess.pending, -1) == 0 {
+		sess.End()
+	}
+}
+
 // UseWriter will block until the underlying stream has called Close()
 // or the context expires.
 func (sess *session) UseWriter(ctx context.Context, w io.Writer) {
-	sess.wg.Add(1)
-	defer sess.wg.Done()
+	atomic.AddInt32(&sess.pending, 1)
+	defer sess.done()
 
 	var rCtx *ioContext
 	select {
@@ -181,6 +184,7 @@ func (sess *session) UseWriter(ctx context.Context, w io.Writer) {
 
 	err := sess.stream.SetPipe(rCtx, wCtx)
 	if err != nil {
+		log.Println("ERROR: set pipe:", err)
 		rCtx.cancel()
 	}
 	sess.start.Do(sess.init)
@@ -191,8 +195,8 @@ func (sess *session) UseWriter(ctx context.Context, w io.Writer) {
 // UseReader will block until the underlying stream has received an io.EOF from the reader
 // or the context expires.
 func (sess *session) UseReader(ctx context.Context, r io.Reader) {
-	sess.wg.Add(1)
-	defer sess.wg.Done()
+	atomic.AddInt32(&sess.pending, 1)
+	defer sess.done()
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
