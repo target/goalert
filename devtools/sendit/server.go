@@ -11,6 +11,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -108,15 +109,24 @@ func (s *Server) sessionByID(id string) *session {
 }
 
 func (s *Server) servePrefix(w http.ResponseWriter, req *http.Request) {
-	parts := strings.SplitN(strings.TrimPrefix(req.URL.Path, s.prefix), "/", 2)
-	if len(parts) < 2 {
-		http.NotFound(w, req)
-		return
+	path := strings.TrimPrefix(req.URL.Path, s.prefix)
+
+	var prefixValue string
+	if !strings.Contains(path, "/") {
+		prefixValue = path
+	} else {
+		parts := strings.SplitN(path, "/", 2)
+		if len(parts) < 2 {
+			http.NotFound(w, req)
+			return
+		}
+		prefixValue = parts[0]
 	}
 
-	sess := s.sessionByPrefix(parts[0])
+	sess := s.sessionByPrefix(prefixValue)
 	if sess == nil {
 		http.NotFound(w, req)
+		return
 	}
 
 	s.proxy.ServeHTTP(w, req.WithContext(
@@ -203,9 +213,11 @@ func (s *Server) serveClientRead(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Transfer-Encoding", "chunked")
 	w.Header().Set("Cache-Control", "private, no-cache, no-store")
 	w.WriteHeader(http.StatusOK)
-	w.(http.Flusher).Flush()
 
-	sess.UseWriter(req.Context(), FlushWriter(w))
+	ctx := req.Context()
+	FlushWriter(ctx, w, 50*time.Millisecond)
+
+	sess.UseWriter(req.Context(), w)
 }
 
 // serveClientWrite handles connecting.
