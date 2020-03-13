@@ -10,6 +10,7 @@ import { authLogout } from './actions'
 import reduxStore from './reduxStore'
 import { POLL_INTERVAL } from './config'
 import promiseBatch from './util/promiseBatch'
+import { pathPrefix } from './env'
 
 let pendingMutations = 0
 window.onbeforeunload = function(e) {
@@ -30,7 +31,7 @@ const trackMutation = p => {
   )
 }
 
-export function doFetch(body, url = '/v1/graphql') {
+export function doFetch(body, url = pathPrefix + '/v1/graphql') {
   const f = fetch(url, {
     credentials: 'same-origin',
     method: 'POST',
@@ -78,7 +79,7 @@ const retryLink = new RetryLink({
 })
 
 const graphql2HttpLink = createHttpLink({
-  uri: '/api/graphql',
+  uri: pathPrefix + '/api/graphql',
   fetch: (url, opts) => {
     return doFetch(opts.body, url)
   },
@@ -128,6 +129,7 @@ export const GraphQLClient = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
+    watchQuery: queryOpts,
   },
 })
 
@@ -141,7 +143,7 @@ GraphQLClient.mutate = (...args) => {
 
 // Legacy client
 const legacyHttpLink = createHttpLink({
-  uri: '/v1/graphql',
+  uri: pathPrefix + '/v1/graphql',
   fetch: (url, opts) => {
     return doFetch(opts.body)
   },
@@ -167,6 +169,7 @@ export const GraphQLClientWithErrors = new ApolloClient({
   cache,
   defaultOptions: {
     query: queryOpts,
+    watchQuery: queryOpts,
     mutate: { awaitRefetchQueries: true, errorPolicy: 'all' },
   },
 })

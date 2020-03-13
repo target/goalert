@@ -48,7 +48,10 @@ func TestTwilioSMSStop(t *testing.T) {
 	defer h.Close()
 
 	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing").ThenReply("stop")
-	h.Twilio().WaitAndAssert()
 
-	// no more messages, it should have disabled both
+	// still recevice VOICE message
+	h.Twilio().Device(h.Phone("1")).ExpectVoice("testing")
+
+	// SMS should be disabled
+	h.Twilio().WaitAndAssert()
 }

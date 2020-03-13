@@ -4,13 +4,11 @@ import {
   ListItem,
   ListItemText,
   Typography,
-  Link,
   makeStyles,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import CopyText from '../../../util/CopyText'
-import { absURLSelector } from '../../../selectors'
-import { useSelector } from 'react-redux'
+import { AppLink } from '../../../util/AppLink'
 
 const useStyles = makeStyles({
   listItemText: {
@@ -32,30 +30,24 @@ export default function CreateAlertListItem(props) {
 
   const classes = useStyles()
 
-  const absURL = useSelector(absURLSelector)
-  const alertURL = window.location.origin + absURL('/alerts/' + id)
+  const alertURL = '/alerts/' + id
 
   return (
     <ListItem key={id} divider>
       <ListItemText disableTypography className={classes.listItemText}>
         <span>
           <Typography>
-            <Link href={alertURL} target='_blank' rel='noopener noreferrer'>
+            <AppLink to={alertURL} newTab>
               #{id}
-            </Link>
+            </AppLink>
           </Typography>
         </span>
 
         <span className={classes.endLinks}>
           <CopyText value={alertURL} placement='left' />
-          <a
-            href={alertURL}
-            target='_blank'
-            rel='noopener noreferrer'
-            className={classes.openInNewTab}
-          >
+          <AppLink to={alertURL} newTab className={classes.openInNewTab}>
             <OpenInNewIcon fontSize='small' />
-          </a>
+          </AppLink>
         </span>
       </ListItemText>
     </ListItem>

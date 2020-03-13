@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/target/goalert/mailgun"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/site24x7"
+	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/web"
 	"go.opencensus.io/plugin/ochttp"
@@ -82,8 +84,13 @@ func (app *App) initHTTP(ctx context.Context) error {
 					next.ServeHTTP(w, req)
 					return
 				}
-				u := *req.URL
+
+				u, err := url.ParseRequestURI(req.RequestURI)
+				if errutil.HTTPError(req.Context(), w, err) {
+					return
+				}
 				u.Scheme = "https"
+				u.Host = req.Host
 				if cfg.ValidReferer(req.URL.String(), u.String()) {
 					http.Redirect(w, req, u.String(), http.StatusTemporaryRedirect)
 					return
@@ -102,8 +109,15 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// max request time
 		timeout(2 * time.Minute),
 
-		// remove public URL prefix
-		stripPrefixMiddleware(),
+		func(next http.Handler) http.Handler {
+			return http.StripPrefix(app.cfg.HTTPPrefix, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				if req.URL.Path == "" {
+					req.URL.Path = "/"
+				}
+
+				next.ServeHTTP(w, req)
+			}))
+		},
 
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
@@ -169,6 +183,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/generic/incoming", generic.ServeCreateAlert)
 	mux.HandleFunc("/api/v2/heartbeat/", generic.ServeHeartbeatCheck)
 	mux.HandleFunc("/api/v2/user-avatar/", generic.ServeUserAvatar)
+	mux.HandleFunc("/api/v2/calendar", app.CalSubStore.ServeICalData)
 
 	mux.HandleFunc("/api/v2/twilio/message", app.twilioSMS.ServeMessage)
 	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)
@@ -177,60 +192,65 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	// Legacy (v1) API mappings
 	mux.HandleFunc("/v1/graphql", app.graphql.ServeHTTP)
-	muxRewrite(mux, "/v1/graphql2", "/api/graphql")
-	muxRedirect(mux, "/v1/graphql2/explore", "/api/graphql/explore")
-	muxRewrite(mux, "/v1/config", "/api/v2/config")
-	muxRewrite(mux, "/v1/identity/providers", "/api/v2/identity/providers")
-	muxRewritePrefix(mux, "/v1/identity/providers/", "/api/v2/identity/providers/")
-	muxRewrite(mux, "/v1/identity/logout", "/api/v2/identity/logout")
 
-	muxRewrite(mux, "/v1/webhooks/mailgun", "/api/v2/mailgun/incoming")
-	muxRewrite(mux, "/v1/webhooks/grafana", "/api/v2/grafana/incoming")
-	muxRewrite(mux, "/v1/api/alerts", "/api/v2/generic/incoming")
-	muxRewritePrefix(mux, "/v1/api/heartbeat/", "/api/v2/heartbeat/")
-	muxRewriteWith(mux, "/v1/api/users/", func(req *http.Request) *http.Request {
-		parts := strings.Split(strings.TrimSuffix(req.URL.Path, "/avatar"), "/")
-		req.URL.Path = "/api/v2/user-avatar/" + parts[len(parts)-1]
-		return req
-	})
+	middleware = append(middleware,
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/graphql2", "/api/graphql"),
+		httpRedirect(app.cfg.HTTPPrefix, "/v1/graphql2/explore", "/api/graphql/explore"),
 
-	muxRewrite(mux, "/v1/twilio/sms/messages", "/api/v2/twilio/message")
-	muxRewrite(mux, "/v1/twilio/sms/status", "/api/v2/twilio/message/status")
-	muxRewrite(mux, "/v1/twilio/voice/call", "/api/v2/twilio/call?type=alert")
-	muxRewrite(mux, "/v1/twilio/voice/alert-status", "/api/v2/twilio/call?type=alert-status")
-	muxRewrite(mux, "/v1/twilio/voice/test", "/api/v2/twilio/call?type=test")
-	muxRewrite(mux, "/v1/twilio/voice/stop", "/api/v2/twilio/call?type=stop")
-	muxRewrite(mux, "/v1/twilio/voice/verify", "/api/v2/twilio/call?type=verify")
-	muxRewrite(mux, "/v1/twilio/voice/status", "/api/v2/twilio/call/status")
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/config", "/api/v2/config"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/identity/providers", "/api/v2/identity/providers"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/identity/providers/", "/api/v2/identity/providers/"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/identity/logout", "/api/v2/identity/logout"),
 
-	twilioHandler := twilio.WrapValidation(
-		// go back to the regular mux after validation
-		twilio.WrapHeaderHack(mux),
-		*app.twilioConfig,
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/webhooks/mailgun", "/api/v2/mailgun/incoming"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/webhooks/grafana", "/api/v2/grafana/incoming"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/api/alerts", "/api/v2/generic/incoming"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/api/heartbeat/", "/api/v2/heartbeat/"),
+		httpRewriteWith(app.cfg.HTTPPrefix, "/v1/api/users/", func(req *http.Request) *http.Request {
+			parts := strings.Split(strings.TrimSuffix(req.URL.Path, "/avatar"), "/")
+			req.URL.Path = "/api/v2/user-avatar/" + parts[len(parts)-1]
+			return req
+		}),
+
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/sms/messages", "/api/v2/twilio/message"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/sms/status", "/api/v2/twilio/message/status"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/voice/call", "/api/v2/twilio/call?type=alert"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/voice/alert-status", "/api/v2/twilio/call?type=alert-status"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/voice/test", "/api/v2/twilio/call?type=test"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/voice/stop", "/api/v2/twilio/call?type=stop"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/voice/verify", "/api/v2/twilio/call?type=verify"),
+		httpRewrite(app.cfg.HTTPPrefix, "/v1/twilio/voice/status", "/api/v2/twilio/call/status"),
+
+		func(next http.Handler) http.Handler {
+			twilioHandler := twilio.WrapValidation(
+				// go back to the regular mux after validation
+				twilio.WrapHeaderHack(next),
+				*app.twilioConfig,
+			)
+			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+				if strings.HasPrefix(req.URL.Path, "/api/v2/twilio/") {
+					twilioHandler.ServeHTTP(w, req)
+					return
+				}
+
+				next.ServeHTTP(w, req)
+			})
+		},
 	)
 
-	topMux := http.NewServeMux()
+	mux.HandleFunc("/health", app.healthCheck)
+	mux.HandleFunc("/health/engine", app.engineStatus)
 
-	// twilio calls should go through the validation handler first
-	// since the signature is based on the original URL
-	topMux.Handle("/v1/twilio/", twilioHandler)
-	topMux.Handle("/api/v2/twilio/", twilioHandler)
-
-	topMux.Handle("/v1/", mux)
-	topMux.Handle("/api/", mux)
-
-	topMux.HandleFunc("/health", app.healthCheck)
-	topMux.HandleFunc("/health/engine", app.engineStatus)
-
-	webH, err := web.NewHandler(app.cfg.UIURL)
+	webH, err := web.NewHandler(app.cfg.UIURL, app.cfg.HTTPPrefix)
 	if err != nil {
 		return err
 	}
 	// non-API/404s go to UI handler
-	topMux.Handle("/", webH)
+	mux.Handle("/", webH)
 
 	app.srv = &http.Server{
-		Handler: applyMiddleware(topMux, middleware...),
+		Handler: applyMiddleware(mux, middleware...),
 
 		ReadHeaderTimeout: time.Second * 30,
 		ReadTimeout:       time.Minute,

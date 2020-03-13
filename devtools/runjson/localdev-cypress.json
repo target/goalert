@@ -97,7 +97,7 @@
       "./node_modules/.bin/cypress",
       "open",
       "--config",
-      "baseUrl=http://localhost:3040"
+      "baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX"
     ],
     "Env": [
       "CYPRESS_DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable"

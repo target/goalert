@@ -70,7 +70,11 @@ function testAlerts(screen: ScreenFormat) {
         cy.get('ul[data-cy=alerts-list]')
           .contains(alert.number.toString())
           .click()
-        cy.location('pathname').should('equal', `/alerts/${alert.number}`)
+
+        cy.url().should(
+          'eq',
+          Cypress.config().baseUrl + `/alerts/${alert.number}`,
+        )
       })
     })
   })
@@ -322,21 +326,32 @@ function testAlerts(screen: ScreenFormat) {
       })
     })
 
-    it('should have proper links and data', () => {
-      if (screen === 'widescreen') {
+    if (screen == 'widescreen') {
+      it('should link to the escalation policy', () => {
         cy.get('body')
           .contains('a', 'Escalation Policy')
+          .click()
+          .url()
           .should(
-            'have.attr',
-            'href',
-            `/escalation-policies/${alert.service.ep.id}`,
+            'eq',
+            Cypress.config().baseUrl +
+              `/escalation-policies/${alert.service.ep.id}`,
           )
-      }
+      })
+    }
 
+    it('should link to the service', () => {
       cy.get('body')
         .contains('a', alert.service.name)
-        .should('have.attr', 'href', `/services/${alert.service.id}`)
+        .click()
+        .url()
+        .should(
+          'eq',
+          Cypress.config().baseUrl + `/services/${alert.service.id}`,
+        )
+    })
 
+    it('should have proper data', () => {
       cy.get('body').should('contain', alert.details)
       cy.get('body').should('contain', alert.summary)
       cy.get('body').should('contain', 'Created by Cypress User')

@@ -30,7 +30,7 @@ function testRotations(screen: ScreenFormat) {
       cy.get('#app')
         .contains(rot.name)
         .click()
-      cy.location('pathname').should('eq', `/rotations/${rot.id}`)
+      cy.url().should('eq', Cypress.config().baseUrl + `/rotations/${rot.id}`)
     })
 
     describe('Creation', () => {
@@ -194,7 +194,7 @@ function testRotations(screen: ScreenFormat) {
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
-      cy.location('pathname').should('eq', '/rotations')
+      cy.url().should('eq', Cypress.config().baseUrl + '/rotations')
       cy.pageSearch(rot.name)
       cy.get('body').should('contain', 'No results')
     })

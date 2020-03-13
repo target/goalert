@@ -66,7 +66,7 @@ export function QuerySetFavoriteButton(props) {
     <SetFavoriteButton
       typeName={typeName}
       isFavorite={isFavorite}
-      loading={loading}
+      loading={!data && loading}
       onClick={() => toggleFav()}
     />
   )

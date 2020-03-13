@@ -31,6 +31,7 @@ export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
 ifdef LOG_DIR
 RUNJSON_ARGS += -logs=$(LOG_DIR)
 endif
+RUNJSON_ARGS += -pid=runjson
 
 export CGO_ENABLED = 0
 export PATH := $(PWD)/bin:$(PATH)
@@ -153,7 +154,13 @@ start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
-	bin/runjson <devtools/runjson/localdev.json
+	GOALERT_VERSION=$(GIT_VERSION) bin/runjson <devtools/runjson/localdev.json
+
+start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
+	# force rebuild to ensure build-flags are set
+	touch cmd/goalert/main.go
+	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
+	bin/runjson <devtools/runjson/localdev-prod.json
 
 jest: web/src/node_modules
 	cd web/src && node_modules/.bin/jest $(JEST_ARGS)
@@ -209,11 +216,11 @@ web/src/node_modules: web/src/node_modules/.bin/cypress
 web/src/node_modules/.bin/cypress: web/src/yarn.lock
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
 
-web/src/build/index.html: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
+web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
 	rm -rf web/src/build/static
-	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js)
+	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION))
 
-web/inline_data_gen.go: web/src/build/index.html $(CFGPARAMS) $(INLINER)
+web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
 web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
