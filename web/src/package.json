@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "slint": "stylelint ./app/**/*.css",
-    "lint": "eslint . && tsc -p app/tsconfig.json",
+    "lint": "eslint . && tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
     "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}' && eslint --fix .",
     "tsc-app": "tsc -p app/tsconfig.json",
