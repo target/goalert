@@ -9,7 +9,6 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    // TODO: set isolatedModules to true
     "noImplicitAny": true,
     "isolatedModules": false,
     "noEmit": true,
