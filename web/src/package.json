@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "slint": "stylelint ./app/**/*.css",
-    "lint": "eslint . && tsc -p ./tsconfig.json",
+    "lint": "eslint . && tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
-    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}' && eslint --fix . && tsc -p ./tsconfig.json",
+    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}' && eslint --fix .",
+    "tsc-app": "tsc -p app/tsconfig.json",
+    "tsc-cypress": "tsc -p cypress/tsconfig.json",
     "build-deps": "webpack --config ./webpack.dll.config.js --progress"
   },
   "jest": {
@@ -24,9 +26,6 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "tsc --allowJs --jsx react --noEmit --isolatedModules --noImplicitAny --strict --noImplicitThis --lib es6,dom --esModuleInterop --noFallthroughCasesInSwitch --experimentalDecorators"
-    ],
     "*.{json,yml,yaml,ts,tsx,html}": [
       "prettier --write"
     ],
@@ -172,7 +171,6 @@
     "stylelint": "13.2.0",
     "stylelint-config-standard": "20.0.0",
     "terser-webpack-plugin": "2.3.5",
-    "ts-loader": "6.2.1",
     "typescript": "3.8.3",
     "webpack": "4.41.6",
     "webpack-cli": "3.3.11",
