@@ -73,10 +73,7 @@ function testAlerts(screen: ScreenFormat) {
           .contains(alert.id.toString())
           .click()
 
-        cy.url().should(
-          'eq',
-          Cypress.config().baseUrl + `/alerts/${alert.id}`,
-        )
+        cy.url().should('eq', Cypress.config().baseUrl + `/alerts/${alert.id}`)
       })
     })
   })

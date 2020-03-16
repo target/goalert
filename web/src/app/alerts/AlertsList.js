@@ -111,7 +111,9 @@ export default function AlertsList(props) {
   // state initialization
   const [errorMessage, setErrorMessage] = useState('')
   const [updateMessage, setUpdateMessage] = useState('')
-  const [updateComplete, setUpdateComplete] = useState(false)
+  const [showUpdateCompleteSnackbar, setShowUpdateCompleteSnackbar] = useState(
+    false,
+  )
 
   // get redux url vars
   const params = useSelector(urlParamSelector)
@@ -120,7 +122,9 @@ export default function AlertsList(props) {
   const isFirstLogin = params('isFirstLogin')
 
   // defaults to open unless favorited services are present or warning is dismissed
-  const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(false)
+  const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(
+    false,
+  )
 
   // query to see if the current user has any favorited services
   // if allServices is not true
@@ -139,13 +143,15 @@ export default function AlertsList(props) {
         input: {
           favoritesOnly: true,
           first: 1,
-        }
+        },
       },
     },
   )
 
   // checks to show no favorites warning
-  const noFavorites = !favoritesQueryStatus.data?.services?.nodes?.length && !favoritesQueryStatus.loading
+  const noFavorites =
+    !favoritesQueryStatus.data?.services?.nodes?.length &&
+    !favoritesQueryStatus.loading
   const showNoFavoritesWarning =
     !favoritesWarningDismissed && // has not been dismissed
     !allServices &&               // all services aren't being queries
@@ -188,7 +194,7 @@ export default function AlertsList(props) {
    * displayed
    */
   function onCompleted(numUpdated, checkedItems) {
-    setUpdateComplete(true) // for create fab transition
+    setShowUpdateCompleteSnackbar(true) // for create fab transition
     setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
   }
 
@@ -232,7 +238,7 @@ export default function AlertsList(props) {
               onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
             )
             .catch(err => {
-              setUpdateComplete(true)
+              setShowUpdateCompleteSnackbar(true)
               setErrorMessage(err.message)
             })
         },
@@ -258,7 +264,7 @@ export default function AlertsList(props) {
                 onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
               )
               .catch(err => {
-                setUpdateComplete(true)
+                setShowUpdateCompleteSnackbar(true)
                 setErrorMessage(err.message)
               })
           },
@@ -280,7 +286,7 @@ export default function AlertsList(props) {
                 ),
               )
               .catch(err => {
-                setUpdateComplete(true)
+                setShowUpdateCompleteSnackbar(true)
                 setErrorMessage(err.message)
               })
           },
@@ -325,18 +331,20 @@ export default function AlertsList(props) {
       <CreateAlertFab
         serviceID={props.serviceID}
         showFavoritesWarning={showNoFavoritesWarning}
-        transition={isFullScreen && (showNoFavoritesWarning || updateComplete)}
+        transition={
+          isFullScreen && (showNoFavoritesWarning || showUpdateCompleteSnackbar)
+        }
       />
 
       {/* Update message after using checkbox actions */}
       <UpdateAlertsSnackbar
         errorMessage={errorMessage}
-        onClose={() => setUpdateComplete(false)}
+        onClose={() => setShowUpdateCompleteSnackbar(false)}
         onExited={() => {
           setErrorMessage('')
           setUpdateMessage('')
         }}
-        open={updateComplete}
+        open={showUpdateCompleteSnackbar}
         updateMessage={updateMessage}
       />
 
