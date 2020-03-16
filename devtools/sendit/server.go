@@ -72,8 +72,6 @@ func NewServer(authSecret []byte, prefix string) *Server {
 
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.DialContext = s.DialContext
-	transport.DialTLS = nil
-	transport.Dial = nil
 
 	s.proxy = &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
@@ -90,6 +88,7 @@ func NewServer(authSecret []byte, prefix string) *Server {
 
 	mux.HandleFunc(prefix, s.servePrefix)
 	if prefix != "/" {
+		// mux will route all subpaths if the route ends with `/` but not the top-level, so we need to register both.
 		mux.HandleFunc(strings.TrimSuffix(prefix, "/"), s.servePrefix)
 	}
 	return s

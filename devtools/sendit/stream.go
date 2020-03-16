@@ -21,7 +21,7 @@ type Stream struct {
 	isReady  bool
 }
 
-// NewStream initializes a new stream. SetPipe must be called before data can be transfered.
+// NewStream initializes a new stream. SetPipe must be called before data can be transferred.
 func NewStream() *Stream {
 	s := &Stream{
 		readCh:    make(chan io.ReadCloser, 1),
@@ -98,17 +98,6 @@ func (s *Stream) Close() (err error) {
 	close(s.closeCh)
 
 	return err
-}
-
-type waitReadCloser struct {
-	wait chan struct{}
-	io.Reader
-	io.Closer
-}
-
-func (w *waitReadCloser) Read(p []byte) (int, error) {
-	<-w.wait
-	return w.Reader.Read(p)
 }
 
 // SetPipe will swap the io.ReadCloser and WriteCloser with the underlying Stream safely.
