@@ -7423,11 +7423,6 @@ mem@^4.0.0:
     mimic-fn "^2.0.0"
     p-is-promise "^2.0.0"
 
-memoize-one@^4.0.3:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.1.0.tgz#a2387c58c03fff27ca390c31b764a79addf3f906"
-  integrity sha512-2GApq0yI/b22J2j9rhbrAlsHb0Qcz+7yWxeLG8h+95sl1XPUgeLimQSOdur4Vw7cUhrBHwaUZxWFZueojqNRzA==
-
 memoize-one@^5.0.0, memoize-one@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-5.1.1.tgz#047b6e3199b508eaec03504de71229b8eb1d75c0"
@@ -9264,10 +9259,10 @@ react-beautiful-dnd@13.0.0:
     redux "^4.0.4"
     use-memo-one "^1.1.1"
 
-react-big-calendar@0.24.0:
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/react-big-calendar/-/react-big-calendar-0.24.0.tgz#aca0bcdecdc359ec06e874d2391707e5b2181e29"
-  integrity sha512-GvIQSt8xs2Qfm073H/NInt9HLAtgwCRJX1CPRrABnqMjIyjQKB4snJPjG1IMH3XGz/YYb/r+RDl9fMO7wurzlg==
+react-big-calendar@0.24.1:
+  version "0.24.1"
+  resolved "https://registry.yarnpkg.com/react-big-calendar/-/react-big-calendar-0.24.1.tgz#96cde4c9cadfd63c80035f051e544094a235cf30"
+  integrity sha512-Jq6t7vGxCbcUHOUsjCZ5H90uuIoZ6eqaGgSO6uhj26nXLybXdNI09SU5dddsb2VhV57UUTPnoTS5lFUQjGBqpg==
   dependencies:
     "@babel/runtime" "^7.1.5"
     clsx "^1.0.4"
@@ -9276,7 +9271,7 @@ react-big-calendar@0.24.0:
     invariant "^2.2.4"
     lodash "^4.17.11"
     lodash-es "^4.17.11"
-    memoize-one "^4.0.3"
+    memoize-one "^5.1.1"
     prop-types "^15.6.2"
     react-overlays "^2.0.0-0"
     uncontrollable "^7.0.0"
