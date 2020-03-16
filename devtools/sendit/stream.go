@@ -2,37 +2,12 @@ package sendit
 
 import (
 	"bufio"
-	"crypto/aes"
-	"crypto/cipher"
 	"errors"
 	"io"
 	"sync"
 )
 
-var key [32]byte
-
-func FlipReader(r io.Reader) io.Reader {
-	block, err := aes.NewCipher(key[:])
-	if err != nil {
-		panic(err)
-	}
-	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(block, iv[:])
-
-	return &cipher.StreamReader{R: r, S: stream}
-}
-
-func FlipWriter(w io.Writer) io.Writer {
-	block, err := aes.NewCipher(key[:])
-	if err != nil {
-		panic(err)
-	}
-	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(block, iv[:])
-
-	return &cipher.StreamWriter{W: w, S: stream}
-}
-
+// Stream is a ReadWriteCloser that can have it's read/write pipe replaced safely while actively sending data.
 type Stream struct {
 	readCh    chan io.ReadCloser
 	readEOFCh chan io.ReadCloser
@@ -46,6 +21,7 @@ type Stream struct {
 	isReady  bool
 }
 
+// NewStream initializes a new stream. SetPipe must be called before data can be transfered.
 func NewStream() *Stream {
 	s := &Stream{
 		readCh:    make(chan io.ReadCloser, 1),
@@ -72,6 +48,7 @@ func (s *Stream) Write(p []byte) (int, error) {
 	s.writeCh <- w
 	return n, err
 }
+
 func (s *Stream) Read(p []byte) (int, error) {
 	var r io.ReadCloser
 	select {
