@@ -159,7 +159,7 @@ start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
 	bin/runjson <devtools/runjson/localdev-prod.json
 
 jest: web/src/node_modules
-	cd web/src && yarn tsc-app && node_modules/.bin/jest $(JEST_ARGS)
+	cd web/src && node_modules/.bin/jest $(JEST_ARGS)
 
 test: web/src/node_modules jest
 	go test -short ./...
