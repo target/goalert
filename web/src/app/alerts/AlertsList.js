@@ -224,7 +224,6 @@ export default function AlertsList(props) {
       actions.push({
         icon: <AcknowledgeIcon />,
         label: 'Acknowledge',
-        ariaLabel: 'Acknowledge Selected Alerts',
         onClick: checkedItems => {
           ackAlerts({
             variables: {
@@ -250,7 +249,6 @@ export default function AlertsList(props) {
         {
           icon: <CloseIcon />,
           label: 'Close',
-          ariaLabel: 'Close Selected Alerts',
           onClick: checkedItems => {
             closeAlerts({
               variables: {
@@ -272,7 +270,6 @@ export default function AlertsList(props) {
         {
           icon: <EscalateIcon />,
           label: 'Escalate',
-          ariaLabel: 'Escalate Selected Alerts',
           onClick: checkedItems => {
             escalateAlerts({
               variables: {
