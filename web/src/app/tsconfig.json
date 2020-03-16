@@ -7,13 +7,12 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "noEmit": true,
     "experimentalDecorators": true,
     "noImplicitThis": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*"],
-  "exclude": ["./node_modules/", "./build/"]
+  "include": ["**/*"]
 }
