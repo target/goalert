@@ -617,7 +617,7 @@ TP3_AAAA___hBwmuOzgEAA==
 		}
 	}
 
-	Files = []File{
+	Files = []*File{
 		{Data: dataRange(0, 6105), Name: "migrations/20170426134008-init.sql"},
 		{Data: dataRange(6105, 8203), Name: "migrations/20170428154209-users-table.sql"},
 		{Data: dataRange(8203, 10464), Name: "migrations/20170502172843-user-settings.sql"},

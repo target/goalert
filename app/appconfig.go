@@ -17,6 +17,8 @@ type appConfig struct {
 	TLSListenAddr string
 	TLSConfig     *tls.Config
 
+	HTTPPrefix string
+
 	DBMaxOpen int
 	DBMaxIdle int
 

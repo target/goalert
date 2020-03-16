@@ -1,7 +1,13 @@
 [
   {
     "Name": "Build-BE",
-    "Command": ["make", "-s", "bin/goalert", "BUILD_TAGS=sql_highlight"],
+    "Command": [
+      "make",
+      "-s",
+      "bin/goalert",
+      "BUILD_TAGS=sql_highlight",
+      "BUNDLE=1"
+    ],
     "Restart": true,
     "Quiet": true,
     "IgnoreErrors": true
@@ -15,27 +21,12 @@
     "Command": [
       "bin/goalert",
       "-l=localhost:3030",
-      "--ui-url=http://localhost:3035",
       "--jaeger-endpoint=http://localhost:14268",
       "--db-url=postgres://goalert@localhost:5432/goalert?sslmode=disable"
     ],
     "Restart": true,
     "IgnoreErrors": true,
     "Watch": true
-  },
-  {
-    "Name": "UI",
-    "Command": [
-      "./node_modules/.bin/webpack-dev-server",
-      "--inline",
-      "--devtool=inline-source-map",
-      "--allowed-hosts=docker.for.mac.host.internal",
-      "--port=3035",
-      "--progress=false",
-      "--mode=development",
-      "--env.GOALERT_VERSION=$GOALERT_VERSION"
-    ],
-    "Dir": "web/src"
   },
   {
     "Name": "Jaeger",

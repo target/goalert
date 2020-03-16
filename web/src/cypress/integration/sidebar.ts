@@ -8,7 +8,7 @@ function testSidebar() {
   const testLink = (label: string, path: string) => {
     it(`should have a link to ${label}`, () => {
       cy.pageNav(label)
-      cy.location('pathname').should('eq', path)
+      cy.url().should('eq', Cypress.config().baseUrl + path)
     })
   }
 

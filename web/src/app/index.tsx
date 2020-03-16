@@ -1,3 +1,6 @@
+// set webpack public path for loading additional assets
+import { GOALERT_VERSION } from './env'
+
 /// #if HMR
 import './rhl'
 /// #endif
@@ -18,8 +21,25 @@ import store from './reduxStore'
 import { GracefulUnmounterProvider } from './util/gracefulUnmount'
 import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
+import { warn } from './util/debug'
 
-const LazyGARouteTracker = React.memo(props => {
+// version check
+if (
+  document
+    .querySelector('meta[http-equiv=x-goalert-version]')
+    ?.getAttribute('content') !== GOALERT_VERSION
+) {
+  warn(
+    'app.js version does not match HTML version',
+    'index.html=' +
+      document
+        .querySelector('meta[http-equiv=x-goalert-version]')
+        ?.getAttribute('content'),
+    'app.js=' + GOALERT_VERSION,
+  )
+}
+
+const LazyGARouteTracker = React.memo((props: { trackingID?: string }) => {
   if (!props.trackingID) {
     return null
   }
@@ -44,7 +64,7 @@ ReactDOM.render(
           <MuiPickersUtilsProvider>
             <ConfigProvider>
               <Config>
-                {config => (
+                {(config: { 'General.GoogleAnalyticsID': string }) => (
                   <LazyGARouteTracker
                     trackingID={config['General.GoogleAnalyticsID']}
                   />

@@ -29,7 +29,10 @@ function testEP(screen: ScreenFormat) {
       cy.get('#app')
         .contains(ep.name)
         .click()
-      cy.location('pathname').should('eq', `/escalation-policies/${ep.id}`)
+      cy.url().should(
+        'eq',
+        Cypress.config().baseUrl + `/escalation-policies/${ep.id}`,
+      )
     })
 
     describe('Creation', () => {
@@ -76,7 +79,7 @@ function testEP(screen: ScreenFormat) {
       cy.pageAction('Delete Escalation Policy')
       cy.dialogFinish('Confirm')
 
-      cy.location('pathname').should('eq', '/escalation-policies')
+      cy.url().should('eq', Cypress.config().baseUrl + '/escalation-policies')
       cy.pageSearch(ep.name)
       cy.get('body').should('contain', 'No results')
     })

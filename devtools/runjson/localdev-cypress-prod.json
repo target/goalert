@@ -82,7 +82,7 @@
       "./node_modules/.bin/cypress",
       "$CY_ACTION",
       "--config",
-      "baseUrl=http://localhost:3040",
+      "baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX",
       "--browser",
       "$CY_BROWSER"
     ],

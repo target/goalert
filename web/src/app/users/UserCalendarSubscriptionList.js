@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { useQuery } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
-import { Link } from 'react-router-dom'
 import { Card } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
 import FlatList from '../lists/FlatList'
@@ -16,9 +15,8 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
-import { useSelector } from 'react-redux'
-import { absURLSelector } from '../selectors'
 import { useConfigValue } from '../util/RequireConfig'
+import { AppLink } from '../util/AppLink'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
@@ -40,7 +38,6 @@ export const calendarSubscriptionsQuery = gql`
 `
 
 export default function UserCalendarSubscriptionList(props) {
-  const absURL = useSelector(absURLSelector)
   const [creationDisabled] = useConfigValue(
     'General.DisableCalendarSubscriptions',
   )
@@ -75,9 +72,9 @@ export default function UserCalendarSubscriptionList(props) {
       subheaderDict[sub.schedule.name] = true
       items.push({
         subHeader: (
-          <Link to={absURL(`/schedules/${sub.scheduleID}`)}>
+          <AppLink to={`/schedules/${sub.scheduleID}`}>
             {sub.schedule.name}
-          </Link>
+          </AppLink>
         ),
       })
     }

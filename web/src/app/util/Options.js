@@ -38,6 +38,7 @@ export default class Options extends Component {
     transformProps: p.object, // override props to position menu on desktop
     options: p.array.isRequired, // [{ disabled: false, text: '', onClick: () => { . . . } }]
     positionRelative: p.bool, // if true, disables the options menu being fixed to the top right
+    legacyClient: p.bool, // if true, uses the legacy graphql client for mutations
   }
 
   state = {
@@ -110,8 +111,8 @@ export default class Options extends Component {
     // wrap with mutation component
     return (
       <Mutation
-        client={LegacyGraphQLClient}
         key={idx}
+        client={this.props.legacyClient ? LegacyGraphQLClient : null}
         mutation={o.mutation.query}
         update={(cache, { data }) => {
           // invoke on success function if exists
