@@ -7,7 +7,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "isolatedModules": false,
+    "isolatedModules": true,
     "noEmit": true,
     "experimentalDecorators": true,
     "noImplicitThis": true,
