@@ -2,7 +2,6 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": "../node_modules",
-    "target": "es5",
     "lib": ["es2015", "dom"],
     "types": ["cypress"],
     "jsx": "react",
