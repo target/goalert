@@ -21,6 +21,7 @@ Cypress.Cookies.defaults({
 
 import './alert'
 import './calendar-subscription'
+import './fail-fast'
 import './service'
 import './ep'
 import './rotation'
@@ -42,5 +43,3 @@ import './dialog'
 export * from './config'
 export * from './limits'
 export * from './util'
-
-import './fail-fast'
