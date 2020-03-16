@@ -1,20 +1,4 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "baseUrl": "../node_modules",
-    "lib": ["es6", "dom"],
-    "types": ["cypress"],
-    "jsx": "react",
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "noImplicitAny": true,
-    "isolatedModules": false,
-    "noEmit": true,
-    "experimentalDecorators": true,
-    "noImplicitThis": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
-  },
+  "extends": "../app/tsconfig",
   "include": ["**/*"]
 }
