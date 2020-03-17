@@ -17,9 +17,7 @@ function pageFab(dialOption?: string): Cypress.Chainable {
     return cy
       .get('button[data-cy=page-fab]')
       .should('be.visible')
-      .then(res => {
-        res.click()
-      })
+      .click()
 
   // speed dial page fab
   return cy
