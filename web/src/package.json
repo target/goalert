@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}'",
-    "lint": "eslint --fix . && stylelint --fix ./app/**/*.css",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix . && stylelint --fix ./app/**/*.css",
     "ts-compile": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
     "check": "yarn fmt && yarn lint && yarn ts-compile",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
