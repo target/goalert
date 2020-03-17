@@ -26,9 +26,7 @@ function pageFab(dialOption?: string): Cypress.Chainable {
     .trigger('mouseover')
     .parent()
     .find(
-      `span[aria-label*=${JSON.stringify(
-        dialOption,
-      )}] button[role=menuitem]`,
+      `span[aria-label*=${JSON.stringify(dialOption)}] button[role=menuitem]`,
     )
     .click()
 }
