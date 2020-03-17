@@ -4,12 +4,11 @@
   "description": "user interface for the goalert project",
   "main": "index.js",
   "scripts": {
-    "slint": "stylelint ./app/**/*.css",
-    "lint": "eslint . && tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
+    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}'",
+    "lint": "eslint --fix . && stylelint --fix ./app/**/*.css",
+    "ts-compile": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
+    "check": "yarn fmt && yarn lint && yarn ts-compile",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
-    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}' && eslint --fix .",
-    "tsc-app": "tsc -p app/tsconfig.json",
-    "tsc-cypress": "tsc -p cypress/tsconfig.json",
     "build-deps": "webpack --config ./webpack.dll.config.js --progress"
   },
   "jest": {

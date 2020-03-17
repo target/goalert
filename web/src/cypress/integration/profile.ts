@@ -5,7 +5,6 @@ const c = new Chance()
 testScreen('Profile', testProfile)
 
 function testProfile(screen: ScreenFormat) {
-  let nr: NotificationRule
   let cm: ContactMethod
 
   beforeEach(() =>
@@ -13,7 +12,6 @@ function testProfile(screen: ScreenFormat) {
       .resetProfile()
       .addNotificationRule()
       .then(rule => {
-        nr = rule
         cm = rule.contactMethod
         return cy.visit('/profile')
       }),
