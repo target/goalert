@@ -15,3 +15,5 @@ afterEach(function() {
     CY.runner.stop()
   }
 })
+
+export {}
