@@ -12,19 +12,30 @@ declare global {
 }
 
 function pageFab(dialOption?: string): Cypress.Chainable {
-  const res = cy.get('button[data-cy=page-fab]').should('be.visible')
-
   // standard page fab
-  if (!dialOption) return res.click()
+  if (!dialOption)
+    return cy
+      .get('button[data-cy=page-fab]')
+      .should('be.visible')
+      .then(res => {
+        res.click()
+      })
 
   // speed dial page fab
-  return res
-    .trigger('mouseover')
-    .parent()
-    .find(
-      `span[aria-label*=${JSON.stringify(dialOption)}] button[role=menuitem]`,
-    )
-    .click()
+  return cy
+    .get('button[data-cy=page-fab]')
+    .should('be.visible')
+    .then(res => {
+      res
+        .trigger('mouseover')
+        .parent()
+        .find(
+          `span[aria-label*=${JSON.stringify(
+            dialOption,
+          )}] button[role=menuitem]`,
+        )
+        .click()
+    })
 }
 
 Cypress.Commands.add('pageFab', pageFab)
