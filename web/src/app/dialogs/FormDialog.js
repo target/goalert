@@ -6,7 +6,6 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import Typography from '@material-ui/core/Typography'
-import * as _ from 'lodash-es'
 import { DefaultTransition, FullscreenTransition } from '../util/Transitions'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth/index'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -100,7 +99,11 @@ export default class FormDialog extends React.PureComponent {
       alert,
       classes,
       confirm,
+      disableGutters,
+      errors,
       isUnmounting,
+      loading,
+      primaryActionLabel, // remove from dialogProps spread
       maxWidth,
       onClose,
       onSubmit,
@@ -108,14 +111,9 @@ export default class FormDialog extends React.PureComponent {
       title,
       width,
       onNext,
+      onBack,
       ...dialogProps
-    } = _.omit(this.props, [
-      'disableGutters',
-      'errors',
-      'loading',
-      'primaryActionLabel',
-      'onBack',
-    ])
+    } = this.props
 
     const isWideScreen = isWidthUp('md', width)
 

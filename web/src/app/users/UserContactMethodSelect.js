@@ -3,7 +3,6 @@ import p from 'prop-types'
 import gql from 'graphql-tag'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
-import * as _ from 'lodash-es'
 import Query from '../util/Query'
 import { sortContactMethods } from './util'
 
@@ -48,7 +47,7 @@ export default class UserContactMethodSelect extends React.PureComponent {
   }
 
   renderControl(cms) {
-    const { extraItems, ...rest } = _.omit(this.props, 'userID')
+    const { userID, extraItems, ...rest } = this.props
 
     return (
       <TextField select {...rest}>

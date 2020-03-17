@@ -1,7 +1,6 @@
 import React from 'react'
 import Loader from 'react-loadable'
 import Spinner from '../loading/components/Spinner'
-import * as _ from 'lodash-es'
 import { DEFAULT_SPIN_DELAY_MS, DEFAULT_SPIN_WAIT_MS } from '../config'
 
 function Loading({ error }) {
@@ -40,7 +39,7 @@ export default function onDemand(_load, options = {}) {
     options.loading = options.spin ? LoadingSpinner : Loading
   }
 
-  const { wait, ...rest } = _.omit(options, 'spin')
+  const { wait, spin, ...rest } = options
 
   const loader = () => {
     let waitPromise

@@ -3,7 +3,6 @@ import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
-import * as _ from 'lodash-es'
 import { LabelKeySelect } from '../selection/LabelKeySelect'
 import { Config } from '../util/RequireConfig'
 
@@ -38,7 +37,7 @@ export default class LabelForm extends React.PureComponent {
   }
 
   render() {
-    const { editValueOnly, ...otherProps } = _.omit(this.props, 'create')
+    const { editValueOnly, create, ...otherProps } = this.props
 
     return (
       <FormContainer {...otherProps} optionalLabels>

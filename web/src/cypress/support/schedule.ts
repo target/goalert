@@ -1,5 +1,4 @@
 import { Chance } from 'chance'
-import * as _ from 'lodash-es'
 
 const c = new Chance()
 
@@ -126,7 +125,7 @@ function setScheduleTarget(
     }
   }`
 
-  const params = _.omit(tgt, 'schedule')
+  const { schedule, ...params } = tgt
 
   return cy
     .graphql2(mutation, {
