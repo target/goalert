@@ -153,10 +153,8 @@ func (s *Server) serveOpen(w http.ResponseWriter, req *http.Request) {
 	if len(s.authSecret) > 0 {
 		_, err := TokenSubject(s.authSecret, TokenAudienceAuth, req.FormValue("token"))
 		if err != nil {
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
-				return
-			}
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
 		}
 	}
 	sess, err := s.newSession(req.FormValue("prefix"))
