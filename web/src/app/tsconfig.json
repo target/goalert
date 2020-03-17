@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "lib": ["es6", "dom"],
-    "jsx": "react",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "noImplicitAny": true,
-    "isolatedModules": true,
-    "noEmit": true,
     "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "jsx": "react",
+    "lib": ["es6", "dom"],
+    "noEmit": true,
+    "noImplicitAny": true,
     "noImplicitThis": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "strict": true
   },
   "include": ["**/*"]
 }
