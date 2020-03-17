@@ -169,7 +169,7 @@ check: generate web/src/node_modules
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign .
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
-	(cd web/src && yarn fmt && yarn tsc-app && yarn tsc-cypress)
+	(cd web/src && yarn run check)
 	./devtools/ci/tasks/scripts/codecheck.sh
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
