@@ -9,8 +9,10 @@
     "jsx": "react",
     "lib": ["es6", "dom"],
     "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
+    "noUnusedLocals": true,
     "skipLibCheck": true,
     "strict": true
   },
