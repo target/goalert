@@ -203,11 +203,11 @@ export function PaginatedList(props: PaginatedListProps) {
     if (!infiniteScroll) {
       newItems = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
     }
-    let renderedItems: ReactElement[] = newItems.map(renderItem)
+    const renderedItems: ReactElement[] = newItems.map(renderItem)
 
     // Display full list when loading
-    if (!noPlaceholder) {
-      while (isLoading && renderedItems.length < itemsPerPage) {
+    if (!noPlaceholder && isLoading) {
+      while (renderedItems.length < itemsPerPage) {
         renderedItems.push(
           <LoadingItem
             dense={isWidthUp('md', width)}
@@ -220,8 +220,8 @@ export function PaginatedList(props: PaginatedListProps) {
     return renderedItems
   }
 
-  let onBack = page > 0 ? () => setPage(page - 1) : undefined
-  let onNext = hasNextPage ? handleNextPage : undefined
+  const onBack = page > 0 ? () => setPage(page - 1) : undefined
+  const onNext = hasNextPage ? handleNextPage : undefined
 
   return (
     <Grid container spacing={2}>
@@ -260,8 +260,8 @@ export function PaginatedList(props: PaginatedListProps) {
     const len = items.length
 
     // explicitly set props to load more, if loader function present
-    let loadProps: any = {}
-    if (Boolean(loadMore)) {
+    const loadProps: any = {}
+    if (loadMore) {
       loadProps.hasMore = true
       loadProps.next = loadMore
     } else {

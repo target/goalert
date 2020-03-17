@@ -1,3 +1,4 @@
+/* eslint no-unused-expressions: 0 */
 declare global {
   namespace Cypress {
     interface Chainable {
