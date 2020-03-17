@@ -45,8 +45,6 @@ module.exports = {
     '@typescript-eslint/no-empty-function': 'off',
     // TODO: on, but off in config files
     '@typescript-eslint/no-var-requires': 'off',
-    // TODO: on, but bypass alerts files
-    '@typescript-eslint/camelcase': 'off',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
