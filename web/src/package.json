@@ -30,7 +30,7 @@
     ],
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",
-      "eslint --ext .js,.jsx,.ts,.tsx --fix"
+      "eslint --fix"
     ],
     "*.css": [
       "prettier --write",
