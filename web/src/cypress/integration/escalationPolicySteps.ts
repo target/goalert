@@ -84,10 +84,8 @@ function testSteps(screen: ScreenFormat) {
     })
 
     it('should edit a step', () => {
-      let s1: EPStep
       cy.createEPStep({ epID: ep.id })
         .then(x => {
-          s1 = x
           cy.reload()
         })
         .then(() => {
