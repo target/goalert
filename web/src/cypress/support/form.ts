@@ -20,7 +20,9 @@ const clickArc = (pct: number) => (el: any) => {
 }
 
 // materialClock will control a material time-picker from an input field
-function materialClock(time: string | DateTime): Cypress.Chainable<any> {
+function materialClock(
+  time: string | DateTime,
+): Cypress.Chainable<JQuery<any>> {
   const dt = DateTime.isDateTime(time)
     ? time
     : DateTime.fromFormat(time, 'HH:mm')
@@ -109,7 +111,7 @@ function fillFormField(
   selPrefix: string,
   name: string,
   value: string | string[] | boolean | DateTime,
-): Cypress.Chainable<any> {
+): Cypress.Chainable<JQuery<HTMLElement>> {
   const selector = `${selPrefix} input[name="${name}"],textarea[name="${name}"]`
 
   if (typeof value === 'boolean') {
