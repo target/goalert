@@ -24,7 +24,7 @@ const buildFetchMore = (
   after: string,
   stopPolling: QueryResult['stopPolling'],
   itemsPerPage: number,
-): ((newlimit: any) => Promise<any>) => {
+): ((numberToLoad?: number) => void) | undefined => {
   return once((newLimit?: number) => {
     stopPolling()
     return fetchMore({
@@ -117,7 +117,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
 
   const nodes = data?.data?.nodes ?? []
   const items = nodes.map(mapDataNode)
-  let loadMore: ((numberToLoad?: number | undefined) => void) | undefined
+  let loadMore: ((numberToLoad?: number) => void) | undefined
 
   if (data?.data?.pageInfo?.hasNextPage) {
     loadMore = buildFetchMore(
