@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 /*
  * This codemod will raise all imports to the top of the file,
  * sort alphabetically, and separate local and node_modules/ imports.
