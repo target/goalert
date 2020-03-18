@@ -100,6 +100,14 @@ const simpleCacheTypes = [
 // tell Apollo to use cached data for `type(id: foo) {... }` queries
 const queryCache = {}
 
+const cache = new InMemoryCache({
+  cacheRedirects: {
+    Query: {
+      ...queryCache,
+    },
+  },
+})
+
 simpleCacheTypes.forEach(name => {
   queryCache[camelCase(name)] = (_, args) =>
     args &&
@@ -109,14 +117,6 @@ simpleCacheTypes.forEach(name => {
         id: args.id,
       }),
     )
-})
-
-const cache = new InMemoryCache({
-  cacheRedirects: {
-    Query: {
-      ...queryCache,
-    },
-  },
 })
 
 const queryOpts = { fetchPolicy: 'cache-and-network', errorPolicy: 'all' }

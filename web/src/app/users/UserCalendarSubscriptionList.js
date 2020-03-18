@@ -66,6 +66,23 @@ export default function UserCalendarSubscriptionList(props) {
   const subheaderDict = {}
   const items = []
 
+  function renderOtherActions(id) {
+    return (
+      <OtherActions
+        actions={[
+          {
+            label: 'Edit',
+            onClick: () => setShowEditDialogByID(id),
+          },
+          {
+            label: 'Delete',
+            onClick: () => setShowDeleteDialogByID(id),
+          },
+        ]}
+      />
+    )
+  }
+
   // push schedule names as subheaders now that the array is sorted
   subs.forEach(sub => {
     if (!subheaderDict[sub.schedule.name]) {
@@ -87,23 +104,6 @@ export default function UserCalendarSubscriptionList(props) {
       icon: sub.disabled ? <Warning message='Disabled' /> : null,
     })
   })
-
-  function renderOtherActions(id) {
-    return (
-      <OtherActions
-        actions={[
-          {
-            label: 'Edit',
-            onClick: () => setShowEditDialogByID(id),
-          },
-          {
-            label: 'Delete',
-            onClick: () => setShowDeleteDialogByID(id),
-          },
-        ]}
-      />
-    )
-  }
 
   return (
     <React.Fragment>

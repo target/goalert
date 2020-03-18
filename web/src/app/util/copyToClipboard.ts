@@ -1,9 +1,5 @@
-export default function copyToClipboard(text: string) {
-  try {
-    navigator.clipboard.writeText(text)
-  } catch (error) {
-    fallback(text)
-  }
+function isOS() {
+  return Boolean(navigator.userAgent.match(/ipad|ipod|iphone/i))
 }
 
 /*
@@ -57,6 +53,10 @@ function fallback(str: string) {
   }
 }
 
-function isOS() {
-  return Boolean(navigator.userAgent.match(/ipad|ipod|iphone/i))
+export default function copyToClipboard(text: string) {
+  try {
+    navigator.clipboard.writeText(text)
+  } catch (error) {
+    fallback(text)
+  }
 }
