@@ -55,7 +55,7 @@ function testMarkdownDesc(screen: ScreenFormat, cfg: Config) {
       return cy.visit(`/${cfg.url}/${generated.id}`)
     })
     it('should render description with markdown', () => {
-      //make sure markdown renders properly
+      // make sure markdown renders properly
       cy.get('h1')
         .should('not.contain', '#')
         .should('contain', rawDescription)

@@ -14,10 +14,6 @@
 // ***********************************************************
 
 import 'cypress-plugin-retries'
-Cypress.env('RETRIES', 2)
-Cypress.Cookies.defaults({
-  whitelist: 'goalert_session.2',
-})
 
 import './alert'
 import './calendar-subscription'
@@ -39,6 +35,11 @@ import './page-fab'
 import './sql'
 import './form'
 import './dialog'
+
+Cypress.env('RETRIES', 2)
+Cypress.Cookies.defaults({
+  whitelist: 'goalert_session.2',
+})
 
 export * from './config'
 export * from './limits'

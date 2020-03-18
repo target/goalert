@@ -106,7 +106,6 @@ export class FormField extends React.PureComponent {
       mapValue,
       mapOnChangeValue,
       checkbox,
-
       ...otherFieldProps
     } = this.props
 

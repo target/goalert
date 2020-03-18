@@ -4,7 +4,7 @@ const c = new Chance()
 
 testScreen('Profile', testProfile)
 
-function testProfile(screen: ScreenFormat) {
+function testProfile() {
   let cm: ContactMethod
 
   beforeEach(() =>

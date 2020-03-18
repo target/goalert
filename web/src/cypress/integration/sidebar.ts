@@ -32,7 +32,7 @@ function testSidebar() {
         .should('have.attr', 'href')
         .and(
           'match',
-          /https\:\/\/www\.surveygizmo\.com\/s3\/4106900\/GoAlert-Feedback/,
+          /https:\/\/www\.surveygizmo\.com\/s3\/4106900\/GoAlert-Feedback/,
         )
     })
     it('should display with correct href when overridden', () => {
@@ -43,7 +43,7 @@ function testSidebar() {
       cy.pageNav('Feedback', true)
       cy.get('[data-cy=feedback-link]')
         .should('have.attr', 'href')
-        .and('match', /https\:\/\/www\.goalert\.me/)
+        .and('match', /https:\/\/www\.goalert\.me/)
     })
   })
 }

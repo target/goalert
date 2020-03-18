@@ -42,7 +42,7 @@ declare global {
  */
 function chanceReminderMinutes(): Array<number> {
   const len = c.integer({ min: 1, max: 5 })
-  let reminderMinutes: Array<number> = []
+  const reminderMinutes: Array<number> = []
   for (let i = 0; i < len; i++) {
     reminderMinutes.push(c.pickone([0, 5, 10, 30, 60, 1440]))
   }

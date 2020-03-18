@@ -210,7 +210,7 @@ export default class PolicyStepsCard extends Component {
               onDragEnd={res => this.onDragEnd(res, mutation)}
             >
               <Droppable droppableId='droppable'>
-                {(provided, _) => (
+                {provided => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
                     <List data-cy='steps-list'>
                       {steps.map((step, index) => (

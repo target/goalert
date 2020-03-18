@@ -18,30 +18,30 @@ interface ConfigInput {
   [index: string]: any
 
   General?: {
-    PublicURL?: String
-    DisableLabelCreation?: Boolean
+    PublicURL?: string
+    DisableLabelCreation?: boolean
     NotificationDisclaimer?: string
-    DisableCalendarSubscriptions?: Boolean
+    DisableCalendarSubscriptions?: boolean
   }
   Auth?: {
-    RefererURLs?: [String]
-    DisableBasic?: Boolean
+    RefererURLs?: [string]
+    DisableBasic?: boolean
   }
   Mailgun?: {
-    Enable?: Boolean
-    APIKey?: String
-    EmailDomain?: String
-    DisableValidation?: Boolean
+    Enable?: boolean
+    APIKey?: string
+    EmailDomain?: string
+    DisableValidation?: boolean
   }
   Twilio?: {
-    Enable?: Boolean
-    AccountSID?: String
-    AuthToken?: String
-    FromNumber?: String
+    Enable?: boolean
+    AccountSID?: string
+    AuthToken?: string
+    FromNumber?: string
   }
   Feedback?: {
-    Enable?: Boolean
-    OverrideURL?: String
+    Enable?: boolean
+    OverrideURL?: string
   }
 }
 export interface Config {
@@ -49,37 +49,37 @@ export interface Config {
 
   General: {
     PublicURL: string
-    DisableLabelCreation: Boolean
+    DisableLabelCreation: boolean
     NotificationDisclaimer: string
   }
   Auth: {
     RefererURLs: [string]
-    DisableBasic: Boolean
+    DisableBasic: boolean
   }
   Mailgun: {
-    Enable: Boolean
+    Enable: boolean
     APIKey: string
     EmailDomain: string
   }
   Twilio: {
-    Enable: Boolean
-    AccountSID: String
-    AuthToken: String
-    FromNumber: String
+    Enable: boolean
+    AccountSID: string
+    AuthToken: string
+    FromNumber: string
   }
   Feedback: {
-    Enable: Boolean
-    OverrideURL: String
+    Enable: boolean
+    OverrideURL: string
   }
   Slack?: {
-    Enable?: Boolean
-    ClientID?: String
-    ClientSecret?: String
-    AccessToken?: String
+    Enable?: boolean
+    ClientID?: string
+    ClientSecret?: string
+    AccessToken?: string
   }
 }
 
-function getConfigDirect(token: String): Cypress.Chainable<Config> {
+function getConfigDirect(token: string): Cypress.Chainable<Config> {
   return cy
     .request({
       url: '/api/v2/config',

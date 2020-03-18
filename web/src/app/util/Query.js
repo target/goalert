@@ -1,6 +1,5 @@
 import React from 'react'
 import p from 'prop-types'
-
 import { Query as ApolloQuery } from 'react-apollo'
 import Spinner from '../loading/components/Spinner'
 import { isEmpty } from 'lodash-es'
@@ -135,13 +134,12 @@ export default class Query extends React.PureComponent {
       render,
       noPoll,
       partialQuery,
-
       // and default-override ones
       client,
       fetchPolicy,
-
       ...rest
     } = this.props
+
     return (
       <ApolloQuery
         client={client}

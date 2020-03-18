@@ -22,7 +22,11 @@ export const AppLink = React.forwardRef(function AppLink(
   }
 
   if (/^(mailto:|https?:\/\/)/.test(_to)) {
-    return <a href={_to} ref={ref} {...other} />
+    return (
+      <a href={_to} ref={ref} {...other}>
+        {other.children}
+      </a>
+    )
   }
 
   const to = _to.startsWith('/') ? _to : joinURL(path, _to)
