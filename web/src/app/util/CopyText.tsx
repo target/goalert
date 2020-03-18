@@ -24,7 +24,7 @@ interface CopyTextProps {
   value: string
 }
 
-export default function CopyText(props: CopyTextProps) {
+export default function CopyText(props: CopyTextProps): JSX.Element {
   const classes = useStyles()
   const [showTooltip, setShowTooltip] = useState(false)
 

@@ -6,9 +6,9 @@ describe('safeURL', () => {
     false: string[]
   }
 
-  const checkIt = (desc: string, runValues: RunValuesObj) => {
+  const checkIt = (desc: string, runValues: RunValuesObj): void => {
     describe(desc, () => {
-      const run = (vals: string[], exp: boolean) =>
+      const run = (vals: string[], exp: boolean): void =>
         (vals || []).forEach(v => {
           const parts = v
             .replace(/^\[/, '')
