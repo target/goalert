@@ -17,25 +17,18 @@ function pageFab(dialOption?: string): Cypress.Chainable {
     return cy
       .get('button[data-cy=page-fab]')
       .should('be.visible')
-      .then(res => {
-        res.click()
-      })
+      .click()
 
   // speed dial page fab
   return cy
     .get('button[data-cy=page-fab]')
     .should('be.visible')
-    .then(res => {
-      res
-        .trigger('mouseover')
-        .parent()
-        .find(
-          `span[aria-label*=${JSON.stringify(
-            dialOption,
-          )}] button[role=menuitem]`,
-        )
-        .click()
-    })
+    .trigger('mouseover')
+    .parent()
+    .find(
+      `span[aria-label*=${JSON.stringify(dialOption)}] button[role=menuitem]`,
+    )
+    .click()
 }
 
 Cypress.Commands.add('pageFab', pageFab)

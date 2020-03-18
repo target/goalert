@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import React, { Component } from 'react'
 import Card from '@material-ui/core/Card'
 import InfoIcon from '@material-ui/icons/Info'

@@ -1,4 +1,3 @@
-/* eslint no-unused-expressions: 0 */
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -38,9 +37,9 @@ function graphql(
     }
     if (data.errors && data.errors[0]) {
       // causes error message to be shown
-      expect(data.errors[0].message).to.be.undefined
+      assert.isUndefined(data.errors[0].message)
     }
-    expect(data.errors, 'graphql errors').to.be.undefined
+    expect(data).to.not.have.property('errors')
 
     return data.data
   })
