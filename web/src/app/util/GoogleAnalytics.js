@@ -21,7 +21,7 @@ class GoogleAnalytics extends Component {
     this.logPageChange(this.props.location.pathname, this.props.location.search)
   }
 
-  componentDidUpdate({ location: prevLocation }, prevState, snapshot) {
+  componentDidUpdate({ location: prevLocation }) {
     const {
       location: { pathname, search },
     } = this.props

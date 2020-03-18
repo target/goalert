@@ -118,9 +118,8 @@ export default function ControlledPaginatedList(
   function getSelectableIDs(): Array<string | number> {
     if (itemsHaveID(items)) {
       return items.filter(i => i.selectable !== false).map(i => i.id)
-    } else {
-      return []
     }
+    return []
   }
 
   function setAll() {

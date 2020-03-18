@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 // Initialization
 const webpack = require('webpack')
 const CopyPlugin = require('copy-webpack-plugin')

@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+
 const c = new Chance()
 
 declare global {
@@ -80,7 +81,7 @@ function setScheduleTarget(
   if (!tgt.target) {
     tgt.target = { rotation: {} }
   }
-  const rotation = (<TargetRotationOptions>tgt.target).rotation
+  const rotation = (tgt.target as TargetRotationOptions).rotation
   if (rotation) {
     return cy
       .createRotation(rotation)

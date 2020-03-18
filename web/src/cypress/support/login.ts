@@ -1,7 +1,9 @@
-declare namespace Cypress {
-  interface Chainable {
-    login: typeof login
-    adminLogin: typeof adminLogin
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login: typeof login
+      adminLogin: typeof adminLogin
+    }
   }
 }
 
@@ -13,7 +15,7 @@ function normalizeURL(url: string | null): string {
 function login(
   username?: string,
   password?: string,
-  tokenOnly: boolean = false,
+  tokenOnly = false,
 ): Cypress.Chainable<string> {
   if (!username) {
     return cy
@@ -70,7 +72,7 @@ function login(
     }) as Cypress.Chainable<string>
 }
 
-function adminLogin(tokenOnly: boolean = false): Cypress.Chainable<string> {
+function adminLogin(tokenOnly = false): Cypress.Chainable<string> {
   return cy
     .fixture('profileAdmin')
     .then(p => login(p.username, p.password, tokenOnly))
@@ -78,3 +80,5 @@ function adminLogin(tokenOnly: boolean = false): Cypress.Chainable<string> {
 
 Cypress.Commands.add('login', login)
 Cypress.Commands.add('adminLogin', adminLogin)
+
+export {}

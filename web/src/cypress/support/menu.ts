@@ -1,7 +1,9 @@
-declare namespace Cypress {
-  interface Chainable<Subject> {
-    /** Open the selected menu and click the matching item. */
-    menu: menuFn
+declare global {
+  namespace Cypress {
+    interface Chainable<Subject> {
+      /** Open the selected menu and click the matching item. */
+      menu: menuFn
+    }
   }
 }
 
@@ -10,7 +12,7 @@ interface MenuSelectOptions {
    *
    * Useful on pages that haven't been made mobile friendly yet.
    */
-  forceWidescreen?: Boolean
+  forceWidescreen?: boolean
 }
 
 type menuFn = (label: string, options?: MenuSelectOptions) => Cypress.Chainable
@@ -43,3 +45,5 @@ function menu(
 }
 
 Cypress.Commands.add('menu', { prevSubject: 'element' }, menu)
+
+export {}

@@ -1,14 +1,16 @@
-declare namespace Cypress {
-  interface Chainable {
-    getConfig: typeof getConfig
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      getConfig: typeof getConfig
 
-    /** Replaces the backend config entirely. */
-    setConfig: typeof setConfig
+      /** Replaces the backend config entirely. */
+      setConfig: typeof setConfig
 
-    /** Merges new config values into existing backend config. */
-    updateConfig: typeof updateConfig
+      /** Merges new config values into existing backend config. */
+      updateConfig: typeof updateConfig
 
-    resetConfig: typeof resetConfig
+      resetConfig: typeof resetConfig
+    }
   }
 }
 
@@ -16,68 +18,68 @@ interface ConfigInput {
   [index: string]: any
 
   General?: {
-    PublicURL?: String
-    DisableLabelCreation?: Boolean
+    PublicURL?: string
+    DisableLabelCreation?: boolean
     NotificationDisclaimer?: string
-    DisableCalendarSubscriptions?: Boolean
+    DisableCalendarSubscriptions?: boolean
   }
   Auth?: {
-    RefererURLs?: [String]
-    DisableBasic?: Boolean
+    RefererURLs?: [string]
+    DisableBasic?: boolean
   }
   Mailgun?: {
-    Enable?: Boolean
-    APIKey?: String
-    EmailDomain?: String
-    DisableValidation?: Boolean
+    Enable?: boolean
+    APIKey?: string
+    EmailDomain?: string
+    DisableValidation?: boolean
   }
   Twilio?: {
-    Enable?: Boolean
-    AccountSID?: String
-    AuthToken?: String
-    FromNumber?: String
+    Enable?: boolean
+    AccountSID?: string
+    AuthToken?: string
+    FromNumber?: string
   }
   Feedback?: {
-    Enable?: Boolean
-    OverrideURL?: String
+    Enable?: boolean
+    OverrideURL?: string
   }
 }
-interface Config {
+export interface Config {
   [index: string]: any
 
   General: {
     PublicURL: string
-    DisableLabelCreation: Boolean
+    DisableLabelCreation: boolean
     NotificationDisclaimer: string
   }
   Auth: {
     RefererURLs: [string]
-    DisableBasic: Boolean
+    DisableBasic: boolean
   }
   Mailgun: {
-    Enable: Boolean
+    Enable: boolean
     APIKey: string
     EmailDomain: string
   }
   Twilio: {
-    Enable: Boolean
-    AccountSID: String
-    AuthToken: String
-    FromNumber: String
+    Enable: boolean
+    AccountSID: string
+    AuthToken: string
+    FromNumber: string
   }
   Feedback: {
-    Enable: Boolean
-    OverrideURL: String
+    Enable: boolean
+    OverrideURL: string
   }
   Slack?: {
-    Enable?: Boolean
-    ClientID?: String
-    ClientSecret?: String
-    AccessToken?: String
+    Enable?: boolean
+    ClientID?: string
+    ClientSecret?: string
+    AccessToken?: string
   }
 }
 
-function getConfigDirect(token: String): Cypress.Chainable<Config> {
+function getConfigDirect(token: string): Cypress.Chainable<Config> {
   return cy
     .request({
       url: '/api/v2/config',

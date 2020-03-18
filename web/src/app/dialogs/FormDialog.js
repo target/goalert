@@ -114,6 +114,7 @@ export default class FormDialog extends React.PureComponent {
       onBack,
       ...dialogProps
     } = this.props
+
     const isWideScreen = isWidthUp('md', width)
 
     return (

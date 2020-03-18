@@ -322,7 +322,7 @@ function testAlerts(screen: ScreenFormat) {
       })
     })
 
-    if (screen == 'widescreen') {
+    if (screen === 'widescreen') {
       it('should link to the escalation policy', () => {
         cy.get('body')
           .contains('a', 'Escalation Policy')
