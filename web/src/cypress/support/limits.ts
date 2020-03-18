@@ -1,20 +1,22 @@
-declare namespace Cypress {
-  interface Chainable {
-    getLimits: typeof getLimits
-    updateLimits: typeof updateLimits
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      getLimits: typeof getLimits
+      updateLimits: typeof updateLimits
+    }
   }
 }
 interface SystemLimitInput {
   id: string
   value: number
 }
-interface SystemLimits {
+export interface SystemLimits {
   id: string
   value: number
   description: string
 }
 
-type Limits = Map<string, { value: number; description: string }>
+export type Limits = Map<string, { value: number; description: string }>
 
 function getLimits(): Cypress.Chainable<Limits> {
   let limits = new Map()

@@ -1,14 +1,16 @@
-declare namespace Cypress {
-  interface Chainable {
-    getConfig: typeof getConfig
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      getConfig: typeof getConfig
 
-    /** Replaces the backend config entirely. */
-    setConfig: typeof setConfig
+      /** Replaces the backend config entirely. */
+      setConfig: typeof setConfig
 
-    /** Merges new config values into existing backend config. */
-    updateConfig: typeof updateConfig
+      /** Merges new config values into existing backend config. */
+      updateConfig: typeof updateConfig
 
-    resetConfig: typeof resetConfig
+      resetConfig: typeof resetConfig
+    }
   }
 }
 
@@ -42,7 +44,7 @@ interface ConfigInput {
     OverrideURL?: String
   }
 }
-interface Config {
+export interface Config {
   [index: string]: any
 
   General: {

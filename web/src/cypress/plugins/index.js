@@ -35,7 +35,7 @@ module.exports = (on, config) => {
             exclude: [/node_modules/],
             use: [
               {
-                loader: 'ts-loader',
+                loader: 'babel-loader',
               },
             ],
           },
