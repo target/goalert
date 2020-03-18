@@ -54,7 +54,7 @@ export const alertsListQuery = gql`
 
 const updateMutation = gql`
   mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
-    updateAlerts(input: $input) {
+    updateAlerts(inputa: $input) {
       alertID
       id
     }
@@ -111,7 +111,14 @@ export default function AlertsList(props) {
   // state initialization
   const [errorMessage, setErrorMessage] = useState('')
   const [updateMessage, setUpdateMessage] = useState('')
-  const [showUpdateCompleteSnackbar, setShowUpdateCompleteSnackbar] = useState(
+
+  // used if user dismisses snackbar before the auto-close timer finishes
+  const [actionCompleteDismissed, setActionCompleteDismissed] = useState(
+    true,
+  )
+
+  // defaults to open unless favorited services are present or warning is dismissed
+  const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(
     false,
   )
 
@@ -120,11 +127,6 @@ export default function AlertsList(props) {
   const allServices = params('allServices')
   const filter = params('filter', 'active')
   const isFirstLogin = params('isFirstLogin')
-
-  // defaults to open unless favorited services are present or warning is dismissed
-  const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(
-    false,
-  )
 
   // query to see if the current user has any favorited services
   // if allServices is not true
@@ -184,9 +186,11 @@ export default function AlertsList(props) {
   }
 
   // checkbox action mutations
-  const [ackAlerts] = useMutation(updateMutation)
-  const [closeAlerts] = useMutation(updateMutation)
-  const [escalateAlerts] = useMutation(escalateMutation)
+  const [ackAlerts, a] = useMutation(updateMutation)
+  const [closeAlerts, c] = useMutation(updateMutation)
+  const [escalateAlerts, e] = useMutation(escalateMutation)
+
+  const actionComplete = (a.called && !a.loading) || (c.called && !c.loading) || (e.called && !e.loading)
 
   /*
    * Called on the successful completion of a checkbox action.
@@ -194,7 +198,7 @@ export default function AlertsList(props) {
    * displayed
    */
   function onCompleted(numUpdated, checkedItems) {
-    setShowUpdateCompleteSnackbar(true) // for create fab transition
+    setActionCompleteDismissed(false) // for create fab transition
     setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
   }
 
@@ -237,7 +241,7 @@ export default function AlertsList(props) {
               onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
             )
             .catch(err => {
-              setShowUpdateCompleteSnackbar(true)
+              setActionCompleteDismissed(false)
               setErrorMessage(err.message)
             })
         },
@@ -262,7 +266,7 @@ export default function AlertsList(props) {
                 onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
               )
               .catch(err => {
-                setShowUpdateCompleteSnackbar(true)
+                setActionCompleteDismissed(false)
                 setErrorMessage(err.message)
               })
           },
@@ -283,7 +287,7 @@ export default function AlertsList(props) {
                 ),
               )
               .catch(err => {
-                setShowUpdateCompleteSnackbar(true)
+                setActionCompleteDismissed(false)
                 setErrorMessage(err.message)
               })
           },
@@ -294,7 +298,7 @@ export default function AlertsList(props) {
     return actions
   }
 
-  // render the goodies
+  // render
   return (
     <React.Fragment>
       <QueryList
@@ -329,19 +333,19 @@ export default function AlertsList(props) {
         serviceID={props.serviceID}
         showFavoritesWarning={showNoFavoritesWarning}
         transition={
-          isFullScreen && (showNoFavoritesWarning || showUpdateCompleteSnackbar)
+          isFullScreen && (showNoFavoritesWarning || actionCompleteDismissed)
         }
       />
 
       {/* Update message after using checkbox actions */}
       <UpdateAlertsSnackbar
         errorMessage={errorMessage}
-        onClose={() => setShowUpdateCompleteSnackbar(false)}
+        onClose={() => setActionCompleteDismissed(true)}
         onExited={() => {
           setErrorMessage('')
           setUpdateMessage('')
         }}
-        open={showUpdateCompleteSnackbar}
+        open={actionComplete && !actionCompleteDismissed}
         updateMessage={updateMessage}
       />
 
