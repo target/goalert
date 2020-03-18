@@ -172,8 +172,8 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
     .then(res => res.createSchedule)
 }
 
-const fmtTime = (str: number): string => {
-  const s = str.toString()
+const fmtTime = (num: number): string => {
+  const s = num.toString()
   if (s.length === 1) {
     return '0' + s
   }
