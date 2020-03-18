@@ -108,16 +108,10 @@ export default function AlertsList(props) {
   const width = useWidth()
   const isFullScreen = isWidthDown('md', width)
 
-  // state initialization
-  const [errorMessage, setErrorMessage] = useState('')
-  const [updateMessage, setUpdateMessage] = useState('')
-
-  const [checkedItems, setCheckedItems] = useState([])
+  const [checkedCount, setCheckedCount] = useState(0)
 
   // used if user dismisses snackbar before the auto-close timer finishes
-  const [actionCompleteDismissed, setActionCompleteDismissed] = useState(
-    true,
-  )
+  const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
   // defaults to open unless favorited services are present or warning is dismissed
   const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(
@@ -158,10 +152,10 @@ export default function AlertsList(props) {
     !favoritesQueryStatus.loading
   const showNoFavoritesWarning =
     !favoritesWarningDismissed && // has not been dismissed
-    !allServices &&               // all services aren't being queries
-    !props.serviceID &&           // not viewing alerts from services page
-    !isFirstLogin &&              // don't show two pop-ups at the same time
-    noFavorites                   // and lastly, user has no favorited services
+    !allServices && // all services aren't being queried
+    !props.serviceID && // not viewing alerts from services page
+    !isFirstLogin && // don't show two pop-ups at the same time
+    noFavorites // and lastly, user has no favorited services
 
   /*
    * Closes the no favorites warning snackbar only if clicking
@@ -187,55 +181,25 @@ export default function AlertsList(props) {
     variables.input.filterByServiceID = [props.serviceID]
   }
 
-  // checkbox action mutations
-  const [ackAlerts, a] = useMutation(updateMutation, {
-    variables: {
-      input: {
-        alertIDs: checkedItems,
-        newStatus: 'StatusAcknowledged',
-      },
-    },
-    onCompleted: () => onCompleted(a.data?.updateAlerts?.length ?? 0, checkedItems),
-    onError: err => {
-      setActionCompleteDismissed(false)
-      setErrorMessage(err.message)
-    }
-  })
-  const [closeAlerts, c] = useMutation(updateMutation, {
-    variables: {
-      input: {
-        alertIDs: checkedItems,
-        newStatus: 'StatusClosed',
-      },
-    },
-    onCompleted: () => onCompleted(c.data?.updateAlerts?.length ?? 0, checkedItems),
-    onError: err => {
-      setActionCompleteDismissed(false)
-      setErrorMessage(err.message)
-    }
-  })
-  const [escalateAlerts, e] = useMutation(escalateMutation, {
-    variables: {
-      input: checkedItems
-    },
-    onCompleted: () => onCompleted(e.data?.escalateAlerts?.length ?? 0, checkedItems),
-    onError: err => {
-      setActionCompleteDismissed(false)
-      setErrorMessage(err.message)
-    }
-  })
+  const [mutate, status] = useMutation(updateMutation)
 
-  const actionComplete = (a.called && !a.loading) || (c.called && !c.loading) || (e.called && !e.loading)
-
-  /*
-   * Called on the successful completion of a checkbox action.
-   * Sets showing the update snackbar and sets the message to be
-   * displayed
-   */
-  function onCompleted(numUpdated, checkedItems) {
-    setActionCompleteDismissed(false) // for create fab transition
-    setUpdateMessage(`${numUpdated} of ${checkedItems.length} alerts updated`)
+  let updateMessage, errorMessage
+  if (status.error && !status.loading) {
+    errorMessage = status.error.message
   }
+  if (status.data && !status.loading) {
+    const numUpdated =
+      status.data.updateAlerts?.length ||
+      status.data.escalateAlerts?.length ||
+      0
+    updateMessage = `${numUpdated} of ${checkedCount} alert${
+      checkedCount === 1 ? '' : 's'
+    } updated`
+  }
+
+  const showAlertActionSnackbar = Boolean(
+    !actionCompleteDismissed && (errorMessage || updateMessage),
+  )
 
   /*
    * Adds border of color depending on each alert's status
@@ -263,9 +227,12 @@ export default function AlertsList(props) {
       actions.push({
         icon: <AcknowledgeIcon />,
         label: 'Acknowledge',
-        onClick: checkedItems => {
-          setCheckedItems(checkedItems)
-          return ackAlerts()
+        onClick: alertIDs => {
+          setCheckedCount(alertIDs.length)
+          setActionCompleteDismissed(false)
+          mutate({
+            variables: { input: { newStatus: 'StatusAcknowledged', alertIDs } },
+          })
         },
       })
     }
@@ -275,17 +242,24 @@ export default function AlertsList(props) {
         {
           icon: <CloseIcon />,
           label: 'Close',
-          onClick: checkedItems => {
-            setCheckedItems(checkedItems)
-            return closeAlerts()
+          onClick: alertIDs => {
+            setCheckedCount(alertIDs.length)
+            setActionCompleteDismissed(false)
+            mutate({
+              variables: { input: { newStatus: 'StatusClosed', alertIDs } },
+            })
           },
         },
         {
           icon: <EscalateIcon />,
           label: 'Escalate',
-          onClick: checkedItems => {
-            setCheckedItems(checkedItems)
-            return escalateAlerts()
+          onClick: alertIDs => {
+            setCheckedCount(alertIDs.length)
+            setActionCompleteDismissed(false)
+            mutate({
+              mutation: escalateMutation,
+              variables: { input: alertIDs },
+            })
           },
         },
       )
@@ -329,7 +303,7 @@ export default function AlertsList(props) {
         serviceID={props.serviceID}
         showFavoritesWarning={showNoFavoritesWarning}
         transition={
-          isFullScreen && (showNoFavoritesWarning || (actionComplete && !actionCompleteDismissed))
+          isFullScreen && (showNoFavoritesWarning || showAlertActionSnackbar)
         }
       />
 
@@ -337,11 +311,7 @@ export default function AlertsList(props) {
       <UpdateAlertsSnackbar
         errorMessage={errorMessage}
         onClose={() => setActionCompleteDismissed(true)}
-        onExited={() => {
-          setErrorMessage('')
-          setUpdateMessage('')
-        }}
-        open={actionComplete && !actionCompleteDismissed}
+        open={showAlertActionSnackbar}
         updateMessage={updateMessage}
       />
 
