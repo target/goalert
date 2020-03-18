@@ -29,7 +29,7 @@ const query = gql`
 
 export default function PolicyDetails(props) {
   const stepNumParam = 'createStep'
-  const [createStep, setCreateStep] = useURLParam(stepNumParam)
+  const [createStep, setCreateStep] = useURLParam(stepNumParam, false)
   const resetCreateStep = useResetURLParams(stepNumParam)
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
