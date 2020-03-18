@@ -20,7 +20,7 @@ const clickArc = (pct: number) => (el: any) => {
 }
 
 // materialClock will control a material time-picker from an input field
-function materialClock(time: string | DateTime) {
+function materialClock(time: string | DateTime): Cypress.Chainable<any> {
   const dt = DateTime.isDateTime(time)
     ? time
     : DateTime.fromFormat(time, 'HH:mm')
@@ -43,11 +43,11 @@ function materialClock(time: string | DateTime) {
     .then(clickArc(dt.minute / 60)) // minutes
 }
 
-const openPicker = (selector: string) => {
+const openPicker = (selector: string): void => {
   cy.get(selector).click() // open dialog
   cy.get('[role=dialog][data-cy=picker-fallback]').should('be.visible')
 }
-const finishPicker = () => {
+const finishPicker = (): void => {
   cy.get('[role=dialog][data-cy=picker-fallback]')
     .contains('button', 'OK')
     .click()
@@ -56,7 +56,7 @@ const finishPicker = () => {
 }
 
 // materialCalendar will control a material date-picker from an input field
-function materialCalendar(date: string | DateTime) {
+function materialCalendar(date: string | DateTime): void {
   const dt = DateTime.isDateTime(date)
     ? date
     : DateTime.fromFormat(date, 'yyyy-MM-dd')
@@ -109,7 +109,7 @@ function fillFormField(
   selPrefix: string,
   name: string,
   value: string | string[] | boolean | DateTime,
-) {
+): Cypress.Chainable<any> {
   const selector = `${selPrefix} input[name="${name}"],textarea[name="${name}"]`
 
   if (typeof value === 'boolean') {
