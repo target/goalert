@@ -54,7 +54,7 @@ export const alertsListQuery = gql`
 
 const updateMutation = gql`
   mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
-    updateAlerts(inputa: $input) {
+    updateAlerts(input: $input) {
       alertID
       id
     }
@@ -111,6 +111,8 @@ export default function AlertsList(props) {
   // state initialization
   const [errorMessage, setErrorMessage] = useState('')
   const [updateMessage, setUpdateMessage] = useState('')
+
+  const [checkedItems, setCheckedItems] = useState([])
 
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(
@@ -186,9 +188,42 @@ export default function AlertsList(props) {
   }
 
   // checkbox action mutations
-  const [ackAlerts, a] = useMutation(updateMutation)
-  const [closeAlerts, c] = useMutation(updateMutation)
-  const [escalateAlerts, e] = useMutation(escalateMutation)
+  const [ackAlerts, a] = useMutation(updateMutation, {
+    variables: {
+      input: {
+        alertIDs: checkedItems,
+        newStatus: 'StatusAcknowledged',
+      },
+    },
+    onCompleted: () => onCompleted(a.data?.updateAlerts?.length ?? 0, checkedItems),
+    onError: err => {
+      setActionCompleteDismissed(false)
+      setErrorMessage(err.message)
+    }
+  })
+  const [closeAlerts, c] = useMutation(updateMutation, {
+    variables: {
+      input: {
+        alertIDs: checkedItems,
+        newStatus: 'StatusClosed',
+      },
+    },
+    onCompleted: () => onCompleted(c.data?.updateAlerts?.length ?? 0, checkedItems),
+    onError: err => {
+      setActionCompleteDismissed(false)
+      setErrorMessage(err.message)
+    }
+  })
+  const [escalateAlerts, e] = useMutation(escalateMutation, {
+    variables: {
+      input: checkedItems
+    },
+    onCompleted: () => onCompleted(e.data?.escalateAlerts?.length ?? 0, checkedItems),
+    onError: err => {
+      setActionCompleteDismissed(false)
+      setErrorMessage(err.message)
+    }
+  })
 
   const actionComplete = (a.called && !a.loading) || (c.called && !c.loading) || (e.called && !e.loading)
 
@@ -229,21 +264,8 @@ export default function AlertsList(props) {
         icon: <AcknowledgeIcon />,
         label: 'Acknowledge',
         onClick: checkedItems => {
-          ackAlerts({
-            variables: {
-              input: {
-                alertIDs: checkedItems,
-                newStatus: 'StatusAcknowledged',
-              },
-            },
-          })
-            .then(res =>
-              onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
-            )
-            .catch(err => {
-              setActionCompleteDismissed(false)
-              setErrorMessage(err.message)
-            })
+          setCheckedItems(checkedItems)
+          return ackAlerts()
         },
       })
     }
@@ -254,42 +276,16 @@ export default function AlertsList(props) {
           icon: <CloseIcon />,
           label: 'Close',
           onClick: checkedItems => {
-            closeAlerts({
-              variables: {
-                input: {
-                  alertIDs: checkedItems,
-                  newStatus: 'StatusClosed',
-                },
-              },
-            })
-              .then(res =>
-                onCompleted(res?.data?.updateAlerts?.length ?? 0, checkedItems),
-              )
-              .catch(err => {
-                setActionCompleteDismissed(false)
-                setErrorMessage(err.message)
-              })
+            setCheckedItems(checkedItems)
+            return closeAlerts()
           },
         },
         {
           icon: <EscalateIcon />,
           label: 'Escalate',
           onClick: checkedItems => {
-            escalateAlerts({
-              variables: {
-                input: checkedItems,
-              },
-            })
-              .then(res =>
-                onCompleted(
-                  res?.data?.escalateAlerts?.length ?? 0,
-                  checkedItems,
-                ),
-              )
-              .catch(err => {
-                setActionCompleteDismissed(false)
-                setErrorMessage(err.message)
-              })
+            setCheckedItems(checkedItems)
+            return escalateAlerts()
           },
         },
       )
@@ -333,7 +329,7 @@ export default function AlertsList(props) {
         serviceID={props.serviceID}
         showFavoritesWarning={showNoFavoritesWarning}
         transition={
-          isFullScreen && (showNoFavoritesWarning || actionCompleteDismissed)
+          isFullScreen && (showNoFavoritesWarning || (actionComplete && !actionCompleteDismissed))
         }
       />
 
