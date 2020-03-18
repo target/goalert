@@ -1,7 +1,5 @@
 import { testScreen } from '../support'
 
-testScreen('Sidebar', testSidebar)
-
 function testSidebar() {
   beforeEach(() => cy.visit('/'))
 
@@ -47,3 +45,5 @@ function testSidebar() {
     })
   })
 }
+
+testScreen('Sidebar', testSidebar)

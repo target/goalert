@@ -2,67 +2,6 @@ import { testScreen } from '../support'
 import { Chance } from 'chance'
 const c = new Chance()
 
-testScreen('Favorites', testFavorites)
-
-function testFavorites() {
-  check(
-    'Service',
-    'services',
-    (name: string, favorite: boolean) =>
-      cy.createService({ name, favorite }).then(s => s.id),
-    () => {
-      const summary = c.sentence({
-        words: 3,
-      })
-
-      cy.visit('/alerts')
-
-      cy.pageFab()
-      cy.dialogTitle('New Alert')
-      cy.dialogForm({ summary })
-      cy.dialogClick('Next')
-
-      return cy.get('input[name=serviceSearch]')
-    },
-    (sel: Cypress.Chainable<JQuery<HTMLElement>>, prefix: string) =>
-      sel
-        .type(prefix)
-        .get('ul[data-cy=service-select] [data-cy=service-select-item]'),
-  )
-
-  check(
-    'Rotation',
-    'rotations',
-    (name: string, favorite: boolean) =>
-      cy.createRotation({ name, favorite }).then(r => r.id),
-    () =>
-      cy
-        .createEP()
-        .then(e => {
-          return cy.visit(`/escalation-policies/${e.id}`)
-        })
-        .pageFab()
-        .get('input[name=rotations]'),
-  )
-
-  check(
-    'Schedule',
-    'schedules',
-    (name: string, isFavorite: boolean) =>
-      cy.createSchedule({ name, isFavorite }).then(sched => sched.id),
-    () =>
-      cy
-        .createEP()
-        .then(e => {
-          return cy.visit(`/escalation-policies/${e.id}`)
-        })
-        .pageFab()
-        .get('[data-cy="schedules-step"]')
-        .click()
-        .get('input[name=schedules]'),
-  )
-}
-
 function check(
   typeName: string,
   urlPrefix: string,
@@ -135,3 +74,64 @@ function check(
     }
   })
 }
+
+function testFavorites() {
+  check(
+    'Service',
+    'services',
+    (name: string, favorite: boolean) =>
+      cy.createService({ name, favorite }).then(s => s.id),
+    () => {
+      const summary = c.sentence({
+        words: 3,
+      })
+
+      cy.visit('/alerts')
+
+      cy.pageFab()
+      cy.dialogTitle('New Alert')
+      cy.dialogForm({ summary })
+      cy.dialogClick('Next')
+
+      return cy.get('input[name=serviceSearch]')
+    },
+    (sel: Cypress.Chainable<JQuery<HTMLElement>>, prefix: string) =>
+      sel
+        .type(prefix)
+        .get('ul[data-cy=service-select] [data-cy=service-select-item]'),
+  )
+
+  check(
+    'Rotation',
+    'rotations',
+    (name: string, favorite: boolean) =>
+      cy.createRotation({ name, favorite }).then(r => r.id),
+    () =>
+      cy
+        .createEP()
+        .then(e => {
+          return cy.visit(`/escalation-policies/${e.id}`)
+        })
+        .pageFab()
+        .get('input[name=rotations]'),
+  )
+
+  check(
+    'Schedule',
+    'schedules',
+    (name: string, isFavorite: boolean) =>
+      cy.createSchedule({ name, isFavorite }).then(sched => sched.id),
+    () =>
+      cy
+        .createEP()
+        .then(e => {
+          return cy.visit(`/escalation-policies/${e.id}`)
+        })
+        .pageFab()
+        .get('[data-cy="schedules-step"]')
+        .click()
+        .get('input[name=schedules]'),
+  )
+}
+
+testScreen('Favorites', testFavorites)

@@ -2,7 +2,24 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Profile', testProfile)
+function countryCodeCheck(
+  country: string,
+  countryCode: string,
+  value: string,
+  formattedValue: string,
+) {
+  it(`should handle ${country} phone number`, () => {
+    const name = 'CM SM ' + c.word({ length: 8 })
+    const type = c.pickone(['SMS', 'VOICE'])
+
+    cy.pageFab('Contact')
+    cy.get('input[name=name]').type(name)
+    cy.get('input[name=type]').selectByLabel(type)
+    cy.get('input[name=value]').type(countryCode + value)
+    cy.get('button[type=submit]').click()
+    cy.get('body').should('contain', formattedValue)
+  })
+}
 
 function testProfile() {
   let cm: ContactMethod
@@ -267,21 +284,4 @@ function testProfile() {
   })
 }
 
-function countryCodeCheck(
-  country: string,
-  countryCode: string,
-  value: string,
-  formattedValue: string,
-) {
-  it(`should handle ${country} phone number`, () => {
-    const name = 'CM SM ' + c.word({ length: 8 })
-    const type = c.pickone(['SMS', 'VOICE'])
-
-    cy.pageFab('Contact')
-    cy.get('input[name=name]').type(name)
-    cy.get('input[name=type]').selectByLabel(type)
-    cy.get('input[name=value]').type(countryCode + value)
-    cy.get('button[type=submit]').click()
-    cy.get('body').should('contain', formattedValue)
-  })
-}
+testScreen('Profile', testProfile)

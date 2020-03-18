@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
-testScreen('Admin', testAdmin, false, true)
-
 function testAdmin() {
   describe('Admin System Limits Page', () => {
     let limits: Limits = new Map()
@@ -174,3 +172,5 @@ function testAdmin() {
     })
   })
 }
+
+testScreen('Admin', testAdmin, false, true)

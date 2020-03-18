@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Schedules', testSchedules)
-
 function testSchedules(screen: ScreenFormat) {
   describe('Creation', () => {
     it('should create a schedule', () => {
@@ -357,3 +355,5 @@ function testSchedules(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Schedules', testSchedules)

@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Wizard', testWizard)
-
 const keys = [
   {
     label: 'Generic API',
@@ -241,3 +239,5 @@ function testWizard() {
     })
   })
 }
+
+testScreen('Wizard', testWizard)

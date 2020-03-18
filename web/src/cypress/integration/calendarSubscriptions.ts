@@ -3,8 +3,6 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-testScreen('Calendar Subscriptions', testSubs)
-
 function testSubs(screen: ScreenFormat) {
   beforeEach(() => {
     cy.resetCalendarSubscriptions()
@@ -249,3 +247,5 @@ function testSubs(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Calendar Subscriptions', testSubs)

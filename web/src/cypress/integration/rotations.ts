@@ -4,8 +4,6 @@ import { DateTime } from 'luxon'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Rotations', testRotations)
-
 function testRotations() {
   describe('List Page', () => {
     let rot: Rotation
@@ -226,3 +224,5 @@ function testRotations() {
     })
   })
 }
+
+testScreen('Rotations', testRotations)

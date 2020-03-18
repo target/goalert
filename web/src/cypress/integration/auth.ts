@@ -1,7 +1,5 @@
 import { testScreen } from '../support'
 
-testScreen('Auth', testAuth, true)
-
 function testAuth() {
   before(() =>
     cy
@@ -35,3 +33,5 @@ function testAuth() {
     })
   })
 }
+
+testScreen('Auth', testAuth, true)

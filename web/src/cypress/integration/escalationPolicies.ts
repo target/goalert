@@ -3,8 +3,6 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-testScreen('Escalation Policies', testEP)
-
 function testEP(screen: ScreenFormat) {
   describe('List Page', () => {
     let ep: EP
@@ -148,3 +146,5 @@ function testEP(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Escalation Policies', testEP)
