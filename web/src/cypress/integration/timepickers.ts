@@ -6,7 +6,7 @@ const c = new Chance()
 
 testScreen('Time Pickers', testTimePickers)
 
-function testTimePickers(screen: ScreenFormat) {
+function testTimePickers() {
   describe('Time (schedule assignments)', () => {
     const check = (name: string, params: string, display: string) =>
       it(name, () => {
@@ -111,7 +111,7 @@ function testTimePickers(screen: ScreenFormat) {
   })
 
   describe('DateTime (schedule overrides)', () => {
-    const check = (name: string, params: string, display: string) =>
+    const check = (name: string, params: string) =>
       it(name, () => {
         cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
           cy.visit(`/schedules/${s.id}/overrides${params}`),
@@ -146,12 +146,10 @@ function testTimePickers(screen: ScreenFormat) {
       check(
         'should handle selecting date values when displaying the same time zone',
         '?tz=America/New_York',
-        '1/2/2006',
       )
       check(
         'should handle selecting date values when displaying an alternate time zone',
         '?tz=America/Boise',
-        '1/1/2006',
       )
     })
 
@@ -159,12 +157,10 @@ function testTimePickers(screen: ScreenFormat) {
       check(
         'should handle selecting date values when displaying the same time zone',
         '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
-        '1/2/2006',
       )
       check(
         'should handle selecting date values when displaying an alternate time zone',
         '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
-        '1/1/2006',
       )
     })
   })

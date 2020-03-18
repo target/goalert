@@ -19,12 +19,12 @@ const keys = [
   },
 ]
 
-function testWizard(screen: ScreenFormat) {
+function testWizard() {
   describe('Wizard Page', () => {
     beforeEach(() => cy.visit('/wizard'))
 
     // used for setting users on regular and fts rotations
-    const setUsers = (name: String) => {
+    const setUsers = (name: string) => {
       cy.fixture('users').then(users => {
         cy.get(`input[name="${name}"]`).selectByLabel(users[0].name)
         cy.get(`div[name="${name}"]`).should('contain', users[0].name)
@@ -34,7 +34,7 @@ function testWizard(screen: ScreenFormat) {
     }
 
     // used for setting primary and secondary schedule fields
-    const setScheduleFields = (key: String) => {
+    const setScheduleFields = (key: string) => {
       // set tz
       cy.get(`input[name="${key}.timeZone"]`).selectByLabel('America/Chicago')
       cy.get(`input[name="${key}.timeZone"]`).should(
@@ -162,7 +162,7 @@ function testWizard(screen: ScreenFormat) {
     })
 
     // handles disabling rotation fields for primary/secondary schedules
-    const hideRotationFields = (key: String) => {
+    const hideRotationFields = (key: string) => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.yes"]`).click() // show all fields to ensure everything gets hidden
@@ -197,7 +197,7 @@ function testWizard(screen: ScreenFormat) {
     })
 
     // handles asserting when follow the sun fields should exist for primary/secondary schedules
-    const showFTSFields = (key: String) => {
+    const showFTSFields = (key: string) => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.yes"]`).click()
@@ -219,7 +219,7 @@ function testWizard(screen: ScreenFormat) {
     })
 
     // handles asserting when follow the sun fields shouldn't exist for primary/secondary schedules
-    const dontShowFTSFields = (key: String) => {
+    const dontShowFTSFields = (key: string) => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.no"]`).click()

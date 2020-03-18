@@ -1,7 +1,7 @@
 import plugin from 'cypress-plugin-retries/lib/plugin'
 import fs from 'fs'
 
-export default (on, config) => {
+export default on => {
   plugin(on)
   on('task', {
     'engine:trigger': () => {

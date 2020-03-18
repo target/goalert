@@ -66,7 +66,7 @@ const retryLink = new RetryLink({
   },
   attempts: {
     max: 5,
-    retryIf: (error, _operation) => {
+    retryIf: error => {
       // Retry on any error except HTTP Response errors with the
       // exception of 502-504 response codes (e.g. no retry on 401/auth etc..).
       return (

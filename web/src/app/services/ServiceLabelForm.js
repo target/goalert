@@ -38,6 +38,7 @@ export default class LabelForm extends React.PureComponent {
 
   render() {
     const { editValueOnly, create, ...otherProps } = this.props
+
     return (
       <FormContainer {...otherProps} optionalLabels>
         <Grid container spacing={2}>

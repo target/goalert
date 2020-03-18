@@ -26,7 +26,7 @@ const query = gql`
   }
 `
 
-const styles = theme => ({
+const styles = () => ({
   spacing: { marginBottom: 96 },
 })
 

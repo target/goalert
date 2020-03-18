@@ -132,7 +132,7 @@ function testSchedules(screen: ScreenFormat) {
             weekdayFilter: [true, true, true, true, true, true, true],
           },
         ],
-      }).then(tgt => {
+      }).then(() => {
         cy.get('li')
           .contains('Shifts')
           .click()

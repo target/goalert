@@ -194,7 +194,7 @@ function createManyAlerts(
   // build query
   let query =
     'insert into alerts (service_id, summary, details, dedup_key) values '
-  let rows: Array<string> = []
+  const rows: Array<string> = []
   for (let i = 0; i < count; i++) {
     const summary = alertOptions.summary || c.word()
     const details = alertOptions.details || c.sentence()

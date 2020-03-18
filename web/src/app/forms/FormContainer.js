@@ -62,7 +62,7 @@ export class FormContainer extends React.PureComponent {
     }
   }
 
-  onSubmit = (...args) => {
+  onSubmit = () => {
     const validate = field => {
       let err
       // find first error
