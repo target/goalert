@@ -24,7 +24,7 @@ const buildFetchMore = (
   after: string,
   stopPolling: QueryResult['stopPolling'],
   itemsPerPage: number,
-) => {
+): ((newlimit: any) => Promise<any>) => {
   return once(newLimit => {
     stopPolling()
     return fetchMore({
@@ -76,7 +76,7 @@ export interface QueryListProps extends ControlledPaginatedListProps {
   variables?: any
 }
 
-export default function QueryList(props: QueryListProps) {
+export default function QueryList(props: QueryListProps): JSX.Element {
   const {
     mapDataNode = (n: ObjectMap) => ({
       id: n.id,

@@ -88,7 +88,7 @@ export interface CheckboxItemsProps extends PaginatedListItemProps {
 
 export default function ControlledPaginatedList(
   props: ControlledPaginatedListProps,
-) {
+): JSX.Element {
   const classes = useStyles()
   const {
     checkboxActions,
@@ -122,15 +122,15 @@ export default function ControlledPaginatedList(
     return []
   }
 
-  function setAll() {
+  function setAll(): void {
     setCheckedItems(getSelectableIDs())
   }
 
-  function setNone() {
+  function setNone(): void {
     setCheckedItems([])
   }
 
-  function handleToggleSelectAll() {
+  function handleToggleSelectAll(): void {
     // if none are checked, set all
     if (checkedItems.length === 0) {
       setAll()
@@ -139,7 +139,7 @@ export default function ControlledPaginatedList(
     }
   }
 
-  function getItems() {
+  function getItems(): CheckboxItemsProps[] | PaginatedListItemProps[] {
     if (itemsHaveID(items)) {
       return items.map(item => ({ ...item, icon: getItemIcon(item) }))
     }
@@ -227,7 +227,7 @@ export default function ControlledPaginatedList(
     )
   }
 
-  function getItemIcon(item: CheckboxItemsProps) {
+  function getItemIcon(item: CheckboxItemsProps): JSX.Element | undefined {
     if (!checkboxActions) return item.icon
 
     const checked = checkedItems.includes(item.id)
