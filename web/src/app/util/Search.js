@@ -9,11 +9,9 @@ import Slide from '@material-ui/core/Slide'
 import TextField from '@material-ui/core/TextField'
 import Toolbar from '@material-ui/core/Toolbar'
 import { Close as CloseIcon, Search as SearchIcon } from '@material-ui/icons'
-import { useDispatch, useSelector } from 'react-redux'
-import { searchSelector } from '../selectors/url'
-import { setURLParam } from '../actions/main'
 import { DEBOUNCE_DELAY } from '../config'
 import AppBarSearchContainer from './AppBarSearchContainer'
+import { useURLParam } from '../actions'
 
 const useStyles = makeStyles(theme => {
   return {
@@ -54,9 +52,8 @@ const useStyles = makeStyles(theme => {
  * On a larger screen, the field will always be present to use in the app bar.
  */
 export default function Search(props) {
-  const searchParam = useSelector(searchSelector)
-  const dispatch = useDispatch()
-  const setSearchParam = value => dispatch(setURLParam('search', value))
+  const [searchParam, setSearchParam] = useURLParam('search', '')
+
   const classes = useStyles()
   const [search, setSearch] = useState(searchParam)
   const [showMobile, setShowMobile] = useState(Boolean(search))
