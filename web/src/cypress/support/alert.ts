@@ -46,51 +46,6 @@ declare global {
   }
 }
 
-function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
-  if (!opts) return createAlertLogs({})
-  if (!opts.count) opts.count = c.integer({ min: 1, max: 50 })
-  if (!opts.alertID) {
-    return cy
-      .createAlert(opts.alert)
-      .then(alert => createAlertLogs({ ...opts, alertID: alert.number }))
-  }
-
-  const genMeta = () =>
-    JSON.stringify({
-      NewStepIndex: c.integer({ min: 0, max: 5 }),
-      Repeat: false,
-      Forced: false,
-      Deleted: false,
-      OldDelayMinutes: c.integer({ min: 1, max: 60 }),
-    })
-
-  let query = `INSERT INTO alert_logs (alert_id, timestamp, event, meta, message) values\n`
-  const n = DateTime.utc()
-  const vals = []
-  for (let i = 0; i < opts.count; i++) {
-    vals.push(
-      `(${opts.alertID},'${n
-        .plus({
-          milliseconds: i,
-        })
-        .toISO()}', 'escalated', '${genMeta()}', '')`,
-    )
-  }
-  query += vals.join(',') + ';'
-
-  return cy
-    .sql(query)
-    .then(() => getAlert(opts.alertID as number))
-    .then(alert => {
-      return getAlertLogs(opts.alertID as number).then(logs => {
-        return {
-          alert,
-          logs,
-        }
-      })
-    })
-}
-
 function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
   const query = `query GetLogs($id: Int!, $after: String!) {
     alert(id: $id) {
@@ -140,6 +95,51 @@ function getAlert(id: number): Cypress.Chainable<Alert> {
   }`
 
   return cy.graphql(query, { id }).then(res => res.alert)
+}
+
+function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
+  if (!opts) return createAlertLogs({})
+  if (!opts.count) opts.count = c.integer({ min: 1, max: 50 })
+  if (!opts.alertID) {
+    return cy
+      .createAlert(opts.alert)
+      .then(alert => createAlertLogs({ ...opts, alertID: alert.number }))
+  }
+
+  const genMeta = () =>
+    JSON.stringify({
+      NewStepIndex: c.integer({ min: 0, max: 5 }),
+      Repeat: false,
+      Forced: false,
+      Deleted: false,
+      OldDelayMinutes: c.integer({ min: 1, max: 60 }),
+    })
+
+  let query = `INSERT INTO alert_logs (alert_id, timestamp, event, meta, message) values\n`
+  const n = DateTime.utc()
+  const vals = []
+  for (let i = 0; i < opts.count; i++) {
+    vals.push(
+      `(${opts.alertID},'${n
+        .plus({
+          milliseconds: i,
+        })
+        .toISO()}', 'escalated', '${genMeta()}', '')`,
+    )
+  }
+  query += vals.join(',') + ';'
+
+  return cy
+    .sql(query)
+    .then(() => getAlert(opts.alertID as number))
+    .then(alert => {
+      return getAlertLogs(opts.alertID as number).then(logs => {
+        return {
+          alert,
+          logs,
+        }
+      })
+    })
 }
 
 function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {

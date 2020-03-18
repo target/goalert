@@ -31,22 +31,6 @@ function isSearchSelect(sub: any): Cypress.Chainable<boolean> {
   })
 }
 
-function selectByLabel(sub: any, label: string): Cypress.Chainable {
-  return isSearchSelect(sub).then(isSearchSelect => {
-    // clear value in search select
-    if ((!label || label === '{backspace}') && isSearchSelect) {
-      return clearSelect(sub)
-    }
-
-    return findByLabel(sub, label)
-      .click()
-      .get('[data-cy=select-dropdown]')
-      .should('not.exist')
-      .get('ul[role=listbox]')
-      .should('not.exist')
-  })
-}
-
 function clearSelect(sub: any): Cypress.Chainable {
   return cy
     .wrap(sub)
@@ -97,6 +81,22 @@ function findByLabel(sub: any, label: string): Cypress.Chainable {
       .click()
 
     return cy.get('ul[role=listbox]').contains('li', label)
+  })
+}
+
+function selectByLabel(sub: any, label: string): Cypress.Chainable {
+  return isSearchSelect(sub).then(isSearchSelect => {
+    // clear value in search select
+    if ((!label || label === '{backspace}') && isSearchSelect) {
+      return clearSelect(sub)
+    }
+
+    return findByLabel(sub, label)
+      .click()
+      .get('[data-cy=select-dropdown]')
+      .should('not.exist')
+      .get('ul[role=listbox]')
+      .should('not.exist')
   })
 }
 

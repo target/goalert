@@ -12,10 +12,6 @@ interface GraphQLResponse {
   errors: [any]
 }
 
-function graphql2(query: string, variables?: any) {
-  return graphql(query, variables, '/api/graphql')
-}
-
 // runs a graphql query returning the data response (after asserting no errors)
 function graphql(query: string, variables?: any, url = '/v1/graphql') {
   if (!variables) variables = {}
@@ -39,6 +35,10 @@ function graphql(query: string, variables?: any, url = '/v1/graphql') {
 
     return data.data
   })
+}
+
+function graphql2(query: string, variables?: any) {
+  return graphql(query, variables, '/api/graphql')
 }
 
 Cypress.Commands.add('graphql', graphql)

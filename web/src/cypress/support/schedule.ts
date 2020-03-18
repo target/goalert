@@ -67,6 +67,17 @@ declare global {
   }
 }
 
+const fmtTime = (str: any) => {
+  const s = str.toString()
+  if (s.length === 1) {
+    return '0' + s
+  }
+  return s
+}
+
+const randClock = () =>
+  `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
+
 function setScheduleTarget(
   tgt?: ScheduleTargetOptions,
 ): Cypress.Chainable<ScheduleTarget> {
@@ -171,17 +182,6 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
     })
     .then(res => res.createSchedule)
 }
-
-const fmtTime = (str: any) => {
-  const s = str.toString()
-  if (s.length === 1) {
-    return '0' + s
-  }
-  return s
-}
-
-const randClock = () =>
-  `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
 function deleteSchedule(id: string): Cypress.Chainable<void> {
   const mutation = `

@@ -20,13 +20,6 @@ declare global {
   }
 }
 
-function dialogForm(values: {
-  [key: string]: string | string[] | null | boolean | DateTime
-}): void {
-  dialog()
-  cy.form(values, '[role=dialog] #dialog-form')
-}
-
 function dialog(): Cypress.Chainable {
   return cy
     .get('[data-cy=unmounting]')
@@ -35,6 +28,14 @@ function dialog(): Cypress.Chainable {
     .should('have.length', 1)
     .should('be.visible')
 }
+
+function dialogForm(values: {
+  [key: string]: string | string[] | null | boolean | DateTime
+}): void {
+  dialog()
+  cy.form(values, '[role=dialog] #dialog-form')
+}
+
 function dialogTitle(title: string): Cypress.Chainable {
   return dialog()
     .find('[data-cy=dialog-title]')
