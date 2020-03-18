@@ -2,7 +2,7 @@ import { testScreen } from '../support'
 
 testScreen('Auth', testAuth, true)
 
-function testAuth() {
+function testAuth(): void {
   before(() =>
     cy
       .clearCookies()

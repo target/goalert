@@ -9,7 +9,7 @@ function basePrefix(): string {
   return u.pathname.replace(/\/$/, '')
 }
 
-function testServices(screen: ScreenFormat) {
+function testServices(screen: ScreenFormat): void {
   beforeEach(() => {
     window.localStorage.setItem('show_services_new_feature_popup', 'false')
   })
@@ -420,7 +420,7 @@ function testServices(screen: ScreenFormat) {
       }),
     )
 
-    const createKey = (type: string, name: string) => {
+    const createKey = (type: string, name: string): void => {
       cy.pageFab()
       cy.dialogForm({ name, type })
       cy.dialogFinish('Submit')

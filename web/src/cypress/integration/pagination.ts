@@ -7,7 +7,7 @@ const itemsPerPage = 15
 
 testScreen('Pagination', testPagination)
 
-const padZeros = (val: string) => {
+const padZeros = (val: string): string => {
   while (val.length < 4) val = '0' + val
   return val
 }
@@ -17,15 +17,16 @@ interface CreateOpts {
 }
 type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<any>
 type createManyFunc = (names: Array<CreateOpts>) => Cypress.Chainable<any>
-
-function createOne(fn: createOneFunc) {
+function createOne(
+  fn: createOneFunc,
+): (names: CreateOpts[]) => Cypress.cy & EventEmitter {
   return (names: Array<CreateOpts>) => {
     names.forEach(name => fn(name))
     return cy
   }
 }
 
-function testPagination() {
+function testPagination(): void {
   testPaginating('Rotations', 'rotations', createOne(cy.createRotation))
   testPaginating('Schedules', 'schedules', createOne(cy.createSchedule))
   testPaginating(
@@ -37,7 +38,11 @@ function testPagination() {
   testPaginating('Users', 'users', cy.createManyUsers)
 }
 
-function testPaginating(label: string, url: string, create: createManyFunc) {
+function testPaginating(
+  label: string,
+  url: string,
+  create: createManyFunc,
+): void {
   let names: Array<string> = []
   let nameSubstr = ''
 
