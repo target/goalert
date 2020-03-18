@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -15,6 +16,29 @@ func main() {
 	flag.Parse()
 
 	log.SetFlags(log.Lshortfile)
+
+	if flag.Arg(0) == "" {
+		log.Fatal("source URL argument is required")
+	}
+	if flag.Arg(1) == "" {
+		log.Fatal("destination URL argument is required")
+	}
+
+	u, err := url.Parse(flag.Arg(0))
+	if err != nil {
+		log.Fatal("invalid source URL:", err)
+	}
+	if u.Path == "" || u.Path == "/" {
+		log.Fatal("source URL must contain a path prefix (e.g. /foobar)")
+	}
+
+	u, err = url.Parse(flag.Arg(1))
+	if err != nil {
+		log.Fatal("invalid destination URL:", err)
+	}
+	if u.Path != "" {
+		log.Fatal("destination URL must not contain a path but found:", u.Path)
+	}
 
 	t := time.NewTicker(time.Second)
 	defer t.Stop()
