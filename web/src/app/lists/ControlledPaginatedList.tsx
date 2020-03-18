@@ -171,7 +171,13 @@ export default function ControlledPaginatedList(
     const itemIDs = getSelectableIDs()
 
     return (
-      <Grid aria-label='List Checkbox Controls' className={classes.actionsContainer} item container spacing={2}>
+      <Grid
+        aria-label='List Checkbox Controls'
+        className={classes.actionsContainer}
+        item
+        container
+        spacing={2}
+      >
         <Grid item>
           <Checkbox
             className={classes.checkbox}

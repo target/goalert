@@ -187,11 +187,13 @@ export default function AlertsList(props) {
   if (status.error && !status.loading) {
     errorMessage = status.error.message
   }
+
   if (status.data && !status.loading) {
     const numUpdated =
       status.data.updateAlerts?.length ||
       status.data.escalateAlerts?.length ||
       0
+
     updateMessage = `${numUpdated} of ${checkedCount} alert${
       checkedCount === 1 ? '' : 's'
     } updated`
@@ -230,7 +232,7 @@ export default function AlertsList(props) {
         onClick: alertIDs => {
           setCheckedCount(alertIDs.length)
           setActionCompleteDismissed(false)
-          mutate({
+          return mutate({
             variables: { input: { newStatus: 'StatusAcknowledged', alertIDs } },
           })
         },
@@ -245,7 +247,7 @@ export default function AlertsList(props) {
           onClick: alertIDs => {
             setCheckedCount(alertIDs.length)
             setActionCompleteDismissed(false)
-            mutate({
+            return mutate({
               variables: { input: { newStatus: 'StatusClosed', alertIDs } },
             })
           },
@@ -256,7 +258,7 @@ export default function AlertsList(props) {
           onClick: alertIDs => {
             setCheckedCount(alertIDs.length)
             setActionCompleteDismissed(false)
-            mutate({
+            return mutate({
               mutation: escalateMutation,
               variables: { input: alertIDs },
             })
