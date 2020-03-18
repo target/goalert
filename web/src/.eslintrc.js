@@ -43,8 +43,6 @@ module.exports = {
     // TODO: no-explicit-any: on
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-empty-function': 'off',
-    // TODO: on, but bypass alerts files
-    '@typescript-eslint/camelcase': 'off',
     '@typescript-eslint/no-unused-vars': [
       'error',
       {

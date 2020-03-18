@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 
