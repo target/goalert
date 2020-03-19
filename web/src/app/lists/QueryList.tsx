@@ -136,6 +136,7 @@ export default function QueryList(props: QueryListProps) {
           items={items}
           itemsPerPage={queryVariables.input.first}
           loadMore={loadMore}
+          refetch={refetch}
           isLoading={!data && loading}
         />
       </Grid>
