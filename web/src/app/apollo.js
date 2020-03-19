@@ -133,14 +133,6 @@ export const GraphQLClient = new ApolloClient({
   },
 })
 
-// refetch all *active* polling queries on mutation
-const mutate = GraphQLClient.mutate
-GraphQLClient.mutate = (...args) => {
-  return mutate.call(GraphQLClient, ...args).then(result => {
-    return GraphQLClient.reFetchObservableQueries(true).then(() => result)
-  })
-}
-
 // Legacy client
 const legacyHttpLink = createHttpLink({
   uri: pathPrefix + '/v1/graphql',
@@ -173,3 +165,18 @@ export const GraphQLClientWithErrors = new ApolloClient({
     mutate: { awaitRefetchQueries: true, errorPolicy: 'all' },
   },
 })
+
+// refetch all *active* polling queries on mutations
+const mutate = GraphQLClient.mutate
+GraphQLClient.mutate = (...args) => {
+  return mutate.call(GraphQLClient, ...args).then(result => {
+    return GraphQLClient.reFetchObservableQueries(true).then(() => result)
+  })
+}
+
+const mutateWithErrors = GraphQLClientWithErrors.mutate
+GraphQLClientWithErrors.mutate = (...args) => {
+  return mutateWithErrors.call(GraphQLClient, ...args).then(result => {
+    return GraphQLClientWithErrors.reFetchObservableQueries(true).then(() => result)
+  })
+}
