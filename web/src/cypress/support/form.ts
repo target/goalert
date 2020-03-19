@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-const clickArc = (pct: number) => (el: any) => {
+const clickArc = (pct: number) => (el: JQuery) => {
   const height = el.height() || 0
   const radius = height / 2
   const angle = (-1 + pct) * Math.PI * 2 - Math.PI / 2
