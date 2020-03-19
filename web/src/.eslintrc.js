@@ -37,8 +37,6 @@ module.exports = {
     // TODO: add options { allowExpressions: true, allowTypedFunctionExpressions: false }
     '@typescript-eslint/explicit-function-return-type': 'off',
     // TODO: use defaults
-    '@typescript-eslint/no-namespace': 'off',
-    // TODO: use defaults
     '@typescript-eslint/no-use-before-define': 'off',
     // TODO: no-explicit-any: on
     '@typescript-eslint/no-explicit-any': 'off',
