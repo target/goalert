@@ -1,11 +1,3 @@
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      getLimits: typeof getLimits
-      updateLimits: typeof updateLimits
-    }
-  }
-}
 interface SystemLimitInput {
   id: string
   value: number
