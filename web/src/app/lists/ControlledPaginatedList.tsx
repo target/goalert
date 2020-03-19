@@ -59,9 +59,6 @@ export interface ControlledPaginatedListProps extends PaginatedListProps {
   searchAdornment?: ReactElement
 
   items: CheckboxItemsProps[] | PaginatedListItemProps[]
-
-  // if set, refetch after actions complete
-  refetch?: (variables?: any) => void
 }
 
 export interface ControlledPaginatedListAction {
@@ -72,7 +69,7 @@ export interface ControlledPaginatedListAction {
   label: string
 
   // Callback that will be passed a list of selected items
-  onClick: (selectedIDs: (string | number)[]) => Promise<any>
+  onClick: (selectedIDs: (string | number)[]) => void
 }
 
 // used if checkBoxActions is set to true
@@ -99,7 +96,6 @@ export default function ControlledPaginatedList(
     noSearch,
     searchAdornment,
     items,
-    refetch,
     ...listProps
   } = props
 
@@ -230,9 +226,7 @@ export default function ControlledPaginatedList(
               >
                 <IconButton
                   onClick={() => {
-                    a.onClick(checkedItems).then(() => {
-                      if (refetch) refetch()
-                    })
+                    a.onClick(checkedItems)
                     setNone()
                   }}
                 >
