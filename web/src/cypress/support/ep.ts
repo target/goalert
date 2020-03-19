@@ -1,42 +1,6 @@
 import { Chance } from 'chance'
 const c = new Chance()
 
-declare global {
-  export namespace Cypress {
-    interface Chainable {
-      createEP: typeof createEP
-      deleteEP: typeof deleteEP
-      createEPStep: typeof createEPStep
-    }
-  }
-
-  interface EP {
-    id: string
-    name: string
-    description: string
-    repeat: number
-    stepCount: number
-  }
-
-  interface EPOptions {
-    name?: string
-    description?: string
-    repeat?: number
-    stepCount?: number
-  }
-
-  interface EPStep {
-    delayMinutes: number
-  }
-
-  interface EPStepOptions {
-    epID?: string
-    ep?: EPOptions
-    delay?: number
-    targets?: [Target]
-  }
-}
-
 const policyMutation = `
     mutation($input: CreateEscalationPolicyInput!) {
       createEscalationPolicy(input: $input) {
