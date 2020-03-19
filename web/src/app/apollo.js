@@ -177,6 +177,8 @@ GraphQLClient.mutate = (...args) => {
 const mutateWithErrors = GraphQLClientWithErrors.mutate
 GraphQLClientWithErrors.mutate = (...args) => {
   return mutateWithErrors.call(GraphQLClient, ...args).then(result => {
-    return GraphQLClientWithErrors.reFetchObservableQueries(true).then(() => result)
+    return GraphQLClientWithErrors.reFetchObservableQueries(true).then(
+      () => result,
+    )
   })
 }
