@@ -4,49 +4,6 @@ import { DateTime } from 'luxon'
 
 const c = new Chance()
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      createAlert: typeof createAlert
-      createManyAlerts: typeof createManyAlerts
-      closeAlert: typeof closeAlert
-      createAlertLogs: typeof createAlertLogs
-    }
-  }
-
-  interface Alert {
-    number: number
-    id: number
-    summary: string
-    details: string
-    serviceID: string
-    service: Service
-  }
-
-  interface AlertOptions {
-    summary?: string
-    details?: string
-    serviceID?: string
-
-    service?: ServiceOptions
-  }
-
-  interface AlertLogOptions {
-    count?: number
-    alertID?: number
-    alert?: AlertOptions
-  }
-
-  interface AlertLogs {
-    alert: Alert
-    logs: Array<AlertLog>
-  }
-  interface AlertLog {
-    timestamp: string
-    message: string
-  }
-}
-
 function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
   if (!opts) return createAlertLogs({})
   if (!opts.count) opts.count = c.integer({ min: 1, max: 50 })
@@ -67,7 +24,7 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
 
   let query = `INSERT INTO alert_logs (alert_id, timestamp, event, meta, message) values\n`
   const n = DateTime.utc()
-  const vals = []
+  const vals: string[] = []
   for (let i = 0; i < opts.count; i++) {
     vals.push(
       `(${opts.alertID},'${n
