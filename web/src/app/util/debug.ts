@@ -1,12 +1,13 @@
-export function debug(args: any) {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function debug(message?: any, ...optionalParams: any[]) {
   if (!window.console) return // some browsers don't define console if the devtools are closed
-  if (console.debug) console.debug(args)
+  if (console.debug) console.debug(message, optionalParams)
   // not all browsers have `.debug` defined
-  else console.log(args)
+  else console.log(message, optionalParams)
 }
-export function warn(...args: any[]) {
+export function warn(message?: any, ...optionalParams: any[]) {
   if (!window.console) return // some browsers don't define console if the devtools are closed
-  if (console.warn) console.warn(...args)
+  if (console.warn) console.warn(...message, optionalParams)
   // not all browsers have `.warn` defined
-  else console.log(...args)
+  else console.log(...message, optionalParams)
 }
