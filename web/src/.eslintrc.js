@@ -40,8 +40,6 @@ module.exports = {
     '@typescript-eslint/no-namespace': 'off',
     // TODO: use defaults
     '@typescript-eslint/no-use-before-define': 'off',
-    // TODO: no-explicit-any: on
-    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-unused-vars': [
       'error',
