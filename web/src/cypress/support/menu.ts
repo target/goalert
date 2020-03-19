@@ -1,12 +1,3 @@
-declare global {
-  namespace Cypress {
-    interface Chainable<Subject> {
-      /** Open the selected menu and click the matching item. */
-      menu: menuFn
-    }
-  }
-}
-
 interface MenuSelectOptions {
   /** Forces the menu to operate in widescreen mode.
    *
@@ -14,8 +5,6 @@ interface MenuSelectOptions {
    */
   forceWidescreen?: boolean
 }
-
-type menuFn = (label: string, options?: MenuSelectOptions) => Cypress.Chainable
 
 function menu(
   sub: any,
