@@ -55,7 +55,7 @@ export const alertsListQuery = gql`
 const updateMutation = gql`
   mutation UpdateAlertsMutation($input: UpdateAlertsInput!) {
     updateAlerts(input: $input) {
-      alertID
+      status
       id
     }
   }
@@ -64,7 +64,7 @@ const updateMutation = gql`
 const escalateMutation = gql`
   mutation EscalateAlertsMutation($input: [Int!]) {
     escalateAlerts(input: $input) {
-      alertID
+      status
       id
     }
   }
@@ -183,6 +183,21 @@ export default function AlertsList(props) {
 
   const [mutate, status] = useMutation(updateMutation)
 
+  const makeUpdateAlerts = newStatus => alertIDs => {
+    setCheckedCount(alertIDs.length)
+    setActionCompleteDismissed(false)
+
+    let mutation = updateMutation
+    let variables = { input: { newStatus, alertIDs } }
+
+    if (newStatus === 'StatusUnacknowledged') {
+      mutation = escalateMutation
+      variables = { input: alertIDs }
+    }
+
+    mutate({ mutation, variables })
+  }
+
   let updateMessage, errorMessage
   if (status.error && !status.loading) {
     errorMessage = status.error.message
@@ -229,13 +244,7 @@ export default function AlertsList(props) {
       actions.push({
         icon: <AcknowledgeIcon />,
         label: 'Acknowledge',
-        onClick: alertIDs => {
-          setCheckedCount(alertIDs.length)
-          setActionCompleteDismissed(false)
-          return mutate({
-            variables: { input: { newStatus: 'StatusAcknowledged', alertIDs } },
-          })
-        },
+        onClick: makeUpdateAlerts('StatusAcknowledged'),
       })
     }
 
@@ -244,25 +253,12 @@ export default function AlertsList(props) {
         {
           icon: <CloseIcon />,
           label: 'Close',
-          onClick: alertIDs => {
-            setCheckedCount(alertIDs.length)
-            setActionCompleteDismissed(false)
-            return mutate({
-              variables: { input: { newStatus: 'StatusClosed', alertIDs } },
-            })
-          },
+          onClick: makeUpdateAlerts('StatusClosed'),
         },
         {
           icon: <EscalateIcon />,
           label: 'Escalate',
-          onClick: alertIDs => {
-            setCheckedCount(alertIDs.length)
-            setActionCompleteDismissed(false)
-            return mutate({
-              mutation: escalateMutation,
-              variables: { input: alertIDs },
-            })
-          },
+          onClick: makeUpdateAlerts('StatusUnacknowledged'),
         },
       )
     }
