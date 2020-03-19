@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 // Folder ops
 const path = require('path')
 const webpack = require('webpack')

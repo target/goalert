@@ -4,7 +4,7 @@ const c = new Chance()
 
 testScreen('Material Select', testMaterialSelect)
 
-function testMaterialSelect(screen: ScreenFormat) {
+function testMaterialSelect() {
   describe('Clear Fields', () => {
     describe('Escalation Policy Steps', () => {
       let ep: EP

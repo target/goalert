@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 const webpack = require('webpack')
 const path = require('path')
 const outputPath = path.join(__dirname, 'build')

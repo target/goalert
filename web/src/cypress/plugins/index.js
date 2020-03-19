@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 // ***********************************************************
 // This example plugins/index.js can be used to load plugins
 //
@@ -14,7 +15,7 @@
 const wp = require('@cypress/webpack-preprocessor')
 const fs = require('fs')
 
-module.exports = (on, config) => {
+module.exports = on => {
   require('cypress-plugin-retries/lib/plugin')(on)
 
   // `on` is used to hook into various events Cypress emits

@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import React, { Component } from 'react'
 import Card from '@material-ui/core/Card'
 import InfoIcon from '@material-ui/icons/Info'
@@ -160,7 +161,7 @@ export default class AlertsList extends Component {
    * Display current data until new data loads in when refetching
    * i.e. only show loading placeholders on first page load
    */
-  shouldComponentUpdate(nextProps, nextState, nextContext) {
+  shouldComponentUpdate(nextProps) {
     return !(
       this.props.data.alerts2 &&
       (nextProps.data.networkStatus === 2 || nextProps.data.networkStatus === 4)

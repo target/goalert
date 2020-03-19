@@ -218,7 +218,7 @@ function form(
   },
   selectorPrefix = '',
 ): void {
-  for (let key in values) {
+  for (const key in values) {
     const val = values[key]
     if (val === null) continue
     fillFormField(selectorPrefix, key, val)

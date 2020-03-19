@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { setCheckedAlerts, setAlertsActionComplete } from '../../actions'

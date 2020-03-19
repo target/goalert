@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 declare global {
   namespace NodeJS {
     interface Global {
@@ -7,8 +8,8 @@ declare global {
     }
   }
 }
-declare var __webpack_public_path__: string
-declare var __webpack_require__: any
+declare let __webpack_public_path__: string
+declare let __webpack_require__: any
 
 export const pathPrefix = global.pathPrefix
 

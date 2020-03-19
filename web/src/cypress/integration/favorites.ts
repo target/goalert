@@ -4,7 +4,7 @@ const c = new Chance()
 
 testScreen('Favorites', testFavorites)
 
-function testFavorites(screen: ScreenFormat) {
+function testFavorites() {
   check(
     'Service',
     'services',
