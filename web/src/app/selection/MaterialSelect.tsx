@@ -119,7 +119,7 @@ export default function MaterialSelect(
           }
         }
 
-        onChange(selected as any) //NOTE typeof selected switches based on multiple; ts can't infer this
+        onChange(selected as any) // NOTE typeof selected switches based on multiple; ts can't infer this
       }}
       onInputChange={(event, inputVal, reason) => {
         if (reason === 'clear' && !multiple) {
@@ -157,7 +157,7 @@ export default function MaterialSelect(
           />
         )
       }}
-      renderOption={({ label, value, icon }) => (
+      renderOption={({ label, icon }) => (
         <MenuItem component='span' className={classes.menuItem}>
           <Typography noWrap>{label}</Typography>
           {icon && (
