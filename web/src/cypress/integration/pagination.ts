@@ -15,8 +15,11 @@ const padZeros = (val: string) => {
 interface CreateOpts {
   name: string
 }
-type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<any>
-type createManyFunc = (names: Array<CreateOpts>) => Cypress.Chainable<any>
+type dataModel = EP | Profile | Rotation | Schedule | Service | undefined
+type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<dataModel>
+type createManyFunc = (
+  names: Array<CreateOpts>,
+) => Cypress.Chainable<dataModel | dataModel[]>
 
 function createOne(fn: createOneFunc) {
   return (names: Array<CreateOpts>) => {
