@@ -57,7 +57,7 @@ function testMaterialSelect() {
         cy.dialogForm({ repeat: '' })
         cy.get('[role=dialog] #dialog-form input[name="repeat"]')
           .should('not.have.value', defaultVal)
-          .type('{esc}')
+          .blur()
 
         // Default value returns
         cy.get('[role=dialog] #dialog-form').click()
