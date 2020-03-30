@@ -9,11 +9,12 @@ export interface ReduxState {
   router: History
 }
 
-export const urlQuerySelector = (state: ReduxState) =>
+export const urlQuerySelector = (state: ReduxState): string =>
   state.router.location.search
-export const urlPathSelector = (state: ReduxState) =>
+export const urlPathSelector = (state: ReduxState): string =>
   state.router.location.pathname
-export const urlKeySelector = (state: ReduxState) => state.router.location.key
+export const urlKeySelector = (state: ReduxState): string | undefined =>
+  state.router.location.key
 
 export const urlSearchParamsSelector = createSelector(
   urlQuerySelector,

@@ -24,6 +24,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import { AppLink } from '../util/AppLink'
+import statusStyles from '../util/statusStyles'
 
 // gray boxes on load
 // disable overflow
@@ -56,6 +57,7 @@ const useStyles = makeStyles(theme => ({
       },
     },
   },
+  ...statusStyles,
 }))
 
 export interface PaginatedListProps {
@@ -90,9 +92,10 @@ export interface PaginatedListItemProps {
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
+  status?: 'ok' | 'warn' | 'err'
 }
 
-export function PaginatedList(props: PaginatedListProps) {
+export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const {
     cardHeader,
     headerNote,
@@ -137,7 +140,7 @@ export function PaginatedList(props: PaginatedListProps) {
     return false
   })()
 
-  function handleNextPage() {
+  function handleNextPage(): void {
     const nextPage = page + 1
     setPage(nextPage)
 
@@ -162,7 +165,6 @@ export function PaginatedList(props: PaginatedListProps) {
 
   function renderItem(item: PaginatedListItemProps, idx: number): ReactElement {
     let favIcon = <ListItemSecondaryAction />
-
     if (item.isFavorite) {
       favIcon = (
         <ListItemSecondaryAction>
@@ -173,6 +175,21 @@ export function PaginatedList(props: PaginatedListProps) {
       )
     }
 
+    // get status style for left-most border color
+    let itemClass = classes.noStatus
+    switch (item.status) {
+      case 'ok':
+        itemClass = classes.statusOK
+        break
+      case 'warn':
+        itemClass = classes.statusWarning
+        break
+      case 'err':
+        itemClass = classes.statusError
+        break
+    }
+
+    // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
       component: AppLink,
       // NOTE button: false? not assignable to true
@@ -183,6 +200,7 @@ export function PaginatedList(props: PaginatedListProps) {
 
     return (
       <ListItem
+        className={itemClass}
         dense={isWidthUp('md', width)}
         key={'list_' + idx}
         {...urlProps}
@@ -298,7 +316,7 @@ function PageControls(props: {
   isLoading: boolean
   onNext?: () => void
   onBack?: () => void
-}) {
+}): JSX.Element {
   const classes = useStyles()
   const { isLoading, onBack, onNext } = props
 
@@ -376,7 +394,7 @@ const useLoadingStyles = makeStyles({
 })
 
 // LoadingItem is used as a placeholder for loading content
-function LoadingItem(props: { dense?: boolean }) {
+function LoadingItem(props: { dense?: boolean }): JSX.Element {
   const classes = useLoadingStyles(props.dense)
 
   return (

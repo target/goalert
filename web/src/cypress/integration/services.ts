@@ -9,7 +9,7 @@ function basePrefix(): string {
   return u.pathname.replace(/\/$/, '')
 }
 
-function testServices(screen: ScreenFormat) {
+function testServices(screen: ScreenFormat): void {
   beforeEach(() => {
     window.localStorage.setItem('show_services_new_feature_popup', 'false')
   })
@@ -420,7 +420,7 @@ function testServices(screen: ScreenFormat) {
       }),
     )
 
-    const createKey = (type: string, name: string) => {
+    const createKey = (type: string, name: string): void => {
       cy.pageFab()
       cy.dialogForm({ name, type })
       cy.dialogFinish('Submit')
@@ -513,13 +513,13 @@ function testServices(screen: ScreenFormat) {
 
       cy.reload()
 
-      cy.get('ul[data-cy=alerts-list]').should('contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
 
       cy.pageAction('Acknowledge All')
       cy.dialogFinish('Confirm')
 
-      cy.get('ul[data-cy=alerts-list]').should('contain', 'ACKNOWLEDGED')
-      cy.get('ul[data-cy=alerts-list]').should('not.contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=apollo-list]').should('contain', 'ACKNOWLEDGED')
+      cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
 
       cy.pageAction('Close All')
       cy.dialogFinish('Confirm')

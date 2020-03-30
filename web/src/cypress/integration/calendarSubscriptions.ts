@@ -5,7 +5,7 @@ const c = new Chance()
 
 testScreen('Calendar Subscriptions', testSubs)
 
-function testSubs(screen: ScreenFormat) {
+function testSubs(screen: ScreenFormat): void {
   beforeEach(() => {
     cy.resetCalendarSubscriptions()
   })

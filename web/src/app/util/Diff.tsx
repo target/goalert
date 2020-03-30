@@ -37,7 +37,7 @@ interface DiffProps {
  * Diff displays a difference in characters
  * or words from an old and new value
  */
-export default function Diff(props: DiffProps) {
+export default function Diff(props: DiffProps): JSX.Element {
   const { oldValue, newValue, type } = props
 
   const classes = useStyles()

@@ -68,7 +68,7 @@ export function testScreen(
   fn: (screen: ScreenFormat) => void,
   skipLogin = false,
   adminLogin = false,
-) {
+): void {
   describe(label, () => {
     before(() => resetQuery().then(query => cy.sql(query)))
     it('reset db', () => {}) // required due to mocha skip bug
