@@ -16,23 +16,24 @@ function testAlerts(screen: ScreenFormat) {
         .visit('/alerts?allServices=1')
     })
 
-    it('should handle searching by number', () => {
+    it('should handle searching by id', () => {
       // by id
-      cy.pageSearch(alert.number.toString())
+      cy.pageSearch(alert.id.toString())
       cy.get('body')
         .should('contain', alert.summary)
-        .should('contain', alert.number)
+        .should('contain', alert.id)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=alerts-list] li').should('have.length', 1)
+      cy.get('ul[data-cy=apollo-list] li').should('have.length', 1)
     })
+
     it('should handle searching by summary', () => {
       // by summary
       cy.pageSearch(alert.summary)
       cy.get('body')
         .should('contain', alert.summary)
-        .should('contain', alert.number)
+        .should('contain', alert.id)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=alerts-list] li').should('have.length', 1)
+      cy.get('ul[data-cy=apollo-list] li').should('have.length', 1)
     })
 
     it('should handle searching by service name', () => {
@@ -40,9 +41,9 @@ function testAlerts(screen: ScreenFormat) {
       cy.pageSearch(alert.service.name)
       cy.get('body')
         .should('contain', alert.summary)
-        .should('contain', alert.number)
+        .should('contain', alert.id)
         .should('contain', alert.service.name)
-      cy.get('ul[data-cy=alerts-list] li').should('have.length', 1)
+      cy.get('ul[data-cy=apollo-list] li').should('have.length', 1)
     })
 
     it('should handle toggling show by favorites filter', () => {
@@ -58,23 +59,21 @@ function testAlerts(screen: ScreenFormat) {
 
       cy.createManyAlerts(50, { summary }).then(() => {
         cy.visit('/alerts?allServices=1&filter=all&search=' + summary)
-        cy.get('[data-cy=alerts-list] li').should('have.length', 25)
+        cy.get('[data-cy=apollo-list] li').should('contain', summary)
+        cy.get('[data-cy=apollo-list] li').should('have.length', 25)
         cy.get('[id="content"]').scrollTo('bottom')
-        cy.get('[data-cy=alerts-list] li').should('have.length', 50)
+        cy.get('[data-cy=apollo-list] li').should('have.length', 50)
       })
     })
 
     describe('Item', () => {
-      beforeEach(() => cy.pageSearch(alert.number.toString()))
+      beforeEach(() => cy.pageSearch(alert.id.toString()))
       it('should link to the details page', () => {
-        cy.get('ul[data-cy=alerts-list]')
-          .contains(alert.number.toString())
+        cy.get('ul[data-cy=apollo-list]')
+          .contains(alert.id.toString())
           .click()
 
-        cy.url().should(
-          'eq',
-          Cypress.config().baseUrl + `/alerts/${alert.number}`,
-        )
+        cy.url().should('eq', Cypress.config().baseUrl + `/alerts/${alert.id}`)
       })
     })
   })
@@ -102,7 +101,7 @@ function testAlerts(screen: ScreenFormat) {
 
         // wait for list to fully load before beginning tests
         return cy
-          .get('[data-cy=alerts-list] [role=button]')
+          .get('[data-cy=apollo-list] [role=button]')
           .should('have.length', 3)
       })
     })
@@ -110,51 +109,39 @@ function testAlerts(screen: ScreenFormat) {
     it('should select and deselect all alerts from the header checkbox', () => {
       cy.get('span[data-cy=select-all] input').check()
 
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert3.number}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}] input`).should('be.checked')
 
       cy.get('span[data-cy=select-all] input').uncheck()
 
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).should(
-        'not.be.checked',
-      )
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).should(
-        'not.be.checked',
-      )
-      cy.get(`span[data-cy=alert-${alert3.number}] input`).should(
-        'not.be.checked',
-      )
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}] input`).should('not.be.checked')
     })
 
     it('should select some alerts and deselect all from the header checkbox', () => {
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
 
       cy.get('span[data-cy=select-all] input').click()
 
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).should(
-        'not.be.checked',
-      )
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).should(
-        'not.be.checked',
-      )
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).should(
-        'not.be.checked',
-      )
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('not.be.checked')
     })
 
     it('should select and deselect all alerts from the header checkbox menu', () => {
       cy.get('[data-cy=checkboxes-menu] [data-cy=other-actions]').menu('All')
 
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).should('be.checked')
-      cy.get(`span[data-cy=alert-${alert3.number}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}] input`).should('be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}] input`).should('be.checked')
 
       cy.get('[data-cy=checkboxes-menu] [data-cy=other-actions]').menu('None')
-      cy.get(`span[data-cy=alert-${alert1.number}]`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert2.number}]`).should('not.be.checked')
-      cy.get(`span[data-cy=alert-${alert3.number}]`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert1.id}]`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert2.id}]`).should('not.be.checked')
+      cy.get(`span[data-cy=item-${alert3.id}]`).should('not.be.checked')
     })
 
     it('should acknowledge, escalate, and close multiple alerts', () => {
@@ -162,82 +149,91 @@ function testAlerts(screen: ScreenFormat) {
         .should('not.be.checked')
         .click()
 
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get('button[title=Acknowledge]').click()
 
-      cy.get('ul[data-cy=alerts-list]').should('not.contain', 'UNACKNOWLEDGED')
-
-      cy.get('span[data-cy=select-all] input')
-        .should('not.be.checked')
-        .click()
-
-      cy.get('button[data-cy=escalate]').click()
-      cy.get('ul[data-cy=alerts-list]').should('contain', 'UNACKNOWLEDGED')
+      cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
 
       cy.get('span[data-cy=select-all] input')
         .should('not.be.checked')
         .click()
 
-      cy.get('button[data-cy=close]').click()
-      cy.get('ul[data-cy=alerts-list-no-data]').should('contain', 'No results')
+      cy.get('button[title=Escalate]').click()
+      cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
+
+      cy.get('span[data-cy=select-all] input')
+        .should('not.be.checked')
+        .click()
+
+      cy.get('button[title=Close]').click()
+      cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
     })
 
     it('should update some alerts', () => {
       // prep
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
-      cy.get('button[data-cy=acknowledge]').should('not.exist')
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get('button[title=Acknowledge]').click()
+      cy.get('button[title=Acknowledge]').should('not.exist')
 
-      cy.get(`[data-cy=alert-${alert1.number}]`)
-        .parent('[role=button]')
-        .should('not.contain', 'UNACKNOWLEDGED')
-      cy.get(`[data-cy=alert-${alert2.number}]`)
-        .parent('[role=button]')
-        .should('contain', 'UNACKNOWLEDGED')
-      cy.get(`[data-cy=alert-${alert3.number}]`)
-        .parent('[role=button]')
-        .should('contain', 'UNACKNOWLEDGED')
+      cy.get(`[href="/alerts/${alert1.id}"]`).should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
+      cy.get(`[href="/alerts/${alert2.id}"]`).should(
+        'contain',
+        'UNACKNOWLEDGED',
+      )
+      cy.get(`[href="/alerts/${alert3.id}"]`).should(
+        'contain',
+        'UNACKNOWLEDGED',
+      )
 
       cy.get(`[data-cy=select-all] input`).check()
 
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get('button[title=Acknowledge]').click()
       cy.get('span[data-cy=update-message]').should(
         'contain',
         '2 of 3 alerts updated',
       )
-      cy.get(`[data-cy=alert-${alert1.number}]`)
-        .parent('[role=button]')
-        .should('not.contain', 'UNACKNOWLEDGED')
-      cy.get(`[data-cy=alert-${alert2.number}]`)
-        .parent('[role=button]')
-        .should('not.contain', 'UNACKNOWLEDGED')
-      cy.get(`[data-cy=alert-${alert3.number}]`)
-        .parent('[role=button]')
-        .should('not.contain', 'UNACKNOWLEDGED')
+      cy.get(`[href="/alerts/${alert1.id}"]`).should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
+      cy.get(`[href="/alerts/${alert2.id}"]`).should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
+      cy.get(`[href="/alerts/${alert3.id}"]`).should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
     })
 
-    it('should NOT acknowledge acknowledged alerts', () => {
+    it('should not acknowledge acknowledged alerts', () => {
       // ack first two
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
+      cy.get('button[title=Acknowledge]').click()
 
       // ack
       // ack
       // unack
-      cy.get(`[data-cy=alert-${alert1.number}]`)
-        .parent('[role=button]')
-        .should('not.contain', 'UNACKNOWLEDGED')
-      cy.get(`[data-cy=alert-${alert2.number}]`)
-        .parent('[role=button]')
-        .should('not.contain', 'UNACKNOWLEDGED')
-      cy.get(`[data-cy=alert-${alert3.number}]`)
-        .parent('[role=button]')
-        .should('contain', 'UNACKNOWLEDGED')
+      cy.get(`[href="/alerts/${alert1.id}"]`).should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
+      cy.get(`[href="/alerts/${alert2.id}"]`).should(
+        'not.contain',
+        'UNACKNOWLEDGED',
+      )
+      cy.get(`[href="/alerts/${alert3.id}"]`).should(
+        'contain',
+        'UNACKNOWLEDGED',
+      )
 
       // ack first two again (noop)
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
+      cy.get('button[title=Acknowledge]').click()
 
       cy.get('span[data-cy=update-message]').should(
         'contain',
@@ -245,10 +241,10 @@ function testAlerts(screen: ScreenFormat) {
       )
 
       // ack all three
-      cy.get(`span[data-cy=alert-${alert1.number}] input`).check()
-      cy.get(`span[data-cy=alert-${alert2.number}] input`).check()
-      cy.get(`span[data-cy=alert-${alert3.number}] input`).check()
-      cy.get('button[data-cy=acknowledge]').click()
+      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
+      cy.get(`span[data-cy=item-${alert3.id}] input`).check()
+      cy.get('button[title=Acknowledge]').click()
 
       // first two already acked, third now acked
       cy.get('span[data-cy=update-message]').should(
@@ -322,7 +318,7 @@ function testAlerts(screen: ScreenFormat) {
     beforeEach(() => {
       cy.createAlert({ service: { ep: { stepCount: 1 } } }).then(a => {
         alert = a
-        return cy.visit(`/alerts/${a.number}`)
+        return cy.visit(`/alerts/${a.id}`)
       })
     })
 
@@ -366,7 +362,7 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('not.contain', 'UNACKNOWLEDGED')
       cy.get('body').should('contain', 'Acknowledged by Cypress User')
 
-      // Escalation
+      // escalate
       cy.pageAction('Escalate')
       cy.get('body').should('contain', 'Escalation requested by Cypress User')
 
@@ -376,12 +372,13 @@ function testAlerts(screen: ScreenFormat) {
       cy.get('body').should('contain', 'CLOSED')
     })
   })
+
   describe('Alert Details Logs', () => {
     let logs: AlertLogs
     beforeEach(() => {
       cy.createAlertLogs({ count: 200 }).then(_logs => {
         logs = _logs
-        return cy.visit(`/alerts/${logs.alert.number}`)
+        return cy.visit(`/alerts/${logs.alert.id}`)
       })
     })
 

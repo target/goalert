@@ -1,6 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import Typography from '@material-ui/core/Typography'
 
 import { DEFAULT_SPIN_DELAY_MS, DEFAULT_SPIN_WAIT_MS } from '../../config'
 
@@ -54,14 +55,19 @@ export default class Spinner extends React.PureComponent {
     if (this.props.delayMs && !this.state.spin) return null
 
     const style = this.props.text
-      ? { height: '1em', color: 'gray' }
+      ? {
+          height: '1.5em',
+          color: 'gray',
+          display: 'flex',
+          alignItems: 'center',
+        }
       : { position: 'absolute', top: '50%', left: '50%' }
 
     return (
-      <span style={style}>
+      <div style={style}>
         <CircularProgress size={this.props.text ? '1em' : '40px'} />
-        &nbsp;{this.props.text}
-      </span>
+        &nbsp;<Typography variant='body2'>{this.props.text}</Typography>
+      </div>
     )
   }
 }

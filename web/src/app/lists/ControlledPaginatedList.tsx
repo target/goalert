@@ -65,7 +65,7 @@ export interface ControlledPaginatedListAction {
   // icon for the action (e.g. X for close)
   icon: ReactElement
 
-  // label to display (e.g. "Close alerts")
+  // label to display (e.g. "Close")
   label: string
 
   // Callback that will be passed a list of selected items
@@ -170,7 +170,13 @@ export default function ControlledPaginatedList(
     const itemIDs = getSelectableIDs()
 
     return (
-      <Grid className={classes.actionsContainer} item container spacing={2}>
+      <Grid
+        aria-label='List Checkbox Controls'
+        className={classes.actionsContainer}
+        item
+        container
+        spacing={2}
+      >
         <Grid item>
           <Checkbox
             className={classes.checkbox}
@@ -210,19 +216,25 @@ export default function ControlledPaginatedList(
           />
         </Grid>
 
-        {checkboxActions.map((a, idx) => (
-          <Grid item key={idx}>
-            <Tooltip
-              title={a.label}
-              placement='bottom'
-              classes={{ popper: classes.popper }}
-            >
-              <IconButton onClick={() => a.onClick(checkedItems)}>
-                {a.icon}
-              </IconButton>
-            </Tooltip>
-          </Grid>
-        ))}
+        {checkedItems.length > 0 &&
+          checkboxActions.map((a, idx) => (
+            <Grid item key={idx}>
+              <Tooltip
+                title={a.label}
+                placement='bottom'
+                classes={{ popper: classes.popper }}
+              >
+                <IconButton
+                  onClick={() => {
+                    a.onClick(checkedItems)
+                    setNone()
+                  }}
+                >
+                  {a.icon}
+                </IconButton>
+              </Tooltip>
+            </Grid>
+          ))}
       </Grid>
     )
   }

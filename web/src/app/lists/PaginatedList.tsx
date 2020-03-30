@@ -24,6 +24,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import { AppLink } from '../util/AppLink'
+import statusStyles from '../util/statusStyles'
 
 // gray boxes on load
 // disable overflow
@@ -56,6 +57,7 @@ const useStyles = makeStyles(theme => ({
       },
     },
   },
+  ...statusStyles,
 }))
 
 export interface PaginatedListProps {
@@ -90,6 +92,7 @@ export interface PaginatedListItemProps {
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
+  status?: 'ok' | 'warn' | 'err'
 }
 
 export function PaginatedList(props: PaginatedListProps) {
@@ -162,7 +165,6 @@ export function PaginatedList(props: PaginatedListProps) {
 
   function renderItem(item: PaginatedListItemProps, idx: number): ReactElement {
     let favIcon = <ListItemSecondaryAction />
-
     if (item.isFavorite) {
       favIcon = (
         <ListItemSecondaryAction>
@@ -171,6 +173,20 @@ export function PaginatedList(props: PaginatedListProps) {
           </Avatar>
         </ListItemSecondaryAction>
       )
+    }
+
+    // get status style for left-most border color
+    let itemClass = classes.noStatus
+    switch (item.status) {
+      case 'ok':
+        itemClass = classes.statusOK
+        break
+      case 'warn':
+        itemClass = classes.statusWarning
+        break
+      case 'err':
+        itemClass = classes.statusError
+        break
     }
 
     // must be explicitly set when using, in accordance with TS definitions
@@ -182,6 +198,7 @@ export function PaginatedList(props: PaginatedListProps) {
 
     return (
       <ListItem
+        className={itemClass}
         dense={isWidthUp('md', width)}
         key={'list_' + idx}
         {...urlProps}
