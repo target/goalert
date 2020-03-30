@@ -5,7 +5,7 @@ const c = new Chance()
 
 testScreen('Alerts', testAlerts)
 
-function testAlerts(screen: ScreenFormat) {
+function testAlerts(screen: ScreenFormat): void {
   describe('Alerts List', () => {
     let alert: Alert
     beforeEach(() => {

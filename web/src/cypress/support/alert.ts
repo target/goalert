@@ -56,7 +56,7 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
       .then(alert => createAlertLogs({ ...opts, alertID: alert.id }))
   }
 
-  const genMeta = () =>
+  const genMeta = (): string =>
     JSON.stringify({
       NewStepIndex: c.integer({ min: 0, max: 5 }),
       Repeat: false,

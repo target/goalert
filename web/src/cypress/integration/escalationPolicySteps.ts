@@ -5,7 +5,7 @@ const c = new Chance()
 
 testScreen('Escalation Policy Steps', testSteps)
 
-function testSteps() {
+function testSteps(): void {
   describe('Steps', () => {
     let ep: EP
     let r1: Rotation

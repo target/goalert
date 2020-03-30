@@ -19,12 +19,12 @@ const keys = [
   },
 ]
 
-function testWizard() {
+function testWizard(): void {
   describe('Wizard Page', () => {
     beforeEach(() => cy.visit('/wizard'))
 
     // used for setting users on regular and fts rotations
-    const setUsers = (name: string) => {
+    const setUsers = (name: string): void => {
       cy.fixture('users').then(users => {
         cy.get(`input[name="${name}"]`).selectByLabel(users[0].name)
         cy.get(`div[name="${name}"]`).should('contain', users[0].name)
@@ -34,7 +34,7 @@ function testWizard() {
     }
 
     // used for setting primary and secondary schedule fields
-    const setScheduleFields = (key: string) => {
+    const setScheduleFields = (key: string): void => {
       // set tz
       cy.get(`input[name="${key}.timeZone"]`).selectByLabel('America/Chicago')
       cy.get(`input[name="${key}.timeZone"]`).should(
@@ -143,7 +143,7 @@ function testWizard() {
       cy.get('body').should('contain', teamName + ' Service')
       cy.get('body').should('contain', teamName + ' Escalation Policy')
 
-      const verify = (route: string, name: string) => {
+      const verify = (route: string, name: string): void => {
         cy.visit(route)
         cy.pageSearch(name)
         cy.get('body')
@@ -162,7 +162,7 @@ function testWizard() {
     })
 
     // handles disabling rotation fields for primary/secondary schedules
-    const hideRotationFields = (key: string) => {
+    const hideRotationFields = (key: string): void => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.yes"]`).click() // show all fields to ensure everything gets hidden
@@ -197,7 +197,7 @@ function testWizard() {
     })
 
     // handles asserting when follow the sun fields should exist for primary/secondary schedules
-    const showFTSFields = (key: string) => {
+    const showFTSFields = (key: string): void => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.yes"]`).click()
@@ -219,7 +219,7 @@ function testWizard() {
     })
 
     // handles asserting when follow the sun fields shouldn't exist for primary/secondary schedules
-    const dontShowFTSFields = (key: string) => {
+    const dontShowFTSFields = (key: string): void => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.no"]`).click()

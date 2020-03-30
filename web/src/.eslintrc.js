@@ -34,8 +34,6 @@ module.exports = {
     'react/jsx-indent': 'off',
 
     // typescript-eslint rules
-    // TODO: add options { allowExpressions: true, allowTypedFunctionExpressions: false }
-    '@typescript-eslint/explicit-function-return-type': 'off',
     // TODO: use defaults
     '@typescript-eslint/no-namespace': 'off',
     // TODO: use defaults
@@ -43,6 +41,13 @@ module.exports = {
     // TODO: no-explicit-any: on
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/explicit-function-return-type': [
+      'error',
+      {
+        allowExpressions: true,
+        allowTypedFunctionExpressions: false,
+      },
+    ],
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
@@ -50,6 +55,14 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ['*.js', '*.jsx'],
+      rules: {
+        '@typescript-eslint/explicit-function-return-type': 'off',
+      },
+    },
+  ],
   settings: {
     react: { version: 'detect' },
   },

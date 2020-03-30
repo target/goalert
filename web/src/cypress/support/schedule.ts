@@ -172,15 +172,15 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
     .then(res => res.createSchedule)
 }
 
-const fmtTime = (str: any) => {
-  const s = str.toString()
+const fmtTime = (num: number): string => {
+  const s = num.toString()
   if (s.length === 1) {
     return '0' + s
   }
   return s
 }
 
-const randClock = () =>
+const randClock = (): string =>
   `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
 function deleteSchedule(id: string): Cypress.Chainable<void> {

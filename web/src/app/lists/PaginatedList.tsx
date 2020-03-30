@@ -95,7 +95,7 @@ export interface PaginatedListItemProps {
   status?: 'ok' | 'warn' | 'err'
 }
 
-export function PaginatedList(props: PaginatedListProps) {
+export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const {
     cardHeader,
     headerNote,
@@ -140,7 +140,7 @@ export function PaginatedList(props: PaginatedListProps) {
     return false
   })()
 
-  function handleNextPage() {
+  function handleNextPage(): void {
     const nextPage = page + 1
     setPage(nextPage)
 
@@ -317,7 +317,7 @@ function PageControls(props: {
   isLoading: boolean
   onNext?: () => void
   onBack?: () => void
-}) {
+}): JSX.Element {
   const classes = useStyles()
   const { isLoading, onBack, onNext } = props
 
@@ -395,7 +395,7 @@ const useLoadingStyles = makeStyles({
 })
 
 // LoadingItem is used as a placeholder for loading content
-function LoadingItem(props: { dense?: boolean }) {
+function LoadingItem(props: { dense?: boolean }): JSX.Element {
   const classes = useLoadingStyles(props.dense)
 
   return (

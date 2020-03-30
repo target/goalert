@@ -15,7 +15,7 @@ interface Config {
   gen: (desc: string) => Cypress.Chainable<{ id: string; name: string }>
 }
 
-function testMarkdown(screen: ScreenFormat) {
+function testMarkdown(screen: ScreenFormat): void {
   ;[
     {
       test: 'Rotations',
@@ -40,7 +40,7 @@ function testMarkdown(screen: ScreenFormat) {
   ].forEach(cfg => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
 }
 
-function testMarkdownDesc(screen: ScreenFormat, cfg: Config) {
+function testMarkdownDesc(screen: ScreenFormat, cfg: Config): void {
   let rawDescription: string
   let generated: { id: string; name: string }
   beforeEach(() => {

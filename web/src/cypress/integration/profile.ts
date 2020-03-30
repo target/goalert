@@ -4,7 +4,7 @@ const c = new Chance()
 
 testScreen('Profile', testProfile)
 
-function testProfile() {
+function testProfile(): void {
   let cm: ContactMethod
 
   beforeEach(() =>
@@ -272,7 +272,7 @@ function countryCodeCheck(
   countryCode: string,
   value: string,
   formattedValue: string,
-) {
+): void {
   it(`should handle ${country} phone number`, () => {
     const name = 'CM SM ' + c.word({ length: 8 })
     const type = c.pickone(['SMS', 'VOICE'])
