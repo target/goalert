@@ -69,7 +69,7 @@ interface MultiSelectProps extends CommonSelectProps {
 
 export default function MaterialSelect(
   props: SingleSelectProps | MultiSelectProps,
-) {
+): JSX.Element {
   const classes = useStyles()
   const {
     disabled,
