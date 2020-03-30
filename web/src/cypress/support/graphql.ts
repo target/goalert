@@ -12,12 +12,16 @@ interface GraphQLResponse {
   errors: [any]
 }
 
-function graphql2(query: string, variables?: any) {
+function graphql2(query: string, variables?: any): Cypress.Chainable<any> {
   return graphql(query, variables, '/api/graphql')
 }
 
 // runs a graphql query returning the data response (after asserting no errors)
-function graphql(query: string, variables?: any, url = '/v1/graphql') {
+function graphql(
+  query: string,
+  variables?: any,
+  url = '/v1/graphql',
+): Cypress.Chainable<any> {
   if (!variables) variables = {}
 
   return cy.request('POST', url, { query, variables }).then(res => {

@@ -5,7 +5,7 @@ const c = new Chance()
 
 testScreen('Escalation Policies', testEP)
 
-function testEP(screen: ScreenFormat) {
+function testEP(screen: ScreenFormat): void {
   describe('List Page', () => {
     let ep: EP
     beforeEach(() => {

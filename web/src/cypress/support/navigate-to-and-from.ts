@@ -24,7 +24,7 @@ function navigateToAndFrom(
   targetName: string, // item name/title
   detailsName: string, // sub page title
   route: string,
-) {
+): void {
   // navigate to extended details view
   cy.get('[data-cy=app-bar]').should('contain', pageName)
   cy.get('ul[data-cy="route-links"] li')

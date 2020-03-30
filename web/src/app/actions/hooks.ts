@@ -14,7 +14,7 @@ export function useURLParam<T extends Value>(
   const urlPath = useSelector(urlPathSelector)
   const value = urlParam(name, defaultValue) as T
 
-  function setValue(newValue: T) {
+  function setValue(newValue: T): void {
     if (window.location.pathname !== urlPath) {
       warn(
         'useURLParam was called to set a parameter, but location.pathname has changed, aborting',
@@ -27,10 +27,10 @@ export function useURLParam<T extends Value>(
   return [value, setValue]
 }
 
-export function useResetURLParams(...keys: Array<string>) {
+export function useResetURLParams(...keys: Array<string>): () => void {
   const dispatch = useDispatch()
   const urlPath = useSelector(urlPathSelector)
-  function resetURLParams() {
+  function resetURLParams(): void {
     if (window.location.pathname !== urlPath) {
       warn(
         'useResetURLParams was called to reset parameters, but location.pathname has changed, aborting',

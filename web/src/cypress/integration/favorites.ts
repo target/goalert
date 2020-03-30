@@ -4,7 +4,7 @@ const c = new Chance()
 
 testScreen('Favorites', testFavorites)
 
-function testFavorites() {
+function testFavorites(): void {
   check(
     'Service',
     'services',
@@ -72,7 +72,7 @@ function check(
     sel: Cypress.Chainable<JQuery<HTMLElement>>,
     prefix: string,
   ) => Cypress.Chainable<JQuery<HTMLElement>>,
-) {
+): void {
   describe(typeName + ' Favorites', () => {
     it('should allow setting and unsetting as a favorite from details page ', () => {
       createFunc('', false).then(id => {
