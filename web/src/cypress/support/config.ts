@@ -20,31 +20,37 @@ interface General {
   NotificationDisclaimer: string
   DisableCalendarSubscriptions: boolean
 }
+
 interface Auth {
   RefererURLs: [string]
   DisableBasic: boolean
 }
+
 interface Mailgun {
   Enable: boolean
   APIKey: string
   EmailDomain: string
 }
+
 interface Twilio {
   Enable: boolean
   AccountSID: string
   AuthToken: string
   FromNumber: string
 }
+
 interface Feedback {
   Enable: boolean
   OverrideURL: string
 }
+
 interface Slack {
   Enable: boolean
   ClientID: string
   ClientSecret: string
   AccessToken: string
 }
+
 export interface Config {
   [index: string]: Partial<General | Auth | Mailgun | Twilio | Feedback | Slack>
   General: General
