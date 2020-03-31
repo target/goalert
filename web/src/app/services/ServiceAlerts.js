@@ -2,13 +2,13 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { useMutation } from 'react-apollo'
-import AlertsList from '../../alerts/AlertsList'
+import AlertsList from '../alerts/AlertsList'
 import gql from 'graphql-tag'
-import Options from '../../util/Options'
-import PageActions from '../../util/PageActions'
-import AlertsListFilter from '../../alerts/components/AlertsListFilter'
-import Search from '../../util/Search'
-import FormDialog from '../../dialogs/FormDialog'
+import Options from '../util/Options'
+import PageActions from '../util/PageActions'
+import AlertsListFilter from '../alerts/components/AlertsListFilter'
+import Search from '../util/Search'
+import FormDialog from '../dialogs/FormDialog'
 
 const mutation = gql`
   mutation UpdateAlertStatusByServiceMutation(
