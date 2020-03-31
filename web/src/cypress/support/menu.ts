@@ -7,7 +7,7 @@ interface MenuSelectOptions {
 }
 
 function menu(
-  sub: any,
+  sub: string,
   s: string,
   options?: MenuSelectOptions,
 ): Cypress.Chainable {

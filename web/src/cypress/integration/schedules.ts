@@ -4,7 +4,7 @@ const c = new Chance()
 
 testScreen('Schedules', testSchedules)
 
-function testSchedules(screen: ScreenFormat) {
+function testSchedules(screen: ScreenFormat): void {
   describe('Creation', () => {
     it('should create a schedule', () => {
       const name = c.word({ length: 8 })

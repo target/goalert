@@ -16,7 +16,7 @@ export function SetFavoriteButton({
   isFavorite,
   loading,
   onClick,
-}: SetFavoriteButtonProps) {
+}: SetFavoriteButtonProps): JSX.Element {
   let icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
   if (loading) {
     icon = <Spinner />

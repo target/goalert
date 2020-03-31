@@ -6,9 +6,9 @@ let _resetQuery = ''
 function resetQuery(): Cypress.Chainable<string> {
   if (_resetQuery) return cy.wrap(_resetQuery)
 
-  let users: Array<any> = []
-  let profile: any
-  let profileAdmin: any
+  let users: Profile[] = []
+  let profile: Profile
+  let profileAdmin: Profile
   cy.fixture('users').then(u => {
     users = users.concat(u)
   })
@@ -68,7 +68,7 @@ export function testScreen(
   fn: (screen: ScreenFormat) => void,
   skipLogin = false,
   adminLogin = false,
-) {
+): void {
   describe(label, () => {
     before(() => resetQuery().then(query => cy.sql(query)))
     it('reset db', () => {}) // required due to mocha skip bug

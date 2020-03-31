@@ -10,10 +10,10 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
   if (!opts.alertID) {
     return cy
       .createAlert(opts.alert)
-      .then(alert => createAlertLogs({ ...opts, alertID: alert.number }))
+      .then(alert => createAlertLogs({ ...opts, alertID: alert.id }))
   }
 
-  const genMeta = () =>
+  const genMeta = (): string =>
     JSON.stringify({
       NewStepIndex: c.integer({ min: 0, max: 5 }),
       Repeat: false,
@@ -50,65 +50,55 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
 }
 
 function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
-  const query = `query GetLogs($id: Int!, $after: String!) {
-    alert(id: $id) {
-      recentEvents(input:{limit:149, after: $after}) {
-        nodes {
-          timestamp
-          message
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
+  const query = `
+    query GetLogs($id: Int!, $after: String!) {
+      alert(id: $id) {
+        recentEvents(input: { limit: 149, after: $after }) {
+          nodes {
+            timestamp
+            message
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
     }
-  }`
+  `
 
-  const next = (logs: Array<AlertLog>, after: string): any =>
+  // NOTE next recursively builds logs to ultimately yield an AlertLog[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const next = (logs: AlertLog[], after: string): Cypress.Chainable<any> =>
     cy.graphql2(query, { id, after }).then(res => {
-      if (res.alert.recentEvents.pageInfo.hasNextPage) {
-        return next(
-          logs.concat(res.alert.recentEvents.nodes as Array<AlertLog>),
-          res.alert.recentEvents.pageInfo.endCursor,
-        )
+      const hasNextPage: boolean = res.alert.recentEvents.pageInfo.hasNextPage
+      const endCursor: string = res.alert.recentEvents.pageInfo.endCursor
+      const nodes: AlertLog[] = res.alert.recentEvents.nodes
+
+      if (hasNextPage) {
+        return next(logs.concat(nodes), endCursor)
       }
 
-      return logs.concat(res.alert.recentEvents.nodes)
+      return logs.concat(nodes)
     })
 
   return next([], '')
 }
 
 function getAlert(id: number): Cypress.Chainable<Alert> {
-  const query = `query GetAlert($id: Int!) {
-    alert(id: $id) {
-      number: _id, id, summary, details, serviceID: service_id,
-      service {
-        id, name, description
-        epID: escalation_policy_id,
-        ep: escalation_policy {
-            id
-            name
-            description
-            repeat
-        }
-      }
-    }
-  }`
-
-  return cy.graphql(query, { id }).then(res => res.alert)
-}
-
-function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
-  if (!a) a = {}
-  const query = `mutation CreateAlert($input: CreateAlertInput){
-      createAlert(input: $input) {
-        number: _id, id, summary, details, serviceID: service_id,
+  const query = `
+    query GetAlert($id: Int!) {
+      alert(id: $id) {
+        id
+        summary
+        details
+        serviceID
         service {
-          id, name, description
-          epID: escalation_policy_id,
-          ep: escalation_policy {
+          id
+          name
+          description
+          epID: escalationPolicyID,
+          ep: escalationPolicy {
               id
               name
               description
@@ -116,7 +106,36 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
           }
         }
       }
-    }`
+    }
+  `
+
+  return cy.graphql2(query, { id }).then(res => res.alert)
+}
+
+function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
+  if (!a) a = {}
+  const query = `
+    mutation CreateAlert($input: CreateAlertInput!){
+      createAlert(input: $input) {
+        id
+        summary
+        details
+        serviceID
+        service {
+          id
+          name
+          description
+          epID: escalationPolicyID
+          ep: escalationPolicy {
+            id
+            name
+            description
+            repeat
+          }
+        }
+      }
+    }
+  `
 
   if (!a.serviceID) {
     return cy
@@ -125,9 +144,9 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
   }
 
   return cy
-    .graphql(query, {
+    .graphql2(query, {
       input: {
-        service_id: a.serviceID,
+        serviceID: a.serviceID,
         summary: a.summary || c.sentence({ words: 3 }),
         details: a.details || c.sentence({ words: 5 }),
       },

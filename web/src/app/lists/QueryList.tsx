@@ -16,6 +16,7 @@ import { QueryResult } from '@apollo/react-common'
 // any && object type map
 // used for objects with unknown key/values from parent
 interface ObjectMap {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any
 }
 
@@ -24,8 +25,8 @@ const buildFetchMore = (
   after: string,
   stopPolling: QueryResult['stopPolling'],
   itemsPerPage: number,
-) => {
-  return once(newLimit => {
+): ((numberToLoad?: number) => void) | undefined => {
+  return once((newLimit?: number) => {
     stopPolling()
     return fetchMore({
       variables: {
@@ -73,10 +74,11 @@ export interface QueryListProps extends ControlledPaginatedListProps {
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   variables?: any
 }
 
-export default function QueryList(props: QueryListProps) {
+export default function QueryList(props: QueryListProps): JSX.Element {
   const {
     mapDataNode = (n: ObjectMap) => ({
       id: n.id,
@@ -117,7 +119,7 @@ export default function QueryList(props: QueryListProps) {
 
   const nodes = data?.data?.nodes ?? []
   const items = nodes.map(mapDataNode)
-  let loadMore
+  let loadMore: ((numberToLoad?: number) => void) | undefined
 
   if (data?.data?.pageInfo?.hasNextPage) {
     loadMore = buildFetchMore(

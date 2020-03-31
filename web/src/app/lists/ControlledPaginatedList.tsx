@@ -65,7 +65,7 @@ export interface ControlledPaginatedListAction {
   // icon for the action (e.g. X for close)
   icon: ReactElement
 
-  // label to display (e.g. "Close alerts")
+  // label to display (e.g. "Close")
   label: string
 
   // Callback that will be passed a list of selected items
@@ -88,7 +88,7 @@ export interface CheckboxItemsProps extends PaginatedListItemProps {
 
 export default function ControlledPaginatedList(
   props: ControlledPaginatedListProps,
-) {
+): JSX.Element {
   const classes = useStyles()
   const {
     checkboxActions,
@@ -111,8 +111,12 @@ export default function ControlledPaginatedList(
    * checks all items against having no id present
    * returns true if all items have an id
    */
-  function itemsHaveID(items: any): items is CheckboxItemsProps[] {
-    return !items.some((i: CheckboxItemsProps) => !i.id)
+  function itemsHaveID(
+    items: CheckboxItemsProps[] | PaginatedListItemProps[],
+  ): items is CheckboxItemsProps[] {
+    return !items.some(
+      (i: CheckboxItemsProps | PaginatedListItemProps) => !('id' in i),
+    )
   }
 
   function getSelectableIDs(): Array<string | number> {
@@ -122,15 +126,15 @@ export default function ControlledPaginatedList(
     return []
   }
 
-  function setAll() {
+  function setAll(): void {
     setCheckedItems(getSelectableIDs())
   }
 
-  function setNone() {
+  function setNone(): void {
     setCheckedItems([])
   }
 
-  function handleToggleSelectAll() {
+  function handleToggleSelectAll(): void {
     // if none are checked, set all
     if (checkedItems.length === 0) {
       setAll()
@@ -139,7 +143,7 @@ export default function ControlledPaginatedList(
     }
   }
 
-  function getItems() {
+  function getItems(): CheckboxItemsProps[] | PaginatedListItemProps[] {
     if (itemsHaveID(items)) {
       return items.map(item => ({ ...item, icon: getItemIcon(item) }))
     }
@@ -170,7 +174,13 @@ export default function ControlledPaginatedList(
     const itemIDs = getSelectableIDs()
 
     return (
-      <Grid className={classes.actionsContainer} item container spacing={2}>
+      <Grid
+        aria-label='List Checkbox Controls'
+        className={classes.actionsContainer}
+        item
+        container
+        spacing={2}
+      >
         <Grid item>
           <Checkbox
             className={classes.checkbox}
@@ -210,24 +220,30 @@ export default function ControlledPaginatedList(
           />
         </Grid>
 
-        {checkboxActions.map((a, idx) => (
-          <Grid item key={idx}>
-            <Tooltip
-              title={a.label}
-              placement='bottom'
-              classes={{ popper: classes.popper }}
-            >
-              <IconButton onClick={() => a.onClick(checkedItems)}>
-                {a.icon}
-              </IconButton>
-            </Tooltip>
-          </Grid>
-        ))}
+        {checkedItems.length > 0 &&
+          checkboxActions.map((a, idx) => (
+            <Grid item key={idx}>
+              <Tooltip
+                title={a.label}
+                placement='bottom'
+                classes={{ popper: classes.popper }}
+              >
+                <IconButton
+                  onClick={() => {
+                    a.onClick(checkedItems)
+                    setNone()
+                  }}
+                >
+                  {a.icon}
+                </IconButton>
+              </Tooltip>
+            </Grid>
+          ))}
       </Grid>
     )
   }
 
-  function getItemIcon(item: CheckboxItemsProps) {
+  function getItemIcon(item: CheckboxItemsProps): JSX.Element | undefined {
     if (!checkboxActions) return item.icon
 
     const checked = checkedItems.includes(item.id)

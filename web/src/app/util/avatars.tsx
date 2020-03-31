@@ -11,7 +11,7 @@ interface UserAvatarProps extends AvatarProps {
   userID: string
 }
 
-function useValidImage(srcURL?: string) {
+function useValidImage(srcURL?: string): boolean {
   const [valid, setValid] = useState(false)
 
   useEffect(() => {
@@ -34,7 +34,7 @@ function useAvatar(
   Fallback: IconProps,
   otherProps: AvatarProps,
   imgSrc?: string,
-) {
+): JSX.Element {
   const validImage = useValidImage(imgSrc)
   return (
     <Avatar
@@ -47,7 +47,7 @@ function useAvatar(
     </Avatar>
   )
 }
-export function UserAvatar(props: UserAvatarProps) {
+export function UserAvatar(props: UserAvatarProps): JSX.Element {
   const { userID, ...otherProps } = props
   return useAvatar(
     Person,
@@ -56,8 +56,10 @@ export function UserAvatar(props: UserAvatarProps) {
   )
 }
 
-export function CurrentUserAvatar(props: AvatarProps) {
-  const { ready, userID }: any = useSessionInfo() // TODO remove "any" when useSessionInfo is converted to ts
+export function CurrentUserAvatar(props: AvatarProps): JSX.Element {
+  // TODO remove "any" when useSessionInfo is converted to ts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { ready, userID }: any = useSessionInfo()
   return useAvatar(
     Person,
     props,
@@ -65,16 +67,16 @@ export function CurrentUserAvatar(props: AvatarProps) {
   )
 }
 
-export function ServiceAvatar(props: AvatarProps) {
+export function ServiceAvatar(props: AvatarProps): JSX.Element {
   return useAvatar(VpnKey, props)
 }
 
-export function EPAvatar(props: AvatarProps) {
+export function EPAvatar(props: AvatarProps): JSX.Element {
   return useAvatar(Layers, props)
 }
-export function RotationAvatar(props: AvatarProps) {
+export function RotationAvatar(props: AvatarProps): JSX.Element {
   return useAvatar(RotateRight, props)
 }
-export function ScheduleAvatar(props: AvatarProps) {
+export function ScheduleAvatar(props: AvatarProps): JSX.Element {
   return useAvatar(Today, props)
 }

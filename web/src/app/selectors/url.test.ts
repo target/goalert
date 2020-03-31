@@ -62,7 +62,7 @@ describe('absURLSelector', () => {
   })
 
   test('handle .. appropriately', () => {
-    const check = (base: string, path: string, expected: string) =>
+    const check = (base: string, path: string, expected: string): void =>
       expect(
         absURLSelector({
           router: { location: { pathname: base } },

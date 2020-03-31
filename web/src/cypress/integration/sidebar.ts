@@ -2,10 +2,10 @@ import { testScreen } from '../support'
 
 testScreen('Sidebar', testSidebar)
 
-function testSidebar() {
+function testSidebar(): void {
   beforeEach(() => cy.visit('/'))
 
-  const testLink = (label: string, path: string) => {
+  const testLink = (label: string, path: string): void => {
     it(`should have a link to ${label}`, () => {
       cy.pageNav(label)
       cy.url().should('eq', Cypress.config().baseUrl + path)

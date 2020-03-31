@@ -11,6 +11,8 @@ interface AppLinkProps extends LinkProps {
 
 export const AppLink = React.forwardRef(function AppLink(
   props: AppLinkProps,
+  // NOTE react-router-dom uses history namespace
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ref: Ref<any>,
 ) {
   const { to: _to, newTab, ...other } = props
