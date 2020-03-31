@@ -9,7 +9,6 @@ import PageActions from '../../util/PageActions'
 import AlertsListFilter from '../../alerts/components/AlertsListFilter'
 import Search from '../../util/Search'
 import FormDialog from '../../dialogs/FormDialog'
-import { LegacyGraphQLClient } from '../../apollo'
 
 const mutation = gql`
   mutation UpdateAlertStatusByServiceMutation(
