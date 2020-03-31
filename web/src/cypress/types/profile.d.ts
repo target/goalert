@@ -26,6 +26,8 @@ interface Profile {
   name: string
   email: string
   role: UserRole
+  username?: string
+  passwordHash?: string
 }
 
 interface UserOptions {
