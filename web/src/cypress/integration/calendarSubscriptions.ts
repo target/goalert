@@ -13,7 +13,7 @@ function testSubs(screen: ScreenFormat): void {
   describe('Creation', () => {
     let sched: Schedule
     beforeEach(() => {
-      cy.createSchedule().then(s => {
+      cy.createSchedule().then((s: Schedule) => {
         sched = s
       })
     })
@@ -72,7 +72,7 @@ function testSubs(screen: ScreenFormat): void {
   describe('Schedule', () => {
     let sched: Schedule
     beforeEach(() => {
-      cy.createSchedule().then(s => {
+      cy.createSchedule().then((s: Schedule) => {
         sched = s
         cy.visit(`/schedules/${s.id}`)
       })
@@ -122,7 +122,7 @@ function testSubs(screen: ScreenFormat): void {
   describe('Profile', () => {
     let cs: CalendarSubscription
     beforeEach(() => {
-      cy.createCalendarSubscription().then(sub => {
+      cy.createCalendarSubscription().then((sub: CalendarSubscription) => {
         cs = sub
         cy.visit('/profile/schedule-calendar-subscriptions')
       })
@@ -215,21 +215,23 @@ function testSubs(screen: ScreenFormat): void {
     })
 
     it('should show an icon if a subscription is disabled, and vice-versa', () => {
-      cy.createCalendarSubscription({ disabled: true }).then(disabledCs => {
-        cy.reload()
+      cy.createCalendarSubscription({ disabled: true }).then(
+        (disabledCs: CalendarSubscription) => {
+          cy.reload()
 
-        cy.get('[data-cy=calendar-subscriptions] li')
-          .contains(cs.name)
-          .find('[data-cy="warning-icon"]')
-          .should('not.exist')
+          cy.get('[data-cy=calendar-subscriptions] li')
+            .contains(cs.name)
+            .find('[data-cy="warning-icon"]')
+            .should('not.exist')
 
-        cy.get('[data-cy=calendar-subscriptions] li')
-          .contains(disabledCs.name)
-          .parent()
-          .parent()
-          .find('[data-cy="warning-icon"]') // two divs of separation
-          .should('exist')
-      })
+          cy.get('[data-cy=calendar-subscriptions] li')
+            .contains(disabledCs.name)
+            .parent()
+            .parent()
+            .find('[data-cy="warning-icon"]') // two divs of separation
+            .should('exist')
+        },
+      )
     })
 
     it('should show warning message when disabled in config', () => {

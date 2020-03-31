@@ -19,7 +19,7 @@ function testTimePickers(): void {
               end: '04:23',
             },
           ],
-        }).then(tgt => {
+        }).then((tgt: ScheduleTarget) => {
           return cy.visit(`/schedules/${tgt.schedule.id}/assignments${params}`)
         })
         // sanity check
@@ -70,9 +70,9 @@ function testTimePickers(): void {
   describe('Date (schedule shifts)', () => {
     const check = (name: string, params: string, display: string): Mocha.Test =>
       it(name, () => {
-        cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
-          cy.visit(`/schedules/${s.id}/shifts${params}`),
-        )
+        cy.createSchedule({
+          timeZone: 'America/New_York',
+        }).then((s: Schedule) => cy.visit(`/schedules/${s.id}/shifts${params}`))
 
         // sanity check
         cy.get('body').contains(display)
@@ -113,7 +113,9 @@ function testTimePickers(): void {
   describe('DateTime (schedule overrides)', () => {
     const check = (name: string, params: string): Mocha.Test =>
       it(name, () => {
-        cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
+        cy.createSchedule({
+          timeZone: 'America/New_York',
+        }).then((s: Schedule) =>
           cy.visit(`/schedules/${s.id}/overrides${params}`),
         )
 

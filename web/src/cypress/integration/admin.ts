@@ -8,7 +8,7 @@ function testAdmin(): void {
   describe('Admin System Limits Page', () => {
     let limits: Limits = new Map()
     beforeEach(() => {
-      cy.getLimits().then(l => {
+      cy.getLimits().then((l: Limits) => {
         limits = l
         return cy.visit('/admin/limits')
       })
@@ -88,7 +88,7 @@ function testAdmin(): void {
             FromNumber: '+17633' + c.string({ length: 6, pool: '0123456789' }),
           },
         })
-        .then(curCfg => {
+        .then((curCfg: Config) => {
           cfg = curCfg
           return cy
             .visit('/admin')

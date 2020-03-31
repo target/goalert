@@ -9,7 +9,7 @@ function testMaterialSelect(): void {
     describe('Escalation Policy Steps', () => {
       let ep: EP
       beforeEach(() => {
-        cy.createEP().then(e => {
+        cy.createEP().then((e: EP) => {
           ep = e
           return cy.visit(`escalation-policies/${ep.id}`)
         })

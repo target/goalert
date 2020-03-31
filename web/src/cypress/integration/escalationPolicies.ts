@@ -10,7 +10,7 @@ function testEP(screen: ScreenFormat): void {
     let ep: EP
     beforeEach(() => {
       cy.createEP()
-        .then(e => {
+        .then((e: EP) => {
           ep = e
         })
         .visit('/escalation-policies')
@@ -63,7 +63,7 @@ function testEP(screen: ScreenFormat): void {
   describe('Details Page', () => {
     let ep: EP
     beforeEach(() =>
-      cy.createEP().then(e => {
+      cy.createEP().then((e: EP) => {
         ep = e
         return cy.visit(`/escalation-policies/${ep.id}`)
       }),
@@ -108,7 +108,7 @@ function testEP(screen: ScreenFormat): void {
 
   describe('Services Subpage', () => {
     it('should navigate to and from its services', () => {
-      cy.createEP().then(ep => {
+      cy.createEP().then((ep: EP) => {
         cy.visit(`/escalation-policies/${ep.id}`)
 
         cy.navigateToAndFrom(
@@ -122,7 +122,7 @@ function testEP(screen: ScreenFormat): void {
     })
 
     it('should see no services text', () => {
-      cy.createEP().then(ep => {
+      cy.createEP().then((ep: EP) => {
         cy.visit(`/escalation-policies/${ep.id}`)
 
         cy.get('li')
@@ -136,8 +136,8 @@ function testEP(screen: ScreenFormat): void {
     })
 
     it('should see services list', () => {
-      cy.createEP().then(ep => {
-        cy.createService({ epID: ep.id }).then(svc => {
+      cy.createEP().then((ep: EP) => {
+        cy.createService({ epID: ep.id }).then((svc: Service) => {
           cy.visit(`/escalation-policies/${ep.id}`)
           cy.get('li')
             .contains('Services')

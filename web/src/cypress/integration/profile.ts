@@ -11,7 +11,7 @@ function testProfile(): void {
     cy
       .resetProfile()
       .addNotificationRule()
-      .then(rule => {
+      .then((rule: NotificationRule) => {
         cm = rule.contactMethod
         return cy.visit('/profile')
       }),
@@ -35,7 +35,7 @@ function testProfile(): void {
 
     return cy
       .createService({ name })
-      .then(svc => {
+      .then((svc: Service) => {
         return cy
           .fixture('profile')
           .then((p: Profile) => {
@@ -47,7 +47,7 @@ function testProfile(): void {
           .task('engine:trigger')
           .then(() => svc.id)
       })
-      .then(svcID => {
+      .then((svcID: string) => {
         cy.get('body')
           .contains('a', 'On-Call')
           .click()
