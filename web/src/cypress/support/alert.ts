@@ -10,7 +10,7 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
   if (!opts.alertID) {
     return cy
       .createAlert(opts.alert)
-      .then(alert => createAlertLogs({ ...opts, alertID: alert.id }))
+      .then((alert: Alert) => createAlertLogs({ ...opts, alertID: alert.id }))
   }
 
   const genMeta = (): string =>
@@ -39,7 +39,7 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
   return cy
     .sql(query)
     .then(() => getAlert(opts.alertID as number))
-    .then(alert => {
+    .then((alert: Alert) => {
       return getAlertLogs(opts.alertID as number).then(logs => {
         return {
           alert,
@@ -140,7 +140,7 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
   if (!a.serviceID) {
     return cy
       .createService(a.service)
-      .then(svc => createAlert({ ...a, serviceID: svc.id }))
+      .then((svc: Service) => createAlert({ ...a, serviceID: svc.id }))
   }
 
   return cy

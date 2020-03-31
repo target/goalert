@@ -76,7 +76,7 @@ function createEPStep(step?: EPStepOptions): Cypress.Chainable<EPStep> {
   if (!step.epID) {
     return cy
       .createEP(step.ep)
-      .then(ep => createEPStep({ ...step, epID: ep.id }))
+      .then((ep: EP) => createEPStep({ ...step, epID: ep.id }))
   }
 
   return cy

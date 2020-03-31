@@ -62,11 +62,11 @@ function getConfigDirect(token: string): Cypress.Chainable<Config> {
 }
 
 function getConfig(): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok => getConfigDirect(tok))
+  return cy.adminLogin(true).then((tok: string) => getConfigDirect(tok))
 }
 
 function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok =>
+  return cy.adminLogin(true).then((tok: string) =>
     cy
       .request({
         url: '/api/v2/config',

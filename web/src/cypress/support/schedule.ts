@@ -11,7 +11,9 @@ function setScheduleTarget(
   if (!tgt.scheduleID) {
     return cy
       .createSchedule(tgt.schedule)
-      .then(sched => setScheduleTarget({ ...tgt, scheduleID: sched.id }))
+      .then((sched: Schedule) =>
+        setScheduleTarget({ ...tgt, scheduleID: sched.id }),
+      )
   }
   if (!tgt.target) {
     tgt.target = { rotation: {} }
@@ -20,7 +22,7 @@ function setScheduleTarget(
   if (rotation) {
     return cy
       .createRotation(rotation)
-      .then(r =>
+      .then((r: Rotation) =>
         setScheduleTarget({ ...tgt, target: { type: 'rotation', id: r.id } }),
       )
   }

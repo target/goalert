@@ -78,7 +78,9 @@ function addNotificationRule(
   if (!nr.contactMethodID) {
     return cy
       .addContactMethod({ ...nr.contactMethod, userID: nr.userID })
-      .then(cm => addNotificationRule({ ...nr, contactMethodID: cm.id }))
+      .then((cm: ContactMethod) =>
+        addNotificationRule({ ...nr, contactMethodID: cm.id }),
+      )
   }
 
   const mutation = `

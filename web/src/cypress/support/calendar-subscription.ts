@@ -37,7 +37,9 @@ function createCalendarSubscription(
   if (!cs?.scheduleID) {
     return cy
       .createSchedule(cs?.schedule)
-      .then(s => createCalendarSubscription({ ...cs, scheduleID: s.id }))
+      .then((s: Schedule) =>
+        createCalendarSubscription({ ...cs, scheduleID: s.id }),
+      )
   }
 
   // create reminderMinutes array if not provided

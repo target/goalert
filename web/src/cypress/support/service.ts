@@ -45,7 +45,7 @@ function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
   if (!svc.epID) {
     return cy
       .createEP(svc.ep)
-      .then(ep => createService({ ...svc, epID: ep.id }))
+      .then((ep: EP) => createService({ ...svc, epID: ep.id }))
   }
 
   return cy
@@ -74,7 +74,7 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
   if (!label.svcID) {
     return cy
       .createService(label.svc)
-      .then(s => createLabel({ ...label, svcID: s.id }))
+      .then((s: Service) => createLabel({ ...label, svcID: s.id }))
   }
 
   const query = `
@@ -99,7 +99,7 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
       },
     })
     .then(() => getService(svcID))
-    .then(svc => ({
+    .then((svc: Service) => ({
       svcID,
       svc,
       key,
@@ -114,7 +114,7 @@ function createHeartbeatMonitor(
   if (!monitor.svcID) {
     return cy
       .createService(monitor.svc)
-      .then(s => createHeartbeatMonitor({ svcID: s.id }))
+      .then((s: Service) => createHeartbeatMonitor({ svcID: s.id }))
   }
 
   const name = monitor.name || c.word({ length: 5 }) + ' Monitor'
