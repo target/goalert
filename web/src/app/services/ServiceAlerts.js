@@ -45,7 +45,7 @@ export default function ServiceAlerts(props) {
     setShowDialog(true)
   }
 
-  const getStatusTxt = () => {
+  const getStatusText = () => {
     if (alertStatus === 'StatusAcknowledged') {
       return 'acknowledge'
     }
@@ -77,7 +77,7 @@ export default function ServiceAlerts(props) {
         <FormDialog
           title='Are you sure?'
           confirm
-          subTitle={`This will ${getStatusTxt()} all the alerts for this service.`}
+          subTitle={`This will ${getStatusText()} all the alerts for this service.`}
           caption='This will stop all notifications from being sent out for all alerts with this service.'
           onSubmit={() => mutate()}
           loading={loading}
