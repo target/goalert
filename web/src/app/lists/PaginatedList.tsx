@@ -25,6 +25,7 @@ import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import { AppLink } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
+import { debug } from '../util/debug'
 
 // gray boxes on load
 // disable overflow
@@ -278,15 +279,15 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   function renderAsInfiniteScroll(): ReactElement {
     const len = items.length
 
-    // explicitly set props to load more, if loader function present
-    const loadProps = {
-      hasMore: Boolean(loadMore),
-      next: loadMore || (() => {}),
-    }
-
     return (
       <InfiniteScroll
-        {...loadProps}
+        hasMore={Boolean(loadMore)}
+        next={
+          loadMore ||
+          (() => {
+            debug('next callback missing from InfiniteScroll')
+          })
+        }
         scrollableTarget='content'
         endMessage={
           len === 0 ? null : (
