@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
   namespace Cypress {
     interface Chainable {

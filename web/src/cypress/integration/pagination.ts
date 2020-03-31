@@ -15,11 +15,13 @@ const padZeros = (val: string): string => {
 interface CreateOpts {
   name: string
 }
-type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<any>
-type createManyFunc = (names: Array<CreateOpts>) => Cypress.Chainable<any>
-function createOne(
-  fn: createOneFunc,
-): (names: CreateOpts[]) => Cypress.cy & EventEmitter {
+type dataModel = EP | Profile | Rotation | Schedule | Service | undefined
+type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<dataModel>
+type createManyFunc = (
+  names: Array<CreateOpts>,
+) => Cypress.Chainable<dataModel | dataModel[]>
+
+function createOne(fn: createOneFunc) {
   return (names: Array<CreateOpts>) => {
     names.forEach(name => fn(name))
     return cy

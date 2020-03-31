@@ -57,7 +57,9 @@ export function UserAvatar(props: UserAvatarProps): JSX.Element {
 }
 
 export function CurrentUserAvatar(props: AvatarProps): JSX.Element {
-  const { ready, userID }: any = useSessionInfo() // TODO remove "any" when useSessionInfo is converted to ts
+  // TODO remove "any" when useSessionInfo is converted to ts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { ready, userID }: any = useSessionInfo()
   return useAvatar(
     Person,
     props,

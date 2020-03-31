@@ -14,70 +14,54 @@ declare global {
   }
 }
 
-interface ConfigInput {
-  [index: string]: any
-
-  General?: {
-    PublicURL?: string
-    DisableLabelCreation?: boolean
-    NotificationDisclaimer?: string
-    DisableCalendarSubscriptions?: boolean
-  }
-  Auth?: {
-    RefererURLs?: [string]
-    DisableBasic?: boolean
-  }
-  Mailgun?: {
-    Enable?: boolean
-    APIKey?: string
-    EmailDomain?: string
-    DisableValidation?: boolean
-  }
-  Twilio?: {
-    Enable?: boolean
-    AccountSID?: string
-    AuthToken?: string
-    FromNumber?: string
-  }
-  Feedback?: {
-    Enable?: boolean
-    OverrideURL?: string
-  }
+interface General {
+  PublicURL: string
+  DisableLabelCreation: boolean
+  NotificationDisclaimer: string
+  DisableCalendarSubscriptions: boolean
 }
+
+interface Auth {
+  RefererURLs: [string]
+  DisableBasic: boolean
+}
+
+interface Mailgun {
+  Enable: boolean
+  APIKey: string
+  EmailDomain: string
+}
+
+interface Twilio {
+  Enable: boolean
+  AccountSID: string
+  AuthToken: string
+  FromNumber: string
+}
+
+interface Feedback {
+  Enable: boolean
+  OverrideURL: string
+}
+
+interface Slack {
+  Enable: boolean
+  ClientID: string
+  ClientSecret: string
+  AccessToken: string
+}
+
 export interface Config {
-  [index: string]: any
-
-  General: {
-    PublicURL: string
-    DisableLabelCreation: boolean
-    NotificationDisclaimer: string
-  }
-  Auth: {
-    RefererURLs: [string]
-    DisableBasic: boolean
-  }
-  Mailgun: {
-    Enable: boolean
-    APIKey: string
-    EmailDomain: string
-  }
-  Twilio: {
-    Enable: boolean
-    AccountSID: string
-    AuthToken: string
-    FromNumber: string
-  }
-  Feedback: {
-    Enable: boolean
-    OverrideURL: string
-  }
-  Slack?: {
-    Enable?: boolean
-    ClientID?: string
-    ClientSecret?: string
-    AccessToken?: string
-  }
+  [index: string]: Partial<General | Auth | Mailgun | Twilio | Feedback | Slack>
+  General: General
+  Auth: Auth
+  Mailgun: Mailgun
+  Twilio: Twilio
+  Feedback: Feedback
+  Slack: Slack
 }
+
+type ConfigInput = Pick<Config, string>
 
 function getConfigDirect(token: string): Cypress.Chainable<Config> {
   return cy
@@ -110,7 +94,7 @@ function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
   )
 }
 
-function merge(dst: any, src: ConfigInput): Config {
+function merge(dst: Config, src: ConfigInput): Config {
   Object.keys(src).forEach(
     key => (dst[key] = { ...(dst[key] || {}), ...src[key] }),
   )

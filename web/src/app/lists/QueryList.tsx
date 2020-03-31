@@ -16,6 +16,7 @@ import { QueryResult } from '@apollo/react-common'
 // any && object type map
 // used for objects with unknown key/values from parent
 interface ObjectMap {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any
 }
 
@@ -73,6 +74,7 @@ export interface QueryListProps extends ControlledPaginatedListProps {
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   variables?: any
 }
 
