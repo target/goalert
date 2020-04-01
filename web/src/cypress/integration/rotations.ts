@@ -4,7 +4,7 @@ import { DateTime } from 'luxon'
 import { testScreen } from '../support'
 const c = new Chance()
 
-function testRotations() {
+function testRotations(): void {
   describe('List Page', () => {
     let rot: Rotation
     beforeEach(() => {

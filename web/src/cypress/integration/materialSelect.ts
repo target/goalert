@@ -2,7 +2,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-function testMaterialSelect() {
+function testMaterialSelect(): void {
   describe('Clear Fields', () => {
     describe('Escalation Policy Steps', () => {
       let ep: EP

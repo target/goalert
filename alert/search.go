@@ -60,6 +60,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{end}}
 	{{ if .Search }}
 		AND (
+			a.id = :searchID OR
 			a.summary ilike :search OR
 			svc.name ilike :search
 		)
@@ -120,12 +121,20 @@ func (opts renderData) Normalize() (*renderData, error) {
 }
 
 func (opts renderData) QueryArgs() []sql.NamedArg {
+	var searchID sql.NullInt64
+	if i, err := strconv.ParseInt(opts.Search, 10, 64); err == nil {
+		searchID.Valid = true
+		searchID.Int64 = i
+	}
+
 	stat := make(sqlutil.StringArray, len(opts.Status))
 	for i := range opts.Status {
 		stat[i] = string(opts.Status[i])
 	}
+
 	return []sql.NamedArg{
 		sql.Named("search", opts.SearchStr()),
+		sql.Named("searchID", searchID),
 		sql.Named("status", stat),
 		sql.Named("services", sqlutil.UUIDArray(opts.Services)),
 		sql.Named("afterID", opts.After.ID),

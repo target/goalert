@@ -73,7 +73,7 @@ declare global {
   }
 }
 
-function getService(svcID: string) {
+function getService(svcID: string): Cypress.Chainable<Service> {
   const query = `
     query GetService($id: ID!) {
       service(id: $id) {

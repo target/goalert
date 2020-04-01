@@ -2,7 +2,7 @@ import { Chance } from 'chance'
 import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
-function testAdmin() {
+function testAdmin(): void {
   describe('Admin System Limits Page', () => {
     let limits: Limits = new Map()
     beforeEach(() => {

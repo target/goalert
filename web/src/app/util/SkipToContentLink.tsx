@@ -21,7 +21,7 @@ const useStyles = makeStyles({
   },
 })
 
-export function SkipToContentLink() {
+export function SkipToContentLink(): JSX.Element {
   const classes = useStyles()
   return (
     <Link className={classes.skipLink} href='#content'>

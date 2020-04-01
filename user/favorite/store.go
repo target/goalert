@@ -171,7 +171,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 		return nil, err
 	}
 
-	var allowServices, allowRotations bool
+	var allowServices, allowSchedules, allowRotations bool
 	if len(filter) == 0 {
 		allowServices = true
 	} else {
@@ -179,13 +179,15 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 			switch f {
 			case assignment.TargetTypeService:
 				allowServices = true
+			case assignment.TargetTypeSchedule:
+				allowSchedules = true
 			case assignment.TargetTypeRotation:
 				allowRotations = true
 			}
 		}
 	}
 
-	rows, err := db.findAll.QueryContext(ctx, userID, allowServices, allowRotations)
+	rows, err := db.findAll.QueryContext(ctx, userID, allowServices, allowSchedules, allowRotations)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -197,14 +199,16 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 	var targets []assignment.Target
 
 	for rows.Next() {
-		var svc, rot sql.NullString
-		err = rows.Scan(&svc)
+		var svc, sched, rot sql.NullString
+		err = rows.Scan(&svc, &sched, &rot)
 		if err != nil {
 			return nil, err
 		}
 		switch {
 		case svc.Valid:
 			targets = append(targets, assignment.ServiceTarget(svc.String))
+		case sched.Valid:
+			targets = append(targets, assignment.ScheduleTarget(sched.String))
 		case rot.Valid:
 			targets = append(targets, assignment.RotationTarget(rot.String))
 		}

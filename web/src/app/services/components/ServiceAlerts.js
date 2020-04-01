@@ -1,7 +1,8 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { useMutation } from 'react-apollo'
-import AlertsList from '../../alerts/components/AlertsList'
+import AlertsList from '../../alerts/AlertsList'
 import gql from 'graphql-tag'
 import Options from '../../util/Options'
 import PageActions from '../../util/PageActions'

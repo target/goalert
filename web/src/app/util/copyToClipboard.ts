@@ -1,7 +1,6 @@
-function isOS() {
+function isOS(): boolean {
   return Boolean(navigator.userAgent.match(/ipad|ipod|iphone/i))
 }
-
 /*
  * Creates a temporary text area element, selects the
  * text inside, and copies it to the clipboard.
@@ -9,7 +8,7 @@ function isOS() {
  * If other text was highlighted before this operation,
  * that state is saved upon completion of copying.
  */
-function fallback(str: string) {
+function fallback(str: string): void {
   const textArea = document.createElement('textArea') as HTMLTextAreaElement
   textArea.value = str // Set its value to what you want copied
   textArea.readOnly = true // Deny tampering
@@ -53,7 +52,7 @@ function fallback(str: string) {
   }
 }
 
-export default function copyToClipboard(text: string) {
+export default function copyToClipboard(text: string): void {
   try {
     navigator.clipboard.writeText(text)
   } catch (error) {

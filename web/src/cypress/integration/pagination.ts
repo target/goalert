@@ -5,7 +5,7 @@ const c = new Chance()
 
 const itemsPerPage = 15
 
-const padZeros = (val: string) => {
+const padZeros = (val: string): string => {
   while (val.length < 4) val = '0' + val
   return val
 }
@@ -13,10 +13,17 @@ const padZeros = (val: string) => {
 interface CreateOpts {
   name: string
 }
-type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<any>
-type createManyFunc = (names: Array<CreateOpts>) => Cypress.Chainable<any>
+type dataModel = EP | Profile | Rotation | Schedule | Service | undefined
+type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<dataModel>
+type createManyFunc = (
+  names: Array<CreateOpts>,
+) => Cypress.Chainable<dataModel | dataModel[]>
 
-function testPaginating(label: string, url: string, create: createManyFunc) {
+function testPaginating(
+  label: string,
+  url: string,
+  create: createManyFunc,
+): void {
   let names: Array<string> = []
   let nameSubstr = ''
 
@@ -117,7 +124,7 @@ function createOne(fn: createOneFunc) {
   }
 }
 
-function testPagination() {
+function testPagination(): void {
   testPaginating('Rotations', 'rotations', createOne(cy.createRotation))
   testPaginating('Schedules', 'schedules', createOne(cy.createSchedule))
   testPaginating(

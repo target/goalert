@@ -18,7 +18,7 @@ interface MenuSelectOptions {
 type menuFn = (label: string, options?: MenuSelectOptions) => Cypress.Chainable
 
 function menu(
-  sub: any,
+  sub: string,
   s: string,
   options?: MenuSelectOptions,
 ): Cypress.Chainable {

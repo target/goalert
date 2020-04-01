@@ -1,8 +1,8 @@
 import { testScreen } from '../support'
 import { DateTime } from 'luxon'
 
-const monthHeaderFormat = (t: DateTime) => t.toFormat('MMMM')
-const weekHeaderFormat = (t: DateTime) => {
+const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
+const weekHeaderFormat = (t: DateTime): string => {
   const start = t.startOf('week').minus({ day: 1 })
 
   const end = t.endOf('week').minus({ day: 1 })
@@ -13,13 +13,13 @@ const weekHeaderFormat = (t: DateTime) => {
   )
 }
 
-const weekSpansTwoMonths = (t: DateTime) => {
+const weekSpansTwoMonths = (t: DateTime): boolean => {
   const start = t.startOf('week').minus({ day: 1 })
   const end = t.endOf('week').minus({ day: 1 })
   return start.month !== end.month
 }
 
-function testCalendar(screen: ScreenFormat) {
+function testCalendar(screen: ScreenFormat): void {
   if (screen !== 'widescreen') return
 
   let sched: Schedule

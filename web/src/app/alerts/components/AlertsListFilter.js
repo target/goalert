@@ -61,8 +61,8 @@ const mapDispatchToProps = dispatch => ({
 export default class AlertsListFilter extends Component {
   static propTypes = {
     serviceID: p.string,
-    allServices: p.bool.isRequired,
-    filter: p.string.isRequired,
+    allServices: p.bool,
+    filter: p.string,
   }
 
   state = {

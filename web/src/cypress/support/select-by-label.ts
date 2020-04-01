@@ -23,7 +23,7 @@ type selectByLabelFn = (label: string) => Cypress.Chainable
 type findByLabelFn = (label: string) => Cypress.Chainable
 type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
 
-function isSearchSelect(sub: any): Cypress.Chainable<boolean> {
+function isSearchSelect(sub: HTMLElement): Cypress.Chainable<boolean> {
   return cy.wrap(sub).then(el => {
     return (
       el.parents('[data-cy=material-select]').data('cy') === 'material-select'
@@ -31,7 +31,7 @@ function isSearchSelect(sub: any): Cypress.Chainable<boolean> {
   })
 }
 
-function clearSelect(sub: any): Cypress.Chainable {
+function clearSelect(sub: HTMLElement): Cypress.Chainable {
   return cy
     .wrap(sub)
     .parents('[data-cy=material-select]')
@@ -47,7 +47,7 @@ function clearSelect(sub: any): Cypress.Chainable {
     .click()
 }
 
-function findByLabel(sub: any, label: string): Cypress.Chainable {
+function findByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
   return isSearchSelect(sub).then(isSearchSelect => {
     if (isSearchSelect) {
       cy.wrap(sub)
@@ -84,7 +84,7 @@ function findByLabel(sub: any, label: string): Cypress.Chainable {
   })
 }
 
-function selectByLabel(sub: any, label: string): Cypress.Chainable {
+function selectByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
   return isSearchSelect(sub).then(isSearchSelect => {
     // clear value in search select
     if ((!label || label === '{backspace}') && isSearchSelect) {
@@ -100,7 +100,10 @@ function selectByLabel(sub: any, label: string): Cypress.Chainable {
   })
 }
 
-function multiRemoveByLabel(sub: any, label: string): Cypress.Chainable {
+function multiRemoveByLabel(
+  sub: HTMLElement,
+  label: string,
+): Cypress.Chainable {
   return isSearchSelect(sub).then(isSearchSelect => {
     // must be a multi search select
     if (!isSearchSelect) return cy.wrap(sub)

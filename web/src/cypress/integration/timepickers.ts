@@ -4,9 +4,9 @@ import { DateTime } from 'luxon'
 import { testScreen } from '../support'
 const c = new Chance()
 
-function testTimePickers() {
+function testTimePickers(): void {
   describe('Time (schedule assignments)', () => {
-    const check = (name: string, params: string, display: string) =>
+    const check = (name: string, params: string, display: string): Mocha.Test =>
       it(name, () => {
         cy.setScheduleTarget({
           schedule: { timeZone: 'America/New_York' },
@@ -66,7 +66,7 @@ function testTimePickers() {
   })
 
   describe('Date (schedule shifts)', () => {
-    const check = (name: string, params: string, display: string) =>
+    const check = (name: string, params: string, display: string): Mocha.Test =>
       it(name, () => {
         cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
           cy.visit(`/schedules/${s.id}/shifts${params}`),
@@ -109,7 +109,7 @@ function testTimePickers() {
   })
 
   describe('DateTime (schedule overrides)', () => {
-    const check = (name: string, params: string) =>
+    const check = (name: string, params: string): Mocha.Test =>
       it(name, () => {
         cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
           cy.visit(`/schedules/${s.id}/overrides${params}`),

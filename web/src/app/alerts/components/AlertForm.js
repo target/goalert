@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import React, { Component } from 'react'
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'

@@ -1,6 +1,6 @@
 import { testScreen } from '../support'
 
-function testAuth() {
+function testAuth(): void {
   before(() =>
     cy
       .clearCookies()

@@ -3,7 +3,7 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-function testSubs(screen: ScreenFormat) {
+function testSubs(screen: ScreenFormat): void {
   beforeEach(() => {
     cy.resetCalendarSubscriptions()
   })

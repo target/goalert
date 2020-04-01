@@ -2,7 +2,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-function testSchedules(screen: ScreenFormat) {
+function testSchedules(screen: ScreenFormat): void {
   describe('Creation', () => {
     it('should create a schedule', () => {
       const name = c.word({ length: 8 })

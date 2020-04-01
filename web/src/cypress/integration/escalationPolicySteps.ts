@@ -3,7 +3,7 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-function testSteps() {
+function testSteps(): void {
   describe('Steps', () => {
     let ep: EP
     let r1: Rotation

@@ -1,4 +1,6 @@
-export default function getServiceLabel(input: string) {
+export default function getServiceLabel(
+  input: string,
+): { labelKey: string; labelValue: string } {
   // grab key and value from the input param, if at all
   let labelKey = ''
   let labelValue = ''

@@ -3,7 +3,7 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-function testEP(screen: ScreenFormat) {
+function testEP(screen: ScreenFormat): void {
   describe('List Page', () => {
     let ep: EP
     beforeEach(() => {
