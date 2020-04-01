@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-namespace Cypress {
+declare namespace Cypress {
   interface Chainable {
     createEP: typeof createEP
     deleteEP: typeof deleteEP

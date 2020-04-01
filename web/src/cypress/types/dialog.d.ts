@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-namespace Cypress {
+declare namespace Cypress {
   interface Chainable {
     /** Click a dialog button with the given text and wait for it to disappear. */
     dialogFinish: typeof dialogFinish

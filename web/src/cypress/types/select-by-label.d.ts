@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-namespace Cypress {
+declare namespace Cypress {
   interface Chainable<Subject> {
     /**
      * Selects an item from a dropdown by it's label. Automatically accounts for search-selects.

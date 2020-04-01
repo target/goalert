@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-namespace Cypress {
+declare namespace Cypress {
   interface Chainable {
     /** Click the FAB (floating action button) of the page.
      *
