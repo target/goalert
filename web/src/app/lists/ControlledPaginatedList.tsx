@@ -118,6 +118,7 @@ export default function ControlledPaginatedList(
     }
     return []
   }
+
   const [_checkedItems, setCheckedItems] = useState<Array<string | number>>([])
   // covers the use case where an item may no longer be selectable after an update
   const checkedItems = _checkedItems.filter(id =>
