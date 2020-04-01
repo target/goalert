@@ -14,7 +14,7 @@ If exposing publicly, it's recommended to start in secure mode with the `-secret
 
 Usage: `sendit -token <TOKEN> <SERVER_URL>/<DESIRED_PREFIX> <LOCAL_URL>`
 
-Example: `sendit https://example.com/foobar http://localhost:3030`
+Example: `sendit -token xxxxxx https://example.com/foobar http://localhost:3030`
 
 Make sure GoAlert is started with the appropriate prefix. For the above example: `make start GOALERT_HTTP_PREFIX=/foobar`
 
