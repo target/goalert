@@ -1,6 +1,6 @@
 # SendIt
 
-SendIt is a tool for setting up a reverse proxy to localhost that's accesible externally. It's similar to tools like `ngrok` and `serveo`.
+SendIt is a tool for setting up a reverse proxy to localhost that's accessible externally. It's similar to tools like `ngrok` and `serveo`.
 
 It was created to aid in running/testing GoAlert integrations.
 
