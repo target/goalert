@@ -287,7 +287,7 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	return m.AlertStore.FindMany(ctx, updatedIDs)
 }
 
-func (m *Mutation) UpdateAlertStatusByService(ctx context.Context, args graphql2.UpdateAlertStatusByServiceInput) (bool, error) {
+func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.UpdateAlertsByServiceInput) (bool, error) {
 	var status alert.Status
 
 	switch args.NewStatus {

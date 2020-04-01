@@ -331,7 +331,7 @@ type TimeZoneSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
-type UpdateAlertStatusByServiceInput struct {
+type UpdateAlertsByServiceInput struct {
 	ServiceID string      `json:"serviceID"`
 	NewStatus AlertStatus `json:"newStatus"`
 }

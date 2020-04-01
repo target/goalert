@@ -289,13 +289,13 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
-  updateAlertStatusByService(input: UpdateAlertStatusByServiceInput!): Boolean!
+  updateAlertsByService(input: UpdateAlertsByServiceInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 }
 
-input UpdateAlertStatusByServiceInput {
+input UpdateAlertsByServiceInput {
   serviceID: ID!
   newStatus: AlertStatus!
 }

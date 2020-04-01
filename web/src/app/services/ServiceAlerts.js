@@ -11,10 +11,8 @@ import Search from '../util/Search'
 import FormDialog from '../dialogs/FormDialog'
 
 const mutation = gql`
-  mutation UpdateAlertStatusByServiceMutation(
-    $input: UpdateAlertStatusByServiceInput!
-  ) {
-    updateAlertStatusByService(input: $input)
+  mutation UpdateAlertsByServiceMutation($input: UpdateAlertsByServiceInput!) {
+    updateAlertsByService(input: $input)
   }
 `
 

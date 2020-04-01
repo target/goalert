@@ -211,8 +211,8 @@ type ComplexityRoot struct {
 		SetLabel                       func(childComplexity int, input SetLabelInput) int
 		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
 		TestContactMethod              func(childComplexity int, id string) int
-		UpdateAlertStatusByService     func(childComplexity int, input UpdateAlertStatusByServiceInput) int
 		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
+		UpdateAlertsByService          func(childComplexity int, input UpdateAlertsByServiceInput) int
 		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
 		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
 		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
@@ -508,7 +508,7 @@ type MutationResolver interface {
 	UpdateSchedule(ctx context.Context, input UpdateScheduleInput) (bool, error)
 	UpdateUserOverride(ctx context.Context, input UpdateUserOverrideInput) (bool, error)
 	UpdateHeartbeatMonitor(ctx context.Context, input UpdateHeartbeatMonitorInput) (bool, error)
-	UpdateAlertStatusByService(ctx context.Context, input UpdateAlertStatusByServiceInput) (bool, error)
+	UpdateAlertsByService(ctx context.Context, input UpdateAlertsByServiceInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
 }
@@ -1318,18 +1318,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.TestContactMethod(childComplexity, args["id"].(string)), true
 
-	case "Mutation.updateAlertStatusByService":
-		if e.complexity.Mutation.UpdateAlertStatusByService == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateAlertStatusByService_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateAlertStatusByService(childComplexity, args["input"].(UpdateAlertStatusByServiceInput)), true
-
 	case "Mutation.updateAlerts":
 		if e.complexity.Mutation.UpdateAlerts == nil {
 			break
@@ -1341,6 +1329,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAlerts(childComplexity, args["input"].(UpdateAlertsInput)), true
+
+	case "Mutation.updateAlertsByService":
+		if e.complexity.Mutation.UpdateAlertsByService == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAlertsByService_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAlertsByService(childComplexity, args["input"].(UpdateAlertsByServiceInput)), true
 
 	case "Mutation.updateEscalationPolicy":
 		if e.complexity.Mutation.UpdateEscalationPolicy == nil {
@@ -2957,13 +2957,13 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
-  updateAlertStatusByService(input: UpdateAlertStatusByServiceInput!): Boolean!
+  updateAlertsByService(input: UpdateAlertsByServiceInput!): Boolean!
 
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
 }
 
-input UpdateAlertStatusByServiceInput {
+input UpdateAlertsByServiceInput {
   serviceID: ID!
   newStatus: AlertStatus!
 }
@@ -3954,12 +3954,12 @@ func (ec *executionContext) field_Mutation_testContactMethod_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateAlertStatusByService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateAlertsByService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 UpdateAlertStatusByServiceInput
+	var arg0 UpdateAlertsByServiceInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNUpdateAlertStatusByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertStatusByServiceInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsByServiceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8319,7 +8319,7 @@ func (ec *executionContext) _Mutation_updateHeartbeatMonitor(ctx context.Context
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateAlertStatusByService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_updateAlertsByService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -8336,7 +8336,7 @@ func (ec *executionContext) _Mutation_updateAlertStatusByService(ctx context.Con
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateAlertStatusByService_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_updateAlertsByService_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -8345,7 +8345,7 @@ func (ec *executionContext) _Mutation_updateAlertStatusByService(ctx context.Con
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAlertStatusByService(rctx, args["input"].(UpdateAlertStatusByServiceInput))
+		return ec.resolvers.Mutation().UpdateAlertsByService(rctx, args["input"].(UpdateAlertsByServiceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16184,8 +16184,8 @@ func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateAlertStatusByServiceInput(ctx context.Context, obj interface{}) (UpdateAlertStatusByServiceInput, error) {
-	var it UpdateAlertStatusByServiceInput
+func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context.Context, obj interface{}) (UpdateAlertsByServiceInput, error) {
+	var it UpdateAlertsByServiceInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17676,8 +17676,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updateAlertStatusByService":
-			out.Values[i] = ec._Mutation_updateAlertStatusByService(ctx, field)
+		case "updateAlertsByService":
+			out.Values[i] = ec._Mutation_updateAlertsByService(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21232,8 +21232,8 @@ func (ec *executionContext) marshalNTimeZoneConnection2ᚖgithubᚗcomᚋtarget�
 	return ec._TimeZoneConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUpdateAlertStatusByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertStatusByServiceInput(ctx context.Context, v interface{}) (UpdateAlertStatusByServiceInput, error) {
-	return ec.unmarshalInputUpdateAlertStatusByServiceInput(ctx, v)
+func (ec *executionContext) unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsByServiceInput(ctx context.Context, v interface{}) (UpdateAlertsByServiceInput, error) {
+	return ec.unmarshalInputUpdateAlertsByServiceInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsInput(ctx context.Context, v interface{}) (UpdateAlertsInput, error) {
