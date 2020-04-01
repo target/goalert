@@ -99,14 +99,8 @@ const simpleCacheTypes = [
 
 // tell Apollo to use cached data for `type(id: foo) {... }` queries
 const queryCache = {}
-
-const cache = new InMemoryCache({
-  cacheRedirects: {
-    Query: {
-      ...queryCache,
-    },
-  },
-})
+// eslint-disable-next-line prefer-const
+let cache
 
 simpleCacheTypes.forEach(name => {
   queryCache[camelCase(name)] = (_, args) =>
@@ -117,6 +111,14 @@ simpleCacheTypes.forEach(name => {
         id: args.id,
       }),
     )
+})
+
+cache = new InMemoryCache({
+  cacheRedirects: {
+    Query: {
+      ...queryCache,
+    },
+  },
 })
 
 const queryOpts = { fetchPolicy: 'cache-and-network', errorPolicy: 'all' }
