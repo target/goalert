@@ -2,30 +2,17 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import { useMutation } from 'react-apollo'
-import AlertsList from '../../alerts/AlertsList'
+import AlertsList from '../alerts/AlertsList'
 import gql from 'graphql-tag'
-import Options from '../../util/Options'
-import PageActions from '../../util/PageActions'
-import AlertsListFilter from '../../alerts/components/AlertsListFilter'
-import Search from '../../util/Search'
-import FormDialog from '../../dialogs/FormDialog'
-import { LegacyGraphQLClient } from '../../apollo'
+import Options from '../util/Options'
+import PageActions from '../util/PageActions'
+import AlertsListFilter from '../alerts/components/AlertsListFilter'
+import Search from '../util/Search'
+import FormDialog from '../dialogs/FormDialog'
 
 const mutation = gql`
-  mutation UpdateAlertStatusByServiceMutation(
-    $input: UpdateAlertStatusByServiceInput!
-  ) {
-    updateAlertStatusByService(input: $input) {
-      number: _id
-      id
-      status: status_2
-      created_at
-      summary
-      service {
-        id
-        name
-      }
-    }
+  mutation UpdateAlertsByServiceMutation($input: UpdateAlertsByServiceInput!) {
+    updateAlertsByService(input: $input)
   }
 `
 
@@ -35,11 +22,10 @@ export default function ServiceAlerts(props) {
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
   const [mutate, mutationStatus] = useMutation(mutation, {
-    client: LegacyGraphQLClient,
     variables: {
       input: {
-        service_id: serviceID,
-        status: alertStatus + 'd', // closed or acknowledged
+        serviceID: serviceID,
+        newStatus: alertStatus,
       },
     },
     onCompleted: () => setShowDialog(false),
@@ -48,13 +34,21 @@ export default function ServiceAlerts(props) {
   const { loading } = mutationStatus
 
   const handleClickAckAll = () => {
-    setAlertStatus('acknowledge')
+    setAlertStatus('StatusAcknowledged')
     setShowDialog(true)
   }
 
   const handleClickCloseAll = () => {
-    setAlertStatus('close')
+    setAlertStatus('StatusClosed')
     setShowDialog(true)
+  }
+
+  const getStatusText = () => {
+    if (alertStatus === 'StatusAcknowledged') {
+      return 'acknowledge'
+    }
+
+    return 'close'
   }
 
   const getMenuOptions = () => {
@@ -81,7 +75,7 @@ export default function ServiceAlerts(props) {
         <FormDialog
           title='Are you sure?'
           confirm
-          subTitle={`This will ${alertStatus} all the alerts for this service.`}
+          subTitle={`This will ${getStatusText()} all the alerts for this service.`}
           caption='This will stop all notifications from being sent out for all alerts with this service.'
           onSubmit={() => mutate()}
           loading={loading}
