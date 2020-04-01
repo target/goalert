@@ -19,7 +19,9 @@ function getService(svcID: string): Cypress.Chainable<Service> {
       }
     }
   `
-  return cy.graphql2(query, { id: svcID }).then(res => res.service)
+  return cy
+    .graphql2(query, { id: svcID })
+    .then((res: GraphQLResponse) => res.service)
 }
 
 function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
@@ -57,7 +59,7 @@ function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
         favorite: Boolean(svc.favorite),
       },
     })
-    .then(res => res.createService)
+    .then((res: GraphQLResponse) => res.createService)
 }
 
 function deleteService(id: string): Cypress.Chainable<void> {
@@ -141,7 +143,7 @@ function createHeartbeatMonitor(
         timeoutMinutes: timeout,
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       const mon = res.createHeartbeatMonitor
       return getService(svcID).then(svc => {
         mon.svc = svc

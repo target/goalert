@@ -58,7 +58,7 @@ function createCalendarSubscription(
         disabled: cs?.disabled || false,
       },
     })
-    .then(res => res.createUserCalendarSubscription)
+    .then((res: GraphQLResponse) => res.createUserCalendarSubscription)
 }
 
 function resetCalendarSubscriptions(userID?: string): Cypress.Chainable<void> {

@@ -74,7 +74,7 @@ function setScheduleTarget(
           id: params.scheduleID,
           tgt: params.target,
         })
-        .then(res => {
+        .then((res: GraphQLResponse) => {
           const { target, ...schedule } = res.schedule
           return {
             ...target,
@@ -106,7 +106,7 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
         favorite: sched.isFavorite,
       },
     })
-    .then(res => res.createSchedule)
+    .then((res: GraphQLResponse) => res.createSchedule)
 }
 
 const fmtTime = (num: number): string => {

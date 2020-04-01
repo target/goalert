@@ -37,8 +37,8 @@ function createEP(ep?: EPOptions): Cypress.Chainable<EP> {
         repeat: ep.repeat || c.integer({ min: 1, max: 5 }),
       },
     })
-    .then(res => res.createEscalationPolicy)
-    .then(pol => {
+    .then((res: GraphQLResponse) => res.createEscalationPolicy)
+    .then((pol: EP) => {
       for (let i = 0; i < stepCount; i++) {
         cy.graphql2(stepMutation, {
           input: {
@@ -87,7 +87,7 @@ function createEPStep(step?: EPStepOptions): Cypress.Chainable<EPStep> {
         targets: step.targets || [],
       },
     })
-    .then(res => res.createEscalationPolicyStep)
+    .then((res: GraphQLResponse) => res.createEscalationPolicyStep)
 }
 
 Cypress.Commands.add('createEP', createEP)

@@ -70,7 +70,7 @@ function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
   // NOTE next recursively builds logs to ultimately yield an AlertLog[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const next = (logs: AlertLog[], after: string): Cypress.Chainable<any> =>
-    cy.graphql2(query, { id, after }).then(res => {
+    cy.graphql2(query, { id, after }).then((res: GraphQLResponse) => {
       const hasNextPage: boolean = res.alert.recentEvents.pageInfo.hasNextPage
       const endCursor: string = res.alert.recentEvents.pageInfo.endCursor
       const nodes: AlertLog[] = res.alert.recentEvents.nodes
@@ -109,7 +109,7 @@ function getAlert(id: number): Cypress.Chainable<Alert> {
     }
   `
 
-  return cy.graphql2(query, { id }).then(res => res.alert)
+  return cy.graphql2(query, { id }).then((res: GraphQLResponse) => res.alert)
 }
 
 function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
@@ -151,7 +151,7 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
         details: a.details || c.sentence({ words: 5 }),
       },
     })
-    .then(res => res.createAlert)
+    .then((res: GraphQLResponse) => res.createAlert)
 }
 
 // global scope if createManyAlerts is called more than once in a given test suite
@@ -163,8 +163,8 @@ function createManyAlerts(
   if (!alertOptions?.serviceID) {
     return cy
       .createService(alertOptions?.service)
-      .then(res =>
-        createManyAlerts(count, { ...alertOptions, serviceID: res.id }),
+      .then((svc: Service) =>
+        createManyAlerts(count, { ...alertOptions, serviceID: svc.id }),
       )
   }
 

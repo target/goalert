@@ -58,7 +58,7 @@ function addContactMethod(
         value: cm.value || newPhone,
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       res = res.createUserContactMethod
       res.userID = cm && cm.userID
       return res
@@ -107,7 +107,7 @@ function addNotificationRule(
         delayMinutes: nr.delayMinutes || c.integer({ min: 0, max: 15 }),
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       res = res.createUserNotificationRule
 
       const userID = nr && nr.userID
@@ -135,7 +135,7 @@ function clearContactMethods(id: string): Cypress.Chainable {
     }
   `
 
-  return cy.graphql2(query, { id }).then(res => {
+  return cy.graphql2(query, { id }).then((res: GraphQLResponse) => {
     if (!res.user.contactMethods.length) return
 
     res.user.contactMethods.forEach((cm: ContactMethod) => {

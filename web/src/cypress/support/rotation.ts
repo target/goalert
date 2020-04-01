@@ -42,7 +42,7 @@ function createRotation(rot?: RotationOptions): Cypress.Chainable<Rotation> {
           userIDs: ids,
         },
       })
-      .then(res => {
+      .then((res: GraphQLResponse) => {
         const rot = res.createRotation
         return rot
       })
