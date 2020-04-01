@@ -25,6 +25,7 @@ import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import { AppLink } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
+import { debug } from '../util/debug'
 
 // gray boxes on load
 // disable overflow
@@ -192,6 +193,8 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
       component: AppLink,
+      // NOTE button: false? not assignable to true
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
       to: item.url,
     }
@@ -276,18 +279,15 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   function renderAsInfiniteScroll(): ReactElement {
     const len = items.length
 
-    // explicitly set props to load more, if loader function present
-    const loadProps: any = {}
-    if (loadMore) {
-      loadProps.hasMore = true
-      loadProps.next = loadMore
-    } else {
-      loadProps.hasMore = false
-    }
-
     return (
       <InfiniteScroll
-        {...loadProps}
+        hasMore={Boolean(loadMore)}
+        next={
+          loadMore ||
+          (() => {
+            debug('next callback missing from InfiniteScroll')
+          })
+        }
         scrollableTarget='content'
         endMessage={
           len === 0 ? null : (

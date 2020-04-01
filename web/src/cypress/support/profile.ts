@@ -30,6 +30,8 @@ declare global {
     name: string
     email: string
     role: UserRole
+    username?: string
+    passwordHash?: string
   }
 
   interface UserOptions {
@@ -204,7 +206,7 @@ function clearContactMethods(id: string): Cypress.Chainable {
   return cy.graphql2(query, { id }).then(res => {
     if (!res.user.contactMethods.length) return
 
-    res.user.contactMethods.forEach((cm: any) => {
+    res.user.contactMethods.forEach((cm: ContactMethod) => {
       cy.graphql2(mutation, {
         input: [
           {
