@@ -146,6 +146,9 @@ cy-wide-prod-run: web/inline_data_gen.go cypress
 cy-mobile-prod-run: web/inline_data_gen.go cypress
 	make cy-mobile-prod CY_ACTION=run
 
+web/src/app/schema.d.ts: graphql2/schema.graphql
+	go run ./devtools/gqltsgen ./graphql2/schema.graphql >web/src/app/schema.d.ts
+
 start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
