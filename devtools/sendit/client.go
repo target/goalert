@@ -139,6 +139,7 @@ func ConnectAndServe(urlStr, dstURLStr, token string, ttl time.Duration) error {
 		defer t.Stop()
 		defer srv.Close()
 		for {
+			// check cancelled first
 			select {
 			case <-ctx.Done():
 				return

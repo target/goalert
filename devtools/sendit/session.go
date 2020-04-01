@@ -66,6 +66,7 @@ func (s *Server) newSession(prefix string) (*session, error) {
 }
 
 func (sess *session) init() {
+	// check done first
 	select {
 	case <-sess.doneCh:
 		return
@@ -101,6 +102,7 @@ func (sess *session) OpenContext(ctx context.Context) (net.Conn, error) {
 	sess.mx.Lock()
 	defer sess.mx.Unlock()
 
+	// check done/cancelled first
 	select {
 	case <-sess.doneCh:
 		return nil, io.ErrClosedPipe
