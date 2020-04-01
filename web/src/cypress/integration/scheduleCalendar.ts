@@ -136,11 +136,16 @@ function testCalendar(screen: ScreenFormat): void {
     // go from week to monthly view
     // e.g. if navigating to an overlap of two months such as
     // Jan 27 - Feb 2, show the latter month (February)
+    let monthsToAdd = 0
+    if (weekSpansTwoMonths(now) && now.day > 7) {
+      monthsToAdd = 1
+    }
+
     cy.get('button[data-cy="show-month"]').click()
     cy.get('button[data-cy="show-month"]').should('be.disabled')
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
-      monthHeaderFormat(now.plus({ months: weekSpansTwoMonths(now) ? 1 : 0 })),
+      monthHeaderFormat(now.plus({ months: monthsToAdd })),
     )
   })
 
