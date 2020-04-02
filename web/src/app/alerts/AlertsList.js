@@ -6,7 +6,6 @@ import {
   ListItemText,
   Snackbar,
   SnackbarContent,
-  Typography,
   makeStyles,
   isWidthDown,
 } from '@material-ui/core'
