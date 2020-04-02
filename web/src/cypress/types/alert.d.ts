@@ -8,8 +8,8 @@ declare namespace Cypress {
 }
 
 interface Alert {
-  number: number
   id: number
+  alertID: number
   summary: string
   details: string
   serviceID: string
