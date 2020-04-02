@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Markdown', testMarkdown)
-
 interface Config {
   // test is the name of the section
   test: string
@@ -13,31 +11,6 @@ interface Config {
 
   // gen is a function that generates a thing with a given description.
   gen: (desc: string) => Cypress.Chainable<{ id: string; name: string }>
-}
-
-function testMarkdown(screen: ScreenFormat): void {
-  ;[
-    {
-      test: 'Rotations',
-      url: 'rotations',
-      gen: (desc: string) => cy.createRotation({ description: desc }),
-    },
-    {
-      test: 'Schedules',
-      url: 'on_call_schedules',
-      gen: (desc: string) => cy.createSchedule({ description: desc }),
-    },
-    {
-      test: 'Escalation Policies',
-      url: 'escalation_policies',
-      gen: (desc: string) => cy.createEP({ description: desc }),
-    },
-    {
-      test: 'Services',
-      url: 'services',
-      gen: (desc: string) => cy.createService({ description: desc }),
-    },
-  ].forEach(cfg => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
 }
 
 function testMarkdownDesc(screen: ScreenFormat, cfg: Config): void {
@@ -72,3 +45,30 @@ function testMarkdownDesc(screen: ScreenFormat, cfg: Config): void {
     })
   })
 }
+
+function testMarkdown(screen: ScreenFormat): void {
+  ;[
+    {
+      test: 'Rotations',
+      url: 'rotations',
+      gen: (desc: string) => cy.createRotation({ description: desc }),
+    },
+    {
+      test: 'Schedules',
+      url: 'on_call_schedules',
+      gen: (desc: string) => cy.createSchedule({ description: desc }),
+    },
+    {
+      test: 'Escalation Policies',
+      url: 'escalation_policies',
+      gen: (desc: string) => cy.createEP({ description: desc }),
+    },
+    {
+      test: 'Services',
+      url: 'services',
+      gen: (desc: string) => cy.createService({ description: desc }),
+    },
+  ].forEach(cfg => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
+}
+
+testScreen('Markdown', testMarkdown)

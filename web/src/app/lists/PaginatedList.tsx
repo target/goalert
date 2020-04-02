@@ -243,20 +243,6 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const onBack = page > 0 ? () => setPage(page - 1) : undefined
   const onNext = hasNextPage ? handleNextPage : undefined
 
-  return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Card>
-          {cardHeader}
-          {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
-        </Card>
-      </Grid>
-      {!infiniteScroll && (
-        <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
-      )}
-    </Grid>
-  )
-
   function renderList(): ReactElement {
     return (
       <List data-cy='apollo-list'>
@@ -311,6 +297,20 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
       </InfiniteScroll>
     )
   }
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Card>
+          {cardHeader}
+          {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
+        </Card>
+      </Grid>
+      {!infiniteScroll && (
+        <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
+      )}
+    </Grid>
+  )
 }
 
 function PageControls(props: {
