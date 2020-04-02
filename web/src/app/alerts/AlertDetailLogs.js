@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import Divider from '@material-ui/core/Divider'
+import Button from '@material-ui/core/Button'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
-import Button from '@material-ui/core/Button'
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import { DateTime } from 'luxon'
-import { logTimeFormat } from '../util/timeFormat'
-import { POLL_INTERVAL } from '../config'
 import _ from 'lodash-es'
+import { formatTimeSince } from '../util/timeFormat'
+import { POLL_INTERVAL } from '../config'
 
 const FETCH_LIMIT = 149
 const QUERY_LIMIT = 35
@@ -67,6 +67,7 @@ export default function AlertDetailLogs(props) {
       },
     })
   }
+
   const renderList = (items, loadMore) => {
     return (
       <List data-cy='alert-logs'>
@@ -84,23 +85,25 @@ export default function AlertDetailLogs(props) {
       </List>
     )
   }
-  const renderItems = (timestamp, message) => {
-    if (props.showExactTimes)
-      return (
-        <ListItemText
-          primary={DateTime.fromISO(timestamp).toFormat(
-            'MMM dd yyyy, h:mm:ss a',
-          )}
-          secondary={message}
-        />
+
+  const renderItem = (timestamp, message, idx) => {
+    let timestampFmtd = formatTimeSince(timestamp)
+    if (props.showExactTimes) {
+      timestampFmtd = DateTime.fromISO(timestamp).toLocaleString(
+        DateTime.DATETIME_FULL,
       )
+    }
+
     return (
-      <ListItemText
-        primary={logTimeFormat(timestamp, DateTime.local().startOf('day'))}
-        secondary={message}
-      />
+      <ListItem key={idx} divider>
+        <ListItemText primary={message} />
+        <ListItemSecondaryAction>
+          <ListItemText secondary={timestampFmtd} />
+        </ListItemSecondaryAction>
+      </ListItem>
     )
   }
+
   if (events.length === 0) {
     return renderList(
       <ListItem>
@@ -108,6 +111,7 @@ export default function AlertDetailLogs(props) {
       </ListItem>,
     )
   }
+
   if (error) {
     return renderList(
       <ListItem>
@@ -115,6 +119,7 @@ export default function AlertDetailLogs(props) {
       </ListItem>,
     )
   }
+
   if (loading && !data) {
     return renderList(
       <ListItem>
@@ -122,16 +127,13 @@ export default function AlertDetailLogs(props) {
       </ListItem>,
     )
   }
+
   return renderList(
-    events.map((log, index) => (
-      <div key={index}>
-        <Divider />
-        <ListItem>{renderItems(log.timestamp, log.message)}</ListItem>
-      </div>
-    )),
+    events.map((event, idx) => renderItem(event.timestamp, event.message, idx)),
     pageInfo.hasNextPage,
   )
 }
+
 AlertDetailLogs.propTypes = {
   alertID: p.number.isRequired,
   showExactTimes: p.bool,
