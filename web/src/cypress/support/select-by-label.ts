@@ -86,11 +86,9 @@ function findByLabel(sub: any, label: string): Cypress.Chainable {
 
       cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
 
-      cy.get('[role=menuitem]').should('contain', label)
+      // cy.get('[role=menuitem]').should('contain', label)
 
-      return cy
-        .get('[data-cy=select-dropdown]')
-        .contains('[role=menuitem]', label)
+      return cy.get('[role=menuitem]').contains(label)
     }
 
     cy.wrap(sub)
