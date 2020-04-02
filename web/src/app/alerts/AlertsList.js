@@ -3,9 +3,9 @@ import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
 import {
   Hidden,
+  ListItemText,
   Snackbar,
   SnackbarContent,
-  Typography,
   makeStyles,
   isWidthDown,
 } from '@material-ui/core'
@@ -279,11 +279,7 @@ export default function AlertsList(props) {
             .toUpperCase()
             .replace('STATUS', '')}`,
           subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-          action: (
-            <Typography variant='caption'>
-              {formatTimeSince(a.createdAt)}
-            </Typography>
-          ),
+          action: <ListItemText secondary={formatTimeSince(a.createdAt)} />,
           url: `/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}
