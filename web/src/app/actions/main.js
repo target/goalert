@@ -1,6 +1,19 @@
 import { replace } from 'connected-react-router'
 export const SET_SHOW_NEW_USER_FORM = 'SET_SHOW_NEW_USER_FORM'
 
+const setSearchStr = (dispatch, state, searchParams) => {
+  if (searchParams.sort) searchParams.sort()
+  let newSearch = searchParams.toString()
+  newSearch = newSearch ? '?' + newSearch : ''
+
+  const { search, pathname, hash } = state.router.location
+  if (newSearch === search) {
+    // no action for no param change
+    return
+  }
+  dispatch(replace(pathname + newSearch + hash))
+}
+
 // resetURLParams will reset all url parameters.
 //
 // An optional list of specific keys to reset can be passed.
@@ -17,20 +30,6 @@ export function resetURLParams(...keys) {
     setSearchStr(dispatch, state, q)
   }
 }
-
-const setSearchStr = (dispatch, state, searchParams) => {
-  if (searchParams.sort) searchParams.sort()
-  let newSearch = searchParams.toString()
-  newSearch = newSearch ? '?' + newSearch : ''
-
-  const { search, pathname, hash } = state.router.location
-  if (newSearch === search) {
-    // no action for no param change
-    return
-  }
-  dispatch(replace(pathname + newSearch + hash))
-}
-
 const sanitizeParam = value => {
   if (value === true) value = '1' // explicitly true
   if (!value) value = '' // any falsey value
@@ -40,11 +39,6 @@ const sanitizeParam = value => {
   if (filtered.length === 0) return null
 
   return filtered
-}
-
-// setSearch will set the current search parameter/filter.
-export function setSearch(value) {
-  return setURLParam('search', value || '')
 }
 
 // setURLParam will update the URL parameter with the given name to the provided value.
@@ -73,6 +67,11 @@ export function setURLParam(name, _value, _default) {
 
     setSearchStr(dispatch, state, q)
   }
+}
+
+// setSearch will set the current search parameter/filter.
+export function setSearch(value) {
+  return setURLParam('search', value || '')
 }
 
 export function setShowNewUserForm(search) {

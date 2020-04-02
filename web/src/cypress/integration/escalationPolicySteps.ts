@@ -3,8 +3,6 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-testScreen('Escalation Policy Steps', testSteps)
-
 function testSteps(): void {
   describe('Steps', () => {
     let ep: EP
@@ -238,3 +236,5 @@ function testSteps(): void {
     })
   })
 }
+
+testScreen('Escalation Policy Steps', testSteps)

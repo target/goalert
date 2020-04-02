@@ -3,8 +3,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Alerts', testAlerts)
-
 function testAlerts(screen: ScreenFormat): void {
   describe('Alerts List', () => {
     let alert: Alert
@@ -396,3 +394,5 @@ function testAlerts(screen: ScreenFormat): void {
     })
   })
 }
+
+testScreen('Alerts', testAlerts)

@@ -4,8 +4,6 @@ import { DateTime } from 'luxon'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Time Pickers', testTimePickers)
-
 function testTimePickers(): void {
   describe('Time (schedule assignments)', () => {
     const check = (name: string, params: string, display: string): Mocha.Test =>
@@ -167,3 +165,5 @@ function testTimePickers(): void {
     })
   })
 }
+
+testScreen('Time Pickers', testTimePickers)

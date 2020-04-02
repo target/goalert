@@ -2,6 +2,17 @@ import { Chance } from 'chance'
 
 const c = new Chance()
 
+const fmtTime = (num: number): string => {
+  const s = num.toString()
+  if (s.length === 1) {
+    return '0' + s
+  }
+  return s
+}
+
+const randClock = (): string =>
+  `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
+
 function setScheduleTarget(
   tgt?: ScheduleTargetOptions,
 ): Cypress.Chainable<ScheduleTarget> {
@@ -108,17 +119,6 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
     })
     .then((res: GraphQLResponse) => res.createSchedule)
 }
-
-const fmtTime = (num: number): string => {
-  const s = num.toString()
-  if (s.length === 1) {
-    return '0' + s
-  }
-  return s
-}
-
-const randClock = (): string =>
-  `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
 function deleteSchedule(id: string): Cypress.Chainable<void> {
   const mutation = `

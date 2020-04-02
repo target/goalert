@@ -28,12 +28,6 @@ export function getAllParameters(url = global.location.href) {
   return queries
 }
 
-// clears the parameter given from the current url
-export function clearParameter(name, url = global.location.href) {
-  const query = setParameterByName(name, null, url)
-  return query
-}
-
 // takes in a var name, var value, and optionally a url to read previous params from.
 // returns a string of the params and the maintained hash (DOES NOT RETURN THE PATH)
 export function setParameterByName(name, value, url = global.location.href) {
@@ -59,4 +53,10 @@ export function setParameterByName(name, value, url = global.location.href) {
   const newURL = '?' + queryList.join('&') + hash
 
   return newURL
+}
+
+// clears the parameter given from the current url
+export function clearParameter(name, url = global.location.href) {
+  const query = setParameterByName(name, null, url)
+  return query
 }

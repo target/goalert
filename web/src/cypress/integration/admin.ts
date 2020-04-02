@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
-testScreen('Admin', testAdmin, false, true)
-
 function testAdmin(): void {
   describe('Admin System Limits Page', () => {
     let limits: Limits = new Map()
@@ -15,8 +13,8 @@ function testAdmin(): void {
     })
 
     it('should allow updating system limits values', () => {
-      const newContactMethods = c.integer({ min: 0, max: 1000 }).toString()
-      const newEPActions = c.integer({ min: 0, max: 1000 }).toString()
+      const newContactMethods = c.integer({ min: 15, max: 1000 }).toString()
+      const newEPActions = c.integer({ min: 15, max: 1000 }).toString()
 
       const ContactMethodsPerUser = limits.get(
         'ContactMethodsPerUser',
@@ -174,3 +172,5 @@ function testAdmin(): void {
     })
   })
 }
+
+testScreen('Admin', testAdmin, false, true)

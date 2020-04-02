@@ -10,6 +10,34 @@ export const days = [
   'Saturday',
 ]
 
+// dstWeekOffset will return dt forward or backward a week
+// if `dt.offset` does not match the `expectedOffset`.
+function dstWeekOffset(expectedOffset, dt) {
+  if (dt.offset === expectedOffset) return dt
+
+  dt = dt.minus({ weeks: 1 })
+  if (dt.offset === expectedOffset) return dt
+
+  return dt.plus({ weeks: 2 })
+}
+
+export function parseClock(s, zone) {
+  const dt = DateTime.fromObject({
+    hours: parseInt(s.split(':')[0], 10),
+    minutes: parseInt(s.split(':')[1], 10),
+    weekday: 7, // sunday
+    zone,
+  })
+
+  return dstWeekOffset(DateTime.utc().setZone('zone').offset, dt)
+}
+
+export function formatClock(dt) {
+  return `${dt.hour
+    .toString()
+    .padStart(2, '0')}:${dt.minute.toString().padStart(2, '0')}`
+}
+
 // Shifts a weekdayFilter so that it matches the luxon day n
 //
 // Default is 7 (Sunday)
@@ -83,34 +111,6 @@ export function weekdaySummary(filter) {
   })
   flush()
   return d.join(', ')
-}
-
-// dstWeekOffset will return dt forward or backward a week
-// if `dt.offset` does not match the `expectedOffset`.
-function dstWeekOffset(expectedOffset, dt) {
-  if (dt.offset === expectedOffset) return dt
-
-  dt = dt.minus({ weeks: 1 })
-  if (dt.offset === expectedOffset) return dt
-
-  return dt.plus({ weeks: 2 })
-}
-
-export function parseClock(s, zone) {
-  const dt = DateTime.fromObject({
-    hours: parseInt(s.split(':')[0], 10),
-    minutes: parseInt(s.split(':')[1], 10),
-    weekday: 7, // sunday
-    zone,
-  })
-
-  return dstWeekOffset(DateTime.utc().setZone('zone').offset, dt)
-}
-
-export function formatClock(dt) {
-  return `${dt.hour
-    .toString()
-    .padStart(2, '0')}:${dt.minute.toString().padStart(2, '0')}`
 }
 
 export function ruleSummary(rules, scheduleZone, displayZone) {
