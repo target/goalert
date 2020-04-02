@@ -12,6 +12,7 @@ export function pageSearch(s: string): Cypress.Chainable {
     cy.get('[data-cy=search-field] input')
       .type(`{selectall}${s}`)
       .should('have.value', s)
+      .should('have.focus')
   })
 }
 
