@@ -87,10 +87,13 @@ export default function MaterialSelect(
     value: _value,
   } = props
 
-  let value = asArray(_value)
-  if (!multiple && !_value) value = [{ label: '', value: '' }]
+  // NOTE value is undefined when nothing is selected
+  let value: SelectOption[] | undefined = asArray(_value)
+  if (!multiple && !_value) value = undefined
 
-  const [inputValue, setInputValue] = useState(multiple ? '' : value[0].label)
+  const [inputValue, setInputValue] = useState(
+    multiple || !value ? '' : value[0].label,
+  )
 
   return (
     <Autocomplete
@@ -111,7 +114,7 @@ export default function MaterialSelect(
         event: ChangeEvent<{}>,
         selected: SelectOption | SelectOption[] | null,
       ) => {
-        if (selected !== null) {
+        if (selected) {
           if (Array.isArray(selected)) {
             setInputValue('')
           } else {
@@ -126,7 +129,7 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={() => setInputValue(multiple ? '' : value[0].label)}
+      onBlur={() => setInputValue(multiple || !value ? '' : value[0].label)}
       loading={isLoading}
       getOptionLabel={option => option.label || ''}
       options={options}
