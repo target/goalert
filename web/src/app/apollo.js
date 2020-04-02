@@ -13,7 +13,7 @@ import promiseBatch from './util/promiseBatch'
 import { pathPrefix } from './env'
 
 let pendingMutations = 0
-window.onbeforeunload = function(e) {
+window.onbeforeunload = function (e) {
   if (!pendingMutations) {
     return
   }
@@ -23,7 +23,7 @@ window.onbeforeunload = function(e) {
   return dialogText
 }
 
-const trackMutation = p => {
+const trackMutation = (p) => {
   pendingMutations++
   p.then(
     () => pendingMutations--,
@@ -45,7 +45,7 @@ export function doFetch(body, url = pathPrefix + '/v1/graphql') {
   if (body.query && body.query.startsWith && body.query.startsWith('mutation'))
     trackMutation(f)
 
-  return promiseBatch(f).then(res => {
+  return promiseBatch(f).then((res) => {
     if (res.ok) {
       return res
     }
@@ -66,7 +66,7 @@ const retryLink = new RetryLink({
   },
   attempts: {
     max: 5,
-    retryIf: error => {
+    retryIf: (error) => {
       // Retry on any error except HTTP Response errors with the
       // exception of 502-504 response codes (e.g. no retry on 401/auth etc..).
       return (
@@ -102,7 +102,7 @@ const queryCache = {}
 // eslint-disable-next-line prefer-const
 let cache
 
-simpleCacheTypes.forEach(name => {
+simpleCacheTypes.forEach((name) => {
   queryCache[camelCase(name)] = (_, args) =>
     args &&
     toIdValue(
@@ -171,7 +171,7 @@ export const GraphQLClientWithErrors = new ApolloClient({
 // refetch all *active* polling queries on mutations
 const mutate = GraphQLClient.mutate
 GraphQLClient.mutate = (...args) => {
-  return mutate.call(GraphQLClient, ...args).then(result => {
+  return mutate.call(GraphQLClient, ...args).then((result) => {
     return Promise.all([
       GraphQLClient.reFetchObservableQueries(true),
       GraphQLClientWithErrors.reFetchObservableQueries(true),
@@ -183,7 +183,7 @@ const mutateWithErrors = GraphQLClientWithErrors.mutate
 GraphQLClientWithErrors.mutate = (...args) => {
   return mutateWithErrors
     .call(GraphQLClientWithErrors, ...args)
-    .then(result => {
+    .then((result) => {
       return Promise.all([
         GraphQLClient.reFetchObservableQueries(true),
         GraphQLClientWithErrors.reFetchObservableQueries(true),

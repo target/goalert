@@ -18,7 +18,7 @@ function testMarkdownDesc(screen: ScreenFormat, cfg: Config): void {
   let generated: { id: string; name: string }
   beforeEach(() => {
     rawDescription = c.word({ length: 8 })
-    return cfg.gen('# ' + rawDescription).then(g => {
+    return cfg.gen('# ' + rawDescription).then((g) => {
       generated = g
     })
   })
@@ -29,9 +29,7 @@ function testMarkdownDesc(screen: ScreenFormat, cfg: Config): void {
     })
     it('should render description with markdown', () => {
       // make sure markdown renders properly
-      cy.get('h1')
-        .should('not.contain', '#')
-        .should('contain', rawDescription)
+      cy.get('h1').should('not.contain', '#').should('contain', rawDescription)
     })
   })
 
@@ -68,7 +66,7 @@ function testMarkdown(screen: ScreenFormat): void {
       url: 'services',
       gen: (desc: string) => cy.createService({ description: desc }),
     },
-  ].forEach(cfg => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
+  ].forEach((cfg) => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
 }
 
 testScreen('Markdown', testMarkdown)

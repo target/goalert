@@ -10,7 +10,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import IconButton from '@material-ui/core/IconButton'
 import { Clear } from '@material-ui/icons'
 
-export const styles = theme => ({
+export const styles = (theme) => ({
   root: {
     flexGrow: 1,
   },
@@ -66,7 +66,7 @@ export const styles = theme => ({
   },
 })
 
-export const NoOptionsMessage = props => (
+export const NoOptionsMessage = (props) => (
   <Typography
     color='textSecondary'
     className={props.selectProps.classes.message}
@@ -76,7 +76,7 @@ export const NoOptionsMessage = props => (
   </Typography>
 )
 
-export const LoadingMessage = props => (
+export const LoadingMessage = (props) => (
   <Typography
     color='textSecondary'
     className={props.selectProps.classes.message}
@@ -90,7 +90,7 @@ export const inputComponent = ({ inputRef, ...props }) => (
   <div ref={inputRef} {...props} />
 )
 
-export const Control = props => (
+export const Control = (props) => (
   <TextField
     data-cy='search-select'
     disabled={props.isDisabled}
@@ -111,7 +111,7 @@ export const Control = props => (
   />
 )
 
-export const Option = props => (
+export const Option = (props) => (
   <MenuItem
     buttonRef={props.innerRef}
     selected={props.isFocused}
@@ -129,7 +129,7 @@ export const Option = props => (
   </MenuItem>
 )
 
-export const Placeholder = props => (
+export const Placeholder = (props) => (
   <Typography
     color={props.selectProps.error ? 'error' : 'textSecondary'}
     className={props.selectProps.classes.placeholder}
@@ -139,13 +139,13 @@ export const Placeholder = props => (
   </Typography>
 )
 
-export const ValueContainer = props => (
+export const ValueContainer = (props) => (
   <div className={props.selectProps.classes.valueContainer}>
     {props.children}
   </div>
 )
 
-export const SingleValue = props => (
+export const SingleValue = (props) => (
   <Typography
     color={props.isDisabled ? 'textSecondary' : 'initial'}
     className={props.selectProps.classes.singleValue}
@@ -155,7 +155,7 @@ export const SingleValue = props => (
   </Typography>
 )
 
-export const MultiValue = props => (
+export const MultiValue = (props) => (
   <Chip
     data-cy='multi-value'
     tabIndex={-1}
@@ -163,14 +163,14 @@ export const MultiValue = props => (
     className={classNames(props.selectProps.classes.chip, {
       [props.selectProps.classes.chipFocused]: props.isFocused,
     })}
-    onDelete={event => {
+    onDelete={(event) => {
       props.removeProps.onClick()
       props.removeProps.onMouseDown(event)
     }}
   />
 )
 
-export const Menu = props => (
+export const Menu = (props) => (
   <Paper
     className={props.selectProps.classes.paper}
     data-cy='select-dropdown'
@@ -181,7 +181,7 @@ export const Menu = props => (
   </Paper>
 )
 
-const ClearIndicator = props => {
+const ClearIndicator = (props) => {
   return (
     <IconButton
       {...props.innerProps}

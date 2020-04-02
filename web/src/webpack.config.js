@@ -100,7 +100,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
     }),
     new webpack.HotModuleReplacementPlugin(),
     new CopyPlugin(
-      [16, 32, 64, 192].map(size => ({
+      [16, 32, 64, 192].map((size) => ({
         from: path.resolve(APP, `./public/favicon-${size}.png`),
         to: path.resolve(BUILD, `./static/favicon-${size}.png`),
       })),

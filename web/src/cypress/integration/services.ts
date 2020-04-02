@@ -57,9 +57,7 @@ function testServices(screen: ScreenFormat): void {
     it('should link to details page', () => {
       cy.get('ul[data-cy=apollo-list]').should('exist')
       cy.pageSearch(svc.name)
-      cy.get('#app')
-        .contains(svc.name)
-        .click()
+      cy.get('#app').contains(svc.name).click()
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
@@ -208,9 +206,7 @@ function testServices(screen: ScreenFormat): void {
         cy.dialogFinish('Submit')
 
         // should be on details page
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
 
       it(`should create a service, with a generated EP, when submitted`, () => {
@@ -222,9 +218,7 @@ function testServices(screen: ScreenFormat): void {
         cy.dialogFinish('Submit')
 
         // should be on details page
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
     })
   })
@@ -347,9 +341,7 @@ function testServices(screen: ScreenFormat): void {
       cy.dialogForm({ name, timeoutMinutes })
       cy.dialogFinish('Submit')
 
-      cy.get('li')
-        .should('contain', name)
-        .should('contain', timeoutMinutes)
+      cy.get('li').should('contain', name).should('contain', timeoutMinutes)
     })
 
     it('should edit a monitor', () => {
@@ -428,7 +420,7 @@ function testServices(screen: ScreenFormat): void {
       const name = 'SM Int ' + c.word({ length: 8 })
 
       cy.get('body').should('contain', 'No integration keys')
-      ;['Generic API', 'Grafana'].forEach(type => {
+      ;['Generic API', 'Grafana'].forEach((type) => {
         createKey(type, name)
 
         cy.get('ul[data-cy=int-keys]').should('contain', name)
@@ -477,9 +469,7 @@ function testServices(screen: ScreenFormat): void {
 
       // check that dropdown type is hidden
       cy.pageFab()
-      cy.get('input[name=type]')
-        .findByLabel('Email')
-        .should('not.exist')
+      cy.get('input[name=type]').findByLabel('Email').should('not.exist')
     })
   })
 

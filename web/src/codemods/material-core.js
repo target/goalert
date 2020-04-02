@@ -3,12 +3,12 @@ export default function transformer(file, api) {
 
   return j(file.source)
     .find(j.ImportDeclaration)
-    .forEach(path => {
+    .forEach((path) => {
       const pathStr = path.value.source.value
 
       if (!pathStr.startsWith('material-ui/') && pathStr !== 'material-ui')
         return
-      path.value.specifiers.forEach(spec => {
+      path.value.specifiers.forEach((spec) => {
         let newPath = pathStr.replace(
           /^material-ui(.*(?=\/))?/,
           '@material-ui/core',

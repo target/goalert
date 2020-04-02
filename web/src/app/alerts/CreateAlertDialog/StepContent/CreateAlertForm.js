@@ -14,7 +14,7 @@ export function CreateAlertForm(props) {
       {activeStep === 1 && (
         <FormField
           required
-          render={props => <CreateAlertServiceSelect {...props} />}
+          render={(props) => <CreateAlertServiceSelect {...props} />}
           name='serviceIDs'
         />
       )}

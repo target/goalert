@@ -54,7 +54,7 @@ export default function CustomSpeedDial(props) {
             }}
             aria-label={action.label}
             FabProps={{ disabled: action.disabled }}
-            onClick={e => {
+            onClick={(e) => {
               if (action.disabled) {
                 e.stopPropagation()
                 return

@@ -1,7 +1,7 @@
 import { mapOverrideUserError, alignWeekdayFilter, mapRuleTZ } from './util'
 import _ from 'lodash'
 
-const fromBin = f => f.split('').map(f => f === '1')
+const fromBin = (f) => f.split('').map((f) => f === '1')
 
 describe('mapRuleTZ', () => {
   const check = (rule, fromTZ, toTZ, expected) => {

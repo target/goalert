@@ -11,7 +11,7 @@ import AdminRouter from '../admin/AdminRouter'
 import WizardRouter from '../wizard/WizardRouter'
 import IntegrationKeyAPI from '../documentation/components/IntegrationKeyAPI'
 
-export const getPath = p => (Array.isArray(p.path) ? p.path[0] : p.path)
+export const getPath = (p) => (Array.isArray(p.path) ? p.path[0] : p.path)
 
 export function renderRoutes(routeConfig = []) {
   const routes = []

@@ -11,7 +11,7 @@ import { Error } from '@material-ui/icons'
 import gql from 'graphql-tag'
 import _ from 'lodash-es'
 
-const useStyles = makeStyles(theme => {
+const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return {
@@ -32,10 +32,10 @@ const query = gql`
   }
 `
 
-const stepsText = _steps => {
+const stepsText = (_steps) => {
   const steps = _.chain(_steps)
     .sort()
-    .map(s => `#${s + 1}`)
+    .map((s) => `#${s + 1}`)
     .value()
   if (steps.length === 1) {
     return 'Step ' + steps[0]
@@ -74,14 +74,14 @@ export default function ServiceOnCallList({ serviceID }) {
   } else {
     items = _.chain(data.service.onCallUsers)
       .groupBy('userID')
-      .mapValues(v => ({
+      .mapValues((v) => ({
         id: v[0].userID,
         name: v[0].userName,
         steps: _.map(v, 'stepNumber'),
       }))
       .values()
       .sortBy('name')
-      .map(u => ({
+      .map((u) => ({
         title: u.name,
         subText: stepsText(u.steps),
         icon: <UserAvatar userID={u.id} />,

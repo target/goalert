@@ -13,7 +13,7 @@ import { DEBOUNCE_DELAY } from '../config'
 import AppBarSearchContainer from './AppBarSearchContainer'
 import { useURLParam } from '../actions'
 
-const useStyles = makeStyles(theme => {
+const useStyles = makeStyles((theme) => {
   return {
     hasSearch: {
       [theme.breakpoints.up('md')]: {
@@ -98,7 +98,7 @@ export default function Search(props) {
         variant='outlined'
         margin='dense'
         hiddenLabel
-        onChange={e => setSearch(e.target.value)}
+        onChange={(e) => setSearch(e.target.value)}
         value={search}
         className={textClass}
         {...extraProps}

@@ -1,5 +1,5 @@
 export function pageSearch(s: string): Cypress.Chainable {
-  return cy.get('[data-cy=app-bar]').then(el => {
+  return cy.get('[data-cy=app-bar]').then((el) => {
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'header format').to.be.oneOf(['mobile', 'wide'])
 

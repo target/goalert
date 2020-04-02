@@ -171,7 +171,7 @@ export default class AlertDetails extends Component {
       return (
         <Countdown
           date={new Date(prevEscalation.getTime() + delayMinutes * 60000)}
-          renderer={props => {
+          renderer={(props) => {
             const { hours, minutes, seconds } = props
 
             const hourTxt = parseInt(hours)
@@ -208,9 +208,9 @@ export default class AlertDetails extends Component {
     return steps.map((step, index) => {
       const { delayMinutes, id, targets } = step
 
-      const rotations = targets.filter(t => t.type === 'rotation')
-      const schedules = targets.filter(t => t.type === 'schedule')
-      const users = targets.filter(t => t.type === 'user')
+      const rotations = targets.filter((t) => t.type === 'rotation')
+      const schedules = targets.filter((t) => t.type === 'schedule')
+      const users = targets.filter((t) => t.type === 'user')
 
       let rotationsRender
       if (rotations.length > 0) {

@@ -5,13 +5,13 @@ import TextField from '@material-ui/core/TextField'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { FormContainer, FormField } from '../forms'
 
-const styles = theme => ({
+const styles = (theme) => ({
   infoIcon: {
     color: theme.palette.primary['500'],
   },
 })
 
-const clampTimeout = val => {
+const clampTimeout = (val) => {
   if (!val) return ''
   const num = parseInt(val, 10)
   if (Number.isNaN(num)) return val

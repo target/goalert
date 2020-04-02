@@ -60,8 +60,8 @@ interface Service {
 //
 function services(onCallSteps: OnCallStep[] = []): Service[] {
   const svcs: { [index: string]: Service } = {}
-  ;(onCallSteps || []).forEach(s =>
-    (s.escalationPolicy.assignedTo || []).forEach(svc => {
+  ;(onCallSteps || []).forEach((s) =>
+    (s.escalationPolicy.assignedTo || []).forEach((svc) => {
       if (!svcs[svc.id]) {
         svcs[svc.id] = {
           id: svc.id,
@@ -114,11 +114,11 @@ export default function UserOnCallAssignmentList(props: {
             ? 'You are not currently on-call.'
             : `${user.name} is not currently on-call.`
         }
-        items={services(user.onCallSteps).map(svc => ({
+        items={services(user.onCallSteps).map((svc) => ({
           title: svc.name,
           url: '/services/' + svc.id,
           subText: `${svc.policyName}: ${svc.policySteps
-            .map(n => `Step ${n + 1}`)
+            .map((n) => `Step ${n + 1}`)
             .join(', ')}`,
         }))}
       />

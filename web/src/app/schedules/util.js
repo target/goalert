@@ -62,9 +62,7 @@ export function mapRuleTZ(fromTZ, toTZ, rule) {
 // the given GraphQL ClockTime value at the current date in the
 // provided time zone.
 export function gqlClockTimeToISO(time, zone) {
-  return DateTime.fromFormat(time, 'HH:mm', { zone })
-    .toUTC()
-    .toISO()
+  return DateTime.fromFormat(time, 'HH:mm', { zone }).toUTC().toISO()
 }
 
 // isoToGQLClockTime will return a GraphQL ClockTime value for
@@ -74,7 +72,7 @@ export function isoToGQLClockTime(timestamp, zone) {
 }
 
 export function weekdaySummary(filter) {
-  const bin = filter.map(f => (f ? '1' : '0')).join('')
+  const bin = filter.map((f) => (f ? '1' : '0')).join('')
   switch (bin) {
     case '1000001':
       return 'Weekends'
@@ -94,7 +92,7 @@ export function weekdaySummary(filter) {
   let chain = []
   const flush = () => {
     if (chain.length < 3) {
-      chain.forEach(day => d.push(day.slice(0, 3)))
+      chain.forEach((day) => d.push(day.slice(0, 3)))
       chain = []
       return
     }
@@ -114,16 +112,16 @@ export function weekdaySummary(filter) {
 }
 
 export function ruleSummary(rules, scheduleZone, displayZone) {
-  const everyDay = r => !r.weekdayFilter.some(w => !w) && r.start === r.end
+  const everyDay = (r) => !r.weekdayFilter.some((w) => !w) && r.start === r.end
 
-  rules = rules.filter(r => r.weekdayFilter.some(w => w)) // ignore disabled
+  rules = rules.filter((r) => r.weekdayFilter.some((w) => w)) // ignore disabled
   if (rules.length === 0) return 'Never'
   if (rules.some(everyDay)) return 'Always'
 
-  const getTime = str => parseClock(str, scheduleZone).setZone(displayZone)
+  const getTime = (str) => parseClock(str, scheduleZone).setZone(displayZone)
 
   return rules
-    .map(r => {
+    .map((r) => {
       const start = getTime(r.start)
       const weekdayFilter = alignWeekdayFilter(start.weekday, r.weekdayFilter)
       return `${weekdaySummary(weekdayFilter)} from ${start.toLocaleString(
@@ -157,7 +155,7 @@ export function mapOverrideUserError(conflictingOverride, value, zone) {
   const isReplace =
     conflictingOverride.addUser && conflictingOverride.removeUser
 
-  const replaceMsg = add =>
+  const replaceMsg = (add) =>
     add
       ? `replacing ${conflictingOverride.removeUser.name}`
       : `replaced by ${conflictingOverride.addUser.name}`

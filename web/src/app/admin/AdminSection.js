@@ -95,7 +95,7 @@ export default class AdminSection extends React.PureComponent {
                     name={f.id}
                     value={defaultTo(value[f.id], f.value)}
                     password={f.password ? true : null}
-                    onChange={val =>
+                    onChange={(val) =>
                       this.props.onChange(f.id, val === f.value ? null : val)
                     }
                   />

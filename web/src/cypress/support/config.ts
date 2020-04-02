@@ -54,7 +54,7 @@ function getConfigDirect(token: string): Cypress.Chainable<Config> {
       method: 'GET',
       auth: { bearer: token },
     })
-    .then(res => {
+    .then((res) => {
       expect(res.status, 'status code').to.eq(200)
 
       return JSON.parse(res.body)
@@ -80,14 +80,14 @@ function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
 
 function merge(dst: Config, src: ConfigInput): Config {
   Object.keys(src).forEach(
-    key => (dst[key] = { ...(dst[key] || {}), ...src[key] }),
+    (key) => (dst[key] = { ...(dst[key] || {}), ...src[key] }),
   )
 
   return dst
 }
 
 function updateConfig(newCfg: ConfigInput): Cypress.Chainable<Config> {
-  return getConfig().then(cfg => {
+  return getConfig().then((cfg) => {
     return setConfig(merge(cfg, newCfg))
   })
 }

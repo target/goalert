@@ -23,7 +23,7 @@ export function SetFavoriteButton({
   }
   return (
     <form
-      onSubmit={e => {
+      onSubmit={(e) => {
         e.preventDefault()
         onClick()
       }}

@@ -78,7 +78,7 @@ export default class ServiceCreateDialog extends React.PureComponent {
     }
 
     const fieldErrs = fieldErrors(error).filter(
-      e => !e.field.startsWith('newEscalationPolicy.'),
+      (e) => !e.field.startsWith('newEscalationPolicy.'),
     )
 
     return (
@@ -89,7 +89,7 @@ export default class ServiceCreateDialog extends React.PureComponent {
         onClose={this.props.onClose}
         onSubmit={() => {
           let n = 1
-          const onErr = err => {
+          const onErr = (err) => {
             // retry if it's a policy name conflict
             if (
               err.graphQLErrors &&
@@ -118,7 +118,7 @@ export default class ServiceCreateDialog extends React.PureComponent {
             errors={fieldErrs}
             disabled={loading}
             value={this.state.value || defaultValue}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

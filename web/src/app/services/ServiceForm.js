@@ -31,11 +31,11 @@ export default class ServiceForm extends React.PureComponent {
 
   fieldError(name) {
     if (!this.props.errors) return null
-    const err = this.props.errors.find(err => err.field === name)
+    const err = this.props.errors.find((err) => err.field === name)
     return err ? err.message : null
   }
 
-  onChange = values => {
+  onChange = (values) => {
     if (!this.props.onChange) return
     this.props.onChange({
       ...this.props.value,
