@@ -13,10 +13,6 @@ interface GraphQLResponse {
   errors: [any]
 }
 
-function graphql2(query: string, variables?: any): Cypress.Chainable<any> {
-  return graphql(query, variables, '/api/graphql')
-}
-
 // runs a graphql query returning the data response (after asserting no errors)
 function graphql(
   query: string,
@@ -46,6 +42,9 @@ function graphql(
   })
 }
 
+function graphql2(query: string, variables?: any): Cypress.Chainable<any> {
+  return graphql(query, variables, '/api/graphql')
+}
 Cypress.Commands.add('graphql', graphql)
 Cypress.Commands.add('graphql2', graphql2)
 

@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Services', testServices)
-
 function basePrefix(): string {
   const u = new URL(Cypress.config('baseUrl') as string)
   return u.pathname.replace(/\/$/, '')
@@ -631,3 +629,5 @@ function testServices(screen: ScreenFormat): void {
     })
   })
 }
+
+testScreen('Services', testServices)

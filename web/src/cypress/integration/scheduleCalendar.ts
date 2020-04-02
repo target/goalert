@@ -1,8 +1,6 @@
 import { testScreen } from '../support'
 import { DateTime } from 'luxon'
 
-testScreen('Calendar', testCalendar)
-
 const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
 const weekHeaderFormat = (t: DateTime): string => {
   const start = t.startOf('week').minus({ day: 1 })
@@ -216,3 +214,5 @@ function testCalendar(screen: ScreenFormat): void {
     cy.dialogFinish('Submit')
   })
 }
+
+testScreen('Calendar', testCalendar)
