@@ -7,6 +7,7 @@ import {
   Typography,
   Paper,
   Chip,
+  InputProps,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 
@@ -34,6 +35,10 @@ const useStyles = makeStyles({
     display: 'none',
   },
 })
+
+interface AutocompleteInputProps extends InputProps {
+  'data-cy': string
+}
 
 interface SelectOption {
   icon?: ReactElement
@@ -149,8 +154,7 @@ export default function MaterialSelect(
               {
                 ...params.InputProps,
                 'data-cy': 'search-select-input',
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              } as any // adding a data-cy attr
+              } as AutocompleteInputProps
             }
             data-cy='search-select'
             fullWidth
