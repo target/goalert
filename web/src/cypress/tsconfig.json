@@ -1,4 +1,5 @@
 {
   "extends": "../app/tsconfig",
-  "include": ["**/*"]
+  "include": ["**/*"],
+  "paths": ["./types/*"]
 }

@@ -1,78 +1,6 @@
 import { Chance } from 'chance'
 const c = new Chance()
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Gets a service with a specified ID */
-      getService: typeof getService
-
-      /**
-       * Creates a new service, and escalation policy if epID is not specified
-       */
-      createService: typeof createService
-
-      /** Delete the service with the specified ID */
-      deleteService: typeof deleteService
-
-      /** Creates a label for a given service */
-      createLabel: typeof createLabel
-
-      /** Creates a label for a given service */
-      createHeartbeatMonitor: typeof createHeartbeatMonitor
-    }
-  }
-
-  interface Service {
-    id: string
-    name: string
-    description: string
-    isFavorite: boolean
-
-    /** The escalation policy ID for this Service. */
-    epID: string
-
-    /** Details for the escalation policy of this Service. */
-    ep: EP
-  }
-
-  interface ServiceOptions {
-    name?: string
-    description?: string
-    epID?: string
-    ep?: EPOptions
-    favorite?: boolean
-  }
-
-  interface Label {
-    svcID: string
-    svc: Service
-    key: string
-    value: string
-  }
-
-  interface LabelOptions {
-    svcID?: string
-    svc?: ServiceOptions
-    key?: string
-    value?: string
-  }
-
-  interface HeartbeatMonitor {
-    svcID: string
-    svc: Service
-    name: string
-    timeoutMinutes: number
-  }
-
-  interface HeartbeatMonitorOptions {
-    svcID?: string
-    svc?: Service
-    name?: string
-    timeoutMinutes?: number
-  }
-}
-
 function getService(svcID: string): Cypress.Chainable<Service> {
   const query = `
     query GetService($id: ID!) {
@@ -91,7 +19,9 @@ function getService(svcID: string): Cypress.Chainable<Service> {
       }
     }
   `
-  return cy.graphql2(query, { id: svcID }).then(res => res.service)
+  return cy
+    .graphql2(query, { id: svcID })
+    .then((res: GraphQLResponse) => res.service)
 }
 
 function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
@@ -117,7 +47,7 @@ function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
   if (!svc.epID) {
     return cy
       .createEP(svc.ep)
-      .then(ep => createService({ ...svc, epID: ep.id }))
+      .then((ep: EP) => createService({ ...svc, epID: ep.id }))
   }
 
   return cy
@@ -129,7 +59,7 @@ function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
         favorite: Boolean(svc.favorite),
       },
     })
-    .then(res => res.createService)
+    .then((res: GraphQLResponse) => res.createService)
 }
 
 function deleteService(id: string): Cypress.Chainable<void> {
@@ -146,7 +76,7 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
   if (!label.svcID) {
     return cy
       .createService(label.svc)
-      .then(s => createLabel({ ...label, svcID: s.id }))
+      .then((s: Service) => createLabel({ ...label, svcID: s.id }))
   }
 
   const query = `
@@ -171,7 +101,7 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
       },
     })
     .then(() => getService(svcID))
-    .then(svc => ({
+    .then((svc: Service) => ({
       svcID,
       svc,
       key,
@@ -186,7 +116,7 @@ function createHeartbeatMonitor(
   if (!monitor.svcID) {
     return cy
       .createService(monitor.svc)
-      .then(s => createHeartbeatMonitor({ svcID: s.id }))
+      .then((s: Service) => createHeartbeatMonitor({ svcID: s.id }))
   }
 
   const name = monitor.name || c.word({ length: 5 }) + ' Monitor'
@@ -213,7 +143,7 @@ function createHeartbeatMonitor(
         timeoutMinutes: timeout,
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       const mon = res.createHeartbeatMonitor
       return getService(svcID).then(svc => {
         mon.svc = svc

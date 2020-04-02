@@ -1,19 +1,3 @@
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      getConfig: typeof getConfig
-
-      /** Replaces the backend config entirely. */
-      setConfig: typeof setConfig
-
-      /** Merges new config values into existing backend config. */
-      updateConfig: typeof updateConfig
-
-      resetConfig: typeof resetConfig
-    }
-  }
-}
-
 interface General {
   PublicURL: string
   DisableLabelCreation: boolean
@@ -78,11 +62,11 @@ function getConfigDirect(token: string): Cypress.Chainable<Config> {
 }
 
 function getConfig(): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok => getConfigDirect(tok))
+  return cy.adminLogin(true).then((tok: string) => getConfigDirect(tok))
 }
 
 function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok =>
+  return cy.adminLogin(true).then((tok: string) =>
     cy
       .request({
         url: '/api/v2/config',

@@ -1,11 +1,3 @@
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      getLimits: typeof getLimits
-      updateLimits: typeof updateLimits
-    }
-  }
-}
 interface SystemLimitInput {
   id: string
   value: number
@@ -27,7 +19,7 @@ function getLimits(): Cypress.Chainable<Limits> {
       value
     }
   }`
-  return cy.graphql2(query).then(res => {
+  return cy.graphql2(query).then((res: GraphQLResponse) => {
     res.systemLimits.forEach((l: SystemLimits) => {
       limits.set(l.id, { value: l.value, description: l.description })
     })

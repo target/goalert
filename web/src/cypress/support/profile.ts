@@ -2,76 +2,6 @@ import { Chance } from 'chance'
 
 const c = new Chance()
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Creates a new user profile. */
-      createUser: typeof createUser
-
-      /** Creates multiple new user profiles. */
-      createManyUsers: typeof createManyUsers
-
-      /**
-       * Resets the test user profile, including any existing contact methods.
-       */
-      resetProfile: typeof resetProfile
-
-      /** Adds a contact method. If userID is missing, the test user's will be used. */
-      addContactMethod: typeof addContactMethod
-
-      /** Adds a notification rule. If userID is missing, the test user's will be used. */
-      addNotificationRule: typeof addNotificationRule
-    }
-  }
-
-  type UserRole = 'user' | 'admin'
-  interface Profile {
-    id: string
-    name: string
-    email: string
-    role: UserRole
-    username?: string
-    passwordHash?: string
-  }
-
-  interface UserOptions {
-    name?: string
-    email?: string
-    role?: UserRole
-  }
-
-  type ContactMethodType = 'SMS' | 'VOICE'
-  interface ContactMethod {
-    id: string
-    userID: string
-    name: string
-    type: ContactMethodType
-    value: string
-  }
-
-  interface ContactMethodOptions {
-    userID?: string
-    name?: string
-    type?: ContactMethodType
-    value?: string
-  }
-
-  interface NotificationRule {
-    id: string
-    userID: string
-    contactMethodID: string
-    contactMethod: ContactMethod
-    delayMinutes: number
-  }
-
-  interface NotificationRuleOptions {
-    userID?: string
-    delayMinutes?: number
-    contactMethodID?: string
-    contactMethod?: ContactMethodOptions
-  }
-}
-
 function createManyUsers(
   users: Array<UserOptions>,
 ): Cypress.Chainable<Array<Profile>> {
@@ -128,7 +58,7 @@ function addContactMethod(
         value: cm.value || newPhone,
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       res = res.createUserContactMethod
       res.userID = cm && cm.userID
       return res
@@ -148,7 +78,9 @@ function addNotificationRule(
   if (!nr.contactMethodID) {
     return cy
       .addContactMethod({ ...nr.contactMethod, userID: nr.userID })
-      .then(cm => addNotificationRule({ ...nr, contactMethodID: cm.id }))
+      .then((cm: ContactMethod) =>
+        addNotificationRule({ ...nr, contactMethodID: cm.id }),
+      )
   }
 
   const mutation = `
@@ -175,7 +107,7 @@ function addNotificationRule(
         delayMinutes: nr.delayMinutes || c.integer({ min: 0, max: 15 }),
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       res = res.createUserNotificationRule
 
       const userID = nr && nr.userID
@@ -203,7 +135,7 @@ function clearContactMethods(id: string): Cypress.Chainable {
     }
   `
 
-  return cy.graphql2(query, { id }).then(res => {
+  return cy.graphql2(query, { id }).then((res: GraphQLResponse) => {
     if (!res.user.contactMethods.length) return
 
     res.user.contactMethods.forEach((cm: ContactMethod) => {

@@ -1,17 +1,4 @@
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Click the FAB (floating action button) of the page.
-       *
-       * If the FAB is a Speed-Dial variant, you can optionally
-       * specify the option label to select as an argument.
-       */
-      pageFab: typeof pageFab
-    }
-  }
-}
-
-function pageFab(dialOption?: string): Cypress.Chainable {
+export function pageFab(dialOption?: string): Cypress.Chainable {
   // standard page fab
   if (!dialOption)
     return cy
@@ -32,5 +19,3 @@ function pageFab(dialOption?: string): Cypress.Chainable {
 }
 
 Cypress.Commands.add('pageFab', pageFab)
-
-export {}

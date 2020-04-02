@@ -28,14 +28,14 @@ function testCalendar(screen: ScreenFormat): void {
   let now: DateTime
   beforeEach(() => {
     now = DateTime.local()
-    cy.createSchedule().then(s => {
+    cy.createSchedule().then((s: Schedule) => {
       sched = s
 
       cy.createRotation({
         count: 3,
         type: 'hourly',
         shiftLength: 1,
-      }).then(r => {
+      }).then((r: Rotation) => {
         rot = r
 
         cy.setScheduleTarget({

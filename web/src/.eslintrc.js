@@ -33,9 +33,6 @@ module.exports = {
     'react/jsx-curly-newline': 'off',
     'react/jsx-indent': 'off',
 
-    // typescript-eslint rules
-    // TODO: use defaults
-    '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/explicit-function-return-type': [
       'error',
