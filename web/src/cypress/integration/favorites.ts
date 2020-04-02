@@ -61,6 +61,7 @@ function check(
               .findByLabel(prefix)
               .parent()
               .parent()
+              .parent()
               .children()
 
         items.should('have.length', 2).as('items')
