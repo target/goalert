@@ -19,12 +19,12 @@ export const urlKeySelector = (state: ReduxState): string | undefined =>
 export const urlSearchParamsSelector = createSelector(
   urlQuerySelector,
 
-  query => new URLSearchParams(query),
+  (query) => new URLSearchParams(query),
 )
 
 export const urlParamSelector = createSelector(
   urlSearchParamsSelector,
-  params => (
+  (params) => (
     name: string,
     _default: string | boolean | number | string[] | null = null,
   ) => {
@@ -38,22 +38,22 @@ export const urlParamSelector = createSelector(
   },
 )
 
-export const searchSelector = createSelector(urlParamSelector, params =>
+export const searchSelector = createSelector(urlParamSelector, (params) =>
   params('search', ''),
 )
 
-export const alertFilterSelector = createSelector(urlParamSelector, params =>
+export const alertFilterSelector = createSelector(urlParamSelector, (params) =>
   params('filter', 'active'),
 )
 
 export const alertAllServicesSelector = createSelector(
   urlParamSelector,
-  params => params('allServices', false),
+  (params) => params('allServices', false),
 )
 
 // absURLSelector will return an absolute URL (including protocol) for the given
 // relative or from-root path. It will automatically add any path prefix.
-export const absURLSelector = createSelector(urlPathSelector, base =>
+export const absURLSelector = createSelector(urlPathSelector, (base) =>
   memoize(
     (path: string) =>
       path &&

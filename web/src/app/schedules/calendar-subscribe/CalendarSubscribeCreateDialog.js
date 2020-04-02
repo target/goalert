@@ -18,7 +18,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   successIcon: {
     marginRight: theme.spacing(1),
   },

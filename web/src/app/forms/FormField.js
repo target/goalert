@@ -56,11 +56,11 @@ export class FormField extends React.PureComponent {
 
   static defaultProps = {
     validate: () => {},
-    mapValue: value => value,
-    mapOnChangeValue: value => value,
+    mapValue: (value) => value,
+    mapOnChangeValue: (value) => value,
   }
 
-  validate = value => {
+  validate = (value) => {
     if (
       this.props.required &&
       !['boolean', 'number'].includes(typeof value) &&
@@ -120,7 +120,7 @@ export class FormField extends React.PureComponent {
       name,
       required,
       disabled: containerDisabled || fieldDisabled,
-      error: errors.find(err => err.field === (errorName || fieldName)),
+      error: errors.find((err) => err.field === (errorName || fieldName)),
       hint,
       value: mapValue(get(value, fieldName)),
     }
@@ -131,22 +131,22 @@ export class FormField extends React.PureComponent {
       ..._inputProps,
     }
 
-    let getValueOf = e => (e && e.target ? e.target.value : e)
+    let getValueOf = (e) => (e && e.target ? e.target.value : e)
     if (checkbox) {
       props.checked = props.value
       props.value = props.value ? 'true' : 'false'
-      getValueOf = e => e.target.checked
+      getValueOf = (e) => e.target.checked
     } else if (otherFieldProps.type === 'number') {
       props.label = label
       props.value = props.value.toString()
       props.InputLabelProps = InputLabelProps
-      getValueOf = e => parseInt(e.target.value, 10)
+      getValueOf = (e) => parseInt(e.target.value, 10)
     } else {
       props.label = label
       props.InputLabelProps = InputLabelProps
     }
 
-    props.onChange = value =>
+    props.onChange = (value) =>
       onChange(fieldName, mapOnChangeValue(getValueOf(value)))
 
     return (
@@ -189,7 +189,7 @@ export class FormField extends React.PureComponent {
         {!noError && (props.error || props.hint) && (
           <FormHelperText>
             {(props.error &&
-              props.error.message.replace(/^./, str => str.toUpperCase())) ||
+              props.error.message.replace(/^./, (str) => str.toUpperCase())) ||
               props.hint}
           </FormHelperText>
         )}

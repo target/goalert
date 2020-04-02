@@ -14,7 +14,7 @@ function check(
 ): void {
   describe(typeName + ' Favorites', () => {
     it('should allow setting and unsetting as a favorite from details page ', () => {
-      createFunc('', false).then(id => {
+      createFunc('', false).then((id) => {
         cy.visit(`/${urlPrefix}/${id}`)
         typeName = typeName.toLowerCase()
         // test setting as favorite
@@ -42,9 +42,7 @@ function check(
         .find('[data-cy=fav-icon]')
         .should('exist')
 
-      cy.get('ul[data-cy=apollo-list] li')
-        .last()
-        .should('contain', name1)
+      cy.get('ul[data-cy=apollo-list] li').last().should('contain', name1)
     })
     if (getSearchSelectFunc) {
       it('should sort favorites-first in a search-select', () => {
@@ -57,19 +55,12 @@ function check(
         const sel = getSearchSelectFunc()
         const items = getSearchSelectItemsFunc
           ? getSearchSelectItemsFunc(sel, prefix)
-          : sel
-              .findByLabel(prefix)
-              .parent()
-              .children()
+          : sel.findByLabel(prefix).parent().children()
 
         items.should('have.length', 2).as('items')
 
-        cy.get('@items')
-          .first()
-          .should('contain', name2)
-        cy.get('@items')
-          .last()
-          .should('contain', name1)
+        cy.get('@items').first().should('contain', name2)
+        cy.get('@items').last().should('contain', name1)
       })
     }
   })

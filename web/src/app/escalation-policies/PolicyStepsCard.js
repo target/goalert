@@ -16,7 +16,7 @@ import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { policyStepsQuery } from './PolicyStepsQuery'
 
-const styles = theme => {
+const styles = (theme) => {
   const { dndDragging } = globalStyles(theme)
 
   return {
@@ -56,7 +56,7 @@ export default class PolicyStepsCard extends Component {
   oldIdx = null
   newIdx = null
 
-  arrayMove = arr => {
+  arrayMove = (arr) => {
     const el = arr[this.oldIdx]
     arr.splice(this.oldIdx, 1)
     arr.splice(this.newIdx, 0, el)
@@ -120,7 +120,7 @@ export default class PolicyStepsCard extends Component {
     }
 
     // map ids to swap elements
-    const sids = this.props.steps.map(s => s.id)
+    const sids = this.props.steps.map((s) => s.id)
     this.oldID = result.draggableId
     this.oldIdx = sids.indexOf(this.oldID)
     this.newIdx = result.destination.index
@@ -200,17 +200,17 @@ export default class PolicyStepsCard extends Component {
           optimisticResponse={{
             updateEscalationPolicy: true,
           }}
-          onError={error => this.setState({ error })}
+          onError={(error) => this.setState({ error })}
           update={(cache, { data }) => this.onMutationUpdate(cache, data)}
         >
-          {mutation => (
+          {(mutation) => (
             <DragDropContext
               key='drag-context'
               onDragStart={this.handleDragStart}
-              onDragEnd={res => this.onDragEnd(res, mutation)}
+              onDragEnd={(res) => this.onDragEnd(res, mutation)}
             >
               <Droppable droppableId='droppable'>
-                {provided => (
+                {(provided) => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
                     <List data-cy='steps-list'>
                       {steps.map((step, index) => (

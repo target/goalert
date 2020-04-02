@@ -64,7 +64,7 @@ export default function HeartbeatMonitorList(props) {
     const items = (monitors || [])
       .slice()
       .sort(sortItems)
-      .map(monitor => ({
+      .map((monitor) => ({
         icon: (
           <HeartbeatMonitorStatus
             lastState={monitor.lastState}

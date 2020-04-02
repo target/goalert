@@ -37,7 +37,7 @@ export default class RotationForm extends React.PureComponent {
     onChange: p.func.isRequired,
   }
 
-  onChange = values => {
+  onChange = (values) => {
     if (!this.props.onChange) return
     this.props.onChange({
       ...values,
@@ -87,7 +87,7 @@ export default class RotationForm extends React.PureComponent {
               label='Rotation Type'
               name='type'
             >
-              {rotationTypes.map(type => (
+              {rotationTypes.map((type) => (
                 <MenuItem value={type} key={type}>
                   {startCase(type)}
                 </MenuItem>
@@ -129,7 +129,7 @@ export default class RotationForm extends React.PureComponent {
           label='Day of Week'
           name='dayOfWeek'
           value={this.dayOfWeek()}
-          onChange={e => this.setDayOfWeek(e.target.value)}
+          onChange={(e) => this.setDayOfWeek(e.target.value)}
         >
           {Info.weekdaysFormat('long').map((day, idx) => {
             return (

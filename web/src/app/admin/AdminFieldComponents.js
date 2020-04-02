@@ -8,7 +8,7 @@ import Switch from '@material-ui/core/Switch'
 import Visibility from '@material-ui/icons/Visibility'
 import VisibilityOff from '@material-ui/icons/VisibilityOff'
 
-export const StringListInput = props => {
+export const StringListInput = (props) => {
   const value = props.value ? props.value.split('\n').concat('') : ['']
   return (
     <Grid container spacing={1}>
@@ -17,12 +17,12 @@ export const StringListInput = props => {
           <StringInput
             value={val}
             name={val ? props.name + '-' + idx : props.name + '-new-item'}
-            onChange={newVal =>
+            onChange={(newVal) =>
               props.onChange(
                 value
                   .slice(0, idx)
                   .concat(newVal, ...value.slice(idx + 1))
-                  .filter(v => v)
+                  .filter((v) => v)
                   .join('\n'),
               )
             }
@@ -52,7 +52,7 @@ export class StringInput extends React.PureComponent {
         fullWidth
         autoComplete='new-password' // chrome keeps autofilling them, this stops it
         type={password && !this.state.showPassword ? 'password' : 'text'}
-        onChange={e => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         endAdornment={this.renderPasswordAdornment()}
         {...rest}
       />
@@ -77,19 +77,19 @@ export class StringInput extends React.PureComponent {
   }
 }
 
-export const IntegerInput = props => (
+export const IntegerInput = (props) => (
   <Input
     {...props}
     type='number'
     fullWidth
-    onChange={e => props.onChange(e.target.value)}
+    onChange={(e) => props.onChange(e.target.value)}
   />
 )
 
-export const BoolInput = props => (
+export const BoolInput = (props) => (
   <Switch
     {...props}
     checked={props.value === 'true'}
-    onChange={e => props.onChange(e.target.checked ? 'true' : 'false')}
+    onChange={(e) => props.onChange(e.target.checked ? 'true' : 'false')}
   />
 )

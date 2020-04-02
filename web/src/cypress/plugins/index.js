@@ -15,7 +15,7 @@
 const wp = require('@cypress/webpack-preprocessor')
 const fs = require('fs')
 
-module.exports = on => {
+module.exports = (on) => {
   require('cypress-plugin-retries/lib/plugin')(on)
 
   // `on` is used to hook into various events Cypress emits

@@ -37,7 +37,7 @@ export default class ScheduleAssignedToList extends React.PureComponent {
     return (
       <Card style={{ width: '100%' }}>
         <FlatList
-          items={data.schedule.assignedTo.map(t => ({
+          items={data.schedule.assignedTo.map((t) => ({
             title: t.name,
             url: `/escalation-policies/${t.id}`,
           }))}

@@ -17,24 +17,20 @@ function dialogForm(values: {
 }
 
 function dialogTitle(title: string): Cypress.Chainable {
-  return dialog()
-    .find('[data-cy=dialog-title]')
-    .should('contain', title)
+  return dialog().find('[data-cy=dialog-title]').should('contain', title)
 }
 function dialogContains(content: string): Cypress.Chainable {
   return dialog().should('contain', content)
 }
 
 function dialogClick(s: string): Cypress.Chainable {
-  return dialog()
-    .contains('button', s)
-    .click()
+  return dialog().contains('button', s).click()
 }
 
 function dialogFinish(s: string): Cypress.Chainable {
   return dialog()
     .get('[data-cy-gu]')
-    .then(el => {
+    .then((el) => {
       const id = el.data('cyGu')
       return cy
         .dialogClick(s)

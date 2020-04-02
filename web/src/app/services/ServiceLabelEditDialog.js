@@ -50,7 +50,7 @@ export default class ServiceLabelCreateDialog extends React.PureComponent {
         variables={{ serviceID: this.props.serviceID }}
         render={({ data }) =>
           this.renderMutation(
-            data.service.labels.find(l => l.key === this.props.labelKey),
+            data.service.labels.find((l) => l.key === this.props.labelKey),
           )
         }
       />
@@ -62,13 +62,13 @@ export default class ServiceLabelCreateDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        update={cache => {
+        update={(cache) => {
           const { service } = cache.readQuery({
             query,
             variables: { serviceID: this.props.serviceID },
           })
           const labels = (service.labels || []).filter(
-            l => l.key !== this.state.value.key,
+            (l) => l.key !== this.state.value.key,
           )
           if (this.state.value.value) {
             labels.push({ ...this.state.value, __typename: 'Label' })
@@ -117,7 +117,7 @@ export default class ServiceLabelCreateDialog extends React.PureComponent {
             editValueOnly
             disabled={loading}
             value={this.state.value || { key: data.key, value: data.value }}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

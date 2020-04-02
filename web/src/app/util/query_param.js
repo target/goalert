@@ -1,4 +1,4 @@
-const quoteRx = s => (s || '').replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
+const quoteRx = (s) => (s || '').replace(/[.?*+^$[\]\\(){}|-]/g, '\\$&')
 
 export function getParameterByName(name, url = global.location.href) {
   name = name.replace(/[[\]]/g, '\\$&')
@@ -40,8 +40,8 @@ export function setParameterByName(name, value, url = global.location.href) {
   // rebuild the url -- omit the parameter `name` if value is null
   const queryList = Object.keys(queries)
     .sort((a, b) => (a < b ? -1 : 1))
-    .filter(i => !(value === null && i === name))
-    .map(query => {
+    .filter((i) => !(value === null && i === name))
+    .map((query) => {
       return query + '=' + queries[query]
     })
 

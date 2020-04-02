@@ -44,12 +44,12 @@ export default function onDemand(_load, options = {}) {
   const loader = () => {
     let waitPromise
     setTimeout(() => {
-      waitPromise = new Promise(resolve => {
+      waitPromise = new Promise((resolve) => {
         setTimeout(resolve, wait)
       })
     }, options.delay)
 
-    return _load().then(res => {
+    return _load().then((res) => {
       if (!waitPromise) {
         return res
       }

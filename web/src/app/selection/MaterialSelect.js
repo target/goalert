@@ -69,7 +69,7 @@ export default class MaterialSelect extends Component {
     }
 
     const selectStyles = {
-      input: base => ({
+      input: (base) => ({
         ...base,
         color: theme.palette.text.primary,
       }),
@@ -97,7 +97,7 @@ export default class MaterialSelect extends Component {
         data-cy='material-select'
         data-cy-ready={!props.isLoading}
         className={classes.root}
-        onMouseDownCapture={e => {
+        onMouseDownCapture={(e) => {
           if (isDescendent(this.clearButtonRef.current, e.target))
             this.buttonClicked = true
         }}
@@ -110,7 +110,7 @@ export default class MaterialSelect extends Component {
           menuPlacement='auto'
           styles={{
             ...selectStyles,
-            menuPortal: base => ({ ...base, zIndex: 9999 }),
+            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
           }}
           name={name}
           classes={classes}
@@ -123,7 +123,7 @@ export default class MaterialSelect extends Component {
           onBlur={() => {
             if (!this.buttonClicked) this.setState({ isCleared: false })
           }}
-          onChange={val => {
+          onChange={(val) => {
             if (required && _.isEmpty(val) && !multiple) {
               this.setState({ isCleared: true })
               return
@@ -132,7 +132,7 @@ export default class MaterialSelect extends Component {
               this.setState({ isCleared: false })
             onChange(val)
           }}
-          onInputChange={val => {
+          onInputChange={(val) => {
             this.buttonClicked = false
             if (onInputChange) onInputChange(val)
           }}

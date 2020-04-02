@@ -33,7 +33,7 @@ import { debug } from '../util/debug'
 // delete on details -> update list (cache, refetch?)
 // - on details, don't have accesses to search param
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   infiniteScrollFooter: {
     display: 'flex',
     justifyContent: 'center',
@@ -377,7 +377,7 @@ const loadingStyle = {
 const useLoadingStyles = makeStyles({
   item: {
     display: 'block',
-    minHeight: dense => (dense ? 57 : 71),
+    minHeight: (dense) => (dense ? 57 : 71),
   },
   lineOne: {
     ...loadingStyle,

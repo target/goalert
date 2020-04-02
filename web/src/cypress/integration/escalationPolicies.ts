@@ -24,9 +24,7 @@ function testEP(screen: ScreenFormat): void {
 
     it('should link to details page', () => {
       cy.pageSearch(ep.name)
-      cy.get('#app')
-        .contains(ep.name)
-        .click()
+      cy.get('#app').contains(ep.name).click()
       cy.url().should(
         'eq',
         Cypress.config().baseUrl + `/escalation-policies/${ep.id}`,
@@ -51,9 +49,7 @@ function testEP(screen: ScreenFormat): void {
         cy.dialogFinish('Submit')
 
         // should be on details page
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
     })
   })
@@ -98,9 +94,7 @@ function testEP(screen: ScreenFormat): void {
         .should('not.contain', ep.description)
 
       // new ones should
-      cy.get('body')
-        .should('contain', name)
-        .should('contain', description)
+      cy.get('body').should('contain', name).should('contain', description)
     })
   })
 
@@ -123,9 +117,7 @@ function testEP(screen: ScreenFormat): void {
       cy.createEP().then((ep: EP) => {
         cy.visit(`/escalation-policies/${ep.id}`)
 
-        cy.get('li')
-          .contains('Services')
-          .click()
+        cy.get('li').contains('Services').click()
         cy.get('body').should(
           'contain',
           'No services are associated with this Escalation Policy',
@@ -137,9 +129,7 @@ function testEP(screen: ScreenFormat): void {
       cy.createEP().then((ep: EP) => {
         cy.createService({ epID: ep.id }).then((svc: Service) => {
           cy.visit(`/escalation-policies/${ep.id}`)
-          cy.get('li')
-            .contains('Services')
-            .click()
+          cy.get('li').contains('Services').click()
           cy.get('body').should('contain', svc.name)
         })
       })

@@ -67,9 +67,7 @@ function testAlerts(screen: ScreenFormat): void {
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.id.toString()))
       it('should link to the details page', () => {
-        cy.get('ul[data-cy=apollo-list]')
-          .contains(alert.id.toString())
-          .click()
+        cy.get('ul[data-cy=apollo-list]').contains(alert.id.toString()).click()
 
         cy.url().should('eq', Cypress.config().baseUrl + `/alerts/${alert.id}`)
       })
@@ -143,24 +141,18 @@ function testAlerts(screen: ScreenFormat): void {
     })
 
     it('should acknowledge, escalate, and close multiple alerts', () => {
-      cy.get('span[data-cy=select-all] input')
-        .should('not.be.checked')
-        .click()
+      cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[title=Acknowledge]').click()
 
       cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
 
-      cy.get('span[data-cy=select-all] input')
-        .should('not.be.checked')
-        .click()
+      cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[title=Escalate]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
 
-      cy.get('span[data-cy=select-all] input')
-        .should('not.be.checked')
-        .click()
+      cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[title=Close]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
@@ -286,13 +278,9 @@ function testAlerts(screen: ScreenFormat): void {
 
       // Service Selection
       cy.dialogForm({ serviceSearch: svc1.name })
-      cy.get('ul')
-        .contains(svc1.name)
-        .click()
+      cy.get('ul').contains(svc1.name).click()
       cy.dialogForm({ serviceSearch: svc2.name })
-      cy.get('ul')
-        .contains(svc2.name)
-        .click()
+      cy.get('ul').contains(svc2.name).click()
       cy.dialogForm({ serviceSearch: '' })
 
       cy.dialogContains('Selected Services (2)')
