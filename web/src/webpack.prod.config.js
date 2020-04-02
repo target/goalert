@@ -10,7 +10,7 @@ const path = require('path')
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
 
-module.exports = env => ({
+module.exports = (env) => ({
   mode: 'production',
   entry: {
     app: APP,
@@ -80,7 +80,7 @@ module.exports = env => ({
       },
     }),
     new CopyPlugin(
-      [16, 32, 64, 192].map(size => ({
+      [16, 32, 64, 192].map((size) => ({
         from: path.resolve(APP, `./public/favicon-${size}.png`),
         to: path.resolve(BUILD, `./static/favicon-${size}.png`),
       })),

@@ -48,13 +48,13 @@ export default class WizardScheduleForm extends React.Component {
     return secondary ? 'secondarySchedule' : 'primarySchedule'
   }
 
-  handleRotationTypeChange = e => {
+  handleRotationTypeChange = (e) => {
     const { onChange, value } = this.props
     onChange(set(value, [this.getKey(), 'rotation', 'type'], e.target.value))
     this.forceUpdate()
   }
 
-  handleFollowTheSunToggle = e => {
+  handleFollowTheSunToggle = (e) => {
     const { onChange, value } = this.props
     onChange(
       set(

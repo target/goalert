@@ -11,7 +11,7 @@ import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
 
-const styles = theme => ({
+const styles = (theme) => ({
   infoIcon: {
     color: theme.palette.primary['500'],
   },
@@ -51,7 +51,7 @@ export default class IntegrationKeyForm extends React.PureComponent {
           </Grid>
           <Grid item xs={12}>
             <Config>
-              {cfg => (
+              {(cfg) => (
                 <FormField
                   fullWidth
                   component={TextField}

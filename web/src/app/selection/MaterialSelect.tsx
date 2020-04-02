@@ -140,9 +140,9 @@ export default function MaterialSelect(
       }}
       onBlur={() => setInputValue(multiple || !value ? '' : value[0].label)}
       loading={isLoading}
-      getOptionLabel={option => option.label || ''}
+      getOptionLabel={(option) => option.label || ''}
       options={options}
-      renderInput={params => {
+      renderInput={(params) => {
         return (
           <TextField
             {...params}
@@ -177,7 +177,9 @@ export default function MaterialSelect(
           )}
         </MenuItem>
       )}
-      PaperComponent={params => <Paper data-cy='select-dropdown' {...params} />}
+      PaperComponent={(params) => (
+        <Paper data-cy='select-dropdown' {...params} />
+      )}
       renderTags={(value, getTagProps) =>
         value.map((option, index) => (
           <Chip

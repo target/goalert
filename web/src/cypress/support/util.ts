@@ -9,21 +9,21 @@ function resetQuery(): Cypress.Chainable<string> {
   let users: Profile[] = []
   let profile: Profile
   let profileAdmin: Profile
-  cy.fixture('users').then(u => {
+  cy.fixture('users').then((u) => {
     users = users.concat(u)
   })
-  cy.fixture('profile').then(p => {
+  cy.fixture('profile').then((p) => {
     profile = p
     users = users.concat(p)
   })
-  cy.fixture('profileAdmin').then(p => {
+  cy.fixture('profileAdmin').then((p) => {
     profileAdmin = p
     users = users.concat(p)
   })
   return cy.then(() => {
-    const ids = users.map(u => `'${u.id}'`).join(',')
+    const ids = users.map((u) => `'${u.id}'`).join(',')
     const userVals = users
-      .map(u => `('${u.id}','${u.name}','${u.email}','${u.role}')`)
+      .map((u) => `('${u.id}','${u.name}','${u.email}','${u.role}')`)
       .join(',\n')
 
     _resetQuery = `
@@ -70,7 +70,7 @@ export function testScreen(
   adminLogin = false,
 ): void {
   describe(label, () => {
-    before(() => resetQuery().then(query => cy.sql(query)))
+    before(() => resetQuery().then((query) => cy.sql(query)))
     it('reset db', () => {}) // required due to mocha skip bug
 
     if (!skipLogin) {

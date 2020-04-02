@@ -93,7 +93,7 @@ export default class IntegrationKeyCreateDialog extends React.PureComponent {
             errors={fieldErrors(error)}
             disabled={loading}
             value={this.state.value}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

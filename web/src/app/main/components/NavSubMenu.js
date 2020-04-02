@@ -13,7 +13,7 @@ import { urlPathSelector } from '../../selectors/url'
 import { useSelector } from 'react-redux'
 import { PropTypes as p } from 'prop-types'
 
-const useStyles = makeStyles(theme => {
+const useStyles = makeStyles((theme) => {
   const { nav, navSelected } = styles(theme)
   return {
     nav,

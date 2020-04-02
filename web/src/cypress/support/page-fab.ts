@@ -1,10 +1,7 @@
 export function pageFab(dialOption?: string): Cypress.Chainable {
   // standard page fab
   if (!dialOption)
-    return cy
-      .get('button[data-cy=page-fab]')
-      .should('be.visible')
-      .click()
+    return cy.get('button[data-cy=page-fab]').should('be.visible').click()
 
   // speed dial page fab
   return cy

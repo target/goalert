@@ -11,12 +11,12 @@ function login(
   if (!username) {
     return cy
       .fixture('profile')
-      .then(p => login(p.username, p.password, tokenOnly))
+      .then((p) => login(p.username, p.password, tokenOnly))
   }
   if (!password) {
     return cy
       .fixture('profile')
-      .then(p => login(username, p.password, tokenOnly))
+      .then((p) => login(username, p.password, tokenOnly))
   }
 
   if (tokenOnly) {
@@ -35,7 +35,7 @@ function login(
           Cookie: '',
         },
       })
-      .then(res => {
+      .then((res) => {
         return res.body
       })
   }
@@ -55,7 +55,7 @@ function login(
         Cookie: '',
       },
     })
-    .then(res => {
+    .then((res) => {
       expect(res.redirectedToUrl, 'response redirect').to.eq(
         normalizeURL(Cypress.config('baseUrl')),
       )
@@ -66,7 +66,7 @@ function login(
 function adminLogin(tokenOnly = false): Cypress.Chainable<string> {
   return cy
     .fixture('profileAdmin')
-    .then(p => login(p.username, p.password, tokenOnly))
+    .then((p) => login(p.username, p.password, tokenOnly))
 }
 
 Cypress.Commands.add('login', login)

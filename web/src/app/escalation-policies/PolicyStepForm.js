@@ -68,7 +68,7 @@ export default class PolicyStepForm extends React.Component {
     step: 0,
   }
 
-  handleStepChange = step => () => {
+  handleStepChange = (step) => () => {
     if (step === this.state.step) {
       this.setState({ step: null }) // close
     } else {
@@ -81,16 +81,16 @@ export default class PolicyStepForm extends React.Component {
     const { step } = this.state
 
     // takes a list of { id, type } targets and return the ids for a specific type
-    const getTargetsByType = type => tgts =>
+    const getTargetsByType = (type) => (tgts) =>
       tgts
-        .filter(t => t.type === type) // only the list of the current type
-        .map(t => t.id) // array of ID strings
+        .filter((t) => t.type === type) // only the list of the current type
+        .map((t) => t.id) // array of ID strings
 
     // takes a list of ids and return a list of { id, type } concatted with the new set of specific types
-    const makeSetTargetType = curTgts => type => newTgts =>
+    const makeSetTargetType = (curTgts) => (type) => (newTgts) =>
       curTgts
-        .filter(t => t.type !== type) // current targets without any of the current type
-        .concat(newTgts.map(id => ({ id, type }))) // add the list of current type to the end
+        .filter((t) => t.type !== type) // current targets without any of the current type
+        .concat(newTgts.map((id) => ({ id, type }))) // add the list of current type to the end
 
     // then form fields would all point to `targets` but can map values
     const setTargetType = makeSetTargetType(value.targets)
@@ -125,7 +125,7 @@ export default class PolicyStepForm extends React.Component {
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Config>
-              {cfg => (
+              {(cfg) => (
                 <Stepper
                   activeStep={step}
                   nonLinear
@@ -264,7 +264,7 @@ export default class PolicyStepForm extends React.Component {
               name='delayMinutes'
               required
               type='number'
-              mapOnChangeValue={value => value.toString()}
+              mapOnChangeValue={(value) => value.toString()}
               hint={
                 value.delayMinutes === '0'
                   ? 'This will cause the step to immediately escalate'

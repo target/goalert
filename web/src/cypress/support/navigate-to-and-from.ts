@@ -14,9 +14,7 @@ function navigateToAndFrom(
 ): void {
   // navigate to extended details view
   cy.get('[data-cy=app-bar]').should('contain', pageName)
-  cy.get('ul[data-cy="route-links"] li')
-    .contains(detailsName)
-    .click()
+  cy.get('ul[data-cy="route-links"] li').contains(detailsName).click()
 
   // verify url
   cy.url().should('include', route)

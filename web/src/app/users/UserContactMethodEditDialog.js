@@ -86,7 +86,7 @@ export default class UserContactMethodEditDialog extends React.PureComponent {
             disabled={loading}
             edit={this.state.edit}
             value={this.state.value || defaultValue}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

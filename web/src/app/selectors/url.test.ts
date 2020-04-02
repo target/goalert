@@ -14,7 +14,7 @@ describe('urlParamSelector', () => {
     { search: '?foo=bar&bin=baz', expected: { foo: 'bar', bin: 'baz' } },
     { search: '?search=asdf%26%3D', expected: { search: 'asdf&=' } },
   ] as { search: string; expected: { [index: string]: string } }[]).forEach(
-    cfg =>
+    (cfg) =>
       test(cfg.search || '(empty)', () => {
         const res = urlParamSelector({
           router: {

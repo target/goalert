@@ -40,7 +40,7 @@ export class PageActionProvider extends React.PureComponent {
     this.setActions.cancel()
   }
 
-  _setActions = actions => {
+  _setActions = (actions) => {
     if (!this._mounted) {
       this._pending = actions
       return
@@ -51,7 +51,7 @@ export class PageActionProvider extends React.PureComponent {
 
   setActions = debounce(this._setActions)
 
-  updateMounted = mount => {
+  updateMounted = (mount) => {
     if (mount) {
       this._mountCount++
     } else {

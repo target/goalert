@@ -17,17 +17,17 @@ export class Form extends React.PureComponent {
 
   _checks = []
 
-  handleFormSubmit = e => {
-    const valid = !this._checks.some(f => !f())
+  handleFormSubmit = (e) => {
+    const valid = !this._checks.some((f) => !f())
     return this.props.onSubmit(e, valid)
   }
 
-  addSubmitCheck = checkFn => {
+  addSubmitCheck = (checkFn) => {
     this._checks.push(checkFn)
 
     // return function to un-register it
     return () => {
-      this._checks = this._checks.filter(fn => fn !== checkFn)
+      this._checks = this._checks.filter((fn) => fn !== checkFn)
     }
   }
 

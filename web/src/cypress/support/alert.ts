@@ -103,7 +103,7 @@ function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
     .sql(query)
     .then(() => getAlert(opts.alertID as number))
     .then((alert: Alert) => {
-      return getAlertLogs(opts.alertID as number).then(logs => {
+      return getAlertLogs(opts.alertID as number).then((logs) => {
         return {
           alert,
           logs,

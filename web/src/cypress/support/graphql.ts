@@ -12,7 +12,7 @@ function graphql(
 ): Cypress.Chainable<any> {
   if (!variables) variables = {}
 
-  return cy.request('POST', url, { query, variables }).then(res => {
+  return cy.request('POST', url, { query, variables }).then((res) => {
     expect(res.status, 'status code').to.eq(200)
 
     let data: GraphQLResponse

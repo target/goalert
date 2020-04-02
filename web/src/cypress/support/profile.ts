@@ -5,7 +5,7 @@ const c = new Chance()
 function createManyUsers(
   users: Array<UserOptions>,
 ): Cypress.Chainable<Array<Profile>> {
-  const profiles: Array<Profile> = users.map(user => ({
+  const profiles: Array<Profile> = users.map((user) => ({
     id: c.guid(),
     name: user.name || c.word({ length: 12 }),
     email: user.email || c.email(),
@@ -15,7 +15,7 @@ function createManyUsers(
   const dbQuery =
     `insert into users (id, name, email, role) values` +
     profiles
-      .map(p => `('${p.id}', '${p.name}', '${p.email}', '${p.role}')`)
+      .map((p) => `('${p.id}', '${p.name}', '${p.email}', '${p.role}')`)
       .join(',') +
     `;`
 
@@ -24,7 +24,7 @@ function createManyUsers(
 
 function createUser(user?: UserOptions): Cypress.Chainable<Profile> {
   if (!user) user = {}
-  return createManyUsers([user]).then(p => p[0])
+  return createManyUsers([user]).then((p) => p[0])
 }
 
 function addContactMethod(
@@ -34,7 +34,7 @@ function addContactMethod(
   if (!cm.userID) {
     return cy
       .fixture('profile')
-      .then(prof => addContactMethod({ ...cm, userID: prof.id }))
+      .then((prof) => addContactMethod({ ...cm, userID: prof.id }))
   }
 
   const mutation = `
@@ -72,7 +72,7 @@ function addNotificationRule(
   if (!nr.userID) {
     return cy
       .fixture('profile')
-      .then(prof => addNotificationRule({ ...nr, userID: prof.id }))
+      .then((prof) => addNotificationRule({ ...nr, userID: prof.id }))
   }
 
   if (!nr.contactMethodID) {

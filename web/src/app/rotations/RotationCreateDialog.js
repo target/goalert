@@ -28,9 +28,7 @@ export default class RotationCreateDialog extends React.PureComponent {
       description: '',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       type: 'daily',
-      start: DateTime.local()
-        .startOf('hour')
-        .toISO(),
+      start: DateTime.local().startOf('hour').toISO(),
       shiftLength: 1,
       favorite: true,
     },
@@ -73,7 +71,7 @@ export default class RotationCreateDialog extends React.PureComponent {
             errors={fieldErrors(status.error)}
             disabled={status.loading}
             value={this.state.value}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

@@ -203,7 +203,7 @@ function testSubs(screen: ScreenFormat): void {
     })
 
     it('should not show route link unless on personal profile', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.visit(`/users/${users[0].id}`)
         cy.get('[data-cy="route-links"]').should(
           'not.contain',

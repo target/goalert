@@ -70,7 +70,7 @@ const escalateMutation = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   snackbar: {
     backgroundColor: theme.palette.primary['500'],
     height: '6.75em',
@@ -183,7 +183,7 @@ export default function AlertsList(props) {
 
   const [mutate, status] = useMutation(updateMutation)
 
-  const makeUpdateAlerts = newStatus => alertIDs => {
+  const makeUpdateAlerts = (newStatus) => (alertIDs) => {
     setCheckedCount(alertIDs.length)
     setActionCompleteDismissed(false)
 
@@ -272,7 +272,7 @@ export default function AlertsList(props) {
       <QueryList
         query={alertsListQuery}
         infiniteScroll
-        mapDataNode={a => ({
+        mapDataNode={(a) => ({
           id: a.id,
           status: getListItemStatus(a.status),
           title: `${a.alertID}: ${a.status

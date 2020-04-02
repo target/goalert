@@ -10,7 +10,7 @@ import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime, Duration } from 'luxon'
 
-const styles = theme => ({
+const styles = (theme) => ({
   button: {
     padding: '4px',
     minHeight: 0,
@@ -39,14 +39,12 @@ const styles = theme => ({
   },
 })
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
   let start = urlParamSelector(state)(
     'start',
-    DateTime.local()
-      .startOf('day')
-      .toISO(),
+    DateTime.local().startOf('day').toISO(),
   )
 
   const activeOnly = urlParamSelector(state)('activeOnly', false)
@@ -74,7 +72,7 @@ export default class CalendarEventWrapper extends Component {
     onOverrideClick: p.func.isRequired,
   }
 
-  handleShowOverrideForm = type => {
+  handleShowOverrideForm = (type) => {
     const { event, onOverrideClick } = this.props
 
     onOverrideClick({
@@ -127,7 +125,7 @@ export default class CalendarEventWrapper extends Component {
       )
     }
 
-    const formatJSDate = JSDate =>
+    const formatJSDate = (JSDate) =>
       DateTime.fromJSDate(JSDate).toLocaleString(DateTime.DATETIME_FULL)
 
     return (

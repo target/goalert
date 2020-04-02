@@ -103,7 +103,7 @@ class NameLoader extends React.PureComponent {
 @withWidth()
 @withStyles(styles)
 export default class ToolbarTitle extends React.Component {
-  renderTitle = title => {
+  renderTitle = (title) => {
     document.title = `GoAlert - ${title}`
 
     return (
@@ -150,7 +150,7 @@ export default class ToolbarTitle extends React.Component {
     )
   }
 
-  detailsText = match => {
+  detailsText = (match) => {
     const typeName = startCase(match.params.type)
     return (
       (mapSingular[typeName] || typeName) +

@@ -88,10 +88,7 @@ function testAdmin(): void {
         })
         .then((curCfg: Config) => {
           cfg = curCfg
-          return cy
-            .visit('/admin')
-            .get('button[data-cy=save]')
-            .should('exist')
+          return cy.visit('/admin').get('button[data-cy=save]').should('exist')
         })
     })
 

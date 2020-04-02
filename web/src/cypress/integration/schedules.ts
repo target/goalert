@@ -131,9 +131,7 @@ function testSchedules(screen: ScreenFormat): void {
           },
         ],
       }).then(() => {
-        cy.get('li')
-          .contains('Shifts')
-          .click()
+        cy.get('li').contains('Shifts').click()
         cy.reload()
         cy.get('[data-cy=flat-list-item-subheader]').should('contain', 'Today')
         cy.get('[data-cy=flat-list-item-subheader]').should(
@@ -280,7 +278,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create an add override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Add')
@@ -295,7 +293,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create a remove override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Remove')
@@ -310,7 +308,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create a replace override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Replace')
@@ -325,7 +323,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should edit and delete an override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('body').should('contain', 'No results')
 
         cy.pageFab('Add')

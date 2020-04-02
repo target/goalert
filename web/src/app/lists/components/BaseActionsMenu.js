@@ -27,7 +27,7 @@ export class BaseActionsMenu extends Component {
     }
   }
 
-  handleClick = event => {
+  handleClick = (event) => {
     this.setState({ open: true, anchorEl: event.currentTarget })
   }
 
@@ -54,7 +54,7 @@ export class BaseActionsMenu extends Component {
           }}
           onClose={() => this.setState({ open: false })}
         >
-          {this.props.options.map(item => {
+          {this.props.options.map((item) => {
             return (
               <MenuItem
                 key={item.label}
