@@ -2,71 +2,6 @@ import { Chance } from 'chance'
 
 const c = new Chance()
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Creates a new schedule. */
-      createSchedule: typeof createSchedule
-
-      /** Deletes a schedule with its specified ID */
-      deleteSchedule: typeof deleteSchedule
-
-      /** Configures a schedule target and rules. */
-      setScheduleTarget: typeof setScheduleTarget
-    }
-  }
-
-  interface TargetRotationOptions {
-    rotation: RotationOptions
-  }
-  interface Target {
-    type: 'user' | 'rotation'
-    id: string
-  }
-
-  interface ScheduleTargetOptions {
-    scheduleID?: string
-    schedule?: ScheduleOptions
-
-    target?: TargetRotationOptions | Target
-
-    rules?: ScheduleRuleOptions[]
-  }
-
-  interface ScheduleTarget {
-    schedule: Schedule
-    target: Target
-    rules: ScheduleRule[]
-  }
-
-  interface ScheduleRule {
-    start: string
-    end: string
-    weekdayFilter: boolean[]
-  }
-
-  interface ScheduleRuleOptions {
-    start?: string
-    end?: string
-    weekdayFilter?: boolean[]
-  }
-
-  interface Schedule {
-    id: string
-    name: string
-    description: string
-    timeZone: string
-    isFavorite: boolean
-  }
-
-  interface ScheduleOptions {
-    name?: string
-    description?: string
-    timeZone?: string
-    isFavorite?: boolean
-  }
-}
-
 const fmtTime = (num: number): string => {
   const s = num.toString()
   if (s.length === 1) {
@@ -87,7 +22,9 @@ function setScheduleTarget(
   if (!tgt.scheduleID) {
     return cy
       .createSchedule(tgt.schedule)
-      .then(sched => setScheduleTarget({ ...tgt, scheduleID: sched.id }))
+      .then((sched: Schedule) =>
+        setScheduleTarget({ ...tgt, scheduleID: sched.id }),
+      )
   }
   if (!tgt.target) {
     tgt.target = { rotation: {} }
@@ -96,7 +33,7 @@ function setScheduleTarget(
   if (rotation) {
     return cy
       .createRotation(rotation)
-      .then(r =>
+      .then((r: Rotation) =>
         setScheduleTarget({ ...tgt, target: { type: 'rotation', id: r.id } }),
       )
   }
@@ -148,7 +85,7 @@ function setScheduleTarget(
           id: params.scheduleID,
           tgt: params.target,
         })
-        .then(res => {
+        .then((res: GraphQLResponse) => {
           const { target, ...schedule } = res.schedule
           return {
             ...target,
@@ -180,7 +117,7 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
         favorite: sched.isFavorite,
       },
     })
-    .then(res => res.createSchedule)
+    .then((res: GraphQLResponse) => res.createSchedule)
 }
 
 function deleteSchedule(id: string): Cypress.Chainable<void> {

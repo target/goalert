@@ -1,13 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      graphql: typeof graphql
-      graphql2: typeof graphql
-    }
-  }
-}
-
 interface GraphQLResponse {
   data: any
   errors: [any]

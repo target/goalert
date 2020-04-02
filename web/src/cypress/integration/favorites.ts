@@ -80,7 +80,7 @@ function testFavorites(): void {
     'Service',
     'services',
     (name: string, favorite: boolean) =>
-      cy.createService({ name, favorite }).then(s => s.id),
+      cy.createService({ name, favorite }).then((s: Service) => s.id),
     () => {
       const summary = c.sentence({
         words: 3,
@@ -105,11 +105,11 @@ function testFavorites(): void {
     'Rotation',
     'rotations',
     (name: string, favorite: boolean) =>
-      cy.createRotation({ name, favorite }).then(r => r.id),
+      cy.createRotation({ name, favorite }).then((r: Rotation) => r.id),
     () =>
       cy
         .createEP()
-        .then(e => {
+        .then((e: EP) => {
           return cy.visit(`/escalation-policies/${e.id}`)
         })
         .pageFab()
@@ -120,11 +120,13 @@ function testFavorites(): void {
     'Schedule',
     'schedules',
     (name: string, isFavorite: boolean) =>
-      cy.createSchedule({ name, isFavorite }).then(sched => sched.id),
+      cy
+        .createSchedule({ name, isFavorite })
+        .then((sched: Schedule) => sched.id),
     () =>
       cy
         .createEP()
-        .then(e => {
+        .then((e: EP) => {
           return cy.visit(`/escalation-policies/${e.id}`)
         })
         .pageFab()
