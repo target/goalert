@@ -286,3 +286,21 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 
 	return m.AlertStore.FindMany(ctx, updatedIDs)
 }
+
+func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.UpdateAlertsByServiceInput) (bool, error) {
+	var status alert.Status
+
+	switch args.NewStatus {
+	case graphql2.AlertStatusStatusAcknowledged:
+		status = alert.StatusActive
+	case graphql2.AlertStatusStatusClosed:
+		status = alert.StatusClosed
+	}
+
+	err := m.AlertStore.UpdateStatusByService(ctx, args.ServiceID, status)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

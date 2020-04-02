@@ -1,3 +1,5 @@
+// NOTE the runner method is not inherent to Cypress
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CY: any = Cypress
 // Fail-fast-all-files
 before(function() {

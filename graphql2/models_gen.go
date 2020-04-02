@@ -331,6 +331,11 @@ type TimeZoneSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type UpdateAlertsByServiceInput struct {
+	ServiceID string      `json:"serviceID"`
+	NewStatus AlertStatus `json:"newStatus"`
+}
+
 type UpdateAlertsInput struct {
 	AlertIDs  []int       `json:"alertIDs"`
 	NewStatus AlertStatus `json:"newStatus"`

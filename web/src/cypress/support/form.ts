@@ -8,7 +8,7 @@ declare global {
   }
 }
 
-const clickArc = (pct: number) => (el: any) => {
+const clickArc = (pct: number) => (el: JQuery) => {
   const height = el.height() || 0
   const radius = height / 2
   const angle = (-1 + pct) * Math.PI * 2 - Math.PI / 2
@@ -22,7 +22,7 @@ const clickArc = (pct: number) => (el: any) => {
 // materialClock will control a material time-picker from an input field
 function materialClock(
   time: string | DateTime,
-): Cypress.Chainable<JQuery<any>> {
+): Cypress.Chainable<JQuery<HTMLElement>> {
   const dt = DateTime.isDateTime(time)
     ? time
     : DateTime.fromFormat(time, 'HH:mm')
