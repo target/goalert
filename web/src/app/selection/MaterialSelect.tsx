@@ -107,7 +107,9 @@ export default function MaterialSelect(
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      multiple={multiple as any} // Autocomplete types as 'true' | omitted; we can't omit
+      // Autocomplete types as 'true' | omitted; we can't omit
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      multiple={multiple as any}
       filterSelectedOptions
       noOptionsText={noOptionsText}
       onChange={(
@@ -122,7 +124,9 @@ export default function MaterialSelect(
           }
         }
 
-        onChange(selected as any) // NOTE typeof selected switches based on multiple; ts can't infer this
+        // NOTE typeof selected switches based on multiple; ts can't infer this
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onChange(selected as any)
       }}
       onInputChange={(event, inputVal, reason) => {
         if (reason === 'clear' && !multiple) {
@@ -145,7 +149,8 @@ export default function MaterialSelect(
               {
                 ...params.InputProps,
                 'data-cy': 'search-select-input',
-              } as any // just adding a data-cy attr
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              } as any // adding a data-cy attr
             }
             data-cy='search-select'
             fullWidth
