@@ -9,9 +9,9 @@ export function pageSearch(s: string): Cypress.Chainable {
       }) // since we're running tests, it's ok if it is already open
     }
 
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.get('[data-cy=search-field] input')
       .type(`{selectall}${s}`)
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
       .wait(250) // wait a necessary amount of time for debounce delay
       .should('have.value', s)
       .should('have.focus')
