@@ -11,6 +11,7 @@ export function pageSearch(s: string): Cypress.Chainable {
 
     cy.get('[data-cy=search-field] input')
       .type(`{selectall}${s}`)
+      .wait(250) // debounce delay
       .should('have.value', s)
       .should('have.focus')
   })
