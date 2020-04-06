@@ -62,7 +62,7 @@ func main() {
 		case ast.Enum:
 			fmt.Fprintf(w, "export enum %s {\n", def.Name)
 			for _, e := range def.EnumValues {
-				fmt.Fprintf(w, "\t%s = '%s',\n", e.Name, e.Name)
+				fmt.Fprintf(w, "  %s = '%s',\n", e.Name, e.Name)
 			}
 			fmt.Fprintf(w, "}\n\n")
 		case ast.InputObject, ast.Object:
@@ -72,7 +72,7 @@ func main() {
 				if e.Type.NonNull {
 					mod = ""
 				}
-				fmt.Fprintf(w, "\t%s: %s\n", e.Name+mod, typeName(e.Type.Name()))
+				fmt.Fprintf(w, "  %s: %s\n", e.Name+mod, typeName(e.Type.Name()))
 			}
 			fmt.Fprintf(w, "}\n\n")
 		case ast.Scalar:
