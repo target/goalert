@@ -10,7 +10,7 @@ import {
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import CopyText from '../../util/CopyText'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   caption: {
     width: '100%',
   },

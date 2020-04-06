@@ -36,7 +36,7 @@ function testPaginating(
         names.push(name)
       }
 
-      return create(names.map(name => ({ name })))
+      return create(names.map((name) => ({ name })))
     })
 
     beforeEach(() => cy.visit(`/${url}?search=${nameSubstr}`))
@@ -46,32 +46,24 @@ function testPaginating(
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
 
-      cy.get('button[data-cy="next-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="next-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
 
-      cy.get('button[data-cy="next-button"]')
-        .last()
-        .click()
+      cy.get('button[data-cy="next-button"]').last().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage * 2 + i])
 
       cy.get('button[data-cy="next-button"]').should('be.disabled')
 
-      cy.get('button[data-cy="back-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="back-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
 
-      cy.get('button[data-cy="back-button"]')
-        .last()
-        .click()
+      cy.get('button[data-cy="back-button"]').last().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
@@ -82,9 +74,7 @@ function testPaginating(
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
 
-      cy.get('button[data-cy="next-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="next-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
@@ -101,9 +91,7 @@ function testPaginating(
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
 
-      cy.get('button[data-cy="next-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="next-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
@@ -119,7 +107,7 @@ function testPaginating(
 
 function createOne(fn: createOneFunc) {
   return (names: Array<CreateOpts>) => {
-    names.forEach(name => fn(name))
+    names.forEach((name) => fn(name))
     return cy
   }
 }

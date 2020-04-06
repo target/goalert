@@ -8,11 +8,11 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import LoadingButton from '../loading/components/LoadingButton'
 
 @connect(
-  state => ({
+  (state) => ({
     errorMessage: urlParamSelector(state)('errorMessage'),
     errorTitle: urlParamSelector(state)('errorTitle'),
   }),
-  dispatch => ({
+  (dispatch) => ({
     resetError: () => dispatch(resetURLParams('errorMessage', 'errorTitle')),
   }),
 )

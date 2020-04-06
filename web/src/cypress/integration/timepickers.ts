@@ -127,7 +127,7 @@ function testTimePickers(): void {
           }) as Date,
         )
 
-        cy.fixture('users').then(users => {
+        cy.fixture('users').then((users) => {
           const userName: string = (c.pickone(users) as Profile).name
           cy.dialogForm({
             addUserID: userName,

@@ -13,7 +13,7 @@ function testMaterialSelect(): void {
         })
       })
       it('should clear fields and not reset with last values', () => {
-        cy.fixture('users').then(users => {
+        cy.fixture('users').then((users) => {
           const u1 = users[0]
           const u2 = users[1]
 
@@ -86,9 +86,7 @@ function testMaterialSelect(): void {
 
         // Should be on details page
         cy.dialogFinish('Submit')
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
     })
   })

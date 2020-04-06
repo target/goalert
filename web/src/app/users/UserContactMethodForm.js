@@ -35,7 +35,7 @@ export default class UserContactMethodForm extends React.PureComponent {
   }
 
   render() {
-    const cleanValue = val => {
+    const cleanValue = (val) => {
       val = val.replace(/[^0-9]/g, '')
 
       if (!val) {
@@ -79,7 +79,7 @@ export default class UserContactMethodForm extends React.PureComponent {
                 ),
               }}
               component={TextField}
-              mapValue={val => val.replace(/^\+/, '')}
+              mapValue={(val) => val.replace(/^\+/, '')}
               mapOnChangeValue={cleanValue}
               disabled={this.props.edit}
             />

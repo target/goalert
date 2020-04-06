@@ -62,7 +62,7 @@ export default class ScheduleCreateDialog extends React.PureComponent {
             disabled={status.loading}
             errors={fieldErrors(status.error)}
             value={this.state.value}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

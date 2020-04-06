@@ -7,21 +7,21 @@ import { GenericError, ObjectNotFound } from '../error-pages/Errors'
 
 import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../config'
 
-const hasNull = data =>
-  isEmpty(data) || Object.keys(data).some(key => data[key] === null)
+const hasNull = (data) =>
+  isEmpty(data) || Object.keys(data).some((key) => data[key] === null)
 
 export function withQuery(
   query,
   mapQueryToProps,
   mapPropsToQueryProps = () => ({}),
 ) {
-  return Component =>
+  return (Component) =>
     function WithQuery(componentProps) {
       return (
         <Query
           {...mapPropsToQueryProps(componentProps)}
           query={query}
-          render={renderProps => (
+          render={(renderProps) => (
             <Component {...componentProps} {...mapQueryToProps(renderProps)} />
           )}
         />
@@ -74,7 +74,7 @@ export default class Query extends React.PureComponent {
     )
   }
 
-  renderResult = args => {
+  renderResult = (args) => {
     if (this.state.spin) {
       if (this.props.noSpin)
         return this.props.render({ ...args, loading: true })

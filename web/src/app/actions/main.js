@@ -23,19 +23,19 @@ export function resetURLParams(...keys) {
     if (!keys.length) return dispatch(replace(state.router.location.pathname))
 
     const q = new URLSearchParams(state.router.location.search)
-    keys.forEach(key => {
+    keys.forEach((key) => {
       q.delete(key)
     })
 
     setSearchStr(dispatch, state, q)
   }
 }
-const sanitizeParam = value => {
+const sanitizeParam = (value) => {
   if (value === true) value = '1' // explicitly true
   if (!value) value = '' // any falsey value
   if (!Array.isArray(value)) return value.trim()
 
-  const filtered = value.filter(v => v)
+  const filtered = value.filter((v) => v)
   if (filtered.length === 0) return null
 
   return filtered
@@ -58,7 +58,7 @@ export function setURLParam(name, _value, _default) {
     const q = new URLSearchParams(state.router.location.search)
     if (Array.isArray(value)) {
       q.delete(name)
-      value.forEach(v => q.append(name, v))
+      value.forEach((v) => q.append(name, v))
     } else if (value) {
       q.set(name, value)
     } else {

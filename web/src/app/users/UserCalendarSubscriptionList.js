@@ -84,7 +84,7 @@ export default function UserCalendarSubscriptionList(props) {
   }
 
   // push schedule names as subheaders now that the array is sorted
-  subs.forEach(sub => {
+  subs.forEach((sub) => {
     if (!subheaderDict[sub.schedule.name]) {
       subheaderDict[sub.schedule.name] = true
       items.push({

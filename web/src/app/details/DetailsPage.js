@@ -16,7 +16,7 @@ import Markdown from '../util/Markdown'
 import { AppLink } from '../util/AppLink'
 
 const useLinkStyles = makeStyles(() => statusStyles)
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   spacing: {
     '&:not(:first-child)': {
       marginTop: 8,

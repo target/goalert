@@ -65,13 +65,9 @@ function testProfile(): void {
           .then(() => svc.id)
       })
       .then((svcID: string) => {
-        cy.get('body')
-          .contains('a', 'On-Call')
-          .click()
+        cy.get('body').contains('a', 'On-Call').click()
 
-        cy.get('body')
-          .contains('a', name)
-          .click()
+        cy.get('body').contains('a', name).click()
 
         cy.url().should('eq', Cypress.config().baseUrl + '/services/' + svcID)
       })
@@ -142,9 +138,7 @@ function testProfile(): void {
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
-      cy.get('button[data-cy=page-fab]')
-        .should('be.visible')
-        .click()
+      cy.get('button[data-cy=page-fab]').should('be.visible').click()
       cy.get(
         `span[aria-label*=${JSON.stringify(
           'Add Notification Rule',

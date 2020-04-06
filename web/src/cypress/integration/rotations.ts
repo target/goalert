@@ -25,9 +25,7 @@ function testRotations(): void {
 
     it('should link to details page', () => {
       cy.pageSearch(rot.name)
-      cy.get('#app')
-        .contains(rot.name)
-        .click()
+      cy.get('#app').contains(rot.name).click()
       cy.url().should('eq', Cypress.config().baseUrl + `/rotations/${rot.id}`)
     })
 
@@ -37,7 +35,7 @@ function testRotations(): void {
         cy.dialogTitle('Create Rotation')
         cy.dialogFinish('Cancel')
       })
-      ;['Hourly', 'Daily', 'Weekly'].forEach(type => {
+      ;['Hourly', 'Daily', 'Weekly'].forEach((type) => {
         it(`should create a ${type} rotation when submitted`, () => {
           const name = 'SM Rot ' + c.word({ length: 8 })
           const description = c.word({ length: 10 })
@@ -78,27 +76,16 @@ function testRotations(): void {
     )
 
     it('should display users correctly', () => {
-      cy.get('ul[data-cy=users]')
-        .find('li')
-        .as('parts')
-      cy.get('@parts')
-        .eq(1)
-        .should('contain', rot.users[0].name)
-      cy.get('@parts')
-        .eq(2)
-        .should('contain', rot.users[1].name)
+      cy.get('ul[data-cy=users]').find('li').as('parts')
+      cy.get('@parts').eq(1).should('contain', rot.users[0].name)
+      cy.get('@parts').eq(2).should('contain', rot.users[1].name)
     })
 
     it('should allow removing a user', () => {
-      cy.get('ul[data-cy=users]')
-        .find('li')
-        .as('parts')
+      cy.get('ul[data-cy=users]').find('li').as('parts')
 
       // remove second user
-      cy.get('@parts')
-        .eq(2)
-        .find('button')
-        .menu('Remove')
+      cy.get('@parts').eq(2).find('button').menu('Remove')
 
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
@@ -118,9 +105,7 @@ function testRotations(): void {
 
     it('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
-      cy.get('ul[data-cy=users]')
-        .find('li')
-        .should('have.length', 4)
+      cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
       cy.get('[data-cy=avatar-fallback]').should('not.exist')
 
       cy.get('ul[data-cy=users]')
@@ -142,9 +127,7 @@ function testRotations(): void {
 
       cy.focused().type(' ', { force: true })
 
-      cy.get('ul[data-cy=users]')
-        .find('li')
-        .as('parts')
+      cy.get('ul[data-cy=users]').find('li').as('parts')
       cy.get('@parts')
         .eq(1)
         .should('contain', rot.users[1].name)
@@ -160,14 +143,9 @@ function testRotations(): void {
     })
 
     it('should allow changing the active user', () => {
-      cy.get('ul[data-cy=users]')
-        .find('li')
-        .as('parts')
+      cy.get('ul[data-cy=users]').find('li').as('parts')
 
-      cy.get('@parts')
-        .eq(2)
-        .find('button')
-        .menu('Set Active')
+      cy.get('@parts').eq(2).find('button').menu('Set Active')
 
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')

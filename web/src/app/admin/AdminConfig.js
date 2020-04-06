@@ -36,7 +36,7 @@ const mutation = gql`
   }
 `
 
-const styles = theme => ({
+const styles = (theme) => ({
   gridContainer: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',
@@ -86,13 +86,13 @@ export default class AdminConfig extends React.PureComponent {
 
   renderTabs(configValues, hints) {
     const groups = chain(configValues)
-      .map(f => f.id.split('.')[0])
+      .map((f) => f.id.split('.')[0])
       .uniq()
       .value()
     const hintGroups = chain(hints)
-      .groupBy(f => f.id.split('.')[0])
+      .groupBy((f) => f.id.split('.')[0])
       .value()
-    const hintName = id => startCase(id.split('.')[1])
+    const hintName = (id) => startCase(id.split('.')[1])
 
     return (
       <React.Fragment>
@@ -128,8 +128,8 @@ export default class AdminConfig extends React.PureComponent {
                       value={this.state.value}
                       onChange={(id, value) => this.updateValue(id, value)}
                       fields={configValues
-                        .filter(f => f.id.split('.')[0] === groups[index])
-                        .map(f => ({
+                        .filter((f) => f.id.split('.')[0] === groups[index])
+                        .map((f) => ({
                           id: f.id,
                           label: chain(f.id.split('.'))
                             .last()
@@ -143,7 +143,7 @@ export default class AdminConfig extends React.PureComponent {
                         }))}
                     />
                     {hintGroups[groupID] &&
-                      hintGroups[groupID].map(h => (
+                      hintGroups[groupID].map((h) => (
                         <TextField
                           key={h.id}
                           readOnly

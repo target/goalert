@@ -32,7 +32,7 @@ function testSteps(): void {
 
     // Create a step with 2 of each type of GoAlert target
     it('should create a step', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         const u1 = users[0]
         const u2 = users[1]
         const delay = c.integer({ min: 1, max: 9000 })
@@ -70,7 +70,7 @@ function testSteps(): void {
     it('should add users when slack is disabled', () => {
       cy.updateConfig({ Slack: { Enable: false } })
       cy.reload()
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         const u1 = users[0]
         const u2 = users[1]
 

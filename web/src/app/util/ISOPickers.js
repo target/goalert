@@ -28,7 +28,7 @@ function useISOPicker(
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
-  const parseInput = input => {
+  const parseInput = (input) => {
     if (input instanceof DateTime) return input
     if (!input) return null
 
@@ -51,21 +51,16 @@ function useISOPicker(
 
   // inputToISO returns a UTC ISO timestamp representing the provided
   // input value, or an empty string if invalid.
-  const inputToISO = input => {
+  const inputToISO = (input) => {
     const val = parseInput(input)
-    return val
-      ? val
-          .startOf(truncateTo)
-          .toUTC()
-          .toISO()
-      : ''
+    return val ? val.startOf(truncateTo).toUTC().toISO() : ''
   }
 
   useEffect(() => {
     setInputValue(dtValue.toFormat(format))
   }, [value, zone])
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setInputValue(e.target.value)
 
     const newVal = inputToISO(e.target.value)
@@ -97,7 +92,7 @@ function useISOPicker(
   return (
     <Fallback
       value={dtValue}
-      onChange={v => handleChange({ target: { value: v } })}
+      onChange={(v) => handleChange({ target: { value: v } })}
       showTodayButton
       DialogProps={{
         'data-cy': 'picker-fallback',

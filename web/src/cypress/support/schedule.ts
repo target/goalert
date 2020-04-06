@@ -40,7 +40,7 @@ function setScheduleTarget(
   if (!tgt.rules) {
     tgt.rules = [{}]
   }
-  tgt.rules = tgt.rules.map(r => ({
+  tgt.rules = tgt.rules.map((r) => ({
     start: r.start || randClock(),
     end: r.end || randClock(),
     weekdayFilter: r.weekdayFilter || [

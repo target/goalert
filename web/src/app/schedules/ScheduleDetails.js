@@ -86,7 +86,7 @@ export default function ScheduleDetails({ scheduleID }) {
               control={
                 <Switch
                   checked={activeOnly}
-                  onChange={e => setActiveOnly(e.target.checked)}
+                  onChange={(e) => setActiveOnly(e.target.checked)}
                   value='activeOnly'
                 />
               }

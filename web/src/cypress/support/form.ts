@@ -66,7 +66,7 @@ function materialCalendar(date: string | DateTime): void {
 
   cy.get(
     '[role=dialog][data-cy=picker-fallback] button[data-cy=month-back]+div',
-  ).then(el => {
+  ).then((el) => {
     const displayedDT = DateTime.fromFormat(el.text(), 'MMMM yyyy')
     const diff = dt.startOf('month').diff(displayedDT, 'months').months
 
@@ -112,7 +112,7 @@ function fillFormField(
     return cy.get(selector).check()
   }
 
-  return cy.get(selector).then(el => {
+  return cy.get(selector).then((el) => {
     const isSelect =
       el.parents('[data-cy=material-select]').data('cy') === 'material-select'
     const pickerFallback = el
@@ -129,7 +129,7 @@ function fillFormField(
       }
 
       if (Array.isArray(value)) {
-        value.forEach(val => cy.get(selector).selectByLabel(val))
+        value.forEach((val) => cy.get(selector).selectByLabel(val))
         return
       }
 
@@ -169,34 +169,22 @@ function fillFormField(
       }
     }
 
-    return cy.get(selector).then(el => {
+    return cy.get(selector).then((el) => {
       if (!DateTime.isDateTime(value)) {
         if (el.attr('type') === 'hidden') {
           return cy.get(selector).selectByLabel(value)
         }
-        return cy
-          .wrap(el)
-          .clear()
-          .type(value)
+        return cy.wrap(el).clear().type(value)
       }
 
       // material Select
       switch (el.attr('type')) {
         case 'time':
-          return cy
-            .wrap(el)
-            .clear()
-            .type(value.toFormat('HH:mm'))
+          return cy.wrap(el).clear().type(value.toFormat('HH:mm'))
         case 'date':
-          return cy
-            .wrap(el)
-            .clear()
-            .type(value.toFormat('yyyy-MM-dd'))
+          return cy.wrap(el).clear().type(value.toFormat('yyyy-MM-dd'))
         case 'datetime-local':
-          return cy
-            .wrap(el)
-            .clear()
-            .type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
+          return cy.wrap(el).clear().type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
         default:
           throw new TypeError(
             'DateTime only supported for time, date, or datetime-local types',

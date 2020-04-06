@@ -189,8 +189,14 @@ export interface Mutation {
   updateSchedule: boolean
   updateUserOverride: boolean
   updateHeartbeatMonitor: boolean
+  updateAlertsByService: boolean
   setConfig: boolean
   setSystemLimits: boolean
+}
+
+export interface UpdateAlertsByServiceInput {
+  serviceID: string
+  newStatus: AlertStatus
 }
 
 export interface CreateAlertInput {

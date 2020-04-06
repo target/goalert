@@ -145,7 +145,7 @@ function createHeartbeatMonitor(
     })
     .then((res: GraphQLResponse) => {
       const mon = res.createHeartbeatMonitor
-      return getService(svcID).then(svc => {
+      return getService(svcID).then((svc) => {
         mon.svc = svc
         return mon
       })

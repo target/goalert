@@ -114,14 +114,14 @@ export default function ControlledPaginatedList(
 
   function getSelectableIDs(): Array<string | number> {
     if (itemsHaveID(items)) {
-      return items.filter(i => i.selectable !== false).map(i => i.id)
+      return items.filter((i) => i.selectable !== false).map((i) => i.id)
     }
     return []
   }
 
   const [_checkedItems, setCheckedItems] = useState<Array<string | number>>([])
   // covers the use case where an item may no longer be selectable after an update
-  const checkedItems = _checkedItems.filter(id =>
+  const checkedItems = _checkedItems.filter((id) =>
     getSelectableIDs().includes(id),
   )
   const urlKey = useSelector(urlKeySelector)
@@ -227,12 +227,12 @@ export default function ControlledPaginatedList(
         checked={checked}
         data-cy={'item-' + item.id}
         disabled={item.selectable === false}
-        onClick={e => {
+        onClick={(e) => {
           e.stopPropagation()
           e.preventDefault()
 
           if (checked) {
-            setCheckedItems(checkedItems.filter(id => id !== item.id))
+            setCheckedItems(checkedItems.filter((id) => id !== item.id))
           } else {
             setCheckedItems([...checkedItems, item.id])
           }
@@ -243,7 +243,7 @@ export default function ControlledPaginatedList(
 
   function getItems(): CheckboxItemsProps[] | PaginatedListItemProps[] {
     if (itemsHaveID(items)) {
-      return items.map(item => ({ ...item, icon: getItemIcon(item) }))
+      return items.map((item) => ({ ...item, icon: getItemIcon(item) }))
     }
 
     return items

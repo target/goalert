@@ -1,5 +1,5 @@
 export function pageNav(s: string, skipClick?: boolean): Cypress.Chainable {
-  return cy.get('*[data-cy=app-bar]').then(el => {
+  return cy.get('*[data-cy=app-bar]').then((el) => {
     const format: 'mobile' | 'wide' = el.data('cy-format')
     expect(format, 'app bar format').to.be.oneOf(['mobile', 'wide'])
 
@@ -9,9 +9,7 @@ export function pageNav(s: string, skipClick?: boolean): Cypress.Chainable {
     if (skipClick) {
       cy.get('ul[data-cy=nav-list]').contains('a', s)
     } else {
-      cy.get('ul[data-cy=nav-list]')
-        .contains('a', s)
-        .click()
+      cy.get('ul[data-cy=nav-list]').contains('a', s).click()
     }
   })
 }

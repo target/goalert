@@ -65,11 +65,11 @@ export default class FormDialog extends Component {
     }
 
     return result
-      .then(args => {
+      .then((args) => {
         this.handleClose(true) // successful action
         if (this.props.onSuccess) this.props.onSuccess(args) // If the function exists run it
       })
-      .catch(err => {
+      .catch((err) => {
         this.setState({
           error: err.message || err,
           attemptCount: this.state.attemptCount + 1,
@@ -134,7 +134,7 @@ export default class FormDialog extends Component {
       subtitleJSX,
       <form
         key='form'
-        onSubmit={e => this.submitForm(e)}
+        onSubmit={(e) => this.submitForm(e)}
         style={{ width: '100%' }}
       >
         <DialogContent
@@ -162,7 +162,7 @@ export default class FormDialog extends Component {
             color='primary'
             disabled={readOnly}
             loading={loading}
-            onClick={e => {
+            onClick={(e) => {
               this.submitForm(e)
             }}
           />

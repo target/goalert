@@ -44,7 +44,7 @@ export default function UserContactMethodVerificationForm(props) {
   function sendAndCatch() {
     // Clear error on new actions.
     props.setSendError(null)
-    sendCode().catch(err => props.setSendError(err.message))
+    sendCode().catch((err) => props.setSendError(err.message))
   }
 
   // Attempt to send a code on load, but it's ok if it fails.
@@ -76,7 +76,7 @@ export default function UserContactMethodVerificationForm(props) {
             component={TextField}
             type='number'
             step='1'
-            mapOnChangeValue={value => value.toString()}
+            mapOnChangeValue={(value) => value.toString()}
           />
         </Grid>
       </Grid>

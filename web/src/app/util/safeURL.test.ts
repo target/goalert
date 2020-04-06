@@ -9,11 +9,8 @@ describe('safeURL', () => {
   const checkIt = (desc: string, runValues: RunValuesObj): void => {
     describe(desc, () => {
       const run = (vals: string[], exp: boolean): void =>
-        (vals || []).forEach(v => {
-          const parts = v
-            .replace(/^\[/, '')
-            .replace(/\)$/, '')
-            .split('](')
+        (vals || []).forEach((v) => {
+          const parts = v.replace(/^\[/, '').replace(/\)$/, '').split('](')
           const label = parts[0]
           const url = parts[1]
 
