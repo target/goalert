@@ -60,7 +60,7 @@ func main() {
 	for _, def := range doc.Definitions {
 		switch def.Kind {
 		case ast.Enum:
-			fmt.Fprintf(w, "enum %s {\n", def.Name)
+			fmt.Fprintf(w, "export enum %s {\n", def.Name)
 			for _, e := range def.EnumValues {
 				fmt.Fprintf(w, "\t%s = '%s',\n", e.Name, e.Name)
 			}
@@ -76,7 +76,7 @@ func main() {
 			}
 			fmt.Fprintf(w, "}\n\n")
 		case ast.Scalar:
-			fmt.Fprintf(w, "type %s = string\n\n", def.Name)
+			fmt.Fprintf(w, "export type %s = string\n\n", def.Name)
 		default:
 			log.Fatal("Unsupported kind:", def.Name, def.Kind)
 		}

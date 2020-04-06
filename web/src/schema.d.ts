@@ -72,14 +72,14 @@ export interface ConfigHint {
   value: string
 }
 
-enum ConfigType {
+export enum ConfigType {
   string = 'string',
   stringList = 'stringList',
   integer = 'integer',
   boolean = 'boolean',
 }
 
-enum SystemLimitID {
+export enum SystemLimitID {
   CalendarSubscriptionsPerUser = 'CalendarSubscriptionsPerUser',
   NotificationRulesPerUser = 'NotificationRulesPerUser',
   ContactMethodsPerUser = 'ContactMethodsPerUser',
@@ -438,7 +438,7 @@ export interface Rotation {
   nextHandoffTimes: ISOTimestamp
 }
 
-enum RotationType {
+export enum RotationType {
   weekly = 'weekly',
   daily = 'daily',
   hourly = 'hourly',
@@ -512,9 +512,9 @@ export interface AlertSearchOptions {
   omit?: number
 }
 
-type ISOTimestamp = string
+export type ISOTimestamp = string
 
-type ClockTime = string
+export type ClockTime = string
 
 export interface Alert {
   id: string
@@ -582,7 +582,7 @@ export interface UpdateHeartbeatMonitorInput {
   timeoutMinutes?: number
 }
 
-enum HeartbeatMonitorState {
+export enum HeartbeatMonitorState {
   inactive = 'inactive',
   healthy = 'healthy',
   unhealthy = 'unhealthy',
@@ -611,7 +611,7 @@ export interface IntegrationKey {
   href: string
 }
 
-enum IntegrationKeyType {
+export enum IntegrationKeyType {
   generic = 'generic',
   grafana = 'grafana',
   site24x7 = 'site24x7',
@@ -633,7 +633,7 @@ export interface EscalationPolicy {
   steps: EscalationPolicyStep
 }
 
-enum AlertStatus {
+export enum AlertStatus {
   StatusAcknowledged = 'StatusAcknowledged',
   StatusClosed = 'StatusClosed',
   StatusUnacknowledged = 'StatusUnacknowledged',
@@ -650,7 +650,7 @@ export interface TargetInput {
   type: TargetType
 }
 
-enum TargetType {
+export enum TargetType {
   escalationPolicy = 'escalationPolicy',
   notificationChannel = 'notificationChannel',
   slackChannel = 'slackChannel',
@@ -701,7 +701,7 @@ export interface AuthSubjectInput {
   subjectID: string
 }
 
-enum UserRole {
+export enum UserRole {
   unknown = 'unknown',
   user = 'user',
   admin = 'admin',
@@ -727,7 +727,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-enum ContactMethodType {
+export enum ContactMethodType {
   SMS = 'SMS',
   VOICE = 'VOICE',
 }
