@@ -67,7 +67,6 @@ require (
 	golang.org/x/sys v0.0.0-20200120151820-655fe14d7479 // indirect
 	golang.org/x/tools v0.0.0-20200119215504-eb0d8dd85bcc
 	google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24 // indirect
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/ini.v1 v1.51.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
