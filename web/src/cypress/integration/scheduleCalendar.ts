@@ -1,8 +1,6 @@
 import { testScreen } from '../support'
 import { DateTime } from 'luxon'
 
-testScreen('Calendar', testCalendar)
-
 const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
 const weekHeaderFormat = (t: DateTime): string => {
   const start = t.startOf('week').minus({ day: 1 })
@@ -30,14 +28,14 @@ function testCalendar(screen: ScreenFormat): void {
   let now: DateTime
   beforeEach(() => {
     now = DateTime.local()
-    cy.createSchedule().then(s => {
+    cy.createSchedule().then((s: Schedule) => {
       sched = s
 
       cy.createRotation({
         count: 3,
         type: 'hourly',
         shiftLength: 1,
-      }).then(r => {
+      }).then((r: Rotation) => {
         rot = r
 
         cy.setScheduleTarget({
@@ -216,3 +214,5 @@ function testCalendar(screen: ScreenFormat): void {
     cy.dialogFinish('Submit')
   })
 }
+
+testScreen('Calendar', testCalendar)

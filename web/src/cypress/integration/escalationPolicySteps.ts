@@ -3,8 +3,6 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-testScreen('Escalation Policy Steps', testSteps)
-
 function testSteps(): void {
   describe('Steps', () => {
     let ep: EP
@@ -14,12 +12,12 @@ function testSteps(): void {
     let s2: Schedule
 
     beforeEach(() => {
-      cy.createRotation().then(r => (r1 = r))
-      cy.createRotation().then(r => (r2 = r))
-      cy.createSchedule().then(s => (s1 = s))
-      cy.createSchedule().then(s => (s2 = s))
+      cy.createRotation().then((r: Rotation) => (r1 = r))
+      cy.createRotation().then((r: Rotation) => (r2 = r))
+      cy.createSchedule().then((s: Schedule) => (s1 = s))
+      cy.createSchedule().then((s: Schedule) => (s2 = s))
 
-      cy.createEP().then(e => {
+      cy.createEP().then((e: EP) => {
         ep = e
         return cy.visit(`/escalation-policies/${ep.id}`)
       })
@@ -178,11 +176,11 @@ function testSteps(): void {
       let s3: EPStep
 
       cy.createEPStep({ epID: ep.id })
-        .then(x => {
+        .then((x: EPStep) => {
           s1 = x
-          cy.createEPStep({ epID: ep.id }).then(y => {
+          cy.createEPStep({ epID: ep.id }).then((y: EPStep) => {
             s2 = y
-            cy.createEPStep({ epID: ep.id }).then(z => {
+            cy.createEPStep({ epID: ep.id }).then((z: EPStep) => {
               s3 = z
               cy.reload()
             })
@@ -238,3 +236,5 @@ function testSteps(): void {
     })
   })
 }
+
+testScreen('Escalation Policy Steps', testSteps)

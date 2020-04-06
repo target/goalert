@@ -2,7 +2,24 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Profile', testProfile)
+function countryCodeCheck(
+  country: string,
+  countryCode: string,
+  value: string,
+  formattedValue: string,
+): void {
+  it(`should handle ${country} phone number`, () => {
+    const name = 'CM SM ' + c.word({ length: 8 })
+    const type = c.pickone(['SMS', 'VOICE'])
+
+    cy.pageFab('Contact')
+    cy.get('input[name=name]').type(name)
+    cy.get('input[name=type]').selectByLabel(type)
+    cy.get('input[name=value]').type(countryCode + value)
+    cy.get('button[type=submit]').click()
+    cy.get('body').should('contain', formattedValue)
+  })
+}
 
 function testProfile(): void {
   let cm: ContactMethod
@@ -11,7 +28,7 @@ function testProfile(): void {
     cy
       .resetProfile()
       .addNotificationRule()
-      .then(rule => {
+      .then((rule: NotificationRule) => {
         cm = rule.contactMethod
         return cy.visit('/profile')
       }),
@@ -35,7 +52,7 @@ function testProfile(): void {
 
     return cy
       .createService({ name })
-      .then(svc => {
+      .then((svc: Service) => {
         return cy
           .fixture('profile')
           .then((p: Profile) => {
@@ -47,7 +64,7 @@ function testProfile(): void {
           .task('engine:trigger')
           .then(() => svc.id)
       })
-      .then(svcID => {
+      .then((svcID: string) => {
         cy.get('body')
           .contains('a', 'On-Call')
           .click()
@@ -267,21 +284,4 @@ function testProfile(): void {
   })
 }
 
-function countryCodeCheck(
-  country: string,
-  countryCode: string,
-  value: string,
-  formattedValue: string,
-): void {
-  it(`should handle ${country} phone number`, () => {
-    const name = 'CM SM ' + c.word({ length: 8 })
-    const type = c.pickone(['SMS', 'VOICE'])
-
-    cy.pageFab('Contact')
-    cy.get('input[name=name]').type(name)
-    cy.get('input[name=type]').selectByLabel(type)
-    cy.get('input[name=value]').type(countryCode + value)
-    cy.get('button[type=submit]').click()
-    cy.get('body').should('contain', formattedValue)
-  })
-}
+testScreen('Profile', testProfile)

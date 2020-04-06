@@ -1,49 +1,8 @@
-declare global {
-  namespace Cypress {
-    interface Chainable<Subject> {
-      /**
-       * Selects an item from a dropdown by it's label. Automatically accounts for search-selects.
-       */
-      selectByLabel: selectByLabelFn
-
-      /**
-       * Finds an item from a dropdown by it's label. Automatically accounts for search-selects.
-       */
-      findByLabel: findByLabelFn
-
-      /**
-       * Finds an item from a dropdown by it's label and removes it if it is a multiselect.
-       */
-      multiRemoveByLabel: multiRemoveByLabelFn
-    }
-  }
-}
-
-type selectByLabelFn = (label: string) => Cypress.Chainable
-type findByLabelFn = (label: string) => Cypress.Chainable
-type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
-
 function isSearchSelect(sub: HTMLElement): Cypress.Chainable<boolean> {
   return cy.wrap(sub).then(el => {
     return (
       el.parents('[data-cy=material-select]').data('cy') === 'material-select'
     )
-  })
-}
-
-function selectByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
-  return isSearchSelect(sub).then(isSearchSelect => {
-    // clear value in search select
-    if ((!label || label === '{backspace}') && isSearchSelect) {
-      return clearSelect(sub)
-    }
-
-    return findByLabel(sub, label)
-      .click()
-      .get('[data-cy=select-dropdown]')
-      .should('not.exist')
-      .get('ul[role=listbox]')
-      .should('not.exist')
   })
 }
 
@@ -97,6 +56,22 @@ function findByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
       .click()
 
     return cy.get('ul[role=listbox]').contains('li', label)
+  })
+}
+
+function selectByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
+  return isSearchSelect(sub).then(isSearchSelect => {
+    // clear value in search select
+    if ((!label || label === '{backspace}') && isSearchSelect) {
+      return clearSelect(sub)
+    }
+
+    return findByLabel(sub, label)
+      .click()
+      .get('[data-cy=select-dropdown]')
+      .should('not.exist')
+      .get('ul[role=listbox]')
+      .should('not.exist')
   })
 }
 

@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Services', testServices)
-
 function basePrefix(): string {
   const u = new URL(Cypress.config('baseUrl') as string)
   return u.pathname.replace(/\/$/, '')
@@ -17,7 +15,7 @@ function testServices(screen: ScreenFormat): void {
     let svc: Service
     beforeEach(() => {
       cy.createService()
-        .then(s => {
+        .then((s: Service) => {
           svc = s
         })
         .visit('/services')
@@ -69,12 +67,12 @@ function testServices(screen: ScreenFormat): void {
       let label1: Label
       let label2: Label // uses key/value from label1
       beforeEach(() => {
-        cy.createLabel().then(l => {
+        cy.createLabel().then((l: Label) => {
           label1 = l
 
           cy.createLabel({
             key: label1.key, // same key, random value
-          }).then(l => {
+          }).then((l: Label) => {
             label2 = l
           })
         })
@@ -234,7 +232,7 @@ function testServices(screen: ScreenFormat): void {
   describe('Details Page', () => {
     let svc: Service
     beforeEach(() =>
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc = s
         return cy.visit(`/services/${s.id}`)
       }),
@@ -264,7 +262,7 @@ function testServices(screen: ScreenFormat): void {
       const name = 'SM Svc ' + c.word({ length: 8 })
       const description = c.word({ length: 10 })
 
-      cy.createEP().then(ep => {
+      cy.createEP().then((ep: EP) => {
         cy.pageAction('Edit')
 
         cy.dialogForm({ name, description, 'escalation-policy': ep.name })
@@ -326,14 +324,14 @@ function testServices(screen: ScreenFormat): void {
   describe('Heartbeat Monitors', () => {
     let monitor: HeartbeatMonitor
     beforeEach(() => {
-      cy.createService().then(s =>
+      cy.createService().then((s: Service) =>
         cy
           .createHeartbeatMonitor({
             svcID: s.id,
             name: c.word({ length: 5 }) + ' Monitor',
             timeoutMinutes: Math.trunc(Math.random() * 10) + 5,
           })
-          .then(m => {
+          .then((m: HeartbeatMonitor) => {
             monitor = m
           })
           .visit(`/services/${s.id}/heartbeat-monitors`),
@@ -414,7 +412,7 @@ function testServices(screen: ScreenFormat): void {
   describe('Integration Keys', () => {
     let svc: Service
     beforeEach(() =>
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc = s
         return cy.visit(`/services/${svc.id}/integration-keys`)
       }),
@@ -488,7 +486,7 @@ function testServices(screen: ScreenFormat): void {
   describe('Alerts', () => {
     let svc: Service
     beforeEach(() =>
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc = s
         return cy.visit(`/services/${s.id}/alerts`)
       }),
@@ -531,7 +529,7 @@ function testServices(screen: ScreenFormat): void {
   describe('Labels', () => {
     let label: Label
     beforeEach(() =>
-      cy.createLabel().then(l => {
+      cy.createLabel().then((l: Label) => {
         label = l
         return cy.visit(`/services/${l.svcID}/labels`)
       }),
@@ -551,7 +549,7 @@ function testServices(screen: ScreenFormat): void {
       const key = label.key
       const value = c.word({ length: 10 })
 
-      cy.createService().then(svc => {
+      cy.createService().then((svc: Service) => {
         cy.visit(`/services/${svc.id}/labels`)
       })
 
@@ -630,3 +628,5 @@ function testServices(screen: ScreenFormat): void {
     })
   })
 }
+
+testScreen('Services', testServices)

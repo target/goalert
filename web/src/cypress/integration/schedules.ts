@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Schedules', testSchedules)
-
 function testSchedules(screen: ScreenFormat): void {
   describe('Creation', () => {
     it('should create a schedule', () => {
@@ -25,7 +23,7 @@ function testSchedules(screen: ScreenFormat): void {
 
   describe('List Page', () => {
     it('should find a schedule', () => {
-      cy.createSchedule().then(sched => {
+      cy.createSchedule().then((sched: Schedule) => {
         cy.visit('/schedules')
         cy.pageSearch(sched.name)
         cy.get('body')
@@ -41,11 +39,11 @@ function testSchedules(screen: ScreenFormat): void {
     let sched: Schedule
     beforeEach(() => {
       cy.createRotation()
-        .then(r => {
+        .then((r: Rotation) => {
           rot = r
         })
         .createSchedule()
-        .then(s => {
+        .then((s: Schedule) => {
           sched = s
           return cy.visit('/schedules/' + sched.id)
         })
@@ -152,13 +150,13 @@ function testSchedules(screen: ScreenFormat): void {
     let sched: ScheduleTarget
     beforeEach(() => {
       cy.createRotation()
-        .then(r => {
+        .then((r: Rotation) => {
           rot = r
           return cy.setScheduleTarget({
             target: { id: r.id, type: 'rotation' },
           })
         })
-        .then(s => {
+        .then((s: ScheduleTarget) => {
           sched = s
           return cy.visit('/schedules/' + sched.schedule.id + '/assignments')
         })
@@ -275,7 +273,7 @@ function testSchedules(screen: ScreenFormat): void {
   describe('Schedule Overrides', () => {
     let sched: Schedule
     beforeEach(() => {
-      cy.createSchedule().then(s => {
+      cy.createSchedule().then((s: Schedule) => {
         sched = s
         return cy.visit('/schedules/' + sched.id + '/overrides')
       })
@@ -357,3 +355,5 @@ function testSchedules(screen: ScreenFormat): void {
     })
   })
 }
+
+testScreen('Schedules', testSchedules)

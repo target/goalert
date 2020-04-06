@@ -2,14 +2,12 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Material Select', testMaterialSelect)
-
 function testMaterialSelect(): void {
   describe('Clear Fields', () => {
     describe('Escalation Policy Steps', () => {
       let ep: EP
       beforeEach(() => {
-        cy.createEP().then(e => {
+        cy.createEP().then((e: EP) => {
           ep = e
           return cy.visit(`escalation-policies/${ep.id}`)
         })
@@ -95,3 +93,5 @@ function testMaterialSelect(): void {
     })
   })
 }
+
+testScreen('Material Select', testMaterialSelect)

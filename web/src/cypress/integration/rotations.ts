@@ -4,14 +4,12 @@ import { DateTime } from 'luxon'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Rotations', testRotations)
-
 function testRotations(): void {
   describe('List Page', () => {
     let rot: Rotation
     beforeEach(() => {
       cy.createRotation()
-        .then(r => {
+        .then((r: Rotation) => {
           rot = r
         })
         .visit('/rotations')
@@ -73,7 +71,7 @@ function testRotations(): void {
   describe('Details Page', () => {
     let rot: Rotation
     beforeEach(() =>
-      cy.createRotation({ count: 3 }).then(r => {
+      cy.createRotation({ count: 3 }).then((r: Rotation) => {
         rot = r
         return cy.visit(`/rotations/${r.id}`)
       }),
@@ -201,7 +199,7 @@ function testRotations(): void {
   })
 
   it('should allow editing a rotation', () => {
-    cy.createRotation({ shiftLength: 3, type: 'daily' }).then(r => {
+    cy.createRotation({ shiftLength: 3, type: 'daily' }).then((r: Rotation) => {
       const newName = c.word({ length: 15 })
       const newDesc = c.sentence({ words: 3 })
       const newTz = 'Africa/Accra'
@@ -226,3 +224,5 @@ function testRotations(): void {
     })
   })
 }
+
+testScreen('Rotations', testRotations)

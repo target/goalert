@@ -2,41 +2,6 @@ import { Chance } from 'chance'
 
 const c = new Chance()
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /**
-       * Creates a new calendar subscription.
-       */
-      createCalendarSubscription: typeof createCalendarSubscription
-
-      /**
-       * Deletes all calendar subscriptions given the specified user ID.
-       * Will default to deleting all subscriptions for 'profile' if no ID provided.
-       */
-      resetCalendarSubscriptions: typeof resetCalendarSubscriptions
-    }
-  }
-
-  interface CalendarSubscription {
-    id: string
-    name: string
-    reminderMinutes: Array<number>
-    scheduleID: string
-    schedule: Schedule
-    lastAccess: string
-    disabled: boolean
-  }
-
-  interface CalendarSubscriptionOptions {
-    name?: string
-    reminderMinutes?: Array<number>
-    scheduleID?: string
-    schedule?: ScheduleOptions
-    disabled?: boolean
-  }
-}
-
 /*
  * Generate a random array for the reminderMinutes variable
  */
@@ -72,7 +37,9 @@ function createCalendarSubscription(
   if (!cs?.scheduleID) {
     return cy
       .createSchedule(cs?.schedule)
-      .then(s => createCalendarSubscription({ ...cs, scheduleID: s.id }))
+      .then((s: Schedule) =>
+        createCalendarSubscription({ ...cs, scheduleID: s.id }),
+      )
   }
 
   // create reminderMinutes array if not provided
@@ -91,7 +58,7 @@ function createCalendarSubscription(
         disabled: cs?.disabled || false,
       },
     })
-    .then(res => res.createUserCalendarSubscription)
+    .then((res: GraphQLResponse) => res.createUserCalendarSubscription)
 }
 
 function resetCalendarSubscriptions(userID?: string): Cypress.Chainable<void> {

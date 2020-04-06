@@ -212,6 +212,7 @@ type ComplexityRoot struct {
 		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
 		TestContactMethod              func(childComplexity int, id string) int
 		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
+		UpdateAlertsByService          func(childComplexity int, input UpdateAlertsByServiceInput) int
 		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
 		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
 		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
@@ -507,6 +508,7 @@ type MutationResolver interface {
 	UpdateSchedule(ctx context.Context, input UpdateScheduleInput) (bool, error)
 	UpdateUserOverride(ctx context.Context, input UpdateUserOverrideInput) (bool, error)
 	UpdateHeartbeatMonitor(ctx context.Context, input UpdateHeartbeatMonitorInput) (bool, error)
+	UpdateAlertsByService(ctx context.Context, input UpdateAlertsByServiceInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
 }
@@ -1327,6 +1329,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAlerts(childComplexity, args["input"].(UpdateAlertsInput)), true
+
+	case "Mutation.updateAlertsByService":
+		if e.complexity.Mutation.UpdateAlertsByService == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAlertsByService_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAlertsByService(childComplexity, args["input"].(UpdateAlertsByServiceInput)), true
 
 	case "Mutation.updateEscalationPolicy":
 		if e.complexity.Mutation.UpdateEscalationPolicy == nil {
@@ -2943,8 +2957,15 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
+  updateAlertsByService(input: UpdateAlertsByServiceInput!): Boolean!
+
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+}
+
+input UpdateAlertsByServiceInput {
+  serviceID: ID!
+  newStatus: AlertStatus!
 }
 
 input CreateAlertInput {
@@ -3930,6 +3951,20 @@ func (ec *executionContext) field_Mutation_testContactMethod_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAlertsByService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateAlertsByServiceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsByServiceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -8267,6 +8302,50 @@ func (ec *executionContext) _Mutation_updateHeartbeatMonitor(ctx context.Context
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateHeartbeatMonitor(rctx, args["input"].(UpdateHeartbeatMonitorInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateAlertsByService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateAlertsByService_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAlertsByService(rctx, args["input"].(UpdateAlertsByServiceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16105,6 +16184,30 @@ func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context.Context, obj interface{}) (UpdateAlertsByServiceInput, error) {
+	var it UpdateAlertsByServiceInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "serviceID":
+			var err error
+			it.ServiceID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "newStatus":
+			var err error
+			it.NewStatus, err = ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context, obj interface{}) (UpdateAlertsInput, error) {
 	var it UpdateAlertsInput
 	var asMap = obj.(map[string]interface{})
@@ -17570,6 +17673,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateHeartbeatMonitor":
 			out.Values[i] = ec._Mutation_updateHeartbeatMonitor(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateAlertsByService":
+			out.Values[i] = ec._Mutation_updateAlertsByService(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21122,6 +21230,10 @@ func (ec *executionContext) marshalNTimeZoneConnection2ᚖgithubᚗcomᚋtarget�
 		return graphql.Null
 	}
 	return ec._TimeZoneConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsByServiceInput(ctx context.Context, v interface{}) (UpdateAlertsByServiceInput, error) {
+	return ec.unmarshalInputUpdateAlertsByServiceInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsInput(ctx context.Context, v interface{}) (UpdateAlertsInput, error) {

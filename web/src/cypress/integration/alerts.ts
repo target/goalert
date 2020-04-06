@@ -3,14 +3,12 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Alerts', testAlerts)
-
 function testAlerts(screen: ScreenFormat): void {
   describe('Alerts List', () => {
     let alert: Alert
     beforeEach(() => {
       cy.createAlert()
-        .then(a => {
+        .then((a: Alert) => {
           alert = a
         })
         .visit('/alerts?allServices=1')
@@ -85,15 +83,15 @@ function testAlerts(screen: ScreenFormat): void {
     let alert3: Alert
 
     beforeEach(() => {
-      cy.createService({ ep: { stepCount: 1 } }).then(s => {
+      cy.createService({ ep: { stepCount: 1 } }).then((s: Service) => {
         svc = s
-        cy.createAlert({ serviceID: svc.id }).then(a => {
+        cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
           alert1 = a
         })
-        cy.createAlert({ serviceID: svc.id }).then(a => {
+        cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
           alert2 = a
         })
-        cy.createAlert({ serviceID: svc.id }).then(a => {
+        cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
           alert3 = a
         })
 
@@ -261,11 +259,11 @@ function testAlerts(screen: ScreenFormat): void {
     let svc2: Service
 
     beforeEach(() => {
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc1 = s
       })
 
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc2 = s
       })
     })
@@ -316,7 +314,7 @@ function testAlerts(screen: ScreenFormat): void {
   describe('Alert Details', () => {
     let alert: Alert
     beforeEach(() => {
-      cy.createAlert({ service: { ep: { stepCount: 1 } } }).then(a => {
+      cy.createAlert({ service: { ep: { stepCount: 1 } } }).then((a: Alert) => {
         alert = a
         return cy.visit(`/alerts/${a.id}`)
       })
@@ -376,7 +374,7 @@ function testAlerts(screen: ScreenFormat): void {
   describe('Alert Details Logs', () => {
     let logs: AlertLogs
     beforeEach(() => {
-      cy.createAlertLogs({ count: 200 }).then(_logs => {
+      cy.createAlertLogs({ count: 200 }).then((_logs: AlertLogs) => {
         logs = _logs
         return cy.visit(`/alerts/${logs.alert.id}`)
       })
@@ -396,3 +394,5 @@ function testAlerts(screen: ScreenFormat): void {
     })
   })
 }
+
+testScreen('Alerts', testAlerts)

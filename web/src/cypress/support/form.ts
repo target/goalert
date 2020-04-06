@@ -1,12 +1,4 @@
 import { DateTime } from 'luxon'
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Update form fields with the given values. */
-      form: typeof form
-    }
-  }
-}
 
 const clickArc = (pct: number) => (el: JQuery) => {
   const height = el.height() || 0
@@ -102,7 +94,7 @@ function materialCalendar(date: string | DateTime): void {
 
     // click on the day
     cy.get('body')
-      .contains('button', new RegExp(`^${dt.day.toString()}$`))
+      .contains("button[tabindex='0']", new RegExp(`^${dt.day.toString()}$`))
       .click({ force: true })
   })
 }

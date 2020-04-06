@@ -2,21 +2,19 @@ import { Chance } from 'chance'
 import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
-testScreen('Admin', testAdmin, false, true)
-
 function testAdmin(): void {
   describe('Admin System Limits Page', () => {
     let limits: Limits = new Map()
     beforeEach(() => {
-      cy.getLimits().then(l => {
+      cy.getLimits().then((l: Limits) => {
         limits = l
         return cy.visit('/admin/limits')
       })
     })
 
     it('should allow updating system limits values', () => {
-      const newContactMethods = c.integer({ min: 0, max: 1000 }).toString()
-      const newEPActions = c.integer({ min: 0, max: 1000 }).toString()
+      const newContactMethods = c.integer({ min: 15, max: 1000 }).toString()
+      const newEPActions = c.integer({ min: 15, max: 1000 }).toString()
 
       const ContactMethodsPerUser = limits.get(
         'ContactMethodsPerUser',
@@ -88,7 +86,7 @@ function testAdmin(): void {
             FromNumber: '+17633' + c.string({ length: 6, pool: '0123456789' }),
           },
         })
-        .then(curCfg => {
+        .then((curCfg: Config) => {
           cfg = curCfg
           return cy
             .visit('/admin')
@@ -174,3 +172,5 @@ function testAdmin(): void {
     })
   })
 }
+
+testScreen('Admin', testAdmin, false, true)

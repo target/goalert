@@ -5,8 +5,6 @@ const c = new Chance()
 
 const itemsPerPage = 15
 
-testScreen('Pagination', testPagination)
-
 const padZeros = (val: string): string => {
   while (val.length < 4) val = '0' + val
   return val
@@ -20,25 +18,6 @@ type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<dataModel>
 type createManyFunc = (
   names: Array<CreateOpts>,
 ) => Cypress.Chainable<dataModel | dataModel[]>
-
-function createOne(fn: createOneFunc) {
-  return (names: Array<CreateOpts>) => {
-    names.forEach(name => fn(name))
-    return cy
-  }
-}
-
-function testPagination(): void {
-  testPaginating('Rotations', 'rotations', createOne(cy.createRotation))
-  testPaginating('Schedules', 'schedules', createOne(cy.createSchedule))
-  testPaginating(
-    'Escalation Policies',
-    'escalation-policies',
-    createOne(cy.createEP),
-  )
-  testPaginating('Services', 'services', createOne(cy.createService))
-  testPaginating('Users', 'users', cy.createManyUsers)
-}
 
 function testPaginating(
   label: string,
@@ -137,3 +116,24 @@ function testPaginating(
     })
   })
 }
+
+function createOne(fn: createOneFunc) {
+  return (names: Array<CreateOpts>) => {
+    names.forEach(name => fn(name))
+    return cy
+  }
+}
+
+function testPagination(): void {
+  testPaginating('Rotations', 'rotations', createOne(cy.createRotation))
+  testPaginating('Schedules', 'schedules', createOne(cy.createSchedule))
+  testPaginating(
+    'Escalation Policies',
+    'escalation-policies',
+    createOne(cy.createEP),
+  )
+  testPaginating('Services', 'services', createOne(cy.createService))
+  testPaginating('Users', 'users', cy.createManyUsers)
+}
+
+testScreen('Pagination', testPagination)
