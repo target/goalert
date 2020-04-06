@@ -1,3 +1,5 @@
+// Code generated with gqlparser DO NOT EDIT.
+
 export interface Query {
   user?: User
   users: UserConnection

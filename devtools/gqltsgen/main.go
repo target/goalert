@@ -46,6 +46,8 @@ func main() {
 		return n
 	}
 
+	fmt.Fprintf(o, "// Code generated with gqlparser DO NOT EDIT.\n\n")
+
 	for _, def := range doc.Definitions {
 		switch def.Kind {
 		case ast.Enum:
