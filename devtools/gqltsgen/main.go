@@ -55,7 +55,7 @@ func main() {
 			}
 			fmt.Fprintf(o, "}\n\n")
 		case ast.InputObject, ast.Object:
-			fmt.Fprintf(o, "interface %s {\n", def.Name)
+			fmt.Fprintf(o, "export interface %s {\n", def.Name)
 			for _, e := range def.Fields {
 				mod := "?"
 				if e.Type.NonNull {
