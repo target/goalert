@@ -1481,10 +1481,10 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.149.tgz#1342d63d948c6062838fbf961012f74d4e638440"
   integrity sha512-ijGqzZt/b7BfzcK9vTrS6MFljQRPn5BFWOx8oE0GYxribu6uV+aA9zZuXI1zc/etK9E8nrgdoF2+LgUw7+9tJQ==
 
-"@types/luxon@1.21.0":
-  version "1.21.0"
-  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-1.21.0.tgz#db792d29f535d49522cb6d94dd9da053efc950a1"
-  integrity sha512-Zhrf65tpjOlVIYrUhX9eu1VzRo8iixQDLFPbfqFxPpG4pBTNNPZ2BFhYE0IAsDfW9GWg+RcrUqiLwrGJH4rq4w==
+"@types/luxon@1.22.0":
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-1.22.0.tgz#dbdf2cc7ba3dfce98c57a3f0e003791122cba009"
+  integrity sha512-riAvdx85rU7OXCrjW3f7dIf7fuJDrxck2Dkjd0weh6ul7q+wumrwe6+/tD8v7yOKnZAuEnTFF4FU7b+5W/I3bw==
 
 "@types/minimatch@*":
   version "3.0.3"
@@ -7458,10 +7458,10 @@ mdast-util-compact@^1.0.0:
   dependencies:
     unist-util-visit "^1.1.0"
 
-mdi-material-ui@6.12.0:
-  version "6.12.0"
-  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-6.12.0.tgz#b7225f76d15acceee1edc796b6b4b9714a5bc378"
-  integrity sha512-UwhNsojXfpSe4LVrxTlasgy4D3RXXCTcLo1FJ8RpflmBaPAsWEHhKeCwtQwGCkpB6m6C+asiGjbGI77VJwI0AA==
+mdi-material-ui@6.13.0:
+  version "6.13.0"
+  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-6.13.0.tgz#5d820d799622e18664ae386200bdfa416ae86415"
+  integrity sha512-ZMHVKH636QcCIX6NRoTsCd9fS/vRFZS4eSXra8vU48HW4JEVFxru5rrAJyFEJEibo0xSnz/+EqDMNBKiVW0kyg==
 
 mdn-data@2.0.4:
   version "2.0.4"
