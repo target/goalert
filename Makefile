@@ -142,7 +142,7 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules
+cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/app/schema.d.ts
 	web/src/node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js
@@ -158,7 +158,10 @@ cy-wide-prod-run: web/inline_data_gen.go cypress
 cy-mobile-prod-run: web/inline_data_gen.go cypress
 	make cy-mobile-prod CY_ACTION=run
 
-start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson
+web/src/app/schema.d.ts: graphql2/schema.graphql
+	go generate ./web/src
+
+start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/app/schema.d.ts
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
@@ -224,7 +227,7 @@ web/src/node_modules: web/src/node_modules/.bin/cypress
 web/src/node_modules/.bin/cypress: web/src/yarn.lock
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
 
-web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
+web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f ) web/src/schema.ts.d
 	rm -rf web/src/build/static
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION))
 
