@@ -7,4 +7,3 @@ package graphql2
 //go:generate go run ../devtools/limitapigen/main.go -out maplimit.go
 //go:generate go run golang.org/x/tools/cmd/goimports -w mapconfig.go
 //go:generate go run golang.org/x/tools/cmd/goimports -w maplimit.go
-//go:generate go run ../devtools/gqltsgen/main.go -out ../web/src/schema.d.ts ./schema.graphql
