@@ -26,7 +26,7 @@ export default function SimpleListPage(
 
       {create &&
         React.cloneElement(createForm, {
-          onClose: () => () => setCreate(false),
+          onClose: () => setCreate(false),
         })}
     </React.Fragment>
   )
