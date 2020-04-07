@@ -55,7 +55,7 @@ function check(
         const sel = getSearchSelectFunc()
         const items = getSearchSelectItemsFunc
           ? getSearchSelectItemsFunc(sel, prefix)
-          : sel.findByLabel(prefix).parent().parent().children()
+          : sel.findByLabel(prefix).parent().parent().parent().children()
 
         items.should('have.length', 2).as('items')
 
