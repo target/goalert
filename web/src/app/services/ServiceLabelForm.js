@@ -30,7 +30,7 @@ export default class LabelForm extends React.PureComponent {
     editValueOnly: false,
   }
 
-  validateKey = value => {
+  validateKey = (value) => {
     const parts = value.split('/')
     if (parts.length !== 2)
       return new Error('Must be in the format: "example/KeyName".')
@@ -44,7 +44,7 @@ export default class LabelForm extends React.PureComponent {
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Config>
-              {cfg => (
+              {(cfg) => (
                 <FormField
                   fullWidth
                   disabled={editValueOnly}
@@ -55,7 +55,7 @@ export default class LabelForm extends React.PureComponent {
                   onCreate={
                     // if create is enabled, allow new keys to be provided
                     !cfg['General.DisableLabelCreation'] &&
-                    (key => otherProps.onChange({ ...otherProps.value, key }))
+                    ((key) => otherProps.onChange({ ...otherProps.value, key }))
                   }
                   validate={this.validateKey}
                 />

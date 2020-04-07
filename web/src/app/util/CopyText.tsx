@@ -38,7 +38,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
       <AppLink
         className={classes.copyContainer}
         to={props.value}
-        onClick={e => {
+        onClick={(e) => {
           const tgt = e.currentTarget.href
 
           e.preventDefault()

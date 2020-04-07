@@ -1,20 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      graphql: typeof graphql
-      graphql2: typeof graphql
-    }
-  }
-}
-
 interface GraphQLResponse {
   data: any
   errors: [any]
-}
-
-function graphql2(query: string, variables?: any): Cypress.Chainable<any> {
-  return graphql(query, variables, '/api/graphql')
 }
 
 // runs a graphql query returning the data response (after asserting no errors)
@@ -25,7 +12,7 @@ function graphql(
 ): Cypress.Chainable<any> {
   if (!variables) variables = {}
 
-  return cy.request('POST', url, { query, variables }).then(res => {
+  return cy.request('POST', url, { query, variables }).then((res) => {
     expect(res.status, 'status code').to.eq(200)
 
     let data: GraphQLResponse
@@ -46,6 +33,9 @@ function graphql(
   })
 }
 
+function graphql2(query: string, variables?: any): Cypress.Chainable<any> {
+  return graphql(query, variables, '/api/graphql')
+}
 Cypress.Commands.add('graphql', graphql)
 Cypress.Commands.add('graphql2', graphql2)
 

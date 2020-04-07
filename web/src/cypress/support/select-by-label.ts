@@ -1,49 +1,8 @@
-declare global {
-  namespace Cypress {
-    interface Chainable<Subject> {
-      /**
-       * Selects an item from a dropdown by it's label. Automatically accounts for search-selects.
-       */
-      selectByLabel: selectByLabelFn
-
-      /**
-       * Finds an item from a dropdown by it's label. Automatically accounts for search-selects.
-       */
-      findByLabel: findByLabelFn
-
-      /**
-       * Finds an item from a dropdown by it's label and removes it if it is a multiselect.
-       */
-      multiRemoveByLabel: multiRemoveByLabelFn
-    }
-  }
-}
-
-type selectByLabelFn = (label: string) => Cypress.Chainable
-type findByLabelFn = (label: string) => Cypress.Chainable
-type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
-
 function isSearchSelect(sub: HTMLElement): Cypress.Chainable<boolean> {
-  return cy.wrap(sub).then(el => {
+  return cy.wrap(sub).then((el) => {
     return (
       el.parents('[data-cy=material-select]').data('cy') === 'material-select'
     )
-  })
-}
-
-function selectByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
-  return isSearchSelect(sub).then(isSearchSelect => {
-    // clear value in search select
-    if ((!label || label === '{backspace}') && isSearchSelect) {
-      return clearSelect(sub)
-    }
-
-    return findByLabel(sub, label)
-      .click()
-      .get('[data-cy=select-dropdown]')
-      .should('not.exist')
-      .get('ul[role=listbox]')
-      .should('not.exist')
   })
 }
 
@@ -64,7 +23,7 @@ function clearSelect(sub: HTMLElement): Cypress.Chainable {
 }
 
 function findByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
-  return isSearchSelect(sub).then(isSearchSelect => {
+  return isSearchSelect(sub).then((isSearchSelect) => {
     if (isSearchSelect) {
       cy.wrap(sub)
         .parents('[data-cy=material-select]')
@@ -80,9 +39,7 @@ function findByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
         .click()
         .should('not.have.focus')
 
-      cy.focused()
-        .should('be.visible')
-        .type(label)
+      cy.focused().should('be.visible').type(label)
 
       cy.get('[data-cy=select-dropdown]').should('not.contain', 'Loading')
 
@@ -91,12 +48,25 @@ function findByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
         .contains('[role=menuitem]', label)
     }
 
-    cy.wrap(sub)
-      .parent()
-      .find('[role=button]')
-      .click()
+    cy.wrap(sub).parent().find('[role=button]').click()
 
     return cy.get('ul[role=listbox]').contains('li', label)
+  })
+}
+
+function selectByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
+  return isSearchSelect(sub).then((isSearchSelect) => {
+    // clear value in search select
+    if ((!label || label === '{backspace}') && isSearchSelect) {
+      return clearSelect(sub)
+    }
+
+    return findByLabel(sub, label)
+      .click()
+      .get('[data-cy=select-dropdown]')
+      .should('not.exist')
+      .get('ul[role=listbox]')
+      .should('not.exist')
   })
 }
 
@@ -104,7 +74,7 @@ function multiRemoveByLabel(
   sub: HTMLElement,
   label: string,
 ): Cypress.Chainable {
-  return isSearchSelect(sub).then(isSearchSelect => {
+  return isSearchSelect(sub).then((isSearchSelect) => {
     // must be a multi search select
     if (!isSearchSelect) return cy.wrap(sub)
 

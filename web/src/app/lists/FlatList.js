@@ -69,7 +69,7 @@ export default class FlatList extends React.PureComponent {
     }
   }
 
-  handleDragEnd = result => {
+  handleDragEnd = (result) => {
     this.props.onReorder(
       // result.draggableId, : removed this as per new reorderList function
       result.source.index,
@@ -204,7 +204,7 @@ export default class FlatList extends React.PureComponent {
         onDragEnd={this.handleDragEnd}
       >
         <Droppable droppableId='droppable'>
-          {provided => (
+          {(provided) => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
               {this.renderList()}
               {provided.placeholder}

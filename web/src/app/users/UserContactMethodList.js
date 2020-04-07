@@ -37,7 +37,7 @@ const testCM = gql`
   }
 `
 
-const useStyles = makeStyles(theme => {
+const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return createStyles({
@@ -58,7 +58,7 @@ function UserContactMethodList(props) {
 
   const [sendTest] = useMutation(testCM)
 
-  const getIcon = cm => {
+  const getIcon = (cm) => {
     if (!cm.disabled) return null
     if (props.readOnly) {
       return <Warning message='Contact method disabled' />
@@ -143,7 +143,7 @@ function UserContactMethodList(props) {
           />
           <FlatList
             data-cy='contact-methods'
-            items={sortContactMethods(contactMethods).map(cm => ({
+            items={sortContactMethods(contactMethods).map((cm) => ({
               title: `${cm.name} (${cm.type})${
                 cm.disabled ? ' - Disabled' : ''
               }`,

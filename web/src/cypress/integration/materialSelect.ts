@@ -2,20 +2,18 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Material Select', testMaterialSelect)
-
 function testMaterialSelect(): void {
   describe('Clear Fields', () => {
     describe('Escalation Policy Steps', () => {
       let ep: EP
       beforeEach(() => {
-        cy.createEP().then(e => {
+        cy.createEP().then((e: EP) => {
           ep = e
           return cy.visit(`escalation-policies/${ep.id}`)
         })
       })
       it('should clear fields and not reset with last values', () => {
-        cy.fixture('users').then(users => {
+        cy.fixture('users').then((users) => {
           const u1 = users[0]
           const u2 = users[1]
 
@@ -88,10 +86,10 @@ function testMaterialSelect(): void {
 
         // Should be on details page
         cy.dialogFinish('Submit')
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
     })
   })
 }
+
+testScreen('Material Select', testMaterialSelect)

@@ -1,4 +1,4 @@
-export const styles = theme => ({
+export const styles = (theme) => ({
   // used on details pages on desktop
   card: {
     width: '75%',

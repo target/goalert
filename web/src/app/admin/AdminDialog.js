@@ -33,8 +33,8 @@ export default class AdminDialog extends React.PureComponent {
   renderConfirm(commit, { error }) {
     const changeKeys = Object.keys(this.props.fieldValues)
     const changes = this.props.values
-      .filter(v => changeKeys.includes(v.id))
-      .map(orig => ({
+      .filter((v) => changeKeys.includes(v.id))
+      .map((orig) => ({
         id: orig.id,
         oldValue: orig.value,
         value: this.props.fieldValues[orig.id],
@@ -49,7 +49,7 @@ export default class AdminDialog extends React.PureComponent {
         onSubmit={() =>
           commit({
             variables: {
-              input: changes.map(c => {
+              input: changes.map((c) => {
                 c.value = c.value === '' && c.type === 'number' ? '0' : c.value
                 return omit(c, ['oldValue', 'type'])
               }),
@@ -58,13 +58,13 @@ export default class AdminDialog extends React.PureComponent {
         }
         primaryActionLabel='Confirm'
         errors={nonFieldErrors(error).concat(
-          fieldErrors(error).map(e => ({
+          fieldErrors(error).map((e) => ({
             message: `${e.field}: ${e.message}`,
           })),
         )}
         form={
           <List data-cy='confirmation-diff'>
-            {changes.map(c => (
+            {changes.map((c) => (
               <ListItem divider key={c.id} data-cy={'diff-' + c.id}>
                 <ListItemText
                   disableTypography

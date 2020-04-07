@@ -4,7 +4,7 @@ import Spinner from '../../loading/components/Spinner'
 import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
 import AlertDetails from '../components/AlertDetails'
-import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../../util/poll_intervals'
+import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../../config'
 
 const query = gql`
   query AlertDetailsPageQuery($id: Int!) {

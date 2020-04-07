@@ -29,15 +29,8 @@ export default function ScheduleRuleCreateDialog(props) {
     targetID: '',
     rules: [
       {
-        start: DateTime.local()
-          .startOf('day')
-          .toUTC()
-          .toISO(),
-        end: DateTime.local()
-          .plus({ day: 1 })
-          .startOf('day')
-          .toUTC()
-          .toISO(),
+        start: DateTime.local().startOf('day').toUTC().toISO(),
+        end: DateTime.local().plus({ day: 1 }).startOf('day').toUTC().toISO(),
         weekdayFilter: [true, true, true, true, true, true, true],
       },
     ],
@@ -56,7 +49,7 @@ export default function ScheduleRuleCreateDialog(props) {
         },
         scheduleID,
 
-        rules: value.rules.map(r => ({
+        rules: value.rules.map((r) => ({
           ...r,
           start: isoToGQLClockTime(r.start, data.schedule.timeZone),
           end: isoToGQLClockTime(r.end, data.schedule.timeZone),

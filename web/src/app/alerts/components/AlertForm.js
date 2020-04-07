@@ -131,7 +131,7 @@ export default class AlertForm extends Component {
     return (
       <ServiceSelect
         value={sid || ''}
-        onChange={value => this.setState({ sid: value })}
+        onChange={(value) => this.setState({ sid: value })}
         label='Select Service'
         name='service'
         errorMessage={this.validateService()}
@@ -170,7 +170,9 @@ export default class AlertForm extends Component {
               error={!!this.validateSummary()}
               label='Alert Summary'
               name='summary'
-              onChange={event => this.setState({ summary: event.target.value })}
+              onChange={(event) =>
+                this.setState({ summary: event.target.value })
+              }
             />
             <FormHelperText>{this.validateSummary()}</FormHelperText>
           </FormControl>
@@ -184,7 +186,9 @@ export default class AlertForm extends Component {
               multiline
               rowsMax={10}
               disabled={this.state.readOnly}
-              onChange={event => this.setState({ details: event.target.value })}
+              onChange={(event) =>
+                this.setState({ details: event.target.value })
+              }
             />
           </FormControl>
           <FormHelperText />

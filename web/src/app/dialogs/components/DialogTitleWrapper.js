@@ -11,7 +11,7 @@ import DropDownMenu from '../../dialogs/components/DropDownMenu'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { DialogContent } from '@material-ui/core'
 
-const styles = theme => {
+const styles = (theme) => {
   const { topRightActions } = globalStyles(theme)
 
   return {

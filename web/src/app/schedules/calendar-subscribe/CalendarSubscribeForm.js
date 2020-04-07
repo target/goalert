@@ -9,7 +9,7 @@ export default function CalendarSubscribeForm(props) {
     <FormContainer
       disabled={props.loading}
       errors={props.errors}
-      onChange={value => props.onChange(value)}
+      onChange={(value) => props.onChange(value)}
       optionalLabels
       removeFalseyIdxs
       value={props.value}

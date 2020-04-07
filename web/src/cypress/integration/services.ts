@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Services', testServices)
-
 function basePrefix(): string {
   const u = new URL(Cypress.config('baseUrl') as string)
   return u.pathname.replace(/\/$/, '')
@@ -17,7 +15,7 @@ function testServices(screen: ScreenFormat): void {
     let svc: Service
     beforeEach(() => {
       cy.createService()
-        .then(s => {
+        .then((s: Service) => {
           svc = s
         })
         .visit('/services')
@@ -59,9 +57,7 @@ function testServices(screen: ScreenFormat): void {
     it('should link to details page', () => {
       cy.get('ul[data-cy=apollo-list]').should('exist')
       cy.pageSearch(svc.name)
-      cy.get('#app')
-        .contains(svc.name)
-        .click()
+      cy.get('#app').contains(svc.name).click()
       cy.url().should('eq', Cypress.config().baseUrl + `/services/${svc.id}`)
     })
 
@@ -69,12 +65,12 @@ function testServices(screen: ScreenFormat): void {
       let label1: Label
       let label2: Label // uses key/value from label1
       beforeEach(() => {
-        cy.createLabel().then(l => {
+        cy.createLabel().then((l: Label) => {
           label1 = l
 
           cy.createLabel({
             key: label1.key, // same key, random value
-          }).then(l => {
+          }).then((l: Label) => {
             label2 = l
           })
         })
@@ -210,9 +206,7 @@ function testServices(screen: ScreenFormat): void {
         cy.dialogFinish('Submit')
 
         // should be on details page
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
 
       it(`should create a service, with a generated EP, when submitted`, () => {
@@ -224,9 +218,7 @@ function testServices(screen: ScreenFormat): void {
         cy.dialogFinish('Submit')
 
         // should be on details page
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
     })
   })
@@ -234,7 +226,7 @@ function testServices(screen: ScreenFormat): void {
   describe('Details Page', () => {
     let svc: Service
     beforeEach(() =>
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc = s
         return cy.visit(`/services/${s.id}`)
       }),
@@ -264,7 +256,7 @@ function testServices(screen: ScreenFormat): void {
       const name = 'SM Svc ' + c.word({ length: 8 })
       const description = c.word({ length: 10 })
 
-      cy.createEP().then(ep => {
+      cy.createEP().then((ep: EP) => {
         cy.pageAction('Edit')
 
         cy.dialogForm({ name, description, 'escalation-policy': ep.name })
@@ -326,14 +318,14 @@ function testServices(screen: ScreenFormat): void {
   describe('Heartbeat Monitors', () => {
     let monitor: HeartbeatMonitor
     beforeEach(() => {
-      cy.createService().then(s =>
+      cy.createService().then((s: Service) =>
         cy
           .createHeartbeatMonitor({
             svcID: s.id,
             name: c.word({ length: 5 }) + ' Monitor',
             timeoutMinutes: Math.trunc(Math.random() * 10) + 5,
           })
-          .then(m => {
+          .then((m: HeartbeatMonitor) => {
             monitor = m
           })
           .visit(`/services/${s.id}/heartbeat-monitors`),
@@ -349,9 +341,7 @@ function testServices(screen: ScreenFormat): void {
       cy.dialogForm({ name, timeoutMinutes })
       cy.dialogFinish('Submit')
 
-      cy.get('li')
-        .should('contain', name)
-        .should('contain', timeoutMinutes)
+      cy.get('li').should('contain', name).should('contain', timeoutMinutes)
     })
 
     it('should edit a monitor', () => {
@@ -414,7 +404,7 @@ function testServices(screen: ScreenFormat): void {
   describe('Integration Keys', () => {
     let svc: Service
     beforeEach(() =>
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc = s
         return cy.visit(`/services/${svc.id}/integration-keys`)
       }),
@@ -430,7 +420,7 @@ function testServices(screen: ScreenFormat): void {
       const name = 'SM Int ' + c.word({ length: 8 })
 
       cy.get('body').should('contain', 'No integration keys')
-      ;['Generic API', 'Grafana'].forEach(type => {
+      ;['Generic API', 'Grafana'].forEach((type) => {
         createKey(type, name)
 
         cy.get('ul[data-cy=int-keys]').should('contain', name)
@@ -479,16 +469,14 @@ function testServices(screen: ScreenFormat): void {
 
       // check that dropdown type is hidden
       cy.pageFab()
-      cy.get('input[name=type]')
-        .findByLabel('Email')
-        .should('not.exist')
+      cy.get('input[name=type]').findByLabel('Email').should('not.exist')
     })
   })
 
   describe('Alerts', () => {
     let svc: Service
     beforeEach(() =>
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc = s
         return cy.visit(`/services/${s.id}/alerts`)
       }),
@@ -531,7 +519,7 @@ function testServices(screen: ScreenFormat): void {
   describe('Labels', () => {
     let label: Label
     beforeEach(() =>
-      cy.createLabel().then(l => {
+      cy.createLabel().then((l: Label) => {
         label = l
         return cy.visit(`/services/${l.svcID}/labels`)
       }),
@@ -551,7 +539,7 @@ function testServices(screen: ScreenFormat): void {
       const key = label.key
       const value = c.word({ length: 10 })
 
-      cy.createService().then(svc => {
+      cy.createService().then((svc: Service) => {
         cy.visit(`/services/${svc.id}/labels`)
       })
 
@@ -630,3 +618,5 @@ function testServices(screen: ScreenFormat): void {
     })
   })
 }
+
+testScreen('Services', testServices)

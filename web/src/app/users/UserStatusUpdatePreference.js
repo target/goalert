@@ -37,7 +37,7 @@ export default class UserStatusUpdatePreference extends React.PureComponent {
   }
 
   renderMutation(user) {
-    const setCM = commit => e => {
+    const setCM = (commit) => (e) => {
       const cmID = e.target.value === disableVal ? '' : e.target.value
       commit({
         variables: {
@@ -48,7 +48,7 @@ export default class UserStatusUpdatePreference extends React.PureComponent {
     }
     return (
       <Mutation mutation={mutation}>
-        {commit =>
+        {(commit) =>
           this.renderControl(user.statusUpdateContactMethodID, setCM(commit))
         }
       </Mutation>

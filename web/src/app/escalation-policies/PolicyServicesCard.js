@@ -22,7 +22,7 @@ export default class PolicyServicesCard extends Component {
   }
 
   getServicesItems = () => {
-    return this.props.services.map(service => ({
+    return this.props.services.map((service) => ({
       title: service.name,
       url: `/services/${service.id}`,
     }))

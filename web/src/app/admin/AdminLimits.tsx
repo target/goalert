@@ -29,7 +29,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   gridContainer: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',

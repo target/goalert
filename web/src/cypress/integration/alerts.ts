@@ -3,14 +3,12 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Alerts', testAlerts)
-
 function testAlerts(screen: ScreenFormat): void {
   describe('Alerts List', () => {
     let alert: Alert
     beforeEach(() => {
       cy.createAlert()
-        .then(a => {
+        .then((a: Alert) => {
           alert = a
         })
         .visit('/alerts?allServices=1')
@@ -69,9 +67,7 @@ function testAlerts(screen: ScreenFormat): void {
     describe('Item', () => {
       beforeEach(() => cy.pageSearch(alert.id.toString()))
       it('should link to the details page', () => {
-        cy.get('ul[data-cy=apollo-list]')
-          .contains(alert.id.toString())
-          .click()
+        cy.get('ul[data-cy=apollo-list]').contains(alert.id.toString()).click()
 
         cy.url().should('eq', Cypress.config().baseUrl + `/alerts/${alert.id}`)
       })
@@ -85,15 +81,15 @@ function testAlerts(screen: ScreenFormat): void {
     let alert3: Alert
 
     beforeEach(() => {
-      cy.createService({ ep: { stepCount: 1 } }).then(s => {
+      cy.createService({ ep: { stepCount: 1 } }).then((s: Service) => {
         svc = s
-        cy.createAlert({ serviceID: svc.id }).then(a => {
+        cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
           alert1 = a
         })
-        cy.createAlert({ serviceID: svc.id }).then(a => {
+        cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
           alert2 = a
         })
-        cy.createAlert({ serviceID: svc.id }).then(a => {
+        cy.createAlert({ serviceID: svc.id }).then((a: Alert) => {
           alert3 = a
         })
 
@@ -145,24 +141,18 @@ function testAlerts(screen: ScreenFormat): void {
     })
 
     it('should acknowledge, escalate, and close multiple alerts', () => {
-      cy.get('span[data-cy=select-all] input')
-        .should('not.be.checked')
-        .click()
+      cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[title=Acknowledge]').click()
 
       cy.get('ul[data-cy=apollo-list]').should('not.contain', 'UNACKNOWLEDGED')
 
-      cy.get('span[data-cy=select-all] input')
-        .should('not.be.checked')
-        .click()
+      cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[title=Escalate]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'UNACKNOWLEDGED')
 
-      cy.get('span[data-cy=select-all] input')
-        .should('not.be.checked')
-        .click()
+      cy.get('span[data-cy=select-all] input').should('not.be.checked').click()
 
       cy.get('button[title=Close]').click()
       cy.get('ul[data-cy=apollo-list]').should('contain', 'No results')
@@ -261,11 +251,11 @@ function testAlerts(screen: ScreenFormat): void {
     let svc2: Service
 
     beforeEach(() => {
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc1 = s
       })
 
-      cy.createService().then(s => {
+      cy.createService().then((s: Service) => {
         svc2 = s
       })
     })
@@ -288,13 +278,9 @@ function testAlerts(screen: ScreenFormat): void {
 
       // Service Selection
       cy.dialogForm({ serviceSearch: svc1.name })
-      cy.get('ul')
-        .contains(svc1.name)
-        .click()
+      cy.get('ul').contains(svc1.name).click()
       cy.dialogForm({ serviceSearch: svc2.name })
-      cy.get('ul')
-        .contains(svc2.name)
-        .click()
+      cy.get('ul').contains(svc2.name).click()
       cy.dialogForm({ serviceSearch: '' })
 
       cy.dialogContains('Selected Services (2)')
@@ -316,7 +302,7 @@ function testAlerts(screen: ScreenFormat): void {
   describe('Alert Details', () => {
     let alert: Alert
     beforeEach(() => {
-      cy.createAlert({ service: { ep: { stepCount: 1 } } }).then(a => {
+      cy.createAlert({ service: { ep: { stepCount: 1 } } }).then((a: Alert) => {
         alert = a
         return cy.visit(`/alerts/${a.id}`)
       })
@@ -376,7 +362,7 @@ function testAlerts(screen: ScreenFormat): void {
   describe('Alert Details Logs', () => {
     let logs: AlertLogs
     beforeEach(() => {
-      cy.createAlertLogs({ count: 200 }).then(_logs => {
+      cy.createAlertLogs({ count: 200 }).then((_logs: AlertLogs) => {
         logs = _logs
         return cy.visit(`/alerts/${logs.alert.id}`)
       })
@@ -396,3 +382,5 @@ function testAlerts(screen: ScreenFormat): void {
     })
   })
 }
+
+testScreen('Alerts', testAlerts)

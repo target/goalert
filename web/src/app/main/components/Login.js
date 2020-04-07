@@ -89,8 +89,8 @@ export default class Login extends Component {
     // get providers
     axios
       .get(PROVIDERS)
-      .then(res => this.setState({ providers: res.data }))
-      .catch(err => this.setState({ error: err }))
+      .then((res) => this.setState({ providers: res.data }))
+      .catch((err) => this.setState({ error: err }))
   }
 
   /*
@@ -98,7 +98,7 @@ export default class Login extends Component {
    *
    * Background pattern from Toptal Subtle Patterns
    */
-  setBackground = fullScreen => {
+  setBackground = (fullScreen) => {
     if (fullScreen) {
       document.body.style.backgroundColor = `white` // overrides light grey background
     } else {
@@ -109,7 +109,7 @@ export default class Login extends Component {
   /*
    * Renders a field from a provider
    */
-  renderField = field => {
+  renderField = (field) => {
     const {
       ID: id, // unique name/identifier of the field
       Label: label, // placeholder text that is displayed to the use in the field
@@ -187,7 +187,7 @@ export default class Login extends Component {
     if (fields && fields.length) {
       form = (
         <Grid container spacing={2}>
-          {fields.map(field => this.renderField(field))}
+          {fields.map((field) => this.renderField(field))}
           <Grid item xs={12}>
             {loginButton}
           </Grid>

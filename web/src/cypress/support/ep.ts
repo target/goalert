@@ -1,42 +1,6 @@
 import { Chance } from 'chance'
 const c = new Chance()
 
-declare global {
-  export namespace Cypress {
-    interface Chainable {
-      createEP: typeof createEP
-      deleteEP: typeof deleteEP
-      createEPStep: typeof createEPStep
-    }
-  }
-
-  interface EP {
-    id: string
-    name: string
-    description: string
-    repeat: number
-    stepCount: number
-  }
-
-  interface EPOptions {
-    name?: string
-    description?: string
-    repeat?: number
-    stepCount?: number
-  }
-
-  interface EPStep {
-    delayMinutes: number
-  }
-
-  interface EPStepOptions {
-    epID?: string
-    ep?: EPOptions
-    delay?: number
-    targets?: [Target]
-  }
-}
-
 const policyMutation = `
     mutation($input: CreateEscalationPolicyInput!) {
       createEscalationPolicy(input: $input) {
@@ -73,8 +37,8 @@ function createEP(ep?: EPOptions): Cypress.Chainable<EP> {
         repeat: ep.repeat || c.integer({ min: 1, max: 5 }),
       },
     })
-    .then(res => res.createEscalationPolicy)
-    .then(pol => {
+    .then((res: GraphQLResponse) => res.createEscalationPolicy)
+    .then((pol: EP) => {
       for (let i = 0; i < stepCount; i++) {
         cy.graphql2(stepMutation, {
           input: {
@@ -112,7 +76,7 @@ function createEPStep(step?: EPStepOptions): Cypress.Chainable<EPStep> {
   if (!step.epID) {
     return cy
       .createEP(step.ep)
-      .then(ep => createEPStep({ ...step, epID: ep.id }))
+      .then((ep: EP) => createEPStep({ ...step, epID: ep.id }))
   }
 
   return cy
@@ -123,7 +87,7 @@ function createEPStep(step?: EPStepOptions): Cypress.Chainable<EPStep> {
         targets: step.targets || [],
       },
     })
-    .then(res => res.createEscalationPolicyStep)
+    .then((res: GraphQLResponse) => res.createEscalationPolicyStep)
 }
 
 Cypress.Commands.add('createEP', createEP)

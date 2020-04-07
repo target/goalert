@@ -1,11 +1,6 @@
-export default function copyToClipboard(text: string): void {
-  try {
-    navigator.clipboard.writeText(text)
-  } catch (error) {
-    fallback(text)
-  }
+function isOS(): boolean {
+  return Boolean(navigator.userAgent.match(/ipad|ipod|iphone/i))
 }
-
 /*
  * Creates a temporary text area element, selects the
  * text inside, and copies it to the clipboard.
@@ -57,6 +52,10 @@ function fallback(str: string): void {
   }
 }
 
-function isOS(): boolean {
-  return Boolean(navigator.userAgent.match(/ipad|ipod|iphone/i))
+export default function copyToClipboard(text: string): void {
+  try {
+    navigator.clipboard.writeText(text)
+  } catch (error) {
+    fallback(text)
+  }
 }

@@ -49,7 +49,7 @@ export default class ApolloFormDialog extends Component {
     loading: false,
   }
 
-  onError = error => {
+  onError = (error) => {
     this.setState({
       attemptCount: this.state.attemptCount + 1,
       error,
@@ -65,7 +65,7 @@ export default class ApolloFormDialog extends Component {
     const shouldSubmit = this.props.shouldSubmit() // validate fields, set to readOnly while committing, etc
     if (shouldSubmit) {
       this.setState({ loading: true })
-      return mutation({ variables: this.props.getVariables() }).catch(error =>
+      return mutation({ variables: this.props.getVariables() }).catch((error) =>
         this.onError(error.message),
       )
     }
@@ -132,9 +132,9 @@ export default class ApolloFormDialog extends Component {
           }
         }}
       >
-        {mutation => (
+        {(mutation) => (
           <form
-            onSubmit={e => this.onSubmit(e, mutation)}
+            onSubmit={(e) => this.onSubmit(e, mutation)}
             style={{ width: '100%' }}
           >
             <DialogContent className={classes.overflowVisible}>

@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Wizard', testWizard)
-
 const keys = [
   {
     label: 'Generic API',
@@ -25,7 +23,7 @@ function testWizard(): void {
 
     // used for setting users on regular and fts rotations
     const setUsers = (name: string): void => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get(`input[name="${name}"]`).selectByLabel(users[0].name)
         cy.get(`div[name="${name}"]`).should('contain', users[0].name)
         cy.get(`input[name="${name}"]`).selectByLabel(users[1].name)
@@ -131,14 +129,10 @@ function testWizard(): void {
       cy.get('input[name="key"]').selectByLabel(key.label)
       cy.get('input[name="key"]').should('have.value', key.value)
 
-      cy.get('body')
-        .contains('button', 'Submit')
-        .click()
+      cy.get('body').contains('button', 'Submit').click()
 
       cy.get('body').should('contain', 'Success')
-      cy.get('body')
-        .contains('button', 'Close')
-        .click()
+      cy.get('body').contains('button', 'Close').click()
 
       cy.get('body').should('contain', teamName + ' Service')
       cy.get('body').should('contain', teamName + ' Escalation Policy')
@@ -241,3 +235,5 @@ function testWizard(): void {
     })
   })
 }
+
+testScreen('Wizard', testWizard)

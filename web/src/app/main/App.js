@@ -25,7 +25,7 @@ import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 
 const drawerWidth = '12em'
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
     flexGrow: 1,
     zIndex: 1,
@@ -54,7 +54,7 @@ const styles = theme => ({
   },
 })
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     authValid: state.auth.valid,
     path: state.router.location.pathname,
@@ -113,7 +113,7 @@ export default class App extends React.PureComponent {
             <Hidden mdUp>
               <LazyMobileSideBar
                 show={this.state.showMobile}
-                onChange={showMobile => this.setState({ showMobile })}
+                onChange={(showMobile) => this.setState({ showMobile })}
               >
                 <LazySideBarDrawerList
                   onWizard={() => this.setState({ showWizard: true })}

@@ -24,28 +24,19 @@ const styles = {
   },
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
   const start = urlParamSelector(state)(
     'start',
     weekly
-      ? getStartOfWeek()
-          .toUTC()
-          .toISO()
-      : DateTime.local()
-          .startOf('month')
-          .toUTC()
-          .toISO(),
+      ? getStartOfWeek().toUTC().toISO()
+      : DateTime.local().startOf('month').toUTC().toISO(),
   )
 
   const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
 
-  const end = DateTime.fromISO(start)
-    .toLocal()
-    .plus(timeUnit)
-    .toUTC()
-    .toISO()
+  const end = DateTime.fromISO(start).toLocal().plus(timeUnit).toUTC().toISO()
 
   return {
     start,
@@ -56,10 +47,10 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    setWeekly: value => dispatch(setURLParam('weekly', value)),
-    setStart: value => dispatch(setURLParam('start', value)),
+    setWeekly: (value) => dispatch(setURLParam('weekly', value)),
+    setStart: (value) => dispatch(setURLParam('start', value)),
     resetFilter: () =>
       dispatch(
         resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'weekly'),
@@ -89,12 +80,10 @@ export default class ScheduleCalendar extends React.PureComponent {
    * a week or month, depending on the current
    * view type.
    */
-  handleCalNavigate = nextDate => {
+  handleCalNavigate = (nextDate) => {
     if (this.props.weekly) {
       this.props.setStart(
-        getStartOfWeek(DateTime.fromJSDate(nextDate))
-          .toUTC()
-          .toISO(),
+        getStartOfWeek(DateTime.fromJSDate(nextDate)).toUTC().toISO(),
       )
     } else {
       this.props.setStart(
@@ -120,7 +109,7 @@ export default class ScheduleCalendar extends React.PureComponent {
    * If viewing the current month however, show the current
    * week.
    */
-  handleViewChange = nextView => {
+  handleViewChange = (nextView) => {
     const start = this.props.start
     const prevStartMonth = DateTime.fromISO(start).toLocal().month
     const currMonth = DateTime.local().month
@@ -128,11 +117,7 @@ export default class ScheduleCalendar extends React.PureComponent {
     // if viewing the current month, show the current week
     if (nextView === 'week' && prevStartMonth === currMonth) {
       this.props.setWeekly(true)
-      this.props.setStart(
-        getStartOfWeek()
-          .toUTC()
-          .toISO(),
-      )
+      this.props.setStart(getStartOfWeek().toUTC().toISO())
 
       // if not on the current month, show the first week of the month
     } else if (nextView === 'week' && prevStartMonth !== currMonth) {
@@ -178,12 +163,8 @@ export default class ScheduleCalendar extends React.PureComponent {
    * Return a light red shade of the current date instead of
    * the default light blue
    */
-  dayPropGetter = date => {
-    if (
-      DateTime.fromJSDate(date)
-        .toLocal()
-        .hasSame(DateTime.local(), 'day')
-    ) {
+  dayPropGetter = (date) => {
+    if (DateTime.fromJSDate(date).toLocal().hasSame(DateTime.local(), 'day')) {
       return {
         style: {
           backgroundColor: '#FFECEC',
@@ -223,15 +204,15 @@ export default class ScheduleCalendar extends React.PureComponent {
               onNavigate={this.handleCalNavigate}
               onView={this.handleViewChange}
               components={{
-                eventWrapper: props => (
+                eventWrapper: (props) => (
                   <CalendarEventWrapper
-                    onOverrideClick={overrideDialog =>
+                    onOverrideClick={(overrideDialog) =>
                       this.setState({ overrideDialog })
                     }
                     {...props}
                   />
                 ),
-                toolbar: props => (
+                toolbar: (props) => (
                   <CalendarToolbar
                     onOverrideClick={() =>
                       this.setState({ overrideDialog: { variant: 'add' } })
@@ -255,17 +236,17 @@ export default class ScheduleCalendar extends React.PureComponent {
     )
   }
 
-  getCalEvents = shifts => {
+  getCalEvents = (shifts) => {
     // if any users in users array, only show the ids present
     let filteredShifts = shifts.slice()
     if (this.props.userFilter.length > 0) {
-      filteredShifts = filteredShifts.filter(shift =>
+      filteredShifts = filteredShifts.filter((shift) =>
         this.props.userFilter.includes(shift.user.id),
       )
     }
 
     if (this.props.activeOnly) {
-      filteredShifts = filteredShifts.filter(shift =>
+      filteredShifts = filteredShifts.filter((shift) =>
         Interval.fromDateTimes(
           DateTime.fromISO(shift.start),
           DateTime.fromISO(shift.end),
@@ -273,7 +254,7 @@ export default class ScheduleCalendar extends React.PureComponent {
       )
     }
 
-    return filteredShifts.map(shift => {
+    return filteredShifts.map((shift) => {
       return {
         title: shift.user.name,
         userID: shift.user.id,

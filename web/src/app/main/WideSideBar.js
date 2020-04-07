@@ -3,7 +3,7 @@ import withStyles from '@material-ui/core/styles/withStyles'
 import Drawer from '@material-ui/core/Drawer'
 
 const drawerWidth = '12em'
-const styles = theme => ({
+const styles = (theme) => ({
   sidebarPaper: {
     width: drawerWidth,
     position: 'fixed',

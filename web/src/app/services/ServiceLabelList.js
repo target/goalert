@@ -64,7 +64,7 @@ export default class ServiceLabelList extends React.PureComponent {
     const items = (labels || [])
       .slice()
       .sort(sortItems)
-      .map(label => ({
+      .map((label) => ({
         title: label.key,
         subText: label.value,
         secondaryAction: (

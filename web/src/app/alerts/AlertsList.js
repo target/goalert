@@ -3,9 +3,9 @@ import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
 import {
   Hidden,
+  ListItemText,
   Snackbar,
   SnackbarContent,
-  Typography,
   makeStyles,
   isWidthDown,
 } from '@material-ui/core'
@@ -70,7 +70,7 @@ const escalateMutation = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   snackbar: {
     backgroundColor: theme.palette.primary['500'],
     height: '6.75em',
@@ -183,7 +183,7 @@ export default function AlertsList(props) {
 
   const [mutate, status] = useMutation(updateMutation)
 
-  const makeUpdateAlerts = newStatus => alertIDs => {
+  const makeUpdateAlerts = (newStatus) => (alertIDs) => {
     setCheckedCount(alertIDs.length)
     setActionCompleteDismissed(false)
 
@@ -272,18 +272,14 @@ export default function AlertsList(props) {
       <QueryList
         query={alertsListQuery}
         infiniteScroll
-        mapDataNode={a => ({
+        mapDataNode={(a) => ({
           id: a.id,
           status: getListItemStatus(a.status),
           title: `${a.alertID}: ${a.status
             .toUpperCase()
             .replace('STATUS', '')}`,
           subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-          action: (
-            <Typography variant='caption'>
-              {formatTimeSince(a.createdAt)}
-            </Typography>
-          ),
+          action: <ListItemText secondary={formatTimeSince(a.createdAt)} />,
           url: `/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}

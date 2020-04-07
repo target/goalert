@@ -37,13 +37,8 @@ export default function ScheduleOverrideCreateDialog(props) {
   const [value, setValue] = useState({
     addUserID: '',
     removeUserID: '',
-    start: DateTime.local()
-      .startOf('hour')
-      .toISO(),
-    end: DateTime.local()
-      .startOf('hour')
-      .plus({ hours: 8 })
-      .toISO(),
+    start: DateTime.local().startOf('hour').toISO(),
+    end: DateTime.local().startOf('hour').plus({ hours: 8 }).toISO(),
     ...props.defaultValue,
   })
 
@@ -72,7 +67,7 @@ export default function ScheduleOverrideCreateDialog(props) {
           disabled={loading}
           errors={fieldErrors(error)}
           value={value}
-          onChange={newValue => setValue(newValue)}
+          onChange={(newValue) => setValue(newValue)}
         />
       }
     />

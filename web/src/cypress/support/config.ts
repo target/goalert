@@ -1,19 +1,3 @@
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      getConfig: typeof getConfig
-
-      /** Replaces the backend config entirely. */
-      setConfig: typeof setConfig
-
-      /** Merges new config values into existing backend config. */
-      updateConfig: typeof updateConfig
-
-      resetConfig: typeof resetConfig
-    }
-  }
-}
-
 interface General {
   PublicURL: string
   DisableLabelCreation: boolean
@@ -70,7 +54,7 @@ function getConfigDirect(token: string): Cypress.Chainable<Config> {
       method: 'GET',
       auth: { bearer: token },
     })
-    .then(res => {
+    .then((res) => {
       expect(res.status, 'status code').to.eq(200)
 
       return JSON.parse(res.body)
@@ -78,11 +62,11 @@ function getConfigDirect(token: string): Cypress.Chainable<Config> {
 }
 
 function getConfig(): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok => getConfigDirect(tok))
+  return cy.adminLogin(true).then((tok: string) => getConfigDirect(tok))
 }
 
 function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok =>
+  return cy.adminLogin(true).then((tok: string) =>
     cy
       .request({
         url: '/api/v2/config',
@@ -96,14 +80,14 @@ function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
 
 function merge(dst: Config, src: ConfigInput): Config {
   Object.keys(src).forEach(
-    key => (dst[key] = { ...(dst[key] || {}), ...src[key] }),
+    (key) => (dst[key] = { ...(dst[key] || {}), ...src[key] }),
   )
 
   return dst
 }
 
 function updateConfig(newCfg: ConfigInput): Cypress.Chainable<Config> {
-  return getConfig().then(cfg => {
+  return getConfig().then((cfg) => {
     return setConfig(merge(cfg, newCfg))
   })
 }

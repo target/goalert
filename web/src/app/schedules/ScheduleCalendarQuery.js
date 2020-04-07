@@ -29,26 +29,18 @@ const query = gql`
   }
 `
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
   const start = urlParamSelector(state)(
     'start',
     weekly
-      ? getStartOfWeek()
-          .toUTC()
-          .toISO()
-      : DateTime.local()
-          .startOf('month')
-          .toUTC()
-          .toISO(),
+      ? getStartOfWeek().toUTC().toISO()
+      : DateTime.local().startOf('month').toUTC().toISO(),
   )
 
   const unitToAdd = weekly ? { weeks: 1 } : { months: 1 }
-  const end = DateTime.fromISO(start)
-    .plus(unitToAdd)
-    .toUTC()
-    .toISO()
+  const end = DateTime.fromISO(start).plus(unitToAdd).toUTC().toISO()
 
   return {
     start,
