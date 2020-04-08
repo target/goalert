@@ -52,7 +52,6 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Cache-Control", "private; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
 		w.Header().Set("ETag", indexETag)
-
 		http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
 	})
 
