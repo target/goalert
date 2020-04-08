@@ -18,8 +18,8 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   output: {
     path: BUILD,
     filename: 'static/[name].js',
-    hotUpdateChunkFilename: 'build/[hash].hot-update.js',
-    hotUpdateMainFilename: 'build/[hash].hot-update.json',
+    hotUpdateChunkFilename: 'build/hot-update.js',
+    hotUpdateMainFilename: 'build/hot-update.json',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
