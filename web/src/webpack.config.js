@@ -18,6 +18,8 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   output: {
     path: BUILD,
     filename: 'static/[name].js',
+    hotUpdateChunkFilename: 'build/[hash].hot-update.js',
+    hotUpdateMainFilename: 'build/[hash].hot-update.json',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
@@ -85,6 +87,8 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
 
     // host: HOST,
     port: PORT,
+
+    writeToDisk: true,
   },
 
   // Webpack plugins
