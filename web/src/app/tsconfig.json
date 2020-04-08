@@ -17,5 +17,5 @@
     "strict": true
   },
   "include": ["**/*"],
-  "paths": ["../schema.d.ts"]
+  "types": ["../schema.d.ts"]
 }
