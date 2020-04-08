@@ -1,9 +1,4 @@
-import { SystemLimit } from '../../schema'
-
-interface SystemLimitInput {
-  id: string
-  value: number
-}
+import { SystemLimit, SystemLimitInput } from '../../schema'
 
 export type Limits = Map<string, { value: number; description: string }>
 
