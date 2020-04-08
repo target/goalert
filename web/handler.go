@@ -53,7 +53,7 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 		w.Header().Set("Cache-Control", "private; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
 		w.Header().Set("ETag", indexETag)
 
-		if strings.Contains(req.RequestURI, "hot-update.json") {
+		if strings.Contains(req.RequestURI, "hot-update.js") { // send .js and .json files
 			http.ServeContent(w, req, "/hmr/", time.Time{}, bytes.NewReader(buf.Bytes()))
 		} else {
 			http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
