@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { Schedule } from '../../schema'
 
 const c = new Chance()
 

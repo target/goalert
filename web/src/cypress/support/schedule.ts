@@ -1,4 +1,5 @@
 import { Chance } from 'chance'
+import { Schedule } from '../../schema'
 
 const c = new Chance()
 
@@ -95,7 +96,9 @@ function setScheduleTarget(
     })
 }
 
-function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
+function createSchedule(
+  sched?: Partial<Schedule>,
+): Cypress.Chainable<Schedule> {
   const query = `mutation createSchedule($input: CreateScheduleInput!){
       createSchedule(input: $input) {
         id

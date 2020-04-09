@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
+import { Schedule } from '../../schema'
 
 import { testScreen } from '../support'
 const c = new Chance()
