@@ -87,8 +87,6 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
 
     // host: HOST,
     port: PORT,
-
-    writeToDisk: true,
   },
 
   // Webpack plugins
