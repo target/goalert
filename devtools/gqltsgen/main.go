@@ -29,7 +29,7 @@ func main() {
 
 	doc, err := parser.ParseSchemas(src...)
 	if err != nil {
-		log.Fatal("ERORR:", err)
+		log.Fatal("ERROR:", err)
 	}
 
 	w := os.Stdout
