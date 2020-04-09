@@ -19,7 +19,7 @@ func main() {
 	for _, file := range flag.Args() {
 		data, err := ioutil.ReadFile(file)
 		if err != nil {
-			log.Fatal("ERORR:", err)
+			log.Fatal("ERROR:", err)
 		}
 		src = append(src, &ast.Source{
 			Name:  file,
