@@ -30,35 +30,29 @@ export interface Query {
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
 }
-
 export interface SlackChannelSearchOptions {
   first?: number
   after?: string
   search?: string
   omit?: string[]
 }
-
 export interface SlackChannel {
   id: string
   name: string
 }
-
 export interface SlackChannelConnection {
   nodes: SlackChannel[]
   pageInfo: PageInfo
 }
-
 export interface SystemLimit {
   id: SystemLimitID
   description: string
   value: number
 }
-
 export interface SystemLimitInput {
   id: SystemLimitID
   value: number
 }
-
 export interface ConfigValue {
   id: string
   description: string
@@ -66,19 +60,16 @@ export interface ConfigValue {
   type: ConfigType
   password: boolean
 }
-
 export interface ConfigHint {
   id: string
   value: string
 }
-
 export enum ConfigType {
   string = 'string',
   stringList = 'stringList',
   integer = 'integer',
   boolean = 'boolean',
 }
-
 export enum SystemLimitID {
   CalendarSubscriptionsPerUser = 'CalendarSubscriptionsPerUser',
   NotificationRulesPerUser = 'NotificationRulesPerUser',
@@ -93,7 +84,6 @@ export enum SystemLimitID {
   HeartbeatMonitorsPerService = 'HeartbeatMonitorsPerService',
   UserOverridesPerSchedule = 'UserOverridesPerSchedule',
 }
-
 export interface UserOverrideSearchOptions {
   first?: number
   after?: string
@@ -105,12 +95,10 @@ export interface UserOverrideSearchOptions {
   start?: ISOTimestamp
   end?: ISOTimestamp
 }
-
 export interface UserOverrideConnection {
   nodes: UserOverride[]
   pageInfo: PageInfo
 }
-
 export interface UserOverride {
   id: string
   start: ISOTimestamp
@@ -121,7 +109,6 @@ export interface UserOverride {
   removeUser?: User
   target: Target
 }
-
 export interface LabelSearchOptions {
   first?: number
   after?: string
@@ -129,14 +116,12 @@ export interface LabelSearchOptions {
   uniqueKeys?: boolean
   omit?: string[]
 }
-
 export interface LabelKeySearchOptions {
   first?: number
   after?: string
   search?: string
   omit?: string[]
 }
-
 export interface LabelValueSearchOptions {
   key: string
   first?: number
@@ -144,17 +129,14 @@ export interface LabelValueSearchOptions {
   search?: string
   omit?: string[]
 }
-
 export interface LabelConnection {
   nodes: Label[]
   pageInfo: PageInfo
 }
-
 export interface StringConnection {
   nodes: string[]
   pageInfo: PageInfo
 }
-
 export interface Mutation {
   addAuthSubject: boolean
   deleteAuthSubject: boolean
@@ -193,32 +175,27 @@ export interface Mutation {
   setConfig: boolean
   setSystemLimits: boolean
 }
-
 export interface UpdateAlertsByServiceInput {
   serviceID: string
   newStatus: AlertStatus
 }
-
 export interface CreateAlertInput {
   summary: string
   details?: string
   serviceID: string
 }
-
 export interface CreateUserCalendarSubscriptionInput {
   name: string
   reminderMinutes?: number[]
   scheduleID: string
   disabled?: boolean
 }
-
 export interface UpdateUserCalendarSubscriptionInput {
   id: string
   name?: string
   reminderMinutes?: number[]
   disabled?: boolean
 }
-
 export interface UserCalendarSubscription {
   id: string
   name: string
@@ -229,12 +206,10 @@ export interface UserCalendarSubscription {
   disabled: boolean
   url?: string
 }
-
 export interface ConfigValueInput {
   id: string
   value: string
 }
-
 export interface UpdateUserOverrideInput {
   id: string
   start?: ISOTimestamp
@@ -242,7 +217,6 @@ export interface UpdateUserOverrideInput {
   addUserID?: string
   removeUserID?: string
 }
-
 export interface CreateUserOverrideInput {
   scheduleID?: string
   start: ISOTimestamp
@@ -250,7 +224,6 @@ export interface CreateUserOverrideInput {
   addUserID?: string
   removeUserID?: string
 }
-
 export interface CreateScheduleInput {
   name: string
   description?: string
@@ -259,43 +232,36 @@ export interface CreateScheduleInput {
   targets?: ScheduleTargetInput[]
   newUserOverrides?: CreateUserOverrideInput[]
 }
-
 export interface ScheduleTargetInput {
   scheduleID?: string
   target?: TargetInput
   newRotation?: CreateRotationInput
   rules: ScheduleRuleInput[]
 }
-
 export interface ScheduleRuleInput {
   id?: string
   start?: ClockTime
   end?: ClockTime
   weekdayFilter?: boolean[]
 }
-
 export interface SetLabelInput {
   target?: TargetInput
   key: string
   value: string
 }
-
 export interface TimeZoneSearchOptions {
   first?: number
   after?: string
   search?: string
   omit?: string[]
 }
-
 export interface TimeZoneConnection {
   nodes: TimeZone[]
   pageInfo: PageInfo
 }
-
 export interface TimeZone {
   id: string
 }
-
 export interface CreateServiceInput {
   name: string
   description?: string
@@ -306,14 +272,12 @@ export interface CreateServiceInput {
   labels?: SetLabelInput[]
   newHeartbeatMonitors?: CreateHeartbeatMonitorInput[]
 }
-
 export interface CreateEscalationPolicyInput {
   name: string
   description?: string
   repeat?: number
   steps?: CreateEscalationPolicyStepInput[]
 }
-
 export interface CreateEscalationPolicyStepInput {
   escalationPolicyID?: string
   delayMinutes: number
@@ -321,7 +285,6 @@ export interface CreateEscalationPolicyStepInput {
   newRotation?: CreateRotationInput
   newSchedule?: CreateScheduleInput
 }
-
 export interface EscalationPolicyStep {
   id: string
   stepNumber: number
@@ -329,21 +292,18 @@ export interface EscalationPolicyStep {
   targets: Target[]
   escalationPolicy?: EscalationPolicy
 }
-
 export interface UpdateScheduleInput {
   id: string
   name?: string
   description?: string
   timeZone?: string
 }
-
 export interface UpdateServiceInput {
   id: string
   name?: string
   description?: string
   escalationPolicyID?: string
 }
-
 export interface UpdateEscalationPolicyInput {
   id: string
   name?: string
@@ -351,33 +311,27 @@ export interface UpdateEscalationPolicyInput {
   repeat?: number
   stepIDs?: string[]
 }
-
 export interface UpdateEscalationPolicyStepInput {
   id: string
   delayMinutes?: number
   targets?: TargetInput[]
 }
-
 export interface SetFavoriteInput {
   target: TargetInput
   favorite: boolean
 }
-
 export interface EscalationPolicyConnection {
   nodes: EscalationPolicy[]
   pageInfo: PageInfo
 }
-
 export interface AlertConnection {
   nodes: Alert[]
   pageInfo: PageInfo
 }
-
 export interface ScheduleConnection {
   nodes: Schedule[]
   pageInfo: PageInfo
 }
-
 export interface Schedule {
   id: string
   name: string
@@ -389,7 +343,6 @@ export interface Schedule {
   target?: ScheduleTarget
   isFavorite: boolean
 }
-
 export interface OnCallShift {
   userID: string
   user?: User
@@ -397,13 +350,11 @@ export interface OnCallShift {
   end: ISOTimestamp
   truncated: boolean
 }
-
 export interface ScheduleTarget {
   scheduleID: string
   target: Target
   rules: ScheduleRule[]
 }
-
 export interface ScheduleRule {
   id: string
   scheduleID: string
@@ -412,12 +363,10 @@ export interface ScheduleRule {
   weekdayFilter: boolean[]
   target: Target
 }
-
 export interface RotationConnection {
   nodes: Rotation[]
   pageInfo: PageInfo
 }
-
 export interface CreateRotationInput {
   name: string
   description?: string
@@ -428,7 +377,6 @@ export interface CreateRotationInput {
   shiftLength?: number
   userIDs?: string[]
 }
-
 export interface Rotation {
   id: string
   name: string
@@ -443,18 +391,15 @@ export interface Rotation {
   users: User[]
   nextHandoffTimes: ISOTimestamp[]
 }
-
 export enum RotationType {
   weekly = 'weekly',
   daily = 'daily',
   hourly = 'hourly',
 }
-
 export interface UpdateAlertsInput {
   alertIDs: number[]
   newStatus: AlertStatus
 }
-
 export interface UpdateRotationInput {
   id: string
   name?: string
@@ -466,7 +411,6 @@ export interface UpdateRotationInput {
   activeUserIndex?: number
   userIDs?: string[]
 }
-
 export interface RotationSearchOptions {
   first?: number
   after?: string
@@ -475,14 +419,12 @@ export interface RotationSearchOptions {
   favoritesOnly?: boolean
   favoritesFirst?: boolean
 }
-
 export interface EscalationPolicySearchOptions {
   first?: number
   after?: string
   search?: string
   omit?: string[]
 }
-
 export interface ScheduleSearchOptions {
   first?: number
   after?: string
@@ -491,7 +433,6 @@ export interface ScheduleSearchOptions {
   favoritesOnly?: boolean
   favoritesFirst?: boolean
 }
-
 export interface ServiceSearchOptions {
   first?: number
   after?: string
@@ -500,14 +441,12 @@ export interface ServiceSearchOptions {
   favoritesOnly?: boolean
   favoritesFirst?: boolean
 }
-
 export interface UserSearchOptions {
   first?: number
   after?: string
   search?: string
   omit?: string[]
 }
-
 export interface AlertSearchOptions {
   filterByStatus?: AlertStatus[]
   filterByServiceID?: string[]
@@ -517,11 +456,8 @@ export interface AlertSearchOptions {
   favoritesOnly?: boolean
   omit?: number[]
 }
-
 export type ISOTimestamp = string
-
 export type ClockTime = string
-
 export interface Alert {
   id: string
   alertID: number
@@ -534,29 +470,24 @@ export interface Alert {
   state?: AlertState
   recentEvents: AlertLogEntryConnection
 }
-
 export interface AlertRecentEventsOptions {
   limit?: number
   after?: string
 }
-
 export interface AlertLogEntryConnection {
   nodes: AlertLogEntry[]
   pageInfo: PageInfo
 }
-
 export interface AlertLogEntry {
   id: number
   timestamp: ISOTimestamp
   message: string
 }
-
 export interface AlertState {
   lastEscalation: ISOTimestamp
   stepNumber: number
   repeatCount: number
 }
-
 export interface Service {
   id: string
   name: string
@@ -569,31 +500,26 @@ export interface Service {
   labels: Label[]
   heartbeatMonitors: HeartbeatMonitor[]
 }
-
 export interface CreateIntegrationKeyInput {
   serviceID?: string
   type: IntegrationKeyType
   name: string
 }
-
 export interface CreateHeartbeatMonitorInput {
   serviceID: string
   name: string
   timeoutMinutes: number
 }
-
 export interface UpdateHeartbeatMonitorInput {
   id: string
   name?: string
   timeoutMinutes?: number
 }
-
 export enum HeartbeatMonitorState {
   inactive = 'inactive',
   healthy = 'healthy',
   unhealthy = 'unhealthy',
 }
-
 export interface HeartbeatMonitor {
   id: string
   serviceID: string
@@ -603,12 +529,10 @@ export interface HeartbeatMonitor {
   lastHeartbeat?: ISOTimestamp
   href: string
 }
-
 export interface Label {
   key: string
   value: string
 }
-
 export interface IntegrationKey {
   id: string
   serviceID: string
@@ -616,20 +540,17 @@ export interface IntegrationKey {
   name: string
   href: string
 }
-
 export enum IntegrationKeyType {
   generic = 'generic',
   grafana = 'grafana',
   site24x7 = 'site24x7',
   email = 'email',
 }
-
 export interface ServiceOnCallUser {
   userID: string
   userName: string
   stepNumber: number
 }
-
 export interface EscalationPolicy {
   id: string
   name: string
@@ -638,24 +559,20 @@ export interface EscalationPolicy {
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
 }
-
 export enum AlertStatus {
   StatusAcknowledged = 'StatusAcknowledged',
   StatusClosed = 'StatusClosed',
   StatusUnacknowledged = 'StatusUnacknowledged',
 }
-
 export interface Target {
   id: string
   type: TargetType
   name?: string
 }
-
 export interface TargetInput {
   id: string
   type: TargetType
 }
-
 export enum TargetType {
   escalationPolicy = 'escalationPolicy',
   notificationChannel = 'notificationChannel',
@@ -672,27 +589,22 @@ export enum TargetType {
   heartbeatMonitor = 'heartbeatMonitor',
   calendarSubscription = 'calendarSubscription',
 }
-
 export interface ServiceConnection {
   nodes: Service[]
   pageInfo: PageInfo
 }
-
 export interface UserConnection {
   nodes: User[]
   pageInfo: PageInfo
 }
-
 export interface AuthSubjectConnection {
   nodes: AuthSubject[]
   pageInfo: PageInfo
 }
-
 export interface PageInfo {
   endCursor?: string
   hasNextPage: boolean
 }
-
 export interface UpdateUserInput {
   id: string
   name?: string
@@ -700,19 +612,16 @@ export interface UpdateUserInput {
   role?: UserRole
   statusUpdateContactMethodID?: string
 }
-
 export interface AuthSubjectInput {
   userID: string
   providerID: string
   subjectID: string
 }
-
 export enum UserRole {
   unknown = 'unknown',
   user = 'user',
   admin = 'admin',
 }
-
 export interface User {
   id: string
   role: UserRole
@@ -725,19 +634,16 @@ export interface User {
   authSubjects: AuthSubject[]
   onCallSteps: EscalationPolicyStep[]
 }
-
 export interface UserNotificationRule {
   id: string
   delayMinutes: number
   contactMethodID: string
   contactMethod?: UserContactMethod
 }
-
 export enum ContactMethodType {
   SMS = 'SMS',
   VOICE = 'VOICE',
 }
-
 export interface UserContactMethod {
   id: string
   type?: ContactMethodType
@@ -746,7 +652,6 @@ export interface UserContactMethod {
   formattedValue: string
   disabled: boolean
 }
-
 export interface CreateUserContactMethodInput {
   userID: string
   type: ContactMethodType
@@ -754,28 +659,23 @@ export interface CreateUserContactMethodInput {
   value: string
   newUserNotificationRule?: CreateUserNotificationRuleInput
 }
-
 export interface CreateUserNotificationRuleInput {
   userID?: string
   contactMethodID?: string
   delayMinutes: number
 }
-
 export interface UpdateUserContactMethodInput {
   id: string
   name?: string
   value?: string
 }
-
 export interface SendContactMethodVerificationInput {
   contactMethodID: string
 }
-
 export interface VerifyContactMethodInput {
   contactMethodID: string
   code: number
 }
-
 export interface AuthSubject {
   providerID: string
   subjectID: string

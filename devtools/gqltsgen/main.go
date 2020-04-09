@@ -73,7 +73,7 @@ func main() {
 			for _, e := range def.EnumValues {
 				fmt.Fprintf(w, "  %s = '%s',\n", e.Name, e.Name)
 			}
-			fmt.Fprintf(w, "}\n\n")
+			fmt.Fprintf(w, "}\n")
 		case ast.InputObject, ast.Object:
 			fmt.Fprintf(w, "export interface %s {\n", def.Name)
 			for _, e := range def.Fields {
@@ -83,9 +83,9 @@ func main() {
 				}
 				fmt.Fprintf(w, "  %s: %s\n", e.Name+mod, typeName(e.Type))
 			}
-			fmt.Fprintf(w, "}\n\n")
+			fmt.Fprintf(w, "}\n")
 		case ast.Scalar:
-			fmt.Fprintf(w, "export type %s = string\n\n", def.Name)
+			fmt.Fprintf(w, "export type %s = string\n", def.Name)
 		default:
 			log.Fatal("Unsupported kind:", def.Name, def.Kind)
 		}
