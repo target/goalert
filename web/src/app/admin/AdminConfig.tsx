@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import gql from 'graphql-tag'
-import { startCase, isEmpty } from 'lodash-es'
+import { startCase, isEmpty, uniq } from 'lodash-es'
 import chain from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
@@ -118,10 +118,9 @@ export default function AdminConfig(): JSX.Element {
     )
   }
 
-  const groups = chain(data.config)
-    .map((f: { id: string }) => f.id.split('.')[0])
-    .uniq()
-    .value()
+  const groups = uniq(
+    data.config.map((f: { id: string }) => f.id.split('.')[0]),
+  ) as string[]
   const hintGroups = chain(data.configHints)
     .groupBy((f: { id: string }) => f.id.split('.')[0])
     .value()
@@ -172,11 +171,9 @@ export default function AdminConfig(): JSX.Element {
                           value: string
                         }) => ({
                           id: f.id,
-                          label: _.chain(f.id.split('.'))
-                            .last()
-                            .startCase()
-                            .value()
-                            .replace(/R Ls\b/, 'RLs'), // fix usages of `URLs`
+                          label: startCase(
+                            chain(f.id.split('.')).last(),
+                          ).replace(/R Ls\b/, 'RLs'), // fix usages of `URLs`
                           description: f.description,
                           password: f.password,
                           type: f.type,
