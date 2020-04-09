@@ -31,8 +31,10 @@ function testServices(screen: ScreenFormat): void {
     })
 
     it('should handle searching with leading and trailing spaces', () => {
-      cy.createService({ name: 'foobar' })
-      cy.createService({ name: 'foo bar' })
+      const firstHalf = c.word({ length: 4 })
+      const secondHalf = c.word({ length: 4 })
+      cy.createService({ name: firstHalf + ' ' + secondHalf })
+      cy.createService({ name: firstHalf + secondHalf })
 
       cy.get('ul[data-cy=apollo-list]').should('exist')
       // by name with spaces before and after
@@ -43,15 +45,15 @@ function testServices(screen: ScreenFormat): void {
         .should('not.contain', svc.description)
 
       // since front-end no longer trims spaces for search arguments, the literal search result for search string should show up, if it exists.
-      cy.pageSearch(' bar')
+      cy.pageSearch(' ' + secondHalf)
       cy.get('body')
-        .should('contain', 'foo bar')
-        .should('not.contain', 'foobar')
+        .should('contain', firstHalf + ' ' + secondHalf)
+        .should('not.contain', firstHalf + secondHalf)
 
-      cy.pageSearch('foobar')
+      cy.pageSearch(firstHalf + secondHalf)
       cy.get('body')
-        .should('contain', 'foobar')
-        .should('not.contain', 'foo bar')
+        .should('contain', firstHalf + secondHalf)
+        .should('not.contain', firstHalf + ' ' + secondHalf)
     })
 
     it('should link to details page', () => {
@@ -133,7 +135,7 @@ function testServices(screen: ScreenFormat): void {
         }
         cy.get('button[data-cy="services-filter-button"]').click()
 
-        cy.get('div[name="label-value"]').should(
+        cy.get('input[name="label-value"]').should(
           'have.attr',
           'disabled',
           'disabled',
@@ -600,7 +602,9 @@ function testServices(screen: ScreenFormat): void {
     })
 
     it('should not be able to create a label when DisableLabelCreation is true', () => {
-      const randomWord = c.word({ length: 7 })
+      const randomWord = c.word({
+        length: 7,
+      })
       cy.pageFab()
       cy.get('input[name=key]').findByLabel(`Create "${randomWord}"`)
 
@@ -612,9 +616,8 @@ function testServices(screen: ScreenFormat): void {
       cy.reload()
 
       cy.pageFab()
-      cy.get('input[name=key]')
-        .findByLabel(`Create "${randomWord}"`)
-        .should('not.exist')
+      cy.get('input[name=key]').type(`Create "${randomWord}"`)
+      cy.get('[data-cy="select-dropdown"]').should('contain', 'No options')
     })
   })
 }
