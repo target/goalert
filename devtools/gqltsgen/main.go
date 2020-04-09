@@ -36,7 +36,7 @@ func main() {
 	if *out != "" {
 		fd, err := os.Create(*out)
 		if err != nil {
-			log.Fatal("ERORR:", err)
+		log.Fatal("ERROR:", err)
 		}
 		defer fd.Close()
 		w = fd
