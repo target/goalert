@@ -227,7 +227,7 @@ web/src/node_modules: web/src/node_modules/.bin/cypress
 web/src/node_modules/.bin/cypress: web/src/yarn.lock
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
 
-web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f ) web/src/schema.ts.d
+web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION))
 
