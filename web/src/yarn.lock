@@ -91,7 +91,7 @@
     invariant "^2.2.4"
     semver "^5.5.0"
 
-"@babel/core@7.8.7", "@babel/core@>=7.2.2", "@babel/core@^7.0.1", "@babel/core@^7.1.0", "@babel/core@^7.7.5":
+"@babel/core@7.8.7", "@babel/core@>=7.2.2", "@babel/core@^7.1.0", "@babel/core@^7.7.5":
   version "7.8.7"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.8.7.tgz#b69017d221ccdeb203145ae9da269d72cf102f3b"
   integrity sha512-rBlqF3Yko9cynC5CCFy6+K/w2N+Sq/ff2BPy+Krp7rHlABIr5epbA7OxVeKoMHB39LZOp1UY5SuLjy6uWi35yA==
@@ -835,7 +835,7 @@
     "@babel/helper-create-regexp-features-plugin" "^7.8.3"
     "@babel/helper-plugin-utils" "^7.8.3"
 
-"@babel/preset-env@7.8.7", "@babel/preset-env@^7.0.0":
+"@babel/preset-env@7.8.7":
   version "7.8.7"
   resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.8.7.tgz#1fc7d89c7f75d2d70c2b6768de6c2e049b3cb9db"
   integrity sha512-BYftCVOdAYJk5ASsznKAUl53EMhfBbr8CJ1X+AJLfGPscQkwJFiaV/Wn9DPH/7fzm2v6iRYJKYHSqyynTGw0nw==
@@ -998,17 +998,13 @@
     date-fns "^1.27.2"
     figures "^1.7.0"
 
-"@cypress/webpack-preprocessor@4.1.3":
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-4.1.3.tgz#d5fad767a304c16ec05ca08034827c601f1c9c0c"
-  integrity sha512-VtTzStrKtwyftLkcgopwCHzgjefK3uHHL6FgbAQP1o5N1pa/zYUb0g7hH2skrMAlKOmLGdbySlISkUl18Y3wHg==
+"@cypress/webpack-preprocessor@5.1.1":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-5.1.1.tgz#f3cb53081afaea1bd1a2306a3ebc40f8667d11d1"
+  integrity sha512-qePXL4Je3QzDjcJV9JM3eTA8HjL6nwSlA781wKBGeEZKamw9mYgyWxi1yIEPraGJvT7hzRloo26nsftNdS4DAg==
   dependencies:
     bluebird "3.7.1"
     debug "4.1.1"
-  optionalDependencies:
-    "@babel/core" "^7.0.1"
-    "@babel/preset-env" "^7.0.0"
-    babel-loader "^8.0.2"
 
 "@cypress/xvfb@1.2.4":
   version "1.2.4"
@@ -2452,7 +2448,7 @@ babel-jest@^25.2.6:
     chalk "^3.0.0"
     slash "^3.0.0"
 
-babel-loader@8.1.0, babel-loader@^8.0.2:
+babel-loader@8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-8.1.0.tgz#c611d5112bd5209abe8b9fa84c3e4da25275f1c3"
   integrity sha512-7q7nC1tYOrqvUrN3LQK4GwSk/TQorZSOlO9C+RZDZpODgyN4ZlCqE5q9cDsyWOliN+aU9B4JX01xK9eJXowJLw==
