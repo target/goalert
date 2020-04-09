@@ -1,5 +1,10 @@
 import { Chance } from 'chance'
-import { Schedule, ScheduleTarget } from '../../schema'
+import {
+  Schedule,
+  ScheduleTarget,
+  ScheduleTargetInput,
+  TargetType,
+} from '../../schema'
 
 const c = new Chance()
 
@@ -15,33 +20,31 @@ const randClock = (): string =>
   `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
 function setScheduleTarget(
-  tgt?: ScheduleTargetOptions,
+  scheduleTgt?: Partial<ScheduleTargetInput>,
+  createScheduleInput?: Partial<Schedule>,
 ): Cypress.Chainable<ScheduleTarget> {
-  if (!tgt) {
-    tgt = {}
+  if (!scheduleTgt) {
+    scheduleTgt = {}
   }
-  if (!tgt.scheduleID) {
+  if (!scheduleTgt.scheduleID) {
     return cy
-      .createSchedule(tgt.schedule)
+      .createSchedule(createScheduleInput)
       .then((sched: Schedule) =>
-        setScheduleTarget({ ...tgt, scheduleID: sched.id }),
+        setScheduleTarget({ ...scheduleTgt, scheduleID: sched.id }),
       )
   }
-  if (!tgt.target) {
-    tgt.target = { rotation: {} }
+  if (!scheduleTgt.target) {
+    return cy.createRotation().then((r: Rotation) =>
+      setScheduleTarget({
+        ...scheduleTgt,
+        target: { type: 'rotation' as TargetType, id: r.id },
+      }),
+    )
   }
-  const rotation = (tgt.target as TargetRotationOptions).rotation
-  if (rotation) {
-    return cy
-      .createRotation(rotation)
-      .then((r: Rotation) =>
-        setScheduleTarget({ ...tgt, target: { type: 'rotation', id: r.id } }),
-      )
+  if (!scheduleTgt.rules) {
+    scheduleTgt.rules = [{}]
   }
-  if (!tgt.rules) {
-    tgt.rules = [{}]
-  }
-  tgt.rules = tgt.rules.map((r) => ({
+  scheduleTgt.rules = scheduleTgt.rules.map((r) => ({
     start: r.start || randClock(),
     end: r.end || randClock(),
     weekdayFilter: r.weekdayFilter || [
@@ -74,7 +77,7 @@ function setScheduleTarget(
     }
   }`
 
-  const { schedule, ...params } = tgt
+  const params = scheduleTgt
 
   return cy
     .graphql2(mutation, {
