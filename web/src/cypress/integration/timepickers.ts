@@ -1,6 +1,6 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
-import { Schedule } from '../../schema'
+import { Schedule, ScheduleTarget } from '../../schema'
 
 import { testScreen } from '../support'
 const c = new Chance()
@@ -19,7 +19,8 @@ function testTimePickers(): void {
             },
           ],
         }).then((tgt: ScheduleTarget) => {
-          return cy.visit(`/schedules/${tgt.schedule.id}/assignments${params}`)
+          console.log(tgt)
+          return cy.visit(`/schedules/${tgt.scheduleID}/assignments${params}`)
         })
         // sanity check
         cy.get('body').contains(display)

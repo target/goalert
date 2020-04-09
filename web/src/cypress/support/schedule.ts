@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { Schedule } from '../../schema'
+import { Schedule, ScheduleTarget } from '../../schema'
 
 const c = new Chance()
 
@@ -90,7 +90,7 @@ function setScheduleTarget(
           const { target, ...schedule } = res.schedule
           return {
             ...target,
-            schedule,
+            scheduleID: schedule.id,
           }
         })
     })

@@ -27,9 +27,3 @@ interface ScheduleTargetOptions {
 
   rules?: Partial<ScheduleRule>[]
 }
-
-interface ScheduleTarget {
-  schedule: Schedule
-  target: Target
-  rules: ScheduleRule[]
-}
