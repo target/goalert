@@ -19,7 +19,7 @@ func main() {
 	for _, file := range flag.Args() {
 		data, err := ioutil.ReadFile(file)
 		if err != nil {
-			log.Fatal("ERORR:", err)
+			log.Fatal("ERROR:", err)
 		}
 		src = append(src, &ast.Source{
 			Name:  file,
@@ -29,14 +29,14 @@ func main() {
 
 	doc, err := parser.ParseSchemas(src...)
 	if err != nil {
-		log.Fatal("ERORR:", err)
+		log.Fatal("ERROR:", err)
 	}
 
 	w := os.Stdout
 	if *out != "" {
 		fd, err := os.Create(*out)
 		if err != nil {
-			log.Fatal("ERORR:", err)
+		log.Fatal("ERROR:", err)
 		}
 		defer fd.Close()
 		w = fd
