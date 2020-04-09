@@ -23,9 +23,9 @@ export interface Query {
   labelValues: StringConnection
   userOverrides: UserOverrideConnection
   userOverride?: UserOverride
-  config: ConfigValue
-  configHints: ConfigHint
-  systemLimits: SystemLimit
+  config: ConfigValue[]
+  configHints: ConfigHint[]
+  systemLimits: SystemLimit[]
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
@@ -35,7 +35,7 @@ export interface SlackChannelSearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
 }
 
 export interface SlackChannel {
@@ -44,7 +44,7 @@ export interface SlackChannel {
 }
 
 export interface SlackChannelConnection {
-  nodes: SlackChannel
+  nodes: SlackChannel[]
   pageInfo: PageInfo
 }
 
@@ -97,17 +97,17 @@ export enum SystemLimitID {
 export interface UserOverrideSearchOptions {
   first?: number
   after?: string
-  omit?: string
+  omit?: string[]
   scheduleID?: string
-  filterAddUserID?: string
-  filterRemoveUserID?: string
-  filterAnyUserID?: string
+  filterAddUserID?: string[]
+  filterRemoveUserID?: string[]
+  filterAnyUserID?: string[]
   start?: ISOTimestamp
   end?: ISOTimestamp
 }
 
 export interface UserOverrideConnection {
-  nodes: UserOverride
+  nodes: UserOverride[]
   pageInfo: PageInfo
 }
 
@@ -127,14 +127,14 @@ export interface LabelSearchOptions {
   after?: string
   search?: string
   uniqueKeys?: boolean
-  omit?: string
+  omit?: string[]
 }
 
 export interface LabelKeySearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
 }
 
 export interface LabelValueSearchOptions {
@@ -142,16 +142,16 @@ export interface LabelValueSearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
 }
 
 export interface LabelConnection {
-  nodes: Label
+  nodes: Label[]
   pageInfo: PageInfo
 }
 
 export interface StringConnection {
-  nodes: string
+  nodes: string[]
   pageInfo: PageInfo
 }
 
@@ -160,9 +160,9 @@ export interface Mutation {
   deleteAuthSubject: boolean
   updateUser: boolean
   testContactMethod: boolean
-  updateAlerts?: Alert
+  updateAlerts?: Alert[]
   updateRotation: boolean
-  escalateAlerts?: Alert
+  escalateAlerts?: Alert[]
   setFavorite: boolean
   updateService: boolean
   updateEscalationPolicy: boolean
@@ -207,7 +207,7 @@ export interface CreateAlertInput {
 
 export interface CreateUserCalendarSubscriptionInput {
   name: string
-  reminderMinutes?: number
+  reminderMinutes?: number[]
   scheduleID: string
   disabled?: boolean
 }
@@ -215,14 +215,14 @@ export interface CreateUserCalendarSubscriptionInput {
 export interface UpdateUserCalendarSubscriptionInput {
   id: string
   name?: string
-  reminderMinutes?: number
+  reminderMinutes?: number[]
   disabled?: boolean
 }
 
 export interface UserCalendarSubscription {
   id: string
   name: string
-  reminderMinutes: number
+  reminderMinutes: number[]
   scheduleID: string
   schedule?: Schedule
   lastAccess: ISOTimestamp
@@ -256,22 +256,22 @@ export interface CreateScheduleInput {
   description?: string
   timeZone: string
   favorite?: boolean
-  targets?: ScheduleTargetInput
-  newUserOverrides?: CreateUserOverrideInput
+  targets?: ScheduleTargetInput[]
+  newUserOverrides?: CreateUserOverrideInput[]
 }
 
 export interface ScheduleTargetInput {
   scheduleID?: string
   target?: TargetInput
   newRotation?: CreateRotationInput
-  rules: ScheduleRuleInput
+  rules: ScheduleRuleInput[]
 }
 
 export interface ScheduleRuleInput {
   id?: string
   start?: ClockTime
   end?: ClockTime
-  weekdayFilter?: boolean
+  weekdayFilter?: boolean[]
 }
 
 export interface SetLabelInput {
@@ -284,11 +284,11 @@ export interface TimeZoneSearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
 }
 
 export interface TimeZoneConnection {
-  nodes: TimeZone
+  nodes: TimeZone[]
   pageInfo: PageInfo
 }
 
@@ -302,22 +302,22 @@ export interface CreateServiceInput {
   favorite?: boolean
   escalationPolicyID?: string
   newEscalationPolicy?: CreateEscalationPolicyInput
-  newIntegrationKeys?: CreateIntegrationKeyInput
-  labels?: SetLabelInput
-  newHeartbeatMonitors?: CreateHeartbeatMonitorInput
+  newIntegrationKeys?: CreateIntegrationKeyInput[]
+  labels?: SetLabelInput[]
+  newHeartbeatMonitors?: CreateHeartbeatMonitorInput[]
 }
 
 export interface CreateEscalationPolicyInput {
   name: string
   description?: string
   repeat?: number
-  steps?: CreateEscalationPolicyStepInput
+  steps?: CreateEscalationPolicyStepInput[]
 }
 
 export interface CreateEscalationPolicyStepInput {
   escalationPolicyID?: string
   delayMinutes: number
-  targets?: TargetInput
+  targets?: TargetInput[]
   newRotation?: CreateRotationInput
   newSchedule?: CreateScheduleInput
 }
@@ -326,7 +326,7 @@ export interface EscalationPolicyStep {
   id: string
   stepNumber: number
   delayMinutes: number
-  targets: Target
+  targets: Target[]
   escalationPolicy?: EscalationPolicy
 }
 
@@ -349,13 +349,13 @@ export interface UpdateEscalationPolicyInput {
   name?: string
   description?: string
   repeat?: number
-  stepIDs?: string
+  stepIDs?: string[]
 }
 
 export interface UpdateEscalationPolicyStepInput {
   id: string
   delayMinutes?: number
-  targets?: TargetInput
+  targets?: TargetInput[]
 }
 
 export interface SetFavoriteInput {
@@ -364,17 +364,17 @@ export interface SetFavoriteInput {
 }
 
 export interface EscalationPolicyConnection {
-  nodes: EscalationPolicy
+  nodes: EscalationPolicy[]
   pageInfo: PageInfo
 }
 
 export interface AlertConnection {
-  nodes: Alert
+  nodes: Alert[]
   pageInfo: PageInfo
 }
 
 export interface ScheduleConnection {
-  nodes: Schedule
+  nodes: Schedule[]
   pageInfo: PageInfo
 }
 
@@ -383,9 +383,9 @@ export interface Schedule {
   name: string
   description: string
   timeZone: string
-  assignedTo: Target
-  shifts: OnCallShift
-  targets: ScheduleTarget
+  assignedTo: Target[]
+  shifts: OnCallShift[]
+  targets: ScheduleTarget[]
   target?: ScheduleTarget
   isFavorite: boolean
 }
@@ -401,7 +401,7 @@ export interface OnCallShift {
 export interface ScheduleTarget {
   scheduleID: string
   target: Target
-  rules: ScheduleRule
+  rules: ScheduleRule[]
 }
 
 export interface ScheduleRule {
@@ -409,12 +409,12 @@ export interface ScheduleRule {
   scheduleID: string
   start: ClockTime
   end: ClockTime
-  weekdayFilter: boolean
+  weekdayFilter: boolean[]
   target: Target
 }
 
 export interface RotationConnection {
-  nodes: Rotation
+  nodes: Rotation[]
   pageInfo: PageInfo
 }
 
@@ -426,7 +426,7 @@ export interface CreateRotationInput {
   favorite?: boolean
   type: RotationType
   shiftLength?: number
-  userIDs?: string
+  userIDs?: string[]
 }
 
 export interface Rotation {
@@ -439,9 +439,9 @@ export interface Rotation {
   type: RotationType
   shiftLength: number
   activeUserIndex: number
-  userIDs: string
-  users: User
-  nextHandoffTimes: ISOTimestamp
+  userIDs: string[]
+  users: User[]
+  nextHandoffTimes: ISOTimestamp[]
 }
 
 export enum RotationType {
@@ -451,7 +451,7 @@ export enum RotationType {
 }
 
 export interface UpdateAlertsInput {
-  alertIDs: number
+  alertIDs: number[]
   newStatus: AlertStatus
 }
 
@@ -464,14 +464,14 @@ export interface UpdateRotationInput {
   type?: RotationType
   shiftLength?: number
   activeUserIndex?: number
-  userIDs?: string
+  userIDs?: string[]
 }
 
 export interface RotationSearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
   favoritesOnly?: boolean
   favoritesFirst?: boolean
 }
@@ -480,14 +480,14 @@ export interface EscalationPolicySearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
 }
 
 export interface ScheduleSearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
   favoritesOnly?: boolean
   favoritesFirst?: boolean
 }
@@ -496,7 +496,7 @@ export interface ServiceSearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
   favoritesOnly?: boolean
   favoritesFirst?: boolean
 }
@@ -505,17 +505,17 @@ export interface UserSearchOptions {
   first?: number
   after?: string
   search?: string
-  omit?: string
+  omit?: string[]
 }
 
 export interface AlertSearchOptions {
-  filterByStatus?: AlertStatus
-  filterByServiceID?: string
+  filterByStatus?: AlertStatus[]
+  filterByServiceID?: string[]
   search?: string
   first?: number
   after?: string
   favoritesOnly?: boolean
-  omit?: number
+  omit?: number[]
 }
 
 export type ISOTimestamp = string
@@ -541,7 +541,7 @@ export interface AlertRecentEventsOptions {
 }
 
 export interface AlertLogEntryConnection {
-  nodes: AlertLogEntry
+  nodes: AlertLogEntry[]
   pageInfo: PageInfo
 }
 
@@ -564,10 +564,10 @@ export interface Service {
   escalationPolicyID: string
   escalationPolicy?: EscalationPolicy
   isFavorite: boolean
-  onCallUsers: ServiceOnCallUser
-  integrationKeys: IntegrationKey
-  labels: Label
-  heartbeatMonitors: HeartbeatMonitor
+  onCallUsers: ServiceOnCallUser[]
+  integrationKeys: IntegrationKey[]
+  labels: Label[]
+  heartbeatMonitors: HeartbeatMonitor[]
 }
 
 export interface CreateIntegrationKeyInput {
@@ -635,8 +635,8 @@ export interface EscalationPolicy {
   name: string
   description: string
   repeat: number
-  assignedTo: Target
-  steps: EscalationPolicyStep
+  assignedTo: Target[]
+  steps: EscalationPolicyStep[]
 }
 
 export enum AlertStatus {
@@ -674,17 +674,17 @@ export enum TargetType {
 }
 
 export interface ServiceConnection {
-  nodes: Service
+  nodes: Service[]
   pageInfo: PageInfo
 }
 
 export interface UserConnection {
-  nodes: User
+  nodes: User[]
   pageInfo: PageInfo
 }
 
 export interface AuthSubjectConnection {
-  nodes: AuthSubject
+  nodes: AuthSubject[]
   pageInfo: PageInfo
 }
 
@@ -718,12 +718,12 @@ export interface User {
   role: UserRole
   name: string
   email: string
-  contactMethods: UserContactMethod
-  notificationRules: UserNotificationRule
-  calendarSubscriptions: UserCalendarSubscription
+  contactMethods: UserContactMethod[]
+  notificationRules: UserNotificationRule[]
+  calendarSubscriptions: UserCalendarSubscription[]
   statusUpdateContactMethodID: string
-  authSubjects: AuthSubject
-  onCallSteps: EscalationPolicyStep
+  authSubjects: AuthSubject[]
+  onCallSteps: EscalationPolicyStep[]
 }
 
 export interface UserNotificationRule {
