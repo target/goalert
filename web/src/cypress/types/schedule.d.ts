@@ -21,7 +21,7 @@ interface Target {
 
 interface ScheduleTargetOptions {
   scheduleID?: string
-  schedule?: ScheduleOptions
+  schedule?: Partial<Schedule>
 
   target?: TargetRotationOptions | Target
 
@@ -44,19 +44,4 @@ interface ScheduleRuleOptions {
   start?: string
   end?: string
   weekdayFilter?: boolean[]
-}
-
-interface Schedule {
-  id: string
-  name: string
-  description: string
-  timeZone: string
-  isFavorite: boolean
-}
-
-interface ScheduleOptions {
-  name?: string
-  description?: string
-  timeZone?: string
-  isFavorite?: boolean
 }
