@@ -25,23 +25,11 @@ interface ScheduleTargetOptions {
 
   target?: TargetRotationOptions | Target
 
-  rules?: ScheduleRuleOptions[]
+  rules?: Partial<ScheduleRule>[]
 }
 
 interface ScheduleTarget {
   schedule: Schedule
   target: Target
   rules: ScheduleRule[]
-}
-
-interface ScheduleRule {
-  start: string
-  end: string
-  weekdayFilter: boolean[]
-}
-
-interface ScheduleRuleOptions {
-  start?: string
-  end?: string
-  weekdayFilter?: boolean[]
 }
