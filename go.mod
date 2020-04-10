@@ -45,7 +45,6 @@ require (
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20200119084958-8794cecc920c
 	github.com/satori/go.uuid v1.2.0
-	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v0.0.0-20191009025716-f1972eb1d1f5 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2 // indirect
@@ -60,7 +59,8 @@ require (
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
 	github.com/urfave/cli v1.22.2 // indirect
 	github.com/vbauerster/mpb/v4 v4.11.2
-	github.com/vektah/gqlparser v1.2.1
+	github.com/vektah/gqlparser v1.3.1
+	github.com/vektah/gqlparser/v2 v2.0.1
 	go.opencensus.io v0.22.2
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
