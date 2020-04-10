@@ -250,19 +250,19 @@ export function makeQuerySelect(displayName, options) {
       else onChange((newVal && newVal.value) || null)
     }
 
-    let noOptionsMessage = 'No options'
+    let noOptionsText = 'No options'
     if (optionsError) {
-      noOptionsMessage = (
+      noOptionsText = (
         <ErrorMessage value={optionsError.message || optionsError} />
       )
-    } else if (!searchInput && !selectOptions.length)
-      noOptionsMessage = 'Start typing...'
-    else if (optionsError) noOptionsMessage = 'Error: ' + optionsError
+    } else if (!searchInput && !selectOptions.length) {
+      noOptionsText = 'Start typing...'
+    }
 
     return (
       <MaterialSelect
         isLoading={search !== searchInput || optionsLoading}
-        noOptionsMessage={() => noOptionsMessage}
+        noOptionsText={noOptionsText}
         onInputChange={(val) => setSearchInput(val)}
         value={multiple ? asArray(selectValue) : selectValue}
         multiple={multiple}

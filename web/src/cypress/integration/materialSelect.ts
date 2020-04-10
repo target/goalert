@@ -53,13 +53,16 @@ function testMaterialSelect(): void {
 
         // Clears field
         cy.dialogForm({ repeat: '' })
-        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
-          'not.contain',
-          defaultVal,
-        )
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]')
+          .should('not.have.value', defaultVal)
+          .blur()
+
         // Default value returns
         cy.get('[role=dialog] #dialog-form').click()
-        cy.dialogContains(defaultVal)
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
+          'have.value',
+          defaultVal,
+        )
 
         cy.dialogFinish('Cancel')
       })
@@ -76,13 +79,16 @@ function testMaterialSelect(): void {
         // Clears field
         cy.dialogForm({ repeat: '' })
         cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
-          'not.contain',
+          'not.have.value',
           repeat,
         )
 
         // Last value returns
         cy.get('[role=dialog] #dialog-form').click()
-        cy.dialogContains(repeat)
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
+          'have.value',
+          repeat,
+        )
 
         // Should be on details page
         cy.dialogFinish('Submit')
