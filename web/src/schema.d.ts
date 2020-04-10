@@ -64,26 +64,20 @@ export interface ConfigHint {
   id: string
   value: string
 }
-export enum ConfigType {
-  string = 'string',
-  stringList = 'stringList',
-  integer = 'integer',
-  boolean = 'boolean',
-}
-export enum SystemLimitID {
-  CalendarSubscriptionsPerUser = 'CalendarSubscriptionsPerUser',
-  NotificationRulesPerUser = 'NotificationRulesPerUser',
-  ContactMethodsPerUser = 'ContactMethodsPerUser',
-  EPStepsPerPolicy = 'EPStepsPerPolicy',
-  EPActionsPerStep = 'EPActionsPerStep',
-  ParticipantsPerRotation = 'ParticipantsPerRotation',
-  RulesPerSchedule = 'RulesPerSchedule',
-  IntegrationKeysPerService = 'IntegrationKeysPerService',
-  UnackedAlertsPerService = 'UnackedAlertsPerService',
-  TargetsPerSchedule = 'TargetsPerSchedule',
-  HeartbeatMonitorsPerService = 'HeartbeatMonitorsPerService',
-  UserOverridesPerSchedule = 'UserOverridesPerSchedule',
-}
+export type ConfigType = 'string' | 'stringList' | 'integer' | 'boolean'
+export type SystemLimitID =
+  | 'CalendarSubscriptionsPerUser'
+  | 'NotificationRulesPerUser'
+  | 'ContactMethodsPerUser'
+  | 'EPStepsPerPolicy'
+  | 'EPActionsPerStep'
+  | 'ParticipantsPerRotation'
+  | 'RulesPerSchedule'
+  | 'IntegrationKeysPerService'
+  | 'UnackedAlertsPerService'
+  | 'TargetsPerSchedule'
+  | 'HeartbeatMonitorsPerService'
+  | 'UserOverridesPerSchedule'
 export interface UserOverrideSearchOptions {
   first?: number
   after?: string
@@ -391,11 +385,7 @@ export interface Rotation {
   users: User[]
   nextHandoffTimes: ISOTimestamp[]
 }
-export enum RotationType {
-  weekly = 'weekly',
-  daily = 'daily',
-  hourly = 'hourly',
-}
+export type RotationType = 'weekly' | 'daily' | 'hourly'
 export interface UpdateAlertsInput {
   alertIDs: number[]
   newStatus: AlertStatus
@@ -515,11 +505,7 @@ export interface UpdateHeartbeatMonitorInput {
   name?: string
   timeoutMinutes?: number
 }
-export enum HeartbeatMonitorState {
-  inactive = 'inactive',
-  healthy = 'healthy',
-  unhealthy = 'unhealthy',
-}
+export type HeartbeatMonitorState = 'inactive' | 'healthy' | 'unhealthy'
 export interface HeartbeatMonitor {
   id: string
   serviceID: string
@@ -540,12 +526,7 @@ export interface IntegrationKey {
   name: string
   href: string
 }
-export enum IntegrationKeyType {
-  generic = 'generic',
-  grafana = 'grafana',
-  site24x7 = 'site24x7',
-  email = 'email',
-}
+export type IntegrationKeyType = 'generic' | 'grafana' | 'site24x7' | 'email'
 export interface ServiceOnCallUser {
   userID: string
   userName: string
@@ -559,11 +540,10 @@ export interface EscalationPolicy {
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
 }
-export enum AlertStatus {
-  StatusAcknowledged = 'StatusAcknowledged',
-  StatusClosed = 'StatusClosed',
-  StatusUnacknowledged = 'StatusUnacknowledged',
-}
+export type AlertStatus =
+  | 'StatusAcknowledged'
+  | 'StatusClosed'
+  | 'StatusUnacknowledged'
 export interface Target {
   id: string
   type: TargetType
@@ -573,22 +553,21 @@ export interface TargetInput {
   id: string
   type: TargetType
 }
-export enum TargetType {
-  escalationPolicy = 'escalationPolicy',
-  notificationChannel = 'notificationChannel',
-  slackChannel = 'slackChannel',
-  notificationPolicy = 'notificationPolicy',
-  rotation = 'rotation',
-  service = 'service',
-  schedule = 'schedule',
-  user = 'user',
-  integrationKey = 'integrationKey',
-  userOverride = 'userOverride',
-  notificationRule = 'notificationRule',
-  contactMethod = 'contactMethod',
-  heartbeatMonitor = 'heartbeatMonitor',
-  calendarSubscription = 'calendarSubscription',
-}
+export type TargetType =
+  | 'escalationPolicy'
+  | 'notificationChannel'
+  | 'slackChannel'
+  | 'notificationPolicy'
+  | 'rotation'
+  | 'service'
+  | 'schedule'
+  | 'user'
+  | 'integrationKey'
+  | 'userOverride'
+  | 'notificationRule'
+  | 'contactMethod'
+  | 'heartbeatMonitor'
+  | 'calendarSubscription'
 export interface ServiceConnection {
   nodes: Service[]
   pageInfo: PageInfo
@@ -617,11 +596,7 @@ export interface AuthSubjectInput {
   providerID: string
   subjectID: string
 }
-export enum UserRole {
-  unknown = 'unknown',
-  user = 'user',
-  admin = 'admin',
-}
+export type UserRole = 'unknown' | 'user' | 'admin'
 export interface User {
   id: string
   role: UserRole
@@ -640,10 +615,7 @@ export interface UserNotificationRule {
   contactMethodID: string
   contactMethod?: UserContactMethod
 }
-export enum ContactMethodType {
-  SMS = 'SMS',
-  VOICE = 'VOICE',
-}
+export type ContactMethodType = 'SMS' | 'VOICE'
 export interface UserContactMethod {
   id: string
   type?: ContactMethodType
