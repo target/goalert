@@ -77,7 +77,6 @@ export default function AdminConfig(): JSX.Element {
   }
 
   const updateValue = (id: string, value: string): void => {
-    console.log(values)
     const newVal: ConfigValues = { ...values }
 
     if (value === null) {
