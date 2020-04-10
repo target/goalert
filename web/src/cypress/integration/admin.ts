@@ -1,6 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen, Limits, Config } from '../support'
-import { SystemLimit } from '../../schema'
+import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
 function testAdmin(): void {
@@ -19,8 +18,8 @@ function testAdmin(): void {
 
       const ContactMethodsPerUser = limits.get(
         'ContactMethodsPerUser',
-      ) as SystemLimit
-      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimit
+      ) as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
 
       cy.form({
         ContactMethodsPerUser: newContactMethods,
@@ -49,8 +48,8 @@ function testAdmin(): void {
     it('should reset pending system limit value changes', () => {
       const ContactMethodsPerUser = limits.get(
         'ContactMethodsPerUser',
-      ) as SystemLimit
-      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimit
+      ) as SystemLimits
+      const EPActionsPerStep = limits.get('EPActionsPerStep') as SystemLimits
 
       cy.form({
         ContactMethodsPerUser: c.integer({ min: 0, max: 1000 }).toString(),
