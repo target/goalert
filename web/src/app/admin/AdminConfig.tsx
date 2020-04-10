@@ -16,6 +16,7 @@ import { InputAdornment, TextField } from '@material-ui/core'
 import CopyText from '../util/CopyText'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
+import { ConfigValue, ConfigHint } from '../../schema'
 
 const query = gql`
   query getConfig {
@@ -161,45 +162,36 @@ export default function AdminConfig(): JSX.Element {
                         (f: { id: string }) =>
                           f.id.split('.')[0] === groups[index],
                       )
-                      .map(
-                        (f: {
-                          id: string
-                          description: string
-                          password: boolean
-                          type: string
-                          value: string
-                        }) => ({
-                          id: f.id,
-                          label: startCase(
-                            chain(f.id.split('.')).last(),
-                          ).replace(/R Ls\b/, 'RLs'), // fix usages of `URLs`
-                          description: f.description,
-                          password: f.password,
-                          type: f.type,
-                          value: f.value,
-                        }),
-                      )}
+                      .map((f: ConfigValue) => ({
+                        id: f.id,
+                        label: startCase(chain(f.id.split('.')).last()).replace(
+                          /R Ls\b/,
+                          'RLs',
+                        ), // fix usages of `URLs`
+                        description: f.description,
+                        password: f.password,
+                        type: f.type,
+                        value: f.value,
+                      }))}
                   />
                   {hintGroups[groupID] &&
-                    hintGroups[groupID].map(
-                      (h: { id: string; value: string }) => (
-                        <TextField
-                          key={h.id}
-                          label={hintName(h.id)}
-                          value={h.value}
-                          variant='filled'
-                          margin='none'
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position='end'>
-                                <CopyText value={h.value} placement='left' />
-                              </InputAdornment>
-                            ),
-                          }}
-                          fullWidth
-                        />
-                      ),
-                    )}
+                    hintGroups[groupID].map((h: ConfigHint) => (
+                      <TextField
+                        key={h.id}
+                        label={hintName(h.id)}
+                        value={h.value}
+                        variant='filled'
+                        margin='none'
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position='end'>
+                              <CopyText value={h.value} placement='left' />
+                            </InputAdornment>
+                          ),
+                        }}
+                        fullWidth
+                      />
+                    ))}
                 </Card>
               </Form>
             </Grid>
