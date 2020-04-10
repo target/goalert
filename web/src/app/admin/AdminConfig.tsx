@@ -119,10 +119,10 @@ export default function AdminConfig(): JSX.Element {
   }
 
   const groups = uniq(
-    data.config.map((f: { id: string }) => f.id.split('.')[0]),
+    data.config.map((f: ConfigValue) => f.id.split('.')[0]),
   ) as string[]
   const hintGroups = chain(data.configHints)
-    .groupBy((f: { id: string }) => f.id.split('.')[0])
+    .groupBy((f: ConfigHint) => f.id.split('.')[0])
     .value()
   const hintName = (id: string): string => startCase(id.split('.')[1])
 
@@ -159,7 +159,7 @@ export default function AdminConfig(): JSX.Element {
                     }
                     fields={data.config
                       .filter(
-                        (f: { id: string }) =>
+                        (f: ConfigValue) =>
                           f.id.split('.')[0] === groups[index],
                       )
                       .map((f: ConfigValue) => ({
