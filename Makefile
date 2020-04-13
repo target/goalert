@@ -160,6 +160,7 @@ cy-mobile-prod-run: web/inline_data_gen.go cypress
 
 web/src/schema.d.ts: graphql2/schema.graphql
 	go generate ./web/src
+	(cd web/src && yarn prettier -l --write schema.d.ts)
 
 start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
 	# force rebuild to ensure build-flags are set
