@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@apollo/react-common@3.1.4", "@apollo/react-common@^3.1.3", "@apollo/react-common@^3.1.4":
+"@apollo/react-common@3.1.4", "@apollo/react-common@^3.1.4":
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/@apollo/react-common/-/react-common-3.1.4.tgz#ec13c985be23ea8e799c9ea18e696eccc97be345"
   integrity sha512-X5Kyro73bthWSCBJUC5XYQqMnG0dLWuDZmVkzog9dynovhfiVCV4kPSdgSIkqnb++cwCzOVuQ4rDKVwo2XRzQA==
@@ -10,29 +10,29 @@
     ts-invariant "^0.4.4"
     tslib "^1.10.0"
 
-"@apollo/react-components@^3.1.3":
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/@apollo/react-components/-/react-components-3.1.3.tgz#8f6726847cd9b0eb4b22586b1a038d29aa8b1da4"
-  integrity sha512-H0l2JKDQMz+LkM93QK7j3ThbNXkWQCduN3s3eKxFN3Rdg7rXsrikJWvx2wQ868jmqy0VhwJbS1vYdRLdh114uQ==
+"@apollo/react-components@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@apollo/react-components/-/react-components-3.1.4.tgz#29936a4862aee1c8fe5f25549509fecd45d2f40f"
+  integrity sha512-dLZFeJ+x48nPuo2BjFjfbl8afQyazoqU8xBTidMnYy99w9DcTHtnURTw18o2dT5jkfuIJEWjbTfxyjJnHk+clw==
   dependencies:
-    "@apollo/react-common" "^3.1.3"
-    "@apollo/react-hooks" "^3.1.3"
+    "@apollo/react-common" "^3.1.4"
+    "@apollo/react-hooks" "^3.1.4"
     prop-types "^15.7.2"
     ts-invariant "^0.4.4"
     tslib "^1.10.0"
 
-"@apollo/react-hoc@^3.1.3":
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/@apollo/react-hoc/-/react-hoc-3.1.3.tgz#5742ee74f57611058f5ea1f966c38fc6429dda7b"
-  integrity sha512-oCPma0uBVPTcYTR5sOvtMbpaWll4xDBvYfKr6YkDorUcQVeNzFu1LK1kmQjJP64bKsaziKYji5ibFaeCnVptmA==
+"@apollo/react-hoc@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@apollo/react-hoc/-/react-hoc-3.1.4.tgz#11accab356e15308f4721c670c7014aaeec7b3c0"
+  integrity sha512-dCzVM2/JzEWqwTocwozb9/msOgVY5EG7gh593IIXYcBfHcthSK21nIsbH/uDgwCcLSIZE2EOC3n0aKgDuoMtjA==
   dependencies:
-    "@apollo/react-common" "^3.1.3"
-    "@apollo/react-components" "^3.1.3"
+    "@apollo/react-common" "^3.1.4"
+    "@apollo/react-components" "^3.1.4"
     hoist-non-react-statics "^3.3.0"
     ts-invariant "^0.4.4"
     tslib "^1.10.0"
 
-"@apollo/react-hooks@3.1.4", "@apollo/react-hooks@^3.1.3":
+"@apollo/react-hooks@3.1.4", "@apollo/react-hooks@^3.1.4":
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/@apollo/react-hooks/-/react-hooks-3.1.4.tgz#2d966ed4fdf01729113850a72698faee490fd429"
   integrity sha512-yamD5a1Gu9fGQjZYEQn2nSG+BRyde4dy055agtYOvP/5/njJBSJ25tRFbjxKf7+YW9fsu2Xguib3anoQTuesNg==
@@ -42,13 +42,13 @@
     ts-invariant "^0.4.4"
     tslib "^1.10.0"
 
-"@apollo/react-ssr@^3.1.3":
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/@apollo/react-ssr/-/react-ssr-3.1.3.tgz#0791280d5b735f42f87dbfe849564e78843045bc"
-  integrity sha512-fUTmEYHxSTX1GA43B8vICxXXplpcEBnDwn0IgdAc3eG0p2YK97ZrJDRFCJ5vD7fyDZsrYhMf+rAI3sd+H2SS+A==
+"@apollo/react-ssr@^3.1.4":
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/@apollo/react-ssr/-/react-ssr-3.1.4.tgz#b2b4e29c480761ff749a53d19ab257037bef3648"
+  integrity sha512-c5KBD75RvSJqzpXpYngcOwLIbc7CAXhuMHrAH0J6+p4hfN+ZgqKdAOq0h143N1LfreUD4Is1PKXx4k2nPwifMw==
   dependencies:
-    "@apollo/react-common" "^3.1.3"
-    "@apollo/react-hooks" "^3.1.3"
+    "@apollo/react-common" "^3.1.4"
+    "@apollo/react-hooks" "^3.1.4"
     tslib "^1.10.0"
 
 "@babel/cli@7.8.4":
@@ -9448,16 +9448,16 @@ rc@^1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-apollo@3.1.3:
-  version "3.1.3"
-  resolved "https://registry.yarnpkg.com/react-apollo/-/react-apollo-3.1.3.tgz#5d8540b401bba36173b63e6c5e75fa561960c63e"
-  integrity sha512-orCZNoAkgveaK5b75y7fw1MSqSHOU/Wuu9rRFOGmRQBSQVZjvV4DI+hj604rHmuN9+WDABxb5W48wTa0F/xNZQ==
+react-apollo@3.1.4:
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/react-apollo/-/react-apollo-3.1.4.tgz#9a882ce557cd6e4f3c9d87b066223e9b4c5d9130"
+  integrity sha512-GDXTSava0wa9eWfPaVVhTFDZy06qbSxEW8JSJjd5l3mLIPwZoxdaI5EDjUr25h1XzsUJ/p3C64QHvsSiB9DrpQ==
   dependencies:
-    "@apollo/react-common" "^3.1.3"
-    "@apollo/react-components" "^3.1.3"
-    "@apollo/react-hoc" "^3.1.3"
-    "@apollo/react-hooks" "^3.1.3"
-    "@apollo/react-ssr" "^3.1.3"
+    "@apollo/react-common" "^3.1.4"
+    "@apollo/react-components" "^3.1.4"
+    "@apollo/react-hoc" "^3.1.4"
+    "@apollo/react-hooks" "^3.1.4"
+    "@apollo/react-ssr" "^3.1.4"
 
 react-beautiful-dnd@13.0.0:
   version "13.0.0"
