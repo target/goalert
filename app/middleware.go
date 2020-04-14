@@ -9,6 +9,7 @@ import (
 
 	"github.com/felixge/httpsnoop"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -25,6 +26,20 @@ func maxBodySizeMiddleware(size int64) func(next http.Handler) http.Handler {
 		}
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.Body = http.MaxBytesReader(w, r.Body, size)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func serveNotFoundGraphqlV1() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			cfg := config.FromContext(ctx)
+			if cfg.General.DisableV1GraphQL && strings.HasPrefix(r.URL.Path, "/v1/graphql") {
+				http.NotFound(w, r)
+				return
+			}
 			next.ServeHTTP(w, r)
 		})
 	}
