@@ -233,6 +233,7 @@ func (h *Harness) Start() {
 	}
 
 	var cfg config.Config
+	cfg.General.DisableV1GraphQL = true
 	cfg.Slack.Enable = true
 	cfg.Slack.AccessToken = h.slackApp.AccessToken
 	cfg.Slack.ClientID = h.slackApp.ClientID
