@@ -54,6 +54,8 @@ $(BIN_DIR)/psql-lite: go.sum devtools/psql-lite/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
+$(BIN_DIR)/procwrap: go.sum devtools/procwrap/*.go
+	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go migrate/*.go
@@ -73,6 +75,8 @@ $(BIN_DIR)/psql-lite.linux: go.sum devtools/psql-lite/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
 $(BIN_DIR)/waitfor.linux: go.sum devtools/waitfor/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
+$(BIN_DIR)/procwrap.linux: go.sum devtools/procwrap/*.go
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))	
 $(BIN_DIR)/simpleproxy.linux: go.sum devtools/simpleproxy/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
 $(BIN_DIR)/resetdb.linux: go.sum devtools/resetdb/*.go migrate/*.go
@@ -142,7 +146,7 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
+cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
 	web/src/node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js

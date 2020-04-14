@@ -14,8 +14,9 @@
 
 const wp = require('@cypress/webpack-preprocessor')
 const fs = require('fs')
+const { tasks } = require('../ci-plugins')
 
-module.exports = (on) => {
+module.exports = on => {
   require('cypress-plugin-retries/lib/plugin')(on)
 
   // `on` is used to hook into various events Cypress emits
@@ -45,11 +46,5 @@ module.exports = (on) => {
     },
   }
   on('file:preprocessor', wp(options))
-  on('task', {
-    'engine:trigger': () => {
-      const data = fs.readFileSync('../../runjson/Backend.pid')
-      process.kill(parseInt(data.toString(), 10), 'SIGUSR2')
-      return null
-    },
-  })
+  on('task', tasks)
 }

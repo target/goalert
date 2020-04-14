@@ -9,6 +9,8 @@
   {
     "Name": "Backend",
     "Command": [
+      "bin/procwrap",
+      "-test=localhost:3042",
       "bin/goalert",
       "-l=localhost:3042",
       "--ui-url=http://localhost:3045",

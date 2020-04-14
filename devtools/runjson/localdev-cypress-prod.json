@@ -9,6 +9,8 @@
   {
     "Name": "Backend",
     "Command": [
+      "bin/procwrap",
+      "-test=localhost:3042",
       "bin/goalert",
       "-l=localhost:3042",
       "--db-url=postgres://postgres@localhost:5433/postgres?sslmode=disable",
