@@ -1,10 +1,5 @@
 import { Chance } from 'chance'
-import {
-  Schedule,
-  ScheduleTarget,
-  ScheduleTargetInput,
-  TargetType,
-} from '../../schema'
+import { Schedule, ScheduleTarget, ScheduleTargetInput } from '../../schema'
 
 const c = new Chance()
 
@@ -37,7 +32,7 @@ function setScheduleTarget(
     return cy.createRotation().then((r: Rotation) =>
       setScheduleTarget({
         ...scheduleTgt,
-        target: { type: 'rotation' as TargetType, id: r.id },
+        target: { type: 'rotation', id: r.id },
       }),
     )
   }
