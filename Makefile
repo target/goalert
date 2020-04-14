@@ -31,7 +31,6 @@ export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
 ifdef LOG_DIR
 RUNJSON_ARGS += -logs=$(LOG_DIR)
 endif
-RUNJSON_ARGS += -pid=runjson
 
 export CGO_ENABLED = 0
 export PATH := $(PWD)/bin:$(PATH)
@@ -118,7 +117,7 @@ $(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cyp
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert.linux $(BIN_DIR)/mockslack.linux $(BIN_DIR)/simpleproxy.linux $(BIN_DIR)/waitfor.linux $(BIN_DIR)/runjson.linux $(BIN_DIR)/psql-lite.linux
+$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert.linux $(BIN_DIR)/mockslack.linux $(BIN_DIR)/simpleproxy.linux $(BIN_DIR)/waitfor.linux $(BIN_DIR)/runjson.linux $(BIN_DIR)/procwrap.linux $(BIN_DIR)/psql-lite.linux
 	rm -rf $@
 	mkdir -p bin/integration/goalert/bin
 	cp bin/*.linux bin/integration/goalert/bin/
