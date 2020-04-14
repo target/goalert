@@ -102,7 +102,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "alert escalation backend")
 	}
-	ncMgr, err := npcyclemanager.NewDB(ctx, db)
+	ncMgr, err := npcyclemanager.NewDB(ctx, db, c.AlertLogStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
