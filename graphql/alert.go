@@ -58,6 +58,7 @@ var alertLogEventType = g.NewEnum(g.EnumConfig{
 		"acknowledged":         &g.EnumValueConfig{Value: alertlog.TypeAcknowledged},
 		"escalation_request":   &g.EnumValueConfig{Value: alertlog.TypeEscalationRequest},
 		"notification_sent":    &g.EnumValueConfig{Value: alertlog.TypeNotificationSent},
+		"no_notification_sent":    &g.EnumValueConfig{Value: alertlog.TypeNoNotificationSent},
 		"policy_updated":       &g.EnumValueConfig{Value: alertlog.TypePolicyUpdated},
 		"duplicate_suppressed": &g.EnumValueConfig{Value: alertlog.TypeDuplicateSupressed},
 	},

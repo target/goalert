@@ -10,6 +10,7 @@ const (
 	TypeCreated            Type = "created"
 	TypeClosed             Type = "closed"
 	TypeNotificationSent   Type = "notification_sent"
+	TypeNoNotificationSent   Type = "no_notification_sent"
 	TypeEscalated          Type = "escalated"
 	TypeAcknowledged       Type = "acknowledged"
 	TypePolicyUpdated      Type = "policy_updated"
