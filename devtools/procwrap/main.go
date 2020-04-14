@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"sync"
 	"syscall"
 	"time"
@@ -25,18 +24,24 @@ func main() {
 	flag.StringVar(&testAddr, "test", "", "TCP address to connnect to as a healthcheck.")
 	flag.Parse()
 
-	start()
-	defer stop(true)
-
 	http.HandleFunc("/stop", handleStop)
 	http.HandleFunc("/start", handleStart)
 	http.HandleFunc("/signal", handleSignal)
 
-	err := http.ListenAndServe(*addr, nil)
+	start()
+	defer stop(true)
+
+	l, err := net.Listen("tcp", *addr)
+	if err != nil {
+		log.Fatal("listen:", err)
+	}
+
+	log.Println("procwrap: listening:", l.Addr().String())
+
+	err = http.Serve(l, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func handleStop(w http.ResponseWriter, req *http.Request) {
@@ -77,22 +82,11 @@ func start() {
 	ctx := context.Background()
 	ctx, cancel = context.WithCancel(ctx)
 
-	rawBin := flag.Arg(0)
-	bin, err := exec.LookPath(rawBin)
-	if err != nil {
-		log.Fatalf("lookup error %v", err)
-	}
-	bin, err = filepath.Abs(bin)
-	if err != nil {
-		log.Fatalf("lookup error %v", err)
-	}
-
-	cmd = exec.CommandContext(ctx, bin, flag.Args()[1:]...)
+	cmd = exec.CommandContext(ctx, flag.Arg(0), flag.Args()[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = ""
 
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		log.Fatal(err)
 	}

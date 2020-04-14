@@ -18,7 +18,6 @@
       "--slack-base-url=http://localhost:3040/slack",
       "--log-errors-only"
     ],
-    "Dir": "web/src",
     "Restart": true,
     "IgnoreErrors": true,
     "Watch": true,
