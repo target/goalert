@@ -44,7 +44,6 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	type record struct {
 		alertID int
 		userID  string
-		// TODO: populate meta data
 		meta *alertlog.NotificationMetaData
 	}
 
@@ -52,6 +51,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	for rows.Next() {
 		var rec record
 		err = rows.Scan(&rec.userID, &rec.alertID)
+		rec.meta = &alertlog.NotificationMetaData{}
 		if err != nil {
 			return err
 		}
