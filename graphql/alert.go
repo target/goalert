@@ -2,6 +2,10 @@ package graphql
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
@@ -10,9 +14,6 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/validation"
-	"sort"
-	"strings"
-	"time"
 
 	g "github.com/graphql-go/graphql"
 	"github.com/pkg/errors"
@@ -58,7 +59,7 @@ var alertLogEventType = g.NewEnum(g.EnumConfig{
 		"acknowledged":         &g.EnumValueConfig{Value: alertlog.TypeAcknowledged},
 		"escalation_request":   &g.EnumValueConfig{Value: alertlog.TypeEscalationRequest},
 		"notification_sent":    &g.EnumValueConfig{Value: alertlog.TypeNotificationSent},
-		"no_notification_sent":    &g.EnumValueConfig{Value: alertlog.TypeNoNotificationSent},
+		"no_notification_sent": &g.EnumValueConfig{Value: alertlog.TypeNoNotificationSent},
 		"policy_updated":       &g.EnumValueConfig{Value: alertlog.TypePolicyUpdated},
 		"duplicate_suppressed": &g.EnumValueConfig{Value: alertlog.TypeDuplicateSupressed},
 	},

@@ -2,6 +2,7 @@ package npcyclemanager
 
 import (
 	"context"
+
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -28,7 +29,6 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	}
 	log.Debugf(ctx, "Updating notification cycles.")
 
-
 	tx, err := db.lock.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 
 	type record struct {
 		alertID int
-		userID string
+		userID  string
 		// TODO: populate meta data
 		meta *alertlog.NotificationMetaData
 	}

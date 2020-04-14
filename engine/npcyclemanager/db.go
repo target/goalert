@@ -3,6 +3,7 @@ package npcyclemanager
 import (
 	"context"
 	"database/sql"
+
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
@@ -12,11 +13,11 @@ import (
 //
 // It handles queueing of notifications.
 type DB struct {
-	db *sql.DB
+	db   *sql.DB
 	lock *processinglock.Lock
 
 	queueMessages *sql.Stmt
-	log alertlog.Store
+	log           alertlog.Store
 }
 
 // Name returns the name of the module.
@@ -34,7 +35,7 @@ func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &DB{
-		log: log,
+		log:  log,
 		lock: lock,
 
 		// add messages for notification rules who's delay is between the last tick and now.
