@@ -81,7 +81,7 @@ func handleSignal(w http.ResponseWriter, req *http.Request) {
 func start() {
 	mx.Lock()
 	defer mx.Unlock()
-	// since it is a stub function, no not nil check needed
+
 	stop(false)
 	log.Println("starting", flag.Arg(0))
 
@@ -128,41 +128,11 @@ func stop(lock bool) {
 		mx.Lock()
 		defer mx.Unlock()
 	}
-	// since it is a stub function, no not nil check needed
 	cancel()
 	if cmd == nil {
 		return
 	}
 	log.Println("stopping", flag.Arg(0))
 
-	// waits for cancel to finish executing
-	// waits for process to actually stop running
 	cmd.Wait()
 }
-
-/*
-func (t *Task) run(ctx context.Context) error {
-	// Need logDir and pidDir?
-
-	// Get binary to be run
-	rawBin := t.Command[0]
-
-	bin, err := exec.LookPath(rawBin)
-	if err != nil {
-		return errors.Wrapf(err, "lookup %s", rawBin)
-	}
-	bin, err = filepath.Abs(bin)
-	if err != nil {
-		return errors.Wrapf(err, "lookup %s", rawBin)
-	}
-
-	procCtx, cancel := context.WithCancel(ctx)
-
-	cmd.Dir = t.Dir
-	// cmd.Stdout = stdout
-	// cmd.Stderr = stderr
-
-	err = cmd.Start()
-	return nil
-}
-*/
