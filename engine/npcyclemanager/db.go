@@ -13,7 +13,6 @@ import (
 //
 // It handles queueing of notifications.
 type DB struct {
-	db   *sql.DB
 	lock *processinglock.Lock
 
 	queueMessages *sql.Stmt
