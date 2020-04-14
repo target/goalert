@@ -31,37 +31,35 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 
 	tx, err := db.lock.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "begin tx")
 	}
 	defer tx.Rollback()
 
 	rows, err := tx.StmtContext(ctx, db.queueMessages).QueryContext(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "queue outgoing messages")
 	}
 	defer rows.Close()
 
 	type record struct {
 		alertID int
 		userID  string
-		meta    *alertlog.NotificationMetaData
 	}
 
 	var data []record
 	for rows.Next() {
 		var rec record
 		err = rows.Scan(&rec.userID, &rec.alertID)
-		rec.meta = &alertlog.NotificationMetaData{}
 		if err != nil {
-			return err
+			return errors.Wrap(err, "scan userID and alertID")
 		}
 		data = append(data, rec)
 	}
 
 	for _, rec := range data {
-		err = db.log.LogTx(ctx, tx, rec.alertID, alertlog.TypeNoNotificationSent, rec.meta)
+		err = db.log.LogTx(ctx, tx, rec.alertID, alertlog.TypeNoNotificationSent, nil)
 		if err != nil {
-			return errors.Wrap(err, "queue outgoing messages")
+			return errors.Wrap(err, "log no notifications sent")
 		}
 	}
 
