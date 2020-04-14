@@ -13,15 +13,20 @@ import (
 	"time"
 )
 
-var cancel = func() {}
-var cmd *exec.Cmd
-var mx sync.Mutex
-var testAddr string
+var (
+	cancel       = func() {}
+	cmd          *exec.Cmd
+	mx           sync.Mutex
+	testAddr     string
+	startTimeout time.Duration
+)
 
 func main() {
+	log.SetPrefix("procwrap: ")
 	log.SetFlags(log.Lshortfile)
 	addr := flag.String("addr", "127.0.0.1:3033", "address.")
 	flag.StringVar(&testAddr, "test", "", "TCP address to connnect to as a healthcheck.")
+	flag.DurationVar(&startTimeout, "timeout", 30*time.Second, "TCP test timeout when starting.")
 	flag.Parse()
 
 	http.HandleFunc("/stop", handleStop)
@@ -36,7 +41,7 @@ func main() {
 		log.Fatal("listen:", err)
 	}
 
-	log.Println("procwrap: listening:", l.Addr().String())
+	log.Println("listening:", l.Addr().String())
 
 	err = http.Serve(l, nil)
 	if err != nil {
@@ -78,6 +83,7 @@ func start() {
 	defer mx.Unlock()
 	// since it is a stub function, no not nil check needed
 	stop(false)
+	log.Println("starting", flag.Arg(0))
 
 	ctx := context.Background()
 	ctx, cancel = context.WithCancel(ctx)
@@ -97,17 +103,24 @@ func start() {
 
 	t := time.NewTicker(100 * time.Millisecond)
 	defer t.Stop()
+	to := time.NewTimer(startTimeout)
+	defer to.Stop()
 
-	for i := 0; i < 300; i++ {
-		c, err := net.Dial("tcp", testAddr)
-		if err != nil {
-			continue
+	for {
+		select {
+		case <-to.C:
+			log.Fatal("failed to start after 30 seconds.")
+		case <-t.C:
+			c, err := net.Dial("tcp", testAddr)
+			if err != nil {
+				continue
+			}
+			c.Close()
+			log.Println("started", flag.Arg(0))
+			return
 		}
-		c.Close()
-		return
 	}
 
-	log.Fatal("failed to start after 30 seconds.")
 }
 
 func stop(lock bool) {
@@ -120,6 +133,7 @@ func stop(lock bool) {
 	if cmd == nil {
 		return
 	}
+	log.Println("stopping", flag.Arg(0))
 
 	// waits for cancel to finish executing
 	// waits for process to actually stop running
