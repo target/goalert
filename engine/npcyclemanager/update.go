@@ -44,7 +44,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	type record struct {
 		alertID int
 		userID  string
-		meta *alertlog.NotificationMetaData
+		meta    *alertlog.NotificationMetaData
 	}
 
 	var data []record
