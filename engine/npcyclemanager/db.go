@@ -3,6 +3,7 @@ package npcyclemanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -101,10 +102,16 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					) and
 					concat(rule.delay_minutes,' minutes')::interval <= (now() - cycle.started_at)
 				returning cycle_id
+			), no_first_notif_sent as (
+				select user_id, alert_id
+				from process_cycles
+				where last_tick isnull and id not in (select cycle_id from inserted)
+			), update as (
+				update notification_policy_cycles
+				set last_tick = greatest(last_tick, now())
+				where id in (select id from process_cycles)
 			)
-			update notification_policy_cycles
-			set last_tick = greatest(last_tick, now())
-			where id in (select id from process_cycles)
+			select user_id, alert_id from no_first_notif_sent
 		`),
 	}, p.Err
 }
