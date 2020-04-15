@@ -135,7 +135,11 @@ export default class AdminConfig extends React.PureComponent {
                             .last()
                             .startCase()
                             .value()
-                            .replace(/R Ls\b/, 'RLs'), // fix usages of `URLs`
+                            .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
+                            .replace(
+                              'Disable V 1 Graph QL',
+                              'Disable V1 GraphQL',
+                            ),
                           description: f.description,
                           password: f.password,
                           type: f.type,
