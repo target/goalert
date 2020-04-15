@@ -25,7 +25,8 @@ type VoiceCall struct {
 
 	call twilio.Call
 
-	acceptCh chan bool
+	acceptCh chan struct{}
+	rejectCh chan struct{}
 
 	messageCh chan string
 	pressCh   chan string
@@ -63,11 +64,10 @@ func (vc *VoiceCall) process() {
 	vc.s.callCh <- vc
 
 	select {
-	case accepted := <-vc.acceptCh:
-		if !accepted {
-			vc.updateStatus(twilio.CallStatusFailed)
-			return
-		}
+	case <-vc.acceptCh:
+	case <-vc.rejectCh:
+		vc.updateStatus(twilio.CallStatusFailed)
+		return
 	case <-vc.s.shutdown:
 		return
 	}
@@ -85,6 +85,9 @@ func (vc *VoiceCall) process() {
 
 	for {
 		select {
+		case <-vc.rejectCh:
+			vc.updateStatus(twilio.CallStatusFailed)
+			return
 		case <-vc.s.shutdown:
 			return
 		case <-vc.hangupCh:
@@ -139,7 +142,8 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	}
 
 	vc := VoiceCall{
-		acceptCh:  make(chan bool, 1),
+		acceptCh:  make(chan struct{}),
+		rejectCh:  make(chan struct{}),
 		messageCh: make(chan string),
 		pressCh:   make(chan string, 1),
 		hangupCh:  make(chan struct{}),
@@ -272,16 +276,10 @@ func (vc *VoiceCall) cloneCall() *twilio.Call {
 }
 
 // Accept will allow a call to move from initiated to "in-progress".
-func (vc *VoiceCall) Accept() {
-	vc.acceptCh <- true
-	close(vc.acceptCh)
-}
+func (vc *VoiceCall) Accept() { close(vc.acceptCh) }
 
 // Reject will reject a call, moving it to a "failed" state.
-func (vc *VoiceCall) Reject() {
-	vc.acceptCh <- false
-	close(vc.acceptCh)
-}
+func (vc *VoiceCall) Reject() { close(vc.rejectCh) }
 
 // Hangup will end the call, setting it's state to "completed".
 func (vc *VoiceCall) Hangup() { close(vc.hangupCh) }
