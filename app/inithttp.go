@@ -122,8 +122,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
 
-		// serve page not found if v1 graphql api is disabled
-		serveNotFoundGraphqlV1(),
+		// return a 404 if the v1 graphql api is disabled
+		handleServingV1GraphQLRequests(),
 
 		// pause has to become before anything that uses the DB (like auth)
 		app.pauseHandler,
