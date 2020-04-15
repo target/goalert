@@ -143,30 +143,13 @@ func (sms *SMS) cloneMessage() *twilio.Message {
 	sms.mx.Lock()
 	defer sms.mx.Unlock()
 
-	var errCode *twilio.MessageErrorCode
-	var errMessage *string
-	if sms.msg.ErrorCode != nil {
-		code := *sms.msg.ErrorCode
-		errCode = &code
-	}
-	if sms.msg.ErrorMessage != nil {
-		msg := *sms.msg.ErrorMessage
-		errMessage = &msg
-	}
-
-	return &twilio.Message{
-		SID:          sms.msg.SID,
-		To:           sms.msg.To,
-		From:         sms.msg.From,
-		Status:       sms.msg.Status,
-		ErrorCode:    errCode,
-		ErrorMessage: errMessage,
-	}
+	msg := sms.msg
+	return &msg
 }
 
 func (s *Server) sms(id string) *SMS {
 	s.mx.RLock()
-	defer s.mx.Unlock()
+	defer s.mx.RUnlock()
 
 	return s.messages[id]
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/devtools/mocktwilio"
+	"github.com/target/goalert/notification/twilio"
 )
 
 // TwilioServer is used to assert voice and SMS behavior.
@@ -324,7 +325,8 @@ func (dev *twDevice) processSMS(sms *mocktwilio.SMS) {
 
 func (dev *twDevice) processCall(vc *mocktwilio.VoiceCall) {
 	dev.tw.t.Helper()
-	if vc.Message() == "" {
+
+	if vc.Status() == twilio.CallStatusRinging {
 		dev.tw.t.Logf("Twilio: Received voice call to %s, asking for message.", vc.To())
 		vc.Accept()
 		return

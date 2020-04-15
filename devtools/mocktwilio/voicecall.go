@@ -72,15 +72,15 @@ func (vc *VoiceCall) process() {
 		return
 	}
 
-	vc.updateStatus(twilio.CallStatusInProgress)
-	vc.callStart = time.Now()
-
-	var message string
 	message, err := vc.fetchMessage("")
 	if err != nil {
 		vc.s.errs <- fmt.Errorf("fetch message: %w", err)
 		return
 	}
+
+	vc.updateStatus(twilio.CallStatusInProgress)
+	vc.callStart = time.Now()
+
 	vc.s.callCh <- vc
 
 	for {
@@ -115,10 +115,7 @@ func (vc *VoiceCall) process() {
 
 func (s *Server) serveCallStatus(w http.ResponseWriter, req *http.Request) {
 	id := strings.TrimSuffix(path.Base(req.URL.Path), ".json")
-
-	s.mx.RLock()
-	vc := s.calls[id]
-	s.mx.RUnlock()
+	vc := s.call(id)
 
 	if vc == nil {
 		http.NotFound(w, req)
@@ -129,13 +126,24 @@ func (s *Server) serveCallStatus(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 }
+func (s *Server) call(id string) *VoiceCall {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
 
+	return s.calls[id]
+}
 func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
-	var vc VoiceCall
+
+	vc := VoiceCall{
+		acceptCh:  make(chan bool, 1),
+		messageCh: make(chan string),
+		pressCh:   make(chan string, 1),
+		hangupCh:  make(chan struct{}),
+	}
 
 	vc.call.From = req.FormValue("From")
 	s.mx.RLock()
@@ -152,6 +160,7 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	vc.call.SID = s.id("CA")
 	vc.call.SequenceNumber = new(int)
 	vc.callbackURL = req.FormValue("StatusCallback")
+
 	err := validate.URL("StatusCallback", vc.callbackURL)
 	if err != nil {
 		apiError(400, w, &twilio.Exception{
@@ -255,7 +264,11 @@ func (s *Server) VoiceCalls() chan *VoiceCall {
 }
 
 func (vc *VoiceCall) cloneCall() *twilio.Call {
-	return &vc.call
+	vc.mx.Lock()
+	defer vc.mx.Unlock()
+
+	call := vc.call
+	return &call
 }
 
 // Accept will allow a call to move from initiated to "in-progress".
@@ -315,6 +328,11 @@ func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 	}
 
 	return strings.Join(s, "\n"), nil
+}
+
+// Status will return the current status of the call.
+func (vc *VoiceCall) Status() twilio.CallStatus {
+	return vc.cloneCall().Status
 }
 
 // PressDigits will re-query for a spoken message with the given digits.
