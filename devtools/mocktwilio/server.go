@@ -35,7 +35,8 @@ type Server struct {
 	mx        sync.RWMutex
 	callbacks map[string]string
 
-	smsInCh chan *SMS
+	smsInCh  chan *SMS
+	callInCh chan *VoiceCall
 
 	smsCh  chan *SMS
 	callCh chan *VoiceCall
@@ -70,6 +71,7 @@ func NewServer(cfg Config) *Server {
 		smsCh:     make(chan *SMS),
 		smsInCh:   make(chan *SMS),
 		callCh:    make(chan *VoiceCall),
+		callInCh:  make(chan *VoiceCall),
 		errs:      make(chan error, 10000),
 		shutdown:  make(chan struct{}),
 	}
@@ -124,61 +126,8 @@ func (s *Server) post(url string, v url.Values) ([]byte, error) {
 	return data, nil
 }
 
-func (s *Server) processMessages() {
-	s.mx.Lock()
-	for _, sms := range s.messages {
-		if time.Since(sms.start) < s.cfg.MinQueueTime {
-			continue
-		}
-		switch sms.msg.Status {
-		case twilio.MessageStatusAccepted:
-			defer sms.updateStatus(twilio.MessageStatusQueued)
-		case twilio.MessageStatusQueued:
-			// move to sending once it's been pulled from the channel
-			select {
-			case s.smsCh <- sms:
-				sms.msg.Status = twilio.MessageStatusSending
-			default:
-			}
-		}
-	}
-	s.mx.Unlock()
-}
 func (s *Server) id(prefix string) string {
 	return fmt.Sprintf("%s%032d", prefix, atomic.AddUint64(&s.sidSeq, 1))
-}
-func (s *Server) processCalls() {
-	for _, vc := range s.calls {
-		if time.Since(vc.start) < s.cfg.MinQueueTime {
-			continue
-		}
-		switch vc.call.Status {
-		case twilio.CallStatusQueued:
-			vc.updateStatus(twilio.CallStatusInitiated)
-		case twilio.CallStatusInitiated:
-			// move to ringing once it's been pulled from the channel
-			s.mx.Lock()
-			select {
-			case s.callCh <- vc:
-				vc.call.Status = twilio.CallStatusRinging
-			default:
-			}
-			s.mx.Unlock()
-		case twilio.CallStatusInProgress:
-			s.mx.Lock()
-			if vc.hangup || vc.needsProcessing {
-				select {
-				case s.callCh <- vc:
-					vc.needsProcessing = false
-					if vc.hangup {
-						vc.call.Status = twilio.CallStatusCompleted
-					}
-				default:
-				}
-			}
-			s.mx.Unlock()
-		}
-	}
 }
 
 // Close will shutdown the server loop.
@@ -216,6 +165,8 @@ func (s *Server) loop() {
 			return
 		case sms := <-s.smsInCh:
 			sms.process()
+		case vc := <-s.callInCh:
+			vc.process()
 		}
 	}
 }

@@ -28,7 +28,6 @@ type SMS struct {
 }
 
 func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error) {
-
 	if statusURL != "" {
 		err := validate.URL("StatusCallback", statusURL)
 		if err != nil {
@@ -37,7 +36,11 @@ func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error
 				Message: err.Error(),
 			}
 		}
-		if s.callbacks["SMS:"+from] == "" {
+		s.mx.RLock()
+		_, hasCallback := s.callbacks["SMS:"+from]
+		s.mx.RUnlock()
+
+		if !hasCallback {
 			return nil, twilio.Exception{
 				Code:    21606,
 				Message: `The "From" phone number provided is not a valid, SMS-capable inbound phone number for your account.`,
