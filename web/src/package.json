@@ -158,7 +158,7 @@
     "file-loader": "6.0.0",
     "husky": "4.2.3",
     "ifdef-loader": "2.1.5",
-    "jest": "25.2.7",
+    "jest": "25.3.0",
     "json-loader": "0.5.7",
     "lint-staged": "10.1.1",
     "postcss-loader": "3.0.0",
