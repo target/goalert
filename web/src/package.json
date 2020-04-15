@@ -110,7 +110,7 @@
     "@babel/plugin-proposal-decorators": "7.8.3",
     "@babel/plugin-syntax-dynamic-import": "7.8.3",
     "@babel/plugin-transform-runtime": "7.9.0",
-    "@babel/preset-env": "7.8.7",
+    "@babel/preset-env": "7.9.5",
     "@babel/preset-react": "7.9.4",
     "@babel/preset-typescript": "7.9.0",
     "@cypress/webpack-preprocessor": "5.1.1",
