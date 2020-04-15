@@ -65,6 +65,9 @@ function getConfig(): Cypress.Chainable<Config> {
   return cy.adminLogin(true).then((tok: string) => getConfigDirect(tok))
 }
 
+/*
+ * Replaces the current config completely with cfg
+ */
 function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
   return cy.adminLogin(true).then((tok: string) =>
     cy
@@ -86,6 +89,9 @@ function merge(dst: Config, src: ConfigInput): Config {
   return dst
 }
 
+/*
+ * Updates the current config with newCfg
+ */
 function updateConfig(newCfg: ConfigInput): Cypress.Chainable<Config> {
   return getConfig().then((cfg) => {
     return setConfig(merge(cfg, newCfg))

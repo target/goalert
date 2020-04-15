@@ -79,7 +79,7 @@ export function testScreen(
     }
 
     before(() =>
-      cy.setConfig({
+      cy.updateConfig({
         General: {
           DisableV1GraphQL: true,
         },
