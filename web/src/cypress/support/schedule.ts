@@ -76,12 +76,12 @@ function setScheduleTarget(
   const { schedule, ...params } = tgt
 
   return cy
-    .graphql2(mutation, {
+    .graphql(mutation, {
       input: params,
     })
     .then(() => {
       return cy
-        .graphql2(query, {
+        .graphql(query, {
           id: params.scheduleID,
           tgt: params.target,
         })
@@ -109,7 +109,7 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
   if (!sched) sched = {}
 
   return cy
-    .graphql2(query, {
+    .graphql(query, {
       input: {
         name: sched.name || 'SM Sched ' + c.word({ length: 8 }),
         description: sched.description || c.sentence(),
@@ -127,7 +127,7 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
     }
   `
 
-  return cy.graphql2(mutation, {
+  return cy.graphql(mutation, {
     input: [
       {
         type: 'schedule',
