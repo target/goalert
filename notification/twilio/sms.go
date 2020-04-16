@@ -266,7 +266,10 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	body := req.FormValue("Body")
-	if strings.Contains(strings.ToLower(body), "stop") {
+	// twilio unsubscribes on single-word matches
+	// i.e. "please stop" will not result in unsubscribing on their end.
+	checkBody := func(str string) bool { return strings.ToLower(body) == str }
+	if checkBody("stop") || checkBody("stopall") || checkBody("unsubscribe") || checkBody("cancel") || checkBody("end") || checkBody("quit") {
 		err := retry.DoTemporaryError(func(int) error {
 			errCh := make(chan error, 1)
 			s.respCh <- &notification.MessageResponse{
@@ -275,7 +278,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 				Result: notification.ResultStop,
 				Err:    errCh,
 			}
-			return errors.Wrap(<-errCh, "process STOP message")
+			return errors.Wrap(<-errCh, "process opt-out message")
 		},
 			retry.Log(ctx),
 			retry.Limit(10),
