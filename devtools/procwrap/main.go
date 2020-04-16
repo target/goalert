@@ -8,17 +8,22 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 )
 
 var (
+	ctx          context.Context
 	cancel       = func() {}
 	cmd          *exec.Cmd
 	mx           sync.Mutex
 	testAddr     string
 	startTimeout time.Duration
+
+	lastExitCode int
+	wait         chan struct{}
+	stopping     chan struct{}
 )
 
 func main() {
@@ -32,6 +37,15 @@ func main() {
 	http.HandleFunc("/stop", handleStop)
 	http.HandleFunc("/start", handleStart)
 	http.HandleFunc("/signal", handleSignal)
+
+	go func() {
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch, shutdownSignals...)
+		sig := <-ch
+		signal.Reset(shutdownSignals...)
+		log.Printf("got signal %v, shutting down", sig)
+		os.Exit(stopWith(true, sig))
+	}()
 
 	start()
 	defer stop(true)
@@ -66,12 +80,13 @@ func handleSignal(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if req.FormValue("sig") != "SIGUSR2" {
+	sig, ok := supportedSignals[req.FormValue("sig")]
+	if !ok {
 		http.Error(w, "unsupported signal", http.StatusBadRequest)
 		return
 	}
 
-	err := cmd.Process.Signal(syscall.SIGUSR2)
+	err := cmd.Process.Signal(sig)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -96,6 +111,26 @@ func start() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	wait = make(chan struct{})
+	stopping = make(chan struct{})
+
+	// signal when the process has ended
+	go func() {
+		cmd.Wait()
+		close(wait)
+	}()
+
+	// ensure stop is called before process exits, or terminate
+	go func() {
+		select {
+		case <-stopping:
+		case <-wait:
+			code := stop(true)
+			log.Printf("process terminated unexpectedly: %v", code)
+			os.Exit(code)
+		}
+
+	}()
 
 	if testAddr == "" {
 		return
@@ -123,16 +158,31 @@ func start() {
 
 }
 
-func stop(lock bool) {
+func stopWith(lock bool, sig os.Signal) int {
 	if lock {
 		mx.Lock()
 		defer mx.Unlock()
 	}
-	cancel()
 	if cmd == nil {
-		return
+		return lastExitCode
 	}
 	log.Println("stopping", flag.Arg(0))
+	close(stopping)
 
-	cmd.Wait()
+	cmd.Process.Signal(os.Interrupt)
+	t := time.NewTimer(startTimeout)
+	defer t.Stop()
+	select {
+	case <-t.C:
+		log.Println("timed out waiting for process to exit sending KILL")
+	case <-wait:
+	}
+	cancel()
+
+	<-wait
+	lastExitCode = cmd.ProcessState.ExitCode()
+	cmd = nil
+	return lastExitCode
 }
+
+func stop(lock bool) int { return stopWith(lock, os.Interrupt) }
