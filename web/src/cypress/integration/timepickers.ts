@@ -1,5 +1,6 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
+import { Schedule, ScheduleTarget } from '../../schema'
 
 import { testScreen } from '../support'
 const c = new Chance()
@@ -8,17 +9,19 @@ function testTimePickers(): void {
   describe('Time (schedule assignments)', () => {
     const check = (name: string, params: string, display: string): Mocha.Test =>
       it(name, () => {
-        cy.setScheduleTarget({
-          schedule: { timeZone: 'America/New_York' },
-          rules: [
-            {
-              weekdayFilter: [true, false, false, false, false, false, false],
-              start: '15:04',
-              end: '04:23',
-            },
-          ],
-        }).then((tgt: ScheduleTarget) => {
-          return cy.visit(`/schedules/${tgt.schedule.id}/assignments${params}`)
+        cy.setScheduleTarget(
+          {
+            rules: [
+              {
+                weekdayFilter: [true, false, false, false, false, false, false],
+                start: '15:04',
+                end: '04:23',
+              },
+            ],
+          },
+          { timeZone: 'America/New_York' },
+        ).then((tgt: ScheduleTarget) => {
+          return cy.visit(`/schedules/${tgt.scheduleID}/assignments${params}`)
         })
         // sanity check
         cy.get('body').contains(display)
