@@ -31,7 +31,7 @@ func maxBodySizeMiddleware(size int64) func(next http.Handler) http.Handler {
 	}
 }
 
-func handleServingV1GraphQLRequests() func(next http.Handler) http.Handler {
+func graphQLV1DeprecationMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
