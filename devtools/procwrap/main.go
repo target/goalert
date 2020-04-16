@@ -38,9 +38,9 @@ func main() {
 	http.HandleFunc("/start", handleStart)
 	http.HandleFunc("/signal", handleSignal)
 
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, shutdownSignals...)
 	go func() {
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, shutdownSignals...)
 		sig := <-ch
 		signal.Reset(shutdownSignals...)
 		log.Printf("got signal %v, shutting down", sig)

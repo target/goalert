@@ -119,7 +119,7 @@ func (t *Task) run(ctx context.Context, pad int, attr color.Attribute, w io.Writ
 	defer tick.Stop()
 
 	for {
-		procCtx, cancel := context.WithCancel(ctx)
+		procCtx, cancel := context.WithCancel(context.Background())
 		hash := hashFile(bin)
 		if t.Watch {
 			go func() {
@@ -163,7 +163,34 @@ func (t *Task) run(ctx context.Context, pad int, attr color.Attribute, w io.Writ
 			}
 		}
 
-		err = cmd.Wait()
+		procWaitCh := make(chan struct{})
+
+		go func() {
+			defer cancel()
+
+			select {
+			case <-procCtx.Done():
+				return
+			case <-ctx.Done():
+			}
+
+			// top level context exited, attempt to terminate gracefully
+			cmd.Process.Signal(os.Interrupt)
+			log.Println("Propagating interrupt signal:", t.Name)
+			t := time.NewTimer(10 * time.Second)
+			defer t.Stop()
+
+			select {
+			case <-t.C:
+			case <-procCtx.Done():
+			}
+		}()
+
+		go func() {
+			defer close(procWaitCh)
+			err = cmd.Wait()
+		}()
+		<-procWaitCh
 		cancel()
 		if err != nil && !t.IgnoreErrors {
 			return errors.Wrapf(err, "run %s", t.Name)
