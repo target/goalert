@@ -214,6 +214,17 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 
 }
 
+// isStopMessage checks the body of the message against single-word matches
+// i.e. "stop" will unsubscribe, however "please stop" will not.
+func isStopMessage(body string) bool {
+	switch strings.ToLower(body) {
+	case "stop", "stopall", "unsubscribe", "cancel", "end", "quit":
+		return true
+	}
+
+	return false
+}
+
 func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
 		return
@@ -266,7 +277,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	body := req.FormValue("Body")
-	if strings.Contains(strings.ToLower(body), "stop") {
+	if isStopMessage(body) {
 		err := retry.DoTemporaryError(func(int) error {
 			errCh := make(chan error, 1)
 			s.respCh <- &notification.MessageResponse{
@@ -275,7 +286,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 				Result: notification.ResultStop,
 				Err:    errCh,
 			}
-			return errors.Wrap(<-errCh, "process STOP message")
+			return errors.Wrap(<-errCh, "process opt-out message")
 		},
 			retry.Log(ctx),
 			retry.Limit(10),
