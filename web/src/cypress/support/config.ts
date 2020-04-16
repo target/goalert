@@ -102,7 +102,7 @@ function resetConfig(): Cypress.Chainable<Config> {
   const base = String(Cypress.config('baseUrl'))
 
   return setConfig({
-    General: { PublicURL: base },
+    General: { PublicURL: base, DisableV1GraphQL: true },
     Slack: {
       Enable: true,
       ClientID: '000000000000.000000000000',

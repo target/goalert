@@ -78,14 +78,6 @@ export function testScreen(
       it(adminLogin ? 'admin login' : 'login', () => {}) // required due to mocha skip bug
     }
 
-    before(() =>
-      cy.updateConfig({
-        General: {
-          DisableV1GraphQL: true,
-        },
-      }),
-    )
-
     describe(screenName(), () => fn(screen()))
   })
 }
