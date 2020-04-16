@@ -27,7 +27,7 @@ type Config struct {
 		DisableSMSLinks              bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
 		DisableLabelCreation         bool   `public:"true" info:"Disables the ability to create new labels for services."`
 		DisableCalendarSubscriptions bool   `public:"true" info:"If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions."`
-		DisableV1GraphQL             bool   `public:"true" info:"Deprecated API. Disables the ability to use the /v1/graphql api. Please use /api/graphql instead."`
+		DisableV1GraphQL             bool   `info:"Disables the deprecated /v1/graphql endpoint (replaced by /api/graphql)."`
 	}
 
 	Maintenance struct {
