@@ -37,13 +37,11 @@ type VoiceCall struct {
 
 	// callStart tracks when the call was accepted
 	// and is used to cacluate call.CallDuration when completed.
-	callStart       time.Time
-	url             string
-	callbackURL     string
-	callbackEvents  []string
-	message         string
-	needsProcessing bool
-	hangup          bool
+	callStart      time.Time
+	url            string
+	callbackURL    string
+	callbackEvents []string
+	hangup         bool
 
 	outbound bool
 }
@@ -81,7 +79,11 @@ func (vc *VoiceCall) process() {
 	vc.updateStatus(twilio.CallStatusInProgress)
 	vc.callStart = time.Now()
 
-	vc.s.callCh <- vc
+	select {
+	case vc.s.callCh <- vc:
+	case <-vc.s.shutdown:
+		return
+	}
 
 	for {
 		select {
@@ -105,12 +107,11 @@ func (vc *VoiceCall) process() {
 				vc.updateStatus(twilio.CallStatusCompleted)
 				return
 			}
-			if vc.needsProcessing {
-				select {
-				case vc.s.callCh <- vc:
-				case <-vc.s.shutdown:
-					return
-				}
+
+			select {
+			case vc.s.callCh <- vc:
+			case <-vc.s.shutdown:
+				return
 			}
 		}
 	}
@@ -310,11 +311,8 @@ func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 		vc.url = r.Gather.Action
 	}
 	if r.RedirectURL != "" {
-		vc.needsProcessing = false
 		// Twilio's own implementation is totally broken with relative URLs, so we assume absolute (since that's all we use as a consequence)
 		vc.url = r.RedirectURL
-	} else {
-		vc.needsProcessing = true
 	}
 	if r.Hangup != nil {
 		vc.hangup = true
