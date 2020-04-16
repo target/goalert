@@ -50,7 +50,7 @@ function createCalendarSubscription(
 
   // create and return subscription
   return cy
-    .graphql2(mutation, {
+    .graphql(mutation, {
       input: {
         name: cs?.name || 'SM Subscription ' + c.word({ length: 8 }),
         reminderMinutes,
