@@ -3,6 +3,7 @@ interface General {
   DisableLabelCreation: boolean
   NotificationDisclaimer: string
   DisableCalendarSubscriptions: boolean
+  DisableV1GraphQL: boolean
 }
 
 interface Auth {
