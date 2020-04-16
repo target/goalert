@@ -67,7 +67,6 @@ function getConfig(): Cypress.Chainable<Config> {
 
 /*
  * setConfig replaces the current config completely with cfg
- *
  */
 function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
   return cy.adminLogin(true).then((tok: string) =>
