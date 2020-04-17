@@ -77,6 +77,7 @@ export function testScreen(
       before(() => cy.resetConfig()[adminLogin ? 'adminLogin' : 'login']())
       it(adminLogin ? 'admin login' : 'login', () => {}) // required due to mocha skip bug
     }
+
     describe(screenName(), () => fn(screen()))
   })
 }
