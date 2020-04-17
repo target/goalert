@@ -101,9 +101,6 @@ func (e Entry) Subject() *Subject {
 	case SubjectTypeChannel:
 		s.ID = e.subject.channelID.String
 		s.Name = e.subject.channelName.String
-	case SubjectTypeNoNotification:
-		s.ID = e.subject.userID.String
-		s.Name = e.subject.userName.String
 	}
 
 	return s
@@ -146,7 +143,6 @@ func (e Entry) String() string {
 		infinitive = true
 	case TypeNoNotificationSent:
 		msg = "No notification sent"
-		e.subject._type = SubjectTypeNoNotification
 		infinitive = true
 	case TypePolicyUpdated:
 		msg = "Policy updated"

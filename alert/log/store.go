@@ -52,7 +52,6 @@ type DB struct {
 	lookupCMType       *sql.Stmt
 	lookupNCTypeName   *sql.Stmt
 	lookupHBInterval   *sql.Stmt
-	lookupNotifiedUser *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
@@ -60,9 +59,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 	return &DB{
 		db: db,
-		lookupNotifiedUser: p.P(`
-			select name from users where id = $1 
- 		`),
 		lookupCallbackType: p.P(`
 			select cm."type"
 			from outgoing_messages log
@@ -291,18 +287,13 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	}
 
 	if r._type == TypeNoNotificationSent {
-		r.subject._type = SubjectTypeNoNotification
-		var name string
+		r.subject._type = SubjectTypeUser
 		var notificationMeta, ok = r.Meta().(*NotificationMetaData)
 		if ok {
-			err = txWrap(ctx, tx, db.lookupNotifiedUser).QueryRowContext(ctx, notificationMeta.UserID).Scan(&name)
-			if err != nil {
-				return errors.Wrap(err, "lookup userName for userID")
-			}
+			r.subject.userID.String = notificationMeta.UserID
+			r.subject.userID.Valid = true
 		}
-		r.subject.userID.String = notificationMeta.UserID
-		r.subject.userID.Valid = true
-		r.subject.userName.String = name
+		r.subject.classifier = "no immediate rule"
 	}
 
 	src := permission.Source(ctx)
