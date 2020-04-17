@@ -163,7 +163,7 @@
     "lint-staged": "10.1.1",
     "postcss-loader": "3.0.0",
     "prettier": "2.0.2",
-    "raw-loader": "4.0.0",
+    "raw-loader": "4.0.1",
     "react-hot-loader": "4.12.20",
     "redux": "4.0.5",
     "redux-devtools-extension": "2.13.8",
