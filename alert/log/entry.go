@@ -41,6 +41,14 @@ func (e Entry) Meta() interface{} {
 			return nil
 		}
 		return &esc
+	case TypeNoNotificationSent:
+		var meta NotificationMetaData
+		err := json.Unmarshal(e.meta, &meta)
+		if err != nil {
+			log.Debug(context.Background(), err)
+			return nil
+		}
+		return &meta
 	}
 
 	return nil
@@ -93,6 +101,9 @@ func (e Entry) Subject() *Subject {
 	case SubjectTypeChannel:
 		s.ID = e.subject.channelID.String
 		s.Name = e.subject.channelName.String
+	case SubjectTypeNoNotification:
+		s.ID = e.subject.userID.String
+		s.Name = e.subject.userName.String
 	}
 
 	return s
@@ -135,6 +146,8 @@ func (e Entry) String() string {
 		infinitive = true
 	case TypeNoNotificationSent:
 		msg = "No notification sent"
+		e.subject._type = SubjectTypeNoNotification
+		infinitive = true
 	case TypePolicyUpdated:
 		msg = "Policy updated"
 	case TypeDuplicateSupressed:

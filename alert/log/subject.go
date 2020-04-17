@@ -11,6 +11,7 @@ type SubjectType string
 // Possible subject types
 const (
 	SubjectTypeUser             SubjectType = "user"
+	SubjectTypeNoNotification   SubjectType = "no_notification"
 	SubjectTypeIntegrationKey   SubjectType = "integration_key"
 	SubjectTypeHeartbeatMonitor SubjectType = "heartbeat_monitor"
 	SubjectTypeChannel          SubjectType = "channel"
@@ -34,7 +35,7 @@ func (s *SubjectType) Scan(value interface{}) error {
 }
 func (s SubjectType) Value() (driver.Value, error) {
 	switch s {
-	case SubjectTypeUser, SubjectTypeIntegrationKey, SubjectTypeHeartbeatMonitor, SubjectTypeChannel:
+	case SubjectTypeUser, SubjectTypeNoNotification, SubjectTypeIntegrationKey, SubjectTypeHeartbeatMonitor, SubjectTypeChannel:
 		return string(s), nil
 	default:
 		return nil, nil
@@ -77,6 +78,8 @@ func subjectString(infinitive bool, s *Subject) string {
 		str += " integration"
 	case SubjectTypeHeartbeatMonitor:
 		str += " heartbeat monitor"
+	case SubjectTypeNoNotification:
+		str += " (no immediate rule)"
 	}
 
 	if s.Classifier != "" {
