@@ -164,10 +164,12 @@ export default function AdminConfig(): JSX.Element {
                       )
                       .map((f: ConfigValue) => ({
                         id: f.id,
-                        label: startCase(chain(f.id.split('.')).last()).replace(
-                          /R Ls\b/,
-                          'RLs',
-                        ), // fix usages of `URLs`
+                        label: startCase(chain(f.id.split('.')).last())
+                          .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
+                          .replace(
+                            'Disable V 1 Graph QL',
+                            'Disable V1 GraphQL',
+                          ),
                         description: f.description,
                         password: f.password,
                         type: f.type,

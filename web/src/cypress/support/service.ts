@@ -20,7 +20,7 @@ function getService(svcID: string): Cypress.Chainable<Service> {
     }
   `
   return cy
-    .graphql2(query, { id: svcID })
+    .graphql(query, { id: svcID })
     .then((res: GraphQLResponse) => res.service)
 }
 
@@ -51,7 +51,7 @@ function createService(svc?: ServiceOptions): Cypress.Chainable<Service> {
   }
 
   return cy
-    .graphql2(query, {
+    .graphql(query, {
       input: {
         name: svc.name || 'SM Svc ' + c.word({ length: 8 }),
         description: svc.description || c.sentence(),
@@ -68,7 +68,7 @@ function deleteService(id: string): Cypress.Chainable<void> {
       deleteService(input: $input) { id }
     }
   `
-  return cy.graphql2(query, { input: { id } })
+  return cy.graphql(query, { input: { id } })
 }
 
 function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
@@ -90,7 +90,7 @@ function createLabel(label?: LabelOptions): Cypress.Chainable<Label> {
   const svcID = label.svcID
 
   return cy
-    .graphql2(query, {
+    .graphql(query, {
       input: {
         target: {
           type: 'service',
@@ -136,7 +136,7 @@ function createHeartbeatMonitor(
   `
 
   return cy
-    .graphql2(query, {
+    .graphql(query, {
       input: {
         serviceID: svcID,
         name: name,

@@ -28,7 +28,7 @@ function createRotation(rot?: RotationOptions): Cypress.Chainable<Rotation> {
     const ids = c.pickset(users, rot.count).map((usr: Profile) => usr.id)
 
     return cy
-      .graphql2(query, {
+      .graphql(query, {
         input: {
           name: rot.name || 'SM Rot ' + c.word({ length: 8 }),
           description: rot.description || c.sentence(),
@@ -56,7 +56,7 @@ function deleteRotation(id: string): Cypress.Chainable<void> {
     }
   `
 
-  return cy.graphql2(query, { input: { id: id, type: 'rotation' } })
+  return cy.graphql(query, { input: { id: id, type: 'rotation' } })
 }
 
 Cypress.Commands.add('createRotation', createRotation)

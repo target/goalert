@@ -27,6 +27,6 @@ interface CalendarSubscriptionOptions {
   name?: string
   reminderMinutes?: Array<number>
   scheduleID?: string
-  schedule?: ScheduleOptions
+  schedule?: Partial<Schedule>
   disabled?: boolean
 }

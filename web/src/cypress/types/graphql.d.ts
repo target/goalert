@@ -1,7 +1,6 @@
 declare namespace Cypress {
   interface Chainable {
     graphql: typeof graphql
-    graphql2: typeof graphql
   }
 }
 

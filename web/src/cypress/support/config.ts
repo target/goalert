@@ -3,6 +3,7 @@ interface General {
   DisableLabelCreation: boolean
   NotificationDisclaimer: string
   DisableCalendarSubscriptions: boolean
+  DisableV1GraphQL: boolean
 }
 
 interface Auth {
@@ -65,6 +66,9 @@ function getConfig(): Cypress.Chainable<Config> {
   return cy.adminLogin(true).then((tok: string) => getConfigDirect(tok))
 }
 
+/*
+ * setConfig replaces the current config completely with cfg
+ */
 function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
   return cy.adminLogin(true).then((tok: string) =>
     cy
@@ -86,6 +90,10 @@ function merge(dst: Config, src: ConfigInput): Config {
   return dst
 }
 
+/*
+ * updateConfig updates the config by merging the
+ * provided newCfg values into the current config
+ */
 function updateConfig(newCfg: ConfigInput): Cypress.Chainable<Config> {
   return getConfig().then((cfg) => {
     return setConfig(merge(cfg, newCfg))
@@ -96,7 +104,7 @@ function resetConfig(): Cypress.Chainable<Config> {
   const base = String(Cypress.config('baseUrl'))
 
   return setConfig({
-    General: { PublicURL: base },
+    General: { PublicURL: base, DisableV1GraphQL: true },
     Slack: {
       Enable: true,
       ClientID: '000000000000.000000000000',

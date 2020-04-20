@@ -1,5 +1,7 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
+import { Schedule, ScheduleTarget } from '../../schema'
+
 const c = new Chance()
 
 function testSchedules(screen: ScreenFormat): void {
@@ -156,7 +158,7 @@ function testSchedules(screen: ScreenFormat): void {
         })
         .then((s: ScheduleTarget) => {
           sched = s
-          return cy.visit('/schedules/' + sched.schedule.id + '/assignments')
+          return cy.visit('/schedules/' + sched.scheduleID + '/assignments')
         })
     })
 

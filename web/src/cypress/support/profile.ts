@@ -50,7 +50,7 @@ function addContactMethod(
 
   const newPhone = '+1763' + c.integer({ min: 3000000, max: 3999999 })
   return cy
-    .graphql2(mutation, {
+    .graphql(mutation, {
       input: {
         userID: cm.userID,
         name: cm.name || 'SM CM ' + c.word({ length: 8 }),
@@ -100,7 +100,7 @@ function addNotificationRule(
   `
 
   return cy
-    .graphql2(mutation, {
+    .graphql(mutation, {
       input: {
         userID: nr.userID,
         contactMethodID: nr.contactMethodID,
@@ -135,11 +135,11 @@ function clearContactMethods(id: string): Cypress.Chainable {
     }
   `
 
-  return cy.graphql2(query, { id }).then((res: GraphQLResponse) => {
+  return cy.graphql(query, { id }).then((res: GraphQLResponse) => {
     if (!res.user.contactMethods.length) return
 
     res.user.contactMethods.forEach((cm: ContactMethod) => {
-      cy.graphql2(mutation, {
+      cy.graphql(mutation, {
         input: [
           {
             type: 'contactMethod',
@@ -162,7 +162,7 @@ function resetProfile(prof?: Profile): Cypress.Chainable {
     }
   `
 
-  return clearContactMethods(prof.id).graphql2(mutation, {
+  return clearContactMethods(prof.id).graphql(mutation, {
     input: {
       id: prof.id,
       name: prof.name,
