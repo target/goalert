@@ -291,10 +291,10 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	body := req.FormValue("Body")
 	if isStartMessage(body) || isStopMessage(body) {
 		r := notification.ResultStart
-		msg := "process resubscribe message"
+		msg := "process opt-in message"
 		if isStopMessage(body) {
 			r = notification.ResultStop
-			msg = "process unsubscribe message"
+			msg = "process opt-out message"
 		}
 
 		err := retry.DoTemporaryError(func(int) error {

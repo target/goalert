@@ -126,7 +126,7 @@ func (db *DB) EnableByValue(ctx context.Context, t Type, v string) error {
 			"contactMethodID": id,
 		})
 
-		log.Logf(logCtx, "Contact method resubscribe code received.")
+		log.Logf(logCtx, "Contact method opt-in code received.")
 	}
 
 	return err
@@ -153,7 +153,7 @@ func (db *DB) DisableByValue(ctx context.Context, t Type, v string) error {
 			"contactMethodID": id,
 		})
 
-		log.Logf(logCtx, "Contact method unsubscribe code received.")
+		log.Logf(logCtx, "Contact method opt-out code received.")
 	}
 
 	return err
