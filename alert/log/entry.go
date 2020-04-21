@@ -41,14 +41,6 @@ func (e Entry) Meta() interface{} {
 			return nil
 		}
 		return &esc
-	case TypeNoNotificationSent:
-		var meta NotificationMetaData
-		err := json.Unmarshal(e.meta, &meta)
-		if err != nil {
-			log.Debug(context.Background(), err)
-			return nil
-		}
-		return &meta
 	}
 
 	return nil

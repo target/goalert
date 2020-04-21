@@ -7,8 +7,3 @@ type EscalationMetaData struct {
 	Deleted         bool
 	OldDelayMinutes int
 }
-
-type NotificationMetaData struct {
-	UserID string
-	CMType string
-}

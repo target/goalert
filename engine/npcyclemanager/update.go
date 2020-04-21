@@ -44,7 +44,6 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	type record struct {
 		alertID int
 		userID  string
-		meta    *alertlog.NotificationMetaData
 	}
 
 	var data []record
@@ -54,12 +53,15 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 		if err != nil {
 			return errors.Wrap(err, "scan userID and alertID")
 		}
-		rec.meta = &alertlog.NotificationMetaData{UserID: rec.userID}
 		data = append(data, rec)
 	}
 
 	for _, rec := range data {
-		err = db.log.LogTx(ctx, tx, rec.alertID, alertlog.TypeNoNotificationSent, rec.meta)
+		logCtx := permission.UserSourceContext(ctx, rec.userID, permission.RoleUser, &permission.SourceInfo{
+			Type: permission.SourceTypeContactMethod,
+			// no ID available, since notification couldn't be sent
+		})
+		err = db.log.LogTx(logCtx, tx, rec.alertID, alertlog.TypeNoNotificationSent, nil)
 		if err != nil {
 			return errors.Wrap(err, "log no notifications sent")
 		}
