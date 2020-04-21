@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-import Query from '../util/Query'
 import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
