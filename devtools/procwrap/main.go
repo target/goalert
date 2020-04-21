@@ -169,7 +169,7 @@ func stopWith(lock bool, sig os.Signal) int {
 	log.Println("stopping", flag.Arg(0))
 	close(stopping)
 
-	cmd.Process.Signal(os.Interrupt)
+	cmd.Process.Signal(sig)
 	t := time.NewTimer(startTimeout)
 	defer t.Stop()
 	select {
