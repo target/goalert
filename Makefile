@@ -201,7 +201,7 @@ graphql2/mapconfig.go: $(CFGPARAMS) config/config.go
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml
 	go generate ./graphql2
 
-generate:
+generate: web/src/node_modules
 	go generate ./...
 
 smoketest: install bin/goalert
