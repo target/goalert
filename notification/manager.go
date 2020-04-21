@@ -226,7 +226,10 @@ func (m *Manager) receive(ctx context.Context, providerID string, resp *MessageR
 	}),
 		"response received",
 	)
-	if resp.Result == ResultStop {
+
+	if resp.Result == ResultStart {
+		return m.r.Start(ctx, resp.From)
+	} else if resp.Result == ResultStop {
 		return m.r.Stop(ctx, resp.From)
 	}
 
