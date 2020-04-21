@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	ctx          context.Context
 	cancel       = func() {}
 	cmd          *exec.Cmd
 	mx           sync.Mutex
