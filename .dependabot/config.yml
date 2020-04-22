@@ -4,9 +4,10 @@ update_configs:
     directory: "/web/src/"
     update_schedule: "daily"
     ignored_updates:
+      # see https://github.com/target/goalert/pull/625
       - match:
           dependency_name: "@date-io/luxon"
-          version_requirement: "<=2.4.0"
+          version_requirement: "<=2.6.0"
       # see https://github.com/target/goalert/pull/634
       - match:
           dependency_name: "@material-ui/core"
