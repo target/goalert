@@ -65,7 +65,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
+	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527
 	golang.org/x/tools v0.0.0-20200305140159-d7d444866696
 	google.golang.org/genproto v0.0.0-20200305110556-506484158171 // indirect
 	gopkg.in/ini.v1 v1.51.1 // indirect

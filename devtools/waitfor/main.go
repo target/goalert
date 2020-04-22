@@ -53,6 +53,8 @@ func waitForPostgres(ctx context.Context, connStr string) {
 }
 
 func main() {
+	log.SetFlags(log.Lshortfile)
+	log.SetPrefix("waitfor: ")
 	timeout := flag.Duration("timeout", time.Minute, "Timeout to wait for all checks to complete.")
 	flag.Parse()
 

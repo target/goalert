@@ -31,7 +31,6 @@ export RUNJSON_PROD_FILE = devtools/runjson/localdev-cypress-prod.json
 ifdef LOG_DIR
 RUNJSON_ARGS += -logs=$(LOG_DIR)
 endif
-RUNJSON_ARGS += -pid=runjson
 
 export CGO_ENABLED = 0
 export PATH := $(PWD)/bin:$(PATH)
@@ -54,6 +53,8 @@ $(BIN_DIR)/psql-lite: go.sum devtools/psql-lite/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/waitfor: go.sum devtools/waitfor/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
+$(BIN_DIR)/procwrap: go.sum devtools/procwrap/*.go
+	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/simpleproxy: go.sum devtools/simpleproxy/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go migrate/*.go
@@ -73,6 +74,8 @@ $(BIN_DIR)/psql-lite.linux: go.sum devtools/psql-lite/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
 $(BIN_DIR)/waitfor.linux: go.sum devtools/waitfor/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
+$(BIN_DIR)/procwrap.linux: go.sum devtools/procwrap/*.go
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))	
 $(BIN_DIR)/simpleproxy.linux: go.sum devtools/simpleproxy/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
 $(BIN_DIR)/resetdb.linux: go.sum devtools/resetdb/*.go migrate/*.go
@@ -114,7 +117,7 @@ $(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cyp
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert.linux $(BIN_DIR)/mockslack.linux $(BIN_DIR)/simpleproxy.linux $(BIN_DIR)/waitfor.linux $(BIN_DIR)/runjson.linux $(BIN_DIR)/psql-lite.linux
+$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert.linux $(BIN_DIR)/mockslack.linux $(BIN_DIR)/simpleproxy.linux $(BIN_DIR)/waitfor.linux $(BIN_DIR)/runjson.linux $(BIN_DIR)/procwrap.linux $(BIN_DIR)/psql-lite.linux
 	rm -rf $@
 	mkdir -p bin/integration/goalert/bin
 	cp bin/*.linux bin/integration/goalert/bin/
@@ -142,7 +145,7 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
+cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
 	web/src/node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js

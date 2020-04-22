@@ -29,7 +29,8 @@ mockslack \
 simpleproxy -addr=localhost:3030 /slack/=http://127.0.0.1:3046 http://127.0.0.1:3042 >logs/simpleproxy.log 2>&1 &
 
 goalert migrate
-goalert --listen=:3042 --slack-base-url=http://127.0.0.1:3046/slack >logs/goalert.log 2>&1 &
+procwrap -addr localhost:3033 -test localhost:3042 goalert --listen=:3042 --slack-base-url=http://127.0.0.1:3046/slack >logs/goalert.log 2>&1 &
+waitfor http://localhost:3033 # wait for procwrap server to start
 
 echo "$!" >backend.pid
 
