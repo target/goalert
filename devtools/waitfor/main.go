@@ -62,7 +62,7 @@ func main() {
 	defer cancel()
 
 	for _, u := range flag.Args() {
-		if strings.HasPrefix(u, "postgres://") {
+		if strings.HasPrefix(u, "postgres://") || strings.HasPrefix(u, "postgresql://") {
 			waitForPostgres(ctx, u)
 		} else {
 			waitForHTTP(ctx, u)
