@@ -7,3 +7,6 @@ update_configs:
       - match:
           dependency_name: "@date-io/luxon"
           version_requirement: "<=2.4.0"
+      - match:
+        dependency_name: "@material-ui/core"
+        version_requirement: "<=4.9.x"
