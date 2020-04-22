@@ -9,5 +9,5 @@ update_configs:
           version_requirement: "<=2.4.0"
       # see https://github.com/target/goalert/pull/634
       - match:
-        dependency_name: "@material-ui/core"
-        version_requirement: "<=4.9.x"
+          dependency_name: "@material-ui/core"
+          version_requirement: "<=4.9.x"
