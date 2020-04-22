@@ -354,7 +354,7 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 // be invoked if a user, for example, responds with `START` via sms.
 func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 	if !d.Type.IsUserCM() {
-		return errors.New("opt-in only supported on user contact methods")
+		return errors.New("START only supported on user contact methods")
 	}
 
 	var err error
@@ -369,7 +369,7 @@ func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
 // be invoked if a user, for example, responds with `STOP` via SMS.
 func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
 	if !d.Type.IsUserCM() {
-		return errors.New("opt-out only supported on user contact methods")
+		return errors.New("STOP only supported on user contact methods")
 	}
 
 	var err error
