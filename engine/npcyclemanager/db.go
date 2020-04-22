@@ -3,6 +3,8 @@ package npcyclemanager
 import (
 	"context"
 	"database/sql"
+
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -14,13 +16,14 @@ type DB struct {
 	lock *processinglock.Lock
 
 	queueMessages *sql.Stmt
+	log           alertlog.Store
 }
 
 // Name returns the name of the module.
 func (db *DB) Name() string { return "Engine.NotificationCycleManager" }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeNPCycle,
 		Version: 2,
@@ -31,6 +34,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &DB{
+		log:  log,
 		lock: lock,
 
 		// add messages for notification rules who's delay is between the last tick and now.
@@ -101,10 +105,16 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					) and
 					concat(rule.delay_minutes,' minutes')::interval <= (now() - cycle.started_at)
 				returning cycle_id
+			), no_first_notif_sent as (
+				select user_id, alert_id
+				from process_cycles
+				where last_tick isnull and id not in (select cycle_id from inserted)
+			), update as (
+				update notification_policy_cycles
+				set last_tick = greatest(last_tick, now())
+				where id in (select id from process_cycles)
 			)
-			update notification_policy_cycles
-			set last_tick = greatest(last_tick, now())
-			where id in (select id from process_cycles)
+			select user_id, alert_id from no_first_notif_sent
 		`),
 	}, p.Err
 }
