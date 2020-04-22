@@ -30,7 +30,7 @@ function createEP(ep?: EPOptions): Cypress.Chainable<EP> {
   const stepCount = ep.stepCount || 0
 
   return cy
-    .graphql2(policyMutation, {
+    .graphql(policyMutation, {
       input: {
         name: ep.name || 'SM EP ' + c.word({ length: 8 }),
         description: ep.description || c.sentence(),
@@ -40,7 +40,7 @@ function createEP(ep?: EPOptions): Cypress.Chainable<EP> {
     .then((res: GraphQLResponse) => res.createEscalationPolicy)
     .then((pol: EP) => {
       for (let i = 0; i < stepCount; i++) {
-        cy.graphql2(stepMutation, {
+        cy.graphql(stepMutation, {
           input: {
             escalationPolicyID: pol.id,
             delayMinutes: 10,
@@ -60,7 +60,7 @@ function deleteEP(id: string): Cypress.Chainable<void> {
     }
    `
 
-  return cy.graphql2(mutation, {
+  return cy.graphql(mutation, {
     input: [
       {
         type: 'escalationPolicy',
@@ -80,7 +80,7 @@ function createEPStep(step?: EPStepOptions): Cypress.Chainable<EPStep> {
   }
 
   return cy
-    .graphql2(stepMutation, {
+    .graphql(stepMutation, {
       input: {
         escalationPolicyID: step.epID,
         delayMinutes: step.delay || c.integer({ min: 1, max: 9000 }),

@@ -1,5 +1,5 @@
 {
   "extends": "../app/tsconfig",
   "include": ["**/*"],
-  "paths": ["./types/*", "../schema.d.ts"]
+  "types": ["./types/*", "../schema.d.ts"]
 }

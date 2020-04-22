@@ -25,7 +25,7 @@ function getAlertLogs(id: number): Cypress.Chainable<Array<AlertLog>> {
   // NOTE next recursively builds logs to ultimately yield an AlertLog[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const next = (logs: AlertLog[], after: string): Cypress.Chainable<any> =>
-    cy.graphql2(query, { id, after }).then((res: GraphQLResponse) => {
+    cy.graphql(query, { id, after }).then((res: GraphQLResponse) => {
       const hasNextPage: boolean = res.alert.recentEvents.pageInfo.hasNextPage
       const endCursor: string = res.alert.recentEvents.pageInfo.endCursor
       const nodes: AlertLog[] = res.alert.recentEvents.nodes
@@ -64,7 +64,7 @@ function getAlert(id: number): Cypress.Chainable<Alert> {
     }
   `
 
-  return cy.graphql2(query, { id }).then((res: GraphQLResponse) => res.alert)
+  return cy.graphql(query, { id }).then((res: GraphQLResponse) => res.alert)
 }
 
 function createAlertLogs(opts?: AlertLogOptions): Cypress.Chainable<AlertLogs> {
@@ -144,7 +144,7 @@ function createAlert(a?: AlertOptions): Cypress.Chainable<Alert> {
   }
 
   return cy
-    .graphql2(query, {
+    .graphql(query, {
       input: {
         serviceID: a.serviceID,
         summary: a.summary || c.sentence({ words: 3 }),

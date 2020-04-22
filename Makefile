@@ -158,7 +158,7 @@ cy-wide-prod-run: web/inline_data_gen.go cypress
 cy-mobile-prod-run: web/inline_data_gen.go cypress
 	make cy-mobile-prod CY_ACTION=run
 
-web/src/schema.d.ts: graphql2/schema.graphql
+web/src/schema.d.ts: graphql2/schema.graphql web/src/node_modules
 	go generate ./web/src
 
 start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
@@ -198,7 +198,7 @@ graphql2/mapconfig.go: $(CFGPARAMS) config/config.go
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml
 	go generate ./graphql2
 
-generate:
+generate: web/src/node_modules
 	go generate ./...
 
 smoketest: install bin/goalert
