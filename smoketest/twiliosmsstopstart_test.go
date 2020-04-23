@@ -6,8 +6,8 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// TestTwilioSMSStop checks that an SMS STOP message is processed.
-func TestTwilioSMSStop(t *testing.T) {
+// TestTwilioSMSStopStart checks that SMS STOP and START messages are processed.
+func TestTwilioSMSStopStart(t *testing.T) {
 	t.Parallel()
 
 	sql := `
@@ -22,8 +22,7 @@ func TestTwilioSMSStop(t *testing.T) {
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
 		({{uuid "user"}}, {{uuid "cm1"}}, 0),
-		({{uuid "user"}}, {{uuid "cm1"}}, 1),
-		({{uuid "user"}}, {{uuid "cm2"}}, 1);
+		({{uuid "user"}}, {{uuid "cm2"}}, 0);
 
 	insert into escalation_policies (id, name) 
 	values
@@ -39,19 +38,33 @@ func TestTwilioSMSStop(t *testing.T) {
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 
-	insert into alerts (service_id, description) 
+	insert into alerts (id, service_id, description) 
 	values
-		({{uuid "sid"}}, 'testing');
+		(1234, {{uuid "sid"}}, 'testing');
 
 `
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
 	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing").ThenReply("stop")
-
-	// still recevice VOICE message
 	h.Twilio().Device(h.Phone("1")).ExpectVoice("testing")
 
 	// SMS should be disabled
 	h.Twilio().WaitAndAssert()
+
+	h.Escalate(1234, 0)
+
+	// only voice should still be enabled
+	h.Twilio().Device(h.Phone("1")).ExpectVoice("testing")
+
+	h.Twilio().WaitAndAssert()
+
+	h.Twilio().Device(h.Phone("1")).SendSMS("start")
+
+	h.Escalate(1234, 0)
+
+	// sms should be re-enabled
+	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing")
+	h.Twilio().Device(h.Phone("1")).ExpectVoice("testing")
+
 }
