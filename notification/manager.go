@@ -226,9 +226,13 @@ func (m *Manager) receive(ctx context.Context, providerID string, resp *MessageR
 	}),
 		"response received",
 	)
-	if resp.Result == ResultStop {
-		return m.r.Stop(ctx, resp.From)
-	}
 
-	return m.r.Receive(ctx, resp.ID, resp.Result)
+	switch resp.Result {
+	case ResultStart:
+		return m.r.Start(ctx, resp.From)
+	case ResultStop:
+		return m.r.Stop(ctx, resp.From)
+	default:
+		return m.r.Receive(ctx, resp.ID, resp.Result)
+	}
 }
