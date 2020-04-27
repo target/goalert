@@ -27,6 +27,8 @@ type TwilioServer interface {
 
 // A TwilioDevice immitates a device (i.e. a phone) for testing interactions.
 type TwilioDevice interface {
+	// SendSMS will send a message to GoAlert from the device.
+	SendSMS(body string)
 
 	// ExpectSMS will match against an SMS that matches ALL provided keywords (case-insensitive).
 	// Each call to ExpectSMS results in the requirement that an additional SMS is received.
@@ -285,6 +287,11 @@ func (tw *twServer) timeoutFail() {
 	}
 	tw.t.Error("Twilio: Timeout after 15 seconds waiting for one or more expected calls/messages.")
 }
+
+func (dev *twDevice) SendSMS(body string) {
+	dev.tw.SendSMS(dev.number, dev.tw.h.cfg.Twilio.FromNumber, body)
+}
+
 func (dev *twDevice) processSMS(sms *mocktwilio.SMS) {
 	dev.tw.t.Helper()
 

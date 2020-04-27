@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-
+import { Schedule } from '../../schema'
 import { testScreen } from '../support'
 const c = new Chance()
 

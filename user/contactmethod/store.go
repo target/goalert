@@ -24,6 +24,7 @@ type Store interface {
 	FindMany(ctx context.Context, ids []string) ([]ContactMethod, error)
 	FindAll(ctx context.Context, userID string) ([]ContactMethod, error)
 	DeleteTx(ctx context.Context, tx *sql.Tx, id ...string) error
+	EnableByValue(context.Context, Type, string) error
 	DisableByValue(context.Context, Type, string) error
 }
 
@@ -39,6 +40,7 @@ type DB struct {
 	findMany     *sql.Stmt
 	findAll      *sql.Stmt
 	lookupUserID *sql.Stmt
+	enable       *sql.Stmt
 	disable      *sql.Stmt
 }
 
@@ -47,6 +49,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 	return &DB{
 		db: db,
+		enable: p.P(`
+			UPDATE user_contact_methods
+			SET disabled = false
+			WHERE type = $1
+				AND value = $2
+			RETURNING id
+		`),
 		disable: p.P(`
 			UPDATE user_contact_methods
 			SET disabled = true
@@ -96,6 +105,33 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
+func (db *DB) EnableByValue(ctx context.Context, t Type, v string) error {
+	err := permission.LimitCheckAny(ctx, permission.System)
+	if err != nil {
+		return err
+	}
+
+	c := ContactMethod{Name: "Enable", Type: t, Value: v}
+	n, err := c.Normalize()
+	if err != nil {
+		return err
+	}
+
+	var id string
+	err = db.enable.QueryRowContext(ctx, n.Type, n.Value).Scan(&id)
+
+	if err == nil {
+		// NOTE: maintain a record of consent/dissent
+		logCtx := log.WithFields(ctx, log.Fields{
+			"contactMethodID": id,
+		})
+
+		log.Logf(logCtx, "Contact method START code received.")
+	}
+
+	return err
+}
+
 func (db *DB) DisableByValue(ctx context.Context, t Type, v string) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
@@ -117,8 +153,9 @@ func (db *DB) DisableByValue(ctx context.Context, t Type, v string) error {
 			"contactMethodID": id,
 		})
 
-		log.Logf(logCtx, "Contact method STOP received.")
+		log.Logf(logCtx, "Contact method STOP code received.")
 	}
+
 	return err
 }
 

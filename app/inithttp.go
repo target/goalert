@@ -122,6 +122,9 @@ func (app *App) initHTTP(ctx context.Context) error {
 		// limit max request size
 		maxBodySizeMiddleware(app.cfg.MaxReqBodyBytes),
 
+		// return a 404 if the v1 graphql api is disabled
+		graphQLV1DeprecationMiddleware(),
+
 		// pause has to become before anything that uses the DB (like auth)
 		app.pauseHandler,
 
@@ -190,7 +193,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/twilio/call", app.twilioVoice.ServeCall)
 	mux.HandleFunc("/api/v2/twilio/call/status", app.twilioVoice.ServeStatusCallback)
 
-	// Legacy (v1) API mappings
+	// Legacy (v1) API mapping
 	mux.HandleFunc("/v1/graphql", app.graphql.ServeHTTP)
 
 	middleware = append(middleware,
