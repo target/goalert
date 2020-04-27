@@ -1,5 +1,4 @@
-import React from 'react'
-import p from 'prop-types'
+import React, { useState } from 'react'
 import Grid from '@material-ui/core/Grid'
 import IconButton from '@material-ui/core/IconButton'
 import Input from '@material-ui/core/Input'
@@ -8,7 +7,15 @@ import Switch from '@material-ui/core/Switch'
 import Visibility from '@material-ui/icons/Visibility'
 import VisibilityOff from '@material-ui/icons/VisibilityOff'
 
-export const StringListInput = (props) => {
+export interface InputProps {
+  name: string
+  value: string
+  password: boolean
+  onChange: (value: string) => void
+  autoComplete?: string
+}
+
+export const StringListInput = (props: InputProps): JSX.Element => {
   const value = props.value ? props.value.split('\n').concat('') : ['']
   return (
     <Grid container spacing={1}>
@@ -35,49 +42,37 @@ export const StringListInput = (props) => {
   )
 }
 
-export class StringInput extends React.PureComponent {
-  static propTypes = {
-    password: p.bool,
-  }
+export function StringInput(props: InputProps): JSX.Element {
+  const [showPassword, setShowPassword] = useState(false)
+  const { onChange, password, ...rest } = props
 
-  state = {
-    showPassword: false,
-  }
-
-  render() {
-    const { onChange, password, ...rest } = this.props
-
-    return (
-      <Input
-        fullWidth
-        autoComplete='new-password' // chrome keeps autofilling them, this stops it
-        type={password && !this.state.showPassword ? 'password' : 'text'}
-        onChange={(e) => onChange(e.target.value)}
-        endAdornment={this.renderPasswordAdornment()}
-        {...rest}
-      />
-    )
-  }
-
-  renderPasswordAdornment() {
-    if (!this.props.password) return null
+  const renderPasswordAdornment = (): JSX.Element | null => {
+    if (!props.password) return null
 
     return (
       <InputAdornment position='end'>
         <IconButton
           aria-label='Toggle password visibility'
-          onClick={() =>
-            this.setState({ showPassword: !this.state.showPassword })
-          }
+          onClick={() => setShowPassword(!showPassword)}
         >
-          {this.state.showPassword ? <Visibility /> : <VisibilityOff />}
+          {showPassword ? <Visibility /> : <VisibilityOff />}
         </IconButton>
       </InputAdornment>
     )
   }
+  return (
+    <Input
+      fullWidth
+      autoComplete='new-password' // chrome keeps autofilling them, this stops it
+      type={password && !showPassword ? 'password' : 'text'}
+      onChange={(e) => onChange(e.target.value)}
+      endAdornment={renderPasswordAdornment()}
+      {...rest}
+    />
+  )
 }
 
-export const IntegerInput = (props) => (
+export const IntegerInput = (props: InputProps): JSX.Element => (
   <Input
     {...props}
     type='number'
@@ -86,7 +81,7 @@ export const IntegerInput = (props) => (
   />
 )
 
-export const BoolInput = (props) => (
+export const BoolInput = (props: InputProps): JSX.Element => (
   <Switch
     {...props}
     checked={props.value === 'true'}
