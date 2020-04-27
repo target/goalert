@@ -7,3 +7,7 @@ type EscalationMetaData struct {
 	Deleted         bool
 	OldDelayMinutes int
 }
+
+type NotificationSentMetaData struct {
+	MessageID string
+}

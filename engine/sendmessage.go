@@ -118,11 +118,17 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 	if err != nil {
 		return nil, err
 	}
+
+	// add message ID to notification_sent logs
+	meta := alertlog.NotificationSentMetaData{
+		MessageID: msg.ID,
+	}
+
 	switch msg.Type {
 	case message.TypeAlertNotification:
-		p.cfg.AlertLogStore.MustLog(ctx, msg.AlertID, alertlog.TypeNotificationSent, nil)
+		p.cfg.AlertLogStore.MustLog(ctx, msg.AlertID, alertlog.TypeNotificationSent, meta)
 	case message.TypeAlertNotificationBundle:
-		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, nil)
+		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, meta)
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "append alert log"))
 		}
