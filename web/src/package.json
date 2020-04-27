@@ -167,7 +167,7 @@
     "react-hot-loader": "4.12.20",
     "redux": "4.0.5",
     "redux-devtools-extension": "2.13.8",
-    "style-loader": "1.1.4",
+    "style-loader": "1.2.0",
     "stylelint": "13.3.0",
     "stylelint-config-standard": "20.0.0",
     "terser-webpack-plugin": "2.3.5",
