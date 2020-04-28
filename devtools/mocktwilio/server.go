@@ -83,11 +83,8 @@ func NewServer(cfg Config) *Server {
 	s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
 	s.mux.HandleFunc(base+"/Messages/", s.serveMessageStatus)
 
-	// start 20 senders/workers
-	for i := 0; i < 20; i++ {
-		s.workers.Add(1)
-		go s.loop()
-	}
+	s.workers.Add(1)
+	go s.loop()
 
 	return s
 }
@@ -164,9 +161,11 @@ func (s *Server) loop() {
 		case <-s.shutdown:
 			return
 		case sms := <-s.smsInCh:
-			sms.process()
+			s.workers.Add(1)
+			go sms.process()
 		case vc := <-s.callInCh:
-			vc.process()
+			s.workers.Add(1)
+			go vc.process()
 		}
 	}
 }

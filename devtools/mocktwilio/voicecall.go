@@ -47,6 +47,8 @@ type VoiceCall struct {
 }
 
 func (vc *VoiceCall) process() {
+	defer vc.s.workers.Done()
+
 	if vc.s.wait(vc.s.cfg.MinQueueTime) {
 		return
 	}

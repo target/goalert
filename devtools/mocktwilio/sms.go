@@ -193,6 +193,7 @@ func (s *Server) SendSMS(from, to, body string) {
 }
 
 func (sms *SMS) process() {
+	defer sms.s.workers.Done()
 	if sms.s.wait(sms.s.cfg.MinQueueTime) {
 		return
 	}
