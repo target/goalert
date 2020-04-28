@@ -28,7 +28,9 @@ type Entry struct {
 		channelName          sql.NullString
 		classifier           string
 	}
-	meta rawJSON
+	meta          rawJSON
+	lastStatus    sql.NullString
+	statusDetails sql.NullString
 }
 
 func (e Entry) Meta() interface{} {
@@ -170,5 +172,7 @@ func (e *Entry) scanWith(scan func(...interface{}) error) error {
 		&e.subject.channelName,
 		&e.subject.classifier,
 		&e.meta,
+		&e.lastStatus,
+		&e.statusDetails,
 	)
 }
