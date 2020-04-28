@@ -25,6 +25,7 @@ type SMS struct {
 	mx        sync.Mutex
 
 	acceptCh chan bool
+	doneCh   chan struct{}
 }
 
 func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error) {
@@ -70,6 +71,7 @@ func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error
 		start:     time.Now(),
 		body:      body,
 		acceptCh:  make(chan bool, 1),
+		doneCh:    make(chan struct{}),
 	}
 
 	s.mx.Lock()
@@ -185,15 +187,19 @@ func (s *Server) SendSMS(from, to, body string) {
 		return
 	}
 
-	_, err := s.sendSMS(from, to, body, "", cbURL)
+	sms, err := s.sendSMS(from, to, body, "", cbURL)
 	if err != nil {
 		s.errs <- err
 		return
 	}
+
+	<-sms.doneCh
 }
 
 func (sms *SMS) process() {
 	defer sms.s.workers.Done()
+	defer close(sms.doneCh)
+
 	if sms.s.wait(sms.s.cfg.MinQueueTime) {
 		return
 	}
