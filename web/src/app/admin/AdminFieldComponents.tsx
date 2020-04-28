@@ -7,7 +7,7 @@ import Switch from '@material-ui/core/Switch'
 import Visibility from '@material-ui/icons/Visibility'
 import VisibilityOff from '@material-ui/icons/VisibilityOff'
 
-export interface InputProps {
+interface InputProps {
   name: string
   value: string
   password?: boolean
