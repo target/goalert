@@ -343,6 +343,10 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 				r.subject.classifier = "Email"
 			}
 
+			if _type == TypeNotificationSendFailure {
+				r.subject.suffix = ": " + meta.(NotificationMetaData).ErrorMessage
+			}
+
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
 			var cmType contactmethod.Type
