@@ -74,7 +74,9 @@ export function StringInput(props: InputProps): JSX.Element {
 
 export const IntegerInput = (props: InputProps): JSX.Element => (
   <Input
-    {...props}
+    name={props.name}
+    value={props.value}
+    autoComplete={props.autoComplete}
     type='number'
     fullWidth
     onChange={(e) => props.onChange(e.target.value)}
@@ -83,7 +85,8 @@ export const IntegerInput = (props: InputProps): JSX.Element => (
 
 export const BoolInput = (props: InputProps): JSX.Element => (
   <Switch
-    {...props}
+    name={props.name}
+    value={props.value}
     checked={props.value === 'true'}
     onChange={(e) => props.onChange(e.target.checked ? 'true' : 'false')}
   />
