@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/target/goalert/devtools/mocktwilio"
-	"github.com/target/goalert/notification/twilio"
 )
 
 // TwilioServer is used to assert voice and SMS behavior.
@@ -333,41 +332,52 @@ func (dev *twDevice) processSMS(sms *mocktwilio.SMS) {
 func (dev *twDevice) processCall(vc *mocktwilio.VoiceCall) {
 	dev.tw.t.Helper()
 
-	if vc.Status() == twilio.CallStatusRinging {
-		dev.tw.t.Logf("Twilio: Received voice call to %s, asking for message.", vc.To())
-		vc.Accept()
+	dev.tw.t.Logf("Twilio: Received voice call to %s, asking for message.", vc.To())
+	vc.Accept()
+
+	var call *expCall
+	var msg string
+	for i, c := range dev.expCalls {
+		if c == nil {
+			continue
+		}
+		msg = vc.Message()
+		if !c.Match(msg) {
+			continue
+		}
+
+		call = c
+		dev.expCalls[i] = nil
+		break
+	}
+
+	if call == nil {
+		dev.tw.unexpectedCall(vc)
 		return
 	}
 
-	for i, call := range dev.expCalls {
-		if call == nil {
-			continue
-		}
-		msg := vc.Message()
+	dev.tw.t.Logf("Twilio: Received expected voice call to %s (step #%d): %s", vc.To(), call.step, vc.Message())
+
+	if call.fail {
+		vc.Reject()
+		return
+	}
+
+	if call.next == nil {
+		vc.Hangup()
+		return
+	}
+
+	for call.next != nil {
+		vc.PressDigits(call.digits)
+		msg = vc.Message()
 		if !call.Match(msg) {
-			continue
+			dev.tw.t.Fatalf("Twilio: Unexpected voice call to %s (step #%d): %s", vc.To(), call.step, msg)
 		}
-
-		dev.tw.t.Logf("Twilio: Received expected voice call to %s (step #%d): %s", vc.To(), call.step, vc.Message())
-
-		if call.fail {
-			vc.Reject()
-		}
-
-		if call.next != nil {
-			vc.PressDigits(call.digits)
-			dev.expCalls[i] = call.next
-		} else {
-			vc.Hangup()
-			dev.expCalls[i] = nil
-		}
-
-		call.body <- msg
-		return
+		call = call.next
 	}
 
-	// didn't match anything
-	dev.tw.unexpectedCall(vc)
+	call.body <- msg
 }
 func (tw *twDevice) done() bool {
 	for _, msg := range tw.expMessages {
@@ -389,7 +399,7 @@ func (tw *twServer) unexpectedSMS(sms *mocktwilio.SMS) {
 func (tw *twServer) unexpectedCall(vc *mocktwilio.VoiceCall) {
 	tw.t.Helper()
 	if vc.Message() != "" {
-		tw.t.Fatalf("Twilio: Unexpected voice call (or message) to %s: %s", vc.To(), vc.Message())
+		tw.t.Fatalf("Twilio: Unexpected voice call to %s: %s", vc.To(), vc.Message())
 	} else {
 		tw.t.Fatalf("Twilio: Unexpected voice call to %s", vc.To())
 	}

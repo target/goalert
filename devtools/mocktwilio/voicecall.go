@@ -81,12 +81,6 @@ func (vc *VoiceCall) process() {
 	vc.updateStatus(twilio.CallStatusInProgress)
 	vc.callStart = time.Now()
 
-	select {
-	case vc.s.callCh <- vc:
-	case <-vc.s.shutdown:
-		return
-	}
-
 	for {
 		select {
 		case <-vc.rejectCh:
@@ -107,12 +101,6 @@ func (vc *VoiceCall) process() {
 			message = msg
 			if vc.hangup {
 				vc.updateStatus(twilio.CallStatusCompleted)
-				return
-			}
-
-			select {
-			case vc.s.callCh <- vc:
-			case <-vc.s.shutdown:
 				return
 			}
 		}
