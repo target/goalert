@@ -10,7 +10,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 export interface InputProps {
   name: string
   value: string
-  password: boolean
+  password?: boolean
   onChange: (value: string) => void
   autoComplete?: string
 }
