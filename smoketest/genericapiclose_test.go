@@ -76,12 +76,12 @@ func TestGenericAPIClose(t *testing.T) {
 	fire(key, "test3", "dedup", false)
 	fire(key, "test4", "", true) // should not open one in the first place
 
-	d := h.Twilio().Device(h.Phone("1"))
+	d := h.Twilio(t).Device(h.Phone("1"))
 
 	d.ExpectSMS("test1")
 	d.ExpectSMS("test2")
 	d.ExpectSMS("test3")
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).WaitAndAssert()
 
 	fire(key, "test2", "", true)
 	fire(key, "test3", "dedup", true)

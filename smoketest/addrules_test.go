@@ -67,7 +67,7 @@ func TestAddRules(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d := tw.Device(h.Phone("1"))
 	d.ExpectSMS("testing") // immediate rule
 	tw.WaitAndAssert()

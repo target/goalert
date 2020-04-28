@@ -3,9 +3,10 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLMultipleAlerts tests that all steps up to, and including, generating
@@ -52,11 +53,11 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	h.CreateAlert(sid, "alert2")
 
 	// Expect 2 SMS for 2 unacknowledged alerts
-	h.Twilio().Device(phone).ExpectSMS("alert1")
-	h.Twilio().Device(phone).ExpectSMS("alert2")
+	h.Twilio(t).Device(phone).ExpectSMS("alert1")
+	h.Twilio(t).Device(phone).ExpectSMS("alert2")
 
 	// No more SMS should be sent out
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).WaitAndAssert()
 
 	h.CreateAlert(sid, "alert3")
 
@@ -79,10 +80,10 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 		}
 	}
 
-	h.Twilio().Device(phone).ExpectSMS("alert3")
+	h.Twilio(t).Device(phone).ExpectSMS("alert3")
 
 	// No more SMS should be sent out
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).WaitAndAssert()
 
 	// Acknowledging alert #3
 	doQL2(fmt.Sprintf(`
@@ -96,11 +97,11 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 
 	h.FastForward(30 * time.Minute) // notification rule
 	// Expect 2 SMS for 2 unacknowledged alerts
-	h.Twilio().Device(phone).ExpectSMS("alert1")
-	h.Twilio().Device(phone).ExpectSMS("alert2")
+	h.Twilio(t).Device(phone).ExpectSMS("alert1")
+	h.Twilio(t).Device(phone).ExpectSMS("alert2")
 
 	// No SMS should be sent out
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).WaitAndAssert()
 
 	// Escalating multiple (3) alerts
 	doQL2(fmt.Sprintf(`
@@ -111,11 +112,11 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	`, 1, 2, 3), nil)
 
 	// Expect 3 SMS for 3 escalated alerts
-	h.Twilio().Device(phone).ExpectSMS("alert1")
-	h.Twilio().Device(phone).ExpectSMS("alert2")
-	h.Twilio().Device(phone).ExpectSMS("alert3")
+	h.Twilio(t).Device(phone).ExpectSMS("alert1")
+	h.Twilio(t).Device(phone).ExpectSMS("alert2")
+	h.Twilio(t).Device(phone).ExpectSMS("alert3")
 
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).WaitAndAssert()
 
 	// Closing multiple (3) alerts
 	doQL2(fmt.Sprintf(`
@@ -130,6 +131,6 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	h.FastForward(1 * time.Minute)
 
 	// No more messages should be sent out
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).WaitAndAssert()
 
 }

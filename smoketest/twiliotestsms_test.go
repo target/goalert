@@ -39,5 +39,5 @@ func TestTwilioSMS(t *testing.T) {
 		}
 		`, cm1))
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("test")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("test")
 }

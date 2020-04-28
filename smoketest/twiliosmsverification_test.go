@@ -2,11 +2,12 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSVerification checks that a verification SMS is processed.
@@ -47,7 +48,7 @@ func TestTwilioSMSVerification(t *testing.T) {
 			})
 		}
 	`, smsID))
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
 	msg := d1.ExpectSMS("verification")

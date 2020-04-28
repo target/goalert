@@ -47,20 +47,20 @@ func TestTwilioSMSStopStart(t *testing.T) {
 	defer h.Close()
 
 	// disable SMS
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing").ThenReply("stop")
-	h.Twilio().Device(h.Phone("1")).ExpectVoice("testing")
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("testing").ThenReply("stop")
+	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("testing")
+	h.Twilio(t).WaitAndAssert()
 
 	// trigger update - only VOICE should still be enabled
 	h.Escalate(1234, 0)
-	h.Twilio().Device(h.Phone("1")).ExpectVoice("testing")
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("testing")
+	h.Twilio(t).WaitAndAssert()
 
 	// re-enable SMS
-	h.Twilio().Device(h.Phone("1")).SendSMS("start")
+	h.Twilio(t).Device(h.Phone("1")).SendSMS("start")
 
 	// trigger update - VOICE and SMS should be enabled
 	h.Escalate(1234, 0)
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing")
-	h.Twilio().Device(h.Phone("1")).ExpectVoice("testing")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("testing")
+	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("testing")
 }

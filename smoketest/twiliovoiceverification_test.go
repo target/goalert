@@ -62,7 +62,7 @@ func TestTwilioVoiceVerification(t *testing.T) {
 			})
 		}
 	`, voiceID))
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
 	msg := d1.ExpectVoice("verification")

@@ -47,7 +47,7 @@ func TestTwilioVoiceStop(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	d1 := h.Twilio().Device(h.Phone("1"))
+	d1 := h.Twilio(t).Device(h.Phone("1"))
 
 	d1.ExpectVoice("testing").
 		ThenPress("1").
@@ -59,5 +59,5 @@ func TestTwilioVoiceStop(t *testing.T) {
 	d1.ExpectSMS("test")
 
 	// should unenroll only from VOICE
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).WaitAndAssert()
 }

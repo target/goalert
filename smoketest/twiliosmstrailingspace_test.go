@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSTrailingSpace checks that an SMS ack message is processed even with trailing spaces in response.
@@ -43,7 +44,7 @@ func TestTwilioSMSTrailingSpace(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
 	d1.ExpectSMS("testing").ThenReply("ack198           ")

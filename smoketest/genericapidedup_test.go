@@ -2,10 +2,11 @@ package smoketest
 
 import (
 	"bytes"
-	"github.com/target/goalert/smoketest/harness"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 func TestGenericAPIDedup(t *testing.T) {
@@ -75,7 +76,7 @@ func TestGenericAPIDedup(t *testing.T) {
 		}
 		resp.Body.Close()
 	}
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 	d2 := tw.Device(h.Phone("2"))
 

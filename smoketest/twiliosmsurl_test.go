@@ -48,7 +48,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
-		tw := h.Twilio()
+		tw := h.Twilio(t)
 		d1 := tw.Device(h.Phone("1"))
 
 		longURL := h.URL()
@@ -64,7 +64,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
-		tw := h.Twilio()
+		tw := h.Twilio(t)
 		d1 := tw.Device(h.Phone("1"))
 
 		h.SetConfigValue("General.ShortURL", shortURL)
@@ -80,7 +80,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
-		tw := h.Twilio()
+		tw := h.Twilio(t)
 		d1 := tw.Device(h.Phone("1"))
 
 		h.SetConfigValue("General.ShortURL", shortURL)
@@ -97,7 +97,7 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h := harness.NewHarness(t, sql, "message-bundles")
 		defer h.Close()
 
-		tw := h.Twilio()
+		tw := h.Twilio(t)
 		d1 := tw.Device(h.Phone("1"))
 
 		longURL := h.URL()

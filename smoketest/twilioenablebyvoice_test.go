@@ -64,7 +64,7 @@ func TestTwilioEnablebyVoice(t *testing.T) {
 		}
 	`, smsID), true)
 
-	d1 := h.Twilio().Device(h.Phone("1"))
+	d1 := h.Twilio(t).Device(h.Phone("1"))
 
 	// Voice should now be enabled
 	doQL(fmt.Sprintf(`

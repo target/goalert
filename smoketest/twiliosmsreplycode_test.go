@@ -41,7 +41,7 @@ func TestTwilioSMSReplyCode(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
 	h.CreateAlert(h.UUID("sid"), "test1")

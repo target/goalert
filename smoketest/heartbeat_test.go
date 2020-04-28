@@ -1,11 +1,12 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"net/http"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 func TestHeartbeat(t *testing.T) {
@@ -66,8 +67,8 @@ func TestHeartbeat(t *testing.T) {
 
 	heartbeat()
 	h.FastForward(60 * time.Minute) // expire heartbeat
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("heartbeat")
-	h.Twilio().WaitAndAssert()
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("heartbeat")
+	h.Twilio(t).WaitAndAssert()
 
 	heartbeat()
 	h.Trigger() // cycle engine (to close/process heartbeat) before fast-forwarding

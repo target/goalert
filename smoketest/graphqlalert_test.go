@@ -68,7 +68,7 @@ func TestGraphQLAlert(t *testing.T) {
 		}
 	}
 
-	createCM := func(userID, phone string, cm interface{}) harness.TwilioExpectedMessage {
+	createCM := func(userID, phone string, cm interface{}) harness.ExpectedSMS {
 		t.Helper()
 		doQL(fmt.Sprintf(`
 		mutation {
@@ -82,7 +82,7 @@ func TestGraphQLAlert(t *testing.T) {
 			}
 		}
     `, userID, phone), cm)
-		return h.Twilio().Device(phone).ExpectSMS("verification")
+		return h.Twilio(t).Device(phone).ExpectSMS("verification")
 	}
 
 	msg1 := createCM(uid1, phone1, &cm1)
@@ -101,7 +101,7 @@ func TestGraphQLAlert(t *testing.T) {
 	sendCMVerification(cm1.CreateUserContactMethod.ID)
 	sendCMVerification(cm2.CreateUserContactMethod.ID)
 
-	h.Twilio().WaitAndAssert() // wait for code, ensure no notifications went out
+	h.Twilio(t).WaitAndAssert() // wait for code, ensure no notifications went out
 
 	digits := func(r rune) rune {
 		if r >= '0' && r <= '9' {
@@ -253,6 +253,6 @@ func TestGraphQLAlert(t *testing.T) {
 		}
 	`, svc.CreateService.ID), nil)
 
-	h.Twilio().Device(phone1).ExpectSMS()
-	h.Twilio().Device(phone2).ExpectSMS()
+	h.Twilio(t).Device(phone1).ExpectSMS()
+	h.Twilio(t).Device(phone2).ExpectSMS()
 }

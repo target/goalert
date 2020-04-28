@@ -79,7 +79,7 @@ func TestMailgunAlerts(t *testing.T) {
 		return
 	}
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("test alert")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("test alert")
 
 	v.Set("subject", "second alert")
 	resp, err = http.PostForm(h.URL()+"/v1/webhooks/mailgun", v)
@@ -88,7 +88,7 @@ func TestMailgunAlerts(t *testing.T) {
 		return
 	}
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("second alert")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("second alert")
 
 	v.Set("body-plain", strings.Repeat("too big", 1<<20)) // ~7MiB
 

@@ -2,10 +2,11 @@ package smoketest
 
 import (
 	"bytes"
-	"github.com/target/goalert/smoketest/harness"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestStatusUpdates checks basic functionality of status updates:
@@ -72,7 +73,7 @@ func TestStatusUpdates(t *testing.T) {
 		resp.Body.Close()
 	}
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
 	d1.ExpectSMS("first alert")

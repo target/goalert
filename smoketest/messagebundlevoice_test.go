@@ -44,7 +44,7 @@ func TestMessageBundle_Voice(t *testing.T) {
 
 	h.CreateAlert(h.UUID("sid"), "test1", "test2", "test3", "test4")
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
 	d1.ExpectVoice("My Service", "4 unacknowledged").ThenPress("4").ThenExpect("Acknowledged all")
