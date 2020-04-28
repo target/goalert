@@ -8,6 +8,7 @@ type EscalationMetaData struct {
 	OldDelayMinutes int
 }
 
-type NotificationSentMetaData struct {
-	MessageID string
+type NotificationMetaData struct {
+	MessageID    string
+	ErrorMessage string
 }
