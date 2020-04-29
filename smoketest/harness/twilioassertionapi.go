@@ -61,6 +61,9 @@ func (tw *twilioAssertionAPI) triggerTimeout() (<-chan string, func()) {
 	t := time.NewTimer(15 * time.Second)
 	go func() {
 		defer t.Stop()
+		minWait := time.NewTimer(3 * time.Second)
+		defer minWait.Stop()
+
 		// 3 engine cycles, or timeout/cancel (whichever is sooner)
 		for i := 0; i < 3; i++ {
 			select {
@@ -71,6 +74,7 @@ func (tw *twilioAssertionAPI) triggerTimeout() (<-chan string, func()) {
 				tw.triggerFn()
 			}
 		}
+		<-minWait.C // wait for the twilio server queue to empty
 		errMsgCh <- "3 engine cycles"
 	}()
 

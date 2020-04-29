@@ -174,7 +174,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	twCfg := mocktwilio.Config{
 		AuthToken:    twilioAuthToken,
 		AccountSID:   twilioAccountSID,
-		MinQueueTime: time.Second, // until we have a stateless backend for answering calls
+		MinQueueTime: 100 * time.Millisecond, // until we have a stateless backend for answering calls
 	}
 
 	h := &Harness{
@@ -188,6 +188,7 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 
 		t: t,
 	}
+
 	h.tw = newTwilioAssertionAPI(func() {
 		h.FastForward(time.Minute)
 		h.Trigger()
@@ -479,18 +480,6 @@ func (h *Harness) CreateAlert(serviceID string, summary ...string) {
 		}
 	})
 	h.trigger()
-}
-
-func (h *Harness) startTriggering() func() {
-	cancelCh := make(chan struct{})
-
-	go func() {
-		for range cancelCh {
-			h.Trigger()
-		}
-	}()
-
-	return func() { close(cancelCh) }
 }
 
 // CreateManyAlert will create multiple new unacknowledged alerts for a given service.

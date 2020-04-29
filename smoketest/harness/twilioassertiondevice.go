@@ -72,6 +72,7 @@ func (dev *twilioAssertionDevice) _expectSMS(includePrev bool, keywords ...strin
 		case msg := <-timeout:
 			dev.t.Fatalf("Twilio: timeout after %s waiting for SMS with keywords: %v", msg, keywords)
 		}
+		dev.t.Logf("received SMS to %s: %s", sms.To(), sms.Body())
 		if !m.match(sms) {
 			dev.messages = append(dev.messages, sms)
 			continue
