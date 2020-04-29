@@ -31,6 +31,7 @@ type VoiceCall struct {
 	messageCh chan string
 	pressCh   chan string
 	hangupCh  chan struct{}
+	doneCh    chan struct{}
 
 	// start is used to track when the call was created (entered queue)
 	start time.Time
@@ -40,6 +41,7 @@ type VoiceCall struct {
 	callStart      time.Time
 	url            string
 	callbackURL    string
+	lastMessage    string
 	callbackEvents []string
 	hangup         bool
 
@@ -48,6 +50,7 @@ type VoiceCall struct {
 
 func (vc *VoiceCall) process() {
 	defer vc.s.workers.Done()
+	defer close(vc.doneCh)
 
 	if vc.s.wait(vc.s.cfg.MinQueueTime) {
 		return
@@ -61,20 +64,25 @@ func (vc *VoiceCall) process() {
 
 	vc.updateStatus(twilio.CallStatusRinging)
 
-	vc.s.callCh <- vc
+	var err error
+	vc.lastMessage, err = vc.fetchMessage("")
+	if err != nil {
+		vc.s.errs <- fmt.Errorf("fetch message: %w", err)
+		return
+	}
+	select {
+	case vc.s.callCh <- vc:
+	case <-vc.s.shutdown:
+		return
+	}
 
 	select {
+	case vc.messageCh <- vc.lastMessage:
 	case <-vc.acceptCh:
 	case <-vc.rejectCh:
 		vc.updateStatus(twilio.CallStatusFailed)
 		return
 	case <-vc.s.shutdown:
-		return
-	}
-
-	message, err := vc.fetchMessage("")
-	if err != nil {
-		vc.s.errs <- fmt.Errorf("fetch message: %w", err)
 		return
 	}
 
@@ -91,14 +99,13 @@ func (vc *VoiceCall) process() {
 		case <-vc.hangupCh:
 			vc.updateStatus(twilio.CallStatusCompleted)
 			return
-		case vc.messageCh <- message:
+		case vc.messageCh <- vc.lastMessage:
 		case digits := <-vc.pressCh:
-			msg, err := vc.fetchMessage(digits)
+			vc.lastMessage, err = vc.fetchMessage(digits)
 			if err != nil {
 				vc.s.errs <- fmt.Errorf("fetch message: %w", err)
 				return
 			}
-			message = msg
 			if vc.hangup {
 				vc.updateStatus(twilio.CallStatusCompleted)
 				return
@@ -134,9 +141,10 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 
 	vc := VoiceCall{
 		acceptCh:  make(chan struct{}),
+		doneCh:    make(chan struct{}),
 		rejectCh:  make(chan struct{}),
 		messageCh: make(chan string),
-		pressCh:   make(chan string, 1),
+		pressCh:   make(chan string),
 		hangupCh:  make(chan struct{}),
 	}
 
@@ -270,10 +278,10 @@ func (vc *VoiceCall) cloneCall() *twilio.Call {
 func (vc *VoiceCall) Accept() { close(vc.acceptCh) }
 
 // Reject will reject a call, moving it to a "failed" state.
-func (vc *VoiceCall) Reject() { close(vc.rejectCh) }
+func (vc *VoiceCall) Reject() { close(vc.rejectCh); <-vc.doneCh }
 
 // Hangup will end the call, setting it's state to "completed".
-func (vc *VoiceCall) Hangup() { close(vc.hangupCh) }
+func (vc *VoiceCall) Hangup() { close(vc.hangupCh); <-vc.doneCh }
 
 func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 	data, err := vc.s.post(vc.url, vc.values(digits))
@@ -340,9 +348,11 @@ func (vc *VoiceCall) From() string {
 	return vc.call.From
 }
 
-// Message will return the last spoken message of the call.
-func (vc *VoiceCall) Message() string {
+// Body will return the last spoken message of the call.
+func (vc *VoiceCall) Body() string {
 	select {
+	case <-vc.doneCh:
+		return vc.lastMessage
 	case msg := <-vc.messageCh:
 		return msg
 	case <-vc.s.shutdown:

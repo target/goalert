@@ -72,7 +72,7 @@ type Harness struct {
 	t                       *testing.T
 	closing                 bool
 
-	tw  *twServer
+	tw  *twilioAssertionAPI
 	twS *httptest.Server
 
 	cfg config.Config
@@ -188,7 +188,10 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 
 		t: t,
 	}
-	h.tw = newTWServer(t, h, mocktwilio.NewServer(twCfg))
+	h.tw = newTwilioAssertionAPI(func() {
+		h.FastForward(time.Minute)
+		h.Trigger()
+	}, mocktwilio.NewServer(twCfg), h.cfg.Twilio.FromNumber)
 
 	h.twS = httptest.NewServer(h.tw)
 
@@ -478,6 +481,18 @@ func (h *Harness) CreateAlert(serviceID string, summary ...string) {
 	h.trigger()
 }
 
+func (h *Harness) startTriggering() func() {
+	cancelCh := make(chan struct{})
+
+	go func() {
+		for range cancelCh {
+			h.Trigger()
+		}
+	}()
+
+	return func() { close(cancelCh) }
+}
+
 // CreateManyAlert will create multiple new unacknowledged alerts for a given service.
 func (h *Harness) CreateManyAlert(serviceID, summary string) {
 	h.t.Helper()
@@ -520,7 +535,13 @@ func (h *Harness) Trigger() {
 	go h.trigger()
 
 	// wait for the next cycle to start and end before returning
-	http.Get(h.backendURL + "/health/engine")
+	resp, err := http.Get(h.backendURL + "/health/engine")
+	if err != nil {
+		h.t.Fatal("wait for engine cycle:", err)
+	}
+	if resp.StatusCode != 200 {
+		h.t.Fatal("wait for engine cycle: non-200 response:", resp.Status)
+	}
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
@@ -584,7 +605,7 @@ func (h *Harness) dumpDB() {
 // It should be called at the end of all tests (usually with `defer h.Close()`).
 func (h *Harness) Close() error {
 	h.t.Helper()
-	h.tw.WaitAndAssert()
+	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
 	h.slackS.Close()
 	h.twS.Close()
