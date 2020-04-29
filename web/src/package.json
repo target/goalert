@@ -91,7 +91,7 @@
     "react": "16.13.1",
     "react-apollo": "3.1.5",
     "react-beautiful-dnd": "13.0.0",
-    "react-big-calendar": "0.24.1",
+    "react-big-calendar": "0.24.5",
     "react-countdown-now": "2.1.2",
     "react-dom": "16.13.1",
     "react-ga": "2.7.0",
