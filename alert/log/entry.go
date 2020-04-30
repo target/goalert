@@ -173,7 +173,7 @@ func (e Entry) Status() string {
 		return "ERROR"
 	}
 
-	if e.lastStatus.String == "sent" {
+	if e.lastStatus.String == "delivered" {
 		return "OK"
 	}
 
