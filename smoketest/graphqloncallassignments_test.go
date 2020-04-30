@@ -27,7 +27,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	t.Parallel()
 
 	sql := `insert into escalation_policies (id, name) 
-					values ({{uuid "eid"}}, 'esc policy');`
+					values ('52fdfc07-2182-454f-963f-5f0f9a621d72', 'esc policy');`
 
 	type onCallAssertion struct {
 		Service, EP, EPName, User string
@@ -100,8 +100,6 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 
 			doQL(t, query, nil)
 			h.Trigger()
-
-			// eid := h.UUID("eid")
 
 			var onCallState map[string]struct {
 				OnCallSteps []struct {
@@ -647,7 +645,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	)
 
 	// User EP Schedule Replace Rotation Override Double Service
-	/*check("User EP Schedule Replace Rotation Override Double Service", fmt.Sprintf(`
+	check("User EP Schedule Replace Rotation Override Double Service", fmt.Sprintf(`
 		mutation {
 		alias0: createService(input: { name: "{{name "svc1"}}", escalationPolicyID: "%s" }) {
 			id
@@ -694,12 +692,12 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		) {
 			id
 		}
-	}`, eid, eid, eid),
+	}`, "52fdfc07-2182-454f-963f-5f0f9a621d72", "52fdfc07-2182-454f-963f-5f0f9a621d72", "52fdfc07-2182-454f-963f-5f0f9a621d72"),
 		[]onCallAssertion{
 			{Service: "svc1", EPName: "esc policy", StepNumber: 0, User: "bob"},
 			{Service: "svc2", EPName: "esc policy", StepNumber: 0, User: "bob"},
 		},
-	)*/
+	)
 
 	// Active schedule rule, active rotation participant is NOT replaced (no override)
 	check("User EP Schedule Replace Rotation Override Absent", `
