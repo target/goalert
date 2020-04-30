@@ -85,12 +85,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				sub_hb_monitor_id,
 				sub_channel_id,
 				sub_classifier,
-				sub_suffix,
 				meta,
 				message	
 			)
 			select
-				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10
 			from alerts a
 			join services svc on svc.id = a.service_id and svc.escalation_policy_id = ANY ($1)
 			where a.status != 'closed'
@@ -105,12 +104,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				sub_hb_monitor_id,
 				sub_channel_id,
 				sub_classifier,
-				sub_suffix,
 				meta,
 				message	
 			)
 			select
-				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+				a.id, $2, $3, $4, $5, $6, $7, $8, $9, $10
 			from alerts a
 			where a.service_id = ANY ($1) and (
 				($2 = 'closed'::enum_alert_log_event and a.status != 'closed') or
@@ -127,11 +125,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				sub_hb_monitor_id,
 				sub_channel_id,
 				sub_classifier,
-				sub_suffix,
 				meta,
 				message
 			)
-			SELECT unnest, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+			SELECT unnest, $2, $3, $4, $5, $6, $7, $8, $9, $10
 			FROM unnest($1::int[])
 		`),
 		findOne: p.P(`
@@ -151,7 +148,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				log.sub_channel_id,
 				nc.name,
 				log.sub_classifier,
-				log.sub_suffix,
 				log.meta
 			from alert_logs log
 			left join users usr on usr.id = log.sub_user_id
@@ -177,7 +173,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				log.sub_channel_id,
 				nc.name,
 				log.sub_classifier,
-				log.sub_suffix,
 				log.meta
 			from alert_logs log
 			left join users usr on usr.id = log.sub_user_id
@@ -204,7 +199,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				log.sub_channel_id,
 				nc.name,
 				log.sub_classifier,
-				log.sub_suffix,
 				log.meta
 			from alert_logs log
 			left join users usr on usr.id = log.sub_user_id
@@ -424,7 +418,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		return errors.Errorf("invalid id type %T", t)
 	}
 
-	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.subject.suffix, r.meta, r.String())
+	_, err = txWrap(ctx, tx, insertStmt).ExecContext(ctx, idArg, _type, r.subject._type, r.subject.userID, r.subject.integrationKeyID, r.subject.heartbeatMonitorID, r.subject.channelID, r.subject.classifier, r.meta, r.String())
 	return err
 }
 func (db *DB) FindOne(ctx context.Context, logID int) (*Entry, error) {

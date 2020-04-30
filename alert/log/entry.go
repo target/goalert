@@ -27,7 +27,6 @@ type Entry struct {
 		channelID            sql.NullString
 		channelName          sql.NullString
 		classifier           string
-		suffix               string
 	}
 	meta          rawJSON
 	lastStatus    sql.NullString
@@ -81,7 +80,6 @@ func (e Entry) Subject() *Subject {
 	s := &Subject{
 		Type:       e.subject._type,
 		Classifier: e.subject.classifier,
-		Suffix:     e.subject.suffix,
 	}
 
 	switch s.Type {
@@ -176,7 +174,6 @@ func (e *Entry) scanWith(scan func(...interface{}) error) error {
 		&e.subject.channelID,
 		&e.subject.channelName,
 		&e.subject.classifier,
-		&e.subject.suffix,
 		&e.meta,
 		&e.lastStatus,
 		&e.statusDetails,

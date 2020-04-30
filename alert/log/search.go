@@ -45,7 +45,6 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		log.sub_channel_id,
 		nc.name,
 		log.sub_classifier,
-		log.sub_suffix,
 		log.meta,
 		om.last_status,
 		om.status_details

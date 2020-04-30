@@ -48,7 +48,6 @@ type Subject struct {
 	Name       string      `json:"name"`
 	Type       SubjectType `json:"type"`
 	Classifier string      `json:"classifier"`
-	Suffix     string      `json:"suffix"`
 }
 
 func subjectString(infinitive bool, s *Subject) string {
@@ -83,10 +82,5 @@ func subjectString(infinitive bool, s *Subject) string {
 	if s.Classifier != "" {
 		str += " (" + s.Classifier + ")"
 	}
-
-	if s.Suffix != "" {
-		str += s.Suffix
-	}
-
 	return str
 }

@@ -149,7 +149,6 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]En
 			a.sub_channel_id,
 			nc.name,
 			a.sub_classifier,
-			a.sub_suffix,
 			a.meta,
 			om.last_status,
 			om.status_details
