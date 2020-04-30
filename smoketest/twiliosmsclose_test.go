@@ -49,9 +49,9 @@ func TestTwilioSMSClose(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectSMS("testing").ThenReply("close 1")
-	d1.ExpectSMS("closed")
-	tw.WaitAndAssert()
+	d1.ExpectSMS("testing").
+		ThenReply("close 1").
+		ThenExpect("closed")
 
 	h.FastForward(time.Hour)
 	// no more messages

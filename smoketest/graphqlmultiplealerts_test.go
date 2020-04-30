@@ -56,9 +56,6 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	h.Twilio(t).Device(phone).ExpectSMS("alert1")
 	h.Twilio(t).Device(phone).ExpectSMS("alert2")
 
-	// No more SMS should be sent out
-	h.Twilio(t).WaitAndAssert()
-
 	h.CreateAlert(sid, "alert3")
 
 	// GraphQL2 section starts
@@ -82,9 +79,6 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 
 	h.Twilio(t).Device(phone).ExpectSMS("alert3")
 
-	// No more SMS should be sent out
-	h.Twilio(t).WaitAndAssert()
-
 	// Acknowledging alert #3
 	doQL2(fmt.Sprintf(`
 		mutation {
@@ -100,9 +94,6 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	h.Twilio(t).Device(phone).ExpectSMS("alert1")
 	h.Twilio(t).Device(phone).ExpectSMS("alert2")
 
-	// No SMS should be sent out
-	h.Twilio(t).WaitAndAssert()
-
 	// Escalating multiple (3) alerts
 	doQL2(fmt.Sprintf(`
 		mutation {
@@ -116,8 +107,6 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	h.Twilio(t).Device(phone).ExpectSMS("alert2")
 	h.Twilio(t).Device(phone).ExpectSMS("alert3")
 
-	h.Twilio(t).WaitAndAssert()
-
 	// Closing multiple (3) alerts
 	doQL2(fmt.Sprintf(`
 		mutation {
@@ -129,8 +118,5 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	`, 1, 2, 3), nil)
 
 	h.FastForward(1 * time.Minute)
-
-	// No more messages should be sent out
-	h.Twilio(t).WaitAndAssert()
 
 }

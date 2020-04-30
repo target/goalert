@@ -70,7 +70,6 @@ func TestAddRules(t *testing.T) {
 	tw := h.Twilio(t)
 	d := tw.Device(h.Phone("1"))
 	d.ExpectSMS("testing") // immediate rule
-	tw.WaitAndAssert()
 
 	h.FastForward(35 * time.Minute)
 	h.Trigger() // ensure engine cycles before adding 30-min rule
@@ -82,17 +81,14 @@ func TestAddRules(t *testing.T) {
 	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing") // 60-min rule (30-min skipped)
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 
 	d.ExpectSMS("testing") // 90-min rule
-	tw.WaitAndAssert()
 
 	h.Escalate(1, 0)
 
 	d.ExpectSMS("testing") // immediate rule
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 

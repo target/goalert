@@ -46,7 +46,4 @@ func TestTwilioVoiceFailure(t *testing.T) {
 
 	d1 := h.Twilio(t).Device(h.Phone("1"))
 	d1.RejectVoice("testing")
-
-	// should not retry (failed calls are perm failure)
-	h.Trigger()
 }

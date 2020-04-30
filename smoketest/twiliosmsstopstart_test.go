@@ -46,21 +46,20 @@ func TestTwilioSMSStopStart(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
+	dev := h.Twilio(t).Device(h.Phone("1"))
 	// disable SMS
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("testing").ThenReply("stop")
-	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("testing")
-	h.Twilio(t).WaitAndAssert()
+	dev.ExpectSMS("testing").ThenReply("stop")
+	dev.ExpectVoice("testing").Hangup()
 
 	// trigger update - only VOICE should still be enabled
 	h.Escalate(1234, 0)
-	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("testing")
-	h.Twilio(t).WaitAndAssert()
+	dev.ExpectVoice("testing").Hangup()
 
 	// re-enable SMS
-	h.Twilio(t).Device(h.Phone("1")).SendSMS("start")
+	dev.SendSMS("start")
 
 	// trigger update - VOICE and SMS should be enabled
 	h.Escalate(1234, 0)
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("testing")
-	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("testing")
+	dev.ExpectSMS("testing")
+	dev.ExpectVoice("testing")
 }

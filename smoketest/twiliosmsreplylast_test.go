@@ -50,8 +50,9 @@ func TestTwilioSMSReplyLast(t *testing.T) {
 			tw := h.Twilio(t)
 			d1 := tw.Device(h.Phone("1"))
 
-			d1.ExpectSMS("testing").ThenReply(respondWith)
-			d1.ExpectSMS(expect, "198")
+			d1.ExpectSMS("testing").
+				ThenReply(respondWith).
+				ThenExpect(expect, "198")
 		})
 	}
 

@@ -66,7 +66,6 @@ func TestRotation_Hourly(t *testing.T) {
 	h.Escalate(1, 0)
 
 	d1.ExpectSMS("testing")
-	tw.WaitAndAssert()
 
 	h.FastForward(time.Hour)
 

@@ -86,8 +86,6 @@ func TestInProgress(t *testing.T) {
 
 	d3.ExpectSMS("testing2")
 
-	tw.WaitAndAssert()
-
 	h.FastForward(30 * time.Minute)
 
 	d1.ExpectSMS("testing1")
@@ -99,16 +97,12 @@ func TestInProgress(t *testing.T) {
 	d3.ExpectSMS("testing1")
 	d3.ExpectSMS("testing2")
 
-	tw.WaitAndAssert()
-
 	h.Escalate(1, 0)
 
 	d2.ExpectSMS("testing1")
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 
 	d2.ExpectSMS("testing1")
 	d2.ExpectVoice("testing1")
-	tw.WaitAndAssert()
 }

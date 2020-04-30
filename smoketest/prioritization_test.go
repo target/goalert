@@ -65,16 +65,12 @@ func TestPrioritization(t *testing.T) {
 	d1.IgnoreUnexpectedSMS("service-1-alert")
 
 	d1.ExpectSMS("service-1-alert")
-	tw.WaitAndAssert()
 
 	d1.ExpectSMS("service-1-alert")
-	tw.WaitAndAssert()
 
 	h.CreateAlert(h.UUID("s2"), "service-2-alert")
 
 	d1.ExpectSMS("service-2-alert")
-	tw.WaitAndAssert()
 
 	d1.ExpectSMS("service-1-alert")
-	tw.WaitAndAssert()
 }

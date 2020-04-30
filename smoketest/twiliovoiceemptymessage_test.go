@@ -46,6 +46,4 @@ func TestTwilioVoiceEmptyMessage(t *testing.T) {
 
 	d1 := h.Twilio(t).Device(h.Phone("1"))
 	d1.ExpectVoice("No summary provided")
-
-	h.Twilio(t).WaitAndAssert()
 }

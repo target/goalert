@@ -62,7 +62,6 @@ values
 	d2 := tw.Device(h.Phone("2"))
 
 	d1.ExpectSMS("testing")
-	tw.WaitAndAssert()
 
 	h.GraphQLQuery2(fmt.Sprintf(`
 		mutation{
@@ -75,7 +74,6 @@ values
 	`, h.UUID("sid"), h.UUID("ep2")))
 
 	d2.ExpectSMS("testing")
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 	// no new alerts
@@ -93,5 +91,4 @@ values
 
 	// should get immediate message
 	d1.ExpectSMS("testing")
-	tw.WaitAndAssert()
 }

@@ -54,7 +54,6 @@ func TestMultiStepNotifications(t *testing.T) {
 
 	d1.ExpectSMS("testing")
 	d2.ExpectVoice("testing")
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 	d1.ExpectSMS("testing")

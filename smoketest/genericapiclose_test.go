@@ -81,7 +81,6 @@ func TestGenericAPIClose(t *testing.T) {
 	d.ExpectSMS("test1")
 	d.ExpectSMS("test2")
 	d.ExpectSMS("test3")
-	h.Twilio(t).WaitAndAssert()
 
 	fire(key, "test2", "", true)
 	fire(key, "test3", "dedup", true)

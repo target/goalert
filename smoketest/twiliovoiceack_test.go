@@ -49,8 +49,9 @@ func TestTwilioVoiceAck(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectVoice("testing").ThenPress("4").ThenExpect("acknowledged")
-	tw.WaitAndAssert()
+	d1.ExpectVoice("testing").
+		ThenPress("4").
+		ThenExpect("acknowledged")
 
 	h.FastForward(time.Hour)
 	// no more messages

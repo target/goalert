@@ -47,6 +47,7 @@ func TestTwilioSMSTrailingSpace(t *testing.T) {
 	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectSMS("testing").ThenReply("ack198           ")
-	d1.ExpectSMS("acknowledged")
+	d1.ExpectSMS("testing").
+		ThenReply("ack198           ").
+		ThenExpect("acknowledged")
 }

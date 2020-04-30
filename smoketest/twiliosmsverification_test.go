@@ -52,7 +52,6 @@ func TestTwilioSMSVerification(t *testing.T) {
 	d1 := tw.Device(h.Phone("1"))
 
 	msg := d1.ExpectSMS("verification")
-	tw.WaitAndAssert() // wait for code, and ensure no notifications went out
 
 	codeStr := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {

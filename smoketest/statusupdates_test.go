@@ -78,11 +78,9 @@ func TestStatusUpdates(t *testing.T) {
 
 	d1.ExpectSMS("first alert")
 	d1.ExpectSMS("second alert")
-	tw.WaitAndAssert()
 
 	doClose("first alert")
 	d1.ExpectSMS("closed")
-	tw.WaitAndAssert()
 
 	doClose("second alert")
 	d1.ExpectSMS("closed")

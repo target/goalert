@@ -56,7 +56,6 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h.CreateAlert(h.UUID("sid"), "test")
 		d1.ExpectSMS("test", longURL)
 
-		tw.WaitAndAssert()
 	})
 
 	t.Run("General.ShortURL in sms body", func(t *testing.T) {
@@ -72,7 +71,6 @@ func TestTwilioURL_SMS(t *testing.T) {
 		h.CreateAlert(h.UUID("sid"), "test")
 		d1.ExpectSMS("test", shortURL)
 
-		tw.WaitAndAssert()
 	})
 
 	t.Run("General.DisableSMSLinks with General.ShortURL set", func(t *testing.T) {
@@ -88,7 +86,6 @@ func TestTwilioURL_SMS(t *testing.T) {
 
 		h.CreateAlert(h.UUID("sid"), "test")
 		smsMsg := d1.ExpectSMS("test")
-		tw.WaitAndAssert()
 		assert.NotContains(t, smsMsg.Body(), "http")
 	})
 
@@ -105,7 +102,6 @@ func TestTwilioURL_SMS(t *testing.T) {
 
 		h.CreateAlert(h.UUID("sid"), "test")
 		smsMsg := d1.ExpectSMS("test")
-		tw.WaitAndAssert()
 		assert.NotContains(t, smsMsg.Body(), longURL)
 		assert.NotContains(t, smsMsg.Body(), "http")
 	})

@@ -68,7 +68,6 @@ func TestHeartbeat(t *testing.T) {
 	heartbeat()
 	h.FastForward(60 * time.Minute) // expire heartbeat
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("heartbeat")
-	h.Twilio(t).WaitAndAssert()
 
 	heartbeat()
 	h.Trigger() // cycle engine (to close/process heartbeat) before fast-forwarding

@@ -81,20 +81,17 @@ func TestGenericAPIDedup(t *testing.T) {
 	d2 := tw.Device(h.Phone("2"))
 
 	d1.ExpectSMS("pre-existing") // already created
-	tw.WaitAndAssert()
 
 	fire(h.UUID("i1"), "pre-existing", "") // should get deduped and never notify
 
 	fire(h.UUID("i1"), "hello", "")
 	fire(h.UUID("i1"), "hello", "") // 1 alert
 	d1.ExpectSMS("hello")
-	tw.WaitAndAssert()
 
 	fire(h.UUID("i1"), "goodbye", "")
 	fire(h.UUID("i2"), "hello", "")
 	d1.ExpectSMS("goodbye")
 	d2.ExpectSMS("hello") // ensure 2nd service can get an alert
-	tw.WaitAndAssert()
 
 	fire(h.UUID("i1"), "hello", "foo")
 	fire(h.UUID("i1"), "hello2", "foo")
@@ -102,5 +99,4 @@ func TestGenericAPIDedup(t *testing.T) {
 
 	fire(h.UUID("i2"), "hello", "foo")
 	d2.ExpectSMS("hello")
-	tw.WaitAndAssert()
 }

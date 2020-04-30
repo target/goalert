@@ -73,6 +73,5 @@ func TestSite24x7(t *testing.T) {
 		t.Error("non-200 response:", resp.Status)
 	}
 	resp.Body.Close()
-
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Site24x7")
 }

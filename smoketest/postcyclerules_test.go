@@ -55,7 +55,6 @@ func TestPostCycleRules(t *testing.T) {
 	d2 := tw.Device(h.Phone("2"))
 
 	d2.ExpectSMS("testing")
-	tw.WaitAndAssert()
 
 	// ADD RULES
 	h.AddNotificationRule(h.UUID("uid"), h.UUID("cid"), 0)
@@ -67,5 +66,4 @@ func TestPostCycleRules(t *testing.T) {
 	h.FastForward(30 * time.Minute)
 
 	d1.ExpectSMS("testing")
-	tw.WaitAndAssert()
 }
