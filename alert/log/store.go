@@ -336,6 +336,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			case contactmethod.TypeEmail:
 				r.subject.classifier = "Email"
 			}
+
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
 			var cmType contactmethod.Type

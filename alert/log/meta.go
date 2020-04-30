@@ -9,6 +9,5 @@ type EscalationMetaData struct {
 }
 
 type NotificationMetaData struct {
-	MessageID    string
-	ErrorMessage string
+	MessageID string
 }
