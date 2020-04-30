@@ -667,6 +667,7 @@ func TestMigrations(t *testing.T) {
 			if checkDiff(t, "UP", migrationName, upSnap, s) {
 				t.Fatalf("UP migration did not restore previous schema")
 			}
+			t.Parallel()
 		})
 		if !pass && !applied {
 			n, err = migrate.Up(context.Background(), harness.DBURL(dbName), migrationName)
