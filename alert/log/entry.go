@@ -158,6 +158,28 @@ func (e Entry) String() string {
 	return msg
 }
 
+func (e Entry) Details() string {
+	meta, ok := e.Meta().(*NotificationMetaData)
+	if ok && meta.ErrorMessage != "" {
+		return meta.ErrorMessage
+	}
+
+	return e.statusDetails.String
+}
+
+func (e Entry) Status() string {
+	meta, ok := e.Meta().(*NotificationMetaData)
+	if ok && meta.ErrorMessage != "" {
+		return "ERROR"
+	}
+
+	if e.lastStatus.String == "sent" {
+		return "OK"
+	}
+
+	return ""
+}
+
 func (e *Entry) scanWith(scan func(...interface{}) error) error {
 	return scan(
 		&e.id,

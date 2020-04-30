@@ -18,6 +18,7 @@ import (
 
 type Alert App
 type AlertLogEntry App
+type AlertLogEntryState App
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
 
@@ -37,6 +38,17 @@ func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*ti
 func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (string, error) {
 	e := *obj
 	return e.String(), nil
+}
+
+func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	d := e.Details()
+	s := e.Status()
+
+	return &graphql2.AlertLogEntryState{
+		Details: d,
+		Status:  &s,
+	}, nil
 }
 
 func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
