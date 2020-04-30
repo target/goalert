@@ -7,16 +7,15 @@ type Type string
 
 // Types of Log Entries
 const (
-	TypeCreated                 Type = "created"
-	TypeClosed                  Type = "closed"
-	TypeNotificationSent        Type = "notification_sent"
-	TypeNoNotificationSent      Type = "no_notification_sent"
-	TypeNotificationSendFailure Type = "notification_send_failure"
-	TypeEscalated               Type = "escalated"
-	TypeAcknowledged            Type = "acknowledged"
-	TypePolicyUpdated           Type = "policy_updated"
-	TypeDuplicateSupressed      Type = "duplicate_suppressed"
-	TypeEscalationRequest       Type = "escalation_request"
+	TypeCreated            Type = "created"
+	TypeClosed             Type = "closed"
+	TypeNotificationSent   Type = "notification_sent"
+	TypeNoNotificationSent Type = "no_notification_sent"
+	TypeEscalated          Type = "escalated"
+	TypeAcknowledged       Type = "acknowledged"
+	TypePolicyUpdated      Type = "policy_updated"
+	TypeDuplicateSupressed Type = "duplicate_suppressed"
+	TypeEscalationRequest  Type = "escalation_request"
 
 	// not exported, status_changed will be turned into an acknowledged where appropriate
 	_TypeStatusChanged Type = "status_changed"

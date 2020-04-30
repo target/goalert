@@ -53,16 +53,15 @@ func (h *Handler) alertLogSubjectFields() g.Fields {
 var alertLogEventType = g.NewEnum(g.EnumConfig{
 	Name: "AlertLogEventType",
 	Values: g.EnumValueConfigMap{
-		"created":                   &g.EnumValueConfig{Value: alertlog.TypeCreated},
-		"closed":                    &g.EnumValueConfig{Value: alertlog.TypeClosed},
-		"escalated":                 &g.EnumValueConfig{Value: alertlog.TypeEscalated},
-		"acknowledged":              &g.EnumValueConfig{Value: alertlog.TypeAcknowledged},
-		"escalation_request":        &g.EnumValueConfig{Value: alertlog.TypeEscalationRequest},
-		"notification_sent":         &g.EnumValueConfig{Value: alertlog.TypeNotificationSent},
-		"notification_send_failure": &g.EnumValueConfig{Value: alertlog.TypeNotificationSendFailure},
-		"no_notification_sent":      &g.EnumValueConfig{Value: alertlog.TypeNoNotificationSent},
-		"policy_updated":            &g.EnumValueConfig{Value: alertlog.TypePolicyUpdated},
-		"duplicate_suppressed":      &g.EnumValueConfig{Value: alertlog.TypeDuplicateSupressed},
+		"created":              &g.EnumValueConfig{Value: alertlog.TypeCreated},
+		"closed":               &g.EnumValueConfig{Value: alertlog.TypeClosed},
+		"escalated":            &g.EnumValueConfig{Value: alertlog.TypeEscalated},
+		"acknowledged":         &g.EnumValueConfig{Value: alertlog.TypeAcknowledged},
+		"escalation_request":   &g.EnumValueConfig{Value: alertlog.TypeEscalationRequest},
+		"notification_sent":    &g.EnumValueConfig{Value: alertlog.TypeNotificationSent},
+		"no_notification_sent": &g.EnumValueConfig{Value: alertlog.TypeNoNotificationSent},
+		"policy_updated":       &g.EnumValueConfig{Value: alertlog.TypePolicyUpdated},
+		"duplicate_suppressed": &g.EnumValueConfig{Value: alertlog.TypeDuplicateSupressed},
 	},
 })
 
