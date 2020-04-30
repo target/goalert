@@ -539,6 +539,12 @@ export interface AlertLogEntry {
   id: number
   timestamp: ISOTimestamp
   message: string
+  state?: AlertLogEntryState
+}
+
+export interface AlertLogEntryState {
+  details: string
+  status?: string
 }
 
 export interface AlertState {

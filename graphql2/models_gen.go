@@ -34,6 +34,11 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
+type AlertLogEntryState struct {
+	Details string  `json:"details"`
+	Status  *string `json:"status"`
+}
+
 type AlertRecentEventsOptions struct {
 	Limit *int    `json:"limit"`
 	After *string `json:"after"`
