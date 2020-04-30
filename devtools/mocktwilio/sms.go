@@ -3,6 +3,7 @@ package mocktwilio
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -177,23 +178,23 @@ func (s *Server) SMS() chan *SMS {
 // SendSMS will cause an SMS to be sent to the given number with the contents of body.
 //
 // The to parameter must match a value passed to RegisterSMSCallback or an error is returned.
-func (s *Server) SendSMS(from, to, body string) {
+func (s *Server) SendSMS(from, to, body string) error {
 	s.mx.RLock()
 	cbURL := s.callbacks["SMS:"+to]
 	s.mx.RUnlock()
 
 	if cbURL == "" {
-		s.errs <- errors.New("unknown/unregistered desination (to) number")
-		return
+		return fmt.Errorf(`unknown/unregistered desination (to) number "%s"`, to)
 	}
 
 	sms, err := s.sendSMS(from, to, body, "", cbURL)
 	if err != nil {
-		s.errs <- err
-		return
+		return err
 	}
 
 	<-sms.doneCh
+
+	return nil
 }
 
 func (sms *SMS) process() {

@@ -31,14 +31,17 @@ type twilioAssertionAPI struct {
 	ignoredSMS   anyMessage
 	ignoredVoice anyMessage
 
+	formatNumber func(string) string
+
 	mx sync.Mutex
 }
 
-func newTwilioAssertionAPI(triggerFn func(), srv *mocktwilio.Server, sendSMSDest string) *twilioAssertionAPI {
+func newTwilioAssertionAPI(triggerFn func(), formatNumber func(string) string, srv *mocktwilio.Server, sendSMSDest string) *twilioAssertionAPI {
 	return &twilioAssertionAPI{
-		triggerFn:   triggerFn,
-		Server:      srv,
-		sendSMSDest: sendSMSDest,
+		triggerFn:    triggerFn,
+		Server:       srv,
+		sendSMSDest:  sendSMSDest,
+		formatNumber: formatNumber,
 	}
 }
 
@@ -89,18 +92,19 @@ func (tw *twilioAssertionAPI) WaitAndAssert(t *testing.T) {
 	}
 	tw.mx.Lock()
 	defer tw.mx.Unlock()
+	t.Log("WaitAndAssert: waiting for unexpected messages")
 
 	for _, sms := range tw.messages {
 		if tw.ignoredSMS.match(sms) {
 			continue
 		}
-		t.Fatalf("got unexpected SMS to %s: %s", sms.To(), sms.Body())
+		t.Fatalf("found unexpected SMS to %s: %s", tw.formatNumber(sms.To()), sms.Body())
 	}
 	for _, call := range tw.calls {
 		if tw.ignoredVoice.match(call) {
 			continue
 		}
-		t.Fatalf("got unexpected voice call to %s: %s", call.To(), call.Body())
+		t.Fatalf("found unexpected voice call to %s: %s", tw.formatNumber(call.To()), call.Body())
 	}
 
 	timeout, cancel := tw.triggerTimeout()
@@ -109,9 +113,18 @@ waitLoop:
 	for {
 		select {
 		case sms := <-tw.SMS():
-			t.Fatalf("got unexpected SMS to %s: %s", sms.To(), sms.Body())
+			if tw.ignoredSMS.match(sms) {
+				sms.Accept()
+				continue
+			}
+			t.Fatalf("got unexpected SMS to %s: %s", tw.formatNumber(sms.To()), sms.Body())
 		case call := <-tw.VoiceCalls():
-			t.Fatalf("got unexpected voice call to %s: %s", call.To(), call.Body())
+			if tw.ignoredVoice.match(call) {
+				call.Accept()
+				call.Hangup()
+				continue
+			}
+			t.Fatalf("got unexpected voice call to %s: %s", tw.formatNumber(call.To()), call.Body())
 		case <-timeout:
 			break waitLoop
 		}

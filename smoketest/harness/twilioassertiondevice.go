@@ -20,10 +20,12 @@ func (dev *twilioAssertionDevice) _expectVoice(keywords ...string) *twilioAssert
 
 	m := dev.newMatcher(keywords)
 
-	for _, call := range dev.calls {
+	for i, call := range dev.calls {
 		if !m.match(call) {
 			continue
 		}
+
+		dev.calls = append(dev.calls[:i], dev.calls[i+1:]...)
 
 		return &twilioAssertionVoiceCall{twilioAssertionDevice: dev, VoiceCall: call}
 	}
@@ -37,6 +39,7 @@ func (dev *twilioAssertionDevice) _expectVoice(keywords ...string) *twilioAssert
 		case msg := <-timeout:
 			dev.t.Fatalf("Twilio: timeout after %s waiting for voice call with keywords: %v", msg, keywords)
 		}
+		dev.t.Logf("received voice call to %s: %s", dev.formatNumber(call.To()), call.Body())
 		if !m.match(call) {
 			dev.calls = append(dev.calls, call)
 			continue
@@ -54,11 +57,12 @@ func (dev *twilioAssertionDevice) _expectSMS(includePrev bool, keywords ...strin
 	m := dev.newMatcher(keywords)
 
 	if includePrev {
-		for _, sms := range dev.messages {
+		for i, sms := range dev.messages {
 			if !m.match(sms) {
 				continue
 			}
 
+			dev.messages = append(dev.messages[:i], dev.messages[i+1:]...)
 			return &twilioAssertionSMS{twilioAssertionDevice: dev, SMS: sms}
 		}
 	}
@@ -72,7 +76,7 @@ func (dev *twilioAssertionDevice) _expectSMS(includePrev bool, keywords ...strin
 		case msg := <-timeout:
 			dev.t.Fatalf("Twilio: timeout after %s waiting for SMS with keywords: %v", msg, keywords)
 		}
-		dev.t.Logf("received SMS to %s: %s", sms.To(), sms.Body())
+		dev.t.Logf("received SMS to %s: %s", dev.formatNumber(sms.To()), sms.Body())
 		if !m.match(sms) {
 			dev.messages = append(dev.messages, sms)
 			continue
@@ -116,13 +120,16 @@ func (dev *twilioAssertionDevice) RejectVoice(keywords ...string) {
 }
 func (dev *twilioAssertionDevice) SendSMS(body string) {
 	dev.t.Helper()
-	dev.Server.SendSMS(dev.number, dev.sendSMSDest, body)
+	err := dev.Server.SendSMS(dev.number, dev.sendSMSDest, body)
+	if err != nil {
+		dev.t.Fatalf("send SMS: from %s: %v", dev.formatNumber(dev.number), err)
+	}
 }
 
 func (dev *twilioAssertionDevice) IgnoreUnexpectedSMS(keywords ...string) {
 	dev.mx.Lock()
 	defer dev.mx.Unlock()
-	dev.ignoredVoice = append(dev.ignoredSMS, messageMatcher{number: dev.number, keywords: keywords})
+	dev.ignoredSMS = append(dev.ignoredSMS, messageMatcher{number: dev.number, keywords: keywords})
 }
 func (dev *twilioAssertionDevice) IgnoreUnexpectedVoice(keywords ...string) {
 	dev.mx.Lock()
