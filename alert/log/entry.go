@@ -134,10 +134,6 @@ func (e Entry) String() string {
 		}
 	case TypeNotificationSent:
 		msg = "Notification sent"
-		meta, ok := e.Meta().(*NotificationMetaData)
-		if ok && meta.ErrorMessage != "" {
-			msg = "Notification failed to send"
-		}
 		infinitive = true
 	case TypeNoNotificationSent:
 		msg = "No notification sent"
@@ -159,17 +155,11 @@ func (e Entry) String() string {
 }
 
 func (e Entry) Details() string {
-	meta, ok := e.Meta().(*NotificationMetaData)
-	if ok && meta.ErrorMessage != "" {
-		return meta.ErrorMessage
-	}
-
 	return e.statusDetails.String
 }
 
 func (e Entry) Status() string {
-	meta, ok := e.Meta().(*NotificationMetaData)
-	if ok && meta.ErrorMessage != "" {
+	if e.lastStatus.String == "failed" {
 		return "ERROR"
 	}
 
