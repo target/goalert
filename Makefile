@@ -59,8 +59,8 @@ $(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/inline_data_gen.go
 $(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
 	GOOS=darwin go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
-$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools/$* -name '*.go')
-	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$*
+$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -name '*.go')
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
 $(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
 	rm -rf $(BIN_DIR)/$*
@@ -68,8 +68,8 @@ $(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
 	cp $(BIN_DIR)/goalert-$* $(BIN_DIR)/$*/goalert/bin/goalert
 	tar czvf $@ -C $(BIN_DIR)/$* goalert
 
-$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools/$* -name '*.go')
-	go build $(BUILD_FLAGS) -o $@ ./devtools/$*
+$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -name '*.go')
+	go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
 $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
