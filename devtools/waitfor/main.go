@@ -53,6 +53,8 @@ func waitForPostgres(ctx context.Context, connStr string) {
 }
 
 func main() {
+	log.SetFlags(log.Lshortfile)
+	log.SetPrefix("waitfor: ")
 	timeout := flag.Duration("timeout", time.Minute, "Timeout to wait for all checks to complete.")
 	flag.Parse()
 
@@ -60,7 +62,7 @@ func main() {
 	defer cancel()
 
 	for _, u := range flag.Args() {
-		if strings.HasPrefix(u, "postgres://") {
+		if strings.HasPrefix(u, "postgres://") || strings.HasPrefix(u, "postgresql://") {
 			waitForPostgres(ctx, u)
 		} else {
 			waitForHTTP(ctx, u)

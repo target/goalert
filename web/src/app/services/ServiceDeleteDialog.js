@@ -19,7 +19,7 @@ function DeleteForm({ epName, error, value, onChange }) {
         control={
           <Checkbox
             checked={value}
-            onChange={e => onChange(e.target.checked)}
+            onChange={(e) => onChange(e.target.checked)}
             value='delete-escalation-policy'
           />
         }
@@ -93,7 +93,7 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
         </Typography>
       }
       caption='Deleting a service will also delete all associated integration keys and alerts.'
-      loading={deleteServiceStatus.loading || dataStatus.loading}
+      loading={deleteServiceStatus.loading || (!data && dataStatus.loading)}
       errors={nonFieldErrors(deleteServiceStatus.error)}
       onClose={onClose}
       onSubmit={() => deleteService()}
@@ -102,10 +102,10 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
           epName={epName}
           error={
             fieldErrors(deleteServiceStatus.error).find(
-              f => f.field === 'escalationPolicyID',
+              (f) => f.field === 'escalationPolicyID',
             ) && 'Escalation policy is currently in use.'
           }
-          onChange={deleteEP => setDeleteEP(deleteEP)}
+          onChange={(deleteEP) => setDeleteEP(deleteEP)}
           value={deleteEP}
         />
       }

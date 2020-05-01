@@ -44,7 +44,7 @@ export default class RotationRouter extends React.PureComponent {
     <SimpleListPage
       query={query}
       variables={{ input: { favoritesFirst: true } }}
-      mapDataNode={n => ({
+      mapDataNode={(n) => ({
         title: n.name,
         subText: n.description,
         url: n.id,

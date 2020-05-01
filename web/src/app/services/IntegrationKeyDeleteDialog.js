@@ -57,7 +57,7 @@ export default class IntegrationKeyDeleteDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        update={cache => {
+        update={(cache) => {
           const { service } = cache.readQuery({
             query: updateQuery,
             variables: { id: data.serviceID },
@@ -69,7 +69,7 @@ export default class IntegrationKeyDeleteDialog extends React.PureComponent {
               service: {
                 ...service,
                 integrationKeys: (service.integrationKeys || []).filter(
-                  key => key.id !== this.props.integrationKeyID,
+                  (key) => key.id !== this.props.integrationKeyID,
                 ),
               },
             },

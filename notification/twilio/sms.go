@@ -214,6 +214,28 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 
 }
 
+// isStopMessage checks the body of the message against single-word matches
+// i.e. "stop" will unsubscribe, however "please stop" will not.
+func isStopMessage(body string) bool {
+	switch strings.ToLower(body) {
+	case "stop", "stopall", "unsubscribe", "cancel", "end", "quit":
+		return true
+	}
+
+	return false
+}
+
+// isStartMessage checks the body of the message against single-word matches
+// i.e. "start" will resubscribe, however "please start" will not.
+func isStartMessage(body string) bool {
+	switch strings.ToLower(body) {
+	case "start", "yes", "unstop":
+		return true
+	}
+
+	return false
+}
+
 func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
 		return
@@ -265,17 +287,25 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// handle start and stop codes from user
 	body := req.FormValue("Body")
-	if strings.Contains(strings.ToLower(body), "stop") {
+	if isStartMessage(body) || isStopMessage(body) {
+		r := notification.ResultStart
+		msg := "process START message"
+		if isStopMessage(body) {
+			r = notification.ResultStop
+			msg = "process STOP message"
+		}
+
 		err := retry.DoTemporaryError(func(int) error {
 			errCh := make(chan error, 1)
 			s.respCh <- &notification.MessageResponse{
 				Ctx:    ctx,
 				From:   notification.Dest{Type: notification.DestTypeSMS, Value: from},
-				Result: notification.ResultStop,
+				Result: r,
 				Err:    errCh,
 			}
-			return errors.Wrap(<-errCh, "process STOP message")
+			return errors.Wrap(<-errCh, msg)
 		},
 			retry.Log(ctx),
 			retry.Limit(10),
@@ -284,6 +314,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Log(ctx, err)
 		}
+
 		return
 	}
 

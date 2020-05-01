@@ -1,17 +1,10 @@
 import { testScreen } from '../support'
 
-testScreen('Auth', testAuth, true)
-
-function testAuth(screen: ScreenFormat) {
-  before(() =>
-    cy
-      .clearCookies()
-      .resetConfig()
-      .visit('/'),
-  )
+function testAuth(): void {
+  before(() => cy.clearCookies().resetConfig().visit('/'))
 
   it('should authenticate a user', () => {
-    cy.fixture('profile').then(prof => {
+    cy.fixture('profile').then((prof) => {
       cy.form(
         {
           username: prof.username,
@@ -35,3 +28,5 @@ function testAuth(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Auth', testAuth, true)

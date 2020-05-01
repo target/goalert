@@ -1,7 +1,9 @@
+// NOTE the runner method is not inherent to Cypress
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CY: any = Cypress
 // Fail-fast-all-files
-before(function() {
-  cy.getCookie('has-failed-test').then(cookie => {
+before(function () {
+  cy.getCookie('has-failed-test').then((cookie) => {
     if (cookie && typeof cookie === 'object' && cookie.value === 'true') {
       CY.runner.stop()
     }
@@ -9,9 +11,11 @@ before(function() {
 })
 
 // Fail-fast-single-file
-afterEach(function() {
+afterEach(function () {
   if (this.currentTest && this.currentTest.state === 'failed') {
     cy.setCookie('has-failed-test', 'true')
     CY.runner.stop()
   }
 })
+
+export {}

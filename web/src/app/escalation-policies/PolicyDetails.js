@@ -29,7 +29,7 @@ const query = gql`
 
 export default function PolicyDetails(props) {
   const stepNumParam = 'createStep'
-  const [createStep, setCreateStep] = useURLParam(stepNumParam)
+  const [createStep, setCreateStep] = useURLParam(stepNumParam, false)
   const resetCreateStep = useResetURLParams(stepNumParam)
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -43,7 +43,7 @@ export default function PolicyDetails(props) {
 
   const data = _.get(_data, 'escalationPolicy', null)
 
-  if (loading) return <Spinner />
+  if (!data && loading) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data) {

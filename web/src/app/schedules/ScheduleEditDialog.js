@@ -79,7 +79,7 @@ export default class ScheduleEditDialog extends React.PureComponent {
                 timeZone: data.timeZone,
               }
             }
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

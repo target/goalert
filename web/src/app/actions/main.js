@@ -1,23 +1,6 @@
 import { replace } from 'connected-react-router'
 export const SET_SHOW_NEW_USER_FORM = 'SET_SHOW_NEW_USER_FORM'
 
-// resetURLParams will reset all url parameters.
-//
-// An optional list of specific keys to reset can be passed.
-export function resetURLParams(...keys) {
-  return (dispatch, getState) => {
-    const state = getState()
-    if (!keys.length) return dispatch(replace(state.router.location.pathname))
-
-    const q = new URLSearchParams(state.router.location.search)
-    keys.forEach(key => {
-      q.delete(key)
-    })
-
-    setSearchStr(dispatch, state, q)
-  }
-}
-
 const setSearchStr = (dispatch, state, searchParams) => {
   if (searchParams.sort) searchParams.sort()
   let newSearch = searchParams.toString()
@@ -31,20 +14,31 @@ const setSearchStr = (dispatch, state, searchParams) => {
   dispatch(replace(pathname + newSearch + hash))
 }
 
-const sanitizeParam = value => {
+// resetURLParams will reset all url parameters.
+//
+// An optional list of specific keys to reset can be passed.
+export function resetURLParams(...keys) {
+  return (dispatch, getState) => {
+    const state = getState()
+    if (!keys.length) return dispatch(replace(state.router.location.pathname))
+
+    const q = new URLSearchParams(state.router.location.search)
+    keys.forEach((key) => {
+      q.delete(key)
+    })
+
+    setSearchStr(dispatch, state, q)
+  }
+}
+const sanitizeParam = (value) => {
   if (value === true) value = '1' // explicitly true
   if (!value) value = '' // any falsey value
   if (!Array.isArray(value)) return value.trim()
 
-  const filtered = value.filter(v => v)
+  const filtered = value.filter((v) => v)
   if (filtered.length === 0) return null
 
   return filtered
-}
-
-// setSearch will set the current search parameter/filter.
-export function setSearch(value) {
-  return setURLParam('search', value || '')
 }
 
 // setURLParam will update the URL parameter with the given name to the provided value.
@@ -64,7 +58,7 @@ export function setURLParam(name, _value, _default) {
     const q = new URLSearchParams(state.router.location.search)
     if (Array.isArray(value)) {
       q.delete(name)
-      value.forEach(v => q.append(name, v))
+      value.forEach((v) => q.append(name, v))
     } else if (value) {
       q.set(name, value)
     } else {
@@ -73,6 +67,11 @@ export function setURLParam(name, _value, _default) {
 
     setSearchStr(dispatch, state, q)
   }
+}
+
+// setSearch will set the current search parameter/filter.
+export function setSearch(value) {
+  return setURLParam('search', value || '')
 }
 
 export function setShowNewUserForm(search) {

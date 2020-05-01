@@ -11,6 +11,7 @@ import (
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -269,6 +270,13 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	if num != 1 {
 		return validation.NewFieldError("code", "invalid code")
 	}
+
+	// NOTE: maintain a record of consent/dissent
+	logCtx := log.WithFields(ctx, log.Fields{
+		"contactMethodID": cmID,
+	})
+
+	log.Logf(logCtx, "Contact method ENABLED/VERIFIED.")
 
 	return nil
 }

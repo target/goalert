@@ -24,7 +24,7 @@ export function ScheduleTZFilter(props) {
   let label, tz
   if (error) {
     label = 'Error: ' + (error.message || error)
-  } else if (loading) {
+  } else if (!data && loading) {
     label = 'Fetching timezone information...'
   } else {
     tz = data.schedule.timeZone
@@ -36,7 +36,7 @@ export function ScheduleTZFilter(props) {
       control={
         <Switch
           checked={zone !== 'local'}
-          onChange={e => setZone(e.target.checked ? tz : 'local')}
+          onChange={(e) => setZone(e.target.checked ? tz : 'local')}
           value={tz}
           disabled={Boolean(loading || error)}
         />

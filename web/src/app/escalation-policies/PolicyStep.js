@@ -37,11 +37,11 @@ const styles = {
 }
 
 @connect(
-  state => ({
+  (state) => ({
     editStep: urlParamSelector(state)('editStep'),
   }),
-  dispatch => ({
-    setEditStep: value => dispatch(setURLParam('editStep', value)),
+  (dispatch) => ({
+    setEditStep: (value) => dispatch(setURLParam('editStep', value)),
     resetEditStep: () => dispatch(resetURLParams('editStep')),
   }),
 )
@@ -58,8 +58,8 @@ export default class PolicyStep extends Component {
     delete: false,
   }
 
-  getStepNumber = sid => {
-    const sids = this.props.steps.map(s => s.id)
+  getStepNumber = (sid) => {
+    const sids = this.props.steps.map((s) => s.id)
     return sids.indexOf(sid) + 1
   }
 
@@ -76,8 +76,8 @@ export default class PolicyStep extends Component {
       return <Chip label='No targets' />
     }
 
-    const items = targets.map(tgt => {
-      const tgtChip = Chip => <Chip id={tgt.id} name={tgt.name} />
+    const items = targets.map((tgt) => {
+      const tgtChip = (Chip) => <Chip id={tgt.id} name={tgt.name} />
 
       let chip = null
       switch (tgt.type) {
@@ -126,10 +126,11 @@ export default class PolicyStep extends Component {
       return null
     }
 
-    const pluralizer = x => (x === 1 ? '' : 's')
+    const pluralizer = (x) => (x === 1 ? '' : 's')
 
-    let repeatText = `Move on to step #${this.getStepNumber(step.id) +
-      1} after ${step.delayMinutes} minute${pluralizer(step.delayMinutes)}`
+    let repeatText = `Move on to step #${
+      this.getStepNumber(step.id) + 1
+    } after ${step.delayMinutes} minute${pluralizer(step.delayMinutes)}`
 
     if (isLastStep && this.getStepNumber(step.id) === 1) {
       repeatText = `Repeat after ${step.delayMinutes} minutes`

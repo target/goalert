@@ -2,78 +2,10 @@ import { Chance } from 'chance'
 
 const c = new Chance()
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Creates a new user profile. */
-      createUser: typeof createUser
-
-      /** Creates multiple new user profiles. */
-      createManyUsers: typeof createManyUsers
-
-      /**
-       * Resets the test user profile, including any existing contact methods.
-       */
-      resetProfile: typeof resetProfile
-
-      /** Adds a contact method. If userID is missing, the test user's will be used. */
-      addContactMethod: typeof addContactMethod
-
-      /** Adds a notification rule. If userID is missing, the test user's will be used. */
-      addNotificationRule: typeof addNotificationRule
-    }
-  }
-
-  type UserRole = 'user' | 'admin'
-  interface Profile {
-    id: string
-    name: string
-    email: string
-    role: UserRole
-  }
-
-  interface UserOptions {
-    name?: string
-    email?: string
-    role?: UserRole
-  }
-
-  type ContactMethodType = 'SMS' | 'VOICE'
-  interface ContactMethod {
-    id: string
-    userID: string
-    name: string
-    type: ContactMethodType
-    value: string
-  }
-
-  interface ContactMethodOptions {
-    userID?: string
-    name?: string
-    type?: ContactMethodType
-    value?: string
-  }
-
-  interface NotificationRule {
-    id: string
-    userID: string
-    contactMethodID: string
-    contactMethod: ContactMethod
-    delayMinutes: number
-  }
-
-  interface NotificationRuleOptions {
-    userID?: string
-    delayMinutes?: number
-    contactMethodID?: string
-    contactMethod?: ContactMethodOptions
-  }
-}
-
 function createManyUsers(
   users: Array<UserOptions>,
 ): Cypress.Chainable<Array<Profile>> {
-  const profiles: Array<Profile> = users.map(user => ({
+  const profiles: Array<Profile> = users.map((user) => ({
     id: c.guid(),
     name: user.name || c.word({ length: 12 }),
     email: user.email || c.email(),
@@ -83,7 +15,7 @@ function createManyUsers(
   const dbQuery =
     `insert into users (id, name, email, role) values` +
     profiles
-      .map(p => `('${p.id}', '${p.name}', '${p.email}', '${p.role}')`)
+      .map((p) => `('${p.id}', '${p.name}', '${p.email}', '${p.role}')`)
       .join(',') +
     `;`
 
@@ -92,7 +24,7 @@ function createManyUsers(
 
 function createUser(user?: UserOptions): Cypress.Chainable<Profile> {
   if (!user) user = {}
-  return createManyUsers([user]).then(p => p[0])
+  return createManyUsers([user]).then((p) => p[0])
 }
 
 function addContactMethod(
@@ -102,7 +34,7 @@ function addContactMethod(
   if (!cm.userID) {
     return cy
       .fixture('profile')
-      .then(prof => addContactMethod({ ...cm, userID: prof.id }))
+      .then((prof) => addContactMethod({ ...cm, userID: prof.id }))
   }
 
   const mutation = `
@@ -118,7 +50,7 @@ function addContactMethod(
 
   const newPhone = '+1763' + c.integer({ min: 3000000, max: 3999999 })
   return cy
-    .graphql2(mutation, {
+    .graphql(mutation, {
       input: {
         userID: cm.userID,
         name: cm.name || 'SM CM ' + c.word({ length: 8 }),
@@ -126,7 +58,7 @@ function addContactMethod(
         value: cm.value || newPhone,
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       res = res.createUserContactMethod
       res.userID = cm && cm.userID
       return res
@@ -140,13 +72,15 @@ function addNotificationRule(
   if (!nr.userID) {
     return cy
       .fixture('profile')
-      .then(prof => addNotificationRule({ ...nr, userID: prof.id }))
+      .then((prof) => addNotificationRule({ ...nr, userID: prof.id }))
   }
 
   if (!nr.contactMethodID) {
     return cy
       .addContactMethod({ ...nr.contactMethod, userID: nr.userID })
-      .then(cm => addNotificationRule({ ...nr, contactMethodID: cm.id }))
+      .then((cm: ContactMethod) =>
+        addNotificationRule({ ...nr, contactMethodID: cm.id }),
+      )
   }
 
   const mutation = `
@@ -166,14 +100,14 @@ function addNotificationRule(
   `
 
   return cy
-    .graphql2(mutation, {
+    .graphql(mutation, {
       input: {
         userID: nr.userID,
         contactMethodID: nr.contactMethodID,
         delayMinutes: nr.delayMinutes || c.integer({ min: 0, max: 15 }),
       },
     })
-    .then(res => {
+    .then((res: GraphQLResponse) => {
       res = res.createUserNotificationRule
 
       const userID = nr && nr.userID
@@ -201,11 +135,11 @@ function clearContactMethods(id: string): Cypress.Chainable {
     }
   `
 
-  return cy.graphql2(query, { id }).then(res => {
+  return cy.graphql(query, { id }).then((res: GraphQLResponse) => {
     if (!res.user.contactMethods.length) return
 
-    res.user.contactMethods.forEach((cm: any) => {
-      cy.graphql2(mutation, {
+    res.user.contactMethods.forEach((cm: ContactMethod) => {
+      cy.graphql(mutation, {
         input: [
           {
             type: 'contactMethod',
@@ -228,7 +162,7 @@ function resetProfile(prof?: Profile): Cypress.Chainable {
     }
   `
 
-  return clearContactMethods(prof.id).graphql2(mutation, {
+  return clearContactMethods(prof.id).graphql(mutation, {
     input: {
       id: prof.id,
       name: prof.name,

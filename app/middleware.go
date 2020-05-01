@@ -19,16 +19,6 @@ type _reqInfoCtxKey string
 
 const reqInfoCtxKey = _reqInfoCtxKey("request-info-fields")
 
-func stripPrefixMiddleware() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			cfg := config.FromContext(r.Context())
-			prefix := strings.TrimSuffix(cfg.General.PublicURL, "/")
-			r.URL.Path = strings.TrimPrefix(r.URL.Path, prefix)
-			next.ServeHTTP(w, r)
-		})
-	}
-}
 func maxBodySizeMiddleware(size int64) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		if size == 0 {
@@ -36,6 +26,20 @@ func maxBodySizeMiddleware(size int64) func(next http.Handler) http.Handler {
 		}
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.Body = http.MaxBytesReader(w, r.Body, size)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func graphQLV1DeprecationMiddleware() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			cfg := config.FromContext(ctx)
+			if cfg.General.DisableV1GraphQL && strings.HasPrefix(r.URL.Path, "/v1/graphql") {
+				http.NotFound(w, r)
+				return
+			}
 			next.ServeHTTP(w, r)
 		})
 	}

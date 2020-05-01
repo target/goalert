@@ -35,7 +35,7 @@ export default class PolicyEditDialog extends PureComponent {
     errors: [],
   }
 
-  renderMutation = defaultValue => {
+  renderMutation = (defaultValue) => {
     return (
       <Mutation mutation={mutation} onCompleted={this.props.onClose}>
         {(commit, status) => this.renderDialog(defaultValue, commit, status)}
@@ -73,7 +73,7 @@ export default class PolicyEditDialog extends PureComponent {
             errors={fieldErrs}
             disabled={loading}
             value={this.state.value || defaultValue}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

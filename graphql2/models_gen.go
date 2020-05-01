@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -116,11 +117,12 @@ type CreateRotationInput struct {
 }
 
 type CreateScheduleInput struct {
-	Name        string                `json:"name"`
-	Description *string               `json:"description"`
-	TimeZone    string                `json:"timeZone"`
-	Favorite    *bool                 `json:"favorite"`
-	Targets     []ScheduleTargetInput `json:"targets"`
+	Name             string                    `json:"name"`
+	Description      *string                   `json:"description"`
+	TimeZone         string                    `json:"timeZone"`
+	Favorite         *bool                     `json:"favorite"`
+	Targets          []ScheduleTargetInput     `json:"targets"`
+	NewUserOverrides []CreateUserOverrideInput `json:"newUserOverrides"`
 }
 
 type CreateServiceInput struct {
@@ -132,6 +134,13 @@ type CreateServiceInput struct {
 	NewIntegrationKeys   []CreateIntegrationKeyInput   `json:"newIntegrationKeys"`
 	Labels               []SetLabelInput               `json:"labels"`
 	NewHeartbeatMonitors []CreateHeartbeatMonitorInput `json:"newHeartbeatMonitors"`
+}
+
+type CreateUserCalendarSubscriptionInput struct {
+	Name            string `json:"name"`
+	ReminderMinutes []int  `json:"reminderMinutes"`
+	ScheduleID      string `json:"scheduleID"`
+	Disabled        *bool  `json:"disabled"`
 }
 
 type CreateUserContactMethodInput struct {
@@ -149,7 +158,7 @@ type CreateUserNotificationRuleInput struct {
 }
 
 type CreateUserOverrideInput struct {
-	ScheduleID   string    `json:"scheduleID"`
+	ScheduleID   *string   `json:"scheduleID"`
 	Start        time.Time `json:"start"`
 	End          time.Time `json:"end"`
 	AddUserID    *string   `json:"addUserID"`
@@ -295,6 +304,17 @@ type StringConnection struct {
 	PageInfo *PageInfo `json:"pageInfo"`
 }
 
+type SystemLimit struct {
+	ID          limit.ID `json:"id"`
+	Description string   `json:"description"`
+	Value       int      `json:"value"`
+}
+
+type SystemLimitInput struct {
+	ID    limit.ID `json:"id"`
+	Value int      `json:"value"`
+}
+
 type TimeZone struct {
 	ID string `json:"id"`
 }
@@ -309,6 +329,11 @@ type TimeZoneSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type UpdateAlertsByServiceInput struct {
+	ServiceID string      `json:"serviceID"`
+	NewStatus AlertStatus `json:"newStatus"`
 }
 
 type UpdateAlertsInput struct {
@@ -360,6 +385,13 @@ type UpdateServiceInput struct {
 	Name               *string `json:"name"`
 	Description        *string `json:"description"`
 	EscalationPolicyID *string `json:"escalationPolicyID"`
+}
+
+type UpdateUserCalendarSubscriptionInput struct {
+	ID              string  `json:"id"`
+	Name            *string `json:"name"`
+	ReminderMinutes []int   `json:"reminderMinutes"`
+	Disabled        *bool   `json:"disabled"`
 }
 
 type UpdateUserContactMethodInput struct {

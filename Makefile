@@ -48,7 +48,6 @@ endif
 all: test install
 
 
-
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
@@ -81,7 +80,7 @@ $(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cyp
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64
+$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64 $(BIN_DIR)/procwrap-linux-amd64
 	rm -rf $@
 	mkdir -p bin/integration/goalert/bin
 	cp bin/*-linux-amd64 bin/integration/goalert/bin/
@@ -109,7 +108,7 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules
+cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
 	web/src/node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js
@@ -125,11 +124,20 @@ cy-wide-prod-run: web/inline_data_gen.go cypress
 cy-mobile-prod-run: web/inline_data_gen.go cypress
 	make cy-mobile-prod CY_ACTION=run
 
-start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson
+web/src/schema.d.ts: graphql2/schema.graphql web/src/node_modules
+	go generate ./web/src
+
+start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
-	bin/runjson <devtools/runjson/localdev.json
+	GOALERT_VERSION=$(GIT_VERSION) bin/runjson <devtools/runjson/localdev.json
+
+start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
+	# force rebuild to ensure build-flags are set
+	touch cmd/goalert/main.go
+	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
+	bin/runjson <devtools/runjson/localdev-prod.json
 
 jest: web/src/node_modules
 	cd web/src && node_modules/.bin/jest $(JEST_ARGS)
@@ -142,7 +150,7 @@ check: generate web/src/node_modules
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign .
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
-	(cd web/src && yarn fmt)
+	(cd web/src && yarn run check)
 	./devtools/ci/tasks/scripts/codecheck.sh
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
@@ -156,7 +164,7 @@ graphql2/mapconfig.go: $(CFGPARAMS) config/config.go
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml
 	go generate ./graphql2
 
-generate:
+generate: web/src/node_modules
 	go generate ./...
 
 smoketest: install bin/goalert
@@ -185,11 +193,11 @@ web/src/node_modules: web/src/node_modules/.bin/cypress
 web/src/node_modules/.bin/cypress: web/src/yarn.lock
 	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
 
-web/src/build/index.html: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f )
+web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
-	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js)
+	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION))
 
-web/inline_data_gen.go: web/src/build/index.html $(CFGPARAMS) $(INLINER)
+web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
 web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
@@ -203,6 +211,7 @@ postgres:
 	docker run -d \
 		--restart=always \
 		-e POSTGRES_USER=goalert \
+		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
 		postgres:11-alpine || docker start goalert-postgres

@@ -55,8 +55,9 @@ func TestTwilioVoiceStop(t *testing.T) {
 		ThenPress("3").
 		ThenExpect("goodbye")
 
-	// Should unenroll completely (no voice or SMS)
-	h.Twilio().WaitAndAssert()
+	// should not unenroll from SMS
+	d1.ExpectSMS("test")
 
-	// no more messages, it should have disabled both
+	// should unenroll only from VOICE
+	h.Twilio().WaitAndAssert()
 }

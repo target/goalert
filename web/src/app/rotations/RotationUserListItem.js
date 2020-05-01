@@ -2,7 +2,7 @@ import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
-import { UserAvatar } from '../util/avatar'
+import { UserAvatar } from '../util/avatars'
 import withStyles from '@material-ui/core/styles/withStyles'
 import RotationUpdateDialog from './RotationUpdateDialog'
 import OtherActions from '../util/OtherActions'
@@ -35,7 +35,7 @@ export default class RotationUserListItem extends React.PureComponent {
     delete: false,
   }
 
-  getActiveStyle = index => {
+  getActiveStyle = (index) => {
     const { activeUserIndex, classes } = this.props
 
     // light green left border, lighter green background

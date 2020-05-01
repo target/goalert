@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 const webpack = require('webpack')
 const path = require('path')
 const outputPath = path.join(__dirname, 'build')
@@ -16,7 +17,6 @@ module.exports = {
       '@material-ui/lab',
       '@material-ui/pickers',
       'luxon',
-      'moment',
       'lodash-es',
       'apollo-client',
       'apollo-link',
@@ -37,7 +37,6 @@ module.exports = {
       'react-beautiful-dnd',
       'react-ga',
       'history',
-      'react-select',
       'react-apollo',
       'react-countdown-now',
       'connected-react-router',

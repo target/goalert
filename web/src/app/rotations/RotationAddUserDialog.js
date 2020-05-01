@@ -45,8 +45,8 @@ export default class RotationAddUserDialog extends React.Component {
     const users = []
     const userIDs = (value && value.users) || defaultValue.users
 
-    this.props.userIDs.forEach(u => users.push(u))
-    userIDs.forEach(u => users.push(u))
+    this.props.userIDs.forEach((u) => users.push(u))
+    userIDs.forEach((u) => users.push(u))
     return (
       <FormDialog
         title='Add User'
@@ -68,7 +68,7 @@ export default class RotationAddUserDialog extends React.Component {
             errors={fieldErrs}
             disabled={loading}
             value={this.state.value || defaultValue}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

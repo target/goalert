@@ -43,7 +43,7 @@ export default class RotationSetActiveDialog extends React.PureComponent {
   renderMutation(data) {
     return (
       <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {commit => this.renderDialog(data, commit)}
+        {(commit) => this.renderDialog(data, commit)}
       </Mutation>
     )
   }

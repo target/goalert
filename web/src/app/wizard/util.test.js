@@ -114,9 +114,7 @@ describe('wizard tests', () => {
           name: 'Test Primary America-Chicago Rotation',
           description,
           timeZone,
-          start: DateTime.fromISO(start)
-            .minus({ day: 1 })
-            .toISO(),
+          start: DateTime.fromISO(start).minus({ day: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -137,9 +135,7 @@ describe('wizard tests', () => {
           name: 'Test Secondary Africa-Accra Rotation',
           description,
           timeZone,
-          start: DateTime.fromISO(start)
-            .minus({ week: 1 })
-            .toISO(),
+          start: DateTime.fromISO(start).minus({ week: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -164,9 +160,7 @@ describe('wizard tests', () => {
           name: 'Test Primary Etc-UTC Rotation',
           description,
           timeZone,
-          start: DateTime.fromISO(start)
-            .minus({ week: 1 })
-            .toISO(),
+          start: DateTime.fromISO(start).minus({ week: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -177,9 +171,7 @@ describe('wizard tests', () => {
           name: 'Test Primary America-Chicago Rotation',
           description,
           timeZone: ftsTimeZone,
-          start: DateTime.fromISO(start)
-            .minus({ week: 1 })
-            .toISO(),
+          start: DateTime.fromISO(start).minus({ week: 1 }).toISO(),
           type,
           userIDs: ftsUserIDs,
         },
@@ -204,9 +196,7 @@ describe('wizard tests', () => {
           name: 'Test Secondary Africa-Accra Rotation',
           description,
           timeZone,
-          start: DateTime.fromISO(start)
-            .minus({ day: 1 })
-            .toISO(),
+          start: DateTime.fromISO(start).minus({ day: 1 }).toISO(),
           type,
           userIDs,
         },
@@ -219,9 +209,7 @@ describe('wizard tests', () => {
           name: 'Test Secondary Africa-Accra FTS Rotation',
           description,
           timeZone: ftsTimeZone,
-          start: DateTime.fromISO(start)
-            .minus({ day: 1 })
-            .toISO(),
+          start: DateTime.fromISO(start).minus({ day: 1 }).toISO(),
           type,
           userIDs: ftsUserIDs,
         },

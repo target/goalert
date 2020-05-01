@@ -17,12 +17,11 @@ import { fieldErrors, allErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
-import { useSelector } from 'react-redux'
-import { absURLSelector } from '../../selectors'
+import { AppLink } from '../../util/AppLink'
 
-const pluralize = num => (num !== 1 ? 's' : '')
+const pluralize = (num) => (num !== 1 ? 's' : '')
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   dialog: {
     [theme.breakpoints.up('md')]: {
       height: '65vh',
@@ -35,7 +34,6 @@ const useStyles = makeStyles(theme => ({
 
 export default function CreateAlertDialog(props) {
   const classes = useStyles()
-  const absURL = useSelector(absURLSelector)
   const [step, setStep] = useState(0)
   const [value, setValue] = useState({
     summary: '',
@@ -45,7 +43,7 @@ export default function CreateAlertDialog(props) {
   const [mutate, { data, loading, error }, getSvcID] = useCreateAlerts(value)
 
   const fieldErrs = fieldErrors(error)
-  const hasValidationError = fieldErrs.some(e =>
+  const hasValidationError = fieldErrs.some((e) =>
     ['summary', 'details'].includes(e.field),
   )
 
@@ -75,10 +73,10 @@ export default function CreateAlertDialog(props) {
     const createdAlertIDs = _.chain(data)
       .values()
       .filter()
-      .map(a => a.id)
+      .map((a) => a.id)
       .value()
 
-    const failedServices = allErrors(error).map(e => ({
+    const failedServices = allErrors(error).map((e) => ({
       id: getSvcID(e.path),
       message: e.message,
     }))
@@ -102,14 +100,12 @@ export default function CreateAlertDialog(props) {
             variant='contained'
             color='primary'
             size='small'
+            component={AppLink}
             endIcon={<OpenInNewIcon />}
-            href={absURL(
-              `/alerts?allServices=1&filter=all&search=${encodeURIComponent(
-                value.summary,
-              )}`,
-            )}
-            target='_blank'
-            rel='noopener noreferrer'
+            to={`/alerts?allServices=1&filter=all&search=${encodeURIComponent(
+              value.summary,
+            )}`}
+            newTab
           >
             Monitor Alerts
           </Button>
@@ -148,7 +144,7 @@ export default function CreateAlertDialog(props) {
           <CreateAlertForm
             activeStep={currentStep}
             value={value}
-            onChange={newValue => setValue(newValue)}
+            onChange={(newValue) => setValue(newValue)}
             disabled={loading}
             errors={fieldErrors(error)}
           />

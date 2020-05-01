@@ -18,6 +18,7 @@ import ScheduleDeleteDialog from './ScheduleDeleteDialog'
 import ScheduleCalendarQuery from './ScheduleCalendarQuery'
 import { useURLParam, useResetURLParams } from '../actions'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
+import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 
@@ -85,7 +86,7 @@ export default function ScheduleDetails({ scheduleID }) {
               control={
                 <Switch
                   checked={activeOnly}
-                  onChange={e => setActiveOnly(e.target.checked)}
+                  onChange={(e) => setActiveOnly(e.target.checked)}
                   value='activeOnly'
                 />
               }
@@ -112,9 +113,14 @@ export default function ScheduleDetails({ scheduleID }) {
         title={data.name}
         details={data.description}
         titleFooter={
-          <React.Fragment>
-            Time Zone: {data.timeZone || 'Loading...'}
-          </React.Fragment>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              Time Zone: {data.timeZone || 'Loading...'}
+            </Grid>
+            <Grid item xs={12}>
+              <CalendarSubscribeButton scheduleID={scheduleID} />
+            </Grid>
+          </Grid>
         }
         links={[
           { label: 'Assignments', url: 'assignments' },

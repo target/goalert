@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
-import { Link, Redirect } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 import _ from 'lodash-es'
 
 import PageActions from '../util/PageActions'
@@ -14,6 +14,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
+import { AppLink } from '../util/AppLink'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -55,14 +56,14 @@ const query = gql`
   }
 `
 
-const hbStatus = h => {
+const hbStatus = (h) => {
   if (!h || !h.length) return null
-  if (h.every(m => m.lastState === 'healthy')) return 'ok'
-  if (h.some(m => m.lastState === 'unhealthy')) return 'err'
+  if (h.every((m) => m.lastState === 'healthy')) return 'ok'
+  if (h.some((m) => m.lastState === 'unhealthy')) return 'err'
   return 'warn'
 }
 
-const alertStatus = a => {
+const alertStatus = (a) => {
   if (!a) return null
   if (!a.length) return 'ok'
   if (a[0].status === 'StatusUnacknowledged') return 'err'
@@ -108,9 +109,9 @@ export default function ServiceDetails({ serviceID }) {
           <div>
             Escalation Policy:{' '}
             {_.get(data, 'service.ep') ? (
-              <Link to={`/escalation-policies/${data.service.ep.id}`}>
+              <AppLink to={`/escalation-policies/${data.service.ep.id}`}>
                 {data.service.ep.name}
-              </Link>
+              </AppLink>
             ) : (
               <Spinner text='Looking up policy...' />
             )}

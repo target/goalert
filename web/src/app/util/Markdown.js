@@ -16,7 +16,7 @@ export default class Markdown extends React.PureComponent {
       <ReactMarkdown
         className='react-markdown'
         source={value}
-        allowNode={node => {
+        allowNode={(node) => {
           if (node.type !== 'link') return true
           if (node.children[0].type !== 'text') return true // only validate text labels
           if (safeURL(node.url, node.children[0].value)) return true

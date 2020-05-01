@@ -35,7 +35,7 @@ const mutation = gql`
   }
 `
 
-@connect(state => ({ zone: urlParamSelector(state)('tz') }))
+@connect((state) => ({ zone: urlParamSelector(state)('tz') }))
 export default class ScheduleOverrideDeleteDialog extends React.PureComponent {
   static propTypes = {
     overrideID: p.string.isRequired,

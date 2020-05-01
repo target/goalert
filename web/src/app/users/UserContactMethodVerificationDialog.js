@@ -54,7 +54,7 @@ export default function UserContactMethodVerificationDialog(props) {
 
     let caption = null
     if (fromNumber && cm.type === 'SMS') {
-      caption = `If you do not receive a code, try sending UNSTOP to ${fromNumber} before resending.`
+      caption = `If you do not receive a code, try sending START to ${fromNumber} before resending.`
     }
     return (
       <FormDialog
@@ -82,7 +82,7 @@ export default function UserContactMethodVerificationDialog(props) {
             setSendError={setSendError}
             disabled={loading}
             value={value}
-            onChange={value => setValue(value)}
+            onChange={(value) => setValue(value)}
           />
         }
       />

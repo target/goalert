@@ -1,97 +1,45 @@
 import { Chance } from 'chance'
+import { Schedule, ScheduleTarget, ScheduleTargetInput } from '../../schema'
+
 const c = new Chance()
 
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Creates a new schedule. */
-      createSchedule: typeof createSchedule
-
-      /** Deletes a schedule with its specified ID */
-      deleteSchedule: typeof deleteSchedule
-
-      /** Configures a schedule target and rules. */
-      setScheduleTarget: typeof setScheduleTarget
-    }
+const fmtTime = (num: number): string => {
+  const s = num.toString()
+  if (s.length === 1) {
+    return '0' + s
   }
-
-  interface TargetRotationOptions {
-    rotation: RotationOptions
-  }
-  interface Target {
-    type: 'user' | 'rotation'
-    id: string
-  }
-
-  interface ScheduleTargetOptions {
-    scheduleID?: string
-    schedule?: ScheduleOptions
-
-    target?: TargetRotationOptions | Target
-
-    rules?: ScheduleRuleOptions[]
-  }
-
-  interface ScheduleTarget {
-    schedule: Schedule
-    target: Target
-    rules: ScheduleRule[]
-  }
-
-  interface ScheduleRule {
-    start: string
-    end: string
-    weekdayFilter: boolean[]
-  }
-
-  interface ScheduleRuleOptions {
-    start?: string
-    end?: string
-    weekdayFilter?: boolean[]
-  }
-
-  interface Schedule {
-    id: string
-    name: string
-    description: string
-    timeZone: string
-    isFavorite: boolean
-  }
-
-  interface ScheduleOptions {
-    name?: string
-    description?: string
-    timeZone?: string
-    isFavorite?: boolean
-  }
+  return s
 }
 
+const randClock = (): string =>
+  `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
+
 function setScheduleTarget(
-  tgt?: ScheduleTargetOptions,
+  scheduleTgt?: Partial<ScheduleTargetInput>,
+  createScheduleInput?: Partial<Schedule>,
 ): Cypress.Chainable<ScheduleTarget> {
-  if (!tgt) {
-    tgt = {}
+  if (!scheduleTgt) {
+    scheduleTgt = {}
   }
-  if (!tgt.scheduleID) {
+  if (!scheduleTgt.scheduleID) {
     return cy
-      .createSchedule(tgt.schedule)
-      .then(sched => setScheduleTarget({ ...tgt, scheduleID: sched.id }))
-  }
-  if (!tgt.target) {
-    tgt.target = { rotation: {} }
-  }
-  const rotation = (<TargetRotationOptions>tgt.target).rotation
-  if (rotation) {
-    return cy
-      .createRotation(rotation)
-      .then(r =>
-        setScheduleTarget({ ...tgt, target: { type: 'rotation', id: r.id } }),
+      .createSchedule(createScheduleInput)
+      .then((sched: Schedule) =>
+        setScheduleTarget({ ...scheduleTgt, scheduleID: sched.id }),
       )
   }
-  if (!tgt.rules) {
-    tgt.rules = [{}]
+  if (!scheduleTgt.target) {
+    return cy.createRotation().then((r: Rotation) =>
+      setScheduleTarget({
+        ...scheduleTgt,
+        target: { type: 'rotation', id: r.id },
+      }),
+    )
   }
-  tgt.rules = tgt.rules.map(r => ({
+  if (!scheduleTgt.rules) {
+    scheduleTgt.rules = [{}]
+  }
+  scheduleTgt.rules = scheduleTgt.rules.map((r) => ({
     start: r.start || randClock(),
     end: r.end || randClock(),
     weekdayFilter: r.weekdayFilter || [
@@ -124,29 +72,31 @@ function setScheduleTarget(
     }
   }`
 
-  const { schedule, ...params } = tgt
+  const params = scheduleTgt
 
   return cy
-    .graphql2(mutation, {
+    .graphql(mutation, {
       input: params,
     })
     .then(() => {
       return cy
-        .graphql2(query, {
+        .graphql(query, {
           id: params.scheduleID,
           tgt: params.target,
         })
-        .then(res => {
+        .then((res: GraphQLResponse) => {
           const { target, ...schedule } = res.schedule
           return {
             ...target,
-            schedule,
+            scheduleID: schedule.id,
           }
         })
     })
 }
 
-function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
+function createSchedule(
+  sched?: Partial<Schedule>,
+): Cypress.Chainable<Schedule> {
   const query = `mutation createSchedule($input: CreateScheduleInput!){
       createSchedule(input: $input) {
         id
@@ -160,7 +110,7 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
   if (!sched) sched = {}
 
   return cy
-    .graphql2(query, {
+    .graphql(query, {
       input: {
         name: sched.name || 'SM Sched ' + c.word({ length: 8 }),
         description: sched.description || c.sentence(),
@@ -168,19 +118,8 @@ function createSchedule(sched?: ScheduleOptions): Cypress.Chainable<Schedule> {
         favorite: sched.isFavorite,
       },
     })
-    .then(res => res.createSchedule)
+    .then((res: GraphQLResponse) => res.createSchedule)
 }
-
-const fmtTime = (str: any) => {
-  const s = str.toString()
-  if (s.length === 1) {
-    return '0' + s
-  }
-  return s
-}
-
-const randClock = () =>
-  `${fmtTime(c.hour({ twentyfour: true }))}:${fmtTime(c.minute())}`
 
 function deleteSchedule(id: string): Cypress.Chainable<void> {
   const mutation = `
@@ -189,7 +128,7 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
     }
   `
 
-  return cy.graphql2(mutation, {
+  return cy.graphql(mutation, {
     input: [
       {
         type: 'schedule',
