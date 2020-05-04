@@ -34,7 +34,7 @@ interface AdminSectionProps {
   headerNote?: string
   value: { [id: string]: string }
   fields: FieldProps[]
-  onChange: (id: string, value: string) => void
+  onChange: (id: string, value: null | string) => void
 }
 
 const useStyles = makeStyles(() => ({
@@ -92,7 +92,7 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
                   value={defaultTo(value[f.id], f.value)}
                   password={f.password}
                   onChange={(val) =>
-                    props.onChange(f.id, val === f.value ? '' : val)
+                    props.onChange(f.id, val === f.value ? null : val)
                   }
                 />
               </div>

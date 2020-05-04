@@ -11,7 +11,7 @@ interface InputProps {
   name: string
   value: string
   password?: boolean
-  onChange: (value: string) => void
+  onChange: (value: null | string) => void
   autoComplete?: string
 }
 
@@ -28,8 +28,8 @@ export const StringListInput = (props: InputProps): JSX.Element => {
               props.onChange(
                 value
                   .slice(0, idx)
-                  .concat(newVal, ...value.slice(idx + 1))
-                  .filter((v) => v)
+                  .concat(newVal || '', ...value.slice(idx + 1))
+                  .filter((v: string) => v)
                   .join('\n'),
               )
             }
