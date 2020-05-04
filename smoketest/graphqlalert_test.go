@@ -95,7 +95,6 @@ func TestGraphQLAlert(t *testing.T) {
 			})
 		}
 	`, cmID), nil)
-		return
 	}
 
 	sendCMVerification(cm1.CreateUserContactMethod.ID)

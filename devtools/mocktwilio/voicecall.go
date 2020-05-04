@@ -44,8 +44,6 @@ type VoiceCall struct {
 	lastMessage    string
 	callbackEvents []string
 	hangup         bool
-
-	outbound bool
 }
 
 func (vc *VoiceCall) process() {
