@@ -4,6 +4,7 @@ import (
 	context "context"
 
 	"github.com/target/goalert/alert"
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -27,6 +28,7 @@ const (
 	dataLoaderKeyUser
 	dataLoaderKeyCM
 	dataLoaderKeyHeartbeatMonitor
+	dataLoaderKeyAlertLogState = dataLoaderKey(iota)
 )
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
@@ -37,7 +39,17 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyService, dataloader.NewServiceLoader(ctx, a.ServiceStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewUserLoader(ctx, a.UserStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewCMLoader(ctx, a.CMStore))
+	ctx = context.WithValue(ctx, dataLoaderKeyAlertLogState, dataloader.NewAlertLogStateLoader(ctx, a.AlertLogStore))
 	return ctx
+}
+
+func (app *App) FindOneAlertLogState(ctx context.Context, logID int) (*alertlog.LogState, error) {
+	loader, ok := ctx.Value(dataLoaderKeyAlertLogState).(*dataloader.AlertLogStateLoader)
+	if !ok {
+		return app.AlertLogStore.FindOneLogState(ctx, logID)
+	}
+
+	return loader.FetchOne(ctx, logID)
 }
 
 func (app *App) FindOneRotation(ctx context.Context, id string) (*rotation.Rotation, error) {
