@@ -176,7 +176,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				om.status_details
 			FROM alert_logs log
 			LEFT JOIN outgoing_messages om ON om.id = (log.meta->>'MessageID')::uuid
-			WHERE log.id = any($1)
+			WHERE log.id = ANY($1)
 		`),
 		findAll: p.P(`
 			select
