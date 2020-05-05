@@ -149,16 +149,13 @@ func (db *DB) LegacySearch(ctx context.Context, opts *LegacySearchOptions) ([]En
 			a.sub_channel_id,
 			nc.name,
 			a.sub_classifier,
-			a.meta,
-			om.last_status,
-			om.status_details
+			a.meta
 		FROM alert_logs a
 		LEFT JOIN alerts ON alerts.id = a.alert_id
 		LEFT JOIN users u ON u.id = a.sub_user_id
 		LEFT JOIN integration_keys i ON i.id = a.sub_integration_key_id
 		LEFT JOIN heartbeat_monitors hb ON hb.id = a.sub_hb_monitor_id 
 		LEFT JOIN notification_channels nc ON nc.id = a.sub_channel_id
-		LEFT JOIN outgoing_messages om ON om.id = (log.meta->>'MessageID')::uuid
 		%s
 		%s
 		LIMIT %d

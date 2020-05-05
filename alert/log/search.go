@@ -45,15 +45,12 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		log.sub_channel_id,
 		nc.name,
 		log.sub_classifier,
-		log.meta,
-		om.last_status,
-		om.status_details
+		log.meta
 	FROM alert_logs log
 	LEFT JOIN users u ON u.id = log.sub_user_id
 	LEFT JOIN integration_keys i ON i.id = log.sub_integration_key_id
 	LEFT JOIN heartbeat_monitors hb ON hb.id = log.sub_hb_monitor_id 
 	LEFT JOIN notification_channels nc ON nc.id = log.sub_channel_id
-	LEFT JOIN outgoing_messages om ON om.id = (log.meta->>'MessageID')::uuid
 	WHERE TRUE
 	{{- if .FilterAlertIDs}}
 		AND log.alert_id = ANY(:alertIDs)

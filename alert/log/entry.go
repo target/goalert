@@ -28,9 +28,7 @@ type Entry struct {
 		channelName          sql.NullString
 		classifier           string
 	}
-	meta          rawJSON
-	lastStatus    sql.NullString
-	statusDetails sql.NullString
+	meta rawJSON
 }
 
 func (e Entry) Meta() interface{} {
@@ -154,22 +152,6 @@ func (e Entry) String() string {
 	return msg
 }
 
-func (e Entry) Details() string {
-	return e.statusDetails.String
-}
-
-func (e Entry) Status() string {
-	if e.lastStatus.String == "failed" {
-		return "ERROR"
-	}
-
-	if e.lastStatus.String == "delivered" {
-		return "OK"
-	}
-
-	return ""
-}
-
 func (e *Entry) scanWith(scan func(...interface{}) error) error {
 	return scan(
 		&e.id,
@@ -188,7 +170,5 @@ func (e *Entry) scanWith(scan func(...interface{}) error) error {
 		&e.subject.channelName,
 		&e.subject.classifier,
 		&e.meta,
-		&e.lastStatus,
-		&e.statusDetails,
 	)
 }
