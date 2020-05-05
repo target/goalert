@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -256,13 +258,13 @@ func TestSystemLimits(t *testing.T) {
 	}
 
 	// userIDs := []string{h.UUID("generic_user1"), h.UUID("generic_user2"), h.UUID("generic_user3"), h.UUID("generic_user4"), h.UUID("generic_user5")}
-	// userIDs := []string{"50322144-1e88-43dc-b638-b16a5be7bad6", "dfcc0684-f045-4a9f-8931-56da8a014a44", "016d5895-b20f-42fd-ad6c-7f1e4c11354d", "dc8416e1-bf15-4248-b09f-f9294adcb962", "c1dadc8b-b0fc-41e3-a015-5a14c5c19433"}
+	userIDs := []string{"50322144-1e88-43dc-b638-b16a5be7bad6", "dfcc0684-f045-4a9f-8931-56da8a014a44", "016d5895-b20f-42fd-ad6c-7f1e4c11354d", "dc8416e1-bf15-4248-b09f-f9294adcb962", "c1dadc8b-b0fc-41e3-a015-5a14c5c19433"}
 	var n int
 	uniqName := func() string {
 		n++
 		return fmt.Sprintf("Thing %d", n)
 	}
-	/*s := time.Now().AddDate(1, 0, 0)
+	s := time.Now().AddDate(1, 0, 0)
 	uniqTime := func() time.Time {
 		s = s.AddDate(0, 0, 1)
 		return s
@@ -277,7 +279,7 @@ func TestSystemLimits(t *testing.T) {
 			res[i] = fn(id)
 		}
 		return strings.Join(res, ",")
-	}*/
+	}
 
 	checkSingleInsert(
 		limit.ContactMethodsPerUser,
@@ -290,13 +292,13 @@ func TestSystemLimits(t *testing.T) {
 		},
 	)
 
-	/*nrDelay := 0
+	nrDelay := 0
 	checkSingleInsert(
 		limit.NotificationRulesPerUser,
 		"notification rules",
 		func(int) string {
 			nrDelay++
-			return fmt.Sprintf(`mutation{createUserNotificationRule(input:{contactMethodID: "%s", delayMinutes: %d, userID: "%s"}){id}}`, h.UUID("nr_cm"), nrDelay, h.UUID("nr_user"))
+			return fmt.Sprintf(`mutation{createUserNotificationRule(input:{contactMethodID: "{{uuid "nr_cm"}}", delayMinutes: %d, userID: "{{uuid "nr_user"}}"}){id}}`, nrDelay)
 		},
 		func(ids []string) string {
 			return fmt.Sprintf(`mutation{deleteAll(input:[{id: "%s", type: notificationRule}])}`, ids[0])
@@ -307,15 +309,14 @@ func TestSystemLimits(t *testing.T) {
 		limit.EPStepsPerPolicy,
 		"steps",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createEscalationPolicyStep(input:{escalationPolicyID: "%s", delayMinutes: 1}){id}}`, h.UUID("step_ep"))
+			return fmt.Sprintf(`mutation{createEscalationPolicyStep(input:{escalationPolicyID: "{{uuid "step_ep"}}", delayMinutes: 1}){id}}`)
 		},
 		func(ids []string) string {
-			return fmt.Sprintf(`mutation{updateEscalationPolicy(input: {id: "%s", stepIDs: [%s]})}`,
-				h.UUID("step_ep"),
+			return fmt.Sprintf(`mutation{updateEscalationPolicy(input: {id: "{{uuid "step_ep"}}", stepIDs: [%s]})}`,
 				mapIDs(ids[1:], nil),
 			)
 		},
-	)*/
+	)
 
 	/*checkMultiInsert(
 		limit.EPActionsPerStep,
@@ -336,11 +337,11 @@ func TestSystemLimits(t *testing.T) {
 		},
 	)*/
 
-	/*checkSingleInsert(
+	checkSingleInsert(
 		limit.IntegrationKeysPerService,
 		"integration keys",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createIntegrationKey(input:{serviceID: "%s", type: generic, name:"%s"}){id}}`, h.UUID("int_key_svc"), uniqName())
+			return fmt.Sprintf(`mutation{createIntegrationKey(input:{serviceID: "{{uuid "int_key_svc"}}", type: generic, name:"%s"}){id}}`, uniqName())
 		},
 		func(ids []string) string {
 			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: integrationKey}])}`, ids[0])
@@ -351,12 +352,12 @@ func TestSystemLimits(t *testing.T) {
 		limit.HeartbeatMonitorsPerService,
 		"heartbeat monitors",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createHeartbeatMonitor(input:{serviceID: "%s", name: "%s", timeoutMinutes: 5 }){id}}`, h.UUID("hb_svc"), uniqName())
+			return fmt.Sprintf(`mutation{createHeartbeatMonitor(input:{serviceID: "{{uuid "hb_svc"}}", name: "%s", timeoutMinutes: 5 }){id}}`, uniqName())
 		},
 		func(ids []string) string {
 			return fmt.Sprintf(`mutation{deleteAll(input: [{id: "%s", type: heartbeatMonitor}])}`, ids[0])
 		},
-	)*/
+	)
 
 	/*checkMultiInsert(
 		limit.RulesPerSchedule,
@@ -373,15 +374,15 @@ func TestSystemLimits(t *testing.T) {
 		},
 	)*/
 
-	/*checkSingleInsert(
+	checkSingleInsert(
 		limit.TargetsPerSchedule,
 		"targets",
 		func(index int) string {
-			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "%s", target:{type:user, id: "%s"}, rules: [{}]})}`, h.UUID("tgt_sched"), userIDs[index])
+			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "{{uuid "tgt_sched"}}", target:{type:user, id: "%s"}, rules: [{}]})}`, userIDs[index])
 		},
 		func(ids []string) string {
 			// can't use IDs since the update mutation won't return a usable ID so they will all be blank
-			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "%s", target:{type:user, id: "%s"}, rules: []})}`, h.UUID("tgt_sched"), userIDs[4-len(ids)])
+			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "{{uuid "tgt_sched"}}", target:{type:user, id: "%s"}, rules: []})}`, userIDs[4-len(ids)])
 		},
 	)
 
@@ -390,7 +391,7 @@ func TestSystemLimits(t *testing.T) {
 		limit.UnackedAlertsPerService,
 		"unacknowledged alerts",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc1"), uniqName())
+			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "{{uuid "unack_svc1"}}", summary: "%s"}){id}}`, uniqName())
 		},
 		func(ids []string) string {
 			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusAcknowledged}){id}}`, ids[0])
@@ -402,7 +403,7 @@ func TestSystemLimits(t *testing.T) {
 		limit.UnackedAlertsPerService,
 		"unacknowledged alerts",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "%s", summary: "%s"}){id}}`, h.UUID("unack_svc2"), uniqName())
+			return fmt.Sprintf(`mutation{createAlert(input:{serviceID: "{{uuid "unack_svc2"}}", summary: "%s"}){id}}`, uniqName())
 		},
 		func(ids []string) string {
 			return fmt.Sprintf(`mutation{updateAlerts(input:{alertIDs: [%s], newStatus: StatusClosed}){id}}`, ids[0])
@@ -413,8 +414,7 @@ func TestSystemLimits(t *testing.T) {
 		limit.UserOverridesPerSchedule,
 		"overrides",
 		func(int) string {
-			return fmt.Sprintf(`mutation{createUserOverride(input:{scheduleID: "%s", addUserID: "%s", start: "%s", end: "%s"}){id}}`,
-				h.UUID("override_sched"),
+			return fmt.Sprintf(`mutation{createUserOverride(input:{scheduleID: "{{uuid "override_sched"}}", addUserID: "%s", start: "%s", end: "%s"}){id}}`,
 				userIDs[0],
 				uniqTime().Format(time.RFC3339),
 				uniqTime().Format(time.RFC3339),
@@ -430,21 +430,21 @@ func TestSystemLimits(t *testing.T) {
 		"subscriptions",
 		func(int) string {
 			return fmt.Sprintf(`
-			mutation {
-				createUserCalendarSubscription(
-					input: {
-						name: "%s"
-						scheduleID: "%s"
-						reminderMinutes: [5, 3, 1]
-						disabled: false
-					}
-				) { id }
-			}
-			`, uniqName(), h.UUID("cal_sub_sched"))
+				mutation {
+					createUserCalendarSubscription(
+						input: {
+							name: "%s"
+							scheduleID: "{{uuid "cal_sub_sched"}}"
+							reminderMinutes: [5, 3, 1]
+							disabled: false
+						}
+					) { id }
+				}
+				`, uniqName())
 		},
 		func(ids []string) string {
 			return fmt.Sprintf(`mutation{deleteAll(input:[{type: calendarSubscription, id: "%s"}])}`, ids[0])
 		},
-	)*/
+	)
 
 }
