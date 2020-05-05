@@ -102,17 +102,23 @@ export default function AlertDetailLogs(props) {
     )
   }
 
+  const getLogStatusClass = (status) => {
+    switch (status) {
+      case 'OK':
+        return classes.statusOk
+      case 'ERROR':
+        return classes.statusError
+      default:
+        return null
+    }
+  }
+
   const renderItem = (event, idx) => {
     const details = _.upperFirst(event?.state?.details ?? '')
     const status = event?.state?.status ?? ''
     const detailsProps = {
       classes: {
-        root:
-          status === 'OK'
-            ? classes.statusOk
-            : status === 'ERROR'
-            ? classes.statusError
-            : null,
+        root: getLogStatusClass(status),
       },
     }
 
