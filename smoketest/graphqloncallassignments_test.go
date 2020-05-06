@@ -27,7 +27,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	t.Parallel()
 
 	sql := `insert into escalation_policies (id, name) 
-					values ('52fdfc07-2182-454f-963f-5f0f9a621d72', 'esc policy');`
+					values ({{uuid "eid"}}, 'esc policy');`
 
 	type onCallAssertion struct {
 		Service, EP, EPName, User string
@@ -41,6 +41,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 
 		users := make(map[string]*user.User)
 		names := make(map[string]string)
+		uuids := make(map[string]string)
 		namesRev := make(map[string]string)
 
 		t.Run(name, func(t *testing.T) {
@@ -86,6 +87,14 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 					usr := h.CreateUser()
 					users[id] = usr
 					return usr.ID
+				},
+				"uuid": func(id string) string {
+					if u, ok := uuids[id]; ok {
+						return u
+					}
+					u := h.UUID(id)
+					uuids[id] = u
+					return u
 				},
 			})
 
@@ -647,15 +656,15 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	// User EP Schedule Replace Rotation Override Double Service
 	check("User EP Schedule Replace Rotation Override Double Service", fmt.Sprintf(`
 		mutation {
-		alias0: createService(input: { name: "{{name "svc1"}}", escalationPolicyID: "%s" }) {
+		alias0: createService(input: { name: "{{name "svc1"}}", escalationPolicyID: "{{uuid "eid"}}" }) {
 			id
 		}
-		alias1: createService(input: { name: "{{name "svc2"}}", escalationPolicyID: "%s" }) {
+		alias1: createService(input: { name: "{{name "svc2"}}", escalationPolicyID: "{{uuid "eid"}}" }) {
 			id
 		}
 		createEscalationPolicyStep(
 			input: {
-				escalationPolicyID: "%s"
+				escalationPolicyID: "{{uuid "eid"}}"
 				delayMinutes: 1
 				newSchedule: {
 					name: "{{name "sched"}}"
@@ -692,7 +701,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		) {
 			id
 		}
-	}`, "52fdfc07-2182-454f-963f-5f0f9a621d72", "52fdfc07-2182-454f-963f-5f0f9a621d72", "52fdfc07-2182-454f-963f-5f0f9a621d72"),
+	}`),
 		[]onCallAssertion{
 			{Service: "svc1", EPName: "esc policy", StepNumber: 0, User: "bob"},
 			{Service: "svc2", EPName: "esc policy", StepNumber: 0, User: "bob"},
