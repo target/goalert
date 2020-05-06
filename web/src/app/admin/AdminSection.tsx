@@ -12,7 +12,7 @@ import {
   IntegerInput,
   BoolInput,
 } from './AdminFieldComponents'
-import { ConfigType } from '../../schema'
+import { ConfigValue } from '../../schema'
 
 const components = {
   string: StringInput,
@@ -21,13 +21,8 @@ const components = {
   boolean: BoolInput,
 }
 
-interface FieldProps {
-  id: string
+interface FieldProps extends ConfigValue {
   label: string
-  description?: string
-  value: string
-  type: ConfigType
-  password?: boolean
 }
 
 interface AdminSectionProps {
