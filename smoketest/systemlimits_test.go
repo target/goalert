@@ -92,33 +92,107 @@ func TestSystemLimits(t *testing.T) {
 		return "", false
 	}
 
-	//checkMultiInsert := func(limitID limit.ID, expErrMsg string, addQuery func(num int) string) {
-	//	t.Run(string(limitID), func(t *testing.T) {
-	/*
-		Sequence:
-		1. update to 4
-		2. set limit to 2
-		3. update to 5 (should fail)
-		4. update to 3 (should work)
-		5. update to 2 (should work)
-		6. update to 3 (should fail)
-		7. set limit to -1
-		8. update to 4 (should work)
-	*/
-	/*	t.Parallel()
+	checkMultiInsert := func(limitID limit.ID, expErrMsg string, addQuery func(num int) string) {
+		uuids := make(map[string]string)
+		t.Run(string(limitID), func(t *testing.T) {
+			/*
+				Sequence:
+				1. update to 4
+				2. set limit to 2
+				3. update to 5 (should fail)
+				4. update to 3 (should work)
+				5. update to 2 (should work)
+				6. update to 3 (should fail)
+				7. set limit to -1
+				8. update to 4 (should work)
+			*/
+			t.Parallel()
 			h := harness.NewHarness(t, sql, "limit-configuration")
 			defer h.Close()
 
-			doQuery(t, addQuery(4), h)
+			doQL := func(t *testing.T, query string) (string, string) {
+				t.Helper()
+				g := h.GraphQLQuery2(query)
+				if len(g.Errors) > 1 {
+					for _, err := range g.Errors {
+						t.Logf(err.Message)
+					}
+					t.Fatalf("got %d errors; want 0 or 1", len(g.Errors))
+				}
+				if len(g.Errors) == 0 {
+					var m map[string]interface{}
+
+					err := json.Unmarshal(g.Data, &m)
+					if err != nil {
+						t.Fatalf("got err='%s'; want nil", err.Error())
+					}
+					id, _ := getID(m)
+					return id, ""
+				}
+
+				return "", g.Errors[0].Message
+			}
+
+			doQuery := func(t *testing.T, query string) string {
+				id, errMsg := doQL(t, query)
+				assert.Empty(t, errMsg, "error message")
+				return id
+			}
+			doQueryExpectError := func(t *testing.T, query string, expErr string) {
+				_, errMsg := doQL(t, query)
+				t.Log(errMsg)
+				t.Log(expErr)
+				assert.Contains(t, errMsg, expErr, "error message")
+			}
+
+			tmplExecute := func(tmpl *template.Template, t *testing.T, qs string) string {
+				tmpl, err := tmpl.Parse(qs)
+				require.NoError(t, err)
+				var buf bytes.Buffer
+				err = tmpl.Execute(&buf, nil)
+				require.NoError(t, err)
+				return buf.String()
+			}
+
+			tmpl := template.New("uuids")
+			tmpl.Funcs(template.FuncMap{
+				"uuid": func(id string) string {
+					if id == "phone" {
+						p := h.Phone("")
+						return p
+					}
+					if uuid, ok := uuids[id]; ok {
+						return uuid
+					}
+					uuid := h.UUID(id)
+					uuids[id] = uuid
+					return uuid
+				},
+			})
+
+			query := tmplExecute(tmpl, t, addQuery(4))
+			doQuery(t, query)
+
 			h.SetSystemLimit(limitID, 2)
-			doQueryExpectError(t, addQuery(5), expErrMsg, h)
-			doQuery(t, addQuery(3), h) // 4->3 should work
-			doQuery(t, addQuery(2), h)
-			doQueryExpectError(t, addQuery(3), expErrMsg, h) // 2->3 should fail
+
+			query = tmplExecute(tmpl, t, addQuery(5))
+			doQueryExpectError(t, query, expErrMsg)
+
+			query = tmplExecute(tmpl, t, addQuery(3)) // 4->3 should work
+			doQuery(t, query)
+
+			query = tmplExecute(tmpl, t, addQuery(2))
+			doQuery(t, query)
+
+			query = tmplExecute(tmpl, t, addQuery(3))
+			doQueryExpectError(t, query, expErrMsg) // 2->3 should fail
+
 			h.SetSystemLimit(limitID, -1)
-			doQuery(t, addQuery(4), h)
+
+			query = tmplExecute(tmpl, t, addQuery(4))
+			doQuery(t, query)
 		})
-	}*/
+	}
 
 	checkSingleInsert := func(limitID limit.ID, expErrMsg string, addQuery func(index int) string, delQuery func(ids []string) string) {
 		uuids := make(map[string]string)
@@ -185,19 +259,15 @@ func TestSystemLimits(t *testing.T) {
 			tmpl := template.New("uuids")
 			tmpl.Funcs(template.FuncMap{
 				"uuid": func(id string) string {
-					fmt.Println("ID : ", id)
 					if id == "phone" {
 						p := h.Phone("")
-						fmt.Println("Returning phone number ", p)
 						return p
 					}
 					if uuid, ok := uuids[id]; ok {
-						fmt.Println("Returning existing ", uuid)
 						return uuid
 					}
 					uuid := h.UUID(id)
 					uuids[id] = uuid
-					fmt.Println("Returning ", uuid)
 					return uuid
 				},
 			})
@@ -257,6 +327,7 @@ func TestSystemLimits(t *testing.T) {
 		})
 	}
 
+	// TODO
 	// userIDs := []string{h.UUID("generic_user1"), h.UUID("generic_user2"), h.UUID("generic_user3"), h.UUID("generic_user4"), h.UUID("generic_user5")}
 	userIDs := []string{"50322144-1e88-43dc-b638-b16a5be7bad6", "dfcc0684-f045-4a9f-8931-56da8a014a44", "016d5895-b20f-42fd-ad6c-7f1e4c11354d", "dc8416e1-bf15-4248-b09f-f9294adcb962", "c1dadc8b-b0fc-41e3-a015-5a14c5c19433"}
 	var n int
@@ -318,12 +389,11 @@ func TestSystemLimits(t *testing.T) {
 		},
 	)
 
-	/*checkMultiInsert(
+	checkMultiInsert(
 		limit.EPActionsPerStep,
 		"actions",
 		func(num int) string {
-			return fmt.Sprintf(`mutation{updateEscalationPolicyStep(input:{id:"%s", targets: [%s]})}`,
-				h.UUID("act_ep_step"),
+			return fmt.Sprintf(`mutation{updateEscalationPolicyStep(input:{id:"{{uuid "act_ep_step"}}", targets: [%s]})}`,
 				mapIDs(userIDs[:num], func(id string) string { return fmt.Sprintf(`{type: user, id: "%s"}`, id) }),
 			)
 		},
@@ -333,9 +403,9 @@ func TestSystemLimits(t *testing.T) {
 		limit.ParticipantsPerRotation,
 		"participants",
 		func(num int) string {
-			return fmt.Sprintf(`mutation{updateRotation(input:{id: "%s", userIDs: [%s]})}`, h.UUID("part_rot"), mapIDs(userIDs[:num], nil))
+			return fmt.Sprintf(`mutation{updateRotation(input:{id: "{{uuid "part_rot"}}", userIDs: [%s]})}`, mapIDs(userIDs[:num], nil))
 		},
-	)*/
+	)
 
 	checkSingleInsert(
 		limit.IntegrationKeysPerService,
@@ -359,20 +429,19 @@ func TestSystemLimits(t *testing.T) {
 		},
 	)
 
-	/*checkMultiInsert(
+	checkMultiInsert(
 		limit.RulesPerSchedule,
 		"rules",
 		func(num int) string {
 			toAdd := make([]string, num)
-			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "%s", target: {id: "%s", type: user}, rules: [%s]})}`,
-				h.UUID("rule_sched"),
+			return fmt.Sprintf(`mutation{updateScheduleTarget(input:{scheduleID: "{{uuid "rule_sched"}}", target: {id: "%s", type: user}, rules: [%s]})}`,
 				userIDs[0],
 				mapIDs(toAdd, func(string) string {
 					return `{}`
 				}),
 			)
 		},
-	)*/
+	)
 
 	checkSingleInsert(
 		limit.TargetsPerSchedule,
