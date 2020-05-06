@@ -67,10 +67,6 @@ func TestSystemLimits(t *testing.T) {
 			({{uuid "unack_svc1"}}, 'Unack Test 1', {{uuid "unack_ep1"}}),
 			({{uuid "unack_svc2"}}, 'Unack Test 2', {{uuid "unack_ep2"}});
 `
-
-	/*h := harness.NewHarness(t, sql, "limit-configuration")
-	defer h.Close()*/
-
 	type idParser func(m map[string]interface{}) (string, bool)
 
 	var getID idParser
@@ -272,13 +268,14 @@ func TestSystemLimits(t *testing.T) {
 				},
 			})
 
-			// Create 4
+			// create 4
 			q := make([]string, 5)
 			for i := 0; i < 5; i++ {
 				q[i] = tmplExecute(tmpl, t, addQuery(i))
 			}
 
-			ids := []string{ // create 4
+			// create 4
+			ids := []string{
 				doQuery(t, q[0]),
 				doQuery(t, q[1]),
 				doQuery(t, q[2]),
@@ -286,49 +283,40 @@ func TestSystemLimits(t *testing.T) {
 			}
 			h.SetSystemLimit(limitID, 2)
 
-			//-----Create should fail
+			//create should fail
 			query := tmplExecute(tmpl, t, addQuery(4))
-			doQueryExpectError(t, query, expErrMsg) // create should fail
-
-			//--
-			query = tmplExecute(tmpl, t, delQuery(ids))
-			doQuery(t, query)
-
-			//-----
-
-			ids = ids[1:] // delQuery should always remove the first ID in the list
+			doQueryExpectError(t, query, expErrMsg)
 
 			query = tmplExecute(tmpl, t, delQuery(ids))
 			doQuery(t, query)
-			//------
+
+			//delQuery should always remove the first ID in the list
+			ids = ids[1:]
+
+			query = tmplExecute(tmpl, t, delQuery(ids))
+			doQuery(t, query)
 
 			ids = ids[1:]
 
 			query = tmplExecute(tmpl, t, delQuery(ids))
 			doQuery(t, query)
 
-			//---Should be able to create 1 more
-
+			//should be able to create 1 more
 			query = tmplExecute(tmpl, t, addQuery(0))
-			doQuery(t, query) // should be able to create 1 more
+			doQuery(t, query)
 
-			//----
-
+			//but only one
 			query = tmplExecute(tmpl, t, addQuery(1))
-			doQueryExpectError(t, query, expErrMsg) // but only one
-
-			//----
+			doQueryExpectError(t, query, expErrMsg)
 
 			h.SetSystemLimit(limitID, -1)
 
-			//---No more limit
+			//no more limit
 			query = tmplExecute(tmpl, t, addQuery(1))
-			doQuery(t, query) // no more limit
+			doQuery(t, query)
 		})
 	}
 
-	// TODO
-	// userIDs := []string{h.UUID("generic_user1"), h.UUID("generic_user2"), h.UUID("generic_user3"), h.UUID("generic_user4"), h.UUID("generic_user5")}
 	userIDs := []string{"50322144-1e88-43dc-b638-b16a5be7bad6", "dfcc0684-f045-4a9f-8931-56da8a014a44", "016d5895-b20f-42fd-ad6c-7f1e4c11354d", "dc8416e1-bf15-4248-b09f-f9294adcb962", "c1dadc8b-b0fc-41e3-a015-5a14c5c19433"}
 	var n int
 	uniqName := func() string {
