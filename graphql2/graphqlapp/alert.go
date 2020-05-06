@@ -42,27 +42,30 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 
 func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
 	e := *obj
-	id := e.ID()
+	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	if !ok {
+		return nil, nil
+	}
 
-	ls, err := (*App)(a).FindOneAlertLogState(ctx, id)
+	s, err := (*App)(a).FindOneAlertLogMessageStatus(ctx, meta.MessageID)
 	if err != nil {
 		return nil, errors.Wrap(err, "find alert log state")
 	}
 
 	status := ""
-	switch ls.LastStatus.String {
+	switch s.LastStatus {
 	case "failed":
 		status = "ERROR"
 	case "delivered":
 		status = "OK"
 	}
 
-	if ls.StatusDetails.String == "" {
+	if s.Details == "" {
 		return nil, nil
 	}
 
 	return &graphql2.AlertLogEntryState{
-		Details: ls.StatusDetails.String,
+		Details: s.Details,
 		Status:  &status,
 	}, nil
 }

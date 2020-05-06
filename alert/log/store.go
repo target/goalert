@@ -30,8 +30,6 @@ type Store interface {
 	FindLatestByType(ctx context.Context, alertID int, status Type) (*Entry, error)
 	LegacySearch(ctx context.Context, opt *LegacySearchOptions) ([]Entry, int, error)
 	Search(ctx context.Context, opt *SearchOptions) ([]Entry, error)
-	FindOneLogState(ctx context.Context, logID int) (*LogState, error)
-	FindManyLogStates(ctx context.Context, logIDs []int) ([]LogState, error)
 
 	MustLog(ctx context.Context, alertID int, _type Type, meta interface{})
 	MustLogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{})
@@ -42,14 +40,12 @@ var _ Store = &DB{}
 type DB struct {
 	db *sql.DB
 
-	insert            *sql.Stmt
-	insertEP          *sql.Stmt
-	insertSvc         *sql.Stmt
-	findAll           *sql.Stmt
-	findAllByType     *sql.Stmt
-	findOne           *sql.Stmt
-	findOneLogState   *sql.Stmt
-	findManyLogStates *sql.Stmt
+	insert        *sql.Stmt
+	insertEP      *sql.Stmt
+	insertSvc     *sql.Stmt
+	findAll       *sql.Stmt
+	findAllByType *sql.Stmt
+	findOne       *sql.Stmt
 
 	lookupCallbackType *sql.Stmt
 	lookupIKeyType     *sql.Stmt
@@ -159,24 +155,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			left join heartbeat_monitors hb on hb.id = log.sub_hb_monitor_id
 			left join notification_channels nc on nc.id = log.sub_channel_id
 			where log.id = $1
-		`),
-		findOneLogState: p.P(`
-			SELECT
-				log.id,
-				om.last_status,
-				om.status_details
-			FROM alert_logs log
-			LEFT JOIN outgoing_messages om ON om.id = (log.meta->>'MessageID')::uuid
-			WHERE log.id = $1
-		`),
-		findManyLogStates: p.P(`
-			SELECT
-				log.id,
-				om.last_status,
-				om.status_details
-			FROM alert_logs log
-			LEFT JOIN outgoing_messages om ON om.id = (log.meta->>'MessageID')::uuid
-			WHERE log.id = ANY($1)
 		`),
 		findAll: p.P(`
 			select

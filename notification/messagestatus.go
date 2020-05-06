@@ -19,6 +19,9 @@ type MessageStatus struct {
 	// Details can contain any additional information about the State (e.g. "ringing", "no-answer" etc..).
 	Details string
 
+	// LastStatus is the last known status of the state (e.g. "delivered", "failed")
+	LastStatus string
+
 	// Sequence can be used when the provider sends updates out-of order (e.g. Twilio).
 	// The Sequence number defaults to 0, and a status update is ignored unless it's
 	// Sequence number is >= the current one.

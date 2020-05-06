@@ -4,10 +4,10 @@ import (
 	context "context"
 
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/service"
@@ -28,7 +28,7 @@ const (
 	dataLoaderKeyUser
 	dataLoaderKeyCM
 	dataLoaderKeyHeartbeatMonitor
-	dataLoaderKeyAlertLogState = dataLoaderKey(iota)
+	dataLoaderKeyAlertLogMessageStatus = dataLoaderKey(iota)
 )
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
@@ -39,17 +39,21 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyService, dataloader.NewServiceLoader(ctx, a.ServiceStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewUserLoader(ctx, a.UserStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewCMLoader(ctx, a.CMStore))
-	ctx = context.WithValue(ctx, dataLoaderKeyAlertLogState, dataloader.NewAlertLogStateLoader(ctx, a.AlertLogStore))
+	ctx = context.WithValue(ctx, dataLoaderKeyAlertLogMessageStatus, dataloader.NewAlertLogMessageStatusLoader(ctx, a.NotificationStore))
 	return ctx
 }
 
-func (app *App) FindOneAlertLogState(ctx context.Context, logID int) (*alertlog.LogState, error) {
-	loader, ok := ctx.Value(dataLoaderKeyAlertLogState).(*dataloader.AlertLogStateLoader)
+func (app *App) FindOneAlertLogMessageStatus(ctx context.Context, id string) (*notification.MessageStatus, error) {
+	loader, ok := ctx.Value(dataLoaderKeyAlertLogMessageStatus).(*dataloader.AlertLogMessageStatusLoader)
 	if !ok {
-		return app.AlertLogStore.FindOneLogState(ctx, logID)
+		ms, err := app.NotificationStore.FindManyMessageStatuses(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return &ms[0], nil
 	}
 
-	return loader.FetchOne(ctx, logID)
+	return loader.FetchOne(ctx, id)
 }
 
 func (app *App) FindOneRotation(ctx context.Context, id string) (*rotation.Rotation, error) {

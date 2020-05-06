@@ -2,48 +2,42 @@ package dataloader
 
 import (
 	"context"
-	"strconv"
 	"time"
 
-	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/notification"
 )
 
-type AlertLogStateLoader struct {
+type AlertLogMessageStatusLoader struct {
 	*loader
-	store alertlog.Store
+	store notification.Store
 }
 
-func NewAlertLogStateLoader(ctx context.Context, store alertlog.Store) *AlertLogStateLoader {
-	p := &AlertLogStateLoader{
+func NewAlertLogMessageStatusLoader(ctx context.Context, store notification.Store) *AlertLogMessageStatusLoader {
+	p := &AlertLogMessageStatusLoader{
 		store: store,
 	}
 	p.loader = newLoader(ctx, loaderConfig{
 		Max:       100,
 		Delay:     time.Millisecond,
-		IDFunc:    func(v interface{}) string { return strconv.Itoa(v.(*alertlog.LogState).LogID) },
+		IDFunc:    func(v interface{}) string { return v.(*notification.MessageStatus).ID },
 		FetchFunc: p.fetch,
 	})
 	return p
 }
 
-func (l *AlertLogStateLoader) FetchOne(ctx context.Context, logID int) (*alertlog.LogState, error) {
-	ls, err := l.loader.FetchOne(ctx, strconv.Itoa(logID))
+func (l *AlertLogMessageStatusLoader) FetchOne(ctx context.Context, id string) (*notification.MessageStatus, error) {
+	ls, err := l.loader.FetchOne(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	if ls == nil {
 		return nil, err
 	}
-	return ls.(*alertlog.LogState), nil
+	return ls.(*notification.MessageStatus), nil
 }
 
-func (l *AlertLogStateLoader) fetch(ctx context.Context, logIDs []string) ([]interface{}, error) {
-	intIDs := make([]int, len(logIDs))
-	for i, id := range logIDs {
-		intIDs[i], _ = strconv.Atoi(id)
-	}
-
-	many, err := l.store.FindManyLogStates(ctx, intIDs)
+func (l *AlertLogMessageStatusLoader) fetch(ctx context.Context, ids []string) ([]interface{}, error) {
+	many, err := l.store.FindManyMessageStatuses(ctx, ids...)
 	if err != nil {
 		return nil, err
 	}
