@@ -88,6 +88,15 @@ func TestSystemLimits(t *testing.T) {
 		return "", false
 	}
 
+	tmplExecute := func(tmpl *template.Template, t *testing.T, qs string) string {
+		tmpl, err := tmpl.Parse(qs)
+		require.NoError(t, err)
+		var buf bytes.Buffer
+		err = tmpl.Execute(&buf, nil)
+		require.NoError(t, err)
+		return buf.String()
+	}
+
 	checkMultiInsert := func(limitID limit.ID, expErrMsg string, addQuery func(num int) string) {
 		uuids := make(map[string]string)
 		t.Run(string(limitID), func(t *testing.T) {
@@ -139,15 +148,6 @@ func TestSystemLimits(t *testing.T) {
 				t.Log(errMsg)
 				t.Log(expErr)
 				assert.Contains(t, errMsg, expErr, "error message")
-			}
-
-			tmplExecute := func(tmpl *template.Template, t *testing.T, qs string) string {
-				tmpl, err := tmpl.Parse(qs)
-				require.NoError(t, err)
-				var buf bytes.Buffer
-				err = tmpl.Execute(&buf, nil)
-				require.NoError(t, err)
-				return buf.String()
 			}
 
 			tmpl := template.New("uuids")
@@ -241,15 +241,6 @@ func TestSystemLimits(t *testing.T) {
 				t.Log(errMsg)
 				t.Log(expErr)
 				assert.Contains(t, errMsg, expErr, "error message")
-			}
-
-			tmplExecute := func(tmpl *template.Template, t *testing.T, qs string) string {
-				tmpl, err := tmpl.Parse(qs)
-				require.NoError(t, err)
-				var buf bytes.Buffer
-				err = tmpl.Execute(&buf, nil)
-				require.NoError(t, err)
-				return buf.String()
 			}
 
 			tmpl := template.New("uuids")
