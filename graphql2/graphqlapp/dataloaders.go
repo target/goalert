@@ -28,7 +28,7 @@ const (
 	dataLoaderKeyUser
 	dataLoaderKeyCM
 	dataLoaderKeyHeartbeatMonitor
-	dataLoaderKeyAlertLogMessageStatus = dataLoaderKey(iota)
+	dataLoaderKeyAlertLogMessageStatus
 )
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
