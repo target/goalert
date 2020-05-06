@@ -319,10 +319,19 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	var result []MessageStatus
 	var s MessageStatus
 	for rows.Next() {
-		err = rows.Scan(&s.ID, &s.LastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence)
+		var lastStatus string
+		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence)
 		if err != nil {
 			return nil, err
 		}
+
+		switch lastStatus {
+		case "delivered":
+			s.State = MessageStateDelivered
+		case "failed":
+			s.State = MessageStateFailedPerm
+		}
+
 		result = append(result, s)
 	}
 

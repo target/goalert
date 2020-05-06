@@ -10,6 +10,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
@@ -53,10 +54,10 @@ func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphq
 	}
 
 	status := ""
-	switch s.LastStatus {
-	case "failed":
+	switch s.State {
+	case notification.MessageStateFailedPerm:
 		status = "ERROR"
-	case "delivered":
+	case notification.MessageStateDelivered:
 		status = "OK"
 	}
 
