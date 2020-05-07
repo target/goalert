@@ -17,48 +17,48 @@ import (
 func TestGraphQLOnCall(t *testing.T) {
 	t.Parallel()
 
+	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
+		g := h.GraphQLQueryT(t, query, "/api/graphql")
+		for _, err := range g.Errors {
+			t.Error("GraphQL Error:", err.Message)
+		}
+		if len(g.Errors) > 0 {
+			t.Fatal("errors returned from GraphQL")
+		}
+		t.Log("Response:", string(g.Data))
+
+		if res == nil {
+			return
+		}
+		err := json.Unmarshal(g.Data, &res)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
 	var idCounter int
 
 	check := func(name, tmplStr string, isUser1OnCall, isUser2OnCall bool) {
 		t.Helper()
+		var data struct {
+			UniqName string
+			User1    *user.User
+			User2    *user.User
+		}
+		data.UniqName = fmt.Sprintf("generated%d", idCounter)
+		idCounter++
+
+		tmpl, err := template.New("mutation").Parse(tmplStr)
+		require.NoError(t, err)
+
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			h := harness.NewHarness(t, "", "escalation-policy-step-reorder")
 			defer h.Close()
 
-			doQL := func(t *testing.T, query string, res interface{}) {
-				g := h.GraphQLQueryT(t, query, "/api/graphql")
-				for _, err := range g.Errors {
-					t.Error("GraphQL Error:", err.Message)
-				}
-				if len(g.Errors) > 0 {
-					t.Fatal("errors returned from GraphQL")
-				}
-				t.Log("Response:", string(g.Data))
-
-				if res == nil {
-					return
-				}
-				err := json.Unmarshal(g.Data, &res)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			var data struct {
-				UniqName string
-				User1    *user.User
-				User2    *user.User
-			}
-			data.UniqName = fmt.Sprintf("generated%d", idCounter)
-			idCounter++
-
 			u1, u2 := h.CreateUser(), h.CreateUser()
 			data.User1 = u1
 			data.User2 = u2
-
-			tmpl, err := template.New("mutation").Parse(tmplStr)
-			require.NoError(t, err)
 
 			var buf bytes.Buffer
 			err = tmpl.Execute(&buf, data)
@@ -66,7 +66,7 @@ func TestGraphQLOnCall(t *testing.T) {
 
 			query := buf.String()
 
-			doQL(t, query, nil)
+			doQL(t, h, query, nil)
 			h.Trigger()
 
 			var onCall struct {
@@ -75,7 +75,7 @@ func TestGraphQLOnCall(t *testing.T) {
 				}
 			}
 
-			doQL(t, fmt.Sprintf(`
+			doQL(t, h, fmt.Sprintf(`
 				query {
 					user1: user(id: "%s") { onCallSteps{id} }
 					user2: user(id: "%s") { onCallSteps{id} }
