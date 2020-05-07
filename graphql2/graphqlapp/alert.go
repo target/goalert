@@ -55,7 +55,7 @@ func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphq
 
 	var status graphql2.AlertLogStatus
 	switch s.State {
-	case notification.MessageStateFailedPerm:
+	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
 		status = "ERROR"
 	case notification.MessageStateSent, notification.MessageStateDelivered:
 		status = "OK"
