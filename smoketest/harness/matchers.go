@@ -22,15 +22,15 @@ type devMessage interface {
 	Body() string
 }
 
-func (ig messageMatcher) match(msg devMessage) bool {
-	return msg.To() == ig.number && containsAllIgnoreCase(msg.Body(), ig.keywords)
+func (m messageMatcher) match(msg devMessage) bool {
+	return msg.To() == m.number && containsAllIgnoreCase(msg.Body(), m.keywords)
 }
 
 type anyMessage []messageMatcher
 
 func (any anyMessage) match(msg devMessage) bool {
-	for _, ig := range any {
-		if ig.match(msg) {
+	for _, m := range any {
+		if m.match(msg) {
 			return true
 		}
 	}
