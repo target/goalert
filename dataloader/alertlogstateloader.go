@@ -7,13 +7,13 @@ import (
 	"github.com/target/goalert/notification"
 )
 
-type AlertLogMessageStatusLoader struct {
+type NotificationMessageStatusLoader struct {
 	*loader
 	store notification.Store
 }
 
-func NewAlertLogMessageStatusLoader(ctx context.Context, store notification.Store) *AlertLogMessageStatusLoader {
-	p := &AlertLogMessageStatusLoader{
+func NewNotificationMessageStatusLoader(ctx context.Context, store notification.Store) *NotificationMessageStatusLoader {
+	p := &NotificationMessageStatusLoader{
 		store: store,
 	}
 	p.loader = newLoader(ctx, loaderConfig{
@@ -25,7 +25,7 @@ func NewAlertLogMessageStatusLoader(ctx context.Context, store notification.Stor
 	return p
 }
 
-func (l *AlertLogMessageStatusLoader) FetchOne(ctx context.Context, id string) (*notification.MessageStatus, error) {
+func (l *NotificationMessageStatusLoader) FetchOne(ctx context.Context, id string) (*notification.MessageStatus, error) {
 	ls, err := l.loader.FetchOne(ctx, id)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (l *AlertLogMessageStatusLoader) FetchOne(ctx context.Context, id string) (
 	return ls.(*notification.MessageStatus), nil
 }
 
-func (l *AlertLogMessageStatusLoader) fetch(ctx context.Context, ids []string) ([]interface{}, error) {
+func (l *NotificationMessageStatusLoader) fetch(ctx context.Context, ids []string) ([]interface{}, error) {
 	many, err := l.store.FindManyMessageStatuses(ctx, ids...)
 	if err != nil {
 		return nil, err

@@ -48,7 +48,7 @@ func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphq
 		return nil, nil
 	}
 
-	s, err := (*App)(a).FindOneAlertLogMessageStatus(ctx, meta.MessageID)
+	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
 	if err != nil {
 		return nil, errors.Wrap(err, "find alert log state")
 	}

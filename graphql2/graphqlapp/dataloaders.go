@@ -28,7 +28,7 @@ const (
 	dataLoaderKeyUser
 	dataLoaderKeyCM
 	dataLoaderKeyHeartbeatMonitor
-	dataLoaderKeyAlertLogMessageStatus
+	dataLoaderKeyNotificationMessageStatus
 )
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
@@ -39,12 +39,12 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyService, dataloader.NewServiceLoader(ctx, a.ServiceStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewUserLoader(ctx, a.UserStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewCMLoader(ctx, a.CMStore))
-	ctx = context.WithValue(ctx, dataLoaderKeyAlertLogMessageStatus, dataloader.NewAlertLogMessageStatusLoader(ctx, a.NotificationStore))
+	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewNotificationMessageStatusLoader(ctx, a.NotificationStore))
 	return ctx
 }
 
-func (app *App) FindOneAlertLogMessageStatus(ctx context.Context, id string) (*notification.MessageStatus, error) {
-	loader, ok := ctx.Value(dataLoaderKeyAlertLogMessageStatus).(*dataloader.AlertLogMessageStatusLoader)
+func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string) (*notification.MessageStatus, error) {
+	loader, ok := ctx.Value(dataLoaderKeyNotificationMessageStatus).(*dataloader.NotificationMessageStatusLoader)
 	if !ok {
 		ms, err := app.NotificationStore.FindManyMessageStatuses(ctx, id)
 		if err != nil {
