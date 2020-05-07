@@ -120,7 +120,6 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 
 	status, err := p.cfg.NotificationSender.Send(ctx, notifMsg)
 	if err != nil {
-		p.cfg.AlertLogStore.MustLog(ctx, msg.AlertID, alertlog.TypeNotificationSent, meta)
 		return nil, err
 	}
 
