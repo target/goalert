@@ -131,7 +131,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					last_status,
 					status_details,
 					provider_msg_id,
-					provider_seq
+					provider_seq,
+					next_retry_at notnull
 				from outgoing_messages
 				where id = any($1)
 		`),
@@ -320,7 +321,8 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	var s MessageStatus
 	for rows.Next() {
 		var lastStatus string
-		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence)
+		var hasNextRetry bool
+		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry)
 		if err != nil {
 			return nil, err
 		}
