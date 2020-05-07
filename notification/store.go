@@ -297,7 +297,7 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 }
 
 func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error) {
-	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
+	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
