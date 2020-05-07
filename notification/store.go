@@ -326,10 +326,21 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 		}
 
 		switch lastStatus {
+		case "pending", "sending", "queued_remotely":
+			s.State = MessageStateActive
+		case "sent":
+			s.State = MessageStateSent
 		case "delivered":
 			s.State = MessageStateDelivered
-		case "failed":
-			s.State = MessageStateFailedPerm
+		case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
+			// temporary if retry
+			if hasNextRetry {
+				s.State = MessageStateFailedTemp
+			} else {
+				s.State = MessageStateFailedPerm
+			}
+		default:
+			return nil, fmt.Errorf("unknown last_status %s", lastStatus)
 		}
 
 		result = append(result, s)
