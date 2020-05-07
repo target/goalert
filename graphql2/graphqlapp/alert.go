@@ -44,7 +44,7 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
 	e := *obj
 	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
-	if !ok {
+	if !ok || meta == nil {
 		return nil, nil
 	}
 
