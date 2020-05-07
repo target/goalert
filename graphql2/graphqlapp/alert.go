@@ -61,10 +61,6 @@ func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphq
 		status = "OK"
 	}
 
-	if s.Details == "" {
-		return nil, nil
-	}
-
 	return &graphql2.AlertLogEntryState{
 		Details: s.Details,
 		Status:  &status,
