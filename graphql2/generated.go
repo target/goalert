@@ -3406,7 +3406,12 @@ type AlertLogEntry {
 
 type AlertLogEntryState {
   details: String!
-  status: String
+  status: AlertLogStatus
+}
+
+enum AlertLogStatus {
+  OK
+  ERROR
 }
 
 # The escalation policy state details for the alert.
@@ -5417,10 +5422,10 @@ func (ec *executionContext) _AlertLogEntryState_status(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*AlertLogStatus)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertState_lastEscalation(ctx context.Context, field graphql.CollectedField, obj *alert.State) (ret graphql.Marshaler) {
@@ -22001,6 +22006,30 @@ func (ec *executionContext) marshalOAlertLogEntryState2ᚖgithubᚗcomᚋtarget�
 		return graphql.Null
 	}
 	return ec._AlertLogEntryState(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (AlertLogStatus, error) {
+	var res AlertLogStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v AlertLogStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (*AlertLogStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v *AlertLogStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOAlertRecentEventsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (AlertRecentEventsOptions, error) {

@@ -53,7 +53,7 @@ func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphq
 		return nil, errors.Wrap(err, "find alert log state")
 	}
 
-	status := ""
+	var status graphql2.AlertLogStatus
 	switch s.State {
 	case notification.MessageStateFailedPerm:
 		status = "ERROR"
