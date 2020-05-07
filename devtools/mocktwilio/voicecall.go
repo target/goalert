@@ -74,14 +74,18 @@ func (vc *VoiceCall) process() {
 		return
 	}
 
-	select {
-	case vc.messageCh <- vc.lastMessage:
-	case <-vc.acceptCh:
-	case <-vc.rejectCh:
-		vc.updateStatus(twilio.CallStatusFailed)
-		return
-	case <-vc.s.shutdown:
-		return
+waitForAccept:
+	for {
+		select {
+		case vc.messageCh <- vc.lastMessage:
+		case <-vc.acceptCh:
+			break waitForAccept
+		case <-vc.rejectCh:
+			vc.updateStatus(twilio.CallStatusFailed)
+			return
+		case <-vc.s.shutdown:
+			return
+		}
 	}
 
 	vc.updateStatus(twilio.CallStatusInProgress)
