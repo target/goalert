@@ -143,7 +143,7 @@ func TestSystemLimits(t *testing.T) {
 				assert.Empty(t, errMsg, "error message")
 				return id
 			}
-			doQueryExpectError := func(t *testing.T, query string, expErr string) {
+			doQueryExpectError := func(t *testing.T, query, expErr string) {
 				_, errMsg := doQL(t, query)
 				t.Log(errMsg)
 				t.Log(expErr)
