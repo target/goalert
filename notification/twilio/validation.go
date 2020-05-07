@@ -1,9 +1,9 @@
 package twilio
 
 import (
-	"context"
 	"crypto/hmac"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"github.com/target/goalert/config"
@@ -11,10 +11,6 @@ import (
 
 	"github.com/pkg/errors"
 )
-
-type contextKey string
-
-const twilioAlreadyValidated = contextKey("already-validated")
 
 func validateRequest(req *http.Request) error {
 	if req.Method == "POST" {
@@ -28,7 +24,14 @@ func validateRequest(req *http.Request) error {
 		return errors.New("missing X-Twilio-Signature")
 	}
 
-	calcSig := Signature(cfg.Twilio.AuthToken, cfg.CallbackURL(req.URL.String()), req.PostForm)
+	u, err := url.ParseRequestURI(req.RequestURI)
+	if err != nil {
+		return err
+	}
+	u.Host = req.Host
+	u.Scheme = req.URL.Scheme
+
+	calcSig := Signature(cfg.Twilio.AuthToken, u.String(), req.PostForm)
 	if !hmac.Equal([]byte(sig), calcSig) {
 		return errors.New("invalid X-Twilio-Signature")
 	}
@@ -41,12 +44,6 @@ func WrapValidation(h http.Handler, c Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 
-		if val, ok := ctx.Value(twilioAlreadyValidated).(bool); ok && val {
-			// only validate once
-			h.ServeHTTP(w, req)
-			return
-		}
-
 		err := validateRequest(req)
 		if err != nil {
 			log.Log(ctx, err)
@@ -54,7 +51,7 @@ func WrapValidation(h http.Handler, c Config) http.Handler {
 			return
 		}
 
-		h.ServeHTTP(w, req.WithContext(context.WithValue(ctx, twilioAlreadyValidated, true)))
+		h.ServeHTTP(w, req)
 	})
 }
 

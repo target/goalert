@@ -1,89 +1,61 @@
-declare namespace Cypress {
-  interface Chainable {
-    getConfig: typeof getConfig
-
-    /** Replaces the backend config entirely. */
-    setConfig: typeof setConfig
-
-    /** Merges new config values into existing backend config. */
-    updateConfig: typeof updateConfig
-
-    resetConfig: typeof resetConfig
-  }
+interface General {
+  PublicURL: string
+  DisableLabelCreation: boolean
+  NotificationDisclaimer: string
+  DisableCalendarSubscriptions: boolean
+  DisableV1GraphQL: boolean
 }
 
-interface ConfigInput {
-  [index: string]: any
-
-  General?: {
-    PublicURL?: String
-    DisableLabelCreation?: Boolean
-    NotificationDisclaimer?: string
-  }
-  Auth?: {
-    RefererURLs?: [String]
-    DisableBasic?: Boolean
-  }
-  Mailgun?: {
-    Enable?: Boolean
-    APIKey?: String
-    EmailDomain?: String
-    DisableValidation?: Boolean
-  }
-  Twilio?: {
-    Enable?: Boolean
-    AccountSID?: String
-    AuthToken?: String
-    FromNumber?: String
-  }
-  Feedback?: {
-    Enable?: Boolean
-    OverrideURL?: String
-  }
-}
-interface Config {
-  [index: string]: any
-
-  General: {
-    PublicURL: string
-    DisableLabelCreation: Boolean
-    NotificationDisclaimer: string
-  }
-  Auth: {
-    RefererURLs: [string]
-    DisableBasic: Boolean
-  }
-  Mailgun: {
-    Enable: Boolean
-    APIKey: string
-    EmailDomain: string
-  }
-  Twilio: {
-    Enable: Boolean
-    AccountSID: String
-    AuthToken: String
-    FromNumber: String
-  }
-  Feedback: {
-    Enable: Boolean
-    OverrideURL: String
-  }
-  Slack?: {
-    Enable?: Boolean
-    ClientID?: String
-    ClientSecret?: String
-    AccessToken?: String
-  }
+interface Auth {
+  RefererURLs: [string]
+  DisableBasic: boolean
 }
 
-function getConfigDirect(token: String): Cypress.Chainable<Config> {
+interface Mailgun {
+  Enable: boolean
+  APIKey: string
+  EmailDomain: string
+}
+
+interface Twilio {
+  Enable: boolean
+  AccountSID: string
+  AuthToken: string
+  FromNumber: string
+}
+
+interface Feedback {
+  Enable: boolean
+  OverrideURL: string
+}
+
+interface Slack {
+  Enable: boolean
+  ClientID: string
+  ClientSecret: string
+  AccessToken: string
+}
+
+export interface Config {
+  [index: string]: Partial<General | Auth | Mailgun | Twilio | Feedback | Slack>
+  General: General
+  Auth: Auth
+  Mailgun: Mailgun
+  Twilio: Twilio
+  Feedback: Feedback
+  Slack: Slack
+}
+
+type ConfigInput = Pick<Config, string>
+
+function getConfigDirect(token: string): Cypress.Chainable<Config> {
   return cy
     .request({
       url: '/api/v2/config',
       method: 'GET',
       auth: { bearer: token },
     })
-    .then(res => {
+    .then((res) => {
       expect(res.status, 'status code').to.eq(200)
 
       return JSON.parse(res.body)
@@ -91,11 +63,14 @@ function getConfigDirect(token: String): Cypress.Chainable<Config> {
 }
 
 function getConfig(): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok => getConfigDirect(tok))
+  return cy.adminLogin(true).then((tok: string) => getConfigDirect(tok))
 }
 
+/*
+ * setConfig replaces the current config completely with cfg
+ */
 function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
-  return cy.adminLogin(true).then(tok =>
+  return cy.adminLogin(true).then((tok: string) =>
     cy
       .request({
         url: '/api/v2/config',
@@ -107,16 +82,20 @@ function setConfig(cfg: ConfigInput): Cypress.Chainable<Config> {
   )
 }
 
-function merge(dst: any, src: ConfigInput): Config {
+function merge(dst: Config, src: ConfigInput): Config {
   Object.keys(src).forEach(
-    key => (dst[key] = { ...(dst[key] || {}), ...src[key] }),
+    (key) => (dst[key] = { ...(dst[key] || {}), ...src[key] }),
   )
 
   return dst
 }
 
+/*
+ * updateConfig updates the config by merging the
+ * provided newCfg values into the current config
+ */
 function updateConfig(newCfg: ConfigInput): Cypress.Chainable<Config> {
-  return getConfig().then(cfg => {
+  return getConfig().then((cfg) => {
     return setConfig(merge(cfg, newCfg))
   })
 }
@@ -125,7 +104,7 @@ function resetConfig(): Cypress.Chainable<Config> {
   const base = String(Cypress.config('baseUrl'))
 
   return setConfig({
-    General: { PublicURL: base },
+    General: { PublicURL: base, DisableV1GraphQL: true },
     Slack: {
       Enable: true,
       ClientID: '000000000000.000000000000',

@@ -27,7 +27,7 @@ export default function PolicyRouter() {
   const renderList = () => (
     <SimpleListPage
       query={query}
-      mapDataNode={n => ({
+      mapDataNode={(n) => ({
         title: n.name,
         subText: n.description,
         url: n.id,
@@ -47,16 +47,16 @@ export default function PolicyRouter() {
 
   return (
     <Switch>
-      <Route exact path='/escalation-policies' component={renderList} />
+      <Route exact path='/escalation-policies' render={renderList} />
       <Route
         exact
         path='/escalation-policies/:escalationPolicyID'
-        component={renderDetails}
+        render={renderDetails}
       />
       <Route
         exact
         path='/escalation-policies/:escalationPolicyID/services'
-        component={renderServices}
+        render={renderServices}
       />
       <Route component={PageNotFound} />
     </Switch>

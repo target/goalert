@@ -24,7 +24,7 @@
  *
  */
 export function queryByName(doc, name) {
-  const def = doc.definitions.find(def => def.name.value === name)
+  const def = doc.definitions.find((def) => def.name.value === name)
   if (!def) throw new Error('no definition found for ' + name)
   return {
     ...doc,
@@ -112,15 +112,15 @@ export function fieldAlias(doc, aliasName) {
  * `
  */
 export function mapInputVars(doc, mapVars = {}) {
-  const mapName = name => ({
+  const mapName = (name) => ({
     ...name,
     value: mapVars[name.value] || name.value,
   })
   return {
     ...doc,
-    definitions: doc.definitions.map(def => ({
+    definitions: doc.definitions.map((def) => ({
       ...def,
-      variableDefinitions: def.variableDefinitions.map(vDef => ({
+      variableDefinitions: def.variableDefinitions.map((vDef) => ({
         ...vDef,
         variable: {
           ...vDef.variable,
@@ -129,9 +129,9 @@ export function mapInputVars(doc, mapVars = {}) {
       })),
       selectionSet: {
         ...def.selectionSet,
-        selections: def.selectionSet.selections.map(sel => ({
+        selections: def.selectionSet.selections.map((sel) => ({
           ...sel,
-          arguments: sel.arguments.map(arg => ({
+          arguments: sel.arguments.map((arg) => ({
             ...arg,
             value:
               arg.value.kind !== 'Variable'

@@ -2,8 +2,9 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMS checks that a test SMS is processed.
@@ -22,7 +23,7 @@ func TestTwilioSMS(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -34,11 +35,7 @@ func TestTwilioSMS(t *testing.T) {
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			sendContactMethodTest(input:{
-				contact_method_id:  "%s",
-			}){
-				id
-			}
+			testContactMethod(id: "%s")
 		}
 		`, cm1))
 

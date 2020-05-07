@@ -3,6 +3,8 @@ package oncall
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
@@ -10,7 +12,6 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -18,8 +19,6 @@ import (
 // Store allows retrieving and calculating on-call information.
 type Store interface {
 	OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error)
-
-	// HistoryBySchedule(ctx context.Context, stepID string, start, end time.Time) ([]Shift, error)
 	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
 }
 

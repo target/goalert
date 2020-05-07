@@ -18,7 +18,7 @@ const getAliasedMutation = (mutation, index) =>
 
 // useCreateAlerts will return mutation, status and a function for mapping
 // field/paths from the response to the respecitve service ID.
-export const useCreateAlerts = value => {
+export const useCreateAlerts = (value) => {
   // 1. build mutation
   let m = getAliasedMutation(baseMutation, 0)
   for (let i = 1; i < value.serviceIDs.length; i++) {
@@ -43,5 +43,5 @@ export const useCreateAlerts = value => {
     client: GraphQLClientWithErrors,
   })
 
-  return [mutate, status, alias => aliasIDMap[alias]]
+  return [mutate, status, (alias) => aliasIDMap[alias]]
 }

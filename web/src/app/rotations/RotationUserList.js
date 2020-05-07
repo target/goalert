@@ -12,7 +12,7 @@ import CountDown from '../util/CountDown'
 import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { DateTime } from 'luxon'
-import { UserAvatar } from '../util/avatar'
+import { UserAvatar } from '../util/avatars'
 import { withStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
 
@@ -36,7 +36,7 @@ const mutation = gql`
   }
 `
 
-const styles = theme => {
+const styles = (theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return {
@@ -92,7 +92,7 @@ export default class RotationUserList extends React.PureComponent {
   renderMutation(data) {
     return (
       <Mutation mutation={mutation}>
-        {commit => this.renderList(data, commit)}
+        {(commit) => this.renderList(data, commit)}
       </Mutation>
     )
   }
@@ -165,7 +165,7 @@ export default class RotationUserList extends React.PureComponent {
         }))}
         onReorder={(...args) => {
           const updatedUsers = reorderList(
-            users.map(u => u.id),
+            users.map((u) => u.id),
             ...args,
           )
           const newActiveIndex = calcNewActiveIndex(activeUserIndex, ...args)

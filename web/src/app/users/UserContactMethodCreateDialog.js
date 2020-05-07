@@ -25,7 +25,7 @@ export default function UserContactMethodCreateDialog(props) {
   })
 
   const [createCM, createCMStatus] = useMutation(createMutation, {
-    onCompleted: result => {
+    onCompleted: (result) => {
       props.onClose({ contactMethodID: result.createUserContactMethod.id })
     },
     variables: {
@@ -47,7 +47,7 @@ export default function UserContactMethodCreateDialog(props) {
     <UserContactMethodForm
       disabled={loading}
       errors={fieldErrs}
-      onChange={cmValue => setCmValue(cmValue)}
+      onChange={(cmValue) => setCmValue(cmValue)}
       value={cmValue}
       disclaimer={props.disclaimer}
     />

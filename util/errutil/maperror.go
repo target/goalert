@@ -21,6 +21,10 @@ func MapDBError(err error) error {
 	switch dbErr.Code {
 	case "23503": // fkey constraint
 		switch dbErr.ConstraintName {
+		case "user_calendar_subscriptions_user_id_fkey":
+			return validation.NewFieldError("UserID", "user does not exist")
+		case "user_calendar_subscriptions_schedule_id_fkey":
+			return validation.NewFieldError("ScheduleID", "schedule does not exist")
 		case "user_overrides_add_user_id_fkey":
 			return validation.NewFieldError("AddUserID", "user does not exist")
 		case "user_overrides_remove_user_id_fkey":
@@ -29,6 +33,8 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("TargetID", "schedule does not exist")
 		case "alerts_services_id_fkey":
 			return validation.NewFieldError("ServiceID", "service does not exist")
+		case "schedule_rules_tgt_user_id_fkey":
+			return validation.NewFieldError("TargetID", "user does not exist")
 		}
 	case "23505": // unique constraint
 		if strings.HasPrefix(dbErr.ConstraintName, dbErr.TableName+"_name") || dbErr.ConstraintName == "auth_basic_users_username_key" {

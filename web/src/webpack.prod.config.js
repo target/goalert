@@ -1,8 +1,7 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 // Initialization
 const webpack = require('webpack')
-
-// File ops
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 
 // Folder ops
 const path = require('path')
@@ -10,21 +9,18 @@ const path = require('path')
 // Constants
 const APP = path.join(__dirname, 'app')
 const BUILD = path.join(__dirname, 'build')
-const TEMPLATE = path.join(__dirname, 'app/templates/index.html')
 
-module.exports = {
+module.exports = (env) => ({
   mode: 'production',
   entry: {
     app: APP,
   },
   output: {
     path: BUILD,
-    filename: 'static/[name].[chunkhash].js',
-    chunkFilename: 'static/[chunkhash].js',
-    publicPath: '/',
+    filename: 'static/[name].js',
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.css'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
   },
   module: {
     rules: [
@@ -33,7 +29,7 @@ module.exports = {
         use: ['modernizr-loader'],
       },
       {
-        test: /\.jsx?$/,
+        test: /\.(t|j)sx?$/,
         use: [
           'babel-loader',
           { loader: 'ifdef-loader', options: { production: true, HMR: false } },
@@ -80,20 +76,15 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('production'), // eslint-disable-line quote-props
+        GOALERT_VERSION: JSON.stringify(env.GOALERT_VERSION), // eslint-disable-line quote-props
       },
     }),
-    // Auto generate index.html
-    new HtmlWebpackPlugin({
-      // custom favicon
-      favicon: 'app/public/favicon.ico',
-      template: TEMPLATE,
-      // JS placed at the bottom of the body element
-      inject: 'body',
-      // Use html-minifier
-      minify: {
-        collapseWhitespace: true,
-      },
-    }),
+    new CopyPlugin(
+      [16, 32, 64, 192].map((size) => ({
+        from: path.resolve(APP, `./public/favicon-${size}.png`),
+        to: path.resolve(BUILD, `./static/favicon-${size}.png`),
+      })),
+    ),
   ],
 
   optimization: {
@@ -106,4 +97,4 @@ module.exports = {
     // minify javascript
     minimize: true,
   },
-}
+})

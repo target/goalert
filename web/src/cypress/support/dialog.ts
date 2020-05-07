@@ -1,31 +1,4 @@
 import { DateTime } from 'luxon'
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Click a dialog button with the given text and wait for it to disappear. */
-      dialogFinish: typeof dialogFinish
-
-      /** Click a dialog button with the given text. */
-      dialogClick: typeof dialogClick
-
-      /** Assert a dialog is present with the given title string. */
-      dialogTitle: typeof dialogTitle
-
-      /** Assert a dialog with the given content is present. */
-      dialogContains: typeof dialogContains
-
-      /** Update a dialog's form fields with the given values. */
-      dialogForm: typeof dialogForm
-    }
-  }
-}
-
-function dialogForm(values: {
-  [key: string]: string | string[] | null | boolean | DateTime
-}): void {
-  dialog()
-  cy.form(values, '[role=dialog] #dialog-form')
-}
 
 function dialog(): Cypress.Chainable {
   return cy
@@ -35,25 +8,29 @@ function dialog(): Cypress.Chainable {
     .should('have.length', 1)
     .should('be.visible')
 }
+
+function dialogForm(values: {
+  [key: string]: string | string[] | null | boolean | DateTime
+}): void {
+  dialog()
+  cy.form(values, '[role=dialog] #dialog-form')
+}
+
 function dialogTitle(title: string): Cypress.Chainable {
-  return dialog()
-    .find('[data-cy=dialog-title]')
-    .should('contain', title)
+  return dialog().find('[data-cy=dialog-title]').should('contain', title)
 }
 function dialogContains(content: string): Cypress.Chainable {
   return dialog().should('contain', content)
 }
 
 function dialogClick(s: string): Cypress.Chainable {
-  return dialog()
-    .contains('button', s)
-    .click()
+  return dialog().contains('button', s).click()
 }
 
 function dialogFinish(s: string): Cypress.Chainable {
   return dialog()
     .get('[data-cy-gu]')
-    .then(el => {
+    .then((el) => {
       const id = el.data('cyGu')
       return cy
         .dialogClick(s)

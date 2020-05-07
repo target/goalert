@@ -6,7 +6,6 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import Typography from '@material-ui/core/Typography'
-import withMobileDialog from '@material-ui/core/withMobileDialog'
 import { DefaultTransition, FullscreenTransition } from '../util/Transitions'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth/index'
 import LoadingButton from '../loading/components/LoadingButton'
@@ -17,7 +16,7 @@ import gracefulUnmount from '../util/gracefulUnmount'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
 
-const styles = theme => {
+const styles = (theme) => {
   const { cancelButton, dialogWidth } = globalStyles(theme)
   return {
     cancelButton,
@@ -42,7 +41,6 @@ const styles = theme => {
 }
 
 @withStyles(styles)
-@withMobileDialog()
 @withWidth()
 @gracefulUnmount()
 export default class FormDialog extends React.PureComponent {
@@ -116,6 +114,7 @@ export default class FormDialog extends React.PureComponent {
       onBack,
       ...dialogProps
     } = this.props
+
     const isWideScreen = isWidthUp('md', width)
 
     return (
@@ -229,7 +228,7 @@ export default class FormDialog extends React.PureComponent {
         </Button>
         <LoadingButton
           form='dialog-form'
-          attemptCount={errors.filter(e => !e.nonSubmit).length ? 1 : 0}
+          attemptCount={errors.filter((e) => !e.nonSubmit).length ? 1 : 0}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
           color='primary'
           loading={loading}

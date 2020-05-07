@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -118,7 +119,7 @@ func (t *Task) run(ctx context.Context, pad int, attr color.Attribute, w io.Writ
 	defer tick.Stop()
 
 	for {
-		procCtx, cancel := context.WithCancel(ctx)
+		procCtx, cancel := context.WithCancel(context.Background())
 		hash := hashFile(bin)
 		if t.Watch {
 			go func() {
@@ -149,7 +150,47 @@ func (t *Task) run(ctx context.Context, pad int, attr color.Attribute, w io.Writ
 			log.Println(c.Sprint("Starting"), cb.Sprintf("%s[%s]", t.Name, hash), c.Sprint(bin+" "+strings.Join(t.Command[1:], " ")))
 		}
 
-		err := cmd.Run()
+		err := cmd.Start()
+		if err != nil && !t.IgnoreErrors {
+			cancel()
+			return errors.Wrapf(err, "run %s", t.Name)
+		}
+		if pidDir != "" && cmd.Process != nil {
+			err = ioutil.WriteFile(filepath.Join(pidDir, t.Name+".pid"), []byte(strconv.Itoa(cmd.Process.Pid)), 0644)
+			if err != nil && !t.IgnoreErrors {
+				cancel()
+				return errors.Wrapf(err, " record pid %s", t.Name)
+			}
+		}
+
+		procWaitCh := make(chan struct{})
+
+		go func() {
+			defer cancel()
+
+			select {
+			case <-procCtx.Done():
+				return
+			case <-ctx.Done():
+			}
+
+			// top level context exited, attempt to terminate gracefully
+			cmd.Process.Signal(os.Interrupt)
+			log.Println("Propagating interrupt signal:", t.Name)
+			t := time.NewTimer(10 * time.Second)
+			defer t.Stop()
+
+			select {
+			case <-t.C:
+			case <-procCtx.Done():
+			}
+		}()
+
+		go func() {
+			defer close(procWaitCh)
+			err = cmd.Wait()
+		}()
+		<-procWaitCh
 		cancel()
 		if err != nil && !t.IgnoreErrors {
 			return errors.Wrapf(err, "run %s", t.Name)

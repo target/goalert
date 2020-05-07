@@ -40,13 +40,13 @@ export default class WizardForm extends React.PureComponent {
     ),
   }
 
-  handleSecondaryScheduleToggle = e => {
+  handleSecondaryScheduleToggle = (e) => {
     const { onChange, value } = this.props
     onChange(set(value, ['secondarySchedule', 'enable'], e.target.value))
     this.forceUpdate()
   }
 
-  sectionHeading = text => {
+  sectionHeading = (text) => {
     return (
       <Typography component='h2' variant='h6'>
         {text}
@@ -137,7 +137,7 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='15'
-              mapOnChangeValue={value => value.toString()}
+              mapOnChangeValue={(value) => value.toString()}
             />
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
@@ -151,7 +151,7 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='3'
-              mapOnChangeValue={value => value.toString()}
+              mapOnChangeValue={(value) => value.toString()}
             />
           </Grid>
           <Grid item className={classes.stepItem}>

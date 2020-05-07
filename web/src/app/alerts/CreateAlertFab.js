@@ -7,7 +7,7 @@ import AddIcon from '@material-ui/icons/Add'
 import Tooltip from '@material-ui/core/Tooltip'
 import p from 'prop-types'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   fab: {
     position: 'fixed',
     bottom: '2em',

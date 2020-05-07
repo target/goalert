@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Wizard', testWizard)
-
 const keys = [
   {
     label: 'Generic API',
@@ -19,22 +17,26 @@ const keys = [
   },
 ]
 
-function testWizard(screen: ScreenFormat) {
+function testWizard(): void {
   describe('Wizard Page', () => {
     beforeEach(() => cy.visit('/wizard'))
 
     // used for setting users on regular and fts rotations
-    const setUsers = (name: String) => {
-      cy.fixture('users').then(users => {
+    const setUsers = (name: string): void => {
+      cy.fixture('users').then((users) => {
         cy.get(`input[name="${name}"]`).selectByLabel(users[0].name)
-        cy.get(`div[name="${name}"]`).should('contain', users[0].name)
+        cy.get(`input[name="${name}"]`)
+          .parent()
+          .should('contain', users[0].name)
         cy.get(`input[name="${name}"]`).selectByLabel(users[1].name)
-        cy.get(`div[name="${name}"]`).should('contain', users[1].name)
+        cy.get(`input[name="${name}"]`)
+          .parent()
+          .should('contain', users[1].name)
       })
     }
 
     // used for setting primary and secondary schedule fields
-    const setScheduleFields = (key: String) => {
+    const setScheduleFields = (key: string): void => {
       // set tz
       cy.get(`input[name="${key}.timeZone"]`).selectByLabel('America/Chicago')
       cy.get(`input[name="${key}.timeZone"]`).should(
@@ -129,21 +131,17 @@ function testWizard(screen: ScreenFormat) {
       // set key type
       const key = c.pickone(keys)
       cy.get('input[name="key"]').selectByLabel(key.label)
-      cy.get('input[name="key"]').should('have.value', key.value)
+      cy.get('input[name="key"]').should('have.value', key.label)
 
-      cy.get('body')
-        .contains('button', 'Submit')
-        .click()
+      cy.get('body').contains('button', 'Submit').click()
 
       cy.get('body').should('contain', 'Success')
-      cy.get('body')
-        .contains('button', 'Close')
-        .click()
+      cy.get('body').contains('button', 'Close').click()
 
       cy.get('body').should('contain', teamName + ' Service')
       cy.get('body').should('contain', teamName + ' Escalation Policy')
 
-      const verify = (route: string, name: string) => {
+      const verify = (route: string, name: string): void => {
         cy.visit(route)
         cy.pageSearch(name)
         cy.get('body')
@@ -162,7 +160,7 @@ function testWizard(screen: ScreenFormat) {
     })
 
     // handles disabling rotation fields for primary/secondary schedules
-    const hideRotationFields = (key: String) => {
+    const hideRotationFields = (key: string): void => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.yes"]`).click() // show all fields to ensure everything gets hidden
@@ -172,10 +170,11 @@ function testWizard(screen: ScreenFormat) {
       // assert hidden fields
       cy.get(`input[name="${key}.rotation.startDate"]`).should('not.exist') // start date
       cy.get(`input[name="${key}.fts"]`).should('not.exist') // fts yes and no buttons
-      cy.get(`div[name="${key}.followTheSunRotation.users"]`).should(
+
+      cy.get(`input[name="${key}.followTheSunRotation.users"]`).should(
         'not.exist',
       ) // fts users select
-      cy.get(`div[name="${key}.followTheSunRotation.timeZone"]`).should(
+      cy.get(`input[name="${key}.followTheSunRotation.timeZone"]`).should(
         'not.exist',
       ) // fts time zone select
     }
@@ -197,16 +196,16 @@ function testWizard(screen: ScreenFormat) {
     })
 
     // handles asserting when follow the sun fields should exist for primary/secondary schedules
-    const showFTSFields = (key: String) => {
+    const showFTSFields = (key: string): void => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.yes"]`).click()
-      cy.get(`div[name="${key}.followTheSunRotation.users"]`)
-        .find('input')
-        .should('be.visible') // fts users select
-      cy.get(`div[name="${key}.followTheSunRotation.timeZone"]`)
-        .find('input')
-        .should('be.visible') // fts time zone select
+      cy.get(`input[name="${key}.followTheSunRotation.users"]`).should(
+        'be.visible',
+      ) // fts users select
+      cy.get(`input[name="${key}.followTheSunRotation.timeZone"]`).should(
+        'be.visible',
+      ) // fts time zone select
     }
 
     it('should handle showing fts fields (primary)', () => {
@@ -219,14 +218,14 @@ function testWizard(screen: ScreenFormat) {
     })
 
     // handles asserting when follow the sun fields shouldn't exist for primary/secondary schedules
-    const dontShowFTSFields = (key: String) => {
+    const dontShowFTSFields = (key: string): void => {
       setUsers(`${key}.users`)
       cy.get(`label[data-cy="${key}.rotationType.weekly"]`).click()
       cy.get(`label[data-cy="${key}.fts.no"]`).click()
-      cy.get(`div[name="${key}.followTheSunRotation.users"]`).should(
+      cy.get(`input[name="${key}.followTheSunRotation.users"]`).should(
         'not.exist',
       ) // fts users select
-      cy.get(`div[name="${key}.followTheSunRotation.timeZone"]`).should(
+      cy.get(`input[name="${key}.followTheSunRotation.timeZone"]`).should(
         'not.exist',
       ) // fts time zone select
     }
@@ -241,3 +240,5 @@ function testWizard(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Wizard', testWizard)

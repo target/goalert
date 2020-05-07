@@ -5,17 +5,13 @@ function _finally(p, fn) {
 
   // fallback to manual implementation
   return p.then(
-    val => {
+    (val) => {
       const v = () => val
-      return Promise.resolve()
-        .then(fn)
-        .then(v)
+      return Promise.resolve().then(fn).then(v)
     },
-    err => {
+    (err) => {
       const e = () => Promise.reject(err)
-      return Promise.resolve()
-        .then(fn)
-        .then(e)
+      return Promise.resolve().then(fn).then(e)
     },
   )
 }
@@ -24,7 +20,7 @@ function _finally(p, fn) {
 // It differes from Promise.all and Promise.allSettled in that you can add
 // additional promises after creation.
 class BatchPromise {
-  _p = new Promise(resolve => {
+  _p = new Promise((resolve) => {
     this._resolveP = resolve
   })
 
@@ -36,7 +32,7 @@ class BatchPromise {
     return this._p
   }
 
-  addPromise = p => {
+  addPromise = (p) => {
     this._unresolvedCount++
     return _finally(p, this.resolveOne)
   }

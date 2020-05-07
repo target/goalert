@@ -1,21 +1,26 @@
 import { testScreen } from '../support'
 import { DateTime } from 'luxon'
+import { Schedule } from '../../schema'
 
-testScreen('Calendar', testCalendar)
-
-const monthHeaderFormat = (t: DateTime) => t.toFormat('MMMM')
-const weekHeaderFormat = (t: DateTime) => {
+const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
+const weekHeaderFormat = (t: DateTime): string => {
   const start = t.startOf('week').minus({ day: 1 })
 
   const end = t.endOf('week').minus({ day: 1 })
 
   return (
-    start.toFormat('MMMM dd – ') +
+    start.toFormat('MMMM dd — ') +
     end.toFormat(end.month === start.month ? 'dd' : 'MMMM dd')
   )
 }
 
-function testCalendar(screen: ScreenFormat) {
+const weekSpansTwoMonths = (t: DateTime): boolean => {
+  const start = t.startOf('week').minus({ day: 1 })
+  const end = t.endOf('week').minus({ day: 1 })
+  return start.month !== end.month
+}
+
+function testCalendar(screen: ScreenFormat): void {
   if (screen !== 'widescreen') return
 
   let sched: Schedule
@@ -24,14 +29,14 @@ function testCalendar(screen: ScreenFormat) {
   let now: DateTime
   beforeEach(() => {
     now = DateTime.local()
-    cy.createSchedule().then(s => {
+    cy.createSchedule().then((s: Schedule) => {
       sched = s
 
       cy.createRotation({
         count: 3,
         type: 'hourly',
         shiftLength: 1,
-      }).then(r => {
+      }).then((r: Rotation) => {
         rot = r
 
         cy.setScheduleTarget({
@@ -77,14 +82,12 @@ function testCalendar(screen: ScreenFormat) {
     }
 
     for (let i = 0; i < check; i++) {
-      cy.get('body').should('contain', rot.users[i].name.split(' ')[0])
+      cy.get('body').should('contain', rot.users[i].name)
     }
   })
 
   it(`should view a shift's tooltip`, () => {
-    cy.get('div')
-      .contains(rot.users[0].name.split(' ')[0])
-      .trigger('mouseover')
+    cy.get('div').contains(rot.users[0].name).trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="replace-override"]').should('be.visible')
     cy.get('button[data-cy="remove-override"]').should('be.visible')
@@ -113,13 +116,15 @@ function testCalendar(screen: ScreenFormat) {
     )
   })
 
-  it.skip('should switch between weekly and monthly views', () => {
+  it('should switch between weekly and monthly views', () => {
+    // defaults to current month
     cy.get('button[data-cy="show-month"]').should('be.disabled')
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
       monthHeaderFormat(now),
     )
 
+    // click weekly
     cy.get('button[data-cy="show-week"]').click()
     cy.get('button[data-cy="show-week"]').should('be.disabled')
     cy.get('[data-cy="calendar-header"]').should(
@@ -127,11 +132,19 @@ function testCalendar(screen: ScreenFormat) {
       weekHeaderFormat(now),
     )
 
+    // go from week to monthly view
+    // e.g. if navigating to an overlap of two months such as
+    // Jan 27 - Feb 2, show the latter month (February)
+    let monthsToAdd = 0
+    if (weekSpansTwoMonths(now) && now.day > 7) {
+      monthsToAdd = 1
+    }
+
     cy.get('button[data-cy="show-month"]').click()
     cy.get('button[data-cy="show-month"]').should('be.disabled')
     cy.get('[data-cy="calendar-header"]').should(
       'contain',
-      monthHeaderFormat(now),
+      monthHeaderFormat(now.plus({ months: monthsToAdd })),
     )
   })
 
@@ -161,7 +174,7 @@ function testCalendar(screen: ScreenFormat) {
   })
 
   it('should add an override from the calendar', () => {
-    cy.fixture('users').then(users => {
+    cy.fixture('users').then((users) => {
       cy.get('button[data-cy="add-override"]').click()
       cy.dialogTitle('Add a User')
       cy.dialogForm({ addUserID: users[0].name })
@@ -170,9 +183,11 @@ function testCalendar(screen: ScreenFormat) {
   })
 
   it('should create a replace override from a shift tooltip', () => {
-    const name = rot.users[0].name.split(' ')[0]
+    const name = rot.users[0].name
 
-    cy.fixture('users').then(users => {
+    cy.fixture('users').then((users) => {
+      let addUserName = users[0].name
+      if (rot.users[0].id === users[0].id) addUserName = users[1].name
       cy.get('[data-cy=calendar]')
         .should('contain', name)
         .contains('div', name)
@@ -180,13 +195,13 @@ function testCalendar(screen: ScreenFormat) {
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="replace-override"]').click()
       cy.dialogTitle('Replace a User')
-      cy.dialogForm({ addUserID: users[0].name })
+      cy.dialogForm({ addUserID: addUserName })
       cy.dialogFinish('Submit')
     })
   })
 
   it('should create a remove override from a shift tooltip', () => {
-    const name = rot.users[0].name.split(' ')[0]
+    const name = rot.users[0].name
 
     cy.get('[data-cy=calendar]')
       .should('contain', name)
@@ -198,3 +213,5 @@ function testCalendar(screen: ScreenFormat) {
     cy.dialogFinish('Submit')
   })
 }
+
+testScreen('Calendar', testCalendar)

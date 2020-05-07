@@ -82,6 +82,8 @@ func (l *limitErr) Error() string {
 		return "too many heartbeat monitors on this service"
 	case limit.UserOverridesPerSchedule:
 		return "too many user overrides on this schedule"
+	case limit.CalendarSubscriptionsPerUser:
+		return "too many calendar subscriptions for this user"
 	}
 
 	return "exceeded limit"

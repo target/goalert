@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/validation"
 )
 
 type UserOverride App
@@ -47,8 +48,11 @@ func (m *Mutation) UpdateUserOverride(ctx context.Context, input graphql2.Update
 }
 
 func (m *Mutation) CreateUserOverride(ctx context.Context, input graphql2.CreateUserOverrideInput) (*override.UserOverride, error) {
+	if input.ScheduleID == nil {
+		return nil, validation.NewFieldError("ScheduleID", "is required")
+	}
 	u := &override.UserOverride{
-		Target: assignment.ScheduleTarget(input.ScheduleID),
+		Target: assignment.ScheduleTarget(*input.ScheduleID),
 		Start:  input.Start,
 		End:    input.End,
 	}

@@ -43,9 +43,7 @@ export const usersSchedules = {
     timeZone: c.pickone(timeZones),
     users,
     rotation: {
-      startDate: DateTime.local()
-        .startOf('day')
-        .toISO(),
+      startDate: DateTime.local().startOf('day').toISO(),
       type: 'never',
     },
     followTheSunRotation: {
@@ -59,9 +57,7 @@ export const usersSchedules = {
     timeZone: c.pickone(timeZones),
     users,
     rotation: {
-      startDate: DateTime.local()
-        .startOf('day')
-        .toISO(),
+      startDate: DateTime.local().startOf('day').toISO(),
       type: 'never',
     },
     followTheSunRotation: {
@@ -82,9 +78,7 @@ export const rotationsNoFTS = {
     timeZone: 'America/Chicago',
     users,
     rotation: {
-      startDate: DateTime.local()
-        .startOf('day')
-        .toISO(),
+      startDate: DateTime.local().startOf('day').toISO(),
       type: 'daily',
     },
     followTheSunRotation: {
@@ -98,9 +92,7 @@ export const rotationsNoFTS = {
     timeZone: 'Africa/Accra',
     users,
     rotation: {
-      startDate: DateTime.local()
-        .startOf('day')
-        .toISO(),
+      startDate: DateTime.local().startOf('day').toISO(),
       type: 'weekly',
     },
     followTheSunRotation: {
@@ -121,9 +113,7 @@ export const rotationsAndFTS = {
     timeZone: 'Etc/UTC',
     users,
     rotation: {
-      startDate: DateTime.local()
-        .startOf('day')
-        .toISO(),
+      startDate: DateTime.local().startOf('day').toISO(),
       type: 'weekly',
     },
     followTheSunRotation: {
@@ -137,9 +127,7 @@ export const rotationsAndFTS = {
     timeZone: 'Africa/Accra',
     users,
     rotation: {
-      startDate: DateTime.local()
-        .startOf('day')
-        .toISO(),
+      startDate: DateTime.local().startOf('day').toISO(),
       type: 'daily',
     },
     followTheSunRotation: {

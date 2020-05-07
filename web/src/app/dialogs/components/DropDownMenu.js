@@ -28,7 +28,7 @@ export default class DropdownMenu extends Component {
         <IconButton
           aria-label={this.props['aria-label']}
           data-cy={this.props['data-cy']}
-          onClick={event => this.setState({ anchorEl: event.currentTarget })}
+          onClick={(event) => this.setState({ anchorEl: event.currentTarget })}
           aria-haspopup='true'
           style={{ color: this.props.color || 'inherit' }}
         >
@@ -47,7 +47,7 @@ export default class DropdownMenu extends Component {
             this.setState({ anchorEl: null })
           }}
         >
-          {options.map(option => (
+          {options.map((option) => (
             <MenuItem
               key={option.label}
               onClick={() => {

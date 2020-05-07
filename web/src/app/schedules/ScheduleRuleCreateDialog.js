@@ -29,15 +29,8 @@ export default function ScheduleRuleCreateDialog(props) {
     targetID: '',
     rules: [
       {
-        start: DateTime.local()
-          .startOf('day')
-          .toUTC()
-          .toISO(),
-        end: DateTime.local()
-          .plus({ day: 1 })
-          .startOf('day')
-          .toUTC()
-          .toISO(),
+        start: DateTime.local().startOf('day').toUTC().toISO(),
+        end: DateTime.local().plus({ day: 1 }).startOf('day').toUTC().toISO(),
         weekdayFilter: [true, true, true, true, true, true, true],
       },
     ],
@@ -56,7 +49,7 @@ export default function ScheduleRuleCreateDialog(props) {
         },
         scheduleID,
 
-        rules: value.rules.map(r => ({
+        rules: value.rules.map((r) => ({
           ...r,
           start: isoToGQLClockTime(r.start, data.schedule.timeZone),
           end: isoToGQLClockTime(r.end, data.schedule.timeZone),
@@ -71,7 +64,7 @@ export default function ScheduleRuleCreateDialog(props) {
       title={`Add ${startCase(targetType)} to Schedule`}
       errors={nonFieldErrors(mutationStatus.error)}
       maxWidth='md'
-      loading={queryStatus.loading || mutationStatus.loading}
+      loading={(!data && queryStatus.loading) || mutationStatus.loading}
       onSubmit={() => {
         mutate()
       }}
@@ -79,7 +72,7 @@ export default function ScheduleRuleCreateDialog(props) {
         <ScheduleRuleForm
           targetType={targetType}
           scheduleID={scheduleID}
-          disabled={queryStatus.loading || mutationStatus.loading}
+          disabled={(!data && queryStatus.loading) || mutationStatus.loading}
           errors={fieldErrors(mutationStatus.error)}
           value={value}
           onChange={setValue}

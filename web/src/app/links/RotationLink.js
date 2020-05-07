@@ -1,6 +1,6 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { AppLink } from '../util/AppLink'
 
-export const RotationLink = rotation => {
-  return <Link to={`/rotations/${rotation.id}`}>{rotation.name}</Link>
+export const RotationLink = (rotation) => {
+  return <AppLink to={`/rotations/${rotation.id}`}>{rotation.name}</AppLink>
 }

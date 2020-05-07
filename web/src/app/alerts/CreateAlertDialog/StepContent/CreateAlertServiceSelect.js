@@ -40,7 +40,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   addAll: {
     backgroundColor: theme.palette.primary['400'],
     marginRight: '0.25em',
@@ -87,16 +87,18 @@ export function CreateAlertServiceSelect(props) {
 
   const fieldRef = useRef()
   const classes = useStyles()
-  const searchResults = _.get(data, 'services.nodes', [])
+  const searchResults = _.get(data, 'services.nodes', []).filter(
+    (id) => !value.includes(id),
+  )
 
   const queryErrorMsg = allErrors(queryError)
-    .map(e => e.message)
+    .map((e) => e.message)
     .join('\n')
 
   let placeholderMsg = null
   if (queryErrorMsg) {
     placeholderMsg = null
-  } else if (loading || searchQueryInput !== searchUserInput) {
+  } else if ((!data && loading) || searchQueryInput !== searchUserInput) {
     placeholderMsg = 'Loading...'
   } else if (searchResults.length === 0) {
     placeholderMsg = 'No services found'
@@ -113,25 +115,25 @@ export function CreateAlertServiceSelect(props) {
 
   const { labelKey, labelValue } = getServiceLabel(searchUserInput)
 
-  const addAll = e => {
+  const addAll = (e) => {
     e.stopPropagation()
     e.preventDefault()
-    const resultIDs = searchResults.map(s => s.id)
+    const resultIDs = searchResults.map((s) => s.id)
 
     props.onChange(
       _.uniq([...value, ...resultIDs]).slice(0, CREATE_ALERT_LIMIT),
     )
   }
 
-  const selectedServiceChips = value.map(id => {
+  const selectedServiceChips = value.map((id) => {
     return (
       <ServiceChip
         key={id}
         clickable={false}
         id={id}
         className={classes.serviceChip}
-        onClick={e => e.preventDefault()}
-        onDelete={() => props.onChange(value.filter(v => v !== id))}
+        onClick={(e) => e.preventDefault()}
+        onDelete={() => props.onChange(value.filter((v) => v !== id))}
       />
     )
   })
@@ -162,8 +164,8 @@ export function CreateAlertServiceSelect(props) {
           {value.length > 0 ? selectedServiceChips : notice}
         </Paper>
         {Boolean(props.error) && (
-          <FormHelperText c={console.log(props.error)}>
-            {props.error.message.replace(/^./, str => str.toUpperCase())}
+          <FormHelperText>
+            {props.error.message.replace(/^./, (str) => str.toUpperCase())}
           </FormHelperText>
         )}
       </FormControl>
@@ -174,7 +176,7 @@ export function CreateAlertServiceSelect(props) {
         name='serviceSearch'
         value={searchUserInput}
         className={classes.searchInput}
-        onChange={e => setSearchUserInput(e.target.value)}
+        onChange={(e) => setSearchUserInput(e.target.value)}
         InputProps={{
           ref: fieldRef,
           startAdornment: (
@@ -218,13 +220,18 @@ export function CreateAlertServiceSelect(props) {
               </ListItem>
             )}
 
-            {searchResults.map(service => (
+            {searchResults.map((service) => (
               <ListItem
                 button
                 data-cy='service-select-item'
                 key={service.id}
                 disabled={value.length >= CREATE_ALERT_LIMIT}
-                onClick={() => onChange([...value, service.id])}
+                onClick={() =>
+                  onChange([
+                    ...value.filter((id) => id !== service.id),
+                    service.id,
+                  ])
+                }
               >
                 <ListItemText primary={service.name} />
                 {service.isFavorite && (

@@ -133,6 +133,9 @@ func (e Entry) String() string {
 	case TypeNotificationSent:
 		msg = "Notification sent"
 		infinitive = true
+	case TypeNoNotificationSent:
+		msg = "No notification sent"
+		infinitive = true
 	case TypePolicyUpdated:
 		msg = "Policy updated"
 	case TypeDuplicateSupressed:

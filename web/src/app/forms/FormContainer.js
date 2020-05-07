@@ -25,6 +25,10 @@ export class FormContainer extends React.PureComponent {
     // If true, will render optional fields with `(optional)` appended to the label.
     // In addition, required fields will not be appended with `*`.
     optionalLabels: p.bool,
+
+    // Enables functionality to remove an incoming value at it's index from
+    // an array field if the new value is falsey.
+    removeFalseyIdxs: p.bool,
   }
 
   static defaultProps = {
@@ -32,8 +36,8 @@ export class FormContainer extends React.PureComponent {
     value: {},
     onChange: () => {},
 
-    mapValue: value => value,
-    mapOnChangeValue: value => value,
+    mapValue: (value) => value,
+    mapOnChangeValue: (value) => value,
   }
 
   state = {
@@ -50,7 +54,7 @@ export class FormContainer extends React.PureComponent {
 
     return () => {
       this._fields[fieldName] = this._fields[fieldName].filter(
-        v => v !== validate,
+        (v) => v !== validate,
       )
       if (this._fields[fieldName].length === 0) {
         delete this._fields[fieldName]
@@ -58,11 +62,11 @@ export class FormContainer extends React.PureComponent {
     }
   }
 
-  onSubmit = (...args) => {
-    const validate = field => {
+  onSubmit = () => {
+    const validate = (field) => {
       let err
       // find first error
-      this._fields[field].find(validate => {
+      this._fields[field].find((validate) => {
         err = validate(get(this.props.value, field))
         return err
       })
@@ -71,7 +75,7 @@ export class FormContainer extends React.PureComponent {
     }
     const validationErrors = Object.keys(this._fields)
       .map(validate)
-      .filter(e => e)
+      .filter((e) => e)
     this.setState({ validationErrors })
     if (validationErrors.length) return false
 
@@ -79,12 +83,40 @@ export class FormContainer extends React.PureComponent {
   }
 
   onChange = (fieldName, e) => {
+    const {
+      mapValue,
+      mapOnChangeValue,
+      value: oldValue,
+      removeFalseyIdxs,
+    } = this.props
+
     let value = e
-    if (e && e.target) {
-      value = e.target.value
+    if (e && e.target) value = e.target.value
+
+    // remove idx from array if new value is null when fieldName includes index
+    // e.g. don't set array to something like [3, null, 6, 2, 9]
+    // if "array[1]" is null, but rather set to [3, 6, 2, 9]
+    if (
+      !value &&
+      fieldName.charAt(fieldName.length - 1) === ']' &&
+      removeFalseyIdxs
+    ) {
+      const arrayPath = fieldName.substring(0, fieldName.lastIndexOf('['))
+      const idx = fieldName.substring(
+        fieldName.lastIndexOf('[') + 1,
+        fieldName.lastIndexOf(']'),
+      )
+
+      const newArr = get(oldValue, arrayPath, []).filter((_, i) => {
+        return i !== parseInt(idx, 10)
+      })
+
+      return this.props.onChange(
+        mapOnChangeValue(set(mapValue({ ...oldValue }), arrayPath, newArr)),
+      )
     }
-    const { value: oldValue, mapValue, mapOnChangeValue } = this.props
-    this.props.onChange(
+
+    return this.props.onChange(
       mapOnChangeValue(
         set(
           mapValue({

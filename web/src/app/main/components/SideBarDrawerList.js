@@ -22,15 +22,16 @@ import {
 
 import routeConfig, { getPath } from '../routes'
 
-import { Link, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import { CurrentUserAvatar } from '../../util/avatar'
+import { CurrentUserAvatar } from '../../util/avatars'
 import { authLogout } from '../../actions'
 import { connect } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 
 import logo from '../../public/goalert-alt-logo-scaled.png'
+import { AppLink } from '../../util/AppLink'
 
 const navIcons = {
   Alerts: AlertsIcon,
@@ -42,7 +43,7 @@ const navIcons = {
   Admin: AdminIcon,
 }
 
-const styles = theme => ({
+const styles = (theme) => ({
   ...globalStyles(theme),
   logoDiv: {
     width: '100%',
@@ -66,7 +67,7 @@ const styles = theme => ({
   },
 })
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     logout: () => dispatch(authLogout(true)),
   }
@@ -82,9 +83,9 @@ export default class SideBarDrawerList extends React.PureComponent {
 
   renderSidebarLink = (icon, path, label, props = {}) => {
     return (
-      <Link to={path} className={this.props.classes.nav} {...props}>
+      <AppLink to={path} className={this.props.classes.nav} {...props}>
         {this.renderSidebarItem(icon, label)}
-      </Link>
+      </AppLink>
     )
   }
 
@@ -124,7 +125,7 @@ export default class SideBarDrawerList extends React.PureComponent {
   }
 
   renderAdmin() {
-    const cfg = routeConfig.find(c => c.title === 'Admin')
+    const cfg = routeConfig.find((c) => c.title === 'Admin')
 
     return (
       <NavSubMenu
@@ -140,15 +141,14 @@ export default class SideBarDrawerList extends React.PureComponent {
 
   renderFeedback(url) {
     return (
-      <a
-        href={url}
+      <AppLink
+        to={url}
         className={this.props.classes.nav}
-        target='_blank'
-        rel='noopener noreferrer'
+        newTab
         data-cy='feedback-link'
       >
         {this.renderSidebarItem(FeedbackIcon, 'Feedback')}
-      </a>
+      </AppLink>
     )
   }
 
@@ -168,7 +168,7 @@ export default class SideBarDrawerList extends React.PureComponent {
         <Divider />
         <List role='navigation' className={classes.list} data-cy='nav-list'>
           {routeConfig
-            .filter(cfg => cfg.nav !== false)
+            .filter((cfg) => cfg.nav !== false)
             .map((cfg, idx) => {
               if (cfg.subRoutes) {
                 return (
@@ -198,7 +198,7 @@ export default class SideBarDrawerList extends React.PureComponent {
           <Divider aria-hidden />
           {this.renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
           <Config>
-            {cfg =>
+            {(cfg) =>
               cfg['Feedback.Enable'] &&
               this.renderFeedback(
                 cfg['Feedback.OverrideURL'] ||
@@ -211,7 +211,7 @@ export default class SideBarDrawerList extends React.PureComponent {
             '/api/v2/identity/logout',
             'Logout',
             {
-              onClick: e => {
+              onClick: (e) => {
                 e.preventDefault()
                 this.props.logout()
               },

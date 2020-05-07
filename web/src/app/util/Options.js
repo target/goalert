@@ -38,6 +38,7 @@ export default class Options extends Component {
     transformProps: p.object, // override props to position menu on desktop
     options: p.array.isRequired, // [{ disabled: false, text: '', onClick: () => { . . . } }]
     positionRelative: p.bool, // if true, disables the options menu being fixed to the top right
+    legacyClient: p.bool, // if true, uses the legacy graphql client for mutations
   }
 
   state = {
@@ -48,7 +49,7 @@ export default class Options extends Component {
     showOptions: false,
   }
 
-  handleOpenMenu = event => {
+  handleOpenMenu = (event) => {
     this.setState({
       anchorEl: event.currentTarget,
       show: true,
@@ -61,7 +62,7 @@ export default class Options extends Component {
     })
   }
 
-  handleShowOptions = bool => {
+  handleShowOptions = (bool) => {
     this.setState({
       showOptions: bool,
     })
@@ -73,20 +74,20 @@ export default class Options extends Component {
   onMutationSubmit = (o, mutation) => {
     this.handleCloseMenu()
     this.handleShowOptions(false)
-    return mutation({ variables: o.mutation.variables }).catch(error =>
+    return mutation({ variables: o.mutation.variables }).catch((error) =>
       this.setState({ errorMessage: error.message, showErrorDialog: true }),
     )
   }
 
-  onClick = o => {
-    Promise.resolve(o.onClick()).catch(error =>
+  onClick = (o) => {
+    Promise.resolve(o.onClick()).catch((error) =>
       this.setState({ errorMessage: error.message, showErrorDialog: true }),
     )
   }
 
   renderItemMutation = (o, idx, type) => {
     // render list or menu item
-    const item = mutation => {
+    const item = (mutation) => {
       if (type === 'list') {
         return (
           <ListItem button onClick={() => this.onMutationSubmit(o, mutation)}>
@@ -110,8 +111,8 @@ export default class Options extends Component {
     // wrap with mutation component
     return (
       <Mutation
-        client={LegacyGraphQLClient}
         key={idx}
+        client={this.props.legacyClient ? LegacyGraphQLClient : null}
         mutation={o.mutation.query}
         update={(cache, { data }) => {
           // invoke on success function if exists
@@ -120,12 +121,12 @@ export default class Options extends Component {
           }
         }}
       >
-        {mutation => item(mutation)}
+        {(mutation) => item(mutation)}
       </Mutation>
     )
   }
 
-  renderIconButton = onClick => {
+  renderIconButton = (onClick) => {
     const { asIcon, Icon, iconProps } = this.props
 
     if (asIcon) {

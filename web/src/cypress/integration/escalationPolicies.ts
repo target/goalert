@@ -3,14 +3,12 @@ import { testScreen } from '../support'
 
 const c = new Chance()
 
-testScreen('Escalation Policies', testEP)
-
-function testEP(screen: ScreenFormat) {
+function testEP(screen: ScreenFormat): void {
   describe('List Page', () => {
     let ep: EP
     beforeEach(() => {
       cy.createEP()
-        .then(e => {
+        .then((e: EP) => {
           ep = e
         })
         .visit('/escalation-policies')
@@ -26,10 +24,11 @@ function testEP(screen: ScreenFormat) {
 
     it('should link to details page', () => {
       cy.pageSearch(ep.name)
-      cy.get('#app')
-        .contains(ep.name)
-        .click()
-      cy.location('pathname').should('eq', `/escalation-policies/${ep.id}`)
+      cy.get('#app').contains(ep.name).click()
+      cy.url().should(
+        'eq',
+        Cypress.config().baseUrl + `/escalation-policies/${ep.id}`,
+      )
     })
 
     describe('Creation', () => {
@@ -50,9 +49,7 @@ function testEP(screen: ScreenFormat) {
         cy.dialogFinish('Submit')
 
         // should be on details page
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
     })
   })
@@ -60,7 +57,7 @@ function testEP(screen: ScreenFormat) {
   describe('Details Page', () => {
     let ep: EP
     beforeEach(() =>
-      cy.createEP().then(e => {
+      cy.createEP().then((e: EP) => {
         ep = e
         return cy.visit(`/escalation-policies/${ep.id}`)
       }),
@@ -76,7 +73,7 @@ function testEP(screen: ScreenFormat) {
       cy.pageAction('Delete Escalation Policy')
       cy.dialogFinish('Confirm')
 
-      cy.location('pathname').should('eq', '/escalation-policies')
+      cy.url().should('eq', Cypress.config().baseUrl + '/escalation-policies')
       cy.pageSearch(ep.name)
       cy.get('body').should('contain', 'No results')
     })
@@ -97,15 +94,13 @@ function testEP(screen: ScreenFormat) {
         .should('not.contain', ep.description)
 
       // new ones should
-      cy.get('body')
-        .should('contain', name)
-        .should('contain', description)
+      cy.get('body').should('contain', name).should('contain', description)
     })
   })
 
   describe('Services Subpage', () => {
     it('should navigate to and from its services', () => {
-      cy.createEP().then(ep => {
+      cy.createEP().then((ep: EP) => {
         cy.visit(`/escalation-policies/${ep.id}`)
 
         cy.navigateToAndFrom(
@@ -119,12 +114,10 @@ function testEP(screen: ScreenFormat) {
     })
 
     it('should see no services text', () => {
-      cy.createEP().then(ep => {
+      cy.createEP().then((ep: EP) => {
         cy.visit(`/escalation-policies/${ep.id}`)
 
-        cy.get('li')
-          .contains('Services')
-          .click()
+        cy.get('li').contains('Services').click()
         cy.get('body').should(
           'contain',
           'No services are associated with this Escalation Policy',
@@ -133,15 +126,15 @@ function testEP(screen: ScreenFormat) {
     })
 
     it('should see services list', () => {
-      cy.createEP().then(ep => {
-        cy.createService({ epID: ep.id }).then(svc => {
+      cy.createEP().then((ep: EP) => {
+        cy.createService({ epID: ep.id }).then((svc: Service) => {
           cy.visit(`/escalation-policies/${ep.id}`)
-          cy.get('li')
-            .contains('Services')
-            .click()
+          cy.get('li').contains('Services').click()
           cy.get('body').should('contain', svc.name)
         })
       })
     })
   })
 }
+
+testScreen('Escalation Policies', testEP)

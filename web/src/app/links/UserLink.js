@@ -1,6 +1,6 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { AppLink } from '../util/AppLink'
 
-export const UserLink = user => {
-  return <Link to={`/users/${user.id}`}>{user.name}</Link>
+export const UserLink = (user) => {
+  return <AppLink to={`/users/${user.id}`}>{user.name}</AppLink>
 }

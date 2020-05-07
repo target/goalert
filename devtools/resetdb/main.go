@@ -256,7 +256,7 @@ func fillDB(ctx context.Context, url string) error {
 			rot = &id
 		}
 		return []interface{}{asUUID(fav.UserID), svc, sched, rot}
-	})
+	}, "users", "services", "schedules", "rotations")
 
 	_, err = pool.Exec(ctx, "alter table alerts disable trigger trg_enforce_alert_limit")
 	must(err)

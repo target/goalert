@@ -16,7 +16,7 @@ import {
   MenuItem,
   withStyles,
 } from '@material-ui/core'
-import { UserAvatar } from '../util/avatar'
+import { UserAvatar } from '../util/avatars'
 import PageActions from '../util/PageActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
@@ -44,7 +44,7 @@ const query = gql`
   }
 `
 
-const durString = dur => {
+const durString = (dur) => {
   if (dur.months) {
     return `${dur.months} month${dur.months > 1 ? 's' : ''}`
   }
@@ -57,7 +57,7 @@ const durString = dur => {
 
 const mapQueryToProps = ({ data }) => {
   return {
-    shifts: data.schedule.shifts.map(s => ({
+    shifts: data.schedule.shifts.map((s) => ({
       ...s,
       userID: s.user.id,
       userName: s.user.name,
@@ -72,14 +72,12 @@ const mapPropsToQueryProps = ({ scheduleID, start, end }) => ({
   },
 })
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   const duration = urlParamSelector(state)('duration', 'P14D')
   const zone = urlParamSelector(state)('tz', 'local')
   let start = urlParamSelector(state)(
     'start',
-    DateTime.fromObject({ zone })
-      .startOf('day')
-      .toISO(),
+    DateTime.fromObject({ zone }).startOf('day').toISO(),
   )
 
   const activeOnly = urlParamSelector(state)('activeOnly', false)
@@ -101,13 +99,15 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    handleUserFilterSelect: value => dispatch(setURLParam('userFilter', value)),
-    handleActiveOnlySwitch: value => dispatch(setURLParam('activeOnly', value)),
-    handleSetDuration: value =>
+    handleUserFilterSelect: (value) =>
+      dispatch(setURLParam('userFilter', value)),
+    handleActiveOnlySwitch: (value) =>
+      dispatch(setURLParam('activeOnly', value)),
+    handleSetDuration: (value) =>
       dispatch(setURLParam('duration', value, 'P14D')),
-    handleSetStart: value => dispatch(setURLParam('start', value)),
+    handleSetStart: (value) => dispatch(setURLParam('start', value)),
     handleFilterReset: () =>
       dispatch(
         resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'duration'),
@@ -165,8 +165,8 @@ export default class ScheduleShiftList extends React.PureComponent {
     } = this.props
 
     let shifts = _shifts
-      .filter(s => !userFilter.length || userFilter.includes(s.userID))
-      .map(s => ({
+      .filter((s) => !userFilter.length || userFilter.includes(s.userID))
+      .map((s) => ({
         ...s,
         start: DateTime.fromISO(s.start, { zone }),
         end: DateTime.fromISO(s.end, { zone }),
@@ -178,7 +178,7 @@ export default class ScheduleShiftList extends React.PureComponent {
 
     if (activeOnly) {
       const now = DateTime.fromObject({ zone })
-      shifts = shifts.filter(s => s.interval.contains(now))
+      shifts = shifts.filter((s) => s.interval.contains(now))
     }
 
     if (!shifts.length) return []
@@ -189,13 +189,13 @@ export default class ScheduleShiftList extends React.PureComponent {
     )
 
     const result = []
-    displaySpan.splitBy({ days: 1 }).forEach(day => {
-      const dayShifts = shifts.filter(s => day.overlaps(s.interval))
+    displaySpan.splitBy({ days: 1 }).forEach((day) => {
+      const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
       result.push({
         subHeader: relativeDate(day.start),
       })
-      dayShifts.forEach(s => {
+      dayShifts.forEach((s) => {
         let shiftDetails = ''
         const startTime = s.start.toLocaleString({
           hour: 'numeric',
@@ -247,13 +247,13 @@ export default class ScheduleShiftList extends React.PureComponent {
           label='Time Limit'
           disabled={this.props.activeOnly}
           value={this.props.duration}
-          onChange={e => {
+          onChange={(e) => {
             e.target.value === 'SPECIFY'
               ? this.setState({ specifyDuration: true })
               : this.props.handleSetDuration(e.target.value)
           }}
         >
-          {quickOptions.map(opt => (
+          {quickOptions.map((opt) => (
             <MenuItem value={opt} key={opt}>
               {durString(Duration.fromISO(opt))}
             </MenuItem>
@@ -271,7 +271,7 @@ export default class ScheduleShiftList extends React.PureComponent {
         max={30}
         min={1}
         type='number'
-        onChange={e => {
+        onChange={(e) => {
           this.props.handleSetDuration(
             Duration.fromObject({
               days: clamp(1, 30, parseInt(e.target.value, 10)),
@@ -312,7 +312,7 @@ export default class ScheduleShiftList extends React.PureComponent {
                 control={
                   <Switch
                     checked={this.props.activeOnly}
-                    onChange={e =>
+                    onChange={(e) =>
                       this.props.handleActiveOnlySwitch(e.target.checked)
                     }
                     value='activeOnly'
@@ -331,7 +331,7 @@ export default class ScheduleShiftList extends React.PureComponent {
                 label='Start Date'
                 name='filterStart'
                 value={this.props.start}
-                onChange={v => this.props.handleSetStart(v)}
+                onChange={(v) => this.props.handleSetStart(v)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -347,7 +347,7 @@ export default class ScheduleShiftList extends React.PureComponent {
             </Grid>
           </FilterContainer>
           <ScheduleNewOverrideFAB
-            onClick={variant => this.setState({ create: variant })}
+            onClick={(variant) => this.setState({ create: variant })}
           />
         </PageActions>
         <Card style={{ width: '100%' }}>

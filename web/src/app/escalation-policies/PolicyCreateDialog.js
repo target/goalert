@@ -69,7 +69,7 @@ export default class PolicyCreateDialog extends PureComponent {
             errors={fieldErrs}
             disabled={loading}
             value={this.state.value || defaultValue}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

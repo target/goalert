@@ -77,7 +77,7 @@ export default class ScheduleRuleEditDialog extends React.Component {
   renderDialog(data, commit, status, zone) {
     const defaults = {
       targetID: this.props.target.id,
-      rules: data.rules.map(r => ({
+      rules: data.rules.map((r) => ({
         id: r.id,
         weekdayFilter: r.weekdayFilter,
         start: gqlClockTimeToISO(r.start, zone),
@@ -102,7 +102,7 @@ export default class ScheduleRuleEditDialog extends React.Component {
                 target: this.props.target,
                 scheduleID: this.props.scheduleID,
 
-                rules: this.state.value.rules.map(r => ({
+                rules: this.state.value.rules.map((r) => ({
                   ...r,
                   start: isoToGQLClockTime(r.start, zone),
                   end: isoToGQLClockTime(r.end, zone),
@@ -119,7 +119,7 @@ export default class ScheduleRuleEditDialog extends React.Component {
             disabled={status.loading}
             errors={fieldErrors(status.error)}
             value={this.state.value || defaults}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

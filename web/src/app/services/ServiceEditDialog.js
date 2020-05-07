@@ -40,10 +40,7 @@ export default function ServiceEditDialog({ serviceID, onClose }) {
 
   const defaults = {
     // default value is the service name & description with the ep.id
-    ..._.chain(data)
-      .get('service')
-      .pick(['name', 'description'])
-      .value(),
+    ..._.chain(data).get('service').pick(['name', 'description']).value(),
     escalationPolicyID: _.get(data, 'service.ep.id'),
   }
 
@@ -52,7 +49,7 @@ export default function ServiceEditDialog({ serviceID, onClose }) {
   return (
     <FormDialog
       title='Edit Service'
-      loading={saveStatus.loading || dataStatus.loading}
+      loading={saveStatus.loading || (!data && dataStatus.loading)}
       errors={nonFieldErrors(saveStatus.error).concat(
         nonFieldErrors(dataStatus.error),
       )}
@@ -63,10 +60,12 @@ export default function ServiceEditDialog({ serviceID, onClose }) {
           epRequired
           errors={fieldErrs}
           disabled={Boolean(
-            saveStatus.loading || dataStatus.loading || dataStatus.error,
+            saveStatus.loading ||
+              (!data && dataStatus.loading) ||
+              dataStatus.error,
           )}
           value={value || defaults}
-          onChange={value => setValue(value)}
+          onChange={(value) => setValue(value)}
         />
       }
     />
