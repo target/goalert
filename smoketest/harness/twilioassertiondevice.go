@@ -37,7 +37,7 @@ func (dev *twilioAssertionDevice) _expectVoice(keywords ...string) *twilioAssert
 		select {
 		case call = <-dev.Server.VoiceCalls():
 		case msg := <-timeout:
-			dev.t.Fatalf("Twilio: timeout after %s waiting for voice call with keywords: %v", msg, keywords)
+			dev.t.Fatalf("Twilio: timeout after %s waiting for voice call to %s with keywords: %v", msg, dev.formatNumber(dev.number), keywords)
 		}
 		dev.t.Logf("received voice call to %s: %s", dev.formatNumber(call.To()), call.Body())
 		if !m.match(call) {
@@ -74,7 +74,7 @@ func (dev *twilioAssertionDevice) _expectSMS(includePrev bool, keywords ...strin
 		select {
 		case sms = <-dev.Server.SMS():
 		case msg := <-timeout:
-			dev.t.Fatalf("Twilio: timeout after %s waiting for SMS with keywords: %v", msg, keywords)
+			dev.t.Fatalf("Twilio: timeout after %s waiting for an SMS to %s with keywords: %v", msg, dev.formatNumber(dev.number), keywords)
 		}
 		dev.t.Logf("received SMS to %s: %s", dev.formatNumber(sms.To()), sms.Body())
 		if !m.match(sms) {
