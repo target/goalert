@@ -67,7 +67,7 @@ export default function AdminLimits(): JSX.Element {
     return <Spinner />
   }
 
-  const updateValue = (id: string, value: string): void => {
+  const updateValue = (id: string, value: null | string): void => {
     const newVal: LimitsValues = { ...values }
 
     if (value === null) {
@@ -127,7 +127,7 @@ export default function AdminLimits(): JSX.Element {
               <Card>
                 <AdminSection
                   value={values}
-                  onChange={(id: string, value: string) =>
+                  onChange={(id: string, value: null | string) =>
                     updateValue(id, value)
                   }
                   headerNote='Set limits to -1 to disable.'

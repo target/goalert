@@ -11,7 +11,7 @@ interface InputProps {
   name: string
   value: string
   password?: boolean
-  onChange: (value: string) => void
+  onChange: (value: null | string) => void
   autoComplete?: string
 }
 
@@ -28,8 +28,8 @@ export const StringListInput = (props: InputProps): JSX.Element => {
               props.onChange(
                 value
                   .slice(0, idx)
-                  .concat(newVal, ...value.slice(idx + 1))
-                  .filter((v) => v)
+                  .concat(newVal || '', ...value.slice(idx + 1))
+                  .filter((v: string) => v)
                   .join('\n'),
               )
             }
@@ -74,7 +74,9 @@ export function StringInput(props: InputProps): JSX.Element {
 
 export const IntegerInput = (props: InputProps): JSX.Element => (
   <Input
-    {...props}
+    name={props.name}
+    value={props.value}
+    autoComplete={props.autoComplete}
     type='number'
     fullWidth
     onChange={(e) => props.onChange(e.target.value)}
@@ -83,7 +85,8 @@ export const IntegerInput = (props: InputProps): JSX.Element => (
 
 export const BoolInput = (props: InputProps): JSX.Element => (
   <Switch
-    {...props}
+    name={props.name}
+    value={props.value}
     checked={props.value === 'true'}
     onChange={(e) => props.onChange(e.target.checked ? 'true' : 'false')}
   />
