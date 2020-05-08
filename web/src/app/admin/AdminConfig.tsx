@@ -77,7 +77,7 @@ export default function AdminConfig(): JSX.Element {
     return <Spinner />
   }
 
-  const updateValue = (id: string, value: string): void => {
+  const updateValue = (id: string, value: null | string): void => {
     const newVal: ConfigValues = { ...values }
 
     if (value === null) {
@@ -154,7 +154,7 @@ export default function AdminConfig(): JSX.Element {
                 <Card>
                   <AdminSection
                     value={values}
-                    onChange={(id: string, value: string) =>
+                    onChange={(id: string, value: null | string) =>
                       updateValue(id, value)
                     }
                     fields={data.config
