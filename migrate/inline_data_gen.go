@@ -582,12 +582,13 @@ Q1euEiMDIydllmlP_cdrZ6eg2bVZ8HR2S_hHYar_csUnSz5PijL5uKjyeSLtm4yKWpJz_nB-7pIWBbQo
 0CBa58V8UdxHcbSp_9_HdIFnQVzPhyEqKyEXQK2nW5kbnMvxMTJx6hpsJvMFe5aAoWg6NwjBsUNhPVqp
 IMlZc0naKNeOXXKx5trMmQylcTCZooFj5sfOUTI88xjDFBptLB3xEGo_cJoJM7N0mRfztEo2u7tNVi3W
 zMfqVjqxXbcoB1pIQL2ZZpNeyROuTcFre_vf0kdGKih9dKqqQDy5DVnmi016t8zn6M1sdjU-n5qJiWNK
-MPcqvk5QOL4OHHS1nT3KJvdNErLkG_Nr0jsFqcyYgz70pCGFezyUXZ0cI5oY1cGSxIHB53c27ATTVCI5
-xdi32h73ezJ1ZV58LKsstyBal0orLF37bavF_X1eAdd-q_QxycpdsSVE0D-M0IvTM07Oq354abv4EyZW
-6aO47lOwk3yAjGO_uacQvdAT5nHlAi4D5TqK1lzMPkxvB_86FBV1jNETzUtK6j4d_8QdQqKWooDXUo3V
-yp5PbsYoIoCg_DHL83k-j9CHm8n0HRpfX1_MLsejKPuUZ5-Th0W55GdQsdqPmmCjaEcx-iNJvUofR9Hf
-_lbXx3H_hhE0rt_Y7VvLQAY2fqUfK5mvNWgoI5BgtqnjGsIcwueTLxAWitqwJrsbCPDaBjdG3iipK13Y
-TA073okwOkqLb13MizIx-fLBH5z_DwAA___x2ot6vDgEAA==
+MPcqvk5QOL4OHHS1nT3KJvdNErLkG_Nr0jsFqcyYgz70pCGFe7yJXb1xX7muSnwiyHebczylVmmR3ufV
+_rtMi922e06rucB9tl46OVY1McyDyIsDlM--I-xE11QiOdXZjx4e950ylWdefCyrLLeMsLpUWmHpGnRb
+Le7v8wq4Bl2lj0lW7ootIcb-YYRenJ5xsmL1w0vbRagwsUofxfWngp3kE2WaA809hegFpzCPKxdwOSrX
+UbTmYvZhejv416GoqGPOnmheY1L36fgn7iATtRQFvJZqrFb2fHIzRhEBBOWPWZ7P83mEPtxMpu_Q-Pr6
+YnY5HkXZpzz7nDwsyiU_k4tfv1ETbBTtKEZ_JKlX6eMo-tvf6vo47iMxgsZ1JLuNbBnYwcav9OMt89cG
+DWUEEu42dVxD2Ef4fPIFwkLZG9ZkdwMBnt_gxsgbR3WlC5upYcddEVZIZQKsi3lRJqZ-APgD_P8BAAD_
+_wnQBFzMOQQA
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -603,7 +604,7 @@ TA073okwOkqLb13MizIx-fLBH5z_DwAA___x2ot6vDgEAA==
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(46300)
+				buf.Grow(46345)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -809,10 +810,10 @@ TA073okwOkqLb13MizIx-fLBH5z_DwAA___x2ot6vDgEAA==
 		{Data: dataRange(272795, 272988), Name: "migrations/20191021145356-message-bundle-versions.sql"},
 		{Data: dataRange(272988, 273297), Name: "migrations/20191021145357-message-bundle-types.sql"},
 		{Data: dataRange(273297, 274503), Name: "migrations/20191021145358-message-bundles.sql"},
-		{Data: dataRange(274503, 274775), Name: "migrations/20200103212352-prometheus-alertmanager-integration.sql"},
 		{Data: dataRange(274503, 275059), Name: "migrations/20191216145826-calendar-subscriptions.sql"},
-		{Data: dataRange(275059, 275193), Name: "migrations/20200204140537-calendar-subscriptions-per-user-limit-key.sql"},
-		{Data: dataRange(275193, 276539), Name: "migrations/20200204152220-calendar-subscriptions-per-user.sql"},
-		{Data: dataRange(276539, 276668), Name: "migrations/20200413113132-add-no-notification-alert-log.sql"},
+		{Data: dataRange(275059, 275331), Name: "migrations/20200103212352-prometheus-alertmanager-integration.sql"},
+		{Data: dataRange(275331, 275465), Name: "migrations/20200204140537-calendar-subscriptions-per-user-limit-key.sql"},
+		{Data: dataRange(275465, 276811), Name: "migrations/20200204152220-calendar-subscriptions-per-user.sql"},
+		{Data: dataRange(276811, 276940), Name: "migrations/20200413113132-add-no-notification-alert-log.sql"},
 	}
 }
