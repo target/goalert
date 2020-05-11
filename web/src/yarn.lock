@@ -1591,10 +1591,10 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.149.tgz#1342d63d948c6062838fbf961012f74d4e638440"
   integrity sha512-ijGqzZt/b7BfzcK9vTrS6MFljQRPn5BFWOx8oE0GYxribu6uV+aA9zZuXI1zc/etK9E8nrgdoF2+LgUw7+9tJQ==
 
-"@types/luxon@1.22.0":
-  version "1.22.0"
-  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-1.22.0.tgz#dbdf2cc7ba3dfce98c57a3f0e003791122cba009"
-  integrity sha512-riAvdx85rU7OXCrjW3f7dIf7fuJDrxck2Dkjd0weh6ul7q+wumrwe6+/tD8v7yOKnZAuEnTFF4FU7b+5W/I3bw==
+"@types/luxon@1.24.0":
+  version "1.24.0"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-1.24.0.tgz#1620218d373031ce05e3818ad0ef0c0dd0d0a009"
+  integrity sha512-OCTdVRQf/ge2ULlGqVKRI/HwyWoKpLV3ppLt6H27yzK/qdYNJ60Sz5tUxy3Jt1RD9K4Iz1tcDWPFJArBFZNAWQ==
 
 "@types/minimatch@*", "@types/minimatch@3.0.3":
   version "3.0.3"
