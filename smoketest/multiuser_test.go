@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestMultiUser checks that if multiple users are assigned to a policy step,
@@ -53,7 +54,7 @@ func TestMultiUser(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing")
-	h.Twilio().Device(h.Phone("2")).ExpectSMS("testing")
-	h.Twilio().Device(h.Phone("3")).ExpectSMS("testing")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("testing")
+	h.Twilio(t).Device(h.Phone("2")).ExpectSMS("testing")
+	h.Twilio(t).Device(h.Phone("3")).ExpectSMS("testing")
 }

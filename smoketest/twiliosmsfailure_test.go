@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioSMSFailure checks that an SMS delivery failure is retried.
@@ -43,10 +44,10 @@ func TestTwilioSMSFailure(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectSMS("testing").RespondWithFailed()
+	d1.RejectSMS("testing")
 
 	// should not retry when provider says it failed
 	h.Trigger()
