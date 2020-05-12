@@ -41,7 +41,6 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 
 		users := make(map[string]*user.User)
 		names := make(map[string]string)
-		uuids := make(map[string]string)
 		namesRev := make(map[string]string)
 
 		t.Run(name, func(t *testing.T) {
@@ -89,12 +88,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 					return usr.ID
 				},
 				"uuid": func(id string) string {
-					if u, ok := uuids[id]; ok {
-						return u
-					}
-					u := h.UUID(id)
-					uuids[id] = u
-					return u
+					return h.UUID(id)
 				},
 			})
 
@@ -120,11 +114,11 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 				}
 			}
 
-			var buff bytes.Buffer
-			err = onCallAsnQueryTmpl.Execute(&buff, users)
+			buf.Reset()
+			err = onCallAsnQueryTmpl.Execute(&buf, users)
 			require.NoError(t, err, "render query")
 
-			doQL(t, buff.String(), &onCallState)
+			doQL(t, buf.String(), &onCallState)
 
 			// map response to same type as expected value
 			var actualOnCall []onCallAssertion
@@ -654,7 +648,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	)
 
 	// User EP Schedule Replace Rotation Override Double Service
-	check("User EP Schedule Replace Rotation Override Double Service", fmt.Sprintf(`
+	check("User EP Schedule Replace Rotation Override Double Service", `
 		mutation {
 		alias0: createService(input: { name: "{{name "svc1"}}", escalationPolicyID: "{{uuid "eid"}}" }) {
 			id
@@ -701,7 +695,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		) {
 			id
 		}
-	}`),
+	}`,
 		[]onCallAssertion{
 			{Service: "svc1", EPName: "esc policy", StepNumber: 0, User: "bob"},
 			{Service: "svc2", EPName: "esc policy", StepNumber: 0, User: "bob"},
