@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestMissingUser tests that notifications go out, even when data is in an odd state.
@@ -92,7 +93,7 @@ func TestMissingUser(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	d := h.Twilio().Device(h.Phone("1"))
+	d := h.Twilio(t).Device(h.Phone("1"))
 	h.Escalate(1, 0)
 	d.ExpectSMS("correct")
 

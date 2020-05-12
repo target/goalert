@@ -447,12 +447,11 @@ func randStringRunes(n int) string {
 func renderQuery(t *testing.T, sql string) string {
 	tmpl := template.New("sql")
 	uuidG := harness.NewDataGen(t, "UUID", harness.DataGenFunc(harness.GenUUID))
-	phoneG := harness.NewDataGen(t, "Phone", harness.DataGenFunc(harness.GenPhone))
-	phoneCCG := harness.NewDataGen(t, "PhoneCC", harness.DataGenArgFunc(harness.GenPhoneCC))
+	phoneCCG := harness.NewDataGen(t, "Phone", harness.DataGenArgFunc(harness.GenPhoneCC))
 	strs := make(map[string]bool)
 	tmpl.Funcs(template.FuncMap{
 		"uuid":    func(id string) string { return fmt.Sprintf("'%s'", uuidG.Get(id)) },
-		"phone":   func(id string) string { return fmt.Sprintf("'%s'", phoneG.Get(id)) },
+		"phone":   func(id string) string { return fmt.Sprintf("'%s'", phoneCCG.Get(id)) },
 		"phoneCC": func(cc, id string) string { return fmt.Sprintf("'%s'", phoneCCG.GetWithArg(cc, id)) },
 		"text": func(n int) string {
 			val := randStringRunes(n)

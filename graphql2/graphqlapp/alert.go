@@ -10,6 +10,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
@@ -18,6 +19,7 @@ import (
 
 type Alert App
 type AlertLogEntry App
+type AlertLogEntryState App
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
 
@@ -37,6 +39,32 @@ func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*ti
 func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (string, error) {
 	e := *obj
 	return e.String(), nil
+}
+
+func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	if !ok || meta == nil {
+		return nil, nil
+	}
+
+	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
+	if err != nil {
+		return nil, errors.Wrap(err, "find alert log state")
+	}
+
+	var status graphql2.AlertLogStatus
+	switch s.State {
+	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
+		status = "ERROR"
+	case notification.MessageStateSent, notification.MessageStateDelivered:
+		status = "OK"
+	}
+
+	return &graphql2.AlertLogEntryState{
+		Details: s.Details,
+		Status:  &status,
+	}, nil
 }
 
 func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {

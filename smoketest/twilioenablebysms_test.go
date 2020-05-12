@@ -64,7 +64,7 @@ func TestTwilioEnableBySMS(t *testing.T) {
 		}
 	`, voiceID), true)
 
-	d1 := h.Twilio().Device(h.Phone("1"))
+	d1 := h.Twilio(t).Device(h.Phone("1"))
 
 	doQL(fmt.Sprintf(`
 		mutation {

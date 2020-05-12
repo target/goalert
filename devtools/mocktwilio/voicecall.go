@@ -3,11 +3,13 @@ package mocktwilio
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -19,53 +21,140 @@ import (
 type VoiceCall struct {
 	s *Server
 
+	mx sync.Mutex
+
 	call twilio.Call
+
+	acceptCh chan struct{}
+	rejectCh chan struct{}
+
+	messageCh chan string
+	pressCh   chan string
+	hangupCh  chan struct{}
+	doneCh    chan struct{}
 
 	// start is used to track when the call was created (entered queue)
 	start time.Time
 
 	// callStart tracks when the call was accepted
 	// and is used to cacluate call.CallDuration when completed.
-	callStart       time.Time
-	url             string
-	callbackURL     string
-	callbackEvents  []string
-	message         string
-	needsProcessing bool
-	hangup          bool
+	callStart      time.Time
+	url            string
+	callbackURL    string
+	lastMessage    string
+	callbackEvents []string
+	hangup         bool
+}
+
+func (vc *VoiceCall) process() {
+	defer vc.s.workers.Done()
+	defer close(vc.doneCh)
+
+	if vc.s.wait(vc.s.cfg.MinQueueTime) {
+		return
+	}
+
+	vc.updateStatus(twilio.CallStatusInitiated)
+
+	if vc.s.wait(vc.s.cfg.MinQueueTime) {
+		return
+	}
+
+	vc.updateStatus(twilio.CallStatusRinging)
+
+	var err error
+	vc.lastMessage, err = vc.fetchMessage("")
+	if err != nil {
+		vc.s.errs <- fmt.Errorf("fetch message: %w", err)
+		return
+	}
+	select {
+	case vc.s.callCh <- vc:
+	case <-vc.s.shutdown:
+		return
+	}
+
+waitForAccept:
+	for {
+		select {
+		case vc.messageCh <- vc.lastMessage:
+		case <-vc.acceptCh:
+			break waitForAccept
+		case <-vc.rejectCh:
+			vc.updateStatus(twilio.CallStatusFailed)
+			return
+		case <-vc.s.shutdown:
+			return
+		}
+	}
+
+	vc.updateStatus(twilio.CallStatusInProgress)
+	vc.callStart = time.Now()
+
+	for {
+		select {
+		case <-vc.rejectCh:
+			vc.updateStatus(twilio.CallStatusFailed)
+			return
+		case <-vc.s.shutdown:
+			return
+		case <-vc.hangupCh:
+			vc.updateStatus(twilio.CallStatusCompleted)
+			return
+		case vc.messageCh <- vc.lastMessage:
+		case digits := <-vc.pressCh:
+			vc.lastMessage, err = vc.fetchMessage(digits)
+			if err != nil {
+				vc.s.errs <- fmt.Errorf("fetch message: %w", err)
+				return
+			}
+			if vc.hangup {
+				vc.updateStatus(twilio.CallStatusCompleted)
+				return
+			}
+		}
+	}
 }
 
 func (s *Server) serveCallStatus(w http.ResponseWriter, req *http.Request) {
 	id := strings.TrimSuffix(path.Base(req.URL.Path), ".json")
-	var call twilio.Call
-
-	s.mx.RLock()
-	vc := s.calls[id]
-	if vc != nil {
-		call = vc.call // copy while we have the read lock
-	}
-	s.mx.RUnlock()
+	vc := s.call(id)
 
 	if vc == nil {
 		http.NotFound(w, req)
 		return
 	}
-	err := json.NewEncoder(w).Encode(call)
+	err := json.NewEncoder(w).Encode(vc.cloneCall())
 	if err != nil {
 		panic(err)
 	}
-
 }
+func (s *Server) call(id string) *VoiceCall {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
 
+	return s.calls[id]
+}
 func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
-	var vc VoiceCall
+
+	vc := VoiceCall{
+		acceptCh:  make(chan struct{}),
+		doneCh:    make(chan struct{}),
+		rejectCh:  make(chan struct{}),
+		messageCh: make(chan string),
+		pressCh:   make(chan string),
+		hangupCh:  make(chan struct{}),
+	}
 
 	vc.call.From = req.FormValue("From")
-	if s.callbacks["VOICE:"+vc.call.From] == "" {
+	s.mx.RLock()
+	_, hasCallback := s.callbacks["VOICE:"+vc.call.From]
+	s.mx.RUnlock()
+	if !hasCallback {
 		apiError(400, w, &twilio.Exception{
 			Message: "Wrong from number.",
 		})
@@ -76,12 +165,14 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 	vc.call.SID = s.id("CA")
 	vc.call.SequenceNumber = new(int)
 	vc.callbackURL = req.FormValue("StatusCallback")
+
 	err := validate.URL("StatusCallback", vc.callbackURL)
 	if err != nil {
 		apiError(400, w, &twilio.Exception{
 			Code:    11100,
 			Message: err.Error(),
 		})
+		return
 	}
 	vc.url = req.FormValue("Url")
 	err = validate.URL("StatusCallback", vc.url)
@@ -90,6 +181,7 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 			Code:    11100,
 			Message: err.Error(),
 		})
+		return
 	}
 
 	vc.callbackEvents = map[string][]string(req.Form)["StatusCallbackEvent"]
@@ -100,23 +192,24 @@ func (s *Server) serveNewCall(w http.ResponseWriter, req *http.Request) {
 
 	s.mx.Lock()
 	s.calls[vc.call.SID] = &vc
-	data, err := json.Marshal(vc.call)
+	s.mx.Unlock()
+	s.callInCh <- &vc
+
+	data, err := json.Marshal(vc.cloneCall())
 	if err != nil {
 		panic(err)
 	}
-	s.mx.Unlock()
 
 	w.WriteHeader(201)
 	_, err = w.Write(data)
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 	// move to queued
-	vc.s.mx.Lock()
+	vc.mx.Lock()
 	vc.call.Status = stat
 	if stat == twilio.CallStatusInProgress {
 		vc.callStart = time.Now()
@@ -125,7 +218,8 @@ func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 		vc.call.CallDuration = time.Since(vc.callStart)
 	}
 	*vc.call.SequenceNumber++
-	vc.s.mx.Unlock()
+	vc.mx.Unlock()
+
 	var sendEvent bool
 	evtName := string(stat)
 	if evtName == "in-progres" {
@@ -149,22 +243,22 @@ func (vc *VoiceCall) updateStatus(stat twilio.CallStatus) {
 	}
 }
 func (vc *VoiceCall) values(digits string) url.Values {
-	vc.s.mx.RLock()
+	call := vc.cloneCall()
+
 	v := make(url.Values)
-	v.Set("CallSid", vc.call.SID)
-	v.Set("CallStatus", string(vc.call.Status))
-	v.Set("To", vc.call.To)
-	v.Set("From", vc.call.From)
+	v.Set("CallSid", call.SID)
+	v.Set("CallStatus", string(call.Status))
+	v.Set("To", call.To)
+	v.Set("From", call.From)
 	v.Set("Direction", "outbound-api")
-	v.Set("SequenceNumber", strconv.Itoa(*vc.call.SequenceNumber))
-	if vc.call.Status == twilio.CallStatusCompleted {
-		v.Set("CallDuration", strconv.FormatFloat(vc.call.CallDuration.Seconds(), 'f', 1, 64))
+	v.Set("SequenceNumber", strconv.Itoa(*call.SequenceNumber))
+	if call.Status == twilio.CallStatusCompleted {
+		v.Set("CallDuration", strconv.FormatFloat(call.CallDuration.Seconds(), 'f', 1, 64))
 	}
 
 	if digits != "" {
 		v.Set("Digits", digits)
 	}
-	vc.s.mx.RUnlock()
 
 	return v
 }
@@ -174,30 +268,27 @@ func (s *Server) VoiceCalls() chan *VoiceCall {
 	return s.callCh
 }
 
-// Accept will allow a call to move from initiated to "in-progress".
-func (vc *VoiceCall) Accept() {
-	vc.updateStatus(twilio.CallStatusInProgress)
-	vc.PressDigits("")
+func (vc *VoiceCall) cloneCall() *twilio.Call {
+	vc.mx.Lock()
+	defer vc.mx.Unlock()
+
+	call := vc.call
+	return &call
 }
+
+// Accept will allow a call to move from initiated to "in-progress".
+func (vc *VoiceCall) Accept() { close(vc.acceptCh) }
 
 // Reject will reject a call, moving it to a "failed" state.
-func (vc *VoiceCall) Reject() {
-	vc.updateStatus(twilio.CallStatusFailed)
-}
+func (vc *VoiceCall) Reject() { close(vc.rejectCh); <-vc.doneCh }
 
 // Hangup will end the call, setting it's state to "completed".
-func (vc *VoiceCall) Hangup() {
-	vc.updateStatus(twilio.CallStatusCompleted)
-}
+func (vc *VoiceCall) Hangup() { close(vc.hangupCh); <-vc.doneCh }
 
-// PressDigits will re-query for a spoken message with the given digits.
-//
-// It also causes the result of Listen() to be blank until a new message is gathered.
-func (vc *VoiceCall) PressDigits(digits string) {
+func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
 	data, err := vc.s.post(vc.url, vc.values(digits))
 	if err != nil {
-		vc.s.errs <- err
-		return
+		return "", fmt.Errorf("post voice endpoint: %w", err)
 	}
 	type resp struct {
 		XMLName xml.Name `xml:"Response"`
@@ -212,34 +303,36 @@ func (vc *VoiceCall) PressDigits(digits string) {
 	var r resp
 	err = xml.Unmarshal(data, &r)
 	if err != nil {
-		vc.s.errs <- errors.Wrap(err, "unmarshal XML voice response")
-		return
+		return "", fmt.Errorf("unmarshal XML voice response: %w", err)
 	}
 
-	// use data to update callbackURL and/or message
 	s := append(r.Say, r.Gather.Say...)
-	vc.s.mx.Lock()
 	if r.Gather.Action != "" {
 		vc.url = r.Gather.Action
 	}
 	if r.RedirectURL != "" {
-		vc.needsProcessing = false
 		// Twilio's own implementation is totally broken with relative URLs, so we assume absolute (since that's all we use as a consequence)
 		vc.url = r.RedirectURL
-	} else {
-		vc.needsProcessing = true
 	}
 	if r.Hangup != nil {
 		vc.hangup = true
 	}
-	vc.message = strings.Join(s, "\n")
-	vc.s.mx.Unlock()
 
 	if r.RedirectURL != "" {
 		// redirect and get new message
-		vc.PressDigits("")
+		return vc.fetchMessage("")
 	}
+
+	return strings.Join(s, "\n"), nil
 }
+
+// Status will return the current status of the call.
+func (vc *VoiceCall) Status() twilio.CallStatus {
+	return vc.cloneCall().Status
+}
+
+// PressDigits will re-query for a spoken message with the given digits.
+func (vc *VoiceCall) PressDigits(digits string) { vc.pressCh <- digits }
 
 // ID returns the unique ID of this phone call.
 // It is analogus to the Twilio SID of a call.
@@ -257,9 +350,14 @@ func (vc *VoiceCall) From() string {
 	return vc.call.From
 }
 
-// Message will return the last spoken message of the call.
-func (vc *VoiceCall) Message() string {
-	vc.s.mx.RLock()
-	defer vc.s.mx.RUnlock()
-	return vc.message
+// Body will return the last spoken message of the call.
+func (vc *VoiceCall) Body() string {
+	select {
+	case <-vc.doneCh:
+		return vc.lastMessage
+	case msg := <-vc.messageCh:
+		return msg
+	case <-vc.s.shutdown:
+		return ""
+	}
 }
