@@ -87,9 +87,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 					users[id] = usr
 					return usr.ID
 				},
-				"uuid": func(id string) string {
-					return h.UUID(id)
-				},
+				"uuid": h.UUID,
 			})
 
 			tmpl, err := tmpl.Parse(tmplStr)
