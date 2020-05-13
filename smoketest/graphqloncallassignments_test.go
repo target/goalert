@@ -34,8 +34,6 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		StepNumber                int
 	}
 
-	var idCounter int
-
 	check := func(name, tmplStr string, expected []onCallAssertion) {
 		t.Helper()
 
@@ -67,6 +65,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 				}
 			}
 
+			var idCounter int
 			tmpl := template.New("mutation")
 			tmpl.Funcs(template.FuncMap{
 				"name": func(id string) string {
