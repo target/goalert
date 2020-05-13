@@ -88,7 +88,6 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 				},
 				"uuid": h.UUID,
 			})
-
 			tmpl, err := tmpl.Parse(tmplStr)
 			require.NoError(t, err)
 
@@ -110,7 +109,6 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 					}
 				}
 			}
-
 			buf.Reset()
 			err = onCallAsnQueryTmpl.Execute(&buf, users)
 			require.NoError(t, err, "render query")
