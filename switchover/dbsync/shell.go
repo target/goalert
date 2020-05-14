@@ -163,6 +163,9 @@ func RunShell(oldURL, newURL string) error {
 				if contains(ignoreSyncTables, t.Name) {
 					continue
 				}
+				if t.Name == "change_log" {
+					continue
+				}
 				process = append(process, t)
 			}
 			bar := p.AddBar(int64(len(process)),
@@ -192,7 +195,7 @@ func RunShell(oldURL, newURL string) error {
 				return err
 			}
 			sh.Println(status)
-			sh.Println("change_log disabled")
+			sh.Println("destination DB cleared")
 			return nil
 		},
 	})
