@@ -322,10 +322,12 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	for rows.Next() {
 		var lastStatus string
 		var hasNextRetry bool
-		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry)
+		var providerMsgID sql.NullString
+		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry)
 		if err != nil {
 			return nil, err
 		}
+		s.ProviderMessageID = providerMsgID.String
 
 		switch lastStatus {
 		case "pending", "sending", "queued_remotely":
