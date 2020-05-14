@@ -17,10 +17,7 @@ import (
 func TestGraphQLOnCall(t *testing.T) {
 	t.Parallel()
 
-	h := harness.NewHarness(t, "", "escalation-policy-step-reorder")
-	defer h.Close()
-
-	doQL := func(t *testing.T, query string, res interface{}) {
+	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
 		g := h.GraphQLQueryT(t, query, "/api/graphql")
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
@@ -51,21 +48,25 @@ func TestGraphQLOnCall(t *testing.T) {
 		data.UniqName = fmt.Sprintf("generated%d", idCounter)
 		idCounter++
 
-		u1, u2 := h.CreateUser(), h.CreateUser()
-		data.User1 = u1
-		data.User2 = u2
-
 		tmpl, err := template.New("mutation").Parse(tmplStr)
 		require.NoError(t, err)
 
-		var buf bytes.Buffer
-		err = tmpl.Execute(&buf, data)
-		require.NoError(t, err)
-
-		query := buf.String()
-
 		t.Run(name, func(t *testing.T) {
-			doQL(t, query, nil)
+			t.Parallel()
+			h := harness.NewHarness(t, "", "escalation-policy-step-reorder")
+			defer h.Close()
+
+			u1, u2 := h.CreateUser(), h.CreateUser()
+			data.User1 = u1
+			data.User2 = u2
+
+			var buf bytes.Buffer
+			err = tmpl.Execute(&buf, data)
+			require.NoError(t, err)
+
+			query := buf.String()
+
+			doQL(t, h, query, nil)
 			h.Trigger()
 
 			var onCall struct {
@@ -74,7 +75,7 @@ func TestGraphQLOnCall(t *testing.T) {
 				}
 			}
 
-			doQL(t, fmt.Sprintf(`
+			doQL(t, h, fmt.Sprintf(`
 				query {
 					user1: user(id: "%s") { onCallSteps{id} }
 					user2: user(id: "%s") { onCallSteps{id} }
