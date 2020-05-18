@@ -264,7 +264,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 				set
 					last_status = 'failed',
 					last_status_at = now(),
-					status_details = 'contact method disabled',
+					status_details = 'failed: contact method disabled',
 					cycle_id = null,
 					next_retry_at = null
 				from user_contact_methods cm
