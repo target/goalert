@@ -264,7 +264,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 				set
 					last_status = 'failed',
 					last_status_at = now(),
-					status_details = 'failed: contact method disabled',
+					status_details = 'contact method disabled',
 					cycle_id = null,
 					next_retry_at = null
 				from user_contact_methods cm
@@ -273,8 +273,8 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 					msg.message_type != 'verification_message' and
 					cm.id = msg.contact_method_id and
 					cm.disabled
-				returning msg.id, alert_id
-			) select distinct id, alert_id from disabled
+				returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
+			) select distinct msg_id, alert_id, user_id, cm_id from disabled
 		`),
 
 		insertAlertBundle: p.P(`
@@ -530,7 +530,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	}
 	rowsCount, _ := res.RowsAffected()
 	if rowsCount > 0 {
-		log.Log(execCtx, errors.Errorf("terminated %d stale backend instance(s) holding message sending lock", rows))
+		log.Log(execCtx, errors.Errorf("terminated %d stale backend instance(s) holding message sending lock", rowsCount))
 	}
 
 	cLock, err := db.lock.Conn(execCtx)
@@ -585,12 +585,14 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	type msgMeta struct {
 		MessageID string
 		AlertID   int
+		UserID    string
+		CMID      string
 	}
 
 	var msgs []msgMeta
 	for rows.Next() {
 		var msg msgMeta
-		err = rows.Scan(&msg.MessageID, &msg.AlertID)
+		err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
 		if err != nil {
 			return errors.Wrap(err, "scan all disabled CM messages")
 		}
@@ -603,7 +605,10 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		}
 
 		// log failures
-		db.alertlogstore.MustLogTx(ctx, tx, m.AlertID, alertlog.TypeNotificationSent, meta)
+		db.alertlogstore.MustLogTx(permission.UserSourceContext(ctx, m.UserID, permission.RoleUser, &permission.SourceInfo{
+			Type: permission.SourceTypeContactMethod,
+			ID:   m.CMID,
+		}), tx, m.AlertID, alertlog.TypeNotificationSent, meta)
 	}
 
 	_, err = tx.Stmt(db.sendDeadlineExpired).ExecContext(ctx)
