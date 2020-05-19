@@ -7976,10 +7976,10 @@ modernizr-loader@1.0.1:
   resolved "https://registry.yarnpkg.com/modernizr-loader/-/modernizr-loader-1.0.1.tgz#e52a6f9a12578b944abbd6cbd65c863ea4a83f49"
   integrity sha1-5SpvmhJXi5RKu9bL1lyGPqSoP0k=
 
-modernizr@3.11.0:
-  version "3.11.0"
-  resolved "https://registry.yarnpkg.com/modernizr/-/modernizr-3.11.0.tgz#2cc645b7f86e6f77419f599a8ad1755d6f70af1e"
-  integrity sha512-OyuUo36z5zwpKJ3TdO0pAWIvgLF4AJEA1WCHimZEoG8ljTJCfi/55omaTd9QJxftaBnjcKGi2bDahg8gBhMRFg==
+modernizr@3.11.1:
+  version "3.11.1"
+  resolved "https://registry.yarnpkg.com/modernizr/-/modernizr-3.11.1.tgz#4980dce884f671316bdc42d627c338681622dd10"
+  integrity sha512-BfEPcQMC9BoSxUNRtg2QmV7g+yoIiak+LkqkS2AnEyvOvi6voDPwpTLi+EtcT3RjcOruWzQM9oQh0h+3FB9x0A==
   dependencies:
     doctrine "^3.0.0"
     file "^0.2.2"
