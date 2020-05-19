@@ -30,6 +30,10 @@ type SearchOptions struct {
 	// Omit specifies a list of alert IDs to exclude from the results.
 	Omit []int `json:"o,omitempty"`
 
+	// IncludeNotifiedUser will ensure all alerts the specified user has been notified for
+	// will also be added to the results of the query
+	IncludeNotifiedUser string `json:"e,includenotified"`
+
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
 	Limit int `json:"-"`
@@ -54,10 +58,13 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .Search }}
 		JOIN services svc ON svc.id = a.service_id
 	{{ end }}
+	{{ if .IncludeNotifiedUser }}
+		JOIN alert_logs al ON al.alert_id = a.id AND al.event = 'notification_sent'
+	{{ end }}
 	WHERE true
-	{{if .Omit}}
+	{{ if .Omit }}
 		AND not a.id = any(:omit)
-	{{end}}
+	{{ end }}
 	{{ if .Search }}
 		AND (
 			a.id = :searchID OR
@@ -70,6 +77,9 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ end }}
 	{{ if .Services }}
 		AND a.service_id = any(:services)
+	{{ end }}
+	{{ if .IncludeNotifiedUser }}
+		AND al.sub_user_id = {{ .IncludeNotifiedUser }}
 	{{ end }}
 	{{ if .After.ID }}
 		AND (

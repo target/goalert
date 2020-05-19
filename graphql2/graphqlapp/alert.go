@@ -121,6 +121,9 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		s.Search = *opts.Search
 	}
 	s.Omit = opts.Omit
+	if opts.IncludeNotified != nil {
+		s.IncludeNotifiedUser = permission.UserID(ctx)
+	}
 
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 0, 50),
