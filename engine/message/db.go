@@ -528,8 +528,8 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	if err != nil {
 		return errors.Wrap(err, "terminate stale backend locks")
 	}
-	rows, _ := res.RowsAffected()
-	if rows > 0 {
+	rowsCount, _ := res.RowsAffected()
+	if rowsCount > 0 {
 		log.Log(execCtx, errors.Errorf("terminated %d stale backend instance(s) holding message sending lock", rows))
 	}
 
@@ -576,10 +576,11 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	}
 
 	// processes disabled CMs and writes to alert log if disabled
-	cms, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
+	rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
 	if err != nil {
 		return errors.Wrap(err, "check for disabled CMs")
 	}
+	defer rows.Close()
 
 	type msgMeta struct {
 		MessageID string
@@ -587,15 +588,14 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	}
 
 	var msgs []msgMeta
-	for cms.Next() {
+	for rows.Next() {
 		var msg msgMeta
-		err = cms.Scan(&msg.MessageID, &msg.AlertID)
+		err = rows.Scan(&msg.MessageID, &msg.AlertID)
 		if err != nil {
 			return errors.Wrap(err, "scan all disabled CM messages")
 		}
 		msgs = append(msgs, msg)
 	}
-	cms.Close()
 
 	for _, m := range msgs {
 		meta := alertlog.NotificationMetaData{
