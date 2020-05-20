@@ -34,10 +34,6 @@ type SearchOptions struct {
 	// will also be added to the results of the query
 	IncludeNotifiedUser string `json:"e,omitempty"`
 
-	// FavoriteServicesOnly is used as a conditional for this template. Merging of
-	// alerts from favorited services is handled separately.
-	FavoriteServicesOnly bool
-
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
 	Limit int `json:"-"`
