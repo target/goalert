@@ -2,6 +2,7 @@ import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import FavoriteFilledIcon from '@material-ui/icons/Star'
 import FavoriteBorderIcon from '@material-ui/icons/StarBorder'
+import Tooltip from '@material-ui/core/Tooltip'
 import Spinner from '../loading/components/Spinner'
 
 interface SetFavoriteButtonProps {
@@ -9,6 +10,7 @@ interface SetFavoriteButtonProps {
   isFavorite?: boolean
   loading: boolean
   onClick: Function
+  tooltip?: string
 }
 
 export function SetFavoriteButton({
@@ -16,12 +18,14 @@ export function SetFavoriteButton({
   isFavorite,
   loading,
   onClick,
+  tooltip,
 }: SetFavoriteButtonProps): JSX.Element {
   let icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
   if (loading) {
     icon = <Spinner />
   }
-  return (
+
+  const content = (
     <form
       onSubmit={(e) => {
         e.preventDefault()
@@ -42,4 +46,9 @@ export function SetFavoriteButton({
       </IconButton>
     </form>
   )
+
+  if (tooltip) {
+    return <Tooltip title={tooltip}>{content}</Tooltip>
+  }
+  return content
 }

@@ -4,6 +4,7 @@ import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash-es'
+import Tooltip from '@material-ui/core/Tooltip'
 
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'
@@ -88,7 +89,10 @@ export default function ServiceDetails({ serviceID }) {
   return (
     <React.Fragment>
       <PageActions>
-        <QuerySetFavoriteButton serviceID={serviceID} />
+        <QuerySetFavoriteButton
+          serviceID={serviceID}
+          tooltip='Favorite this service to always see its alerts on your homepage'
+        />
         <OtherActions
           actions={[
             {
