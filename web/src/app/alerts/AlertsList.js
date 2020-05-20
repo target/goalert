@@ -157,16 +157,6 @@ export default function AlertsList(props) {
     !isFirstLogin && // don't show two pop-ups at the same time
     noFavorites // and lastly, user has no favorited services
 
-  /*
-   * Closes the no favorites warning snackbar only if clicking
-   * away to lose focus
-   */
-  function handleCloseNoFavoritesWarning(event, reason) {
-    if (reason === 'clickaway') {
-      setFavoritesWarningDismissed(false)
-    }
-  }
-
   // alerts list query variables
   const variables = {
     input: {
@@ -296,10 +286,7 @@ export default function AlertsList(props) {
 
       <CreateAlertFab
         serviceID={props.serviceID}
-        showFavoritesWarning={showNoFavoritesWarning}
-        transition={
-          isFullScreen && (showNoFavoritesWarning || showAlertActionSnackbar)
-        }
+        transition={isFullScreen && showAlertActionSnackbar}
       />
 
       {/* Update message after using checkbox actions */}
@@ -309,29 +296,6 @@ export default function AlertsList(props) {
         open={showAlertActionSnackbar}
         updateMessage={updateMessage}
       />
-
-      {/* No favorites warning when viewing alerts */}
-      <Snackbar
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        open={showNoFavoritesWarning}
-        onClose={handleCloseNoFavoritesWarning}
-      >
-        <SnackbarContent
-          className={classes.snackbar}
-          aria-describedby='client-snackbar'
-          message={
-            <span id='client-snackbar' className={classes.snackbarMessage}>
-              <InfoIcon className={classes.snackbarIcon} />
-              It looks like you have no favorited services. Visit your most used
-              services to set them as a favorite, or enable the filter to view
-              alerts for all services.
-            </span>
-          }
-        />
-      </Snackbar>
     </React.Fragment>
   )
 }
