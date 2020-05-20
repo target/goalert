@@ -32,7 +32,7 @@ type SearchOptions struct {
 
 	// IncludeNotifiedUser will ensure all alerts the specified user has been notified for
 	// will also be added to the results of the query
-	IncludeNotifiedUser string `json:"e,includenotifieduser"`
+	IncludeNotifiedUser string `json:"e,omitempty"`
 
 	// FavoriteServicesOnly is used as a conditional for this template. Merging of
 	// alerts from favorited services is handled separately.
