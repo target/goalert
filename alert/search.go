@@ -34,6 +34,10 @@ type SearchOptions struct {
 	// will also be added to the results of the query
 	IncludeNotifiedUser string `json:"e,includenotifieduser"`
 
+	// FavoriteServicesOnly is used as a conditional for this template. Merging of
+	// alerts from favorited services is handled separately.
+	FavoriteServicesOnly bool
+
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
 	Limit int `json:"-"`
@@ -45,6 +49,22 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
+	{{ if .IncludeNotifiedUser }}
+		SELECT
+			a.id,
+				a.summary,
+				a.details,
+				a.service_id,
+				a.source,
+				a.status,
+				created_at,
+				a.dedup_key
+		FROM alerts a
+		JOIN alert_logs al ON al.alert_id = a.id AND al.event = 'notification_sent'
+		WHERE al.sub_user_id = :currentUserID
+		UNION
+	{{ end }}
+
 	SELECT
 		a.id,
 		a.summary,
@@ -57,9 +77,6 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	FROM alerts a
 	{{ if .Search }}
 		JOIN services svc ON svc.id = a.service_id
-	{{ end }}
-	{{ if .IncludeNotifiedUser }}
-		JOIN alert_logs al ON al.alert_id = a.id AND al.event = 'notification_sent'
 	{{ end }}
 	WHERE true
 	{{ if .Omit }}
@@ -77,9 +94,6 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ end }}
 	{{ if .Services }}
 		AND a.service_id = any(:services)
-	{{ end }}
-	{{ if .IncludeNotifiedUser }}
-		AND al.sub_user_id = :currentUserID
 	{{ end }}
 	{{ if .After.ID }}
 		AND (

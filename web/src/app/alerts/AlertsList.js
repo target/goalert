@@ -174,6 +174,7 @@ export default function AlertsList(props) {
       first: 25,
       // default to favorites only, unless viewing alerts from a service's page
       favoritesOnly: !props.serviceID && !allServices,
+      includeNotified: !props.serviceID, // keep service list alerts specific to that service
     },
   }
 

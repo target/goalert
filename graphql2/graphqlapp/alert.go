@@ -124,6 +124,9 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	if opts.IncludeNotified != nil {
 		s.IncludeNotifiedUser = permission.UserID(ctx)
 	}
+	if opts.FavoritesOnly != nil {
+		s.FavoriteServicesOnly = *opts.FavoritesOnly
+	}
 
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 0, 50),
