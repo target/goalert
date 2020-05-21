@@ -146,17 +146,6 @@ export default function AlertsList(props) {
     },
   )
 
-  // checks to show no favorites warning
-  const noFavorites =
-    !favoritesQueryStatus.data?.services?.nodes?.length &&
-    !favoritesQueryStatus.loading
-  const showNoFavoritesWarning =
-    !favoritesWarningDismissed && // has not been dismissed
-    !allServices && // all services aren't being queried
-    !props.serviceID && // not viewing alerts from services page
-    !isFirstLogin && // don't show two pop-ups at the same time
-    noFavorites // and lastly, user has no favorited services
-
   // alerts list query variables
   const variables = {
     input: {
