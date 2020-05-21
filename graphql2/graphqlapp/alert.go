@@ -121,7 +121,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		s.Search = *opts.Search
 	}
 	s.Omit = opts.Omit
-	if opts.IncludeNotified != nil {
+	if opts.IncludeNotified != nil && *opts.IncludeNotified == true {
 		s.NotifiedUserID = permission.UserID(ctx)
 	}
 
@@ -148,6 +148,9 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 			}
 		} else {
 			s.Services = opts.FilterByServiceID
+			if len(s.Services) == 0 {
+				s.AllServices = true
+			}
 		}
 
 		for _, f := range opts.FilterByStatus {

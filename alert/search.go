@@ -25,6 +25,9 @@ type SearchOptions struct {
 	// Services, if specified, will restrict alerts to those with a matching ServiceID.
 	Services []string `json:"v,omitempty"`
 
+	// AllServices reflects if all services are to return their alerts
+	AllServices bool `json:"l,omitempty"`
+
 	After SearchCursor `json:"a,omitempty"`
 
 	// Omit specifies a list of alert IDs to exclude from the results.
@@ -45,23 +48,7 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
-	{{ if .NotifiedUserID }}
-		SELECT
-			a.id,
-				a.summary,
-				a.details,
-				a.service_id,
-				a.source,
-				a.status,
-				created_at,
-				a.dedup_key
-		FROM alerts a
-		JOIN alert_logs al ON al.alert_id = a.id AND al.event = 'notification_sent'
-		WHERE al.sub_user_id = :currentUserID
-		UNION
-	{{ end }}
-
-	SELECT
+	SELECT DISTINCT
 		a.id,
 		a.summary,
 		a.details,
@@ -73,6 +60,9 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	FROM alerts a
 	{{ if .Search }}
 		JOIN services svc ON svc.id = a.service_id
+	{{ end }}
+	{{ if and .NotifiedUserID (not .AllServices) }}
+		JOIN alert_logs al ON al.alert_id = a.id
 	{{ end }}
 	WHERE true
 	{{ if .Omit }}
@@ -88,8 +78,12 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .Status }}
 		AND a.status = any(:status::enum_alert_status[])
 	{{ end }}
-	{{ if .Services }}
+	{{ if and .Services (not .NotifiedUserID)}}
 		AND a.service_id = any(:services)
+	{{ else if and .NotifiedUserID (not .AllServices) (not .Services)}}
+		AND (al.sub_user_id = :currentUserID AND al.event = 'notification_sent')
+	{{ else if and .Services .NotifiedUserID}}
+		AND (a.service_id = any(:services) OR (al.sub_user_id = :currentUserID AND al.event = 'notification_sent'))
 	{{ end }}
 	{{ if .After.ID }}
 		AND (
