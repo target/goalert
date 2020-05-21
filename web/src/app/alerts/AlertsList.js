@@ -6,6 +6,7 @@ import {
   ListItemText,
   Snackbar,
   SnackbarContent,
+  Typography,
   makeStyles,
   isWidthDown,
 } from '@material-ui/core'
@@ -214,6 +215,34 @@ export default function AlertsList(props) {
   }
 
   /*
+   * Gets the header to display above the list
+   * to give a quick overview on what filters
+   * may be active to the user other than ack'd,
+   * unack'd, etc
+   */
+  function getHeaderNote() {
+    const { favoritesOnly, includeNotified, filterByStatus } = variables.input
+
+    if (includeNotified && favoritesOnly) {
+      return 'Showing alerts you have been notified of and from services you have favorited.'
+    }
+
+    if (includeNotified && !favoritesOnly && !allServices) {
+      return 'Showing alerts you have been notified of.'
+    }
+
+    if (favoritesOnly && !includeNotified) {
+      return 'Showing alerts from services you have favorited.'
+    }
+
+    if (allServices) {
+      return 'Showing alerts for all services.'
+    }
+
+    return ''
+  }
+
+  /*
    * Passes the proper actions to ListControls depending
    * on which tab is currently filtering the alerts list
    */
@@ -252,6 +281,7 @@ export default function AlertsList(props) {
       <QueryList
         query={alertsListQuery}
         infiniteScroll
+        headerNote={getHeaderNote()}
         mapDataNode={(a) => ({
           id: a.id,
           status: getListItemStatus(a.status),
