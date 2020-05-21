@@ -142,7 +142,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 			notification.DestTypeSlackChannel: {PerSecond: 5, Batch: 5 * time.Second},
 		},
 		Pausable: p.mgr,
-	})
+	}, c.AlertLogStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "messaging backend")
 	}
