@@ -30,9 +30,9 @@ type SearchOptions struct {
 	// Omit specifies a list of alert IDs to exclude from the results.
 	Omit []int `json:"o,omitempty"`
 
-	// IncludeNotifiedUser will ensure all alerts the specified user has been notified for
-	// will also be added to the results of the query
-	IncludeNotifiedUser string `json:"e,omitempty"`
+	// NotifiedUserID will include all alerts the specified user has been
+	// notified for to the results.
+	NotifiedUserID string `json:"e,omitempty"`
 
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
@@ -45,7 +45,7 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
-	{{ if .IncludeNotifiedUser }}
+	{{ if .NotifiedUserID }}
 		SELECT
 			a.id,
 				a.summary,
@@ -160,7 +160,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
 		sql.Named("omit", sqlutil.IntArray(opts.Omit)),
-		sql.Named("currentUserID", opts.IncludeNotifiedUser),
+		sql.Named("currentUserID", opts.NotifiedUserID),
 	}
 }
 

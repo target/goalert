@@ -122,7 +122,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	}
 	s.Omit = opts.Omit
 	if opts.IncludeNotified != nil {
-		s.IncludeNotifiedUser = permission.UserID(ctx)
+		s.NotifiedUserID = permission.UserID(ctx)
 	}
 
 	err = validate.Many(
