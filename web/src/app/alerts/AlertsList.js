@@ -224,7 +224,7 @@ export default function AlertsList(props) {
     const { favoritesOnly, includeNotified, filterByStatus } = variables.input
 
     if (includeNotified && favoritesOnly) {
-      return 'Showing alerts you have been notified of and from services you have favorited.'
+      return 'Showing alerts you have been notified of and from any services you have favorited.'
     }
 
     if (includeNotified && !favoritesOnly && !allServices) {
