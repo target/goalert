@@ -215,24 +215,15 @@ export default function AlertsList(props) {
   }
 
   /*
-   * Gets the header to display above the list
-   * to give a quick overview on what filters
-   * may be active to the user other than ack'd,
-   * unack'd, etc
+   * Gets the header to display above the list to give a quick overview
+   * on if they are viewing alerts for all services or only their
+   * favorited services
    */
   function getHeaderNote() {
-    const { favoritesOnly, includeNotified, filterByStatus } = variables.input
+    const { favoritesOnly, includeNotified } = variables.input
 
     if (includeNotified && favoritesOnly) {
       return 'Showing alerts you have been notified of and from any services you have favorited.'
-    }
-
-    if (includeNotified && !favoritesOnly && !allServices) {
-      return 'Showing alerts you have been notified of.'
-    }
-
-    if (favoritesOnly && !includeNotified) {
-      return 'Showing alerts from services you have favorited.'
     }
 
     if (allServices) {
