@@ -55,7 +55,7 @@ export function SetFavoriteButton({
   const { enabled, setMessage, unsetMessage } = tooltipOptions ?? {}
   if (enabled) {
     return (
-      <Tooltip title={isFavorite ? setMessage : unsetMessage}>
+      <Tooltip title={isFavorite ? unsetMessage : setMessage}>
         {content}
       </Tooltip>
     )

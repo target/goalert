@@ -94,9 +94,9 @@ export default function ServiceDetails({ serviceID }) {
           tooltipOptions={{
             enabled: true,
             setMessage:
-              'Unfavorite this service to stop seeing its alerts on your homepage',
-            unsetMessage:
               'Favorite this service to always see its alerts on your homepage',
+            unsetMessage:
+              'Unfavorite this service to stop seeing its alerts on your homepage',
           }}
         />
         <OtherActions
