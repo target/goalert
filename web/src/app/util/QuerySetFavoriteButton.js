@@ -68,7 +68,7 @@ export function QuerySetFavoriteButton(props) {
       isFavorite={isFavorite}
       loading={!data && loading}
       onClick={() => toggleFav()}
-      tooltip={props.tooltip}
+      tooltipOptions={props.tooltipOptions}
     />
   )
 }
@@ -82,5 +82,9 @@ QuerySetFavoriteButton.propTypes = {
 
   // todo: extend SetFavoriteButtonProps when
   // converting to ts
-  tooltip: p.string,
+  tooltipOptions: p.shape({
+    enabled: p.bool.isRequired,
+    setMessage: p.string,
+    unsetMessage: p.string,
+  }),
 }

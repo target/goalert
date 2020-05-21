@@ -91,7 +91,13 @@ export default function ServiceDetails({ serviceID }) {
       <PageActions>
         <QuerySetFavoriteButton
           serviceID={serviceID}
-          tooltip='Favorite this service to always see its alerts on your homepage'
+          tooltipOptions={{
+            enabled: true,
+            setMessage:
+              'Unfavorite this service to stop seeing its alerts on your homepage',
+            unsetMessage:
+              'Favorite this service to always see its alerts on your homepage',
+          }}
         />
         <OtherActions
           actions={[
