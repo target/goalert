@@ -121,7 +121,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		s.Search = *opts.Search
 	}
 	s.Omit = opts.Omit
-	if opts.IncludeNotified != nil && *opts.IncludeNotified == true {
+	if opts.IncludeNotified != nil && *opts.IncludeNotified {
 		s.NotifiedUserID = permission.UserID(ctx)
 	}
 
