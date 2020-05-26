@@ -65,7 +65,3 @@ ServiceForm.propTypes = {
 
   disabled: p.bool,
 }
-
-ServiceForm.defaultProps = {
-  epRequired: false,
-}
