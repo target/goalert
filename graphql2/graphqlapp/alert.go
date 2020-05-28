@@ -146,11 +146,8 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 			if err != nil {
 				return nil, err
 			}
-			// check if data exists explicitly
-			// the check for 0 length instead of nil is needed to potentially return an empty result
-			if len(s.ServiceFilter.IDs) >= 0 {
-				s.ServiceFilter.Valid = true
-			}
+			// used to potentially return an empty array of alerts
+			s.ServiceFilter.Valid = true
 		} else {
 			s.ServiceFilter.IDs = opts.FilterByServiceID
 			if s.ServiceFilter.IDs != nil {
