@@ -68,7 +68,7 @@ export function QuerySetFavoriteButton(props) {
       isFavorite={isFavorite}
       loading={!data && loading}
       onClick={() => toggleFav()}
-      tooltipOptions={props.tooltipOptions}
+      type={props.type}
     />
   )
 }
@@ -80,11 +80,6 @@ QuerySetFavoriteButton.propTypes = {
     scheduleID: p.string,
   }),
 
-  // todo: extend SetFavoriteButtonProps when
-  // converting to ts
-  tooltipOptions: p.shape({
-    enabled: p.bool.isRequired,
-    setMessage: p.string,
-    unsetMessage: p.string,
-  }),
+  // todo: extend SetFavoriteButtonProps when converting to ts
+  type: p.oneOf(['service']),
 }

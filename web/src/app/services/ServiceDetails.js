@@ -89,16 +89,7 @@ export default function ServiceDetails({ serviceID }) {
   return (
     <React.Fragment>
       <PageActions>
-        <QuerySetFavoriteButton
-          serviceID={serviceID}
-          tooltipOptions={{
-            enabled: true,
-            setMessage:
-              'Favorite this service to always see its alerts on your homepage',
-            unsetMessage:
-              'Unfavorite this service to stop seeing its alerts on your homepage',
-          }}
-        />
+        <QuerySetFavoriteButton serviceID={serviceID} type='service' />
         <OtherActions
           actions={[
             {

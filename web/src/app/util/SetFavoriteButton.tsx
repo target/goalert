@@ -10,12 +10,7 @@ interface SetFavoriteButtonProps {
   isFavorite?: boolean
   loading: boolean
   onClick: Function
-
-  tooltipOptions?: {
-    enabled: boolean
-    setMessage?: string // The tooltip displayed when the favorite has already been set
-    unsetMessage?: string // The tooltip displayed when the favorite has not yet been set
-  }
+  type?: 'service' // todo: add other types as needed
 }
 
 export function SetFavoriteButton({
@@ -23,7 +18,7 @@ export function SetFavoriteButton({
   isFavorite,
   loading,
   onClick,
-  tooltipOptions,
+  type,
 }: SetFavoriteButtonProps): JSX.Element {
   let icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
   if (loading) {
@@ -52,13 +47,20 @@ export function SetFavoriteButton({
     </form>
   )
 
-  const { enabled, setMessage, unsetMessage } = tooltipOptions ?? {}
-  if (enabled) {
-    return (
-      <Tooltip title={isFavorite ? unsetMessage : setMessage}>
-        {content}
-      </Tooltip>
-    )
+  switch (type) {
+    case 'service':
+      return (
+        <Tooltip
+          title={
+            isFavorite
+              ? 'Unfavorite this service to stop seeing its alerts on your homepage'
+              : 'Favorite this service to always see its alerts on your homepage'
+          }
+        >
+          {content}
+        </Tooltip>
+      )
+    default:
+      return content
   }
-  return content
 }
