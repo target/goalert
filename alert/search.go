@@ -75,7 +75,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .Services }}
 		AND (a.service_id = any(:services)
 			{{ if .NotifiedUserID }}
-				OR a.id = any(select alert_id from alert_logs where event = 'notification_sent' and sub_user_id = :notifiedUserID)
+				OR a.id = any(select alert_id from alert_logs where event in ('notification_sent', 'no_notification_sent') and sub_user_id = :notifiedUserID)
 			{{ end }}
 		)
 	{{ end }}
