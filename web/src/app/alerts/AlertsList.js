@@ -107,7 +107,7 @@ function getStatusFilter(s) {
 export default function AlertsList(props) {
   const classes = useStyles()
   const width = useWidth()
-  const isFullScreen = isWidthDown('md', width)
+  const isMobileScreenSize = isWidthDown('md', width)
 
   const [checkedCount, setCheckedCount] = useState(0)
 
@@ -125,25 +125,19 @@ export default function AlertsList(props) {
   const filter = params('filter', 'active')
   const isFirstLogin = params('isFirstLogin')
 
-  // query to see if the current user has any favorited services
-  // if allServices is not true
-  const favoritesQueryStatus = useQuery(
+  // query for current service name if props.serviceID is provided
+  const serviceNameQuery = useQuery(
     gql`
-      query($input: ServiceSearchOptions) {
-        services(input: $input) {
-          nodes {
-            id
-          }
+      query($id: ID!) {
+        service(id: $id) {
+          id
+          name
         }
       }
     `,
     {
-      variables: {
-        input: {
-          favoritesOnly: true,
-          first: 1,
-        },
-      },
+      variables: { id: props.serviceID || '' },
+      skip: !props.serviceID,
     },
   )
 
@@ -217,20 +211,29 @@ export default function AlertsList(props) {
   /*
    * Gets the header to display above the list to give a quick overview
    * on if they are viewing alerts for all services or only their
-   * favorited services
+   * favorited services.
+   *
+   * Possibilities:
+   *   - Home page, showing alerts for all services
+   *   - Home page, showing alerts for any favorited services and notified alerts
+   *   - Services page, alerts for that service
    */
   function getHeaderNote() {
     const { favoritesOnly, includeNotified } = variables.input
 
     if (includeNotified && favoritesOnly) {
-      return 'Showing alerts you have been notified of and from any services you have favorited.'
+      return `Showing ${filter} alerts you have been notified of and from any services you have favorited.`
     }
 
     if (allServices) {
-      return 'Showing alerts for all services.'
+      return `Showing ${filter} alerts for all services.`
     }
 
-    return ''
+    if (props.serviceID && serviceNameQuery.data?.service?.name) {
+      return `Showing ${filter} alerts for the service ${serviceNameQuery.data.service.name}.`
+    }
+
+    return null
   }
 
   /*
@@ -296,7 +299,7 @@ export default function AlertsList(props) {
 
       <CreateAlertFab
         serviceID={props.serviceID}
-        transition={isFullScreen && showAlertActionSnackbar}
+        transition={isMobileScreenSize && showAlertActionSnackbar}
       />
 
       {/* Update message after using checkbox actions */}
