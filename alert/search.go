@@ -48,7 +48,7 @@ type SearchCursor struct {
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
-	SELECT DISTINCT
+	SELECT
 		a.id,
 		a.summary,
 		a.details,
@@ -60,9 +60,6 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	FROM alerts a
 	{{ if .Search }}
 		JOIN services svc ON svc.id = a.service_id
-	{{ end }}
-	{{ if and .NotifiedUserID (not .AllServices) }}
-		JOIN alert_logs al ON al.alert_id = a.id
 	{{ end }}
 	WHERE true
 	{{ if .Omit }}
@@ -78,12 +75,12 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .Status }}
 		AND a.status = any(:status::enum_alert_status[])
 	{{ end }}
-	{{ if and .Services (not .NotifiedUserID)}}
-		AND a.service_id = any(:services)
-	{{ else if and .NotifiedUserID (not .AllServices) (not .Services)}}
-		AND (al.sub_user_id = :currentUserID AND al.event = 'notification_sent')
-	{{ else if and .Services .NotifiedUserID}}
-		AND (a.service_id = any(:services) OR (al.sub_user_id = :currentUserID AND al.event = 'notification_sent'))
+	{{ if .Services }}
+		AND (a.service_id = any(:services)
+			{{ if .NotifiedUserID }}
+				OR a.id = any(select alert_id from alert_logs where event = 'notification_sent' and sub_user_id = :currentUserID)
+			{{ end }}
+		)
 	{{ end }}
 	{{ if .After.ID }}
 		AND (
