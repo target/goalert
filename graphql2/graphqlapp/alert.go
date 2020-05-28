@@ -146,8 +146,8 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 			if err != nil {
 				return nil, err
 			}
-			// check if array exists explicitly
-			// 0 length matters if no alerts for favorited services
+			// check if data exists explicitly
+			// the check for 0 length instead of nil is needed to potentially return an empty result
 			if len(s.ServiceFilter.IDs) >= 0 {
 				s.ServiceFilter.Valid = true
 			}

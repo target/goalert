@@ -40,8 +40,8 @@ type SearchOptions struct {
 }
 
 type IDFilter struct {
-	Valid bool
-	IDs   []string
+	Valid bool     `json:"v,omitempty"`
+	IDs   []string `json:"i,omitempty"`
 }
 
 type SearchCursor struct {
