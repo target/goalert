@@ -148,9 +148,6 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 			}
 		} else {
 			s.Services = opts.FilterByServiceID
-			if len(s.Services) == 0 {
-				s.AllServices = true
-			}
 		}
 
 		for _, f := range opts.FilterByStatus {

@@ -25,9 +25,6 @@ type SearchOptions struct {
 	// Services, if specified, will restrict alerts to those with a matching ServiceID.
 	Services []string `json:"v,omitempty"`
 
-	// AllServices reflects if all services are to return their alerts
-	AllServices bool `json:"l,omitempty"`
-
 	After SearchCursor `json:"a,omitempty"`
 
 	// Omit specifies a list of alert IDs to exclude from the results.
