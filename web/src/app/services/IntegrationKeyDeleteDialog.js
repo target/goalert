@@ -35,53 +35,8 @@ const mutation = gql`
   }
 `
 
-export default class IntegrationKeyDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    integrationKeyID: p.string.isRequired,
-    onClose: p.func,
-  }
-
-  renderQuery() {
-    return (
-      <Query
-        noPoll
-        query={query}
-        variables={{ id: this.props.integrationKeyID }}
-        render={({ data }) => this.renderMutation(data.integrationKey)}
-      />
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        update={(cache) => {
-          const { service } = cache.readQuery({
-            query: updateQuery,
-            variables: { id: data.serviceID },
-          })
-          cache.writeQuery({
-            query: updateQuery,
-            variables: { id: data.serviceID },
-            data: {
-              service: {
-                ...service,
-                integrationKeys: (service.integrationKeys || []).filter(
-                  (key) => key.id !== this.props.integrationKeyID,
-                ),
-              },
-            },
-          })
-        }}
-      >
-        {(commit, status) => this.renderDialog(data, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(data, commit, mutStatus) {
+export default function IntegrationKeyDeleteDialog(props) {
+  function renderDialog(data, commit, mutStatus) {
     const { loading, error } = mutStatus
 
     return (
@@ -92,12 +47,12 @@ export default class IntegrationKeyDeleteDialog extends React.PureComponent {
         caption='This will prevent the creation of new alerts using this integration key. If you wish to re-enable, a NEW integration key must be created and may require additional reconfiguration of the alert source.'
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
+        onClose={props.onClose}
         onSubmit={() => {
           const input = [
             {
               type: 'integrationKey',
-              id: this.props.integrationKeyID,
+              id: props.integrationKeyID,
             },
           ]
           return commit({
@@ -110,7 +65,50 @@ export default class IntegrationKeyDeleteDialog extends React.PureComponent {
     )
   }
 
-  render() {
-    return this.renderQuery()
+  function renderMutation(data) {
+    return (
+      <Mutation
+        mutation={mutation}
+        onCompleted={props.onClose}
+        update={(cache) => {
+          const { service } = cache.readQuery({
+            query: updateQuery,
+            variables: { id: data.serviceID },
+          })
+          cache.writeQuery({
+            query: updateQuery,
+            variables: { id: data.serviceID },
+            data: {
+              service: {
+                ...service,
+                integrationKeys: (service.integrationKeys || []).filter(
+                  (key) => key.id !== props.integrationKeyID,
+                ),
+              },
+            },
+          })
+        }}
+      >
+        {(commit, status) => renderDialog(data, commit, status)}
+      </Mutation>
+    )
   }
+
+  function renderQuery() {
+    return (
+      <Query
+        noPoll
+        query={query}
+        variables={{ id: props.integrationKeyID }}
+        render={({ data }) => renderMutation(data.integrationKey)}
+      />
+    )
+  }
+
+  return renderQuery()
+}
+
+IntegrationKeyDeleteDialog.propTypes = {
+  integrationKeyID: p.string.isRequired,
+  onClose: p.func,
 }
