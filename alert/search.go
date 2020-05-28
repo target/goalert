@@ -22,8 +22,8 @@ type SearchOptions struct {
 	// Status, if specified, will restrict alerts to those with a matching status.
 	Status []Status `json:"t,omitempty"`
 
-	// Services, if specified, will restrict alerts to those with a matching ServiceID.
-	Services []string `json:"v,omitempty"`
+	// ServiceFilter, if specified, will restrict alerts to those with a matching ServiceID on IDs, if valid.
+	ServiceFilter IDFilter `json:"v,omitempty"`
 
 	After SearchCursor `json:"a,omitempty"`
 
@@ -37,6 +37,11 @@ type SearchOptions struct {
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
 	Limit int `json:"-"`
+}
+
+type IDFilter struct {
+	Valid bool
+	IDs   []string
 }
 
 type SearchCursor struct {
@@ -72,7 +77,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .Status }}
 		AND a.status = any(:status::enum_alert_status[])
 	{{ end }}
-	{{ if .Services }}
+	{{ if .ServiceFilter.Valid }}
 		AND (a.service_id = any(:services)
 			{{ if .NotifiedUserID }}
 				OR a.id = any(select alert_id from alert_logs where event in ('notification_sent', 'no_notification_sent') and sub_user_id = :notifiedUserID)
@@ -108,7 +113,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.Range("Status", len(opts.Status), 0, 3),
-		validate.ManyUUID("Services", opts.Services, 50),
+		validate.ManyUUID("Services", opts.ServiceFilter.IDs, 50),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
 	)
 	if opts.After.Status != "" {
@@ -144,7 +149,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("searchID", searchID),
 		sql.Named("status", stat),
-		sql.Named("services", sqlutil.UUIDArray(opts.Services)),
+		sql.Named("services", sqlutil.UUIDArray(opts.ServiceFilter.IDs)),
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
 		sql.Named("omit", sqlutil.IntArray(opts.Omit)),

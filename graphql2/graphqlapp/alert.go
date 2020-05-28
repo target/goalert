@@ -142,12 +142,20 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		}
 	} else {
 		if opts.FavoritesOnly != nil && *opts.FavoritesOnly {
-			s.Services, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
+			s.ServiceFilter.IDs, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
 			if err != nil {
 				return nil, err
 			}
+			// check if array exists explicitly
+			// 0 length matters if no alerts for favorited services
+			if len(s.ServiceFilter.IDs) >= 0 {
+				s.ServiceFilter.Valid = true
+			}
 		} else {
-			s.Services = opts.FilterByServiceID
+			s.ServiceFilter.IDs = opts.FilterByServiceID
+			if s.ServiceFilter.IDs != nil {
+				s.ServiceFilter.Valid = true
+			}
 		}
 
 		for _, f := range opts.FilterByStatus {
