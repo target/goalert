@@ -10,7 +10,6 @@ interface SetFavoriteButtonProps {
   isFavorite?: boolean
   loading: boolean
   onClick: Function
-  type?: 'service' // todo: add other types as needed
 }
 
 export function SetFavoriteButton({
@@ -18,7 +17,6 @@ export function SetFavoriteButton({
   isFavorite,
   loading,
   onClick,
-  type,
 }: SetFavoriteButtonProps): JSX.Element {
   let icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
   if (loading) {
@@ -47,7 +45,8 @@ export function SetFavoriteButton({
     </form>
   )
 
-  switch (type) {
+  // todo: add other types as needed
+  switch (typeName) {
     case 'service':
       return (
         <Tooltip

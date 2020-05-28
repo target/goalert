@@ -68,7 +68,6 @@ export function QuerySetFavoriteButton(props) {
       isFavorite={isFavorite}
       loading={!data && loading}
       onClick={() => toggleFav()}
-      type={props.type}
     />
   )
 }
@@ -79,7 +78,4 @@ QuerySetFavoriteButton.propTypes = {
     rotationID: p.string,
     scheduleID: p.string,
   }),
-
-  // todo: extend SetFavoriteButtonProps when converting to ts
-  type: p.oneOf(['service']),
 }

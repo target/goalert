@@ -89,7 +89,7 @@ export default function ServiceDetails({ serviceID }) {
   return (
     <React.Fragment>
       <PageActions>
-        <QuerySetFavoriteButton serviceID={serviceID} type='service' />
+        <QuerySetFavoriteButton serviceID={serviceID} />
         <OtherActions
           actions={[
             {
