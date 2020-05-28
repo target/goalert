@@ -75,7 +75,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .Services }}
 		AND (a.service_id = any(:services)
 			{{ if .NotifiedUserID }}
-				OR a.id = any(select alert_id from alert_logs where event = 'notification_sent' and sub_user_id = :currentUserID)
+				OR a.id = any(select alert_id from alert_logs where event = 'notification_sent' and sub_user_id = :notifiedUserID)
 			{{ end }}
 		)
 	{{ end }}
@@ -148,7 +148,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
 		sql.Named("omit", sqlutil.IntArray(opts.Omit)),
-		sql.Named("currentUserID", opts.NotifiedUserID),
+		sql.Named("notifiedUserID", opts.NotifiedUserID),
 	}
 }
 
