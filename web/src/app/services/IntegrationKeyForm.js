@@ -11,14 +11,14 @@ import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
 
-const styles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
   infoIcon: {
     color: theme.palette.primary['500'],
   },
 }))
 
 export default function IntegrationKeyForm(props) {
-  const classes = styles()
+  const classes = useStyles()
   const { ...formProps } = props
   return (
     <FormContainer {...formProps} optionalLabels>
