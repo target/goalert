@@ -79,12 +79,12 @@ module.exports = (env) => ({
         GOALERT_VERSION: JSON.stringify(env.GOALERT_VERSION), // eslint-disable-line quote-props
       },
     }),
-    new CopyPlugin(
-      [16, 32, 64, 192].map((size) => ({
+    new CopyPlugin({
+      patterns: [16, 32, 64, 192].map((size) => ({
         from: path.resolve(APP, `./public/favicon-${size}.png`),
         to: path.resolve(BUILD, `./static/favicon-${size}.png`),
       })),
-    ),
+    }),
   ],
 
   optimization: {
