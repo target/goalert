@@ -56,14 +56,14 @@ const query = gql`
   }
 `
 
-const hbStatus = h => {
+const hbStatus = (h) => {
   if (!h || !h.length) return null
-  if (h.every(m => m.lastState === 'healthy')) return 'ok'
-  if (h.some(m => m.lastState === 'unhealthy')) return 'err'
+  if (h.every((m) => m.lastState === 'healthy')) return 'ok'
+  if (h.some((m) => m.lastState === 'unhealthy')) return 'err'
   return 'warn'
 }
 
-const alertStatus = a => {
+const alertStatus = (a) => {
   if (!a) return null
   if (!a.length) return 'ok'
   if (a[0].status === 'StatusUnacknowledged') return 'err'

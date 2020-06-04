@@ -71,10 +71,10 @@ function isTrue(value) {
   return Boolean(value)
 }
 
-const mapConfig = value =>
+const mapConfig = (value) =>
   _.chain(value)
     .groupBy('id')
-    .mapValues(v => parseValue(v[0].type, v[0].value))
+    .mapValues((v) => parseValue(v[0].type, v[0].value))
     .value()
 
 // useSessionInfo returns an object with the following properties:
@@ -108,14 +108,14 @@ export function useConfig() {
 // ```
 export function useConfigValue(...fields) {
   const config = useConfig()
-  return fields.map(f => config[f])
+  return fields.map((f) => config[f])
 }
 
 export class Config extends React.PureComponent {
   render() {
     return (
       <ConfigContext.Consumer>
-        {value =>
+        {(value) =>
           this.props.children(
             /*
               Called with config object like:
@@ -173,7 +173,7 @@ export default class RequireConfig extends React.PureComponent {
             return elseValue
           }
 
-          return React.Children.map(children, child =>
+          return React.Children.map(children, (child) =>
             React.cloneElement(child, _.omit(rest, Object.keys(child.props))),
           )
         }}

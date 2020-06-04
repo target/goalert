@@ -2,20 +2,18 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Material Select', testMaterialSelect)
-
-function testMaterialSelect(screen: ScreenFormat) {
+function testMaterialSelect(): void {
   describe('Clear Fields', () => {
     describe('Escalation Policy Steps', () => {
       let ep: EP
       beforeEach(() => {
-        cy.createEP().then(e => {
+        cy.createEP().then((e: EP) => {
           ep = e
           return cy.visit(`escalation-policies/${ep.id}`)
         })
       })
       it('should clear fields and not reset with last values', () => {
-        cy.fixture('users').then(users => {
+        cy.fixture('users').then((users) => {
           const u1 = users[0]
           const u2 = users[1]
 
@@ -55,13 +53,16 @@ function testMaterialSelect(screen: ScreenFormat) {
 
         // Clears field
         cy.dialogForm({ repeat: '' })
-        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
-          'not.contain',
-          defaultVal,
-        )
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]')
+          .should('not.have.value', defaultVal)
+          .blur()
+
         // Default value returns
         cy.get('[role=dialog] #dialog-form').click()
-        cy.dialogContains(defaultVal)
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
+          'have.value',
+          defaultVal,
+        )
 
         cy.dialogFinish('Cancel')
       })
@@ -78,20 +79,23 @@ function testMaterialSelect(screen: ScreenFormat) {
         // Clears field
         cy.dialogForm({ repeat: '' })
         cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
-          'not.contain',
+          'not.have.value',
           repeat,
         )
 
         // Last value returns
         cy.get('[role=dialog] #dialog-form').click()
-        cy.dialogContains(repeat)
+        cy.get('[role=dialog] #dialog-form input[name="repeat"]').should(
+          'have.value',
+          repeat,
+        )
 
         // Should be on details page
         cy.dialogFinish('Submit')
-        cy.get('body')
-          .should('contain', name)
-          .should('contain', description)
+        cy.get('body').should('contain', name).should('contain', description)
       })
     })
   })
 }
+
+testScreen('Material Select', testMaterialSelect)

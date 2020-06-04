@@ -10,6 +10,5 @@ type EscalationMetaData struct {
 }
 
 type NotificationMetaData struct {
-	UserID string
-	CMType string
+	MessageID string
 }

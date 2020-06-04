@@ -35,7 +35,7 @@ export default class RotationUserListItem extends React.PureComponent {
     delete: false,
   }
 
-  getActiveStyle = index => {
+  getActiveStyle = (index) => {
     const { activeUserIndex, classes } = this.props
 
     // light green left border, lighter green background

@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioVoiceFailure checks that a voice call failure is retried.
@@ -43,9 +44,6 @@ func TestTwilioVoiceFailure(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	d1 := h.Twilio().Device(h.Phone("1"))
-	d1.ExpectVoice("testing").RespondWithFailed()
-
-	// should not retry (failed calls are perm failure)
-	h.Trigger()
+	d1 := h.Twilio(t).Device(h.Phone("1"))
+	d1.RejectVoice("testing")
 }

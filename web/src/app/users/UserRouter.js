@@ -30,7 +30,7 @@ function UserList() {
   return (
     <QueryList
       query={query}
-      mapDataNode={n => ({
+      mapDataNode={(n) => ({
         title: n.name,
         subText: n.email,
         url: n.id,

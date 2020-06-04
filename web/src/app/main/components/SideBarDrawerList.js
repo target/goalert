@@ -43,7 +43,7 @@ const navIcons = {
   Admin: AdminIcon,
 }
 
-const styles = theme => ({
+const styles = (theme) => ({
   ...globalStyles(theme),
   logoDiv: {
     width: '100%',
@@ -67,7 +67,7 @@ const styles = theme => ({
   },
 })
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
     logout: () => dispatch(authLogout(true)),
   }
@@ -125,7 +125,7 @@ export default class SideBarDrawerList extends React.PureComponent {
   }
 
   renderAdmin() {
-    const cfg = routeConfig.find(c => c.title === 'Admin')
+    const cfg = routeConfig.find((c) => c.title === 'Admin')
 
     return (
       <NavSubMenu
@@ -168,7 +168,7 @@ export default class SideBarDrawerList extends React.PureComponent {
         <Divider />
         <List role='navigation' className={classes.list} data-cy='nav-list'>
           {routeConfig
-            .filter(cfg => cfg.nav !== false)
+            .filter((cfg) => cfg.nav !== false)
             .map((cfg, idx) => {
               if (cfg.subRoutes) {
                 return (
@@ -198,7 +198,7 @@ export default class SideBarDrawerList extends React.PureComponent {
           <Divider aria-hidden />
           {this.renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
           <Config>
-            {cfg =>
+            {(cfg) =>
               cfg['Feedback.Enable'] &&
               this.renderFeedback(
                 cfg['Feedback.OverrideURL'] ||
@@ -211,7 +211,7 @@ export default class SideBarDrawerList extends React.PureComponent {
             '/api/v2/identity/logout',
             'Logout',
             {
-              onClick: e => {
+              onClick: (e) => {
                 e.preventDefault()
                 this.props.logout()
               },

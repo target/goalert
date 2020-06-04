@@ -26,7 +26,7 @@ export function formatTime(time, tz) {
     DateTime.TIME_SIMPLE,
   )
 
-  var localTime = DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE)
+  const localTime = DateTime.fromISO(time).toLocaleString(DateTime.TIME_SIMPLE)
 
   if (schedTime === localTime) {
     return `${schedTime} ${tz}`

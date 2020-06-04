@@ -35,6 +35,9 @@ type Server struct {
 	mx        sync.RWMutex
 	callbacks map[string]string
 
+	smsInCh  chan *SMS
+	callInCh chan *VoiceCall
+
 	smsCh  chan *SMS
 	callCh chan *VoiceCall
 
@@ -50,6 +53,8 @@ type Server struct {
 	shutdown chan struct{}
 
 	sidSeq uint64
+
+	workers sync.WaitGroup
 }
 
 // NewServer creates a new Server.
@@ -64,7 +69,9 @@ func NewServer(cfg Config) *Server {
 		messages:  make(map[string]*SMS),
 		calls:     make(map[string]*VoiceCall),
 		smsCh:     make(chan *SMS),
+		smsInCh:   make(chan *SMS),
 		callCh:    make(chan *VoiceCall),
+		callInCh:  make(chan *VoiceCall),
 		errs:      make(chan error, 10000),
 		shutdown:  make(chan struct{}),
 	}
@@ -76,7 +83,9 @@ func NewServer(cfg Config) *Server {
 	s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
 	s.mux.HandleFunc(base+"/Messages/", s.serveMessageStatus)
 
+	s.workers.Add(1)
 	go s.loop()
+
 	return s
 }
 
@@ -114,78 +123,49 @@ func (s *Server) post(url string, v url.Values) ([]byte, error) {
 	return data, nil
 }
 
-func (s *Server) processMessages() {
-	s.mx.Lock()
-	for _, sms := range s.messages {
-		if time.Since(sms.start) < s.cfg.MinQueueTime {
-			continue
-		}
-		switch sms.msg.Status {
-		case twilio.MessageStatusAccepted:
-			defer sms.updateStatus(twilio.MessageStatusQueued)
-		case twilio.MessageStatusQueued:
-			// move to sending once it's been pulled from the channel
-			select {
-			case s.smsCh <- sms:
-				sms.msg.Status = twilio.MessageStatusSending
-			default:
-			}
-		}
-	}
-	s.mx.Unlock()
-}
 func (s *Server) id(prefix string) string {
 	return fmt.Sprintf("%s%032d", prefix, atomic.AddUint64(&s.sidSeq, 1))
-}
-func (s *Server) processCalls() {
-	for _, vc := range s.calls {
-		if time.Since(vc.start) < s.cfg.MinQueueTime {
-			continue
-		}
-		switch vc.call.Status {
-		case twilio.CallStatusQueued:
-			vc.updateStatus(twilio.CallStatusInitiated)
-		case twilio.CallStatusInitiated:
-			// move to ringing once it's been pulled from the channel
-			s.mx.Lock()
-			select {
-			case s.callCh <- vc:
-				vc.call.Status = twilio.CallStatusRinging
-			default:
-			}
-			s.mx.Unlock()
-		case twilio.CallStatusInProgress:
-			s.mx.Lock()
-			if vc.hangup || vc.needsProcessing {
-				select {
-				case s.callCh <- vc:
-					vc.needsProcessing = false
-					if vc.hangup {
-						vc.call.Status = twilio.CallStatusCompleted
-					}
-				default:
-				}
-			}
-			s.mx.Unlock()
-		}
-	}
 }
 
 // Close will shutdown the server loop.
 func (s *Server) Close() error {
 	close(s.shutdown)
+	s.workers.Wait()
 	return nil
 }
+
+// wait will wait the specified amount of time, but return
+// true if aborted due to shutdown.
+func (s *Server) wait(dur time.Duration) bool {
+	t := time.NewTimer(dur)
+	defer t.Stop()
+	select {
+	case <-t.C:
+		return false
+	case <-s.shutdown:
+		return true
+	}
+}
+
 func (s *Server) loop() {
-	sendT := time.NewTicker(10 * time.Millisecond)
+	defer s.workers.Done()
+
 	for {
 		select {
-		case <-sendT.C:
-			s.processMessages()
-			s.processCalls()
 		case <-s.shutdown:
-			// exit
 			return
+		default:
+		}
+
+		select {
+		case <-s.shutdown:
+			return
+		case sms := <-s.smsInCh:
+			s.workers.Add(1)
+			go sms.process()
+		case vc := <-s.callInCh:
+			s.workers.Add(1)
+			go vc.process()
 		}
 	}
 }

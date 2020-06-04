@@ -11,7 +11,7 @@ import {
 import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   addOverrideGridItem: {
     marginLeft: theme.spacing(1),
   },
@@ -51,24 +51,20 @@ export default function CalendarToolbar(props) {
   const urlParams = useSelector(urlParamSelector)
   const weekly = urlParams('weekly', false)
 
-  const handleTodayClick = e => {
+  const handleTodayClick = (e) => {
     props.onNavigate(e, DateTime.local().toJSDate())
   }
 
-  const handleBackClick = e => {
+  const handleBackClick = (e) => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromJSDate(date)
-      .minus(timeUnit)
-      .toJSDate()
+    const nextDate = DateTime.fromJSDate(date).minus(timeUnit).toJSDate()
 
     props.onNavigate(e, nextDate)
   }
 
-  const handleNextClick = e => {
+  const handleNextClick = (e) => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromJSDate(date)
-      .plus(timeUnit)
-      .toJSDate()
+    const nextDate = DateTime.fromJSDate(date).plus(timeUnit).toJSDate()
 
     props.onNavigate(e, nextDate)
   }

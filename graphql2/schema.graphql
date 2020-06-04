@@ -289,8 +289,15 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
+  updateAlertsByService(input: UpdateAlertsByServiceInput!): Boolean!
+
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+}
+
+input UpdateAlertsByServiceInput {
+  serviceID: ID!
+  newStatus: AlertStatus!
 }
 
 input CreateAlertInput {
@@ -698,6 +705,17 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
+  state: AlertLogEntryState
+}
+
+type AlertLogEntryState {
+  details: String!
+  status: AlertLogStatus
+}
+
+enum AlertLogStatus {
+  OK
+  ERROR
 }
 
 # The escalation policy state details for the alert.

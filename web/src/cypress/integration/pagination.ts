@@ -1,45 +1,31 @@
 import { Chance } from 'chance'
+import { Schedule } from '../../schema'
+import { testScreen } from '../support'
 const c = new Chance()
 
 const itemsPerPage = 15
 
-import { testScreen } from '../support'
-
-testScreen('Pagination', testPagination)
-
-const padZeros = (val: string) => {
+const padZeros = (val: string): string => {
   while (val.length < 4) val = '0' + val
   return val
 }
 
-interface createOpts {
+interface CreateOpts {
   name: string
 }
-type createOneFunc = (opts: createOpts) => Cypress.Chainable<any>
-type createManyFunc = (names: Array<createOpts>) => Cypress.Chainable<any>
+type dataModel = EP | Profile | Rotation | Schedule | Service | undefined
+type createOneFunc = (opts: CreateOpts) => Cypress.Chainable<dataModel>
+type createManyFunc = (
+  names: Array<CreateOpts>,
+) => Cypress.Chainable<dataModel | dataModel[]>
 
-function createOne(fn: createOneFunc) {
-  return (names: Array<createOpts>) => {
-    names.forEach(name => fn(name))
-    return cy
-  }
-}
-
-function testPagination(screen: ScreenFormat) {
-  testPaginating('Rotations', 'rotations', createOne(cy.createRotation))
-  testPaginating('Schedules', 'schedules', createOne(cy.createSchedule))
-  testPaginating(
-    'Escalation Policies',
-    'escalation-policies',
-    createOne(cy.createEP),
-  )
-  testPaginating('Services', 'services', createOne(cy.createService))
-  testPaginating('Users', 'users', cy.createManyUsers)
-}
-
-function testPaginating(label: string, url: string, create: createManyFunc) {
+function testPaginating(
+  label: string,
+  url: string,
+  create: createManyFunc,
+): void {
   let names: Array<string> = []
-  let nameSubstr: string = ''
+  let nameSubstr = ''
 
   describe(label, () => {
     before(() => {
@@ -50,7 +36,7 @@ function testPaginating(label: string, url: string, create: createManyFunc) {
         names.push(name)
       }
 
-      return create(names.map(name => ({ name })))
+      return create(names.map((name) => ({ name })))
     })
 
     beforeEach(() => cy.visit(`/${url}?search=${nameSubstr}`))
@@ -60,32 +46,24 @@ function testPaginating(label: string, url: string, create: createManyFunc) {
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
 
-      cy.get('button[data-cy="next-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="next-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
 
-      cy.get('button[data-cy="next-button"]')
-        .last()
-        .click()
+      cy.get('button[data-cy="next-button"]').last().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage * 2 + i])
 
       cy.get('button[data-cy="next-button"]').should('be.disabled')
 
-      cy.get('button[data-cy="back-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="back-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
 
-      cy.get('button[data-cy="back-button"]')
-        .last()
-        .click()
+      cy.get('button[data-cy="back-button"]').last().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
@@ -96,9 +74,7 @@ function testPaginating(label: string, url: string, create: createManyFunc) {
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
 
-      cy.get('button[data-cy="next-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="next-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
@@ -115,9 +91,7 @@ function testPaginating(label: string, url: string, create: createManyFunc) {
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[i])
 
-      cy.get('button[data-cy="next-button"]')
-        .first()
-        .click()
+      cy.get('button[data-cy="next-button"]').first().click()
 
       for (let i = 0; i < itemsPerPage; i++)
         cy.get('body').should('contain', names[itemsPerPage + i])
@@ -130,3 +104,24 @@ function testPaginating(label: string, url: string, create: createManyFunc) {
     })
   })
 }
+
+function createOne(fn: createOneFunc) {
+  return (names: Array<CreateOpts>) => {
+    names.forEach((name) => fn(name))
+    return cy
+  }
+}
+
+function testPagination(): void {
+  testPaginating('Rotations', 'rotations', createOne(cy.createRotation))
+  testPaginating('Schedules', 'schedules', createOne(cy.createSchedule))
+  testPaginating(
+    'Escalation Policies',
+    'escalation-policies',
+    createOne(cy.createEP),
+  )
+  testPaginating('Services', 'services', createOne(cy.createService))
+  testPaginating('Users', 'users', cy.createManyUsers)
+}
+
+testScreen('Pagination', testPagination)

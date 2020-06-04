@@ -10,81 +10,6 @@ export const days = [
   'Saturday',
 ]
 
-// Shifts a weekdayFilter so that it matches the luxon day n
-//
-// Default is 7 (Sunday)
-export function alignWeekdayFilter(n, filter) {
-  if (n === 7) return filter
-
-  return filter.slice(7 - n).concat(filter.slice(0, 7 - n))
-}
-
-export function mapRuleTZ(fromTZ, toTZ, rule) {
-  const start = parseClock(rule.start, fromTZ).setZone(toTZ)
-  const end = parseClock(rule.end, fromTZ).setZone(toTZ)
-  return {
-    ...rule,
-    start: formatClock(start),
-    end: formatClock(end),
-    weekdayFilter: alignWeekdayFilter(start.weekday, rule.weekdayFilter),
-  }
-}
-
-// gqlClockTimeToISO will return an ISO timestamp representing
-// the given GraphQL ClockTime value at the current date in the
-// provided time zone.
-export function gqlClockTimeToISO(time, zone) {
-  return DateTime.fromFormat(time, 'HH:mm', { zone })
-    .toUTC()
-    .toISO()
-}
-
-// isoToGQLClockTime will return a GraphQL ClockTime value for
-// the given ISO timestamp, with respect to the provided time zone.
-export function isoToGQLClockTime(timestamp, zone) {
-  return DateTime.fromISO(timestamp, { zone }).toFormat('HH:mm')
-}
-
-export function weekdaySummary(filter) {
-  const bin = filter.map(f => (f ? '1' : '0')).join('')
-  switch (bin) {
-    case '1000001':
-      return 'Weekends'
-    case '0000000':
-      return 'Never'
-    case '0111110':
-      return 'M—F'
-    case '0111111':
-      return 'M—F and Sat'
-    case '1111110':
-      return 'M—F and Sun'
-    case '1111111':
-      return 'Everyday'
-  }
-
-  const d = []
-  let chain = []
-  const flush = () => {
-    if (chain.length < 3) {
-      chain.forEach(day => d.push(day.slice(0, 3)))
-      chain = []
-      return
-    }
-
-    d.push(chain[0].slice(0, 3) + '—' + chain[chain.length - 1].slice(0, 3))
-    chain = []
-  }
-  days.forEach((day, idx) => {
-    if (filter[idx]) {
-      chain.push(day)
-      return
-    }
-    flush()
-  })
-  flush()
-  return d.join(', ')
-}
-
 // dstWeekOffset will return dt forward or backward a week
 // if `dt.offset` does not match the `expectedOffset`.
 function dstWeekOffset(expectedOffset, dt) {
@@ -113,17 +38,90 @@ export function formatClock(dt) {
     .padStart(2, '0')}:${dt.minute.toString().padStart(2, '0')}`
 }
 
-export function ruleSummary(rules, scheduleZone, displayZone) {
-  const everyDay = r => !r.weekdayFilter.some(w => !w) && r.start === r.end
+// Shifts a weekdayFilter so that it matches the luxon day n
+//
+// Default is 7 (Sunday)
+export function alignWeekdayFilter(n, filter) {
+  if (n === 7) return filter
 
-  rules = rules.filter(r => r.weekdayFilter.some(w => w)) // ignore disabled
+  return filter.slice(7 - n).concat(filter.slice(0, 7 - n))
+}
+
+export function mapRuleTZ(fromTZ, toTZ, rule) {
+  const start = parseClock(rule.start, fromTZ).setZone(toTZ)
+  const end = parseClock(rule.end, fromTZ).setZone(toTZ)
+  return {
+    ...rule,
+    start: formatClock(start),
+    end: formatClock(end),
+    weekdayFilter: alignWeekdayFilter(start.weekday, rule.weekdayFilter),
+  }
+}
+
+// gqlClockTimeToISO will return an ISO timestamp representing
+// the given GraphQL ClockTime value at the current date in the
+// provided time zone.
+export function gqlClockTimeToISO(time, zone) {
+  return DateTime.fromFormat(time, 'HH:mm', { zone }).toUTC().toISO()
+}
+
+// isoToGQLClockTime will return a GraphQL ClockTime value for
+// the given ISO timestamp, with respect to the provided time zone.
+export function isoToGQLClockTime(timestamp, zone) {
+  return DateTime.fromISO(timestamp, { zone }).toFormat('HH:mm')
+}
+
+export function weekdaySummary(filter) {
+  const bin = filter.map((f) => (f ? '1' : '0')).join('')
+  switch (bin) {
+    case '1000001':
+      return 'Weekends'
+    case '0000000':
+      return 'Never'
+    case '0111110':
+      return 'M—F'
+    case '0111111':
+      return 'M—F and Sat'
+    case '1111110':
+      return 'M—F and Sun'
+    case '1111111':
+      return 'Everyday'
+  }
+
+  const d = []
+  let chain = []
+  const flush = () => {
+    if (chain.length < 3) {
+      chain.forEach((day) => d.push(day.slice(0, 3)))
+      chain = []
+      return
+    }
+
+    d.push(chain[0].slice(0, 3) + '—' + chain[chain.length - 1].slice(0, 3))
+    chain = []
+  }
+  days.forEach((day, idx) => {
+    if (filter[idx]) {
+      chain.push(day)
+      return
+    }
+    flush()
+  })
+  flush()
+  return d.join(', ')
+}
+
+export function ruleSummary(rules, scheduleZone, displayZone) {
+  const everyDay = (r) => !r.weekdayFilter.some((w) => !w) && r.start === r.end
+
+  rules = rules.filter((r) => r.weekdayFilter.some((w) => w)) // ignore disabled
   if (rules.length === 0) return 'Never'
   if (rules.some(everyDay)) return 'Always'
 
-  const getTime = str => parseClock(str, scheduleZone).setZone(displayZone)
+  const getTime = (str) => parseClock(str, scheduleZone).setZone(displayZone)
 
   return rules
-    .map(r => {
+    .map((r) => {
       const start = getTime(r.start)
       const weekdayFilter = alignWeekdayFilter(start.weekday, r.weekdayFilter)
       return `${weekdaySummary(weekdayFilter)} from ${start.toLocaleString(
@@ -157,7 +155,7 @@ export function mapOverrideUserError(conflictingOverride, value, zone) {
   const isReplace =
     conflictingOverride.addUser && conflictingOverride.removeUser
 
-  const replaceMsg = add =>
+  const replaceMsg = (add) =>
     add
       ? `replacing ${conflictingOverride.removeUser.name}`
       : `replaced by ${conflictingOverride.addUser.name}`

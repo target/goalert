@@ -29,7 +29,7 @@ const mutation = gql`
   }
 `
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   gridContainer: {
     [theme.breakpoints.up('md')]: {
       justifyContent: 'center',
@@ -52,7 +52,7 @@ interface LimitsValues {
   [id: string]: string
 }
 
-export default function AdminLimits() {
+export default function AdminLimits(): JSX.Element {
   const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})
@@ -67,7 +67,7 @@ export default function AdminLimits() {
     return <Spinner />
   }
 
-  const updateValue = (id: string, value: string) => {
+  const updateValue = (id: string, value: null | string): void => {
     const newVal: LimitsValues = { ...values }
 
     if (value === null) {
@@ -79,7 +79,7 @@ export default function AdminLimits() {
     setValues(newVal)
   }
 
-  const renderPageActions = () => {
+  const renderPageActions = (): JSX.Element => {
     return (
       <PageActions>
         <Button
@@ -127,7 +127,7 @@ export default function AdminLimits() {
               <Card>
                 <AdminSection
                   value={values}
-                  onChange={(id: string, value: string) =>
+                  onChange={(id: string, value: null | string) =>
                     updateValue(id, value)
                   }
                   headerNote='Set limits to -1 to disable.'

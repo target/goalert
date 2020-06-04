@@ -36,8 +36,8 @@ export class FormContainer extends React.PureComponent {
     value: {},
     onChange: () => {},
 
-    mapValue: value => value,
-    mapOnChangeValue: value => value,
+    mapValue: (value) => value,
+    mapOnChangeValue: (value) => value,
   }
 
   state = {
@@ -54,7 +54,7 @@ export class FormContainer extends React.PureComponent {
 
     return () => {
       this._fields[fieldName] = this._fields[fieldName].filter(
-        v => v !== validate,
+        (v) => v !== validate,
       )
       if (this._fields[fieldName].length === 0) {
         delete this._fields[fieldName]
@@ -62,11 +62,11 @@ export class FormContainer extends React.PureComponent {
     }
   }
 
-  onSubmit = (...args) => {
-    const validate = field => {
+  onSubmit = () => {
+    const validate = (field) => {
       let err
       // find first error
-      this._fields[field].find(validate => {
+      this._fields[field].find((validate) => {
         err = validate(get(this.props.value, field))
         return err
       })
@@ -75,7 +75,7 @@ export class FormContainer extends React.PureComponent {
     }
     const validationErrors = Object.keys(this._fields)
       .map(validate)
-      .filter(e => e)
+      .filter((e) => e)
     this.setState({ validationErrors })
     if (validationErrors.length) return false
 

@@ -102,7 +102,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "alert escalation backend")
 	}
-	ncMgr, err := npcyclemanager.NewDB(ctx, db)
+	ncMgr, err := npcyclemanager.NewDB(ctx, db, c.AlertLogStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
@@ -142,7 +142,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 			notification.DestTypeSlackChannel: {PerSecond: 5, Batch: 5 * time.Second},
 		},
 		Pausable: p.mgr,
-	})
+	}, c.AlertLogStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "messaging backend")
 	}
@@ -350,14 +350,29 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 	return errors.New("unknown callback type")
 }
 
-// Stop will disable all associated contact methods associated with `value` of type `t`. This is should
+// Start will enable all associated contact methods of `value` with type `t`. This should
+// be invoked if a user, for example, responds with `START` via sms.
+func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
+	if !d.Type.IsUserCM() {
+		return errors.New("START only supported on user contact methods")
+	}
+
+	var err error
+	permission.SudoContext(ctx, func(ctx context.Context) {
+		err = p.cfg.ContactMethodStore.EnableByValue(ctx, contactmethod.TypeFromDestType(d.Type), d.Value)
+	})
+
+	return err
+}
+
+// Stop will disable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `STOP` via SMS.
 func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
 	if !d.Type.IsUserCM() {
-		return errors.New("stop only supported on user contact methods")
+		return errors.New("STOP only supported on user contact methods")
 	}
-	var err error
 
+	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
 		err = p.cfg.ContactMethodStore.DisableByValue(ctx, contactmethod.TypeFromDestType(d.Type), d.Value)
 	})

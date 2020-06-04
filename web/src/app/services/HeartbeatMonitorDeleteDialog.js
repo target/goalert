@@ -26,16 +26,6 @@ export default function HeartbeatMonitorDeleteDialog(props) {
     variables: { id: props.monitorID },
   })
 
-  function renderQuery() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: props.monitorID }}
-        render={({ data }) => renderDialog(data.heartbeatMonitor.name)}
-      />
-    )
-  }
-
   function renderDialog(name) {
     return (
       <FormDialog
@@ -46,6 +36,16 @@ export default function HeartbeatMonitorDeleteDialog(props) {
         errors={nonFieldErrors(error)}
         onClose={props.onClose}
         onSubmit={() => deleteHeartbeat().then(props.onClose)}
+      />
+    )
+  }
+
+  function renderQuery() {
+    return (
+      <Query
+        query={query}
+        variables={{ id: props.monitorID }}
+        render={({ data }) => renderDialog(data.heartbeatMonitor.name)}
       />
     )
   }

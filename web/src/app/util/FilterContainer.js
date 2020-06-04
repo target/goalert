@@ -11,7 +11,7 @@ import {
 } from '@material-ui/core'
 import { FilterList as FilterIcon } from '@material-ui/icons'
 
-const style = theme => {
+const style = (theme) => {
   return {
     actions: {
       display: 'flex',
@@ -91,7 +91,7 @@ export default class FilterContainer extends React.PureComponent {
       <React.Fragment>
         <IconButton
           color='inherit'
-          onClick={e => {
+          onClick={(e) => {
             this.setState({
               anchorEl: anchorRef ? anchorRef.current : e.target,
             })

@@ -1,11 +1,10 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
+import { Schedule } from '../../schema'
 
 const c = new Chance()
 
-testScreen('Escalation Policy Steps', testSteps)
-
-function testSteps(screen: ScreenFormat) {
+function testSteps(): void {
   describe('Steps', () => {
     let ep: EP
     let r1: Rotation
@@ -14,12 +13,12 @@ function testSteps(screen: ScreenFormat) {
     let s2: Schedule
 
     beforeEach(() => {
-      cy.createRotation().then(r => (r1 = r))
-      cy.createRotation().then(r => (r2 = r))
-      cy.createSchedule().then(s => (s1 = s))
-      cy.createSchedule().then(s => (s2 = s))
+      cy.createRotation().then((r: Rotation) => (r1 = r))
+      cy.createRotation().then((r: Rotation) => (r2 = r))
+      cy.createSchedule().then((s: Schedule) => (s1 = s))
+      cy.createSchedule().then((s: Schedule) => (s2 = s))
 
-      cy.createEP().then(e => {
+      cy.createEP().then((e: EP) => {
         ep = e
         return cy.visit(`/escalation-policies/${ep.id}`)
       })
@@ -34,7 +33,7 @@ function testSteps(screen: ScreenFormat) {
 
     // Create a step with 2 of each type of GoAlert target
     it('should create a step', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         const u1 = users[0]
         const u2 = users[1]
         const delay = c.integer({ min: 1, max: 9000 })
@@ -72,7 +71,7 @@ function testSteps(screen: ScreenFormat) {
     it('should add users when slack is disabled', () => {
       cy.updateConfig({ Slack: { Enable: false } })
       cy.reload()
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         const u1 = users[0]
         const u2 = users[1]
 
@@ -84,10 +83,8 @@ function testSteps(screen: ScreenFormat) {
     })
 
     it('should edit a step', () => {
-      let s1: EPStep
       cy.createEPStep({ epID: ep.id })
-        .then(x => {
-          s1 = x
+        .then(() => {
           cy.reload()
         })
         .then(() => {
@@ -180,11 +177,11 @@ function testSteps(screen: ScreenFormat) {
       let s3: EPStep
 
       cy.createEPStep({ epID: ep.id })
-        .then(x => {
+        .then((x: EPStep) => {
           s1 = x
-          cy.createEPStep({ epID: ep.id }).then(y => {
+          cy.createEPStep({ epID: ep.id }).then((y: EPStep) => {
             s2 = y
-            cy.createEPStep({ epID: ep.id }).then(z => {
+            cy.createEPStep({ epID: ep.id }).then((z: EPStep) => {
               s3 = z
               cy.reload()
             })
@@ -240,3 +237,5 @@ function testSteps(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Escalation Policy Steps', testSteps)

@@ -61,7 +61,7 @@ func main() {
 	defer cancel()
 
 	ch := make(chan os.Signal)
-	signal.Notify(ch, os.Interrupt)
+	signal.Notify(ch, shutdownSignals...)
 	go func() {
 		<-ch
 		log.Println("Got signal, terminating.")

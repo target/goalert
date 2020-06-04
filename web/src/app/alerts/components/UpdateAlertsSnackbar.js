@@ -12,7 +12,7 @@ const icon = {
   fontSize: 20,
 }
 
-const styles = theme => ({
+const styles = (theme) => ({
   success: {
     backgroundColor: 'green',
   },

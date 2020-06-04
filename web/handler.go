@@ -2,6 +2,8 @@ package web
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -9,31 +11,55 @@ import (
 	"os"
 	"path"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/target/goalert/version"
 )
 
 // NewHandler creates a new http.Handler that will serve UI files
 // using bundled assets or by proxying to urlStr if set.
-func NewHandler(urlStr string) (http.Handler, error) {
+func NewHandler(urlStr, prefix string) (http.Handler, error) {
+	mux := http.NewServeMux()
+
+	var extraScripts []string
 	if urlStr == "" {
-		return newMemoryHandler(), nil
-	}
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse url")
+		mux.Handle("/static/", newMemoryHandler())
+	} else {
+		u, err := url.Parse(urlStr)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse url")
+		}
+		proxy := httputil.NewSingleHostReverseProxy(u)
+		mux.Handle("/static/", proxy)
+		mux.Handle("/build/", proxy)
+
+		// dev mode
+		extraScripts = []string{"../build/vendorPackages.dll.js"}
 	}
 
-	return httputil.NewSingleHostReverseProxy(u), nil
+	var buf bytes.Buffer
+	err := indexTmpl.Execute(&buf, renderData{
+		Prefix:       prefix,
+		ExtraScripts: extraScripts,
+	})
+	if err != nil {
+		return nil, err
+	}
+	h := sha256.New()
+	h.Write(buf.Bytes())
+	indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Cache-Control", "private; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
+		w.Header().Set("ETag", indexETag)
+		http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
+	})
+
+	return mux, nil
 }
 
 type memoryHandler struct {
-	files     map[string]File
-	loadIndex sync.Once
-	indexData []byte
+	files map[string]*File
 }
 type memoryFile struct {
 	*bytes.Reader
@@ -41,38 +67,25 @@ type memoryFile struct {
 	size int
 }
 
-func (m *memoryHandler) index() (*memoryFile, error) {
-	m.loadIndex.Do(func() {
-		f, ok := m.files["src/build/index.html"]
-		if !ok {
-			return
-		}
-		stamp := []byte(fmt.Sprintf("\n\n<!-- Version: %s -->\n<!-- GitCommit: %s (%s) -->\n<!-- BuildDate: %s -->\n\n</html>",
-			version.GitVersion(), version.GitCommit(), version.GitTreeState(), version.BuildDate().UTC().Format(time.RFC3339)))
-		data := make([]byte, len(f.Data()), len(f.Data())+len(stamp))
-		copy(data, f.Data())
-		data = bytes.Replace(data, []byte("</html>"), stamp, 1)
-		m.indexData = data
-	})
-
-	if len(m.indexData) == 0 {
-		return nil, errors.New("not found")
-	}
-
-	return &memoryFile{Reader: bytes.NewReader(m.indexData), name: "src/build/index.html", size: len(m.indexData)}, nil
-}
-
 func (m *memoryHandler) Open(file string) (http.File, error) {
-	if file == "/index.html" {
-		return m.index()
-	}
-
 	if f, ok := m.files["src/build"+file]; ok {
 		return &memoryFile{Reader: bytes.NewReader(f.Data()), name: f.Name, size: len(f.Data())}, nil
 	}
 
-	// fallback to loading the index page
-	return m.index()
+	return nil, os.ErrNotExist
+}
+func (m *memoryHandler) ETag(url string) string {
+	if !strings.HasPrefix(url, "/") {
+		url = "/" + url
+	}
+	url = path.Clean(url)
+
+	f, ok := m.files["src/build"+url]
+	if !ok {
+		return ""
+	}
+
+	return `"sha256-` + f.Hash256() + `"`
 }
 
 func (m *memoryFile) Close() error { return nil }
@@ -95,26 +108,20 @@ func (m *memoryFile) ModTime() time.Time {
 func (m *memoryFile) IsDir() bool      { return false }
 func (m *memoryFile) Sys() interface{} { return nil }
 
-func rootFSFix(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if req.URL.Path == "/" {
-			// necessary to avoid redirect loop
-			req.URL.Path = "/alerts"
-		}
-		if strings.Contains(req.URL.Path, "/static/") {
-			w.Header().Add("Cache-Control", "public, immutable, max-age=315360000")
-		}
-
-		h.ServeHTTP(w, req)
-	})
-}
-
 func newMemoryHandler() http.Handler {
-	m := &memoryHandler{files: make(map[string]File, len(Files))}
+	m := &memoryHandler{
+		files: make(map[string]*File, len(Files)),
+	}
 	for _, f := range Files {
 		m.files[f.Name] = f
 	}
-	go m.index()
-
-	return rootFSFix(http.FileServer(m))
+	fs := http.FileServer(m)
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		etag := m.ETag(req.URL.Path)
+		if etag != "" {
+			w.Header().Set("ETag", etag)
+			w.Header().Set("Cache-Control", "public; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
+		}
+		fs.ServeHTTP(w, req)
+	})
 }

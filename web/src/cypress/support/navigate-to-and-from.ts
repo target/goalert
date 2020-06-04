@@ -1,14 +1,3 @@
-declare namespace Cypress {
-  interface Chainable {
-    /**
-     * Navigate to an extended details page
-     * and verify navigating back to main
-     * details page
-     */
-    navigateToAndFrom: typeof navigateToAndFrom
-  }
-}
-
 /*
  * screen: screen size
  * pageName: name of title when on main details page
@@ -22,12 +11,10 @@ function navigateToAndFrom(
   targetName: string, // item name/title
   detailsName: string, // sub page title
   route: string,
-) {
+): void {
   // navigate to extended details view
   cy.get('[data-cy=app-bar]').should('contain', pageName)
-  cy.get('ul[data-cy="route-links"] li')
-    .contains(detailsName)
-    .click()
+  cy.get('ul[data-cy="route-links"] li').contains(detailsName).click()
 
   // verify url
   cy.url().should('include', route)
@@ -63,3 +50,5 @@ function navigateToAndFrom(
 }
 
 Cypress.Commands.add('navigateToAndFrom', navigateToAndFrom)
+
+export {}

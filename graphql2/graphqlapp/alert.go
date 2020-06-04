@@ -10,6 +10,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
@@ -18,6 +19,7 @@ import (
 
 type Alert App
 type AlertLogEntry App
+type AlertLogEntryState App
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
 
@@ -39,15 +41,45 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(), nil
 }
 
+func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	if !ok || meta == nil {
+		return nil, nil
+	}
+
+	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
+	if err != nil {
+		return nil, errors.Wrap(err, "find alert log state")
+	}
+
+	var status graphql2.AlertLogStatus
+	switch s.State {
+	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
+		status = "ERROR"
+	case notification.MessageStateSent, notification.MessageStateDelivered:
+		status = "OK"
+	}
+
+	return &graphql2.AlertLogEntryState{
+		Details: s.Details,
+		Status:  &status,
+	}, nil
+}
+
 func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
 	return (*App)(q).FindOneAlert(ctx, alertID)
 }
 
+/*
+ * Merges favorites and user-specified serviceIDs in opts.FilterByServiceID
+ */
 func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, error) {
 	targets, err := q.FavoriteStore.FindAll(ctx, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
 	if err != nil {
 		return nil, err
 	}
+
 	if len(svcs) == 0 {
 		for _, t := range targets {
 			svcs = append(svcs, t.TargetID())
@@ -67,8 +99,8 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 			}
 			svcs = append(svcs, t.TargetID())
 		}
-		// Here we have the intersection of favorites and user-specified serviceIDs in opts.FilterByServiceID
 	}
+
 	return svcs, nil
 }
 
@@ -111,9 +143,18 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 			if err != nil {
 				return nil, err
 			}
+
+			// favorites only with no returned services will
+			// return an empty result set
+			if len(s.Services) == 0 {
+				return &graphql2.AlertConnection{
+					PageInfo: &graphql2.PageInfo{},
+				}, nil
+			}
 		} else {
 			s.Services = opts.FilterByServiceID
 		}
+
 		for _, f := range opts.FilterByStatus {
 			switch f {
 			case graphql2.AlertStatusStatusAcknowledged:
@@ -272,4 +313,22 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	}
 
 	return m.AlertStore.FindMany(ctx, updatedIDs)
+}
+
+func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.UpdateAlertsByServiceInput) (bool, error) {
+	var status alert.Status
+
+	switch args.NewStatus {
+	case graphql2.AlertStatusStatusAcknowledged:
+		status = alert.StatusActive
+	case graphql2.AlertStatusStatusClosed:
+		status = alert.StatusClosed
+	}
+
+	err := m.AlertStore.UpdateStatusByService(ctx, args.ServiceID, status)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

@@ -62,9 +62,7 @@ export default class WizardRouter extends React.PureComponent {
         timeZone: null,
         users: [],
         rotation: {
-          startDate: DateTime.local()
-            .startOf('day')
-            .toISO(),
+          startDate: DateTime.local().startOf('day').toISO(),
           type: 'never',
           favorite: true,
         },
@@ -79,9 +77,7 @@ export default class WizardRouter extends React.PureComponent {
         timeZone: null,
         users: [],
         rotation: {
-          startDate: DateTime.local()
-            .startOf('day')
-            .toISO(),
+          startDate: DateTime.local().startOf('day').toISO(),
           type: 'never',
           favorite: true,
         },
@@ -119,14 +115,14 @@ export default class WizardRouter extends React.PureComponent {
       .then(() => {
         this.setState({ complete: true })
       })
-      .catch(err => {
+      .catch((err) => {
         const generalErrors = nonFieldErrors(err)
-        const graphqlErrors = fieldErrors(err).map(error => {
+        const graphqlErrors = fieldErrors(err).map((error) => {
           const name = error.field
             .split('.')
             .pop() // get last occurrence
             .replace(/([A-Z])/g, ' $1') // insert a space before all caps
-            .replace(/^./, str => str.toUpperCase()) // uppercase the first character
+            .replace(/^./, (str) => str.toUpperCase()) // uppercase the first character
 
           return `${name}: ${error.message}`
         })
@@ -135,7 +131,7 @@ export default class WizardRouter extends React.PureComponent {
 
         if (errors.length) {
           this.setState({
-            errorMessage: errors.map(e => e.message || e).join('\n'),
+            errorMessage: errors.map((e) => e.message || e).join('\n'),
           })
         }
       })
@@ -152,7 +148,7 @@ export default class WizardRouter extends React.PureComponent {
     const secondary = value.secondarySchedule.enable === 'yes'
     const steps = []
 
-    const step = key => ({
+    const step = (key) => ({
       delayMinutes: value.delayMinutes,
       newSchedule: {
         ...getSchedule(key, value),
@@ -169,7 +165,7 @@ export default class WizardRouter extends React.PureComponent {
     return steps
   }
 
-  onDialogClose = data => {
+  onDialogClose = (data) => {
     if (data && data.createService) {
       return this.setState({ redirect: true })
     }
@@ -201,7 +197,7 @@ export default class WizardRouter extends React.PureComponent {
                       disabled={status.loading}
                       errors={fieldErrors(error)}
                       value={this.state.value}
-                      onChange={value => this.setState({ value })}
+                      onChange={(value) => this.setState({ value })}
                     />
                   </CardContent>
                   <CardActions className={this.props.classes.cardActions}>

@@ -37,7 +37,7 @@ const days = [
   'Saturday',
 ]
 
-const renderDaysValue = value => {
+const renderDaysValue = (value) => {
   const parts = []
   let start = ''
   let last = ''
@@ -71,7 +71,7 @@ const renderDaysValue = value => {
   return parts.join(',')
 }
 
-const styles = theme => {
+const styles = () => {
   return {
     noPadding: {
       padding: 0,
@@ -102,7 +102,7 @@ const query = gql`
 `
 
 @withStyles(styles)
-@connect(state => ({ zone: urlParamSelector(state)('tz', 'local') }))
+@connect((state) => ({ zone: urlParamSelector(state)('tz', 'local') }))
 export default class ScheduleRuleForm extends React.PureComponent {
   static propTypes = {
     targetType: p.oneOf(['rotation', 'user']).isRequired,
@@ -134,7 +134,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
     )
   }
 
-  renderForm(scheduleTZ) {
+  renderForm() {
     const {
       zone: displayTZ,
       targetDisabled,
@@ -155,7 +155,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
           <Grid item xs={12} sm={12} md={6}>
             {/* Purposefully leaving out of form, as it's only used for converting display times. */}
             <ScheduleTZFilter
-              label={tz => `Configure in ${tz}`}
+              label={(tz) => `Configure in ${tz}`}
               scheduleID={this.props.scheduleID}
             />
           </Grid>
@@ -176,7 +176,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
                   <TableCell className={classes.startEnd}>Start</TableCell>
                   <TableCell className={classes.startEnd}>End</TableCell>
                   <Hidden smDown>
-                    {days.map(d => (
+                    {days.map((d) => (
                       <TableCell key={d} padding='checkbox'>
                         {d.slice(0, 3)}
                       </TableCell>
@@ -201,7 +201,7 @@ export default class ScheduleRuleForm extends React.PureComponent {
                               .startOf('day')
                               .toUTC()
                               .toISO(),
-                            weekdayFilter: days.map(d => true),
+                            weekdayFilter: Array(days.length).fill(true),
                           }),
                         })
                       }
@@ -277,10 +277,12 @@ export default class ScheduleRuleForm extends React.PureComponent {
               name={`rules[${idx}].weekdayFilter`}
               aria-label='Weekday Filter'
               multiple
-              mapValue={value => days.filter((d, idx) => value[idx])}
-              mapOnChangeValue={value => days.map(day => value.includes(day))}
+              mapValue={(value) => days.filter((d, idx) => value[idx])}
+              mapOnChangeValue={(value) =>
+                days.map((day) => value.includes(day))
+              }
             >
-              {days.map(day => (
+              {days.map((day) => (
                 <MenuItem value={day} key={day}>
                   {day}
                 </MenuItem>

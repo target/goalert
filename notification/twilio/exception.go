@@ -10,6 +10,6 @@ type Exception struct {
 	MoreInfo string `json:"more_info"`
 }
 
-func (e *Exception) Error() string {
+func (e Exception) Error() string {
 	return fmt.Sprintf("%d: %s", e.Code, e.Message)
 }

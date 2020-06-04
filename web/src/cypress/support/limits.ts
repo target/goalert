@@ -1,23 +1,17 @@
-declare namespace Cypress {
-  interface Chainable {
-    getLimits: typeof getLimits
-    updateLimits: typeof updateLimits
-  }
-}
 interface SystemLimitInput {
   id: string
   value: number
 }
-interface SystemLimits {
+export interface SystemLimits {
   id: string
   value: number
   description: string
 }
 
-type Limits = Map<string, { value: number; description: string }>
+export type Limits = Map<string, { value: number; description: string }>
 
 function getLimits(): Cypress.Chainable<Limits> {
-  let limits = new Map()
+  const limits = new Map()
   const query = `query getLimits() {
     systemLimits {
       id
@@ -25,7 +19,7 @@ function getLimits(): Cypress.Chainable<Limits> {
       value
     }
   }`
-  return cy.graphql2(query).then(res => {
+  return cy.graphql(query).then((res: GraphQLResponse) => {
     res.systemLimits.forEach((l: SystemLimits) => {
       limits.set(l.id, { value: l.value, description: l.description })
     })
@@ -34,12 +28,12 @@ function getLimits(): Cypress.Chainable<Limits> {
   })
 }
 
-function updateLimits(input: SystemLimitInput[]): Cypress.Chainable<Boolean> {
+function updateLimits(input: SystemLimitInput[]): Cypress.Chainable<boolean> {
   const query = `mutation updateLimits($input: [SystemLimitInput!]!){
     setSystemLimits(input: $input)
   }`
 
-  return cy.graphql2(query, { input: input })
+  return cy.graphql(query, { input: input })
 }
 
 Cypress.Commands.add('getLimits', getLimits)

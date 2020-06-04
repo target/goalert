@@ -68,11 +68,11 @@ func DBURL(name string) string {
 
 // Harness is a helper for smoketests. It deals with assertions, database management, and backend monitoring during tests.
 type Harness struct {
-	phoneG, phoneCCG, uuidG *DataGen
-	t                       *testing.T
-	closing                 bool
+	phoneCCG, uuidG *DataGen
+	t               *testing.T
+	closing         bool
 
-	tw  *twServer
+	tw  *twilioAssertionAPI
 	twS *httptest.Server
 
 	cfg config.Config
@@ -169,18 +169,16 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	conn.Close(ctx)
 
 	t.Logf("created test database '%s': %s", name, dbURL)
-	g := NewDataGen(t, "Phone", DataGenFunc(GenPhone))
 
 	twCfg := mocktwilio.Config{
 		AuthToken:    twilioAuthToken,
 		AccountSID:   twilioAccountSID,
-		MinQueueTime: time.Second, // until we have a stateless backend for answering calls
+		MinQueueTime: 100 * time.Millisecond, // until we have a stateless backend for answering calls
 	}
 
 	h := &Harness{
-		phoneG:         g,
 		uuidG:          NewDataGen(t, "UUID", DataGenFunc(GenUUID)),
-		phoneCCG:       NewDataGen(t, "PhoneCC", DataGenArgFunc(GenPhoneCC)),
+		phoneCCG:       NewDataGen(t, "Phone", DataGenArgFunc(GenPhoneCC)),
 		dbName:         name,
 		dbURL:          DBURL(name),
 		lastTimeChange: start,
@@ -188,7 +186,18 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 
 		t: t,
 	}
-	h.tw = newTWServer(t, h, mocktwilio.NewServer(twCfg))
+
+	h.tw = newTwilioAssertionAPI(func() {
+		h.FastForward(time.Minute)
+		h.Trigger()
+	}, func(num string) string {
+		id, ok := h.phoneCCG.names[num]
+		if !ok {
+			return num
+		}
+
+		return fmt.Sprintf("%s/Phone(%s)", num, id)
+	}, mocktwilio.NewServer(twCfg), h.phoneCCG.Get("twilio"))
 
 	h.twS = httptest.NewServer(h.tw)
 
@@ -233,6 +242,7 @@ func (h *Harness) Start() {
 	}
 
 	var cfg config.Config
+	cfg.General.DisableV1GraphQL = true
 	cfg.Slack.Enable = true
 	cfg.Slack.AccessToken = h.slackApp.AccessToken
 	cfg.Slack.ClientID = h.slackApp.ClientID
@@ -240,7 +250,7 @@ func (h *Harness) Start() {
 	cfg.Twilio.Enable = true
 	cfg.Twilio.AccountSID = twilioAccountSID
 	cfg.Twilio.AuthToken = twilioAuthToken
-	cfg.Twilio.FromNumber = h.phoneG.Get("twilio")
+	cfg.Twilio.FromNumber = h.phoneCCG.Get("twilio")
 
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey
@@ -303,11 +313,11 @@ func (h *Harness) Start() {
 
 	h.backendURL = <-urlCh
 
-	err = h.tw.RegisterSMSCallback(h.phoneG.Get("twilio"), h.backendURL+"/v1/twilio/sms/messages")
+	err = h.tw.RegisterSMSCallback(h.phoneCCG.Get("twilio"), h.backendURL+"/v1/twilio/sms/messages")
 	if err != nil {
 		h.t.Fatalf("failed to init twilio (SMS callback): %v", err)
 	}
-	err = h.tw.RegisterVoiceCallback(h.phoneG.Get("twilio"), h.backendURL+"/v1/twilio/voice/call")
+	err = h.tw.RegisterVoiceCallback(h.phoneCCG.Get("twilio"), h.backendURL+"/v1/twilio/voice/call")
 	if err != nil {
 		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
 	}
@@ -382,6 +392,8 @@ func (h *Harness) modifyDBOffset(d time.Duration) {
 	h.setDBOffset(h.delayOffset)
 }
 func (h *Harness) setDBOffset(d time.Duration) {
+	h.mx.Lock()
+	defer h.mx.Unlock()
 	elapsed := time.Since(h.resumed)
 	h.t.Logf("Updating DB time offset to: %s (+ %s elapsed = %s since test start)", h.delayOffset.String(), elapsed.String(), (h.delayOffset + elapsed).String())
 
@@ -421,7 +433,7 @@ func (h *Harness) execQuery(sql string) {
 	t := template.New("sql")
 	t.Funcs(template.FuncMap{
 		"uuid":    func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
-		"phone":   func(id string) string { return fmt.Sprintf("'%s'", h.phoneG.Get(id)) },
+		"phone":   func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
 		"phoneCC": func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
 
 		"slackChannelID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
@@ -536,7 +548,7 @@ func (h *Harness) Escalate(alertID, level int) {
 }
 
 // Phone will return the generated phone number for the id provided.
-func (h *Harness) Phone(id string) string { return h.phoneG.Get(id) }
+func (h *Harness) Phone(id string) string { return h.phoneCCG.Get(id) }
 
 // PhoneCC will return the generated phone number for the id provided.
 func (h *Harness) PhoneCC(cc, id string) string { return h.phoneCCG.GetWithArg(cc, id) }
@@ -583,7 +595,11 @@ func (h *Harness) dumpDB() {
 // It should be called at the end of all tests (usually with `defer h.Close()`).
 func (h *Harness) Close() error {
 	h.t.Helper()
-	h.tw.WaitAndAssert()
+	if recErr := recover(); recErr != nil {
+		defer panic(recErr)
+	}
+
+	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
 	h.slackS.Close()
 	h.twS.Close()

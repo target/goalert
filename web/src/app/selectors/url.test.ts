@@ -14,7 +14,7 @@ describe('urlParamSelector', () => {
     { search: '?foo=bar&bin=baz', expected: { foo: 'bar', bin: 'baz' } },
     { search: '?search=asdf%26%3D', expected: { search: 'asdf&=' } },
   ] as { search: string; expected: { [index: string]: string } }[]).forEach(
-    cfg =>
+    (cfg) =>
       test(cfg.search || '(empty)', () => {
         const res = urlParamSelector({
           router: {
@@ -50,29 +50,29 @@ describe('absURLSelector', () => {
     router: { location: { pathname: '/base' } },
   } as ReduxState)
   test('clean urls', () => {
-    expect(sel('/foo/.')).toBe('/foo')
-    expect(sel('foo/././/')).toBe('/base/foo')
+    expect(sel('/foo/.')).toBe('http://localhost/foo')
+    expect(sel('foo/././/')).toBe('http://localhost/base/foo')
   })
   test('respect absolute urls', () => {
-    expect(sel('/foo')).toBe('/foo')
+    expect(sel('/foo')).toBe('http://localhost/foo')
   })
   test('join relative urls', () => {
-    expect(sel('foo')).toBe('/base/foo')
-    expect(sel('foo/')).toBe('/base/foo')
+    expect(sel('foo')).toBe('http://localhost/base/foo')
+    expect(sel('foo/')).toBe('http://localhost/base/foo')
   })
 
   test('handle .. appropriately', () => {
-    const check = (base: string, path: string, expected: string) =>
+    const check = (base: string, path: string, expected: string): void =>
       expect(
         absURLSelector({
           router: { location: { pathname: base } },
         } as ReduxState)(path),
       ).toBe(expected)
 
-    check('/foo/bar', '..', '/foo')
-    check('/foo/bar/', '..', '/foo')
-    check('/foo/bar', '../baz', '/foo/baz')
-    check('/foo/bar/', '../baz/', '/foo/baz')
-    check('/foo/bar/', '../baz/../bin', '/foo/bin')
+    check('/foo/bar', '..', 'http://localhost/foo')
+    check('/foo/bar/', '..', 'http://localhost/foo')
+    check('/foo/bar', '../baz', 'http://localhost/foo/baz')
+    check('/foo/bar/', '../baz/', 'http://localhost/foo/baz')
+    check('/foo/bar/', '../baz/../bin', 'http://localhost/foo/bin')
   })
 })

@@ -32,13 +32,13 @@ export class GracefulUnmounter extends React.PureComponent {
 export class GracefulUnmounterProvider extends React.PureComponent {
   items = []
 
-  onExited = id => {
-    this.items = this.items.filter(i => i.id !== id)
+  onExited = (id) => {
+    this.items = this.items.filter((i) => i.id !== id)
     this.forceUpdate()
   }
 
-  onUnmount = id => {
-    this.items.find(i => i.id === id).isUnmounting = true
+  onUnmount = (id) => {
+    this.items.find((i) => i.id === id).isUnmounting = true
     this.forceUpdate()
   }
 
@@ -52,7 +52,7 @@ export class GracefulUnmounterProvider extends React.PureComponent {
   }
 
   onUpdate = (id, render) => {
-    const item = this.items.find(i => i.id === id)
+    const item = this.items.find((i) => i.id === id)
     if (item.render === render) return
     item.render = render
     this.forceUpdate()
@@ -60,8 +60,8 @@ export class GracefulUnmounterProvider extends React.PureComponent {
 
   renderItems() {
     return this.items
-      .filter(item => item)
-      .map(item =>
+      .filter((item) => item)
+      .map((item) =>
         item.render({
           key: 'graceful_' + item.id,
           isUnmounting: item.isUnmounting,
@@ -94,16 +94,16 @@ export class GracefulUnmounterProvider extends React.PureComponent {
 }
 
 export default function gracefulUnmount() {
-  return Component =>
+  return (Component) =>
     function GracefulUnmount(props) {
       return (
         <GracefulUnmountContext.Consumer>
-          {ctxProps => (
+          {(ctxProps) => (
             <GracefulUnmounter
               {...ctxProps}
               component={Component}
               componentProps={props}
-              render={gracefulProps => (
+              render={(gracefulProps) => (
                 <Component {...gracefulProps} {...props} />
               )}
             />

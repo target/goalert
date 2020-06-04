@@ -16,11 +16,11 @@ const mutation = gql`
 `
 
 @connect(
-  state => ({
+  (state) => ({
     errorMessage: urlParamSelector(state)('errorMessage'),
     errorTitle: urlParamSelector(state)('errorTitle'),
   }),
-  dispatch => ({
+  (dispatch) => ({
     resetError: () => dispatch(resetURLParams('errorMessage', 'errorTitle')),
   }),
 )
@@ -82,7 +82,7 @@ export default class PolicyStepEditDialog extends React.Component {
             errors={fieldErrs}
             disabled={loading}
             value={this.state.value || defaultValue}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

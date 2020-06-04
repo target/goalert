@@ -86,7 +86,7 @@ export default class RotationEditDialog extends React.PureComponent {
                 start: data.start,
               }
             }
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

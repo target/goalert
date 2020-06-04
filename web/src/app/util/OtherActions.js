@@ -7,7 +7,7 @@ import Hidden from '@material-ui/core/Hidden'
 import OtherActionsDesktop from './OtherActionsDesktop'
 import OtherActionsMobile from './OtherActionsMobile'
 
-const cancelable = _fn => {
+const cancelable = (_fn) => {
   let fn = _fn
   const cFn = (...args) => fn(...args)
   cFn.cancel = () => {
@@ -55,7 +55,7 @@ export default class OtherActions extends React.PureComponent {
             'data-cy': 'other-actions',
             color: 'inherit',
             'aria-expanded': Boolean(this.state.anchorEl),
-            onClick: e => {
+            onClick: (e) => {
               onClose.cancel()
               this.setState({
                 anchorEl: e.currentTarget,

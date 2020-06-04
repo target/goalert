@@ -41,6 +41,14 @@ func (e Entry) Meta() interface{} {
 			return nil
 		}
 		return &esc
+	case TypeNotificationSent:
+		var n NotificationMetaData
+		err := json.Unmarshal(e.meta, &n)
+		if err != nil {
+			log.Debug(context.Background(), err)
+			return nil
+		}
+		return &n
 	}
 
 	return nil
@@ -135,6 +143,9 @@ func (e Entry) String() string {
 		}
 	case TypeNotificationSent:
 		msg = "Notification sent"
+		infinitive = true
+	case TypeNoNotificationSent:
+		msg = "No notification sent"
 		infinitive = true
 	case TypePolicyUpdated:
 		msg = "Policy updated"

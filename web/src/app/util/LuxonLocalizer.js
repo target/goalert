@@ -42,7 +42,7 @@ export const formats = {
   agendaTimeRangeFormat: timeRangeFormat,
 }
 
-const LuxonLocalizer = function(DateTime, { firstDayOfWeek }) {
+const LuxonLocalizer = function (DateTime, { firstDayOfWeek }) {
   const locale = (d, c) => (c ? d.reconfigure(c) : d)
 
   return new DateLocalizer({

@@ -1,9 +1,10 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestInProgress ensures that sent and in-progress notifications for triggered alerts are honored through the migration.
@@ -73,7 +74,7 @@ func TestInProgress(t *testing.T) {
 	h := harness.NewHarness(t, sql, "UserFavorites")
 	defer h.Close()
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 	d2 := tw.Device(h.Phone("2"))
 	d3 := tw.Device(h.Phone("3"))
@@ -84,8 +85,6 @@ func TestInProgress(t *testing.T) {
 	d2.ExpectSMS("testing2")
 
 	d3.ExpectSMS("testing2")
-
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 
@@ -98,16 +97,12 @@ func TestInProgress(t *testing.T) {
 	d3.ExpectSMS("testing1")
 	d3.ExpectSMS("testing2")
 
-	tw.WaitAndAssert()
-
 	h.Escalate(1, 0)
 
 	d2.ExpectSMS("testing1")
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 
 	d2.ExpectSMS("testing1")
 	d2.ExpectVoice("testing1")
-	tw.WaitAndAssert()
 }

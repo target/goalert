@@ -152,7 +152,7 @@ export default class IntegrationKeyList extends React.PureComponent {
     const items = (keys || [])
       .slice()
       .sort(sortItems)
-      .map(key => ({
+      .map((key) => ({
         title: key.name,
         subText: (
           <IntegrationKeyDetails

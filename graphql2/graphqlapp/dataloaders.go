@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/dataloader"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/service"
@@ -27,6 +28,7 @@ const (
 	dataLoaderKeyUser
 	dataLoaderKeyCM
 	dataLoaderKeyHeartbeatMonitor
+	dataLoaderKeyNotificationMessageStatus
 )
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
@@ -37,7 +39,21 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyService, dataloader.NewServiceLoader(ctx, a.ServiceStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewUserLoader(ctx, a.UserStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewCMLoader(ctx, a.CMStore))
+	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewNotificationMessageStatusLoader(ctx, a.NotificationStore))
 	return ctx
+}
+
+func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string) (*notification.MessageStatus, error) {
+	loader, ok := ctx.Value(dataLoaderKeyNotificationMessageStatus).(*dataloader.NotificationMessageStatusLoader)
+	if !ok {
+		ms, err := app.NotificationStore.FindManyMessageStatuses(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return &ms[0], nil
+	}
+
+	return loader.FetchOne(ctx, id)
 }
 
 func (app *App) FindOneRotation(ctx context.Context, id string) (*rotation.Rotation, error) {

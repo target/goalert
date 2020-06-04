@@ -38,5 +38,5 @@ func TestTwilioVoice(t *testing.T) {
 		}
 		`, h.UUID("cm1")))
 
-	h.Twilio().Device(h.Phone("1")).ExpectVoice("test")
+	h.Twilio(t).Device(h.Phone("1")).ExpectVoice("test")
 }

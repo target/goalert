@@ -1,8 +1,9 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestTwilioVoiceEmptyMessage checks that an appropriate voice call is made when alert has empty summary.
@@ -43,8 +44,6 @@ func TestTwilioVoiceEmptyMessage(t *testing.T) {
 	h := harness.NewHarness(t, sql, "alerts-split-summary-details")
 	defer h.Close()
 
-	d1 := h.Twilio().Device(h.Phone("1"))
+	d1 := h.Twilio(t).Device(h.Phone("1"))
 	d1.ExpectVoice("No summary provided")
-
-	h.Twilio().WaitAndAssert()
 }

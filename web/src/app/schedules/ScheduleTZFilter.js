@@ -36,7 +36,7 @@ export function ScheduleTZFilter(props) {
       control={
         <Switch
           checked={zone !== 'local'}
-          onChange={e => setZone(e.target.checked ? tz : 'local')}
+          onChange={(e) => setZone(e.target.checked ? tz : 'local')}
           value={tz}
           disabled={Boolean(loading || error)}
         />

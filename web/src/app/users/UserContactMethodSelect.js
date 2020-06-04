@@ -48,16 +48,17 @@ export default class UserContactMethodSelect extends React.PureComponent {
 
   renderControl(cms) {
     const { userID, extraItems, ...rest } = this.props
+
     return (
       <TextField select {...rest}>
         {sortContactMethods(cms)
-          .map(cm => (
+          .map((cm) => (
             <MenuItem key={cm.id} value={cm.id}>
               {cm.name} ({cm.type})
             </MenuItem>
           ))
           .concat(
-            extraItems.map(item => (
+            extraItems.map((item) => (
               <MenuItem key={item.value} value={item.value}>
                 {item.label || item.value}
               </MenuItem>

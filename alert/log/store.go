@@ -314,6 +314,15 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			}
 		case permission.SourceTypeContactMethod:
 			r.subject._type = SubjectTypeUser
+			r.subject.userID.String = permission.UserID(ctx)
+			if r.subject.userID.String != "" {
+				r.subject.userID.Valid = true
+			}
+			if _type == TypeNoNotificationSent {
+				// no CMID for no notification sent
+				r.subject.classifier = "no immediate rule"
+				break
+			}
 			var cmType contactmethod.Type
 			err = txWrap(ctx, tx, db.lookupCMType).QueryRowContext(ctx, src.ID).Scan(&cmType)
 			if err != nil {
@@ -327,10 +336,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			case contactmethod.TypeEmail:
 				r.subject.classifier = "Email"
 			}
-			r.subject.userID.String = permission.UserID(ctx)
-			if r.subject.userID.String != "" {
-				r.subject.userID.Valid = true
-			}
+
 		case permission.SourceTypeNotificationCallback:
 			r.subject._type = SubjectTypeUser
 			var cmType contactmethod.Type

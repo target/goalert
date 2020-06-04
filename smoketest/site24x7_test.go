@@ -2,9 +2,10 @@ package smoketest
 
 import (
 	"bytes"
-	"github.com/target/goalert/smoketest/harness"
 	"net/http"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 func TestSite24x7(t *testing.T) {
@@ -72,6 +73,5 @@ func TestSite24x7(t *testing.T) {
 		t.Error("non-200 response:", resp.Status)
 	}
 	resp.Body.Close()
-
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("Site24x7")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Site24x7")
 }

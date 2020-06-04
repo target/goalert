@@ -1,42 +1,6 @@
 import { Chance } from 'chance'
 const c = new Chance()
 
-declare global {
-  export namespace Cypress {
-    interface Chainable {
-      createEP: typeof createEP
-      deleteEP: typeof deleteEP
-      createEPStep: typeof createEPStep
-    }
-  }
-
-  interface EP {
-    id: string
-    name: string
-    description: string
-    repeat: number
-    stepCount: number
-  }
-
-  interface EPOptions {
-    name?: string
-    description?: string
-    repeat?: number
-    stepCount?: number
-  }
-
-  interface EPStep {
-    delayMinutes: number
-  }
-
-  interface EPStepOptions {
-    epID?: string
-    ep?: EPOptions
-    delay?: number
-    targets?: [Target]
-  }
-}
-
 const policyMutation = `
     mutation($input: CreateEscalationPolicyInput!) {
       createEscalationPolicy(input: $input) {
@@ -66,17 +30,17 @@ function createEP(ep?: EPOptions): Cypress.Chainable<EP> {
   const stepCount = ep.stepCount || 0
 
   return cy
-    .graphql2(policyMutation, {
+    .graphql(policyMutation, {
       input: {
         name: ep.name || 'SM EP ' + c.word({ length: 8 }),
         description: ep.description || c.sentence(),
         repeat: ep.repeat || c.integer({ min: 1, max: 5 }),
       },
     })
-    .then(res => res.createEscalationPolicy)
-    .then(pol => {
+    .then((res: GraphQLResponse) => res.createEscalationPolicy)
+    .then((pol: EP) => {
       for (let i = 0; i < stepCount; i++) {
-        cy.graphql2(stepMutation, {
+        cy.graphql(stepMutation, {
           input: {
             escalationPolicyID: pol.id,
             delayMinutes: 10,
@@ -96,7 +60,7 @@ function deleteEP(id: string): Cypress.Chainable<void> {
     }
    `
 
-  return cy.graphql2(mutation, {
+  return cy.graphql(mutation, {
     input: [
       {
         type: 'escalationPolicy',
@@ -112,18 +76,18 @@ function createEPStep(step?: EPStepOptions): Cypress.Chainable<EPStep> {
   if (!step.epID) {
     return cy
       .createEP(step.ep)
-      .then(ep => createEPStep({ ...step, epID: ep.id }))
+      .then((ep: EP) => createEPStep({ ...step, epID: ep.id }))
   }
 
   return cy
-    .graphql2(stepMutation, {
+    .graphql(stepMutation, {
       input: {
         escalationPolicyID: step.epID,
         delayMinutes: step.delay || c.integer({ min: 1, max: 9000 }),
         targets: step.targets || [],
       },
     })
-    .then(res => res.createEscalationPolicyStep)
+    .then((res: GraphQLResponse) => res.createEscalationPolicyStep)
 }
 
 Cypress.Commands.add('createEP', createEP)

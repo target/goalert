@@ -59,8 +59,10 @@ const useStyles = makeStyles({
 
 function serviceCount(onCallSteps = []) {
   const svcs = {}
-  ;(onCallSteps || []).forEach(s =>
-    (s.escalationPolicy.assignedTo || []).forEach(svc => (svcs[svc.id] = true)),
+  ;(onCallSteps || []).forEach((s) =>
+    (s.escalationPolicy.assignedTo || []).forEach(
+      (svc) => (svcs[svc.id] = true),
+    ),
   )
 
   return Object.keys(svcs).length
@@ -128,7 +130,7 @@ export default function UserDetails(props) {
         <UserContactMethodCreateDialog
           userID={props.userID}
           disclaimer={disclaimer}
-          onClose={result => {
+          onClose={(result) => {
             setCreateCM(false)
             setShowVerifyDialogByID(
               result && result.contactMethodID ? result.contactMethodID : null,

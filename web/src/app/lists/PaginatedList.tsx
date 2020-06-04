@@ -24,6 +24,8 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
 import { AppLink } from '../util/AppLink'
+import statusStyles from '../util/statusStyles'
+import { debug } from '../util/debug'
 
 // gray boxes on load
 // disable overflow
@@ -31,7 +33,7 @@ import { AppLink } from '../util/AppLink'
 // delete on details -> update list (cache, refetch?)
 // - on details, don't have accesses to search param
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   infiniteScrollFooter: {
     display: 'flex',
     justifyContent: 'center',
@@ -56,6 +58,7 @@ const useStyles = makeStyles(theme => ({
       },
     },
   },
+  ...statusStyles,
 }))
 
 export interface PaginatedListProps {
@@ -90,9 +93,10 @@ export interface PaginatedListItemProps {
   isFavorite?: boolean
   icon?: ReactElement // renders a list item icon (or avatar)
   action?: ReactNode
+  status?: 'ok' | 'warn' | 'err'
 }
 
-export function PaginatedList(props: PaginatedListProps) {
+export function PaginatedList(props: PaginatedListProps): JSX.Element {
   const {
     cardHeader,
     headerNote,
@@ -137,7 +141,7 @@ export function PaginatedList(props: PaginatedListProps) {
     return false
   })()
 
-  function handleNextPage() {
+  function handleNextPage(): void {
     const nextPage = page + 1
     setPage(nextPage)
 
@@ -162,7 +166,6 @@ export function PaginatedList(props: PaginatedListProps) {
 
   function renderItem(item: PaginatedListItemProps, idx: number): ReactElement {
     let favIcon = <ListItemSecondaryAction />
-
     if (item.isFavorite) {
       favIcon = (
         <ListItemSecondaryAction>
@@ -173,15 +176,32 @@ export function PaginatedList(props: PaginatedListProps) {
       )
     }
 
+    // get status style for left-most border color
+    let itemClass = classes.noStatus
+    switch (item.status) {
+      case 'ok':
+        itemClass = classes.statusOK
+        break
+      case 'warn':
+        itemClass = classes.statusWarning
+        break
+      case 'err':
+        itemClass = classes.statusError
+        break
+    }
+
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
       component: AppLink,
+      // NOTE button: false? not assignable to true
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
       to: item.url,
     }
 
     return (
       <ListItem
+        className={itemClass}
         dense={isWidthUp('md', width)}
         key={'list_' + idx}
         {...urlProps}
@@ -203,11 +223,11 @@ export function PaginatedList(props: PaginatedListProps) {
     if (!infiniteScroll) {
       newItems = items.slice(page * itemsPerPage, (page + 1) * itemsPerPage)
     }
-    let renderedItems: ReactElement[] = newItems.map(renderItem)
+    const renderedItems: ReactElement[] = newItems.map(renderItem)
 
     // Display full list when loading
-    if (!noPlaceholder) {
-      while (isLoading && renderedItems.length < itemsPerPage) {
+    if (!noPlaceholder && isLoading) {
+      while (renderedItems.length < itemsPerPage) {
         renderedItems.push(
           <LoadingItem
             dense={isWidthUp('md', width)}
@@ -220,22 +240,8 @@ export function PaginatedList(props: PaginatedListProps) {
     return renderedItems
   }
 
-  let onBack = page > 0 ? () => setPage(page - 1) : undefined
-  let onNext = hasNextPage ? handleNextPage : undefined
-
-  return (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <Card>
-          {cardHeader}
-          {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
-        </Card>
-      </Grid>
-      {!infiniteScroll && (
-        <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
-      )}
-    </Grid>
-  )
+  const onBack = page > 0 ? () => setPage(page - 1) : undefined
+  const onNext = hasNextPage ? handleNextPage : undefined
 
   function renderList(): ReactElement {
     return (
@@ -259,18 +265,15 @@ export function PaginatedList(props: PaginatedListProps) {
   function renderAsInfiniteScroll(): ReactElement {
     const len = items.length
 
-    // explicitly set props to load more, if loader function present
-    let loadProps: any = {}
-    if (Boolean(loadMore)) {
-      loadProps.hasMore = true
-      loadProps.next = loadMore
-    } else {
-      loadProps.hasMore = false
-    }
-
     return (
       <InfiniteScroll
-        {...loadProps}
+        hasMore={Boolean(loadMore)}
+        next={
+          loadMore ||
+          (() => {
+            debug('next callback missing from InfiniteScroll')
+          })
+        }
         scrollableTarget='content'
         endMessage={
           len === 0 ? null : (
@@ -294,13 +297,27 @@ export function PaginatedList(props: PaginatedListProps) {
       </InfiniteScroll>
     )
   }
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Card>
+          {cardHeader}
+          {infiniteScroll ? renderAsInfiniteScroll() : renderList()}
+        </Card>
+      </Grid>
+      {!infiniteScroll && (
+        <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
+      )}
+    </Grid>
+  )
 }
 
 function PageControls(props: {
   isLoading: boolean
   onNext?: () => void
   onBack?: () => void
-}) {
+}): JSX.Element {
   const classes = useStyles()
   const { isLoading, onBack, onNext } = props
 
@@ -360,7 +377,7 @@ const loadingStyle = {
 const useLoadingStyles = makeStyles({
   item: {
     display: 'block',
-    minHeight: dense => (dense ? 57 : 71),
+    minHeight: (dense) => (dense ? 57 : 71),
   },
   lineOne: {
     ...loadingStyle,
@@ -378,7 +395,7 @@ const useLoadingStyles = makeStyles({
 })
 
 // LoadingItem is used as a placeholder for loading content
-function LoadingItem(props: { dense?: boolean }) {
+function LoadingItem(props: { dense?: boolean }): JSX.Element {
   const classes = useLoadingStyles(props.dense)
 
   return (

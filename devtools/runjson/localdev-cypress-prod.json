@@ -9,13 +9,14 @@
   {
     "Name": "Backend",
     "Command": [
+      "bin/procwrap",
+      "-test=localhost:3042",
       "bin/goalert",
       "-l=localhost:3042",
       "--db-url=postgres://postgres@localhost:5433/postgres?sslmode=disable",
       "--slack-base-url=http://localhost:3040/slack",
       "--log-errors-only"
     ],
-    "Dir": "web/src",
     "Restart": true,
     "IgnoreErrors": true,
     "Watch": true,
@@ -82,7 +83,7 @@
       "./node_modules/.bin/cypress",
       "$CY_ACTION",
       "--config",
-      "baseUrl=http://localhost:3040",
+      "baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX",
       "--browser",
       "$CY_BROWSER"
     ],

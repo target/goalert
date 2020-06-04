@@ -1,22 +1,12 @@
-declare namespace Cypress {
-  interface Chainable {
-    /** Click the FAB (floating action button) of the page.
-     *
-     * If the FAB is a Speed-Dial variant, you can optionally
-     * specify the option label to select as an argument.
-     */
-    pageFab: typeof pageFab
-  }
-}
-
-function pageFab(dialOption?: string): Cypress.Chainable {
-  const res = cy.get('button[data-cy=page-fab]').should('be.visible')
-
+export function pageFab(dialOption?: string): Cypress.Chainable {
   // standard page fab
-  if (!dialOption) return res.click()
+  if (!dialOption)
+    return cy.get('button[data-cy=page-fab]').should('be.visible').click()
 
   // speed dial page fab
-  return res
+  return cy
+    .get('button[data-cy=page-fab]')
+    .should('be.visible')
     .trigger('mouseover')
     .parent()
     .find(

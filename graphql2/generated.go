@@ -100,12 +100,18 @@ type ComplexityRoot struct {
 	AlertLogEntry struct {
 		ID        func(childComplexity int) int
 		Message   func(childComplexity int) int
+		State     func(childComplexity int) int
 		Timestamp func(childComplexity int) int
 	}
 
 	AlertLogEntryConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
+	}
+
+	AlertLogEntryState struct {
+		Details func(childComplexity int) int
+		Status  func(childComplexity int) int
 	}
 
 	AlertState struct {
@@ -212,6 +218,7 @@ type ComplexityRoot struct {
 		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
 		TestContactMethod              func(childComplexity int, id string) int
 		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
+		UpdateAlertsByService          func(childComplexity int, input UpdateAlertsByServiceInput) int
 		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
 		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
 		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
@@ -454,6 +461,7 @@ type AlertResolver interface {
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
+	State(ctx context.Context, obj *alertlog.Entry) (*AlertLogEntryState, error)
 }
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
@@ -507,6 +515,7 @@ type MutationResolver interface {
 	UpdateSchedule(ctx context.Context, input UpdateScheduleInput) (bool, error)
 	UpdateUserOverride(ctx context.Context, input UpdateUserOverrideInput) (bool, error)
 	UpdateHeartbeatMonitor(ctx context.Context, input UpdateHeartbeatMonitorInput) (bool, error)
+	UpdateAlertsByService(ctx context.Context, input UpdateAlertsByServiceInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
 }
@@ -723,6 +732,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AlertLogEntry.Message(childComplexity), true
 
+	case "AlertLogEntry.state":
+		if e.complexity.AlertLogEntry.State == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntry.State(childComplexity), true
+
 	case "AlertLogEntry.timestamp":
 		if e.complexity.AlertLogEntry.Timestamp == nil {
 			break
@@ -743,6 +759,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
+
+	case "AlertLogEntryState.details":
+		if e.complexity.AlertLogEntryState.Details == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntryState.Details(childComplexity), true
+
+	case "AlertLogEntryState.status":
+		if e.complexity.AlertLogEntryState.Status == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntryState.Status(childComplexity), true
 
 	case "AlertState.lastEscalation":
 		if e.complexity.AlertState.LastEscalation == nil {
@@ -1327,6 +1357,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAlerts(childComplexity, args["input"].(UpdateAlertsInput)), true
+
+	case "Mutation.updateAlertsByService":
+		if e.complexity.Mutation.UpdateAlertsByService == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAlertsByService_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAlertsByService(childComplexity, args["input"].(UpdateAlertsByServiceInput)), true
 
 	case "Mutation.updateEscalationPolicy":
 		if e.complexity.Mutation.UpdateEscalationPolicy == nil {
@@ -2943,8 +2985,15 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
+  updateAlertsByService(input: UpdateAlertsByServiceInput!): Boolean!
+
   setConfig(input: [ConfigValueInput!]): Boolean!
   setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+}
+
+input UpdateAlertsByServiceInput {
+  serviceID: ID!
+  newStatus: AlertStatus!
 }
 
 input CreateAlertInput {
@@ -3352,6 +3401,17 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
+  state: AlertLogEntryState
+}
+
+type AlertLogEntryState {
+  details: String!
+  status: AlertLogStatus
+}
+
+enum AlertLogStatus {
+  OK
+  ERROR
 }
 
 # The escalation policy state details for the alert.
@@ -3930,6 +3990,20 @@ func (ec *executionContext) field_Mutation_testContactMethod_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAlertsByService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 UpdateAlertsByServiceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsByServiceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -5175,6 +5249,40 @@ func (ec *executionContext) _AlertLogEntry_message(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _AlertLogEntry_state(ctx context.Context, field graphql.CollectedField, obj *alertlog.Entry) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntry",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AlertLogEntry().State(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*AlertLogEntryState)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOAlertLogEntryState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _AlertLogEntryConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -5247,6 +5355,77 @@ func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Contex
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntryState_details(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryState) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntryState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Details, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntryState_status(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryState) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntryState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*AlertLogStatus)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertState_lastEscalation(ctx context.Context, field graphql.CollectedField, obj *alert.State) (ret graphql.Marshaler) {
@@ -8267,6 +8446,50 @@ func (ec *executionContext) _Mutation_updateHeartbeatMonitor(ctx context.Context
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateHeartbeatMonitor(rctx, args["input"].(UpdateHeartbeatMonitorInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateAlertsByService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateAlertsByService_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAlertsByService(rctx, args["input"].(UpdateAlertsByServiceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16105,6 +16328,30 @@ func (ec *executionContext) unmarshalInputTimeZoneSearchOptions(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateAlertsByServiceInput(ctx context.Context, obj interface{}) (UpdateAlertsByServiceInput, error) {
+	var it UpdateAlertsByServiceInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "serviceID":
+			var err error
+			it.ServiceID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "newStatus":
+			var err error
+			it.NewStatus, err = ec.unmarshalNAlertStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateAlertsInput(ctx context.Context, obj interface{}) (UpdateAlertsInput, error) {
 	var it UpdateAlertsInput
 	var asMap = obj.(map[string]interface{})
@@ -16839,6 +17086,17 @@ func (ec *executionContext) _AlertLogEntry(ctx context.Context, sel ast.Selectio
 				}
 				return res
 			})
+		case "state":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AlertLogEntry_state(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16871,6 +17129,35 @@ func (ec *executionContext) _AlertLogEntryConnection(ctx context.Context, sel as
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var alertLogEntryStateImplementors = []string{"AlertLogEntryState"}
+
+func (ec *executionContext) _AlertLogEntryState(ctx context.Context, sel ast.SelectionSet, obj *AlertLogEntryState) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, alertLogEntryStateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlertLogEntryState")
+		case "details":
+			out.Values[i] = ec._AlertLogEntryState_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			out.Values[i] = ec._AlertLogEntryState_status(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17570,6 +17857,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateHeartbeatMonitor":
 			out.Values[i] = ec._Mutation_updateHeartbeatMonitor(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateAlertsByService":
+			out.Values[i] = ec._Mutation_updateAlertsByService(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21124,6 +21416,10 @@ func (ec *executionContext) marshalNTimeZoneConnection2ᚖgithubᚗcomᚋtarget�
 	return ec._TimeZoneConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNUpdateAlertsByServiceInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsByServiceInput(ctx context.Context, v interface{}) (UpdateAlertsByServiceInput, error) {
+	return ec.unmarshalInputUpdateAlertsByServiceInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNUpdateAlertsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUpdateAlertsInput(ctx context.Context, v interface{}) (UpdateAlertsInput, error) {
 	return ec.unmarshalInputUpdateAlertsInput(ctx, v)
 }
@@ -21699,6 +21995,41 @@ func (ec *executionContext) marshalOAlert2ᚖgithubᚗcomᚋtargetᚋgoalertᚋa
 		return graphql.Null
 	}
 	return ec._Alert(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOAlertLogEntryState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx context.Context, sel ast.SelectionSet, v AlertLogEntryState) graphql.Marshaler {
+	return ec._AlertLogEntryState(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOAlertLogEntryState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx context.Context, sel ast.SelectionSet, v *AlertLogEntryState) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AlertLogEntryState(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (AlertLogStatus, error) {
+	var res AlertLogStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v AlertLogStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (*AlertLogStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v *AlertLogStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOAlertRecentEventsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (AlertRecentEventsOptions, error) {

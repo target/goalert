@@ -1,22 +1,20 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support'
+import { testScreen, Limits, SystemLimits, Config } from '../support'
 const c = new Chance()
 
-testScreen('Admin', testAdmin, false, true)
-
-function testAdmin(screen: ScreenFormat) {
+function testAdmin(): void {
   describe('Admin System Limits Page', () => {
     let limits: Limits = new Map()
     beforeEach(() => {
-      cy.getLimits().then(l => {
+      cy.getLimits().then((l: Limits) => {
         limits = l
         return cy.visit('/admin/limits')
       })
     })
 
     it('should allow updating system limits values', () => {
-      const newContactMethods = c.integer({ min: 0, max: 1000 }).toString()
-      const newEPActions = c.integer({ min: 0, max: 1000 }).toString()
+      const newContactMethods = c.integer({ min: 15, max: 1000 }).toString()
+      const newEPActions = c.integer({ min: 15, max: 1000 }).toString()
 
       const ContactMethodsPerUser = limits.get(
         'ContactMethodsPerUser',
@@ -88,12 +86,9 @@ function testAdmin(screen: ScreenFormat) {
             FromNumber: '+17633' + c.string({ length: 6, pool: '0123456789' }),
           },
         })
-        .then(curCfg => {
+        .then((curCfg: Config) => {
           cfg = curCfg
-          return cy
-            .visit('/admin')
-            .get('button[data-cy=save]')
-            .should('exist')
+          return cy.visit('/admin').get('button[data-cy=save]').should('exist')
         })
     })
 
@@ -174,3 +169,5 @@ function testAdmin(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Admin', testAdmin, false, true)

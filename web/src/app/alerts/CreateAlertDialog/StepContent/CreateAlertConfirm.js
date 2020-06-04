@@ -66,13 +66,13 @@ export function CreateAlertConfirm() {
           renderItem({
             ...otherProps,
             label: `Selected Services (${value.length})`,
-            children: value.map(id => (
+            children: value.map((id) => (
               <ServiceChip
                 key={id}
                 clickable={false}
                 id={id}
                 style={{ margin: 3 }}
-                onClick={e => e.preventDefault()}
+                onClick={(e) => e.preventDefault()}
               />
             )),
           })

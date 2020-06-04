@@ -24,7 +24,7 @@ interface CopyTextProps {
   value: string
 }
 
-export default function CopyText(props: CopyTextProps) {
+export default function CopyText(props: CopyTextProps): JSX.Element {
   const classes = useStyles()
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -38,7 +38,7 @@ export default function CopyText(props: CopyTextProps) {
       <AppLink
         className={classes.copyContainer}
         to={props.value}
-        onClick={e => {
+        onClick={(e) => {
           const tgt = e.currentTarget.href
 
           e.preventDefault()

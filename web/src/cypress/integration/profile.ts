@@ -2,18 +2,33 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Profile', testProfile)
+function countryCodeCheck(
+  country: string,
+  countryCode: string,
+  value: string,
+  formattedValue: string,
+): void {
+  it(`should handle ${country} phone number`, () => {
+    const name = 'CM SM ' + c.word({ length: 8 })
+    const type = c.pickone(['SMS', 'VOICE'])
 
-function testProfile(screen: ScreenFormat) {
-  let nr: NotificationRule
+    cy.pageFab('Contact')
+    cy.get('input[name=name]').type(name)
+    cy.get('input[name=type]').selectByLabel(type)
+    cy.get('input[name=value]').type(countryCode + value)
+    cy.get('button[type=submit]').click()
+    cy.get('body').should('contain', formattedValue)
+  })
+}
+
+function testProfile(): void {
   let cm: ContactMethod
 
   beforeEach(() =>
     cy
       .resetProfile()
       .addNotificationRule()
-      .then(rule => {
-        nr = rule
+      .then((rule: NotificationRule) => {
         cm = rule.contactMethod
         return cy.visit('/profile')
       }),
@@ -37,7 +52,7 @@ function testProfile(screen: ScreenFormat) {
 
     return cy
       .createService({ name })
-      .then(svc => {
+      .then((svc: Service) => {
         return cy
           .fixture('profile')
           .then((p: Profile) => {
@@ -49,14 +64,10 @@ function testProfile(screen: ScreenFormat) {
           .task('engine:trigger')
           .then(() => svc.id)
       })
-      .then(svcID => {
-        cy.get('body')
-          .contains('a', 'On-Call')
-          .click()
+      .then((svcID: string) => {
+        cy.get('body').contains('a', 'On-Call').click()
 
-        cy.get('body')
-          .contains('a', name)
-          .click()
+        cy.get('body').contains('a', name).click()
 
         cy.url().should('eq', Cypress.config().baseUrl + '/services/' + svcID)
       })
@@ -127,9 +138,7 @@ function testProfile(screen: ScreenFormat) {
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
-      cy.get('button[data-cy=page-fab]')
-        .should('be.visible')
-        .click()
+      cy.get('button[data-cy=page-fab]').should('be.visible').click()
       cy.get(
         `span[aria-label*=${JSON.stringify(
           'Add Notification Rule',
@@ -269,21 +278,4 @@ function testProfile(screen: ScreenFormat) {
   })
 }
 
-function countryCodeCheck(
-  country: string,
-  countryCode: string,
-  value: string,
-  formattedValue: string,
-) {
-  it(`should handle ${country} phone number`, () => {
-    const name = 'CM SM ' + c.word({ length: 8 })
-    const type = c.pickone(['SMS', 'VOICE'])
-
-    cy.pageFab('Contact')
-    cy.get('input[name=name]').type(name)
-    cy.get('input[name=type]').selectByLabel(type)
-    cy.get('input[name=value]').type(countryCode + value)
-    cy.get('button[type=submit]').click()
-    cy.get('body').should('contain', formattedValue)
-  })
-}
+testScreen('Profile', testProfile)

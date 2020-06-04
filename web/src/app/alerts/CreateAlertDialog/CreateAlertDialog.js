@@ -19,9 +19,9 @@ import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
 import { AppLink } from '../../util/AppLink'
 
-const pluralize = num => (num !== 1 ? 's' : '')
+const pluralize = (num) => (num !== 1 ? 's' : '')
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   dialog: {
     [theme.breakpoints.up('md')]: {
       height: '65vh',
@@ -43,7 +43,7 @@ export default function CreateAlertDialog(props) {
   const [mutate, { data, loading, error }, getSvcID] = useCreateAlerts(value)
 
   const fieldErrs = fieldErrors(error)
-  const hasValidationError = fieldErrs.some(e =>
+  const hasValidationError = fieldErrs.some((e) =>
     ['summary', 'details'].includes(e.field),
   )
 
@@ -73,10 +73,10 @@ export default function CreateAlertDialog(props) {
     const createdAlertIDs = _.chain(data)
       .values()
       .filter()
-      .map(a => a.id)
+      .map((a) => a.id)
       .value()
 
-    const failedServices = allErrors(error).map(e => ({
+    const failedServices = allErrors(error).map((e) => ({
       id: getSvcID(e.path),
       message: e.message,
     }))
@@ -144,7 +144,7 @@ export default function CreateAlertDialog(props) {
           <CreateAlertForm
             activeStep={currentStep}
             value={value}
-            onChange={newValue => setValue(newValue)}
+            onChange={(newValue) => setValue(newValue)}
             disabled={loading}
             errors={fieldErrors(error)}
           />

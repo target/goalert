@@ -1,14 +1,6 @@
 import { DateTime } from 'luxon'
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      /** Update form fields with the given values. */
-      form: typeof form
-    }
-  }
-}
 
-const clickArc = (pct: number) => (el: any) => {
+const clickArc = (pct: number) => (el: JQuery) => {
   const height = el.height() || 0
   const radius = height / 2
   const angle = (-1 + pct) * Math.PI * 2 - Math.PI / 2
@@ -20,7 +12,9 @@ const clickArc = (pct: number) => (el: any) => {
 }
 
 // materialClock will control a material time-picker from an input field
-function materialClock(time: string | DateTime) {
+function materialClock(
+  time: string | DateTime,
+): Cypress.Chainable<JQuery<HTMLElement>> {
   const dt = DateTime.isDateTime(time)
     ? time
     : DateTime.fromFormat(time, 'HH:mm')
@@ -43,11 +37,11 @@ function materialClock(time: string | DateTime) {
     .then(clickArc(dt.minute / 60)) // minutes
 }
 
-const openPicker = (selector: string) => {
+const openPicker = (selector: string): void => {
   cy.get(selector).click() // open dialog
   cy.get('[role=dialog][data-cy=picker-fallback]').should('be.visible')
 }
-const finishPicker = () => {
+const finishPicker = (): void => {
   cy.get('[role=dialog][data-cy=picker-fallback]')
     .contains('button', 'OK')
     .click()
@@ -56,7 +50,7 @@ const finishPicker = () => {
 }
 
 // materialCalendar will control a material date-picker from an input field
-function materialCalendar(date: string | DateTime) {
+function materialCalendar(date: string | DateTime): void {
   const dt = DateTime.isDateTime(date)
     ? date
     : DateTime.fromFormat(date, 'yyyy-MM-dd')
@@ -72,7 +66,7 @@ function materialCalendar(date: string | DateTime) {
 
   cy.get(
     '[role=dialog][data-cy=picker-fallback] button[data-cy=month-back]+div',
-  ).then(el => {
+  ).then((el) => {
     const displayedDT = DateTime.fromFormat(el.text(), 'MMMM yyyy')
     const diff = dt.startOf('month').diff(displayedDT, 'months').months
 
@@ -100,7 +94,7 @@ function materialCalendar(date: string | DateTime) {
 
     // click on the day
     cy.get('body')
-      .contains('button', new RegExp(`^${dt.day.toString()}$`))
+      .contains("button[tabindex='0']", new RegExp(`^${dt.day.toString()}$`))
       .click({ force: true })
   })
 }
@@ -109,7 +103,7 @@ function fillFormField(
   selPrefix: string,
   name: string,
   value: string | string[] | boolean | DateTime,
-) {
+): Cypress.Chainable<JQuery<HTMLElement>> {
   const selector = `${selPrefix} input[name="${name}"],textarea[name="${name}"]`
 
   if (typeof value === 'boolean') {
@@ -118,7 +112,7 @@ function fillFormField(
     return cy.get(selector).check()
   }
 
-  return cy.get(selector).then(el => {
+  return cy.get(selector).then((el) => {
     const isSelect =
       el.parents('[data-cy=material-select]').data('cy') === 'material-select'
     const pickerFallback = el
@@ -126,7 +120,7 @@ function fillFormField(
       .data('cyFallbackType')
 
     if (isSelect) {
-      if (value === '') return cy.get(`[data-cy="select-clear"]`).click()
+      if (value === '') return cy.get(selector).clear()
 
       if (DateTime.isDateTime(value)) {
         throw new TypeError(
@@ -135,7 +129,7 @@ function fillFormField(
       }
 
       if (Array.isArray(value)) {
-        value.forEach(val => cy.get(selector).selectByLabel(val))
+        value.forEach((val) => cy.get(selector).selectByLabel(val))
         return
       }
 
@@ -175,34 +169,22 @@ function fillFormField(
       }
     }
 
-    return cy.get(selector).then(el => {
+    return cy.get(selector).then((el) => {
       if (!DateTime.isDateTime(value)) {
         if (el.attr('type') === 'hidden') {
           return cy.get(selector).selectByLabel(value)
         }
-        return cy
-          .wrap(el)
-          .clear()
-          .type(value)
+        return cy.wrap(el).clear().type(value)
       }
 
       // material Select
       switch (el.attr('type')) {
         case 'time':
-          return cy
-            .wrap(el)
-            .clear()
-            .type(value.toFormat('HH:mm'))
+          return cy.wrap(el).clear().type(value.toFormat('HH:mm'))
         case 'date':
-          return cy
-            .wrap(el)
-            .clear()
-            .type(value.toFormat('yyyy-MM-dd'))
+          return cy.wrap(el).clear().type(value.toFormat('yyyy-MM-dd'))
         case 'datetime-local':
-          return cy
-            .wrap(el)
-            .clear()
-            .type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
+          return cy.wrap(el).clear().type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
         default:
           throw new TypeError(
             'DateTime only supported for time, date, or datetime-local types',
@@ -218,7 +200,7 @@ function form(
   },
   selectorPrefix = '',
 ): void {
-  for (let key in values) {
+  for (const key in values) {
     const val = values[key]
     if (val === null) continue
     fillFormField(selectorPrefix, key, val)

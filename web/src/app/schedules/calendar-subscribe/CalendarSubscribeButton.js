@@ -9,7 +9,7 @@ import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash-es'
 import { AppLink } from '../../util/AppLink'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   calIcon: {
     marginRight: theme.spacing(1),
   },
@@ -34,7 +34,7 @@ export default function CalendarSubscribeButton(props) {
   })
 
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(
-    cs => cs.scheduleID === props.scheduleID && !cs.disabled,
+    (cs) => cs.scheduleID === props.scheduleID && !cs.disabled,
   ).length
 
   let caption =

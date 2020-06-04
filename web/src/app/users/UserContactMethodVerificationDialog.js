@@ -82,7 +82,7 @@ export default function UserContactMethodVerificationDialog(props) {
             setSendError={setSendError}
             disabled={loading}
             value={value}
-            onChange={value => setValue(value)}
+            onChange={(value) => setValue(value)}
           />
         }
       />

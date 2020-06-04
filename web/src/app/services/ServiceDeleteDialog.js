@@ -19,7 +19,7 @@ function DeleteForm({ epName, error, value, onChange }) {
         control={
           <Checkbox
             checked={value}
-            onChange={e => onChange(e.target.checked)}
+            onChange={(e) => onChange(e.target.checked)}
             value='delete-escalation-policy'
           />
         }
@@ -102,10 +102,10 @@ export default function ServiceDeleteDialog({ serviceID, onClose }) {
           epName={epName}
           error={
             fieldErrors(deleteServiceStatus.error).find(
-              f => f.field === 'escalationPolicyID',
+              (f) => f.field === 'escalationPolicyID',
             ) && 'Escalation policy is currently in use.'
           }
-          onChange={deleteEP => setDeleteEP(deleteEP)}
+          onChange={(deleteEP) => setDeleteEP(deleteEP)}
           value={deleteEP}
         />
       }
