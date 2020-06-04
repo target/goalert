@@ -118,9 +118,6 @@ func escalationMsg(m *EscalationMetaData) string {
 	} else if m.OldDelayMinutes > 0 {
 		msg += fmt.Sprintf(" automatically after %d minutes", m.OldDelayMinutes)
 	}
-	if m.NoOneOnCall {
-		msg += fmt.Sprintf(" but no one was on call")
-	}
 
 	return msg
 }

@@ -3411,6 +3411,7 @@ type AlertLogEntryState {
 
 enum AlertLogStatus {
   OK
+  WARN
   ERROR
 }
 
