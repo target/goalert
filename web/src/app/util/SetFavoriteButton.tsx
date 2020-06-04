@@ -45,7 +45,6 @@ export function SetFavoriteButton({
     </form>
   )
 
-  // todo: add other types as needed
   switch (typeName) {
     case 'service':
       return (
