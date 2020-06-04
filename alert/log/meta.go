@@ -6,6 +6,7 @@ type EscalationMetaData struct {
 	Forced          bool
 	Deleted         bool
 	OldDelayMinutes int
+	NoOneOnCall     bool
 }
 
 type NotificationMetaData struct {

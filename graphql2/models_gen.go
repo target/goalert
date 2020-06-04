@@ -459,17 +459,19 @@ type AlertLogStatus string
 
 const (
 	AlertLogStatusOk    AlertLogStatus = "OK"
+	AlertLogStatusWarn  AlertLogStatus = "WARN"
 	AlertLogStatusError AlertLogStatus = "ERROR"
 )
 
 var AllAlertLogStatus = []AlertLogStatus{
 	AlertLogStatusOk,
+	AlertLogStatusWarn,
 	AlertLogStatusError,
 }
 
 func (e AlertLogStatus) IsValid() bool {
 	switch e {
-	case AlertLogStatusOk, AlertLogStatusError:
+	case AlertLogStatusOk, AlertLogStatusWarn, AlertLogStatusError:
 		return true
 	}
 	return false
