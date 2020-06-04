@@ -4,7 +4,6 @@ import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash-es'
-import Tooltip from '@material-ui/core/Tooltip'
 
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'
