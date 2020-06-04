@@ -1,20 +1,11 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
-import {
-  Hidden,
-  ListItemText,
-  Snackbar,
-  SnackbarContent,
-  Typography,
-  makeStyles,
-  isWidthDown,
-} from '@material-ui/core'
+import { Hidden, ListItemText, isWidthDown } from '@material-ui/core'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-  Info as InfoIcon,
 } from '@material-ui/icons'
 import { useSelector } from 'react-redux'
 
@@ -71,23 +62,6 @@ const escalateMutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
-  snackbar: {
-    backgroundColor: theme.palette.primary['500'],
-    height: '6.75em',
-    width: '20em', // only triggers on desktop, 100% on mobile devices
-  },
-  snackbarIcon: {
-    fontSize: 20,
-    opacity: 0.9,
-    marginRight: theme.spacing(1),
-  },
-  snackbarMessage: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-}))
-
 function getStatusFilter(s) {
   switch (s) {
     case 'acknowledged':
@@ -105,7 +79,6 @@ function getStatusFilter(s) {
 }
 
 export default function AlertsList(props) {
-  const classes = useStyles()
   const width = useWidth()
   const isMobileScreenSize = isWidthDown('md', width)
 
@@ -114,16 +87,10 @@ export default function AlertsList(props) {
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
-  // defaults to open unless favorited services are present or warning is dismissed
-  const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(
-    false,
-  )
-
   // get redux url vars
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
   const filter = params('filter', 'active')
-  const isFirstLogin = params('isFirstLogin')
 
   // query for current service name if props.serviceID is provided
   const serviceNameQuery = useQuery(
