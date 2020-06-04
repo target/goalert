@@ -3,6 +3,7 @@ package escalationmanager
 import (
 	"context"
 	"database/sql"
+
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -49,8 +50,9 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 
 	err = db.processEscalations(ctx, db.newPolicies, func(rows *sql.Rows) (int, *alertlog.EscalationMetaData, error) {
 		var id int
-		err := rows.Scan(&id)
-		return id, &alertlog.EscalationMetaData{}, err
+		var meta alertlog.EscalationMetaData
+		err := rows.Scan(&id, &meta.NoOneOnCall)
+		return id, &meta, err
 	})
 	if err != nil {
 		return errors.Wrap(err, "trigger new policies")
@@ -59,7 +61,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	err = db.processEscalations(ctx, db.deletedSteps, func(rows *sql.Rows) (int, *alertlog.EscalationMetaData, error) {
 		var id int
 		var meta alertlog.EscalationMetaData
-		err := rows.Scan(&id, &meta.Repeat, &meta.NewStepIndex)
+		err := rows.Scan(&id, &meta.Repeat, &meta.NewStepIndex, &meta.NoOneOnCall)
 		return id, &meta, err
 	})
 	if err != nil {
@@ -69,7 +71,7 @@ func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
 	err = db.processEscalations(ctx, db.normalEscalation, func(rows *sql.Rows) (int, *alertlog.EscalationMetaData, error) {
 		var id int
 		var meta alertlog.EscalationMetaData
-		err := rows.Scan(&id, &meta.Repeat, &meta.NewStepIndex, &meta.OldDelayMinutes, &meta.Forced)
+		err := rows.Scan(&id, &meta.Repeat, &meta.NewStepIndex, &meta.OldDelayMinutes, &meta.Forced, &meta.NoOneOnCall)
 		return id, &meta, err
 	})
 	if err != nil {
