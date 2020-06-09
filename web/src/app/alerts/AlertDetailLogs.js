@@ -38,11 +38,16 @@ const query = gql`
 `
 
 const useStyles = makeStyles({
+  // colors generated from status colors, but with saturation locked at 75 and value locked at 52.5
+  // so that all three passed contrast requirements (WCAG 2 AA)
   statusOk: {
-    color: 'green',
+    color: '#218626',
+  },
+  statusWarn: {
+    color: '#867321',
   },
   statusError: {
-    color: 'red',
+    color: '#862421',
   },
 })
 
@@ -106,6 +111,8 @@ export default function AlertDetailLogs(props) {
     switch (status) {
       case 'OK':
         return classes.statusOk
+      case 'WARN':
+        return classes.statusWarn
       case 'ERROR':
         return classes.statusError
       default:

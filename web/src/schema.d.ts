@@ -547,7 +547,7 @@ export interface AlertLogEntryState {
   status?: AlertLogStatus
 }
 
-export type AlertLogStatus = 'OK' | 'ERROR'
+export type AlertLogStatus = 'OK' | 'WARN' | 'ERROR'
 
 export interface AlertState {
   lastEscalation: ISOTimestamp
