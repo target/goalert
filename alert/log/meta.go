@@ -11,3 +11,7 @@ type EscalationMetaData struct {
 type NotificationMetaData struct {
 	MessageID string
 }
+
+type CreatedMetaData struct {
+	EPNoSteps bool
+}
