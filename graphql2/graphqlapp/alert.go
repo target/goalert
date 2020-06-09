@@ -81,8 +81,24 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 	}, nil
 }
 
+func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.CreatedMetaData)
+	if !ok || meta == nil || !meta.EPNoSteps {
+		return nil, nil
+	}
+
+	status := graphql2.AlertLogStatusWarn
+	return &graphql2.AlertLogEntryState{
+		Details: "No escalation policy steps",
+		Status:  &status,
+	}, nil
+}
+
 func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
 	switch obj.Type() {
+	case alertlog.TypeCreated:
+		return a.createdState(ctx, obj)
 	case alertlog.TypeNotificationSent:
 		return a.notificationSentState(ctx, obj)
 	case alertlog.TypeEscalated:

@@ -106,12 +106,12 @@ func NewDB(ctx context.Context, db *sql.DB, logDB alertlog.Store) (*DB, error) {
 
 		noStepsBySvc: p(`
 			SELECT coalesce(
-				SELECT true
+				(SELECT true
 				FROM escalation_policies pol
 				JOIN services svc ON svc.id = $1
 				WHERE
 					pol.id = svc.escalation_policy_id
-					AND pol.step_count = 0
+					AND pol.step_count = 0)
 			, false)
 		`),
 
