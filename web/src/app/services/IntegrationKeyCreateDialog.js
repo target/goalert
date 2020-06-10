@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { useMutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
@@ -32,71 +32,58 @@ const query = gql`
   }
 `
 
-export default class IntegrationKeyCreateDialog extends React.PureComponent {
-  static propTypes = {
-    serviceID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function IntegrationKeyCreateDialog(props) {
+  const [value, setValue] = useState({ name: '', type: 'generic' })
 
-  state = {
-    value: { name: '', type: 'generic' },
-    errors: [],
-  }
+  const [createKey, createKeyStatus] = useMutation(mutation, {
+    onCompleted: props.onClose,
+    update: (cache, { data: { createIntegrationKey } }) => {
+      const { service } = cache.readQuery({
+        query,
+        variables: { serviceID: props.serviceID },
+      })
+      cache.writeData({
+        query,
+        variables: { serviceID: props.serviceID },
+        data: {
+          service: {
+            ...service,
+            integrationKeys: (service.integrationKeys || []).concat(
+              createIntegrationKey,
+            ),
+          },
+        },
+      })
+    },
+  })
 
-  render() {
-    return (
-      <Mutation
-        mutation={mutation}
-        onCompleted={this.props.onClose}
-        update={(cache, { data: { createIntegrationKey } }) => {
-          const { service } = cache.readQuery({
-            query,
-            variables: { serviceID: this.props.serviceID },
-          })
-          cache.writeData({
-            query,
-            variables: { serviceID: this.props.serviceID },
-            data: {
-              service: {
-                ...service,
-                integrationKeys: (service.integrationKeys || []).concat(
-                  createIntegrationKey,
-                ),
-              },
-            },
-          })
-        }}
-      >
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
+  return (
+    <FormDialog
+      maxWidth='sm'
+      title='Create New Integration Key'
+      loading={createKeyStatus.loading}
+      errors={nonFieldErrors(createKeyStatus.error)}
+      onClose={props.onClose}
+      onSubmit={() => {
+        return createKey({
+          variables: {
+            input: { ...value, serviceID: props.serviceID },
+          },
+        })
+      }}
+      form={
+        <IntegrationKeyForm
+          errors={fieldErrors(createKeyStatus.error)}
+          disabled={createKeyStatus.loading}
+          value={value}
+          onChange={(value) => setValue(value)}
+        />
+      }
+    />
+  )
+}
 
-  renderDialog(commit, status) {
-    const { loading, error } = status
-    return (
-      <FormDialog
-        maxWidth='sm'
-        title='Create New Integration Key'
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: { ...this.state.value, serviceID: this.props.serviceID },
-            },
-          })
-        }}
-        form={
-          <IntegrationKeyForm
-            errors={fieldErrors(error)}
-            disabled={loading}
-            value={this.state.value}
-            onChange={(value) => this.setState({ value })}
-          />
-        }
-      />
-    )
-  }
+IntegrationKeyCreateDialog.propTypes = {
+  serviceID: p.string.isRequired,
+  onClose: p.func,
 }
