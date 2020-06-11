@@ -145,6 +145,9 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		s.Search = *opts.Search
 	}
 	s.Omit = opts.Omit
+	if opts.IncludeNotified != nil && *opts.IncludeNotified {
+		s.NotifiedUserID = permission.UserID(ctx)
+	}
 
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 0, 50),
@@ -163,20 +166,17 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		}
 	} else {
 		if opts.FavoritesOnly != nil && *opts.FavoritesOnly {
-			s.Services, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
+			s.ServiceFilter.IDs, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
 			if err != nil {
 				return nil, err
 			}
-
-			// favorites only with no returned services will
-			// return an empty result set
-			if len(s.Services) == 0 {
-				return &graphql2.AlertConnection{
-					PageInfo: &graphql2.PageInfo{},
-				}, nil
-			}
+			// used to potentially return an empty array of alerts
+			s.ServiceFilter.Valid = true
 		} else {
-			s.Services = opts.FilterByServiceID
+			s.ServiceFilter.IDs = opts.FilterByServiceID
+			if s.ServiceFilter.IDs != nil {
+				s.ServiceFilter.Valid = true
+			}
 		}
 
 		for _, f := range opts.FilterByStatus {

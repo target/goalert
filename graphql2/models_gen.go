@@ -51,6 +51,7 @@ type AlertSearchOptions struct {
 	First             *int          `json:"first"`
 	After             *string       `json:"after"`
 	FavoritesOnly     *bool         `json:"favoritesOnly"`
+	IncludeNotified   *bool         `json:"includeNotified"`
 	Omit              []int         `json:"omit"`
 }
 

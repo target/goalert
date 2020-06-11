@@ -3361,6 +3361,7 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
+  includeNotified: Boolean = true
   omit: [Int!]
 }
 
@@ -15130,6 +15131,9 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
 	}
+	if _, present := asMap["includeNotified"]; !present {
+		asMap["includeNotified"] = true
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -15166,6 +15170,12 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 		case "favoritesOnly":
 			var err error
 			it.FavoritesOnly, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "includeNotified":
+			var err error
+			it.IncludeNotified, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

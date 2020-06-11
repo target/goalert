@@ -505,6 +505,7 @@ export interface AlertSearchOptions {
   first?: number
   after?: string
   favoritesOnly?: boolean
+  includeNotified?: boolean
   omit?: number[]
 }
 
