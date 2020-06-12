@@ -26,12 +26,18 @@ func (s *Sync) initialSync(ctx context.Context, src, dst *pgx.Conn) error {
 		mpb.BarRemoveOnComplete(),
 		mpb.BarPriority(9999),
 		mpb.PrependDecorators(
-			decor.CountersNoUnit("Scanning tables (%d of %d)...", decor.WCSyncSpaceR),
+			decor.CountersNoUnit("Scanning tables, truncating dst (%d of %d)...", decor.WCSyncSpaceR),
 		),
 	)
 	for _, t := range s.tables {
 		var rowCount int64
 		err := src.QueryRow(ctx, `select count(*) from `+t.SafeName()).Scan(&rowCount)
+		if err != nil {
+			scanBar.Abort(false)
+			p.Wait()
+			return err
+		}
+		_, err = dst.Exec(ctx, fmt.Sprintf(`truncate %s cascade`, t.SafeName()))
 		if err != nil {
 			scanBar.Abort(false)
 			p.Wait()
