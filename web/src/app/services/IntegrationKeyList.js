@@ -32,7 +32,7 @@ const query = gql`
   }
 `
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   copyIcon: {
     paddingRight: '0.25em',
     color: 'black',
@@ -45,7 +45,7 @@ const useStyles = makeStyles(() => ({
   spacing: {
     marginBottom: 96,
   },
-}))
+})
 
 const sortItems = (a, b) => {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -56,16 +56,16 @@ const sortItems = (a, b) => {
 }
 
 export function IntegrationKeyDetails(props) {
-  let tooltip = <CopyText title={'Copy ' + props.label} value={props.href} />
+  let copyText = <CopyText title={'Copy ' + props.label} value={props.href} />
 
   // if link is not properly present, do not display to copy
   if (props.type === 'email' && !props.href.startsWith('mailto:')) {
-    tooltip = null
+    copyText = null
   }
 
   return (
     <React.Fragment>
-      {tooltip}
+      {copyText}
       {props.type === 'email' && (
         <RequireConfig
           configID='Mailgun.Enable'
@@ -159,9 +159,6 @@ IntegrationKeyDetails.propTypes = {
   href: p.string.isRequired,
   label: p.string.isRequired,
   type: p.string.isRequired,
-
-  // provided by withStyles
-  classes: p.object,
 }
 
 IntegrationKeyList.propTypes = {
