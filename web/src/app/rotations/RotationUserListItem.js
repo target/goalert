@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import { makeStyles } from '@material-ui/core/styles'
 import { UserAvatar } from '../util/avatars'
 import RotationUpdateDialog from './RotationUpdateDialog'
 import OtherActions from '../util/OtherActions'
 
-const useStyles = {
+const useStyles = makeStyles({
   activeUser: {
     borderLeft: '6px solid #93ed94',
     background: '#defadf',
@@ -17,7 +18,7 @@ const useStyles = {
   participantDragging: {
     backgroundColor: '#ebebeb',
   },
-}
+})
 
 export default function RotationUserListItem(props) {
   const classes = useStyles()
