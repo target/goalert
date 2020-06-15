@@ -64,7 +64,7 @@ export function SearchProvider(props) {
     <SearchContext.Provider
       value={{
         actions: actions,
-        setActions: props.setActions,
+        setActions: handleSetActions,
         trackMount: updateMounted,
       }}
     >
@@ -115,10 +115,6 @@ export default function AppBarSearchContainer(props) {
       )}
     </SearchContext.Consumer>
   )
-}
-
-SearchProvider.propTypes = {
-  actions: null,
 }
 
 SearchUpdater.propTypes = {
