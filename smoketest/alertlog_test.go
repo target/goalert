@@ -43,7 +43,7 @@ func TestVoiceFailure(t *testing.T) {
 func TestNoImmediateNR(t *testing.T) {
 	t.Parallel()
 
-	var sql = makeSQL(true, false, true, true)
+	var sql = makeSQL(false, false, true, true)
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -57,12 +57,40 @@ func TestNoImmediateNR(t *testing.T) {
 	assert.Contains(t, msg, "no immediate rule")
 }
 
+// DONE !!!
 func TestNoOnCallUsers(t *testing.T) {
 	t.Parallel()
+
+	var sql = makeSQL(false, true, true, false)
+	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
+	defer h.Close()
+
+	// create alert
+	doQL(h, t, makeCreateAlertMut(h), nil)
+	h.Trigger()
+	logs := getLogs(h, t)
+
+	// most recent entry
+	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
+	assert.Equal(t, "No one was on-call", details)
 }
 
+// DONE !!!
 func TestNoEPSteps(t *testing.T) {
 	t.Parallel()
+
+	var sql = makeSQL(false, true, false, false)
+	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
+	defer h.Close()
+
+	// create alert
+	doQL(h, t, makeCreateAlertMut(h), nil)
+	h.Trigger()
+	logs := getLogs(h, t)
+
+	// most recent entry
+	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
+	assert.Equal(t, "No escalation policy steps", details)
 }
 
 func makeSQL(disabledCM bool, nr bool, epStep bool, epStepUser bool) string {
