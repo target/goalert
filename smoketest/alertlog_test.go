@@ -9,8 +9,23 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
+// DONE !!!
 func TestNotificationSentSuccess(t *testing.T) {
 	t.Parallel()
+
+	var sql = makeSQL(false, true, true, true)
+	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
+	defer h.Close()
+
+	// create alert
+	doQL(h, t, makeCreateAlertMut(h), nil)
+	h.Trigger()
+	logs := getLogs(h, t)
+
+	// most recent entry
+	var msg = logs.Alert.RecentEvents.Nodes[0].Message
+	assert.Contains(t, msg, "Notification sent")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
 }
 
 // DONE !!!
@@ -158,6 +173,7 @@ type logs struct {
 
 func getLogs(h *harness.Harness, t *testing.T) *logs {
 	var result logs
+
 	doQL(h, t, fmt.Sprintf(`
 		query {
   			alert(id: %d) {
@@ -193,13 +209,16 @@ func doQL(h *harness.Harness, t *testing.T, query string, res interface{}) {
 	for _, err := range g.Errors {
 		t.Error("GraphQL Error:", err.Message)
 	}
+
 	if len(g.Errors) > 0 {
 		t.Fatal("errors returned from GraphQL")
 	}
+
 	t.Log("Response:", string(g.Data))
 	if res == nil {
 		return
 	}
+
 	err := json.Unmarshal(g.Data, &res)
 	if err != nil {
 		t.Fatal("failed to parse response:", err)
