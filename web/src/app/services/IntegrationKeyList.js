@@ -76,6 +76,12 @@ export function IntegrationKeyDetails(props) {
   )
 }
 
+IntegrationKeyDetails.propTypes = {
+  href: p.string.isRequired,
+  label: p.string.isRequired,
+  type: p.string.isRequired,
+}
+
 export default function IntegrationKeyList(props) {
   const classes = useStyles()
 
@@ -153,12 +159,6 @@ export default function IntegrationKeyList(props) {
       )}
     </React.Fragment>
   )
-}
-
-IntegrationKeyDetails.propTypes = {
-  href: p.string.isRequired,
-  label: p.string.isRequired,
-  type: p.string.isRequired,
 }
 
 IntegrationKeyList.propTypes = {
