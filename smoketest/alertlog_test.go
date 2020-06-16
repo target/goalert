@@ -9,51 +9,6 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-type logs struct {
-	Alert struct {
-		RecentEvents struct {
-			Nodes []struct {
-				Message string `json:"message"`
-				State   struct {
-					Details string `json:"details"`
-				} `json:"state"`
-			} `json:"nodes"`
-		} `json:"recentEvents"`
-	} `json:"alert"`
-}
-
-func getLogs(h *harness.Harness, t *testing.T) *logs {
-	var result logs
-	doQL(h, t, fmt.Sprintf(`
-		query {
-  			alert(id: %d) {
-    			recentEvents(input: { limit: 15 }) {
-						nodes {
-							message
-							state {
-								details
-							}
-						}
-    			}
-  			}
-		}
-	`, 1), &result)
-
-	return &result
-}
-
-func makeCreateAlertMut(h *harness.Harness) string {
-	return fmt.Sprintf(
-		`mutation {
-			createAlert(input: {
-				summary: "foo",
-				serviceID: "%s"
-			}){ id }
-		}`,
-		h.UUID("sid"),
-	)
-}
-
 func TestNotificationSentSuccess(t *testing.T) {
 	t.Parallel()
 }
@@ -63,23 +18,17 @@ func TestDisabledContactMethod(t *testing.T) {
 	t.Parallel()
 
 	var sql = makeSQL(true, true, true, true)
-	h := harness.NewHarness(t, sql, "escalation-policy-step-reorder")
+	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
 	// create alert
 	doQL(h, t, makeCreateAlertMut(h), nil)
-
 	h.Trigger()
-
 	logs := getLogs(h, t)
 
 	// most recent entry
 	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
 	assert.Equal(t, "contact method disabled", details)
-
-	for _, node := range logs.Alert.RecentEvents.Nodes {
-		fmt.Println("LOG: ", node.State.Details)
-	}
 }
 
 func TestSMSFailure(t *testing.T) {
@@ -90,8 +39,22 @@ func TestVoiceFailure(t *testing.T) {
 	t.Parallel()
 }
 
+// DONE !!!
 func TestNoImmediateNR(t *testing.T) {
 	t.Parallel()
+
+	var sql = makeSQL(true, false, true, true)
+	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
+	defer h.Close()
+
+	// create alert
+	doQL(h, t, makeCreateAlertMut(h), nil)
+	h.Trigger()
+	logs := getLogs(h, t)
+
+	// most recent entry
+	var msg = logs.Alert.RecentEvents.Nodes[0].Message
+	assert.Contains(t, msg, "no immediate rule")
 }
 
 func TestNoOnCallUsers(t *testing.T) {
@@ -150,6 +113,51 @@ func makeSQL(disabledCM bool, nr bool, epStep bool, epStepUser bool) string {
 	`
 
 	return setupSQL
+}
+
+type logs struct {
+	Alert struct {
+		RecentEvents struct {
+			Nodes []struct {
+				Message string `json:"message"`
+				State   struct {
+					Details string `json:"details"`
+				} `json:"state"`
+			} `json:"nodes"`
+		} `json:"recentEvents"`
+	} `json:"alert"`
+}
+
+func getLogs(h *harness.Harness, t *testing.T) *logs {
+	var result logs
+	doQL(h, t, fmt.Sprintf(`
+		query {
+  			alert(id: %d) {
+    			recentEvents(input: { limit: 15 }) {
+						nodes {
+							message
+							state {
+								details
+							}
+						}
+    			}
+  			}
+		}
+	`, 1), &result)
+
+	return &result
+}
+
+func makeCreateAlertMut(h *harness.Harness) string {
+	return fmt.Sprintf(
+		`mutation {
+			createAlert(input: {
+				summary: "foo",
+				serviceID: "%s"
+			}){ id }
+		}`,
+		h.UUID("sid"),
+	)
 }
 
 func doQL(h *harness.Harness, t *testing.T, query string, res interface{}) {
