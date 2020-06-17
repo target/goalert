@@ -13,7 +13,7 @@ import (
 func TestNotificationSentSuccess(t *testing.T) {
 	t.Parallel()
 
-	var sql = makeSQL(false, true, true, true)
+	var sql = makeSQL(false, "SMS", true, true, true)
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -32,7 +32,7 @@ func TestNotificationSentSuccess(t *testing.T) {
 func TestDisabledContactMethod(t *testing.T) {
 	t.Parallel()
 
-	var sql = makeSQL(true, true, true, true)
+	var sql = makeSQL(true, "SMS", true, true, true)
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -50,7 +50,7 @@ func TestDisabledContactMethod(t *testing.T) {
 func TestSMSFailure(t *testing.T) {
 	t.Parallel()
 
-	var sql = makeSQL(false, true, true, true)
+	var sql = makeSQL(false, "SMS", true, true, true)
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -67,15 +67,32 @@ func TestSMSFailure(t *testing.T) {
 	assert.Equal(t, "failed", details)
 }
 
+// DONE !!!
 func TestVoiceFailure(t *testing.T) {
 	t.Parallel()
+
+	var sql = makeSQL(false, "VOICE", true, true, true)
+	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
+	defer h.Close()
+
+	// create alert
+	doQL(h, t, makeCreateAlertMut(h), nil)
+	h.Twilio(t).Device(h.Phone("1")).RejectVoice("foo")
+	h.Trigger()
+	logs := getLogs(h, t)
+
+	// most recent entry
+	var msg = logs.Alert.RecentEvents.Nodes[0].Message
+	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
+	assert.Contains(t, msg, "Notification sent")
+	assert.Equal(t, "failed", details)
 }
 
 // DONE !!!
 func TestNoImmediateNR(t *testing.T) {
 	t.Parallel()
 
-	var sql = makeSQL(false, false, true, true)
+	var sql = makeSQL(false, "SMS", false, true, true)
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -93,7 +110,7 @@ func TestNoImmediateNR(t *testing.T) {
 func TestNoOnCallUsers(t *testing.T) {
 	t.Parallel()
 
-	var sql = makeSQL(false, true, true, false)
+	var sql = makeSQL(false, "SMS", true, true, false)
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -111,7 +128,7 @@ func TestNoOnCallUsers(t *testing.T) {
 func TestNoEPSteps(t *testing.T) {
 	t.Parallel()
 
-	var sql = makeSQL(false, true, false, false)
+	var sql = makeSQL(false, "SMS", true, false, false)
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -125,15 +142,15 @@ func TestNoEPSteps(t *testing.T) {
 	assert.Equal(t, "No escalation policy steps", details)
 }
 
-func makeSQL(disabledCM bool, nr bool, epStep bool, epStepUser bool) string {
+func makeSQL(disabledCM bool, cmType string, nr bool, epStep bool, epStepUser bool) string {
 	// start initial sql with user and cm
 	var setupSQL = fmt.Sprintf(`
 		insert into users (id, name, email) 
 		values ({{uuid "user"}}, 'bob', 'joe');
 
 		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-		values ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}}, %t);
-	`, disabledCM)
+		values ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', '%s', {{phone "1"}}, %t);
+	`, cmType, disabledCM)
 
 	// add notification rule if specified
 	if nr {
