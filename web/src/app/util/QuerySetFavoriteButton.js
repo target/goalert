@@ -1,9 +1,17 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery, useMutation } from 'react-apollo'
 import { SetFavoriteButton } from './SetFavoriteButton'
 import { oneOfShape } from '../util/propTypes'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  Grid,
+} from '@material-ui/core'
+import DialogContentError from '../dialogs/components/DialogContentError'
 
 const queries = {
   service: gql`
@@ -56,19 +64,41 @@ export function QuerySetFavoriteButton(props) {
     variables: { id },
   })
   const isFavorite = data && data.data && data.data.isFavorite
-  const [toggleFav] = useMutation(mutation, {
+  const [showMutationErrorDialog, setShowMutationErrorDialog] = useState(false)
+  const [toggleFav, toggleFavStatus] = useMutation(mutation, {
     variables: {
       input: { target: { id, type: typeName }, favorite: !isFavorite },
     },
+    onError: () => setShowMutationErrorDialog(true),
   })
 
   return (
-    <SetFavoriteButton
-      typeName={typeName}
-      isFavorite={isFavorite}
-      loading={!data && loading}
-      onClick={() => toggleFav()}
-    />
+    <Grid>
+      <SetFavoriteButton
+        typeName={typeName}
+        isFavorite={isFavorite}
+        loading={!data && loading}
+        onClick={() => toggleFav()}
+      />
+      <Dialog
+        // if showMutationErrorDialog is true, the dialog will open
+        open={showMutationErrorDialog}
+        // onClose, reset showMutationErrorDialog to false
+        onClose={() => setShowMutationErrorDialog(false)}
+      >
+        <DialogTitle>An error occurred</DialogTitle>
+        <DialogContentError error={toggleFavStatus?.error?.message ?? ''} />
+        <DialogActions>
+          <Button
+            color='primary'
+            variant='contained'
+            onClick={() => setShowMutationErrorDialog(false)}
+          >
+            Okay
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Grid>
   )
 }
 
