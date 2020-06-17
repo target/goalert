@@ -9,7 +9,6 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-// DONE !!!
 func TestNotificationSentSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -28,7 +27,6 @@ func TestNotificationSentSuccess(t *testing.T) {
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
 }
 
-// DONE !!!
 func TestDisabledContactMethod(t *testing.T) {
 	t.Parallel()
 
@@ -46,7 +44,6 @@ func TestDisabledContactMethod(t *testing.T) {
 	assert.Equal(t, "contact method disabled", details)
 }
 
-// DONE !!!
 func TestSMSFailure(t *testing.T) {
 	t.Parallel()
 
@@ -67,7 +64,6 @@ func TestSMSFailure(t *testing.T) {
 	assert.Equal(t, "failed", details)
 }
 
-// DONE !!!
 func TestVoiceFailure(t *testing.T) {
 	t.Parallel()
 
@@ -88,7 +84,6 @@ func TestVoiceFailure(t *testing.T) {
 	assert.Equal(t, "failed", details)
 }
 
-// DONE !!!
 func TestNoImmediateNR(t *testing.T) {
 	t.Parallel()
 
@@ -106,7 +101,6 @@ func TestNoImmediateNR(t *testing.T) {
 	assert.Contains(t, msg, "no immediate rule")
 }
 
-// DONE !!!
 func TestNoOnCallUsers(t *testing.T) {
 	t.Parallel()
 
@@ -124,7 +118,6 @@ func TestNoOnCallUsers(t *testing.T) {
 	assert.Equal(t, "No one was on-call", details)
 }
 
-// DONE !!!
 func TestNoEPSteps(t *testing.T) {
 	t.Parallel()
 
@@ -154,7 +147,6 @@ func makeSQL(disabledCM bool, cmType string, nr bool, epStep bool, epStepUser bo
 
 	// add notification rule if specified
 	if nr {
-		fmt.Println("MAKING NR")
 		setupSQL = setupSQL + `
 			insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 			values ({{uuid "user"}}, {{uuid "cm1"}}, 0);
