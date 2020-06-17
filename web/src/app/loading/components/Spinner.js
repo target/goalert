@@ -25,7 +25,7 @@ export default function Spinner(props) {
     return () => {
       clearTimeout(_spin)
     }
-  })
+  }, [])
 
   if (props.delayMs && !spin) return null
 
