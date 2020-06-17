@@ -112,7 +112,6 @@ export default function IntegrationKeyList(props) {
           href={key.href}
           label={typeLabels[key.type]}
           type={key.type}
-          classes={props.classes}
         />
       ),
       secondaryAction: (
