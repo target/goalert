@@ -46,8 +46,25 @@ func TestDisabledContactMethod(t *testing.T) {
 	assert.Equal(t, "contact method disabled", details)
 }
 
+// DONE !!!
 func TestSMSFailure(t *testing.T) {
 	t.Parallel()
+
+	var sql = makeSQL(false, true, true, true)
+	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
+	defer h.Close()
+
+	// create alert
+	doQL(h, t, makeCreateAlertMut(h), nil)
+	h.Twilio(t).Device(h.Phone("1")).RejectSMS("Alert #1: foo")
+	h.Trigger()
+	logs := getLogs(h, t)
+
+	// most recent entry
+	var msg = logs.Alert.RecentEvents.Nodes[0].Message
+	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
+	assert.Contains(t, msg, "Notification sent")
+	assert.Equal(t, "failed", details)
 }
 
 func TestVoiceFailure(t *testing.T) {
