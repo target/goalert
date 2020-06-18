@@ -9,213 +9,145 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-func TestNotificationSentSuccess(t *testing.T) {
-	t.Parallel()
-
-	var sql = makeSQL(false, "SMS", true, true, true)
-	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
-	defer h.Close()
-
-	// create alert
-	doQL(h, t, makeCreateAlertMut(h), nil)
-	h.Trigger()
-	logs := getLogs(h, t)
-
-	// most recent entry
-	var msg = logs.Alert.RecentEvents.Nodes[0].Message
-	assert.Contains(t, msg, "Notification sent")
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
+type alertLogTestCfg struct {
+	CMDisabled bool
+	CMType     string
+	NR         bool
+	EPStep     bool
+	EPStepUser bool
 }
 
-func TestDisabledContactMethod(t *testing.T) {
-	t.Parallel()
-
-	var sql = makeSQL(true, "SMS", true, true, true)
-	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
-	defer h.Close()
-
-	// create alert
-	doQL(h, t, makeCreateAlertMut(h), nil)
-	h.Trigger()
-	logs := getLogs(h, t)
-
-	// most recent entry
-	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
-	assert.Equal(t, "contact method disabled", details)
+type alertLogs struct {
+	Alert struct {
+		RecentEvents struct {
+			Nodes []struct {
+				Message string
+				State   struct {
+					Details string
+				}
+			}
+		}
+	}
 }
 
-func TestSMSFailure(t *testing.T) {
+func TestAlertLog(t *testing.T) {
 	t.Parallel()
-
-	var sql = makeSQL(false, "SMS", true, true, true)
-	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
-	defer h.Close()
-
-	// create alert
-	doQL(h, t, makeCreateAlertMut(h), nil)
-	h.Twilio(t).Device(h.Phone("1")).RejectSMS("Alert #1: foo")
-	h.Trigger()
-	logs := getLogs(h, t)
-
-	// most recent entry
-	var msg = logs.Alert.RecentEvents.Nodes[0].Message
-	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
-	assert.Contains(t, msg, "Notification sent")
-	assert.Equal(t, "failed", details)
-}
-
-func TestVoiceFailure(t *testing.T) {
-	t.Parallel()
-
-	var sql = makeSQL(false, "VOICE", true, true, true)
-	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
-	defer h.Close()
-
-	// create alert
-	doQL(h, t, makeCreateAlertMut(h), nil)
-	h.Twilio(t).Device(h.Phone("1")).RejectVoice("foo")
-	h.Trigger()
-	logs := getLogs(h, t)
-
-	// most recent entry
-	var msg = logs.Alert.RecentEvents.Nodes[0].Message
-	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
-	assert.Contains(t, msg, "Notification sent")
-	assert.Equal(t, "failed", details)
-}
-
-func TestNoImmediateNR(t *testing.T) {
-	t.Parallel()
-
-	var sql = makeSQL(false, "SMS", false, true, true)
-	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
-	defer h.Close()
-
-	// create alert
-	doQL(h, t, makeCreateAlertMut(h), nil)
-	h.Trigger()
-	logs := getLogs(h, t)
-
-	// most recent entry
-	var msg = logs.Alert.RecentEvents.Nodes[0].Message
-	assert.Contains(t, msg, "no immediate rule")
-}
-
-func TestNoOnCallUsers(t *testing.T) {
-	t.Parallel()
-
-	var sql = makeSQL(false, "SMS", true, true, false)
-	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
-	defer h.Close()
-
-	// create alert
-	doQL(h, t, makeCreateAlertMut(h), nil)
-	h.Trigger()
-	logs := getLogs(h, t)
-
-	// most recent entry
-	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
-	assert.Equal(t, "No one was on-call", details)
-}
-
-func TestNoEPSteps(t *testing.T) {
-	t.Parallel()
-
-	var sql = makeSQL(false, "SMS", true, false, false)
-	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
-	defer h.Close()
-
-	// create alert
-	doQL(h, t, makeCreateAlertMut(h), nil)
-	h.Trigger()
-	logs := getLogs(h, t)
-
-	// most recent entry
-	var details = logs.Alert.RecentEvents.Nodes[0].State.Details
-	assert.Equal(t, "No escalation policy steps", details)
-}
-
-func makeSQL(disabledCM bool, cmType string, nr bool, epStep bool, epStepUser bool) string {
-	// start initial sql with user and cm
-	var setupSQL = fmt.Sprintf(`
+	const alertLogSQLTmpl = `
 		insert into users (id, name, email) 
 		values ({{uuid "user"}}, 'bob', 'joe');
 
 		insert into user_contact_methods (id, user_id, name, type, value, disabled) 
-		values ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', '%s', {{phone "1"}}, %t);
-	`, cmType, disabledCM)
+		values ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', '{{.CMType}}', {{phone "1"}}, {{.CMDisabled}});
 
-	// add notification rule if specified
-	if nr {
-		setupSQL = setupSQL + `
-			insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
-			values ({{uuid "user"}}, {{uuid "cm1"}}, 0);
-		`
-	}
+		{{- if .NR}}
+		insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
+		values ({{uuid "user"}}, {{uuid "cm1"}}, 0);
+		{{- end}}
 
-	// add ep
-	setupSQL = setupSQL + `
 		insert into escalation_policies (id, name) 
 		values ({{uuid "eid"}}, 'esc policy');
-	`
 
-	// add ep step if specified
-	if epStep {
-		setupSQL = setupSQL + `
-			insert into escalation_policy_steps (id, escalation_policy_id) 
-			values ({{uuid "esid"}}, {{uuid "eid"}});
-		`
-	}
+		{{- if .EPStep}}
+		insert into escalation_policy_steps (id, escalation_policy_id) 
+		values ({{uuid "esid"}}, {{uuid "eid"}});
+		{{- end}}
 
-	// add user to ep step if step and stepUser specified
-	if epStep && epStepUser {
-		setupSQL = setupSQL + `
-			insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
-			values ({{uuid "esid"}}, {{uuid "user"}});
-		`
-	}
+		{{- if and .EPStep .EPStepUser}}
+		insert into escalation_policy_actions (escalation_policy_step_id, user_id) 
+		values ({{uuid "esid"}}, {{uuid "user"}});
+		{{- end}}
 
-	// add service
-	setupSQL = setupSQL + `
 		insert into services (id, escalation_policy_id, name) 
 		values ({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 	`
 
-	return setupSQL
-}
+	check := func(desc string, c alertLogTestCfg, preTrigger func(*testing.T, *harness.Harness), assert func(*testing.T, *harness.Harness, alertLogs)) {
+		t.Run(desc, func(t *testing.T) {
+			// setup sql
+			t.Parallel()
+			h := harness.NewHarnessWithTmpl(t, alertLogSQLTmpl, c, "add-no-notification-alert-log")
+			defer h.Close()
 
-type logs struct {
-	Alert struct {
-		RecentEvents struct {
-			Nodes []struct {
-				Message string `json:"message"`
-				State   struct {
-					Details string `json:"details"`
-				} `json:"state"`
-			} `json:"nodes"`
-		} `json:"recentEvents"`
-	} `json:"alert"`
-}
+			// create alert
+			doQL(t, h, makeCreateAlertMut(h), nil)
 
-func getLogs(h *harness.Harness, t *testing.T) *logs {
-	var result logs
+			if preTrigger != nil {
+				preTrigger(t, h)
+			}
+			h.Trigger()
 
-	doQL(h, t, fmt.Sprintf(`
-		query {
-  			alert(id: %d) {
-    			recentEvents(input: { limit: 15 }) {
-						nodes {
-							message
-							state {
-								details
+			// get logs
+			var l alertLogs
+			doQL(t, h, fmt.Sprintf(`
+			query {
+					alert(id: %d) {
+						recentEvents(input: { limit: 15 }) {
+							nodes {
+								message
+								state {
+									details
+								}
 							}
 						}
-    			}
-  			}
-		}
-	`, 1), &result)
+					}
+			}
+		`, 1), &l)
 
-	return &result
+			// make assertions
+			assert(t, h, l)
+		})
+	}
+
+	// test successful notification sent
+	check("NotificationSentSuccess", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		var msg = l.Alert.RecentEvents.Nodes[0].Message
+		assert.Contains(t, msg, "Notification sent")
+		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
+	})
+
+	// test disabled contact method
+	check("DisabledContactMethod", alertLogTestCfg{CMDisabled: true, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		var details = l.Alert.RecentEvents.Nodes[0].State.Details
+		assert.Contains(t, details, "contact method disabled")
+	})
+
+	// test SMS failure
+	check("SMSFailure", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, func(t *testing.T, h *harness.Harness) {
+		h.Twilio(t).Device(h.Phone("1")).RejectSMS("Alert #1: foo")
+	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		var msg = l.Alert.RecentEvents.Nodes[0].Message
+		var details = l.Alert.RecentEvents.Nodes[0].State.Details
+		assert.Contains(t, msg, "Notification sent")
+		assert.Equal(t, "failed", details)
+	})
+
+	// test VOICE failure
+	check("VOICEFailure", alertLogTestCfg{CMDisabled: false, CMType: "VOICE", NR: true, EPStep: true, EPStepUser: true}, func(t *testing.T, h *harness.Harness) {
+		h.Twilio(t).Device(h.Phone("1")).RejectVoice("foo")
+	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		var msg = l.Alert.RecentEvents.Nodes[0].Message
+		var details = l.Alert.RecentEvents.Nodes[0].State.Details
+		assert.Contains(t, msg, "Notification sent")
+		assert.Equal(t, "failed", details)
+	})
+
+	// test no immediate notification rule
+	check("NoImmediateNR", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: false, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		var msg = l.Alert.RecentEvents.Nodes[0].Message
+		assert.Contains(t, msg, "no immediate rule")
+	})
+
+	// test no on-call users
+	check("NoOnCallUsers", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: false}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		var details = l.Alert.RecentEvents.Nodes[0].State.Details
+		assert.Contains(t, details, "No one was on-call")
+	})
+
+	// test no steps on an escalation policy
+	check("NoEPSteps", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: false, EPStepUser: false}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+		var details = l.Alert.RecentEvents.Nodes[0].State.Details
+		assert.Contains(t, details, "No escalation policy steps")
+	})
 }
 
 func makeCreateAlertMut(h *harness.Harness) string {
@@ -230,7 +162,7 @@ func makeCreateAlertMut(h *harness.Harness) string {
 	)
 }
 
-func doQL(h *harness.Harness, t *testing.T, query string, res interface{}) {
+func doQL(t *testing.T, h *harness.Harness, query string, res interface{}) {
 	g := h.GraphQLQuery2(query)
 	for _, err := range g.Errors {
 		t.Error("GraphQL Error:", err.Message)
