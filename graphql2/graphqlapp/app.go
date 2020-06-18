@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"github.com/target/goalert/limit"
 	"net/http"
 	"strconv"
 	"sync"
@@ -21,6 +20,7 @@ import (
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
@@ -39,7 +39,8 @@ import (
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opencensus.io/trace"
 )
 
@@ -108,7 +109,7 @@ type apolloTracingExt struct {
 	mx sync.Mutex
 }
 type apolloTracingResolver struct {
-	Path        []interface{} `json:"path"`
+	Path        ast.Path      `json:"path"`
 	ParentType  string        `json:"parentType"`
 	FieldName   string        `json:"fieldName"`
 	ReturnType  string        `json:"returnType"`
@@ -124,19 +125,15 @@ type fieldErr struct {
 func (a *App) Handler() http.Handler {
 	return mustAuth(handler.GraphQL(
 		graphql2.NewExecutableSchema(graphql2.Config{Resolvers: a}),
-		handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
+		handler.RequestMiddleware(func(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
 			ctx = a.registerLoaders(ctx)
 
 			if permission.Admin(ctx) {
-				rctx := graphql.GetRequestContext(ctx)
 				ext := &apolloTracingExt{
 					Version: 1,
 					Start:   time.Now(),
 				}
-				if rctx.Extensions == nil {
-					rctx.Extensions = make(map[string]interface{}, 1)
-				}
-				rctx.Extensions["tracing"] = ext
+				graphql.RegisterExtension(ctx, "tracing", ext)
 				defer func() {
 					ext.End = time.Now()
 					ext.Duration = ext.End.Sub(ext.Start)
@@ -150,7 +147,7 @@ func (a *App) Handler() http.Handler {
 		handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 			rctx := graphql.GetResolverContext(ctx)
 
-			if ext, ok := graphql.GetRequestContext(ctx).Extensions["tracing"].(*apolloTracingExt); ok {
+			if ext, ok := graphql.GetExtension(ctx, "tracing").(*apolloTracingExt); ok {
 				var res apolloTracingResolver
 				res.FieldName = rctx.Field.Name
 				res.ParentType = rctx.Object
