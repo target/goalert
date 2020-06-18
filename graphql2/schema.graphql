@@ -224,7 +224,7 @@ type StringConnection {
 }
 
 type PhoneNumberInfo {
-  number: String!
+  id: String!
   countryCode: String!
   regionCode: String!
   formatted: String!

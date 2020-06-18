@@ -258,7 +258,7 @@ type ComplexityRoot struct {
 		Carrier     func(childComplexity int) int
 		CountryCode func(childComplexity int) int
 		Formatted   func(childComplexity int) int
-		Number      func(childComplexity int) int
+		ID          func(childComplexity int) int
 		RegionCode  func(childComplexity int) int
 	}
 
@@ -1633,12 +1633,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PhoneNumberInfo.Formatted(childComplexity), true
 
-	case "PhoneNumberInfo.number":
-		if e.complexity.PhoneNumberInfo.Number == nil {
+	case "PhoneNumberInfo.id":
+		if e.complexity.PhoneNumberInfo.ID == nil {
 			break
 		}
 
-		return e.complexity.PhoneNumberInfo.Number(childComplexity), true
+		return e.complexity.PhoneNumberInfo.ID(childComplexity), true
 
 	case "PhoneNumberInfo.regionCode":
 		if e.complexity.PhoneNumberInfo.RegionCode == nil {
@@ -3018,7 +3018,7 @@ type StringConnection {
 }
 
 type PhoneNumberInfo {
-  number: String!
+  id: String!
   countryCode: String!
   regionCode: String!
   formatted: String!
@@ -8794,7 +8794,7 @@ func (ec *executionContext) _PhoneNumberCarrierInfo_mobileCountryCode(ctx contex
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PhoneNumberInfo_number(ctx context.Context, field graphql.CollectedField, obj *PhoneNumberInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PhoneNumberInfo_id(ctx context.Context, field graphql.CollectedField, obj *PhoneNumberInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8811,7 +8811,7 @@ func (ec *executionContext) _PhoneNumberInfo_number(ctx context.Context, field g
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Number, nil
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17686,8 +17686,8 @@ func (ec *executionContext) _PhoneNumberInfo(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PhoneNumberInfo")
-		case "number":
-			out.Values[i] = ec._PhoneNumberInfo_number(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._PhoneNumberInfo_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

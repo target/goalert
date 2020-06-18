@@ -29,7 +29,7 @@ func (a *PhoneNumberInfo) Carrier(ctx context.Context, info *graphql2.PhoneNumbe
 	}
 
 	cfg := config.FromContext(ctx)
-	url := twLookupURL + info.Number + "?Type=carrier"
+	url := twLookupURL + info.ID + "?Type=carrier"
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (a *Query) PhoneNumberInfo(ctx context.Context, number string) (*graphql2.P
 	}
 
 	info := &graphql2.PhoneNumberInfo{
-		Number:      number,
+		ID:          number,
 		CountryCode: fmt.Sprintf("+%d", p.GetCountryCode()),
 		RegionCode:  libphonenumber.GetRegionCodeForNumber(p),
 		Formatted:   libphonenumber.Format(p, libphonenumber.INTERNATIONAL),

@@ -224,7 +224,7 @@ type PhoneNumberCarrierInfo struct {
 }
 
 type PhoneNumberInfo struct {
-	Number      string                  `json:"number"`
+	ID          string                  `json:"id"`
 	CountryCode string                  `json:"countryCode"`
 	RegionCode  string                  `json:"regionCode"`
 	Formatted   string                  `json:"formatted"`
