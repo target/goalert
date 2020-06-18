@@ -1,4 +1,6 @@
 type Query {
+  phoneNumberInfo(number: String!): PhoneNumberInfo!
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -219,6 +221,20 @@ type LabelConnection {
 type StringConnection {
   nodes: [String!]!
   pageInfo: PageInfo!
+}
+
+type PhoneNumberInfo {
+  number: String!
+  countryCode: String!
+  regionCode: String!
+  formatted: String!
+  carrier: PhoneNumberCarrierInfo
+}
+type PhoneNumberCarrierInfo {
+  name: String!
+  type: String!
+  mobileNetworkCode: String!
+  mobileCountryCode: String!
 }
 
 type Mutation {

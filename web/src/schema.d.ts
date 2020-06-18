@@ -149,7 +149,12 @@ export interface StringConnection {
   pageInfo: PageInfo
 }
 
+export interface LookupNumberInput {
+  number: string
+}
+
 export interface Mutation {
+  lookupNumber: boolean
   addAuthSubject: boolean
   deleteAuthSubject: boolean
   updateUser: boolean

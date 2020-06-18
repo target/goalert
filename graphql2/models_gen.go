@@ -216,6 +216,21 @@ type PageInfo struct {
 	HasNextPage bool    `json:"hasNextPage"`
 }
 
+type PhoneNumberCarrierInfo struct {
+	Name              string `json:"name"`
+	Type              string `json:"type"`
+	MobileNetworkCode string `json:"mobileNetworkCode"`
+	MobileCountryCode string `json:"mobileCountryCode"`
+}
+
+type PhoneNumberInfo struct {
+	Number      string                  `json:"number"`
+	CountryCode string                  `json:"countryCode"`
+	RegionCode  string                  `json:"regionCode"`
+	Formatted   string                  `json:"formatted"`
+	Carrier     *PhoneNumberCarrierInfo `json:"carrier"`
+}
+
 type RotationConnection struct {
 	Nodes    []rotation.Rotation `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
