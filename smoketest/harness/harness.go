@@ -124,7 +124,7 @@ func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	return h
 }
 
-func NewHarnessWithTmpl(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
+func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
 	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
 	h.Start()

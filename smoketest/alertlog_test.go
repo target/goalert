@@ -9,29 +9,63 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-type alertLogTestCfg struct {
-	CMDisabled bool
-	CMType     string
-	NR         bool
-	EPStep     bool
-	EPStepUser bool
-}
+func TestAlertLog(t *testing.T) {
+	t.Parallel()
 
-type alertLogs struct {
-	Alert struct {
-		RecentEvents struct {
-			Nodes []struct {
-				Message string
-				State   struct {
-					Details string
+	type alertLogs struct {
+		Alert struct {
+			RecentEvents struct {
+				Nodes []struct {
+					Message string
+					State   struct {
+						Details string
+					}
 				}
 			}
 		}
 	}
-}
 
-func TestAlertLog(t *testing.T) {
-	t.Parallel()
+	type config struct {
+		CMDisabled bool
+		CMType     string
+		NR         bool
+		EPStep     bool
+		EPStepUser bool
+	}
+
+	doQL := func(h *harness.Harness, query string, res interface{}) {
+		g := h.GraphQLQuery2(query)
+		for _, err := range g.Errors {
+			t.Error("GraphQL Error:", err.Message)
+		}
+
+		if len(g.Errors) > 0 {
+			t.Fatal("errors returned from GraphQL")
+		}
+
+		t.Log("Response:", string(g.Data))
+		if res == nil {
+			return
+		}
+
+		err := json.Unmarshal(g.Data, &res)
+		if err != nil {
+			t.Fatal("failed to parse response:", err)
+		}
+	}
+
+	makeCreateAlertMut := func(h *harness.Harness) string {
+		return fmt.Sprintf(
+			`mutation {
+				createAlert(input: {
+					summary: "foo",
+					serviceID: "%s"
+				}){ id }
+			}`,
+			h.UUID("sid"),
+		)
+	}
+
 	const alertLogSQLTmpl = `
 		insert into users (id, name, email) 
 		values ({{uuid "user"}}, 'bob', 'joe');
@@ -61,24 +95,24 @@ func TestAlertLog(t *testing.T) {
 		values ({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 	`
 
-	check := func(desc string, c alertLogTestCfg, preTrigger func(*testing.T, *harness.Harness), assert func(*testing.T, *harness.Harness, alertLogs)) {
+	check := func(desc string, c config, before func(*testing.T, *harness.Harness), after func(*testing.T, *harness.Harness, alertLogs)) {
 		t.Run(desc, func(t *testing.T) {
 			// setup sql
 			t.Parallel()
-			h := harness.NewHarnessWithTmpl(t, alertLogSQLTmpl, c, "add-no-notification-alert-log")
+			h := harness.NewHarnessWithData(t, alertLogSQLTmpl, c, "add-no-notification-alert-log")
 			defer h.Close()
 
 			// create alert
-			doQL(t, h, makeCreateAlertMut(h), nil)
+			doQL(h, makeCreateAlertMut(h), nil)
 
-			if preTrigger != nil {
-				preTrigger(t, h)
+			if before != nil {
+				before(t, h)
 			}
 			h.Trigger()
 
 			// get logs
 			var l alertLogs
-			doQL(t, h, fmt.Sprintf(`
+			doQL(h, fmt.Sprintf(`
 			query {
 					alert(id: %d) {
 						recentEvents(input: { limit: 15 }) {
@@ -94,25 +128,25 @@ func TestAlertLog(t *testing.T) {
 		`, 1), &l)
 
 			// make assertions
-			assert(t, h, l)
+			after(t, h, l)
 		})
 	}
 
 	// test successful notification sent
-	check("NotificationSentSuccess", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	check("NotificationSentSuccess", config{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		var msg = l.Alert.RecentEvents.Nodes[0].Message
 		assert.Contains(t, msg, "Notification sent")
 		h.Twilio(t).Device(h.Phone("1")).ExpectSMS("Alert #1: foo")
 	})
 
 	// test disabled contact method
-	check("DisabledContactMethod", alertLogTestCfg{CMDisabled: true, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	check("DisabledContactMethod", config{CMDisabled: true, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		var details = l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, details, "contact method disabled")
 	})
 
 	// test SMS failure
-	check("SMSFailure", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, func(t *testing.T, h *harness.Harness) {
+	check("SMSFailure", config{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: true}, func(t *testing.T, h *harness.Harness) {
 		h.Twilio(t).Device(h.Phone("1")).RejectSMS("Alert #1: foo")
 	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		var msg = l.Alert.RecentEvents.Nodes[0].Message
@@ -122,7 +156,7 @@ func TestAlertLog(t *testing.T) {
 	})
 
 	// test VOICE failure
-	check("VOICEFailure", alertLogTestCfg{CMDisabled: false, CMType: "VOICE", NR: true, EPStep: true, EPStepUser: true}, func(t *testing.T, h *harness.Harness) {
+	check("VOICEFailure", config{CMDisabled: false, CMType: "VOICE", NR: true, EPStep: true, EPStepUser: true}, func(t *testing.T, h *harness.Harness) {
 		h.Twilio(t).Device(h.Phone("1")).RejectVoice("foo")
 	}, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		var msg = l.Alert.RecentEvents.Nodes[0].Message
@@ -132,53 +166,20 @@ func TestAlertLog(t *testing.T) {
 	})
 
 	// test no immediate notification rule
-	check("NoImmediateNR", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: false, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	check("NoImmediateNR", config{CMDisabled: false, CMType: "SMS", NR: false, EPStep: true, EPStepUser: true}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		var msg = l.Alert.RecentEvents.Nodes[0].Message
 		assert.Contains(t, msg, "no immediate rule")
 	})
 
 	// test no on-call users
-	check("NoOnCallUsers", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: false}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	check("NoOnCallUsers", config{CMDisabled: false, CMType: "SMS", NR: true, EPStep: true, EPStepUser: false}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		var details = l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, details, "No one was on-call")
 	})
 
 	// test no steps on an escalation policy
-	check("NoEPSteps", alertLogTestCfg{CMDisabled: false, CMType: "SMS", NR: true, EPStep: false, EPStepUser: false}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
+	check("NoEPSteps", config{CMDisabled: false, CMType: "SMS", NR: true, EPStep: false, EPStepUser: false}, nil, func(t *testing.T, h *harness.Harness, l alertLogs) {
 		var details = l.Alert.RecentEvents.Nodes[0].State.Details
 		assert.Contains(t, details, "No escalation policy steps")
 	})
-}
-
-func makeCreateAlertMut(h *harness.Harness) string {
-	return fmt.Sprintf(
-		`mutation {
-			createAlert(input: {
-				summary: "foo",
-				serviceID: "%s"
-			}){ id }
-		}`,
-		h.UUID("sid"),
-	)
-}
-
-func doQL(t *testing.T, h *harness.Harness, query string, res interface{}) {
-	g := h.GraphQLQuery2(query)
-	for _, err := range g.Errors {
-		t.Error("GraphQL Error:", err.Message)
-	}
-
-	if len(g.Errors) > 0 {
-		t.Fatal("errors returned from GraphQL")
-	}
-
-	t.Log("Response:", string(g.Data))
-	if res == nil {
-		return
-	}
-
-	err := json.Unmarshal(g.Data, &res)
-	if err != nil {
-		t.Fatal("failed to parse response:", err)
-	}
 }
