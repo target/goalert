@@ -3,6 +3,7 @@ package escalationmanager
 import (
 	"context"
 	"database/sql"
+
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
@@ -101,37 +102,52 @@ func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 				where state.last_escalation isnull
 				for update skip locked
 				limit 1000
-			), _cycles as (
-				insert into notification_policy_cycles (alert_id, user_id)
-				select esc.alert_id, on_call.user_id
+			), _step_cycles as (
+				select esc.alert_id, on_call.user_id, esc.ep_step_id
 				from to_escalate esc
 				join ep_step_on_call_users on_call on
 					on_call.end_time isnull and
 					on_call.ep_step_id = esc.ep_step_id
-			), _channels as (
-				insert into outgoing_messages (message_type, alert_id, service_id, escalation_policy_id, channel_id)
+			), _cycles as (
+				insert into notification_policy_cycles (alert_id, user_id)
+				select alert_id, user_id from _step_cycles
+			), _step_channels as (
 				select
 					cast('alert_notification' as enum_outgoing_messages_type),
 					esc.alert_id,
 					esc.service_id,
 					esc.escalation_policy_id,
-					act.channel_id
+					act.channel_id,
+					esc.ep_step_id
 				from to_escalate esc
 				join escalation_policy_actions act on
 					act.channel_id notnull and
 					act.escalation_policy_step_id = esc.ep_step_id
+			), _channels as (
+				insert into outgoing_messages (message_type, alert_id, service_id, escalation_policy_id, channel_id)
+				select
+					cast('alert_notification' as enum_outgoing_messages_type),
+					alert_id,
+					service_id,
+					escalation_policy_id,
+					channel_id
+				from _step_channels
+			), _update as (
+				update escalation_policy_state state
+				set
+					last_escalation = now(),
+					next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
+					escalation_policy_step_id = esc.ep_step_id,
+					force_escalation = false
+				from
+					to_escalate esc
+				where
+					state.alert_id = esc.alert_id
 			)
-			update escalation_policy_state state
-			set
-				last_escalation = now(),
-				next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
-				escalation_policy_step_id = esc.ep_step_id,
-				force_escalation = false
-			from
-				to_escalate esc
-			where
-				state.alert_id = esc.alert_id
-			returning state.alert_id
+			select esc.alert_id, step isnull and chan isnull
+			from to_escalate esc
+			left join _step_cycles step on step.ep_step_id = esc.ep_step_id
+			left join _step_channels chan on chan.ep_step_id = esc.ep_step_id
 		`),
 
 		deletedSteps: p.P(`
@@ -158,40 +174,55 @@ func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 					escalation_policy_step_id isnull
 				for update skip locked
 				limit 100
-			), _cycles as (
-				insert into notification_policy_cycles (alert_id, user_id)
-				select esc.alert_id, on_call.user_id
+			), _step_cycles as (
+				select esc.alert_id, on_call.user_id, esc.ep_step_id
 				from to_escalate esc
 				join ep_step_on_call_users on_call on
 					on_call.end_time isnull and
 					on_call.ep_step_id = esc.ep_step_id
-			), _channels as (
-				insert into outgoing_messages (message_type, alert_id, service_id, escalation_policy_id, channel_id)
+			), _cycles as (
+				insert into notification_policy_cycles (alert_id, user_id)
+				select alert_id, user_id
+				from _step_cycles
+			), _step_channels as (
 				select
 					cast('alert_notification' as enum_outgoing_messages_type),
 					esc.alert_id,
 					esc.service_id,
 					esc.escalation_policy_id,
-					act.channel_id
+					act.channel_id,
+					esc.ep_step_id
 				from to_escalate esc
 				join escalation_policy_actions act on
 					act.channel_id notnull and
 					act.escalation_policy_step_id = esc.ep_step_id
+			), _channels as (
+				insert into outgoing_messages (message_type, alert_id, service_id, escalation_policy_id, channel_id)
+				select
+					cast('alert_notification' as enum_outgoing_messages_type),
+					alert_id,
+					service_id,
+					escalation_policy_id,
+					channel_id
+				from _step_channels
+			), _update as (
+				update escalation_policy_state state
+				set
+					last_escalation = now(),
+					next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
+					escalation_policy_step_number = esc.step_number,
+					escalation_policy_step_id = esc.ep_step_id,
+					force_escalation = false
+				from
+					to_escalate esc
+				where
+					state.alert_id = esc.alert_id
 			)
-			update escalation_policy_state state
-			set
-				last_escalation = now(),
-				next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
-				escalation_policy_step_number = esc.step_number,
-				escalation_policy_step_id = esc.ep_step_id,
-				force_escalation = false
-			from
-				to_escalate esc
-			where
-				state.alert_id = esc.alert_id
-			returning esc.alert_id, esc.repeated, esc.step_number
+			select esc.alert_id, esc.repeated, esc.step_number, step isnull and chan isnull
+			from to_escalate esc
+			left join _step_cycles step on step.ep_step_id = esc.ep_step_id
+			left join _step_channels chan on chan.ep_step_id = esc.ep_step_id
 		`),
-
 		normalEscalation: p.P(`
 			with to_escalate as (
 				select
@@ -224,39 +255,55 @@ func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 				order by next_escalation - now()
 				for update skip locked
 				limit 500
-			), _cycles as (
-				insert into notification_policy_cycles (alert_id, user_id)
-				select esc.alert_id, on_call.user_id
+			), _step_cycles as (
+				select esc.alert_id, on_call.user_id, esc.ep_step_id
 				from to_escalate esc
 				join ep_step_on_call_users on_call on
 					on_call.end_time isnull and
 					on_call.ep_step_id = esc.ep_step_id
-			), _channels as (
-				insert into outgoing_messages (message_type, alert_id, service_id, escalation_policy_id, channel_id)
+			), _cycles as (
+				insert into notification_policy_cycles (alert_id, user_id)
+				select alert_id, user_id
+				from _step_cycles
+			), _step_channels as (
 				select
 					cast('alert_notification' as enum_outgoing_messages_type),
 					esc.alert_id,
 					esc.service_id,
 					esc.escalation_policy_id,
-					act.channel_id
+					act.channel_id,
+					esc.ep_step_id
 				from to_escalate esc
 				join escalation_policy_actions act on
 					act.channel_id notnull and
 					act.escalation_policy_step_id = esc.ep_step_id
+			), _channels as (
+				insert into outgoing_messages (message_type, alert_id, service_id, escalation_policy_id, channel_id)
+				select
+					cast('alert_notification' as enum_outgoing_messages_type),
+					alert_id,
+					service_id,
+					escalation_policy_id,
+					channel_id
+				from _step_channels
+			), _update as (
+				update escalation_policy_state state
+				set
+					last_escalation = now(),
+					next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
+					escalation_policy_step_number = esc.step_number,
+					escalation_policy_step_id = esc.ep_step_id,
+					loop_count = CASE WHEN esc.repeated THEN loop_count + 1 ELSE loop_count END,
+					force_escalation = false
+				from
+					to_escalate esc
+				where
+					state.alert_id = esc.alert_id
 			)
-			update escalation_policy_state state
-			set
-				last_escalation = now(),
-				next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
-				escalation_policy_step_number = esc.step_number,
-				escalation_policy_step_id = esc.ep_step_id,
-				loop_count = CASE WHEN esc.repeated THEN loop_count + 1 ELSE loop_count END,
-				force_escalation = false
-			from
-				to_escalate esc
-			where
-				state.alert_id = esc.alert_id
-			returning esc.alert_id, esc.repeated, esc.step_number, esc.old_delay, esc.forced
+			select esc.alert_id, esc.repeated, esc.step_number, esc.old_delay, esc.forced, step isnull and chan isnull
+			from to_escalate esc
+			left join _step_cycles step on step.ep_step_id = esc.ep_step_id
+			left join _step_channels chan on chan.ep_step_id = esc.ep_step_id
 		`),
 	}, p.Err
 }

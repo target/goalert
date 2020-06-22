@@ -51,6 +51,7 @@ type AlertSearchOptions struct {
 	First             *int          `json:"first"`
 	After             *string       `json:"after"`
 	FavoritesOnly     *bool         `json:"favoritesOnly"`
+	IncludeNotified   *bool         `json:"includeNotified"`
 	Omit              []int         `json:"omit"`
 }
 
@@ -459,17 +460,19 @@ type AlertLogStatus string
 
 const (
 	AlertLogStatusOk    AlertLogStatus = "OK"
+	AlertLogStatusWarn  AlertLogStatus = "WARN"
 	AlertLogStatusError AlertLogStatus = "ERROR"
 )
 
 var AllAlertLogStatus = []AlertLogStatus{
 	AlertLogStatusOk,
+	AlertLogStatusWarn,
 	AlertLogStatusError,
 }
 
 func (e AlertLogStatus) IsValid() bool {
 	switch e {
-	case AlertLogStatusOk, AlertLogStatusError:
+	case AlertLogStatusOk, AlertLogStatusWarn, AlertLogStatusError:
 		return true
 	}
 	return false

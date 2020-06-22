@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/lock"
@@ -42,6 +43,7 @@ type DB struct {
 	sendDeadlineExpired *sql.Stmt
 
 	failDisabledCM *sql.Stmt
+	alertlogstore  alertlog.Store
 
 	sentByCMType *sql.Stmt
 
@@ -60,7 +62,7 @@ type DB struct {
 }
 
 // NewDB creates a new DB. If config is nil, DefaultConfig() is used.
-func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
 		Version: 7,
@@ -124,8 +126,9 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 		return nil, p.Err
 	}
 	return &DB{
-		lock: lock,
-		c:    *c,
+		lock:          lock,
+		c:             *c,
+		alertlogstore: a,
 
 		updateStatus: updateStatus,
 		tempFail:     tempFail,
@@ -256,19 +259,22 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config) (*DB, error) {
 		currentTime: p.P(`select now()`),
 
 		failDisabledCM: p.P(`
-			update outgoing_messages msg
-			set
-				last_status = 'failed',
-				last_status_at = now(),
-				status_details = 'contact method disabled',
-				cycle_id = null,
-				next_retry_at = null
-			from user_contact_methods cm
-			where
-				msg.last_status = 'pending' and
-				msg.message_type != 'verification_message' and
-				cm.id = msg.contact_method_id and
-				cm.disabled
+			with disabled as (
+				update outgoing_messages msg
+				set
+					last_status = 'failed',
+					last_status_at = now(),
+					status_details = 'contact method disabled',
+					cycle_id = null,
+					next_retry_at = null
+				from user_contact_methods cm
+				where
+					msg.last_status = 'pending' and
+					msg.message_type != 'verification_message' and
+					cm.id = msg.contact_method_id and
+					cm.disabled
+				returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
+			) select distinct msg_id, alert_id, user_id, cm_id from disabled
 		`),
 
 		insertAlertBundle: p.P(`
@@ -522,9 +528,9 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	if err != nil {
 		return errors.Wrap(err, "terminate stale backend locks")
 	}
-	rows, _ := res.RowsAffected()
-	if rows > 0 {
-		log.Log(execCtx, errors.Errorf("terminated %d stale backend instance(s) holding message sending lock", rows))
+	rowsCount, _ := res.RowsAffected()
+	if rowsCount > 0 {
+		log.Log(execCtx, errors.Errorf("terminated %d stale backend instance(s) holding message sending lock", rowsCount))
 	}
 
 	cLock, err := db.lock.Conn(execCtx)
@@ -569,9 +575,40 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "clear disabled status updates")
 	}
 
-	_, err = tx.Stmt(db.failDisabledCM).ExecContext(execCtx)
+	// processes disabled CMs and writes to alert log if disabled
+	rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
 	if err != nil {
 		return errors.Wrap(err, "check for disabled CMs")
+	}
+	defer rows.Close()
+
+	type msgMeta struct {
+		MessageID string
+		AlertID   int
+		UserID    string
+		CMID      string
+	}
+
+	var msgs []msgMeta
+	for rows.Next() {
+		var msg msgMeta
+		err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
+		if err != nil {
+			return errors.Wrap(err, "scan all disabled CM messages")
+		}
+		msgs = append(msgs, msg)
+	}
+
+	for _, m := range msgs {
+		meta := alertlog.NotificationMetaData{
+			MessageID: m.MessageID,
+		}
+
+		// log failures
+		db.alertlogstore.MustLogTx(permission.UserSourceContext(ctx, m.UserID, permission.RoleUser, &permission.SourceInfo{
+			Type: permission.SourceTypeContactMethod,
+			ID:   m.CMID,
+		}), tx, m.AlertID, alertlog.TypeNotificationSent, meta)
 	}
 
 	_, err = tx.Stmt(db.sendDeadlineExpired).ExecContext(ctx)

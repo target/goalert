@@ -665,6 +665,7 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
+  includeNotified: Boolean = true
   omit: [Int!]
 }
 
@@ -715,6 +716,7 @@ type AlertLogEntryState {
 
 enum AlertLogStatus {
   OK
+  WARN
   ERROR
 }
 

@@ -505,6 +505,7 @@ export interface AlertSearchOptions {
   first?: number
   after?: string
   favoritesOnly?: boolean
+  includeNotified?: boolean
   omit?: number[]
 }
 
@@ -547,7 +548,7 @@ export interface AlertLogEntryState {
   status?: AlertLogStatus
 }
 
-export type AlertLogStatus = 'OK' | 'ERROR'
+export type AlertLogStatus = 'OK' | 'WARN' | 'ERROR'
 
 export interface AlertState {
   lastEscalation: ISOTimestamp
