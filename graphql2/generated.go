@@ -209,6 +209,7 @@ type ComplexityRoot struct {
 		CreateUserContactMethod        func(childComplexity int, input CreateUserContactMethodInput) int
 		CreateUserNotificationRule     func(childComplexity int, input CreateUserNotificationRuleInput) int
 		CreateUserOverride             func(childComplexity int, input CreateUserOverrideInput) int
+		DebugSendSms                   func(childComplexity int, input DebugSendSMSInput) int
 		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
 		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
 		EscalateAlerts                 func(childComplexity int, input []int) int
@@ -499,6 +500,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MutationResolver interface {
+	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (bool, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	DeleteAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	UpdateUser(ctx context.Context, input UpdateUserInput) (bool, error)
@@ -1258,6 +1260,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateUserOverride(childComplexity, args["input"].(CreateUserOverrideInput)), true
+
+	case "Mutation.debugSendSMS":
+		if e.complexity.Mutation.DebugSendSms == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_debugSendSMS_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DebugSendSms(childComplexity, args["input"].(DebugSendSMSInput)), true
 
 	case "Mutation.deleteAll":
 		if e.complexity.Mutation.DeleteAll == nil {
@@ -3031,7 +3045,14 @@ type PhoneNumberCarrierInfo {
   mobileCountryCode: String!
 }
 
+input DebugSendSMSInput {
+  from: String!
+  to: String!
+  body: String!
+}
+
 type Mutation {
+  debugSendSMS(input: DebugSendSMSInput!): Boolean!
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
@@ -3976,6 +3997,20 @@ func (ec *executionContext) field_Mutation_createUserOverride_args(ctx context.C
 	var arg0 CreateUserOverrideInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNCreateUserOverrideInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_debugSendSMS_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 DebugSendSMSInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNDebugSendSMSInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugSendSMSInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6987,6 +7022,47 @@ func (ec *executionContext) _LabelConnection_pageInfo(ctx context.Context, field
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_debugSendSMS(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_debugSendSMS_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DebugSendSms(rctx, args["input"].(DebugSendSMSInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addAuthSubject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15393,6 +15469,36 @@ func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDebugSendSMSInput(ctx context.Context, obj interface{}) (DebugSendSMSInput, error) {
+	var it DebugSendSMSInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "from":
+			var err error
+			it.From, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "to":
+			var err error
+			it.To, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "body":
+			var err error
+			it.Body, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEscalationPolicySearchOptions(ctx context.Context, obj interface{}) (EscalationPolicySearchOptions, error) {
 	var it EscalationPolicySearchOptions
 	var asMap = obj.(map[string]interface{})
@@ -17399,6 +17505,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "debugSendSMS":
+			out.Values[i] = ec._Mutation_debugSendSMS(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addAuthSubject":
 			out.Values[i] = ec._Mutation_addAuthSubject(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -20077,6 +20188,10 @@ func (ec *executionContext) unmarshalNCreateUserNotificationRuleInput2githubᚗc
 
 func (ec *executionContext) unmarshalNCreateUserOverrideInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInput(ctx context.Context, v interface{}) (CreateUserOverrideInput, error) {
 	return ec.unmarshalInputCreateUserOverrideInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNDebugSendSMSInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugSendSMSInput(ctx context.Context, v interface{}) (DebugSendSMSInput, error) {
+	return ec.unmarshalInputDebugSendSMSInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNEscalationPolicy2githubᚗcomᚋtargetᚋgoalertᚋescalationᚐPolicy(ctx context.Context, sel ast.SelectionSet, v escalation.Policy) graphql.Marshaler {

@@ -23,6 +23,7 @@ import (
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -69,6 +70,7 @@ type App struct {
 	HeartbeatStore heartbeat.Store
 
 	NotificationStore notification.Store
+	Twilio            *twilio.Config
 
 	TimeZoneStore *timezone.Store
 }

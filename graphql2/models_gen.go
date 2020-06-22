@@ -171,6 +171,12 @@ type CreateUserOverrideInput struct {
 	RemoveUserID *string   `json:"removeUserID"`
 }
 
+type DebugSendSMSInput struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+	Body string `json:"body"`
+}
+
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`

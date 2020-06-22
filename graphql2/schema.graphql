@@ -237,7 +237,14 @@ type PhoneNumberCarrierInfo {
   mobileCountryCode: String!
 }
 
+input DebugSendSMSInput {
+  from: String!
+  to: String!
+  body: String!
+}
+
 type Mutation {
+  debugSendSMS(input: DebugSendSMSInput!): Boolean!
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
