@@ -17,11 +17,13 @@ import (
 
 const twLookupURL = "https://lookups.twilio.com/v1/PhoneNumbers/"
 
-type PhoneNumberInfo App
+type DebugPhoneNumberInfo App
 
-func (a *App) PhoneNumberInfo() graphql2.PhoneNumberInfoResolver { return (*PhoneNumberInfo)(a) }
+func (a *App) DebugPhoneNumberInfo() graphql2.DebugPhoneNumberInfoResolver {
+	return (*DebugPhoneNumberInfo)(a)
+}
 
-func (a *PhoneNumberInfo) Carrier(ctx context.Context, info *graphql2.PhoneNumberInfo) (*graphql2.PhoneNumberCarrierInfo, error) {
+func (a *DebugPhoneNumberInfo) Carrier(ctx context.Context, info *graphql2.DebugPhoneNumberInfo) (*graphql2.DebugPhoneNumberCarrierInfo, error) {
 	// must be admin to fetch carrier info
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
@@ -64,7 +66,7 @@ func (a *PhoneNumberInfo) Carrier(ctx context.Context, info *graphql2.PhoneNumbe
 		return nil, err
 	}
 
-	return &graphql2.PhoneNumberCarrierInfo{
+	return &graphql2.DebugPhoneNumberCarrierInfo{
 		Name:              result.Carrier.Name,
 		Type:              result.Carrier.Type,
 		MobileCountryCode: result.Carrier.CC,
@@ -72,19 +74,19 @@ func (a *PhoneNumberInfo) Carrier(ctx context.Context, info *graphql2.PhoneNumbe
 	}, nil
 }
 
-func (a *Query) PhoneNumberInfo(ctx context.Context, number string) (*graphql2.PhoneNumberInfo, error) {
-	err := validate.Phone("number", number)
+func (a *Mutation) DebugPhoneNumberInfo(ctx context.Context, input graphql2.DebugPhoneNumberInfoInput) (*graphql2.DebugPhoneNumberInfo, error) {
+	err := validate.Phone("Number", input.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	p, err := libphonenumber.Parse(number, "")
+	p, err := libphonenumber.Parse(input.Number, "")
 	if err != nil {
-		return nil, validation.NewFieldError("number", fmt.Sprintf("must be a valid number: %s", err.Error()))
+		return nil, validation.NewFieldError("Number", fmt.Sprintf("must be a valid number: %s", err.Error()))
 	}
 
-	info := &graphql2.PhoneNumberInfo{
-		ID:          number,
+	info := &graphql2.DebugPhoneNumberInfo{
+		ID:          input.Number,
 		CountryCode: fmt.Sprintf("+%d", p.GetCountryCode()),
 		RegionCode:  libphonenumber.GetRegionCodeForNumber(p),
 		Formatted:   libphonenumber.Format(p, libphonenumber.INTERNATIONAL),

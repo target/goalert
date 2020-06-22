@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+	"net/url"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
@@ -36,10 +37,10 @@ type safeErr struct{ error }
 
 func (safeErr) ClientError() bool { return true }
 
-func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMSInput) (bool, error) {
+func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMSInput) (*graphql2.DebugSendSMSInfo, error) {
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	err = validate.Many(
@@ -48,17 +49,20 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 		validate.Text("Body", input.Body, 1, 1000),
 	)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	_, err = a.Twilio.SendSMS(ctx, input.To, input.Body, &twilio.SMSOptions{
+	msg, err := a.Twilio.SendSMS(ctx, input.To, input.Body, &twilio.SMSOptions{
 		FromNumber: input.From,
 	})
 	if err != nil {
-		return false, safeErr{error: err}
+		return nil, safeErr{error: err}
 	}
 
-	return true, nil
+	return &graphql2.DebugSendSMSInfo{
+		ID:          msg.SID,
+		ProviderURL: "https://www.twilio.com/console/sms/logs/" + url.PathEscape(msg.SID),
+	}, nil
 }
 
 func (a *Mutation) TestContactMethod(ctx context.Context, id string) (bool, error) {

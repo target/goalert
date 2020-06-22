@@ -73,7 +73,7 @@ models:
     model: github.com/target/goalert/heartbeat.State
   SystemLimitID:
     model: github.com/target/goalert/limit.ID
-  PhoneNumberInfo:
+  DebugPhoneNumberInfo:
     fields:
       carrier:
         resolver: true

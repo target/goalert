@@ -171,6 +171,30 @@ type CreateUserOverrideInput struct {
 	RemoveUserID *string   `json:"removeUserID"`
 }
 
+type DebugPhoneNumberCarrierInfo struct {
+	Name              string `json:"name"`
+	Type              string `json:"type"`
+	MobileNetworkCode string `json:"mobileNetworkCode"`
+	MobileCountryCode string `json:"mobileCountryCode"`
+}
+
+type DebugPhoneNumberInfo struct {
+	ID          string                       `json:"id"`
+	CountryCode string                       `json:"countryCode"`
+	RegionCode  string                       `json:"regionCode"`
+	Formatted   string                       `json:"formatted"`
+	Carrier     *DebugPhoneNumberCarrierInfo `json:"carrier"`
+}
+
+type DebugPhoneNumberInfoInput struct {
+	Number string `json:"number"`
+}
+
+type DebugSendSMSInfo struct {
+	ID          string `json:"id"`
+	ProviderURL string `json:"providerURL"`
+}
+
 type DebugSendSMSInput struct {
 	From string `json:"from"`
 	To   string `json:"to"`
@@ -220,21 +244,6 @@ type LabelValueSearchOptions struct {
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor"`
 	HasNextPage bool    `json:"hasNextPage"`
-}
-
-type PhoneNumberCarrierInfo struct {
-	Name              string `json:"name"`
-	Type              string `json:"type"`
-	MobileNetworkCode string `json:"mobileNetworkCode"`
-	MobileCountryCode string `json:"mobileCountryCode"`
-}
-
-type PhoneNumberInfo struct {
-	ID          string                  `json:"id"`
-	CountryCode string                  `json:"countryCode"`
-	RegionCode  string                  `json:"regionCode"`
-	Formatted   string                  `json:"formatted"`
-	Carrier     *PhoneNumberCarrierInfo `json:"carrier"`
 }
 
 type RotationConnection struct {

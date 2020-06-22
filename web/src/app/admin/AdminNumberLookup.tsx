@@ -8,11 +8,11 @@ import {
   FormControlLabel,
 } from '@material-ui/core'
 import gql from 'graphql-tag'
-import { useQuery } from 'react-apollo'
+import { useMutation } from 'react-apollo'
 
-const query = gql`
-  query($number: String!) {
-    phoneNumberInfo(number: $number) {
+const mutNoCarrier = gql`
+  mutation($number: String!) {
+    debugPhoneNumberInfo(input: { number: $number }) {
       id
       countryCode
       regionCode
@@ -21,9 +21,9 @@ const query = gql`
   }
 `
 
-const queryCarrier = gql`
-  query($number: String!) {
-    phoneNumberInfo(number: $number) {
+const mutation = gql`
+  mutation($number: String!) {
+    debugPhoneNumberInfo(input: { number: $number }) {
       id
       countryCode
       regionCode
@@ -38,26 +38,29 @@ const queryCarrier = gql`
   }
 `
 
+/* TODO
+  - Field errors
+  - Style/padding/etc
+  - Generic error display
+  - Display data in readable way
+*/
+
 export default function AdminNumberLookup(): JSX.Element {
   const [number, setNumber] = useState('')
   const [inclCarrier, setInclCarrier] = useState(false)
-  const [submit, setSubmit] = useState(false)
 
-  console.log(inclCarrier)
-  const { data } = useQuery(inclCarrier ? queryCarrier : query, {
-    variables: { number },
-    pollInterval: 0,
-    skip: !submit,
-  })
+  const [lookup, { data }] = useMutation(
+    inclCarrier ? mutation : mutNoCarrier,
+    {
+      variables: { number },
+    },
+  )
 
   return (
     <Form>
       <Card>
         <TextField
-          onChange={(e) => {
-            setSubmit(false)
-            setNumber(e.target.value)
-          }}
+          onChange={(e) => setNumber(e.target.value)}
           value={number}
           label='Phone Number'
           helperText='Including + and country code'
@@ -66,17 +69,20 @@ export default function AdminNumberLookup(): JSX.Element {
           control={
             <Checkbox
               checked={inclCarrier}
-              onChange={(e) => {
-                setSubmit(false)
-                setInclCarrier(e.target.checked)
-              }}
+              onChange={(e) => setInclCarrier(e.target.checked)}
             />
           }
           label='Include carrier information'
         />
 
-        <Button onClick={() => setSubmit(true)}>Lookup</Button>
-        {data?.phoneNumberInfo && (
+        <Button
+          onClick={() => {
+            lookup()
+          }}
+        >
+          Lookup
+        </Button>
+        {data?.debugPhoneNumberInfo && (
           <div>
             <hr />
             {JSON.stringify(data, null, '  ')}
