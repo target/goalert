@@ -122,10 +122,6 @@ export default function AdminNumberLookup(): JSX.Element {
         {data?.debugPhoneNumberInfo && (
           <List dense={true}>
             {renderListItem(
-              'Country Code',
-              data.debugPhoneNumberInfo.countryCode,
-            )}
-            {renderListItem(
               'Region Code',
               data.debugPhoneNumberInfo.regionCode,
             )}
