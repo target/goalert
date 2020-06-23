@@ -62,6 +62,17 @@ export default function AdminNumberLookup(): JSX.Element {
     },
   )
 
+  function renderListItem(label: string, text: string) {
+    return (
+      <React.Fragment>
+        <Divider />
+        <ListItem>
+          <ListItemText primary={label} secondary={text} />
+        </ListItem>
+      </React.Fragment>
+    )
+  }
+
   return (
     <Form>
       <Card>
@@ -96,67 +107,40 @@ export default function AdminNumberLookup(): JSX.Element {
         </CardActions>
 
         {data?.debugPhoneNumberInfo && (
-          <React.Fragment>
-            <Divider />
-            <List dense={true}>
-              <ListItem>
-                <ListItemText
-                  primary='Country Code'
-                  secondary={data.debugPhoneNumberInfo.countryCode}
-                />
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText
-                  primary='Region Code'
-                  secondary={data.debugPhoneNumberInfo.regionCode}
-                />
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText
-                  primary='Formatted Phone Number'
-                  secondary={data.debugPhoneNumberInfo.formatted}
-                />
-              </ListItem>
-              {data?.debugPhoneNumberInfo?.carrier && (
-                <React.Fragment>
-                  <Divider />
-                  <ListItem>
-                    <ListItemText
-                      primary='Carrier Name'
-                      secondary={data.debugPhoneNumberInfo.carrier.name}
-                    />
-                  </ListItem>
-                  <Divider />
-                  <ListItem>
-                    <ListItemText
-                      primary='Carrier Type'
-                      secondary={data.debugPhoneNumberInfo.carrier.type}
-                    />
-                  </ListItem>
-                  <Divider />
-                  <ListItem>
-                    <ListItemText
-                      primary='Mobile Network Code'
-                      secondary={
-                        data.debugPhoneNumberInfo.carrier.mobileNetworkCode
-                      }
-                    />
-                  </ListItem>
-                  <Divider />
-                  <ListItem>
-                    <ListItemText
-                      primary='Mobile Country Code'
-                      secondary={
-                        data.debugPhoneNumberInfo.carrier.mobileCountryCode
-                      }
-                    />
-                  </ListItem>
-                </React.Fragment>
-              )}
-            </List>
-          </React.Fragment>
+          <List dense={true}>
+            {renderListItem(
+              'Country Code',
+              data.debugPhoneNumberInfo.countryCode,
+            )}
+            {renderListItem(
+              'Region Code',
+              data.debugPhoneNumberInfo.regionCode,
+            )}
+            {renderListItem(
+              'Formatted Phone Number',
+              data.debugPhoneNumberInfo.formatted,
+            )}
+            {data?.debugPhoneNumberInfo?.carrier && (
+              <React.Fragment>
+                {renderListItem(
+                  'Carrier Name',
+                  data.debugPhoneNumberInfo.carrier.name,
+                )}
+                {renderListItem(
+                  'Carrier Type',
+                  data.debugPhoneNumberInfo.carrier.type,
+                )}
+                {renderListItem(
+                  'Mobile Network Code',
+                  data.debugPhoneNumberInfo.carrier.mobileNetworkCode,
+                )}
+                {renderListItem(
+                  'Mobile Country Code',
+                  data.debugPhoneNumberInfo.carrier.mobileCountryCode,
+                )}
+              </React.Fragment>
+            )}
+          </List>
         )}
       </Card>
     </Form>
