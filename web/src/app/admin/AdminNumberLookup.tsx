@@ -2,6 +2,12 @@ import React, { useState } from 'react'
 import { Form } from '../forms'
 import {
   Card,
+  CardContent,
+  CardActions,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
   TextField,
   Button,
   Checkbox,
@@ -59,34 +65,98 @@ export default function AdminNumberLookup(): JSX.Element {
   return (
     <Form>
       <Card>
-        <TextField
-          onChange={(e) => setNumber(e.target.value)}
-          value={number}
-          label='Phone Number'
-          helperText='Including + and country code'
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={inclCarrier}
-              onChange={(e) => setInclCarrier(e.target.checked)}
-            />
-          }
-          label='Include carrier information'
-        />
+        <CardContent>
+          <TextField
+            onChange={(e) => setNumber(e.target.value)}
+            value={number}
+            label='Phone Number'
+            helperText='Including + and country code'
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={inclCarrier}
+                onChange={(e) => setInclCarrier(e.target.checked)}
+              />
+            }
+            label='Include carrier information'
+          />
+        </CardContent>
 
-        <Button
-          onClick={() => {
-            lookup()
-          }}
-        >
-          Lookup
-        </Button>
+        <CardActions>
+          <Button
+            onClick={() => {
+              lookup()
+            }}
+            variant='contained'
+            color='primary'
+          >
+            Lookup
+          </Button>
+        </CardActions>
+
         {data?.debugPhoneNumberInfo && (
-          <div>
-            <hr />
-            {JSON.stringify(data, null, '  ')}
-          </div>
+          <React.Fragment>
+            <Divider />
+            <List dense={true}>
+              <ListItem>
+                <ListItemText
+                  primary='Country Code'
+                  secondary={data.debugPhoneNumberInfo.countryCode}
+                />
+              </ListItem>
+              <Divider />
+              <ListItem>
+                <ListItemText
+                  primary='Region Code'
+                  secondary={data.debugPhoneNumberInfo.regionCode}
+                />
+              </ListItem>
+              <Divider />
+              <ListItem>
+                <ListItemText
+                  primary='Formatted Phone Number'
+                  secondary={data.debugPhoneNumberInfo.formatted}
+                />
+              </ListItem>
+              {data?.debugPhoneNumberInfo?.carrier && (
+                <React.Fragment>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText
+                      primary='Carrier Name'
+                      secondary={data.debugPhoneNumberInfo.carrier.name}
+                    />
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText
+                      primary='Carrier Type'
+                      secondary={data.debugPhoneNumberInfo.carrier.type}
+                    />
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText
+                      primary='Mobile Network Code'
+                      secondary={
+                        data.debugPhoneNumberInfo.carrier.mobileNetworkCode
+                      }
+                    />
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText
+                      primary='Mobile Country Code'
+                      secondary={
+                        data.debugPhoneNumberInfo.carrier.mobileCountryCode
+                      }
+                    />
+                  </ListItem>
+                </React.Fragment>
+              )}
+            </List>
+          </React.Fragment>
         )}
       </Card>
     </Form>
