@@ -33,7 +33,8 @@ func TestAlertLog(t *testing.T) {
 		EPStepUser bool
 	}
 
-	doQL := func(h *harness.Harness, query string, res interface{}) {
+	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
+		t.Helper()
 		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
@@ -103,7 +104,7 @@ func TestAlertLog(t *testing.T) {
 			defer h.Close()
 
 			// create alert
-			doQL(h, makeCreateAlertMut(h), nil)
+			doQL(t, h, makeCreateAlertMut(h), nil)
 
 			if before != nil {
 				before(t, h)
@@ -112,7 +113,7 @@ func TestAlertLog(t *testing.T) {
 
 			// get logs
 			var l alertLogs
-			doQL(h, fmt.Sprintf(`
+			doQL(t, h, fmt.Sprintf(`
 			query {
 					alert(id: %d) {
 						recentEvents(input: { limit: 15 }) {
