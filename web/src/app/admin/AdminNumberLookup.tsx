@@ -1,16 +1,17 @@
 import React, { useState } from 'react'
 import { Form } from '../forms'
 import {
+  Button,
   Card,
   CardContent,
   CardActions,
+  Checkbox,
   Divider,
   List,
   ListItem,
   ListItemText,
   TextField,
-  Button,
-  Checkbox,
+  Tooltip,
   FormControlLabel,
 } from '@material-ui/core'
 import gql from 'graphql-tag'
@@ -105,15 +106,17 @@ export default function AdminNumberLookup(): JSX.Element {
         </CardContent>
 
         <CardActions>
-          <Button
-            onClick={() => {
-              lookup()
-            }}
-            variant='contained'
-            color='primary'
-          >
-            Lookup
-          </Button>
+          <Tooltip title='May incur Twilio charges' placement='right'>
+            <Button
+              onClick={() => {
+                lookup()
+              }}
+              variant='contained'
+              color='primary'
+            >
+              Lookup
+            </Button>
+          </Tooltip>
         </CardActions>
 
         {data?.debugPhoneNumberInfo && (
