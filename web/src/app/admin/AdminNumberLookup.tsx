@@ -15,6 +15,7 @@ import {
 } from '@material-ui/core'
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
+import CopyText from '../util/CopyText'
 
 const mutNoCarrier = gql`
   mutation($number: String!) {
@@ -62,12 +63,21 @@ export default function AdminNumberLookup(): JSX.Element {
     },
   )
 
-  function renderListItem(label: string, text: string) {
+  function renderListItem(label: string, text: string, copyText?: boolean) {
     return (
       <React.Fragment>
         <Divider />
         <ListItem>
-          <ListItemText primary={label} secondary={text} />
+          <ListItemText
+            primary={label}
+            secondary={
+              copyText ? (
+                <CopyText title={text} value={text} noUrl={true} />
+              ) : (
+                text
+              )
+            }
+          />
         </ListItem>
       </React.Fragment>
     )
@@ -125,6 +135,7 @@ export default function AdminNumberLookup(): JSX.Element {
                 {renderListItem(
                   'Carrier Name',
                   data.debugPhoneNumberInfo.carrier.name,
+                  true,
                 )}
                 {renderListItem(
                   'Carrier Type',

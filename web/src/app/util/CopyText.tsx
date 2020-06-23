@@ -22,6 +22,7 @@ interface CopyTextProps {
   placement?: TooltipProps['placement']
   title?: string
   value: string
+  noUrl?: boolean
 }
 
 export default function CopyText(props: CopyTextProps): JSX.Element {
@@ -42,7 +43,11 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
           const tgt = e.currentTarget.href
 
           e.preventDefault()
-          copyToClipboard(tgt.replace(/^mailto:/, ''))
+          if (props.noUrl) {
+            copyToClipboard(props.value)
+          } else {
+            copyToClipboard(tgt.replace(/^mailto:/, ''))
+          }
           setShowTooltip(true)
         }}
       >
