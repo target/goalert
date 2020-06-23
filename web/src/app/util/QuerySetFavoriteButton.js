@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogActions,
   DialogTitle,
-  Grid,
 } from '@material-ui/core'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
@@ -73,7 +72,7 @@ export function QuerySetFavoriteButton(props) {
   })
 
   return (
-    <Grid>
+    <React.Fragment>
       <SetFavoriteButton
         typeName={typeName}
         isFavorite={isFavorite}
@@ -98,7 +97,7 @@ export function QuerySetFavoriteButton(props) {
           </Button>
         </DialogActions>
       </Dialog>
-    </Grid>
+    </React.Fragment>
   )
 }
 
