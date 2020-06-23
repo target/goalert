@@ -17,6 +17,7 @@ import {
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import CopyText from '../util/CopyText'
+import LoadingButton from '../loading/components/LoadingButton'
 
 const mutNoCarrier = gql`
   mutation($number: String!) {
@@ -57,7 +58,7 @@ export default function AdminNumberLookup(): JSX.Element {
   const [number, setNumber] = useState('')
   const [inclCarrier, setInclCarrier] = useState(false)
 
-  const [lookup, { data }] = useMutation(
+  const [lookup, { data, loading }] = useMutation(
     inclCarrier ? mutation : mutNoCarrier,
     {
       variables: { number },
@@ -107,15 +108,13 @@ export default function AdminNumberLookup(): JSX.Element {
 
         <CardActions>
           <Tooltip title='May incur Twilio charges' placement='right'>
-            <Button
+            <LoadingButton
+              buttonText='Lookup'
               onClick={() => {
                 lookup()
               }}
-              variant='contained'
-              color='primary'
-            >
-              Lookup
-            </Button>
+              loading={loading}
+            />
           </Tooltip>
         </CardActions>
 
