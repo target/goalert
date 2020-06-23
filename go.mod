@@ -9,7 +9,6 @@ require (
 	github.com/99designs/gqlgen v0.11.3
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
-	github.com/agnivade/levenshtein v1.0.3 // indirect
 	github.com/alecthomas/chroma v0.7.1
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect

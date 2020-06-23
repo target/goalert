@@ -28,27 +28,37 @@ export default function AdminToolbox(): JSX.Element {
   const classes = useStyles()
 
   return (
-    <div>
-      <Grid container spacing={2} className={classes.gridContainer}>
-        <Grid item xs={12} className={classes.gridItem}>
-          <Grid item xs={12}>
-            <Typography
-              component='h2'
-              variant='subtitle1'
-              color='textSecondary'
-              classes={{ subtitle1: classes.groupTitle }}
-            >
-              Twilio Number Lookup
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <AdminNumberLookup />
-          </Grid>
-          <Grid item xs={12}>
-            <AdminSMSSend />
-          </Grid>
+    <Grid container spacing={2} className={classes.gridContainer}>
+      <Grid container item xs={12} className={classes.gridItem}>
+        <Grid item xs={12}>
+          <Typography
+            component='h2'
+            variant='subtitle1'
+            color='textSecondary'
+            classes={{ subtitle1: classes.groupTitle }}
+          >
+            Twilio Number Lookup
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <AdminNumberLookup />
         </Grid>
       </Grid>
-    </div>
+      <Grid container item xs={12} className={classes.gridItem}>
+        <Grid item xs={12}>
+          <Typography
+            component='h2'
+            variant='subtitle1'
+            color='textSecondary'
+            classes={{ subtitle1: classes.groupTitle }}
+          >
+            Send SMS
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <AdminSMSSend />
+        </Grid>
+      </Grid>
+    </Grid>
   )
 }
