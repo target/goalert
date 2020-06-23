@@ -10,6 +10,7 @@ import {
   DialogActions,
   DialogTitle,
   Divider,
+  InputAdornment,
   List,
   ListItem,
   ListItemText,
@@ -66,7 +67,7 @@ export default function AdminNumberLookup(): JSX.Element {
   const [lookup, { data, loading, error }] = useMutation(
     inclCarrier ? mutation : mutNoCarrier,
     {
-      variables: { number },
+      variables: { number: '+' + number },
       onError: () => setShowErrorDialog(true),
     },
   )
@@ -97,10 +98,22 @@ export default function AdminNumberLookup(): JSX.Element {
         <Card>
           <CardContent>
             <TextField
-              onChange={(e) => setNumber(e.target.value)}
+              onChange={(e) => setNumber(e.target.value.replace(/^\+/, ''))}
               value={number}
               label='Phone Number'
-              helperText='Including + and country code'
+              helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
+              (UK)'
+              type='tel'
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment
+                    position='start'
+                    style={{ marginBottom: '0.1em' }}
+                  >
+                    +
+                  </InputAdornment>
+                ),
+              }}
             />
             <FormControlLabel
               control={
