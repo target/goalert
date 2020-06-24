@@ -1,13 +1,29 @@
 import React from 'react'
-import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
 
-export default function ServiceForm(props) {
-  const { epRequired, ...containerProps } = props
+interface ServiceFormProps {
+  value: {
+    name: string
+    description: string
+    escalationPolicyID: string
 
+    errors: {
+      field: ['name', 'description', 'escalationPolicyID']
+      message: string
+    }
+
+    onChange: Function
+
+    disabled: boolean
+  }
+  epRequired: boolean
+}
+
+export default function ServiceForm(props: ServiceFormProps): JSX.Element {
+  const { epRequired, ...containerProps } = props
   return (
     <FormContainer {...containerProps} optionalLabels={epRequired}>
       <Grid container spacing={2}>
@@ -44,24 +60,23 @@ export default function ServiceForm(props) {
   )
 }
 
-ServiceForm.propTypes = {
-  value: p.shape({
-    name: p.string,
-    description: p.string,
-    escalationPolicyID: p.string,
-  }).isRequired,
+// ServiceForm.propTypes = {
+//   value: p.shape({
+//     name: p.string,
+//     description: p.string,
+//     escalationPolicyID: p.string,
+//   }).isRequired,
 
-  // indicates that the escalation policy is a required field
-  epRequired: p.bool,
+// indicates that the escalation policy is a required field
+//   epRequired: p.bool,
 
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['name', 'description', 'escalationPolicyID']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
+//   errors: p.arrayOf(
+//     p.shape({
+//       field: p.oneOf(['name', 'description', 'escalationPolicyID']).isRequired,
+//       message: p.string.isRequired,
+//     }),
+//   ),
 
-  onChange: p.func,
+//   onChange: p.func,
 
-  disabled: p.bool,
-}
+//   disabled: p.bool,
