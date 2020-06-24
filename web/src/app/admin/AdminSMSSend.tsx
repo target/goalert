@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogActions,
   DialogTitle,
+  Grid,
   InputAdornment,
   TextField,
 } from '@material-ui/core'
@@ -55,60 +56,60 @@ export default function AdminSMSSend(): JSX.Element {
       <Form>
         <Card>
           <CardContent>
-            <div>
-              <TextField
-                onChange={(e) => setFromNumber(e.target.value)}
-                value={fromNumber}
-                label='From Number'
-                helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={12} md={12} lg={6}>
+                <TextField
+                  onChange={(e) => setFromNumber(e.target.value)}
+                  value={fromNumber}
+                  label='From Number'
+                  helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
               (UK)'
-                type='tel'
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment
-                      position='start'
-                      style={{ marginBottom: '0.1em' }}
-                    >
-                      +
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </div>
-            <br />
-            <div>
-              <TextField
-                onChange={(e) => setToNumber(e.target.value)}
-                value={toNumber}
-                label='To Number'
-                helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
+                  type='tel'
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment
+                        position='start'
+                        style={{ marginBottom: '0.1em' }}
+                      >
+                        +
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={12} lg={6}>
+                <TextField
+                  onChange={(e) => setToNumber(e.target.value)}
+                  value={toNumber}
+                  label='To Number'
+                  helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
               (UK)'
-                type='tel'
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment
-                      position='start'
-                      style={{ marginBottom: '0.1em' }}
-                    >
-                      +
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </div>
-            <br />
-            <div>
-              <TextField
-                onChange={(e) => setBody(e.target.value)}
-                value={body}
-                fullWidth
-                label='Body'
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                multiline
-              />
-            </div>
+                  type='tel'
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment
+                        position='start'
+                        style={{ marginBottom: '0.1em' }}
+                      >
+                        +
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  onChange={(e) => setBody(e.target.value)}
+                  value={body}
+                  fullWidth
+                  label='Body'
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  multiline
+                />
+              </Grid>
+            </Grid>
           </CardContent>
 
           <CardActions>
