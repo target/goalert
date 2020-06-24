@@ -11,7 +11,10 @@ import {
   Grid,
   InputAdornment,
   TextField,
+  Typography,
+  makeStyles,
 } from '@material-ui/core'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { useConfigValue } from '../util/RequireConfig'
@@ -27,13 +30,16 @@ const sendSMSMutation = gql`
     }
   }
 `
-/* TODO
-  - Field errors
-  - Style/padding/etc
-  - Generic error display
-*/
+
+const useStyles = makeStyles({
+  twilioLink: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+})
+
 export default function AdminSMSSend(): JSX.Element {
-  // const classes = useStyles()
+  const classes = useStyles()
   const [cfgFromNumber] = useConfigValue('Twilio.FromNumber')
   const [fromNumber, setFromNumber] = useState(cfgFromNumber.replace(/^\+/, ''))
   const [toNumber, setToNumber] = useState('')
@@ -124,15 +130,15 @@ export default function AdminSMSSend(): JSX.Element {
               }}
               loading={sendStatus.loading}
             />
-          </CardActions>
-
-          <CardContent>
             {sendStatus.data?.debugSendSMS && (
               <AppLink to={sendStatus.data.debugSendSMS.providerURL} newTab>
-                {sendStatus.data.debugSendSMS.id}
+                <div className={classes.twilioLink}>
+                  <Typography>Open in Twilio&nbsp;</Typography>
+                  <OpenInNewIcon fontSize='small' />
+                </div>
               </AppLink>
             )}
-          </CardContent>
+          </CardActions>
         </Card>
       </Form>
 
