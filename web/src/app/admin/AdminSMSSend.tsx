@@ -69,9 +69,9 @@ export default function AdminSMSSend(): JSX.Element {
                     setFromNumber(e.target.value.replace(/^\+/, ''))
                   }
                   value={fromNumber}
+                  fullWidth
                   label='From Number'
-                  helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
-              (UK)'
+                  helperText='Please provide your country code e.g. +1 (USA)'
                   type='tel'
                   InputProps={{
                     startAdornment: (
@@ -91,9 +91,9 @@ export default function AdminSMSSend(): JSX.Element {
                     setToNumber(e.target.value.replace(/^\+/, ''))
                   }
                   value={toNumber}
+                  fullWidth
                   label='To Number'
-                  helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
-              (UK)'
+                  helperText='Please provide your country code e.g. +1 (USA)'
                   type='tel'
                   InputProps={{
                     startAdornment: (
