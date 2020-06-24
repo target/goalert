@@ -35,7 +35,7 @@ const sendSMSMutation = gql`
 export default function AdminSMSSend(): JSX.Element {
   // const classes = useStyles()
   const [cfgFromNumber] = useConfigValue('Twilio.FromNumber')
-  const [fromNumber, setFromNumber] = useState(cfgFromNumber)
+  const [fromNumber, setFromNumber] = useState(cfgFromNumber.replace(/^\+/, ''))
   const [toNumber, setToNumber] = useState('')
   const [body, setBody] = useState('')
   const [showErrorDialog, setShowErrorDialog] = useState(false)
@@ -43,8 +43,8 @@ export default function AdminSMSSend(): JSX.Element {
   const [send, sendStatus] = useMutation(sendSMSMutation, {
     variables: {
       input: {
-        from: fromNumber,
-        to: toNumber,
+        from: '+' + fromNumber,
+        to: '+' + toNumber,
         body,
       },
     },
@@ -59,7 +59,9 @@ export default function AdminSMSSend(): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TextField
-                  onChange={(e) => setFromNumber(e.target.value)}
+                  onChange={(e) =>
+                    setFromNumber(e.target.value.replace(/^\+/, ''))
+                  }
                   value={fromNumber}
                   label='From Number'
                   helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
@@ -79,7 +81,9 @@ export default function AdminSMSSend(): JSX.Element {
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TextField
-                  onChange={(e) => setToNumber(e.target.value)}
+                  onChange={(e) =>
+                    setToNumber(e.target.value.replace(/^\+/, ''))
+                  }
                   value={toNumber}
                   label='To Number'
                   helperText='Please provide your country code e.g. +1 (USA), +91 (India), +44
