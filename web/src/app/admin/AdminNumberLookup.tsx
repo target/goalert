@@ -10,6 +10,7 @@ import {
   DialogActions,
   DialogTitle,
   Divider,
+  Grid,
   InputAdornment,
   List,
   ListItem,
@@ -97,32 +98,38 @@ export default function AdminNumberLookup(): JSX.Element {
       <Form>
         <Card>
           <CardContent>
-            <TextField
-              onChange={(e) => setNumber(e.target.value.replace(/^\+/, ''))}
-              value={number}
-              label='Phone Number'
-              helperText='Please provide your country code e.g. +1 (USA)'
-              type='tel'
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment
-                    position='start'
-                    style={{ marginBottom: '0.1em' }}
-                  >
-                    +
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={inclCarrier}
-                  onChange={(e) => setInclCarrier(e.target.checked)}
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  onChange={(e) => setNumber(e.target.value.replace(/^\+/, ''))}
+                  value={number}
+                  label='Phone Number'
+                  helperText='Please provide your country code e.g. +1 (USA)'
+                  type='tel'
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment
+                        position='start'
+                        style={{ marginBottom: '0.1em' }}
+                      >
+                        +
+                      </InputAdornment>
+                    ),
+                  }}
                 />
-              }
-              label='Include carrier information'
-            />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={inclCarrier}
+                      onChange={(e) => setInclCarrier(e.target.checked)}
+                    />
+                  }
+                  label='Include carrier information'
+                />
+              </Grid>
+            </Grid>
           </CardContent>
 
           <CardActions>
