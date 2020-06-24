@@ -59,24 +59,3 @@ export default function ServiceForm(props: ServiceFormProps): JSX.Element {
     </FormContainer>
   )
 }
-
-// ServiceForm.propTypes = {
-//   value: p.shape({
-//     name: p.string,
-//     description: p.string,
-//     escalationPolicyID: p.string,
-//   }).isRequired,
-
-// indicates that the escalation policy is a required field
-//   epRequired: p.bool,
-
-//   errors: p.arrayOf(
-//     p.shape({
-//       field: p.oneOf(['name', 'description', 'escalationPolicyID']).isRequired,
-//       message: p.string.isRequired,
-//     }),
-//   ),
-
-//   onChange: p.func,
-
-//   disabled: p.bool,
