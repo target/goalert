@@ -5,7 +5,6 @@ import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
 import { AppLink } from './AppLink'
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
-import { Button } from '@material-ui/core'
 
 const useStyles = makeStyles({
   copyContainer: {
