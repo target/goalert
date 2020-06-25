@@ -4,12 +4,7 @@ import gql from 'graphql-tag'
 import { useQuery, useMutation } from 'react-apollo'
 import { SetFavoriteButton } from './SetFavoriteButton'
 import { oneOfShape } from '../util/propTypes'
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-} from '@material-ui/core'
+import { Button, Dialog, DialogActions, DialogTitle } from '@material-ui/core'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
 const queries = {
