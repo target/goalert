@@ -1,4 +1,6 @@
 type Query {
+  phoneNumberInfo(number: String!): PhoneNumberInfo
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -221,20 +223,22 @@ type StringConnection {
   pageInfo: PageInfo!
 }
 
-type DebugPhoneNumberInfo {
+type PhoneNumberInfo {
   id: String!
   countryCode: String!
   regionCode: String!
   formatted: String!
-  carrier: DebugPhoneNumberCarrierInfo
+  valid: Boolean!
 }
-type DebugPhoneNumberCarrierInfo {
+
+type DebugCarrierInfo {
   name: String!
   type: String!
   mobileNetworkCode: String!
   mobileCountryCode: String!
 }
-input DebugPhoneNumberInfoInput {
+
+input DebugCarrierInfoInput {
   number: String!
 }
 
@@ -250,7 +254,7 @@ type DebugSendSMSInfo {
 }
 
 type Mutation {
-  debugPhoneNumberInfo(input: DebugPhoneNumberInfoInput!): DebugPhoneNumberInfo!
+  debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!

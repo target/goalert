@@ -20,60 +20,53 @@ import {
   FormControlLabel,
 } from '@material-ui/core'
 import gql from 'graphql-tag'
-import { useMutation } from 'react-apollo'
+import { useMutation, useQuery } from 'react-apollo'
 import CopyText from '../util/CopyText'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
-const mutNoCarrier = gql`
+const carrierInfoMut = gql`
   mutation($number: String!) {
-    debugPhoneNumberInfo(input: { number: $number }) {
-      id
-      countryCode
-      regionCode
-      formatted
+    debugCarrierInfo(input: { number: $number }) {
+      name
+      type
+      mobileNetworkCode
+      mobileCountryCode
     }
   }
 `
 
-const mutation = gql`
-  mutation($number: String!) {
-    debugPhoneNumberInfo(input: { number: $number }) {
+const numInfoQuery = gql`
+  query($number: String!) {
+    phoneNumberInfo(number: $number) {
       id
-      countryCode
+      valid
       regionCode
+      countryCode
       formatted
-      carrier {
-        name
-        type
-        mobileNetworkCode
-        mobileCountryCode
-      }
     }
   }
 `
-
-/* TODO
-  - Field errors
-  - Style/padding/etc
-  - Generic error display
-  - Display data in readable way
-*/
 
 export default function AdminNumberLookup(): JSX.Element {
   const [number, setNumber] = useState('')
   const [inclCarrier, setInclCarrier] = useState(false)
   const [showErrorDialog, setShowErrorDialog] = useState(false)
 
-  const [lookup, { data, loading, error }] = useMutation(
-    inclCarrier ? mutation : mutNoCarrier,
+  const { data: numData, loading: numLoading, error: numError } = useQuery(
+    numInfoQuery,
     {
       variables: { number: '+' + number },
-      onError: () => setShowErrorDialog(true),
+      pollInterval: 0,
     },
   )
 
-  function renderListItem(label: string, text: string, copyText?: boolean) {
+  const [lookup, { data, loading, error }] = useMutation(carrierInfoMut, {
+    variables: { number: '+' + number },
+    onError: () => setShowErrorDialog(true),
+  })
+
+  function renderListItem(label: string, text: string) {
     return (
       <React.Fragment>
         <Divider />
@@ -81,11 +74,7 @@ export default function AdminNumberLookup(): JSX.Element {
           <ListItemText
             primary={label}
             secondary={
-              copyText ? (
-                <CopyText title={text} value={text} noUrl={true} />
-              ) : (
-                text
-              )
+              (text && <CopyText title={text} value={text} textOnly />) || ' '
             }
           />
         </ListItem>
@@ -101,7 +90,9 @@ export default function AdminNumberLookup(): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
-                  onChange={(e) => setNumber(e.target.value.replace(/^\+/, ''))}
+                  onChange={(e) =>
+                    setNumber(e.target.value.replace(/[^0-9]/g, ''))
+                  }
                   value={number}
                   label='Phone Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
@@ -118,65 +109,49 @@ export default function AdminNumberLookup(): JSX.Element {
                   }}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={inclCarrier}
-                      onChange={(e) => setInclCarrier(e.target.checked)}
-                    />
-                  }
-                  label='Include carrier information'
-                />
-              </Grid>
             </Grid>
           </CardContent>
 
-          <CardActions>
-            <Tooltip title='May incur Twilio charges' placement='right'>
-              <LoadingButton
-                buttonText='Lookup'
-                onClick={() => {
-                  lookup()
-                }}
-                loading={loading}
-              />
-            </Tooltip>
-          </CardActions>
-
-          {data?.debugPhoneNumberInfo && (
-            <List dense={true}>
-              {renderListItem(
-                'Region Code',
-                data.debugPhoneNumberInfo.regionCode,
-              )}
-              {renderListItem(
-                'Formatted Phone Number',
-                data.debugPhoneNumberInfo.formatted,
-              )}
-              {data?.debugPhoneNumberInfo?.carrier && (
-                <React.Fragment>
-                  {renderListItem(
-                    'Carrier Name',
-                    data.debugPhoneNumberInfo.carrier.name,
-                    true,
-                  )}
-                  {renderListItem(
-                    'Carrier Type',
-                    data.debugPhoneNumberInfo.carrier.type,
-                  )}
-                  {renderListItem(
-                    'Mobile Network Code',
-                    data.debugPhoneNumberInfo.carrier.mobileNetworkCode,
-                  )}
-                  {renderListItem(
-                    'Mobile Country Code',
-                    data.debugPhoneNumberInfo.carrier.mobileCountryCode,
-                  )}
-                </React.Fragment>
-              )}
-            </List>
-          )}
+          <List dense={true}>
+            {renderListItem(
+              'Country Code',
+              numData?.phoneNumberInfo?.countryCode,
+            )}
+            {renderListItem(
+              'Formatted Phone Number',
+              numData?.phoneNumberInfo?.formatted,
+            )}
+            {renderListItem(
+              'Region Code',
+              numData?.phoneNumberInfo?.regionCode,
+            )}
+            {(data?.debugCarrierInfo && (
+              <React.Fragment>
+                {renderListItem('Carrier Name', data.debugCarrierInfo.name)}
+                {renderListItem('Carrier Type', data.debugCarrierInfo.type)}
+                {renderListItem(
+                  'Mobile Network Code',
+                  data.debugCarrierInfo.mobileNetworkCode,
+                )}
+                {renderListItem(
+                  'Mobile Country Code',
+                  data.debugCarrierInfo.mobileCountryCode,
+                )}
+              </React.Fragment>
+            )) || (
+              <CardActions>
+                <Tooltip title='May incur Twilio charges' placement='right'>
+                  <LoadingButton
+                    buttonText='Lookup Carrier Info'
+                    onClick={() => {
+                      lookup()
+                    }}
+                    loading={loading}
+                  />
+                </Tooltip>
+              </CardActions>
+            )}
+          </List>
         </Card>
       </Form>
 

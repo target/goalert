@@ -5,6 +5,7 @@ import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
 import { AppLink } from './AppLink'
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
+import { Button } from '@material-ui/core'
 
 const useStyles = makeStyles({
   copyContainer: {
@@ -22,12 +23,43 @@ interface CopyTextProps {
   placement?: TooltipProps['placement']
   title?: string
   value: string
-  noUrl?: boolean
+  textOnly?: boolean
 }
 
 export default function CopyText(props: CopyTextProps): JSX.Element {
   const classes = useStyles()
   const [showTooltip, setShowTooltip] = useState(false)
+
+  let content
+  if (props.textOnly) {
+    content = (
+      <span
+        onClick={() => {
+          copyToClipboard(props.value)
+          setShowTooltip(true)
+        }}
+      >
+        {props.title}
+      </span>
+    )
+  } else {
+    content = (
+      <AppLink
+        className={classes.copyContainer}
+        to={props.value}
+        onClick={(e) => {
+          const tgt = e.currentTarget.href
+
+          e.preventDefault()
+          copyToClipboard(tgt.replace(/^mailto:/, ''))
+          setShowTooltip(true)
+        }}
+      >
+        <ContentCopy className={classes.icon} fontSize='small' />
+        {props.title}
+      </AppLink>
+    )
+  }
 
   return (
     <Tooltip
@@ -36,24 +68,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
       title='Copied!'
       placement={props.placement || 'right'}
     >
-      <AppLink
-        className={classes.copyContainer}
-        to={props.value}
-        onClick={(e) => {
-          const tgt = e.currentTarget.href
-
-          e.preventDefault()
-          if (props.noUrl) {
-            copyToClipboard(props.value)
-          } else {
-            copyToClipboard(tgt.replace(/^mailto:/, ''))
-          }
-          setShowTooltip(true)
-        }}
-      >
-        <ContentCopy className={classes.icon} fontSize='small' />
-        {props.title}
-      </AppLink>
+      {content}
     </Tooltip>
   )
 }

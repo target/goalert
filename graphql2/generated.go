@@ -56,7 +56,6 @@ type Config struct {
 type ResolverRoot interface {
 	Alert() AlertResolver
 	AlertLogEntry() AlertLogEntryResolver
-	DebugPhoneNumberInfo() DebugPhoneNumberInfoResolver
 	EscalationPolicy() EscalationPolicyResolver
 	EscalationPolicyStep() EscalationPolicyStepResolver
 	HeartbeatMonitor() HeartbeatMonitorResolver
@@ -145,19 +144,11 @@ type ComplexityRoot struct {
 		Value       func(childComplexity int) int
 	}
 
-	DebugPhoneNumberCarrierInfo struct {
+	DebugCarrierInfo struct {
 		MobileCountryCode func(childComplexity int) int
 		MobileNetworkCode func(childComplexity int) int
 		Name              func(childComplexity int) int
 		Type              func(childComplexity int) int
-	}
-
-	DebugPhoneNumberInfo struct {
-		Carrier     func(childComplexity int) int
-		CountryCode func(childComplexity int) int
-		Formatted   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		RegionCode  func(childComplexity int) int
 	}
 
 	DebugSendSMSInfo struct {
@@ -229,7 +220,7 @@ type ComplexityRoot struct {
 		CreateUserContactMethod        func(childComplexity int, input CreateUserContactMethodInput) int
 		CreateUserNotificationRule     func(childComplexity int, input CreateUserNotificationRuleInput) int
 		CreateUserOverride             func(childComplexity int, input CreateUserOverrideInput) int
-		DebugPhoneNumberInfo           func(childComplexity int, input DebugPhoneNumberInfoInput) int
+		DebugCarrierInfo               func(childComplexity int, input DebugCarrierInfoInput) int
 		DebugSendSms                   func(childComplexity int, input DebugSendSMSInput) int
 		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
 		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
@@ -269,6 +260,14 @@ type ComplexityRoot struct {
 		HasNextPage func(childComplexity int) int
 	}
 
+	PhoneNumberInfo struct {
+		CountryCode func(childComplexity int) int
+		Formatted   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		RegionCode  func(childComplexity int) int
+		Valid       func(childComplexity int) int
+	}
+
 	Query struct {
 		Alert                    func(childComplexity int, id int) int
 		Alerts                   func(childComplexity int, input *AlertSearchOptions) int
@@ -282,6 +281,7 @@ type ComplexityRoot struct {
 		LabelKeys                func(childComplexity int, input *LabelKeySearchOptions) int
 		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
 		Labels                   func(childComplexity int, input *LabelSearchOptions) int
+		PhoneNumberInfo          func(childComplexity int, number string) int
 		Rotation                 func(childComplexity int, id string) int
 		Rotations                func(childComplexity int, input *RotationSearchOptions) int
 		Schedule                 func(childComplexity int, id string) int
@@ -486,9 +486,6 @@ type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
 	State(ctx context.Context, obj *alertlog.Entry) (*AlertLogEntryState, error)
 }
-type DebugPhoneNumberInfoResolver interface {
-	Carrier(ctx context.Context, obj *DebugPhoneNumberInfo) (*DebugPhoneNumberCarrierInfo, error)
-}
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
 	Steps(ctx context.Context, obj *escalation.Policy) ([]escalation.Step, error)
@@ -508,7 +505,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MutationResolver interface {
-	DebugPhoneNumberInfo(ctx context.Context, input DebugPhoneNumberInfoInput) (*DebugPhoneNumberInfo, error)
+	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*DebugCarrierInfo, error)
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	DeleteAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
@@ -551,6 +548,7 @@ type OnCallShiftResolver interface {
 	User(ctx context.Context, obj *oncall.Shift) (*user.User, error)
 }
 type QueryResolver interface {
+	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
 	User(ctx context.Context, id *string) (*user.User, error)
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
 	Alert(ctx context.Context, id int) (*alert.Alert, error)
@@ -907,68 +905,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigValue.Value(childComplexity), true
 
-	case "DebugPhoneNumberCarrierInfo.mobileCountryCode":
-		if e.complexity.DebugPhoneNumberCarrierInfo.MobileCountryCode == nil {
+	case "DebugCarrierInfo.mobileCountryCode":
+		if e.complexity.DebugCarrierInfo.MobileCountryCode == nil {
 			break
 		}
 
-		return e.complexity.DebugPhoneNumberCarrierInfo.MobileCountryCode(childComplexity), true
+		return e.complexity.DebugCarrierInfo.MobileCountryCode(childComplexity), true
 
-	case "DebugPhoneNumberCarrierInfo.mobileNetworkCode":
-		if e.complexity.DebugPhoneNumberCarrierInfo.MobileNetworkCode == nil {
+	case "DebugCarrierInfo.mobileNetworkCode":
+		if e.complexity.DebugCarrierInfo.MobileNetworkCode == nil {
 			break
 		}
 
-		return e.complexity.DebugPhoneNumberCarrierInfo.MobileNetworkCode(childComplexity), true
+		return e.complexity.DebugCarrierInfo.MobileNetworkCode(childComplexity), true
 
-	case "DebugPhoneNumberCarrierInfo.name":
-		if e.complexity.DebugPhoneNumberCarrierInfo.Name == nil {
+	case "DebugCarrierInfo.name":
+		if e.complexity.DebugCarrierInfo.Name == nil {
 			break
 		}
 
-		return e.complexity.DebugPhoneNumberCarrierInfo.Name(childComplexity), true
+		return e.complexity.DebugCarrierInfo.Name(childComplexity), true
 
-	case "DebugPhoneNumberCarrierInfo.type":
-		if e.complexity.DebugPhoneNumberCarrierInfo.Type == nil {
+	case "DebugCarrierInfo.type":
+		if e.complexity.DebugCarrierInfo.Type == nil {
 			break
 		}
 
-		return e.complexity.DebugPhoneNumberCarrierInfo.Type(childComplexity), true
-
-	case "DebugPhoneNumberInfo.carrier":
-		if e.complexity.DebugPhoneNumberInfo.Carrier == nil {
-			break
-		}
-
-		return e.complexity.DebugPhoneNumberInfo.Carrier(childComplexity), true
-
-	case "DebugPhoneNumberInfo.countryCode":
-		if e.complexity.DebugPhoneNumberInfo.CountryCode == nil {
-			break
-		}
-
-		return e.complexity.DebugPhoneNumberInfo.CountryCode(childComplexity), true
-
-	case "DebugPhoneNumberInfo.formatted":
-		if e.complexity.DebugPhoneNumberInfo.Formatted == nil {
-			break
-		}
-
-		return e.complexity.DebugPhoneNumberInfo.Formatted(childComplexity), true
-
-	case "DebugPhoneNumberInfo.id":
-		if e.complexity.DebugPhoneNumberInfo.ID == nil {
-			break
-		}
-
-		return e.complexity.DebugPhoneNumberInfo.ID(childComplexity), true
-
-	case "DebugPhoneNumberInfo.regionCode":
-		if e.complexity.DebugPhoneNumberInfo.RegionCode == nil {
-			break
-		}
-
-		return e.complexity.DebugPhoneNumberInfo.RegionCode(childComplexity), true
+		return e.complexity.DebugCarrierInfo.Type(childComplexity), true
 
 	case "DebugSendSMSInfo.id":
 		if e.complexity.DebugSendSMSInfo.ID == nil {
@@ -1343,17 +1306,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateUserOverride(childComplexity, args["input"].(CreateUserOverrideInput)), true
 
-	case "Mutation.debugPhoneNumberInfo":
-		if e.complexity.Mutation.DebugPhoneNumberInfo == nil {
+	case "Mutation.debugCarrierInfo":
+		if e.complexity.Mutation.DebugCarrierInfo == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_debugPhoneNumberInfo_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_debugCarrierInfo_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DebugPhoneNumberInfo(childComplexity, args["input"].(DebugPhoneNumberInfoInput)), true
+		return e.complexity.Mutation.DebugCarrierInfo(childComplexity, args["input"].(DebugCarrierInfoInput)), true
 
 	case "Mutation.debugSendSMS":
 		if e.complexity.Mutation.DebugSendSms == nil {
@@ -1692,6 +1655,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.HasNextPage(childComplexity), true
 
+	case "PhoneNumberInfo.countryCode":
+		if e.complexity.PhoneNumberInfo.CountryCode == nil {
+			break
+		}
+
+		return e.complexity.PhoneNumberInfo.CountryCode(childComplexity), true
+
+	case "PhoneNumberInfo.formatted":
+		if e.complexity.PhoneNumberInfo.Formatted == nil {
+			break
+		}
+
+		return e.complexity.PhoneNumberInfo.Formatted(childComplexity), true
+
+	case "PhoneNumberInfo.id":
+		if e.complexity.PhoneNumberInfo.ID == nil {
+			break
+		}
+
+		return e.complexity.PhoneNumberInfo.ID(childComplexity), true
+
+	case "PhoneNumberInfo.regionCode":
+		if e.complexity.PhoneNumberInfo.RegionCode == nil {
+			break
+		}
+
+		return e.complexity.PhoneNumberInfo.RegionCode(childComplexity), true
+
+	case "PhoneNumberInfo.valid":
+		if e.complexity.PhoneNumberInfo.Valid == nil {
+			break
+		}
+
+		return e.complexity.PhoneNumberInfo.Valid(childComplexity), true
+
 	case "Query.alert":
 		if e.complexity.Query.Alert == nil {
 			break
@@ -1830,6 +1828,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Labels(childComplexity, args["input"].(*LabelSearchOptions)), true
+
+	case "Query.phoneNumberInfo":
+		if e.complexity.Query.PhoneNumberInfo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_phoneNumberInfo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.PhoneNumberInfo(childComplexity, args["number"].(string)), true
 
 	case "Query.rotation":
 		if e.complexity.Query.Rotation == nil {
@@ -2826,6 +2836,8 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	&ast.Source{Name: "./schema.graphql", Input: `type Query {
+  phoneNumberInfo(number: String!): PhoneNumberInfo
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -3048,20 +3060,22 @@ type StringConnection {
   pageInfo: PageInfo!
 }
 
-type DebugPhoneNumberInfo {
+type PhoneNumberInfo {
   id: String!
   countryCode: String!
   regionCode: String!
   formatted: String!
-  carrier: DebugPhoneNumberCarrierInfo
+  valid: Boolean!
 }
-type DebugPhoneNumberCarrierInfo {
+
+type DebugCarrierInfo {
   name: String!
   type: String!
   mobileNetworkCode: String!
   mobileCountryCode: String!
 }
-input DebugPhoneNumberInfoInput {
+
+input DebugCarrierInfoInput {
   number: String!
 }
 
@@ -3077,7 +3091,7 @@ type DebugSendSMSInfo {
 }
 
 type Mutation {
-  debugPhoneNumberInfo(input: DebugPhoneNumberInfoInput!): DebugPhoneNumberInfo!
+  debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
@@ -4031,12 +4045,12 @@ func (ec *executionContext) field_Mutation_createUserOverride_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_debugPhoneNumberInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_debugCarrierInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 DebugPhoneNumberInfoInput
+	var arg0 DebugCarrierInfoInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNDebugPhoneNumberInfoInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberInfoInput(ctx, tmp)
+		arg0, err = ec.unmarshalNDebugCarrierInfoInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4562,6 +4576,20 @@ func (ec *executionContext) field_Query_labels_args(ctx context.Context, rawArgs
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_phoneNumberInfo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["number"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["number"] = arg0
 	return args, nil
 }
 
@@ -6070,7 +6098,7 @@ func (ec *executionContext) _ConfigValue_password(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugPhoneNumberCarrierInfo_name(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_name(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6078,7 +6106,7 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_name(ctx context.Contex
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberCarrierInfo",
+		Object:   "DebugCarrierInfo",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -6104,7 +6132,7 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_name(ctx context.Contex
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugPhoneNumberCarrierInfo_type(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_type(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6112,7 +6140,7 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_type(ctx context.Contex
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberCarrierInfo",
+		Object:   "DebugCarrierInfo",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -6138,7 +6166,7 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_type(ctx context.Contex
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugPhoneNumberCarrierInfo_mobileNetworkCode(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_mobileNetworkCode(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6146,7 +6174,7 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_mobileNetworkCode(ctx c
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberCarrierInfo",
+		Object:   "DebugCarrierInfo",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -6172,7 +6200,7 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_mobileNetworkCode(ctx c
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugPhoneNumberCarrierInfo_mobileCountryCode(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_mobileCountryCode(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6180,7 +6208,7 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_mobileCountryCode(ctx c
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberCarrierInfo",
+		Object:   "DebugCarrierInfo",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -6204,173 +6232,6 @@ func (ec *executionContext) _DebugPhoneNumberCarrierInfo_mobileCountryCode(ctx c
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DebugPhoneNumberInfo_id(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberInfo) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberInfo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DebugPhoneNumberInfo_countryCode(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberInfo) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberInfo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CountryCode, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DebugPhoneNumberInfo_regionCode(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberInfo) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberInfo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RegionCode, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DebugPhoneNumberInfo_formatted(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberInfo) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberInfo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Formatted, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DebugPhoneNumberInfo_carrier(ctx context.Context, field graphql.CollectedField, obj *DebugPhoneNumberInfo) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "DebugPhoneNumberInfo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.DebugPhoneNumberInfo().Carrier(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*DebugPhoneNumberCarrierInfo)
-	fc.Result = res
-	return ec.marshalODebugPhoneNumberCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberCarrierInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DebugSendSMSInfo_id(ctx context.Context, field graphql.CollectedField, obj *DebugSendSMSInfo) (ret graphql.Marshaler) {
@@ -7421,7 +7282,7 @@ func (ec *executionContext) _LabelConnection_pageInfo(ctx context.Context, field
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_debugPhoneNumberInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_debugCarrierInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7437,7 +7298,7 @@ func (ec *executionContext) _Mutation_debugPhoneNumberInfo(ctx context.Context, 
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_debugPhoneNumberInfo_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_debugCarrierInfo_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -7445,7 +7306,7 @@ func (ec *executionContext) _Mutation_debugPhoneNumberInfo(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DebugPhoneNumberInfo(rctx, args["input"].(DebugPhoneNumberInfoInput))
+		return ec.resolvers.Mutation().DebugCarrierInfo(rctx, args["input"].(DebugCarrierInfoInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7457,9 +7318,9 @@ func (ec *executionContext) _Mutation_debugPhoneNumberInfo(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*DebugPhoneNumberInfo)
+	res := resTmp.(*DebugCarrierInfo)
 	fc.Result = res
-	return ec.marshalNDebugPhoneNumberInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberInfo(ctx, field.Selections, res)
+	return ec.marshalNDebugCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_debugSendSMS(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9167,6 +9028,214 @@ func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field gra
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PhoneNumberInfo_id(ctx context.Context, field graphql.CollectedField, obj *PhoneNumberInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PhoneNumberInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PhoneNumberInfo_countryCode(ctx context.Context, field graphql.CollectedField, obj *PhoneNumberInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PhoneNumberInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CountryCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PhoneNumberInfo_regionCode(ctx context.Context, field graphql.CollectedField, obj *PhoneNumberInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PhoneNumberInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RegionCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PhoneNumberInfo_formatted(ctx context.Context, field graphql.CollectedField, obj *PhoneNumberInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PhoneNumberInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Formatted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PhoneNumberInfo_valid(ctx context.Context, field graphql.CollectedField, obj *PhoneNumberInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PhoneNumberInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Valid, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_phoneNumberInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_phoneNumberInfo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PhoneNumberInfo(rctx, args["number"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*PhoneNumberInfo)
+	fc.Result = res
+	return ec.marshalOPhoneNumberInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15560,8 +15629,8 @@ func (ec *executionContext) unmarshalInputCreateUserOverrideInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDebugPhoneNumberInfoInput(ctx context.Context, obj interface{}) (DebugPhoneNumberInfoInput, error) {
-	var it DebugPhoneNumberInfoInput
+func (ec *executionContext) unmarshalInputDebugCarrierInfoInput(ctx context.Context, obj interface{}) (DebugCarrierInfoInput, error) {
+	var it DebugCarrierInfoInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -17234,90 +17303,37 @@ func (ec *executionContext) _ConfigValue(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var debugPhoneNumberCarrierInfoImplementors = []string{"DebugPhoneNumberCarrierInfo"}
+var debugCarrierInfoImplementors = []string{"DebugCarrierInfo"}
 
-func (ec *executionContext) _DebugPhoneNumberCarrierInfo(ctx context.Context, sel ast.SelectionSet, obj *DebugPhoneNumberCarrierInfo) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, debugPhoneNumberCarrierInfoImplementors)
+func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, obj *DebugCarrierInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, debugCarrierInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("DebugPhoneNumberCarrierInfo")
+			out.Values[i] = graphql.MarshalString("DebugCarrierInfo")
 		case "name":
-			out.Values[i] = ec._DebugPhoneNumberCarrierInfo_name(ctx, field, obj)
+			out.Values[i] = ec._DebugCarrierInfo_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "type":
-			out.Values[i] = ec._DebugPhoneNumberCarrierInfo_type(ctx, field, obj)
+			out.Values[i] = ec._DebugCarrierInfo_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "mobileNetworkCode":
-			out.Values[i] = ec._DebugPhoneNumberCarrierInfo_mobileNetworkCode(ctx, field, obj)
+			out.Values[i] = ec._DebugCarrierInfo_mobileNetworkCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "mobileCountryCode":
-			out.Values[i] = ec._DebugPhoneNumberCarrierInfo_mobileCountryCode(ctx, field, obj)
+			out.Values[i] = ec._DebugCarrierInfo_mobileCountryCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var debugPhoneNumberInfoImplementors = []string{"DebugPhoneNumberInfo"}
-
-func (ec *executionContext) _DebugPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, obj *DebugPhoneNumberInfo) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, debugPhoneNumberInfoImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("DebugPhoneNumberInfo")
-		case "id":
-			out.Values[i] = ec._DebugPhoneNumberInfo_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "countryCode":
-			out.Values[i] = ec._DebugPhoneNumberInfo_countryCode(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "regionCode":
-			out.Values[i] = ec._DebugPhoneNumberInfo_regionCode(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "formatted":
-			out.Values[i] = ec._DebugPhoneNumberInfo_formatted(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "carrier":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._DebugPhoneNumberInfo_carrier(ctx, field, obj)
-				return res
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17741,8 +17757,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "debugPhoneNumberInfo":
-			out.Values[i] = ec._Mutation_debugPhoneNumberInfo(ctx, field)
+		case "debugCarrierInfo":
+			out.Values[i] = ec._Mutation_debugCarrierInfo(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17982,6 +17998,53 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var phoneNumberInfoImplementors = []string{"PhoneNumberInfo"}
+
+func (ec *executionContext) _PhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, obj *PhoneNumberInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, phoneNumberInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PhoneNumberInfo")
+		case "id":
+			out.Values[i] = ec._PhoneNumberInfo_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "countryCode":
+			out.Values[i] = ec._PhoneNumberInfo_countryCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "regionCode":
+			out.Values[i] = ec._PhoneNumberInfo_regionCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "formatted":
+			out.Values[i] = ec._PhoneNumberInfo_formatted(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "valid":
+			out.Values[i] = ec._PhoneNumberInfo_valid(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -17997,6 +18060,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "phoneNumberInfo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_phoneNumberInfo(ctx, field)
+				return res
+			})
 		case "user":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20319,22 +20393,22 @@ func (ec *executionContext) unmarshalNCreateUserOverrideInput2githubᚗcomᚋtar
 	return ec.unmarshalInputCreateUserOverrideInput(ctx, v)
 }
 
-func (ec *executionContext) marshalNDebugPhoneNumberInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, v DebugPhoneNumberInfo) graphql.Marshaler {
-	return ec._DebugPhoneNumberInfo(ctx, sel, &v)
+func (ec *executionContext) marshalNDebugCarrierInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, v DebugCarrierInfo) graphql.Marshaler {
+	return ec._DebugCarrierInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDebugPhoneNumberInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, v *DebugPhoneNumberInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDebugCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, v *DebugCarrierInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._DebugPhoneNumberInfo(ctx, sel, v)
+	return ec._DebugCarrierInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDebugPhoneNumberInfoInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberInfoInput(ctx context.Context, v interface{}) (DebugPhoneNumberInfoInput, error) {
-	return ec.unmarshalInputDebugPhoneNumberInfoInput(ctx, v)
+func (ec *executionContext) unmarshalNDebugCarrierInfoInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfoInput(ctx context.Context, v interface{}) (DebugCarrierInfoInput, error) {
+	return ec.unmarshalInputDebugCarrierInfoInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNDebugSendSMSInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugSendSMSInput(ctx context.Context, v interface{}) (DebugSendSMSInput, error) {
@@ -22397,17 +22471,6 @@ func (ec *executionContext) unmarshalOCreateUserOverrideInput2ᚕgithubᚗcomᚋ
 	return res, nil
 }
 
-func (ec *executionContext) marshalODebugPhoneNumberCarrierInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberCarrierInfo(ctx context.Context, sel ast.SelectionSet, v DebugPhoneNumberCarrierInfo) graphql.Marshaler {
-	return ec._DebugPhoneNumberCarrierInfo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalODebugPhoneNumberCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugPhoneNumberCarrierInfo(ctx context.Context, sel ast.SelectionSet, v *DebugPhoneNumberCarrierInfo) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._DebugPhoneNumberCarrierInfo(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalODebugSendSMSInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugSendSMSInfo(ctx context.Context, sel ast.SelectionSet, v DebugSendSMSInfo) graphql.Marshaler {
 	return ec._DebugSendSMSInfo(ctx, sel, &v)
 }
@@ -22642,6 +22705,17 @@ func (ec *executionContext) unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalOLabelValueSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalOPhoneNumberInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, v PhoneNumberInfo) graphql.Marshaler {
+	return ec._PhoneNumberInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOPhoneNumberInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, v *PhoneNumberInfo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PhoneNumberInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalORotation2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐRotation(ctx context.Context, sel ast.SelectionSet, v rotation.Rotation) graphql.Marshaler {
