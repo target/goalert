@@ -119,7 +119,14 @@ func (h *Harness) Config() config.Config {
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, migrationName)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName)
+	h.Start()
+	return h
+}
+
+func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
+	t.Helper()
+	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
 	h.Start()
 	return h
 }
@@ -130,7 +137,7 @@ func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 // Note that the now() function will be locked to the init timestamp for inspection.
 func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, migrationName)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Migrate("")
 
 	t.Fatal("DEBUG DB ::", h.dbURL)
@@ -144,7 +151,7 @@ const (
 )
 
 // NewStoppedHarness will create a NewHarness, but will not call Start.
-func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
+func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
@@ -215,21 +222,21 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	// freeze DB time until backend starts
 	h.execQuery(`
 		create schema testing_overrides;
-		alter database ` + sqlutil.QuoteID(name) + ` set search_path = "$user", public,testing_overrides, pg_catalog;
+		alter database `+sqlutil.QuoteID(name)+` set search_path = "$user", public,testing_overrides, pg_catalog;
 		
 
 		create or replace function testing_overrides.now()
 		returns timestamp with time zone
 		as $$
 			begin
-			return '` + start.Format(dbTimeFormat) + `';
+			return '`+start.Format(dbTimeFormat)+`';
 			end;
 		$$ language plpgsql;
-	`)
+	`, nil)
 
 	h.Migrate(migrationName)
 	h.initSlack()
-	h.execQuery(initSQL)
+	h.execQuery(initSQL, sqlData)
 
 	return h
 }
@@ -408,7 +415,7 @@ func (h *Harness) setDBOffset(d time.Duration) {
 	`,
 		h.start.Add(d).Format(dbTimeFormat),
 		h.pgResume.Format(dbTimeFormat),
-	))
+	), nil)
 	h.trigger()
 }
 
@@ -428,7 +435,7 @@ func (h *Harness) FastForward(d time.Duration) {
 	h.setDBOffset(h.delayOffset)
 }
 
-func (h *Harness) execQuery(sql string) {
+func (h *Harness) execQuery(sql string, data interface{}) {
 	h.t.Helper()
 	t := template.New("sql")
 	t.Funcs(template.FuncMap{
@@ -444,7 +451,7 @@ func (h *Harness) execQuery(sql string) {
 	}
 
 	b := new(bytes.Buffer)
-	err = t.Execute(b, nil)
+	err = t.Execute(b, data)
 	if err != nil {
 		h.t.Fatalf("failed to render query template: %v", err)
 	}
