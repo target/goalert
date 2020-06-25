@@ -146,7 +146,7 @@
     "eslint-config-prettier": "6.11.0",
     "eslint-config-standard": "14.1.1",
     "eslint-config-standard-jsx": "8.1.0",
-    "eslint-plugin-cypress": "2.10.3",
+    "eslint-plugin-cypress": "2.11.1",
     "eslint-plugin-import": "2.20.2",
     "eslint-plugin-jsx-a11y": "6.2.3",
     "eslint-plugin-node": "11.1.0",
