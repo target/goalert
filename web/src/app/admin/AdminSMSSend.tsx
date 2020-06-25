@@ -66,7 +66,7 @@ export default function AdminSMSSend(): JSX.Element {
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TextField
                   onChange={(e) =>
-                    setFromNumber(e.target.value.replace(/^\+/, ''))
+                    setFromNumber(e.target.value.replace(/[^0-9]/g, ''))
                   }
                   value={fromNumber}
                   fullWidth
@@ -88,7 +88,7 @@ export default function AdminSMSSend(): JSX.Element {
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TextField
                   onChange={(e) =>
-                    setToNumber(e.target.value.replace(/^\+/, ''))
+                    setToNumber(e.target.value.replace(/[^0-9]/g, ''))
                   }
                   value={toNumber}
                   fullWidth
