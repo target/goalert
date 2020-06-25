@@ -244,6 +244,7 @@ type PhoneNumberInfo struct {
 	RegionCode  string `json:"regionCode"`
 	Formatted   string `json:"formatted"`
 	Valid       bool   `json:"valid"`
+	Error       string `json:"error"`
 }
 
 type RotationConnection struct {

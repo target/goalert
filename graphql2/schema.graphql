@@ -229,6 +229,7 @@ type PhoneNumberInfo {
   regionCode: String!
   formatted: String!
   valid: Boolean!
+  error: String!
 }
 
 type DebugCarrierInfo {

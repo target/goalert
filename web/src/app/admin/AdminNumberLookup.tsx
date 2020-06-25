@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardActions,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogTitle,
@@ -17,13 +16,13 @@ import {
   ListItemText,
   TextField,
   Tooltip,
-  FormControlLabel,
 } from '@material-ui/core'
 import gql from 'graphql-tag'
 import { useMutation, useQuery } from 'react-apollo'
 import CopyText from '../util/CopyText'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import { ApolloError } from 'apollo-client'
 
 const carrierInfoMut = gql`
   mutation($number: String!) {
@@ -44,29 +43,32 @@ const numInfoQuery = gql`
       regionCode
       countryCode
       formatted
+      error
     }
   }
 `
 
 export default function AdminNumberLookup(): JSX.Element {
   const [number, setNumber] = useState('')
-  const [inclCarrier, setInclCarrier] = useState(false)
-  const [showErrorDialog, setShowErrorDialog] = useState(false)
+  const [staleCarrier, setStaleCarrier] = useState(true)
+  const [lastError, setLastError] = useState(null as null | ApolloError)
 
-  const { data: numData, loading: numLoading, error: numError } = useQuery(
-    numInfoQuery,
+  const { data: numData } = useQuery(numInfoQuery, {
+    variables: { number: '+' + number },
+    pollInterval: 0,
+    onError: (err) => setLastError(err),
+  })
+
+  const [lookup, { data: carrData, loading: carrLoading }] = useMutation(
+    carrierInfoMut,
     {
       variables: { number: '+' + number },
-      pollInterval: 0,
+      onError: (err) => setLastError(err),
     },
   )
 
-  const [lookup, { data, loading, error }] = useMutation(carrierInfoMut, {
-    variables: { number: '+' + number },
-    onError: () => setShowErrorDialog(true),
-  })
-
-  function renderListItem(label: string, text: string) {
+  function renderListItem(label: string, _text: string): JSX.Element {
+    const text = (_text === undefined ? '' : _text).toString()
     return (
       <React.Fragment>
         <Divider />
@@ -74,7 +76,7 @@ export default function AdminNumberLookup(): JSX.Element {
           <ListItemText
             primary={label}
             secondary={
-              (text && <CopyText title={text} value={text} textOnly />) || ' '
+              (text && <CopyText title={text} value={text} textOnly />) || '?'
             }
           />
         </ListItem>
@@ -90,9 +92,10 @@ export default function AdminNumberLookup(): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setNumber(e.target.value.replace(/[^0-9]/g, ''))
-                  }
+                    setStaleCarrier(true)
+                  }}
                   value={number}
                   label='Phone Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
@@ -112,7 +115,7 @@ export default function AdminNumberLookup(): JSX.Element {
             </Grid>
           </CardContent>
 
-          <List dense={true}>
+          <List dense>
             {renderListItem(
               'Country Code',
               numData?.phoneNumberInfo?.countryCode,
@@ -125,17 +128,26 @@ export default function AdminNumberLookup(): JSX.Element {
               'Region Code',
               numData?.phoneNumberInfo?.regionCode,
             )}
-            {(data?.debugCarrierInfo && (
+            {renderListItem(
+              'Valid',
+              numData?.phoneNumberInfo?.valid
+                ? 'true'
+                : `false` +
+                    (numData?.phoneNumberInfo?.error
+                      ? ` (${numData?.phoneNumberInfo?.error})`
+                      : ''),
+            )}
+            {(carrData?.debugCarrierInfo && !staleCarrier && !carrLoading && (
               <React.Fragment>
-                {renderListItem('Carrier Name', data.debugCarrierInfo.name)}
-                {renderListItem('Carrier Type', data.debugCarrierInfo.type)}
+                {renderListItem('Carrier Name', carrData.debugCarrierInfo.name)}
+                {renderListItem('Carrier Type', carrData.debugCarrierInfo.type)}
                 {renderListItem(
                   'Mobile Network Code',
-                  data.debugCarrierInfo.mobileNetworkCode,
+                  carrData.debugCarrierInfo.mobileNetworkCode,
                 )}
                 {renderListItem(
                   'Mobile Country Code',
-                  data.debugCarrierInfo.mobileCountryCode,
+                  carrData.debugCarrierInfo.mobileCountryCode,
                 )}
               </React.Fragment>
             )) || (
@@ -145,8 +157,10 @@ export default function AdminNumberLookup(): JSX.Element {
                     buttonText='Lookup Carrier Info'
                     onClick={() => {
                       lookup()
+                      setStaleCarrier(false)
                     }}
-                    loading={loading}
+                    disabled={!numData?.phoneNumberInfo?.valid}
+                    loading={carrLoading}
                   />
                 </Tooltip>
               </CardActions>
@@ -155,14 +169,14 @@ export default function AdminNumberLookup(): JSX.Element {
         </Card>
       </Form>
 
-      <Dialog open={showErrorDialog} onClose={() => setShowErrorDialog(false)}>
+      <Dialog open={Boolean(lastError)} onClose={() => setLastError(null)}>
         <DialogTitle>An error occurred</DialogTitle>
-        <DialogContentError error={error?.message ?? ''} />
+        <DialogContentError error={lastError?.message ?? ''} />
         <DialogActions>
           <Button
             color='primary'
             variant='contained'
-            onClick={() => setShowErrorDialog(false)}
+            onClick={() => setLastError(null)}
           >
             Okay
           </Button>

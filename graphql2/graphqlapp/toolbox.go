@@ -10,7 +10,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/validation"
 	"github.com/ttacon/libphonenumber"
 )
 
@@ -70,16 +69,17 @@ func (a *Mutation) DebugCarrierInfo(ctx context.Context, input graphql2.DebugCar
 func (a *Query) PhoneNumberInfo(ctx context.Context, number string) (*graphql2.PhoneNumberInfo, error) {
 	p, err := libphonenumber.Parse(number, "")
 	if err != nil {
-		return nil, validation.NewFieldError("Number", fmt.Sprintf("must be a valid number: %s", err.Error()))
+		return &graphql2.PhoneNumberInfo{
+			ID:    number,
+			Error: err.Error(),
+		}, nil
 	}
 
-	info := &graphql2.PhoneNumberInfo{
+	return &graphql2.PhoneNumberInfo{
 		ID:          number,
 		CountryCode: fmt.Sprintf("+%d", p.GetCountryCode()),
 		RegionCode:  libphonenumber.GetRegionCodeForNumber(p),
 		Formatted:   libphonenumber.Format(p, libphonenumber.INTERNATIONAL),
 		Valid:       libphonenumber.IsValidNumber(p),
-	}
-
-	return info, nil
+	}, nil
 }
