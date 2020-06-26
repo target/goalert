@@ -11,11 +11,8 @@ RUN go mod download
 COPY . /goalert
 RUN make bin/resetdb bin/goalert BUNDLE=1 BUILD_FLAGS=-trimpath
 
-RUN /goalert/devtools/ci/dockerfiles/all-in-one/build.sh
-
 FROM postgres:11-alpine
-COPY --from=build /goalert/bin/goalert /bin/goalert
-COPY --from=build /init.sql /bin/init.sql
+COPY --from=build /goalert/bin/goalert /goalert/bin/resetdb /bin/
 COPY devtools/ci/dockerfiles/all-in-one/start.sh /bin/start.sh
 ENV GOALERT_LISTEN :8081
 EXPOSE 8081
