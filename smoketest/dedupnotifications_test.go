@@ -1,9 +1,10 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestDedupNotifications tests that if a single contact method is
@@ -49,10 +50,8 @@ func TestDedupNotifications(t *testing.T) {
 	h := harness.NewHarness(t, sql, "escalation-policy-step-reorder")
 	defer h.Close()
 
-	h.Delay(time.Second * 15)
-
 	//Test that after 3 minutes, only 1 notification is generated
 	h.FastForward(time.Minute * 3)
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("testing")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("testing")
 }

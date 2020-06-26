@@ -65,5 +65,5 @@ func TestGrafana(t *testing.T) {
 	}
 	resp.Body.Close()
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("bob")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("bob")
 }

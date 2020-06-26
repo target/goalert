@@ -34,6 +34,11 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
+type AlertLogEntryState struct {
+	Details string          `json:"details"`
+	Status  *AlertLogStatus `json:"status"`
+}
+
 type AlertRecentEventsOptions struct {
 	Limit *int    `json:"limit"`
 	After *string `json:"after"`
@@ -46,6 +51,7 @@ type AlertSearchOptions struct {
 	First             *int          `json:"first"`
 	After             *string       `json:"after"`
 	FavoritesOnly     *bool         `json:"favoritesOnly"`
+	IncludeNotified   *bool         `json:"includeNotified"`
 	Omit              []int         `json:"omit"`
 }
 
@@ -448,6 +454,49 @@ type UserSearchOptions struct {
 type VerifyContactMethodInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 	Code            int    `json:"code"`
+}
+
+type AlertLogStatus string
+
+const (
+	AlertLogStatusOk    AlertLogStatus = "OK"
+	AlertLogStatusWarn  AlertLogStatus = "WARN"
+	AlertLogStatusError AlertLogStatus = "ERROR"
+)
+
+var AllAlertLogStatus = []AlertLogStatus{
+	AlertLogStatusOk,
+	AlertLogStatusWarn,
+	AlertLogStatusError,
+}
+
+func (e AlertLogStatus) IsValid() bool {
+	switch e {
+	case AlertLogStatusOk, AlertLogStatusWarn, AlertLogStatusError:
+		return true
+	}
+	return false
+}
+
+func (e AlertLogStatus) String() string {
+	return string(e)
+}
+
+func (e *AlertLogStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertLogStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertLogStatus", str)
+	}
+	return nil
+}
+
+func (e AlertLogStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type AlertStatus string

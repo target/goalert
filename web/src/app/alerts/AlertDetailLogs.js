@@ -5,6 +5,7 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
+import { makeStyles } from '@material-ui/core'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import { DateTime } from 'luxon'
@@ -22,6 +23,10 @@ const query = gql`
         nodes {
           timestamp
           message
+          state {
+            details
+            status
+          }
         }
         pageInfo {
           hasNextPage
@@ -31,7 +36,23 @@ const query = gql`
     }
   }
 `
+
+const useStyles = makeStyles({
+  // colors generated from status colors, but with saturation locked at 75 and value locked at 52.5
+  // so that all three passed contrast requirements (WCAG 2 AA)
+  statusOk: {
+    color: '#218626',
+  },
+  statusWarn: {
+    color: '#867321',
+  },
+  statusError: {
+    color: '#862421',
+  },
+})
+
 export default function AlertDetailLogs(props) {
+  const classes = useStyles()
   const [poll, setPoll] = useState(POLL_INTERVAL)
   const { data, error, loading, fetchMore } = useQuery(query, {
     pollInterval: poll,
@@ -86,19 +107,44 @@ export default function AlertDetailLogs(props) {
     )
   }
 
-  const renderItem = (timestamp, message, idx) => {
-    let timestampFmtd = formatTimeSince(timestamp)
+  const getLogStatusClass = (status) => {
+    switch (status) {
+      case 'OK':
+        return classes.statusOk
+      case 'WARN':
+        return classes.statusWarn
+      case 'ERROR':
+        return classes.statusError
+      default:
+        return null
+    }
+  }
+
+  const renderItem = (event, idx) => {
+    const details = _.upperFirst(event?.state?.details ?? '')
+    const status = event?.state?.status ?? ''
+    const detailsProps = {
+      classes: {
+        root: getLogStatusClass(status),
+      },
+    }
+
+    let timestamp = formatTimeSince(event.timestamp)
     if (props.showExactTimes) {
-      timestampFmtd = DateTime.fromISO(timestamp).toLocaleString(
+      timestamp = DateTime.fromISO(event.timestamp).toLocaleString(
         DateTime.DATETIME_FULL,
       )
     }
 
     return (
       <ListItem key={idx} divider>
-        <ListItemText primary={message} />
+        <ListItemText
+          primary={event.message}
+          secondary={details}
+          secondaryTypographyProps={detailsProps}
+        />
         <ListItemSecondaryAction>
-          <ListItemText secondary={timestampFmtd} />
+          <ListItemText secondary={timestamp} />
         </ListItemSecondaryAction>
       </ListItem>
     )
@@ -129,7 +175,7 @@ export default function AlertDetailLogs(props) {
   }
 
   return renderList(
-    events.map((event, idx) => renderItem(event.timestamp, event.message, idx)),
+    events.map((event, idx) => renderItem(event, idx)),
     pageInfo.hasNextPage,
   )
 }

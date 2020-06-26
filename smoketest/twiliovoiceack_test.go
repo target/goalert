@@ -2,6 +2,7 @@ package smoketest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/target/goalert/smoketest/harness"
 )
@@ -21,7 +22,7 @@ func TestTwilioVoiceAck(t *testing.T) {
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
 		({{uuid "user"}}, {{uuid "cm1"}}, 0),
-		({{uuid "user"}}, {{uuid "cm1"}}, 1);
+		({{uuid "user"}}, {{uuid "cm1"}}, 30);
 
 	insert into escalation_policies (id, name) 
 	values
@@ -45,11 +46,13 @@ func TestTwilioVoiceAck(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 
-	d1.ExpectVoice("testing").ThenPress("4").ThenExpect("acknowledged")
-	tw.WaitAndAssert()
+	d1.ExpectVoice("testing").
+		ThenPress("4").
+		ThenExpect("acknowledged")
 
+	h.FastForward(time.Hour)
 	// no more messages
 }

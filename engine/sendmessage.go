@@ -114,15 +114,20 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		return &notification.MessageStatus{State: notification.MessageStateFailedPerm}, nil
 	}
 
+	meta := alertlog.NotificationMetaData{
+		MessageID: msg.ID,
+	}
+
 	status, err := p.cfg.NotificationSender.Send(ctx, notifMsg)
 	if err != nil {
 		return nil, err
 	}
+
 	switch msg.Type {
 	case message.TypeAlertNotification:
-		p.cfg.AlertLogStore.MustLog(ctx, msg.AlertID, alertlog.TypeNotificationSent, nil)
+		p.cfg.AlertLogStore.MustLog(ctx, msg.AlertID, alertlog.TypeNotificationSent, meta)
 	case message.TypeAlertNotificationBundle:
-		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, nil)
+		err = p.cfg.AlertLogStore.LogServiceTx(ctx, nil, msg.ServiceID, alertlog.TypeNotificationSent, meta)
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "append alert log"))
 		}

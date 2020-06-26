@@ -94,6 +94,7 @@ func (s *Sync) ChangeLogEnable(ctx context.Context, sh *ishell.Context) error {
 		err = errors.Wrap(err, name)
 	}
 	sh.Println("Resetting change log...")
+	runNew("clear dest change_log", changeLogTableDel)
 	runNew("configure dest change_log", changeLogTableDef)
 	run("clear change_log", changeLogTableDel)
 	run("configure change_log", changeLogTableDef)
@@ -162,6 +163,13 @@ func (s *Sync) ChangeLogDisable(ctx context.Context, sh *ishell.Context) error {
 		_, err = s.oldDB.ExecContext(ctx, stmt)
 		err = errors.Wrap(err, name)
 	}
+	runNew := func(name, stmt string) {
+		if err != nil {
+			return
+		}
+		_, err = s.newDB.ExecContext(ctx, stmt)
+		err = errors.Wrap(err, name)
+	}
 
 	p := mpb.NewWithContext(ctx)
 	bar := p.AddBar(int64(len(s.tables)),
@@ -181,6 +189,7 @@ func (s *Sync) ChangeLogDisable(ctx context.Context, sh *ishell.Context) error {
 	sh.Println("Resetting change log...")
 	run("remove change hook", changeLogFuncDel)
 	run("remove change_log", changeLogTableDel)
+	runNew("remove dest change_log", changeLogTableDel)
 	if err != nil {
 		return err
 	}

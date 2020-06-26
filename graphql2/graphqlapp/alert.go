@@ -10,6 +10,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
@@ -18,6 +19,7 @@ import (
 
 type Alert App
 type AlertLogEntry App
+type AlertLogEntryState App
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
 
@@ -37,6 +39,72 @@ func (a *AlertLogEntry) Timestamp(ctx context.Context, obj *alertlog.Entry) (*ti
 func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (string, error) {
 	e := *obj
 	return e.String(), nil
+}
+
+func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
+	if !ok || meta == nil || !meta.NoOneOnCall {
+		return nil, nil
+	}
+
+	status := graphql2.AlertLogStatusWarn
+	return &graphql2.AlertLogEntryState{
+		Details: "No one was on-call",
+		Status:  &status,
+	}, nil
+}
+
+func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	if !ok || meta == nil {
+		return nil, nil
+	}
+
+	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
+	if err != nil {
+		return nil, errors.Wrap(err, "find alert log state")
+	}
+
+	var status graphql2.AlertLogStatus
+	switch s.State {
+	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
+		status = "ERROR"
+	case notification.MessageStateSent, notification.MessageStateDelivered:
+		status = "OK"
+	}
+
+	return &graphql2.AlertLogEntryState{
+		Details: s.Details,
+		Status:  &status,
+	}, nil
+}
+
+func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.CreatedMetaData)
+	if !ok || meta == nil || !meta.EPNoSteps {
+		return nil, nil
+	}
+
+	status := graphql2.AlertLogStatusWarn
+	return &graphql2.AlertLogEntryState{
+		Details: "No escalation policy steps",
+		Status:  &status,
+	}, nil
+}
+
+func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	switch obj.Type() {
+	case alertlog.TypeCreated:
+		return a.createdState(ctx, obj)
+	case alertlog.TypeNotificationSent:
+		return a.notificationSentState(ctx, obj)
+	case alertlog.TypeEscalated:
+		return a.escalationState(ctx, obj)
+	}
+	return nil, nil
 }
 
 func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
@@ -93,6 +161,9 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		s.Search = *opts.Search
 	}
 	s.Omit = opts.Omit
+	if opts.IncludeNotified != nil && *opts.IncludeNotified {
+		s.NotifiedUserID = permission.UserID(ctx)
+	}
 
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 0, 50),
@@ -111,20 +182,17 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		}
 	} else {
 		if opts.FavoritesOnly != nil && *opts.FavoritesOnly {
-			s.Services, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
+			s.ServiceFilter.IDs, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
 			if err != nil {
 				return nil, err
 			}
-
-			// favorites only with no returned services will
-			// return an empty result set
-			if len(s.Services) == 0 {
-				return &graphql2.AlertConnection{
-					PageInfo: &graphql2.PageInfo{},
-				}, nil
-			}
+			// used to potentially return an empty array of alerts
+			s.ServiceFilter.Valid = true
 		} else {
-			s.Services = opts.FilterByServiceID
+			s.ServiceFilter.IDs = opts.FilterByServiceID
+			if s.ServiceFilter.IDs != nil {
+				s.ServiceFilter.Valid = true
+			}
 		}
 
 		for _, f := range opts.FilterByStatus {

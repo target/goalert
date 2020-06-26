@@ -29,34 +29,10 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	sql := `insert into escalation_policies (id, name) 
 					values ({{uuid "eid"}}, 'esc policy');`
 
-	h := harness.NewHarness(t, sql, "escalation-policy-step-reorder")
-	defer h.Close()
-
 	type onCallAssertion struct {
 		Service, EP, EPName, User string
 		StepNumber                int
 	}
-
-	doQL := func(t *testing.T, query string, res interface{}) {
-		g := h.GraphQLQueryT(t, query, "/api/graphql")
-		for _, err := range g.Errors {
-			t.Error("GraphQL Error:", err.Message)
-		}
-		if len(g.Errors) > 0 {
-			t.Fatal("errors returned from GraphQL")
-		}
-		t.Log("Response:", string(g.Data))
-
-		if res == nil {
-			return
-		}
-		err := json.Unmarshal(g.Data, &res)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	var idCounter int
 
 	check := func(name, tmplStr string, expected []onCallAssertion) {
 		t.Helper()
@@ -65,37 +41,62 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		names := make(map[string]string)
 		namesRev := make(map[string]string)
 
-		tmpl := template.New("mutation")
-		tmpl.Funcs(template.FuncMap{
-			"name": func(id string) string {
-				if name, ok := names[id]; ok {
-					return name
-				}
-				name := fmt.Sprintf("generated%d", idCounter)
-				idCounter++
-				names[id] = name
-				namesRev[name] = id
-				return name
-			},
-			"userID": func(id string) string {
-				if usr, ok := users[id]; ok {
-					return usr.ID
-				}
-				usr := h.CreateUser()
-				users[id] = usr
-				return usr.ID
-			},
-		})
-		tmpl, err := tmpl.Parse(tmplStr)
-		require.NoError(t, err)
-
-		var buf bytes.Buffer
-		err = tmpl.Execute(&buf, nil)
-		require.NoError(t, err)
-
-		query := buf.String()
-
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			h := harness.NewHarness(t, sql, "escalation-policy-step-reorder")
+			defer h.Close()
+
+			doQL := func(t *testing.T, query string, res interface{}) {
+				g := h.GraphQLQueryT(t, query, "/api/graphql")
+				for _, err := range g.Errors {
+					t.Error("GraphQL Error:", err.Message)
+				}
+				if len(g.Errors) > 0 {
+					t.Fatal("errors returned from GraphQL")
+				}
+				t.Log("Response:", string(g.Data))
+
+				if res == nil {
+					return
+				}
+				err := json.Unmarshal(g.Data, &res)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			var idCounter int
+			tmpl := template.New("mutation")
+			tmpl.Funcs(template.FuncMap{
+				"name": func(id string) string {
+					if name, ok := names[id]; ok {
+						return name
+					}
+					name := fmt.Sprintf("generated%d", idCounter)
+					idCounter++
+					names[id] = name
+					namesRev[name] = id
+					return name
+				},
+				"userID": func(id string) string {
+					if usr, ok := users[id]; ok {
+						return usr.ID
+					}
+					usr := h.CreateUser()
+					users[id] = usr
+					return usr.ID
+				},
+				"uuid": h.UUID,
+			})
+			tmpl, err := tmpl.Parse(tmplStr)
+			require.NoError(t, err)
+
+			var buf bytes.Buffer
+			err = tmpl.Execute(&buf, nil)
+			require.NoError(t, err)
+
+			query := buf.String()
+
 			doQL(t, query, nil)
 			h.Trigger()
 
@@ -108,8 +109,8 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 					}
 				}
 			}
-			var buf bytes.Buffer
-			err := onCallAsnQueryTmpl.Execute(&buf, users)
+			buf.Reset()
+			err = onCallAsnQueryTmpl.Execute(&buf, users)
 			require.NoError(t, err, "render query")
 
 			doQL(t, buf.String(), &onCallState)
@@ -642,17 +643,17 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 	)
 
 	// User EP Schedule Replace Rotation Override Double Service
-	check("User EP Schedule Replace Rotation Override Double Service", fmt.Sprintf(`
+	check("User EP Schedule Replace Rotation Override Double Service", `
 		mutation {
-		alias0: createService(input: { name: "{{name "svc1"}}", escalationPolicyID: "%s" }) {
+		alias0: createService(input: { name: "{{name "svc1"}}", escalationPolicyID: "{{uuid "eid"}}" }) {
 			id
 		}
-		alias1: createService(input: { name: "{{name "svc2"}}", escalationPolicyID: "%s" }) {
+		alias1: createService(input: { name: "{{name "svc2"}}", escalationPolicyID: "{{uuid "eid"}}" }) {
 			id
 		}
 		createEscalationPolicyStep(
 			input: {
-				escalationPolicyID: "%s"
+				escalationPolicyID: "{{uuid "eid"}}"
 				delayMinutes: 1
 				newSchedule: {
 					name: "{{name "sched"}}"
@@ -689,7 +690,7 @@ func TestGraphQLOnCallAssignments(t *testing.T) {
 		) {
 			id
 		}
-	}`, h.UUID("eid"), h.UUID("eid"), h.UUID("eid")),
+	}`,
 		[]onCallAssertion{
 			{Service: "svc1", EPName: "esc policy", StepNumber: 0, User: "bob"},
 			{Service: "svc2", EPName: "esc policy", StepNumber: 0, User: "bob"},

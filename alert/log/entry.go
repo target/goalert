@@ -32,18 +32,24 @@ type Entry struct {
 }
 
 func (e Entry) Meta() interface{} {
+	var dest interface{}
 	switch e.Type() {
 	case TypeEscalated:
-		var esc EscalationMetaData
-		err := json.Unmarshal(e.meta, &esc)
-		if err != nil {
-			log.Debug(context.Background(), err)
-			return nil
-		}
-		return &esc
+		dest = &EscalationMetaData{}
+	case TypeNotificationSent:
+		dest = &NotificationMetaData{}
+	case TypeCreated:
+		dest = &CreatedMetaData{}
+	default:
+		return nil
 	}
 
-	return nil
+	err := json.Unmarshal(e.meta, dest)
+	if err != nil {
+		log.Debug(context.Background(), err)
+		return nil
+	}
+	return dest
 }
 func (e Entry) AlertID() int {
 	return e.alertID

@@ -81,6 +81,8 @@ type DB struct {
 	updateByStatusAndService *sql.Stmt
 	updateByIDAndStatus      *sql.Stmt
 
+	noStepsBySvc *sql.Stmt
+
 	epID *sql.Stmt
 
 	escalate *sql.Stmt
@@ -101,6 +103,17 @@ func NewDB(ctx context.Context, db *sql.DB, logDB alertlog.Store) (*DB, error) {
 	return &DB{
 		db:    db,
 		logDB: logDB,
+
+		noStepsBySvc: p(`
+			SELECT coalesce(
+				(SELECT true
+				FROM escalation_policies pol
+				JOIN services svc ON svc.id = $1
+				WHERE
+					pol.id = svc.escalation_policy_id
+					AND pol.step_count = 0)
+			, false)
+		`),
 
 		lockSvc:      p(`select 1 from services where id = $1 for update`),
 		lockAlertSvc: p(`SELECT 1 FROM services s JOIN alerts a ON a.id = ANY ($1) AND s.id = a.service_id FOR UPDATE`),
@@ -508,12 +521,12 @@ func (db *DB) Create(ctx context.Context, a *Alert) (*Alert, error) {
 		return nil, err
 	}
 
-	n, err = db._create(ctx, tx, *n)
+	n, meta, err := db._create(ctx, tx, *n)
 	if err != nil {
 		return nil, err
 	}
 
-	db.logDB.MustLogTx(ctx, tx, n.ID, alertlog.TypeCreated, nil)
+	db.logDB.MustLogTx(ctx, tx, n.ID, alertlog.TypeCreated, meta)
 
 	err = tx.Commit()
 	if err != nil {
@@ -532,14 +545,20 @@ func (db *DB) Create(ctx context.Context, a *Alert) (*Alert, error) {
 
 	return n, nil
 }
-func (db *DB) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, error) {
+func (db *DB) _create(ctx context.Context, tx *sql.Tx, a Alert) (*Alert, *alertlog.CreatedMetaData, error) {
+	var meta alertlog.CreatedMetaData
 	row := tx.StmtContext(ctx, db.insert).QueryRowContext(ctx, a.Summary, a.Details, a.ServiceID, a.Source, a.Status, a.DedupKey())
 	err := row.Scan(&a.ID, &a.CreatedAt)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &a, nil
+	err = tx.StmtContext(ctx, db.noStepsBySvc).QueryRowContext(ctx, a.ServiceID).Scan(&meta.EPNoSteps)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &a, &meta, nil
 }
 func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Alert, bool, error) {
 	err := permission.LimitCheckAny(ctx,
@@ -574,8 +593,10 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 
 	var inserted bool
 	var logType alertlog.Type
+	var meta interface{}
 	switch n.Status {
 	case StatusTriggered:
+		var m alertlog.CreatedMetaData
 		err = tx.Stmt(db.createUpdNew).
 			QueryRowContext(ctx, n.Summary, n.Details, n.ServiceID, n.Source, n.DedupKey()).
 			Scan(&n.ID, &n.Summary, &n.Details, &n.Status, &n.Source, &n.CreatedAt, &inserted)
@@ -583,7 +604,12 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 			logType = alertlog.TypeDuplicateSupressed
 		} else {
 			logType = alertlog.TypeCreated
+			stepErr := tx.StmtContext(ctx, db.noStepsBySvc).QueryRowContext(ctx, n.ServiceID).Scan(&m.EPNoSteps)
+			if stepErr != nil {
+				return nil, false, err
+			}
 		}
+		meta = &m
 	case StatusActive:
 		var oldStatus Status
 		err = tx.Stmt(db.createUpdAck).
@@ -606,7 +632,7 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 		return nil, false, err
 	}
 	if logType != "" {
-		db.logDB.MustLogTx(ctx, tx, n.ID, logType, nil)
+		db.logDB.MustLogTx(ctx, tx, n.ID, logType, meta)
 	}
 
 	return n, inserted, nil

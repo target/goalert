@@ -2,10 +2,11 @@ package smoketest
 
 import (
 	"bytes"
-	"github.com/target/goalert/smoketest/harness"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 func TestGenericAPI(t *testing.T) {
@@ -60,5 +61,5 @@ func TestGenericAPI(t *testing.T) {
 	}
 	resp.Body.Close()
 
-	h.Twilio().Device(h.Phone("1")).ExpectSMS("hello")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("hello")
 }

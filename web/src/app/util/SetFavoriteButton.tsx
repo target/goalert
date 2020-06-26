@@ -2,6 +2,7 @@ import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import FavoriteFilledIcon from '@material-ui/icons/Star'
 import FavoriteBorderIcon from '@material-ui/icons/StarBorder'
+import Tooltip from '@material-ui/core/Tooltip'
 import Spinner from '../loading/components/Spinner'
 
 interface SetFavoriteButtonProps {
@@ -21,7 +22,8 @@ export function SetFavoriteButton({
   if (loading) {
     icon = <Spinner />
   }
-  return (
+
+  const content = (
     <form
       onSubmit={(e) => {
         e.preventDefault()
@@ -42,4 +44,21 @@ export function SetFavoriteButton({
       </IconButton>
     </form>
   )
+
+  switch (typeName) {
+    case 'service':
+      return (
+        <Tooltip
+          title={
+            isFavorite
+              ? 'Unfavorite this service to stop seeing its alerts on your homepage'
+              : 'Favorite this service to always see its alerts on your homepage'
+          }
+        >
+          {content}
+        </Tooltip>
+      )
+    default:
+      return content
+  }
 }

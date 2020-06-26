@@ -665,6 +665,7 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
+  includeNotified: Boolean = true
   omit: [Int!]
 }
 
@@ -705,6 +706,18 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
+  state: AlertLogEntryState
+}
+
+type AlertLogEntryState {
+  details: String!
+  status: AlertLogStatus
+}
+
+enum AlertLogStatus {
+  OK
+  WARN
+  ERROR
 }
 
 # The escalation policy state details for the alert.

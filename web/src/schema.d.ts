@@ -505,6 +505,7 @@ export interface AlertSearchOptions {
   first?: number
   after?: string
   favoritesOnly?: boolean
+  includeNotified?: boolean
   omit?: number[]
 }
 
@@ -539,7 +540,15 @@ export interface AlertLogEntry {
   id: number
   timestamp: ISOTimestamp
   message: string
+  state?: AlertLogEntryState
 }
+
+export interface AlertLogEntryState {
+  details: string
+  status?: AlertLogStatus
+}
+
+export type AlertLogStatus = 'OK' | 'WARN' | 'ERROR'
 
 export interface AlertState {
   lastEscalation: ISOTimestamp

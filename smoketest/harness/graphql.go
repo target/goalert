@@ -70,7 +70,7 @@ func (h *Harness) SetSystemLimit(id limit.ID, value int) {
 		UPDATE config_limits
 		SET max = %d
 		WHERE id='%s'; 
-	`, value, id))
+	`, value, id), nil)
 }
 
 // GraphQLQueryT will perform a GraphQL query against the backend, internally
