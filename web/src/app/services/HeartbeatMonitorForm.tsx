@@ -11,19 +11,21 @@ function clampTimeout(val: string): number | string {
   // need to have the min be 1 here so you can type `10`
   return Math.min(Math.max(1, num), 9000)
 }
+interface Value {
+  name: string
+  timeoutMinutes: [number, string]
+}
 interface HeartbeatMonitorFormProps {
-  value: {
-    name: string
-    timeoutMinutes: [number, string]
-  }
+  value: Value
 
   errors: {
-    field: ['name', 'timeoutMinutes']
+    field: 'name' | 'timeoutMinutes'
     message: string
-  }
+  }[]
 
-  onChange: Function
+  onChange: (val: Value) => void
 }
+
 export default function HeartbeatMonitorForm(
   props: HeartbeatMonitorFormProps,
 ): JSX.Element {
