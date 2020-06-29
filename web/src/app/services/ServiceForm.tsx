@@ -4,21 +4,24 @@ import TextField from '@material-ui/core/TextField'
 import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
 
+interface Value {
+  name: string
+  description: string
+  escalationPolicyID: string
+}
+
 interface ServiceFormProps {
-  value: {
-    name: string
-    description: string
-    escalationPolicyID: string
+  value: Value
 
-    errors: {
-      field: ['name', 'description', 'escalationPolicyID']
-      message: string
-    }
+  errors: {
+    field: 'name' | 'description' | 'escalationPolicyID'
+    message: string
+  }[]
 
-    onChange: Function
+  onChange: (val: Value) => void
 
-    disabled: boolean
-  }
+  disabled: boolean
+
   epRequired: boolean
 }
 
