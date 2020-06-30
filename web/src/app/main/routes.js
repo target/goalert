@@ -135,6 +135,11 @@ export default [
         path: '/admin/limits',
         component: AdminRouter,
       },
+      {
+        title: 'Toolbox',
+        path: '/admin/toolbox',
+        component: AdminRouter,
+      },
     ],
   },
   {
