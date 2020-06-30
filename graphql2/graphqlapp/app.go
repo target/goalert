@@ -5,11 +5,10 @@ import (
 	"database/sql"
 	"net/http"
 	"strconv"
-	"sync"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
@@ -40,7 +39,6 @@ import (
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
-	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opencensus.io/trace"
 )
@@ -100,54 +98,45 @@ func (a *App) PlayHandler() http.Handler {
 	}))
 }
 
-type apolloTracingExt struct {
-	Version   int           `json:"version"`
-	Start     time.Time     `json:"startTime"`
-	End       time.Time     `json:"endTime"`
-	Duration  time.Duration `json:"duration"`
-	Execution struct {
-		Resolvers []apolloTracingResolver `json:"resolvers"`
-	} `json:"execution"`
-	mx sync.Mutex
-}
-type apolloTracingResolver struct {
-	Path        ast.Path      `json:"path"`
-	ParentType  string        `json:"parentType"`
-	FieldName   string        `json:"fieldName"`
-	ReturnType  string        `json:"returnType"`
-	StartOffset time.Duration `json:"startOffset"`
-	Duration    time.Duration `json:"duration"`
-}
-
 type fieldErr struct {
 	FieldName string `json:"fieldName"`
 	Message   string `json:"message"`
 }
 
+type apolloTracer struct {
+	apollotracing.Tracer
+}
+
+func (a apolloTracer) InterceptField(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+	if !permission.Admin(ctx) {
+		return next(ctx)
+	}
+
+	return a.Tracer.InterceptField(ctx, next)
+}
+func (a apolloTracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
+	if !permission.Admin(ctx) {
+		return next(ctx)
+	}
+
+	return a.Tracer.InterceptResponse(ctx, next)
+}
+
 func (a *App) Handler() http.Handler {
-	h := handler.New(
+	h := handler.NewDefaultServer(
 		graphql2.NewExecutableSchema(graphql2.Config{Resolvers: a}),
 	)
+	h.Use(apolloTracer{Tracer: apollotracing.Tracer{}})
 
 	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				panic(err)
+			}
+		}()
 		fieldCtx := graphql.GetFieldContext(ctx)
 
-		if ext, ok := graphql.GetExtension(ctx, "tracing").(*apolloTracingExt); ok {
-			var res apolloTracingResolver
-			res.FieldName = fieldCtx.Field.Name
-			res.ParentType = fieldCtx.Object
-			res.Path = fieldCtx.Path()
-			res.ReturnType = fieldCtx.Field.Definition.Type.String()
-			ext.mx.Lock()
-			res.StartOffset = time.Since(ext.Start)
-			ext.mx.Unlock()
-			defer func() {
-				ext.mx.Lock()
-				res.Duration = time.Since(ext.Start) - res.StartOffset
-				ext.Execution.Resolvers = append(ext.Execution.Resolvers, res)
-				ext.mx.Unlock()
-			}()
-		}
 		ctx, sp := trace.StartSpan(ctx, "GQL."+fieldCtx.Object+"."+fieldCtx.Field.Name, trace.WithSpanKind(trace.SpanKindServer))
 		defer sp.End()
 		sp.AddAttributes(
@@ -214,18 +203,6 @@ func (a *App) Handler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		ctx = a.registerLoaders(ctx)
-
-		if permission.Admin(ctx) {
-			ext := &apolloTracingExt{
-				Version: 1,
-				Start:   time.Now(),
-			}
-			graphql.RegisterExtension(ctx, "tracing", ext)
-			defer func() {
-				ext.End = time.Now()
-				ext.Duration = ext.End.Sub(ext.Start)
-			}()
-		}
 
 		h.ServeHTTP(w, req.WithContext(ctx))
 	})
