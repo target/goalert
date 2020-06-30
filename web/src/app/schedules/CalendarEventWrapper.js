@@ -1,9 +1,7 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
 import Grid from '@material-ui/core/Grid'
-import RemoveIcon from '@material-ui/icons/Delete'
 import Tooltip from '@material-ui/core/Tooltip'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
@@ -106,20 +104,25 @@ export default class CalendarEventWrapper extends Component {
               data-cy='replace-override'
               size='small'
               onClick={() => this.handleShowOverrideForm('replace')}
-              variant='outlined'
+              variant='contained'
+              color='primary'
             >
-              Override
+              Replace
             </Button>
           </Grid>
           <Grid item className={classes.flexGrow} />
-          <Grid item>
-            <IconButton
+
+          <Grid item className={classes.buttonContainer}>
+            <Button
               className={classes.button}
               data-cy='remove-override'
+              size='small'
               onClick={() => this.handleShowOverrideForm('remove')}
+              variant='contained'
+              color='primary'
             >
-              <RemoveIcon className={classes.icon} fontSize='small' />
-            </IconButton>
+              Remove
+            </Button>
           </Grid>
         </React.Fragment>
       )
