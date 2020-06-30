@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 
 import gql from 'graphql-tag'
 import { useQuery, useMutation } from 'react-apollo'
@@ -35,8 +34,14 @@ const mutation = gql`
     deleteAll(input: $input)
   }
 `
+interface IntegrationKeyDeleteDialogProps {
+  integrationKeyID: string
+  onClose: (integrationKeyID: string) => void
+}
 
-export default function IntegrationKeyDeleteDialog(props) {
+export default function IntegrationKeyDeleteDialog(
+  props: IntegrationKeyDeleteDialogProps,
+): JSX.Element {
   const { loading, error, data } = useQuery(query, {
     pollInterval: 0,
     variables: { id: props.integrationKeyID },
@@ -45,7 +50,7 @@ export default function IntegrationKeyDeleteDialog(props) {
   const [deleteKey, deleteKeyStatus] = useMutation(mutation, {
     onCompleted: props.onClose,
     update: (cache) => {
-      const { service } = cache.readQuery({
+      const { ...service } = cache.readQuery({
         query: updateQuery,
         variables: { id: data.integrationKey.serviceID },
       })
@@ -57,7 +62,7 @@ export default function IntegrationKeyDeleteDialog(props) {
           service: {
             ...service,
             integrationKeys: (service.integrationKeys || []).filter(
-              (key) => key.id !== props.integrationKeyID,
+              (key: { id: string }) => key.id !== props.integrationKeyID,
             ),
           },
         },
@@ -92,9 +97,4 @@ export default function IntegrationKeyDeleteDialog(props) {
       }}
     />
   )
-}
-
-IntegrationKeyDeleteDialog.propTypes = {
-  integrationKeyID: p.string.isRequired,
-  onClose: p.func,
 }
