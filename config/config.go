@@ -89,6 +89,8 @@ type Config struct {
 		AccountSID string
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
+
+		DisableTwoWaySMS bool `info:"Disables SMS reply codes for alert messages."`
 	}
 
 	Feedback struct {
