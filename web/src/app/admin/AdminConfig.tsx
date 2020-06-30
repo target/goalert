@@ -62,7 +62,7 @@ interface ConfigValues {
   [id: string]: string
 }
 
-function formatHeading(s? = ''): string {
+function formatHeading(s = ''): string {
   return startCase(s)
     .replace(/\bTwo Way\b/, 'Two-Way')
     .replace('Disable V 1 Graph QL', 'Disable V1 GraphQL')
