@@ -23,6 +23,7 @@ import CopyText from '../util/CopyText'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { ApolloError } from 'apollo-client'
+import { PhoneNumberInfo, DebugCarrierInfo } from '../../schema'
 
 const carrierInfoMut = gql`
   mutation($number: String!) {
@@ -58,6 +59,7 @@ export default function AdminNumberLookup(): JSX.Element {
     pollInterval: 0,
     onError: (err) => setLastError(err),
   })
+  const numInfo = numData?.phoneNumberInfo as PhoneNumberInfo
 
   const [lookup, { data: carrData, loading: carrLoading }] = useMutation(
     carrierInfoMut,
@@ -66,9 +68,9 @@ export default function AdminNumberLookup(): JSX.Element {
       onError: (err) => setLastError(err),
     },
   )
+  const carrInfo = carrData?.debugCarrierInfo as DebugCarrierInfo
 
-  function renderListItem(label: string, _text: string): JSX.Element {
-    const text = (_text === undefined ? '' : _text).toString()
+  function renderListItem(label: string, text = ''): JSX.Element {
     return (
       <React.Fragment>
         <Divider />
@@ -116,38 +118,26 @@ export default function AdminNumberLookup(): JSX.Element {
           </CardContent>
 
           <List dense>
-            {renderListItem(
-              'Country Code',
-              numData?.phoneNumberInfo?.countryCode,
-            )}
-            {renderListItem(
-              'Formatted Phone Number',
-              numData?.phoneNumberInfo?.formatted,
-            )}
-            {renderListItem(
-              'Region Code',
-              numData?.phoneNumberInfo?.regionCode,
-            )}
+            {renderListItem('Country Code', numInfo?.countryCode)}
+            {renderListItem('Formatted Phone Number', numInfo?.formatted)}
+            {renderListItem('Region Code', numInfo?.regionCode)}
             {renderListItem(
               'Valid',
-              numData?.phoneNumberInfo?.valid
+              numInfo?.valid
                 ? 'true'
-                : `false` +
-                    (numData?.phoneNumberInfo?.error
-                      ? ` (${numData?.phoneNumberInfo?.error})`
-                      : ''),
+                : `false` + (numInfo?.error ? ` (${numInfo?.error})` : ''),
             )}
-            {(carrData?.debugCarrierInfo && !staleCarrier && !carrLoading && (
+            {(carrInfo && !staleCarrier && !carrLoading && (
               <React.Fragment>
-                {renderListItem('Carrier Name', carrData.debugCarrierInfo.name)}
-                {renderListItem('Carrier Type', carrData.debugCarrierInfo.type)}
+                {renderListItem('Carrier Name', carrInfo.name)}
+                {renderListItem('Carrier Type', carrInfo.type)}
                 {renderListItem(
                   'Mobile Network Code',
-                  carrData.debugCarrierInfo.mobileNetworkCode,
+                  carrInfo.mobileNetworkCode,
                 )}
                 {renderListItem(
                   'Mobile Country Code',
-                  carrData.debugCarrierInfo.mobileCountryCode,
+                  carrInfo.mobileCountryCode,
                 )}
               </React.Fragment>
             )) || (
@@ -159,7 +149,7 @@ export default function AdminNumberLookup(): JSX.Element {
                       lookup()
                       setStaleCarrier(false)
                     }}
-                    disabled={!numData?.phoneNumberInfo?.valid}
+                    disabled={!numInfo?.valid}
                     loading={carrLoading}
                   />
                 </Tooltip>
