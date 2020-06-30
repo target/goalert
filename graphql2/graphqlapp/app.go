@@ -202,6 +202,13 @@ func (a *App) Handler() http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
+
+		// ensure some sort of auth before continuing
+		err := permission.LimitCheckAny(ctx)
+		if errutil.HTTPError(ctx, w, err) {
+			return
+		}
+
 		ctx = a.registerLoaders(ctx)
 
 		h.ServeHTTP(w, req.WithContext(ctx))
