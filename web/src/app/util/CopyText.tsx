@@ -27,15 +27,25 @@ interface CopyTextProps {
 
 export default function CopyText(props: CopyTextProps): JSX.Element {
   const classes = useStyles()
-  const [showTooltip, setShowTooltip] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   let content
   if (props.textOnly) {
     content = (
       <span
+        role='button'
+        tabIndex={0}
         onClick={() => {
           copyToClipboard(props.value)
-          setShowTooltip(true)
+          setCopied(true)
+        }}
+        onKeyPress={(e) => {
+          if (e.key !== 'Enter') {
+            return
+          }
+
+          copyToClipboard(props.value)
+          setCopied(true)
         }}
       >
         {props.title}
@@ -51,7 +61,7 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
 
           e.preventDefault()
           copyToClipboard(tgt.replace(/^mailto:/, ''))
-          setShowTooltip(true)
+          setCopied(true)
         }}
       >
         <ContentCopy className={classes.icon} fontSize='small' />
@@ -62,9 +72,8 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
 
   return (
     <Tooltip
-      onClose={() => setShowTooltip(false)}
-      open={showTooltip}
-      title='Copied!'
+      TransitionProps={{ onExited: () => setCopied(false) }}
+      title={copied ? 'Copied!' : 'Copy'}
       placement={props.placement || 'right'}
     >
       {content}
