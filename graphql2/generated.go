@@ -2843,7 +2843,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "./schema.graphql", Input: `type Query {
+	{Name: "./schema.graphql", Input: `type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
   # Returns the user with the given ID. If no ID is specified,
