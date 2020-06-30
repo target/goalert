@@ -667,6 +667,15 @@ input AlertSearchOptions {
   favoritesOnly: Boolean = false
   includeNotified: Boolean = true
   omit: [Int!]
+  sort: AlertSearchSort = statusID
+  createdBefore: ISOTimestamp
+  notCreatedBefore: ISOTimestamp
+}
+
+enum AlertSearchSort {
+  statusID
+  dateID
+  dateIDReverse
 }
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.

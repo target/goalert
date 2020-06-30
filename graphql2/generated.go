@@ -3363,6 +3363,15 @@ input AlertSearchOptions {
   favoritesOnly: Boolean = false
   includeNotified: Boolean = true
   omit: [Int!]
+  sort: AlertSearchSort = statusID
+  createdBefore: ISOTimestamp
+  notCreatedBefore: ISOTimestamp
+}
+
+enum AlertSearchSort {
+  statusID
+  dateID
+  dateIDReverse
 }
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
@@ -15134,6 +15143,9 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 	if _, present := asMap["includeNotified"]; !present {
 		asMap["includeNotified"] = true
 	}
+	if _, present := asMap["sort"]; !present {
+		asMap["sort"] = "statusID"
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -15182,6 +15194,24 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 		case "omit":
 			var err error
 			it.Omit, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sort":
+			var err error
+			it.Sort, err = ec.unmarshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdBefore":
+			var err error
+			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "notCreatedBefore":
+			var err error
+			it.NotCreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -22065,6 +22095,30 @@ func (ec *executionContext) unmarshalOAlertSearchOptions2ᚖgithubᚗcomᚋtarge
 	}
 	res, err := ec.unmarshalOAlertSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchOptions(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) unmarshalOAlertSearchSort2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, v interface{}) (AlertSearchSort, error) {
+	var res AlertSearchSort
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOAlertSearchSort2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, sel ast.SelectionSet, v AlertSearchSort) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, v interface{}) (*AlertSearchSort, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAlertSearchSort2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, sel ast.SelectionSet, v *AlertSearchSort) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOAlertState2githubᚗcomᚋtargetᚋgoalertᚋalertᚐState(ctx context.Context, sel ast.SelectionSet, v alert.State) graphql.Marshaler {
