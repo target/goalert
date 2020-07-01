@@ -10,6 +10,7 @@ import {
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
+import PersonAddIcon from '@material-ui/icons/PersonAdd'
 
 const useStyles = makeStyles((theme) => ({
   addOverrideGridItem: {
@@ -95,6 +96,7 @@ export default function CalendarToolbar(props) {
 
       <Grid item xs={12} lg={4} className={classes.labelGridItem}>
         <Typography component='p' data-cy='calendar-header' variant='subtitle1'>
+          {/* label is passed from react-big-calendar in <ScheduleCalendar> */}
           {props.label}
         </Typography>
       </Grid>
@@ -121,13 +123,14 @@ export default function CalendarToolbar(props) {
         </ButtonGroup>
         <Button
           data-cy='add-override'
-          variant='outlined'
+          variant='contained'
           size='small'
           color='primary'
           className={classes.addOverrideGridItem}
           onClick={() => handleAddOverrideClick()}
+          startIcon={<PersonAddIcon />}
         >
-          Add Override
+          Temp Add
         </Button>
       </Grid>
     </Grid>
