@@ -47,7 +47,7 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 }
 
 func (a *Mutation) DebugCarrierInfo(ctx context.Context, input graphql2.DebugCarrierInfoInput) (*twilio.CarrierInfo, error) {
-	return a.Twilio.CarrierInfo(ctx, input.Number, true)
+	return a.Twilio.FetchCarrierInfo(ctx, input.Number)
 }
 
 func (a *Query) PhoneNumberInfo(ctx context.Context, number string) (*graphql2.PhoneNumberInfo, error) {
