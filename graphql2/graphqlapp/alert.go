@@ -272,7 +272,7 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 		a.Details = *input.Details
 	}
 
-	if input.Sanitize != nil && *input.Sanitize == true {
+	if input.Sanitize != nil && *input.Sanitize {
 		a.Summary = validate.SanitizeText(a.Summary, alert.MaxSummaryLength)
 		a.Details = validate.SanitizeText(a.Details, alert.MaxDetailsLength)
 	}
