@@ -4,6 +4,7 @@ import statusStyles from '../util/statusStyles'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
+import Divider from '@material-ui/core/Divider'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { ChevronRight } from '@material-ui/icons'
@@ -12,9 +13,15 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
+import ListSubheader from '@material-ui/core/ListSubheader'
 import IconButton from '@material-ui/core/IconButton'
 import Markdown from '../util/Markdown'
 import { AppLink } from '../util/AppLink'
+import useWidth from '../util/useWidth'
+
+function isDesktopMode(width) {
+  return width === 'md' || width === 'lg' || width === 'xl'
+}
 
 const useLinkStyles = makeStyles(() => statusStyles)
 const useStyles = makeStyles((theme) => ({
@@ -34,13 +41,24 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up('md')]: { float: 'left' },
     margin: 20,
   },
+  listSubheader: {
+    margin: 0,
+    fontSize: 'larger',
+  },
   mainHeading: {
     fontSize: '1.5rem',
+  },
+  quickLinksContainer: {
+    display: 'flex',
+  },
+  quickLinksList: {
+    width: '100%',
   },
 }))
 
 function DetailsLink({ url, label, status, subText }) {
   const classes = useLinkStyles()
+  const width = useWidth()
 
   let itemClass = classes.noStatus
   switch (status) {
@@ -60,7 +78,7 @@ function DetailsLink({ url, label, status, subText }) {
       <ListItemText
         secondary={subText}
         primary={label}
-        primaryTypographyProps={{ variant: 'h5' }}
+        primaryTypographyProps={isDesktopMode(width) ? null : { variant: 'h5' }}
       />
       <ListItemSecondaryAction>
         <IconButton component={AppLink} to={url}>
@@ -80,13 +98,29 @@ DetailsLink.propTypes = {
 
 export default function DetailsPage(props) {
   const classes = useStyles()
+  const width = useWidth()
 
   const { title, details, icon, titleFooter, pageFooter } = props
 
   let links = null
   if (props.links && props.links.length) {
     links = (
-      <List data-cy='route-links'>
+      <List
+        data-cy='route-links'
+        className={classes.quickLinksList}
+        subheader={
+          isDesktopMode(width) ? (
+            <ListSubheader
+              className={classes.listSubheader}
+              component='h2'
+              color='primary'
+            >
+              Quick Links
+            </ListSubheader>
+          ) : null
+        }
+      >
+        {isDesktopMode(width) ? <Divider /> : null}
         {props.links.map((li, idx) => (
           <DetailsLink key={idx} {...li} />
         ))}
@@ -100,7 +134,7 @@ export default function DetailsPage(props) {
         <Card>
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={8}>
+              <Grid item xs={isDesktopMode(width) ? 8 : 12}>
                 {icon && <div className={classes.iconContainer}>{icon}</div>}
                 <Typography
                   data-cy='details-heading'
@@ -127,7 +161,8 @@ export default function DetailsPage(props) {
                 )}
               </Grid>
               <Hidden smDown>
-                <Grid item xs={4}>
+                <Grid className={classes.quickLinksContainer} item xs={4}>
+                  <Divider orientation='vertical' />
                   {links}
                 </Grid>
               </Hidden>
