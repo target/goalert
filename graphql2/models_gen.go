@@ -82,6 +82,7 @@ type CreateAlertInput struct {
 	Summary   string  `json:"summary"`
 	Details   *string `json:"details"`
 	ServiceID string  `json:"serviceID"`
+	Sanitize  *bool   `json:"sanitize"`
 }
 
 type CreateEscalationPolicyInput struct {

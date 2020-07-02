@@ -197,6 +197,7 @@ export interface CreateAlertInput {
   summary: string
   details?: string
   serviceID: string
+  sanitize?: boolean
 }
 
 export interface CreateUserCalendarSubscriptionInput {
