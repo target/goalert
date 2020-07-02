@@ -322,5 +322,26 @@ func (cfg Config) Validate() error {
 		)
 	}
 
+	m := make(map[string]bool)
+	for i, str := range cfg.Twilio.SMSFromNumberOverride {
+		parts := strings.SplitN(str, "=", 2)
+		fname := fmt.Sprintf("Twilio.SMSFromNumberOverride[%d]", i)
+		if len(parts) != 2 {
+			err = validate.Many(err, validation.NewFieldError(
+				fname,
+				"must be in the format 'carrier=number'",
+			))
+			continue
+		}
+		err = validate.Many(err,
+			validate.ASCII(fname+".Carrier", parts[0], 1, 255),
+			validate.Phone(fname+".Phone", parts[1]),
+		)
+		if m[parts[0]] {
+			err = validate.Many(err, validation.NewFieldError(fname, fmt.Sprintf("carrier override '%s' already set", parts[0])))
+		}
+		m[parts[0]] = true
+	}
+
 	return err
 }
