@@ -112,10 +112,10 @@ func (cfg Config) TwilioSMSFromNumber(carrier string) string {
 		if len(parts) != 2 {
 			continue
 		}
-		if parts[1] != carrier {
+		if parts[0] != carrier {
 			continue
 		}
-		return parts[0]
+		return parts[1]
 	}
 
 	return cfg.Twilio.FromNumber
