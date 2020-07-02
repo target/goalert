@@ -3,6 +3,7 @@ package contactmethod
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -26,6 +27,10 @@ type Store interface {
 	DeleteTx(ctx context.Context, tx *sql.Tx, id ...string) error
 	EnableByValue(context.Context, Type, string) error
 	DisableByValue(context.Context, Type, string) error
+
+	MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string) (*Metadata, error)
+	SetCarrierV1MetadataByID(ctx context.Context, tx *sql.Tx, id string, m *Metadata) error
+	SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string, m *Metadata) error
 }
 
 // DB implements the ContactMethodStore against a *sql.DB backend.
@@ -42,6 +47,9 @@ type DB struct {
 	lookupUserID *sql.Stmt
 	enable       *sql.Stmt
 	disable      *sql.Stmt
+	metaTV       *sql.Stmt
+	setCMetaID   *sql.Stmt
+	setCMetaTV   *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -49,6 +57,23 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 	return &DB{
 		db: db,
+
+		metaTV: p.P(`
+			SELECT metadata, now()
+			FROM user_contact_methods
+			WHERE type = $1 AND value = $2
+		`),
+		setCMetaID: p.P(`
+			UPDATE user_contact_methods
+			SET metadata = jsonb_set(coalesce(metadata,'{}'), '{CarrierV1}',$2))
+			WHERE id = $1
+		`),
+		setCMetaTV: p.P(`
+			UPDATE user_contact_methods
+			SET metadata = jsonb_set(coalesce(metadata,'{}'), '{CarrierV1}',$2))
+			WHERE type = $1 AND value = $2
+		`),
+
 		enable: p.P(`
 			UPDATE user_contact_methods
 			SET disabled = false
@@ -103,6 +128,45 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				WHERE id = any($1)
 			`),
 	}, p.Err
+}
+
+func (db *DB) MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string) (*Metadata, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+	var m Metadata
+	err = wrapTx(ctx, tx, db.metaTV).QueryRowContext(ctx, typ, value).Scan(&m, &m.FetchedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+func (db *DB) SetCarrierV1MetadataByID(ctx context.Context, tx *sql.Tx, id string, m *Metadata) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return err
+	}
+
+	data, err := json.Marshal(m.CarrierV1)
+	if err != nil {
+		return err
+	}
+	_, err = wrapTx(ctx, tx, db.metaTV).ExecContext(ctx, id, data)
+	return err
+}
+func (db *DB) SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string, m *Metadata) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return err
+	}
+
+	data, err := json.Marshal(m.CarrierV1)
+	if err != nil {
+		return err
+	}
+	_, err = wrapTx(ctx, tx, db.metaTV).ExecContext(ctx, typ, value, data)
+	return err
 }
 
 func (db *DB) EnableByValue(ctx context.Context, t Type, v string) error {

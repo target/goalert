@@ -13,6 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/util/log"
 )
 
 // DefaultTwilioAPIURL is the value that will be used if Config.APIURL is empty.
@@ -272,7 +273,15 @@ func (c *Config) SendSMS(ctx context.Context, to, body string, o *SMSOptions) (*
 	if o.FromNumber != "" {
 		v.Set("From", o.FromNumber)
 	} else {
-		v.Set("From", cfg.Twilio.FromNumber)
+		info, err := c.CarrierInfo(ctx, to, cfg.Twilio.SMSCarrierLookup)
+		if err != nil {
+			log.Log(ctx, err)
+		}
+		if info != nil {
+			v.Set("From", cfg.TwilioSMSFromNumber(info.Name))
+		} else {
+			v.Set("From", cfg.TwilioSMSFromNumber(""))
+		}
 	}
 	v.Set("Body", body)
 

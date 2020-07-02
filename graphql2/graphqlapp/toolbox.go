@@ -2,13 +2,9 @@ package graphqlapp
 
 import (
 	context "context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"net/url"
 
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
@@ -50,55 +46,8 @@ func (a *Mutation) DebugSendSms(ctx context.Context, input graphql2.DebugSendSMS
 	}, nil
 }
 
-func (a *Mutation) DebugCarrierInfo(ctx context.Context, input graphql2.DebugCarrierInfoInput) (*graphql2.DebugCarrierInfo, error) {
-	// must be admin to fetch carrier info
-	err := permission.LimitCheckAny(ctx, permission.Admin)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg := config.FromContext(ctx)
-	url := twLookupURL + input.Number + "?Type=carrier"
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(cfg.Twilio.AccountSID, cfg.Twilio.AuthToken)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("non-200 response from Twilio: %s", resp.Status)
-	}
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		Carrier struct {
-			CC   string `json:"mobile_country_code"`
-			NC   string `json:"mobile_network_code"`
-			Name string
-			Type string
-		}
-	}
-	err = json.Unmarshal(data, &result)
-	if err != nil {
-		return nil, err
-	}
-
-	return &graphql2.DebugCarrierInfo{
-		Name:              result.Carrier.Name,
-		Type:              result.Carrier.Type,
-		MobileCountryCode: result.Carrier.CC,
-		MobileNetworkCode: result.Carrier.NC,
-	}, nil
+func (a *Mutation) DebugCarrierInfo(ctx context.Context, input graphql2.DebugCarrierInfoInput) (*twilio.CarrierInfo, error) {
+	return a.Twilio.CarrierInfo(ctx, input.Number, true)
 }
 
 func (a *Query) PhoneNumberInfo(ctx context.Context, number string) (*graphql2.PhoneNumberInfo, error) {

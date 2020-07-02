@@ -23,6 +23,7 @@ import (
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
@@ -506,7 +507,7 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MutationResolver interface {
-	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*DebugCarrierInfo, error)
+	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*twilio.CarrierInfo, error)
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	DeleteAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
@@ -6107,7 +6108,7 @@ func (ec *executionContext) _ConfigValue_password(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugCarrierInfo_name(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_name(ctx context.Context, field graphql.CollectedField, obj *twilio.CarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6141,7 +6142,7 @@ func (ec *executionContext) _DebugCarrierInfo_name(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugCarrierInfo_type(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_type(ctx context.Context, field graphql.CollectedField, obj *twilio.CarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6175,7 +6176,7 @@ func (ec *executionContext) _DebugCarrierInfo_type(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugCarrierInfo_mobileNetworkCode(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_mobileNetworkCode(ctx context.Context, field graphql.CollectedField, obj *twilio.CarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6209,7 +6210,7 @@ func (ec *executionContext) _DebugCarrierInfo_mobileNetworkCode(ctx context.Cont
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _DebugCarrierInfo_mobileCountryCode(ctx context.Context, field graphql.CollectedField, obj *DebugCarrierInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _DebugCarrierInfo_mobileCountryCode(ctx context.Context, field graphql.CollectedField, obj *twilio.CarrierInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7327,9 +7328,9 @@ func (ec *executionContext) _Mutation_debugCarrierInfo(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*DebugCarrierInfo)
+	res := resTmp.(*twilio.CarrierInfo)
 	fc.Result = res
-	return ec.marshalNDebugCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfo(ctx, field.Selections, res)
+	return ec.marshalNDebugCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋtwilioᚐCarrierInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_debugSendSMS(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17348,7 +17349,7 @@ func (ec *executionContext) _ConfigValue(ctx context.Context, sel ast.SelectionS
 
 var debugCarrierInfoImplementors = []string{"DebugCarrierInfo"}
 
-func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, obj *DebugCarrierInfo) graphql.Marshaler {
+func (ec *executionContext) _DebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, obj *twilio.CarrierInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, debugCarrierInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -20441,11 +20442,11 @@ func (ec *executionContext) unmarshalNCreateUserOverrideInput2githubᚗcomᚋtar
 	return ec.unmarshalInputCreateUserOverrideInput(ctx, v)
 }
 
-func (ec *executionContext) marshalNDebugCarrierInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, v DebugCarrierInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDebugCarrierInfo2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋtwilioᚐCarrierInfo(ctx context.Context, sel ast.SelectionSet, v twilio.CarrierInfo) graphql.Marshaler {
 	return ec._DebugCarrierInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDebugCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐDebugCarrierInfo(ctx context.Context, sel ast.SelectionSet, v *DebugCarrierInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNDebugCarrierInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋtwilioᚐCarrierInfo(ctx context.Context, sel ast.SelectionSet, v *twilio.CarrierInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

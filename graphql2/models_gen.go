@@ -171,13 +171,6 @@ type CreateUserOverrideInput struct {
 	RemoveUserID *string   `json:"removeUserID"`
 }
 
-type DebugCarrierInfo struct {
-	Name              string `json:"name"`
-	Type              string `json:"type"`
-	MobileNetworkCode string `json:"mobileNetworkCode"`
-	MobileCountryCode string `json:"mobileCountryCode"`
-}
-
 type DebugCarrierInfoInput struct {
 	Number string `json:"number"`
 }
