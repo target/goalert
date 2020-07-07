@@ -25,7 +25,7 @@ export const AppLink = React.forwardRef(function AppLink(
 
   if (/^(mailto:|https?:\/\/)/.test(_to)) {
     return (
-      <a href={_to} ref={ref} {...other}>
+      <a href={_to} ref={ref}>
         {other.children}
       </a>
     )
