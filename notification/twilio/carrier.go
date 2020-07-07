@@ -20,14 +20,14 @@ import (
 
 // CarrierInfo holds information about the carrier network for a particular number.
 type CarrierInfo struct {
-	Name              string
-	Type              string
+	Name              string `json:"name"`
+	Type              string `json:"type"`
 	MobileNetworkCode string `json:"mobile_network_code"`
 	MobileCountryCode string `json:"mobile_country_code"`
 }
 
-// DefaultLookupURL is the official base URL for Twilio number lookups.
-const DefaultLookupURL = "https://lookups.twilio.com/v1/PhoneNumbers/"
+// DefaultLookupURL is the value that will be used for lookup calls if Config.BaseURL is empty.
+const DefaultLookupURL = "https://lookups.twilio.com"
 
 // ErrCarrierStale is returned if the available carrier data is over a year old.
 var ErrCarrierStale = errors.New("carrier data is stale")
@@ -73,7 +73,7 @@ func (c *Config) CarrierInfo(ctx context.Context, number string, fetch bool) (*C
 }
 
 // FetchCarrierInfo will lookup carrier information for the provided number using the Twilio API.
-func (c *Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierInfo, error) {
+func (c Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierInfo, error) {
 	// must be admin to fetch carrier info
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
@@ -81,14 +81,14 @@ func (c *Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierI
 	}
 
 	cfg := config.FromContext(ctx)
-	if c.LookupURL == "" {
-		c.LookupURL = DefaultLookupURL
+	if c.BaseURL == "" {
+		c.BaseURL = DefaultLookupURL
 	}
-	if !strings.HasSuffix(c.LookupURL, "/") {
-		c.LookupURL += "/"
+	if strings.HasSuffix(c.BaseURL, "/") {
+		c.BaseURL = strings.TrimSuffix(c.BaseURL, "/")
 	}
 
-	url := c.LookupURL + url.PathEscape(number) + "?Type=carrier"
+	url := c.BaseURL + "/v1/PhoneNumbers/" + url.PathEscape(number) + "?Type=carrier"
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, err

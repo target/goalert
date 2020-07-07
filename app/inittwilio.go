@@ -13,10 +13,9 @@ import (
 
 func (app *App) initTwilio(ctx context.Context) error {
 	app.twilioConfig = &twilio.Config{
-		APIURL:    app.cfg.TwilioBaseURL,
-		LookupURL: app.cfg.TwilioLookupURL,
-		Client:    &http.Client{Transport: &ochttp.Transport{}},
-		CMStore:   app.ContactMethodStore,
+		BaseURL: app.cfg.TwilioBaseURL,
+		Client:  &http.Client{Transport: &ochttp.Transport{}},
+		CMStore: app.ContactMethodStore,
 	}
 
 	var err error

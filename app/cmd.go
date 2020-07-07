@@ -485,9 +485,8 @@ func getConfig() (appConfig, error) {
 
 		HTTPPrefix: viper.GetString("http-prefix"),
 
-		SlackBaseURL:    viper.GetString("slack-base-url"),
-		TwilioBaseURL:   viper.GetString("twilio-base-url"),
-		TwilioLookupURL: viper.GetString("twilio-lookup-url"),
+		SlackBaseURL:  viper.GetString("slack-base-url"),
+		TwilioBaseURL: viper.GetString("twilio-base-url"),
 
 		DBURL:     viper.GetString("db-url"),
 		DBURLNext: viper.GetString("db-url-next"),
@@ -554,7 +553,6 @@ func init() {
 
 	RootCmd.Flags().String("github-base-url", "", "Base URL for GitHub auth and API calls.")
 	RootCmd.Flags().String("twilio-base-url", "", "Override the Twilio API URL.")
-	RootCmd.Flags().String("twilio-lookup-url", "", "Override the Twilio Lookup URL.")
 	RootCmd.Flags().String("slack-base-url", "", "Override the Slack base URL.")
 
 	RootCmd.Flags().String("region-name", "default", "Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages.")

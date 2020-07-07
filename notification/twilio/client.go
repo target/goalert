@@ -16,7 +16,7 @@ import (
 	"github.com/target/goalert/util/log"
 )
 
-// DefaultTwilioAPIURL is the value that will be used if Config.APIURL is empty.
+// DefaultTwilioAPIURL is the value that will be used for API calls if Config.BaseURL is empty.
 const DefaultTwilioAPIURL = "https://api.twilio.com/2010-04-01"
 
 // SMSOptions allows configuring outgoing SMS messages.
@@ -72,7 +72,7 @@ func urlJoin(base string, parts ...string) string {
 	return base + "/" + strings.Join(parts, "/")
 }
 func (c *Config) url(parts ...string) string {
-	base := c.APIURL
+	base := c.BaseURL
 	if base == "" {
 		base = DefaultTwilioAPIURL
 	}

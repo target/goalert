@@ -27,9 +27,8 @@ type appConfig struct {
 
 	DisableHTTPSRedirect bool
 
-	TwilioBaseURL   string
-	TwilioLookupURL string
-	SlackBaseURL    string
+	TwilioBaseURL string
+	SlackBaseURL  string
 
 	DBURL     string
 	DBURLNext string
