@@ -49,9 +49,11 @@ func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry
 	}
 
 	status := graphql2.AlertLogStatusWarn
+	lastStatus := graphql2.MessageStatusFailed
 	return &graphql2.AlertLogEntryState{
-		Details: "No one was on-call",
-		Status:  &status,
+		Details:    "No one was on-call",
+		Status:     &status,
+		LastStatus: &lastStatus,
 	}, nil
 }
 
@@ -75,9 +77,24 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		status = "OK"
 	}
 
+	var lastStatus graphql2.MessageStatus
+	switch s.State {
+	case 0:
+		lastStatus = graphql2.MessageStatusActive
+	case 1:
+		lastStatus = graphql2.MessageStatusSent
+	case 2:
+		lastStatus = graphql2.MessageStatusDelivered
+	case 3:
+		lastStatus = graphql2.MessageStatusFailed
+	case 4:
+		lastStatus = graphql2.MessageStatusFailed
+	}
+
 	return &graphql2.AlertLogEntryState{
-		Details: s.Details,
-		Status:  &status,
+		Details:    s.Details,
+		Status:     &status,
+		LastStatus: &lastStatus,
 	}, nil
 }
 
@@ -89,9 +106,11 @@ func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (
 	}
 
 	status := graphql2.AlertLogStatusWarn
+	lastStatus := graphql2.MessageStatusFailed
 	return &graphql2.AlertLogEntryState{
-		Details: "No escalation policy steps",
-		Status:  &status,
+		Details:    "No escalation policy steps",
+		Status:     &status,
+		LastStatus: &lastStatus,
 	}, nil
 }
 

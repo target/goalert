@@ -26,6 +26,7 @@ const query = gql`
           state {
             details
             status
+            lastStatus
           }
         }
         pageInfo {
@@ -123,10 +124,20 @@ export default function AlertDetailLogs(props) {
   const renderItem = (event, idx) => {
     const details = _.upperFirst(event?.state?.details ?? '')
     const status = event?.state?.status ?? ''
+    const lastStatus = event?.state?.lastStatus ?? ''
     const detailsProps = {
       classes: {
         root: getLogStatusClass(status),
       },
+    }
+
+    let messageStatus = ''
+    if (lastStatus.localeCompare(details)) {
+      messageStatus = lastStatus + ' : ' + details
+    } else if (details.localeCompare('')) {
+      messageStatus = lastStatus
+    } else {
+      messageStatus = details
     }
 
     let timestamp = formatTimeSince(event.timestamp)
@@ -135,12 +146,12 @@ export default function AlertDetailLogs(props) {
         DateTime.DATETIME_FULL,
       )
     }
-
+    // const combined = lastStatus + ':' + details
     return (
       <ListItem key={idx} divider>
         <ListItemText
           primary={event.message}
-          secondary={details}
+          secondary={messageStatus}
           secondaryTypographyProps={detailsProps}
         />
         <ListItemSecondaryAction>
