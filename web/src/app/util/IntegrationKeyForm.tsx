@@ -12,7 +12,7 @@ import { AppLink } from '../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({
   infoIcon: {
-    color: theme.palette.primary['500'],
+    color: theme.palette.primary.main,
   },
 }))
 
