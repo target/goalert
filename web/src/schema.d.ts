@@ -546,7 +546,10 @@ export interface AlertLogEntry {
 export interface AlertLogEntryState {
   details: string
   status?: AlertLogStatus
+  lastStatus?: MessageStatus
 }
+
+export type MessageStatus = 'Active' | 'Sent' | 'Delivered' | 'Failed'
 
 export type AlertLogStatus = 'OK' | 'WARN' | 'ERROR'
 

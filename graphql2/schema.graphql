@@ -712,6 +712,14 @@ type AlertLogEntry {
 type AlertLogEntryState {
   details: String!
   status: AlertLogStatus
+  lastStatus: MessageStatus
+}
+
+enum MessageStatus {
+  Active
+  Sent
+  Delivered
+  Failed
 }
 
 enum AlertLogStatus {

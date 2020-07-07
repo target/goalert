@@ -110,8 +110,9 @@ type ComplexityRoot struct {
 	}
 
 	AlertLogEntryState struct {
-		Details func(childComplexity int) int
-		Status  func(childComplexity int) int
+		Details    func(childComplexity int) int
+		LastStatus func(childComplexity int) int
+		Status     func(childComplexity int) int
 	}
 
 	AlertState struct {
@@ -766,6 +767,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryState.Details(childComplexity), true
+
+	case "AlertLogEntryState.lastStatus":
+		if e.complexity.AlertLogEntryState.LastStatus == nil {
+			break
+		}
+
+		return e.complexity.AlertLogEntryState.LastStatus(childComplexity), true
 
 	case "AlertLogEntryState.status":
 		if e.complexity.AlertLogEntryState.Status == nil {
@@ -3408,6 +3416,14 @@ type AlertLogEntry {
 type AlertLogEntryState {
   details: String!
   status: AlertLogStatus
+  lastStatus: MessageStatus
+}
+
+enum MessageStatus {
+  Active
+  Sent
+  Delivered
+  Failed
 }
 
 enum AlertLogStatus {
@@ -5428,6 +5444,40 @@ func (ec *executionContext) _AlertLogEntryState_status(ctx context.Context, fiel
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AlertLogEntryState_lastStatus(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryState) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "AlertLogEntryState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*MessageStatus)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOMessageStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertState_lastEscalation(ctx context.Context, field graphql.CollectedField, obj *alert.State) (ret graphql.Marshaler) {
@@ -17169,6 +17219,8 @@ func (ec *executionContext) _AlertLogEntryState(ctx context.Context, sel ast.Sel
 			}
 		case "status":
 			out.Values[i] = ec._AlertLogEntryState_status(ctx, field, obj)
+		case "lastStatus":
+			out.Values[i] = ec._AlertLogEntryState_lastStatus(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22595,6 +22647,30 @@ func (ec *executionContext) unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalOLabelValueSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) unmarshalOMessageStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx context.Context, v interface{}) (MessageStatus, error) {
+	var res MessageStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOMessageStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx context.Context, sel ast.SelectionSet, v MessageStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOMessageStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx context.Context, v interface{}) (*MessageStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOMessageStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOMessageStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx context.Context, sel ast.SelectionSet, v *MessageStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalORotation2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐRotation(ctx context.Context, sel ast.SelectionSet, v rotation.Rotation) graphql.Marshaler {

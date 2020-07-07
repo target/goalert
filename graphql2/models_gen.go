@@ -35,8 +35,9 @@ type AlertLogEntryConnection struct {
 }
 
 type AlertLogEntryState struct {
-	Details string          `json:"details"`
-	Status  *AlertLogStatus `json:"status"`
+	Details    string          `json:"details"`
+	Status     *AlertLogStatus `json:"status"`
+	LastStatus *MessageStatus  `json:"lastStatus"`
 }
 
 type AlertRecentEventsOptions struct {
@@ -629,6 +630,51 @@ func (e *IntegrationKeyType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MessageStatus string
+
+const (
+	MessageStatusActive    MessageStatus = "Active"
+	MessageStatusSent      MessageStatus = "Sent"
+	MessageStatusDelivered MessageStatus = "Delivered"
+	MessageStatusFailed    MessageStatus = "Failed"
+)
+
+var AllMessageStatus = []MessageStatus{
+	MessageStatusActive,
+	MessageStatusSent,
+	MessageStatusDelivered,
+	MessageStatusFailed,
+}
+
+func (e MessageStatus) IsValid() bool {
+	switch e {
+	case MessageStatusActive, MessageStatusSent, MessageStatusDelivered, MessageStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e MessageStatus) String() string {
+	return string(e)
+}
+
+func (e *MessageStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MessageStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MessageStatus", str)
+	}
+	return nil
+}
+
+func (e MessageStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
