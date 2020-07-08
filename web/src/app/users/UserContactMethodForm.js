@@ -3,6 +3,7 @@ import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
+import TelTextField from '../util/TelTextField'
 import { MenuItem, Typography } from '@material-ui/core'
 import InputAdornment from '@material-ui/core/InputAdornment'
 
@@ -78,7 +79,7 @@ export default class UserContactMethodForm extends React.PureComponent {
                   </InputAdornment>
                 ),
               }}
-              component={TextField}
+              component={TelTextField}
               mapValue={(val) => val.replace(/^\+/, '')}
               mapOnChangeValue={cleanValue}
               disabled={this.props.edit}
