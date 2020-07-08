@@ -11,7 +11,8 @@ RUN go mod download
 COPY . /goalert
 RUN make bin/resetdb bin/goalert BUNDLE=1 BUILD_FLAGS=-trimpath
 
-FROM postgres:11-alpine
+FROM alpine:3.12
+RUN apk --no-cache add postgresql postgresql-contrib musl-locales tzdata ca-certificates
 COPY --from=build /goalert/bin/goalert /goalert/bin/resetdb /bin/
 COPY devtools/ci/dockerfiles/all-in-one/start.sh /bin/start.sh
 ENV GOALERT_LISTEN :8081
