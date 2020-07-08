@@ -14,6 +14,7 @@ func TestNotifiedAlerts(t *testing.T) {
 	insert into users (id, name, email, role) 
 	values 
 		({{uuid "user"}}, 'bob', 'joe', 'user');
+
 	insert into user_contact_methods (id, user_id, name, type, value) 
 	values
 		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
@@ -21,7 +22,6 @@ func TestNotifiedAlerts(t *testing.T) {
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
 		({{uuid "user"}}, {{uuid "cm1"}}, 0),
-		
 
 	insert into escalation_policies (id, name) 
 	values
@@ -31,18 +31,18 @@ func TestNotifiedAlerts(t *testing.T) {
 	insert into escalation_policy_steps (id, escalation_policy_id) 
 	values
 		({{uuid "esid"}}, {{uuid "eid"}});
-		
 
 	insert into services (id, escalation_policy_id, name) 
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service'),
 		({{uuid "sid2"}}, {{uuid "eid2"}}, 'service');
 
-		insert into alerts (id, service_id, summary, status, created_at) 
-		values
-			(1, {{uuid "sid"}}, 'testing', 'unacknowledged', now()),
-			(2, {{uuid "sid2"}}, 'testing', 'unacknowledged', now() - '2 days'::interval);
-`
+	insert into alerts (id, service_id, summary, status, created_at) 
+	values
+		(1, {{uuid "sid"}}, 'testing', 'unacknowledged', now()),
+		(2, {{uuid "sid2"}}, 'testing', 'unacknowledged', now() - '2 days'::interval);
+	`
+
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
 	defer h.Close()
 
@@ -75,4 +75,22 @@ func TestNotifiedAlerts(t *testing.T) {
 
 	doQL(t, h, "", &alerts1)
 
+	// notes
+	// - "user" is assigned to "sid1"
+	// - "sid1" is not favorited by "user"
+	// - it has 1 alert that "user" should be notified for
+
+	// - "sid2" created and has no assignments
+	// - TODO: it is favorited by "user"
+	// - it has 1 alert
+
+	// test:
+	// includeNotified: false
+	// favoritesOnly: true
+	// output: 1 alert (the favorited one)
+
+	// test:
+	// includeNotified: true
+	// favoritesOnly: true
+	// output: 2 alerts (1 from favorited, 1 from notified)
 }
