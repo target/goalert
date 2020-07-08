@@ -89,7 +89,7 @@ export default class UserContactMethodForm extends React.PureComponent {
                 component='p'
                 id='countryCodeIndicator'
               >
-                Please provide your country code e.g. +1 (USA), +91 (India) +44
+                Please provide your country code e.g. +1 (USA), +91 (India), +44
                 (UK)
               </Typography>
             )}

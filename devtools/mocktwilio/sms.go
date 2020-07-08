@@ -238,7 +238,7 @@ func (sms *SMS) process() {
 		if accepted {
 			sms.updateStatus(twilio.MessageStatusDelivered)
 		} else {
-			sms.updateStatus(twilio.MessageStatusUndelivered)
+			sms.updateStatus(twilio.MessageStatusFailed)
 		}
 	}
 }
@@ -269,7 +269,7 @@ func (sms *SMS) Accept() {
 	close(sms.acceptCh)
 }
 
-// Reject will cause the SMS to be marked as undelivered (failed).
+// Reject will cause the SMS to be marked as failed.
 func (sms *SMS) Reject() {
 	sms.acceptCh <- false
 	close(sms.acceptCh)
