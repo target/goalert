@@ -43,7 +43,7 @@ export default function RotationRouter() {
 
   return (
     <Switch>
-      <Route exact path='/rotations' component={renderList} />
+      <Route exact path='/rotations' render={renderList} />
       <Route
         exact
         path='/rotations/:rotationID'
