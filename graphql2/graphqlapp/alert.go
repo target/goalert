@@ -74,9 +74,54 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 	case notification.MessageStateSent, notification.MessageStateDelivered:
 		status = "OK"
 	}
+	var details string
+	switch s.LastStatus {
+	case notification.MessageLastStatusDelivered:
+		if s.Details == "delivered" {
+			details = s.Details
+		} else {
+			details = ":delivered" + s.Details
+		}
+	case notification.MessageLastStatusPending:
+		if s.Details == "pending" {
+			details = s.Details
+		} else {
+			details = ":pending" + s.Details
+		}
+	case notification.MessageLastStatusSending:
+		if s.Details == "sending" {
+			details = s.Details
+		} else {
+			details = "sending:" + s.Details
+		}
+	case notification.MessageLastStatusSent:
+		if s.Details == "sent" {
+			details = s.Details
+		} else {
+			details = "sent:" + s.Details
+		}
+	case notification.MessageLastStatusQueuedRemotely:
+		if s.Details == "queued_remotely" {
+			details = s.Details
+		} else {
+			details = "queued_remotely:" + s.Details
+		}
+	case notification.MessageLastStatusFailed:
+		if s.Details == "failed" {
+			details = s.Details
+		} else {
+			details = "failed:" + s.Details
+		}
+	case notification.MessageLastStatusBundled:
+		if s.Details == "bundled" {
+			details = s.Details
+		} else {
+			details = "bundled:" + s.Details
+		}
+	}
 
 	return &graphql2.AlertLogEntryState{
-		Details: s.Details,
+		Details: details,
 		Status:  &status,
 	}, nil
 }

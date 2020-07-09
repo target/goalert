@@ -346,7 +346,7 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 		default:
 			return nil, fmt.Errorf("unknown last_status %s", lastStatus)
 		}
-
+		s.LastStatus = MessageLastStatus(lastStatus)
 		result = append(result, s)
 	}
 

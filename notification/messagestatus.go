@@ -19,6 +19,9 @@ type MessageStatus struct {
 	// Details can contain any additional information about the State (e.g. "ringing", "no-answer" etc..).
 	Details string
 
+	//LastStatus labels information given in details for quick overall (failed, delivered, etc..).
+	LastStatus MessageLastStatus
+
 	// Sequence can be used when the provider sends updates out-of order (e.g. Twilio).
 	// The Sequence number defaults to 0, and a status update is ignored unless it's
 	// Sequence number is >= the current one.
@@ -66,4 +69,16 @@ const (
 	// invalid config, they should set this state, as without manual intervention, a retry
 	// will also fail.
 	MessageStateFailedPerm
+)
+
+type MessageLastStatus string
+
+const (
+	MessageLastStatusPending        MessageLastStatus = "pending"
+	MessageLastStatusSending        MessageLastStatus = "sending"
+	MessageLastStatusQueuedRemotely MessageLastStatus = "queued_remotely"
+	MessageLastStatusSent           MessageLastStatus = "sent"
+	MessageLastStatusDelivered      MessageLastStatus = "delivered"
+	MessageLastStatusFailed         MessageLastStatus = "failed"
+	MessageLastStatusBundled        MessageLastStatus = "bundled"
 )
