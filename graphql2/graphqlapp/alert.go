@@ -74,48 +74,34 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 	case notification.MessageStateSent, notification.MessageStateDelivered:
 		status = "OK"
 	}
-	var details string
+	var details = s.Details
 	switch s.LastStatus {
 	case notification.MessageLastStatusDelivered:
-		if s.Details == "delivered" {
-			details = s.Details
-		} else {
-			details = ":delivered" + s.Details
+		if s.Details != "delivered" {
+			details = "delivered:" + s.Details
 		}
 	case notification.MessageLastStatusPending:
-		if s.Details == "pending" {
-			details = s.Details
-		} else {
-			details = ":pending" + s.Details
+		if s.Details != "pending" {
+			details = "pending:" + s.Details
 		}
 	case notification.MessageLastStatusSending:
-		if s.Details == "sending" {
-			details = s.Details
-		} else {
+		if s.Details != "sending" {
 			details = "sending:" + s.Details
 		}
 	case notification.MessageLastStatusSent:
-		if s.Details == "sent" {
-			details = s.Details
-		} else {
+		if s.Details != "sent" {
 			details = "sent:" + s.Details
 		}
 	case notification.MessageLastStatusQueuedRemotely:
-		if s.Details == "queued_remotely" {
-			details = s.Details
-		} else {
+		if s.Details != "queued_remotely" {
 			details = "queued_remotely:" + s.Details
 		}
 	case notification.MessageLastStatusFailed:
-		if s.Details == "failed" {
-			details = s.Details
-		} else {
+		if s.Details != "failed" {
 			details = "failed:" + s.Details
 		}
 	case notification.MessageLastStatusBundled:
-		if s.Details == "bundled" {
-			details = s.Details
-		} else {
+		if s.Details != "bundled" {
 			details = "bundled:" + s.Details
 		}
 	}
