@@ -106,7 +106,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 
 	makeSMSCode := func(alertID int, serviceID string) int {
 		var code int
-		if hasTwoWaySMSSupport(destNumber) {
+		if hasTwoWaySMSSupport(ctx, destNumber) {
 			code, err = s.b.insertDB(ctx, destNumber, msg.ID(), alertID, serviceID)
 			if err != nil {
 				log.Log(ctx, errors.Wrap(err, "insert alert id for SMS callback -- sending 1-way SMS as fallback"))
@@ -315,6 +315,11 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			log.Log(ctx, err)
 		}
 
+		return
+	}
+
+	if cfg.Twilio.DisableTwoWaySMS {
+		respond("response codes disabled", "Response codes are currently disabled. Visit the dashboard to manage alerts.")
 		return
 	}
 

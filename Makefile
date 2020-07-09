@@ -195,10 +195,10 @@ check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 migrate/inline_data_gen.go: migrate/migrations migrate/migrations/*.sql $(INLINER)
 	go generate ./migrate
 
-graphql2/mapconfig.go: $(CFGPARAMS) config/config.go
+graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go
 	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && goimports -w ./mapconfig.go) || go generate ./graphql2
 
-graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml
+graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
 generate: web/src/node_modules

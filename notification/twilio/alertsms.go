@@ -2,11 +2,13 @@ package twilio
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"text/template"
 	"unicode"
 
 	"github.com/pkg/errors"
+	"github.com/target/goalert/config"
 )
 
 // 160 GSM characters (140 bytes) is the max for a single segment message.
@@ -92,7 +94,11 @@ func mapGSM(r rune) rune {
 }
 
 // hasTwoWaySMSSupport returns true if a number supports 2-way SMS messaging (replies).
-func hasTwoWaySMSSupport(number string) bool {
+func hasTwoWaySMSSupport(ctx context.Context, number string) bool {
+	if config.FromContext(ctx).Twilio.DisableTwoWaySMS {
+		return false
+	}
+
 	// India numbers do not support SMS replies.
 	return !strings.HasPrefix(number, "+91")
 }
