@@ -29,6 +29,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
+	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/notificationrule"
@@ -82,9 +83,8 @@ type Harness struct {
 
 	ignoreErrors []string
 
-	backend       *app.App
-	backendErr    chan error
-	backendCancel func()
+	backend    *app.App
+	backendErr chan error
 
 	dbURL       string
 	dbName      string
@@ -243,27 +243,10 @@ func (h *Harness) Start() {
 	cfg.Mailgun.APIKey = mailgunAPIKey
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
-	data, err := json.Marshal(cfg)
-	if err != nil {
-		h.t.Fatalf("failed to marshal config: %v", err)
-	}
 
-	cfgCmd := exec.Command("goalert", "migrate", "--db-url="+h.dbURL)
-	cfgCmd.Stdin = bytes.NewReader(data)
-	out, err := cfgCmd.CombinedOutput()
+	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
 	if err != nil {
-		h.t.Fatalf("failed to migrate backend: %v\n%s", err, string(out))
-	}
-	cfgCmd = exec.Command("goalert", "set-config", "--allow-empty-data-encryption-key", "--db-url="+h.dbURL)
-	cfgCmd.Stdin = bytes.NewReader(data)
-	out, err = cfgCmd.CombinedOutput()
-	if err != nil {
-		h.t.Fatalf("failed to config backend: %v\n%s", err, string(out))
-	}
-
-	dbCfg, err := pgx.ParseConfig(h.dbURL)
-	if err != nil {
-		h.t.Fatalf("failed to parse db url: %v", err)
+		h.t.Fatalf("failed to migrate backend: %v\n", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -297,6 +280,7 @@ func (h *Harness) Start() {
 	appCfg.TwilioBaseURL = h.twS.URL
 	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
+	appCfg.InitialConfig = &h.cfg
 
 	r, w := io.Pipe()
 
@@ -305,21 +289,15 @@ func (h *Harness) Start() {
 
 	go h.watchBackendLogs(r)
 
+	dbCfg, err := pgx.ParseConfig(h.dbURL)
+	if err != nil {
+		h.t.Fatalf("failed to parse db url: %v", err)
+	}
+
 	h.backend, err = app.NewApp(appCfg, stdlib.OpenDB(*dbCfg))
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
-	appCtx, appCancel := context.WithCancel(context.Background())
-	h.backendCancel = appCancel
-	go func() {
-		err := h.backend.Run(appCtx)
-		if h.isClosing() {
-			err = nil
-		}
-		if err != nil {
-			h.t.Fatal(err)
-		}
-	}()
 
 	err = h.tw.RegisterSMSCallback(h.phoneCCG.Get("twilio"), h.URL()+"/v1/twilio/sms/messages")
 	if err != nil {
@@ -328,6 +306,12 @@ func (h *Harness) Start() {
 	err = h.tw.RegisterVoiceCallback(h.phoneCCG.Get("twilio"), h.URL()+"/v1/twilio/voice/call")
 	if err != nil {
 		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
+	}
+
+	go h.backend.Run(context.Background())
+	err = h.backend.WaitForStartup(ctx)
+	if err != nil {
+		h.t.Fatalf("failed to start backend: %v", err)
 	}
 }
 
@@ -340,9 +324,8 @@ func (h *Harness) URL() string {
 func (h *Harness) Migrate(migrationName string) {
 	h.t.Helper()
 	h.t.Logf("Running migrations (target: %s)", migrationName)
-	data, err := exec.Command("goalert", "migrate", "--db-url", h.dbURL, "--up", migrationName).CombinedOutput()
+	_, err := migrate.Up(context.Background(), h.dbURL, migrationName)
 	if err != nil {
-		h.t.Log(string(data))
 		h.t.Fatalf("failed to run migration: %v", err)
 	}
 }

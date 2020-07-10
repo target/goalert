@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"time"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 )
 
@@ -57,4 +58,8 @@ type Config struct {
 	StubNotifiers bool
 
 	UIURL string
+
+	// InitialConfig will be pushed into the config store
+	// if specified before the engine is started.
+	InitialConfig *config.Config
 }

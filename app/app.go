@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"crypto/tls"
 	"database/sql"
 	"net"
@@ -150,6 +151,9 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 
 	return app, nil
 }
+
+// WaitForStartup will wait until the startup sequence is completed or the context is expired.
+func (a *App) WaitForStartup(ctx context.Context) error { return a.mgr.WaitForStartup(ctx) }
 
 // DB returns the sql.DB instance used by the application.
 func (a *App) DB() *sql.DB { return a.db }

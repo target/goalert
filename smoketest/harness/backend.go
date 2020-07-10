@@ -33,9 +33,7 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 		if err != nil {
 			break
 		}
-		if h.isClosing() {
-			entry.Level = "shutdown[" + entry.Level + "]"
-		} else if ignore(entry.Error) {
+		if ignore(entry.Error) {
 			entry.Level = "ignore[" + entry.Level + "]"
 		}
 		if entry.Level == "error" || entry.Level == "fatal" {
