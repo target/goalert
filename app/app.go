@@ -124,13 +124,15 @@ func NewApp(c Config, db *sql.DB) (*App, error) {
 	}
 
 	app := &App{
-		l:        l,
-		db:       db,
-		cfg:      c,
-		doneCh:   make(chan struct{}),
-		cooldown: newCooldown(c.KubernetesCooldown),
+		l:      l,
+		db:     db,
+		cfg:    c,
+		doneCh: make(chan struct{}),
 
 		requestLock: newContextLocker(),
+	}
+	if c.KubernetesCooldown > 0 {
+		app.cooldown = newCooldown(c.KubernetesCooldown)
 	}
 
 	if c.StatusAddr != "" {

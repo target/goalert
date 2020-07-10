@@ -138,9 +138,14 @@ func (l *Listener) Stop() {
 	l.running = false
 }
 
-// Close will shut down the listener and returns after all connections have been completed.
-// It is not necessary to call Stop() before Close().
+// Close performs a shutdown with a background context.
 func (l *Listener) Close() error {
+	return l.Shutdown(context.Background())
+}
+
+// Shutdown will shut down the listener and returns after all connections have been completed.
+// It is not necessary to call Stop() before Close().
+func (l *Listener) Shutdown(context.Context) error {
 	l.Stop()
 	close(l.notifCh)
 	close(l.errCh)
