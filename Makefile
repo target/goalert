@@ -51,13 +51,15 @@ all: test install
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
-	GOOS=linux go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+$(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
+	GOOS=linux go test ./smoketest -c -o $@
 $(BIN_DIR)/goalert-linux-arm: $(BIN_DIR)/goalert web/inline_data_gen.go
-	GOOS=linux GOARCH=arm GOARM=7 go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/inline_data_gen.go
-	GOOS=linux GOARCH=arm64 go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+	GOOS=linux GOARCH=arm64 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
-	GOOS=darwin go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
+	GOOS=darwin go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
 $(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -name '*.go')
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
@@ -80,7 +82,7 @@ $(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cyp
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64 $(BIN_DIR)/procwrap-linux-amd64
+$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/goalert-smoketest-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64 $(BIN_DIR)/procwrap-linux-amd64
 	rm -rf $@
 	mkdir -p bin/integration/goalert/bin
 	cp bin/*-linux-amd64 bin/integration/goalert/bin/
