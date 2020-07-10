@@ -14,12 +14,12 @@ import {
   List,
   ListItem,
   ListItemText,
-  TextField,
   Tooltip,
 } from '@material-ui/core'
 import gql from 'graphql-tag'
 import { useMutation, useQuery } from 'react-apollo'
 import CopyText from '../util/CopyText'
+import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { ApolloError } from 'apollo-client'
@@ -93,9 +93,14 @@ export default function AdminNumberLookup(): JSX.Element {
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <TextField
-                  onChange={(e) => {
-                    setNumber(e.target.value.replace(/[^0-9]/g, ''))
+                <TelTextField
+                  onChange={(e: React.FormEvent<HTMLInputElement>) => {
+                    setNumber(
+                      (e.target as HTMLInputElement).value.replace(
+                        /[^0-9]/g,
+                        '',
+                      ),
+                    )
                     setStaleCarrier(true)
                   }}
                   value={number}

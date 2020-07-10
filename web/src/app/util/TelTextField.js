@@ -3,6 +3,7 @@ import TextField from '@material-ui/core/TextField'
 import { Check, Close } from '@material-ui/icons'
 import _ from 'lodash-es'
 import InputAdornment from '@material-ui/core/InputAdornment'
+import { makeStyles } from '@material-ui/core'
 
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
@@ -16,26 +17,28 @@ const isValidNumber = gql`
   }
 `
 
+const useStyles = makeStyles({
+  valid: {
+    fill: 'green',
+  },
+  invalid: {
+    fill: 'red',
+  },
+})
+
 export default function TelTextField({ InputProps, ...props }) {
+  const classes = useStyles()
   const { value, error } = props
   const phoneNumber = '+' + value
 
   // check validation of the input phoneNumber through graphql
   const { data } = useQuery(isValidNumber, {
-    // for some reason I need to add this to avoid wrong data immidiately after true
     pollInterval: 1000,
     variables: { number: phoneNumber },
   })
 
-  console.log(phoneNumber)
-
   // fetch validation
   const valid = _.get(data, 'phoneNumberInfo.valid', null)
-  console.log('Valid: ' + valid)
-
-  // use error to detect if user click submit,
-  // if error is true, meaning user clicked submit and has error
-  console.log('error: ' + error)
 
   // add live validation icon to the right of the textfield as an endAdornment
   const iprops = Object.assign(
@@ -43,9 +46,10 @@ export default function TelTextField({ InputProps, ...props }) {
       endAdornment: (
         <InputAdornment position='end'>
           {valid ? (
-            <Check style={{ fill: 'green' }} />
+            // change to makeStyle
+            <Check className={classes.valid} />
           ) : error ? (
-            <Close style={{ fill: 'red' }} />
+            <Close className={classes.invalid} />
           ) : (
             <div />
           )}

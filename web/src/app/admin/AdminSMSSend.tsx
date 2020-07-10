@@ -19,6 +19,7 @@ import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { useConfigValue } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
+import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
@@ -64,9 +65,14 @@ export default function AdminSMSSend(): JSX.Element {
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={6}>
-                <TextField
-                  onChange={(e) =>
-                    setFromNumber(e.target.value.replace(/[^0-9]/g, ''))
+                <TelTextField
+                  onChange={(e: React.FormEvent<HTMLInputElement>) =>
+                    setFromNumber(
+                      (e.target as HTMLInputElement).value.replace(
+                        /[^0-9]/g,
+                        '',
+                      ),
+                    )
                   }
                   value={fromNumber}
                   fullWidth
@@ -86,9 +92,14 @@ export default function AdminSMSSend(): JSX.Element {
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
-                <TextField
-                  onChange={(e) =>
-                    setToNumber(e.target.value.replace(/[^0-9]/g, ''))
+                <TelTextField
+                  onChange={(e: React.FormEvent<HTMLInputElement>) =>
+                    setToNumber(
+                      (e.target as HTMLInputElement).value.replace(
+                        /[^0-9]/g,
+                        '',
+                      ),
+                    )
                   }
                   value={toNumber}
                   fullWidth
