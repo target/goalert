@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/pkg/errors"
 )
 
 // Connector will return a new *pgx.Conn.
@@ -151,7 +152,7 @@ func (l *Listener) handleNotifications(ctx context.Context) error {
 	t := time.NewTicker(3 * time.Second)
 	defer t.Stop()
 	for {
-		err := l.connect(ctx)
+		err := l.connect(l.ctx)
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -176,8 +177,8 @@ func (l *Listener) handleNotifications(ctx context.Context) error {
 		default:
 		}
 		n, err := l.conn.WaitForNotification(ctx)
-		if err != nil {
-			return err
+		if err != nil && ctx.Err() == nil {
+			return errors.Wrap(err, "wait for notifications")
 		}
 
 		if n == nil {

@@ -27,7 +27,7 @@ func (app *App) _Run(ctx context.Context) error {
 
 	eventCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	err := app.listenEvents(eventCtx)
+	eventDoneCh, err := app.listenEvents(eventCtx)
 	if err != nil {
 		return err
 	}
@@ -44,5 +44,9 @@ func (app *App) _Run(ctx context.Context) error {
 		return errors.Wrap(err, "serve HTTP")
 	}
 
+	select {
+	case <-eventDoneCh:
+	case <-ctx.Done():
+	}
 	return nil
 }
