@@ -3,10 +3,9 @@ package harness
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"io"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -26,15 +25,14 @@ import (
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
-	"github.com/target/goalert/auth"
+	"github.com/target/goalert/app"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
-	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
@@ -84,9 +82,10 @@ type Harness struct {
 
 	ignoreErrors []string
 
-	cmd *exec.Cmd
+	backend       *app.App
+	backendErr    chan error
+	backendCancel func()
 
-	backendURL  string
 	dbURL       string
 	dbName      string
 	delayOffset time.Duration
@@ -97,18 +96,12 @@ type Harness struct {
 	lastTimeChange time.Time
 	pgResume       time.Time
 
-	db       *pgxpool.Pool
-	dbStdlib *sql.DB
-	nr       notificationrule.Store
-	a        alert.Store
+	db *pgxpool.Pool
 
-	usr                user.Store
 	userGeneratedIndex int
 	addGraphUser       sync.Once
 
 	sessToken string
-	sessKey   keyring.Keyring
-	authH     *auth.Handler
 }
 
 func (h *Harness) Config() config.Config {
@@ -191,6 +184,8 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		lastTimeChange: start,
 		start:          start,
 
+		backendErr: make(chan error),
+
 		t: t,
 	}
 
@@ -207,17 +202,6 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 	}, mocktwilio.NewServer(twCfg), h.phoneCCG.Get("twilio"))
 
 	h.twS = httptest.NewServer(h.tw)
-
-	h.cmd = exec.Command(
-		"goalert",
-		"-l", "localhost:0",
-		"-v",
-		"--db-url", h.dbURL,
-		"--json",
-		"--twilio-base-url", h.twS.URL,
-		"--db-max-open", "5", // 2 for API 1 for engine
-	)
-	h.cmd.Env = os.Environ()
 
 	// freeze DB time until backend starts
 	h.execQuery(`
@@ -243,10 +227,6 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 
 func (h *Harness) Start() {
 	h.t.Helper()
-	r, err := h.cmd.StderrPipe()
-	if err != nil {
-		h.t.Fatalf("failed to get pipe for backend logs: %v", err)
-	}
 
 	var cfg config.Config
 	cfg.General.DisableV1GraphQL = true
@@ -309,64 +289,51 @@ func (h *Harness) Start() {
 	h.lastTimeChange = time.Now().Add(100 * time.Millisecond)
 	h.modifyDBOffset(0)
 
-	h.cmd.Env = append(h.cmd.Env, "GOALERT_SLACK_BASE_URL="+h.slackS.URL)
-	err = h.cmd.Start()
+	appCfg := app.Defaults()
+	appCfg.ListenAddr = "localhost:0"
+	appCfg.Verbose = true
+	appCfg.JSON = true
+	appCfg.DBURL = h.dbURL
+	appCfg.TwilioBaseURL = h.twS.URL
+	appCfg.DBMaxOpen = 5
+	appCfg.SlackBaseURL = h.slackS.URL
+
+	r, w := io.Pipe()
+
+	log.EnableJSON()
+	log.SetOutput(w)
+
+	go h.watchBackendLogs(r)
+
+	h.backend, err = app.NewApp(appCfg, stdlib.OpenDB(*dbCfg))
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
-	urlCh := make(chan string)
-	go h.watchBackend(r)
-	go h.watchBackendLogs(r, urlCh)
+	appCtx, appCancel := context.WithCancel(context.Background())
+	h.backendCancel = appCancel
+	go func() {
+		err := h.backend.Run(appCtx)
+		if h.isClosing() {
+			err = nil
+		}
+		if err != nil {
+			h.t.Fatal(err)
+		}
+	}()
 
-	h.backendURL = <-urlCh
-
-	err = h.tw.RegisterSMSCallback(h.phoneCCG.Get("twilio"), h.backendURL+"/v1/twilio/sms/messages")
+	err = h.tw.RegisterSMSCallback(h.phoneCCG.Get("twilio"), h.URL()+"/v1/twilio/sms/messages")
 	if err != nil {
 		h.t.Fatalf("failed to init twilio (SMS callback): %v", err)
 	}
-	err = h.tw.RegisterVoiceCallback(h.phoneCCG.Get("twilio"), h.backendURL+"/v1/twilio/voice/call")
+	err = h.tw.RegisterVoiceCallback(h.phoneCCG.Get("twilio"), h.URL()+"/v1/twilio/voice/call")
 	if err != nil {
 		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
-	}
-
-	h.dbStdlib = stdlib.OpenDB(*dbCfg)
-	h.nr, err = notificationrule.NewDB(ctx, h.dbStdlib)
-	if err != nil {
-		h.t.Fatalf("failed to init notification rule backend: %v", err)
-	}
-	h.usr, err = user.NewDB(ctx, h.dbStdlib)
-	if err != nil {
-		h.t.Fatalf("failed to init user backend: %v", err)
-	}
-
-	aLog, err := alertlog.NewDB(ctx, h.dbStdlib)
-	if err != nil {
-		h.t.Fatalf("failed to init alert log backend: %v", err)
-	}
-
-	h.a, err = alert.NewDB(ctx, h.dbStdlib, aLog)
-	if err != nil {
-		h.t.Fatalf("failed to init alert backend: %v", err)
-	}
-
-	h.sessKey, err = keyring.NewDB(ctx, h.dbStdlib, &keyring.Config{
-		Name: "browser-sessions",
-	})
-	if err != nil {
-		h.t.Fatalf("failed to init keyring: %v", err)
-	}
-
-	h.authH, err = auth.NewHandler(ctx, h.dbStdlib, auth.HandlerConfig{
-		SessionKeyring: h.sessKey,
-	})
-	if err != nil {
-		h.t.Fatalf("failed to init auth handler: %v", err)
 	}
 }
 
 // URL returns the backend server's URL
 func (h *Harness) URL() string {
-	return h.backendURL
+	return h.backend.URL()
 }
 
 // Migrate will perform `steps` number of migrations.
@@ -416,16 +383,6 @@ func (h *Harness) setDBOffset(d time.Duration) {
 		h.start.Add(d).Format(dbTimeFormat),
 		h.pgResume.Format(dbTimeFormat),
 	), nil)
-	h.trigger()
-}
-
-// Delay will forward time (with regard to the database). It currently
-// performs Sleep, but should be treated as a DB modification.
-func (h *Harness) Delay(d time.Duration) {
-	h.t.Helper()
-	h.t.Logf("Wait %s", d.String())
-	time.Sleep(d)
-	h.trigger()
 }
 
 func (h *Harness) FastForward(d time.Duration) {
@@ -468,7 +425,7 @@ func (h *Harness) CreateAlert(serviceID string, summary ...string) {
 
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		h.t.Helper()
-		tx, err := h.dbStdlib.BeginTx(ctx, nil)
+		tx, err := h.backend.DB().BeginTx(ctx, nil)
 		if err != nil {
 			h.t.Fatalf("failed to start tx: %v", err)
 		}
@@ -480,7 +437,7 @@ func (h *Harness) CreateAlert(serviceID string, summary ...string) {
 			}
 
 			h.t.Logf("insert alert: %v", a)
-			_, isNew, err := h.a.CreateOrUpdateTx(ctx, tx, a)
+			_, isNew, err := h.backend.AlertStore.CreateOrUpdateTx(ctx, tx, a)
 			if err != nil {
 				h.t.Fatalf("failed to insert alert: %v", err)
 			}
@@ -493,7 +450,6 @@ func (h *Harness) CreateAlert(serviceID string, summary ...string) {
 			h.t.Fatalf("failed to commit tx: %v", err)
 		}
 	})
-	h.trigger()
 }
 
 // CreateManyAlert will create multiple new unacknowledged alerts for a given service.
@@ -506,12 +462,11 @@ func (h *Harness) CreateManyAlert(serviceID, summary string) {
 	h.t.Logf("insert alert: %v", a)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		h.t.Helper()
-		_, err := h.a.Create(ctx, a)
+		_, err := h.backend.AlertStore.Create(ctx, a)
 		if err != nil {
 			h.t.Fatalf("failed to insert alert: %v", err)
 		}
 	})
-	h.trigger()
 }
 
 // AddNotificationRule will add a notification rule to the database.
@@ -525,20 +480,16 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 	h.t.Logf("insert notification rule: %v", nr)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		h.t.Helper()
-		_, err := h.nr.Insert(ctx, nr)
+		_, err := h.backend.NotificationRuleStore.Insert(ctx, nr)
 		if err != nil {
 			h.t.Fatalf("failed to insert notification rule: %v", err)
 		}
 	})
-	h.trigger()
 }
 
 // Trigger will trigger, and wait for, an engine cycle.
 func (h *Harness) Trigger() {
-	go h.trigger()
-
-	// wait for the next cycle to start and end before returning
-	http.Get(h.backendURL + "/health/engine")
+	h.backend.Engine.TriggerAndWaitNextCycle(context.Background())
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
@@ -546,12 +497,11 @@ func (h *Harness) Escalate(alertID, level int) {
 	h.t.Helper()
 	h.t.Logf("escalate alert #%d (from level %d)", alertID, level)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		err := h.a.Escalate(ctx, alertID, level)
+		err := h.backend.AlertStore.Escalate(ctx, alertID, level)
 		if err != nil {
 			h.t.Fatalf("failed to escalate alert: %v", err)
 		}
 	})
-	h.trigger()
 }
 
 // Phone will return the generated phone number for the id provided.
@@ -614,24 +564,26 @@ func (h *Harness) Close() error {
 
 	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
-	h.slackS.Close()
-	h.twS.Close()
+
 	h.mx.Lock()
 	h.closing = true
 	h.mx.Unlock()
-	if h.cmd.Process != nil {
-		h.cmd.Process.Kill()
-		h.cmd.Process.Wait()
-	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	h.sessKey.Shutdown(ctx)
+	err := h.backend.Shutdown(ctx)
+	if err != nil {
+		h.t.Error("failed to shutdown backend cleanly:", err)
+	}
+
+	h.slackS.Close()
+	h.twS.Close()
+
 	h.tw.Close()
 	h.dumpDB()
 
-	h.dbStdlib.Close()
 	h.db.Close()
+	return nil
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
 	if err != nil {
@@ -651,7 +603,7 @@ func (h *Harness) CreateUser() (u *user.User) {
 	h.t.Helper()
 	var err error
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		u, err = h.usr.Insert(ctx, &user.User{
+		u, err = h.backend.UserStore.Insert(ctx, &user.User{
 			Name:  fmt.Sprintf("Generated%d", h.userGeneratedIndex),
 			ID:    uuid.NewV4().String(),
 			Role:  permission.RoleUser,

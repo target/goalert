@@ -45,7 +45,7 @@ import (
 
 // App represents an instance of the GoAlert application.
 type App struct {
-	cfg appConfig
+	cfg Config
 
 	mgr *lifecycle.Manager
 
@@ -61,10 +61,10 @@ type App struct {
 	startupErr  error
 
 	notificationManager *notification.Manager
-	engine              *engine.Engine
+	Engine              *engine.Engine
 	graphql             *graphql.Handler
 	graphql2            *graphqlapp.App
-	authHandler         *auth.Handler
+	AuthHandler         *auth.Handler
 
 	twilioSMS    *twilio.SMS
 	twilioVoice  *twilio.Voice
@@ -108,7 +108,7 @@ type App struct {
 }
 
 // NewApp constructs a new App and binds the listening socket.
-func NewApp(c appConfig, db *sql.DB) (*App, error) {
+func NewApp(c Config, db *sql.DB) (*App, error) {
 	l, err := net.Listen("tcp", c.ListenAddr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
@@ -149,6 +149,14 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 	}
 
 	return app, nil
+}
+
+// DB returns the sql.DB instance used by the application.
+func (a *App) DB() *sql.DB { return a.db }
+
+// URL returns the non-TLS listener URL of the application.
+func (a *App) URL() string {
+	return "http://" + a.l.Addr().String()
 }
 
 // Status returns the current lifecycle status of the App.

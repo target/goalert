@@ -19,7 +19,7 @@ func (app *App) Run(ctx context.Context) error {
 
 func (app *App) _Run(ctx context.Context) error {
 	go func() {
-		err := app.engine.Run(ctx)
+		err := app.Engine.Run(ctx)
 		if err != nil {
 			log.Log(ctx, err)
 		}

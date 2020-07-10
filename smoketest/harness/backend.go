@@ -6,8 +6,7 @@ import (
 	"strings"
 )
 
-func (h *Harness) watchBackendLogs(r io.Reader, urlCh chan string) {
-	defer close(urlCh)
+func (h *Harness) watchBackendLogs(r io.Reader) {
 	dec := json.NewDecoder(r)
 	var entry struct {
 		Error        string
@@ -29,13 +28,14 @@ func (h *Harness) watchBackendLogs(r io.Reader, urlCh chan string) {
 		return false
 	}
 	var err error
-	var sent bool
 	for {
 		err = dec.Decode(&entry)
 		if err != nil {
 			break
 		}
-		if ignore(entry.Error) {
+		if h.isClosing() {
+			entry.Level = "shutdown[" + entry.Level + "]"
+		} else if ignore(entry.Error) {
 			entry.Level = "ignore[" + entry.Level + "]"
 		}
 		if entry.Level == "error" || entry.Level == "fatal" {
@@ -43,10 +43,6 @@ func (h *Harness) watchBackendLogs(r io.Reader, urlCh chan string) {
 			continue
 		} else {
 			h.t.Logf("Backend: %s %s", strings.ToUpper(entry.Level), entry.Message)
-		}
-		if !sent && entry.URL != "" {
-			sent = true
-			urlCh <- entry.URL
 		}
 	}
 	if h.isClosing() {
@@ -60,11 +56,4 @@ func (h *Harness) watchBackendLogs(r io.Reader, urlCh chan string) {
 	}
 
 	h.t.Errorf("failed to read/parse JSON logs: %v", err)
-}
-func (h *Harness) watchBackend(c io.Closer) {
-	defer c.Close()
-	err := h.cmd.Wait()
-	if err != nil && !h.isClosing() {
-		h.t.Errorf("backend failed: %v", err)
-	}
 }

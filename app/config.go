@@ -7,7 +7,7 @@ import (
 	"github.com/target/goalert/keyring"
 )
 
-type appConfig struct {
+type Config struct {
 	ListenAddr  string
 	Verbose     bool
 	JSON        bool

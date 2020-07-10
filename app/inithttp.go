@@ -129,7 +129,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 		app.pauseHandler,
 
 		// authenticate requests
-		app.authHandler.WrapHandler,
+		app.AuthHandler.WrapHandler,
 
 		// add auth info to request logs
 		logRequestAuth,
@@ -165,17 +165,17 @@ func (app *App) initHTTP(ctx context.Context) error {
 
 	mux.HandleFunc("/api/v2/config", app.ConfigStore.ServeConfig)
 
-	mux.HandleFunc("/api/v2/identity/providers", app.authHandler.ServeProviders)
-	mux.HandleFunc("/api/v2/identity/logout", app.authHandler.ServeLogout)
+	mux.HandleFunc("/api/v2/identity/providers", app.AuthHandler.ServeProviders)
+	mux.HandleFunc("/api/v2/identity/logout", app.AuthHandler.ServeLogout)
 
-	basicAuth := app.authHandler.IdentityProviderHandler("basic")
+	basicAuth := app.AuthHandler.IdentityProviderHandler("basic")
 	mux.HandleFunc("/api/v2/identity/providers/basic", basicAuth)
 
-	githubAuth := app.authHandler.IdentityProviderHandler("github")
+	githubAuth := app.AuthHandler.IdentityProviderHandler("github")
 	mux.HandleFunc("/api/v2/identity/providers/github", githubAuth)
 	mux.HandleFunc("/api/v2/identity/providers/github/callback", githubAuth)
 
-	oidcAuth := app.authHandler.IdentityProviderHandler("oidc")
+	oidcAuth := app.AuthHandler.IdentityProviderHandler("oidc")
 	mux.HandleFunc("/api/v2/identity/providers/oidc", oidcAuth)
 	mux.HandleFunc("/api/v2/identity/providers/oidc/callback", oidcAuth)
 

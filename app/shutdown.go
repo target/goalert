@@ -27,10 +27,9 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	if app.srv != nil {
 		errs = append(errs, errors.Wrap(app.srv.Shutdown(ctx), "shutdown HTTP server"))
 	}
-	errs = append(errs, errors.Wrap(app.l.Close(), "close listening socket"))
 
-	if app.engine != nil {
-		errs = append(errs, errors.Wrap(app.engine.Shutdown(ctx), "shutdown engine"))
+	if app.Engine != nil {
+		errs = append(errs, errors.Wrap(app.Engine.Shutdown(ctx), "shutdown engine"))
 	}
 
 	if app.events != nil {
