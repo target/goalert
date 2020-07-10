@@ -566,7 +566,6 @@ func (h *Harness) Close() error {
 	h.dumpDB()
 
 	h.db.Close()
-	return nil
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
 	if err != nil {
