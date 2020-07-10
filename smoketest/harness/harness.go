@@ -83,8 +83,8 @@ type Harness struct {
 
 	ignoreErrors []string
 
-	backend    *app.App
-	backendErr chan error
+	backend     *app.App
+	backendLogs io.Closer
 
 	dbURL       string
 	dbName      string
@@ -184,8 +184,6 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		lastTimeChange: start,
 		start:          start,
 
-		backendErr: make(chan error),
-
 		t: t,
 	}
 
@@ -283,6 +281,7 @@ func (h *Harness) Start() {
 	appCfg.InitialConfig = &h.cfg
 
 	r, w := io.Pipe()
+	h.backendLogs = w
 
 	log.EnableJSON()
 	log.SetOutput(w)
@@ -558,6 +557,7 @@ func (h *Harness) Close() error {
 	if err != nil {
 		h.t.Error("failed to shutdown backend cleanly:", err)
 	}
+	h.backendLogs.Close()
 
 	h.slackS.Close()
 	h.twS.Close()
