@@ -5,9 +5,9 @@ import { EscalationPolicySelect } from '../selection/EscalationPolicySelect'
 import { FormContainer, FormField } from '../forms'
 
 interface Value {
-  name: string
-  description: string
-  escalationPolicyID: string
+  name?: string
+  description?: string
+  escalationPolicyID?: string
 }
 
 interface ServiceFormProps {
