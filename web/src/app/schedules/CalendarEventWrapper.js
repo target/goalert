@@ -106,6 +106,7 @@ export default class CalendarEventWrapper extends Component {
               onClick={() => this.handleShowOverrideForm('replace')}
               variant='contained'
               color='primary'
+              title='Temporarily replace a user from this schedule'
             >
               Replace
             </Button>
@@ -120,6 +121,7 @@ export default class CalendarEventWrapper extends Component {
               onClick={() => this.handleShowOverrideForm('remove')}
               variant='contained'
               color='primary'
+              title='Temporarily remove a user from this schedule'
             >
               Remove
             </Button>

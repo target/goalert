@@ -129,6 +129,7 @@ export default function CalendarToolbar(props) {
           className={classes.addOverrideGridItem}
           onClick={() => handleAddOverrideClick()}
           startIcon={<PersonAddIcon />}
+          title='Temporarily add a user to this schedule'
         >
           Temp Add
         </Button>
