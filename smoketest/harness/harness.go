@@ -572,18 +572,24 @@ func (h *Harness) isClosing() bool {
 func (h *Harness) dumpDB() {
 	testName := reflect.ValueOf(h.t).Elem().FieldByName("name").String()
 	file := filepath.Join("smoketest_db_dump", testName+".sql")
+	file, err := filepath.Abs(file)
+	if err != nil {
+		h.t.Fatalf("failed to get abs dump path: %v", err)
+	}
 	os.MkdirAll(filepath.Dir(file), 0755)
 	var t time.Time
-	err := h.db.QueryRow(context.Background(), "select now()").Scan(&t)
+	err = h.db.QueryRow(context.Background(), "select now()").Scan(&t)
 	if err != nil {
 		h.t.Fatalf("failed to get current timestamp: %v", err)
 	}
-	err = exec.Command(
+	cmd := exec.Command(
 		"pg_dump",
 		"-O", "-x", "-a",
 		"-f", file,
 		h.dbURL,
-	).Run()
+	)
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
 	if err != nil {
 		h.t.Errorf("failed to dump database '%s': %v", h.dbName, err)
 	}

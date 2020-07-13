@@ -25,6 +25,9 @@ type SMSOptions struct {
 
 	// CallbackParams will be added to callback URLs
 	CallbackParams url.Values
+
+	// FromNumber allows overriding the specified FromNumber instead of using the context config.
+	FromNumber string
 }
 
 // VoiceOptions allows configuring outgoing voice calls.
@@ -260,10 +263,17 @@ func (c *Config) StartVoice(ctx context.Context, to string, o *VoiceOptions) (*C
 
 // SendSMS will send an SMS using Twilio.
 func (c *Config) SendSMS(ctx context.Context, to, body string, o *SMSOptions) (*Message, error) {
+	if o == nil {
+		o = &SMSOptions{}
+	}
 	cfg := config.FromContext(ctx)
 	v := make(url.Values)
 	v.Set("To", to)
-	v.Set("From", cfg.Twilio.FromNumber)
+	if o.FromNumber != "" {
+		v.Set("From", o.FromNumber)
+	} else {
+		v.Set("From", cfg.Twilio.FromNumber)
+	}
 	v.Set("Body", body)
 
 	stat, err := o.StatusCallbackURL(cfg)
