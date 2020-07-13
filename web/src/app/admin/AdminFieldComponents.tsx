@@ -6,8 +6,10 @@ import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch'
 import Visibility from '@material-ui/icons/Visibility'
 import VisibilityOff from '@material-ui/icons/VisibilityOff'
+import TelTextField from '../util/TelTextField'
 
 interface InputProps {
+  configtype: string
   name: string
   value: string
   password?: boolean
@@ -22,6 +24,7 @@ export const StringListInput = (props: InputProps): JSX.Element => {
       {value.map((val, idx) => (
         <Grid key={idx} item xs={12}>
           <StringInput
+            configtype={props.configtype}
             value={val}
             name={val ? props.name + '-' + idx : props.name + '-new-item'}
             onChange={(newVal) =>
@@ -58,6 +61,19 @@ export function StringInput(props: InputProps): JSX.Element {
           {showPassword ? <Visibility /> : <VisibilityOff />}
         </IconButton>
       </InputAdornment>
+    )
+  }
+
+  if (props.configtype === 'tel') {
+    return (
+      <TelTextField
+        fullWidth
+        InputProps
+        onChange={(e: React.FormEvent<HTMLInputElement>) =>
+          onChange((e.target as HTMLInputElement).value)
+        }
+        {...rest}
+      />
     )
   }
   return (

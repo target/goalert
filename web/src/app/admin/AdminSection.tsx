@@ -83,6 +83,7 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
               />
               <div className={classes.listItemAction}>
                 <Field
+                  configtype={f.id === 'Twilio.FromNumber' ? 'tel' : ''}
                   name={f.id}
                   value={defaultTo(value[f.id], f.value)}
                   password={f.password}
