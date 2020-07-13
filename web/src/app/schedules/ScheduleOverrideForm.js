@@ -45,7 +45,7 @@ export default function ScheduleOverrideForm(props) {
     errors = [],
     scheduleID,
     value,
-    disableRemoveField,
+    removeUserReadOnly,
     ...formProps
   } = props
 
@@ -107,7 +107,7 @@ export default function ScheduleOverrideForm(props) {
               name='removeUserID'
               label={add && remove ? 'User to be Replaced' : 'User to Remove'}
               required
-              disabled={disableRemoveField}
+              disabled={removeUserReadOnly}
             />
           </Grid>
         )}
@@ -169,5 +169,5 @@ ScheduleOverrideForm.propTypes = {
   ),
 
   onChange: p.func.isRequired,
-  disableRemoveField: p.bool,
+  removeUserReadOnly: p.bool,
 }

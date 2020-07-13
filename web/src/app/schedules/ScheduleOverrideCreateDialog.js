@@ -68,7 +68,7 @@ export default function ScheduleOverrideCreateDialog(props) {
           errors={fieldErrors(error)}
           value={value}
           onChange={(newValue) => setValue(newValue)}
-          disableRemoveField={props.disableRemoveField}
+          removeUserReadOnly={props.removeUserReadOnly}
         />
       }
     />
@@ -83,7 +83,7 @@ ScheduleOverrideCreateDialog.propTypes = {
   scheduleID: p.string.isRequired,
   variant: p.oneOf(['add', 'remove', 'replace']).isRequired,
   onClose: p.func,
-  disableRemoveField: p.bool,
+  removeUserReadOnly: p.bool,
   defaultValue: p.shape({
     addUserID: p.string,
     removeUserID: p.string,
