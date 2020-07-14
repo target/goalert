@@ -5,4 +5,4 @@ ALTER TABLE user_contact_methods
 -- +migrate Down
 
 ALTER TABLE user_contact_methods
-    DROP COLUMN metadata JSONB;
+    DROP COLUMN metadata;
