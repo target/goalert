@@ -182,10 +182,7 @@ function testAlerts(screen: ScreenFormat): void {
         'UNACKNOWLEDGED',
       )
 
-      cy.reload()
-      cy.get(`span[data-cy=item-${alert1.id}] input`).check()
-      cy.get(`span[data-cy=item-${alert2.id}] input`).check()
-      cy.get(`span[data-cy=item-${alert3.id}] input`).check()
+      cy.get(`[data-cy=select-all] input`).check()
 
       cy.get('button[title=Acknowledge]').click()
       cy.get('span[data-cy=update-message]').should(
