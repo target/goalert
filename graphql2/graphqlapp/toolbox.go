@@ -12,8 +12,6 @@ import (
 	"github.com/ttacon/libphonenumber"
 )
 
-const twLookupURL = "https://lookups.twilio.com/v1/PhoneNumbers/"
-
 type safeErr struct{ error }
 
 func (safeErr) ClientError() bool { return true }
