@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -75,8 +76,29 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		status = "OK"
 	}
 
+	var prefix string
+	switch s.State {
+	case notification.MessageStatePending:
+		prefix = "Pending"
+	case notification.MessageStateSending:
+		prefix = "Sending"
+	case notification.MessageStateSent:
+		prefix = "Sent"
+	case notification.MessageStateDelivered:
+		prefix = "Delivered"
+	case notification.MessageStateFailedTemp:
+		prefix = "Failed"
+	case notification.MessageStateFailedPerm:
+		prefix = "Failed"
+	}
+
+	details := s.Details
+	if !strings.EqualFold(prefix, details) {
+		details = prefix + " : " + details
+	}
+
 	return &graphql2.AlertLogEntryState{
-		Details: s.Details,
+		Details: details,
 		Status:  &status,
 	}, nil
 }
