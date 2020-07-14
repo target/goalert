@@ -95,8 +95,6 @@ func (msg *Message) messageStatus(id string) *notification.MessageStatus {
 		status.State = notification.MessageStateDelivered
 	case MessageStatusSent, MessageStatusUndelivered:
 		status.State = notification.MessageStateSent
-	case MessageStatusAccepted, MessageStatusQueued:
-		status.State = notification.MessageStatePending
 	default:
 		status.State = notification.MessageStateSending
 	}
