@@ -45,9 +45,12 @@ func (stat *MessageStatus) wrap(ctx context.Context, n *namedSender) *MessageSta
 type MessageState int
 
 const (
-	// MessageStateActive should be specified when a message is still active.
-	// This includes things like remotely queued, ringing, or in-progress calls.
-	MessageStateActive MessageState = iota
+	// MessageStateSending should be specified when a message is sending but has not been sent.
+	// This includes things like ringing, or in-progress calls.
+	MessageStateSending MessageState = iota
+
+	//MessageStatePending includes things like remotely queued.
+	MessageStatePending
 
 	// MessageStateSent means the message has been sent completely, but may not
 	// have been delivered (or delivery confirmation is not supported.). For
