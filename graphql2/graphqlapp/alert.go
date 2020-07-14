@@ -75,37 +75,6 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 	case notification.MessageStateSent, notification.MessageStateDelivered:
 		status = "OK"
 	}
-	var details = s.Details
-	switch s.LastStatus {
-	case notification.MessageLastStatusDelivered:
-		if s.Details != "delivered" {
-			details = "delivered:" + s.Details
-		}
-	case notification.MessageLastStatusPending:
-		if s.Details != "pending" {
-			details = "pending:" + s.Details
-		}
-	case notification.MessageLastStatusSending:
-		if s.Details != "sending" {
-			details = "sending:" + s.Details
-		}
-	case notification.MessageLastStatusSent:
-		if s.Details != "sent" {
-			details = "sent:" + s.Details
-		}
-	case notification.MessageLastStatusQueuedRemotely:
-		if s.Details != "queued_remotely" {
-			details = "queued_remotely:" + s.Details
-		}
-	case notification.MessageLastStatusFailed:
-		if s.Details != "failed" {
-			details = "failed:" + s.Details
-		}
-	case notification.MessageLastStatusBundled:
-		if s.Details != "bundled" {
-			details = "bundled:" + s.Details
-		}
-	}
 
 	var prefix string
 	switch s.State {
@@ -117,15 +86,13 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		prefix = "Sent"
 	case notification.MessageStateDelivered:
 		prefix = "Delivered"
-	case notification.MessageStateFailedTemp:
-		prefix = "Failed"
-	case notification.MessageStateFailedPerm:
+	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
 		prefix = "Failed"
 	}
 
 	details := s.Details
 	if !strings.EqualFold(prefix, details) {
-		details = prefix + " : " + details
+		details = prefix + ": " + details
 	}
 
 	return &graphql2.AlertLogEntryState{

@@ -330,9 +330,9 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 		s.ProviderMessageID = providerMsgID.String
 
 		switch lastStatus {
-		case "sending":
+		case "queued_remotely", "sending":
 			s.State = MessageStateSending
-		case "pending", "queued_remotely":
+		case "pending":
 			s.State = MessageStatePending
 		case "sent":
 			s.State = MessageStateSent
@@ -348,7 +348,6 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 		default:
 			return nil, fmt.Errorf("unknown last_status %s", lastStatus)
 		}
-		s.LastStatus = MessageLastStatus(lastStatus)
 		result = append(result, s)
 	}
 
