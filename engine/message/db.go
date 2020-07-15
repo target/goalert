@@ -476,7 +476,7 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Mes
 
 	var s Status
 	switch status.State {
-	case notification.MessageStateActive:
+	case notification.MessageStateSending:
 		s = StatusQueuedRemotely
 	case notification.MessageStateSent:
 		s = StatusSent
@@ -662,7 +662,7 @@ func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id, 
 			Ctx:               ctx,
 			ID:                id,
 			ProviderMessageID: providerMsgID,
-			State:             notification.MessageStateActive,
+			State:             notification.MessageStateSending,
 			Details:           "failed to update status: " + err.Error(),
 			Sequence:          -1,
 		}
