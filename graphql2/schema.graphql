@@ -339,6 +339,7 @@ input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+  sanitize: Boolean
 }
 
 input CreateUserCalendarSubscriptionInput {

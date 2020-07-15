@@ -114,7 +114,10 @@ function fillFormField(
 
   return cy.get(selector).then((el) => {
     const isSelect =
-      el.parents('[data-cy=material-select]').data('cy') === 'material-select'
+      el.parents('[data-cy=material-select]').data('cy') ===
+        'material-select' ||
+      el.siblings('[role=button]').attr('aria-haspopup') === 'listbox'
+
     const pickerFallback = el
       .parents('[data-cy-fallback-type]')
       .data('cyFallbackType')

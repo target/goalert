@@ -3185,6 +3185,7 @@ input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+  sanitize: Boolean
 }
 
 input CreateUserCalendarSubscriptionInput {
@@ -15200,6 +15201,12 @@ func (ec *executionContext) unmarshalInputCreateAlertInput(ctx context.Context, 
 		case "serviceID":
 			var err error
 			it.ServiceID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sanitize":
+			var err error
+			it.Sanitize, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

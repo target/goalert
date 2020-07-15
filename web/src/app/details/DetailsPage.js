@@ -134,7 +134,7 @@ export default function DetailsPage(props) {
         <Card>
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={isDesktopMode(width) ? 8 : 12}>
+              <Grid item xs={isDesktopMode(width) && links ? 8 : 12}>
                 {icon && <div className={classes.iconContainer}>{icon}</div>}
                 <Typography
                   data-cy='details-heading'
@@ -160,12 +160,14 @@ export default function DetailsPage(props) {
                   </Typography>
                 )}
               </Grid>
-              <Hidden smDown>
-                <Grid className={classes.quickLinksContainer} item xs={4}>
-                  <Divider orientation='vertical' />
-                  {links}
-                </Grid>
-              </Hidden>
+              {links && (
+                <Hidden smDown>
+                  <Grid className={classes.quickLinksContainer} item xs={4}>
+                    <Divider orientation='vertical' />
+                    {links}
+                  </Grid>
+                </Hidden>
+              )}
             </Grid>
           </CardContent>
         </Card>
