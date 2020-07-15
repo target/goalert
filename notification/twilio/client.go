@@ -274,7 +274,7 @@ func (c *Config) SendSMS(ctx context.Context, to, body string, o *SMSOptions) (*
 		v.Set("From", o.FromNumber)
 	} else {
 		info, err := c.CarrierInfo(ctx, to, cfg.Twilio.SMSCarrierLookup)
-		if err != nil {
+		if err != nil && cfg.Twilio.SMSCarrierLookup {
 			log.Log(ctx, err)
 		}
 		if info != nil {
