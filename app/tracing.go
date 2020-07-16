@@ -13,7 +13,7 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func configTracing(ctx context.Context, c appConfig) ([]trace.Exporter, error) {
+func configTracing(ctx context.Context, c Config) ([]trace.Exporter, error) {
 	var exporters []trace.Exporter
 	if c.JaegerEndpoint != "" || c.JaegerAgentEndpoint != "" {
 		exporter, err := jaeger.NewExporter(jaeger.Options{
