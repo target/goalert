@@ -3,6 +3,8 @@ package contactmethod
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"time"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -26,6 +28,9 @@ type Store interface {
 	DeleteTx(ctx context.Context, tx *sql.Tx, id ...string) error
 	EnableByValue(context.Context, Type, string) error
 	DisableByValue(context.Context, Type, string) error
+
+	MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string) (*Metadata, error)
+	SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string, m *Metadata) error
 }
 
 // DB implements the ContactMethodStore against a *sql.DB backend.
@@ -42,6 +47,9 @@ type DB struct {
 	lookupUserID *sql.Stmt
 	enable       *sql.Stmt
 	disable      *sql.Stmt
+	metaTV       *sql.Stmt
+	setMetaTV    *sql.Stmt
+	now          *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -49,6 +57,20 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 	return &DB{
 		db: db,
+
+		now: p.P(`select now()`),
+
+		metaTV: p.P(`
+			SELECT coalesce(metadata, '{}'), now()
+			FROM user_contact_methods
+			WHERE type = $1 AND value = $2
+		`),
+		setMetaTV: p.P(`
+			UPDATE user_contact_methods
+			SET metadata = $3
+			WHERE type = $1 AND value = $2
+		`),
+
 		enable: p.P(`
 			UPDATE user_contact_methods
 			SET disabled = false
@@ -103,6 +125,65 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				WHERE id = any($1)
 			`),
 	}, p.Err
+}
+
+func (db *DB) MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string) (*Metadata, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+	var data json.RawMessage
+	var t time.Time
+	err = wrapTx(ctx, tx, db.metaTV).QueryRowContext(ctx, typ, value).Scan(&data, &t)
+	if err != nil {
+		return nil, err
+	}
+
+	var m Metadata
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		return nil, err
+	}
+	m.FetchedAt = t
+
+	return &m, nil
+}
+
+func (db *DB) SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, value string, newM *Metadata) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin)
+	if err != nil {
+		return err
+	}
+	var ownTx bool
+	if tx == nil {
+		tx, err = db.db.BeginTx(ctx, nil)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback()
+		ownTx = true
+	}
+	m, err := db.MetadataByTypeValue(ctx, tx, typ, value)
+	if err != nil {
+		return err
+	}
+	m.CarrierV1 = newM.CarrierV1
+	m.CarrierV1.UpdatedAt = m.FetchedAt
+
+	data, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	_, err = tx.StmtContext(ctx, db.setMetaTV).ExecContext(ctx, typ, value, data)
+	if err != nil {
+		return err
+	}
+
+	if ownTx {
+		return tx.Commit()
+	}
+
+	return nil
 }
 
 func (db *DB) EnableByValue(ctx context.Context, t Type, v string) error {

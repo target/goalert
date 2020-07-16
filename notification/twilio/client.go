@@ -13,9 +13,10 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/util/log"
 )
 
-// DefaultTwilioAPIURL is the value that will be used if Config.APIURL is empty.
+// DefaultTwilioAPIURL is the value that will be used for API calls if Config.BaseURL is empty.
 const DefaultTwilioAPIURL = "https://api.twilio.com/2010-04-01"
 
 // SMSOptions allows configuring outgoing SMS messages.
@@ -71,7 +72,7 @@ func urlJoin(base string, parts ...string) string {
 	return base + "/" + strings.Join(parts, "/")
 }
 func (c *Config) url(parts ...string) string {
-	base := c.APIURL
+	base := c.BaseURL
 	if base == "" {
 		base = DefaultTwilioAPIURL
 	}
@@ -272,7 +273,15 @@ func (c *Config) SendSMS(ctx context.Context, to, body string, o *SMSOptions) (*
 	if o.FromNumber != "" {
 		v.Set("From", o.FromNumber)
 	} else {
-		v.Set("From", cfg.Twilio.FromNumber)
+		info, err := c.CarrierInfo(ctx, to, cfg.Twilio.SMSCarrierLookup)
+		if err != nil && cfg.Twilio.SMSCarrierLookup {
+			log.Log(ctx, err)
+		}
+		if info != nil {
+			v.Set("From", cfg.TwilioSMSFromNumber(info.Name))
+		} else {
+			v.Set("From", cfg.TwilioSMSFromNumber(""))
+		}
 	}
 	v.Set("Body", body)
 
