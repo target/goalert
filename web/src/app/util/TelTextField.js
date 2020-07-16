@@ -66,9 +66,5 @@ export default function TelTextField({ InputProps, ...props }) {
     }
   }
 
-  return (
-    <div>
-      <TextField {...props} InputProps={iprops} />
-    </div>
-  )
+  return <TextField {...props} type={props.type || 'tel'} InputProps={iprops} />
 }

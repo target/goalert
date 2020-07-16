@@ -9,7 +9,7 @@ import VisibilityOff from '@material-ui/icons/VisibilityOff'
 import TelTextField from '../util/TelTextField'
 
 interface InputProps {
-  configtype: string
+  type: string
   name: string
   value: string
   password?: boolean
@@ -24,7 +24,7 @@ export const StringListInput = (props: InputProps): JSX.Element => {
       {value.map((val, idx) => (
         <Grid key={idx} item xs={12}>
           <StringInput
-            configtype={props.configtype}
+            type={props.type}
             value={val}
             name={val ? props.name + '-' + idx : props.name + '-new-item'}
             onChange={(newVal) =>
@@ -47,7 +47,7 @@ export const StringListInput = (props: InputProps): JSX.Element => {
 
 export function StringInput(props: InputProps): JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
-  const { onChange, password, ...rest } = props
+  const { onChange, password, type = 'text', ...rest } = props
 
   const renderPasswordAdornment = (): JSX.Element | null => {
     if (!props.password) return null
@@ -64,7 +64,7 @@ export function StringInput(props: InputProps): JSX.Element {
     )
   }
 
-  if (props.configtype === 'tel') {
+  if (type === 'tel') {
     return (
       <TelTextField
         fullWidth
@@ -80,7 +80,7 @@ export function StringInput(props: InputProps): JSX.Element {
     <Input
       fullWidth
       autoComplete='new-password' // chrome keeps autofilling them, this stops it
-      type={password && !showPassword ? 'password' : 'text'}
+      type={password && !showPassword ? 'password' : type}
       onChange={(e) => onChange(e.target.value)}
       endAdornment={renderPasswordAdornment()}
       {...rest}
