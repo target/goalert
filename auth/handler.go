@@ -104,7 +104,7 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 			with update as (
 				update auth_user_sessions
 				set last_access_at = now()
-				where id = $1 AND (last_access_at isnull OR last_access_at < now() - '5 minutes'::interval)
+				where id = $1 AND (last_access_at isnull OR last_access_at < now() - '1 minute'::interval)
 			)
 			select sess.user_id, u.role
 			from auth_user_sessions sess
