@@ -88,10 +88,14 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		prefix = "Delivered"
 	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
 		prefix = "Failed"
+	default:
+		prefix = "Unknown"
 	}
 
 	details := s.Details
-	if !strings.EqualFold(prefix, details) {
+	if details == "" {
+		details = prefix
+	} else if !strings.EqualFold(prefix, details) {
 		details = prefix + ": " + details
 	}
 
