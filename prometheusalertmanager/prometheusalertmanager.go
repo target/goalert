@@ -77,6 +77,7 @@ func PrometheusAlertmanagerEventsAPI(aDB alert.Store, intDB integrationkey.Store
 			Summary:   validate.SanitizeText(alertmanager.Receiver, alert.MaxSummaryLength),
 			Details:   validate.SanitizeText(body, alert.MaxDetailsLength),
 			Status:    alertmanagerState,
+			Source:    alert.SourcePrometheusAlertmanager,
 			ServiceID: serviceID,
 			Dedup:     alert.NewUserDedup(r.FormValue("dedup")),
 		}

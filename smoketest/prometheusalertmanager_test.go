@@ -50,19 +50,19 @@ func TestPrometheusAlertManager(t *testing.T) {
 	url := h.URL() + "/api/v2/prometheusalertmanager/incoming?token=" + h.UUID("int_key")
 
 	resp, err := http.Post(url, "application/json", bytes.NewBufferString(`
-	{
-		"status": "firing",
-		"receiver": "alert-name-receiver-1",
-		"externalURL": "http://my.url",
-		"alerts": [
-			{
-				"status": "firing",
-				"labels": {"alertname": "TestAlert"},
-				"annotations": {"summary": "My alert summary", "description": "My description"}
-			}
-		]
-	}
-	`))
+		{
+			"status": "firing",
+			"receiver": "alert-name-receiver-1",
+			"externalURL": "http://my.url",
+			"alerts": [
+				{
+					"status": "firing",
+					"labels": {"alertname": "TestAlert"},
+					"annotations": {"summary": "My alert summary", "description": "My description"}
+				}
+			]
+		}
+		`))
 	if err != nil {
 		t.Fatal("post to prometheus alertmanager endpoint failed:", err)
 	} else if resp.StatusCode != 200 {
@@ -70,5 +70,5 @@ func TestPrometheusAlertManager(t *testing.T) {
 	}
 	resp.Body.Close()
 
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("bob")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("alert-name-receiver-1")
 }
