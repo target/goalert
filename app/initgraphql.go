@@ -43,6 +43,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		SlackStore:        app.slackChan,
 		HeartbeatStore:    app.HeartbeatStore,
 		Twilio:            app.twilioConfig,
+		AuthHandler:       app.AuthHandler,
 	}
 
 	var err error

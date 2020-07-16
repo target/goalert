@@ -79,6 +79,7 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 		assignment.TargetTypeEscalationPolicy,
 		assignment.TargetTypeNotificationRule,
 		assignment.TargetTypeContactMethod,
+		assignment.TargetTypeUserSession,
 	}
 
 	for _, typ := range order {
@@ -109,6 +110,8 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 			err = errors.Wrap(a.NRStore.DeleteTx(ctx, tx, ids...), "delete notification rules")
 		case assignment.TargetTypeHeartbeatMonitor:
 			err = errors.Wrap(a.HeartbeatStore.DeleteTx(ctx, tx, ids...), "delete heartbeat monitors")
+		case assignment.TargetTypeUserSession:
+			err = errors.Wrap(a.AuthHandler.EndUserSessionTx(ctx, tx, ids...), "end user sessions")
 		default:
 			return false, validation.NewFieldError("type", "unsupported type "+typ.String())
 		}

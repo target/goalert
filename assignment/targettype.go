@@ -29,6 +29,7 @@ const (
 	TargetTypeNotificationRule
 	TargetTypeContactMethod
 	TargetTypeHeartbeatMonitor
+	TargetTypeUserSession
 )
 
 // UnmarshalGQL implements the graphql.Marshaler interface
@@ -67,6 +68,8 @@ func (tt *TargetType) UnmarshalGQL(v interface{}) error {
 		*tt = TargetTypeNotificationRule
 	case "heartbeatMonitor":
 		*tt = TargetTypeHeartbeatMonitor
+	case "userSession":
+		*tt = TargetTypeUserSession
 	default:
 		return validation.NewFieldError("TargetType", "unknown target type "+str)
 	}
@@ -105,5 +108,7 @@ func (tt TargetType) MarshalGQL(w io.Writer) {
 		graphql.MarshalString("notificationRule").MarshalGQL(w)
 	case TargetTypeHeartbeatMonitor:
 		graphql.MarshalString("heartbeatMonitor").MarshalGQL(w)
+	case TargetTypeUserSession:
+		graphql.MarshalString("userSession").MarshalGQL(w)
 	}
 }

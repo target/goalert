@@ -742,7 +742,16 @@ export interface User {
   calendarSubscriptions: UserCalendarSubscription[]
   statusUpdateContactMethodID: string
   authSubjects: AuthSubject[]
+  sessions: UserSession[]
   onCallSteps: EscalationPolicyStep[]
+}
+
+export interface UserSession {
+  id: string
+  current: boolean
+  userAgent: string
+  createdAt: ISOTimestamp
+  lastAccessAt: ISOTimestamp
 }
 
 export interface UserNotificationRule {

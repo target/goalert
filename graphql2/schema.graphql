@@ -880,6 +880,7 @@ enum TargetType {
   contactMethod
   heartbeatMonitor
   calendarSubscription
+  userSession
 }
 
 type ServiceConnection {
@@ -941,8 +942,17 @@ type User {
   statusUpdateContactMethodID: ID!
 
   authSubjects: [AuthSubject!]!
+  sessions: [UserSession!]!
 
   onCallSteps: [EscalationPolicyStep!]!
+}
+
+type UserSession {
+  id: ID!
+  current: Boolean!
+  userAgent: String!
+  createdAt: ISOTimestamp!
+  lastAccessAt: ISOTimestamp!
 }
 
 type UserNotificationRule {

@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"go.opencensus.io/trace"
@@ -55,6 +56,9 @@ type Handler struct {
 	startSession *sql.Stmt
 	fetchSession *sql.Stmt
 	endSession   *sql.Stmt
+
+	userSessions   *sql.Stmt
+	endSessionUser *sql.Stmt
 }
 
 // NewHandler creates a new Handler using the provided config.
@@ -87,7 +91,7 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 		`),
 		endSession: p.P(`
 			delete from auth_user_sessions
-			where id = $1
+			where id = any($1)
 		`),
 
 		updateUA: p.P(`
@@ -107,9 +111,69 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 			join users u on u.id = sess.user_id
 			where sess.id = $1
 		`),
+
+		userSessions: p.P(`
+			select id, user_agent, created_at, last_access_at
+			from auth_user_sessions
+			where user_id = $1
+		`),
+
+		endSessionUser: p.P(`
+			delete from auth_user_sessions
+			where user_id = $1 and id = $2
+		`),
 	}
 
 	return h, p.Err
+}
+
+// UserSession represents an active user session.
+type UserSession struct {
+	ID           string
+	UserAgent    string
+	CreatedAt    time.Time
+	LastAccessAt time.Time
+	UserID       string
+}
+
+func (h *Handler) EndUserSessionTx(ctx context.Context, tx *sql.Tx, id ...string) error {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return err
+	}
+	if permission.Admin(ctx) {
+		_, err = tx.StmtContext(ctx, h.endSession).ExecContext(ctx, sqlutil.UUIDArray(id))
+	} else {
+		_, err = tx.StmtContext(ctx, h.endSessionUser).ExecContext(ctx, permission.UserID(ctx), sqlutil.UUIDArray(id))
+	}
+	return err
+}
+
+func (h *Handler) FindAllUserSessions(ctx context.Context, userID string) ([]UserSession, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := h.userSessions.QueryContext(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var sessions []UserSession
+	for rows.Next() {
+		s := UserSession{UserID: userID}
+		var lastAccess sql.NullTime
+		err = rows.Scan(&s.ID, &s.UserAgent, &s.CreatedAt, &lastAccess)
+		if err != nil {
+			return nil, err
+		}
+		s.LastAccessAt = lastAccess.Time.Truncate(time.Minute)
+		s.CreatedAt = s.CreatedAt.Truncate(time.Minute)
+		sessions = append(sessions, s)
+	}
+
+	return sessions, nil
 }
 
 // ServeLogout will clear the current session cookie and end the session (if any).
@@ -118,7 +182,7 @@ func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	src := permission.Source(ctx)
 	if src != nil && src.Type == permission.SourceTypeAuthProvider {
-		_, err := h.endSession.ExecContext(context.Background(), src.ID)
+		_, err := h.endSession.ExecContext(context.Background(), sqlutil.UUIDArray([]string{src.ID}))
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "end session"))
 		}

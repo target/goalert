@@ -75,3 +75,5 @@ models:
     model: github.com/target/goalert/limit.ID
   DebugCarrierInfo:
     model: github.com/target/goalert/notification/twilio.CarrierInfo
+  UserSession:
+    model: github.com/target/goalert/auth.UserSession
