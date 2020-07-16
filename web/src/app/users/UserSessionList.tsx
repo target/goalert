@@ -38,7 +38,7 @@ function friendlyUAString(ua: string): string {
 
 export default function UserSessionList(
   props: UserSessionListProps,
-): ReactElement {
+): JSX.Element {
   const { userID: curUserID } = useSessionInfo() as any
   const userID = props.userID || curUserID
   const { data, loading } = useQuery(query, { variables: { userID } })
