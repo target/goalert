@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -100,29 +99,16 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}`, &alerts1)
 
-	var e struct {
-		Alerts struct {
-			Nodes []struct {
-				ID string
-			}
-		}
+	if len(alerts1.Alerts.Nodes) != 2 {
+		t.Errorf("got %d alerts; want 2", len(alerts1.Alerts.Nodes))
 	}
-	//emptySlice := make([]string, 0)
-	// 	 e [2]int
-	// e := []struct { ID string }
-	// e[0] = 2
-	// }
 
-	assert.Equal(t, e.Alerts.Nodes, alerts1.Alerts.Nodes)
+	// assert.Equal(t, e.Alerts.Nodes, alerts1.Alerts.Nodes)
 
 	// test:
 	// includeNotified: true
 	// favoritesOnly: true
 	// output: 2 alerts (1 from favorited, 1 from notified)
-
-	// QUESTIONS
-	// Should we be using "fmt.Sprintf" When writing the queries. Why or why not?
-	// Should Alerts be delared at the begining of class like with graphqlmultiplealerts
 
 	doQL(t, h, `query {
 		alerts(input: {
@@ -135,6 +121,11 @@ func TestNotifiedAlerts(t *testing.T) {
 			}
 		}
 	}`, &alerts2)
+
+	if len(alerts2.Alerts.Nodes) != 2 {
+		t.Errorf("got %d alerts; want 2", len(alerts2.Alerts.Nodes))
+	}
+
 }
 
 // `query {
