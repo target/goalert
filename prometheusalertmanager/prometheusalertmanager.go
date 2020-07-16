@@ -78,7 +78,6 @@ func PrometheusAlertmanagerEventsAPI(aDB alert.Store, intDB integrationkey.Store
 		}
 		body := strings.TrimSpace(urlStr + "\n\n" + alertmanager.Receiver)
 
-		//dedupe is description, source, and serviceID
 		msg := &alert.Alert{
 			Summary:   validate.SanitizeText(alertmanager.Receiver, alert.MaxSummaryLength),
 			Details:   validate.SanitizeText(body, alert.MaxDetailsLength),
