@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 
 interface Value {
   name: string
-  type: ['generic' | 'grafana' | 'site24x7' | 'email']
+  type: 'generic' | 'grafana' | 'site24x7' | 'email'
 }
 
 interface IntegrationKeyFormProps {
