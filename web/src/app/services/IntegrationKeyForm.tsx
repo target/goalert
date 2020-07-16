@@ -25,7 +25,7 @@ interface IntegrationKeyFormProps {
   value: Value
 
   errors: {
-    field: ['name' | 'type']
+    field: 'name' | 'type'
     message: string
   }[]
 
