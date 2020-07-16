@@ -144,40 +144,6 @@ export default function IntegrationKeyList(props) {
         onClick={() => setCreate(true)}
         title='Create Integration Key'
       />
-<<<<<<< HEAD
-    )
-  }
-
-  renderList(keys) {
-    const typeLabels = {
-      generic: 'Generic API Key',
-      grafana: 'Grafana Webhook URL',
-      site24x7: 'Site24x7 Webhook URL',
-      prometheusAlertmanager: 'Prometheus Alertmanager Webhook URL',
-      email: 'Email Address',
-    }
-
-    const items = (keys || [])
-      .slice()
-      .sort(sortItems)
-      .map((key) => ({
-        title: key.name,
-        subText: (
-          <IntegrationKeyDetails
-            key={key.id}
-            href={key.href}
-            label={typeLabels[key.type]}
-            type={key.type}
-            classes={this.props.classes}
-          />
-        ),
-        secondaryAction: (
-          <IconButton onClick={() => this.setState({ delete: key.id })}>
-            <Trash />
-          </IconButton>
-        ),
-      }))
-=======
       {create && (
         <IntegrationKeyCreateDialog
           serviceID={props.serviceID}
@@ -193,7 +159,6 @@ export default function IntegrationKeyList(props) {
     </React.Fragment>
   )
 }
->>>>>>> master
 
 IntegrationKeyList.propTypes = {
   serviceID: p.string.isRequired,
