@@ -30,6 +30,7 @@ import (
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
 	"github.com/target/goalert/migrate"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/notificationrule"
@@ -285,6 +286,7 @@ func (h *Harness) Start() {
 
 	log.EnableJSON()
 	log.SetOutput(w)
+	h.TwilioNumber("") // register default number
 
 	go h.watchBackendLogs(r)
 
@@ -578,6 +580,28 @@ func (h *Harness) Close() error {
 	}
 
 	return nil
+}
+
+// SetCarrierName will set the carrier name for the given phone number.
+func (h *Harness) SetCarrierName(number, name string) {
+	h.tw.Server.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
+}
+
+// TwilioNumber will return a registered (or register if missing) Twilio number for the given ID.
+// The default FromNumber will always be the empty ID.
+func (h *Harness) TwilioNumber(id string) string {
+	num := h.phoneCCG.Get("twilio" + id)
+
+	err := h.tw.RegisterSMSCallback(num, h.URL()+"/v1/twilio/sms/messages")
+	if err != nil {
+		h.t.Fatalf("failed to init twilio (SMS callback): %v", err)
+	}
+	err = h.tw.RegisterVoiceCallback(num, h.URL()+"/v1/twilio/voice/call")
+	if err != nil {
+		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
+	}
+
+	return num
 }
 
 // CreateUser generates a random user.

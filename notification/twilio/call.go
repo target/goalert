@@ -2,8 +2,9 @@ package twilio
 
 import (
 	"fmt"
-	"github.com/target/goalert/notification"
 	"time"
+
+	"github.com/target/goalert/notification"
 )
 
 // CallStatus indicates the state of a voice call.
@@ -78,7 +79,7 @@ func (call *Call) messageStatus(id string) *notification.MessageStatus {
 	case CallStatusCompleted:
 		status.State = notification.MessageStateDelivered
 	case CallStatusInitiated, CallStatusQueued:
-		status.State = notification.MessageStateActive
+		status.State = notification.MessageStateSending
 	case CallStatusBusy:
 		status.State = notification.MessageStateFailedTemp
 	case CallStatusFailed, CallStatusCanceled, CallStatusNoAnswer:
