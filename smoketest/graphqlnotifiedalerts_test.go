@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -100,20 +99,23 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}`, &alerts1)
 
-	var e struct {
-		Alerts struct {
-			Nodes []struct {
-				ID string
-			}
-		}
-	}
+	// var e struct {
+	// 	Alerts struct {
+	// 		Nodes []struct {
+	// 			ID string
+	// 		}
+	// 	}
+	// }
 	//emptySlice := make([]string, 0)
 	// 	 e [2]int
 	// e := []struct { ID string }
 	// e[0] = 2
 	// }
+	if len(alerts1.Alerts.Nodes) != 2 {
+		t.Errorf("got %d alerts; want 2", len(alerts1.Alerts.Nodes))
+	}
 
-	assert.Equal(t, e.Alerts.Nodes, alerts1.Alerts.Nodes)
+	// assert.Equal(t, e.Alerts.Nodes, alerts1.Alerts.Nodes)
 
 	// test:
 	// includeNotified: true
@@ -135,6 +137,11 @@ func TestNotifiedAlerts(t *testing.T) {
 			}
 		}
 	}`, &alerts2)
+
+	if len(alerts2.Alerts.Nodes) != 2 {
+		t.Errorf("got %d alerts; want 2", len(alerts2.Alerts.Nodes))
+	}
+
 }
 
 // `query {
