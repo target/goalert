@@ -9,6 +9,7 @@ import { useSessionInfo } from '../util/RequireConfig'
 import UserOnCallAssignmentList from './UserOnCallAssignmentList'
 import Spinner from '../loading/components/Spinner'
 import UserCalendarSubscriptionList from './UserCalendarSubscriptionList'
+import UserSessionList from './UserSessionList'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -89,6 +90,13 @@ export default function UserRouter() {
         render={({ match }) => (
           <UserOnCallAssignmentList userID={match.params.userID} />
         )}
+      />
+
+      <Route exact path='/profile/sessions' component={UserSessionList} />
+      <Route
+        exact
+        path='/users/:userID/sessions'
+        render={({ match }) => <UserSessionList userID={match.params.userID} />}
       />
 
       <Route

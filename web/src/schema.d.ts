@@ -695,6 +695,7 @@ export type TargetType =
   | 'contactMethod'
   | 'heartbeatMonitor'
   | 'calendarSubscription'
+  | 'userSession'
 
 export interface ServiceConnection {
   nodes: Service[]
