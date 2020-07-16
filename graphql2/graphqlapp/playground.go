@@ -2,7 +2,7 @@ package graphqlapp
 
 import "html/template"
 
-const playVersion = "1.7.20"
+const playVersion = "1.7.23"
 
 const playHTML = `
 <!DOCTYPE html>

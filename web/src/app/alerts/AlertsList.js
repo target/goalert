@@ -1,19 +1,11 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
-import {
-  Hidden,
-  ListItemText,
-  Snackbar,
-  SnackbarContent,
-  makeStyles,
-  isWidthDown,
-} from '@material-ui/core'
+import { Hidden, ListItemText, isWidthDown } from '@material-ui/core'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
-  Info as InfoIcon,
 } from '@material-ui/icons'
 import { useSelector } from 'react-redux'
 
@@ -70,23 +62,6 @@ const escalateMutation = gql`
   }
 `
 
-const useStyles = makeStyles((theme) => ({
-  snackbar: {
-    backgroundColor: theme.palette.primary['500'],
-    height: '6.75em',
-    width: '20em', // only triggers on desktop, 100% on mobile devices
-  },
-  snackbarIcon: {
-    fontSize: 20,
-    opacity: 0.9,
-    marginRight: theme.spacing(1),
-  },
-  snackbarMessage: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-}))
-
 function getStatusFilter(s) {
   switch (s) {
     case 'acknowledged':
@@ -104,68 +79,34 @@ function getStatusFilter(s) {
 }
 
 export default function AlertsList(props) {
-  const classes = useStyles()
   const width = useWidth()
-  const isFullScreen = isWidthDown('md', width)
+  const isMobileScreenSize = isWidthDown('md', width)
 
   const [checkedCount, setCheckedCount] = useState(0)
 
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
 
-  // defaults to open unless favorited services are present or warning is dismissed
-  const [favoritesWarningDismissed, setFavoritesWarningDismissed] = useState(
-    false,
-  )
-
   // get redux url vars
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
   const filter = params('filter', 'active')
-  const isFirstLogin = params('isFirstLogin')
 
-  // query to see if the current user has any favorited services
-  // if allServices is not true
-  const favoritesQueryStatus = useQuery(
+  // query for current service name if props.serviceID is provided
+  const serviceNameQuery = useQuery(
     gql`
-      query($input: ServiceSearchOptions) {
-        services(input: $input) {
-          nodes {
-            id
-          }
+      query($id: ID!) {
+        service(id: $id) {
+          id
+          name
         }
       }
     `,
     {
-      variables: {
-        input: {
-          favoritesOnly: true,
-          first: 1,
-        },
-      },
+      variables: { id: props.serviceID || '' },
+      skip: !props.serviceID,
     },
   )
-
-  // checks to show no favorites warning
-  const noFavorites =
-    !favoritesQueryStatus.data?.services?.nodes?.length &&
-    !favoritesQueryStatus.loading
-  const showNoFavoritesWarning =
-    !favoritesWarningDismissed && // has not been dismissed
-    !allServices && // all services aren't being queried
-    !props.serviceID && // not viewing alerts from services page
-    !isFirstLogin && // don't show two pop-ups at the same time
-    noFavorites // and lastly, user has no favorited services
-
-  /*
-   * Closes the no favorites warning snackbar only if clicking
-   * away to lose focus
-   */
-  function handleCloseNoFavoritesWarning(event, reason) {
-    if (reason === 'clickaway') {
-      setFavoritesWarningDismissed(false)
-    }
-  }
 
   // alerts list query variables
   const variables = {
@@ -174,6 +115,7 @@ export default function AlertsList(props) {
       first: 25,
       // default to favorites only, unless viewing alerts from a service's page
       favoritesOnly: !props.serviceID && !allServices,
+      includeNotified: !props.serviceID, // keep service list alerts specific to that service
     },
   }
 
@@ -234,6 +176,34 @@ export default function AlertsList(props) {
   }
 
   /*
+   * Gets the header to display above the list to give a quick overview
+   * on if they are viewing alerts for all services or only their
+   * favorited services.
+   *
+   * Possibilities:
+   *   - Home page, showing alerts for all services
+   *   - Home page, showing alerts for any favorited services and notified alerts
+   *   - Services page, alerts for that service
+   */
+  function getHeaderNote() {
+    const { favoritesOnly, includeNotified } = variables.input
+
+    if (includeNotified && favoritesOnly) {
+      return `Showing ${filter} alerts you are on-call for and from any services you have favorited.`
+    }
+
+    if (allServices) {
+      return `Showing ${filter} alerts for all services.`
+    }
+
+    if (props.serviceID && serviceNameQuery.data?.service?.name) {
+      return `Showing ${filter} alerts for the service ${serviceNameQuery.data.service.name}.`
+    }
+
+    return null
+  }
+
+  /*
    * Passes the proper actions to ListControls depending
    * on which tab is currently filtering the alerts list
    */
@@ -272,6 +242,7 @@ export default function AlertsList(props) {
       <QueryList
         query={alertsListQuery}
         infiniteScroll
+        headerNote={getHeaderNote()}
         mapDataNode={(a) => ({
           id: a.id,
           status: getListItemStatus(a.status),
@@ -295,10 +266,7 @@ export default function AlertsList(props) {
 
       <CreateAlertFab
         serviceID={props.serviceID}
-        showFavoritesWarning={showNoFavoritesWarning}
-        transition={
-          isFullScreen && (showNoFavoritesWarning || showAlertActionSnackbar)
-        }
+        transition={isMobileScreenSize && showAlertActionSnackbar}
       />
 
       {/* Update message after using checkbox actions */}
@@ -308,29 +276,6 @@ export default function AlertsList(props) {
         open={showAlertActionSnackbar}
         updateMessage={updateMessage}
       />
-
-      {/* No favorites warning when viewing alerts */}
-      <Snackbar
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        open={showNoFavoritesWarning}
-        onClose={handleCloseNoFavoritesWarning}
-      >
-        <SnackbarContent
-          className={classes.snackbar}
-          aria-describedby='client-snackbar'
-          message={
-            <span id='client-snackbar' className={classes.snackbarMessage}>
-              <InfoIcon className={classes.snackbarIcon} />
-              It looks like you have no favorited services. Visit your most used
-              services to set them as a favorite, or enable the filter to view
-              alerts for all services.
-            </span>
-          }
-        />
-      </Snackbar>
     </React.Fragment>
   )
 }

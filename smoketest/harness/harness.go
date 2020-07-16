@@ -32,6 +32,7 @@ import (
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
 	"github.com/target/goalert/keyring"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/notificationrule"
@@ -119,7 +120,14 @@ func (h *Harness) Config() config.Config {
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, migrationName)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName)
+	h.Start()
+	return h
+}
+
+func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
+	t.Helper()
+	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
 	h.Start()
 	return h
 }
@@ -130,7 +138,7 @@ func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 // Note that the now() function will be locked to the init timestamp for inspection.
 func NewHarnessDebugDB(t *testing.T, initSQL, migrationName string) *Harness {
 	t.Helper()
-	h := NewStoppedHarness(t, initSQL, migrationName)
+	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Migrate("")
 
 	t.Fatal("DEBUG DB ::", h.dbURL)
@@ -144,7 +152,7 @@ const (
 )
 
 // NewStoppedHarness will create a NewHarness, but will not call Start.
-func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
+func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
@@ -215,21 +223,21 @@ func NewStoppedHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	// freeze DB time until backend starts
 	h.execQuery(`
 		create schema testing_overrides;
-		alter database ` + sqlutil.QuoteID(name) + ` set search_path = "$user", public,testing_overrides, pg_catalog;
+		alter database `+sqlutil.QuoteID(name)+` set search_path = "$user", public,testing_overrides, pg_catalog;
 		
 
 		create or replace function testing_overrides.now()
 		returns timestamp with time zone
 		as $$
 			begin
-			return '` + start.Format(dbTimeFormat) + `';
+			return '`+start.Format(dbTimeFormat)+`';
 			end;
 		$$ language plpgsql;
-	`)
+	`, nil)
 
 	h.Migrate(migrationName)
 	h.initSlack()
-	h.execQuery(initSQL)
+	h.execQuery(initSQL, sqlData)
 
 	return h
 }
@@ -313,14 +321,7 @@ func (h *Harness) Start() {
 
 	h.backendURL = <-urlCh
 
-	err = h.tw.RegisterSMSCallback(h.phoneCCG.Get("twilio"), h.backendURL+"/v1/twilio/sms/messages")
-	if err != nil {
-		h.t.Fatalf("failed to init twilio (SMS callback): %v", err)
-	}
-	err = h.tw.RegisterVoiceCallback(h.phoneCCG.Get("twilio"), h.backendURL+"/v1/twilio/voice/call")
-	if err != nil {
-		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
-	}
+	h.TwilioNumber("") // register default number
 
 	h.dbStdlib = stdlib.OpenDB(*dbCfg)
 	h.nr, err = notificationrule.NewDB(ctx, h.dbStdlib)
@@ -408,7 +409,7 @@ func (h *Harness) setDBOffset(d time.Duration) {
 	`,
 		h.start.Add(d).Format(dbTimeFormat),
 		h.pgResume.Format(dbTimeFormat),
-	))
+	), nil)
 	h.trigger()
 }
 
@@ -428,7 +429,7 @@ func (h *Harness) FastForward(d time.Duration) {
 	h.setDBOffset(h.delayOffset)
 }
 
-func (h *Harness) execQuery(sql string) {
+func (h *Harness) execQuery(sql string, data interface{}) {
 	h.t.Helper()
 	t := template.New("sql")
 	t.Funcs(template.FuncMap{
@@ -444,7 +445,7 @@ func (h *Harness) execQuery(sql string) {
 	}
 
 	b := new(bytes.Buffer)
-	err = t.Execute(b, nil)
+	err = t.Execute(b, data)
 	if err != nil {
 		h.t.Fatalf("failed to render query template: %v", err)
 	}
@@ -565,18 +566,24 @@ func (h *Harness) isClosing() bool {
 func (h *Harness) dumpDB() {
 	testName := reflect.ValueOf(h.t).Elem().FieldByName("name").String()
 	file := filepath.Join("smoketest_db_dump", testName+".sql")
+	file, err := filepath.Abs(file)
+	if err != nil {
+		h.t.Fatalf("failed to get abs dump path: %v", err)
+	}
 	os.MkdirAll(filepath.Dir(file), 0755)
 	var t time.Time
-	err := h.db.QueryRow(context.Background(), "select now()").Scan(&t)
+	err = h.db.QueryRow(context.Background(), "select now()").Scan(&t)
 	if err != nil {
 		h.t.Fatalf("failed to get current timestamp: %v", err)
 	}
-	err = exec.Command(
+	cmd := exec.Command(
 		"pg_dump",
 		"-O", "-x", "-a",
 		"-f", file,
 		h.dbURL,
-	).Run()
+	)
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
 	if err != nil {
 		h.t.Errorf("failed to dump database '%s': %v", h.dbName, err)
 	}
@@ -631,6 +638,28 @@ func (h *Harness) Close() error {
 	}
 
 	return nil
+}
+
+// SetCarrierName will set the carrier name for the given phone number.
+func (h *Harness) SetCarrierName(number, name string) {
+	h.tw.Server.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
+}
+
+// TwilioNumber will return a registered (or register if missing) Twilio number for the given ID.
+// The default FromNumber will always be the empty ID.
+func (h *Harness) TwilioNumber(id string) string {
+	num := h.phoneCCG.Get("twilio" + id)
+
+	err := h.tw.RegisterSMSCallback(num, h.backendURL+"/v1/twilio/sms/messages")
+	if err != nil {
+		h.t.Fatalf("failed to init twilio (SMS callback): %v", err)
+	}
+	err = h.tw.RegisterVoiceCallback(num, h.backendURL+"/v1/twilio/voice/call")
+	if err != nil {
+		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
+	}
+
+	return num
 }
 
 // CreateUser generates a random user.

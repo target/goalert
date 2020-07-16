@@ -299,7 +299,9 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 		fmt.Println("Disabled destination triggers in", time.Since(start))
 	}
 
+	var isInit bool
 	if dstLastChange == 0 {
+		isInit = true
 		// Need raw conn for CopyFrom and CopyTo to work.
 		//
 		// Transaction is at the connection level so
@@ -329,25 +331,42 @@ func (s *Sync) Sync(ctx context.Context, isFinal, enableSwitchOver bool) error {
 		return errors.Wrap(err, "commit dst")
 	}
 
-	if isFinal {
-		start = time.Now()
-		batch := &pgx.Batch{}
-		for _, t := range s.tables {
-			batch.Queue(`alter table ` + t.SafeName() + ` enable trigger user`)
+	if isInit {
+		if isFinal {
+			// shouldn't happen, but do a check
+			return errors.New("cannot use initial sync as final sync")
 		}
-		err = dstConn.SendBatch(ctx, batch).Close()
-		if err != nil {
-			return errors.Wrap(err, "enable triggers")
-		}
-		fmt.Println("Re-enabled triggers in", time.Since(start))
 
-		if enableSwitchOver {
-			_, err = srcConn.Exec(ctx, `update switchover_state set current_state = 'use_next_db'`)
-			if err != nil {
-				return errors.Wrap(err, "update state table")
-			}
-			fmt.Println("State updated: next-db is now active!")
+		start = time.Now()
+		_, err = dstConn.Exec(ctx, "vacuum analyze")
+		if err != nil {
+			return errors.Wrap(err, "vacuum dst")
 		}
+		fmt.Println("Vacuumed in", time.Since(start))
+	}
+
+	if !isFinal {
+		return nil
+	}
+
+	// final sync
+	start = time.Now()
+	batch := &pgx.Batch{}
+	for _, t := range s.tables {
+		batch.Queue(`alter table ` + t.SafeName() + ` enable trigger user`)
+	}
+	err = dstConn.SendBatch(ctx, batch).Close()
+	if err != nil {
+		return errors.Wrap(err, "enable triggers")
+	}
+	fmt.Println("Re-enabled triggers in", time.Since(start))
+
+	if enableSwitchOver {
+		_, err = srcConn.Exec(ctx, `update switchover_state set current_state = 'use_next_db'`)
+		if err != nil {
+			return errors.Wrap(err, "update state table")
+		}
+		fmt.Println("State updated: next-db is now active!")
 	}
 
 	return nil

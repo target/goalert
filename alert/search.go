@@ -22,17 +22,26 @@ type SearchOptions struct {
 	// Status, if specified, will restrict alerts to those with a matching status.
 	Status []Status `json:"t,omitempty"`
 
-	// Services, if specified, will restrict alerts to those with a matching ServiceID.
-	Services []string `json:"v,omitempty"`
+	// ServiceFilter, if specified, will restrict alerts to those with a matching ServiceID on IDs, if valid.
+	ServiceFilter IDFilter `json:"v,omitempty"`
 
 	After SearchCursor `json:"a,omitempty"`
 
 	// Omit specifies a list of alert IDs to exclude from the results.
 	Omit []int `json:"o,omitempty"`
 
+	// NotifiedUserID will include all alerts the specified user has been
+	// notified for to the results.
+	NotifiedUserID string `json:"e,omitempty"`
+
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
 	Limit int `json:"-"`
+}
+
+type IDFilter struct {
+	Valid bool     `json:"v,omitempty"`
+	IDs   []string `json:"i,omitempty"`
 }
 
 type SearchCursor struct {
@@ -55,9 +64,9 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 		JOIN services svc ON svc.id = a.service_id
 	{{ end }}
 	WHERE true
-	{{if .Omit}}
+	{{ if .Omit }}
 		AND not a.id = any(:omit)
-	{{end}}
+	{{ end }}
 	{{ if .Search }}
 		AND (
 			a.id = :searchID OR
@@ -68,8 +77,12 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{ if .Status }}
 		AND a.status = any(:status::enum_alert_status[])
 	{{ end }}
-	{{ if .Services }}
-		AND a.service_id = any(:services)
+	{{ if .ServiceFilter.Valid }}
+		AND (a.service_id = any(:services)
+			{{ if .NotifiedUserID }}
+				OR a.id = any(select alert_id from alert_logs where event in ('notification_sent', 'no_notification_sent') and sub_user_id = :notifiedUserID)
+			{{ end }}
+		)
 	{{ end }}
 	{{ if .After.ID }}
 		AND (
@@ -100,7 +113,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.Range("Status", len(opts.Status), 0, 3),
-		validate.ManyUUID("Services", opts.Services, 50),
+		validate.ManyUUID("Services", opts.ServiceFilter.IDs, 50),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
 	)
 	if opts.After.Status != "" {
@@ -136,10 +149,11 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("searchID", searchID),
 		sql.Named("status", stat),
-		sql.Named("services", sqlutil.UUIDArray(opts.Services)),
+		sql.Named("services", sqlutil.UUIDArray(opts.ServiceFilter.IDs)),
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
 		sql.Named("omit", sqlutil.IntArray(opts.Omit)),
+		sql.Named("notifiedUserID", opts.NotifiedUserID),
 	}
 }
 

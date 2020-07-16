@@ -39,7 +39,15 @@ const useStyles = makeStyles({
 })
 
 export default function ScheduleOverrideForm(props) {
-  const { add, remove, errors = [], scheduleID, value, ...formProps } = props
+  const {
+    add,
+    remove,
+    errors = [],
+    scheduleID,
+    value,
+    removeUserReadOnly,
+    ...formProps
+  } = props
 
   const classes = useStyles()
   const params = useSelector(urlParamSelector)
@@ -99,6 +107,7 @@ export default function ScheduleOverrideForm(props) {
               name='removeUserID'
               label={add && remove ? 'User to be Replaced' : 'User to Remove'}
               required
+              disabled={removeUserReadOnly}
             />
           </Grid>
         )}
@@ -160,4 +169,5 @@ ScheduleOverrideForm.propTypes = {
   ),
 
   onChange: p.func.isRequired,
+  removeUserReadOnly: p.bool,
 }

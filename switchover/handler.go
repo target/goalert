@@ -32,6 +32,9 @@ type Handler struct {
 	controlCh chan *DeadlineConfig
 	stateCh   chan State
 
+	completeCh chan struct{}
+	doneCheck  sync.Once
+
 	mx sync.Mutex
 
 	state State
@@ -50,6 +53,7 @@ func NewHandler(ctx context.Context, oldC, newC driver.Connector, oldURL, newURL
 		stateCh:    make(chan State),
 		statusCh:   make(chan *Status),
 		controlCh:  make(chan *DeadlineConfig),
+		completeCh: make(chan struct{}),
 		nodeStatus: make(map[string]Status),
 		state:      StateStarting,
 		dbNextURL:  newURL,
@@ -113,6 +117,12 @@ func (h *Handler) DB() *sql.DB {
 }
 
 func (h *Handler) Connect(ctx context.Context) (c driver.Conn, err error) {
+	select {
+	case <-h.completeCh:
+		return h.new.dbc.Connect(ctx)
+	default:
+	}
+
 	c, err = h.old.dbc.Connect(ctx)
 	if err != nil {
 		return nil, err
@@ -158,6 +168,7 @@ func (h *Handler) Connect(ctx context.Context) (c driver.Conn, err error) {
 	case "idle", "in_progress":
 		return c, nil
 	case "use_next_db":
+		h.doneCheck.Do(func() { close(h.completeCh) })
 		c.Close()
 		h.stateCh <- StateComplete
 		return h.new.dbc.Connect(ctx)
