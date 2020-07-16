@@ -204,7 +204,7 @@ graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 generate: web/src/node_modules
 	go generate ./...
 
-smoketest: install bin/goalert
+smoketest:
 	(cd smoketest && go test -parallel 10 -timeout 20m)
 
 test-migrations: migrate/inline_data_gen.go bin/goalert

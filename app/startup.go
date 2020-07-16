@@ -76,7 +76,7 @@ func (app *App) startup(ctx context.Context) error {
 	}
 
 	return app.mgr.SetPauseResumer(lifecycle.MultiPauseResume(
-		app.engine,
+		app.Engine,
 		lifecycle.PauseResumerFunc(app._pause, app._resume),
 	))
 }
