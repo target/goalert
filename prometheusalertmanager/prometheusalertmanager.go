@@ -17,14 +17,9 @@ import (
 )
 
 type alertmanagerPost struct {
-	GroupKey          string                   `json:"groupKey"`
-	Status            string                   `json:"status"`
-	Receiver          string                   `json:"receiver"`
-	GroupLabels       map[string]interface{}   `json:"groupLabels"`
-	CommonLabels      map[string]interface{}   `json:"commonLabels"`
-	CommonAnnotations map[string]interface{}   `json:"commonAnnotations"`
-	ExternalURL       string                   `json:"externalURL"`
-	Alerts            []map[string]interface{} `json:"alerts"`
+	Status      string
+	Receiver    string
+	ExternalURL string
 }
 
 func clientError(w http.ResponseWriter, code int, err error) bool {

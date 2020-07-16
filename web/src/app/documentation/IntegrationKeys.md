@@ -82,7 +82,7 @@ To trigger an alert using Prometheus Alertmanager, follow these steps:
 
    - Key Name: Enter a name for the key.
    - Key Type: Prometheus Alertmanager
-   - Click Add Key. Copy the generated URL and keep it handy, as you'll need it in a future step.
+   - Click Add Key. Copy the generated URL and keep it handy, as you'll need it for the next step.
 
 2. In Prometheus Alertmanager, enable a webhook by adding a webhook receiver in the alertmanager configuration file:
 
