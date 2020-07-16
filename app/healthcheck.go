@@ -32,6 +32,6 @@ func (app *App) engineStatus(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := app.engine.WaitNextCycle(req.Context())
+	err := app.Engine.WaitNextCycle(req.Context())
 	errutil.HTTPError(req.Context(), w, errors.Wrap(err, "engine cycle"))
 }
