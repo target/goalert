@@ -286,7 +286,6 @@ func (h *Harness) Start() {
 
 	log.EnableJSON()
 	log.SetOutput(w)
-	h.TwilioNumber("") // register default number
 
 	go h.watchBackendLogs(r)
 
@@ -299,15 +298,7 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
 	}
-
-	err = h.tw.RegisterSMSCallback(h.phoneCCG.Get("twilio"), h.URL()+"/v1/twilio/sms/messages")
-	if err != nil {
-		h.t.Fatalf("failed to init twilio (SMS callback): %v", err)
-	}
-	err = h.tw.RegisterVoiceCallback(h.phoneCCG.Get("twilio"), h.URL()+"/v1/twilio/voice/call")
-	if err != nil {
-		h.t.Fatalf("failed to init twilio (voice callback): %v", err)
-	}
+	h.TwilioNumber("") // register default number
 
 	go h.backend.Run(context.Background())
 	err = h.backend.WaitForStartup(ctx)
