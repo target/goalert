@@ -31,7 +31,7 @@ const trackMutation = (p) => {
   )
 }
 
-export function doFetch(body, url = pathPrefix + '/v1/graphql') {
+export function doFetch(body, url = pathPrefix + '/api/graphql') {
   const f = fetch(url, {
     credentials: 'same-origin',
     method: 'POST',
@@ -132,27 +132,6 @@ export const GraphQLClient = new ApolloClient({
   defaultOptions: {
     query: queryOpts,
     watchQuery: queryOpts,
-  },
-})
-
-// Legacy client
-const legacyHttpLink = createHttpLink({
-  uri: pathPrefix + '/v1/graphql',
-  fetch: (url, opts) => {
-    return doFetch(opts.body)
-  },
-})
-
-const legacyLink = ApolloLink.from([
-  retryLink,
-  legacyHttpLink, // terminating link must be last: apollographql.com/docs/link/overview.html#terminating
-])
-
-export const LegacyGraphQLClient = new ApolloClient({
-  link: legacyLink,
-  cache: new InMemoryCache(),
-  defaultOptions: {
-    query: { errorPolicy: 'all' },
   },
 })
 
