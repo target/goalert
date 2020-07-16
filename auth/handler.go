@@ -46,10 +46,11 @@ type Handler struct {
 	providers map[string]IdentityProvider
 	cfg       HandlerConfig
 
-	db         *sql.DB
-	userLookup *sql.Stmt
-	addSubject *sql.Stmt
-	updateUA   *sql.Stmt
+	db            *sql.DB
+	userLookup    *sql.Stmt
+	addSubject    *sql.Stmt
+	updateUA      *sql.Stmt
+	setAccessTime *sql.Stmt
 
 	startSession *sql.Stmt
 	fetchSession *sql.Stmt
@@ -96,6 +97,11 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 		`),
 
 		fetchSession: p.P(`
+			with update as (
+				update auth_user_sessions
+				set last_access_at = now()
+				where id = $1 AND (last_access_at isnull OR last_access_at < now() - '5 minutes'::interval)
+			)
 			select sess.user_id, u.role
 			from auth_user_sessions sess
 			join users u on u.id = sess.user_id
