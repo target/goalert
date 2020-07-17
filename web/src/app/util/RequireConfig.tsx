@@ -30,10 +30,10 @@ const query = gql`
 `
 
 type ConfigProviderProps = {
-  children: React.ReactNode
+  children: JSX.Element
 }
 
-export function ConfigProvider(props: ConfigProviderProps): React.ReactNode {
+export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
   const { data } = useQuery(query)
 
   return (
@@ -125,8 +125,8 @@ export function useConfigValue(...fields: string[]): Value[] {
 }
 
 export function Config(props: {
-  children: (x: ConfigData, s?: SessionInfo) => React.ReactNode
-}): React.ReactNode {
+  children: (x: ConfigData, s?: SessionInfo) => JSX.Element
+}): JSX.Element {
   return props.children(useConfig(), useSessionInfo()) || null
 }
 
@@ -136,14 +136,12 @@ export type RequireConfigProps = {
   test?: (x: Value) => boolean
 
   // react element to render if checks failed
-  else?: React.ReactNode
+  else?: JSX.Element
   isAdmin?: boolean
-  children: React.ReactNode
+  children: JSX.Element
 }
 
-export default function RequireConfig(
-  props: RequireConfigProps,
-): React.ReactNode {
+export default function RequireConfig(props: RequireConfigProps): JSX.Element {
   const {
     configID,
     test = isTrue,
