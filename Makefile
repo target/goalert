@@ -52,7 +52,7 @@ $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
 	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
+$(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert
 	GOOS=linux go test ./smoketest -c -o $@
 $(BIN_DIR)/goalert-linux-arm: $(BIN_DIR)/goalert web/inline_data_gen.go
 	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
