@@ -64,13 +64,21 @@ export function StringInput(props: InputProps): JSX.Element {
     )
   }
 
-  function handleChange(number: string): void {
-    onChange('+' + number)
-  }
-
   if (type === 'tel') {
     return (
-      <TelTextField fullWidth InputProps onChange={handleChange} {...rest} />
+      <TelTextField
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
+              +
+            </InputAdornment>
+          ),
+        }}
+        onChange={(e: React.FormEvent<HTMLInputElement>) =>
+          onChange((e.target as HTMLInputElement).value)
+        }
+        {...rest}
+      />
     )
   }
   return (

@@ -67,18 +67,18 @@ export default function TelTextField({ InputProps, ...props }) {
   }
 
   // remove unwanted character
-  function handleChange(event) {
-    props.onChange(event.target.value.replace(/[^0-9]/g, ''))
+  function handleChange(e) {
+    e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
+    return props.onChange(e)
   }
 
   return (
-    <div>
-      <TextField
-        {...props}
-        InputProps={iprops}
-        type={props.type || 'tel'}
-        onChange={handleChange}
-      />
-    </div>
+    <TextField
+      {...props}
+      InputProps={iprops}
+      type={props.type || 'tel'}
+      onChange={handleChange}
+      value={props.value.replace(/[^0-9]/g, '')}
+    />
   )
 }

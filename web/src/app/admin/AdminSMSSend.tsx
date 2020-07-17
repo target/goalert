@@ -58,14 +58,6 @@ export default function AdminSMSSend(): JSX.Element {
     onError: () => setShowErrorDialog(true),
   })
 
-  function handleChangeFromNumber(number: string): void {
-    setFromNumber(number)
-  }
-
-  function handleChangeToNumber(number: string): void {
-    setToNumber(number)
-  }
-
   return (
     <React.Fragment>
       <Form>
@@ -74,7 +66,9 @@ export default function AdminSMSSend(): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TelTextField
-                  onChange={handleChangeFromNumber}
+                  onChange={(e: React.FormEvent<HTMLInputElement>) =>
+                    setFromNumber((e.target as HTMLInputElement).value)
+                  }
                   value={fromNumber}
                   fullWidth
                   label='From Number'
@@ -94,7 +88,9 @@ export default function AdminSMSSend(): JSX.Element {
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TelTextField
-                  onChange={handleChangeToNumber}
+                  onChange={(e: React.FormEvent<HTMLInputElement>) =>
+                    setToNumber((e.target as HTMLInputElement).value)
+                  }
                   value={toNumber}
                   fullWidth
                   label='To Number'

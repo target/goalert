@@ -70,11 +70,6 @@ export default function AdminNumberLookup(): JSX.Element {
   )
   const carrInfo = carrData?.debugCarrierInfo as DebugCarrierInfo
 
-  function handleChangeNumber(number: string): void {
-    setNumber(number)
-    setStaleCarrier(true)
-  }
-
   function renderListItem(label: string, text = ''): JSX.Element {
     return (
       <React.Fragment>
@@ -99,7 +94,10 @@ export default function AdminNumberLookup(): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TelTextField
-                  onChange={handleChangeNumber}
+                  onChange={(e: React.FormEvent<HTMLInputElement>) => {
+                    setNumber((e.target as HTMLInputElement).value)
+                    setStaleCarrier(true)
+                  }}
                   value={number}
                   label='Phone Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
