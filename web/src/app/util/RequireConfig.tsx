@@ -1,12 +1,10 @@
 import React, { useContext } from 'react'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
-import { ConfigType, ConfigValue } from '../../schema'
+import { ConfigType, ConfigValue, ConfigID } from '../../schema'
 
 type Value = boolean | number | string | string[] | null
-type ConfigData = {
-  [x: string]: Value
-}
+export type ConfigData = Record<ConfigID, Value>
 
 const ConfigContext = React.createContext({
   config: [] as ConfigValue[],
@@ -30,7 +28,7 @@ const query = gql`
 `
 
 type ConfigProviderProps = {
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
@@ -73,11 +71,11 @@ function isTrue(value: Value): boolean {
 }
 
 const mapConfig = (value: ConfigValue[]): ConfigData => {
-  const data: ConfigData = {}
+  const data: { [x: string]: Value } = {}
   value.forEach((v) => {
     data[v.id] = parseValue(v.type, v.value)
   })
-  return data
+  return data as ConfigData
 }
 
 export type SessionInfo = {
@@ -119,7 +117,7 @@ export function useConfig(): ConfigData {
 // ```js
 // const [mailgun, slack] = useConfigValue('Mailgun.Enable', 'Slack.Enable')
 // ```
-export function useConfigValue(...fields: string[]): Value[] {
+export function useConfigValue(...fields: ConfigID[]): Value[] {
   const config = useConfig()
   return fields.map((f) => config[f])
 }
@@ -131,17 +129,19 @@ export function Config(props: {
 }
 
 export type RequireConfigProps = {
-  configID: string
+  configID: ConfigID
   // test to determine whether or not children or else is returned
   test?: (x: Value) => boolean
 
   // react element to render if checks failed
   else?: JSX.Element
   isAdmin?: boolean
-  children: JSX.Element
+  children: React.ReactChildren
 }
 
-export default function RequireConfig(props: RequireConfigProps): JSX.Element {
+export default function RequireConfig(
+  props: RequireConfigProps,
+): JSX.Element | null {
   const {
     configID,
     test = isTrue,
@@ -159,5 +159,5 @@ export default function RequireConfig(props: RequireConfigProps): JSX.Element {
     return elseValue
   }
 
-  return children
+  return <React.Fragment>{children}</React.Fragment>
 }

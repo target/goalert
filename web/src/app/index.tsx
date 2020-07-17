@@ -20,7 +20,7 @@ import history from './history'
 import store from './reduxStore'
 import { GracefulUnmounterProvider } from './util/gracefulUnmount'
 import GoogleAnalytics from './util/GoogleAnalytics'
-import { Config, ConfigProvider } from './util/RequireConfig'
+import { Config, ConfigProvider, ConfigData } from './util/RequireConfig'
 import { warn } from './util/debug'
 
 // version check
@@ -64,9 +64,9 @@ ReactDOM.render(
           <MuiPickersUtilsProvider>
             <ConfigProvider>
               <Config>
-                {(config: { 'General.GoogleAnalyticsID': string }) => (
+                {(config: ConfigData) => (
                   <LazyGARouteTracker
-                    trackingID={config['General.GoogleAnalyticsID']}
+                    trackingID={config['General.GoogleAnalyticsID'] as string}
                   />
                 )}
               </Config>
