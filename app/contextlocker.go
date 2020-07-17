@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"sync/atomic"
 )
 
@@ -14,12 +15,23 @@ type contextLocker struct {
 	rLock      chan struct{}
 	rUnlock    chan struct{}
 	rNotLocked chan struct{}
+
+	isShutdown chan struct{}
+	shutdownCh chan struct{}
 }
 type lockReq struct {
 	cancel <-chan struct{}
 	ch     chan bool
 }
 
+func (c *contextLocker) Shutdown(ctx context.Context) error {
+	select {
+	case <-c.shutdownCh:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return nil
+}
 func newContextLocker() *contextLocker {
 	c := &contextLocker{
 		lock:       make(chan lockReq),
@@ -27,6 +39,8 @@ func newContextLocker() *contextLocker {
 		rLock:      make(chan struct{}),
 		rUnlock:    make(chan struct{}),
 		rNotLocked: make(chan struct{}),
+		isShutdown: make(chan struct{}),
+		shutdownCh: make(chan struct{}),
 	}
 	go c.loop()
 	return c
@@ -37,6 +51,11 @@ func (c *contextLocker) writeLock(req lockReq) {
 		case <-c.rUnlock:
 			atomic.AddInt64(&c.readCount, -1)
 		case <-req.cancel:
+			req.ch <- false
+			return
+		case c.shutdownCh <- struct{}{}:
+			close(c.isShutdown)
+			close(c.shutdownCh)
 			req.ch <- false
 			return
 		}
@@ -71,6 +90,10 @@ func (c *contextLocker) loop() {
 			case <-c.rLock:
 				atomic.AddInt64(&c.readCount, 1)
 			case <-c.rNotLocked:
+			case c.shutdownCh <- struct{}{}:
+				close(c.isShutdown)
+				close(c.shutdownCh)
+				return
 			}
 			continue
 		}
@@ -82,18 +105,28 @@ func (c *contextLocker) loop() {
 			atomic.AddInt64(&c.readCount, 1)
 		case <-c.rUnlock:
 			atomic.AddInt64(&c.readCount, -1)
+		case c.shutdownCh <- struct{}{}:
+			close(c.isShutdown)
+			close(c.shutdownCh)
+			return
 		}
 	}
 }
 func (c *contextLocker) RLockCount() int {
 	return int(atomic.LoadInt64(&c.readCount))
 }
+
+// ErrLockerShutdown is returned when attempting to aquire a lock after being shutdown.
+var ErrLockerShutdown = errors.New("context locker is already shutdown")
+
 func (c *contextLocker) Lock(ctx context.Context) error {
 	ch := make(chan bool)
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case c.lock <- lockReq{cancel: ctx.Done(), ch: ch}:
+	case <-c.isShutdown:
+		return ErrLockerShutdown
 	}
 
 	if <-ch {
@@ -115,6 +148,8 @@ func (c *contextLocker) RLock(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	case c.rLock <- struct{}{}:
+	case <-c.isShutdown:
+		return ErrLockerShutdown
 	}
 
 	return nil
@@ -124,5 +159,6 @@ func (c *contextLocker) RUnlock() {
 	case c.rUnlock <- struct{}{}:
 	case c.rNotLocked <- struct{}{}:
 		panic("not locked")
+	case <-c.isShutdown:
 	}
 }
