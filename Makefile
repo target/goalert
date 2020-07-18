@@ -1,7 +1,8 @@
-.PHONY: stop start build-docker lint tools regendb resetdb
+.PHONY: stop start build-docker lint tools resetdb resetdb
 .PHONY: smoketest generate check all test test-long install install-race
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
+.PHONY: docker-goalert docker-all-in-one release release-binaries
 .SUFFIXES:
 
 GOFILES = $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print | grep -v web/inline_data_gen.go) go.sum
@@ -45,8 +46,20 @@ ifdef BUNDLE
 	GOFILES += web/inline_data_gen.go
 endif
 
+DOCKER_IMAGE_PREFIX=docker.io/goalert
+DOCKER_TAG=$(GIT_VERSION)
+
+ifeq ($(PUSH), 1)
+PUSH_FLAG=--push
+endif
+
 all: test install
 
+release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz
+docker-all-in-one: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64 bin/resetdb-linux-amd64 bin/resetdb-linux-arm bin/resetdb-linux-arm64
+	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
+docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64
+	docker buildx build --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
@@ -63,6 +76,10 @@ $(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
 
 $(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -name '*.go')
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
+$(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -name '*.go')
+	GOOS=linux GOARCH=arm go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
+$(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -name '*.go')
+	GOOS=linux GOARCH=arm64 go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
 $(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
 	rm -rf $(BIN_DIR)/$*

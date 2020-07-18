@@ -1,0 +1,17 @@
+FROM --platform=$BUILDPLATFORM goalert/build-env AS binaries
+ARG BUILDPLATFORM
+COPY bin/goalert-linux-arm /linux/arm/v7/goalert
+COPY bin/resetdb-linux-arm /linux/arm/v7/resetdb
+COPY bin/goalert-linux-arm64 /linux/arm64/goalert
+COPY bin/resetdb-linux-arm64 /linux/arm64/resetdb
+COPY bin/goalert-linux-amd64 /linux/amd64/goalert
+COPY bin/resetdb-linux-amd64 /linux/amd64/resetdb
+
+FROM alpine:3.12
+ARG TARGETPLATFORM
+RUN apk --no-cache add postgresql postgresql-contrib musl-locales tzdata ca-certificates
+COPY --from=binaries /$TARGETPLATFORM/* /bin/
+COPY devtools/ci/dockerfiles/all-in-one/start.sh /bin/start.sh
+ENV GOALERT_LISTEN :8081
+EXPOSE 8081
+CMD ["/bin/start.sh"]
