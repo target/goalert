@@ -86,7 +86,7 @@
     "lodash-es": "4.17.15",
     "luxon": "1.23.0",
     "mdi-material-ui": "6.14.0",
-    "modernizr": "3.11.2",
+    "modernizr": "3.11.3",
     "modernizr-loader": "1.0.1",
     "react": "16.13.1",
     "react-apollo": "3.1.5",
