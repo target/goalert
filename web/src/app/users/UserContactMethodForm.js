@@ -5,7 +5,6 @@ import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import TelTextField from '../util/TelTextField'
 import { MenuItem, Typography } from '@material-ui/core'
-import InputAdornment from '@material-ui/core/InputAdornment'
 
 export default class UserContactMethodForm extends React.PureComponent {
   static propTypes = {
@@ -72,13 +71,6 @@ export default class UserContactMethodForm extends React.PureComponent {
               required
               label='Phone Number'
               type='tel'
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment style={{ marginBottom: '0.1em' }}>
-                    +
-                  </InputAdornment>
-                ),
-              }}
               component={TelTextField}
               mapValue={(val) => val.replace(/^\+/, '')}
               mapOnChangeValue={cleanValue}

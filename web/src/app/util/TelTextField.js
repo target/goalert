@@ -27,7 +27,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function TelTextField({ InputProps, ...props }) {
+export default function TelTextField({ ...props }) {
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState(null)
 
@@ -57,12 +57,27 @@ export default function TelTextField({ InputProps, ...props }) {
     adorn = <Close className={classes.invalid} />
   }
 
+  let iprops = {
+    startAdornment: (
+      <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
+        +
+      </InputAdornment>
+    ),
+  }
+
+  // if has inputProps from parent commponent, spread it in the iprops
+  if (props.InputProps !== undefined) {
+    iprops = {
+      ...props.InputProps,
+      ...iprops,
+    }
+  }
+
   // add live validation icon to the right of the textfield as an endAdornment
-  let iprops = InputProps
   if (adorn) {
     iprops = {
       endAdornment: <InputAdornment position='end'>{adorn}</InputAdornment>,
-      ...InputProps,
+      ...iprops,
     }
   }
 

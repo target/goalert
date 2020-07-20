@@ -9,7 +9,6 @@ import {
   DialogActions,
   DialogTitle,
   Grid,
-  InputAdornment,
   TextField,
   Typography,
   makeStyles,
@@ -74,16 +73,6 @@ export default function AdminSMSSend(): JSX.Element {
                   label='From Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
                   type='tel'
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment
-                        position='start'
-                        style={{ marginBottom: '0.1em' }}
-                      >
-                        +
-                      </InputAdornment>
-                    ),
-                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
@@ -96,16 +85,6 @@ export default function AdminSMSSend(): JSX.Element {
                   label='To Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
                   type='tel'
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment
-                        position='start'
-                        style={{ marginBottom: '0.1em' }}
-                      >
-                        +
-                      </InputAdornment>
-                    ),
-                  }}
                 />
               </Grid>
               <Grid item xs={12}>

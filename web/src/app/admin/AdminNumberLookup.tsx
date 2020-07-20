@@ -10,7 +10,6 @@ import {
   DialogTitle,
   Divider,
   Grid,
-  InputAdornment,
   List,
   ListItem,
   ListItemText,
@@ -102,16 +101,6 @@ export default function AdminNumberLookup(): JSX.Element {
                   label='Phone Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
                   type='tel'
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment
-                        position='start'
-                        style={{ marginBottom: '0.1em' }}
-                      >
-                        +
-                      </InputAdornment>
-                    ),
-                  }}
                 />
               </Grid>
             </Grid>
