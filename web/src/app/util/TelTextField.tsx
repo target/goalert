@@ -27,7 +27,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function TelTextField({ ...props }) {
+export default function TelTextField({ ...props }): JSX.Element {
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState(null)
 
@@ -51,13 +51,16 @@ export default function TelTextField({ ...props }) {
   const valid = _.get(data, 'phoneNumberInfo.valid', null)
 
   let adorn
-  if (valid) {
+  if (props.value === '+') {
+    adorn = ''
+  } else if (valid) {
     adorn = <Check className={classes.valid} />
-  } else if (props.error) {
+  } else if (valid === false) {
     adorn = <Close className={classes.invalid} />
   }
 
-  let iprops = {
+  let iprops: any
+  iprops = {
     startAdornment: (
       <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
         +
@@ -68,8 +71,8 @@ export default function TelTextField({ ...props }) {
   // if has inputProps from parent commponent, spread it in the iprops
   if (props.InputProps !== undefined) {
     iprops = {
-      ...props.InputProps,
       ...iprops,
+      ...props.InputProps,
     }
   }
 
@@ -82,7 +85,7 @@ export default function TelTextField({ ...props }) {
   }
 
   // remove unwanted character
-  function handleChange(e) {
+  function handleChange(e: any): void {
     e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
     return props.onChange(e)
   }
