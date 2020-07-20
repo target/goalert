@@ -59,7 +59,7 @@ export default function TelTextField({ ...props }): JSX.Element {
     adorn = <Close className={classes.invalid} />
   }
 
-  let iprops: any
+  let iprops: object
   iprops = {
     startAdornment: (
       <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
