@@ -85,7 +85,7 @@ export default function TelTextField({ ...props }): JSX.Element {
   }
 
   // remove unwanted character
-  function handleChange(e: any): void {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
     return props.onChange(e)
   }
