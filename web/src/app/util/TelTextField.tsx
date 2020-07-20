@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 
 export default function TelTextField({ ...props }): JSX.Element {
   const classes = useStyles()
-  const [phoneNumber, setPhoneNumber] = useState(null)
+  const [phoneNumber, setPhoneNumber] = useState('')
 
   // debounce to set the phone number
   useEffect(() => {
