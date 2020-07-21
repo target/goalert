@@ -97,6 +97,7 @@ export default function TelTextField(
 
   return (
     <TextField
+      fullWidth
       {...props}
       InputProps={iprops}
       type={props.type || 'tel'}
