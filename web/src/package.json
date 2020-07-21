@@ -68,7 +68,7 @@
     "@date-io/luxon": "1.3.13",
     "@material-ui/core": "4.11.0",
     "@material-ui/icons": "4.9.1",
-    "@material-ui/lab": "4.0.0-alpha.47",
+    "@material-ui/lab": "4.0.0-alpha.56",
     "apollo-cache-inmemory": "1.6.6",
     "apollo-client": "2.6.10",
     "apollo-link": "1.2.14",
