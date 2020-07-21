@@ -234,50 +234,6 @@ func validateEnable(prefix string, isEnabled bool, vals ...string) error {
 	return err
 }
 
-func validateScopes(item, value string) error {
-	var err error
-
-	if strings.HasPrefix(value, " ") {
-		err = validate.Many(err, validation.NewFieldError(item, "starts with extra space"))
-	}
-
-	if strings.HasSuffix(value, " ") {
-		err = validate.Many(err, validation.NewFieldError(item, "ends with extra space"))
-	}
-
-	value = strings.TrimSpace(value)
-
-	if strings.Contains(value, "  ") {
-		err = validate.Many(err, validation.NewFieldError(item, "has double spaces"))
-	}
-
-	names := map[string]int{}
-
-	for _, name := range strings.Split(value, " ") {
-		if name == "" {
-			continue
-		}
-
-		if _, ok := names[name]; ok {
-			names[name]++
-		} else {
-			names[name] = 1
-		}
-	}
-
-	if _, ok := names["openid"]; !ok {
-		err = validate.Many(err, validation.NewFieldError(item, "does not contain required \"openid\" scope"))
-	}
-
-	for name, count := range names {
-		if count > 1 {
-			err = validate.Many(err, validation.NewFieldError(item, fmt.Sprintf("contains %q %d times", name, count)))
-		}
-	}
-
-	return err
-}
-
 // Validate will check that the Config values are valid.
 func (cfg Config) Validate() error {
 	var err error
@@ -289,6 +245,18 @@ func (cfg Config) Validate() error {
 	}
 
 	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }
+	validatePath := func(fname, val string) error {
+		if val == "" {
+			return nil
+		}
+		return validate.JMESPath(fname, val)
+	}
+	validateScopes := func(fname, val string) error {
+		if val == "" {
+			return nil
+		}
+		return validate.OAuthScope(fname, val, "openid")
+	}
 
 	err = validate.Many(
 		err,
@@ -303,9 +271,10 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
 		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
-		validate.JMESPath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
-		validate.JMESPath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),
-		validate.JMESPath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
+		validateScopes("OIDC.Scopes", cfg.OIDC.Scopes),
+		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
+		validatePath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),
+		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {
