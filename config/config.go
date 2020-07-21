@@ -303,6 +303,9 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
 		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
+		validate.JMESPath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
+		validate.JMESPath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),
+		validate.JMESPath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {
