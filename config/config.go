@@ -64,9 +64,10 @@ type Config struct {
 		ClientID     string
 		ClientSecret string `password:"true"`
 
-		Scopes        string `info:"OpenID Connect scopes (default: openid profile email)"`
-		UserInfoEmail string `info:"JMESPath expression to find email address in UserInfo (suggestion: email)"`
-		UserInfoName  string `info:"JMESPath expression to find full name in UserInfo (suggestion: name || cn || join(' ', [firstname, lastname]))"`
+		Scopes                    string `info:"Requested scopes for authentication. If left blank, openid, profile, and email will be used."`
+		UserInfoEmailPath         string `info:"JMESPath expression to find email address in UserInfo. If set, the email claim will be ignored in favor of this. (suggestion: email)."`
+		UserInfoEmailVerifiedPath string `info:"JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified)."`
+		UserInfoNamePath          string `info:"JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))"`
 	}
 
 	Mailgun struct {
