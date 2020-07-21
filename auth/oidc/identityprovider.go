@@ -286,80 +286,87 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 		claims.Name = strings.TrimSpace(claims.GivenName + " " + claims.FamilyName)
 	}
 
-	if (claims.Email == "" && cfg.OIDC.UserInfoEmail != "") ||
-		(claims.Name == "" && cfg.OIDC.UserInfoName != "") {
-		rawInfo, err := p.userInfo(ctx, idToken.Subject, oaCfg.TokenSource(ctx, oauth2Token))
-		if err != nil {
-			return nil, err
-		}
-
-		cfg := config.FromContext(ctx)
-
-		if err := userInfoData(rawInfo, cfg.OIDC.UserInfoEmail, &claims.Email); err != nil {
-			log.Log(ctx, errors.Wrap(err, "search for email in userinfo"))
-		}
-
-		if err := userInfoData(rawInfo, cfg.OIDC.UserInfoName, &claims.Name); err != nil {
-			log.Log(ctx, errors.Wrap(err, "search for name in userinfo"))
-		}
-	}
-
-	return &auth.Identity{
+	id := auth.Identity{
 		Email:         claims.Email,
 		Name:          claims.Name,
 		EmailVerified: claims.Verified,
 		SubjectID:     idToken.Subject,
-	}, nil
+	}
+
+	var info interface{}
+	getInfo := func(search string) interface{} {
+		if err != nil {
+			return nil
+		}
+		if info == nil {
+			info, err = p.userInfoData(ctx, oaCfg.TokenSource(ctx, oauth2Token))
+		}
+		if err != nil {
+			log.Log(ctx, err)
+			return nil
+		}
+		res, searchErr := jmespath.Search(search, info)
+		if searchErr != nil {
+			log.Log(ctx, errors.Wrapf(searchErr, "lookup %s in UserInfo"))
+			return nil
+		}
+
+		return res
+	}
+	infoFieldStr := func(name, search string, field *string) {
+		if search == "" {
+			return
+		}
+		*field = ""
+		res := getInfo(search)
+		if res == nil {
+			return
+		}
+		s, ok := res.(string)
+		if !ok {
+			log.Log(ctx, errors.Errorf("expected %s to be a string in UserInfo", name))
+			return
+		}
+		*field = s
+	}
+	infoFieldBool := func(name, search string, field *bool) {
+		if search == "" {
+			return
+		}
+		*field = false
+		res := getInfo(search)
+		if res == nil {
+			return
+		}
+		v, ok := res.(bool)
+		if !ok {
+			log.Log(ctx, errors.Errorf("expected %s to be a bool in UserInfo", name))
+			return
+		}
+		*field = v
+	}
+	infoFieldStr("Email", cfg.OIDC.UserInfoEmailPath, &id.Email)
+	infoFieldBool("EmailVerified", cfg.OIDC.UserInfoEmailVerifiedPath, &id.EmailVerified)
+	infoFieldStr("Name", cfg.OIDC.UserInfoNamePath, &id.Name)
+
+	return &id, nil
 }
 
-func (p *Provider) userInfo(ctx context.Context, subj string, token oauth2.TokenSource) (interface{}, error) {
+func (p *Provider) userInfoData(ctx context.Context, token oauth2.TokenSource) (interface{}, error) {
 	provider, err := p.provider(ctx)
 	if err != nil {
-		log.Log(ctx, errors.Wrap(err, "retrieving OIDC provider from config"))
-		return nil, auth.Error("Cannot retrieve OIDC provider from config")
+		return nil, errors.Wrap(err, "get provider")
 	}
 
 	info, err := provider.UserInfo(ctx, token)
 	if err != nil {
-		log.Log(ctx, errors.Wrapf(err, "fetching userinfo for user %s", subj))
-		return nil, auth.Error("Cannot fetch OIDC user info")
+		return nil, errors.Wrap(err, "fetch UserInfo")
 	}
 
 	var rawInfo interface{}
-
 	if err := info.Claims(&rawInfo); err != nil {
-		log.Log(ctx, errors.Wrap(err, "parsing userinfo"))
-		return nil, auth.Error("Cannot fetch OIDC user info")
+		return nil, errors.Wrap(err, "parse UserInfo")
 	}
 
 	return rawInfo, nil
-}
-
-func userInfoData(rawInfo interface{}, setting string, claim *string) error {
-	if *claim != "" {
-		return nil
-	}
-
-	item, err := extractValue(rawInfo, setting)
-	if err != nil {
-		return err
-	}
-
-	*claim = item
-
-	return nil
-}
-
-func extractValue(rawInfo interface{}, setting string) (string, error) {
-	raw, err := jmespath.Search(setting, rawInfo)
-	if err != nil {
-		return "", err
-	}
-
-	strVal, ok := raw.(string)
-	if !ok {
-		return "", errors.Errorf("%q returned %T", setting, raw)
-	}
-
-	return strVal, nil
 }
