@@ -54,8 +54,8 @@ export default function TelTextField(
   const valid = _.get(data, 'phoneNumberInfo.valid', null)
 
   let adorn
-  if (props.value === '+') {
-    adorn = ''
+  if (!props.value) {
+    // no adornment if empty
   } else if (valid) {
     adorn = <Check className={classes.valid} />
   } else if (valid === false) {
@@ -90,6 +90,7 @@ export default function TelTextField(
   // remove unwanted character
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     if (!props.onChange) return
+    if (!e.target.value) return props.onChange(e)
     e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
     return props.onChange(e)
   }
