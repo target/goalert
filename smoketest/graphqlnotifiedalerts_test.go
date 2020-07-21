@@ -28,6 +28,7 @@ func TestNotifiedAlerts(t *testing.T) {
 
 	insert into escalation_policy_steps (id, escalation_policy_id) 
 	values ({{uuid "esid"}}, {{uuid "eid"}});
+ 
 
 	insert into services (id, escalation_policy_id, name) 
 	values
@@ -98,7 +99,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}
 
-	var alerts1 Alerts
+	var alerts1, alerts2 Alerts
 
 	// notes
 	// - "user" is assigned to "sid"
@@ -128,49 +129,24 @@ func TestNotifiedAlerts(t *testing.T) {
 		t.Errorf("got %d alerts; want 1", len(alerts1.Alerts.Nodes))
 	}
 
-	doQL(t, h, fmt.Sprintf(`
-		query {
-			service (id: "%s") { 
-				isFavorite 
-			}	
-		}
-	`, h.UUID("sid2")), &s)
-
 	// test:
 	// includeNotified: true // service1
 	// favoritesOnly: true // service2
 	// output: 2 alerts (1 from favorited, 1 from notified)
 
-	// doQL(t, h, fmt.Sprintf(`
-	// 	query{
-	// alert(id: "%s"){
-	// 	alertID
-	// }
-	// 	}
-	// `, h.UUID("sid")), &s)
+	doQL(t, h, `query {
+			alerts(input: {
+				includeNotified: true
+				favoritesOnly: true
+			}) {
+				nodes {
+					id
+				}
+			}
+		}`, &alerts2)
 
-	// doQL(t, h, `query {
-	// 		alerts(input: {
-	// 			includeNotified: true
-	// 			favoritesOnly: true
-	// 		}) {
-	// 			nodes {
-	// 				id
-	// 			}
-	// 		}
-	// 	}`, &alerts2)
-
-	// if len(alerts2.Alerts.Nodes) != 2 {
-	// 	t.Errorf("got %d alerts; want 2", len(alerts2.Alerts.Nodes))
-	// }
+	if len(alerts2.Alerts.Nodes) != 2 {
+		t.Errorf("got %d alerts; want 2", len(alerts2.Alerts.Nodes))
+	}
 
 }
-
-// `query {
-// 	users(first: 100) {
-// 		nodes {
-// 			id
-// 		}
-// 	}
-// }
-//
