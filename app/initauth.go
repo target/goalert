@@ -13,10 +13,12 @@ import (
 func (app *App) initAuth(ctx context.Context) error {
 
 	var err error
-	app.authHandler, err = auth.NewHandler(ctx, app.db, auth.HandlerConfig{
+	app.AuthHandler, err = auth.NewHandler(ctx, app.db, auth.HandlerConfig{
 		UserStore:      app.UserStore,
 		SessionKeyring: app.SessionKeyring,
 		IntKeyStore:    app.IntegrationKeyStore,
+		CalSubStore:    app.CalSubStore,
+		APIKeyring:     app.APIKeyring,
 	})
 	if err != nil {
 		return errors.Wrap(err, "init auth handler")
@@ -30,7 +32,7 @@ func (app *App) initAuth(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init OIDC auth provider")
 	}
-	app.authHandler.AddIdentityProvider("oidc", oidcProvider)
+	app.AuthHandler.AddIdentityProvider("oidc", oidcProvider)
 
 	githubConfig := &github.Config{
 		Keyring:    app.OAuthKeyring,
@@ -41,13 +43,13 @@ func (app *App) initAuth(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init GitHub auth provider")
 	}
-	app.authHandler.AddIdentityProvider("github", githubProvider)
+	app.AuthHandler.AddIdentityProvider("github", githubProvider)
 
 	basicProvider, err := basic.NewProvider(ctx, app.db)
 	if err != nil {
 		return errors.Wrap(err, "init basic auth provider")
 	}
-	app.authHandler.AddIdentityProvider("basic", basicProvider)
+	app.AuthHandler.AddIdentityProvider("basic", basicProvider)
 
 	return err
 }

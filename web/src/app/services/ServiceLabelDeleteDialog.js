@@ -37,7 +37,7 @@ export default class ServiceLabelDeleteDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        update={cache => {
+        update={(cache) => {
           const { service } = cache.readQuery({
             query: updateQuery,
             variables: { id: this.props.serviceID },
@@ -49,7 +49,7 @@ export default class ServiceLabelDeleteDialog extends React.PureComponent {
               service: {
                 ...service,
                 labels: (service.labels || []).filter(
-                  l => l.key !== this.props.labelKey,
+                  (l) => l.key !== this.props.labelKey,
                 ),
               },
             },

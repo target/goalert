@@ -2,55 +2,109 @@ package mocktwilio
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
+
+// SMS represents an SMS message.
+type SMS struct {
+	s         *Server
+	msg       twilio.Message
+	body      string
+	statusURL string
+	destURL   string
+	start     time.Time
+	mx        sync.Mutex
+
+	acceptCh chan bool
+	doneCh   chan struct{}
+}
+
+func (s *Server) sendSMS(from, to, body, statusURL, destURL string) (*SMS, error) {
+	if statusURL != "" {
+		err := validate.URL("StatusCallback", statusURL)
+		if err != nil {
+			return nil, twilio.Exception{
+				Code:    11100,
+				Message: err.Error(),
+			}
+		}
+		s.mx.RLock()
+		_, hasCallback := s.callbacks["SMS:"+from]
+		s.mx.RUnlock()
+
+		if !hasCallback {
+			return nil, twilio.Exception{
+				Code:    21606,
+				Message: `The "From" phone number provided is not a valid, SMS-capable inbound phone number for your account.`,
+			}
+		}
+	}
+	if destURL != "" {
+		err := validate.URL("Callback", destURL)
+		if err != nil {
+			return nil, twilio.Exception{
+				Code:    11100,
+				Message: err.Error(),
+			}
+		}
+	}
+
+	sms := &SMS{
+		s: s,
+		msg: twilio.Message{
+			To:     to,
+			From:   from,
+			Status: twilio.MessageStatusAccepted,
+			SID:    s.id("SM"),
+		},
+		statusURL: statusURL,
+		destURL:   destURL,
+		start:     time.Now(),
+		body:      body,
+		acceptCh:  make(chan bool, 1),
+		doneCh:    make(chan struct{}),
+	}
+
+	s.mx.Lock()
+	s.messages[sms.msg.SID] = sms
+	s.mx.Unlock()
+
+	s.smsInCh <- sms
+
+	return sms, nil
+}
 
 func (s *Server) serveNewMessage(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
-	var sms SMS
-	sms.msg.From = req.FormValue("From")
-	if s.callbacks["SMS:"+sms.msg.From] == "" {
-		apiError(400, w, &twilio.Exception{
-			Code:    21606,
-			Message: `The "From" phone number provided is not a valid, SMS-capable inbound phone number for your account.`,
-		})
+
+	sms, err := s.sendSMS(req.FormValue("From"), req.FormValue("To"), req.FormValue("Body"), req.FormValue("StatusCallback"), "")
+
+	if e := (twilio.Exception{}); errors.As(err, &e) {
+		apiError(400, w, &e)
 		return
 	}
-	sms.msg.To = req.FormValue("To")
-	sms.msg.SID = s.id("SM")
-	sms.msg.Status = twilio.MessageStatusAccepted
-	sms.callbackURL = req.FormValue("StatusCallback")
-	sms.start = time.Now()
-	sms.s = s
-	err := validate.URL("StatusCallback", sms.callbackURL)
 	if err != nil {
-		apiError(400, w, &twilio.Exception{
-			Code:    11100,
-			Message: err.Error(),
-		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	sms.body = req.FormValue("Body")
-
-	s.mx.Lock()
-	s.messages[sms.msg.SID] = &sms
-	data, err := json.Marshal(sms.msg)
+	data, err := json.Marshal(sms.cloneMessage())
 	if err != nil {
 		panic(err)
 	}
-	s.mx.Unlock()
 
 	w.WriteHeader(201)
 	_, err = w.Write(data)
@@ -58,60 +112,61 @@ func (s *Server) serveNewMessage(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 }
+
 func (s *Server) serveMessageStatus(w http.ResponseWriter, req *http.Request) {
 	id := strings.TrimSuffix(path.Base(req.URL.Path), ".json")
-	var msg twilio.Message
-
-	s.mx.RLock()
-	sms := s.messages[id]
-	if sms != nil {
-		msg = sms.msg // copy while we have the read lock
-	}
-	s.mx.RUnlock()
-
+	sms := s.sms(id)
 	if sms == nil {
 		http.NotFound(w, req)
 		return
 	}
-	err := json.NewEncoder(w).Encode(msg)
+
+	err := json.NewEncoder(w).Encode(sms.cloneMessage())
 	if err != nil {
 		panic(err)
 	}
 }
 
-// SMS represents an SMS message.
-type SMS struct {
-	s           *Server
-	msg         twilio.Message
-	body        string
-	callbackURL string
-	start       time.Time
-}
-
 func (sms *SMS) updateStatus(stat twilio.MessageStatus) {
-	// move to queued
-	sms.s.mx.Lock()
+	sms.mx.Lock()
 	sms.msg.Status = stat
-	sms.s.mx.Unlock()
+	sms.mx.Unlock()
+
+	if sms.statusURL == "" {
+		return
+	}
 
 	// attempt post to status callback
-	_, err := sms.s.post(sms.callbackURL, sms.values(false))
+	_, err := sms.s.post(sms.statusURL, sms.values(false))
 	if err != nil {
-		sms.s.errs <- errors.Wrap(err, "post to SMS status callback")
+		sms.s.errs <- err
 	}
+}
+func (sms *SMS) cloneMessage() *twilio.Message {
+	sms.mx.Lock()
+	defer sms.mx.Unlock()
+
+	msg := sms.msg
+	return &msg
+}
+
+func (s *Server) sms(id string) *SMS {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
+
+	return s.messages[id]
 }
 
 func (sms *SMS) values(body bool) url.Values {
 	v := make(url.Values)
-	sms.s.mx.RLock()
-	v.Set("MessageStatus", string(sms.msg.Status))
-	v.Set("MessageSid", sms.msg.SID)
-	v.Set("To", sms.msg.To)
-	v.Set("From", sms.msg.From)
+	msg := sms.cloneMessage()
+	v.Set("MessageStatus", string(msg.Status))
+	v.Set("MessageSid", msg.SID)
+	v.Set("To", msg.To)
+	v.Set("From", msg.From)
 	if body {
 		v.Set("Body", sms.body)
 	}
-	sms.s.mx.RUnlock()
 	return v
 }
 
@@ -123,22 +178,68 @@ func (s *Server) SMS() chan *SMS {
 // SendSMS will cause an SMS to be sent to the given number with the contents of body.
 //
 // The to parameter must match a value passed to RegisterSMSCallback or an error is returned.
-func (s *Server) SendSMS(from, to, body string) {
-	s.mx.Lock()
+func (s *Server) SendSMS(from, to, body string) error {
+	s.mx.RLock()
 	cbURL := s.callbacks["SMS:"+to]
-	s.mx.Unlock()
+	s.mx.RUnlock()
 
 	if cbURL == "" {
-		s.errs <- errors.New("unknown/unregistered desination (to) number")
+		return fmt.Errorf(`unknown/unregistered desination (to) number "%s"`, to)
 	}
 
-	v := make(url.Values)
-	v.Set("From", from)
-	v.Set("Body", body)
-
-	_, err := s.post(cbURL, v)
+	sms, err := s.sendSMS(from, to, body, "", cbURL)
 	if err != nil {
-		s.errs <- err
+		return err
+	}
+
+	<-sms.doneCh
+
+	return nil
+}
+
+func (sms *SMS) process() {
+	defer sms.s.workers.Done()
+	defer close(sms.doneCh)
+
+	if sms.s.wait(sms.s.cfg.MinQueueTime) {
+		return
+	}
+
+	sms.updateStatus(twilio.MessageStatusQueued)
+
+	if sms.s.wait(sms.s.cfg.MinQueueTime) {
+		return
+	}
+
+	sms.updateStatus(twilio.MessageStatusSending)
+
+	if sms.destURL != "" {
+		// inbound SMS
+		_, err := sms.s.post(sms.destURL, sms.values(true))
+		if err != nil {
+			sms.s.errs <- err
+			sms.updateStatus(twilio.MessageStatusUndelivered)
+		} else {
+			sms.updateStatus(twilio.MessageStatusDelivered)
+		}
+		return
+	}
+
+	select {
+	case <-sms.s.shutdown:
+		return
+	case sms.s.smsCh <- sms:
+	}
+
+	select {
+	case <-sms.s.shutdown:
+		return
+	case accepted := <-sms.acceptCh:
+		if accepted {
+			sms.updateStatus(twilio.MessageStatusDelivered)
+		} else {
+			sms.updateStatus(twilio.MessageStatusFailed)
+		}
 	}
 }
 
@@ -164,10 +265,12 @@ func (sms *SMS) Body() string {
 
 // Accept will cause the SMS to be marked as delivered.
 func (sms *SMS) Accept() {
-	sms.updateStatus(twilio.MessageStatusDelivered)
+	sms.acceptCh <- true
+	close(sms.acceptCh)
 }
 
-// Reject will cause the SMS to be marked as undelivered (failed).
+// Reject will cause the SMS to be marked as failed.
 func (sms *SMS) Reject() {
-	sms.updateStatus(twilio.MessageStatusFailed)
+	sms.acceptCh <- false
+	close(sms.acceptCh)
 }

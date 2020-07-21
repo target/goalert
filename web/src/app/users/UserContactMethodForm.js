@@ -35,7 +35,7 @@ export default class UserContactMethodForm extends React.PureComponent {
   }
 
   render() {
-    const cleanValue = val => {
+    const cleanValue = (val) => {
       val = val.replace(/[^0-9]/g, '')
 
       if (!val) {
@@ -79,7 +79,7 @@ export default class UserContactMethodForm extends React.PureComponent {
                 ),
               }}
               component={TextField}
-              mapValue={val => val.replace(/^\+/, '')}
+              mapValue={(val) => val.replace(/^\+/, '')}
               mapOnChangeValue={cleanValue}
               disabled={this.props.edit}
             />
@@ -89,7 +89,7 @@ export default class UserContactMethodForm extends React.PureComponent {
                 component='p'
                 id='countryCodeIndicator'
               >
-                Please provide your country code e.g. +1 (USA), +91 (India) +44
+                Please provide your country code e.g. +1 (USA), +91 (India), +44
                 (UK)
               </Typography>
             )}

@@ -1,9 +1,10 @@
 package smoketest
 
 import (
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestEscalation tests that alerts are escalated automatically, per the delay_minutes setting.
@@ -52,10 +53,9 @@ values
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	d := h.Twilio().Device(h.Phone("1"))
+	d := h.Twilio(t).Device(h.Phone("1"))
 	d.ExpectSMS("testing")
-	h.Twilio().WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
-	h.Twilio().Device(h.Phone("2")).ExpectSMS("testing")
+	h.Twilio(t).Device(h.Phone("2")).ExpectSMS("testing")
 }

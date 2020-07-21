@@ -29,6 +29,7 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 	}
 	return true, nil
 }
+
 func (a *Mutation) TestContactMethod(ctx context.Context, id string) (bool, error) {
 	err := a.NotificationStore.SendContactMethodTest(ctx, id)
 	if err != nil {
@@ -70,6 +71,7 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 		assignment.TargetTypeRotation,
 		assignment.TargetTypeUserOverride,
 		assignment.TargetTypeSchedule,
+		assignment.TargetTypeCalendarSubscription,
 		assignment.TargetTypeUser,
 		assignment.TargetTypeIntegrationKey,
 		assignment.TargetTypeHeartbeatMonitor,
@@ -97,6 +99,8 @@ func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) 
 			err = errors.Wrap(a.IntKeyStore.DeleteManyTx(ctx, tx, ids), "delete integration keys")
 		case assignment.TargetTypeSchedule:
 			err = errors.Wrap(a.ScheduleStore.DeleteManyTx(ctx, tx, ids), "delete schedules")
+		case assignment.TargetTypeCalendarSubscription:
+			err = errors.Wrap(a.CalSubStore.DeleteTx(ctx, tx, permission.UserID(ctx), ids...), "delete calendar subscriptions")
 		case assignment.TargetTypeRotation:
 			err = errors.Wrap(a.RotationStore.DeleteManyTx(ctx, tx, ids), "delete rotations")
 		case assignment.TargetTypeContactMethod:

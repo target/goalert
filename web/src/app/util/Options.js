@@ -16,7 +16,6 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth/index'
-import { LegacyGraphQLClient } from '../apollo'
 
 /*
  * Renders options that will fix to the top right of the screen (in the app bar)
@@ -48,7 +47,7 @@ export default class Options extends Component {
     showOptions: false,
   }
 
-  handleOpenMenu = event => {
+  handleOpenMenu = (event) => {
     this.setState({
       anchorEl: event.currentTarget,
       show: true,
@@ -61,7 +60,7 @@ export default class Options extends Component {
     })
   }
 
-  handleShowOptions = bool => {
+  handleShowOptions = (bool) => {
     this.setState({
       showOptions: bool,
     })
@@ -73,20 +72,20 @@ export default class Options extends Component {
   onMutationSubmit = (o, mutation) => {
     this.handleCloseMenu()
     this.handleShowOptions(false)
-    return mutation({ variables: o.mutation.variables }).catch(error =>
+    return mutation({ variables: o.mutation.variables }).catch((error) =>
       this.setState({ errorMessage: error.message, showErrorDialog: true }),
     )
   }
 
-  onClick = o => {
-    Promise.resolve(o.onClick()).catch(error =>
+  onClick = (o) => {
+    Promise.resolve(o.onClick()).catch((error) =>
       this.setState({ errorMessage: error.message, showErrorDialog: true }),
     )
   }
 
   renderItemMutation = (o, idx, type) => {
     // render list or menu item
-    const item = mutation => {
+    const item = (mutation) => {
       if (type === 'list') {
         return (
           <ListItem button onClick={() => this.onMutationSubmit(o, mutation)}>
@@ -110,7 +109,6 @@ export default class Options extends Component {
     // wrap with mutation component
     return (
       <Mutation
-        client={LegacyGraphQLClient}
         key={idx}
         mutation={o.mutation.query}
         update={(cache, { data }) => {
@@ -120,12 +118,12 @@ export default class Options extends Component {
           }
         }}
       >
-        {mutation => item(mutation)}
+        {(mutation) => item(mutation)}
       </Mutation>
     )
   }
 
-  renderIconButton = onClick => {
+  renderIconButton = (onClick) => {
     const { asIcon, Icon, iconProps } = this.props
 
     if (asIcon) {

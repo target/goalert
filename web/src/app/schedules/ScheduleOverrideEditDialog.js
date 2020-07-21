@@ -102,7 +102,7 @@ export default class ScheduleOverrideEditDialog extends React.PureComponent {
             disabled={status.loading}
             errors={fieldErrors(status.error)}
             value={this.getValue(data)}
-            onChange={value => this.setState({ value })}
+            onChange={(value) => this.setState({ value })}
           />
         }
       />

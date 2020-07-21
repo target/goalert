@@ -19,17 +19,20 @@ type Config struct {
 	fallbackURL string
 
 	General struct {
-		PublicURL              string `public:"true" info:"Publicly routable URL for UI links and API calls."`
-		GoogleAnalyticsID      string `public:"true"`
-		NotificationDisclaimer string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
-		DisableLabelCreation   bool   `public:"true" info:"Disables the ability to create new labels for services."`
-		MessageBundles         bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
-		ShortURL               string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
-		DisableSMSLinks        bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
+		PublicURL                    string `public:"true" info:"Publicly routable URL for UI links and API calls."`
+		GoogleAnalyticsID            string `public:"true"`
+		NotificationDisclaimer       string `public:"true" info:"Disclaimer text for receiving pre-recorded notifications (appears on profile page)."`
+		MessageBundles               bool   `public:"true" info:"Enables bundling status updates and alert notifications. Also allows 'ack/close all' responses to bundled alerts."`
+		ShortURL                     string `public:"true" info:"If set, messages will contain a shorter URL using this as a prefix (e.g. http://example.com). It should point to GoAlert and can be the same as the PublicURL."`
+		DisableSMSLinks              bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
+		DisableLabelCreation         bool   `public:"true" info:"Disables the ability to create new labels for services."`
+		DisableCalendarSubscriptions bool   `public:"true" info:"If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions."`
+		DisableV1GraphQL             bool   `info:"Disables the deprecated /v1/graphql endpoint (replaced by /api/graphql)."`
 	}
 
 	Maintenance struct {
 		AlertCleanupDays int `public:"true" info:"Closed alerts will be deleted after this many days (0 means disable cleanup)."`
+		APIKeyExpireDays int `public:"true" info:"Unused calendar API keys will be disabled after this many days (0 means disable cleanup)."`
 	}
 
 	Auth struct {
@@ -90,12 +93,36 @@ type Config struct {
 		AccountSID string
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
+
+		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
+		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
+		SMSFromNumberOverride []string `info:"List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number."`
 	}
 
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
 	}
+}
+
+// TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
+func (cfg Config) TwilioSMSFromNumber(carrier string) string {
+	if carrier == "" {
+		return cfg.Twilio.FromNumber
+	}
+
+	for _, s := range cfg.Twilio.SMSFromNumberOverride {
+		parts := strings.SplitN(s, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		if parts[0] != carrier {
+			continue
+		}
+		return parts[1]
+	}
+
+	return cfg.Twilio.FromNumber
 }
 
 func (cfg Config) rawCallbackURL(path string, mergeParams ...url.Values) *url.URL {
@@ -274,6 +301,7 @@ func (cfg Config) Validate() error {
 		validateKey("GitHub.ClientSecret", cfg.GitHub.ClientSecret),
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
+		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {
@@ -343,6 +371,27 @@ func (cfg Config) Validate() error {
 			err,
 			validate.AbsoluteURL(field, urlStr),
 		)
+	}
+
+	m := make(map[string]bool)
+	for i, str := range cfg.Twilio.SMSFromNumberOverride {
+		parts := strings.SplitN(str, "=", 2)
+		fname := fmt.Sprintf("Twilio.SMSFromNumberOverride[%d]", i)
+		if len(parts) != 2 {
+			err = validate.Many(err, validation.NewFieldError(
+				fname,
+				"must be in the format 'carrier=number'",
+			))
+			continue
+		}
+		err = validate.Many(err,
+			validate.ASCII(fname+".Carrier", parts[0], 1, 255),
+			validate.Phone(fname+".Phone", parts[1]),
+		)
+		if m[parts[0]] {
+			err = validate.Many(err, validation.NewFieldError(fname, fmt.Sprintf("carrier override '%s' already set", parts[0])))
+		}
+		m[parts[0]] = true
 	}
 
 	return err

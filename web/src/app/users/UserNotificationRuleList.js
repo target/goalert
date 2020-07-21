@@ -35,7 +35,7 @@ const query = gql`
   }
 `
 
-const styles = theme => {
+const styles = (theme) => {
   const { cardHeader } = globalStyles(theme)
 
   return {
@@ -76,7 +76,7 @@ export default class UserNotificationRuleList extends React.PureComponent {
           />
           <FlatList
             data-cy='notification-rules'
-            items={sortNotificationRules(notificationRules).map(nr => ({
+            items={sortNotificationRules(notificationRules).map((nr) => ({
               title: formatNotificationRule(nr.delayMinutes, nr.contactMethod),
               secondaryAction: this.props.readOnly ? null : (
                 <IconButton

@@ -2,8 +2,6 @@ import { Chance } from 'chance'
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Markdown', testMarkdown)
-
 interface Config {
   // test is the name of the section
   test: string
@@ -15,7 +13,38 @@ interface Config {
   gen: (desc: string) => Cypress.Chainable<{ id: string; name: string }>
 }
 
-function testMarkdown(screen: ScreenFormat) {
+function testMarkdownDesc(screen: ScreenFormat, cfg: Config): void {
+  let rawDescription: string
+  let generated: { id: string; name: string }
+  beforeEach(() => {
+    rawDescription = c.word({ length: 8 })
+    return cfg.gen('# ' + rawDescription).then((g) => {
+      generated = g
+    })
+  })
+
+  describe('Details', () => {
+    beforeEach(() => {
+      return cy.visit(`/${cfg.url}/${generated.id}`)
+    })
+    it('should render description with markdown', () => {
+      // make sure markdown renders properly
+      cy.get('h1').should('not.contain', '#').should('contain', rawDescription)
+    })
+  })
+
+  describe('List', () => {
+    beforeEach(() => {
+      cy.visit(`/${cfg.url}`)
+      return cy.pageSearch(generated.name)
+    })
+    it('should render the first line of the description', () => {
+      cy.get('body').should('contain', rawDescription)
+    })
+  })
+}
+
+function testMarkdown(screen: ScreenFormat): void {
   ;[
     {
       test: 'Rotations',
@@ -37,38 +66,7 @@ function testMarkdown(screen: ScreenFormat) {
       url: 'services',
       gen: (desc: string) => cy.createService({ description: desc }),
     },
-  ].forEach(cfg => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
+  ].forEach((cfg) => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
 }
 
-function testMarkdownDesc(screen: ScreenFormat, cfg: Config) {
-  let rawDescription: string
-  let generated: { id: string; name: string }
-  beforeEach(() => {
-    rawDescription = c.word({ length: 8 })
-    return cfg.gen('# ' + rawDescription).then(g => {
-      generated = g
-    })
-  })
-
-  describe('Details', () => {
-    beforeEach(() => {
-      return cy.visit(`/${cfg.url}/${generated.id}`)
-    })
-    it('should render description with markdown', () => {
-      //make sure markdown renders properly
-      cy.get('h1')
-        .should('not.contain', '#')
-        .should('contain', rawDescription)
-    })
-  })
-
-  describe('List', () => {
-    beforeEach(() => {
-      cy.visit(`/${cfg.url}`)
-      return cy.pageSearch(generated.name)
-    })
-    it('should render the first line of the description', () => {
-      cy.get('body').should('contain', rawDescription)
-    })
-  })
-}
+testScreen('Markdown', testMarkdown)

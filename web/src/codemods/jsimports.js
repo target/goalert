@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0 */
 /*
  * This codemod will raise all imports to the top of the file,
  * sort alphabetically, and separate local and node_modules/ imports.
@@ -15,7 +16,7 @@ const fs = require('fs')
 
 const appDir = path.resolve(__dirname, '../app')
 
-const isLocal = p => p.source.value.startsWith('.')
+const isLocal = (p) => p.source.value.startsWith('.')
 export default function transformer(file, api) {
   const j = api.jscodeshift
   const root = j(file.source)
@@ -24,7 +25,7 @@ export default function transformer(file, api) {
   const imports = root.find(j.ImportDeclaration)
 
   // make imports relative
-  imports.forEach(p => {
+  imports.forEach((p) => {
     const src = '' + p.node.source.value
     if (src.startsWith('.')) {
       return
@@ -42,7 +43,7 @@ export default function transformer(file, api) {
   const nodes = imports.nodes()
 
   const dedup = {}
-  nodes.forEach(n => {
+  nodes.forEach((n) => {
     if (!dedup[n.source.value]) {
       dedup[n.source.value] = n
       return
@@ -53,16 +54,16 @@ export default function transformer(file, api) {
     )
   })
 
-  const deduped = Object.keys(dedup).map(k => dedup[k])
-  deduped.forEach(n => {
+  const deduped = Object.keys(dedup).map((k) => dedup[k])
+  deduped.forEach((n) => {
     const dedup = {}
-    n.specifiers.forEach(s => {
+    n.specifiers.forEach((s) => {
       if (!dedup[s.local.name]) {
         dedup[s.local.name] = s
       }
     })
     n.specifiers = Object.keys(dedup)
-      .map(k => dedup[k])
+      .map((k) => dedup[k])
       // sort specifiers
       .sort((a, b) => {
         if (!a.imported) return -1
@@ -87,14 +88,11 @@ export default function transformer(file, api) {
     return a.source.value < b.source.value ? -1 : 1
   })
 
-  sorted.forEach(s => {
+  sorted.forEach((s) => {
     s.loc = null
   })
 
-  root
-    .find(j.Statement)
-    .at(0)
-    .insertBefore(sorted)
+  root.find(j.Statement).at(0).insertBefore(sorted)
   imports.remove()
 
   return root.toSource({ quote: 'single' })

@@ -616,7 +616,7 @@ func (v *Voice) ServeAlertStatus(w http.ResponseWriter, req *http.Request) {
 		fallthrough
 	case "", digitRepeat:
 		message := fmt.Sprintf(
-			"%sStatus update for Alert number %d. %s. To repeat this message, press %s. To unenroll from all notifications, press %s. If you are done, you may simply hang up.",
+			"%sStatus update for Alert number %d. %s. To repeat this message, press %s. To unenroll from voice notifications to this number, press %s. If you are done, you may simply hang up.",
 			messagePrefix, call.msgSubjectID, call.msgBody, digitRepeat, digitStop)
 		g := &gather{
 			Action:    v.callbackURL(ctx, call.Q, CallTypeAlertStatus),

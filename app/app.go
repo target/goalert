@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"crypto/tls"
 	"database/sql"
 	"net"
@@ -11,6 +12,7 @@ import (
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/auth/nonce"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/engine/resolver"
@@ -44,7 +46,7 @@ import (
 
 // App represents an instance of the GoAlert application.
 type App struct {
-	cfg appConfig
+	cfg Config
 
 	mgr *lifecycle.Manager
 
@@ -60,10 +62,10 @@ type App struct {
 	startupErr  error
 
 	notificationManager *notification.Manager
-	engine              *engine.Engine
+	Engine              *engine.Engine
 	graphql             *graphql.Handler
 	graphql2            *graphqlapp.App
-	authHandler         *auth.Handler
+	AuthHandler         *auth.Handler
 
 	twilioSMS    *twilio.SMS
 	twilioVoice  *twilio.Voice
@@ -89,13 +91,15 @@ type App struct {
 	ScheduleStore       schedule.Store
 	RotationStore       rotation.Store
 
+	CalSubStore    *calendarsubscription.Store
 	OverrideStore  override.Store
 	Resolver       resolver.Resolver
-	LimitStore     limit.Store
+	LimitStore     *limit.Store
 	HeartbeatStore heartbeat.Store
 
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
+	APIKeyring     keyring.Keyring
 
 	NonceStore    nonce.Store
 	LabelStore    label.Store
@@ -105,7 +109,7 @@ type App struct {
 }
 
 // NewApp constructs a new App and binds the listening socket.
-func NewApp(c appConfig, db *sql.DB) (*App, error) {
+func NewApp(c Config, db *sql.DB) (*App, error) {
 	l, err := net.Listen("tcp", c.ListenAddr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "bind address %s", c.ListenAddr)
@@ -120,13 +124,15 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 	}
 
 	app := &App{
-		l:        l,
-		db:       db,
-		cfg:      c,
-		doneCh:   make(chan struct{}),
-		cooldown: newCooldown(c.KubernetesCooldown),
+		l:      l,
+		db:     db,
+		cfg:    c,
+		doneCh: make(chan struct{}),
 
 		requestLock: newContextLocker(),
+	}
+	if c.KubernetesCooldown > 0 {
+		app.cooldown = newCooldown(c.KubernetesCooldown)
 	}
 
 	if c.StatusAddr != "" {
@@ -146,6 +152,17 @@ func NewApp(c appConfig, db *sql.DB) (*App, error) {
 	}
 
 	return app, nil
+}
+
+// WaitForStartup will wait until the startup sequence is completed or the context is expired.
+func (a *App) WaitForStartup(ctx context.Context) error { return a.mgr.WaitForStartup(ctx) }
+
+// DB returns the sql.DB instance used by the application.
+func (a *App) DB() *sql.DB { return a.db }
+
+// URL returns the non-TLS listener URL of the application.
+func (a *App) URL() string {
+	return "http://" + a.l.Addr().String()
 }
 
 // Status returns the current lifecycle status of the App.

@@ -10,7 +10,7 @@ import PageActions from '../util/PageActions'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { startCase, sortBy } from 'lodash-es'
-import { RotationAvatar, UserAvatar } from '../util/avatar'
+import { RotationAvatar, UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
 import SpeedDial from '../util/SpeedDial'
 import { AccountPlus, AccountMultiplePlus } from 'mdi-material-ui'
@@ -43,8 +43,8 @@ const query = gql`
 `
 
 @connect(
-  state => ({ zone: urlParamSelector(state)('tz', 'local') }),
-  dispatch => ({ resetFilter: () => dispatch(resetURLParams('tz')) }),
+  (state) => ({ zone: urlParamSelector(state)('tz', 'local') }),
+  (dispatch) => ({ resetFilter: () => dispatch(resetURLParams('tz')) }),
 )
 export default class ScheduleRuleList extends React.PureComponent {
   static propTypes = {
@@ -78,7 +78,7 @@ export default class ScheduleRuleList extends React.PureComponent {
     const items = []
 
     let lastType
-    sortBy(targets, ['target.type', 'target.name']).forEach(tgt => {
+    sortBy(targets, ['target.type', 'target.name']).forEach((tgt) => {
       const { name, id, type } = tgt.target
       if (type !== lastType) {
         items.push({ subHeader: startCase(type + 's') })

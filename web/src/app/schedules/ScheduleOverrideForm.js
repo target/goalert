@@ -39,14 +39,22 @@ const useStyles = makeStyles({
 })
 
 export default function ScheduleOverrideForm(props) {
-  const { add, remove, errors = [], scheduleID, value, ...formProps } = props
+  const {
+    add,
+    remove,
+    errors = [],
+    scheduleID,
+    value,
+    removeUserReadOnly,
+    ...formProps
+  } = props
 
   const classes = useStyles()
   const params = useSelector(urlParamSelector)
   const zone = params('tz', 'local')
 
   const conflictingUserFieldError = props.errors.find(
-    e => e && e.field === 'userID',
+    (e) => e && e.field === 'userID',
   )
 
   // used to grab conflicting errors from pre-existing overrides
@@ -59,7 +67,7 @@ export default function ScheduleOverrideForm(props) {
   })
 
   const userConflictErrors = errors
-    .filter(e => e.field !== 'userID')
+    .filter((e) => e.field !== 'userID')
     .concat(
       conflictingUserFieldError
         ? mapOverrideUserError(_.get(data, 'userOverride'), value, zone)
@@ -87,7 +95,7 @@ export default function ScheduleOverrideForm(props) {
         <Grid item xs={12} sm={12} md={6}>
           {/* Purposefully leaving out of form, as it's only used for converting display times. */}
           <ScheduleTZFilter
-            label={tz => `Configure in ${tz}`}
+            label={(tz) => `Configure in ${tz}`}
             scheduleID={scheduleID}
           />
         </Grid>
@@ -99,6 +107,7 @@ export default function ScheduleOverrideForm(props) {
               name='removeUserID'
               label={add && remove ? 'User to be Replaced' : 'User to Remove'}
               required
+              disabled={removeUserReadOnly}
             />
           </Grid>
         )}
@@ -160,4 +169,5 @@ ScheduleOverrideForm.propTypes = {
   ),
 
   onChange: p.func.isRequired,
+  removeUserReadOnly: p.bool,
 }

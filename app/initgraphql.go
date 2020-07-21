@@ -29,6 +29,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		FavoriteStore:     app.FavoriteStore,
 		PolicyStore:       app.EscalationStore,
 		ScheduleStore:     app.ScheduleStore,
+		CalSubStore:       app.CalSubStore,
 		RotationStore:     app.RotationStore,
 		OnCallStore:       app.OnCallStore,
 		TimeZoneStore:     app.TimeZoneStore,
@@ -37,9 +38,11 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		RuleStore:         app.ScheduleRuleStore,
 		OverrideStore:     app.OverrideStore,
 		ConfigStore:       app.ConfigStore,
+		LimitStore:        app.LimitStore,
 		NotificationStore: app.NotificationStore,
 		SlackStore:        app.slackChan,
 		HeartbeatStore:    app.HeartbeatStore,
+		Twilio:            app.twilioConfig,
 	}
 
 	var err error
@@ -58,7 +61,6 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		ScheduleRuleStore:   app.ScheduleRuleStore,
 		EscalationStore:     app.EscalationStore,
 		IntegrationKeyStore: app.IntegrationKeyStore,
-		LimitStore:          app.LimitStore,
 		Resolver:            app.Resolver,
 		NotificationStore:   app.NotificationStore,
 		HeartbeatStore:      app.HeartbeatStore,

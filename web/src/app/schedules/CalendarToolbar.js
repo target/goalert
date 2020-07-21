@@ -8,10 +8,11 @@ import {
   makeStyles,
   Typography,
 } from '@material-ui/core'
-import moment from 'moment'
+import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
+import PersonAddIcon from '@material-ui/icons/PersonAdd'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   addOverrideGridItem: {
     marginLeft: theme.spacing(1),
   },
@@ -51,27 +52,22 @@ export default function CalendarToolbar(props) {
   const urlParams = useSelector(urlParamSelector)
   const weekly = urlParams('weekly', false)
 
-  const handleTodayClick = e => {
-    props.onNavigate(e, moment().toDate())
+  const handleTodayClick = (e) => {
+    props.onNavigate(e, DateTime.local().toJSDate())
   }
 
-  const handleBackClick = e => {
-    const nextDate = weekly
-      ? moment(date)
-          .clone()
-          .subtract(1, 'week')
-      : moment(date)
-          .clone()
-          .subtract(1, 'month')
+  const handleBackClick = (e) => {
+    const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+    const nextDate = DateTime.fromJSDate(date).minus(timeUnit).toJSDate()
 
-    props.onNavigate(e, nextDate.toDate())
+    props.onNavigate(e, nextDate)
   }
 
-  const handleNextClick = e => {
-    // either month or week
-    const dateCopy = moment(date).clone()
-    const nextDate = weekly ? dateCopy.add(1, 'week') : dateCopy.add(1, 'month')
-    props.onNavigate(e, nextDate.toDate())
+  const handleNextClick = (e) => {
+    const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+    const nextDate = DateTime.fromJSDate(date).plus(timeUnit).toJSDate()
+
+    props.onNavigate(e, nextDate)
   }
 
   const handleMonthViewClick = () => {
@@ -100,6 +96,7 @@ export default function CalendarToolbar(props) {
 
       <Grid item xs={12} lg={4} className={classes.labelGridItem}>
         <Typography component='p' data-cy='calendar-header' variant='subtitle1'>
+          {/* label is passed from react-big-calendar in <ScheduleCalendar> */}
           {props.label}
         </Typography>
       </Grid>
@@ -126,13 +123,15 @@ export default function CalendarToolbar(props) {
         </ButtonGroup>
         <Button
           data-cy='add-override'
-          variant='outlined'
+          variant='contained'
           size='small'
           color='primary'
           className={classes.addOverrideGridItem}
           onClick={() => handleAddOverrideClick()}
+          startIcon={<PersonAddIcon />}
+          title='Temporarily add a user to this schedule'
         >
-          Add Override
+          Temp Add
         </Button>
       </Grid>
     </Grid>

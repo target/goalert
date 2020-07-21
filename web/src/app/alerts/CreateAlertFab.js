@@ -7,7 +7,7 @@ import AddIcon from '@material-ui/icons/Add'
 import Tooltip from '@material-ui/core/Tooltip'
 import p from 'prop-types'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   fab: {
     position: 'fixed',
     bottom: '2em',
@@ -21,14 +21,7 @@ const useStyles = makeStyles(theme => ({
       easing: theme.transitions.easing.easeOut,
     }),
   },
-  warningTransitionUp: {
-    transform: 'translate3d(0, -7.75em, 0)',
-    transition: theme.transitions.create('transform', {
-      duration: theme.transitions.duration.enteringScreen,
-      easing: theme.transitions.easing.easeOut,
-    }),
-  },
-  fabClose: {
+  transitionDown: {
     transform: 'translate3d(0, 0, 0)',
     transition: theme.transitions.create('transform', {
       duration: theme.transitions.duration.leavingScreen,
@@ -41,13 +34,9 @@ export default function CreateAlertFab(props) {
   const classes = useStyles()
   const [open, setOpen] = useState(false)
 
-  let fabOpen = classes.transitionUp
-  // use set padding for the larger vertical height on warning snackbar
-  if (props.showFavoritesWarning) {
-    fabOpen = classes.warningTransitionUp
-  }
-
-  const transitionClass = props.transition ? fabOpen : classes.fabClose
+  const transitionClass = props.transition
+    ? classes.transitionUp
+    : classes.transitionDown
 
   return (
     <React.Fragment>
@@ -73,6 +62,5 @@ export default function CreateAlertFab(props) {
 
 CreateAlertFab.propTypes = {
   serviceID: p.string,
-  showFavoritesWarning: p.bool, // sets a larger vertical padding for the snackbar toast message
-  transition: p.bool, // bool to transition fab up or down from snackbar notification
+  transition: p.bool, // bool to transition fab up or down from snackbar message
 }

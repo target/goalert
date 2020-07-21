@@ -16,47 +16,45 @@ func applyMiddleware(h http.Handler, middleware ...func(http.Handler) http.Handl
 	return h
 }
 
-func muxRedirect(mux *http.ServeMux, from, to string) {
-	mux.HandleFunc(from, func(w http.ResponseWriter, req *http.Request) {
-		http.Redirect(w, req, to, http.StatusTemporaryRedirect)
-	})
-}
-func muxRedirectPrefix(mux *http.ServeMux, prefix, to string) {
-	mux.HandleFunc(prefix, func(w http.ResponseWriter, req *http.Request) {
-		http.Redirect(w, req, to+strings.TrimPrefix(req.URL.Path, prefix), http.StatusTemporaryRedirect)
-	})
-}
-func muxRewriteWith(mux *http.ServeMux, from string, fn func(req *http.Request) *http.Request) {
-	mux.HandleFunc(from,
-		func(w http.ResponseWriter, req *http.Request) {
-			mux.ServeHTTP(w, fn(req))
+func httpRedirect(prefix, from, to string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			if req.URL.Path != from {
+				next.ServeHTTP(w, req)
+				return
+			}
+
+			http.Redirect(w, req, prefix+to, http.StatusTemporaryRedirect)
 		})
+	}
 }
-func muxRewrite(mux *http.ServeMux, from, to string) {
+
+func httpRewriteWith(prefix, from string, fn func(req *http.Request) *http.Request) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			if req.URL.Path == from || (strings.HasSuffix(from, "/") && strings.HasPrefix(req.URL.Path, from)) {
+				req = fn(req)
+				req.URL.Path = prefix + req.URL.Path
+			}
+
+			next.ServeHTTP(w, req)
+		})
+	}
+}
+
+func httpRewrite(prefix, from, to string) func(http.Handler) http.Handler {
 	u, err := url.Parse(to)
 	if err != nil {
 		panic(err)
 	}
 	uQ := u.Query()
 
-	muxRewriteWith(mux, from, func(req *http.Request) *http.Request {
+	return httpRewriteWith(prefix, from, func(req *http.Request) *http.Request {
+		origPath := req.URL.Path
 		req.URL.Path = u.Path
-		q := req.URL.Query()
-		for key := range uQ {
-			q.Set(key, uQ.Get(key))
+		if strings.HasSuffix(from, "/") {
+			req.URL.Path += strings.TrimPrefix(origPath, from)
 		}
-		req.URL.RawQuery = q.Encode()
-		return req
-	})
-}
-func muxRewritePrefix(mux *http.ServeMux, prefix, to string) {
-	u, err := url.Parse(to)
-	if err != nil {
-		panic(err)
-	}
-	uQ := u.Query()
-	muxRewriteWith(mux, prefix, func(req *http.Request) *http.Request {
-		req.URL.Path = u.Path + strings.TrimPrefix(req.URL.Path, prefix)
 		q := req.URL.Query()
 		for key := range uQ {
 			q.Set(key, uQ.Get(key))

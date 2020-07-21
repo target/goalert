@@ -2,9 +2,10 @@ package smoketest
 
 import (
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestPolicyReassignment tests that only the active escalation policy is used for alerts.
@@ -56,41 +57,38 @@ values
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	tw := h.Twilio()
+	tw := h.Twilio(t)
 	d1 := tw.Device(h.Phone("1"))
 	d2 := tw.Device(h.Phone("2"))
 
 	d1.ExpectSMS("testing")
-	tw.WaitAndAssert()
 
-	h.GraphQLQuery(fmt.Sprintf(`
+	h.GraphQLQuery2(fmt.Sprintf(`
 		mutation{
 			updateService(input:{
 				id: "%s"
 				name: "ok"
-				escalation_policy_id: "%s"
-			}) {id}
+				escalationPolicyID: "%s"
+			})
 		}
 	`, h.UUID("sid"), h.UUID("ep2")))
 
 	d2.ExpectSMS("testing")
-	tw.WaitAndAssert()
 
 	h.FastForward(30 * time.Minute)
 	// no new alerts
 	tw.WaitAndAssert()
 
-	h.GraphQLQuery(fmt.Sprintf(`
+	h.GraphQLQuery2(fmt.Sprintf(`
 		mutation{
 		updateService(input:{
 			id: "%s"
 			name: "ok"
-			escalation_policy_id: "%s"
-		}) {id}
+			escalationPolicyID: "%s"
+		}) 
 		}
 	`, h.UUID("sid"), h.UUID("ep1")))
 
 	// should get immediate message
 	d1.ExpectSMS("testing")
-	tw.WaitAndAssert()
 }

@@ -33,7 +33,7 @@ export default function ServiceLabelFilterContainer(props) {
           name='label-key'
           label='Select Label Key'
           value={labelKey}
-          onChange={labelKey => props.onChange({ ...props.value, labelKey })}
+          onChange={(labelKey) => props.onChange({ ...props.value, labelKey })}
         />
       </Grid>
       <Grid data-cy='label-value-container' item xs={12}>
@@ -42,7 +42,7 @@ export default function ServiceLabelFilterContainer(props) {
           label='Select Label Value'
           labelKey={labelKey}
           value={labelValue}
-          onChange={v =>
+          onChange={(v) =>
             props.onChange({ ...props.value, labelValue: v || '' })
           }
           disabled={!labelKey}

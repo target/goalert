@@ -1,24 +1,22 @@
-declare namespace Cypress {
-  interface Chainable {
-    login: typeof login
-    adminLogin: typeof adminLogin
-  }
+function normalizeURL(url: string | null): string {
+  if (!url) throw new Error('url required')
+  return new URL(url).toString()
 }
 
 function login(
   username?: string,
   password?: string,
-  tokenOnly: boolean = false,
+  tokenOnly = false,
 ): Cypress.Chainable<string> {
   if (!username) {
     return cy
       .fixture('profile')
-      .then(p => login(p.username, p.password, tokenOnly))
+      .then((p) => login(p.username, p.password, tokenOnly))
   }
   if (!password) {
     return cy
       .fixture('profile')
-      .then(p => login(username, p.password, tokenOnly))
+      .then((p) => login(username, p.password, tokenOnly))
   }
 
   if (tokenOnly) {
@@ -37,7 +35,7 @@ function login(
           Cookie: '',
         },
       })
-      .then(res => {
+      .then((res) => {
         return res.body
       })
   }
@@ -57,19 +55,21 @@ function login(
         Cookie: '',
       },
     })
-    .then(res => {
+    .then((res) => {
       expect(res.redirectedToUrl, 'response redirect').to.eq(
-        Cypress.config('baseUrl') + '/',
+        normalizeURL(Cypress.config('baseUrl')),
       )
       return ''
     }) as Cypress.Chainable<string>
 }
 
-function adminLogin(tokenOnly: boolean = false): Cypress.Chainable<string> {
+function adminLogin(tokenOnly = false): Cypress.Chainable<string> {
   return cy
     .fixture('profileAdmin')
-    .then(p => login(p.username, p.password, tokenOnly))
+    .then((p) => login(p.username, p.password, tokenOnly))
 }
 
 Cypress.Commands.add('login', login)
 Cypress.Commands.add('adminLogin', adminLogin)
+
+export {}

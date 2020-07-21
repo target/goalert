@@ -1,3 +1,5 @@
+import { pathPrefix } from '../env'
+
 export const AUTH_LOGOUT = 'AUTH_LOGOUT'
 
 // authLogout will update the user's auth state.
@@ -9,8 +11,8 @@ export const AUTH_LOGOUT = 'AUTH_LOGOUT'
 export function authLogout(performFetch = false) {
   const payload = { type: AUTH_LOGOUT }
   if (!performFetch) return payload
-  return dispatch =>
-    fetch('/api/v2/identity/logout', {
+  return (dispatch) =>
+    fetch(pathPrefix + '/api/v2/identity/logout', {
       credentials: 'same-origin',
       method: 'POST',
     }).then(dispatch(payload))

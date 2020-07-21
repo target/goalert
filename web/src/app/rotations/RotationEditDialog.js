@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { useQuery, useMutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import Query from '../util/Query'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
+import Spinner from '../loading/components/Spinner'
+import { GenericError } from '../error-pages'
 
 const query = gql`
   query($id: ID!) {
@@ -27,69 +28,58 @@ const mutation = gql`
   }
 `
 
-export default class RotationEditDialog extends React.PureComponent {
-  static propTypes = {
-    rotationID: p.string.isRequired,
-    onClose: p.func,
-  }
+export default function RotationEditDialog(props) {
+  const [value, setValue] = useState(null)
 
-  state = {
-    value: null,
-  }
+  const { loading, error, data } = useQuery(query, {
+    variables: { id: props.rotationID },
+    pollInterval: 0,
+  })
 
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.rotationID }}
-        noPoll
-        render={({ data }) => this.renderMutation(data.rotation)}
-      />
-    )
-  }
+  const [editRotation, editRotationStatus] = useMutation(mutation, {
+    onCompleted: props.onClose,
+  })
 
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(...args) => this.renderForm(data, ...args)}
-      </Mutation>
-    )
-  }
+  if (loading && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
 
-  renderForm = (data, commit, status) => {
-    return (
-      <FormDialog
-        title='Edit Rotation'
-        errors={nonFieldErrors(status.error)}
-        onClose={this.props.onClose}
-        onSubmit={() =>
-          commit({
-            variables: {
-              input: {
-                id: this.props.rotationID,
-                ...this.state.value,
-              },
+  return (
+    <FormDialog
+      title='Edit Rotation'
+      errors={nonFieldErrors(editRotationStatus.error)}
+      onClose={props.onClose}
+      onSubmit={() =>
+        editRotation({
+          variables: {
+            input: {
+              id: props.rotationID,
+              ...value,
             },
-          })
-        }
-        form={
-          <RotationForm
-            errors={fieldErrors(status.error)}
-            disabled={status.loading}
-            value={
-              this.state.value || {
-                name: data.name,
-                description: data.description,
-                timeZone: data.timeZone,
-                type: data.type,
-                shiftLength: data.shiftLength,
-                start: data.start,
-              }
+          },
+        })
+      }
+      form={
+        <RotationForm
+          errors={fieldErrors(editRotationStatus.error)}
+          disabled={editRotationStatus.loading}
+          value={
+            value || {
+              name: data.rotation.name,
+              description: data.rotation.description,
+              timeZone: data.rotation.timeZone,
+              type: data.rotation.type,
+              shiftLength: data.rotation.shiftLength,
+              start: data.rotation.start,
             }
-            onChange={value => this.setState({ value })}
-          />
-        }
-      />
-    )
-  }
+          }
+          onChange={(value) => setValue(value)}
+        />
+      }
+    />
+  )
+}
+
+RotationEditDialog.propTypes = {
+  rotationID: p.string.isRequired,
+  onClose: p.func,
 }

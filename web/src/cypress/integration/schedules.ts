@@ -1,10 +1,10 @@
 import { Chance } from 'chance'
 import { testScreen } from '../support'
+import { Schedule, ScheduleTarget } from '../../schema'
+
 const c = new Chance()
 
-testScreen('Schedules', testSchedules)
-
-function testSchedules(screen: ScreenFormat) {
+function testSchedules(screen: ScreenFormat): void {
   describe('Creation', () => {
     it('should create a schedule', () => {
       const name = c.word({ length: 8 })
@@ -25,7 +25,7 @@ function testSchedules(screen: ScreenFormat) {
 
   describe('List Page', () => {
     it('should find a schedule', () => {
-      cy.createSchedule().then(sched => {
+      cy.createSchedule().then((sched: Schedule) => {
         cy.visit('/schedules')
         cy.pageSearch(sched.name)
         cy.get('body')
@@ -41,11 +41,11 @@ function testSchedules(screen: ScreenFormat) {
     let sched: Schedule
     beforeEach(() => {
       cy.createRotation()
-        .then(r => {
+        .then((r: Rotation) => {
           rot = r
         })
         .createSchedule()
-        .then(s => {
+        .then((s: Schedule) => {
           sched = s
           return cy.visit('/schedules/' + sched.id)
         })
@@ -132,10 +132,8 @@ function testSchedules(screen: ScreenFormat) {
             weekdayFilter: [true, true, true, true, true, true, true],
           },
         ],
-      }).then(tgt => {
-        cy.get('li')
-          .contains('Shifts')
-          .click()
+      }).then(() => {
+        cy.get('li').contains('Shifts').click()
         cy.reload()
         cy.get('[data-cy=flat-list-item-subheader]').should('contain', 'Today')
         cy.get('[data-cy=flat-list-item-subheader]').should(
@@ -152,15 +150,15 @@ function testSchedules(screen: ScreenFormat) {
     let sched: ScheduleTarget
     beforeEach(() => {
       cy.createRotation()
-        .then(r => {
+        .then((r: Rotation) => {
           rot = r
           return cy.setScheduleTarget({
             target: { id: r.id, type: 'rotation' },
           })
         })
-        .then(s => {
+        .then((s: ScheduleTarget) => {
           sched = s
-          return cy.visit('/schedules/' + sched.schedule.id + '/assignments')
+          return cy.visit('/schedules/' + sched.scheduleID + '/assignments')
         })
     })
 
@@ -275,14 +273,14 @@ function testSchedules(screen: ScreenFormat) {
   describe('Schedule Overrides', () => {
     let sched: Schedule
     beforeEach(() => {
-      cy.createSchedule().then(s => {
+      cy.createSchedule().then((s: Schedule) => {
         sched = s
         return cy.visit('/schedules/' + sched.id + '/overrides')
       })
     })
 
     it('should create an add override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Add')
@@ -297,7 +295,7 @@ function testSchedules(screen: ScreenFormat) {
     })
 
     it('should create a remove override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Remove')
@@ -312,7 +310,7 @@ function testSchedules(screen: ScreenFormat) {
     })
 
     it('should create a replace override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('span').should('contain', 'No results')
 
         cy.pageFab('Replace')
@@ -327,7 +325,7 @@ function testSchedules(screen: ScreenFormat) {
     })
 
     it('should edit and delete an override', () => {
-      cy.fixture('users').then(users => {
+      cy.fixture('users').then((users) => {
         cy.get('body').should('contain', 'No results')
 
         cy.pageFab('Add')
@@ -357,3 +355,5 @@ function testSchedules(screen: ScreenFormat) {
     })
   })
 }
+
+testScreen('Schedules', testSchedules)

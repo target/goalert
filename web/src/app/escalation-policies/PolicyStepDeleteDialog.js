@@ -35,7 +35,7 @@ export default class PolicyStepDeleteDialog extends React.PureComponent {
       <Mutation
         mutation={mutation}
         onCompleted={this.props.onClose}
-        update={cache => {
+        update={(cache) => {
           const { escalationPolicy } = cache.readQuery({
             query,
             variables: { id: this.props.escalationPolicyID },
@@ -47,7 +47,7 @@ export default class PolicyStepDeleteDialog extends React.PureComponent {
               escalationPolicy: {
                 ...escalationPolicy,
                 steps: (escalationPolicy.steps || []).filter(
-                  step => step.id !== this.props.stepID,
+                  (step) => step.id !== this.props.stepID,
                 ),
               },
             },
@@ -63,7 +63,7 @@ export default class PolicyStepDeleteDialog extends React.PureComponent {
     const { loading, error } = mutStatus
 
     // get array of step ids without the step to delete
-    const sids = data.steps.map(s => s.id)
+    const sids = data.steps.map((s) => s.id)
     const toDel = sids.indexOf(this.props.stepID)
     sids.splice(toDel, 1)
 
@@ -73,7 +73,7 @@ export default class PolicyStepDeleteDialog extends React.PureComponent {
         confirm
         subTitle={
           'This will delete step #' +
-          (data.steps.map(s => s.id).indexOf(this.props.stepID) + 1) +
+          (data.steps.map((s) => s.id).indexOf(this.props.stepID) + 1) +
           ' on this escalation policy.'
         }
         loading={loading}

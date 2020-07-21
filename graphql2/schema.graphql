@@ -1,4 +1,6 @@
 type Query {
+  phoneNumberInfo(number: String!): PhoneNumberInfo
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -37,6 +39,9 @@ type Query {
 
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
+
+  # Returns the public information of a calendar subscription
+  userCalendarSubscription(id: ID!): UserCalendarSubscription
 
   # Returns a paginated list of schedules.
   schedules(input: ScheduleSearchOptions): ScheduleConnection!
@@ -81,6 +86,9 @@ type Query {
   # Returns configuration hints (must be admin).
   configHints: [ConfigHint!]!
 
+  # Returns configuration limits
+  systemLimits: [SystemLimit!]!
+
   # Returns a contact method with the given ID.
   userContactMethod(id: ID!): UserContactMethod
 
@@ -108,6 +116,17 @@ type SlackChannelConnection {
   pageInfo: PageInfo!
 }
 
+type SystemLimit {
+  id: SystemLimitID!
+  description: String!
+  value: Int!
+}
+
+input SystemLimitInput {
+  id: SystemLimitID!
+  value: Int!
+}
+
 type ConfigValue {
   id: String!
   description: String!
@@ -124,6 +143,20 @@ enum ConfigType {
   stringList
   integer
   boolean
+}
+enum SystemLimitID {
+  CalendarSubscriptionsPerUser
+  NotificationRulesPerUser
+  ContactMethodsPerUser
+  EPStepsPerPolicy
+  EPActionsPerStep
+  ParticipantsPerRotation
+  RulesPerSchedule
+  IntegrationKeysPerService
+  UnackedAlertsPerService
+  TargetsPerSchedule
+  HeartbeatMonitorsPerService
+  UserOverridesPerSchedule
 }
 
 input UserOverrideSearchOptions {
@@ -190,7 +223,40 @@ type StringConnection {
   pageInfo: PageInfo!
 }
 
+type PhoneNumberInfo {
+  id: String!
+  countryCode: String!
+  regionCode: String!
+  formatted: String!
+  valid: Boolean!
+  error: String!
+}
+
+type DebugCarrierInfo {
+  name: String!
+  type: String!
+  mobileNetworkCode: String!
+  mobileCountryCode: String!
+}
+
+input DebugCarrierInfoInput {
+  number: String!
+}
+
+input DebugSendSMSInput {
+  from: String!
+  to: String!
+  body: String!
+}
+
+type DebugSendSMSInfo {
+  id: ID!
+  providerURL: String!
+}
+
 type Mutation {
+  debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
+  debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
@@ -231,6 +297,14 @@ type Mutation {
   setLabel(input: SetLabelInput!): Boolean!
 
   createSchedule(input: CreateScheduleInput!): Schedule
+
+  createUserCalendarSubscription(
+    input: CreateUserCalendarSubscriptionInput!
+  ): UserCalendarSubscription!
+  updateUserCalendarSubscription(
+    input: UpdateUserCalendarSubscriptionInput!
+  ): Boolean!
+
   updateScheduleTarget(input: ScheduleTargetInput!): Boolean!
   createUserOverride(input: CreateUserOverrideInput!): UserOverride
 
@@ -250,13 +324,47 @@ type Mutation {
   updateUserOverride(input: UpdateUserOverrideInput!): Boolean!
   updateHeartbeatMonitor(input: UpdateHeartbeatMonitorInput!): Boolean!
 
+  updateAlertsByService(input: UpdateAlertsByServiceInput!): Boolean!
+
   setConfig(input: [ConfigValueInput!]): Boolean!
+  setSystemLimits(input: [SystemLimitInput!]!): Boolean!
+}
+
+input UpdateAlertsByServiceInput {
+  serviceID: ID!
+  newStatus: AlertStatus!
 }
 
 input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+  sanitize: Boolean
+}
+
+input CreateUserCalendarSubscriptionInput {
+  name: String!
+  reminderMinutes: [Int!]
+  scheduleID: ID!
+  disabled: Boolean
+}
+input UpdateUserCalendarSubscriptionInput {
+  id: ID!
+  name: String
+  reminderMinutes: [Int!]
+  disabled: Boolean
+}
+type UserCalendarSubscription {
+  id: ID!
+  name: String!
+  reminderMinutes: [Int!]!
+  scheduleID: ID!
+  schedule: Schedule
+  lastAccess: ISOTimestamp!
+  disabled: Boolean!
+
+  # Subscription url, only available upon creation.
+  url: String
 }
 
 input ConfigValueInput {
@@ -275,7 +383,7 @@ input UpdateUserOverrideInput {
 }
 
 input CreateUserOverrideInput {
-  scheduleID: ID!
+  scheduleID: ID
 
   start: ISOTimestamp!
   end: ISOTimestamp!
@@ -291,6 +399,7 @@ input CreateScheduleInput {
   favorite: Boolean
 
   targets: [ScheduleTargetInput!]
+  newUserOverrides: [CreateUserOverrideInput!]
 }
 
 input ScheduleTargetInput {
@@ -301,7 +410,7 @@ input ScheduleTargetInput {
 }
 
 input ScheduleRuleInput {
-  id: ID
+  id: ID @deprecated(reason: "ignored")
   start: ClockTime
   end: ClockTime
 
@@ -450,7 +559,7 @@ type ScheduleTarget {
 }
 
 type ScheduleRule {
-  id: ID!
+  id: ID! @deprecated(reason: "no longer used")
   scheduleID: ID!
 
   start: ClockTime!
@@ -592,6 +701,7 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
+  includeNotified: Boolean = false
   omit: [Int!]
 }
 
@@ -632,6 +742,18 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
+  state: AlertLogEntryState
+}
+
+type AlertLogEntryState {
+  details: String!
+  status: AlertLogStatus
+}
+
+enum AlertLogStatus {
+  OK
+  WARN
+  ERROR
 }
 
 # The escalation policy state details for the alert.
@@ -757,6 +879,7 @@ enum TargetType {
   notificationRule
   contactMethod
   heartbeatMonitor
+  calendarSubscription
 }
 
 type ServiceConnection {
@@ -813,6 +936,7 @@ type User {
 
   contactMethods: [UserContactMethod!]!
   notificationRules: [UserNotificationRule!]!
+  calendarSubscriptions: [UserCalendarSubscription!]!
 
   statusUpdateContactMethodID: ID!
 

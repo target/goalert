@@ -10,7 +10,10 @@ import (
 	"time"
 
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/search"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
@@ -25,6 +28,7 @@ type Store interface {
 	SendContactMethodVerification(ctx context.Context, cmID string) error
 	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	Code(ctx context.Context, id string) (int, error)
+	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
 }
 
 var _ Store = &DB{}
@@ -39,6 +43,7 @@ type DB struct {
 	getCode                      *sql.Stmt
 	isDisabled                   *sql.Stmt
 	sendTestLock                 *sql.Stmt
+	findManyMessageStatuses      *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -118,6 +123,18 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				cm.user_id
 			from user_contact_methods cm
 			where cm.id = $2
+		`),
+
+		findManyMessageStatuses: p.P(`
+				select
+					id,
+					last_status,
+					status_details,
+					provider_msg_id,
+					provider_seq,
+					next_retry_at notnull
+				from outgoing_messages
+				where id = any($1)
 		`),
 	}, p.Err
 }
@@ -270,5 +287,69 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 		return validation.NewFieldError("code", "invalid code")
 	}
 
+	// NOTE: maintain a record of consent/dissent
+	logCtx := log.WithFields(ctx, log.Fields{
+		"contactMethodID": cmID,
+	})
+
+	log.Logf(logCtx, "Contact method ENABLED/VERIFIED.")
+
 	return nil
+}
+
+func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	err = validate.ManyUUID("IDs", ids, search.MaxResults)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.findManyMessageStatuses.QueryContext(ctx, sqlutil.UUIDArray(ids))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []MessageStatus
+	var s MessageStatus
+	for rows.Next() {
+		var lastStatus string
+		var hasNextRetry bool
+		var providerMsgID sql.NullString
+		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry)
+		if err != nil {
+			return nil, err
+		}
+		s.ProviderMessageID = providerMsgID.String
+
+		switch lastStatus {
+		case "queued_remotely", "sending":
+			s.State = MessageStateSending
+		case "pending":
+			s.State = MessageStatePending
+		case "sent":
+			s.State = MessageStateSent
+		case "delivered":
+			s.State = MessageStateDelivered
+		case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
+			// temporary if retry
+			if hasNextRetry {
+				s.State = MessageStateFailedTemp
+			} else {
+				s.State = MessageStateFailedPerm
+			}
+		default:
+			return nil, fmt.Errorf("unknown last_status %s", lastStatus)
+		}
+		result = append(result, s)
+	}
+
+	return result, nil
 }

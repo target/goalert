@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -10,6 +11,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/service"
@@ -18,6 +20,7 @@ import (
 
 type Alert App
 type AlertLogEntry App
+type AlertLogEntryState App
 
 func (a *App) Alert() graphql2.AlertResolver { return (*Alert)(a) }
 
@@ -39,15 +42,108 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(), nil
 }
 
+func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
+	if !ok || meta == nil || !meta.NoOneOnCall {
+		return nil, nil
+	}
+
+	status := graphql2.AlertLogStatusWarn
+	return &graphql2.AlertLogEntryState{
+		Details: "No one was on-call",
+		Status:  &status,
+	}, nil
+}
+
+func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	if !ok || meta == nil {
+		return nil, nil
+	}
+
+	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
+	if err != nil {
+		return nil, errors.Wrap(err, "find alert log state")
+	}
+
+	var status graphql2.AlertLogStatus
+	switch s.State {
+	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
+		status = "ERROR"
+	case notification.MessageStateSent, notification.MessageStateDelivered:
+		status = "OK"
+	}
+
+	var prefix string
+	switch s.State {
+	case notification.MessageStatePending:
+		prefix = "Pending"
+	case notification.MessageStateSending:
+		prefix = "Sending"
+	case notification.MessageStateSent:
+		prefix = "Sent"
+	case notification.MessageStateDelivered:
+		prefix = "Delivered"
+	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
+		prefix = "Failed"
+	default:
+		prefix = "Unknown"
+	}
+
+	details := s.Details
+	if details == "" {
+		details = prefix
+	} else if !strings.EqualFold(prefix, details) {
+		details = prefix + ": " + details
+	}
+
+	return &graphql2.AlertLogEntryState{
+		Details: details,
+		Status:  &status,
+	}, nil
+}
+
+func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.CreatedMetaData)
+	if !ok || meta == nil || !meta.EPNoSteps {
+		return nil, nil
+	}
+
+	status := graphql2.AlertLogStatusWarn
+	return &graphql2.AlertLogEntryState{
+		Details: "No escalation policy steps",
+		Status:  &status,
+	}, nil
+}
+
+func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+	switch obj.Type() {
+	case alertlog.TypeCreated:
+		return a.createdState(ctx, obj)
+	case alertlog.TypeNotificationSent:
+		return a.notificationSentState(ctx, obj)
+	case alertlog.TypeEscalated:
+		return a.escalationState(ctx, obj)
+	}
+	return nil, nil
+}
+
 func (q *Query) Alert(ctx context.Context, alertID int) (*alert.Alert, error) {
 	return (*App)(q).FindOneAlert(ctx, alertID)
 }
 
+/*
+ * Merges favorites and user-specified serviceIDs in opts.FilterByServiceID
+ */
 func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, error) {
 	targets, err := q.FavoriteStore.FindAll(ctx, permission.UserID(ctx), []assignment.TargetType{assignment.TargetTypeService})
 	if err != nil {
 		return nil, err
 	}
+
 	if len(svcs) == 0 {
 		for _, t := range targets {
 			svcs = append(svcs, t.TargetID())
@@ -67,8 +163,8 @@ func (q *Query) mergeFavorites(ctx context.Context, svcs []string) ([]string, er
 			}
 			svcs = append(svcs, t.TargetID())
 		}
-		// Here we have the intersection of favorites and user-specified serviceIDs in opts.FilterByServiceID
 	}
+
 	return svcs, nil
 }
 
@@ -89,6 +185,9 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		s.Search = *opts.Search
 	}
 	s.Omit = opts.Omit
+	if opts.IncludeNotified != nil && *opts.IncludeNotified {
+		s.NotifiedUserID = permission.UserID(ctx)
+	}
 
 	err = validate.Many(
 		validate.Range("ServiceIDs", len(opts.FilterByServiceID), 0, 50),
@@ -107,13 +206,19 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 		}
 	} else {
 		if opts.FavoritesOnly != nil && *opts.FavoritesOnly {
-			s.Services, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
+			s.ServiceFilter.IDs, err = q.mergeFavorites(ctx, opts.FilterByServiceID)
 			if err != nil {
 				return nil, err
 			}
+			// used to potentially return an empty array of alerts
+			s.ServiceFilter.Valid = true
 		} else {
-			s.Services = opts.FilterByServiceID
+			s.ServiceFilter.IDs = opts.FilterByServiceID
+			if s.ServiceFilter.IDs != nil {
+				s.ServiceFilter.Valid = true
+			}
 		}
+
 		for _, f := range opts.FilterByStatus {
 			switch f {
 			case graphql2.AlertStatusStatusAcknowledged:
@@ -189,6 +294,11 @@ func (m *Mutation) CreateAlert(ctx context.Context, input graphql2.CreateAlertIn
 
 	if input.Details != nil {
 		a.Details = *input.Details
+	}
+
+	if input.Sanitize != nil && *input.Sanitize {
+		a.Summary = validate.SanitizeText(a.Summary, alert.MaxSummaryLength)
+		a.Details = validate.SanitizeText(a.Details, alert.MaxDetailsLength)
 	}
 
 	return m.AlertStore.Create(ctx, a)
@@ -272,4 +382,22 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 	}
 
 	return m.AlertStore.FindMany(ctx, updatedIDs)
+}
+
+func (m *Mutation) UpdateAlertsByService(ctx context.Context, args graphql2.UpdateAlertsByServiceInput) (bool, error) {
+	var status alert.Status
+
+	switch args.NewStatus {
+	case graphql2.AlertStatusStatusAcknowledged:
+		status = alert.StatusActive
+	case graphql2.AlertStatusStatusClosed:
+		status = alert.StatusClosed
+	}
+
+	err := m.AlertStore.UpdateStatusByService(ctx, args.ServiceID, status)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

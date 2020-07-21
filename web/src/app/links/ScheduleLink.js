@@ -1,6 +1,6 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { AppLink } from '../util/AppLink'
 
-export const ScheduleLink = schedule => {
-  return <Link to={`/schedules/${schedule.id}`}>{schedule.name}</Link>
+export const ScheduleLink = (schedule) => {
+  return <AppLink to={`/schedules/${schedule.id}`}>{schedule.name}</AppLink>
 }

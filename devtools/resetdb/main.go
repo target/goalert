@@ -30,6 +30,7 @@ func main() {
 	seedVal := flag.Int64("seed", 1, "Change the random seed used to generate data.")
 	genData := flag.Bool("with-rand-data", false, "Repopulates the DB with random data.")
 	skipMigrate := flag.Bool("no-migrate", false, "Disables UP migration.")
+	skipDrop := flag.Bool("skip-drop", false, "Skip database drop/create step.")
 	adminURL := flag.String("admin-db-url", "postgres://goalert@localhost/postgres", "Admin DB URL to use (used to recreate DB).")
 	dbURL := flag.String("db-url", "postgres://goalert@localhost", "DB URL to use.")
 	flag.Parse()
@@ -48,9 +49,11 @@ func main() {
 		dbName = cfg.User
 	}
 
-	err = recreateDB(ctx, *adminURL, dbName)
-	if err != nil {
-		log.Fatal("recreate DB:", err)
+	if !*skipDrop {
+		err = recreateDB(ctx, *adminURL, dbName)
+		if err != nil {
+			log.Fatal("recreate DB:", err)
+		}
 	}
 
 	if *skipMigrate {
@@ -256,7 +259,7 @@ func fillDB(ctx context.Context, url string) error {
 			rot = &id
 		}
 		return []interface{}{asUUID(fav.UserID), svc, sched, rot}
-	})
+	}, "users", "services", "schedules", "rotations")
 
 	_, err = pool.Exec(ctx, "alter table alerts disable trigger trg_enforce_alert_limit")
 	must(err)

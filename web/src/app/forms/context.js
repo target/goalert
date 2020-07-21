@@ -1,7 +1,7 @@
 import React from 'react'
 
 export const FormContainerContext = React.createContext({
-  onChange: (field, value) => {},
+  onChange: () => {},
   disabled: false,
   errors: [],
   value: {},

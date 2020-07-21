@@ -3,9 +3,12 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestGraphQLAlert tests that all steps up to, and including, generating
@@ -17,8 +20,8 @@ import (
 // - createSchedule
 // - updateSchedule
 // - addRotationParticipant
-// - createOrUpdateEscalationPolicy
-// - createOrUpdateEscalationPolicyStep
+// - createEscalationPolicy
+// - createEscalationPolicyStep
 // - createService
 // - createAlert
 func TestGraphQLAlert(t *testing.T) {
@@ -39,7 +42,7 @@ func TestGraphQLAlert(t *testing.T) {
 	defer h.Close()
 
 	doQL := func(query string, res interface{}) {
-		g := h.GraphQLQuery(query)
+		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -59,11 +62,18 @@ func TestGraphQLAlert(t *testing.T) {
 	uid1, uid2 := h.UUID("u1"), h.UUID("u2")
 	phone1, phone2 := h.Phone("u1"), h.Phone("u2")
 
-	var cm1, cm2 struct{ CreateContactMethod struct{ ID string } }
-	doQL(fmt.Sprintf(`
+	var cm1, cm2 struct {
+		CreateUserContactMethod struct {
+			ID string
+		}
+	}
+
+	createCM := func(userID, phone string, cm interface{}) {
+		t.Helper()
+		doQL(fmt.Sprintf(`
 		mutation {
-			createContactMethod(input:{
-				user_id: "%s",
+			createUserContactMethod(input:{
+				userID: "%s",
 				name: "default",
 				type: SMS,
 				value: "%s"
@@ -71,93 +81,138 @@ func TestGraphQLAlert(t *testing.T) {
 				id
 			}
 		}
-	`, uid1, phone1), &cm1)
-	doQL(fmt.Sprintf(`
-		mutation {
-			createContactMethod(input:{
-				user_id: "%s",
-				name: "default",
-				type: SMS,
-				value: "%s"
-			}) {
-				id
-			}
-		}
-	`, uid2, phone2), &cm2)
+    `, userID, phone), cm)
+	}
 
-	doQL(fmt.Sprintf(`
+	createCM(uid1, phone1, &cm1)
+	createCM(uid2, phone2, &cm2)
+
+	sendCMVerification := func(cmID string) {
+		doQL(fmt.Sprintf(`
 		mutation {
-			createNotificationRule(input:{
-				user_id: "%s"
-				contact_method_id: "%s",
-				delay_minutes: 0
+			sendContactMethodVerification(input:{
+				contactMethodID: "%s"
+			})
+		}
+	`, cmID), nil)
+	}
+
+	sendCMVerification(cm1.CreateUserContactMethod.ID)
+	sendCMVerification(cm2.CreateUserContactMethod.ID)
+
+	msg1 := h.Twilio(t).Device(phone1).ExpectSMS("verification")
+	msg2 := h.Twilio(t).Device(phone2).ExpectSMS("verification")
+
+	digits := func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}
+
+	codeStr1 := strings.Map(digits, msg1.Body())
+	codeStr2 := strings.Map(digits, msg2.Body())
+
+	code1, _ := strconv.Atoi(codeStr1)
+	code2, _ := strconv.Atoi(codeStr2)
+
+	verifyCM := func(cmID string, code int) {
+		doQL(fmt.Sprintf(`
+		mutation {
+			verifyContactMethod(input:{
+				contactMethodID:  "%s",
+				code: %d
+			})
+		}
+	`, cmID, code), nil)
+	}
+
+	verifyCM(cm1.CreateUserContactMethod.ID, code1)
+	verifyCM(cm2.CreateUserContactMethod.ID, code2)
+
+	createUserNR := func(userID string, cmID string) {
+		doQL(fmt.Sprintf(`
+		mutation {
+			createUserNotificationRule(input:{
+				userID: "%s",
+				contactMethodID: "%s",
+				delayMinutes: 0
 			}){
 				id
 			}
 		}
 	
-	`, uid1, cm1.CreateContactMethod.ID), nil)
+	`, userID, cmID), nil)
+	}
 
-	doQL(fmt.Sprintf(`
-		mutation {
-			createNotificationRule(input:{
-				user_id: "%s"
-				contact_method_id: "%s",
-				delay_minutes: 0
-			}){
-				id
-			}
-		}
-	
-	`, uid2, cm2.CreateContactMethod.ID), nil)
+	createUserNR(uid1, cm1.CreateUserContactMethod.ID)
+	createUserNR(uid2, cm2.CreateUserContactMethod.ID)
 
 	var sched struct {
 		CreateSchedule struct {
-			ID        string
-			Rotations []struct{ ID string }
+			ID      string
+			Name    string
+			Targets []struct {
+				ScheduleID string
+				Target     struct{ ID string }
+			}
 		}
 	}
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			createSchedule(input:{
-				name: "default",
-				description: "default testing",
-				time_zone: "America/Chicago",
-				default_rotation: {
-					type: daily,
-					start_time: "%s",
-    				shift_length:1,
-  				}
-			}){
+			createSchedule(
+				input: {
+					name: "default"
+					description: "default testing"
+					timeZone: "America/Chicago"
+					targets: {
+						newRotation: {
+							name: "foobar"
+							timeZone: "America/Chicago"
+							start: "%s"
+							type: daily
+						}
+						rules: {
+							start: "00:00"
+							end: "23:00"
+							weekdayFilter: [true, true, true, true, true]
+						}
+					}
+				}
+			) {
 				id
-				rotations {
-					id
+				name
+				targets {
+					scheduleID
+					target {
+						id
+					}
 				}
 			}
 		}
-	
 	`, time.Now().Add(-time.Hour).In(loc).Format(time.RFC3339)), &sched)
 
-	if len(sched.CreateSchedule.Rotations) != 1 {
-		t.Fatal("createSchedule did not create (or did not return) default rotation")
+	if len(sched.CreateSchedule.Targets) != 1 {
+		t.Errorf("got %d schedule targets; want 1", len(sched.CreateSchedule.Targets))
 	}
-	rotID := sched.CreateSchedule.Rotations[0].ID
+
+	rotID := sched.CreateSchedule.Targets[0].Target.ID
 
 	doQL(fmt.Sprintf(`
 		mutation {
-			addRotationParticipant(input:{
-				user_id: "%s",
-				rotation_id: "%s"
-			}) {id}
+			updateRotation(input:{
+				id: "%s",
+				userIDs: ["%s"]
+			})
 		}
 	
-	`, uid1, rotID), nil)
+	`, rotID, uid1), nil)
 
-	var esc struct{ CreateOrUpdateEscalationPolicy struct{ ID string } }
+	var esc struct{ CreateEscalationPolicy struct{ ID string } }
 	doQL(`
 		mutation {
-			createOrUpdateEscalationPolicy(input:{
+			createEscalationPolicy(input:{
 				repeat: 0,
 				name: "default"
 			}){id}
@@ -165,40 +220,39 @@ func TestGraphQLAlert(t *testing.T) {
 	`, &esc)
 
 	var step struct {
-		CreateOrUpdateEscalationPolicyStep struct{ Step struct{ ID string } }
+		CreateEscalationPolicyStep struct{ Step struct{ ID string } }
 	}
 	doQL(fmt.Sprintf(`
 		mutation {
-			createOrUpdateEscalationPolicyStep(input:{
-				delay_minutes: 60,
-				escalation_policy_id: "%s",
-				user_ids: ["%s"],
-				schedule_ids: ["%s"]
+			createEscalationPolicyStep(input:{
+				delayMinutes: 60,
+				escalationPolicyID: "%s",
+				targets: [{id: "%s", type: user}, {id: "%s", type: schedule}]
 			}){
-				step: escalation_policy_step {id}
+				id
 			}
 		}
-	`, esc.CreateOrUpdateEscalationPolicy.ID, uid2, sched.CreateSchedule.ID), &step)
+	`, esc.CreateEscalationPolicy.ID, uid2, sched.CreateSchedule.ID), &step)
 	var svc struct{ CreateService struct{ ID string } }
 	doQL(fmt.Sprintf(`
 		mutation {
 			createService(input:{
 				name: "default",
-				escalation_policy_id: "%s"
+				escalationPolicyID: "%s"
 			}){id}
 		}
-	`, esc.CreateOrUpdateEscalationPolicy.ID), &svc)
+	`, esc.CreateEscalationPolicy.ID), &svc)
 
 	// finally.. we can create the alert
 	doQL(fmt.Sprintf(`
 		mutation {
 			createAlert(input:{
-				description: "brok",
-				service_id: "%s"
+				summary: "brok",
+				serviceID: "%s"
 			}){id}
 		}
 	`, svc.CreateService.ID), nil)
 
-	h.Twilio().Device(phone1).ExpectSMS()
-	h.Twilio().Device(phone2).ExpectSMS()
+	h.Twilio(t).Device(phone1).ExpectSMS()
+	h.Twilio(t).Device(phone2).ExpectSMS()
 }

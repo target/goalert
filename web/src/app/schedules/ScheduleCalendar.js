@@ -4,8 +4,7 @@ import Card from '@material-ui/core/Card'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
-import moment from 'moment'
-import { Calendar, momentLocalizer } from 'react-big-calendar'
+import { Calendar } from 'react-big-calendar'
 import '../../node_modules/react-big-calendar/lib/css/react-big-calendar.css'
 import CalendarEventWrapper from './CalendarEventWrapper'
 import CalendarToolbar from './CalendarToolbar'
@@ -14,8 +13,10 @@ import { resetURLParams, setURLParam } from '../actions'
 import { urlParamSelector } from '../selectors'
 import { DateTime, Interval } from 'luxon'
 import { theme } from '../mui'
+import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
+import LuxonLocalizer from '../util/LuxonLocalizer'
 
-const localizer = momentLocalizer(moment)
+const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
 const styles = {
   calendarContainer: {
@@ -23,23 +24,19 @@ const styles = {
   },
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
   const start = urlParamSelector(state)(
     'start',
     weekly
-      ? moment()
-          .startOf('week')
-          .toISOString()
-      : moment()
-          .startOf('month')
-          .toISOString(),
+      ? getStartOfWeek().toUTC().toISO()
+      : DateTime.local().startOf('month').toUTC().toISO(),
   )
 
-  const end = moment(start)
-    .add(1, weekly ? 'week' : 'month')
-    .toISOString()
+  const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+
+  const end = DateTime.fromISO(start).toLocal().plus(timeUnit).toUTC().toISO()
 
   return {
     start,
@@ -50,10 +47,10 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    setWeekly: value => dispatch(setURLParam('weekly', value)),
-    setStart: value => dispatch(setURLParam('start', value)),
+    setWeekly: (value) => dispatch(setURLParam('weekly', value)),
+    setStart: (value) => dispatch(setURLParam('start', value)),
     resetFilter: () =>
       dispatch(
         resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'weekly'),
@@ -83,20 +80,18 @@ export default class ScheduleCalendar extends React.PureComponent {
    * a week or month, depending on the current
    * view type.
    */
-  handleCalNavigate = nextDate => {
+  handleCalNavigate = (nextDate) => {
     if (this.props.weekly) {
       this.props.setStart(
-        moment(nextDate)
-          .startOf('week')
-          .startOf('day')
-          .toISOString(),
+        getStartOfWeek(DateTime.fromJSDate(nextDate)).toUTC().toISO(),
       )
     } else {
       this.props.setStart(
-        moment(nextDate)
+        DateTime.fromJSDate(nextDate)
+          .toLocal()
           .startOf('month')
-          .startOf('day')
-          .toISOString(),
+          .toUTC()
+          .toISO(),
       )
     }
   }
@@ -114,28 +109,25 @@ export default class ScheduleCalendar extends React.PureComponent {
    * If viewing the current month however, show the current
    * week.
    */
-  handleViewChange = nextView => {
+  handleViewChange = (nextView) => {
     const start = this.props.start
-    const prevStartMonth = moment(start).month()
-    const currMonth = moment().month()
+    const prevStartMonth = DateTime.fromISO(start).toLocal().month
+    const currMonth = DateTime.local().month
 
     // if viewing the current month, show the current week
     if (nextView === 'week' && prevStartMonth === currMonth) {
       this.props.setWeekly(true)
-      this.props.setStart(
-        moment()
-          .startOf('week')
-          .toISOString(),
-      )
+      this.props.setStart(getStartOfWeek().toUTC().toISO())
 
       // if not on the current month, show the first week of the month
     } else if (nextView === 'week' && prevStartMonth !== currMonth) {
       this.props.setWeekly(true)
       this.props.setStart(
-        moment(this.props.start)
+        DateTime.fromISO(this.props.start)
+          .toLocal()
           .startOf('month')
-          .startOf('week')
-          .toISOString(),
+          .toUTC()
+          .toISO(),
       )
 
       // go from week to monthly view
@@ -145,10 +137,11 @@ export default class ScheduleCalendar extends React.PureComponent {
       this.props.setWeekly(false)
 
       this.props.setStart(
-        moment(start)
-          .endOf('week')
+        getEndOfWeek(DateTime.fromJSDate(new Date(start)))
+          .toLocal()
           .startOf('month')
-          .toISOString(),
+          .toUTC()
+          .toISO(),
       )
     }
   }
@@ -170,8 +163,8 @@ export default class ScheduleCalendar extends React.PureComponent {
    * Return a light red shade of the current date instead of
    * the default light blue
    */
-  dayPropGetter = date => {
-    if (moment(date).isSame(moment(), 'd')) {
+  dayPropGetter = (date) => {
+    if (DateTime.fromJSDate(date).toLocal().hasSame(DateTime.local(), 'day')) {
       return {
         style: {
           backgroundColor: '#FFECEC',
@@ -211,15 +204,15 @@ export default class ScheduleCalendar extends React.PureComponent {
               onNavigate={this.handleCalNavigate}
               onView={this.handleViewChange}
               components={{
-                eventWrapper: props => (
+                eventWrapper: (props) => (
                   <CalendarEventWrapper
-                    onOverrideClick={overrideDialog =>
+                    onOverrideClick={(overrideDialog) =>
                       this.setState({ overrideDialog })
                     }
                     {...props}
                   />
                 ),
-                toolbar: props => (
+                toolbar: (props) => (
                   <CalendarToolbar
                     onOverrideClick={() =>
                       this.setState({ overrideDialog: { variant: 'add' } })
@@ -237,23 +230,24 @@ export default class ScheduleCalendar extends React.PureComponent {
             variant={this.state.overrideDialog.variant}
             scheduleID={this.props.scheduleID}
             onClose={() => this.setState({ overrideDialog: null })}
+            removeUserReadOnly
           />
         )}
       </React.Fragment>
     )
   }
 
-  getCalEvents = shifts => {
+  getCalEvents = (shifts) => {
     // if any users in users array, only show the ids present
     let filteredShifts = shifts.slice()
     if (this.props.userFilter.length > 0) {
-      filteredShifts = filteredShifts.filter(shift =>
+      filteredShifts = filteredShifts.filter((shift) =>
         this.props.userFilter.includes(shift.user.id),
       )
     }
 
     if (this.props.activeOnly) {
-      filteredShifts = filteredShifts.filter(shift =>
+      filteredShifts = filteredShifts.filter((shift) =>
         Interval.fromDateTimes(
           DateTime.fromISO(shift.start),
           DateTime.fromISO(shift.end),
@@ -261,7 +255,7 @@ export default class ScheduleCalendar extends React.PureComponent {
       )
     }
 
-    return filteredShifts.map(shift => {
+    return filteredShifts.map((shift) => {
       return {
         title: shift.user.name,
         userID: shift.user.id,

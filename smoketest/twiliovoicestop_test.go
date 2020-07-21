@@ -2,6 +2,7 @@ package smoketest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/target/goalert/smoketest/harness"
 )
@@ -22,8 +23,8 @@ func TestTwilioVoiceStop(t *testing.T) {
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
 	values
 		({{uuid "user"}}, {{uuid "cm1"}}, 0),
-		({{uuid "user"}}, {{uuid "cm1"}}, 1),
-		({{uuid "user"}}, {{uuid "cm2"}}, 1);
+		({{uuid "user"}}, {{uuid "cm1"}}, 30),
+		({{uuid "user"}}, {{uuid "cm2"}}, 30);
 
 	insert into escalation_policies (id, name) 
 	values
@@ -47,7 +48,7 @@ func TestTwilioVoiceStop(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	d1 := h.Twilio().Device(h.Phone("1"))
+	d1 := h.Twilio(t).Device(h.Phone("1"))
 
 	d1.ExpectVoice("testing").
 		ThenPress("1").
@@ -55,8 +56,8 @@ func TestTwilioVoiceStop(t *testing.T) {
 		ThenPress("3").
 		ThenExpect("goodbye")
 
-	// Should unenroll completely (no voice or SMS)
-	h.Twilio().WaitAndAssert()
+	h.FastForward(30 * time.Minute)
 
-	// no more messages, it should have disabled both
+	// should not unenroll from SMS
+	d1.ExpectSMS("test")
 }

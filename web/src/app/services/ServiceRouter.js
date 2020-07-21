@@ -8,7 +8,7 @@ import ServiceDetails from './ServiceDetails'
 import ServiceLabelList from './ServiceLabelList'
 import IntegrationKeyList from './IntegrationKeyList'
 import { PageNotFound } from '../error-pages/Errors'
-import ServiceAlerts from './components/ServiceAlerts'
+import ServiceAlerts from './ServiceAlerts'
 import ServiceCreateDialog from './ServiceCreateDialog'
 import HeartbeatMonitorList from './HeartbeatMonitorList'
 import { searchSelector } from '../selectors'
@@ -36,7 +36,7 @@ const query = gql`
 export default function ServiceRouter() {
   const searchParam = useSelector(searchSelector) // current total search string on page load
   const dispatch = useDispatch()
-  const setSearchParam = value => dispatch(setURLParam('search', value))
+  const setSearchParam = (value) => dispatch(setURLParam('search', value))
 
   const { labelKey, labelValue } = getServiceLabel(searchParam)
 
@@ -45,7 +45,7 @@ export default function ServiceRouter() {
       <SimpleListPage
         query={query}
         variables={{ input: { favoritesFirst: true } }}
-        mapDataNode={n => ({
+        mapDataNode={(n) => ({
           title: n.name,
           subText: n.description,
           url: n.id,

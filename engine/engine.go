@@ -44,7 +44,7 @@ type Engine struct {
 	mgr *lifecycle.Manager
 
 	shutdownCh  chan struct{}
-	triggerCh   chan struct{}
+	triggerCh   chan chan struct{}
 	runLoopExit chan struct{}
 
 	nextCycle chan chan struct{}
@@ -73,7 +73,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	p := &Engine{
 		cfg:            c,
 		shutdownCh:     make(chan struct{}),
-		triggerCh:      make(chan struct{}),
+		triggerCh:      make(chan chan struct{}),
 		triggerPauseCh: make(chan *pauseReq),
 		runLoopExit:    make(chan struct{}),
 		nextCycle:      make(chan chan struct{}),
@@ -102,7 +102,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "alert escalation backend")
 	}
-	ncMgr, err := npcyclemanager.NewDB(ctx, db)
+	ncMgr, err := npcyclemanager.NewDB(ctx, db, c.AlertLogStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "notification cycle backend")
 	}
@@ -142,7 +142,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 			notification.DestTypeSlackChannel: {PerSecond: 5, Batch: 5 * time.Second},
 		},
 		Pausable: p.mgr,
-	})
+	}, c.AlertLogStore)
 	if err != nil {
 		return nil, errors.Wrap(err, "messaging backend")
 	}
@@ -227,6 +227,25 @@ func recoverPanic(ctx context.Context, name string) {
 // Trigger will force notifications to be processed immediately.
 func (p *Engine) Trigger() {
 	<-p.triggerCh
+}
+
+// TriggerAndWaitNextCycle will force notifications to be processed immediately
+// and will return after the next engine cycle starts and then finishes.
+func (p *Engine) TriggerAndWaitNextCycle(ctx context.Context) error {
+	var waitCh chan struct{}
+	select {
+	case waitCh = <-p.triggerCh: // cause new trigger
+	case waitCh = <-p.nextCycle: // cycle started for some other reason
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	select {
+	case <-waitCh:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // Pause will attempt to gracefully stop engine processing.
@@ -350,14 +369,29 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 	return errors.New("unknown callback type")
 }
 
-// Stop will disable all associated contact methods associated with `value` of type `t`. This is should
+// Start will enable all associated contact methods of `value` with type `t`. This should
+// be invoked if a user, for example, responds with `START` via sms.
+func (p *Engine) Start(ctx context.Context, d notification.Dest) error {
+	if !d.Type.IsUserCM() {
+		return errors.New("START only supported on user contact methods")
+	}
+
+	var err error
+	permission.SudoContext(ctx, func(ctx context.Context) {
+		err = p.cfg.ContactMethodStore.EnableByValue(ctx, contactmethod.TypeFromDestType(d.Type), d.Value)
+	})
+
+	return err
+}
+
+// Stop will disable all associated contact methods of `value` with type `t`. This should
 // be invoked if a user, for example, responds with `STOP` via SMS.
 func (p *Engine) Stop(ctx context.Context, d notification.Dest) error {
 	if !d.Type.IsUserCM() {
-		return errors.New("stop only supported on user contact methods")
+		return errors.New("STOP only supported on user contact methods")
 	}
-	var err error
 
+	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
 		err = p.cfg.ContactMethodStore.DisableByValue(ctx, contactmethod.TypeFromDestType(d.Type), d.Value)
 	})
@@ -420,6 +454,8 @@ func (p *Engine) _run(ctx context.Context) error {
 	ctx = permission.SystemContext(ctx, "Engine")
 	if p.cfg.DisableCycle {
 		log.Logf(ctx, "Engine started in API-only mode.")
+		ch := make(chan struct{})
+		close(ch)
 		for {
 			select {
 			case req := <-p.triggerPauseCh:
@@ -428,7 +464,7 @@ func (p *Engine) _run(ctx context.Context) error {
 				return ctx.Err()
 			case <-p.shutdownCh:
 				return nil
-			case p.triggerCh <- struct{}{}:
+			case p.triggerCh <- ch:
 				log.Logf(ctx, "Ignoring engine trigger (API-only mode).")
 			}
 		}
@@ -457,11 +493,13 @@ func (p *Engine) _run(ctx context.Context) error {
 		default:
 		}
 
+		nextTrigger := make(chan struct{})
 		select {
 		case req := <-p.triggerPauseCh:
 			p.handlePause(req.ctx, req.ch)
-		case p.triggerCh <- struct{}{}:
+		case p.triggerCh <- nextTrigger:
 			p.cycle(log.WithField(ctx, "Trigger", "DIRECT"))
+			close(nextTrigger)
 		case <-alertTicker.C:
 			p.cycle(log.WithField(ctx, "Trigger", "INTERVAL"))
 		case <-ctx.Done():

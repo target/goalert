@@ -7,6 +7,7 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/auth/nonce"
+	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine/resolver"
 	"github.com/target/goalert/escalation"
@@ -20,6 +21,7 @@ import (
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
@@ -40,10 +42,19 @@ func (app *App) initStores(ctx context.Context) error {
 		var fallback url.URL
 		fallback.Scheme = "http"
 		fallback.Host = app.l.Addr().String()
+		fallback.Path = app.cfg.HTTPPrefix
 		app.ConfigStore, err = config.NewStore(ctx, app.db, app.cfg.EncryptionKeys, fallback.String())
 	}
 	if err != nil {
 		return errors.Wrap(err, "init config store")
+	}
+	if app.cfg.InitialConfig != nil {
+		permission.SudoContext(ctx, func(ctx context.Context) {
+			err = app.ConfigStore.SetConfig(ctx, *app.cfg.InitialConfig)
+		})
+		if err != nil {
+			return errors.Wrap(err, "set initial config")
+		}
 	}
 
 	if app.NonceStore == nil {
@@ -75,6 +86,17 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init session keyring")
+	}
+
+	if app.APIKeyring == nil {
+		app.APIKeyring, err = keyring.NewDB(ctx, app.db, &keyring.Config{
+			Name:       "api-keys",
+			MaxOldKeys: 100,
+			Keys:       app.cfg.EncryptionKeys,
+		})
+	}
+	if err != nil {
+		return errors.Wrap(err, "init API keyring")
 	}
 
 	if app.AlertLogStore == nil {
@@ -117,6 +139,7 @@ func (app *App) initStores(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init schedule store")
 	}
+
 	if app.RotationStore == nil {
 		app.RotationStore, err = rotation.NewDB(ctx, app.db)
 	}
@@ -194,7 +217,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.LimitStore == nil {
-		app.LimitStore, err = limit.NewDB(ctx, app.db)
+		app.LimitStore, err = limit.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init limit config store")
@@ -221,6 +244,13 @@ func (app *App) initStores(ctx context.Context) error {
 
 	if app.TimeZoneStore == nil {
 		app.TimeZoneStore = timezone.NewStore(ctx, app.db)
+	}
+
+	if app.CalSubStore == nil {
+		app.CalSubStore, err = calendarsubscription.NewStore(ctx, app.db, app.APIKeyring, app.OnCallStore)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init calendar subscription store")
 	}
 
 	return nil

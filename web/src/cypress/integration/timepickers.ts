@@ -1,26 +1,27 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
+import { Schedule, ScheduleTarget } from '../../schema'
 
 import { testScreen } from '../support'
 const c = new Chance()
 
-testScreen('Time Pickers', testTimePickers)
-
-function testTimePickers(screen: ScreenFormat) {
+function testTimePickers(): void {
   describe('Time (schedule assignments)', () => {
-    const check = (name: string, params: string, display: string) =>
+    const check = (name: string, params: string, display: string): Mocha.Test =>
       it(name, () => {
-        cy.setScheduleTarget({
-          schedule: { timeZone: 'America/New_York' },
-          rules: [
-            {
-              weekdayFilter: [true, false, false, false, false, false, false],
-              start: '15:04',
-              end: '04:23',
-            },
-          ],
-        }).then(tgt => {
-          return cy.visit(`/schedules/${tgt.schedule.id}/assignments${params}`)
+        cy.setScheduleTarget(
+          {
+            rules: [
+              {
+                weekdayFilter: [true, false, false, false, false, false, false],
+                start: '15:04',
+                end: '04:23',
+              },
+            ],
+          },
+          { timeZone: 'America/New_York' },
+        ).then((tgt: ScheduleTarget) => {
+          return cy.visit(`/schedules/${tgt.scheduleID}/assignments${params}`)
         })
         // sanity check
         cy.get('body').contains(display)
@@ -68,11 +69,11 @@ function testTimePickers(screen: ScreenFormat) {
   })
 
   describe('Date (schedule shifts)', () => {
-    const check = (name: string, params: string, display: string) =>
+    const check = (name: string, params: string, display: string): Mocha.Test =>
       it(name, () => {
-        cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
-          cy.visit(`/schedules/${s.id}/shifts${params}`),
-        )
+        cy.createSchedule({
+          timeZone: 'America/New_York',
+        }).then((s: Schedule) => cy.visit(`/schedules/${s.id}/shifts${params}`))
 
         // sanity check
         cy.get('body').contains(display)
@@ -111,9 +112,11 @@ function testTimePickers(screen: ScreenFormat) {
   })
 
   describe('DateTime (schedule overrides)', () => {
-    const check = (name: string, params: string, display: string) =>
+    const check = (name: string, params: string): Mocha.Test =>
       it(name, () => {
-        cy.createSchedule({ timeZone: 'America/New_York' }).then(s =>
+        cy.createSchedule({
+          timeZone: 'America/New_York',
+        }).then((s: Schedule) =>
           cy.visit(`/schedules/${s.id}/overrides${params}`),
         )
 
@@ -127,7 +130,7 @@ function testTimePickers(screen: ScreenFormat) {
           }) as Date,
         )
 
-        cy.fixture('users').then(users => {
+        cy.fixture('users').then((users) => {
           const userName: string = (c.pickone(users) as Profile).name
           cy.dialogForm({
             addUserID: userName,
@@ -146,12 +149,10 @@ function testTimePickers(screen: ScreenFormat) {
       check(
         'should handle selecting date values when displaying the same time zone',
         '?tz=America/New_York',
-        '1/2/2006',
       )
       check(
         'should handle selecting date values when displaying an alternate time zone',
         '?tz=America/Boise',
-        '1/1/2006',
       )
     })
 
@@ -159,13 +160,13 @@ function testTimePickers(screen: ScreenFormat) {
       check(
         'should handle selecting date values when displaying the same time zone',
         '?tz=America/New_York&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
-        '1/2/2006',
       )
       check(
         'should handle selecting date values when displaying an alternate time zone',
         '?tz=America/Boise&start=2006-01-02T06%3A00%3A00.000Z&nativeInput=0',
-        '1/1/2006',
       )
     })
   })
 }
+
+testScreen('Time Pickers', testTimePickers)

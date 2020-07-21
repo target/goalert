@@ -1,17 +1,14 @@
 import React, { Component } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
-import IconButton from '@material-ui/core/IconButton'
 import Grid from '@material-ui/core/Grid'
-import RemoveIcon from '@material-ui/icons/Delete'
 import Tooltip from '@material-ui/core/Tooltip'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
-import moment from 'moment'
 import { urlParamSelector } from '../selectors'
 import { DateTime, Duration } from 'luxon'
 
-const styles = theme => ({
+const styles = (theme) => ({
   button: {
     padding: '4px',
     minHeight: 0,
@@ -40,14 +37,12 @@ const styles = theme => ({
   },
 })
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   // false: monthly, true: weekly
   const weekly = urlParamSelector(state)('weekly', false)
   let start = urlParamSelector(state)(
     'start',
-    DateTime.local()
-      .startOf('day')
-      .toISO(),
+    DateTime.local().startOf('day').toISO(),
   )
 
   const activeOnly = urlParamSelector(state)('activeOnly', false)
@@ -75,7 +70,7 @@ export default class CalendarEventWrapper extends Component {
     onOverrideClick: p.func.isRequired,
   }
 
-  handleShowOverrideForm = type => {
+  handleShowOverrideForm = (type) => {
     const { event, onOverrideClick } = this.props
 
     onOverrideClick({
@@ -100,7 +95,7 @@ export default class CalendarEventWrapper extends Component {
     const { classes, event } = this.props
 
     let overrideCtrls = null
-    if (moment(event.end).isAfter(moment())) {
+    if (DateTime.fromJSDate(event.end) > DateTime.utc()) {
       overrideCtrls = (
         <React.Fragment>
           <Grid item className={classes.buttonContainer}>
@@ -109,31 +104,39 @@ export default class CalendarEventWrapper extends Component {
               data-cy='replace-override'
               size='small'
               onClick={() => this.handleShowOverrideForm('replace')}
-              variant='outlined'
+              variant='contained'
+              color='primary'
+              title={`Temporarily replace ${event.title} from this schedule`}
             >
-              Override
+              Replace
             </Button>
           </Grid>
           <Grid item className={classes.flexGrow} />
-          <Grid item>
-            <IconButton
+
+          <Grid item className={classes.buttonContainer}>
+            <Button
               className={classes.button}
               data-cy='remove-override'
+              size='small'
               onClick={() => this.handleShowOverrideForm('remove')}
+              variant='contained'
+              color='primary'
+              title={`Temporarily remove ${event.title} from this schedule`}
             >
-              <RemoveIcon className={classes.icon} fontSize='small' />
-            </IconButton>
+              Remove
+            </Button>
           </Grid>
         </React.Fragment>
       )
     }
 
+    const formatJSDate = (JSDate) =>
+      DateTime.fromJSDate(JSDate).toLocaleString(DateTime.DATETIME_FULL)
+
     return (
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          {moment(event.start).format('LLL')}
-          {' – '}
-          {moment(event.end).format('LLL')}
+          {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
         </Grid>
         {overrideCtrls}
       </Grid>

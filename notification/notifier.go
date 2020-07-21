@@ -13,6 +13,7 @@ type Result int
 const (
 	ResultAcknowledge Result = iota
 	ResultResolve
+	ResultStart
 	ResultStop
 )
 
@@ -20,6 +21,7 @@ const (
 type Receiver interface {
 	UpdateStatus(context.Context, *MessageStatus) error
 	Receive(ctx context.Context, callbackID string, result Result) error
+	Start(context.Context, Dest) error
 	Stop(context.Context, Dest) error
 }
 

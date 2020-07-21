@@ -13,7 +13,7 @@ const query = gql`
 export const LabelValueSelect = makeQuerySelect('LabelValueSelect', {
   query,
   extraVariablesFunc: ({ labelKey: key, ...props }) => [props, { key }],
-  mapDataNode: value => ({ label: value, value }),
+  mapDataNode: (value) => ({ label: value, value }),
 })
 LabelValueSelect.propTypes = {
   labelKey: p.string,

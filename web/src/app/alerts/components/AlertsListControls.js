@@ -5,12 +5,12 @@ import { connect } from 'react-redux'
 import { setAlertsStatusFilter } from '../../actions'
 import { alertFilterSelector } from '../../selectors/url'
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   filter: alertFilterSelector(state),
 })
 
-const mapDispatchToProps = dispatch => ({
-  setAlertsStatusFilter: value => dispatch(setAlertsStatusFilter(value)),
+const mapDispatchToProps = (dispatch) => ({
+  setAlertsStatusFilter: (value) => dispatch(setAlertsStatusFilter(value)),
 })
 
 const tabs = ['active', 'unacknowledged', 'acknowledged', 'closed', 'all']

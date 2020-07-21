@@ -24,7 +24,7 @@ import {
 } from '../../actions'
 import { alertAllServicesSelector, alertFilterSelector } from '../../selectors'
 
-const styles = theme => ({
+const styles = (theme) => ({
   ...globalStyles(theme),
   drawer: {
     width: 'fit-content', // width placed on mobile drawer
@@ -44,15 +44,15 @@ const styles = theme => ({
   },
 })
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   allServices: alertAllServicesSelector(state),
   filter: alertFilterSelector(state),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
   resetAll: () => dispatch(resetAlertsFilters()), // don't reset search param
-  setFilter: value => dispatch(setAlertsStatusFilter(value)),
-  setAllServices: value => dispatch(setAlertsAllServicesFilter(value)),
+  setFilter: (value) => dispatch(setAlertsStatusFilter(value)),
+  setAllServices: (value) => dispatch(setAlertsAllServicesFilter(value)),
 })
 
 @withStyles(styles)
@@ -61,8 +61,8 @@ const mapDispatchToProps = dispatch => ({
 export default class AlertsListFilter extends Component {
   static propTypes = {
     serviceID: p.string,
-    allServices: p.bool.isRequired,
-    filter: p.string.isRequired,
+    allServices: p.bool,
+    filter: p.string,
   }
 
   state = {
@@ -70,7 +70,7 @@ export default class AlertsListFilter extends Component {
     anchorEl: null, // element in which filters form under
   }
 
-  handleOpenFilters = event => {
+  handleOpenFilters = (event) => {
     this.setState({
       anchorEl: event.currentTarget,
       show: true,
@@ -117,7 +117,7 @@ export default class AlertsListFilter extends Component {
               aria-label='Alert Status Filters'
               name='status-filters'
               value={filter}
-              onChange={e => setFilter(e.target.value)}
+              onChange={(e) => setFilter(e.target.value)}
             >
               <FormControlLabel
                 value='active'

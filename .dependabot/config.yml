@@ -4,13 +4,11 @@ update_configs:
     directory: "/web/src/"
     update_schedule: "daily"
     ignored_updates:
+      # see https://github.com/target/goalert/pull/625
       - match:
-          dependency_name: "cypress"
-          version_requirement: "<=3.7.0"
+          dependency_name: "@date-io/luxon"
+          version_requirement: "<=2.6.0"
+      # see https://github.com/target/goalert/pull/634
       - match:
-          dependency_name: "react-infinite-scroll-component"
-          version_requirement: "<=5.0.3"
-
-  - package_manager: "go:modules"
-    directory: "/"
-    update_schedule: "daily"
+          dependency_name: "@material-ui/core"
+          version_requirement: "<=4.10.0"

@@ -1,6 +1,6 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { AppLink } from '../util/AppLink'
 
-export const ServiceLink = service => {
-  return <Link to={`/services/${service.id}`}>{service.name}</Link>
+export const ServiceLink = (service) => {
+  return <AppLink to={`/services/${service.id}`}>{service.name}</AppLink>
 }

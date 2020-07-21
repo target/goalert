@@ -9,117 +9,24 @@ import { ISOTimePicker } from '../util/ISOPickers'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
-export default class RotationForm extends React.PureComponent {
-  static propTypes = {
-    value: p.shape({
-      name: p.string.isRequired,
-      description: p.string.isRequired,
-      timeZone: p.string.isRequired,
-      type: p.oneOf(rotationTypes).isRequired,
-      shiftLength: p.number.isRequired,
-      start: p.string.isRequired,
-    }).isRequired,
-
-    errors: p.arrayOf(
-      p.shape({
-        field: p.oneOf([
-          'name',
-          'description',
-          'timeZone',
-          'type',
-          'start',
-          'shiftLength',
-        ]).isRequired,
-        message: p.string.isRequired,
-      }),
-    ),
-
-    onChange: p.func.isRequired,
+export default function RotationForm(props) {
+  function dayOfWeek() {
+    const { start, timeZone } = props.value
+    return DateTime.fromISO(start, { zone: timeZone }).weekday
   }
 
-  onChange = values => {
-    if (!this.props.onChange) return
-    this.props.onChange({
-      ...values,
+  function setDayOfWeek(weekday) {
+    const { start, timeZone, ...other } = props.value
+    props.onChange({
+      ...other,
+      timeZone,
+      start: DateTime.fromISO(start, { zone: timeZone })
+        .set({ weekday })
+        .toISO(),
     })
   }
 
-  render() {
-    return (
-      <FormContainer optionalLabels {...this.props}>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TextField}
-              name='name'
-              label='Name'
-              required
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TextField}
-              multiline
-              name='description'
-              label='Description'
-              required
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TimeZoneSelect}
-              multiline
-              name='timeZone'
-              fieldName='timeZone'
-              label='Time Zone'
-              required
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TextField}
-              select
-              required
-              label='Rotation Type'
-              name='type'
-            >
-              {rotationTypes.map(type => (
-                <MenuItem value={type} key={type}>
-                  {startCase(type)}
-                </MenuItem>
-              ))}
-            </FormField>
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={TextField}
-              required
-              type='number'
-              name='shiftLength'
-              label='Shift Length'
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              component={ISOTimePicker}
-              label='Handoff Time'
-              name='start'
-              required
-            />
-          </Grid>
-          {this.props.value.type === 'weekly' && this.renderDayOfWeekField()}
-        </Grid>
-      </FormContainer>
-    )
-  }
-
-  renderDayOfWeekField() {
+  function renderDayOfWeekField() {
     return (
       <Grid item xs={12}>
         <TextField
@@ -128,8 +35,8 @@ export default class RotationForm extends React.PureComponent {
           required
           label='Day of Week'
           name='dayOfWeek'
-          value={this.dayOfWeek()}
-          onChange={e => this.setDayOfWeek(e.target.value)}
+          value={dayOfWeek()}
+          onChange={(e) => setDayOfWeek(e.target.value)}
         >
           {Info.weekdaysFormat('long').map((day, idx) => {
             return (
@@ -143,19 +50,103 @@ export default class RotationForm extends React.PureComponent {
     )
   }
 
-  dayOfWeek() {
-    const { start, timeZone } = this.props.value
-    return DateTime.fromISO(start, { zone: timeZone }).weekday
-  }
+  return (
+    <FormContainer optionalLabels {...props}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={TextField}
+            name='name'
+            label='Name'
+            required
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={TextField}
+            multiline
+            name='description'
+            label='Description'
+            required
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={TimeZoneSelect}
+            multiline
+            name='timeZone'
+            fieldName='timeZone'
+            label='Time Zone'
+            required
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={TextField}
+            select
+            required
+            label='Rotation Type'
+            name='type'
+          >
+            {rotationTypes.map((type) => (
+              <MenuItem value={type} key={type}>
+                {startCase(type)}
+              </MenuItem>
+            ))}
+          </FormField>
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={TextField}
+            required
+            type='number'
+            name='shiftLength'
+            label='Shift Length'
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={ISOTimePicker}
+            label='Handoff Time'
+            name='start'
+            required
+          />
+        </Grid>
+        {props.value.type === 'weekly' && renderDayOfWeekField()}
+      </Grid>
+    </FormContainer>
+  )
+}
 
-  setDayOfWeek(weekday) {
-    const { start, timeZone, ...other } = this.props.value
-    this.props.onChange({
-      ...other,
-      timeZone,
-      start: DateTime.fromISO(start, { zone: timeZone })
-        .set({ weekday })
-        .toISO(),
-    })
-  }
+RotationForm.propTypes = {
+  value: p.shape({
+    name: p.string.isRequired,
+    description: p.string.isRequired,
+    timeZone: p.string.isRequired,
+    type: p.oneOf(rotationTypes).isRequired,
+    shiftLength: p.number.isRequired,
+    start: p.string.isRequired,
+  }).isRequired,
+
+  errors: p.arrayOf(
+    p.shape({
+      field: p.oneOf([
+        'name',
+        'description',
+        'timeZone',
+        'type',
+        'start',
+        'shiftLength',
+      ]).isRequired,
+      message: p.string.isRequired,
+    }),
+  ),
+
+  onChange: p.func.isRequired,
 }

@@ -4,7 +4,7 @@ import PageActions from '../util/PageActions'
 import { Grid, FormControlLabel, Switch } from '@material-ui/core'
 import QueryList from '../lists/QueryList'
 import gql from 'graphql-tag'
-import { UserAvatar } from '../util/avatar'
+import { UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
@@ -44,18 +44,18 @@ const query = gql`
   }
 `
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     userFilter: urlParamSelector(state)('userFilter', []),
     showPast: urlParamSelector(state)('showPast', false),
     zone: urlParamSelector(state)('tz', 'local'),
   }
 }
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    setZone: value => dispatch(setURLParam('tz', value, 'local')),
-    setUserFilter: value => dispatch(setURLParam('userFilter', value)),
-    setShowPast: value => dispatch(setURLParam('showPast', value)),
+    setZone: (value) => dispatch(setURLParam('tz', value, 'local')),
+    setUserFilter: (value) => dispatch(setURLParam('userFilter', value)),
+    setShowPast: (value) => dispatch(setURLParam('showPast', value)),
     resetFilter: () => dispatch(resetURLParams('userFilter', 'showPast', 'tz')),
   }
 }
@@ -75,7 +75,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
   render() {
     const { zone } = this.props
 
-    const subText = n => {
+    const subText = (n) => {
       const timeStr = formatOverrideTime(n.start, n.end, zone)
       if (n.addUser && n.removeUser) {
         // replace
@@ -108,7 +108,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
                 control={
                   <Switch
                     checked={this.props.showPast}
-                    onChange={e => this.props.setShowPast(e.target.checked)}
+                    onChange={(e) => this.props.setShowPast(e.target.checked)}
                     value='showPast'
                   />
                 }
@@ -123,12 +123,12 @@ export default class ScheduleOverrideList extends React.PureComponent {
                 label='Filter users...'
                 multiple
                 value={this.props.userFilter}
-                onChange={value => this.props.setUserFilter(value)}
+                onChange={(value) => this.props.setUserFilter(value)}
               />
             </Grid>
           </FilterContainer>
           <ScheduleNewOverrideFAB
-            onClick={variant => this.setState({ create: variant })}
+            onClick={(variant) => this.setState({ create: variant })}
           />
         </PageActions>
         <QueryList
@@ -136,7 +136,7 @@ export default class ScheduleOverrideList extends React.PureComponent {
           noSearch
           noPlaceholder
           query={query}
-          mapDataNode={n => ({
+          mapDataNode={(n) => ({
             title: n.addUser ? n.addUser.name : n.removeUser.name,
             subText: subText(n),
             icon: (

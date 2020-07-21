@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
-import { memoize, omit } from 'lodash-es'
+import _, { memoize, omit } from 'lodash-es'
 import MaterialSelect from './MaterialSelect'
 import { mergeFields, fieldAlias, mapInputVars } from '../util/graphql'
 import FavoriteIcon from '@material-ui/icons/Star'
@@ -10,7 +10,7 @@ import { Typography, makeStyles } from '@material-ui/core'
 import { Error } from '@material-ui/icons'
 import { styles } from '../styles/materialStyles'
 
-const useStyles = makeStyles(theme => {
+const useStyles = makeStyles((theme) => {
   return {
     error: styles(theme).error,
   }
@@ -46,7 +46,7 @@ const defaultMapNode = ({ name: label, id: value, isFavorite }) => ({
   isFavorite,
 })
 
-const asArray = value => {
+const asArray = (value) => {
   if (!value) return []
 
   return Array.isArray(value) ? value : [value]
@@ -61,12 +61,12 @@ function makeUseValues(query, mapNode) {
   if (!query) {
     // no value query, so always use the map function
     return function useValuesNoQuery(_value) {
-      const value = asArray(_value).map(v => ({ value: v, label: v }))
+      const value = asArray(_value).map((v) => ({ value: v, label: v }))
       return [Array.isArray(_value) ? value : value[0] || null, null]
     }
   }
 
-  const getQueryBySize = memoize(size => {
+  const getQueryBySize = memoize((size) => {
     let q = mapValueQuery(query, 0)
 
     for (let i = 1; i < size; i++) {
@@ -96,7 +96,8 @@ function makeUseValues(query, mapNode) {
 
     const result = value.map((v, i) => {
       const name = 'data' + i
-      if (!data || !data[name]) return { value: v, label: 'Loading...' }
+      if (!data || _.isEmpty(data[name]))
+        return { value: v, label: 'Loading...' }
 
       return mapNode(data[name])
     })
@@ -135,7 +136,7 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       result = data.data.nodes.map(mapNode)
     }
 
-    return [result, { loading, error }]
+    return [result, { loading: !data && loading, error }]
   }
 }
 
@@ -169,7 +170,7 @@ export function makeQuerySelect(displayName, options) {
 
     // extraVariablesFunc is an optional function that is passed props
     // and should return a new set of props and extra variables.
-    extraVariablesFunc = props => [props, {}],
+    extraVariablesFunc = (props) => [props, {}],
 
     // query is used to fetch available options. It should define
     // an `input` variable that takes `omit`, `first`, and `search` properties.
@@ -219,7 +220,7 @@ export function makeQuerySelect(displayName, options) {
     if (
       _onCreate &&
       searchInput &&
-      !selectOptions.some(o => o.value === searchInput)
+      !selectOptions.some((o) => o.value === searchInput)
     ) {
       selectOptions.push({
         isCreate: true,
@@ -234,39 +235,39 @@ export function makeQuerySelect(displayName, options) {
       return () => clearTimeout(t)
     }, [searchInput])
 
-    const cachify = option => {
+    const cachify = (option) => {
       const key = JSON.stringify(omit(option, 'icon'))
       if (!optionCache[key]) optionCache[key] = option
       return optionCache[key]
     }
 
-    const handleChange = newVal => {
+    const handleChange = (newVal) => {
       setSearch('')
       setSearchInput('')
-      const created = asArray(newVal).find(v => v.isCreate)
+      const created = asArray(newVal).find((v) => v.isCreate)
       if (created) onCreate(created.value)
-      else if (multiple) onChange(asArray(newVal).map(v => v.value))
+      else if (multiple) onChange(asArray(newVal).map((v) => v.value))
       else onChange((newVal && newVal.value) || null)
     }
 
-    let noOptionsMessage = 'No options'
+    let noOptionsText = 'No options'
     if (optionsError) {
-      noOptionsMessage = (
+      noOptionsText = (
         <ErrorMessage value={optionsError.message || optionsError} />
       )
-    } else if (!searchInput && !selectOptions.length)
-      noOptionsMessage = 'Start typing...'
-    else if (optionsError) noOptionsMessage = 'Error: ' + optionsError
+    } else if (!searchInput && !selectOptions.length) {
+      noOptionsText = 'Start typing...'
+    }
 
     return (
       <MaterialSelect
         isLoading={search !== searchInput || optionsLoading}
-        noOptionsMessage={() => noOptionsMessage}
-        onInputChange={val => setSearchInput(val)}
+        noOptionsText={noOptionsText}
+        onInputChange={(val) => setSearchInput(val)}
         value={multiple ? asArray(selectValue) : selectValue}
         multiple={multiple}
         options={selectOptions
-          .map(opt => ({
+          .map((opt) => ({
             ...opt,
             icon: opt.isFavorite ? <FavoriteIcon /> : null,
           }))
@@ -275,7 +276,7 @@ export function makeQuerySelect(displayName, options) {
           placeholder ||
           (defaultQueryVariables && !searchInput ? 'Start typing...' : null)
         }
-        onChange={val => handleChange(val)}
+        onChange={(val) => handleChange(val)}
         {...otherProps}
       />
     )
