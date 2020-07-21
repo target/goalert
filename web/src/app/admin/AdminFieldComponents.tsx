@@ -65,14 +65,7 @@ export function StringInput(props: InputProps): JSX.Element {
   }
 
   if (type === 'tel') {
-    return (
-      <TelTextField
-        onChange={(e: React.FormEvent<HTMLInputElement>) =>
-          onChange((e.target as HTMLInputElement).value)
-        }
-        {...rest}
-      />
-    )
+    return <TelTextField onChange={(e) => onChange(e.target.value)} {...rest} />
   }
   return (
     <Input

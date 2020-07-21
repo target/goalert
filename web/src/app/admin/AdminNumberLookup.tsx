@@ -93,8 +93,8 @@ export default function AdminNumberLookup(): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TelTextField
-                  onChange={(e: React.FormEvent<HTMLInputElement>) => {
-                    setNumber((e.target as HTMLInputElement).value)
+                  onChange={(e) => {
+                    setNumber(e.target.value)
                     setStaleCarrier(true)
                   }}
                   value={number}

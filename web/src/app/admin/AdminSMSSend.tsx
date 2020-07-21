@@ -65,9 +65,7 @@ export default function AdminSMSSend(): JSX.Element {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TelTextField
-                  onChange={(e: React.FormEvent<HTMLInputElement>) =>
-                    setFromNumber((e.target as HTMLInputElement).value)
-                  }
+                  onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
                   fullWidth
                   label='From Number'
@@ -77,9 +75,7 @@ export default function AdminSMSSend(): JSX.Element {
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
                 <TelTextField
-                  onChange={(e: React.FormEvent<HTMLInputElement>) =>
-                    setToNumber((e.target as HTMLInputElement).value)
-                  }
+                  onChange={(e) => setToNumber(e.target.value)}
                   value={toNumber}
                   fullWidth
                   label='To Number'

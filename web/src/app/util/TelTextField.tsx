@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import TextField from '@material-ui/core/TextField'
+import TextField, { TextFieldProps } from '@material-ui/core/TextField'
+import { InputProps } from '@material-ui/core/Input'
 import { Check, Close } from '@material-ui/icons'
 import _ from 'lodash-es'
 import InputAdornment from '@material-ui/core/InputAdornment'
@@ -27,7 +28,9 @@ const useStyles = makeStyles({
   },
 })
 
-export default function TelTextField({ ...props }): JSX.Element {
+export default function TelTextField(
+  props: TextFieldProps & { value: string },
+): JSX.Element {
   const classes = useStyles()
   const [phoneNumber, setPhoneNumber] = useState('')
 
@@ -59,7 +62,7 @@ export default function TelTextField({ ...props }): JSX.Element {
     adorn = <Close className={classes.invalid} />
   }
 
-  let iprops: object
+  let iprops: Partial<InputProps>
   iprops = {
     startAdornment: (
       <InputAdornment position='start' style={{ marginBottom: '0.1em' }}>
@@ -86,6 +89,7 @@ export default function TelTextField({ ...props }): JSX.Element {
 
   // remove unwanted character
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
+    if (!props.onChange) return
     e.target.value = '+' + e.target.value.replace(/[^0-9]/g, '')
     return props.onChange(e)
   }
