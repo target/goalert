@@ -294,7 +294,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	}
 
 	var info interface{}
-	getInfo := func(search string) interface{} {
+	getInfo := func(name, search string) interface{} {
 		if err != nil {
 			return nil
 		}
@@ -307,7 +307,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 		}
 		res, searchErr := jmespath.Search(search, info)
 		if searchErr != nil {
-			log.Log(ctx, errors.Wrapf(searchErr, "lookup %s in UserInfo"))
+			log.Log(ctx, errors.Wrapf(searchErr, "lookup %s in UserInfo", name))
 			return nil
 		}
 
@@ -318,7 +318,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 			return
 		}
 		*field = ""
-		res := getInfo(search)
+		res := getInfo(name, search)
 		if res == nil {
 			return
 		}
@@ -334,7 +334,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 			return
 		}
 		*field = false
-		res := getInfo(search)
+		res := getInfo(name, search)
 		if res == nil {
 			return
 		}
