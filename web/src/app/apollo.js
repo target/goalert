@@ -95,6 +95,7 @@ const simpleCacheTypes = [
   'Service',
   'User',
   'SlackChannel',
+  'PhoneNumberInfo',
 ]
 
 // tell Apollo to use cached data for `type(id: foo) {... }` queries
