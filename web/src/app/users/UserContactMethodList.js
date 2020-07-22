@@ -61,7 +61,7 @@ export default function UserContactMethodList(props) {
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
-  const [showSendTestByID, setShowSendByID] = useState(null)
+  const [showSendTestByID, setShowSendTestByID] = useState(null)
   const [sendTest, sendTestStatus] = useMutation(testCM)
 
   const { loading, error, data } = useQuery(query, {
@@ -113,7 +113,7 @@ export default function UserContactMethodList(props) {
               id: cm.id,
             },
           })
-          setShowSendByID(cm.id)
+          setShowSendTestByID(cm.id)
         },
       })
     } else {
@@ -188,7 +188,7 @@ export default function UserContactMethodList(props) {
         {showSendTestByID && (
           <SendTestDialog
             messageID={showSendTestByID}
-            onClose={() => setShowSendByID(null)}
+            onClose={() => setShowSendTestByID(null)}
             sendTestMutationStatus={sendTestStatus}
           />
         )}

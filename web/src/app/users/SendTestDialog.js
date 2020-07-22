@@ -15,10 +15,11 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import { useQuery } from '@apollo/react-hooks'
 
 const query = gql`
-  query($id: ID!) {
-    sendTestStatus(cmID: $id)
+  query($cmID: ID!) {
+    sendTestStatus(cmID: $cmID)
   }
 `
+
 export default function SendTestDialog(props) {
   const {
     title = 'Test Delivery Status',
@@ -27,22 +28,26 @@ export default function SendTestDialog(props) {
     messageID,
   } = props
 
-  const { data } = useQuery(query, {
+  const { data, error } = useQuery(query, {
     variables: {
       cmID: messageID,
     },
-    // skip: sendTestMutationStatus.error || sendTestMutationStatus.loading
+    skip: sendTestMutationStatus.error || sendTestMutationStatus.loading,
   })
-  console.log(data)
+
+  const lastStatus = data?.sendTestStatus ?? ''
+  const errorMessage =
+    (sendTestMutationStatus?.error?.message ?? '') || (error?.message ?? '')
+
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>{data?.sendTestStatus ?? ''}</DialogContentText>
-      </DialogContent>
-      <DialogContentError
-        error={sendTestMutationStatus?.error?.message ?? ''}
-      />
+      {lastStatus && (
+        <DialogContent>
+          <DialogContentText>{lastStatus}</DialogContentText>
+        </DialogContent>
+      )}
+      {errorMessage && <DialogContentError error={errorMessage} />}
       <DialogActions>
         <Button color='primary' variant='contained' onClick={onClose}>
           Done
