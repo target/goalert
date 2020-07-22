@@ -1,7 +1,6 @@
 package config
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,39 +35,4 @@ func TestValidReferer(t *testing.T) {
 		assert.False(t, cfg.ValidReferer("https://req.com", "http://path.com/bar"), "auth URL path mismatch")
 		assert.False(t, cfg.ValidReferer("https://req.com", "https://req.com/bar"), "auth URL set (no same host)")
 	})
-}
-
-func TestValidateScopes(t *testing.T) {
-	tests := []struct {
-		name  string
-		value string
-		err   string
-	}{
-		{"empty", "", "does not contain required \"openid\" scope"},
-		{"openid missing", "profile email", "does not contain required \"openid\" scope"},
-		{"normal", "openid", ""},
-		{"multi", "openid profile email", ""},
-		{"starts with space", " openid profile email", "starts with extra space"},
-		{"ends with space", "openid profile email ", "ends with extra space"},
-		{"double spaces", "openid  profile email", "has double spaces"},
-		{"double spaces 2", "openid  profile  email", "has double spaces"},
-		{"repeating scopes", "openid profile profile", "contains \"profile\" 2 times"},
-		{"multiple errors", " openid  profile profile ", "starts with extra space\nends with extra space\nhas double spaces\ncontains \"profile\" 2 times"},
-	}
-
-	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			err := validateScopes("test", tc.value)
-			if tc.err == "" {
-				assert.NoError(t, err, "%q", tc.value)
-			} else {
-				errors := []string{}
-				for _, item := range strings.Split(tc.err, "\n") {
-					errors = append(errors, "invalid value for 'test': "+item)
-				}
-				assert.EqualError(t, err, strings.Join(errors, "\n"), "%q", tc.value)
-			}
-		})
-	}
 }
