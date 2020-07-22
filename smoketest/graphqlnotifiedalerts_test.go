@@ -99,20 +99,8 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}
 
-	var alerts1, alerts2 Alerts
+	var alerts1, alerts2, alerts3 Alerts
 
-	// notes
-	// - "user" is assigned to "sid"
-	// - "sid" is not favorited by "user"
-	// - it has 1 alert that "user" should be notified for
-
-	// - "sid2" created and has no assignments
-	// - it is favorited by "user"
-	// - it has 1 alert
-
-	// test:
-	// includeNotified: false
-	// favoritesOnly: true
 	// output: 1 alert (the favorited one)
 	doQL(t, h, `query {
 		alerts(input: {
@@ -129,11 +117,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		t.Errorf("got %d alerts; want 1", len(alerts1.Alerts.Nodes))
 	}
 
-	// test:
-	// includeNotified: true // service1
-	// favoritesOnly: true // service2
-	// output: 2 alerts (1 from favorited, 1 from notified)
-
+	// output: 1 alert (alert from favorited and alert from notified are merged together)
 	doQL(t, h, `query {
 			alerts(input: {
 				includeNotified: true
@@ -145,8 +129,25 @@ func TestNotifiedAlerts(t *testing.T) {
 			}
 		}`, &alerts2)
 
-	if len(alerts2.Alerts.Nodes) != 2 {
-		t.Errorf("got %d alerts; want 2", len(alerts2.Alerts.Nodes))
+	if len(alerts2.Alerts.Nodes) != 1 {
+		t.Errorf("got %d alerts; want 1", len(alerts2.Alerts.Nodes))
+	}
+
+	// All Services test (favoritesOnly: false)
+	// output: 2 alerts
+	doQL(t, h, `query {
+		alerts(input: {
+			includeNotified: true
+			favoritesOnly: false
+		}) {
+			nodes {
+				id
+			}
+		}
+	}`, &alerts3)
+
+	if len(alerts3.Alerts.Nodes) != 2 {
+		t.Errorf("got %d alerts; want 2", len(alerts3.Alerts.Nodes))
 	}
 
 }
