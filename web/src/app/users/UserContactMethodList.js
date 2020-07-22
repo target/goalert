@@ -2,16 +2,7 @@ import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
-import {
-  Button,
-  Card,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  CardHeader,
-  Grid,
-  IconButton,
-} from '@material-ui/core'
+import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
 import { useQuery } from 'react-apollo'
 import { isWidthUp } from '@material-ui/core/withWidth'
 import { sortContactMethods } from './util'
@@ -26,7 +17,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
-import DialogContentError from '../dialogs/components/DialogContentError'
+import SendTestDialog from './SendTestDialog'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -70,10 +61,8 @@ export default function UserContactMethodList(props) {
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
-  const [showSendTestErrorDialog, setShowSendTestErrorDialog] = useState(false)
-  const [sendTest, sendTestStatus] = useMutation(testCM, {
-    onError: () => setShowSendTestErrorDialog(true),
-  })
+  const [showSendTestByID, setShowSendByID] = useState(null)
+  const [sendTest, sendTestStatus] = useMutation(testCM)
 
   const { loading, error, data } = useQuery(query, {
     variables: {
@@ -118,12 +107,14 @@ export default function UserContactMethodList(props) {
     if (!cm.disabled) {
       actions.push({
         label: 'Send Test',
-        onClick: () =>
+        onClick: () => {
           sendTest({
             variables: {
               id: cm.id,
             },
-          }),
+          })
+          setShowSendByID(cm.id)
+        },
       })
     } else {
       actions.push({
@@ -131,7 +122,6 @@ export default function UserContactMethodList(props) {
         onClick: () => setShowVerifyDialogByID(cm.id),
       })
     }
-
     return actions
   }
 
@@ -195,22 +185,13 @@ export default function UserContactMethodList(props) {
             onClose={() => setShowDeleteDialogByID(null)}
           />
         )}
-        <Dialog
-          open={showSendTestErrorDialog}
-          onClose={() => setShowSendTestErrorDialog(false)}
-        >
-          <DialogTitle>An error occurred</DialogTitle>
-          <DialogContentError error={sendTestStatus?.error?.message ?? ''} />
-          <DialogActions>
-            <Button
-              color='primary'
-              variant='contained'
-              onClick={() => setShowSendTestErrorDialog(false)}
-            >
-              Okay
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {showSendTestByID && (
+          <SendTestDialog
+            messageID={showSendTestByID}
+            onClose={() => setShowSendByID(null)}
+            sendTestMutationStatus={sendTestStatus}
+          />
+        )}
       </Card>
     </Grid>
   )

@@ -288,6 +288,7 @@ type ComplexityRoot struct {
 		Rotations                func(childComplexity int, input *RotationSearchOptions) int
 		Schedule                 func(childComplexity int, id string) int
 		Schedules                func(childComplexity int, input *ScheduleSearchOptions) int
+		SendTestStatus           func(childComplexity int, cmID string) int
 		Service                  func(childComplexity int, id string) int
 		Services                 func(childComplexity int, input *ServiceSearchOptions) int
 		SlackChannel             func(childComplexity int, id string) int
@@ -579,6 +580,7 @@ type QueryResolver interface {
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
+	SendTestStatus(ctx context.Context, cmID string) (string, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -1898,6 +1900,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Schedules(childComplexity, args["input"].(*ScheduleSearchOptions)), true
 
+	case "Query.sendTestStatus":
+		if e.complexity.Query.SendTestStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sendTestStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SendTestStatus(childComplexity, args["cmID"].(string)), true
+
 	case "Query.service":
 		if e.complexity.Query.Service == nil {
 			break
@@ -2943,6 +2957,9 @@ var sources = []*ast.Source{
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
+
+  # Returns status of sendtest with given contact method id
+  sendTestStatus(cmID: ID!): String!
 }
 
 input SlackChannelSearchOptions {
@@ -3852,6 +3869,7 @@ type AuthSubject {
   subjectID: ID!
   userID: ID!
 }
+
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -4657,6 +4675,20 @@ func (ec *executionContext) field_Query_schedules_args(ctx context.Context, rawA
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sendTestStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["cmID"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cmID"] = arg0
 	return args, nil
 }
 
@@ -10379,6 +10411,47 @@ func (ec *executionContext) _Query_slackChannel(ctx context.Context, field graph
 	res := resTmp.(*slack.Channel)
 	fc.Result = res
 	return ec.marshalOSlackChannel2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋslackᚐChannel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_sendTestStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_sendTestStatus_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SendTestStatus(rctx, args["cmID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18481,6 +18554,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_slackChannel(ctx, field)
+				return res
+			})
+		case "sendTestStatus":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sendTestStatus(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "__type":

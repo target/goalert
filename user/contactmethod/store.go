@@ -29,6 +29,7 @@ type Store interface {
 	EnableByValue(context.Context, Type, string) error
 	DisableByValue(context.Context, Type, string) error
 
+	FindLastStatus(ctx context.Context, cmID string) (string , error)
 	MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string) (*Metadata, error)
 	SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string, m *Metadata) error
 }
@@ -50,6 +51,7 @@ type DB struct {
 	metaTV       *sql.Stmt
 	setMetaTV    *sql.Stmt
 	now          *sql.Stmt
+	findLastStatus *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -124,6 +126,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				DELETE FROM user_contact_methods
 				WHERE id = any($1)
 			`),
+		findLastStatus: p.P(`
+			SELECT last_status, status_details
+			FROM outgoing_messages
+			WHERE contact_method_id = $1 AND message_type = 'test_notification'
+			ORDER BY created_at DESC
+			LIMIT 1
+		`),
 	}, p.Err
 }
 
@@ -465,4 +474,30 @@ func (db *DB) FindAll(ctx context.Context, userID string) ([]ContactMethod, erro
 	defer rows.Close()
 
 	return scanAll(rows)
+}
+
+func (db *DB) FindLastStatus(ctx context.Context, cmID string) (string , error) {
+	err := validate.UUID("Contact Method ID", cmID)
+	if err != nil {
+		return "", err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return "", err
+	}
+
+	tx, err := db.db.BeginTx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+
+	var lastStatus, statusDetails string
+	row := wrapTx(ctx, tx, db.findLastStatus).QueryRowContext(ctx, cmID)
+	err = row.Scan(&lastStatus, &statusDetails)
+	if err != nil {
+		return "", err
+	}
+	return statusDetails, nil
 }

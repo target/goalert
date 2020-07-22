@@ -104,3 +104,11 @@ func (m *Mutation) VerifyContactMethod(ctx context.Context, input graphql2.Verif
 	err = m.NotificationStore.VerifyContactMethod(ctx, input.ContactMethodID, input.Code)
 	return err == nil, err
 }
+
+
+func (a *Query) SendTestStatus(ctx context.Context, cmID string) (string, error) {
+	if cmID != "" {
+		return a.CMStore.FindLastStatus(ctx, cmID)
+	}
+	return "", validation.NewFieldError("cmID", "field is required")
+}

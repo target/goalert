@@ -30,6 +30,7 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
+  sendTestStatus: string
 }
 
 export interface SlackChannelSearchOptions {

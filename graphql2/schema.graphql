@@ -97,6 +97,9 @@ type Query {
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
+
+  # Returns status of sendtest with given contact method id
+  sendTestStatus(cmID: ID!): String!
 }
 
 input SlackChannelSearchOptions {
@@ -1006,3 +1009,4 @@ type AuthSubject {
   subjectID: ID!
   userID: ID!
 }
+
