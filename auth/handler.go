@@ -73,8 +73,8 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 		updateUser: p.P(`
 			update users
 			set
-				name = $2,
-				email = $3
+				name = case when $2 = '' then name else $2 end,
+				email = case when $3 = '' then email else $3 end
 			where id = $1
 		`),
 
