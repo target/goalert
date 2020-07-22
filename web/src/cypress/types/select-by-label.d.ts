@@ -17,6 +17,8 @@ declare namespace Cypress {
   }
 }
 
-type selectByLabelFn = (label: string) => Cypress.Chainable
-type findByLabelFn = (label: string) => Cypress.Chainable
-type multiRemoveByLabelFn = (label: string) => Cypress.Chainable
+type selectByLabelFn = (label: string) => Cypress.Chainable<JQuery<HTMLElement>>
+type findByLabelFn = (label: string) => Cypress.Chainable<JQuery<HTMLElement>>
+type multiRemoveByLabelFn = (
+  label: string,
+) => Cypress.Chainable<JQuery<HTMLElement>>
