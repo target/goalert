@@ -701,7 +701,7 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
-  includeNotified: Boolean = true
+  includeNotified: Boolean = false
   omit: [Int!]
 }
 

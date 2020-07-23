@@ -9,7 +9,6 @@ import {
   DialogActions,
   DialogTitle,
   Grid,
-  InputAdornment,
   TextField,
   Typography,
   makeStyles,
@@ -19,6 +18,7 @@ import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { useConfigValue } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
+import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
@@ -64,47 +64,23 @@ export default function AdminSMSSend(): JSX.Element {
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12} lg={6}>
-                <TextField
-                  onChange={(e) =>
-                    setFromNumber(e.target.value.replace(/[^0-9]/g, ''))
-                  }
+                <TelTextField
+                  onChange={(e) => setFromNumber(e.target.value)}
                   value={fromNumber}
                   fullWidth
                   label='From Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
                   type='tel'
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment
-                        position='start'
-                        style={{ marginBottom: '0.1em' }}
-                      >
-                        +
-                      </InputAdornment>
-                    ),
-                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={12} lg={6}>
-                <TextField
-                  onChange={(e) =>
-                    setToNumber(e.target.value.replace(/[^0-9]/g, ''))
-                  }
+                <TelTextField
+                  onChange={(e) => setToNumber(e.target.value)}
                   value={toNumber}
                   fullWidth
                   label='To Number'
                   helperText='Please provide your country code e.g. +1 (USA)'
                   type='tel'
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment
-                        position='start'
-                        style={{ marginBottom: '0.1em' }}
-                      >
-                        +
-                      </InputAdornment>
-                    ),
-                  }}
                 />
               </Grid>
               <Grid item xs={12}>
