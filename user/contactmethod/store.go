@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -270,10 +271,12 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Cont
 
 	_, err = wrapTx(ctx, tx, db.insert).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value, n.Disabled, n.UserID)
 	if err != nil {
-		var u string
-		row := db.findUserName.QueryRowContext(ctx, n.Type, n.Value)
-		err = row.Scan(&u)
-		fmt.Println(u)
+		if strings.Contains(err.Error(), "user_contact_methods_type_value_key") {
+			var u string
+			row := db.findUserName.QueryRowContext(ctx, n.Type, n.Value)
+			err = row.Scan(&u)
+			return nil, validation.NewFieldError("Value", fmt.Sprintf("contact method already exists for that type and value for user %v", u))
+		}
 		return nil, err
 	}
 
