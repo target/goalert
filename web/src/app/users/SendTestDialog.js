@@ -2,6 +2,8 @@ import React from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
+import { useQuery } from '@apollo/react-hooks'
+import Spinner from '../loading/components/Spinner'
 
 import {
   Button,
@@ -11,14 +13,29 @@ import {
   DialogContent,
   DialogContentText,
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { useQuery } from '@apollo/react-hooks'
 
 const query = gql`
   query($cmID: ID!) {
-    sendTestStatus(cmID: $cmID)
+    sendTestStatus(cmID: $cmID) {
+      statusDetails
+      status
+    }
   }
 `
+const useStyles = makeStyles(() => ({
+  paper: { minWidth: '500px' },
+  statusOk: {
+    color: '#218626',
+  },
+  statusWarn: {
+    color: '#867321',
+  },
+  statusError: {
+    color: '#862421',
+  },
+}))
 
 export default function SendTestDialog(props) {
   const {
@@ -28,7 +45,9 @@ export default function SendTestDialog(props) {
     messageID,
   } = props
 
-  const { data, error } = useQuery(query, {
+  const classes = useStyles()
+
+  const { data, loading, error } = useQuery(query, {
     variables: {
       cmID: messageID,
     },
@@ -39,9 +58,23 @@ export default function SendTestDialog(props) {
   const errorMessage =
     (sendTestMutationStatus?.error?.message ?? '') || (error?.message ?? '')
 
+  //   const getLogStatusClass = (status) => {
+  //     switch (status) {
+  //       case 'OK':
+  //         return classes.statusOk
+  //       case 'WARN':
+  //         return classes.statusWarn
+  //       case 'ERROR':
+  //         return classes.statusError
+  //       default:
+  //         return null
+  //     }
+  //   }
+
   return (
-    <Dialog open onClose={onClose}>
+    <Dialog classes={{ paper: classes.paper }} open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
+      {loading && <Spinner />}
       {lastStatus && (
         <DialogContent>
           <DialogContentText>{lastStatus}</DialogContentText>

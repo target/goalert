@@ -30,8 +30,15 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
-  sendTestStatus: string
+  sendTestStatus?: TestMessageState
 }
+
+export interface TestMessageState {
+  statusDetails: string
+  status: MessageStatus
+}
+
+export type MessageStatus = 'OK' | 'WARN' | 'ERROR'
 
 export interface SlackChannelSearchOptions {
   first?: number

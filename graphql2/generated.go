@@ -406,6 +406,11 @@ type ComplexityRoot struct {
 		Type func(childComplexity int) int
 	}
 
+	TestMessageState struct {
+		Status        func(childComplexity int) int
+		StatusDetails func(childComplexity int) int
+	}
+
 	TimeZone struct {
 		ID func(childComplexity int) int
 	}
@@ -580,7 +585,7 @@ type QueryResolver interface {
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
-	SendTestStatus(ctx context.Context, cmID string) (string, error)
+	SendTestStatus(ctx context.Context, cmID string) (*TestMessageState, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -2493,6 +2498,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Target.Type(childComplexity), true
 
+	case "TestMessageState.status":
+		if e.complexity.TestMessageState.Status == nil {
+			break
+		}
+
+		return e.complexity.TestMessageState.Status(childComplexity), true
+
+	case "TestMessageState.statusDetails":
+		if e.complexity.TestMessageState.StatusDetails == nil {
+			break
+		}
+
+		return e.complexity.TestMessageState.StatusDetails(childComplexity), true
+
 	case "TimeZone.id":
 		if e.complexity.TimeZone.ID == nil {
 			break
@@ -2959,7 +2978,18 @@ var sources = []*ast.Source{
   slackChannel(id: ID!): SlackChannel
 
   # Returns status of sendtest with given contact method id
-  sendTestStatus(cmID: ID!): String!
+  sendTestStatus(cmID: ID!): TestMessageState
+}
+
+type TestMessageState {
+  statusDetails: String!
+  status: MessageStatus!
+}
+
+enum MessageStatus {
+  OK
+  WARN
+  ERROR
 }
 
 input SlackChannelSearchOptions {
@@ -10444,14 +10474,11 @@ func (ec *executionContext) _Query_sendTestStatus(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*TestMessageState)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOTestMessageState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTestMessageState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12607,6 +12634,74 @@ func (ec *executionContext) _Target_name(ctx context.Context, field graphql.Coll
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TestMessageState_statusDetails(ctx context.Context, field graphql.CollectedField, obj *TestMessageState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TestMessageState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StatusDetails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TestMessageState_status(ctx context.Context, field graphql.CollectedField, obj *TestMessageState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TestMessageState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(MessageStatus)
+	fc.Result = res
+	return ec.marshalNMessageStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimeZone_id(ctx context.Context, field graphql.CollectedField, obj *TimeZone) (ret graphql.Marshaler) {
@@ -18565,9 +18660,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sendTestStatus(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "__type":
@@ -19367,6 +19459,38 @@ func (ec *executionContext) _Target(ctx context.Context, sel ast.SelectionSet, o
 				res = ec._Target_name(ctx, field, obj)
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var testMessageStateImplementors = []string{"TestMessageState"}
+
+func (ec *executionContext) _TestMessageState(ctx context.Context, sel ast.SelectionSet, obj *TestMessageState) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, testMessageStateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TestMessageState")
+		case "statusDetails":
+			out.Values[i] = ec._TestMessageState_statusDetails(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			out.Values[i] = ec._TestMessageState_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20956,6 +21080,15 @@ func (ec *executionContext) marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋg
 		return graphql.Null
 	}
 	return ec._LabelConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMessageStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx context.Context, v interface{}) (MessageStatus, error) {
+	var res MessageStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNMessageStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐMessageStatus(ctx context.Context, sel ast.SelectionSet, v MessageStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNOnCallShift2githubᚗcomᚋtargetᚋgoalertᚋoncallᚐShift(ctx context.Context, sel ast.SelectionSet, v oncall.Shift) graphql.Marshaler {
@@ -23113,6 +23246,17 @@ func (ec *executionContext) unmarshalOTargetInput2ᚖgithubᚗcomᚋtargetᚋgoa
 	}
 	res, err := ec.unmarshalOTargetInput2githubᚗcomᚋtargetᚋgoalertᚋassignmentᚐRawTarget(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalOTestMessageState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTestMessageState(ctx context.Context, sel ast.SelectionSet, v TestMessageState) graphql.Marshaler {
+	return ec._TestMessageState(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOTestMessageState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTestMessageState(ctx context.Context, sel ast.SelectionSet, v *TestMessageState) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TestMessageState(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTimeZoneSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐTimeZoneSearchOptions(ctx context.Context, v interface{}) (TimeZoneSearchOptions, error) {

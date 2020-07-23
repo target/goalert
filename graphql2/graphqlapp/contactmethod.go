@@ -106,9 +106,17 @@ func (m *Mutation) VerifyContactMethod(ctx context.Context, input graphql2.Verif
 }
 
 
-func (a *Query) SendTestStatus(ctx context.Context, cmID string) (string, error) {
+func (a *Query) SendTestStatus(ctx context.Context, cmID string) (*graphql2.TestMessageState, error) {
 	if cmID != "" {
-		return a.CMStore.FindLastStatus(ctx, cmID)
+		s,err:=a.CMStore.FindLastStatus(ctx, cmID)
+		if err != nil {
+			return nil, err
+		} 
+		//TODO: preprocessing of status 
+		return &graphql2.TestMessageState{
+			StatusDetails: s,
+			Status:  "OK",
+		}, nil
 	}
-	return "", validation.NewFieldError("cmID", "field is required")
+	return nil, validation.NewFieldError("cmID", "field is required")
 }

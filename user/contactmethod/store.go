@@ -499,5 +499,8 @@ func (db *DB) FindLastStatus(ctx context.Context, cmID string) (string , error) 
 	if err != nil {
 		return "", err
 	}
-	return statusDetails, nil
+	if lastStatus == statusDetails {
+		return lastStatus, nil
+	} 
+	return lastStatus + ":" + statusDetails, nil
 }

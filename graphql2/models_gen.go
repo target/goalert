@@ -346,6 +346,11 @@ type SystemLimitInput struct {
 	Value int      `json:"value"`
 }
 
+type TestMessageState struct {
+	StatusDetails string        `json:"statusDetails"`
+	Status        MessageStatus `json:"status"`
+}
+
 type TimeZone struct {
 	ID string `json:"id"`
 }
@@ -654,6 +659,49 @@ func (e *IntegrationKeyType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MessageStatus string
+
+const (
+	MessageStatusOk    MessageStatus = "OK"
+	MessageStatusWarn  MessageStatus = "WARN"
+	MessageStatusError MessageStatus = "ERROR"
+)
+
+var AllMessageStatus = []MessageStatus{
+	MessageStatusOk,
+	MessageStatusWarn,
+	MessageStatusError,
+}
+
+func (e MessageStatus) IsValid() bool {
+	switch e {
+	case MessageStatusOk, MessageStatusWarn, MessageStatusError:
+		return true
+	}
+	return false
+}
+
+func (e MessageStatus) String() string {
+	return string(e)
+}
+
+func (e *MessageStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MessageStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MessageStatus", str)
+	}
+	return nil
+}
+
+func (e MessageStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

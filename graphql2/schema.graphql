@@ -99,7 +99,18 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   # Returns status of sendtest with given contact method id
-  sendTestStatus(cmID: ID!): String!
+  sendTestStatus(cmID: ID!): TestMessageState
+}
+
+type TestMessageState {
+  statusDetails: String!
+  status: MessageStatus!
+}
+
+enum MessageStatus {
+  OK
+  WARN
+  ERROR
 }
 
 input SlackChannelSearchOptions {
