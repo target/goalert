@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
+	n "github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -29,7 +31,7 @@ type Store interface {
 	EnableByValue(context.Context, Type, string) error
 	DisableByValue(context.Context, Type, string) error
 
-	FindLastStatus(ctx context.Context, cmID string) (string , error)
+	FindLastStatus(ctx context.Context, cmID string) (*n.MessageStatus, error)
 	MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string) (*Metadata, error)
 	SetCarrierV1MetadataByTypeValue(ctx context.Context, tx *sql.Tx, t Type, value string, m *Metadata) error
 }
@@ -38,19 +40,19 @@ type Store interface {
 type DB struct {
 	db *sql.DB
 
-	insert       *sql.Stmt
-	update       *sql.Stmt
-	delete       *sql.Stmt
-	findOne      *sql.Stmt
-	findOneUpd   *sql.Stmt
-	findMany     *sql.Stmt
-	findAll      *sql.Stmt
-	lookupUserID *sql.Stmt
-	enable       *sql.Stmt
-	disable      *sql.Stmt
-	metaTV       *sql.Stmt
-	setMetaTV    *sql.Stmt
-	now          *sql.Stmt
+	insert         *sql.Stmt
+	update         *sql.Stmt
+	delete         *sql.Stmt
+	findOne        *sql.Stmt
+	findOneUpd     *sql.Stmt
+	findMany       *sql.Stmt
+	findAll        *sql.Stmt
+	lookupUserID   *sql.Stmt
+	enable         *sql.Stmt
+	disable        *sql.Stmt
+	metaTV         *sql.Stmt
+	setMetaTV      *sql.Stmt
+	now            *sql.Stmt
 	findLastStatus *sql.Stmt
 }
 
@@ -127,7 +129,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				WHERE id = any($1)
 			`),
 		findLastStatus: p.P(`
-			SELECT last_status, status_details
+			SELECT last_status, status_details, next_retry_at notnull
 			FROM outgoing_messages
 			WHERE contact_method_id = $1 AND message_type = 'test_notification'
 			ORDER BY created_at DESC
@@ -476,31 +478,38 @@ func (db *DB) FindAll(ctx context.Context, userID string) ([]ContactMethod, erro
 	return scanAll(rows)
 }
 
-func (db *DB) FindLastStatus(ctx context.Context, cmID string) (string , error) {
+func (db *DB) FindLastStatus(ctx context.Context, cmID string) (*n.MessageStatus, error) {
 	err := validate.UUID("Contact Method ID", cmID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	tx, err := db.db.BeginTx(ctx, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer tx.Rollback()
 
-	var lastStatus, statusDetails string
+	var s n.MessageStatus
+	var lastStatus string
+	var hasNextRetry bool
 	row := wrapTx(ctx, tx, db.findLastStatus).QueryRowContext(ctx, cmID)
-	err = row.Scan(&lastStatus, &statusDetails)
+	err = row.Scan(&lastStatus, &s.Details, &hasNextRetry)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if lastStatus == statusDetails {
-		return lastStatus, nil
-	} 
-	return lastStatus + ":" + statusDetails, nil
+
+	state := n.GetMessageStatusState(lastStatus, hasNextRetry)
+	if state == -1 {
+		return nil, fmt.Errorf("unknown last_status %s", lastStatus)
+	}
+
+	s.State = state
+
+	return &s, nil
 }

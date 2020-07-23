@@ -30,15 +30,8 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
-  sendTestStatus?: TestMessageState
+  sendTestStatus?: NotificationState
 }
-
-export interface TestMessageState {
-  statusDetails: string
-  status: MessageStatus
-}
-
-export type MessageStatus = 'OK' | 'WARN' | 'ERROR'
 
 export interface SlackChannelSearchOptions {
   first?: number
@@ -583,15 +576,15 @@ export interface AlertLogEntry {
   id: number
   timestamp: ISOTimestamp
   message: string
-  state?: AlertLogEntryState
+  state?: NotificationState
 }
 
-export interface AlertLogEntryState {
+export interface NotificationState {
   details: string
-  status?: AlertLogStatus
+  status?: NotificationStatus
 }
 
-export type AlertLogStatus = 'OK' | 'WARN' | 'ERROR'
+export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
 
 export interface AlertState {
   lastEscalation: ISOTimestamp

@@ -34,11 +34,6 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
-type AlertLogEntryState struct {
-	Details string          `json:"details"`
-	Status  *AlertLogStatus `json:"status"`
-}
-
 type AlertRecentEventsOptions struct {
 	Limit *int    `json:"limit"`
 	After *string `json:"after"`
@@ -227,6 +222,11 @@ type LabelValueSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type NotificationState struct {
+	Details string              `json:"details"`
+	Status  *NotificationStatus `json:"status"`
+}
+
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor"`
 	HasNextPage bool    `json:"hasNextPage"`
@@ -344,11 +344,6 @@ type SystemLimit struct {
 type SystemLimitInput struct {
 	ID    limit.ID `json:"id"`
 	Value int      `json:"value"`
-}
-
-type TestMessageState struct {
-	StatusDetails string        `json:"statusDetails"`
-	Status        MessageStatus `json:"status"`
 }
 
 type TimeZone struct {
@@ -486,49 +481,6 @@ type VerifyContactMethodInput struct {
 	Code            int    `json:"code"`
 }
 
-type AlertLogStatus string
-
-const (
-	AlertLogStatusOk    AlertLogStatus = "OK"
-	AlertLogStatusWarn  AlertLogStatus = "WARN"
-	AlertLogStatusError AlertLogStatus = "ERROR"
-)
-
-var AllAlertLogStatus = []AlertLogStatus{
-	AlertLogStatusOk,
-	AlertLogStatusWarn,
-	AlertLogStatusError,
-}
-
-func (e AlertLogStatus) IsValid() bool {
-	switch e {
-	case AlertLogStatusOk, AlertLogStatusWarn, AlertLogStatusError:
-		return true
-	}
-	return false
-}
-
-func (e AlertLogStatus) String() string {
-	return string(e)
-}
-
-func (e *AlertLogStatus) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AlertLogStatus(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid AlertLogStatus", str)
-	}
-	return nil
-}
-
-func (e AlertLogStatus) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 type AlertStatus string
 
 const (
@@ -662,46 +614,46 @@ func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type MessageStatus string
+type NotificationStatus string
 
 const (
-	MessageStatusOk    MessageStatus = "OK"
-	MessageStatusWarn  MessageStatus = "WARN"
-	MessageStatusError MessageStatus = "ERROR"
+	NotificationStatusOk    NotificationStatus = "OK"
+	NotificationStatusWarn  NotificationStatus = "WARN"
+	NotificationStatusError NotificationStatus = "ERROR"
 )
 
-var AllMessageStatus = []MessageStatus{
-	MessageStatusOk,
-	MessageStatusWarn,
-	MessageStatusError,
+var AllNotificationStatus = []NotificationStatus{
+	NotificationStatusOk,
+	NotificationStatusWarn,
+	NotificationStatusError,
 }
 
-func (e MessageStatus) IsValid() bool {
+func (e NotificationStatus) IsValid() bool {
 	switch e {
-	case MessageStatusOk, MessageStatusWarn, MessageStatusError:
+	case NotificationStatusOk, NotificationStatusWarn, NotificationStatusError:
 		return true
 	}
 	return false
 }
 
-func (e MessageStatus) String() string {
+func (e NotificationStatus) String() string {
 	return string(e)
 }
 
-func (e *MessageStatus) UnmarshalGQL(v interface{}) error {
+func (e *NotificationStatus) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = MessageStatus(str)
+	*e = NotificationStatus(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid MessageStatus", str)
+		return fmt.Errorf("%s is not a valid NotificationStatus", str)
 	}
 	return nil
 }
 
-func (e MessageStatus) MarshalGQL(w io.Writer) {
+func (e NotificationStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

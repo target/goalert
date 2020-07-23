@@ -297,6 +297,28 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	return nil
 }
 
+func GetMessageStatusState(lastStatus string, hasNextRetry bool) MessageState {
+	switch lastStatus {
+	case "queued_remotely", "sending":
+		return MessageStateSending
+	case "pending":
+		return MessageStatePending
+	case "sent":
+		return MessageStateSent
+	case "delivered":
+		return MessageStateDelivered
+	case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
+		// temporary if retry
+		if hasNextRetry {
+			return MessageStateFailedTemp
+		} else {
+			return MessageStateFailedPerm
+		}
+	default:
+		return -1
+	}
+}
+
 func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -328,26 +350,12 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 			return nil, err
 		}
 		s.ProviderMessageID = providerMsgID.String
-
-		switch lastStatus {
-		case "queued_remotely", "sending":
-			s.State = MessageStateSending
-		case "pending":
-			s.State = MessageStatePending
-		case "sent":
-			s.State = MessageStateSent
-		case "delivered":
-			s.State = MessageStateDelivered
-		case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
-			// temporary if retry
-			if hasNextRetry {
-				s.State = MessageStateFailedTemp
-			} else {
-				s.State = MessageStateFailedPerm
-			}
-		default:
+		state := GetMessageStatusState(lastStatus, hasNextRetry)
+		if state == -1 {
 			return nil, fmt.Errorf("unknown last_status %s", lastStatus)
 		}
+
+		s.State = state
 		result = append(result, s)
 	}
 

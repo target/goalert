@@ -99,18 +99,7 @@ type Query {
   slackChannel(id: ID!): SlackChannel
 
   # Returns status of sendtest with given contact method id
-  sendTestStatus(cmID: ID!): TestMessageState
-}
-
-type TestMessageState {
-  statusDetails: String!
-  status: MessageStatus!
-}
-
-enum MessageStatus {
-  OK
-  WARN
-  ERROR
+  sendTestStatus(cmID: ID!): NotificationState
 }
 
 input SlackChannelSearchOptions {
@@ -756,15 +745,15 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
-  state: AlertLogEntryState
+  state: NotificationState
 }
 
-type AlertLogEntryState {
+type NotificationState {
   details: String!
-  status: AlertLogStatus
+  status: NotificationStatus
 }
 
-enum AlertLogStatus {
+enum NotificationStatus {
   OK
   WARN
   ERROR
@@ -1020,4 +1009,3 @@ type AuthSubject {
   subjectID: ID!
   userID: ID!
 }
-

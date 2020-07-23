@@ -19,7 +19,7 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 const query = gql`
   query($cmID: ID!) {
     sendTestStatus(cmID: $cmID) {
-      statusDetails
+      details
       status
     }
   }
@@ -54,30 +54,40 @@ export default function SendTestDialog(props) {
     skip: sendTestMutationStatus.error || sendTestMutationStatus.loading,
   })
 
-  const lastStatus = data?.sendTestStatus ?? ''
+  const details = data?.sendTestStatus?.details ?? ''
   const errorMessage =
     (sendTestMutationStatus?.error?.message ?? '') || (error?.message ?? '')
 
-  //   const getLogStatusClass = (status) => {
-  //     switch (status) {
-  //       case 'OK':
-  //         return classes.statusOk
-  //       case 'WARN':
-  //         return classes.statusWarn
-  //       case 'ERROR':
-  //         return classes.statusError
-  //       default:
-  //         return null
-  //     }
-  //   }
+  const getLogStatusClass = (status) => {
+    switch (status) {
+      case 'OK':
+        return classes.statusOk
+      case 'WARN':
+        return classes.statusWarn
+      case 'ERROR':
+        return classes.statusError
+      default:
+        return null
+    }
+  }
 
   return (
     <Dialog classes={{ paper: classes.paper }} open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
-      {loading && <Spinner />}
-      {lastStatus && (
+      {((loading && !details) || sendTestMutationStatus.loading) && (
         <DialogContent>
-          <DialogContentText>{lastStatus}</DialogContentText>
+          <Spinner text='Loading...' />
+        </DialogContent>
+      )}
+      {details && (
+        <DialogContent>
+          <DialogContentText
+            classes={{
+              root: getLogStatusClass(details),
+            }}
+          >
+            {details}
+          </DialogContentText>
         </DialogContent>
       )}
       {errorMessage && <DialogContentError error={errorMessage} />}
