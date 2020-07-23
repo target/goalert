@@ -55,11 +55,11 @@ endif
 
 all: test install
 
-release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz
+release: docker-goalert docker-all-in-one bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz bin/goalert-darwin-amd64.tgz
 docker-all-in-one: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64 bin/resetdb-linux-amd64 bin/resetdb-linux-arm bin/resetdb-linux-arm64
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/all-in-one-demo:$(DOCKER_TAG) -f devtools/ci/dockerfiles/all-in-one/Dockerfile.buildx .
 docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64
-	docker buildx build --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
+	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
