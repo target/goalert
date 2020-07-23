@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -50,6 +51,7 @@ type DB struct {
 	metaTV       *sql.Stmt
 	setMetaTV    *sql.Stmt
 	now          *sql.Stmt
+	findUserName *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -115,6 +117,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			FROM user_contact_methods
 			WHERE user_id = $1
 		`),
+		findUserName: p.P(`
+			SELECT users.name
+			FROM users
+			INNER JOIN user_contact_methods ON users.id = user_contact_methods.user_id
+			WHERE user_contact_methods.type = $1 AND user_contact_methods.value = $2
+			
+			`),
 		update: p.P(`
 				UPDATE user_contact_methods
 				SET name = $2, disabled = $3
@@ -261,6 +270,10 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Cont
 
 	_, err = wrapTx(ctx, tx, db.insert).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value, n.Disabled, n.UserID)
 	if err != nil {
+		var u string
+		row := db.findUserName.QueryRowContext(ctx, n.Type, n.Value)
+		err = row.Scan(&u)
+		fmt.Println(u)
 		return nil, err
 	}
 
