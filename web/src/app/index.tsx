@@ -22,6 +22,7 @@ import { GracefulUnmounterProvider } from './util/gracefulUnmount'
 import GoogleAnalytics from './util/GoogleAnalytics'
 import { Config, ConfigProvider } from './util/RequireConfig'
 import { warn } from './util/debug'
+import NewVersionCheck from './NewVersionCheck'
 
 // version check
 if (
@@ -63,6 +64,7 @@ ReactDOM.render(
         <ConnectedRouter history={history}>
           <MuiPickersUtilsProvider>
             <ConfigProvider>
+              <NewVersionCheck />
               <Config>
                 {(config: { 'General.GoogleAnalyticsID': string }) => (
                   <LazyGARouteTracker
