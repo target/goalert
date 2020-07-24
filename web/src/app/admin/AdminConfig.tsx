@@ -1,18 +1,25 @@
 import React, { useState } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import Button from '@material-ui/core/Button'
-import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import gql from 'graphql-tag'
-import { startCase, isEmpty, uniq } from 'lodash-es'
+import _, { startCase, isEmpty, uniq } from 'lodash-es'
 import chain from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
 import PageActions from '../util/PageActions'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import { Form } from '../forms'
-import { InputAdornment, TextField } from '@material-ui/core'
+import {
+  InputAdornment,
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip,
+} from '@material-ui/core'
 import CopyText from '../util/CopyText'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
@@ -56,6 +63,19 @@ const useStyles = makeStyles((theme) => ({
   saveDisabled: {
     color: 'rgba(255, 255, 255, 0.5)',
   },
+  heading: {
+    fontSize: theme.typography.pxToRem(15),
+    flexBasis: '33.33%',
+    flexShrink: 0,
+  },
+  secondaryHeading: {
+    fontSize: theme.typography.pxToRem(15),
+    color: theme.palette.text.secondary,
+    flexGrow: 1,
+  },
+  changeChip: {
+    justifyContent: 'flex-end',
+  },
 }))
 
 interface ConfigValues {
@@ -74,6 +94,7 @@ export default function AdminConfig(): JSX.Element {
   const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
   const [values, setValues] = useState({})
+  const [section, setSection] = useState(false as false | string)
 
   const { data, loading, error } = useQuery(query)
 
@@ -84,6 +105,8 @@ export default function AdminConfig(): JSX.Element {
   if (loading && !data) {
     return <Spinner />
   }
+
+  const configValues: ConfigValue[] = data.config
 
   const updateValue = (id: string, value: null | string): void => {
     const newVal: ConfigValues = { ...values }
@@ -127,45 +150,63 @@ export default function AdminConfig(): JSX.Element {
   }
 
   const groups = uniq(
-    data.config.map((f: ConfigValue) => f.id.split('.')[0]),
+    configValues.map((f: ConfigValue) => f.id.split('.')[0]),
   ) as string[]
   const hintGroups = chain(data.configHints)
     .groupBy((f: ConfigHint) => f.id.split('.')[0])
     .value()
   const hintName = (id: string): string => startCase(id.split('.')[1])
 
+  const handleExpandChange = (id: string) => () =>
+    setSection(id === section ? false : id)
+
+  const hasEnable = (sectionID: string): boolean =>
+    configValues.some((v) => v.id === sectionID + '.Enable')
+  const isEnabled = (sectionID: string): boolean =>
+    configValues.find((v) => v.id === sectionID + '.Enable')?.value === 'true'
+  const changeCount = (id: string): number =>
+    _.keys(values).filter((key) => key.startsWith(id + '.')).length
+
   return (
-    <div>
+    <React.Fragment>
       <Grid container spacing={2} className={classes.gridContainer}>
-        {groups.map((groupID: string, index: number) => (
-          <Grid
-            key={index}
-            container // contains title above card/card itself
-            item // for each admin config section
-            xs={12}
-            className={classes.gridItem}
-          >
-            <Grid item xs={12}>
-              <Typography
-                component='h2'
-                variant='subtitle1'
-                color='textSecondary'
-                classes={{
-                  subtitle1: classes.groupTitle,
-                }}
-              >
-                {formatHeading(groupID)}
-              </Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Form>
-                <Card>
+        <div style={{ width: '100%' }}>
+          {groups.map((groupID: string, index: number) => (
+            <Accordion
+              key={groupID}
+              expanded={section === groupID}
+              onChange={handleExpandChange(groupID)}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography
+                  component='h2'
+                  variant='subtitle1'
+                  className={classes.heading}
+                >
+                  {formatHeading(groupID)}
+                </Typography>
+                <Typography className={classes.secondaryHeading}>
+                  {hasEnable(groupID) &&
+                    (isEnabled(groupID) ? 'Enabled' : 'Disabled')}
+                </Typography>
+                {(changeCount(groupID) && (
+                  <Chip
+                    className={classes.changeChip}
+                    size='small'
+                    label={`${changeCount(groupID)} unsaved change(s)`}
+                  />
+                )) ||
+                  null}
+              </AccordionSummary>
+
+              <AccordionDetails>
+                <Form style={{ width: '100%' }}>
                   <AdminSection
                     value={values}
                     onChange={(id: string, value: null | string) =>
                       updateValue(id, value)
                     }
-                    fields={data.config
+                    fields={configValues
                       .filter(
                         (f: ConfigValue) =>
                           f.id.split('.')[0] === groups[index],
@@ -197,17 +238,17 @@ export default function AdminConfig(): JSX.Element {
                         fullWidth
                       />
                     ))}
-                </Card>
-              </Form>
-            </Grid>
-          </Grid>
-        ))}
+                </Form>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </div>
       </Grid>
       {renderPageActions()}
       {confirm && (
         <AdminDialog
           mutation={mutation}
-          values={data.config}
+          values={configValues}
           fieldValues={values}
           onClose={() => setConfirm(false)}
           onComplete={() => {
@@ -216,6 +257,6 @@ export default function AdminConfig(): JSX.Element {
           }}
         />
       )}
-    </div>
+    </React.Fragment>
   )
 }

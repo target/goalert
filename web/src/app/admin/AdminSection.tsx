@@ -5,7 +5,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import { FormContainer } from '../forms'
 import { defaultTo } from 'lodash-es'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles, Theme } from '@material-ui/core/styles'
 import {
   StringInput,
   StringListInput,
@@ -13,6 +13,7 @@ import {
   BoolInput,
 } from './AdminFieldComponents'
 import { ConfigValue } from '../../schema'
+import { yellow } from '@material-ui/core/colors'
 
 const components = {
   string: StringInput,
@@ -32,7 +33,10 @@ interface AdminSectionProps {
   onChange: (id: string, value: null | string) => void
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme: Theme) => ({
+  activeItem: {
+    backgroundColor: yellow[300],
+  },
   listItem: {
     // leaves some room around fields without descriptions
     // 71px is the height of the checkbox field without w/o a desc
@@ -41,9 +45,15 @@ const useStyles = makeStyles(() => ({
   },
   listItemText: {
     maxWidth: '50%',
+    [theme.breakpoints.up('md')]: {
+      maxWidth: '65%',
+    },
   },
   listItemAction: {
     width: '50%',
+    [theme.breakpoints.up('md')]: {
+      width: '35%',
+    },
     display: 'flex',
     justifyContent: 'flex-end',
   },
@@ -73,7 +83,11 @@ export default function AdminSection(props: AdminSectionProps): JSX.Element {
           return (
             <ListItem
               key={f.id}
-              className={classes.listItem}
+              className={
+                classes.listItem +
+                ' ' +
+                (_.has(value, f.id) ? classes.activeItem : '')
+              }
               divider={idx !== fields.length - 1}
             >
               <ListItemText
