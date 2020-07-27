@@ -35,7 +35,7 @@ interface AdminSectionProps {
 
 const useStyles = makeStyles((theme: Theme) => ({
   activeItem: {
-    backgroundColor: yellow[300],
+    backgroundColor: yellow[100],
   },
   listItem: {
     // leaves some room around fields without descriptions
