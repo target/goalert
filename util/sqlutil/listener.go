@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
+	"github.com/pkg/errors"
 )
 
 // Connector will return a new *pgx.Conn.
@@ -137,9 +138,14 @@ func (l *Listener) Stop() {
 	l.running = false
 }
 
-// Close will shut down the listener and returns after all connections have been completed.
-// It is not necessary to call Stop() before Close().
+// Close performs a shutdown with a background context.
 func (l *Listener) Close() error {
+	return l.Shutdown(context.Background())
+}
+
+// Shutdown will shut down the listener and returns after all connections have been completed.
+// It is not necessary to call Stop() before Close().
+func (l *Listener) Shutdown(context.Context) error {
 	l.Stop()
 	close(l.notifCh)
 	close(l.errCh)
@@ -151,7 +157,7 @@ func (l *Listener) handleNotifications(ctx context.Context) error {
 	t := time.NewTicker(3 * time.Second)
 	defer t.Stop()
 	for {
-		err := l.connect(ctx)
+		err := l.connect(l.ctx)
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -176,8 +182,8 @@ func (l *Listener) handleNotifications(ctx context.Context) error {
 		default:
 		}
 		n, err := l.conn.WaitForNotification(ctx)
-		if err != nil {
-			return err
+		if err != nil && ctx.Err() == nil {
+			return errors.Wrap(err, "wait for notifications")
 		}
 
 		if n == nil {
