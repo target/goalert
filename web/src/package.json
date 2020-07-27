@@ -127,7 +127,7 @@
     "@types/react": "16.9.41",
     "@types/react-dom": "16.9.8",
     "@types/react-redux": "7.1.9",
-    "@types/react-router": "5.1.7",
+    "@types/react-router": "5.1.8",
     "@types/react-router-dom": "5.1.5",
     "@typescript-eslint/eslint-plugin": "2.34.0",
     "@typescript-eslint/parser": "2.34.0",
