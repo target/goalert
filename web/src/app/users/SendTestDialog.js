@@ -15,6 +15,7 @@ import {
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import toTitleCase from '../util/toTitleCase.ts'
 
 const query = gql`
   query($cmID: ID!) {
@@ -72,8 +73,6 @@ export default function SendTestDialog(props) {
     }
   }
 
-  console.log(contactMethodType)
-
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
@@ -91,7 +90,7 @@ export default function SendTestDialog(props) {
       {details && (
         <DialogContent>
           <DialogContentText className={getLogStatusClass(status)}>
-            {details}
+            {toTitleCase(details)}
           </DialogContentText>
         </DialogContent>
       )}
