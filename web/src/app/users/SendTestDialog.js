@@ -25,7 +25,6 @@ const query = gql`
   }
 `
 const useStyles = makeStyles(() => ({
-  paper: { minWidth: '500px' },
   statusOk: {
     color: '#218626',
   },
@@ -43,6 +42,9 @@ export default function SendTestDialog(props) {
     onClose,
     sendTestMutationStatus,
     messageID,
+    contactMethodType,
+    contactMethodFromNumber,
+    contactMethodToNumber,
   } = props
 
   const classes = useStyles()
@@ -70,9 +72,17 @@ export default function SendTestDialog(props) {
     }
   }
 
+  console.log(contactMethodType)
+
   return (
-    <Dialog classes={{ paper: classes.paper }} open onClose={onClose}>
+    <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          GoAlert is sending a {contactMethodType} to {contactMethodToNumber}{' '}
+          from {contactMethodFromNumber}
+        </DialogContentText>
+      </DialogContent>
       {((loading && !details) || sendTestMutationStatus.loading) && (
         <DialogContent>
           <Spinner text='Loading...' />
@@ -102,4 +112,7 @@ SendTestDialog.propTypes = {
   title: p.string,
   subtitle: p.string,
   sendTestMutationStatus: p.object,
+  contactMethodType: p.string,
+  contactMethodToNumber: p.string,
+  contactMethodFromNumber: p.string,
 }
