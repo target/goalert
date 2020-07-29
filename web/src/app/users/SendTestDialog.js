@@ -55,6 +55,7 @@ export default function SendTestDialog(props) {
   })
 
   const details = data?.sendTestStatus?.details ?? ''
+  const status = data?.sendTestStatus?.status ?? ''
   const errorMessage =
     (sendTestMutationStatus?.error?.message ?? '') || (error?.message ?? '')
 
@@ -62,12 +63,10 @@ export default function SendTestDialog(props) {
     switch (status) {
       case 'OK':
         return classes.statusOk
-      case 'WARN':
-        return classes.statusWarn
       case 'ERROR':
         return classes.statusError
       default:
-        return null
+        return classes.statusWarn
     }
   }
 
@@ -81,11 +80,7 @@ export default function SendTestDialog(props) {
       )}
       {details && (
         <DialogContent>
-          <DialogContentText
-            classes={{
-              root: getLogStatusClass(details),
-            }}
-          >
+          <DialogContentText className={getLogStatusClass(status)}>
             {details}
           </DialogContentText>
         </DialogContent>
