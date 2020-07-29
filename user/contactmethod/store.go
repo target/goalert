@@ -52,7 +52,7 @@ type DB struct {
 	metaTV       *sql.Stmt
 	setMetaTV    *sql.Stmt
 	now          *sql.Stmt
-	findUserName *sql.Stmt
+	findUserID   *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -118,8 +118,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			FROM user_contact_methods
 			WHERE user_id = $1
 		`),
-		findUserName: p.P(`
-			SELECT users.name
+		findUserID: p.P(`
+			SELECT users.id
 			FROM users
 			INNER JOIN user_contact_methods ON users.id = user_contact_methods.user_id
 			WHERE user_contact_methods.type = $1 AND user_contact_methods.value = $2
@@ -273,7 +273,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Cont
 	if err != nil {
 		if strings.Contains(err.Error(), "user_contact_methods_type_value_key") {
 			var u string
-			row := db.findUserName.QueryRowContext(ctx, n.Type, n.Value)
+			row := db.findUserID.QueryRowContext(ctx, n.Type, n.Value)
 			err = row.Scan(&u)
 			return nil, validation.NewFieldError("Value", fmt.Sprintf("contact method already exists for that type and value for user %v", u))
 		}

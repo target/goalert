@@ -10,7 +10,7 @@ import { Zoom } from '@material-ui/core'
 @withStyles(styles)
 export default class DialogContentError extends Component {
   static propTypes = {
-    error: p.string,
+    error: p.node,
     noPadding: p.bool,
   }
 
@@ -22,13 +22,19 @@ export default class DialogContentError extends Component {
     if (!error) {
       return (
         <DialogContent style={style}>
-          <Typography
-            component='p'
-            variant='subtitle1'
-            style={{ display: 'flex' }}
-          >
-            &nbsp;
-          </Typography>
+          {typeof this.props.error === 'string' ? (
+            <Typography
+              component='p'
+              variant='subtitle1'
+              style={{ display: 'flex' }}
+            >
+              <Error className={classes.error} />
+              &nbsp;
+              <span className={classes.error}>{error}</span>
+            </Typography>
+          ) : (
+            error
+          )}
         </DialogContent>
       )
     }

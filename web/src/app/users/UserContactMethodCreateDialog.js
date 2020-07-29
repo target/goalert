@@ -6,8 +6,15 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
-import { useMutation } from '@apollo/react-hooks'
+import { useMutation, useQuery } from '@apollo/react-hooks'
 
+const query = gql`
+  query userName($id: ID!) {
+    user(id: $id) {
+      name
+    }
+  }
+`
 const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
     createUserContactMethod(input: $input) {
@@ -18,6 +25,7 @@ const createMutation = gql`
 
 export default function UserContactMethodCreateDialog(props) {
   // values for contact method form
+  const [conflictingUserID, setConflictingUserID] = useState('')
   const [cmValue, setCmValue] = useState({
     name: '',
     type: 'SMS',
@@ -27,6 +35,12 @@ export default function UserContactMethodCreateDialog(props) {
   const [createCM, createCMStatus] = useMutation(createMutation, {
     onCompleted: (result) => {
       props.onClose({ contactMethodID: result.createUserContactMethod.id })
+    },
+    onError: (err) => {
+      const errorMessage = err.message || err
+      const message = errorMessage.split(' ')
+      const userID = message.pop()
+      setConflictingUserID(userID)
     },
     variables: {
       input: {
@@ -38,9 +52,24 @@ export default function UserContactMethodCreateDialog(props) {
       },
     },
   })
-
+  const { data } = useQuery(query, {
+    variables: {
+      id: conflictingUserID,
+    },
+    skip: Boolean(conflictingUserID), // skip query if no conflicting user
+  })
+  console.log(data)
   const { loading, error } = createCMStatus
-  const fieldErrs = fieldErrors(error)
+  const messageErr = `contact method already exists for that type and value by user ${data}`
+  const conflictingUserErrorMessage = {
+    field: 'value',
+    message: messageErr,
+    details: '',
+    path: 'createUserContactMethod',
+  }
+  const fieldErrs = conflictingUserID
+    ? [conflictingUserErrorMessage]
+    : fieldErrors(error)
   const { title = 'Create New Contact Method', subtitle } = props
 
   const form = (
