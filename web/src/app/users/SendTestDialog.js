@@ -24,7 +24,7 @@ const query = gql`
     }
   }
 `
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles({
   statusOk: {
     color: '#218626',
   },
@@ -34,7 +34,7 @@ const useStyles = makeStyles(() => ({
   statusError: {
     color: '#862421',
   },
-}))
+})
 
 export default function SendTestDialog(props) {
   const {
