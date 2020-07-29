@@ -12,6 +12,7 @@ import (
 	"time"
 
 	oidc "github.com/coreos/go-oidc"
+	"github.com/jmespath/go-jmespath"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/config"
@@ -65,6 +66,11 @@ func (p *Provider) oaConfig(ctx context.Context) (*oauth2.Config, *oidc.IDTokenV
 		return nil, nil, err
 	}
 	cfg := config.FromContext(ctx)
+	scopes := cfg.OIDC.Scopes
+	// "openid" is a required scope for OpenID Connect flows.
+	if scopes == "" {
+		scopes = "openid profile email"
+	}
 
 	return &oauth2.Config{
 		ClientID:     cfg.OIDC.ClientID,
@@ -72,8 +78,7 @@ func (p *Provider) oaConfig(ctx context.Context) (*oauth2.Config, *oidc.IDTokenV
 
 		Endpoint: provider.Endpoint(),
 
-		// "openid" is a required scope for OpenID Connect flows.
-		Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
+		Scopes: strings.Split(scopes, " "),
 	}, provider.Verifier(&oidc.Config{ClientID: cfg.OIDC.ClientID}), nil
 }
 
@@ -159,6 +164,14 @@ func (p *Provider) validateStateToken(ctx context.Context, nonce []byte, state s
 	}
 
 	return true, nil
+}
+
+type claimsData struct {
+	Name       string `json:"name"`
+	GivenName  string `json:"given_name"`
+	FamilyName string `json:"family_name"`
+	Email      string `json:"email"`
+	Verified   bool   `json:"email_verified"`
 }
 
 // ExtractIdentity will return a redirect error for new auth requests, and provide a users identity
@@ -261,27 +274,99 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	}
 
 	// Extract custom claims
-	var claims struct {
-		Name       string `json:"name"`
-		GivenName  string `json:"given_name"`
-		FamilyName string `json:"family_name"`
-		Email      string `json:"email"`
-		Verified   bool   `json:"email_verified"`
-	}
+	var claims claimsData
 	if err := idToken.Claims(&claims); err != nil {
 		log.Log(ctx, errors.Wrap(err, "parse claims"))
 		return nil, auth.Error(fmt.Sprintf("Invalid response from %s server.", name))
 	}
+
 	if claims.Name == "" {
 		// We *should* always get name with the profile scope, but fall back to joining the given and family names
 		// for misbehaving servers.
 		claims.Name = strings.TrimSpace(claims.GivenName + " " + claims.FamilyName)
 	}
 
-	return &auth.Identity{
+	id := auth.Identity{
 		Email:         claims.Email,
 		Name:          claims.Name,
 		EmailVerified: claims.Verified,
 		SubjectID:     idToken.Subject,
-	}, nil
+	}
+
+	var info interface{}
+	getInfo := func(name, search string) interface{} {
+		if err != nil {
+			return nil
+		}
+		if info == nil {
+			info, err = p.userInfoData(ctx, oaCfg.TokenSource(ctx, oauth2Token))
+		}
+		if err != nil {
+			log.Log(ctx, err)
+			return nil
+		}
+		res, searchErr := jmespath.Search(search, info)
+		if searchErr != nil {
+			log.Log(ctx, errors.Wrapf(searchErr, "lookup %s in UserInfo", name))
+			return nil
+		}
+
+		return res
+	}
+	infoFieldStr := func(name, search string, field *string) {
+		if search == "" {
+			return
+		}
+		*field = ""
+		res := getInfo(name, search)
+		if res == nil {
+			return
+		}
+		s, ok := res.(string)
+		if !ok {
+			log.Log(ctx, errors.Errorf("expected %s to be a string in UserInfo", name))
+			return
+		}
+		*field = s
+	}
+	infoFieldBool := func(name, search string, field *bool) {
+		if search == "" {
+			return
+		}
+		*field = false
+		res := getInfo(name, search)
+		if res == nil {
+			return
+		}
+		v, ok := res.(bool)
+		if !ok {
+			log.Log(ctx, errors.Errorf("expected %s to be a bool in UserInfo", name))
+			return
+		}
+		*field = v
+	}
+	infoFieldStr("Email", cfg.OIDC.UserInfoEmailPath, &id.Email)
+	infoFieldBool("EmailVerified", cfg.OIDC.UserInfoEmailVerifiedPath, &id.EmailVerified)
+	infoFieldStr("Name", cfg.OIDC.UserInfoNamePath, &id.Name)
+
+	return &id, nil
+}
+
+func (p *Provider) userInfoData(ctx context.Context, token oauth2.TokenSource) (interface{}, error) {
+	provider, err := p.provider(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "get provider")
+	}
+
+	info, err := provider.UserInfo(ctx, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "fetch UserInfo")
+	}
+
+	var rawInfo interface{}
+	if err := info.Claims(&rawInfo); err != nil {
+		return nil, errors.Wrap(err, "parse UserInfo")
+	}
+
+	return rawInfo, nil
 }
