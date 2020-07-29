@@ -16,12 +16,20 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import toTitleCase from '../util/toTitleCase.ts'
+import { useConfigValue } from '../util/RequireConfig'
 
 const query = gql`
-  query($cmID: ID!) {
+  query($cmID: ID!, $number: String!) {
     sendTestStatus(cmID: $cmID) {
       details
       status
+    }
+    userContactMethod(id: $cmID) {
+      type
+      formattedValue
+    }
+    phoneNumberInfo(number: $number) {
+      formatted
     }
   }
 `
@@ -38,27 +46,31 @@ const useStyles = makeStyles({
 })
 
 export default function SendTestDialog(props) {
+  const classes = useStyles()
+
   const {
     title = 'Test Delivery Status',
     onClose,
     sendTestMutationStatus,
     messageID,
-    contactMethodType,
-    contactMethodFromNumber,
-    contactMethodToNumber,
   } = props
 
-  const classes = useStyles()
+  let [contactMethodFromNumber] = useConfigValue('Twilio.FromNumber')
 
   const { data, loading, error } = useQuery(query, {
     variables: {
       cmID: messageID,
+      number: contactMethodFromNumber,
     },
     skip: sendTestMutationStatus.error || sendTestMutationStatus.loading,
   })
 
   const details = data?.sendTestStatus?.details ?? ''
   const status = data?.sendTestStatus?.status ?? ''
+  const contactMethodToNumber = data?.userContactMethod?.formattedValue ?? ''
+  const contactMethodType = data?.userContactMethod?.type ?? ''
+  // update from number format
+  contactMethodFromNumber = data?.phoneNumberInfo?.formatted ?? ''
   const errorMessage =
     (sendTestMutationStatus?.error?.message ?? '') || (error?.message ?? '')
 
@@ -76,12 +88,6 @@ export default function SendTestDialog(props) {
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          GoAlert is sending a {contactMethodType} to {contactMethodToNumber}{' '}
-          from {contactMethodFromNumber}
-        </DialogContentText>
-      </DialogContent>
       {((loading && !details) || sendTestMutationStatus.loading) && (
         <DialogContent>
           <Spinner text='Loading...' />
@@ -89,6 +95,10 @@ export default function SendTestDialog(props) {
       )}
       {details && (
         <DialogContent>
+          <DialogContentText>
+            GoAlert is sending a {contactMethodType} to {contactMethodToNumber}{' '}
+            from {contactMethodFromNumber}
+          </DialogContentText>
           <DialogContentText className={getLogStatusClass(status)}>
             {toTitleCase(details)}
           </DialogContentText>
@@ -111,7 +121,4 @@ SendTestDialog.propTypes = {
   title: p.string,
   subtitle: p.string,
   sendTestMutationStatus: p.object,
-  contactMethodType: p.string,
-  contactMethodToNumber: p.string,
-  contactMethodFromNumber: p.string,
 }

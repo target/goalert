@@ -18,7 +18,6 @@ import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
-import { useConfigValue } from '../util/RequireConfig'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -57,12 +56,6 @@ const useStyles = makeStyles((theme) => {
 export default function UserContactMethodList(props) {
   const classes = useStyles()
   const width = useWidth()
-
-  const [fromNumber] = useConfigValue('Twilio.FromNumber')
-  const [showContactMethodToNumber, setShowContactMethodToNumber] = useState(
-    null,
-  )
-  const [showContactMethodType, setShowContactMethodType] = useState(null)
 
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
   const [showEditDialogByID, setShowEditDialogByID] = useState(null)
@@ -121,8 +114,6 @@ export default function UserContactMethodList(props) {
             },
           })
           setShowSendTestByID(cm.id)
-          setShowContactMethodToNumber(cm.value)
-          setShowContactMethodType(cm.type)
         },
       })
     } else {
@@ -199,9 +190,6 @@ export default function UserContactMethodList(props) {
             messageID={showSendTestByID}
             onClose={() => setShowSendTestByID(null)}
             sendTestMutationStatus={sendTestStatus}
-            contactMethodFromNumber={fromNumber}
-            contactMethodToNumber={showContactMethodToNumber}
-            contactMethodType={showContactMethodType}
           />
         )}
       </Card>
