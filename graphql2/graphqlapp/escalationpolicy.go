@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation"
@@ -323,8 +324,25 @@ func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) (
 	return ep.PolicyStore.FindAllSteps(ctx, raw.ID)
 }
 
-func (ep *EscalationPolicy) Notices(ctx context.Context, raw *EscalationPolicy) *[]graphql2.Notice {
-	return ep.PolicyStore.FindAllNotices(ctx, raw.ID)
+func (ep *EscalationPolicy) Notices(ctx context.Context, raw *escalation.Policy) ([]graphql2.Notice, error) {
+	_notices, _ := ep.PolicyStore.FindAllNotices(ctx, raw.ID)
+
+	var notices = make([]graphql2.Notice, len(_notices))
+	for i := range _notices {
+		notices[i].Message = _notices[i].Message
+		notices[i].Details = &_notices[i].Details
+
+		switch _notices[i].Type {
+		case notice.Warning:
+			notices[i].Type = graphql2.NoticeTypeWarning
+		case notice.Error:
+			notices[i].Type = graphql2.NoticeTypeError
+		case notice.Info:
+			notices[i].Type = graphql2.NoticeTypeInfo
+		}
+	}
+
+	return notices, nil
 }
 
 func (ep *EscalationPolicy) AssignedTo(ctx context.Context, raw *escalation.Policy) ([]assignment.RawTarget, error) {

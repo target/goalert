@@ -3,11 +3,13 @@ package escalation
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/target/goalert/util/sqlutil"
 
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
@@ -45,7 +47,7 @@ type PolicyStore interface {
 	FindAllPoliciesBySchedule(ctx context.Context, scheduleID string) ([]Policy, error)
 	FindManyPolicies(ctx context.Context, ids []string) ([]Policy, error)
 	DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string) error
-	FindAllNotices(ctx context.Context, policyID string) ([]Notice, error)
+	FindAllNotices(ctx context.Context, policyID string) ([]notice.Notice, error)
 
 	Search(context.Context, *SearchOptions) ([]Policy, error)
 }
@@ -132,6 +134,8 @@ type DB struct {
 	addStepTarget      *sql.Stmt
 	deleteStepTarget   *sql.Stmt
 	findAllStepTargets *sql.Stmt
+
+	findServicesByPolicyID *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
@@ -270,6 +274,12 @@ func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 				escalation_policy_step_number
 			FROM escalation_policy_state
 			WHERE alert_id = $1 AND escalation_policy_id = $2
+		`),
+
+		findServicesByPolicyID: p.P(`
+			SELECT COUNT(*)
+			FROM services
+			WHERE escalation_policy_id = $1
 		`),
 	}, p.Err
 }
@@ -984,6 +994,32 @@ func (db *DB) MoveStep(ctx context.Context, id string, newPos int) error {
 
 	return nil
 }
-func (db *DB) FindAllNotices(ctx context.Context, policyID string) ([]Notice, error) {
 
+// Sets a notice for a Policy if it is not assigned to any services
+func (db *DB) FindAllNotices(ctx context.Context, policyID string) ([]notice.Notice, error) {
+	err := validate.UUID("EscalationPolicyStepID", policyID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	var numServices int
+	err = db.findServicesByPolicyID.QueryRowContext(ctx, policyID).Scan(&numServices)
+	if err != nil {
+		return nil, err
+	}
+
+	var notices = make([]notice.Notice, 1, 1)
+	if numServices == 0 {
+		notices[0].Type = notice.Warning
+		notices[0].Message = "Not assigned to a service"
+		notices[0].Details = "To receive alerts for this configuration, assign this escalation policy to the relavent service."
+		fmt.Println("NOTICES: " + notices[0].Message)
+	}
+
+	return notices, nil
 }
