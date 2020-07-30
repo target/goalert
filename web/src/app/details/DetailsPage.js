@@ -15,6 +15,8 @@ import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListSubheader from '@material-ui/core/ListSubheader'
 import IconButton from '@material-ui/core/IconButton'
+import { Alert, AlertTitle } from '@material-ui/lab'
+import Notices from './Notices'
 import Markdown from '../util/Markdown'
 import { AppLink } from '../util/AppLink'
 import useWidth from '../util/useWidth'
@@ -100,7 +102,7 @@ export default function DetailsPage(props) {
   const classes = useStyles()
   const width = useWidth()
 
-  const { title, details, icon, titleFooter, pageFooter } = props
+  const { title, details, icon, notices, titleFooter, pageFooter } = props
 
   let links = null
   if (props.links && props.links.length) {
@@ -130,6 +132,11 @@ export default function DetailsPage(props) {
 
   return (
     <Grid container>
+      {notices.length > 0 && (
+        <Grid item xs={12} className={classes.spacing}>
+          <Notices notices={notices} />
+        </Grid>
+      )}
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>
@@ -185,9 +192,12 @@ export default function DetailsPage(props) {
     </Grid>
   )
 }
+
 DetailsPage.propTypes = {
   title: p.string,
   details: p.string,
+
+  notices: p.array, // todo: use type Notice when converted to ts
 
   icon: p.node,
   links: p.arrayOf(p.shape(DetailsLink.propTypes)),
