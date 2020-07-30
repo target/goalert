@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
@@ -266,6 +267,8 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		return err
 	}
 
+	fmt.Println(_type)
+
 	var classExtras []string
 	switch _type {
 	case _TypeAcknowledgeAll:
@@ -287,6 +290,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	}
 
 	src := permission.Source(ctx)
+	fmt.Println(src)
 	if src != nil {
 		switch src.Type {
 		case permission.SourceTypeNotificationChannel:
@@ -320,7 +324,12 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			}
 			if _type == TypeNoNotificationSent {
 				// no CMID for no notification sent
-				r.subject.classifier = "no immediate rule"
+				cfg := config.FromContext(ctx)
+				if !cfg.Twilio.Enable {
+					r.subject.classifier = "Twilio Disabled"
+				} else {
+					r.subject.classifier = "no immediate rule"
+				}
 				break
 			}
 			var cmType contactmethod.Type

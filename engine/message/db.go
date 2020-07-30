@@ -3,6 +3,7 @@ package message
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"sync"
 	"time"
 
@@ -798,6 +799,21 @@ func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send 
 	if m.AlertID != 0 {
 		ctx = log.WithField(ctx, "AlertID", m.AlertID)
 	}
+
+	cfg := config.FromContext(ctx)
+	userID := permission.UserID(ctx)
+	fmt.Println("userID:" + userID)
+	if !cfg.Twilio.Enable {
+		logCtx := permission.UserSourceContext(ctx, userID, permission.RoleUser, &permission.SourceInfo{
+			Type: permission.SourceTypeContactMethod,
+			// no ID available, since notification couldn't be sent
+		})
+		err := db.alertlogstore.LogTx(logCtx, nil, m.AlertID, alertlog.TypeNoNotificationSent, nil)
+		if err != nil {
+			return false, errors.Wrap(err, "log no notifications sent")
+		}
+	}
+
 	_, err := cLock.Exec(ctx, db.setSending, m.ID)
 	if err != nil {
 		return false, err
