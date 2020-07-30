@@ -45,6 +45,7 @@ type PolicyStore interface {
 	FindAllPoliciesBySchedule(ctx context.Context, scheduleID string) ([]Policy, error)
 	FindManyPolicies(ctx context.Context, ids []string) ([]Policy, error)
 	DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string) error
+	FindAllNotices(ctx context.Context, policyID string) ([]Notice, error)
 
 	Search(context.Context, *SearchOptions) ([]Policy, error)
 }
@@ -982,4 +983,7 @@ func (db *DB) MoveStep(ctx context.Context, id string, newPos int) error {
 	db.logChange(ctx, nil, polID)
 
 	return nil
+}
+func (db *DB) FindAllNotices(ctx context.Context, policyID string) ([]Notice, error) {
+
 }

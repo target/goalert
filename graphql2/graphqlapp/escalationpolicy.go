@@ -323,7 +323,9 @@ func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) (
 	return ep.PolicyStore.FindAllSteps(ctx, raw.ID)
 }
 
-func (ep *EscalationPolicy) Notices(ctx context.Context, raw *EscalationPolicy) ()
+func (ep *EscalationPolicy) Notices(ctx context.Context, raw *EscalationPolicy) *[]graphql2.Notice {
+	return ep.PolicyStore.FindAllNotices(ctx, raw.ID)
+}
 
 func (ep *EscalationPolicy) AssignedTo(ctx context.Context, raw *escalation.Policy) ([]assignment.RawTarget, error) {
 	svcs, err := ep.ServiceStore.FindAllByEP(ctx, raw.ID)
