@@ -1013,7 +1013,7 @@ func (db *DB) FindAllNotices(ctx context.Context, policyID string) ([]notice.Not
 		return nil, err
 	}
 
-	var notices = make([]notice.Notice, 1, 1)
+	var notices = make([]notice.Notice, 1)
 	if numServices == 0 {
 		notices[0].Type = notice.Warning
 		notices[0].Message = "Not assigned to a service"
