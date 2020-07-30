@@ -479,12 +479,12 @@ func (db *DB) FindAll(ctx context.Context, userID string) ([]ContactMethod, erro
 }
 
 func (db *DB) FindLastStatus(ctx context.Context, cmID string) (*n.MessageStatus, error) {
-	err := validate.UUID("Contact Method ID", cmID)
+	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.User)
+	err = validate.UUID("Contact Method ID", cmID)
 	if err != nil {
 		return nil, err
 	}
