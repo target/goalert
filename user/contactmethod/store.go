@@ -504,7 +504,7 @@ func (db *DB) FindLastStatus(ctx context.Context, cmID string) (*n.MessageStatus
 		return nil, err
 	}
 
-	state := n.GetMessageStatusState(lastStatus, hasNextRetry)
+	state := n.MessageStateFromStatus(lastStatus, hasNextRetry)
 	if state == -1 {
 		return nil, fmt.Errorf("unknown last_status %s", lastStatus)
 	}

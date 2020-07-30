@@ -115,5 +115,5 @@ func (a *Query) SendTestStatus(ctx context.Context, cmID string) (*graphql2.Noti
 		return nil, err
 	}
 
-	return GetNotificationState(*s)
+	return notificationStateFromStatus(*s)
 }

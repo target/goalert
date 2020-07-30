@@ -2958,7 +2958,7 @@ var sources = []*ast.Source{
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
 
-  # Returns status of sendtest with given contact method id
+  # Returns the status of the latest test or verify message for the given contact method ID.
   sendTestStatus(cmID: ID!): NotificationState
 }
 

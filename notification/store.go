@@ -297,7 +297,7 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	return nil
 }
 
-func GetMessageStatusState(lastStatus string, hasNextRetry bool) MessageState {
+func MessageStateFromStatus(lastStatus string, hasNextRetry bool) MessageState {
 	switch lastStatus {
 	case "queued_remotely", "sending":
 		return MessageStateSending
@@ -350,12 +350,11 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 			return nil, err
 		}
 		s.ProviderMessageID = providerMsgID.String
-		state := GetMessageStatusState(lastStatus, hasNextRetry)
-		if state == -1 {
+		s.State = MessageStateFromStatus(lastStatus, hasNextRetry)
+		if s.State == -1 {
 			return nil, fmt.Errorf("unknown last_status %s", lastStatus)
 		}
 
-		s.State = state
 		result = append(result, s)
 	}
 
