@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
-
+import { AppLink } from '../util/AppLink'
 import gql from 'graphql-tag'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import { useMutation, useQuery } from '@apollo/react-hooks'
@@ -56,11 +55,16 @@ export default function UserContactMethodCreateDialog(props) {
     variables: {
       id: conflictingUserID,
     },
-    skip: Boolean(conflictingUserID), // skip query if no conflicting user
+    skip: Boolean(!conflictingUserID), // skip query if no conflicting user
   })
-  console.log(data)
   const { loading, error } = createCMStatus
-  const messageErr = `contact method already exists for that type and value by user ${data}`
+  let messageErr = `contact method already exists for that type and value ${
+    data?.user?.name ? 'by user ' + data.user.name : ''
+  }`
+  if (conflictingUserID)
+    messageErr = (
+      <AppLink to={`/users/${conflictingUserID}`}>{messageErr}</AppLink>
+    )
   const conflictingUserErrorMessage = {
     field: 'value',
     message: messageErr,
