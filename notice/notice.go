@@ -6,7 +6,7 @@ type Notice struct {
 	Details string     `json:"details"`
 }
 
-// MessageState represents the current state of an outgoing message.
+// NoticeType represents the level of severity of a Notice.
 type NoticeType int
 
 const (

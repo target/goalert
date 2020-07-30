@@ -32,5 +32,5 @@ export default function Notices(props: NoticesProps) {
     )
   }
 
-  return props.notices.map((n, i) => renderAlert(n, i))
+  return props.notices.map(renderAlert)
 }
