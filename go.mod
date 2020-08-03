@@ -37,6 +37,7 @@ require (
 	github.com/jackc/pgconn v1.2.1
 	github.com/jackc/pgtype v1.1.0
 	github.com/jackc/pgx/v4 v4.2.1
+	github.com/jmespath/go-jmespath v0.3.0
 	github.com/joho/godotenv v1.3.0
 	github.com/matryer/moq v0.0.0-20200607124540-4638a53893e6 // indirect
 	github.com/mattn/go-colorable v0.1.4
