@@ -298,7 +298,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 
 		insertAlertBundle: p.P(`
 			with new_msg as (
-				insert into outgoing_messages ( 
+				insert into outgoing_messages (
 					id,
 					created_at,
 					message_type,
@@ -860,7 +860,6 @@ func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send 
 	if m.AlertID != 0 {
 		ctx = log.WithField(ctx, "AlertID", m.AlertID)
 	}
-
 	_, err := cLock.Exec(ctx, db.setSending, m.ID)
 	if err != nil {
 		return false, err
