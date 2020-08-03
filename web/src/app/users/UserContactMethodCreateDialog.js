@@ -39,7 +39,9 @@ export default function UserContactMethodCreateDialog(props) {
       const errorMessage = err.message || err
       const message = errorMessage.split(' ')
       const userID = message.pop()
-      setConflictingUserID(userID)
+      if (userID.length > 15) {
+        setConflictingUserID(userID)
+      }
     },
     variables: {
       input: {
@@ -58,7 +60,7 @@ export default function UserContactMethodCreateDialog(props) {
     skip: Boolean(!conflictingUserID), // skip query if no conflicting user
   })
   const { loading, error } = createCMStatus
-  let messageErr = `contact method already exists for that type and value ${
+  let messageErr = `Contact method already exists for that type and value ${
     data?.user?.name ? 'by user ' + data.user.name : ''
   }`
   if (conflictingUserID)

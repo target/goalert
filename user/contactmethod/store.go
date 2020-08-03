@@ -275,7 +275,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *ContactMethod) (*Cont
 			var u string
 			row := db.findUserID.QueryRowContext(ctx, n.Type, n.Value)
 			err = row.Scan(&u)
-			return nil, validation.NewFieldError("Value", fmt.Sprintf("contact method already exists for that type and value for user %v", u))
+			return nil, validation.NewFieldError("Value", fmt.Sprintf("Contact method already exists for that type and value for user %v", u))
 		}
 		return nil, err
 	}
