@@ -7478,10 +7478,10 @@ mdast-util-compact@^2.0.0:
   dependencies:
     unist-util-visit "^2.0.0"
 
-mdi-material-ui@6.14.0:
-  version "6.14.0"
-  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-6.14.0.tgz#509da75c0ea5c37d1bc3d3d89e98092f575544c9"
-  integrity sha512-S6Q0lk4BhPM5bi6TwTSktC1Gw3Pe3GsVSnQNrlIYokX4eQ8JNJISq2d1Y2O02R5fcBnK8j3+GZyJjbwP0VQxFw==
+mdi-material-ui@6.17.0:
+  version "6.17.0"
+  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-6.17.0.tgz#da69f0b7d7c6fc2255e6007ed8b8ca858c1aede7"
+  integrity sha512-eOprRu31lklPIS1WGe3cM0G/8glKl1WKRvewxjDrgXH2Ryxxg7uQ+uwDUwUEONtLku0p2ZOLzgXUIy2uRy5rLg==
 
 mdn-data@2.0.4:
   version "2.0.4"
