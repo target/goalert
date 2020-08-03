@@ -3,7 +3,6 @@ package message
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"sync"
 	"time"
 
@@ -45,6 +44,8 @@ type DB struct {
 
 	failDisabledCM *sql.Stmt
 	alertlogstore  alertlog.Store
+
+	twilioDisabled *sql.Stmt
 
 	sentByCMType *sql.Stmt
 
@@ -278,9 +279,26 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 			) select distinct msg_id, alert_id, user_id, cm_id from disabled
 		`),
 
+		twilioDisabled: p.P(`
+			with disabled as (
+				update outgoing_messages msg
+				set
+					last_status = 'failed',
+					last_status_at = now(),
+					status_details = 'twilio disabled',
+					cycle_id = null,
+					next_retry_at = null
+				from user_contact_methods cm
+				where
+					msg.last_status = 'pending' and
+					msg.message_type != 'verification_message'
+				returning alert_id, msg.user_id
+			) select distinct alert_id, user_id from disabled
+		`),
+
 		insertAlertBundle: p.P(`
 			with new_msg as (
-				insert into outgoing_messages (
+				insert into outgoing_messages ( 
 					id,
 					created_at,
 					message_type,
@@ -576,6 +594,42 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "clear disabled status updates")
 	}
 
+	// if twilio is disable, create an entry to notify the user
+	cfg := config.FromContext(ctx)
+	if !cfg.Twilio.Enable {
+		rows, err := tx.Stmt(db.twilioDisabled).QueryContext(execCtx)
+		if err != nil {
+			return errors.Wrap(err, "check for failed message")
+		}
+		defer rows.Close()
+
+		type record struct {
+			alertID int
+			userID  string
+		}
+
+		var msgs []record
+		for rows.Next() {
+			var msg record
+			err = rows.Scan(&msg.alertID, &msg.userID)
+			if err != nil {
+				return errors.Wrap(err, "scan all failed messages")
+			}
+			msgs = append(msgs, msg)
+		}
+
+		for _, msg := range msgs {
+			logCtx := permission.UserSourceContext(ctx, msg.userID, permission.RoleUser, &permission.SourceInfo{
+				Type: permission.SourceTypeContactMethod,
+				// no ID available, since notification couldn't be sent
+			})
+			err = db.alertlogstore.LogTx(logCtx, tx, msg.alertID, alertlog.TypeNoNotificationSent, nil)
+			if err != nil {
+				return errors.Wrap(err, "log no notifications sent")
+			}
+		}
+	}
+
 	// processes disabled CMs and writes to alert log if disabled
 	rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
 	if err != nil {
@@ -798,20 +852,6 @@ func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send 
 	)
 	if m.AlertID != 0 {
 		ctx = log.WithField(ctx, "AlertID", m.AlertID)
-	}
-
-	cfg := config.FromContext(ctx)
-	userID := permission.UserID(ctx)
-	fmt.Println("userID:" + userID)
-	if !cfg.Twilio.Enable {
-		logCtx := permission.UserSourceContext(ctx, userID, permission.RoleUser, &permission.SourceInfo{
-			Type: permission.SourceTypeContactMethod,
-			// no ID available, since notification couldn't be sent
-		})
-		err := db.alertlogstore.LogTx(logCtx, nil, m.AlertID, alertlog.TypeNoNotificationSent, nil)
-		if err != nil {
-			return false, errors.Wrap(err, "log no notifications sent")
-		}
 	}
 
 	_, err := cLock.Exec(ctx, db.setSending, m.ID)

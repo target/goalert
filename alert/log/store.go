@@ -267,8 +267,6 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 		return err
 	}
 
-	fmt.Println(_type)
-
 	var classExtras []string
 	switch _type {
 	case _TypeAcknowledgeAll:
@@ -290,7 +288,6 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	}
 
 	src := permission.Source(ctx)
-	fmt.Println(src)
 	if src != nil {
 		switch src.Type {
 		case permission.SourceTypeNotificationChannel:
