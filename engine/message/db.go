@@ -292,8 +292,8 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 				where
 					msg.last_status = 'pending' and
 					msg.message_type != 'verification_message'
-				returning alert_id, msg.user_id
-			) select distinct alert_id, user_id from disabled
+				returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
+			) select distinct msg_id, alert_id, user_id, cm_id from disabled
 		`),
 
 		insertAlertBundle: p.P(`
@@ -604,14 +604,16 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		defer rows.Close()
 
 		type record struct {
-			alertID int
-			userID  string
+			messageID string
+			alertID   int
+			userID    string
+			cmID      string
 		}
 
 		var msgs []record
 		for rows.Next() {
 			var msg record
-			err = rows.Scan(&msg.alertID, &msg.userID)
+			err = rows.Scan(&msg.messageID, &msg.alertID, &msg.userID, &msg.cmID)
 			if err != nil {
 				return errors.Wrap(err, "scan all failed messages")
 			}
@@ -619,11 +621,16 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		}
 
 		for _, msg := range msgs {
+			meta := alertlog.NotificationMetaData{
+				MessageID: msg.messageID,
+			}
+
 			logCtx := permission.UserSourceContext(ctx, msg.userID, permission.RoleUser, &permission.SourceInfo{
 				Type: permission.SourceTypeContactMethod,
+				ID:   msg.cmID,
 				// no ID available, since notification couldn't be sent
 			})
-			err = db.alertlogstore.LogTx(logCtx, tx, msg.alertID, alertlog.TypeNoNotificationSent, nil)
+			err = db.alertlogstore.LogTx(logCtx, tx, msg.alertID, alertlog.TypeNotificationSent, meta)
 			if err != nil {
 				return errors.Wrap(err, "log no notifications sent")
 			}
