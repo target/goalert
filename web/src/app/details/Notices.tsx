@@ -19,6 +19,15 @@ const useStyles = makeStyles({
   alertMessage: {
     width: '100%',
   },
+  gridItem: {
+    padding: '4px 0 4px 0',
+  },
+  lastGridItem: {
+    padding: '4px 0 0 0',
+  },
+  secondGridItem: {
+    padding: '8px 0 4px 0',
+  },
 })
 
 interface NoticesProps {
@@ -49,9 +58,26 @@ export default function Notices(props: NoticesProps) {
     )
   }
 
+  /*
+   * Spacing set manually on grid items to accomadate manual
+   * accordian transitions for multiple notices
+   */
+  function getGridClassName(index: number): string {
+    switch (index) {
+      case 0:
+        return ''
+      case 1:
+        return classes.secondGridItem
+      case props.notices.length - 1:
+        return classes.lastGridItem
+      default:
+        return classes.gridItem
+    }
+  }
+
   function renderAlert(notice: Notice, index: number) {
     return (
-      <Grid key={index} item xs={12}>
+      <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
           severity={notice.type.toLowerCase() as AlertProps['severity']}
           classes={{
@@ -71,11 +97,11 @@ export default function Notices(props: NoticesProps) {
   }
 
   return (
-    <Grid container spacing={1}>
+    <Grid container>
       {renderAlert(props.notices[0], 0)}
       <Grid item xs={12}>
         <Collapse in={alertsExpanded}>
-          <Grid container spacing={1}>
+          <Grid container>
             {props.notices.slice(1).map((n, i) => renderAlert(n, i + 1))}
           </Grid>
         </Collapse>
