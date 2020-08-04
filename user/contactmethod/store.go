@@ -489,16 +489,10 @@ func (db *DB) FindLastStatus(ctx context.Context, cmID string) (*n.MessageStatus
 		return nil, err
 	}
 
-	tx, err := db.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
 	var s n.MessageStatus
 	var lastStatus string
 	var hasNextRetry bool
-	row := wrapTx(ctx, tx, db.findLastStatus).QueryRowContext(ctx, cmID)
+	row := db.findLastStatus.QueryRowContext(ctx, cmID)
 	err = row.Scan(&lastStatus, &s.Details, &hasNextRetry)
 	if err != nil {
 		return nil, err
