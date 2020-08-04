@@ -1017,7 +1017,6 @@ func (db *DB) FindAllNotices(ctx context.Context, policyID string) ([]notice.Not
 		notices[0].Type = notice.Warning
 		notices[0].Message = "Not assigned to a service"
 		notices[0].Details = "To receive alerts for this configuration, assign this escalation policy to its relavent service."
-		fmt.Println("NOTICES: " + notices[0].Message)
 	}
 
 	return notices, nil
