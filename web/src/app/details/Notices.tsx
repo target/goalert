@@ -41,18 +41,14 @@ export default function Notices(props: NoticesProps) {
   function renderShowAllToggle(): ReactNode {
     if (props.notices.length <= 1) return null
 
-    if (alertsExpanded) {
-      return (
-        <IconButton onClick={() => setAlertsExpanded(false)}>
-          <CollapseIcon />
-        </IconButton>
-      )
-    }
-
     return (
-      <Badge color='primary' badgeContent={props.notices.length - 1}>
-        <IconButton onClick={() => setAlertsExpanded(true)}>
-          <ExpandIcon />
+      <Badge
+        color='primary'
+        badgeContent={props.notices.length - 1}
+        invisible={alertsExpanded}
+      >
+        <IconButton onClick={() => setAlertsExpanded(!alertsExpanded)}>
+          {alertsExpanded ? <CollapseIcon /> : <ExpandIcon />}
         </IconButton>
       </Badge>
     )
