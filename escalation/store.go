@@ -3,7 +3,6 @@ package escalation
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/target/goalert/util/sqlutil"
 

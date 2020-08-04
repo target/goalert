@@ -34,7 +34,7 @@ interface NoticesProps {
   notices: Notice[] // checks against .length are safe as notices is required
 }
 
-export default function Notices(props: NoticesProps) {
+export default function Notices(props: NoticesProps): JSX.Element {
   const classes = useStyles()
   const [alertsExpanded, setAlertsExpanded] = useState(false)
 
@@ -71,7 +71,7 @@ export default function Notices(props: NoticesProps) {
     }
   }
 
-  function renderAlert(notice: Notice, index: number) {
+  function renderAlert(notice: Notice, index: number): JSX.Element {
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
