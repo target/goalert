@@ -45,7 +45,7 @@ type DB struct {
 	failDisabledCM *sql.Stmt
 	alertlogstore  alertlog.Store
 
-	twilioDisabled *sql.Stmt
+	failSMSVoice *sql.Stmt
 
 	sentByCMType *sql.Stmt
 
@@ -279,21 +279,19 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 			) select distinct msg_id, alert_id, user_id, cm_id from disabled
 		`),
 
-		twilioDisabled: p.P(`
-			with disabled as (
-				update outgoing_messages msg
-				set
-					last_status = 'failed',
-					last_status_at = now(),
-					status_details = 'twilio disabled',
-					cycle_id = null,
-					next_retry_at = null
-				from user_contact_methods cm
-				where
-					msg.last_status = 'pending' and
-					msg.message_type != 'verification_message'
-				returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
-			) select distinct msg_id, alert_id, user_id, cm_id from disabled
+		failSMSVoice: p.P(`
+			update outgoing_messages msg
+			set
+				last_status = 'failed',
+				last_status_at = now(),
+				status_details = 'twilio disabled',
+				cycle_id = null,
+				next_retry_at = null
+			from user_contact_methods cm
+			where
+				msg.last_status = 'pending' and
+				cm.type in ('SMS', 'VOICE')
+			returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
 		`),
 
 		insertAlertBundle: p.P(`
@@ -594,56 +592,6 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "clear disabled status updates")
 	}
 
-	// if twilio is disable, create an entry to notify the user
-	cfg := config.FromContext(ctx)
-	if !cfg.Twilio.Enable {
-		rows, err := tx.Stmt(db.twilioDisabled).QueryContext(execCtx)
-		if err != nil {
-			return errors.Wrap(err, "check for failed message")
-		}
-		defer rows.Close()
-
-		type record struct {
-			messageID string
-			alertID   int
-			userID    string
-			cmID      string
-		}
-
-		var msgs []record
-		for rows.Next() {
-			var msg record
-			err = rows.Scan(&msg.messageID, &msg.alertID, &msg.userID, &msg.cmID)
-			if err != nil {
-				return errors.Wrap(err, "scan all failed messages")
-			}
-			msgs = append(msgs, msg)
-		}
-
-		for _, msg := range msgs {
-			meta := alertlog.NotificationMetaData{
-				MessageID: msg.messageID,
-			}
-
-			logCtx := permission.UserSourceContext(ctx, msg.userID, permission.RoleUser, &permission.SourceInfo{
-				Type: permission.SourceTypeContactMethod,
-				ID:   msg.cmID,
-				// no ID available, since notification couldn't be sent
-			})
-			err = db.alertlogstore.LogTx(logCtx, tx, msg.alertID, alertlog.TypeNotificationSent, meta)
-			if err != nil {
-				return errors.Wrap(err, "log no notifications sent")
-			}
-		}
-	}
-
-	// processes disabled CMs and writes to alert log if disabled
-	rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
-	if err != nil {
-		return errors.Wrap(err, "check for disabled CMs")
-	}
-	defer rows.Close()
-
 	type msgMeta struct {
 		MessageID string
 		AlertID   int
@@ -652,13 +600,40 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	}
 
 	var msgs []msgMeta
-	for rows.Next() {
-		var msg msgMeta
-		err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
+
+	// if twilio is disable, create an entry to notify the user
+	cfg := config.FromContext(ctx)
+	if !cfg.Twilio.Enable {
+		rows, err := tx.StmtContext(ctx, db.failSMSVoice).QueryContext(execCtx)
 		if err != nil {
-			return errors.Wrap(err, "scan all disabled CM messages")
+			return errors.Wrap(err, "check for failed message")
 		}
-		msgs = append(msgs, msg)
+		defer rows.Close()
+
+		for rows.Next() {
+			var msg msgMeta
+			err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
+			if err != nil {
+				return errors.Wrap(err, "scan all failed messages")
+			}
+			msgs = append(msgs, msg)
+		}
+	} else {
+		// processes disabled CMs and writes to alert log if disabled
+		rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
+		if err != nil {
+			return errors.Wrap(err, "check for disabled CMs")
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var msg msgMeta
+			err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
+			if err != nil {
+				return errors.Wrap(err, "scan all disabled CM messages")
+			}
+			msgs = append(msgs, msg)
+		}
 	}
 
 	for _, m := range msgs {
