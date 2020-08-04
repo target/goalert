@@ -99,6 +99,30 @@ function testProfile(): void {
       cy.get('body').should('contain', `${name} (${type})`)
     })
 
+    it('should return error with link to conflicting user', () => {
+      const value = cm.value
+      const name = 'SM CM ' + c.word({ length: 8 })
+      const type = cm.type
+
+      cy.pageFab('Contact')
+      cy.dialogTitle('Create New Contact Method')
+      cy.dialogForm({
+        name,
+        type,
+        value,
+      })
+      cy.dialogClick('Submit')
+
+      cy.get('body').should(
+        'contain',
+        `Contact method already exists for that type and value by user`,
+      )
+      cy.contains(
+        'Contact method already exists for that type and value by user',
+      ).click()
+      cy.get('body').url().should('contain', '/users/')
+    })
+
     it('should allow editing', () => {
       const name = 'SM CM ' + c.word({ length: 8 })
       cy.get('ul[data-cy=contact-methods]')
