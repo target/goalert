@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/target/goalert/config"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/permission"
@@ -321,12 +320,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			}
 			if _type == TypeNoNotificationSent {
 				// no CMID for no notification sent
-				cfg := config.FromContext(ctx)
-				if !cfg.Twilio.Enable {
-					r.subject.classifier = "Twilio Disabled"
-				} else {
-					r.subject.classifier = "no immediate rule"
-				}
+				r.subject.classifier = "no immediate rule"
 				break
 			}
 			var cmType contactmethod.Type

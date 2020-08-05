@@ -290,7 +290,8 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 			from user_contact_methods cm
 			where
 				msg.last_status = 'pending' and
-				cm.type in ('SMS', 'VOICE')
+				cm.type in ('SMS', 'VOICE') and
+				cm.id = msg.contact_method_id
 			returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
 		`),
 
@@ -618,22 +619,22 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 			}
 			msgs = append(msgs, msg)
 		}
-	} else {
-		// processes disabled CMs and writes to alert log if disabled
-		rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
-		if err != nil {
-			return errors.Wrap(err, "check for disabled CMs")
-		}
-		defer rows.Close()
+	}
 
-		for rows.Next() {
-			var msg msgMeta
-			err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
-			if err != nil {
-				return errors.Wrap(err, "scan all disabled CM messages")
-			}
-			msgs = append(msgs, msg)
+	// processes disabled CMs and writes to alert log if disabled
+	rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
+	if err != nil {
+		return errors.Wrap(err, "check for disabled CMs")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var msg msgMeta
+		err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
+		if err != nil {
+			return errors.Wrap(err, "scan all disabled CM messages")
 		}
+		msgs = append(msgs, msg)
 	}
 
 	for _, m := range msgs {
