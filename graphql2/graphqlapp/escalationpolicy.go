@@ -325,7 +325,7 @@ func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) (
 }
 
 func (ep *EscalationPolicy) Notices(ctx context.Context, raw *escalation.Policy) ([]graphql2.Notice, error) {
-	_notices, err := ep.PolicyStore.FindAllNotices(ctx, raw.ID)
+	_notices, err := ep.NoticeStore.FindAllPolicyNotices(ctx, raw.ID)
 	if err != nil {
 		return nil, err
 	}

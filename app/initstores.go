@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/target/goalert/notice"
 	"net/url"
 
 	"github.com/target/goalert/alert"
@@ -251,6 +252,13 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init calendar subscription store")
+	}
+
+	if app.NoticeStore == nil {
+		app.NoticeStore, err = notice.NewStore(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init notice store")
 	}
 
 	return nil
