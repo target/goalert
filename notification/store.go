@@ -29,7 +29,9 @@ type Store interface {
 	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	Code(ctx context.Context, id string) (int, error)
 	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
-	FindLastStatus(ctx context.Context, cmID string) (*MessageStatus, error)
+
+	// LastMessageStatus will return the MessageStatus and creation timestamp of the message matching the filter critera.
+	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
 }
 
 var _ Store = &DB{}
@@ -45,7 +47,7 @@ type DB struct {
 	isDisabled                   *sql.Stmt
 	sendTestLock                 *sql.Stmt
 	findManyMessageStatuses      *sql.Stmt
-	findLastStatus 				 *sql.Stmt
+	lastMessageStatus            *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -138,12 +140,17 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				from outgoing_messages
 				where id = any($1)
 		`),
-		findLastStatus: p.P(`
-			SELECT last_status, status_details, next_retry_at notnull
-			FROM outgoing_messages
-			WHERE contact_method_id = $1 AND message_type = 'test_notification'
-			ORDER BY created_at DESC
-			LIMIT 1
+		lastMessageStatus: p.P(`
+			select
+				id,
+				last_status,
+				status_details,
+				provider_msg_id,
+				provider_seq,
+				next_retry_at notnull,
+				created_at
+			from outgoing_messages msg
+			where message_type = $1 and contact_method_id = $2 and created_at >= $3
 		`),
 	}, p.Err
 }
@@ -370,30 +377,32 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	return result, nil
 }
 
-func (db *DB) FindLastStatus(ctx context.Context, cmID string) (*MessageStatus, error) {
+func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
-		return nil, err
+		return nil, time.Time{}, err
 	}
 
 	err = validate.UUID("Contact Method ID", cmID)
 	if err != nil {
-		return nil, err
+		return nil, time.Time{}, err
 	}
 
 	var s MessageStatus
 	var lastStatus string
 	var hasNextRetry bool
-	row := db.findLastStatus.QueryRowContext(ctx, cmID)
-	err = row.Scan(&lastStatus, &s.Details, &hasNextRetry)
+	var providerMsgID sql.NullString
+	var createdAt sql.NullTime
+	row := db.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from)
+	err = row.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry, &createdAt)
 	if err != nil {
-		return nil, err
+		return nil, time.Time{}, err
 	}
-
+	s.ProviderMessageID = providerMsgID.String
 	s.State = messageStateFromStatus(lastStatus, hasNextRetry)
 	if s.State == -1 {
-		return nil, fmt.Errorf("unknown last_status %s", lastStatus)
+		return nil, time.Time{}, fmt.Errorf("unknown last_status %s", lastStatus)
 	}
 
-	return &s, nil
+	return &s, createdAt.Time, nil
 }
