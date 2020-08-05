@@ -50,6 +50,10 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "OIDC.IssuerURL", Type: ConfigTypeString, Description: "", Value: cfg.OIDC.IssuerURL},
 		{ID: "OIDC.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.OIDC.ClientID},
 		{ID: "OIDC.ClientSecret", Type: ConfigTypeString, Description: "", Value: cfg.OIDC.ClientSecret, Password: true},
+		{ID: "OIDC.Scopes", Type: ConfigTypeString, Description: "Requested scopes for authentication. If left blank, openid, profile, and email will be used.", Value: cfg.OIDC.Scopes},
+		{ID: "OIDC.UserInfoEmailPath", Type: ConfigTypeString, Description: "JMESPath expression to find email address in UserInfo. If set, the email claim will be ignored in favor of this. (suggestion: email).", Value: cfg.OIDC.UserInfoEmailPath},
+		{ID: "OIDC.UserInfoEmailVerifiedPath", Type: ConfigTypeString, Description: "JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified).", Value: cfg.OIDC.UserInfoEmailVerifiedPath},
+		{ID: "OIDC.UserInfoNamePath", Type: ConfigTypeString, Description: "JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))", Value: cfg.OIDC.UserInfoNamePath},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
 		{ID: "Mailgun.APIKey", Type: ConfigTypeString, Description: "", Value: cfg.Mailgun.APIKey, Password: true},
 		{ID: "Mailgun.EmailDomain", Type: ConfigTypeString, Description: "The TO address for all incoming alerts.", Value: cfg.Mailgun.EmailDomain},
@@ -224,6 +228,14 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.OIDC.ClientID = v.Value
 		case "OIDC.ClientSecret":
 			cfg.OIDC.ClientSecret = v.Value
+		case "OIDC.Scopes":
+			cfg.OIDC.Scopes = v.Value
+		case "OIDC.UserInfoEmailPath":
+			cfg.OIDC.UserInfoEmailPath = v.Value
+		case "OIDC.UserInfoEmailVerifiedPath":
+			cfg.OIDC.UserInfoEmailVerifiedPath = v.Value
+		case "OIDC.UserInfoNamePath":
+			cfg.OIDC.UserInfoNamePath = v.Value
 		case "Mailgun.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {
