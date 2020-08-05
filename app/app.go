@@ -11,6 +11,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
@@ -100,6 +101,7 @@ type App struct {
 	OAuthKeyring   keyring.Keyring
 	SessionKeyring keyring.Keyring
 	APIKeyring     keyring.Keyring
+	AuthLinkStore  *authlink.Store
 
 	NonceStore    nonce.Store
 	LabelStore    label.Store

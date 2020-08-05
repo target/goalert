@@ -50,6 +50,7 @@ func (app *App) initAuth(ctx context.Context) error {
 		return errors.Wrap(err, "init basic auth provider")
 	}
 	app.AuthHandler.AddIdentityProvider("basic", basicProvider)
+	app.AuthHandler.AddIdentityProvider("link", app.AuthLinkStore)
 
 	return err
 }

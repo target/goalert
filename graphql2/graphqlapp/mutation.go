@@ -16,6 +16,23 @@ type Mutation App
 
 func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
 
+func (a *Mutation) CreateAuthLink(ctx context.Context) (*graphql2.AuthLink, error) {
+	stat, err := a.AuthLinkStore.Create(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphql2.AuthLink{
+		ID: stat.ID,
+
+		ClaimCode: stat.ClaimCode,
+	}, nil
+}
+
+func (a *Mutation) VerifyAuthLink(ctx context.Context, input graphql2.VerifyAuthLinkInput) (bool, error) {
+	return a.AuthLinkStore.Verify(ctx, input.ID, input.Code)
+}
+
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error
 	if input.Favorite {
