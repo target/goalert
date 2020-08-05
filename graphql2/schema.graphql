@@ -277,6 +277,7 @@ input VerifyAuthLinkInput {
 type Mutation {
   createAuthLink: AuthLink
   verifyAuthLink(input: VerifyAuthLinkInput!): Boolean!
+  resetAuthLink: Boolean!
 
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo

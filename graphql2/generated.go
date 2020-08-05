@@ -240,6 +240,7 @@ type ComplexityRoot struct {
 		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
 		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
 		EscalateAlerts                 func(childComplexity int, input []int) int
+		ResetAuthLink                  func(childComplexity int) int
 		SendContactMethodVerification  func(childComplexity int, input SendContactMethodVerificationInput) int
 		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
 		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
@@ -525,6 +526,7 @@ type IntegrationKeyResolver interface {
 type MutationResolver interface {
 	CreateAuthLink(ctx context.Context) (*AuthLink, error)
 	VerifyAuthLink(ctx context.Context, input VerifyAuthLinkInput) (bool, error)
+	ResetAuthLink(ctx context.Context) (bool, error)
 	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*twilio.CarrierInfo, error)
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
@@ -1442,6 +1444,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EscalateAlerts(childComplexity, args["input"].([]int)), true
+
+	case "Mutation.resetAuthLink":
+		if e.complexity.Mutation.ResetAuthLink == nil {
+			break
+		}
+
+		return e.complexity.Mutation.ResetAuthLink(childComplexity), true
 
 	case "Mutation.sendContactMethodVerification":
 		if e.complexity.Mutation.SendContactMethodVerification == nil {
@@ -3222,6 +3231,7 @@ input VerifyAuthLinkInput {
 type Mutation {
   createAuthLink: AuthLink
   verifyAuthLink(input: VerifyAuthLinkInput!): Boolean!
+  resetAuthLink: Boolean!
 
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
@@ -7737,6 +7747,40 @@ func (ec *executionContext) _Mutation_verifyAuthLink(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().VerifyAuthLink(rctx, args["input"].(VerifyAuthLinkInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_resetAuthLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ResetAuthLink(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18410,6 +18454,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createAuthLink(ctx, field)
 		case "verifyAuthLink":
 			out.Values[i] = ec._Mutation_verifyAuthLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "resetAuthLink":
+			out.Values[i] = ec._Mutation_resetAuthLink(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

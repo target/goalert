@@ -32,6 +32,13 @@ func (a *Mutation) CreateAuthLink(ctx context.Context) (*graphql2.AuthLink, erro
 func (a *Mutation) VerifyAuthLink(ctx context.Context, input graphql2.VerifyAuthLinkInput) (bool, error) {
 	return a.AuthLinkStore.Verify(ctx, input.ID, input.Code)
 }
+func (a *Mutation) ResetAuthLink(ctx context.Context) (bool, error) {
+	err := a.AuthLinkStore.Reset(ctx)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
 
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error
