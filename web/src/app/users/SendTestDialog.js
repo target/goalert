@@ -17,6 +17,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import toTitleCase from '../util/toTitleCase.ts'
 import { useConfigValue } from '../util/RequireConfig'
+import { textColors } from '../styles/statusStyles'
 
 const query = gql`
   query($cmID: ID!, $number: String!) {
@@ -34,15 +35,7 @@ const query = gql`
   }
 `
 const useStyles = makeStyles({
-  statusOk: {
-    color: '#218626',
-  },
-  statusWarn: {
-    color: '#867321',
-  },
-  statusError: {
-    color: '#862421',
-  },
+  ...textColors,
 })
 
 export default function SendTestDialog(props) {
