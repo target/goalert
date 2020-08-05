@@ -102,7 +102,7 @@ type Harness struct {
 	userGeneratedIndex int
 	addGraphUser       sync.Once
 
-	sessToken string
+	gqlSessions map[string]string
 }
 
 func (h *Harness) Config() config.Config {
@@ -184,6 +184,8 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 		dbURL:          DBURL(name),
 		lastTimeChange: start,
 		start:          start,
+
+		gqlSessions: make(map[string]string),
 
 		t: t,
 	}
