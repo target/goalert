@@ -7,6 +7,7 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import CloseIcon from '@material-ui/icons/Close'
+import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
 import DropDownMenu from '../../dialogs/components/DropDownMenu'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { DialogContent } from '@material-ui/core'
@@ -37,10 +38,11 @@ const styles = (theme) => {
  * Renders a fullscreen dialog with an app bar if on a small
  * or mobile screen, and a standard dialog title otherwise.
  */
+@withWidth()
 @withStyles(styles)
 export default class DialogTitleWrapper extends Component {
   static propTypes = {
-    fullScreen: p.bool.isRequired,
+    fullScreen: p.bool,
     closeIcon: p.object,
     toolbarItems: p.array, // list of JSX items to display on the toolbar
     title: p.node.isRequired,
@@ -53,13 +55,14 @@ export default class DialogTitleWrapper extends Component {
     const {
       classes,
       closeIcon,
-      fullScreen,
+      fullScreen: _fullScreen,
       toolbarItems,
       onClose,
       options,
       subTitle,
       title,
     } = this.props
+    const fullScreen = _fullScreen || isWidthDown('md', this.props.width)
 
     let menu
     if (options && options.length > 0 && fullScreen) {
