@@ -42,7 +42,7 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(), nil
 }
 
-func notificationStateFromStatus(s notification.MessageStatus) (*graphql2.NotificationState, error) {
+func notificationStateFromStatus(s notification.MessageStatus) *graphql2.NotificationState {
 	var status graphql2.NotificationStatus
 	switch s.State {
 	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
@@ -77,7 +77,7 @@ func notificationStateFromStatus(s notification.MessageStatus) (*graphql2.Notifi
 	return &graphql2.NotificationState{
 		Details: details,
 		Status:  &status,
-	}, nil
+	}
 }
 
 func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
@@ -106,7 +106,7 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		return nil, errors.Wrap(err, "find alert log state")
 	}
 
-	return notificationStateFromStatus(*s)
+	return notificationStateFromStatus(*s), nil
 }
 
 func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
