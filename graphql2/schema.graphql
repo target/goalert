@@ -97,9 +97,6 @@ type Query {
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
-
-  # Returns the status of the latest test or verify message for the given contact method ID.
-  sendTestStatus(cmID: ID!): NotificationState
 }
 
 input SlackChannelSearchOptions {
@@ -971,6 +968,10 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+
+  lastTestVerifyAt: ISOTimestamp
+  lastTestMessageState: NotificationState
+  lastVerifyMessageState: NotificationState
 }
 
 input CreateUserContactMethodInput {

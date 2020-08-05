@@ -30,7 +30,6 @@ export interface Query {
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection
   slackChannel?: SlackChannel
-  sendTestStatus?: NotificationState
 }
 
 export interface SlackChannelSearchOptions {
@@ -762,6 +761,9 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  lastTestVerifyAt?: ISOTimestamp
+  lastTestMessageState?: NotificationState
+  lastVerifyMessageState?: NotificationState
 }
 
 export interface CreateUserContactMethodInput {

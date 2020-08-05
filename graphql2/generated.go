@@ -288,7 +288,6 @@ type ComplexityRoot struct {
 		Rotations                func(childComplexity int, input *RotationSearchOptions) int
 		Schedule                 func(childComplexity int, id string) int
 		Schedules                func(childComplexity int, input *ScheduleSearchOptions) int
-		SendTestStatus           func(childComplexity int, cmID string) int
 		Service                  func(childComplexity int, id string) int
 		Services                 func(childComplexity int, input *ServiceSearchOptions) int
 		SlackChannel             func(childComplexity int, id string) int
@@ -445,12 +444,15 @@ type ComplexityRoot struct {
 	}
 
 	UserContactMethod struct {
-		Disabled       func(childComplexity int) int
-		FormattedValue func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		Type           func(childComplexity int) int
-		Value          func(childComplexity int) int
+		Disabled               func(childComplexity int) int
+		FormattedValue         func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		LastTestMessageState   func(childComplexity int) int
+		LastTestVerifyAt       func(childComplexity int) int
+		LastVerifyMessageState func(childComplexity int) int
+		Name                   func(childComplexity int) int
+		Type                   func(childComplexity int) int
+		Value                  func(childComplexity int) int
 	}
 
 	UserNotificationRule struct {
@@ -580,7 +582,6 @@ type QueryResolver interface {
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
 	SlackChannel(ctx context.Context, id string) (*slack.Channel, error)
-	SendTestStatus(ctx context.Context, cmID string) (*NotificationState, error)
 }
 type RotationResolver interface {
 	IsFavorite(ctx context.Context, obj *rotation.Rotation) (bool, error)
@@ -634,6 +635,9 @@ type UserCalendarSubscriptionResolver interface {
 }
 type UserContactMethodResolver interface {
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
+
+	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
+	LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
 }
 type UserNotificationRuleResolver interface {
 	ContactMethod(ctx context.Context, obj *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error)
@@ -1900,18 +1904,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Schedules(childComplexity, args["input"].(*ScheduleSearchOptions)), true
 
-	case "Query.sendTestStatus":
-		if e.complexity.Query.SendTestStatus == nil {
-			break
-		}
-
-		args, err := ec.field_Query_sendTestStatus_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SendTestStatus(childComplexity, args["cmID"].(string)), true
-
 	case "Query.service":
 		if e.complexity.Query.Service == nil {
 			break
@@ -2675,6 +2667,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserContactMethod.ID(childComplexity), true
 
+	case "UserContactMethod.lastTestMessageState":
+		if e.complexity.UserContactMethod.LastTestMessageState == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastTestMessageState(childComplexity), true
+
+	case "UserContactMethod.lastTestVerifyAt":
+		if e.complexity.UserContactMethod.LastTestVerifyAt == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastTestVerifyAt(childComplexity), true
+
+	case "UserContactMethod.lastVerifyMessageState":
+		if e.complexity.UserContactMethod.LastVerifyMessageState == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastVerifyMessageState(childComplexity), true
+
 	case "UserContactMethod.name":
 		if e.complexity.UserContactMethod.Name == nil {
 			break
@@ -2957,9 +2970,6 @@ var sources = []*ast.Source{
 
   # Returns a Slack channel with the given ID.
   slackChannel(id: ID!): SlackChannel
-
-  # Returns the status of the latest test or verify message for the given contact method ID.
-  sendTestStatus(cmID: ID!): NotificationState
 }
 
 input SlackChannelSearchOptions {
@@ -3831,6 +3841,10 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+
+  lastTestVerifyAt: ISOTimestamp
+  lastTestMessageState: NotificationState
+  lastVerifyMessageState: NotificationState
 }
 
 input CreateUserContactMethodInput {
@@ -4674,20 +4688,6 @@ func (ec *executionContext) field_Query_schedules_args(ctx context.Context, rawA
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_sendTestStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["cmID"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["cmID"] = arg0
 	return args, nil
 }
 
@@ -10412,44 +10412,6 @@ func (ec *executionContext) _Query_slackChannel(ctx context.Context, field graph
 	return ec.marshalOSlackChannel2ᚖgithubᚗcomᚋtargetᚋgoalertᚋnotificationᚋslackᚐChannel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_sendTestStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_sendTestStatus_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SendTestStatus(rctx, args["cmID"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*NotificationState)
-	fc.Result = res
-	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13580,6 +13542,99 @@ func (ec *executionContext) _UserContactMethod_disabled(ctx context.Context, fie
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserContactMethod_lastTestVerifyAt(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastTestVerifyAt(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserContactMethod_lastTestMessageState(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().LastTestMessageState(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationState)
+	fc.Result = res
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserContactMethod_lastVerifyMessageState(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().LastVerifyMessageState(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationState)
+	fc.Result = res
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
@@ -18549,17 +18604,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_slackChannel(ctx, field)
 				return res
 			})
-		case "sendTestStatus":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_sendTestStatus(ctx, field)
-				return res
-			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -19715,6 +19759,30 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "lastTestVerifyAt":
+			out.Values[i] = ec._UserContactMethod_lastTestVerifyAt(ctx, field, obj)
+		case "lastTestMessageState":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_lastTestMessageState(ctx, field, obj)
+				return res
+			})
+		case "lastVerifyMessageState":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_lastVerifyMessageState(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

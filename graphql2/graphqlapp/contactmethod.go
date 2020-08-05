@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -30,6 +31,33 @@ func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.C
 		formatted = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
 	}
 	return formatted, nil
+}
+
+func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
+	t := obj.LastTestVerifyAt()
+	if t.IsZero() {
+		return nil, nil
+	}
+
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeTest, obj.ID, t)
+	if err != nil {
+		return nil, err
+	}
+
+	return notificationStateFromStatus(*status), nil
+}
+func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
+	t := obj.LastTestVerifyAt()
+	if t.IsZero() {
+		return nil, nil
+	}
+
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeVerification, obj.ID, t)
+	if err != nil {
+		return nil, err
+	}
+
+	return notificationStateFromStatus(*status), nil
 }
 
 func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {
@@ -103,17 +131,4 @@ func (m *Mutation) VerifyContactMethod(ctx context.Context, input graphql2.Verif
 
 	err = m.NotificationStore.VerifyContactMethod(ctx, input.ContactMethodID, input.Code)
 	return err == nil, err
-}
-
-func (a *Query) SendTestStatus(ctx context.Context, cmID string) (*graphql2.NotificationState, error) {
-	if cmID == "" {
-		return nil, validation.NewFieldError("cmID", "field is required")
-	}
-
-	s, err := a.NotificationStore.FindLastStatus(ctx, cmID)
-	if err != nil {
-		return nil, err
-	}
-
-	return notificationStateFromStatus(*s)
 }
