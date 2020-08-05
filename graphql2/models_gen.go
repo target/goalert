@@ -230,7 +230,7 @@ type LabelValueSearchOptions struct {
 type Notice struct {
 	Type    NoticeType `json:"type"`
 	Message string     `json:"message"`
-	Details *string    `json:"details"`
+	Details string     `json:"details"`
 }
 
 type PageInfo struct {

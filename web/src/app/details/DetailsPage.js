@@ -196,7 +196,13 @@ DetailsPage.propTypes = {
   title: p.string,
   details: p.string,
 
-  notices: p.array, // todo: use type Notice when converted to ts
+  notices: p.arrayOf(
+    p.shape({
+      type: p.oneOf(['WARNING', 'ERROR', 'INFO']).isRequired,
+      message: p.string.isRequired,
+      details: p.string.isRequired,
+    }),
+  ), // todo: use type Notice when converted to ts
 
   icon: p.node,
   links: p.arrayOf(p.shape(DetailsLink.propTypes)),

@@ -36,7 +36,7 @@ interface NoticesProps {
 
 export default function Notices(props: NoticesProps): JSX.Element {
   const classes = useStyles()
-  const [alertsExpanded, setAlertsExpanded] = useState(false)
+  const [noticesExpanded, setNoticesExpanded] = useState(false)
 
   function renderShowAllToggle(): ReactNode {
     if (props.notices.length <= 1) return null
@@ -45,10 +45,10 @@ export default function Notices(props: NoticesProps): JSX.Element {
       <Badge
         color='primary'
         badgeContent={props.notices.length - 1}
-        invisible={alertsExpanded}
+        invisible={noticesExpanded}
       >
-        <IconButton onClick={() => setAlertsExpanded(!alertsExpanded)}>
-          {alertsExpanded ? <CollapseIcon /> : <ExpandIcon />}
+        <IconButton onClick={() => setNoticesExpanded(!noticesExpanded)}>
+          {noticesExpanded ? <CollapseIcon /> : <ExpandIcon />}
         </IconButton>
       </Badge>
     )
@@ -71,7 +71,7 @@ export default function Notices(props: NoticesProps): JSX.Element {
     }
   }
 
-  function renderAlert(notice: Notice, index: number): JSX.Element {
+  function renderNotice(notice: Notice, index: number): JSX.Element {
     return (
       <Grid key={index} className={getGridClassName(index)} item xs={12}>
         <Alert
@@ -94,11 +94,11 @@ export default function Notices(props: NoticesProps): JSX.Element {
 
   return (
     <Grid container>
-      {renderAlert(props.notices[0], 0)}
+      {renderNotice(props.notices[0], 0)}
       <Grid item xs={12}>
-        <Collapse in={alertsExpanded}>
+        <Collapse in={noticesExpanded}>
           <Grid container>
-            {props.notices.slice(1).map((n, i) => renderAlert(n, i + 1))}
+            {props.notices.slice(1).map((n, i) => renderNotice(n, i + 1))}
           </Grid>
         </Collapse>
       </Grid>

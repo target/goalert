@@ -846,7 +846,7 @@ type EscalationPolicy {
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!
 
-  notices: [Notice!]
+  notices: [Notice!]!
 }
 
 # Different Alert Status.
@@ -1012,7 +1012,7 @@ type AuthSubject {
 type Notice {
   type: NoticeType!
   message: String!
-  details: String
+  details: String!
 }
 
 enum NoticeType {

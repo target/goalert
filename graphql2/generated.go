@@ -3728,7 +3728,7 @@ type EscalationPolicy {
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!
 
-  notices: [Notice!]
+  notices: [Notice!]!
 }
 
 # Different Alert Status.
@@ -3894,7 +3894,7 @@ type AuthSubject {
 type Notice {
   type: NoticeType!
   message: String!
-  details: String
+  details: String!
 }
 
 enum NoticeType {
@@ -6591,11 +6591,14 @@ func (ec *executionContext) _EscalationPolicy_notices(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]Notice)
 	fc.Result = res
-	return ec.marshalONotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeᚄ(ctx, field.Selections, res)
+	return ec.marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EscalationPolicyConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *EscalationPolicyConnection) (ret graphql.Marshaler) {
@@ -8982,11 +8985,14 @@ func (ec *executionContext) _Notice_details(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OnCallShift_userID(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
@@ -17673,6 +17679,9 @@ func (ec *executionContext) _EscalationPolicy(ctx context.Context, sel ast.Selec
 					}
 				}()
 				res = ec._EscalationPolicy_notices(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		default:
@@ -18178,6 +18187,9 @@ func (ec *executionContext) _Notice(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "details":
 			out.Values[i] = ec._Notice_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -21097,6 +21109,43 @@ func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋgra
 	return ec._Notice(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeᚄ(ctx context.Context, sel ast.SelectionSet, v []Notice) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotice(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNNoticeType2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeType(ctx context.Context, v interface{}) (NoticeType, error) {
 	var res NoticeType
 	return res, res.UnmarshalGQL(v)
@@ -22996,46 +23045,6 @@ func (ec *executionContext) unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalOLabelValueSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx, v)
 	return &res, err
-}
-
-func (ec *executionContext) marshalONotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeᚄ(ctx context.Context, sel ast.SelectionSet, v []Notice) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotice(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalOPhoneNumberInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, v PhoneNumberInfo) graphql.Marshaler {

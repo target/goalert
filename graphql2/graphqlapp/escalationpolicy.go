@@ -325,12 +325,15 @@ func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) (
 }
 
 func (ep *EscalationPolicy) Notices(ctx context.Context, raw *escalation.Policy) ([]graphql2.Notice, error) {
-	_notices, _ := ep.PolicyStore.FindAllNotices(ctx, raw.ID)
+	_notices, err := ep.PolicyStore.FindAllNotices(ctx, raw.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	var notices = make([]graphql2.Notice, len(_notices))
 	for i := range _notices {
 		notices[i].Message = _notices[i].Message
-		notices[i].Details = &_notices[i].Details
+		notices[i].Details = _notices[i].Details
 
 		switch _notices[i].Type {
 		case notice.Warning:

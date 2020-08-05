@@ -662,7 +662,7 @@ export interface EscalationPolicy {
   repeat: number
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
-  notices?: Notice[]
+  notices: Notice[]
 }
 
 export type AlertStatus =
@@ -802,7 +802,7 @@ export interface AuthSubject {
 export interface Notice {
   type: NoticeType
   message: string
-  details?: string
+  details: string
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
