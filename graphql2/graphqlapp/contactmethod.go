@@ -110,7 +110,7 @@ func (a *Query) SendTestStatus(ctx context.Context, cmID string) (*graphql2.Noti
 		return nil, validation.NewFieldError("cmID", "field is required")
 	}
 
-	s, err := a.CMStore.FindLastStatus(ctx, cmID)
+	s, err := a.NotificationStore.FindLastStatus(ctx, cmID)
 	if err != nil {
 		return nil, err
 	}

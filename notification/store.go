@@ -29,6 +29,7 @@ type Store interface {
 	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	Code(ctx context.Context, id string) (int, error)
 	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
+	FindLastStatus(ctx context.Context, cmID string) (*MessageStatus, error)
 }
 
 var _ Store = &DB{}
@@ -44,6 +45,7 @@ type DB struct {
 	isDisabled                   *sql.Stmt
 	sendTestLock                 *sql.Stmt
 	findManyMessageStatuses      *sql.Stmt
+	findLastStatus 				 *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -135,6 +137,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					next_retry_at notnull
 				from outgoing_messages
 				where id = any($1)
+		`),
+		findLastStatus: p.P(`
+			SELECT last_status, status_details, next_retry_at notnull
+			FROM outgoing_messages
+			WHERE contact_method_id = $1 AND message_type = 'test_notification'
+			ORDER BY created_at DESC
+			LIMIT 1
 		`),
 	}, p.Err
 }
@@ -359,4 +368,34 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	}
 
 	return result, nil
+}
+
+func (db *DB) FindLastStatus(ctx context.Context, cmID string) (*MessageStatus, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("Contact Method ID", cmID)
+	if err != nil {
+		return nil, err
+	}
+
+	var s MessageStatus
+	var lastStatus string
+	var hasNextRetry bool
+	row := db.findLastStatus.QueryRowContext(ctx, cmID)
+	err = row.Scan(&lastStatus, &s.Details, &hasNextRetry)
+	if err != nil {
+		return nil, err
+	}
+
+	state := MessageStateFromStatus(lastStatus, hasNextRetry)
+	if state == -1 {
+		return nil, fmt.Errorf("unknown last_status %s", lastStatus)
+	}
+
+	s.State = state
+
+	return &s, nil
 }
