@@ -202,7 +202,7 @@ export interface VerifyAuthLinkInput {
 
 export interface Mutation {
   createAuthLink?: AuthLink
-  verifyAuthLink(input: !VerifyAuthLinkInput): boolean
+  verifyAuthLink: boolean
   resetAuthLink: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo

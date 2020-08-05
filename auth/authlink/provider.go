@@ -8,6 +8,8 @@ import (
 	"github.com/target/goalert/config"
 )
 
+var _ auth.IdentityProvider = &Store{}
+
 // Info implements the auth.Provider interface.
 func (Store) Info(ctx context.Context) auth.ProviderInfo {
 	cfg := config.FromContext(ctx)
@@ -18,7 +20,7 @@ func (Store) Info(ctx context.Context) auth.ProviderInfo {
 	}
 }
 
-// ExtractIdentity implements the auth.IdentityProvider interface handling both auth and callback endpoints.
+// ExtractIdentity implements the auth.IdentityProvider interface handling both claim and auth token redemption.
 func (s *Store) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter, req *http.Request) (*auth.Identity, error) {
 
 	switch route.RelativePath {
