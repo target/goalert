@@ -29,7 +29,7 @@ func (h *Harness) insertGraphQLUser(userID string) string {
 		permission.SudoContext(context.Background(), func(ctx context.Context) {
 			_, err = h.backend.UserStore.Insert(ctx, &user.User{
 				Name: "GraphQL User",
-				ID:   DefaultGraphQLAdminUserID,
+				ID:   userID,
 				Role: permission.RoleAdmin,
 			})
 		})
@@ -38,7 +38,7 @@ func (h *Harness) insertGraphQLUser(userID string) string {
 		}
 	}
 
-	tok, err := h.backend.AuthHandler.CreateSession(context.Background(), "goalert-smoketest", DefaultGraphQLAdminUserID)
+	tok, err := h.backend.AuthHandler.CreateSession(context.Background(), "goalert-smoketest", userID)
 	if err != nil {
 		h.t.Fatal(errors.Wrap(err, "create auth session"))
 	}

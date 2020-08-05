@@ -100,7 +100,6 @@ type Harness struct {
 	db *pgxpool.Pool
 
 	userGeneratedIndex int
-	addGraphUser       sync.Once
 
 	gqlSessions map[string]string
 }
