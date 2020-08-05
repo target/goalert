@@ -2,7 +2,7 @@
 
 CREATE TABLE auth_link_codes (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users (id) UNIQUE ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE UNIQUE,
     auth_user_session_id UUID NOT NULL REFERENCES auth_user_sessions (id) ON DELETE CASCADE,
     claim_code TEXT NOT NULL UNIQUE,
     verify_code TEXT NOT NULL,
