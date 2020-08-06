@@ -49,7 +49,7 @@ func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]No
 		notices = append(notices, Notice{
 			Message: "Not assigned to a service",
 			Details: "To receive alerts for this configuration, assign this escalation policy to its relevant service.",
-		}
+		})
 	}
 
 	return notices, nil
