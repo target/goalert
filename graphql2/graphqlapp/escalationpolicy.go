@@ -324,28 +324,8 @@ func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) (
 	return ep.PolicyStore.FindAllSteps(ctx, raw.ID)
 }
 
-func (ep *EscalationPolicy) Notices(ctx context.Context, raw *escalation.Policy) ([]graphql2.Notice, error) {
-	_notices, err := ep.NoticeStore.FindAllPolicyNotices(ctx, raw.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	var notices = make([]graphql2.Notice, len(_notices))
-	for i := range _notices {
-		notices[i].Message = _notices[i].Message
-		notices[i].Details = _notices[i].Details
-
-		switch _notices[i].Type {
-		case notice.Warning:
-			notices[i].Type = graphql2.NoticeTypeWarning
-		case notice.Error:
-			notices[i].Type = graphql2.NoticeTypeError
-		case notice.Info:
-			notices[i].Type = graphql2.NoticeTypeInfo
-		}
-	}
-
-	return notices, nil
+func (ep *EscalationPolicy) Notices(ctx context.Context, raw *escalation.Policy) ([]notice.Notice, error) {
+	return ep.NoticeStore.FindAllPolicyNotices(ctx, raw.ID)
 }
 
 func (ep *EscalationPolicy) AssignedTo(ctx context.Context, raw *escalation.Policy) ([]assignment.RawTarget, error) {

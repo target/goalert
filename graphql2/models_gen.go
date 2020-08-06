@@ -227,12 +227,6 @@ type LabelValueSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
-type Notice struct {
-	Type    NoticeType `json:"type"`
-	Message string     `json:"message"`
-	Details string     `json:"details"`
-}
-
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor"`
 	HasNextPage bool    `json:"hasNextPage"`

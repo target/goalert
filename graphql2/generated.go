@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/oncall"
@@ -62,6 +63,7 @@ type ResolverRoot interface {
 	HeartbeatMonitor() HeartbeatMonitorResolver
 	IntegrationKey() IntegrationKeyResolver
 	Mutation() MutationResolver
+	Notice() NoticeResolver
 	OnCallShift() OnCallShiftResolver
 	Query() QueryResolver
 	Rotation() RotationResolver
@@ -498,7 +500,7 @@ type AlertLogEntryResolver interface {
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
 	Steps(ctx context.Context, obj *escalation.Policy) ([]escalation.Step, error)
-	Notices(ctx context.Context, obj *escalation.Policy) ([]Notice, error)
+	Notices(ctx context.Context, obj *escalation.Policy) ([]notice.Notice, error)
 }
 type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
@@ -553,6 +555,9 @@ type MutationResolver interface {
 	UpdateAlertsByService(ctx context.Context, input UpdateAlertsByServiceInput) (bool, error)
 	SetConfig(ctx context.Context, input []ConfigValueInput) (bool, error)
 	SetSystemLimits(ctx context.Context, input []SystemLimitInput) (bool, error)
+}
+type NoticeResolver interface {
+	Type(ctx context.Context, obj *notice.Notice) (NoticeType, error)
 }
 type OnCallShiftResolver interface {
 	User(ctx context.Context, obj *oncall.Shift) (*user.User, error)
@@ -6596,9 +6601,9 @@ func (ec *executionContext) _EscalationPolicy_notices(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Notice)
+	res := resTmp.([]notice.Notice)
 	fc.Result = res
-	return ec.marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeᚄ(ctx, field.Selections, res)
+	return ec.marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNoticeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EscalationPolicyConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *EscalationPolicyConnection) (ret graphql.Marshaler) {
@@ -8893,7 +8898,7 @@ func (ec *executionContext) _Mutation_setSystemLimits(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Notice_type(ctx context.Context, field graphql.CollectedField, obj *Notice) (ret graphql.Marshaler) {
+func (ec *executionContext) _Notice_type(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8904,13 +8909,13 @@ func (ec *executionContext) _Notice_type(ctx context.Context, field graphql.Coll
 		Object:   "Notice",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return ec.resolvers.Notice().Type(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8927,7 +8932,7 @@ func (ec *executionContext) _Notice_type(ctx context.Context, field graphql.Coll
 	return ec.marshalNNoticeType2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Notice_message(ctx context.Context, field graphql.CollectedField, obj *Notice) (ret graphql.Marshaler) {
+func (ec *executionContext) _Notice_message(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8961,7 +8966,7 @@ func (ec *executionContext) _Notice_message(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Notice_details(ctx context.Context, field graphql.CollectedField, obj *Notice) (ret graphql.Marshaler) {
+func (ec *executionContext) _Notice_details(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -18166,7 +18171,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 var noticeImplementors = []string{"Notice"}
 
-func (ec *executionContext) _Notice(ctx context.Context, sel ast.SelectionSet, obj *Notice) graphql.Marshaler {
+func (ec *executionContext) _Notice(ctx context.Context, sel ast.SelectionSet, obj *notice.Notice) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, noticeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -18176,19 +18181,28 @@ func (ec *executionContext) _Notice(ctx context.Context, sel ast.SelectionSet, o
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Notice")
 		case "type":
-			out.Values[i] = ec._Notice_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Notice_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "message":
 			out.Values[i] = ec._Notice_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "details":
 			out.Values[i] = ec._Notice_details(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -21105,11 +21119,11 @@ func (ec *executionContext) marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋg
 	return ec._LabelConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotice(ctx context.Context, sel ast.SelectionSet, v Notice) graphql.Marshaler {
+func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx context.Context, sel ast.SelectionSet, v notice.Notice) graphql.Marshaler {
 	return ec._Notice(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNoticeᚄ(ctx context.Context, sel ast.SelectionSet, v []Notice) graphql.Marshaler {
+func (ec *executionContext) marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNoticeᚄ(ctx context.Context, sel ast.SelectionSet, v []notice.Notice) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -21133,7 +21147,7 @@ func (ec *executionContext) marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotice(ctx, sel, v[i])
+			ret[i] = ec.marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
