@@ -53,5 +53,15 @@ func (db *DB) update(ctx context.Context) error {
 		}
 	}
 
+	_, err = db.cleanupAuthLinkExp.ExecContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.cleanupAuthLinkAuthed.ExecContext(ctx)
+	if err != nil {
+		return err
+	}
+
 	return tx.Commit()
 }

@@ -101,7 +101,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AuthLinkStore == nil {
-		app.AuthLinkStore, err = authlink.NewStore(ctx, app.db)
+		app.AuthLinkStore, err = authlink.NewStore(ctx, app.db, app.OAuthKeyring)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init authlink store")

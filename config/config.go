@@ -36,8 +36,9 @@ type Config struct {
 	}
 
 	Auth struct {
-		RefererURLs  []string `info:"Allowed referer URLs for auth and redirects."`
-		DisableBasic bool     `public:"true" info:"Disallow username/password login."`
+		RefererURLs     []string `info:"Allowed referer URLs for auth and redirects."`
+		DisableBasic    bool     `public:"true" info:"Disallow username/password login."`
+		DisableAuthLink bool     `public:"true" info:"Disallow linking mobile devices."`
 	}
 
 	GitHub struct {

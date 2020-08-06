@@ -2,6 +2,7 @@ package authlink
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/target/goalert/auth"
@@ -14,25 +15,39 @@ var _ auth.IdentityProvider = &Store{}
 func (Store) Info(ctx context.Context) auth.ProviderInfo {
 	cfg := config.FromContext(ctx)
 	return auth.ProviderInfo{
-		Title:   "Link Device",
-		Hidden:  true,
-		Enabled: !cfg.Auth.DisableBasic,
+		Title:      "Link Device",
+		Hidden:     true,
+		Enabled:    !cfg.Auth.DisableAuthLink,
+		NoRedirect: true,
 	}
 }
 
 // ExtractIdentity implements the auth.IdentityProvider interface handling both claim and auth token redemption.
 func (s *Store) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter, req *http.Request) (*auth.Identity, error) {
-
 	switch route.RelativePath {
 	case "/":
-		// claim code
+		resp, err := s.Claim(req.Context(), req.FormValue("code"), true)
+		if err != nil {
+			return nil, err
+		}
+		data, err := json.Marshal(resp)
+		if err != nil {
+			return nil, err
+		}
 
-		return nil, nil
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+		return nil, auth.ErrAlreadyResponded
 	case "/auth":
 		// handled below
 	default:
-		return nil, auth.Error("Invalid callback URL specified in GitHub application config.")
+		return nil, auth.Error("invalid route")
 	}
 
-	return nil, nil
+	userID, err := s.Auth(req.Context(), req.FormValue("AuthToken"))
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.Identity{UserID: userID}, nil
 }

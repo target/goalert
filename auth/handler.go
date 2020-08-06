@@ -148,6 +148,9 @@ func (h *Handler) ServeProviders(w http.ResponseWriter, req *http.Request) {
 		if !p.Info(ctx).Enabled {
 			continue
 		}
+		if p.Info(ctx).Hidden {
+			continue
+		}
 
 		info = append(info, registeredProvider{
 			ID:           id,
@@ -178,16 +181,17 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 		defer sp.End()
 
 		req = req.WithContext(ctx)
+		info := p.Info(ctx)
 
 		var refU *url.URL
-		if req.Method == "POST" {
+		if req.Method == "POST" && !info.NoRedirect {
 			var ok bool
 			refU, ok = h.refererURL(w, req)
 			if !ok {
 				errutil.HTTPError(ctx, w, validation.NewFieldError("referer", "failed to resolve referer"))
 				return
 			}
-		} else {
+		} else if !info.NoRedirect {
 			c, err := req.Cookie("login_redir")
 			if err != nil {
 				errutil.HTTPError(ctx, w, validation.NewFieldError("login_redir", err.Error()))
@@ -200,9 +204,12 @@ func (h *Handler) IdentityProviderHandler(id string) http.HandlerFunc {
 			}
 		}
 
-		info := p.Info(ctx)
 		if !info.Enabled {
 			err := Error(info.Title + " auth disabled")
+			if info.NoRedirect {
+				http.Error(w, err.Error(), http.StatusForbidden)
+				return
+			}
 			q := refU.Query()
 			sp.Annotate([]trace.Attribute{trace.BoolAttribute("error", true)}, "error: "+err.Error())
 			q.Set("login_error", err.Error())
@@ -255,6 +262,9 @@ func (h *Handler) canCreateUser(ctx context.Context, providerID string) bool {
 	return false
 }
 
+// ErrAlreadyResponded should be returned as the error from ExtractIdentity if the provider has already provided a response.
+var ErrAlreadyResponded = errors.New("provider already responded")
+
 func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	sp := trace.FromContext(ctx)
@@ -271,23 +281,23 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	route.CurrentURL = u.String()
 
 	sub, err := p.ExtractIdentity(&route, w, req)
+	if errors.Is(err, ErrAlreadyResponded) {
+		return
+	}
 	if r, ok := err.(Redirector); ok {
 		sp.Annotate([]trace.Attribute{trace.StringAttribute("auth.redirectURL", r.RedirectURL())}, "Redirected.")
 		http.Redirect(w, req, r.RedirectURL(), http.StatusFound)
 		return
 	}
-	noRedirect := req.FormValue("noRedirect") == "1"
+	noRedirect := p.Info(ctx).NoRedirect || req.FormValue("noRedirect") == "1"
 
 	errRedirect := func(err error) {
-		q := refU.Query()
 		sp.Annotate([]trace.Attribute{trace.BoolAttribute("error", true)}, "error: "+err.Error())
 		old := err
 		_, err = errutil.ScrubError(err)
 		if err != old {
 			log.Log(ctx, old)
 		}
-		q.Set("login_error", err.Error())
-		refU.RawQuery = q.Encode()
 		if noRedirect {
 			if err != old {
 				w.WriteHeader(500)
@@ -297,6 +307,9 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			io.WriteString(w, err.Error())
 			return
 		}
+		q := refU.Query()
+		q.Set("login_error", err.Error())
+		refU.RawQuery = q.Encode()
 		http.Redirect(w, req, refU.String(), http.StatusFound)
 	}
 
@@ -305,8 +318,9 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 		return
 	}
 
-	var userID string
-	err = h.userLookup.QueryRowContext(ctx, id, sub.SubjectID).Scan(&userID)
+	if sub.UserID == "" {
+		err = h.userLookup.QueryRowContext(ctx, id, sub.SubjectID).Scan(&sub.UserID)
+	}
 	if err == sql.ErrNoRows {
 		err = nil
 	}
@@ -316,7 +330,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	}
 
 	var newUser bool
-	if userID == "" {
+	if sub.UserID == "" {
 		newUser = true
 
 		if !h.canCreateUser(ctx, id) {
@@ -345,7 +359,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			return
 		}
 		_, err = tx.Stmt(h.addSubject).ExecContext(ctx, id, sub.SubjectID, u.ID)
-		userID = u.ID
+		sub.UserID = u.ID
 		if err != nil {
 			errRedirect(err)
 			return
@@ -362,14 +376,14 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			trace.StringAttribute("user.id", u.ID),
 		}, "Created new user.")
 	} else {
-		_, err = h.updateUser.ExecContext(ctx, userID, validate.SanitizeName(sub.Name),
+		_, err = h.updateUser.ExecContext(ctx, sub.UserID, validate.SanitizeName(sub.Name),
 			validate.SanitizeEmail(sub.Email))
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "update user info"))
 		}
 	}
 
-	tok, err := h.CreateSession(ctx, req.UserAgent(), userID)
+	tok, err := h.CreateSession(ctx, req.UserAgent(), sub.UserID)
 	if err != nil {
 		errRedirect(err)
 		return
@@ -382,7 +396,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 
 	sp.Annotate([]trace.Attribute{
 		trace.BoolAttribute("auth.login", true),
-		trace.StringAttribute("auth.userID", userID),
+		trace.StringAttribute("auth.userID", sub.UserID),
 		trace.StringAttribute("auth.sessionID", tok.ID.String()),
 	}, "User authenticated.")
 
@@ -597,7 +611,9 @@ func (h *Handler) refererURL(w http.ResponseWriter, req *http.Request) (*url.URL
 	return refU, true
 }
 func (h *Handler) serveProviderPost(id string, p IdentityProvider, refU *url.URL, w http.ResponseWriter, req *http.Request) {
-	SetCookie(w, req, "login_redir", refU.String())
+	if !p.Info(req.Context()).NoRedirect {
+		SetCookie(w, req, "login_redir", refU.String())
+	}
 
 	h.handleProvider(id, p, refU, w, req)
 }

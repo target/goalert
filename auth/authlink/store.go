@@ -5,17 +5,25 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"math/big"
+	"sync"
 	"time"
 
+	"github.com/jackc/pgtype"
 	uuid "github.com/satori/go.uuid"
-
-	"github.com/target/goalert/util"
-
+	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util"
+)
+
+const (
+	MaxClaimQueryFrequency = 3 * time.Second
+	ExpirationDuration     = 10 * time.Minute
 )
 
 type Store struct {
 	db *sql.DB
+
+	unclaimed *sql.Stmt
 
 	create *sql.Stmt
 	claim  *sql.Stmt
@@ -24,6 +32,14 @@ type Store struct {
 
 	reset  *sql.Stmt
 	status *sql.Stmt
+
+	mx           sync.Mutex
+	closeCh      chan struct{}
+	waitRefresh  chan struct{}
+	startRefresh chan struct{}
+	wl           *Whitelist
+
+	keys keyring.Keyring
 }
 
 type Status struct {
@@ -54,9 +70,25 @@ func genCode(n int) (string, error) {
 	return string(val), nil
 }
 
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keyring) (*Store, error) {
 	p := util.Prepare{DB: db, Ctx: ctx}
-	return &Store{
+	s := &Store{
+		wl:           NewWhitelist(),
+		keys:         keys,
+		closeCh:      make(chan struct{}),
+		waitRefresh:  make(chan struct{}),
+		startRefresh: make(chan struct{}),
+
+		unclaimed: p.P(`
+			select claim_code
+			from auth_link_codes
+			where
+				now() < expires_at and
+				claimed_at isnull and
+				verified_at isnull and
+				authed_at isnull
+		`),
+
 		create: p.P(`
 			insert into auth_link_codes (id, user_id, auth_user_session_id, claim_code, verify_code, expires_at)
 			values ($1, $2, $3, $4, $5, now() + $6::interval)
@@ -93,7 +125,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 				now() < expires_at and
 				claimed_at notnull and
 				verified_at notnull and
-				authed_at isnull 
+				authed_at isnull
+			returning user_id
 		`),
 
 		reset: p.P(`delete from auth_link_codes where user_id = $1`),
@@ -102,7 +135,13 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 			from auth_link_codes
 			where id = $1 and user_id = $2 and auth_user_session_id = $3
 		`),
-	}, p.Err
+	}
+	if p.Err != nil {
+		return nil, p.Err
+	}
+	go s.claimUpdates()
+
+	return s, nil
 }
 
 // Create will create a new auth link for the session associated with ctx.
@@ -120,13 +159,15 @@ func (s *Store) Create(ctx context.Context) (*Status, error) {
 	if err != nil {
 		return nil, err
 	}
+	var dur pgtype.Interval
+	dur.Set(ExpirationDuration)
 	err = s.create.QueryRowContext(ctx,
 		stat.ID,
 		permission.UserID(ctx),
 		permission.SessionID(ctx),
 		stat.ClaimCode,
 		stat.VerifyCode,
-		10*time.Minute,
+		dur,
 	).Scan(&stat.CreatedAt)
 	if err != nil {
 		return nil, err
