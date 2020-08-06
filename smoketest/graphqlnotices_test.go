@@ -42,11 +42,11 @@ func TestNotices(t *testing.T) {
 	var notices struct {
 		EscalationPolicy struct {
 			Notices []struct {
-				Type    string `json:"type"`
-				Message string `json:"message"`
-				Details string `json:"details"`
-			} `json:"notices"`
-		} `json:"escalationPolicy"`
+				Type    string
+				Message string
+				Details string
+			}
+		}
 	}
 
 	// Verifying notice exists

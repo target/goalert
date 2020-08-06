@@ -46,7 +46,7 @@ func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]No
 
 	var notices = make([]Notice, 1)
 	if numServices == 0 {
-		notices[0].Type = Warning
+		notices[0].Type = TypeWarning
 		notices[0].Message = "Not assigned to a service"
 		notices[0].Details = "To receive alerts for this configuration, assign this escalation policy to its relavent service."
 		return notices, nil

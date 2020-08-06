@@ -1,17 +1,17 @@
 package notice
 
 type Notice struct {
-	Type    NoticeType
+	Type    Type
 	Message string
 	Details string
 }
 
 // NoticeType represents the level of severity of a Notice.
-type NoticeType int
+type Type int
 
 // Defaults to Warning when unset
 const (
-	Warning NoticeType = iota
-	Error
-	Info
+	TypeWarning Type = iota
+	TypeError
+	TypeInfo
 )
