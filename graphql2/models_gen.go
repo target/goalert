@@ -657,49 +657,6 @@ func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type NoticeType string
-
-const (
-	NoticeTypeWarning NoticeType = "WARNING"
-	NoticeTypeError   NoticeType = "ERROR"
-	NoticeTypeInfo    NoticeType = "INFO"
-)
-
-var AllNoticeType = []NoticeType{
-	NoticeTypeWarning,
-	NoticeTypeError,
-	NoticeTypeInfo,
-}
-
-func (e NoticeType) IsValid() bool {
-	switch e {
-	case NoticeTypeWarning, NoticeTypeError, NoticeTypeInfo:
-		return true
-	}
-	return false
-}
-
-func (e NoticeType) String() string {
-	return string(e)
-}
-
-func (e *NoticeType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = NoticeType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid NoticeType", str)
-	}
-	return nil
-}
-
-func (e NoticeType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 type UserRole string
 
 const (

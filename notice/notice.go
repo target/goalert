@@ -15,7 +15,7 @@ type Notice struct {
 	Details string
 }
 
-// NoticeType represents the level of severity of a Notice.
+// Type NoticeType represents the level of severity of a Notice.
 type Type int
 
 // Defaults to Warning when unset
