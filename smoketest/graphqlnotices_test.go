@@ -62,7 +62,6 @@ func TestNotices(t *testing.T) {
 		}
 	`, epID), &notices)
 
-	if len(notices.EscalationPolicy.Notices) < 1 {
-		t.Fatalf("ERROR: retrieved length of notices = %d; want %d", len(notices.EscalationPolicy.Notices), 1)
-	}
+
+	assert.Len(t, notices, 1, "retrieved notices")
 }
