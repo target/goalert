@@ -15,6 +15,7 @@ const (
 	DestTypeVoice
 	DestTypeSMS
 	DestTypeSlackChannel
+	DestTypeEmail
 )
 
 // IsUserCM returns true if the DestType represents a user contact method.
