@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery } from '@apollo/react-hooks'
 import Button from '@material-ui/core/Button'
-import Grid from '@material-ui/core/Grid'
+import Divider from '@material-ui/core/Divider'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import gql from 'graphql-tag'
@@ -47,24 +47,17 @@ const mutation = gql`
 `
 
 const useStyles = makeStyles((theme) => ({
-  gridContainer: {
-    [theme.breakpoints.up('md')]: {
-      justifyContent: 'center',
-    },
+  accordionDetails: {
+    padding: 0,
   },
-  gridItem: {
-    [theme.breakpoints.up('md')]: {
-      maxWidth: '65%',
-    },
-  },
-  groupTitle: {
-    fontSize: '1.1rem',
+  form: {
+    width: '100%',
   },
   saveDisabled: {
     color: 'rgba(255, 255, 255, 0.5)',
   },
   heading: {
-    fontSize: theme.typography.pxToRem(15),
+    fontSize: '1.1rem',
     flexBasis: '33.33%',
     flexShrink: 0,
   },
@@ -152,9 +145,11 @@ export default function AdminConfig(): JSX.Element {
   const groups = uniq(
     configValues.map((f: ConfigValue) => f.id.split('.')[0]),
   ) as string[]
+
   const hintGroups = chain(data.configHints)
     .groupBy((f: ConfigHint) => f.id.split('.')[0])
     .value()
+
   const hintName = (id: string): string => startCase(id.split('.')[1])
 
   const handleExpandChange = (id: string) => () =>
@@ -162,97 +157,97 @@ export default function AdminConfig(): JSX.Element {
 
   const hasEnable = (sectionID: string): boolean =>
     configValues.some((v) => v.id === sectionID + '.Enable')
+
   const isEnabled = (sectionID: string): boolean =>
     configValues.find((v) => v.id === sectionID + '.Enable')?.value === 'true'
+
   const changeCount = (id: string): number =>
     _.keys(values).filter((key) => key.startsWith(id + '.')).length
 
   return (
     <React.Fragment>
-      <Grid container spacing={2} className={classes.gridContainer}>
-        <div style={{ width: '100%' }}>
-          {groups.map((groupID: string, index: number) => (
-            <Accordion
-              key={groupID}
-              expanded={section === groupID}
-              onChange={handleExpandChange(groupID)}
+      {groups.map((groupID: string, index: number) => (
+        <Accordion
+          key={groupID}
+          expanded={section === groupID}
+          onChange={handleExpandChange(groupID)}
+        >
+          <AccordionSummary
+            aria-expanded={section === groupID}
+            aria-controls={`accordion-sect-${groupID}`}
+            id={`accordion-${groupID}`}
+            expandIcon={<ExpandMoreIcon />}
+          >
+            <Typography
+              component='h2'
+              variant='subtitle1'
+              className={classes.heading}
             >
-              <AccordionSummary
-                aria-expanded={section === groupID}
-                aria-controls={`accordion-sect-${groupID}`}
-                id={`accordion-${groupID}`}
-                expandIcon={<ExpandMoreIcon />}
-              >
-                <Typography
-                  component='h2'
-                  variant='subtitle1'
-                  className={classes.heading}
-                >
-                  {formatHeading(groupID)}
-                </Typography>
-                <Typography className={classes.secondaryHeading}>
-                  {hasEnable(groupID) &&
-                    (isEnabled(groupID) ? 'Enabled' : 'Disabled')}
-                </Typography>
-                {(changeCount(groupID) && (
-                  <Chip
-                    className={classes.changeChip}
-                    size='small'
-                    label={`${changeCount(groupID)} unsaved change(s)`}
+              {formatHeading(groupID)}
+            </Typography>
+            <Typography className={classes.secondaryHeading}>
+              {hasEnable(groupID) &&
+                (isEnabled(groupID) ? 'Enabled' : 'Disabled')}
+            </Typography>
+            {(changeCount(groupID) && (
+              <Chip
+                className={classes.changeChip}
+                size='small'
+                label={`${changeCount(groupID)} unsaved change${
+                  changeCount(groupID) === 1 ? '' : 's'
+                }`}
+              />
+            )) ||
+              null}
+          </AccordionSummary>
+          <Divider />
+          <AccordionDetails
+            id={`accordion-sect-${groupID}`}
+            aria-labelledby={`accordion-${groupID}`}
+            className={classes.accordionDetails}
+            role='region'
+          >
+            <Form className={classes.form}>
+              <AdminSection
+                value={values}
+                onChange={(id: string, value: null | string) =>
+                  updateValue(id, value)
+                }
+                fields={configValues
+                  .filter(
+                    (f: ConfigValue) => f.id.split('.')[0] === groups[index],
+                  )
+                  .map((f: ConfigValue) => ({
+                    id: f.id,
+                    label: formatHeading(chain(f.id.split('.')).last()),
+                    description: f.description,
+                    password: f.password,
+                    type: f.type,
+                    value: f.value,
+                  }))}
+              />
+              {hintGroups[groupID] &&
+                hintGroups[groupID].map((h: ConfigHint) => (
+                  <TextField
+                    key={h.id}
+                    label={hintName(h.id)}
+                    value={h.value}
+                    variant='filled'
+                    margin='none'
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <CopyText value={h.value} placement='left' />
+                        </InputAdornment>
+                      ),
+                    }}
+                    fullWidth
                   />
-                )) ||
-                  null}
-              </AccordionSummary>
-
-              <AccordionDetails
-                id={`accordion-sect-${groupID}`}
-                role='region'
-                aria-labelledby={`accordion-${groupID}`}
-              >
-                <Form style={{ width: '100%' }}>
-                  <AdminSection
-                    value={values}
-                    onChange={(id: string, value: null | string) =>
-                      updateValue(id, value)
-                    }
-                    fields={configValues
-                      .filter(
-                        (f: ConfigValue) =>
-                          f.id.split('.')[0] === groups[index],
-                      )
-                      .map((f: ConfigValue) => ({
-                        id: f.id,
-                        label: formatHeading(chain(f.id.split('.')).last()),
-                        description: f.description,
-                        password: f.password,
-                        type: f.type,
-                        value: f.value,
-                      }))}
-                  />
-                  {hintGroups[groupID] &&
-                    hintGroups[groupID].map((h: ConfigHint) => (
-                      <TextField
-                        key={h.id}
-                        label={hintName(h.id)}
-                        value={h.value}
-                        variant='filled'
-                        margin='none'
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position='end'>
-                              <CopyText value={h.value} placement='left' />
-                            </InputAdornment>
-                          ),
-                        }}
-                        fullWidth
-                      />
-                    ))}
-                </Form>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </div>
-      </Grid>
+                ))}
+            </Form>
+          </AccordionDetails>
+        </Accordion>
+      ))}
       {renderPageActions()}
       {confirm && (
         <AdminDialog
