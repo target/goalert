@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { useEffect, useState, ReactNode } from 'react'
 import {
   Button,
   Dialog,
@@ -40,6 +40,9 @@ const useStyles = makeStyles((theme) => {
         textDecoration: 'underline',
       },
     },
+    qrContentText: {
+      marginBottom: 0,
+    },
   }
 })
 
@@ -51,6 +54,12 @@ export default function LinkToMobile(): JSX.Element {
   const [index, setIndex] = useState(0)
 
   // todo: add useEffects changing index as things are updated
+  const [scanSuccessful, setScanSuccessful] = useState(false)
+  useEffect(() => {
+    if (scanSuccessful) {
+      setIndex(1)
+    }
+  }, [scanSuccessful])
 
   function slideRenderer({ index, key }: SlideParams): ReactNode {
     switch (index) {
@@ -97,6 +106,12 @@ export default function LinkToMobile(): JSX.Element {
           >
             Cancel
           </Button>
+          <Button
+            className={classes.cancelButton}
+            onClick={() => setScanSuccessful(true)}
+          >
+            ->
+          </Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>
@@ -110,7 +125,7 @@ function ClaimCodeDisplay() {
     <DialogContent>
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          <DialogContentText>
+          <DialogContentText className={classes.qrContentText}>
             Scan this QR code from the GoAlert app on your mobile device to
             authenticate.
           </DialogContentText>
