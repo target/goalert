@@ -50,6 +50,7 @@ type Handler struct {
 	userLookup *sql.Stmt
 	addSubject *sql.Stmt
 	updateUA   *sql.Stmt
+	updateUser *sql.Stmt
 
 	startSession *sql.Stmt
 	fetchSession *sql.Stmt
@@ -68,6 +69,14 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 		db:        db,
 
 		cfg: cfg,
+
+		updateUser: p.P(`
+			update users
+			set
+				name = case when $2 = '' then name else $2 end,
+				email = case when $3 = '' then email else $3 end
+			where id = $1
+		`),
 
 		userLookup: p.P(`
 			select user_id
@@ -352,6 +361,12 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			trace.StringAttribute("user.email", u.Email),
 			trace.StringAttribute("user.id", u.ID),
 		}, "Created new user.")
+	} else {
+		_, err = h.updateUser.ExecContext(ctx, userID, validate.SanitizeName(sub.Name),
+			validate.SanitizeEmail(sub.Email))
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "update user info"))
+		}
 	}
 
 	tok, err := h.CreateSession(ctx, req.UserAgent(), userID)

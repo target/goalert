@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -13,11 +12,29 @@ import { AppLink } from '../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({
   infoIcon: {
-    color: theme.palette.primary['500'],
+    color: theme.palette.primary.main,
   },
 }))
 
-export default function IntegrationKeyForm(props) {
+interface Value {
+  name: string
+  type: 'generic' | 'grafana' | 'site24x7' | 'email'
+}
+
+interface IntegrationKeyFormProps {
+  value: Value
+
+  errors: {
+    field: 'name' | 'type'
+    message: string
+  }[]
+
+  onChange: (val: Value) => void
+}
+
+export default function IntegrationKeyForm(
+  props: IntegrationKeyFormProps,
+): JSX.Element {
   const classes = useStyles()
   const { ...formProps } = props
   return (
@@ -34,7 +51,7 @@ export default function IntegrationKeyForm(props) {
         </Grid>
         <Grid item xs={12}>
           <Config>
-            {(cfg) => (
+            {(cfg: { [x: string]: unknown }) => (
               <FormField
                 fullWidth
                 component={TextField}
@@ -67,20 +84,4 @@ export default function IntegrationKeyForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-IntegrationKeyForm.propTypes = {
-  value: p.shape({
-    name: p.string,
-    type: p.oneOf(['generic', 'grafana', 'site24x7', 'email']),
-  }).isRequired,
-
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['name', 'type']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-
-  onChange: p.func,
 }
