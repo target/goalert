@@ -80,10 +80,15 @@ module.exports = (env) => ({
       },
     }),
     new CopyPlugin({
-      patterns: [16, 32, 64, 192].map((size) => ({
-        from: path.resolve(APP, `./public/favicon-${size}.png`),
-        to: path.resolve(BUILD, `./static/favicon-${size}.png`),
-      })),
+      patterns: [16, 32, 64, 192]
+        .map((size) => ({
+          from: path.resolve(APP, `./public/favicon-${size}.png`),
+          to: path.resolve(BUILD, `./static/favicon-${size}.png`),
+        }))
+        .concat({
+          from: path.resolve(APP, `./public/goalert-alt-logo.png`),
+          to: path.resolve(BUILD, `./static/goalert-alt-logo.png`),
+        }),
     }),
   ],
 

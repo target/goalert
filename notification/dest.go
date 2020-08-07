@@ -21,7 +21,7 @@ const (
 // IsUserCM returns true if the DestType represents a user contact method.
 func (t DestType) IsUserCM() bool {
 	switch t {
-	case DestTypeSMS, DestTypeVoice:
+	case DestTypeSMS, DestTypeVoice, DestTypeEmail:
 		return true
 	}
 	return false

@@ -12,11 +12,12 @@ func _() {
 	_ = x[DestTypeVoice-1]
 	_ = x[DestTypeSMS-2]
 	_ = x[DestTypeSlackChannel-3]
+	_ = x[DestTypeEmail-4]
 }
 
-const _DestType_name = "DestTypeUnknownDestTypeVoiceDestTypeSMSDestTypeSlackChannel"
+const _DestType_name = "DestTypeUnknownDestTypeVoiceDestTypeSMSDestTypeSlackChannelDestTypeEmail"
 
-var _DestType_index = [...]uint8{0, 15, 28, 39, 59}
+var _DestType_index = [...]uint8{0, 15, 28, 39, 59, 72}
 
 func (i DestType) String() string {
 	if i < 0 || i >= DestType(len(_DestType_index)-1) {

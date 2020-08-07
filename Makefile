@@ -240,6 +240,9 @@ web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.
 web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
 	(cd web/src && node_modules/.bin/webpack --config ./webpack.dll.config.js --progress)
 
+notification/desttype_string.go: notification/dest.go
+	go generate ./notification
+
 config.json.bak: bin/goalert
 	bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || rm config.json.new
 	(test -s config.json.new && test "`cat config.json.new`" != "{}" && mv config.json.new config.json.bak || rm -f config.json.new)

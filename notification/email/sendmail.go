@@ -88,7 +88,11 @@ func sendMail(ctx context.Context, conn net.Conn, host string, a NegotiateAuth, 
 		if !ok {
 			return errors.New("notification/email: server doesn't support AUTH")
 		}
-		if err = c.Auth(a(auths)); err != nil {
+		auth := a(auths)
+		if auth == nil {
+			return errors.New("notification/email: no supported AUTH mechanism available")
+		}
+		if err = c.Auth(auth); err != nil {
 			return err
 		}
 	}

@@ -140,6 +140,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 			notification.DestTypeSMS:          {PerSecond: 1, Batch: 5 * time.Second},
 			notification.DestTypeVoice:        {PerSecond: 1, Batch: 5 * time.Second},
 			notification.DestTypeSlackChannel: {PerSecond: 5, Batch: 5 * time.Second},
+			notification.DestTypeEmail:        {PerSecond: 5, Batch: 5 * time.Second},
 		},
 		Pausable: p.mgr,
 	}, c.AlertLogStore)
