@@ -79,7 +79,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			},
 		}}
 	case notification.AlertBundle:
-		subject = fmt.Sprintf("GoAlert: Alert %s has %d unacknowledged alerts", m.ServiceName, m.Count)
+		subject = fmt.Sprintf("GoAlert: Service %s has %d unacknowledged alerts", m.ServiceName, m.Count)
 		e.Body.Title = "Multiple Unacknowledged Alerts"
 		e.Body.Intros = []string{fmt.Sprintf("The GoAlert service %s has %d unacknowledged alerts.", m.ServiceName, m.Count)}
 		e.Body.Actions = []hermes.Action{{
