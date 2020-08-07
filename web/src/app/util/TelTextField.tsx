@@ -47,7 +47,7 @@ export default function TelTextField(
     pollInterval: 0,
     variables: { number: '+' + phoneNumber },
     fetchPolicy: 'cache-first',
-    skip: !phoneNumber,
+    skip: !phoneNumber || props.disabled,
   })
 
   // fetch validation
@@ -102,7 +102,7 @@ export default function TelTextField(
       InputProps={iprops}
       type={props.type || 'tel'}
       onChange={handleChange}
-      value={props.value.replace(/[^0-9]/g, '')}
+      value={(props.value || '').replace(/[^0-9]/g, '')}
     />
   )
 }

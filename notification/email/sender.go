@@ -63,10 +63,6 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		e.Body.Actions = []hermes.Action{{
 			Instructions: "Click the REACTIVATE link on your profile page and enter the verification code.",
 			InviteCode:   strconv.Itoa(m.Code),
-			Button: hermes.Button{
-				Text: "Profile",
-				Link: cfg.CallbackURL("/profile"),
-			},
 		}}
 	case notification.Alert:
 		subject = fmt.Sprintf("GoAlert: Alert #%d: %s", m.AlertID, m.Summary)

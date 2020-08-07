@@ -752,7 +752,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
 
 export interface UserContactMethod {
   id: string
