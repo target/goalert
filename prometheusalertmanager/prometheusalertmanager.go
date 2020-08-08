@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -18,9 +19,74 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+/* Example payload
+
+```
+{
+  "receiver": "goalert",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "InstanceDown",
+        "code": "200",
+        "instance": "127.0.0.1:9090",
+        "job": "prometheus",
+        "monitor": "codelab-monitor",
+        "severity": "critical"
+      },
+      "annotations": {
+        "details": "127.0.0.1:9090 of job prometheus has been down for more than 1 minute.",
+        "summary": "Instance 127.0.0.1:9090 down"
+      },
+      "startsAt": "2020-08-08T14:32:08.326990857Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://pop-os:9090/graph?g0.expr=promhttp_metric_handler_requests_total+%3E+20\u0026g0.tab=1",
+      "fingerprint": "791cec13fcba0368"
+    },
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "InstanceDown",
+        "code": "200",
+        "instance": "localhost:9090",
+        "job": "prometheus",
+        "monitor": "codelab-monitor",
+        "severity": "critical"
+      },
+      "annotations": {
+        "details": "localhost:9090 of job prometheus has been down for more than 1 minute.",
+        "summary": "Instance localhost:9090 down"
+      },
+      "startsAt": "2020-08-08T02:21:08.326990857Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://pop-os:9090/graph?g0.expr=promhttp_metric_handler_requests_total+%3E+20\u0026g0.tab=1",
+      "fingerprint": "8df98227bdd81384"
+    }
+  ],
+  "groupLabels": {},
+  "commonLabels": {
+    "alertname": "InstanceDown",
+    "code": "200",
+    "job": "prometheus",
+    "monitor": "codelab-monitor",
+    "severity": "critical"
+  },
+  "commonAnnotations": {},
+  "externalURL": "http://pop-os:9093",
+  "version": "4",
+  "groupKey": "{}:{}",
+  "truncatedAlerts": 0
+}
+```
+*/
+
 type postBody struct {
 	Status      string
 	ExternalURL string
+
+	Alerts []postBodyAlert
 
 	CommonLabels struct {
 		Instance  string
@@ -31,6 +97,78 @@ type postBody struct {
 		Summary string
 		Details string
 	}
+}
+type postBodyAlert struct {
+	Labels struct {
+		AlertName string
+		Instance  string
+	}
+	Annotations struct {
+		Summary string
+		Details string
+	}
+	GeneratorURL string
+}
+
+func (a postBodyAlert) Summary() string {
+	if a.Annotations.Summary != "" {
+		return a.Annotations.Summary
+	}
+
+	return a.Labels.AlertName + " " + a.Labels.Instance
+}
+func (a postBodyAlert) gen() string {
+	if a.GeneratorURL == "" {
+		return ""
+	}
+
+	return fmt.Sprintf(" [View](%s)", a.GeneratorURL)
+}
+func (a postBodyAlert) Details() string {
+	if a.Annotations.Details != "" {
+		return a.Annotations.Details + a.gen()
+	}
+
+	return a.Summary() + a.gen()
+}
+func (b postBody) Summary() string {
+	if b.CommonAnnotations.Summary != "" {
+		return b.CommonAnnotations.Summary
+	}
+	if b.CommonLabels.AlertName == "" {
+		// different alerts
+		return b.Alerts[0].Summary() + fmt.Sprintf(" and %d others", len(b.Alerts)-1)
+	}
+
+	// we have a common alert name
+	if b.CommonLabels.Instance != "" {
+		return b.CommonLabels.AlertName + " " + b.CommonLabels.Instance
+	}
+
+	var instances []string
+	for _, a := range b.Alerts {
+		instances = append(instances, a.Labels.Instance)
+	}
+
+	return b.CommonLabels.AlertName + " " + strings.Join(instances, ",")
+}
+
+func (b postBody) Details(payload string) string {
+	var s strings.Builder
+	if b.ExternalURL != "" {
+		fmt.Fprintf(&s, "[Prometheus Alertmanager UI](%s)\n\n", b.ExternalURL)
+	}
+	if b.CommonAnnotations.Details != "" {
+		s.WriteString(b.CommonAnnotations.Details + "\n\n")
+	} else {
+		for _, a := range b.Alerts {
+			s.WriteString(a.Details() + "\n\n")
+		}
+	}
+	if payload != "" {
+		fmt.Fprintf(&s, "## Payload\n\n```json\n%s\n```\n", payload)
+	}
+	return s.String()
 }
 
 func clientError(w http.ResponseWriter, code int, err error) bool {
@@ -62,11 +200,6 @@ func PrometheusAlertmanagerEventsAPI(aDB alert.Store, intDB integrationkey.Store
 			return
 		}
 
-		ctx = log.WithFields(ctx, log.Fields{
-			"RuleURL": body.ExternalURL,
-			"Status":  body.Status,
-		})
-
 		var status alert.Status
 		switch body.Status {
 		case "firing":
@@ -79,11 +212,6 @@ func PrometheusAlertmanagerEventsAPI(aDB alert.Store, intDB integrationkey.Store
 			return
 		}
 
-		summary := body.CommonAnnotations.Summary
-		if summary == "" {
-			summary = fmt.Sprintf("Alertmanager: %s %s", body.CommonLabels.AlertName, body.CommonLabels.Instance)
-		}
-
 		data := make([]byte, buf.Len())
 		copy(data, buf.Bytes())
 		buf.Reset()
@@ -92,19 +220,14 @@ func PrometheusAlertmanagerEventsAPI(aDB alert.Store, intDB integrationkey.Store
 			data = buf.Bytes()
 		}
 
-		details := fmt.Sprintf("%s\n\n[Alertmanager](%s)\n\n## Payload\n\n```\n%s\n```",
-			body.CommonAnnotations.Details,
-			body.ExternalURL,
-			string(data),
-		)
-
+		summary := validate.SanitizeText(body.Summary(), alert.MaxSummaryLength)
 		msg := &alert.Alert{
-			Summary:   validate.SanitizeText(summary, alert.MaxSummaryLength),
-			Details:   validate.SanitizeText(details, alert.MaxDetailsLength),
+			Summary:   summary,
+			Details:   validate.SanitizeText(body.Details(string(data)), alert.MaxDetailsLength),
 			Status:    status,
 			Source:    alert.SourcePrometheusAlertmanager,
 			ServiceID: serviceID,
-			Dedup:     alert.NewUserDedup(r.FormValue("dedup")),
+			Dedup:     alert.NewUserDedup(summary),
 		}
 
 		err = retry.DoTemporaryError(func(int) error {
