@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/smoketest/harness"
 )
 
@@ -60,15 +61,13 @@ func TestPrometheusAlertManager(t *testing.T) {
 					"labels": {"alertname": "TestAlert"},
 					"annotations": {"summary": "My alert summary", "description": "My description"}
 				}
-			]
+			],
+			"commonLabels": {"alertname": "InstanceDown", "instance": "foobar"},
+			"commonAnnotations": {"alertname": "InstanceDown", "instance": "foobar"}
 		}
 		`))
-	if err != nil {
-		t.Fatal("post to prometheus alertmanager endpoint failed:", err)
-	} else if resp.StatusCode != 200 {
-		t.Error("non-200 response:", resp.Status)
-	}
-	resp.Body.Close()
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode, "HTTP response code")
 
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("alert-name-receiver-1")
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("InstanceDown")
 }
