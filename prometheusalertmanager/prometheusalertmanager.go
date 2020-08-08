@@ -1,9 +1,11 @@
 package prometheus
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -16,10 +18,19 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type alertmanagerPost struct {
+type postBody struct {
 	Status      string
-	Receiver    string
 	ExternalURL string
+
+	CommonLabels struct {
+		Instance  string
+		AlertName string `json:"alertname"`
+	}
+
+	CommonAnnotations struct {
+		Summary string
+		Details string
+	}
 }
 
 func clientError(w http.ResponseWriter, code int, err error) bool {
@@ -43,40 +54,54 @@ func PrometheusAlertmanagerEventsAPI(aDB alert.Store, intDB integrationkey.Store
 		}
 		serviceID := permission.ServiceID(ctx)
 
-		var alertmanager alertmanagerPost
-		err = json.NewDecoder(r.Body).Decode(&alertmanager)
+		var body postBody
+		var buf bytes.Buffer
+		err = json.NewDecoder(io.TeeReader(r.Body, &buf)).Decode(&body)
 		if clientError(w, http.StatusBadRequest, err) {
 			log.Logf(ctx, "bad request from prometheus alertmanager: %v", err)
 			return
 		}
 
 		ctx = log.WithFields(ctx, log.Fields{
-			"RuleURL": alertmanager.ExternalURL,
-			"Status":  alertmanager.Status,
+			"RuleURL": body.ExternalURL,
+			"Status":  body.Status,
 		})
 
-		var alertmanagerState alert.Status
-		switch alertmanager.Status {
+		var status alert.Status
+		switch body.Status {
 		case "firing":
-			alertmanagerState = alert.StatusTriggered
+			status = alert.StatusTriggered
 		case "resolved":
-			alertmanagerState = alert.StatusClosed
+			status = alert.StatusClosed
 		default:
 			log.Logf(ctx, "bad request from prometheus alertmanager: missing or invalid state")
 			http.Error(w, "invalid state", http.StatusBadRequest)
 			return
 		}
 
-		var urlStr string
-		if validate.AbsoluteURL("externalURL", alertmanager.ExternalURL) == nil {
-			urlStr = alertmanager.ExternalURL
+		summary := body.CommonAnnotations.Summary
+		if summary == "" {
+			summary = fmt.Sprintf("Alertmanager: %s %s", body.CommonLabels.AlertName, body.CommonLabels.Instance)
 		}
-		body := strings.TrimSpace(urlStr + "\n\n" + alertmanager.Receiver)
+
+		data := make([]byte, buf.Len())
+		copy(data, buf.Bytes())
+		buf.Reset()
+		err = json.Indent(&buf, data, "", "  ")
+		if err == nil {
+			data = buf.Bytes()
+		}
+
+		details := fmt.Sprintf("%s\n\n[Alertmanager](%s)\n\n## Payload\n\n```\n%s\n```",
+			body.CommonAnnotations.Details,
+			body.ExternalURL,
+			string(data),
+		)
 
 		msg := &alert.Alert{
-			Summary:   validate.SanitizeText(alertmanager.Receiver, alert.MaxSummaryLength),
-			Details:   validate.SanitizeText(body, alert.MaxDetailsLength),
-			Status:    alertmanagerState,
+			Summary:   validate.SanitizeText(summary, alert.MaxSummaryLength),
+			Details:   validate.SanitizeText(details, alert.MaxDetailsLength),
+			Status:    status,
 			Source:    alert.SourcePrometheusAlertmanager,
 			ServiceID: serviceID,
 			Dedup:     alert.NewUserDedup(r.FormValue("dedup")),
