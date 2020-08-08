@@ -4,7 +4,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import { FormContainer } from '../forms'
-import { defaultTo } from 'lodash-es'
+import _, { defaultTo } from 'lodash-es'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import {
   StringInput,
@@ -14,7 +14,6 @@ import {
 } from './AdminFieldComponents'
 import { ConfigValue } from '../../schema'
 import { yellow } from '@material-ui/core/colors'
-import _ from 'lodash-es'
 
 const components = {
   string: StringInput,
