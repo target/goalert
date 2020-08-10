@@ -97,6 +97,7 @@ export default function IntegrationKeyList(props) {
     grafana: 'Grafana Webhook URL',
     site24x7: 'Site24x7 Webhook URL',
     email: 'Email Address',
+    prometheusAlertmanager: 'Alertmanager Webhook URL',
   }
   if (loading && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
