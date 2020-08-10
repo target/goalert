@@ -2,20 +2,15 @@ package smoketest
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
 )
 
-/*
- * This file tests that the alerts GraphQL query shows the proper amount
- * of results when flipping between "includeNotified" and "favoritesOnly"
- * query options.
- *
- * Service 1: Notified alert
- * Service 2: Favorited alert
- */
+// TestNotifiedAlerts tests that the alerts GraphQL query shows the proper amount of results when flipping between "includeNotified" and "favoritesOnly" query options.
+// Service 1: Notified alert, Service 2: Favorited alert
+
 func TestNotifiedAlerts(t *testing.T) {
 	t.Parallel()
 
@@ -44,6 +39,17 @@ func TestNotifiedAlerts(t *testing.T) {
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service'),
 		({{uuid "sid2"}}, {{uuid "eid2"}}, 'service 2');
+
+		insert into alerts (service_id, summary, dedup_key) 
+		values
+			({{uuid "sid"}}, 'Notified alert', 'auto:1:foo'),
+			({{uuid "sid2"}}, 'Favorited alert', 'auto:1:bar');
+
+	insert into user_favorites (user_id, tgt_service_id)
+	values
+		({{uuid "user"}}, {{uuid "sid2"}});
+
+		
 	`
 
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
@@ -68,42 +74,6 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}
 
-	// favorite the second service from initSQL
-	doQL(t, h, fmt.Sprintf(`
-		mutation{
-			setFavorite(input:{
-				target:{
-					id: "%s"
-					type: service
-				}
-				favorite: true
-			})
-		}
-	`, h.UUID("sid2")), nil)
-
-	var s struct {
-		Service struct {
-			IsFavorite bool
-		}
-	}
-
-	// assert the second service was favorited
-	doQL(t, h, fmt.Sprintf(`
-		query {
-			service(id: "%s") { 
-				isFavorite 
-			}	
-		}
-	`, h.UUID("sid2")), &s)
-
-	if s.Service.IsFavorite != true {
-		t.Fatalf("ERROR: ServiceID %s IsUserFavorite=%t; want true", h.UUID("sid2"), s.Service.IsFavorite)
-	}
-
-	// create alerts against both services (notifed version & favorited version)
-	h.CreateAlert(h.UUID("sid"), "notified alert")
-	h.CreateAlert(h.UUID("sid2"), "favorited alert")
-
 	type Alerts struct {
 		Alerts struct {
 			Nodes []struct {
@@ -127,9 +97,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}`, &alerts1)
 
-	if len(alerts1.Alerts.Nodes) != 1 {
-		t.Errorf("got %d alerts; want 1", len(alerts1.Alerts.Nodes))
-	}
+	assert.Len(t, alerts1.Alerts.Nodes, 1, "alerts query")
 
 	// Expect 1 SMS for the created alert
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("notified")
@@ -147,9 +115,7 @@ func TestNotifiedAlerts(t *testing.T) {
 			}
 		}`, &alerts2)
 
-	if len(alerts2.Alerts.Nodes) != 2 {
-		t.Errorf("got %d alerts; want 2", len(alerts2.Alerts.Nodes))
-	}
+	assert.Len(t, alerts2.Alerts.Nodes, 2, "alerts query")
 
 	// All Services test (favoritesOnly: false)
 	// output: 2 alerts
@@ -165,7 +131,5 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}`, &alerts3)
 
-	if len(alerts3.Alerts.Nodes) != 2 {
-		t.Errorf("got %d alerts; want 2", len(alerts3.Alerts.Nodes))
-	}
+	assert.Len(t, alerts3.Alerts.Nodes, 2, "alerts query")
 }
