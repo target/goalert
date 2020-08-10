@@ -29,6 +29,8 @@ func TestNotifiedAlerts(t *testing.T) {
 	insert into escalation_policy_steps (id, escalation_policy_id) 
 	values ({{uuid "esid"}}, {{uuid "eid"}});
  
+	insert into escalation_policy_actions (id, escalation_policy_step_id, user_id)
+	values ({{uuid "epa"}}, {{uuid "esid"}}, {{uuid "user"}});
 
 	insert into services (id, escalation_policy_id, name) 
 	values
@@ -41,6 +43,7 @@ func TestNotifiedAlerts(t *testing.T) {
 
 	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
 		t.Helper()
+		// g := h.GraphQLQueryUserT(t, h.UUID("user"), query)
 		g := h.GraphQLQuery2(query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
@@ -117,7 +120,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		t.Errorf("got %d alerts; want 1", len(alerts1.Alerts.Nodes))
 	}
 
-	// output: 1 alert (alert from favorited and alert from notified are merged together)
+	// output: 2 alerts
 	doQL(t, h, `query {
 			alerts(input: {
 				includeNotified: true
@@ -150,4 +153,6 @@ func TestNotifiedAlerts(t *testing.T) {
 		t.Errorf("got %d alerts; want 2", len(alerts3.Alerts.Nodes))
 	}
 
+	// Expect 1 SMS for the created alert
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("alert1")
 }
