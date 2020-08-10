@@ -8,6 +8,14 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
+/*
+ * This file tests that the alerts GraphQL query shows the proper amount
+ * of results when flipping between "includeNotified" and "favoritesOnly"
+ * query options.
+ *
+ * Service 1: Notified alert
+ * Service 2: Favorited alert
+ */
 func TestNotifiedAlerts(t *testing.T) {
 	t.Parallel()
 
@@ -43,8 +51,7 @@ func TestNotifiedAlerts(t *testing.T) {
 
 	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
 		t.Helper()
-		// g := h.GraphQLQueryUserT(t, h.UUID("user"), query)
-		g := h.GraphQLQuery2(query)
+		g := h.GraphQLQueryUserT(t, h.UUID("user"), query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}
@@ -61,6 +68,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}
 
+	// favorite the second service from initSQL
 	doQL(t, h, fmt.Sprintf(`
 		mutation{
 			setFavorite(input:{
@@ -79,6 +87,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		}
 	}
 
+	// assert the second service was favorited
 	doQL(t, h, fmt.Sprintf(`
 		query {
 			service(id: "%s") { 
@@ -92,7 +101,7 @@ func TestNotifiedAlerts(t *testing.T) {
 	}
 
 	// create alerts against both services (notifed version & favorited version)
-	h.CreateAlert(h.UUID("sid1"), "notified alert")
+	h.CreateAlert(h.UUID("sid"), "notified alert")
 	h.CreateAlert(h.UUID("sid2"), "favorited alert")
 
 	type Alerts struct {
@@ -122,7 +131,10 @@ func TestNotifiedAlerts(t *testing.T) {
 		t.Errorf("got %d alerts; want 1", len(alerts1.Alerts.Nodes))
 	}
 
-	// output: 2 alerts
+	// Expect 1 SMS for the created alert
+	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("notified")
+
+	// query for favorites & notified: 2 alerts
 	doQL(t, h, `query {
 			alerts(input: {
 				includeNotified: true
@@ -135,8 +147,8 @@ func TestNotifiedAlerts(t *testing.T) {
 			}
 		}`, &alerts2)
 
-	if len(alerts2.Alerts.Nodes) != 1 {
-		t.Errorf("got %d alerts; want 1", len(alerts2.Alerts.Nodes))
+	if len(alerts2.Alerts.Nodes) != 2 {
+		t.Errorf("got %d alerts; want 2", len(alerts2.Alerts.Nodes))
 	}
 
 	// All Services test (favoritesOnly: false)
@@ -156,7 +168,4 @@ func TestNotifiedAlerts(t *testing.T) {
 	if len(alerts3.Alerts.Nodes) != 2 {
 		t.Errorf("got %d alerts; want 2", len(alerts3.Alerts.Nodes))
 	}
-
-	// Expect 1 SMS for the created alert
-	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("notified")
 }
