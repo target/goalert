@@ -187,8 +187,8 @@ func TestNotifiedAlerts(t *testing.T) {
 	}
 
 	// create alerts against both services (notifed version & favorited version)
-	h.CreateAlert(h.UUID("sid"), "alert1")
-	h.CreateAlert(h.UUID("sid2"), "alert2")
+	h.CreateAlert(svc.CreateService.ID, "notified alert")
+	h.CreateAlert(h.UUID("sid2"), "favorited alert")
 
 	type Alerts struct {
 		Alerts struct {
@@ -208,6 +208,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		}) {
 			nodes {
 				id
+				summary
 			}
 		}
 	}`, &alerts1)
@@ -224,6 +225,7 @@ func TestNotifiedAlerts(t *testing.T) {
 			}) {
 				nodes {
 					id
+					summary
 				}
 			}
 		}`, &alerts2)
@@ -241,6 +243,7 @@ func TestNotifiedAlerts(t *testing.T) {
 		}) {
 			nodes {
 				id
+				summary
 			}
 		}
 	}`, &alerts3)
