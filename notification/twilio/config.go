@@ -2,6 +2,8 @@ package twilio
 
 import (
 	"net/http"
+
+	"github.com/target/goalert/user/contactmethod"
 )
 
 const (
@@ -15,9 +17,12 @@ const (
 // Config contains the details needed to interact with Twilio for SMS
 type Config struct {
 
-	// APIURL can be used to override the Twilio API URL
-	APIURL string
+	// BaseURL can be used to override the Twilio API and Lookup URL bases.
+	BaseURL string
 
 	// Client is an optional net/http client to use, if nil the global default is used.
 	Client *http.Client
+
+	// CMStore is used for storing and fetching metadata (like carrier information).
+	CMStore contactmethod.Store
 }

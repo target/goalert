@@ -44,7 +44,7 @@ type Engine struct {
 	mgr *lifecycle.Manager
 
 	shutdownCh  chan struct{}
-	triggerCh   chan struct{}
+	triggerCh   chan chan struct{}
 	runLoopExit chan struct{}
 
 	nextCycle chan chan struct{}
@@ -73,7 +73,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	p := &Engine{
 		cfg:            c,
 		shutdownCh:     make(chan struct{}),
-		triggerCh:      make(chan struct{}),
+		triggerCh:      make(chan chan struct{}),
 		triggerPauseCh: make(chan *pauseReq),
 		runLoopExit:    make(chan struct{}),
 		nextCycle:      make(chan chan struct{}),
@@ -227,6 +227,25 @@ func recoverPanic(ctx context.Context, name string) {
 // Trigger will force notifications to be processed immediately.
 func (p *Engine) Trigger() {
 	<-p.triggerCh
+}
+
+// TriggerAndWaitNextCycle will force notifications to be processed immediately
+// and will return after the next engine cycle starts and then finishes.
+func (p *Engine) TriggerAndWaitNextCycle(ctx context.Context) error {
+	var waitCh chan struct{}
+	select {
+	case waitCh = <-p.triggerCh: // cause new trigger
+	case waitCh = <-p.nextCycle: // cycle started for some other reason
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	select {
+	case <-waitCh:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // Pause will attempt to gracefully stop engine processing.
@@ -435,6 +454,8 @@ func (p *Engine) _run(ctx context.Context) error {
 	ctx = permission.SystemContext(ctx, "Engine")
 	if p.cfg.DisableCycle {
 		log.Logf(ctx, "Engine started in API-only mode.")
+		ch := make(chan struct{})
+		close(ch)
 		for {
 			select {
 			case req := <-p.triggerPauseCh:
@@ -443,7 +464,7 @@ func (p *Engine) _run(ctx context.Context) error {
 				return ctx.Err()
 			case <-p.shutdownCh:
 				return nil
-			case p.triggerCh <- struct{}{}:
+			case p.triggerCh <- ch:
 				log.Logf(ctx, "Ignoring engine trigger (API-only mode).")
 			}
 		}
@@ -472,11 +493,13 @@ func (p *Engine) _run(ctx context.Context) error {
 		default:
 		}
 
+		nextTrigger := make(chan struct{})
 		select {
 		case req := <-p.triggerPauseCh:
 			p.handlePause(req.ctx, req.ch)
-		case p.triggerCh <- struct{}{}:
+		case p.triggerCh <- nextTrigger:
 			p.cycle(log.WithField(ctx, "Trigger", "DIRECT"))
+			close(nextTrigger)
 		case <-alertTicker.C:
 			p.cycle(log.WithField(ctx, "Trigger", "INTERVAL"))
 		case <-ctx.Done():

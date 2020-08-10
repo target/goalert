@@ -63,6 +63,11 @@ type Config struct {
 		IssuerURL    string
 		ClientID     string
 		ClientSecret string `password:"true"`
+
+		Scopes                    string `info:"Requested scopes for authentication. If left blank, openid, profile, and email will be used."`
+		UserInfoEmailPath         string `info:"JMESPath expression to find email address in UserInfo. If set, the email claim will be ignored in favor of this. (suggestion: email)."`
+		UserInfoEmailVerifiedPath string `info:"JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified)."`
+		UserInfoNamePath          string `info:"JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))"`
 	}
 
 	Mailgun struct {
@@ -90,13 +95,35 @@ type Config struct {
 		AuthToken  string `password:"true" info:"The primary Auth Token for Twilio. Must be primary (not secondary) for request valiation."`
 		FromNumber string `public:"true" info:"The Twilio number to use for outgoing notifications."`
 
-		DisableTwoWaySMS bool `info:"Disables SMS reply codes for alert messages."`
+		DisableTwoWaySMS      bool     `info:"Disables SMS reply codes for alert messages."`
+		SMSCarrierLookup      bool     `info:"Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply."`
+		SMSFromNumberOverride []string `info:"List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number."`
 	}
 
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
 	}
+}
+
+// TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
+func (cfg Config) TwilioSMSFromNumber(carrier string) string {
+	if carrier == "" {
+		return cfg.Twilio.FromNumber
+	}
+
+	for _, s := range cfg.Twilio.SMSFromNumberOverride {
+		parts := strings.SplitN(s, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		if parts[0] != carrier {
+			continue
+		}
+		return parts[1]
+	}
+
+	return cfg.Twilio.FromNumber
 }
 
 func (cfg Config) rawCallbackURL(path string, mergeParams ...url.Values) *url.URL {
@@ -218,6 +245,18 @@ func (cfg Config) Validate() error {
 	}
 
 	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }
+	validatePath := func(fname, val string) error {
+		if val == "" {
+			return nil
+		}
+		return validate.JMESPath(fname, val)
+	}
+	validateScopes := func(fname, val string) error {
+		if val == "" {
+			return nil
+		}
+		return validate.OAuthScope(fname, val, "openid")
+	}
 
 	err = validate.Many(
 		err,
@@ -232,10 +271,17 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
 		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
+		validateScopes("OIDC.Scopes", cfg.OIDC.Scopes),
+		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
+		validatePath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),
+		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("OIDC.IssuerURL", cfg.OIDC.IssuerURL))
+	}
+	if cfg.OIDC.Scopes != "" {
+		err = validate.Many(err, validateScopes("OIDC.Scopes", cfg.OIDC.Scopes))
 	}
 	if cfg.GitHub.EnterpriseURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("GitHub.EnterpriseURL", cfg.GitHub.EnterpriseURL))
@@ -298,6 +344,27 @@ func (cfg Config) Validate() error {
 			err,
 			validate.AbsoluteURL(field, urlStr),
 		)
+	}
+
+	m := make(map[string]bool)
+	for i, str := range cfg.Twilio.SMSFromNumberOverride {
+		parts := strings.SplitN(str, "=", 2)
+		fname := fmt.Sprintf("Twilio.SMSFromNumberOverride[%d]", i)
+		if len(parts) != 2 {
+			err = validate.Many(err, validation.NewFieldError(
+				fname,
+				"must be in the format 'carrier=number'",
+			))
+			continue
+		}
+		err = validate.Many(err,
+			validate.ASCII(fname+".Carrier", parts[0], 1, 255),
+			validate.Phone(fname+".Phone", parts[1]),
+		)
+		if m[parts[0]] {
+			err = validate.Many(err, validation.NewFieldError(fname, fmt.Sprintf("carrier override '%s' already set", parts[0])))
+		}
+		m[parts[0]] = true
 	}
 
 	return err

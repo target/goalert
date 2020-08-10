@@ -73,3 +73,5 @@ models:
     model: github.com/target/goalert/heartbeat.State
   SystemLimitID:
     model: github.com/target/goalert/limit.ID
+  DebugCarrierInfo:
+    model: github.com/target/goalert/notification/twilio.CarrierInfo

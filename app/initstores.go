@@ -21,6 +21,7 @@ import (
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
@@ -46,6 +47,14 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init config store")
+	}
+	if app.cfg.InitialConfig != nil {
+		permission.SudoContext(ctx, func(ctx context.Context) {
+			err = app.ConfigStore.SetConfig(ctx, *app.cfg.InitialConfig)
+		})
+		if err != nil {
+			return errors.Wrap(err, "set initial config")
+		}
 	}
 
 	if app.NonceStore == nil {

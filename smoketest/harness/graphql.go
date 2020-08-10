@@ -19,36 +19,43 @@ import (
 	"github.com/target/goalert/user"
 )
 
-func (h *Harness) insertGraphQLUser() {
+// DefaultGraphQLAdminUserID is the UserID created & used for GraphQL calls by default.
+const DefaultGraphQLAdminUserID = "00000000-0000-0000-0000-000000000000"
+
+func (h *Harness) insertGraphQLUser(userID string) string {
 	h.t.Helper()
 	var err error
-	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		_, err = h.usr.Insert(ctx, &user.User{
-			Name: "GraphQL User",
-			ID:   "bcefacc0-4764-012d-7bfb-002500d5decb",
-			Role: permission.RoleAdmin,
+	if userID == DefaultGraphQLAdminUserID {
+		permission.SudoContext(context.Background(), func(ctx context.Context) {
+			_, err = h.backend.UserStore.Insert(ctx, &user.User{
+				Name: "GraphQL User",
+				ID:   userID,
+				Role: permission.RoleAdmin,
+			})
 		})
-	})
-	if err != nil {
-		h.t.Fatal(errors.Wrap(err, "create GraphQL user"))
+		if err != nil {
+			h.t.Fatal(errors.Wrap(err, "create GraphQL user"))
+		}
 	}
 
-	tok, err := h.authH.CreateSession(context.Background(), "goalert-smoketest", "bcefacc0-4764-012d-7bfb-002500d5decb")
+	tok, err := h.backend.AuthHandler.CreateSession(context.Background(), "goalert-smoketest", userID)
 	if err != nil {
 		h.t.Fatal(errors.Wrap(err, "create auth session"))
 	}
 
-	h.sessToken, err = tok.Encode(h.sessKey.Sign)
+	h.gqlSessions[userID], err = tok.Encode(h.backend.SessionKeyring.Sign)
 	if err != nil {
 		h.t.Fatal(errors.Wrap(err, "sign auth session"))
 	}
+
+	return h.gqlSessions[userID]
 }
 
 // GraphQLQuery2 will perform a GraphQL2 query against the backend, internally
 // handling authentication. Queries are performed with Admin role.
 func (h *Harness) GraphQLQuery2(query string) *QLResponse {
 	h.t.Helper()
-	return h.GraphQLQueryT(h.t, query, "/api/graphql")
+	return h.GraphQLQueryT(h.t, query)
 }
 
 // SetConfigValue will update the config value id (e.g. `General.PublicURL`) to the provided value.
@@ -75,9 +82,23 @@ func (h *Harness) SetSystemLimit(id limit.ID, value int) {
 
 // GraphQLQueryT will perform a GraphQL query against the backend, internally
 // handling authentication. Queries are performed with Admin role.
-func (h *Harness) GraphQLQueryT(t *testing.T, query string, u string) *QLResponse {
+func (h *Harness) GraphQLQueryT(t *testing.T, query string) *QLResponse {
 	t.Helper()
-	h.addGraphUser.Do(h.insertGraphQLUser)
+	return h.GraphQLQueryUserT(t, DefaultGraphQLAdminUserID, query)
+}
+
+// GraphQLQueryUserT will perform a GraphQL query against the backend, internally
+// handling authentication. Queries are performed with the provided UserID.
+func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLResponse {
+	t.Helper()
+
+	h.mx.Lock()
+	tok := h.gqlSessions[userID]
+	if tok == "" {
+		tok = h.insertGraphQLUser(userID)
+	}
+	h.mx.Unlock()
+
 	query = strings.Replace(query, "\t", "", -1)
 	q := struct{ Query string }{Query: query}
 
@@ -87,7 +108,7 @@ func (h *Harness) GraphQLQueryT(t *testing.T, query string, u string) *QLRespons
 	}
 	t.Log("Query:", query)
 
-	url := h.URL() + u
+	url := h.URL() + "/api/graphql"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal("failed to make request:", err)
@@ -95,7 +116,7 @@ func (h *Harness) GraphQLQueryT(t *testing.T, query string, u string) *QLRespons
 	req.Header.Set("Content-Type", "application/json")
 	req.AddCookie(&http.Cookie{
 		Name:  auth.CookieName,
-		Value: h.sessToken,
+		Value: tok,
 	})
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

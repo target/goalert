@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -10,14 +9,33 @@ import InputAdornment from '@material-ui/core/InputAdornment'
 import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
+import { IntegrationKeyType } from '../../schema'
 
 const useStyles = makeStyles((theme) => ({
   infoIcon: {
-    color: theme.palette.primary['500'],
+    color: theme.palette.primary.main,
   },
 }))
 
-export default function IntegrationKeyForm(props) {
+interface Value {
+  name: string
+  type: IntegrationKeyType
+}
+
+interface IntegrationKeyFormProps {
+  value: Value
+
+  errors: {
+    field: 'name' | 'type'
+    message: string
+  }[]
+
+  onChange: (val: Value) => void
+}
+
+export default function IntegrationKeyForm(
+  props: IntegrationKeyFormProps,
+): JSX.Element {
   const classes = useStyles()
   const { ...formProps } = props
   return (
@@ -34,7 +52,7 @@ export default function IntegrationKeyForm(props) {
         </Grid>
         <Grid item xs={12}>
           <Config>
-            {(cfg) => (
+            {(cfg: { [x: string]: unknown }) => (
               <FormField
                 fullWidth
                 component={TextField}
@@ -60,6 +78,9 @@ export default function IntegrationKeyForm(props) {
                 <MenuItem value='generic'>Generic API</MenuItem>
                 <MenuItem value='grafana'>Grafana</MenuItem>
                 <MenuItem value='site24x7'>Site24x7</MenuItem>
+                <MenuItem value='prometheusAlertmanager'>
+                  Prometheus Alertmanager
+                </MenuItem>
               </FormField>
             )}
           </Config>
@@ -67,20 +88,4 @@ export default function IntegrationKeyForm(props) {
       </Grid>
     </FormContainer>
   )
-}
-
-IntegrationKeyForm.propTypes = {
-  value: p.shape({
-    name: p.string,
-    type: p.oneOf(['generic', 'grafana', 'site24x7', 'email']),
-  }).isRequired,
-
-  errors: p.arrayOf(
-    p.shape({
-      field: p.oneOf(['name', 'type']).isRequired,
-      message: p.string.isRequired,
-    }),
-  ),
-
-  onChange: p.func,
 }

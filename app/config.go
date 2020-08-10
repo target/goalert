@@ -4,10 +4,11 @@ import (
 	"crypto/tls"
 	"time"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 )
 
-type appConfig struct {
+type Config struct {
 	ListenAddr  string
 	Verbose     bool
 	JSON        bool
@@ -57,4 +58,8 @@ type appConfig struct {
 	StubNotifiers bool
 
 	UIURL string
+
+	// InitialConfig will be pushed into the config store
+	// if specified before the engine is started.
+	InitialConfig *config.Config
 }

@@ -260,7 +260,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 				log.Log(ctx, errors.Wrap(err, "record error"))
 			}
 		}
-		_, err := s.c.SendSMS(ctx, from, msg, nil)
+		_, err := s.c.SendSMS(ctx, from, msg, &SMSOptions{FromNumber: req.FormValue("to")})
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "send response"))
 		}

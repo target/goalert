@@ -3,17 +3,17 @@ package app
 import "go.opencensus.io/trace"
 
 type clusterExporter struct {
-	*appConfig
+	*Config
 	e trace.Exporter
 }
 
-func (c *appConfig) wrapExporter(e trace.Exporter) trace.Exporter {
+func (c *Config) wrapExporter(e trace.Exporter) trace.Exporter {
 	if c.TracingClusterName == "" {
 		return e
 	}
 	return &clusterExporter{
-		appConfig: c,
-		e:         e,
+		Config: c,
+		e:      e,
 	}
 }
 func (c *clusterExporter) Flush() {

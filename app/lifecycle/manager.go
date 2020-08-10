@@ -38,6 +38,7 @@ type Manager struct {
 
 	startupCancel func()
 	startupDone   chan struct{}
+	startupErr    error
 
 	runCancel func()
 	runDone   chan struct{}
@@ -127,13 +128,13 @@ func (m *Manager) PauseWait() <-chan struct{} {
 }
 
 // WaitForStartup will wait for startup to complete (even if failed or shutdown).
-// err is nil unless context deadline is reached.
+// err is nil unless context deadline is reached or startup produced an error.
 func (m *Manager) WaitForStartup(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-m.startupDone:
-		return nil
+		return m.startupErr
 	}
 }
 
@@ -164,9 +165,8 @@ func (m *Manager) Run(ctx context.Context) error {
 	startupFunc := m.startupFunc
 	m.status <- StatusStarting
 
-	var err error
 	if startupFunc != nil {
-		err = startupFunc(startCtx)
+		m.startupErr = startupFunc(startCtx)
 	}
 	cancel()
 
@@ -178,10 +178,10 @@ func (m *Manager) Run(ctx context.Context) error {
 		// no error on shutdown while starting
 		return nil
 	case StatusStarting:
-		if err != nil {
+		if m.startupErr != nil {
 			m.status <- s
 			close(m.startupDone)
-			return err
+			return m.startupErr
 		}
 		// ok
 	default:
@@ -193,7 +193,7 @@ func (m *Manager) Run(ctx context.Context) error {
 	close(m.startupDone)
 	m.status <- StatusReady
 
-	err = m.runFunc(ctx)
+	err := m.runFunc(ctx)
 	close(m.runDone)
 	<-m.shutdownDone
 	return err

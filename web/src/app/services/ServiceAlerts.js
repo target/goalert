@@ -4,11 +4,9 @@ import { PropTypes as p } from 'prop-types'
 import { useMutation } from 'react-apollo'
 import AlertsList from '../alerts/AlertsList'
 import gql from 'graphql-tag'
-import Options from '../util/Options'
 import PageActions from '../util/PageActions'
-import AlertsListFilter from '../alerts/components/AlertsListFilter'
-import Search from '../util/Search'
 import FormDialog from '../dialogs/FormDialog'
+import OtherActions from '../util/OtherActions'
 
 const mutation = gql`
   mutation UpdateAlertsByServiceMutation($input: UpdateAlertsByServiceInput!) {
@@ -54,11 +52,11 @@ export default function ServiceAlerts(props) {
   const getMenuOptions = () => {
     return [
       {
-        text: 'Acknowledge All Alerts',
+        label: 'Acknowledge All Alerts',
         onClick: handleClickAckAll,
       },
       {
-        text: 'Close All Alerts',
+        label: 'Close All Alerts',
         onClick: handleClickCloseAll,
       },
     ]
@@ -67,9 +65,7 @@ export default function ServiceAlerts(props) {
   return (
     <React.Fragment>
       <PageActions key='actions'>
-        <Search key='search' />
-        <AlertsListFilter key='filter' serviceID={serviceID} />
-        <Options key='options' options={getMenuOptions()} legacyClient />
+        <OtherActions actions={getMenuOptions()} />
       </PageActions>
       {showDialog && (
         <FormDialog

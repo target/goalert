@@ -10,11 +10,12 @@ type Source string
 
 // Source types
 const (
-	SourceEmail    Source = "email"    // email alert
-	SourceGrafana  Source = "grafana"  // grafana alert
-	SourceSite24x7 Source = "site24x7" // site24x7 alert
-	SourceManual   Source = "manual"   // manually triggered
-	SourceGeneric  Source = "generic"  // generic API
+	SourceEmail                  Source = "email"                  // email alert
+	SourceGrafana                Source = "grafana"                // grafana alert
+	SourceSite24x7               Source = "site24x7"               // site24x7 alert
+	SourcePrometheusAlertmanager Source = "prometheusAlertmanager" // prometheus alertmanager alert
+	SourceManual                 Source = "manual"                 // manually triggered
+	SourceGeneric                Source = "generic"                // generic API
 )
 
 func (s Source) Value() (driver.Value, error) {

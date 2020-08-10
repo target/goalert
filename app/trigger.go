@@ -6,7 +6,7 @@ import "context"
 func (app *App) Trigger() {
 	app.mgr.WaitForStartup(context.Background())
 
-	if app.engine != nil {
-		app.engine.Trigger()
+	if app.Engine != nil {
+		app.Engine.Trigger()
 	}
 }

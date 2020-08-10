@@ -647,7 +647,12 @@ export interface IntegrationKey {
   href: string
 }
 
-export type IntegrationKeyType = 'generic' | 'grafana' | 'site24x7' | 'email'
+export type IntegrationKeyType =
+  | 'generic'
+  | 'grafana'
+  | 'site24x7'
+  | 'prometheusAlertmanager'
+  | 'email'
 
 export interface ServiceOnCallUser {
   userID: string
