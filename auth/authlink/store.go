@@ -144,8 +144,16 @@ func NewStore(ctx context.Context, db *sql.DB, keys keyring.Keyring) (*Store, er
 	return s, nil
 }
 
-// Create will create a new auth link for the session associated with ctx.
-func (s *Store) Create(ctx context.Context) (*Status, error) {
+func withTx(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
+	if tx == nil {
+		return stmt
+	}
+
+	return tx.StmtContext(ctx, stmt)
+}
+
+// CreateTx will create a new auth link for the session associated with ctx.
+func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx) (*Status, error) {
 	err := permission.LimitCheckAny(ctx, permission.UserSession)
 	if err != nil {
 		return nil, err
@@ -161,7 +169,7 @@ func (s *Store) Create(ctx context.Context) (*Status, error) {
 	}
 	var dur pgtype.Interval
 	dur.Set(ExpirationDuration)
-	err = s.create.QueryRowContext(ctx,
+	err = withTx(ctx, tx, s.create).QueryRowContext(ctx,
 		stat.ID,
 		permission.UserID(ctx),
 		permission.SessionID(ctx),
@@ -220,13 +228,13 @@ func (s *Store) Verify(ctx context.Context, id, code string) (bool, error) {
 	return n != 0, nil
 }
 
-// Reset will reset any outstanding auth links for the user associated with ctx.
-func (s *Store) Reset(ctx context.Context) error {
+// ResetTx will reset any outstanding auth links for the user associated with ctx.
+func (s *Store) ResetTx(ctx context.Context, tx *sql.Tx) error {
 	err := permission.LimitCheckAny(ctx, permission.UserSession)
 	if err != nil {
 		return nil
 	}
 
-	_, err = s.reset.ExecContext(ctx, permission.UserID(ctx))
+	_, err = withTx(ctx, tx, s.reset).ExecContext(ctx, permission.UserID(ctx))
 	return err
 }

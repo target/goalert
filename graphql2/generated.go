@@ -3229,6 +3229,7 @@ input VerifyAuthLinkInput {
 }
 
 type Mutation {
+  # creates a new auth link code. Invalidates any existing code.
   createAuthLink: AuthLink
   verifyAuthLink(input: VerifyAuthLinkInput!): Boolean!
   resetAuthLink: Boolean!
