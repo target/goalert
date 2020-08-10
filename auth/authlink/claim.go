@@ -104,7 +104,7 @@ func (s *Store) Claim(ctx context.Context, claimCode string, refresh bool) (*Cla
 	err := s.wl.LockRemove(ctx, claimCode, func(ctx context.Context) error {
 		err := s.claim.QueryRowContext(ctx, claimCode).Scan(&idStr, &claimedAt, &verifyCode, &expiresAt)
 		if err == sql.ErrNoRows {
-			return nil
+			return ErrBadID
 		}
 		return err
 	})

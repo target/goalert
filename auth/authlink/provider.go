@@ -27,6 +27,9 @@ func (s *Store) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter, re
 	switch route.RelativePath {
 	case "/":
 		resp, err := s.Claim(req.Context(), req.FormValue("code"), true)
+		if err == ErrBadID {
+			return nil, auth.Error("invalid code")
+		}
 		if err != nil {
 			return nil, err
 		}

@@ -8,31 +8,40 @@ import (
 
 type Whitelist struct {
 	mx sync.Mutex
-	m  map[string]chan bool
+	m  map[string]*wlEntry
 }
 
 func NewWhitelist() *Whitelist {
-	return &Whitelist{m: make(map[string]chan bool)}
+	return &Whitelist{m: make(map[string]*wlEntry)}
+}
+
+type wlEntry struct {
+	wait    chan bool
+	invalid bool
 }
 
 func (w *Whitelist) Set(ids []string) {
 	w.mx.Lock()
 	defer w.mx.Unlock()
 	oldMap := w.m
-	w.m = make(map[string]chan bool)
+	w.m = make(map[string]*wlEntry)
 	for _, id := range ids {
-		ch := oldMap[id]
-		if ch == nil {
-			ch = make(chan bool, 1)
-			ch <- true
+		e := oldMap[id]
+		if e == nil {
+			e = &wlEntry{wait: make(chan bool, 1)}
+			e.wait <- true
 		} else {
 			delete(oldMap, id)
 		}
-		w.m[id] = ch
+		w.m[id] = e
 	}
 
-	for _, ch := range oldMap {
-		close(ch)
+	for _, e := range oldMap {
+		if e.invalid {
+			continue
+		}
+		e.invalid = true
+		close(e.wait)
 	}
 }
 
@@ -42,15 +51,17 @@ var (
 
 func (w *Whitelist) LockRemove(ctx context.Context, id string, fn func(context.Context) error) error {
 	w.mx.Lock()
-	ch := w.m[id]
+	e := w.m[id]
+	valid := e != nil && !e.invalid
 	w.mx.Unlock()
-	if ch == nil {
+	if !valid {
 		return ErrBadID
 	}
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case gotLock := <-ch:
+	case gotLock := <-e.wait:
 		if !gotLock {
 			return ErrBadID
 		}
@@ -59,24 +70,31 @@ func (w *Whitelist) LockRemove(ctx context.Context, id string, fn func(context.C
 	err := fn(ctx)
 	if err != nil {
 		w.mx.Lock()
-		select {
-		case <-ch:
-			// closed
-		default:
-			ch <- true
+		defer w.mx.Unlock()
+
+		if e.invalid {
+			return err
 		}
-		w.mx.Unlock()
+		if err == ErrBadID {
+			e.invalid = true
+			close(e.wait)
+			return err
+		}
+
+		// other error, allow retry
+		e.wait <- true
+
 		return err
 	}
 
 	w.mx.Lock()
-	select {
-	case <-ch:
-		// closed
-	default:
-		close(ch)
+	defer w.mx.Unlock()
+	if e.invalid {
+		return nil
 	}
-	w.mx.Unlock()
+
+	e.invalid = true
+	close(e.wait)
 
 	return nil
 }
