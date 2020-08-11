@@ -145,13 +145,18 @@ export default class ScheduleShiftList extends React.PureComponent {
     ),
   }
 
-  static defaultProps = {
-    shifts: [],
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      create: null,
+      specifyDuration: false,
+      _duration: props.duration,
+    }
   }
 
-  state = {
-    create: null,
-    specifyDuration: false,
+  static defaultProps = {
+    shifts: [],
   }
 
   items() {
@@ -250,7 +255,7 @@ export default class ScheduleShiftList extends React.PureComponent {
           onChange={(e) => {
             e.target.value === 'SPECIFY'
               ? this.setState({ specifyDuration: true })
-              : this.props.handleSetDuration(e.target.value)
+              : this.props.handleSetDuration(this.props.duration)
           }}
         >
           {quickOptions.map((opt) => (
@@ -262,21 +267,38 @@ export default class ScheduleShiftList extends React.PureComponent {
         </TextField>
       )
     }
+    const value = Duration.fromISO(this.props.duration).as('days')
+    // todo: use Duration.isValid once Luxon is up to date
+    const isDurationValid = this.state._duration.match(
+      '^(-?)P(?=d|Td)(?:(d+)Y)?(?:(d+)M)?(?:(d+)([DW]))?(?:T(?:(d+)H)?(?:(d+)M)?(?:(d+(?:.d+)?)S)?)?$/',
+    )
     return (
       <TextField
         fullWidth
         label='Time Limit (days)'
-        value={Duration.fromISO(this.props.duration).as('days')}
+        value={
+          isDurationValid
+            ? Duration.fromISO(this.state._duration).as('days')
+            : this.state._duration
+        }
         disabled={this.props.activeOnly}
         max={30}
         min={1}
         type='number'
+        onBlur={() => {
+          this.props.handleSetDuration(!value ? '' : value)
+          console.log('henlo')
+        }}
         onChange={(e) => {
-          this.props.handleSetDuration(
-            Duration.fromObject({
-              days: clamp(1, 30, parseInt(e.target.value, 10)),
-            }).toISO(),
-          )
+          console.log(e.target.value)
+          this.setState({ _duration: e.target.value })
+          if (parseInt(e.target.value, 10) > 0) {
+            this.props.handleSetDuration(
+              Duration.fromObject({
+                days: clamp(1, 30, parseInt(e.target.value, 10)),
+              }).toISO(),
+            )
+          }
         }}
       />
     )
