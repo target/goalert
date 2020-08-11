@@ -10,19 +10,21 @@ import (
 
 // TestNotifiedAlerts tests that the alerts GraphQL query shows the proper amount of results when flipping between "includeNotified" and "favoritesOnly" query options.
 // Service 1: Notified alert, Service 2: Favorited alert
-
 func TestNotifiedAlerts(t *testing.T) {
 	t.Parallel()
 
 	sql := `
 	insert into users (id, name, email, role) 
-	values ({{uuid "user"}}, 'bob', 'joe', 'user');
+	values 
+		({{uuid "user"}}, 'bob', 'joe', 'user');
 
 	insert into user_contact_methods (id, user_id, name, type, value) 
-	values ({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
+	values 
+		({{uuid "cm1"}}, {{uuid "user"}}, 'personal', 'SMS', {{phone "1"}});
 
 	insert into user_notification_rules (user_id, contact_method_id, delay_minutes) 
-	values ({{uuid "user"}}, {{uuid "cm1"}}, 0);
+	values 
+		({{uuid "user"}}, {{uuid "cm1"}}, 0);
 
 	insert into escalation_policies (id, name) 
 	values
@@ -30,26 +32,26 @@ func TestNotifiedAlerts(t *testing.T) {
 		({{uuid "eid2"}}, 'esc policy 2');
 
 	insert into escalation_policy_steps (id, escalation_policy_id) 
-	values ({{uuid "esid"}}, {{uuid "eid"}});
+	values 
+		({{uuid "esid"}}, {{uuid "eid"}});
  
 	insert into escalation_policy_actions (id, escalation_policy_step_id, user_id)
-	values ({{uuid "epa"}}, {{uuid "esid"}}, {{uuid "user"}});
+	values 
+		({{uuid "epa"}}, {{uuid "esid"}}, {{uuid "user"}});
 
 	insert into services (id, escalation_policy_id, name) 
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service'),
 		({{uuid "sid2"}}, {{uuid "eid2"}}, 'service 2');
 
-		insert into alerts (service_id, summary, dedup_key) 
-		values
-			({{uuid "sid"}}, 'Notified alert', 'auto:1:foo'),
-			({{uuid "sid2"}}, 'Favorited alert', 'auto:1:bar');
+	insert into alerts (service_id, summary, dedup_key) 
+	values
+		({{uuid "sid"}}, 'Notified alert', 'auto:1:foo'),
+		({{uuid "sid2"}}, 'Favorited alert', 'auto:1:bar');
 
 	insert into user_favorites (user_id, tgt_service_id)
 	values
-		({{uuid "user"}}, {{uuid "sid2"}});
-
-		
+		({{uuid "user"}}, {{uuid "sid2"}});	
 	`
 
 	h := harness.NewHarness(t, sql, "add-no-notification-alert-log")
