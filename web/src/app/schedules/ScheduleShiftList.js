@@ -253,9 +253,10 @@ export default class ScheduleShiftList extends React.PureComponent {
           disabled={this.props.activeOnly}
           value={this.props.duration}
           onChange={(e) => {
+            console.log(e.target.value)
             e.target.value === 'SPECIFY'
               ? this.setState({ specifyDuration: true })
-              : this.props.handleSetDuration(this.props.duration)
+              : this.props.handleSetDuration(e.target.value)
           }}
         >
           {quickOptions.map((opt) => (
