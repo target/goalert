@@ -64,5 +64,5 @@ func TestNotices(t *testing.T) {
 		}
 	`, epID), &notices)
 
-	assert.Len(t, notices, 1, "retrieved notices")
+	assert.Len(t, notices.EscalationPolicy.Notices, 1, "retrieved notices")
 }
