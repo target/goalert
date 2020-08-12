@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ReactNode } from 'react'
+import React, { useEffect, useState, ReactNode, ChangeEvent } from 'react'
 import {
   Button,
   Dialog,
@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogContentText,
   Grid,
+  TextField,
   Typography,
   makeStyles,
   isWidthDown,
@@ -34,14 +35,21 @@ const useStyles = makeStyles((theme) => {
       display: 'flex',
       justifyContent: 'center',
     },
+    codeContainer: {
+      marginTop: '2em',
+    },
+    contentText: {
+      marginBottom: 0,
+    },
     manualCodeTypography: {
       '&:hover': {
         cursor: 'pointer',
         textDecoration: 'underline',
       },
     },
-    qrContentText: {
-      marginBottom: 0,
+    textField: {
+      textAlign: 'center',
+      fontSize: '1.75rem',
     },
   }
 })
@@ -51,7 +59,7 @@ export default function LinkToMobile(): JSX.Element {
   const width = useWidth()
   const fullscreen = isWidthDown('md', width)
   const [showDialog, setShowDialog] = useState(false)
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(1)
 
   // todo: add useEffects changing index as things are updated
   const [scanSuccessful, setScanSuccessful] = useState(false)
@@ -110,7 +118,7 @@ export default function LinkToMobile(): JSX.Element {
             className={classes.cancelButton}
             onClick={() => setScanSuccessful(true)}
           >
-            ->
+            {'->'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -125,7 +133,7 @@ function ClaimCodeDisplay() {
     <DialogContent>
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          <DialogContentText className={classes.qrContentText}>
+          <DialogContentText className={classes.contentText}>
             Scan this QR code from the GoAlert app on your mobile device to
             authenticate.
           </DialogContentText>
@@ -148,7 +156,79 @@ function ClaimCodeDisplay() {
 }
 
 function VerifyCodeField() {
-  return null
+  const classes = useStyles()
+  const [numOne, setNumOne] = useState('')
+  const [numTwo, setNumTwo] = useState('')
+  const [numThree, setNumThree] = useState('')
+  const [numFour, setNumFour] = useState('')
+
+  function handleChange(
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    curVal: string,
+    setter: Function,
+  ): void {
+    setter(e.target.value)
+  }
+
+  return (
+    <DialogContent>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <DialogContentText className={classes.contentText}>
+            Enter the code displayed on your mobile device.
+          </DialogContentText>
+        </Grid>
+        <Grid
+          className={classes.codeContainer}
+          item
+          xs={12}
+          container
+          spacing={2}
+        >
+          <Grid item xs={3}>
+            <TextField
+              value={numOne}
+              onChange={(e) => handleChange(e, numOne, setNumOne)}
+              inputProps={{
+                maxLength: 1,
+                className: classes.textField,
+              }}
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <TextField
+              value={numTwo}
+              onChange={(e) => handleChange(e, numTwo, setNumTwo)}
+              inputProps={{
+                maxLength: 1,
+                className: classes.textField,
+              }}
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <TextField
+              value={numThree}
+              onChange={(e) => handleChange(e, numThree, setNumThree)}
+              inputProps={{
+                maxLength: 1,
+                className: classes.textField,
+              }}
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <TextField
+              value={numFour}
+              onChange={(e) => handleChange(e, numFour, setNumFour)}
+              inputProps={{
+                maxLength: 1,
+                className: classes.textField,
+              }}
+            />
+          </Grid>
+        </Grid>
+      </Grid>
+    </DialogContent>
+  )
 }
 
 function Success() {
