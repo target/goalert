@@ -20,7 +20,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
-import LinkToMobile from './LinkToMobile'
+import LinkToMobile from './linkToMobile/LinkToMobile'
 
 const query = gql`
   query userInfo($id: ID!) {
