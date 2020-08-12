@@ -162,14 +162,6 @@ function VerifyCodeField() {
   const [numThree, setNumThree] = useState('')
   const [numFour, setNumFour] = useState('')
 
-  function handleChange(
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    curVal: string,
-    setter: Function,
-  ): void {
-    setter(e.target.value)
-  }
-
   return (
     <DialogContent>
       <Grid container spacing={2}>
@@ -187,8 +179,14 @@ function VerifyCodeField() {
         >
           <Grid item xs={3}>
             <TextField
+              id='numOne'
               value={numOne}
-              onChange={(e) => handleChange(e, numOne, setNumOne)}
+              onChange={(e) => {
+                setNumOne(e.target.value)
+                if (!numTwo) {
+                  document.getElementById('numTwo')?.focus()
+                }
+              }}
               inputProps={{
                 maxLength: 1,
                 className: classes.textField,
@@ -197,8 +195,14 @@ function VerifyCodeField() {
           </Grid>
           <Grid item xs={3}>
             <TextField
+              id='numTwo'
               value={numTwo}
-              onChange={(e) => handleChange(e, numTwo, setNumTwo)}
+              onChange={(e) => {
+                setNumTwo(e.target.value)
+                if (!numThree) {
+                  document.getElementById('numThree')?.focus()
+                }
+              }}
               inputProps={{
                 maxLength: 1,
                 className: classes.textField,
@@ -207,8 +211,14 @@ function VerifyCodeField() {
           </Grid>
           <Grid item xs={3}>
             <TextField
+              id='numThree'
               value={numThree}
-              onChange={(e) => handleChange(e, numThree, setNumThree)}
+              onChange={(e) => {
+                setNumThree(e.target.value)
+                if (!numFour) {
+                  document.getElementById('numFour')?.focus()
+                }
+              }}
               inputProps={{
                 maxLength: 1,
                 className: classes.textField,
@@ -217,8 +227,14 @@ function VerifyCodeField() {
           </Grid>
           <Grid item xs={3}>
             <TextField
+              id='numFour'
               value={numFour}
-              onChange={(e) => handleChange(e, numFour, setNumFour)}
+              onChange={(e) => {
+                setNumFour(e.target.value)
+                if (numOne && numTwo && numThree) {
+                  // todo: go to next page and submit claim code automatically
+                }
+              }}
               inputProps={{
                 maxLength: 1,
                 className: classes.textField,
