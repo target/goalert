@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery, useMutation } from '@apollo/react-hooks'
 import Spinner from '../loading/components/Spinner'
 
 import {
@@ -20,20 +20,28 @@ import { useConfigValue } from '../util/RequireConfig'
 import { textColors } from '../styles/statusStyles'
 
 const query = gql`
-  query($cmID: ID!, $number: String!) {
-    sendTestStatus(cmID: $cmID) {
-      details
-      status
-    }
-    userContactMethod(id: $cmID) {
+  query($id: ID!, $number: String!) {
+    userContactMethod(id: $id) {
       type
       formattedValue
+      lastTestVerifyAt
+      lastTestMessageState {
+        details
+        status
+      }
     }
     phoneNumberInfo(number: $number) {
       formatted
     }
   }
 `
+
+const mutation = gql`
+  mutation($id: ID!) {
+    testContactMethod(id: $id)
+  }
+`
+
 const useStyles = makeStyles({
   ...textColors,
 })
@@ -41,33 +49,39 @@ const useStyles = makeStyles({
 export default function SendTestDialog(props) {
   const classes = useStyles()
 
-  const {
-    title = 'Test Delivery Status',
-    onClose,
-    sendTestMutationStatus,
-    messageID,
-  } = props
+  const { title = 'Test Delivery Status', onClose, messageID } = props
 
   let [contactMethodFromNumber] = useConfigValue('Twilio.FromNumber')
 
-  const { data, loading, error } = useQuery(query, {
+  const [sendTest, sendTestStatus] = useMutation(mutation, {
     variables: {
-      cmID: messageID,
-      number: contactMethodFromNumber,
+      id: messageID,
     },
-    skip: sendTestMutationStatus.error || sendTestMutationStatus.loading,
   })
 
-  const details = data?.sendTestStatus?.details ?? ''
-  const status = data?.sendTestStatus?.status ?? ''
+  useEffect(() => {
+    sendTest()
+  }, [])
+
+  const { data, loading, error } = useQuery(query, {
+    variables: {
+      id: messageID,
+      number: contactMethodFromNumber,
+    },
+    skip: sendTestStatus.error || sendTestStatus.loading,
+  })
+
+  const details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
+  const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
   const contactMethodToNumber = data?.userContactMethod?.formattedValue ?? ''
   const contactMethodType = data?.userContactMethod?.type ?? ''
+  const lastTestVerifyAt = data?.userContactMethod?.lastTestVerifyAt ?? ''
   // update from number format
   contactMethodFromNumber = data?.phoneNumberInfo?.formatted ?? ''
   const errorMessage =
-    (sendTestMutationStatus?.error?.message ?? '') || (error?.message ?? '')
+    (sendTestStatus?.error?.message ?? '') || (error?.message ?? '')
 
-  const getLogStatusClass = (status) => {
+  const getTestStatusClass = (status) => {
     switch (status) {
       case 'OK':
         return classes.statusOk
@@ -81,7 +95,7 @@ export default function SendTestDialog(props) {
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
-      {((loading && !details) || sendTestMutationStatus.loading) && (
+      {((loading && !details) || sendTestStatus.loading) && (
         <DialogContent>
           <Spinner text='Loading...' />
         </DialogContent>
@@ -92,8 +106,11 @@ export default function SendTestDialog(props) {
             GoAlert is sending a {contactMethodType} to {contactMethodToNumber}{' '}
             from {contactMethodFromNumber}
           </DialogContentText>
-          <DialogContentText className={getLogStatusClass(status)}>
+          <DialogContentText className={getTestStatusClass(status)}>
             {toTitleCase(details)}
+          </DialogContentText>
+          <DialogContentText>
+            Your last test message was sent at {lastTestVerifyAt}
           </DialogContentText>
         </DialogContent>
       )}
@@ -113,5 +130,4 @@ SendTestDialog.propTypes = {
   disclaimer: p.string,
   title: p.string,
   subtitle: p.string,
-  sendTestMutationStatus: p.object,
 }

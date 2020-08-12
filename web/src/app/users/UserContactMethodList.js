@@ -12,7 +12,6 @@ import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import { Warning } from '../icons'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
-import { useMutation } from '@apollo/react-hooks'
 import { styles as globalStyles } from '../styles/materialStyles'
 import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
@@ -32,12 +31,6 @@ const query = gql`
         disabled
       }
     }
-  }
-`
-
-const testCM = gql`
-  mutation($id: ID!) {
-    testContactMethod(id: $id)
   }
 `
 
@@ -62,7 +55,6 @@ export default function UserContactMethodList(props) {
   const [showDeleteDialogByID, setShowDeleteDialogByID] = useState(null)
 
   const [showSendTestByID, setShowSendTestByID] = useState(null)
-  const [sendTest, sendTestStatus] = useMutation(testCM)
 
   const { loading, error, data } = useQuery(query, {
     variables: {
@@ -107,14 +99,7 @@ export default function UserContactMethodList(props) {
     if (!cm.disabled) {
       actions.push({
         label: 'Send Test',
-        onClick: () => {
-          sendTest({
-            variables: {
-              id: cm.id,
-            },
-          })
-          setShowSendTestByID(cm.id)
-        },
+        onClick: () => setShowSendTestByID(cm.id),
       })
     } else {
       actions.push({
@@ -189,7 +174,6 @@ export default function UserContactMethodList(props) {
           <SendTestDialog
             messageID={showSendTestByID}
             onClose={() => setShowSendTestByID(null)}
-            sendTestMutationStatus={sendTestStatus}
           />
         )}
       </Card>
