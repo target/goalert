@@ -28,12 +28,12 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 // Sets a notice for a Policy if it is not assigned to any services
 func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]Notice, error) {
-	err := validate.UUID("EscalationPolicyStepID", policyID)
+	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err = validate.UUID("EscalationPolicyStepID", policyID)
 	if err != nil {
 		return nil, err
 	}

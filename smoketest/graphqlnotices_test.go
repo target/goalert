@@ -3,8 +3,10 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/target/goalert/smoketest/harness"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/target/goalert/smoketest/harness"
 )
 
 // TestNotices tests notices are properly returned given the appropriate scenarios.
@@ -61,7 +63,6 @@ func TestNotices(t *testing.T) {
   			}
 		}
 	`, epID), &notices)
-
 
 	assert.Len(t, notices, 1, "retrieved notices")
 }

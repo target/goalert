@@ -2,8 +2,9 @@ package app
 
 import (
 	"context"
-	"github.com/target/goalert/notice"
 	"net/url"
+
+	"github.com/target/goalert/notice"
 
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
