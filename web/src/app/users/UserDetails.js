@@ -20,6 +20,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
+import LinkToMobile from './linkToMobile/LinkToMobile'
 
 const query = gql`
   query userInfo($id: ID!) {
@@ -54,6 +55,9 @@ const useStyles = makeStyles({
     width: 128,
     height: 128,
     margin: 'auto',
+  },
+  profileOptionsContainer: {
+    maxWidth: 'fit-content',
   },
 })
 
@@ -170,7 +174,18 @@ export default function UserDetails(props) {
         links={links}
         titleFooter={
           props.readOnly ? null : (
-            <StatusUpdateNotification userID={props.userID} />
+            <Grid
+              className={classes.profileOptionsContainer}
+              container
+              spacing={1}
+            >
+              <Grid item xs={12}>
+                <StatusUpdateNotification userID={props.userID} />
+              </Grid>
+              <Grid item xs={12}>
+                <LinkToMobile />
+              </Grid>
+            </Grid>
           )
         }
         pageFooter={
