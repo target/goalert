@@ -9,7 +9,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-// A Store allows identifying notices for various targets.
+// Store allows identifying notices for various targets.
 type Store struct {
 	findServicesByPolicyID *sql.Stmt
 }
@@ -26,7 +26,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	}, p.Err
 }
 
-// Sets a notice for a Policy if it is not assigned to any services
+// FindAllPolicyNotices sets a notice for a Policy if it is not assigned to any services.
 func (s *Store) FindAllPolicyNotices(ctx context.Context, policyID string) ([]Notice, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {

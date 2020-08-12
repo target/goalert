@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/target/goalert/notice"
-
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/auth/nonce"
@@ -18,6 +16,7 @@ import (
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
