@@ -1,18 +1,12 @@
-import React, { useEffect, useState, ReactNode, ChangeEvent } from 'react'
+import React, { useEffect, useState, ReactNode } from 'react'
 import {
   Button,
   Dialog,
   DialogActions,
-  DialogContent,
-  DialogContentText,
-  Grid,
-  TextField,
-  Typography,
   makeStyles,
   isWidthDown,
 } from '@material-ui/core'
 import PhonelinkIcon from '@material-ui/icons/Phonelink'
-import QRCode from 'qrcode.react'
 import SwipeableViews from 'react-swipeable-views'
 import { virtualize, bindKeyboard } from 'react-swipeable-views-utils'
 import DialogTitleWrapper from '../../dialogs/components/DialogTitleWrapper'
@@ -20,7 +14,7 @@ import useWidth from '../../util/useWidth'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import ClaimCodeDisplay from './ClaimCodeDisplay'
 import VerifyCodeFields from './VerifyCodeFields'
-// import VerifyCodeFields from './VerifyCodeFields'
+// import Success from './Success'
 // import VerifyCodeFields from './VerifyCodeFields'
 
 interface SlideParams {
@@ -46,12 +40,6 @@ export default function LinkToMobile(): JSX.Element {
   const [index, setIndex] = useState(1)
 
   // todo: add useEffects changing index as things are updated
-  const [scanSuccessful, setScanSuccessful] = useState(false)
-  useEffect(() => {
-    if (scanSuccessful) {
-      setIndex(1)
-    }
-  }, [scanSuccessful])
 
   function slideRenderer({ index, key }: SlideParams): ReactNode {
     switch (index) {
@@ -78,6 +66,7 @@ export default function LinkToMobile(): JSX.Element {
       >
         Link to Mobile
       </Button>
+
       <Dialog
         open={true}
         fullScreen={fullscreen}
@@ -97,12 +86,6 @@ export default function LinkToMobile(): JSX.Element {
             onClick={() => setShowDialog(false)}
           >
             Cancel
-          </Button>
-          <Button
-            className={classes.cancelButton}
-            onClick={() => setScanSuccessful(true)}
-          >
-            {'->'}
           </Button>
         </DialogActions>
       </Dialog>
