@@ -24,7 +24,13 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ClaimCodeDisplay(): JSX.Element {
+interface ClaimCodeDisplayProps {
+  claimCode: string
+}
+
+export default function ClaimCodeDisplay(
+  props: ClaimCodeDisplayProps,
+): JSX.Element {
   const classes = useStyles()
 
   return (
@@ -37,7 +43,7 @@ export default function ClaimCodeDisplay(): JSX.Element {
           </DialogContentText>
         </Grid>
         <Grid className={classes.centerItemContent} item xs={12}>
-          <QRCode value='test' />
+          <QRCode value={props.claimCode} />
         </Grid>
         <Grid className={classes.centerItemContent} item xs={12}>
           <Typography
