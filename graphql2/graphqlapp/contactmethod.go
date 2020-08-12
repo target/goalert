@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/graphql2"
-	"github.com/target/goalert/notification"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
@@ -39,7 +38,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeTest, obj.ID, t)
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, "test_notification", obj.ID, t)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +51,7 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	status, _, err := a.NotificationStore.LastMessageStatus(ctx, notification.MessageTypeVerification, obj.ID, t)
+	status, _, err := a.NotificationStore.LastMessageStatus(ctx, "verification_message", obj.ID, t)
 	if err != nil {
 		return nil, err
 	}

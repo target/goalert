@@ -16,7 +16,7 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
+	
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -31,7 +31,7 @@ type Store interface {
 	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
 
 	// LastMessageStatus will return the MessageStatus and creation timestamp of the message matching the filter critera.
-	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
+	LastMessageStatus(ctx context.Context, typ string, cmID string, from time.Time) (*MessageStatus, time.Time, error)
 }
 
 var _ Store = &DB{}
@@ -377,7 +377,7 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	return result, nil
 }
 
-func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error) {
+func (db *DB) LastMessageStatus(ctx context.Context, typ string, cmID string, from time.Time) (*MessageStatus, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, time.Time{}, err
@@ -387,7 +387,7 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 	if err != nil {
 		return nil, time.Time{}, err
 	}
-
+	
 	var s MessageStatus
 	var lastStatus string
 	var hasNextRetry bool
