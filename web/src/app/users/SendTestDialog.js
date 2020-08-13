@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
@@ -20,6 +20,7 @@ import { useConfigValue } from '../util/RequireConfig'
 import { textColors } from '../styles/statusStyles'
 
 import moment from 'moment'
+import { DateTime } from 'luxon'
 
 const query = gql`
   query($id: ID!, $number: String!) {
@@ -72,9 +73,9 @@ export default function SendTestDialog(props) {
       sendTestStatus.error || sendTestStatus.loading || mutationSent === false,
   })
 
-  const currentTimeMinusOneMinute = moment()
-    .subtract(1, 'minutes')
-    .format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+  const currentTimeMinusOneMinute = DateTime.local()
+    .minus({ minutes: 1 })
+    .toISO()
 
   const details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
   const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
@@ -86,6 +87,33 @@ export default function SendTestDialog(props) {
   const errorMessage =
     (sendTestStatus?.error?.message ?? '') || (error?.message ?? '')
 
+  useEffect(() => {
+    // if mutation is not sent and the last verified time was over one minute, send the mutation
+    if (!mutationSent && lastTestVerifyAt < currentTimeMinusOneMinute) {
+      console.log('not sent, verified over a minute ago, send test')
+      setMutationSent(true)
+      sendTest()
+      refetch()
+    }
+    // if there is a mutation error and the last verified time was over one minute ago, allow retry
+    if (errorMessage && lastTestVerifyAt < currentTimeMinusOneMinute) {
+      console.log(
+        'send test error, verified over a minute ago, attempt send test',
+      )
+      sendTest()
+      refetch()
+    }
+    // if there is data and the last verified time was less than one minute ago, display the details
+    if (
+      details !== null &&
+      (lastTestVerifyAt > currentTimeMinusOneMinute ||
+        sendTestStatus.error === null)
+    ) {
+      console.log('sent less than a minute ago, display last details')
+      setMutationSent(false)
+    }
+  }, [])
+
   const getTestStatusClass = (status) => {
     switch (status) {
       case 'OK':
@@ -95,26 +123,6 @@ export default function SendTestDialog(props) {
       default:
         return classes.statusWarn
     }
-  }
-
-  // if mutation is not sent and the last verified time was over one minute, send the mutation
-  if (!mutationSent && lastTestVerifyAt < currentTimeMinusOneMinute) {
-    setMutationSent(true)
-    sendTest()
-    refetch()
-  }
-  // if there is a mutation error and the last verified time was over one minute ago, allow retry
-  if (errorMessage && lastTestVerifyAt < currentTimeMinusOneMinute) {
-    sendTest()
-    refetch()
-  }
-  // if there is data and the last verified time was less than one minute ago, display the details
-  if (
-    details !== null &&
-    (lastTestVerifyAt > currentTimeMinusOneMinute ||
-      sendTestStatus.error === null)
-  ) {
-    setMutationSent(false)
   }
 
   return (
