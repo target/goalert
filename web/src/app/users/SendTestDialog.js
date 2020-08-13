@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
@@ -18,6 +18,8 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import toTitleCase from '../util/toTitleCase.ts'
 import { useConfigValue } from '../util/RequireConfig'
 import { textColors } from '../styles/statusStyles'
+
+import moment from 'moment'
 
 const query = gql`
   query($id: ID!, $number: String!) {
@@ -53,30 +55,33 @@ export default function SendTestDialog(props) {
 
   let [contactMethodFromNumber] = useConfigValue('Twilio.FromNumber')
 
+  const [mutationSent, setMutationSent] = useState(false)
+
   const [sendTest, sendTestStatus] = useMutation(mutation, {
     variables: {
       id: messageID,
     },
   })
 
-  useEffect(() => {
-    sendTest()
-  }, [])
-
-  const { data, loading, error } = useQuery(query, {
+  const { data, loading, error, refetch } = useQuery(query, {
     variables: {
       id: messageID,
       number: contactMethodFromNumber,
     },
-    skip: sendTestStatus.error || sendTestStatus.loading,
+    skip:
+      sendTestStatus.error || sendTestStatus.loading || mutationSent === false,
   })
+
+  const currentTimeMinusOneMinute = moment()
+    .subtract(1, 'minutes')
+    .format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
 
   const details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
   const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
+
   const contactMethodToNumber = data?.userContactMethod?.formattedValue ?? ''
   const contactMethodType = data?.userContactMethod?.type ?? ''
   const lastTestVerifyAt = data?.userContactMethod?.lastTestVerifyAt ?? ''
-  // update from number format
   contactMethodFromNumber = data?.phoneNumberInfo?.formatted ?? ''
   const errorMessage =
     (sendTestStatus?.error?.message ?? '') || (error?.message ?? '')
@@ -92,6 +97,26 @@ export default function SendTestDialog(props) {
     }
   }
 
+  // if mutation is not sent and the last verified time was over one minute, send the mutation
+  if (!mutationSent && lastTestVerifyAt < currentTimeMinusOneMinute) {
+    setMutationSent(true)
+    sendTest()
+    refetch()
+  }
+  // if there is a mutation error and the last verified time was over one minute ago, allow retry
+  if (errorMessage && lastTestVerifyAt < currentTimeMinusOneMinute) {
+    sendTest()
+    refetch()
+  }
+  // if there is data and the last verified time was less than one minute ago, display the details
+  if (
+    details !== null &&
+    (lastTestVerifyAt > currentTimeMinusOneMinute ||
+      sendTestStatus.error === null)
+  ) {
+    setMutationSent(false)
+  }
+
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
@@ -100,6 +125,7 @@ export default function SendTestDialog(props) {
           <Spinner text='Loading...' />
         </DialogContent>
       )}
+
       {details && (
         <DialogContent>
           <DialogContentText>
@@ -114,7 +140,9 @@ export default function SendTestDialog(props) {
           </DialogContentText>
         </DialogContent>
       )}
+
       {errorMessage && <DialogContentError error={errorMessage} />}
+
       <DialogActions>
         <Button color='primary' variant='contained' onClick={onClose}>
           Done
