@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => {
   return {
     cancelButton,
     dialog: {
-      height: 325,
+      height: 330,
     },
     successContainer: {
       height: '100%',
