@@ -6,7 +6,6 @@ import {
   DialogContent,
   makeStyles,
   isWidthDown,
-  Typography,
   DialogContentText,
 } from '@material-ui/core'
 import PhonelinkIcon from '@material-ui/icons/Phonelink'
@@ -20,8 +19,7 @@ import { styles as globalStyles } from '../../styles/materialStyles'
 import ClaimCodeDisplay from './ClaimCodeDisplay'
 import VerifyCodeFields from './VerifyCodeFields'
 import Spinner from '../../loading/components/Spinner'
-// import Success from './Success'
-// import VerifyCodeFields from './VerifyCodeFields'
+import SuccessAnimation from '../../util/SuccessAnimation/SuccessAnimation'
 
 interface SlideParams {
   index: number
@@ -36,7 +34,14 @@ const useStyles = makeStyles((theme) => {
   return {
     cancelButton,
     dialog: {
-      height: 350,
+      height: 325,
+    },
+    successContainer: {
+      height: '100%',
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      textAlign: 'center',
     },
   }
 })
@@ -83,8 +88,6 @@ export default function LinkToMobile(): JSX.Element {
   const claimed = data?.authLinkStatus.claimed ?? ''
   const verified = data?.authLinkStatus.verified ?? ''
 
-  // console.log('status: ', data?.authLinkStatus ?? 'loading')
-
   useEffect(() => {
     if (showDialog) {
       createAuthLink()
@@ -116,7 +119,7 @@ export default function LinkToMobile(): JSX.Element {
       case 1:
         return <VerifyCodeFields key={key} authLinkID={authLinkID} />
       case 2:
-        return <Success key={key} />
+        return <Success key={key} isStopped={!verified} />
       case 3:
         return <Retry key={key} />
       default:
@@ -156,20 +159,42 @@ export default function LinkToMobile(): JSX.Element {
           />
         )}
         <DialogActions>
-          <Button
-            className={classes.cancelButton}
-            onClick={() => setShowDialog(false)}
-          >
-            Cancel
-          </Button>
+          {index == 2 ? (
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={() => setShowDialog(false)}
+            >
+              Done
+            </Button>
+          ) : (
+            <Button
+              className={classes.cancelButton}
+              onClick={() => setShowDialog(false)}
+            >
+              Cancel
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </React.Fragment>
   )
 }
 
-function Success() {
-  return <DialogContentText>Success</DialogContentText>
+interface SuccessProps {
+  isStopped: boolean
+}
+
+function Success(props: SuccessProps) {
+  const classes = useStyles()
+  return (
+    <div className={classes.successContainer}>
+      <DialogContent>
+        <SuccessAnimation isStopped={props.isStopped} />
+        <DialogContentText>Success!</DialogContentText>
+      </DialogContent>
+    </div>
+  )
 }
 
 function Retry() {
