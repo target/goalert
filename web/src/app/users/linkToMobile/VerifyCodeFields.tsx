@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   DialogContent,
   DialogContentText,
@@ -23,13 +23,8 @@ const useStyles = makeStyles({
 })
 
 const mutation = gql`
-  mutation($number: String!) {
-    debugCarrierInfo(input: { number: $number }) {
-      name
-      type
-      mobileNetworkCode
-      mobileCountryCode
-    }
+  mutation($input: VerifyAuthLinkInput!) {
+    verifyAuthLink(input: $input)
   }
 `
 
@@ -45,8 +40,19 @@ export default function VerifyCodeFields(props: VerifyCodeFieldsProps) {
   const [numFour, setNumFour] = useState('')
 
   const [verifyCode, verifyCodeStatus] = useMutation(mutation, {
-    variables: {},
+    variables: {
+      input: {
+        id: props.authLinkID,
+        code: numOne + numTwo + numThree + numFour,
+      },
+    },
   })
+
+  useEffect(() => {
+    if (numOne && numTwo && numThree && numFour) {
+      verifyCode()
+    }
+  }, [numOne, numTwo, numThree, numFour])
 
   return (
     <DialogContent>
@@ -117,9 +123,6 @@ export default function VerifyCodeFields(props: VerifyCodeFieldsProps) {
               value={numFour}
               onChange={(e) => {
                 setNumFour(e.target.value)
-                if (numOne && numTwo && numThree) {
-                  // todo: go to next page and submit claim code automatically
-                }
               }}
               inputProps={{
                 maxLength: 1,

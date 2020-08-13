@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   DialogContent,
   DialogContentText,
@@ -25,6 +25,7 @@ const useStyles = makeStyles({
 })
 
 interface ClaimCodeDisplayProps {
+  authLinkID: string
   claimCode: string
 }
 
@@ -32,6 +33,11 @@ export default function ClaimCodeDisplay(
   props: ClaimCodeDisplayProps,
 ): JSX.Element {
   const classes = useStyles()
+
+  useEffect(() => {
+    console.log('id: ', props.authLinkID)
+    console.log('code: ', props.claimCode)
+  }, [])
 
   return (
     <DialogContent>

@@ -6,12 +6,14 @@ import {
   DialogContent,
   makeStyles,
   isWidthDown,
+  Typography,
+  DialogContentText,
 } from '@material-ui/core'
 import PhonelinkIcon from '@material-ui/icons/Phonelink'
 import SwipeableViews from 'react-swipeable-views'
 import { virtualize, bindKeyboard } from 'react-swipeable-views-utils'
 import gql from 'graphql-tag'
-import { useMutation } from 'react-apollo'
+import { useQuery, useMutation } from 'react-apollo'
 import DialogTitleWrapper from '../../dialogs/components/DialogTitleWrapper'
 import useWidth from '../../util/useWidth'
 import { styles as globalStyles } from '../../styles/materialStyles'
@@ -47,6 +49,17 @@ const mutation = gql`
     }
   }
 `
+export const query = gql`
+  query authLinkStatus($id: ID!) {
+    authLinkStatus(id: $id) {
+      id
+      expiresAt
+      claimed
+      verified
+      authed
+    }
+  }
+`
 
 export default function LinkToMobile(): JSX.Element {
   const classes = useStyles()
@@ -57,21 +70,49 @@ export default function LinkToMobile(): JSX.Element {
 
   const [createAuthLink, createAuthLinkStatus] = useMutation(mutation)
   const loading = !createAuthLinkStatus.data && createAuthLinkStatus.loading
+  const authLinkID = createAuthLinkStatus?.data?.createAuthLink.id ?? ''
+  const claimCode = createAuthLinkStatus?.data?.createAuthLink.claimCode ?? ''
 
-  // todo: add useEffects changing index as things are updated
+  const { data } = useQuery(query, {
+    variables: {
+      id: authLinkID,
+    },
+    skip: loading || !authLinkID,
+  })
+
+  const claimed = data?.authLinkStatus.claimed ?? ''
+  const verified = data?.authLinkStatus.verified ?? ''
+
+  // console.log('status: ', data?.authLinkStatus ?? 'loading')
+
   useEffect(() => {
     if (showDialog) {
       createAuthLink()
     }
   }, [showDialog])
 
-  const authLinkID = createAuthLinkStatus?.data?.createAuthLink.id
-  const claimCode = createAuthLinkStatus?.data?.createAuthLink.claimCode
+  useEffect(() => {
+    if (claimed) {
+      setIndex(1)
+    }
+  }, [claimed])
+
+  useEffect(() => {
+    if (verified) {
+      setIndex(2)
+    }
+  }, [verified])
 
   function slideRenderer({ index, key }: SlideParams): ReactNode {
     switch (index) {
       case 0:
-        return <ClaimCodeDisplay key={key} claimCode={claimCode} />
+        return (
+          <ClaimCodeDisplay
+            key={key}
+            authLinkID={authLinkID}
+            claimCode={claimCode}
+          />
+        )
       case 1:
         return <VerifyCodeFields key={key} authLinkID={authLinkID} />
       case 2:
@@ -128,7 +169,7 @@ export default function LinkToMobile(): JSX.Element {
 }
 
 function Success() {
-  return null
+  return <DialogContentText>Success</DialogContentText>
 }
 
 function Retry() {
