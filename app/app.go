@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"github.com/target/goalert/notice"
 	"net"
 	"net/http"
 
@@ -106,6 +107,7 @@ type App struct {
 	OnCallStore   oncall.Store
 	NCStore       notificationchannel.Store
 	TimeZoneStore *timezone.Store
+	NoticeStore   *notice.Store
 }
 
 // NewApp constructs a new App and binds the listening socket.

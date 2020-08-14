@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation"
@@ -321,6 +322,10 @@ func (step *EscalationPolicyStep) EscalationPolicy(ctx context.Context, raw *esc
 
 func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) ([]escalation.Step, error) {
 	return ep.PolicyStore.FindAllSteps(ctx, raw.ID)
+}
+
+func (ep *EscalationPolicy) Notices(ctx context.Context, raw *escalation.Policy) ([]notice.Notice, error) {
+	return ep.NoticeStore.FindAllPolicyNotices(ctx, raw.ID)
 }
 
 func (ep *EscalationPolicy) AssignedTo(ctx context.Context, raw *escalation.Policy) ([]assignment.RawTarget, error) {
