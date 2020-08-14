@@ -288,8 +288,10 @@ export default class ScheduleShiftList extends React.PureComponent {
         min={1}
         type='number'
         onBlur={() => {
-          value <= 31 ? this.state._value : this.setState({ _value: value })
-          console.log('dat value again,', value)
+          // if current state is empty when unfocusing, revert to last known valid duration from props
+          if (!this.state._duration) {
+            this.setState({ _duration: this.props.duration })
+          }
         }}
         onChange={(e) => {
           this.setState({ _duration: e.target.value })
