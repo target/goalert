@@ -152,6 +152,7 @@ export default class ScheduleShiftList extends React.PureComponent {
       create: null,
       specifyDuration: false,
       _duration: props.duration,
+      _value: 0,
     }
   }
 
@@ -270,9 +271,9 @@ export default class ScheduleShiftList extends React.PureComponent {
     }
     const value = Duration.fromISO(this.props.duration).as('days')
     // todo: use Duration.isValid once Luxon is up to date
-    const isDurationValid = this.state._duration.match(
-      '^(-?)P(?=d|Td)(?:(d+)Y)?(?:(d+)M)?(?:(d+)([DW]))?(?:T(?:(d+)H)?(?:(d+)M)?(?:(d+(?:.d+)?)S)?)?$/',
-    )
+    const regex = /^P(?!$)(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?$/
+    const isDurationValid = this.state._duration.match(regex)
+    console.log('the value is', value)
     return (
       <TextField
         fullWidth
@@ -287,11 +288,10 @@ export default class ScheduleShiftList extends React.PureComponent {
         min={1}
         type='number'
         onBlur={() => {
-          this.props.handleSetDuration(!value ? '' : value)
-          console.log('henlo')
+          value <= 31 ? this.state._value : this.setState({ _value: value })
+          console.log('dat value again,', value)
         }}
         onChange={(e) => {
-          console.log(e.target.value)
           this.setState({ _duration: e.target.value })
           if (parseInt(e.target.value, 10) > 0) {
             this.props.handleSetDuration(
