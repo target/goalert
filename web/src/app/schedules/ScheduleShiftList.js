@@ -273,7 +273,6 @@ export default class ScheduleShiftList extends React.PureComponent {
     // todo: use Duration.isValid once Luxon is up to date
     const regex = /^P(?!$)(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?$/
     const isDurationValid = this.state._duration.match(regex)
-    console.log('the value is', value)
     return (
       <TextField
         fullWidth
@@ -294,11 +293,19 @@ export default class ScheduleShiftList extends React.PureComponent {
           }
         }}
         onChange={(e) => {
-          this.setState({ _duration: e.target.value })
-          if (parseInt(e.target.value, 10) > 0) {
+          // clamp value if user is typing
+          let val = e.target.value
+          if (parseInt(val, 10) > 30) {
+            val = '30'
+          } else if (parseInt(val, 10) < 1) {
+            val = '1'
+          }
+
+          this.setState({ _duration: val })
+          if (parseInt(val, 10) > 0) {
             this.props.handleSetDuration(
               Duration.fromObject({
-                days: clamp(1, 30, parseInt(e.target.value, 10)),
+                days: clamp(1, 30, parseInt(val, 10)),
               }).toISO(),
             )
           }
