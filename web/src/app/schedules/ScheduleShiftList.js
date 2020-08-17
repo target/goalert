@@ -152,7 +152,6 @@ export default class ScheduleShiftList extends React.PureComponent {
       create: null,
       specifyDuration: false,
       _duration: props.duration,
-      _value: 0,
     }
   }
 
@@ -269,7 +268,6 @@ export default class ScheduleShiftList extends React.PureComponent {
         </TextField>
       )
     }
-    const value = Duration.fromISO(this.props.duration).as('days')
     // todo: use Duration.isValid once Luxon is up to date
     const regex = /^P(?!$)(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?$/
     const isDurationValid = this.state._duration.match(regex)
@@ -287,20 +285,17 @@ export default class ScheduleShiftList extends React.PureComponent {
         min={1}
         type='number'
         onBlur={() => {
-          // if current state is empty when unfocusing, revert to last known valid duration from props
           if (!this.state._duration) {
             this.setState({ _duration: this.props.duration })
           }
         }}
         onChange={(e) => {
-          // clamp value if user is typing
           let val = e.target.value
           if (parseInt(val, 10) > 30) {
             val = '30'
           } else if (parseInt(val, 10) < 1) {
             val = '1'
           }
-
           this.setState({ _duration: val })
           if (parseInt(val, 10) > 0) {
             this.props.handleSetDuration(
