@@ -256,7 +256,6 @@ export default class ScheduleShiftList extends React.PureComponent {
             e.target.value === 'SPECIFY'
               ? this.setState({ specifyDuration: true })
               : this.props.handleSetDuration(e.target.value)
-            console.log(e.target.value)
           }}
         >
           {quickOptions.map((opt) => (
