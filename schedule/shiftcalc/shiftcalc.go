@@ -3,14 +3,15 @@ package shiftcalc
 import (
 	"context"
 	"fmt"
+	"sort"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util/log"
-	"sort"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -39,7 +40,7 @@ func (s Shift) String() string {
 
 type ShiftCalculator struct {
 	RuleStore  rule.Store
-	SchedStore schedule.Store
+	SchedStore *schedule.Store
 	RotStore   rotation.Store
 	OStore     override.Store
 }

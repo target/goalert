@@ -3,6 +3,7 @@ package schedule
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
@@ -11,26 +12,7 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-type Store interface {
-	ReadStore
-	Create(context.Context, *Schedule) (*Schedule, error)
-	CreateScheduleTx(context.Context, *sql.Tx, *Schedule) (*Schedule, error)
-	Update(context.Context, *Schedule) error
-	UpdateTx(context.Context, *sql.Tx, *Schedule) error
-	Delete(context.Context, string) error
-	DeleteTx(context.Context, *sql.Tx, string) error
-	DeleteManyTx(context.Context, *sql.Tx, []string) error
-	FindMany(context.Context, []string) ([]Schedule, error)
-	FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Schedule, error)
-
-	Search(context.Context, *SearchOptions) ([]Schedule, error)
-}
-type ReadStore interface {
-	FindAll(context.Context) ([]Schedule, error)
-	FindOne(context.Context, string) (*Schedule, error)
-}
-
-type DB struct {
+type Store struct {
 	db *sql.DB
 
 	create  *sql.Stmt
@@ -44,10 +26,10 @@ type DB struct {
 	findMany *sql.Stmt
 }
 
-func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
+func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	return &DB{
+	return &Store{
 		db:      db,
 		create:  p.P(`INSERT INTO schedules (id, name, description, time_zone) VALUES (DEFAULT, $1, $2, $3) RETURNING id`),
 		update:  p.P(`UPDATE schedules SET name = $2, description = $3, time_zone = $4 WHERE id = $1`),
@@ -82,7 +64,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		delete: p.P(`DELETE FROM schedules WHERE id = any($1)`),
 	}, p.Err
 }
-func (db *DB) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
+func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -92,7 +74,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
 		return nil, err
 	}
 	userID := permission.UserID(ctx)
-	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
+	rows, err := store.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -119,11 +101,11 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
 
 	return result, nil
 }
-func (db *DB) Create(ctx context.Context, s *Schedule) (*Schedule, error) {
-	return db.CreateScheduleTx(ctx, nil, s)
+func (store *Store) Create(ctx context.Context, s *Schedule) (*Schedule, error) {
+	return store.CreateScheduleTx(ctx, nil, s)
 }
 
-func (db *DB) CreateScheduleTx(ctx context.Context, tx *sql.Tx, s *Schedule) (*Schedule, error) {
+func (store *Store) CreateScheduleTx(ctx context.Context, tx *sql.Tx, s *Schedule) (*Schedule, error) {
 	n, err := s.Normalize()
 	if err != nil {
 		return nil, err
@@ -133,7 +115,7 @@ func (db *DB) CreateScheduleTx(ctx context.Context, tx *sql.Tx, s *Schedule) (*S
 	if err != nil {
 		return nil, err
 	}
-	stmt := db.create
+	stmt := store.create
 	if tx != nil {
 		stmt = tx.Stmt(stmt)
 	}
@@ -142,7 +124,7 @@ func (db *DB) CreateScheduleTx(ctx context.Context, tx *sql.Tx, s *Schedule) (*S
 	return n, err
 }
 
-func (db *DB) Update(ctx context.Context, s *Schedule) error {
+func (store *Store) Update(ctx context.Context, s *Schedule) error {
 	n, err := s.Normalize()
 	if err != nil {
 		return err
@@ -158,10 +140,10 @@ func (db *DB) Update(ctx context.Context, s *Schedule) error {
 		return err
 	}
 
-	_, err = db.update.ExecContext(ctx, n.ID, n.Name, n.Description, n.TimeZone.String())
+	_, err = store.update.ExecContext(ctx, n.ID, n.Name, n.Description, n.TimeZone.String())
 	return err
 }
-func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, s *Schedule) error {
+func (store *Store) UpdateTx(ctx context.Context, tx *sql.Tx, s *Schedule) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -176,17 +158,17 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, s *Schedule) error {
 		return err
 	}
 
-	_, err = tx.StmtContext(ctx, db.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.TimeZone.String())
+	_, err = tx.StmtContext(ctx, store.update).ExecContext(ctx, n.ID, n.Name, n.Description, n.TimeZone.String())
 	return err
 }
 
-func (db *DB) FindAll(ctx context.Context) ([]Schedule, error) {
+func (store *Store) FindAll(ctx context.Context) ([]Schedule, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.findAll.QueryContext(ctx)
+	rows, err := store.findAll.QueryContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +192,7 @@ func (db *DB) FindAll(ctx context.Context) ([]Schedule, error) {
 	return res, nil
 }
 
-func (db *DB) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Schedule, error) {
+func (store *Store) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Schedule, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
@@ -220,7 +202,7 @@ func (db *DB) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Sch
 		return nil, err
 	}
 
-	row := tx.StmtContext(ctx, db.findOneUp).QueryRowContext(ctx, id)
+	row := tx.StmtContext(ctx, store.findOneUp).QueryRowContext(ctx, id)
 	var s Schedule
 	var tz string
 	err = row.Scan(&s.ID, &s.Name, &s.Description, &tz)
@@ -236,7 +218,7 @@ func (db *DB) FindOneForUpdate(ctx context.Context, tx *sql.Tx, id string) (*Sch
 	return &s, nil
 }
 
-func (db *DB) FindOne(ctx context.Context, id string) (*Schedule, error) {
+func (store *Store) FindOne(ctx context.Context, id string) (*Schedule, error) {
 	err := validate.UUID("ScheduleID", id)
 	if err != nil {
 		return nil, err
@@ -246,7 +228,7 @@ func (db *DB) FindOne(ctx context.Context, id string) (*Schedule, error) {
 		return nil, err
 	}
 	userID := permission.UserID(ctx)
-	row := db.findOne.QueryRowContext(ctx, id, userID)
+	row := store.findOne.QueryRowContext(ctx, id, userID)
 	var s Schedule
 	var tz string
 	err = row.Scan(&s.ID, &s.Name, &s.Description, &tz, &s.isUserFavorite)
@@ -261,13 +243,13 @@ func (db *DB) FindOne(ctx context.Context, id string) (*Schedule, error) {
 
 	return &s, nil
 }
-func (db *DB) Delete(ctx context.Context, id string) error {
-	return db.DeleteTx(ctx, nil, id)
+func (store *Store) Delete(ctx context.Context, id string) error {
+	return store.DeleteTx(ctx, nil, id)
 }
-func (db *DB) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
-	return db.DeleteManyTx(ctx, tx, []string{id})
+func (store *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
+	return store.DeleteManyTx(ctx, tx, []string{id})
 }
-func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
+func (store *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
 	if err != nil {
 		return err
@@ -279,7 +261,7 @@ func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error 
 	if err != nil {
 		return err
 	}
-	s := db.delete
+	s := store.delete
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}

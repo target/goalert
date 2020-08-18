@@ -3,9 +3,10 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"github.com/target/goalert/notice"
 	"net/http"
 	"strconv"
+
+	"github.com/target/goalert/notice"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -55,7 +56,7 @@ type App struct {
 	ServiceStore   service.Store
 	FavoriteStore  favorite.Store
 	PolicyStore    escalation.Store
-	ScheduleStore  schedule.Store
+	ScheduleStore  *schedule.Store
 	CalSubStore    *calendarsubscription.Store
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
