@@ -97,7 +97,7 @@ export default function SendTestDialog(
     details = 'Sending test message...'
   }
 
-  const getTestStatusClass = (status: string): any => {
+  const getTestStatusClass = (status: string): string => {
     switch (status) {
       case 'OK':
         return classes.statusOk
