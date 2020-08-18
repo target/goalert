@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import p from 'prop-types'
+import React, { useEffect, useState, MouseEvent } from 'react'
 
 import gql from 'graphql-tag'
 import { useQuery, useMutation } from '@apollo/react-hooks'
@@ -14,7 +13,7 @@ import {
   DialogContentText,
 } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
-import toTitleCase from '../util/toTitleCase.ts'
+import toTitleCase from '../util/toTitleCase'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import { useConfigValue } from '../util/RequireConfig'
 import { textColors } from '../styles/statusStyles'
@@ -48,7 +47,9 @@ const useStyles = makeStyles({
   ...textColors,
 })
 
-export default function SendTestDialog(props) {
+export default function SendTestDialog(
+  props: SendTestDialogProps,
+): JSX.Element {
   const classes = useStyles()
 
   const { title = 'Test Delivery Status', onClose, messageID } = props
@@ -96,7 +97,7 @@ export default function SendTestDialog(props) {
     details = 'Sending test message...'
   }
 
-  const getTestStatusClass = (status) => {
+  const getTestStatusClass = (status: string): any => {
     switch (status) {
       case 'OK':
         return classes.statusOk
@@ -143,10 +144,10 @@ export default function SendTestDialog(props) {
   )
 }
 
-SendTestDialog.propTypes = {
-  messageID: p.string.isRequired,
-  onClose: p.func,
-  disclaimer: p.string,
-  title: p.string,
-  subtitle: p.string,
+interface SendTestDialogProps {
+  messageID: string
+  onClose: (event: MouseEvent) => void
+  disclaimer?: string
+  title?: string
+  subtitle?: string
 }
