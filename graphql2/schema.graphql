@@ -254,7 +254,37 @@ type DebugSendSMSInfo {
   providerURL: String!
 }
 
+type FixedShiftGroup {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  shifts: [OnCallShift!]!
+}
+
+input ResetScheduleShiftsInput {
+  scheduleID: ID!
+
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+}
+input SetScheduleShiftsInput {
+  scheduleID: ID!
+
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  shifts: [SetScheduleShiftInput!]!
+}
+input SetScheduleShiftInput {
+  userID: ID!
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+}
+
 type Mutation {
+  setScheduleShifts(input: SetScheduleShiftsInput!): Boolean!
+  resetScheduleShifts(input: ResetScheduleShiftsInput!): Boolean!
+
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
@@ -274,6 +304,7 @@ type Mutation {
 
   # Updates the favorite status of a target.
   setFavorite(input: SetFavoriteInput!): Boolean!
+
 
   updateService(input: UpdateServiceInput!): Boolean!
   updateEscalationPolicy(input: UpdateEscalationPolicyInput!): Boolean!
@@ -542,6 +573,8 @@ type Schedule {
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
+
+  fixedShifts: [FixedShiftGroup!]!
 }
 
 type OnCallShift {

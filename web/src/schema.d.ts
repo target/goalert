@@ -181,7 +181,34 @@ export interface DebugSendSMSInfo {
   providerURL: string
 }
 
+export interface FixedShiftGroup {
+  start: ISOTimestamp
+  end: ISOTimestamp
+  shifts: OnCallShift[]
+}
+
+export interface ResetScheduleShiftsInput {
+  scheduleID: string
+  start: ISOTimestamp
+  end: ISOTimestamp
+}
+
+export interface SetScheduleShiftsInput {
+  scheduleID: string
+  start: ISOTimestamp
+  end: ISOTimestamp
+  shifts: SetScheduleShiftInput[]
+}
+
+export interface SetScheduleShiftInput {
+  userID: string
+  start: ISOTimestamp
+  end: ISOTimestamp
+}
+
 export interface Mutation {
+  setScheduleShifts: boolean
+  resetScheduleShifts: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
@@ -417,6 +444,7 @@ export interface Schedule {
   targets: ScheduleTarget[]
   target?: ScheduleTarget
   isFavorite: boolean
+  fixedShifts: FixedShiftGroup[]
 }
 
 export interface OnCallShift {
