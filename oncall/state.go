@@ -170,7 +170,83 @@ func (s *state) sanitize() {
 		}
 	}
 }
+
+func (u *UserCalculator) WithShifts(shifts []Shift) *UserCalculator {
+	for _, s := range shifts {
+		u.SetSpan(s.Start, s.End, s.UserID)
+	}
+	return u
+}
+
 func (s *state) CalculateShifts(start, end time.Time) []Shift {
+	t := NewTimeIterator(start, end, time.Minute)
+
+	hist := t.NewUserCalculator().WithShifts(s.history).Init()
+	groups := t.NewFixedGroupCalculator(s.groups)
+	overrides := t.NewOverrideCalculator(s.overrides)
+	rules := t.NewRulesCalculator(s.loc, s.rules)
+
+	var shifts []Shift
+	isOnCall := make(map[string]*Shift)
+	stillOnCall := make(map[string]bool)
+
+	setOnCall := func(userIDs []string) {
+		for id := range stillOnCall {
+			delete(stillOnCall, id)
+		}
+		now := time.Unix(t.Unix(), 0)
+		for _, id := range userIDs {
+			stillOnCall[id] = true
+			s := isOnCall[id]
+			if s != nil {
+				continue
+			}
+			isOnCall[id] = &Shift{
+				Start:  now,
+				UserID: id,
+			}
+		}
+		for id, s := range isOnCall {
+			if stillOnCall[id] {
+				continue
+			}
+
+			// no longer on call
+			s.End = now
+			shifts = append(shifts, *s)
+			delete(isOnCall, id)
+		}
+	}
+
+	for t.Next() {
+		if time.Unix(t.Unix(), 0).Before(s.now) {
+			// use history if in the past
+			setOnCall(hist.ActiveUsers())
+			continue
+		}
+
+		if groups.Active() {
+			// use fixed shift groups if one is active
+			setOnCall(groups.ActiveUsers())
+			continue
+		}
+
+		// rules
+		onCall := rules.ActiveUsers()
+
+		// apply any overrides
+		setOnCall(overrides.MapUsers(onCall))
+	}
+
+	for _, s := range isOnCall {
+		s.Truncated = true
+		s.End = time.Unix(t.Unix(), 0)
+		shifts = append(shifts, *s)
+	}
+
+	return shifts
+}
+func (s *state) CalculateShifts_Old(start, end time.Time) []Shift {
 	start = start.In(s.loc).Truncate(time.Minute)
 	end = end.In(s.loc).Truncate(time.Minute)
 	s.sanitize()
