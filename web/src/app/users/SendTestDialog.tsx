@@ -82,10 +82,29 @@ export default function SendTestDialog(
     (sendTestStatus?.error?.message ?? '') || (error?.message ?? '')
 
   useEffect(() => {
-    if (loading || error || sendTestStatus.called) {
+    if (data?.userContactMethod?.lastTestMessageState == null) {
+      console.log('null data')
       return
     }
+    if (loading) {
+      console.log('loading')
+      return
+    }
+    if (error) {
+      console.log(contactMethodFromNumber)
+      console.log('error: ', error)
+      return
+    }
+    if (sendTestStatus.called) {
+      console.log('already called mutation')
+      return
+    }
+    // if (loading || error || sendTestStatus.called) {
+    //   console.log("not calling mutation")
+    //   return
+    // }
     if (!(timeSinceLastVerified.as('seconds') < 60)) {
+      console.log('mutation fired')
       sendTest()
     }
   }, [lastTestVerifyAt, loading])

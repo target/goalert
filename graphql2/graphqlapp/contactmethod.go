@@ -39,6 +39,9 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 	}
 
 	status, _, err := a.NotificationStore.LastMessageStatus(ctx, "test_notification", obj.ID, t)
+	if status == nil {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +55,9 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 	}
 
 	status, _, err := a.NotificationStore.LastMessageStatus(ctx, "verification_message", obj.ID, t)
+	if status == nil {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

@@ -395,6 +395,9 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ string, cmID string, fr
 	var createdAt sql.NullTime
 	row := db.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from)
 	err = row.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry, &createdAt)
+	if err == sql.ErrNoRows {
+		return nil, time.Time{}, nil
+	}
 	if err != nil {
 		return nil, time.Time{}, err
 	}
