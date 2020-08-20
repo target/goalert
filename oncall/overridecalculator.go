@@ -61,7 +61,7 @@ func (oCalc *OverrideCalculator) next() {
 }
 
 func (oCalc *OverrideCalculator) MapUsers(userIDs []string) []string {
-	result := userIDs[:0]
+	result := make([]string, 0, len(userIDs))
 	for _, id := range userIDs {
 		newID, ok := oCalc.userMap[id]
 		if !ok {
