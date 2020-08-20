@@ -12,7 +12,7 @@ import (
 var _ auth.IdentityProvider = &Store{}
 
 // Info implements the auth.Provider interface.
-func (Store) Info(ctx context.Context) auth.ProviderInfo {
+func (*Store) Info(ctx context.Context) auth.ProviderInfo {
 	cfg := config.FromContext(ctx)
 	return auth.ProviderInfo{
 		Title:      "Link Device",
