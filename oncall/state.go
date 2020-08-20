@@ -40,6 +40,10 @@ func (r *ResolvedRotation) UserID(t time.Time) string {
 		return r.Users[0]
 	}
 
+	if r.CurrentStart.IsZero() {
+		r.CurrentStart = r.StartTime(t)
+	}
+
 	if r.CurrentEnd.IsZero() {
 		r.CurrentStart = r.StartTime(r.CurrentStart)
 		r.CurrentEnd = r.EndTime(r.CurrentStart)
