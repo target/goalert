@@ -114,6 +114,11 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 			},
 		},
 	}
+	s.CalculateShifts(
+		time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC), // 8:00AM
+		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
+	)
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		s.CalculateShifts(
