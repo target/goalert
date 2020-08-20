@@ -1,9 +1,10 @@
 package rotation
 
 import (
+	"time"
+
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
 )
 
 type Rotation struct {
@@ -77,17 +78,26 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 		r.ShiftLength *= 7
 	}
 
+	loopLimit := 100000
+	limit := func() bool {
+		loopLimit--
+		if loopLimit == 0 {
+			panic("EndTime infinite loop: " + t.String())
+		}
+		return true
+	}
+
 	if cTime.After(t) {
 		// reverse search
 		last := cTime
 		switch r.Type {
 		case TypeHourly:
-			for cTime.After(t) {
+			for cTime.After(t) && limit() {
 				last = cTime
 				cTime = addHoursAlwaysInc(cTime, -r.ShiftLength)
 			}
 		case TypeWeekly, TypeDaily:
-			for cTime.After(t) {
+			for cTime.After(t) && limit() {
 				last = cTime
 				// getting next end of shift
 				cTime = cTime.AddDate(0, 0, -r.ShiftLength)
@@ -100,11 +110,11 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 
 	switch r.Type {
 	case TypeHourly:
-		for !cTime.After(t) {
+		for !cTime.After(t) && limit() {
 			cTime = addHoursAlwaysInc(cTime, r.ShiftLength)
 		}
 	case TypeWeekly, TypeDaily:
-		for !cTime.After(t) {
+		for !cTime.After(t) && limit() {
 			// getting end of shift
 			cTime = cTime.AddDate(0, 0, r.ShiftLength)
 		}
