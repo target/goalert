@@ -169,7 +169,9 @@ func TestResolvedRotation_UserID(t *testing.T) {
 
 func TestState_CalculateShifts(t *testing.T) {
 	check := func(name string, start, end time.Time, s *state, exp []Shift) {
+		t.Helper()
 		t.Run(name, func(t *testing.T) {
+			t.Helper()
 			res := s.CalculateShifts(start, end)
 			for i, exp := range exp {
 				if i >= len(res) {
