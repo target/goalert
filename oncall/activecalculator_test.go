@@ -21,8 +21,6 @@ func TestActiveCalculator(t *testing.T) {
 				setup(iter)
 			}
 
-			iter.Init()
-
 			var last bool
 			for i, exp := range results {
 				assert.Truef(t, iter.Next(), "Next() call #%d", i+1)
@@ -47,6 +45,10 @@ func TestActiveCalculator(t *testing.T) {
 	check("multiple", []bool{false, true, false, true, false}, func(iter *oncall.ActiveCalculator) {
 		iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
 		iter.SetSpan(time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC))
+	})
+
+	check("full", []bool{true, true, true, true, true}, func(iter *oncall.ActiveCalculator) {
+		iter.SetSpan(time.Time{}, time.Date(9999, 1, 0, 0, 0, 0, 0, time.UTC))
 	})
 
 }

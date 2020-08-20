@@ -24,9 +24,7 @@ func (u *UserCalculator) Init() *UserCalculator {
 	if u.init {
 		return u
 	}
-	for _, c := range u.m {
-		c.Init()
-	}
+
 	u.OnNext(u.next)
 	u.init = true
 
