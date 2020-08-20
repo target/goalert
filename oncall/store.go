@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -52,11 +53,12 @@ type DB struct {
 	schedRot    *sql.Stmt
 	rotParts    *sql.Stmt
 
-	ruleStore rule.Store
+	ruleStore  rule.Store
+	schedStore *schedule.Store
 }
 
 // NewDB will create a new DB, preparing required statements using the provided context.
-func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *schedule.Store) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &DB{
@@ -184,10 +186,10 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		return nil, errors.Wrap(err, "lookup schedule rotations")
 	}
 	defer rows.Close()
-	rots := make(map[string]*resolvedRotation)
+	rots := make(map[string]*ResolvedRotation)
 	var rotIDs []string
 	for rows.Next() {
-		var rot resolvedRotation
+		var rot ResolvedRotation
 		var rotTZ string
 		err = rows.Scan(&rot.ID, &rot.Type, &rot.Start, &rot.ShiftLength, &rotTZ, &rot.CurrentIndex, &rot.CurrentStart)
 		if err != nil {
@@ -221,15 +223,15 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		return nil, errors.Wrap(err, "lookup schedule rules")
 	}
 
-	var rules []resolvedRule
+	var rules []ResolvedRule
 	for _, r := range rawRules {
 		if r.Target.TargetType() == assignment.TargetTypeRotation {
-			rules = append(rules, resolvedRule{
+			rules = append(rules, ResolvedRule{
 				Rule:     r,
 				Rotation: rots[r.Target.TargetID()],
 			})
 		} else {
-			rules = append(rules, resolvedRule{Rule: r})
+			rules = append(rules, ResolvedRule{Rule: r})
 		}
 	}
 
@@ -267,6 +269,10 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		ov.RemoveUserID = rem.String
 		overrides = append(overrides, ov)
 	}
+	groups, err := db.schedStore.FixedShiftGroups(ctx, tx, scheduleID)
+	if err != nil {
+		return nil, errors.Wrap(err, "lookup fixed shift groups")
+	}
 
 	err = tx.Commit()
 	if err != nil {
@@ -283,6 +289,7 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		history:   userHistory,
 		now:       now,
 		loc:       tz,
+		groups:    groups,
 	}
 
 	return s.CalculateShifts(start, end), nil

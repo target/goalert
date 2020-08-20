@@ -1,19 +1,21 @@
 package oncall
 
 import (
-	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/override"
-	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/schedule/rule"
 	"sort"
 	"time"
+
+	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/override"
+	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/schedule/rotation"
+	"github.com/target/goalert/schedule/rule"
 )
 
-type resolvedRule struct {
+type ResolvedRule struct {
 	rule.Rule
-	Rotation *resolvedRotation
+	Rotation *ResolvedRotation
 }
-type resolvedRotation struct {
+type ResolvedRotation struct {
 	rotation.Rotation
 	CurrentIndex int
 	CurrentStart time.Time
@@ -22,14 +24,15 @@ type resolvedRotation struct {
 }
 
 type state struct {
-	rules     []resolvedRule
+	groups    []schedule.FixedShiftGroup
+	rules     []ResolvedRule
 	overrides []override.UserOverride
 	history   []Shift
 	now       time.Time
 	loc       *time.Location
 }
 
-func (r *resolvedRotation) UserID(t time.Time) string {
+func (r *ResolvedRotation) UserID(t time.Time) string {
 	if r == nil || len(r.Users) == 0 {
 		return ""
 	}
@@ -63,7 +66,7 @@ func (r *resolvedRotation) UserID(t time.Time) string {
 
 	return r.Users[r.CurrentIndex]
 }
-func (r resolvedRule) UserID(t time.Time) string {
+func (r ResolvedRule) UserID(t time.Time) string {
 	if !r.IsActive(t) {
 		return ""
 	}

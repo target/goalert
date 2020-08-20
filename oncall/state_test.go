@@ -1,18 +1,19 @@
 package oncall
 
 import (
+	"testing"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
-	"testing"
-	"time"
 )
 
 func BenchmarkState_CalculateShifts(b *testing.B) {
 	s := &state{
 		loc: time.UTC,
-		rules: []resolvedRule{
+		rules: []ResolvedRule{
 			{Rule: rule.Rule{
 				WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 				Start:         rule.NewClock(8, 0),
@@ -50,7 +51,7 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 					End:           rule.NewClock(10, 0),
 					Target:        assignment.RotationTarget("fooba4r"),
 				},
-				Rotation: &resolvedRotation{
+				Rotation: &ResolvedRotation{
 					Rotation: rotation.Rotation{
 						Type:        rotation.TypeDaily,
 						ShiftLength: 2,
@@ -66,7 +67,7 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 					End:           rule.NewClock(10, 0),
 					Target:        assignment.RotationTarget("fooba4r"),
 				},
-				Rotation: &resolvedRotation{
+				Rotation: &ResolvedRotation{
 					Rotation: rotation.Rotation{
 						Type:        rotation.TypeDaily,
 						ShiftLength: 2,
@@ -82,7 +83,7 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 					End:           rule.NewClock(10, 0),
 					Target:        assignment.RotationTarget("fooba4r"),
 				},
-				Rotation: &resolvedRotation{
+				Rotation: &ResolvedRotation{
 					Rotation: rotation.Rotation{
 						Type:        rotation.TypeDaily,
 						ShiftLength: 2,
@@ -123,7 +124,7 @@ func BenchmarkState_CalculateShifts(b *testing.B) {
 }
 
 func TestResolvedRotation_UserID(t *testing.T) {
-	rot := &resolvedRotation{
+	rot := &ResolvedRotation{
 		Rotation: rotation.Rotation{
 			ID:          "rot",
 			Type:        rotation.TypeWeekly,
@@ -201,7 +202,7 @@ func TestState_CalculateShifts(t *testing.T) {
 		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
 		&state{
 			loc: time.UTC,
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 					Start:         rule.NewClock(8, 0),
@@ -225,7 +226,7 @@ func TestState_CalculateShifts(t *testing.T) {
 		time.Date(2018, 1, 8, 0, 0, 0, 0, time.UTC),
 		&state{
 			loc: time.UTC,
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 					Start:         rule.NewClock(8, 0),
@@ -278,7 +279,7 @@ func TestState_CalculateShifts(t *testing.T) {
 		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
 		&state{
 			loc: time.UTC,
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 					Start:         rule.NewClock(8, 0),
@@ -322,7 +323,7 @@ func TestState_CalculateShifts(t *testing.T) {
 		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
 		&state{
 			loc: time.UTC,
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 					Start:         rule.NewClock(8, 0),
@@ -359,7 +360,7 @@ func TestState_CalculateShifts(t *testing.T) {
 		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
 		&state{
 			loc: time.UTC,
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 					Start:         rule.NewClock(8, 0),
@@ -403,7 +404,7 @@ func TestState_CalculateShifts(t *testing.T) {
 					Start:  time.Date(2018, 1, 1, 7, 0, 0, 0, time.UTC), // user actually started at 7
 				},
 			},
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 					Start:         rule.NewClock(8, 0),
@@ -435,14 +436,14 @@ func TestState_CalculateShifts(t *testing.T) {
 					End:    time.Date(2018, 9, 10, 5, 29, 0, 0, time.UTC),
 				},
 			},
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 0, 0, 0},
 					Start:         rule.NewClock(19, 40),
 					End:           rule.NewClock(22, 53),
 					Target:        assignment.RotationTarget("rot"),
 				},
-					Rotation: &resolvedRotation{
+					Rotation: &ResolvedRotation{
 						Rotation: rotation.Rotation{
 							ID:          "rot",
 							Type:        rotation.TypeWeekly,
@@ -536,14 +537,14 @@ func TestState_CalculateShifts(t *testing.T) {
 				{UserID: "Cook", Start: time.Date(2018, 9, 10, 1, 0, 0, 0, time.UTC), End: time.Date(2018, 9, 10, 13, 0, 0, 0, time.UTC)},
 				{UserID: "Craig", Start: time.Date(2018, 9, 9, 13, 0, 0, 0, time.UTC), End: time.Date(2018, 9, 10, 1, 0, 0, 0, time.UTC)},
 			},
-			rules: []resolvedRule{
+			rules: []ResolvedRule{
 				{Rule: rule.Rule{
 					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
 					Start:         rule.NewClock(8, 0),
 					End:           rule.NewClock(20, 0),
 					Target:        assignment.RotationTarget("rot-day"),
 				},
-					Rotation: &resolvedRotation{
+					Rotation: &ResolvedRotation{
 						Rotation: rotation.Rotation{
 							ID:          "rot-day",
 							Type:        rotation.TypeDaily,
@@ -565,7 +566,7 @@ func TestState_CalculateShifts(t *testing.T) {
 					End:           rule.NewClock(8, 0),
 					Target:        assignment.RotationTarget("rot-night"),
 				},
-					Rotation: &resolvedRotation{
+					Rotation: &ResolvedRotation{
 						Rotation: rotation.Rotation{
 							ID:          "rot-night",
 							Type:        rotation.TypeDaily,
