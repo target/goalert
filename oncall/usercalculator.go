@@ -9,6 +9,7 @@ type UserCalculator struct {
 
 	init    bool
 	active  []string
+	start   []time.Time
 	changed bool
 }
 
@@ -77,3 +78,10 @@ func (u *UserCalculator) next() {
 
 func (u *UserCalculator) ActiveUsers() []string { return u.active }
 func (u *UserCalculator) Changed() bool         { return u.changed }
+func (u *UserCalculator) ActiveTimes() []time.Time {
+	times := make([]time.Time, len(u.active))
+	for i, id := range u.active {
+		times[i] = u.m[id].ActiveTime()
+	}
+	return times
+}

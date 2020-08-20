@@ -51,4 +51,20 @@ func TestActiveCalculator(t *testing.T) {
 		iter.SetSpan(time.Time{}, time.Date(9999, 1, 0, 0, 0, 0, 0, time.UTC))
 	})
 
+	t.Run("ActiveTime", func(t *testing.T) {
+		iter := oncall.NewTimeIterator(
+			time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC),
+			time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC),
+			time.Minute,
+		).NewActiveCalculator()
+
+		iter.SetSpan(time.Date(2000, 1, 2, 3, 1, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
+
+		assert.True(t, iter.Next())
+		assert.True(t, iter.Changed())
+		assert.True(t, iter.Active())
+		assert.Equal(t, time.Date(2000, 1, 2, 3, 1, 0, 0, time.UTC).Unix(), iter.ActiveTime().Unix())
+
+	})
+
 }
