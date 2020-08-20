@@ -170,18 +170,23 @@ func (s *state) sanitize() {
 		}
 	}
 }
-
-func (u *UserCalculator) WithShifts(shifts []Shift) *UserCalculator {
-	for _, s := range shifts {
-		u.SetSpan(s.Start, s.End, s.UserID)
-	}
-	return u
+func sortShifts(s []Shift) {
+	sort.Slice(s, func(i, j int) bool {
+		if s[i].Start.Equal(s[j].Start) {
+			return s[i].UserID < s[j].UserID
+		}
+		return s[i].Start.Before(s[j].Start)
+	})
 }
 
 func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	t := NewTimeIterator(start, end, time.Minute)
 
-	hist := t.NewUserCalculator().WithShifts(s.history).Init()
+	hist := t.NewUserCalculator()
+	for _, s := range s.history {
+		hist.SetSpan(s.Start, s.End, s.UserID)
+	}
+	hist.Init()
 	groups := t.NewFixedGroupCalculator(s.groups)
 	overrides := t.NewOverrideCalculator(s.overrides)
 	rules := t.NewRulesCalculator(s.loc, s.rules)
@@ -190,19 +195,23 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	isOnCall := make(map[string]*Shift)
 	stillOnCall := make(map[string]bool)
 
-	setOnCall := func(userIDs []string) {
+	setOnCall := func(userIDs []string, startTimes []time.Time) {
 		for id := range stillOnCall {
 			delete(stillOnCall, id)
 		}
 		now := time.Unix(t.Unix(), 0)
-		for _, id := range userIDs {
+		for i, id := range userIDs {
 			stillOnCall[id] = true
 			s := isOnCall[id]
 			if s != nil {
 				continue
 			}
+			start := now
+			if len(startTimes) != 0 {
+				start = startTimes[i]
+			}
 			isOnCall[id] = &Shift{
-				Start:  now,
+				Start:  start,
 				UserID: id,
 			}
 		}
@@ -219,15 +228,15 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	}
 
 	for t.Next() {
-		if time.Unix(t.Unix(), 0).Before(s.now) {
+		if !time.Unix(t.Unix(), 0).After(s.now) {
 			// use history if in the past
-			setOnCall(hist.ActiveUsers())
+			setOnCall(hist.ActiveUsers(), hist.ActiveTimes())
 			continue
 		}
 
 		if groups.Active() {
 			// use fixed shift groups if one is active
-			setOnCall(groups.ActiveUsers())
+			setOnCall(groups.ActiveUsers(), nil)
 			continue
 		}
 
@@ -235,7 +244,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		onCall := rules.ActiveUsers()
 
 		// apply any overrides
-		setOnCall(overrides.MapUsers(onCall))
+		setOnCall(overrides.MapUsers(onCall), nil)
 	}
 
 	for _, s := range isOnCall {
@@ -244,6 +253,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		shifts = append(shifts, *s)
 	}
 
+	sortShifts(shifts)
 	return shifts
 }
 func (s *state) CalculateShifts_Old(start, end time.Time) []Shift {
