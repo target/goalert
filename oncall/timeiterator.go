@@ -37,8 +37,7 @@ func (iter *TimeIterator) Next() bool {
 	return true
 }
 
-func (iter *TimeIterator) Time() time.Time { return time.Unix(iter.t, 0) }
-func (iter *TimeIterator) Unix() int64     { return iter.t }
+func (iter *TimeIterator) Unix() int64 { return iter.t }
 
 func (iter *TimeIterator) Start() time.Time    { return time.Unix(iter.start, 0) }
 func (iter *TimeIterator) End() time.Time      { return time.Unix(iter.end, 0) }

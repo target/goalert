@@ -29,13 +29,6 @@ func TestTimeIterator_Unix(t *testing.T) {
 	assert.Equal(t, time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC).Unix(), iter.Unix())
 }
 
-func TestTimeIterator_Time(t *testing.T) {
-	iter := oncall.NewTimeIterator(time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC), time.Date(2001, 1, 2, 3, 4, 5, 6, time.UTC), time.Minute)
-	iter.Next()
-
-	assert.Equal(t, time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC).Unix(), iter.Time().Unix())
-}
-
 func TestTimeIterator_Next(t *testing.T) {
 	iter := oncall.NewTimeIterator(time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC), time.Date(2000, 1, 2, 3, 8, 5, 6, time.UTC), time.Minute)
 
