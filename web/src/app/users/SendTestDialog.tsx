@@ -23,6 +23,7 @@ import { DateTime } from 'luxon'
 const query = gql`
   query($id: ID!, $number: String!) {
     userContactMethod(id: $id) {
+      id
       type
       formattedValue
       lastTestVerifyAt
@@ -78,33 +79,16 @@ export default function SendTestDialog(
   const lastTestVerifyAt = data?.userContactMethod?.lastTestVerifyAt ?? ''
   const timeSinceLastVerified = now.diff(DateTime.fromISO(lastTestVerifyAt))
   contactMethodFromNumber = data?.phoneNumberInfo?.formatted ?? ''
-  const errorMessage =
-    (sendTestStatus?.error?.message ?? '') || (error?.message ?? '')
+  const errorMessage = error?.message ?? ''
 
   useEffect(() => {
-    if (data?.userContactMethod?.lastTestMessageState == null) {
-      console.log('null data')
+    if (loading || error || sendTestStatus.called) {
       return
     }
-    if (loading) {
-      console.log('loading')
-      return
-    }
-    if (error) {
-      console.log(contactMethodFromNumber)
-      console.log('error: ', error)
-      return
-    }
-    if (sendTestStatus.called) {
-      console.log('already called mutation')
-      return
-    }
-    // if (loading || error || sendTestStatus.called) {
-    //   console.log("not calling mutation")
-    //   return
-    // }
-    if (!(timeSinceLastVerified.as('seconds') < 60)) {
-      console.log('mutation fired')
+    if (
+      data?.userContactMethod?.lastTestMessageState == null ||
+      !(timeSinceLastVerified.as('seconds') < 60)
+    ) {
       sendTest()
     }
   }, [lastTestVerifyAt, loading])
@@ -112,8 +96,6 @@ export default function SendTestDialog(
   let details
   if (sendTestStatus.called && lastTestVerifyAt > now.toISO()) {
     details = data?.userContactMethod?.lastTestMessageState?.details ?? ''
-  } else if (sendTestStatus.called) {
-    details = 'Sending test message...'
   }
 
   const getTestStatusClass = (status: string): string => {
@@ -150,9 +132,7 @@ export default function SendTestDialog(
         )}
       </DialogContent>
 
-      {errorMessage && (
-        <DialogContentError>error = {errorMessage}</DialogContentError>
-      )}
+      {errorMessage && <DialogContentError error={errorMessage} />}
 
       <DialogActions>
         <Button color='primary' variant='contained' onClick={onClose}>

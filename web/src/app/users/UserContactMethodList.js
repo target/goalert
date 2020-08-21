@@ -66,9 +66,6 @@ export default function UserContactMethodList(props) {
   if (error) return <GenericError error={error.message} />
 
   const contactMethods = data.user.contactMethods
-  // for (var i in contactMethods) {
-  //   console.log(contactMethods[i].id)
-  // }
 
   const getIcon = (cm) => {
     if (!cm.disabled) return null
