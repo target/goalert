@@ -21,8 +21,6 @@ const (
 )
 
 type Store struct {
-	db *sql.DB
-
 	unclaimed *sql.Stmt
 
 	create *sql.Stmt

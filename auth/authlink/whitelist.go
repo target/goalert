@@ -46,7 +46,7 @@ func (w *Whitelist) Set(ids []string) {
 }
 
 var (
-	ErrBadID = errors.New("no value with that ID")
+	ErrBadID = errors.New("no value with given ID")
 )
 
 func (w *Whitelist) LockRemove(ctx context.Context, id string, fn func(context.Context) error) error {

@@ -19,7 +19,6 @@ type Mutation App
 func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
 
 func (a *Mutation) CreateAuthLink(ctx context.Context) (*graphql2.AuthLink, error) {
-
 	var stat *authlink.Status
 	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		err := a.AuthLinkStore.ResetTx(ctx, tx)
@@ -39,8 +38,7 @@ func (a *Mutation) CreateAuthLink(ctx context.Context) (*graphql2.AuthLink, erro
 	}
 
 	return &graphql2.AuthLink{
-		ID: stat.ID,
-
+		ID:        stat.ID,
 		ClaimCode: stat.ClaimCode,
 	}, nil
 }
