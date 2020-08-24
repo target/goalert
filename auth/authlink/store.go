@@ -53,21 +53,16 @@ type Status struct {
 	AuthedAt   time.Time
 }
 
-const codeAlphabet = "ABCDEFGHJKLMNPQRSTWXYZ"
-const codeNumbers = "0123456789"
+const codeAlphabet = "ABCDEFGHJKLMNPQRSTWXYZ23456789"
 
-func genCode(n int, numOnly bool) (string, error) {
-	var dict = codeAlphabet + codeNumbers
-	if numOnly {
-		dict = codeNumbers
-	}
+func genCode(n int) (string, error) {
 	val := make([]byte, n)
 	for i := range val {
-		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(dict))))
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(codeAlphabet))))
 		if err != nil {
 			return "", err
 		}
-		val[i] = dict[num.Int64()]
+		val[i] = codeAlphabet[num.Int64()]
 	}
 
 	return string(val), nil
@@ -162,11 +157,11 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx) (*Status, error) {
 		return nil, err
 	}
 	stat := Status{ID: uuid.NewV4().String()}
-	stat.ClaimCode, err = genCode(8, false)
+	stat.ClaimCode, err = genCode(8)
 	if err != nil {
 		return nil, err
 	}
-	stat.VerifyCode, err = genCode(4, true)
+	stat.VerifyCode, err = genCode(4)
 	if err != nil {
 		return nil, err
 	}
