@@ -110,7 +110,9 @@ func (act *ActiveCalculator) next(t int64) {
 	}
 }
 func (act *ActiveCalculator) done() {
+	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
 	boolMapPool.Put(act.states[:0])
+	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
 	timeMapPool.Put(act.times[:0])
 	act.states, act.times = nil, nil
 }
