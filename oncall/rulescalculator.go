@@ -23,7 +23,7 @@ func (t *TimeIterator) NewRulesCalculator(loc *time.Location, rules []ResolvedRu
 	return calc
 }
 
-func (rCalc *RulesCalculator) next() {
+func (rCalc *RulesCalculator) next(int64) {
 	rCalc.changed = false
 
 	for _, r := range rCalc.rules {

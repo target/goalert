@@ -70,7 +70,7 @@ func omitStr(s []string, val string) []string {
 	}
 	return append(s[:idx], s[idx+1:]...)
 }
-func (u *UserCalculator) next() {
+func (u *UserCalculator) next(int64) {
 	if !u.init {
 		panic("init was never called")
 	}

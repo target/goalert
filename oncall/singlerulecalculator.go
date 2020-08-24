@@ -49,7 +49,7 @@ func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule Resolved
 	return calc
 }
 
-func (rCalc *SingleRuleCalculator) next() {
+func (rCalc *SingleRuleCalculator) next(int64) {
 	var newUserID string
 	if rCalc.act.Active() {
 		if rCalc.rot != nil {

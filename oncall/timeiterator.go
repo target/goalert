@@ -5,7 +5,7 @@ import "time"
 type TimeIterator struct {
 	t, start, end, step int64
 
-	next []func()
+	next []func(int64)
 	done []func()
 }
 
@@ -28,7 +28,7 @@ func NewTimeIterator(start, end time.Time, step time.Duration) *TimeIterator {
 	}
 }
 
-func (iter *TimeIterator) Register(next, done func()) {
+func (iter *TimeIterator) Register(next func(int64), done func()) {
 	if next != nil {
 		iter.next = append(iter.next, next)
 	}
@@ -43,7 +43,7 @@ func (iter *TimeIterator) Next() bool {
 	}
 	iter.t += iter.step
 	for _, next := range iter.next {
-		next()
+		next(iter.t)
 	}
 	return true
 }

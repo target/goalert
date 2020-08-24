@@ -91,7 +91,7 @@ func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 	act.states = append(act.states, boolValue{ID: id, Value: isStart})
 }
 
-func (act *ActiveCalculator) next() {
+func (act *ActiveCalculator) next(t int64) {
 	if !act.init {
 		panic("Init never called")
 	}
@@ -101,7 +101,7 @@ func (act *ActiveCalculator) next() {
 	}
 
 	v := act.states[0]
-	act.changed = v.ID == act.Unix()
+	act.changed = v.ID == t
 	if act.changed {
 		act.states = act.states[1:]
 		act.active = v.Value
