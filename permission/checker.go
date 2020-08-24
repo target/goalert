@@ -108,6 +108,22 @@ func Admin(ctx context.Context) bool {
 	return false
 }
 
+// UserSession is a Checker that determines if a context is associated with a User session.
+func UserSession(ctx context.Context) bool {
+	if !User(ctx) {
+		return false
+	}
+	src := Source(ctx)
+	if src == nil {
+		return false
+	}
+	if src.Type != SourceTypeAuthProvider {
+		return false
+	}
+
+	return true
+}
+
 // User is a Checker that determines if a context has the User, Admin or System role.
 func User(ctx context.Context) bool {
 	if System(ctx) {

@@ -17,7 +17,11 @@ type IdentityProvider interface {
 // Identity represents a user's proven identity.
 type Identity struct {
 	// SubjectID should be a provider-specific identifier for an individual.
-	SubjectID     string
+	SubjectID string
+
+	// UserID can be specified when linking to an existing users account.
+	UserID string
+
 	Email         string
 	EmailVerified bool
 	Name          string
@@ -40,6 +44,9 @@ type ProviderInfo struct {
 
 	// Enabled indicates that the provider is currently turned on.
 	Enabled bool `json:"-"`
+
+	// NoRedirect indicates that the auth method should never redirect the client.
+	NoRedirect bool `json:"-"`
 }
 
 // Field represents a single form field for authentication.

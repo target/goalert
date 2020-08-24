@@ -3,13 +3,26 @@ package permission
 import (
 	"context"
 	"errors"
-	"github.com/target/goalert/util/log"
 	"regexp"
 	"strings"
 	"sync/atomic"
 
+	"github.com/target/goalert/util/log"
+
 	"go.opencensus.io/trace"
 )
+
+// SessionID will return the user session ID associated with a context.
+func SessionID(ctx context.Context) string {
+	src := Source(ctx)
+	if src == nil {
+		return ""
+	}
+	if src.Type != SourceTypeAuthProvider {
+		return ""
+	}
+	return src.ID
+}
 
 // SourceContext will return a context with the provided SourceInfo.
 func SourceContext(ctx context.Context, src *SourceInfo) context.Context {

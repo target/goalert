@@ -37,6 +37,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Auth.RefererURLs", Type: ConfigTypeStringList, Description: "Allowed referer URLs for auth and redirects.", Value: strings.Join(cfg.Auth.RefererURLs, "\n")},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
+		{ID: "Auth.DisableAuthLink", Type: ConfigTypeBoolean, Description: "Disallow auth via linking (e.g. mobile app auth).", Value: fmt.Sprintf("%t", cfg.Auth.DisableAuthLink)},
 		{ID: "GitHub.Enable", Type: ConfigTypeBoolean, Description: "Enable GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.Enable)},
 		{ID: "GitHub.NewUsers", Type: ConfigTypeBoolean, Description: "Allow new user creation via GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.NewUsers)},
 		{ID: "GitHub.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.GitHub.ClientID},
@@ -87,6 +88,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Maintenance.AlertCleanupDays", Type: ConfigTypeInteger, Description: "Closed alerts will be deleted after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.AlertCleanupDays)},
 		{ID: "Maintenance.APIKeyExpireDays", Type: ConfigTypeInteger, Description: "Unused calendar API keys will be disabled after this many days (0 means disable cleanup).", Value: fmt.Sprintf("%d", cfg.Maintenance.APIKeyExpireDays)},
 		{ID: "Auth.DisableBasic", Type: ConfigTypeBoolean, Description: "Disallow username/password login.", Value: fmt.Sprintf("%t", cfg.Auth.DisableBasic)},
+		{ID: "Auth.DisableAuthLink", Type: ConfigTypeBoolean, Description: "Disallow auth via linking (e.g. mobile app auth).", Value: fmt.Sprintf("%t", cfg.Auth.DisableAuthLink)},
 		{ID: "GitHub.Enable", Type: ConfigTypeBoolean, Description: "Enable GitHub authentication.", Value: fmt.Sprintf("%t", cfg.GitHub.Enable)},
 		{ID: "OIDC.Enable", Type: ConfigTypeBoolean, Description: "Enable OpenID Connect authentication.", Value: fmt.Sprintf("%t", cfg.OIDC.Enable)},
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
@@ -186,6 +188,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Auth.DisableBasic = val
+		case "Auth.DisableAuthLink":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Auth.DisableAuthLink = val
 		case "GitHub.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

@@ -55,6 +55,19 @@ type AlertSearchOptions struct {
 	Omit              []int         `json:"omit"`
 }
 
+type AuthLink struct {
+	ID        string `json:"id"`
+	ClaimCode string `json:"claimCode"`
+}
+
+type AuthLinkStatus struct {
+	ID        string    `json:"id"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	Claimed   bool      `json:"claimed"`
+	Verified  bool      `json:"verified"`
+	Authed    bool      `json:"authed"`
+}
+
 type AuthSubjectConnection struct {
 	Nodes    []user.AuthSubject `json:"nodes"`
 	PageInfo *PageInfo          `json:"pageInfo"`
@@ -474,6 +487,11 @@ type UserSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type VerifyAuthLinkInput struct {
+	ID   string `json:"id"`
+	Code string `json:"code"`
 }
 
 type VerifyContactMethodInput struct {
