@@ -1,14 +1,7 @@
 package oncall
 
 import (
-	"time"
-
 	"github.com/target/goalert/schedule"
-)
-
-const (
-	iteratorDur  = time.Minute
-	iteratorUnix = 60
 )
 
 type FixedGroupCalculator struct {

@@ -11,7 +11,6 @@ type UserCalculator struct {
 
 	init    bool
 	active  []string
-	start   []time.Time
 	changed bool
 }
 type userCalc struct {
