@@ -7,10 +7,16 @@ type UserCalculator struct {
 
 	m map[string]*ActiveCalculator
 
+	calc []userCalc
+
 	init    bool
 	active  []string
 	start   []time.Time
 	changed bool
+}
+type userCalc struct {
+	ID   string
+	Calc *ActiveCalculator
 }
 
 func (t *TimeIterator) NewUserCalculator() *UserCalculator {
@@ -24,6 +30,12 @@ func (t *TimeIterator) NewUserCalculator() *UserCalculator {
 func (u *UserCalculator) Init() *UserCalculator {
 	if u.init {
 		return u
+	}
+
+	u.calc = make([]userCalc, 0, len(u.m))
+	for id, a := range u.m {
+		a.Init()
+		u.calc = append(u.calc, userCalc{ID: id, Calc: a})
 	}
 
 	u.Register(u.next, nil)
@@ -63,15 +75,15 @@ func (u *UserCalculator) next() {
 		panic("init was never called")
 	}
 	u.changed = false
-	for id, calc := range u.m {
-		if !calc.Changed() {
+	for _, c := range u.calc {
+		if !c.Calc.Changed() {
 			continue
 		}
 		u.changed = true
-		if calc.Active() {
-			u.active = append(u.active, id)
+		if c.Calc.Active() {
+			u.active = append(u.active, c.ID)
 		} else {
-			u.active = omitStr(u.active, id)
+			u.active = omitStr(u.active, c.ID)
 		}
 	}
 }

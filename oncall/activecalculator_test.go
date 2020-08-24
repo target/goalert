@@ -10,7 +10,9 @@ import (
 
 func TestActiveCalculator(t *testing.T) {
 	check := func(desc string, results []bool, setup func(*oncall.ActiveCalculator)) {
+		t.Helper()
 		t.Run(desc, func(t *testing.T) {
+			t.Helper()
 			iter := oncall.NewTimeIterator(
 				time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC),
 				time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC),
@@ -20,6 +22,7 @@ func TestActiveCalculator(t *testing.T) {
 			if setup != nil {
 				setup(iter)
 			}
+			iter.Init()
 
 			var last bool
 			for i, exp := range results {
@@ -43,8 +46,9 @@ func TestActiveCalculator(t *testing.T) {
 	})
 
 	check("multiple", []bool{false, true, false, true, false}, func(iter *oncall.ActiveCalculator) {
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
 		iter.SetSpan(time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC))
+		// out of order
+		iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
 	})
 
 	check("full", []bool{true, true, true, true, true}, func(iter *oncall.ActiveCalculator) {
@@ -59,6 +63,8 @@ func TestActiveCalculator(t *testing.T) {
 		).NewActiveCalculator()
 
 		iter.SetSpan(time.Date(2000, 1, 2, 3, 1, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
+
+		iter.Init()
 
 		assert.True(t, iter.Next())
 		assert.True(t, iter.Changed())

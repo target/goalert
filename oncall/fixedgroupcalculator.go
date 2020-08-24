@@ -32,6 +32,7 @@ func (t *TimeIterator) NewFixedGroupCalculator(groups []schedule.FixedShiftGroup
 			fg.UserCalculator.SetSpan(s.Start, s.End, s.UserID)
 		}
 	}
+	fg.ActiveCalculator.Init()
 	fg.UserCalculator.Init()
 
 	return fg

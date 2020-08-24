@@ -31,6 +31,7 @@ func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule Resolved
 			cur = rule.StartTime(end)
 		}
 	}
+	calc.act.Init()
 
 	if rule.Rotation != nil {
 		calc.rot = t.NewUserCalculator()

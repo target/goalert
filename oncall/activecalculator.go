@@ -1,41 +1,73 @@
 package oncall
 
 import (
+	"sort"
 	"sync"
 	"time"
 )
 
 var (
 	boolMapPool = &sync.Pool{
-		New: func() interface{} { return make(map[int64]bool, 20) },
+		New: func() interface{} { return make([]boolValue, 0, 100) },
 	}
 	timeMapPool = &sync.Pool{
-		New: func() interface{} { return make(map[int64]time.Time, 20) },
+		New: func() interface{} { return make([]time.Time, 0, 100) },
 	}
 )
 
 type ActiveCalculator struct {
 	*TimeIterator
-	m        map[int64]bool
-	actStart map[int64]time.Time
 
+	states []boolValue
+	times  []time.Time
+
+	init    bool
 	activeT time.Time
 	active  bool
 	changed bool
+}
+type boolValue struct {
+	ID    int64
+	Value bool
+}
+
+type activeSortable ActiveCalculator
+
+func (act *activeSortable) Less(i, j int) bool {
+	return act.states[i].ID < act.states[j].ID
+}
+func (act *activeSortable) Len() int { return len(act.states) }
+func (act *activeSortable) Swap(i, j int) {
+	act.states[i], act.states[j] = act.states[j], act.states[i]
+	act.times[i], act.times[j] = act.times[j], act.times[i]
 }
 
 func (t *TimeIterator) NewActiveCalculator() *ActiveCalculator {
 	act := &ActiveCalculator{
 		TimeIterator: t,
-		m:            boolMapPool.Get().(map[int64]bool),
-		actStart:     timeMapPool.Get().(map[int64]time.Time),
+		states:       boolMapPool.Get().([]boolValue),
+		times:        timeMapPool.Get().([]time.Time),
 	}
 	t.Register(act.next, act.done)
 
 	return act
 }
 
+func (act *ActiveCalculator) Init() *ActiveCalculator {
+	if act.init {
+		return act
+	}
+	act.init = true
+
+	sort.Sort((*activeSortable)(act))
+
+	return act
+}
+
 func (act *ActiveCalculator) SetSpan(start, end time.Time) {
+	if act.init {
+		panic("cannot add spans after Init")
+	}
 	if !end.After(act.Start()) && !end.IsZero() {
 		return
 	}
@@ -54,30 +86,33 @@ func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 	if isStart && t.Before(act.Start()) {
 		id = act.Start().Unix()
 	}
-	if isStart {
-		act.actStart[id] = t.Truncate(act.Step())
-	}
-	act.m[id] = isStart
+
+	act.times = append(act.times, t.Truncate(act.Step()))
+	act.states = append(act.states, boolValue{ID: id, Value: isStart})
 }
 
 func (act *ActiveCalculator) next() {
-	val, ok := act.m[act.Unix()]
-	act.changed = ok
-	if ok {
-		act.active = val
-		act.activeT = act.actStart[act.Unix()]
+	if !act.init {
+		panic("Init never called")
+	}
+	if len(act.states) == 0 {
+		act.changed = false
+		return
+	}
+
+	v := act.states[0]
+	act.changed = v.ID == act.Unix()
+	if act.changed {
+		act.states = act.states[1:]
+		act.active = v.Value
+		act.activeT = act.times[0]
+		act.times = act.times[1:]
 	}
 }
 func (act *ActiveCalculator) done() {
-	for id := range act.m {
-		delete(act.m, id)
-	}
-	for id := range act.actStart {
-		delete(act.actStart, id)
-	}
-	boolMapPool.Put(act.m)
-	timeMapPool.Put(act.actStart)
-	act.m, act.actStart = nil, nil
+	boolMapPool.Put(act.states[:0])
+	timeMapPool.Put(act.times[:0])
+	act.states, act.times = nil, nil
 }
 func (act *ActiveCalculator) Active() bool          { return act.active }
 func (act *ActiveCalculator) Changed() bool         { return act.changed }
