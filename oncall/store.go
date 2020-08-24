@@ -62,8 +62,9 @@ func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *sc
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &DB{
-		db:        db,
-		ruleStore: ruleStore,
+		db:         db,
+		ruleStore:  ruleStore,
+		schedStore: schedStore,
 
 		schedOverrides: p.P(`
 			select
