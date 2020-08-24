@@ -14,6 +14,20 @@ type Query App
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
 
+func (a *Query) AuthLinkStatus(ctx context.Context, id string) (*graphql2.AuthLinkStatus, error) {
+	stat, err := a.AuthLinkStore.StatusByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &graphql2.AuthLinkStatus{
+		ID:        stat.ID,
+		ExpiresAt: stat.ExpiresAt,
+		Claimed:   !stat.ClaimedAt.IsZero(),
+		Verified:  !stat.VerifiedAt.IsZero(),
+		Authed:    !stat.AuthedAt.IsZero(),
+	}, nil
+}
+
 func (a *Query) AuthSubjectsForProvider(ctx context.Context, _first *int, _after *string, providerID string) (conn *graphql2.AuthSubjectConnection, err error) {
 	var first int
 	var after string

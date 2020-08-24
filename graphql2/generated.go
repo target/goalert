@@ -121,6 +121,19 @@ type ComplexityRoot struct {
 		StepNumber     func(childComplexity int) int
 	}
 
+	AuthLink struct {
+		ClaimCode func(childComplexity int) int
+		ID        func(childComplexity int) int
+	}
+
+	AuthLinkStatus struct {
+		Authed    func(childComplexity int) int
+		Claimed   func(childComplexity int) int
+		ExpiresAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Verified  func(childComplexity int) int
+	}
+
 	AuthSubject struct {
 		ProviderID func(childComplexity int) int
 		SubjectID  func(childComplexity int) int
@@ -210,6 +223,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAuthSubject                 func(childComplexity int, input user.AuthSubject) int
 		CreateAlert                    func(childComplexity int, input CreateAlertInput) int
+		CreateAuthLink                 func(childComplexity int) int
 		CreateEscalationPolicy         func(childComplexity int, input CreateEscalationPolicyInput) int
 		CreateEscalationPolicyStep     func(childComplexity int, input CreateEscalationPolicyStepInput) int
 		CreateHeartbeatMonitor         func(childComplexity int, input CreateHeartbeatMonitorInput) int
@@ -226,6 +240,7 @@ type ComplexityRoot struct {
 		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
 		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
 		EscalateAlerts                 func(childComplexity int, input []int) int
+		ResetAuthLink                  func(childComplexity int) int
 		SendContactMethodVerification  func(childComplexity int, input SendContactMethodVerificationInput) int
 		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
 		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
@@ -245,6 +260,7 @@ type ComplexityRoot struct {
 		UpdateUserCalendarSubscription func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
 		UpdateUserContactMethod        func(childComplexity int, input UpdateUserContactMethodInput) int
 		UpdateUserOverride             func(childComplexity int, input UpdateUserOverrideInput) int
+		VerifyAuthLink                 func(childComplexity int, input VerifyAuthLinkInput) int
 		VerifyContactMethod            func(childComplexity int, input VerifyContactMethodInput) int
 	}
 
@@ -273,6 +289,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Alert                    func(childComplexity int, id int) int
 		Alerts                   func(childComplexity int, input *AlertSearchOptions) int
+		AuthLinkStatus           func(childComplexity int, id string) int
 		AuthSubjectsForProvider  func(childComplexity int, first *int, after *string, providerID string) int
 		Config                   func(childComplexity int, all *bool) int
 		ConfigHints              func(childComplexity int) int
@@ -507,6 +524,9 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MutationResolver interface {
+	CreateAuthLink(ctx context.Context) (*AuthLink, error)
+	VerifyAuthLink(ctx context.Context, input VerifyAuthLinkInput) (bool, error)
+	ResetAuthLink(ctx context.Context) (bool, error)
 	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*twilio.CarrierInfo, error)
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
@@ -551,6 +571,7 @@ type OnCallShiftResolver interface {
 }
 type QueryResolver interface {
 	PhoneNumberInfo(ctx context.Context, number string) (*PhoneNumberInfo, error)
+	AuthLinkStatus(ctx context.Context, id string) (*AuthLinkStatus, error)
 	User(ctx context.Context, id *string) (*user.User, error)
 	Users(ctx context.Context, input *UserSearchOptions, first *int, after *string, search *string) (*UserConnection, error)
 	Alert(ctx context.Context, id int) (*alert.Alert, error)
@@ -822,6 +843,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertState.StepNumber(childComplexity), true
+
+	case "AuthLink.claimCode":
+		if e.complexity.AuthLink.ClaimCode == nil {
+			break
+		}
+
+		return e.complexity.AuthLink.ClaimCode(childComplexity), true
+
+	case "AuthLink.id":
+		if e.complexity.AuthLink.ID == nil {
+			break
+		}
+
+		return e.complexity.AuthLink.ID(childComplexity), true
+
+	case "AuthLinkStatus.authed":
+		if e.complexity.AuthLinkStatus.Authed == nil {
+			break
+		}
+
+		return e.complexity.AuthLinkStatus.Authed(childComplexity), true
+
+	case "AuthLinkStatus.claimed":
+		if e.complexity.AuthLinkStatus.Claimed == nil {
+			break
+		}
+
+		return e.complexity.AuthLinkStatus.Claimed(childComplexity), true
+
+	case "AuthLinkStatus.expiresAt":
+		if e.complexity.AuthLinkStatus.ExpiresAt == nil {
+			break
+		}
+
+		return e.complexity.AuthLinkStatus.ExpiresAt(childComplexity), true
+
+	case "AuthLinkStatus.id":
+		if e.complexity.AuthLinkStatus.ID == nil {
+			break
+		}
+
+		return e.complexity.AuthLinkStatus.ID(childComplexity), true
+
+	case "AuthLinkStatus.verified":
+		if e.complexity.AuthLinkStatus.Verified == nil {
+			break
+		}
+
+		return e.complexity.AuthLinkStatus.Verified(childComplexity), true
 
 	case "AuthSubject.providerID":
 		if e.complexity.AuthSubject.ProviderID == nil {
@@ -1176,6 +1246,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateAlert(childComplexity, args["input"].(CreateAlertInput)), true
 
+	case "Mutation.createAuthLink":
+		if e.complexity.Mutation.CreateAuthLink == nil {
+			break
+		}
+
+		return e.complexity.Mutation.CreateAuthLink(childComplexity), true
+
 	case "Mutation.createEscalationPolicy":
 		if e.complexity.Mutation.CreateEscalationPolicy == nil {
 			break
@@ -1367,6 +1444,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EscalateAlerts(childComplexity, args["input"].([]int)), true
+
+	case "Mutation.resetAuthLink":
+		if e.complexity.Mutation.ResetAuthLink == nil {
+			break
+		}
+
+		return e.complexity.Mutation.ResetAuthLink(childComplexity), true
 
 	case "Mutation.sendContactMethodVerification":
 		if e.complexity.Mutation.SendContactMethodVerification == nil {
@@ -1596,6 +1680,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserOverride(childComplexity, args["input"].(UpdateUserOverrideInput)), true
 
+	case "Mutation.verifyAuthLink":
+		if e.complexity.Mutation.VerifyAuthLink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyAuthLink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyAuthLink(childComplexity, args["input"].(VerifyAuthLinkInput)), true
+
 	case "Mutation.verifyContactMethod":
 		if e.complexity.Mutation.VerifyContactMethod == nil {
 			break
@@ -1722,6 +1818,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Alerts(childComplexity, args["input"].(*AlertSearchOptions)), true
+
+	case "Query.authLinkStatus":
+		if e.complexity.Query.AuthLinkStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Query_authLinkStatus_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AuthLinkStatus(childComplexity, args["id"].(string)), true
 
 	case "Query.authSubjectsForProvider":
 		if e.complexity.Query.AuthSubjectsForProvider == nil {
@@ -2847,6 +2955,8 @@ var sources = []*ast.Source{
 	{Name: "./schema.graphql", Input: `type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
+  authLinkStatus(id: ID!): AuthLinkStatus
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -3100,7 +3210,30 @@ type DebugSendSMSInfo {
   providerURL: String!
 }
 
+type AuthLink {
+  id: ID!
+  claimCode: String!
+}
+
+type AuthLinkStatus {
+  id: ID!
+  expiresAt: ISOTimestamp!
+  claimed: Boolean!
+  verified: Boolean!
+  authed: Boolean!
+}
+
+input VerifyAuthLinkInput {
+  id: ID!
+  code: String!
+}
+
 type Mutation {
+  # Creates a new auth link code. Invalidates any existing code.
+  createAuthLink: AuthLink
+  verifyAuthLink(input: VerifyAuthLinkInput!): Boolean!
+  resetAuthLink: Boolean!
+
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
@@ -3674,6 +3807,7 @@ enum IntegrationKeyType {
   generic
   grafana
   site24x7
+  prometheusAlertmanager
   email
 }
 
@@ -4392,6 +4526,20 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_verifyAuthLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 VerifyAuthLinkInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNVerifyAuthLinkInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyAuthLinkInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_verifyContactMethod_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4445,6 +4593,20 @@ func (ec *executionContext) field_Query_alerts_args(ctx context.Context, rawArgs
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_authLinkStatus_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -5699,6 +5861,244 @@ func (ec *executionContext) _AlertState_repeatCount(ctx context.Context, field g
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLink_id(ctx context.Context, field graphql.CollectedField, obj *AuthLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLink_claimCode(ctx context.Context, field graphql.CollectedField, obj *AuthLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClaimCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLinkStatus_id(ctx context.Context, field graphql.CollectedField, obj *AuthLinkStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLinkStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLinkStatus_expiresAt(ctx context.Context, field graphql.CollectedField, obj *AuthLinkStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLinkStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExpiresAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLinkStatus_claimed(ctx context.Context, field graphql.CollectedField, obj *AuthLinkStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLinkStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Claimed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLinkStatus_verified(ctx context.Context, field graphql.CollectedField, obj *AuthLinkStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLinkStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Verified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLinkStatus_authed(ctx context.Context, field graphql.CollectedField, obj *AuthLinkStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLinkStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Authed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AuthSubject_providerID(ctx context.Context, field graphql.CollectedField, obj *user.AuthSubject) (ret graphql.Marshaler) {
@@ -7291,6 +7691,112 @@ func (ec *executionContext) _LabelConnection_pageInfo(ctx context.Context, field
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createAuthLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAuthLink(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*AuthLink)
+	fc.Result = res
+	return ec.marshalOAuthLink2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAuthLink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_verifyAuthLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_verifyAuthLink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifyAuthLink(rctx, args["input"].(VerifyAuthLinkInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_resetAuthLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ResetAuthLink(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_debugCarrierInfo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9281,6 +9787,44 @@ func (ec *executionContext) _Query_phoneNumberInfo(ctx context.Context, field gr
 	res := resTmp.(*PhoneNumberInfo)
 	fc.Result = res
 	return ec.marshalOPhoneNumberInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_authLinkStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_authLinkStatus_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AuthLinkStatus(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*AuthLinkStatus)
+	fc.Result = res
+	return ec.marshalOAuthLinkStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAuthLinkStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16873,6 +17417,30 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputVerifyAuthLinkInput(ctx context.Context, obj interface{}) (VerifyAuthLinkInput, error) {
+	var it VerifyAuthLinkInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "code":
+			var err error
+			it.Code, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputVerifyContactMethodInput(ctx context.Context, obj interface{}) (VerifyContactMethodInput, error) {
 	var it VerifyContactMethodInput
 	var asMap = obj.(map[string]interface{})
@@ -17189,6 +17757,85 @@ func (ec *executionContext) _AlertState(ctx context.Context, sel ast.SelectionSe
 			}
 		case "repeatCount":
 			out.Values[i] = ec._AlertState_repeatCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var authLinkImplementors = []string{"AuthLink"}
+
+func (ec *executionContext) _AuthLink(ctx context.Context, sel ast.SelectionSet, obj *AuthLink) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authLinkImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthLink")
+		case "id":
+			out.Values[i] = ec._AuthLink_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "claimCode":
+			out.Values[i] = ec._AuthLink_claimCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var authLinkStatusImplementors = []string{"AuthLinkStatus"}
+
+func (ec *executionContext) _AuthLinkStatus(ctx context.Context, sel ast.SelectionSet, obj *AuthLinkStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authLinkStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthLinkStatus")
+		case "id":
+			out.Values[i] = ec._AuthLinkStatus_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "expiresAt":
+			out.Values[i] = ec._AuthLinkStatus_expiresAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "claimed":
+			out.Values[i] = ec._AuthLinkStatus_claimed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verified":
+			out.Values[i] = ec._AuthLinkStatus_verified(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "authed":
+			out.Values[i] = ec._AuthLinkStatus_authed(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17805,6 +18452,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createAuthLink":
+			out.Values[i] = ec._Mutation_createAuthLink(ctx, field)
+		case "verifyAuthLink":
+			out.Values[i] = ec._Mutation_verifyAuthLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "resetAuthLink":
+			out.Values[i] = ec._Mutation_resetAuthLink(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "debugCarrierInfo":
 			out.Values[i] = ec._Mutation_debugCarrierInfo(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -18122,6 +18781,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_phoneNumberInfo(ctx, field)
+				return res
+			})
+		case "authLinkStatus":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_authLinkStatus(ctx, field)
 				return res
 			})
 		case "user":
@@ -21879,6 +22549,10 @@ func (ec *executionContext) marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋg
 	return v
 }
 
+func (ec *executionContext) unmarshalNVerifyAuthLinkInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyAuthLinkInput(ctx context.Context, v interface{}) (VerifyAuthLinkInput, error) {
+	return ec.unmarshalInputVerifyAuthLinkInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyContactMethodInput(ctx context.Context, v interface{}) (VerifyContactMethodInput, error) {
 	return ec.unmarshalInputVerifyContactMethodInput(ctx, v)
 }
@@ -22288,6 +22962,28 @@ func (ec *executionContext) marshalOAlertStatus2ᚕgithubᚗcomᚋtargetᚋgoale
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOAuthLink2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAuthLink(ctx context.Context, sel ast.SelectionSet, v AuthLink) graphql.Marshaler {
+	return ec._AuthLink(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOAuthLink2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAuthLink(ctx context.Context, sel ast.SelectionSet, v *AuthLink) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AuthLink(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOAuthLinkStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAuthLinkStatus(ctx context.Context, sel ast.SelectionSet, v AuthLinkStatus) graphql.Marshaler {
+	return ec._AuthLinkStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOAuthLinkStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAuthLinkStatus(ctx context.Context, sel ast.SelectionSet, v *AuthLinkStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AuthLinkStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

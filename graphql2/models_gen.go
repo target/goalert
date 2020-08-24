@@ -55,6 +55,19 @@ type AlertSearchOptions struct {
 	Omit              []int         `json:"omit"`
 }
 
+type AuthLink struct {
+	ID        string `json:"id"`
+	ClaimCode string `json:"claimCode"`
+}
+
+type AuthLinkStatus struct {
+	ID        string    `json:"id"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	Claimed   bool      `json:"claimed"`
+	Verified  bool      `json:"verified"`
+	Authed    bool      `json:"authed"`
+}
+
 type AuthSubjectConnection struct {
 	Nodes    []user.AuthSubject `json:"nodes"`
 	PageInfo *PageInfo          `json:"pageInfo"`
@@ -476,6 +489,11 @@ type UserSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type VerifyAuthLinkInput struct {
+	ID   string `json:"id"`
+	Code string `json:"code"`
+}
+
 type VerifyContactMethodInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 	Code            int    `json:"code"`
@@ -615,22 +633,24 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 type IntegrationKeyType string
 
 const (
-	IntegrationKeyTypeGeneric  IntegrationKeyType = "generic"
-	IntegrationKeyTypeGrafana  IntegrationKeyType = "grafana"
-	IntegrationKeyTypeSite24x7 IntegrationKeyType = "site24x7"
-	IntegrationKeyTypeEmail    IntegrationKeyType = "email"
+	IntegrationKeyTypeGeneric                IntegrationKeyType = "generic"
+	IntegrationKeyTypeGrafana                IntegrationKeyType = "grafana"
+	IntegrationKeyTypeSite24x7               IntegrationKeyType = "site24x7"
+	IntegrationKeyTypePrometheusAlertmanager IntegrationKeyType = "prometheusAlertmanager"
+	IntegrationKeyTypeEmail                  IntegrationKeyType = "email"
 )
 
 var AllIntegrationKeyType = []IntegrationKeyType{
 	IntegrationKeyTypeGeneric,
 	IntegrationKeyTypeGrafana,
 	IntegrationKeyTypeSite24x7,
+	IntegrationKeyTypePrometheusAlertmanager,
 	IntegrationKeyTypeEmail,
 }
 
 func (e IntegrationKeyType) IsValid() bool {
 	switch e {
-	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypeEmail:
+	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypePrometheusAlertmanager, IntegrationKeyTypeEmail:
 		return true
 	}
 	return false

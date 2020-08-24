@@ -106,15 +106,26 @@ function fillFormField(
 ): Cypress.Chainable<JQuery<HTMLElement>> {
   const selector = `${selPrefix} input[name="${name}"],textarea[name="${name}"]`
 
-  if (typeof value === 'boolean') {
-    if (!value) return cy.get(selector).uncheck()
-
-    return cy.get(selector).check()
-  }
-
   return cy
     .get(selector)
     .then((el) => {
+      // Auto detect/expand accordion sections if need be
+      const accordionSectionID = el
+        .parents('[aria-labelledby][role=region]')
+        .attr('id')
+      if (accordionSectionID) {
+        const ctrl = `[aria-controls=${accordionSectionID}][aria-expanded=false]`
+        if (Cypress.$(ctrl).length > 0) {
+          cy.get(ctrl).click()
+        }
+      }
+
+      if (typeof value === 'boolean') {
+        if (!value) return cy.get(selector).uncheck()
+
+        return cy.get(selector).check()
+      }
+
       const isSelect =
         el.parents('[data-cy=material-select]').data('cy') ===
           'material-select' ||

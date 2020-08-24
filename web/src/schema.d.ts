@@ -2,6 +2,7 @@
 
 export interface Query {
   phoneNumberInfo?: PhoneNumberInfo
+  authLinkStatus?: AuthLinkStatus
   user?: User
   users: UserConnection
   alert?: Alert
@@ -181,7 +182,28 @@ export interface DebugSendSMSInfo {
   providerURL: string
 }
 
+export interface AuthLink {
+  id: string
+  claimCode: string
+}
+
+export interface AuthLinkStatus {
+  id: string
+  expiresAt: ISOTimestamp
+  claimed: boolean
+  verified: boolean
+  authed: boolean
+}
+
+export interface VerifyAuthLinkInput {
+  id: string
+  code: string
+}
+
 export interface Mutation {
+  createAuthLink?: AuthLink
+  verifyAuthLink: boolean
+  resetAuthLink: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
@@ -647,7 +669,12 @@ export interface IntegrationKey {
   href: string
 }
 
-export type IntegrationKeyType = 'generic' | 'grafana' | 'site24x7' | 'email'
+export type IntegrationKeyType =
+  | 'generic'
+  | 'grafana'
+  | 'site24x7'
+  | 'prometheusAlertmanager'
+  | 'email'
 
 export interface ServiceOnCallUser {
   userID: string

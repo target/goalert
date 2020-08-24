@@ -2,8 +2,10 @@ package graphqlapp
 
 import (
 	context "context"
+	"database/sql"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/auth/authlink"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -15,6 +17,42 @@ import (
 type Mutation App
 
 func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
+
+func (a *Mutation) CreateAuthLink(ctx context.Context) (*graphql2.AuthLink, error) {
+	var stat *authlink.Status
+	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		err := a.AuthLinkStore.ResetTx(ctx, tx)
+		if err != nil {
+			return err
+		}
+
+		stat, err = a.AuthLinkStore.CreateTx(ctx, tx)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphql2.AuthLink{
+		ID:        stat.ID,
+		ClaimCode: stat.ClaimCode,
+	}, nil
+}
+
+func (a *Mutation) VerifyAuthLink(ctx context.Context, input graphql2.VerifyAuthLinkInput) (bool, error) {
+	return a.AuthLinkStore.Verify(ctx, input.ID, input.Code)
+}
+func (a *Mutation) ResetAuthLink(ctx context.Context) (bool, error) {
+	err := a.AuthLinkStore.ResetTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
 
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error
