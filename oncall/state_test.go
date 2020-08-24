@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 )
@@ -221,6 +222,53 @@ func TestState_CalculateShifts(t *testing.T) {
 		[]Shift{
 			{
 				Start:     time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC),
+				End:       time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC),
+				Truncated: true,
+				UserID:    "foobar",
+			},
+		},
+	)
+
+	check("Temporary Schedule",
+		time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC), // 8:00AM
+		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
+		&state{
+			loc: time.UTC,
+			rules: []ResolvedRule{
+				{Rule: rule.Rule{
+					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
+					Start:         rule.NewClock(8, 0),
+					End:           rule.NewClock(10, 0),
+					Target:        assignment.UserTarget("foobar"),
+				}},
+			},
+			groups: []schedule.FixedShiftGroup{
+				{
+					Start: time.Date(2018, 1, 1, 8, 15, 0, 0, time.UTC),
+					End:   time.Date(2018, 1, 1, 8, 45, 0, 0, time.UTC),
+					Shifts: []schedule.FixedShift{{
+						Start:  time.Date(2018, 1, 1, 8, 25, 0, 0, time.UTC),
+						End:    time.Date(2018, 1, 1, 8, 35, 0, 0, time.UTC),
+						UserID: "baz",
+					}},
+				},
+			},
+		},
+		[]Shift{
+			{
+				Start:     time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC),
+				End:       time.Date(2018, 1, 1, 8, 15, 0, 0, time.UTC),
+				Truncated: false,
+				UserID:    "foobar",
+			},
+			{
+				Start:     time.Date(2018, 1, 1, 8, 25, 0, 0, time.UTC),
+				End:       time.Date(2018, 1, 1, 8, 35, 0, 0, time.UTC),
+				Truncated: false,
+				UserID:    "baz",
+			},
+			{
+				Start:     time.Date(2018, 1, 1, 8, 45, 0, 0, time.UTC),
 				End:       time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC),
 				Truncated: true,
 				UserID:    "foobar",
