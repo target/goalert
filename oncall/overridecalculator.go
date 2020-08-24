@@ -14,6 +14,8 @@ type OverrideCalculator struct {
 	replace *UserCalculator
 
 	userMap map[string]string
+
+	mapUsers []string
 }
 
 func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) *OverrideCalculator {
@@ -23,7 +25,8 @@ func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) 
 		remove:       t.NewUserCalculator(),
 		replace:      t.NewUserCalculator(),
 
-		userMap: make(map[string]string),
+		userMap:  make(map[string]string),
+		mapUsers: make([]string, 0, 20),
 	}
 
 	for _, o := range overrides {
@@ -61,18 +64,20 @@ func (oCalc *OverrideCalculator) next(int64) {
 }
 
 func (oCalc *OverrideCalculator) MapUsers(userIDs []string) []string {
-	result := make([]string, 0, len(userIDs))
+	oCalc.mapUsers = oCalc.mapUsers[:0]
 	for _, id := range userIDs {
 		newID, ok := oCalc.userMap[id]
 		if !ok {
-			result = append(result, id)
+			oCalc.mapUsers = append(oCalc.mapUsers, id)
 			continue
 		}
 		if newID == "" {
 			continue
 		}
-		result = append(result, newID)
+		oCalc.mapUsers = append(oCalc.mapUsers, newID)
 	}
 
-	return append(result, oCalc.add.ActiveUsers()...)
+	oCalc.mapUsers = append(oCalc.mapUsers, oCalc.add.ActiveUsers()...)
+
+	return oCalc.mapUsers
 }
