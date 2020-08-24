@@ -86,7 +86,7 @@ export default function LinkToMobile(): JSX.Element {
   })
 
   const claimed = data?.authLinkStatus.claimed ?? ''
-  const verified = data?.authLinkStatus.verified ?? ''
+  const authed = data?.authLinkStatus.authed ?? ''
 
   useEffect(() => {
     if (showDialog) {
@@ -101,10 +101,10 @@ export default function LinkToMobile(): JSX.Element {
   }, [claimed])
 
   useEffect(() => {
-    if (verified) {
+    if (authed) {
       setIndex(2)
     }
-  }, [verified])
+  }, [authed])
 
   function slideRenderer({ index, key }: SlideParams): ReactNode {
     switch (index) {
