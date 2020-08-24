@@ -119,7 +119,7 @@ export default function LinkToMobile(): JSX.Element {
       case 1:
         return <VerifyCodeFields key={key} authLinkID={authLinkID} />
       case 2:
-        return <Success key={key} isStopped={!verified} />
+        return <Success key={key} isStopped={!authed} />
       case 3:
         return <Retry key={key} />
       default:
