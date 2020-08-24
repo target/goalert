@@ -1,7 +1,17 @@
 package oncall
 
 import (
+	"sync"
 	"time"
+)
+
+var (
+	boolMapPool = &sync.Pool{
+		New: func() interface{} { return make(map[int64]bool, 20) },
+	}
+	timeMapPool = &sync.Pool{
+		New: func() interface{} { return make(map[int64]time.Time, 20) },
+	}
 )
 
 type ActiveCalculator struct {
@@ -17,10 +27,10 @@ type ActiveCalculator struct {
 func (t *TimeIterator) NewActiveCalculator() *ActiveCalculator {
 	act := &ActiveCalculator{
 		TimeIterator: t,
-		m:            make(map[int64]bool),
-		actStart:     make(map[int64]time.Time),
+		m:            boolMapPool.Get().(map[int64]bool),
+		actStart:     timeMapPool.Get().(map[int64]time.Time),
 	}
-	t.OnNext(act.next)
+	t.Register(act.next, act.done)
 
 	return act
 }
@@ -57,6 +67,17 @@ func (act *ActiveCalculator) next() {
 		act.active = val
 		act.activeT = act.actStart[act.Unix()]
 	}
+}
+func (act *ActiveCalculator) done() {
+	for id := range act.m {
+		delete(act.m, id)
+	}
+	for id := range act.actStart {
+		delete(act.actStart, id)
+	}
+	boolMapPool.Put(act.m)
+	timeMapPool.Put(act.actStart)
+	act.m, act.actStart = nil, nil
 }
 func (act *ActiveCalculator) Active() bool          { return act.active }
 func (act *ActiveCalculator) Changed() bool         { return act.changed }

@@ -38,7 +38,7 @@ func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) 
 	calc.add.Init()
 	calc.remove.Init()
 	calc.replace.Init()
-	t.OnNext(calc.next)
+	t.Register(calc.next, nil)
 
 	return calc
 }

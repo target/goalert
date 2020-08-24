@@ -26,7 +26,7 @@ func (u *UserCalculator) Init() *UserCalculator {
 		return u
 	}
 
-	u.OnNext(u.next)
+	u.Register(u.next, nil)
 	u.init = true
 
 	return u

@@ -18,7 +18,7 @@ func (t *TimeIterator) NewRulesCalculator(loc *time.Location, rules []ResolvedRu
 	for _, r := range rules {
 		calc.rules = append(calc.rules, t.NewSingleRuleCalculator(loc, r))
 	}
-	t.OnNext(calc.next)
+	t.Register(calc.next, nil)
 
 	return calc
 }

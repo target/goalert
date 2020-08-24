@@ -44,14 +44,14 @@ func TestTimeIterator_Next(t *testing.T) {
 	assert.Equal(t, time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC).Unix(), iter.Unix())
 	assert.False(t, iter.Next())
 }
-func TestTimeIterator_OnNext(t *testing.T) {
+func TestTimeIterator_Register(t *testing.T) {
 	iter := oncall.NewTimeIterator(time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC), time.Date(2000, 1, 2, 3, 8, 5, 6, time.UTC), time.Minute)
 
 	var called bool
-	iter.OnNext(func() {
+	iter.Register(func() {
 		assert.Equal(t, time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC).Unix(), iter.Unix())
 		called = true
-	})
+	}, nil)
 
 	iter.Next()
 	assert.True(t, called)

@@ -5,7 +5,13 @@ import "time"
 type TimeIterator struct {
 	t, start, end, step int64
 
-	nextHooks []func()
+	next []func()
+	done []func()
+}
+
+type Iterator interface {
+	Next()
+	Done()
 }
 
 func NewTimeIterator(start, end time.Time, step time.Duration) *TimeIterator {
@@ -22,8 +28,13 @@ func NewTimeIterator(start, end time.Time, step time.Duration) *TimeIterator {
 	}
 }
 
-func (iter *TimeIterator) OnNext(fn func()) {
-	iter.nextHooks = append(iter.nextHooks, fn)
+func (iter *TimeIterator) Register(next, done func()) {
+	if next != nil {
+		iter.next = append(iter.next, next)
+	}
+	if done != nil {
+		iter.done = append(iter.done, done)
+	}
 }
 
 func (iter *TimeIterator) Next() bool {
@@ -31,10 +42,16 @@ func (iter *TimeIterator) Next() bool {
 		return false
 	}
 	iter.t += iter.step
-	for _, fn := range iter.nextHooks {
-		fn()
+	for _, next := range iter.next {
+		next()
 	}
 	return true
+}
+
+func (iter *TimeIterator) Done() {
+	for _, done := range iter.done {
+		done()
+	}
 }
 
 func (iter *TimeIterator) Unix() int64 { return iter.t }
