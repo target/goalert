@@ -45,9 +45,9 @@ func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) 
 
 	return calc
 }
-func (oCalc *OverrideCalculator) next(int64) {
+func (oCalc *OverrideCalculator) next(int64) int64 {
 	if !oCalc.remove.Changed() && !oCalc.replace.Changed() {
-		return
+		return 0
 	}
 
 	for id := range oCalc.userMap {
@@ -61,6 +61,8 @@ func (oCalc *OverrideCalculator) next(int64) {
 		parts := strings.SplitN(id, "\n", 2)
 		oCalc.userMap[parts[0]] = parts[1]
 	}
+
+	return 0
 }
 
 func (oCalc *OverrideCalculator) MapUsers(userIDs []string) []string {

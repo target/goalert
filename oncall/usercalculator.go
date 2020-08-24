@@ -69,9 +69,12 @@ func omitStr(s []string, val string) []string {
 	}
 	return append(s[:idx], s[idx+1:]...)
 }
-func (u *UserCalculator) next(int64) {
+func (u *UserCalculator) next(int64) int64 {
 	if !u.init {
 		panic("init was never called")
+	}
+	if len(u.calc) == 0 {
+		return -1
 	}
 	u.changed = false
 	for _, c := range u.calc {
@@ -85,6 +88,8 @@ func (u *UserCalculator) next(int64) {
 			u.active = omitStr(u.active, c.ID)
 		}
 	}
+
+	return 0
 }
 
 func (u *UserCalculator) ActiveUsers() []string { return u.active }

@@ -9,13 +9,22 @@ import (
 )
 
 func TestActiveCalculator(t *testing.T) {
-	check := func(desc string, results []bool, setup func(*oncall.ActiveCalculator)) {
+	var (
+		start = time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC)
+		end   = time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC)
+	)
+	type result struct {
+		Time  time.Time
+		Value bool
+	}
+
+	check := func(desc string, expected []result, setup func(*oncall.ActiveCalculator)) {
 		t.Helper()
 		t.Run(desc, func(t *testing.T) {
 			t.Helper()
 			iter := oncall.NewTimeIterator(
-				time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC),
-				time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC),
+				start,
+				end,
 				time.Minute,
 			).NewActiveCalculator()
 
@@ -24,36 +33,66 @@ func TestActiveCalculator(t *testing.T) {
 			}
 			iter.Init()
 
-			var last bool
-			for i, exp := range results {
-				assert.Truef(t, iter.Next(), "Next() call #%d", i+1)
-				assert.Equalf(t, exp != last, iter.Changed(), "Changed() call #%d", i+1)
-				assert.Equalf(t, exp, iter.Active(), "Active() call #%d", i+1)
-				last = exp
+			var results []result
+			for iter.Next() {
+				results = append(results, result{
+					Time:  time.Unix(iter.Unix(), 0).UTC(),
+					Value: iter.Active(),
+				})
 			}
 
-			assert.Falsef(t, iter.Next(), "Next() call #%d (last)", len(results)+1)
+			assert.EqualValues(t, expected, results)
 		})
 	}
-	check("empty", []bool{false, false, false, false, false}, nil)
+	check("empty", []result{{Time: start}, {Time: end}}, nil)
 
-	check("simple", []bool{false, true, true, false, false}, func(iter *oncall.ActiveCalculator) {
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC))
-	})
+	check("simple",
+		[]result{
+			{Time: start},
+			{Time: time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), Value: true},
+			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), Value: false},
+			{Time: end},
+		},
+		func(iter *oncall.ActiveCalculator) {
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC))
+		},
+	)
 
-	check("at-start", []bool{true, true, true, false, false}, func(iter *oncall.ActiveCalculator) {
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 3, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC))
-	})
+	check("at-start",
+		[]result{
+			{Time: start, Value: true},
+			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC)},
+			{Time: end},
+		},
+		func(iter *oncall.ActiveCalculator) {
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 3, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC))
+		},
+	)
 
-	check("multiple", []bool{false, true, false, true, false}, func(iter *oncall.ActiveCalculator) {
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC))
-		// out of order
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
-	})
+	check("multiple",
+		[]result{
+			{Time: start},
+			{Time: time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), Value: true},
+			{Time: time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC), Value: false},
+			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), Value: true},
+			{Time: end},
+		},
+		func(iter *oncall.ActiveCalculator) {
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC))
+			// out of order
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
+		},
+	)
 
-	check("full", []bool{true, true, true, true, true}, func(iter *oncall.ActiveCalculator) {
-		iter.SetSpan(time.Time{}, time.Date(9999, 1, 0, 0, 0, 0, 0, time.UTC))
-	})
+	check("full",
+		[]result{
+			{Time: start, Value: true},
+			{Time: end, Value: true},
+		},
+		func(iter *oncall.ActiveCalculator) {
+			iter.SetSpan(time.Time{}, time.Date(9999, 1, 0, 0, 0, 0, 0, time.UTC))
+		},
+	)
 
 	t.Run("ActiveTime", func(t *testing.T) {
 		iter := oncall.NewTimeIterator(

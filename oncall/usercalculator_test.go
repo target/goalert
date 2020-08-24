@@ -8,30 +8,29 @@ import (
 	"github.com/target/goalert/oncall"
 )
 
-func equalSlice(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
+func cloneSlice(a []string) []string {
+	if len(a) == 0 {
+		return nil
 	}
-
-	m := make(map[string]struct{}, len(a))
-	for _, id := range a {
-		m[id] = struct{}{}
-	}
-	for _, id := range b {
-		_, ok := m[id]
-		if !ok {
-			return false
-		}
-	}
-	return true
+	s := make([]string, len(a))
+	copy(s, a)
+	return s
 }
 
 func TestUserCalculator(t *testing.T) {
-	check := func(desc string, results [][]string, setup func(*oncall.UserCalculator)) {
+	type result struct {
+		Time  time.Time
+		Value []string
+	}
+	var (
+		start = time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC)
+		end   = time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC)
+	)
+	check := func(desc string, expected []result, setup func(*oncall.UserCalculator)) {
 		t.Run(desc, func(t *testing.T) {
 			iter := oncall.NewTimeIterator(
-				time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC),
-				time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC),
+				start,
+				end,
 				time.Minute,
 			).NewUserCalculator()
 
@@ -41,36 +40,60 @@ func TestUserCalculator(t *testing.T) {
 
 			iter.Init()
 
-			var last []string
-			for i, exp := range results {
-				if exp == nil {
-					exp = []string{}
-				}
-				assert.Truef(t, iter.Next(), "Next() call #%d", i+1)
-				assert.Equalf(t, !equalSlice(last, exp), iter.Changed(), "Changed() call #%d", i+1)
-				act := iter.ActiveUsers()
-				if act == nil {
-					act = []string{}
-				}
-				assert.EqualValuesf(t, exp, act, "Active() call #%d", i+1)
-				last = exp
+			var results []result
+			for iter.Next() {
+				results = append(results, result{
+					Time:  time.Unix(iter.Unix(), 0).UTC(),
+					Value: cloneSlice(iter.ActiveUsers()),
+				})
 			}
 
-			assert.Falsef(t, iter.Next(), "Next() call #%d (last)", len(results)+1)
+			assert.EqualValues(t, expected, results)
 		})
 	}
-	check("empty", [][]string{nil, nil, nil, nil, nil}, nil)
 
-	check("simple", [][]string{nil, {"foo"}, {"foo"}, nil, nil}, func(iter *oncall.UserCalculator) {
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "foo")
-	})
+	check("empty",
+		[]result{
+			{Time: start},
+			{Time: end},
+		},
+		nil,
+	)
 
-	check("at-start", [][]string{{"foo"}, {"foo"}, {"foo"}, nil, nil}, func(iter *oncall.UserCalculator) {
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 3, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "foo")
-	})
+	check("simple",
+		[]result{
+			{Time: start},
+			{Time: time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), Value: []string{"foo"}},
+			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC)},
+			{Time: end},
+		},
+		func(iter *oncall.UserCalculator) {
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "foo")
+		},
+	)
 
-	check("multiple", [][]string{nil, {"foo"}, {"foo", "bar"}, nil, nil}, func(iter *oncall.UserCalculator) {
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "foo")
-		iter.SetSpan(time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "bar")
-	})
+	check("at-start",
+		[]result{
+			{Time: start, Value: []string{"foo"}},
+			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC)},
+			{Time: end},
+		},
+		func(iter *oncall.UserCalculator) {
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 3, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "foo")
+		},
+	)
+
+	check("multiple",
+		[]result{
+			{Time: start},
+			{Time: time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), Value: []string{"foo"}},
+			{Time: time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC), Value: []string{"foo", "bar"}},
+			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC)},
+			{Time: end},
+		},
+		func(iter *oncall.UserCalculator) {
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "foo")
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), "bar")
+		},
+	)
 }

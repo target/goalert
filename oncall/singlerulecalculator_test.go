@@ -11,33 +11,52 @@ import (
 )
 
 func TestSingleRuleCalculator(t *testing.T) {
-	check := func(desc string, results []string, rule oncall.ResolvedRule) {
+	type result struct {
+		Time  time.Time
+		Value string
+	}
+	var (
+		start = time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC)
+		end   = time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC)
+	)
+	check := func(desc string, expected []result, rule oncall.ResolvedRule) {
 		t.Run(desc, func(t *testing.T) {
 			iter := oncall.NewTimeIterator(
-				time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC),
-				time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC),
+				start,
+				end,
 				time.Minute,
 			).NewSingleRuleCalculator(time.UTC, rule)
 
-			var last string
-			for i, exp := range results {
-				assert.Truef(t, iter.Next(), "Next() call #%d", i+1)
-				assert.Equalf(t, last != exp, iter.Changed(), "Changed() call #%d", i+1)
-				assert.EqualValuesf(t, exp, iter.ActiveUser(), "Active() call #%d", i+1)
-				last = exp
+			var results []result
+			for iter.Next() {
+				results = append(results, result{Time: time.Unix(iter.Unix(), 0).UTC(), Value: iter.ActiveUser()})
 			}
 
-			assert.Falsef(t, iter.Next(), "Next() call #%d (last)", len(results)+1)
+			assert.EqualValues(t, expected, results)
 		})
 	}
-	check("empty", []string{"", "", "", "", ""}, oncall.ResolvedRule{})
-
-	check("simple", []string{"", "foo", "foo", "", ""}, oncall.ResolvedRule{
-		Rule: rule.Rule{
-			Start:         rule.NewClock(3, 5),
-			End:           rule.NewClock(3, 7),
-			WeekdayFilter: rule.EveryDay(),
-			Target:        assignment.UserTarget("foo"),
+	check("empty",
+		[]result{
+			{Time: start},
+			{Time: end},
 		},
-	})
+		oncall.ResolvedRule{},
+	)
+
+	check("simple",
+		[]result{
+			{Time: start},
+			{Time: time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), Value: "foo"},
+			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC)},
+			{Time: end},
+		},
+		oncall.ResolvedRule{
+			Rule: rule.Rule{
+				Start:         rule.NewClock(3, 5),
+				End:           rule.NewClock(3, 7),
+				WeekdayFilter: rule.EveryDay(),
+				Target:        assignment.UserTarget("foo"),
+			},
+		},
+	)
 }

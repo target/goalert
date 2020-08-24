@@ -23,7 +23,7 @@ func (t *TimeIterator) NewRulesCalculator(loc *time.Location, rules []ResolvedRu
 	return calc
 }
 
-func (rCalc *RulesCalculator) next(int64) {
+func (rCalc *RulesCalculator) next(int64) int64 {
 	rCalc.changed = false
 
 	for _, r := range rCalc.rules {
@@ -34,7 +34,7 @@ func (rCalc *RulesCalculator) next(int64) {
 		break
 	}
 	if !rCalc.changed {
-		return
+		return 0
 	}
 
 	rCalc.userIDs = rCalc.userIDs[:0]
@@ -45,6 +45,8 @@ func (rCalc *RulesCalculator) next(int64) {
 		}
 		rCalc.userIDs = append(rCalc.userIDs, id)
 	}
+
+	return 0
 }
 
 func (rCalc *RulesCalculator) ActiveUsers() []string { return rCalc.userIDs }

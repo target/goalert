@@ -48,9 +48,10 @@ func TestTimeIterator_Register(t *testing.T) {
 	iter := oncall.NewTimeIterator(time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC), time.Date(2000, 1, 2, 3, 8, 5, 6, time.UTC), time.Minute)
 
 	var called bool
-	iter.Register(func(unix int64) {
+	iter.Register(func(unix int64) int64 {
 		assert.Equal(t, time.Date(2000, 1, 2, 3, 4, 0, 0, time.UTC).Unix(), unix)
 		called = true
+		return 0
 	}, nil)
 
 	iter.Next()

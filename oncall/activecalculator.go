@@ -91,13 +91,13 @@ func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 	act.states = append(act.states, boolValue{ID: id, Value: isStart})
 }
 
-func (act *ActiveCalculator) next(t int64) {
+func (act *ActiveCalculator) next(t int64) int64 {
 	if !act.init {
 		panic("Init never called")
 	}
 	if len(act.states) == 0 {
 		act.changed = false
-		return
+		return -1
 	}
 
 	v := act.states[0]
@@ -107,7 +107,14 @@ func (act *ActiveCalculator) next(t int64) {
 		act.active = v.Value
 		act.activeT = act.times[0]
 		act.times = act.times[1:]
+		if len(act.states) > 0 {
+			return act.states[0].ID
+		}
+
+		return -1
 	}
+
+	return v.ID
 }
 func (act *ActiveCalculator) done() {
 	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
