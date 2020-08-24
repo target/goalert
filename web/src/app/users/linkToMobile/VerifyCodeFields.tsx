@@ -32,14 +32,16 @@ interface VerifyCodeFieldsProps {
   authLinkID: string
 }
 
-export default function VerifyCodeFields(props: VerifyCodeFieldsProps) {
+export default function VerifyCodeFields(
+  props: VerifyCodeFieldsProps,
+): JSX.Element {
   const classes = useStyles()
   const [numOne, setNumOne] = useState('')
   const [numTwo, setNumTwo] = useState('')
   const [numThree, setNumThree] = useState('')
   const [numFour, setNumFour] = useState('')
 
-  const [verifyCode, verifyCodeStatus] = useMutation(mutation, {
+  const [verifyCode] = useMutation(mutation, {
     variables: {
       input: {
         id: props.authLinkID,
@@ -76,7 +78,8 @@ export default function VerifyCodeFields(props: VerifyCodeFieldsProps) {
               onChange={(e) => {
                 setNumOne(e.target.value)
                 if (!numTwo) {
-                  document.getElementById('numTwo')?.focus()
+                  const inputTwo = document.getElementById('numTwo')
+                  if (inputTwo) inputTwo.focus()
                 }
               }}
               inputProps={{
@@ -92,7 +95,8 @@ export default function VerifyCodeFields(props: VerifyCodeFieldsProps) {
               onChange={(e) => {
                 setNumTwo(e.target.value)
                 if (!numThree) {
-                  document.getElementById('numThree')?.focus()
+                  const inputThree = document.getElementById('numThree')
+                  if (inputThree) inputThree.focus()
                 }
               }}
               inputProps={{
@@ -108,7 +112,8 @@ export default function VerifyCodeFields(props: VerifyCodeFieldsProps) {
               onChange={(e) => {
                 setNumThree(e.target.value)
                 if (!numFour) {
-                  document.getElementById('numFour')?.focus()
+                  const inputFour = document.getElementById('numFour')
+                  if (inputFour) inputFour.focus()
                 }
               }}
               inputProps={{
@@ -121,9 +126,7 @@ export default function VerifyCodeFields(props: VerifyCodeFieldsProps) {
             <TextField
               id='numFour'
               value={numFour}
-              onChange={(e) => {
-                setNumFour(e.target.value)
-              }}
+              onChange={(e) => setNumFour(e.target.value)}
               inputProps={{
                 maxLength: 1,
                 className: classes.textField,

@@ -6,7 +6,9 @@ interface SuccessAnimationProps {
   isStopped: boolean
 }
 
-export default function SuccessAnimation(props: SuccessAnimationProps) {
+export default function SuccessAnimation(
+  props: SuccessAnimationProps,
+): JSX.Element {
   const defaultOptions = {
     loop: false,
     autoplay: false,

@@ -142,7 +142,7 @@ export default function LinkToMobile(): JSX.Element {
         classes={{ paper: classes.dialog }}
         open={showDialog}
         fullScreen={fullscreen}
-        fullWidth={true}
+        fullWidth
         maxWidth='xs'
         onClose={() => setShowDialog(false)}
       >
@@ -159,7 +159,7 @@ export default function LinkToMobile(): JSX.Element {
           />
         )}
         <DialogActions>
-          {index == 2 ? (
+          {index === 2 ? (
             <Button
               variant='contained'
               color='primary'
@@ -185,7 +185,7 @@ interface SuccessProps {
   isStopped: boolean
 }
 
-function Success(props: SuccessProps) {
+function Success(props: SuccessProps): JSX.Element {
   const classes = useStyles()
   return (
     <div className={classes.successContainer}>
@@ -197,6 +197,6 @@ function Success(props: SuccessProps) {
   )
 }
 
-function Retry() {
-  return null
+function Retry(): JSX.Element {
+  return <span>Retry</span>
 }
