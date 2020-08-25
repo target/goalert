@@ -15,6 +15,7 @@ var (
 	}
 )
 
+// ActiveCalculator will calculate if the current timestamp is within a span.
 type ActiveCalculator struct {
 	*TimeIterator
 
@@ -42,17 +43,19 @@ func (act *activeSortable) Swap(i, j int) {
 	act.times[i], act.times[j] = act.times[j], act.times[i]
 }
 
+// NewActiveCalculator will create a new ActiveCalculator bound to the TimeIterator.
 func (t *TimeIterator) NewActiveCalculator() *ActiveCalculator {
 	act := &ActiveCalculator{
 		TimeIterator: t,
 		states:       boolMapPool.Get().([]boolValue),
 		times:        timeMapPool.Get().([]time.Time),
 	}
-	t.Register(act.next, act.done)
+	t.Register(act)
 
 	return act
 }
 
+// Init should be called after all SetSpan calls have been completed and before Next().
 func (act *ActiveCalculator) Init() *ActiveCalculator {
 	if act.init {
 		return act
@@ -64,6 +67,10 @@ func (act *ActiveCalculator) Init() *ActiveCalculator {
 	return act
 }
 
+// SetSpan is used to set an active span.
+//
+// Care should be taken so that there is no overlap between spans, and
+// no start time should equal any end time.
 func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	if act.init {
 		panic("cannot add spans after Init")
@@ -91,7 +98,8 @@ func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 	act.states = append(act.states, boolValue{ID: id, Value: isStart})
 }
 
-func (act *ActiveCalculator) next(t int64) int64 {
+// Process implements the SubIterator.Process method.
+func (act *ActiveCalculator) Process(t int64) int64 {
 	if !act.init {
 		panic("Init never called")
 	}
@@ -116,13 +124,23 @@ func (act *ActiveCalculator) next(t int64) int64 {
 
 	return v.ID
 }
-func (act *ActiveCalculator) done() {
+
+// Done implements the SubIterator.Done method.
+func (act *ActiveCalculator) Done() {
 	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
 	boolMapPool.Put(act.states[:0])
 	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
 	timeMapPool.Put(act.times[:0])
 	act.states, act.times = nil, nil
 }
-func (act *ActiveCalculator) Active() bool          { return act.active }
-func (act *ActiveCalculator) Changed() bool         { return act.changed }
+
+// Active will return true if the current timestamp is within a span.
+func (act *ActiveCalculator) Active() bool { return act.active }
+
+// Changed will return true if the current tick changed the Active() state.
+func (act *ActiveCalculator) Changed() bool { return act.changed }
+
+// ActiveTime returns the original start time of the current Active() state.
+//
+// It is only valid if Active() is true.
 func (act *ActiveCalculator) ActiveTime() time.Time { return act.activeT }
