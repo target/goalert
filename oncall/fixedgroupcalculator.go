@@ -4,6 +4,7 @@ import (
 	"github.com/target/goalert/schedule"
 )
 
+// FixedGroupCalculator will calculate active state and active users for a set of FixedShiftGroups.
 type FixedGroupCalculator struct {
 	*TimeIterator
 
@@ -11,6 +12,7 @@ type FixedGroupCalculator struct {
 	*UserCalculator
 }
 
+// NewFixedGroupCalculator will create a new FixedGroupCalculator bound to the TimeIterator.
 func (t *TimeIterator) NewFixedGroupCalculator(groups []schedule.FixedShiftGroup) *FixedGroupCalculator {
 	fg := &FixedGroupCalculator{
 		TimeIterator:     t,
