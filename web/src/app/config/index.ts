@@ -22,4 +22,4 @@ export const UPDATE_NOTIF_DURATION = Duration.fromObject({ minutes: 15 })
 
 // UPDATE_FORCE_DURATION controls how long a new version must been seen (and stable) before
 // the page is forcibly refreshed.
-export const UPDATE_FORCE_DURATION = Duration.fromObject({ days: 3 })
+export const UPDATE_FORCE_DURATION = Duration.fromObject({ hours: 3 })
