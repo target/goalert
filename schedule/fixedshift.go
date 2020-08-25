@@ -11,29 +11,6 @@ type FixedShift struct {
 	UserID     string
 }
 
-func timeWithin(start, end, t time.Time) bool {
-	if start.Before(t) {
-		return false
-	}
-
-	return end.After(t)
-}
-
-func dedup(ids []string) []string {
-	sort.Strings(ids)
-	uniq := ids[:0]
-	var last string
-	for _, id := range ids {
-		if id == last {
-			continue
-		}
-		last = id
-		uniq = append(uniq, id)
-	}
-
-	return uniq
-}
-
 func maxTime(a, b time.Time) time.Time {
 	if a.After(b) {
 		return a
