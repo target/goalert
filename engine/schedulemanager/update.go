@@ -162,6 +162,7 @@ func (db *DB) update(ctx context.Context) error {
 
 	for _, r := range rules {
 		if _, ok := tempSched[r.ScheduleID]; ok {
+			// temp schedule active for this ID, skip
 			continue
 		}
 		if r.IsActive(now.In(tz[r.ScheduleID])) {
@@ -171,6 +172,7 @@ func (db *DB) update(ctx context.Context) error {
 
 	for _, o := range overrides {
 		if _, ok := tempSched[o.Target.TargetID()]; ok {
+			// temp schedule active for this ID, skip
 			continue
 		}
 		if o.AddUserID != "" && o.RemoveUserID == "" {

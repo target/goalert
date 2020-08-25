@@ -11,6 +11,8 @@ type FixedShiftGroup struct {
 	Shifts     []FixedShift
 }
 
+// trimGroupBefore will truncate and remove shifts so that the entire group will
+// end at the latest exactly t.
 func trimGroupBefore(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 	if !grp.Start.Before(t) {
 		// if it doesn't start before t, delete
@@ -37,6 +39,9 @@ func trimGroupBefore(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 
 	return grp
 }
+
+// trimGroupAfter will truncate and remove shifts so that the entire group
+// will start at the earliest exactly t.
 func trimGroupAfter(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 	if !grp.Start.Before(t) {
 		// if it doesn't start before t, no changes
@@ -63,6 +68,10 @@ func trimGroupAfter(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 
 	return grp
 }
+
+// mergeGroups will sort and merge groups and contained shifts
+//
+// The output is guaranteed to be in-order and with no overlapping start/end times.
 func mergeGroups(groups []FixedShiftGroup) []FixedShiftGroup {
 	if len(groups) == 0 {
 		return groups
@@ -92,6 +101,8 @@ func setFixedShifts(groups []FixedShiftGroup, start, end time.Time, shifts []Fix
 	groups = append(groups, FixedShiftGroup{Start: start, End: end, Shifts: shifts})
 	return mergeGroups(groups)
 }
+
+// deleteFixedShifts will cut groups and shifts out between start and end time.
 func deleteFixedShifts(groups []FixedShiftGroup, start, end time.Time) []FixedShiftGroup {
 	if !end.After(start) {
 		return groups

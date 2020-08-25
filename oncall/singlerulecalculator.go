@@ -23,11 +23,22 @@ func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule Resolved
 		act:          t.NewActiveCalculator(),
 	}
 
+	loopLimit := 100000
+	limit := func() bool {
+		if loopLimit <= 0 {
+			panic("infinite loop")
+		}
+		loopLimit--
+		return true
+	}
+
 	if rule.AlwaysActive() {
+		// always active so just add one span for the entire duration +1 step
 		calc.act.SetSpan(t.Start(), t.End().Add(t.Step()))
 	} else if !rule.NeverActive() {
 		cur := rule.StartTime(t.Start().In(loc))
-		for cur.Before(t.End()) {
+		// loop through rule active times
+		for cur.Before(t.End()) && limit() {
 			end := rule.EndTime(cur)
 			calc.act.SetSpan(cur, end)
 			cur = rule.StartTime(end)
@@ -38,7 +49,8 @@ func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule Resolved
 	if rule.Rotation != nil {
 		calc.rot = t.NewUserCalculator()
 		cur := t.Start().In(loc)
-		for cur.Before(t.End()) {
+		// loop through rotations
+		for cur.Before(t.End()) && limit() {
 			userID := rule.Rotation.UserID(cur)
 			calc.rot.SetSpan(rule.Rotation.CurrentStart, rule.Rotation.CurrentEnd, userID)
 			cur = rule.Rotation.CurrentEnd
@@ -58,6 +70,7 @@ func (rCalc *SingleRuleCalculator) Process(int64) int64 {
 		if rCalc.rot != nil {
 			usrs := rCalc.rot.ActiveUsers()
 			if len(usrs) > 0 {
+				// rotation will only ever have 1 active user
 				newUserID = usrs[0]
 			}
 		} else {

@@ -35,6 +35,7 @@ func (u *UserCalculator) Init() *UserCalculator {
 		return u
 	}
 
+	// transition to slice to avoid map iteration in Process
 	u.calc = make([]userCalc, 0, len(u.m))
 	for id, a := range u.m {
 		a.Init()
@@ -55,6 +56,8 @@ func (u *UserCalculator) SetSpan(start, end time.Time, id string) {
 	if u.init {
 		panic("cannot call SetSpan after init")
 	}
+
+	// set span per UserID
 	c := u.m[id]
 	if c == nil {
 		c = u.NewActiveCalculator()

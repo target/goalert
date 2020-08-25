@@ -75,9 +75,15 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	if act.init {
 		panic("cannot add spans after Init")
 	}
+
+	// Skip if the span ends before the iterator start time.
+	//
+	// A zero end time indicates infinity (e.g. current shift from history).
 	if !end.After(act.Start()) && !end.IsZero() {
 		return
 	}
+
+	// Skip if the length of the span is <= 0.
 	if !start.Before(act.End()) {
 		return
 	}

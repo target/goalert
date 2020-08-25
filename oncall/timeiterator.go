@@ -63,17 +63,23 @@ func (iter *TimeIterator) Next() bool {
 	for _, sub := range iter.sub {
 		nextStep = sub.Process(iter.t)
 		if nextStep == -1 {
+			// -1 means nothing left, jump to end
 			nextStep = iter.end
 		}
 		if iter.nextStep == 0 {
+			// no hints yet, so use current one
 			iter.nextStep = nextStep
 		} else if nextStep > 0 && nextStep < iter.nextStep {
+			// we have a next timestamp, update it only if it's sooner than the current hint
 			iter.nextStep = nextStep
 		}
 	}
+
 	if iter.nextStep == 0 {
+		// no hints, so proceed to the next step
 		iter.nextStep = iter.t + iter.step
 	} else if iter.nextStep > iter.end {
+		// clamp nextStep to end
 		iter.nextStep = iter.end
 	}
 	return true

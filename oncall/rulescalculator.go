@@ -36,6 +36,7 @@ func (rCalc *RulesCalculator) Process(int64) int64 {
 		rCalc.changed = true
 		break
 	}
+	// no rules changed, abort
 	if !rCalc.changed {
 		return 0
 	}

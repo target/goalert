@@ -33,6 +33,7 @@ func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) 
 
 	for _, o := range overrides {
 		if o.AddUserID != "" && o.RemoveUserID != "" {
+			// We need both remove & add, so store them with a newline separator REMOVE/REPLACE
 			calc.replace.SetSpan(o.Start, o.End, o.RemoveUserID+"\n"+o.AddUserID)
 		} else if o.AddUserID != "" {
 			calc.add.SetSpan(o.Start, o.End, o.AddUserID)
@@ -51,9 +52,11 @@ func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) 
 // Process implements the SubIterator.Process method.
 func (oCalc *OverrideCalculator) Process(int64) int64 {
 	if !oCalc.remove.Changed() && !oCalc.replace.Changed() {
+		// add is always used, so if neither of these has changed, there's nothing to do.
 		return 0
 	}
 
+	// clear the existing map
 	for id := range oCalc.userMap {
 		delete(oCalc.userMap, id)
 	}
@@ -63,6 +66,7 @@ func (oCalc *OverrideCalculator) Process(int64) int64 {
 	}
 	for _, id := range oCalc.replace.ActiveUsers() {
 		parts := strings.SplitN(id, "\n", 2)
+		// REMOVE/REPLACE
 		oCalc.userMap[parts[0]] = parts[1]
 	}
 
@@ -77,6 +81,7 @@ func (oCalc *OverrideCalculator) Done() {}
 //
 // It is only valid until the following Next() call and should not be modified.
 func (oCalc *OverrideCalculator) MapUsers(userIDs []string) []string {
+	// re-use existing slice
 	oCalc.mapUsers = oCalc.mapUsers[:0]
 	for _, id := range userIDs {
 		newID, ok := oCalc.userMap[id]
