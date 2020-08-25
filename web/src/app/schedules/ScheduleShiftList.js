@@ -145,18 +145,14 @@ export default class ScheduleShiftList extends React.PureComponent {
     ),
   }
 
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      create: null,
-      specifyDuration: false,
-      _duration: props.duration,
-    }
-  }
-
   static defaultProps = {
     shifts: [],
+  }
+
+  state = {
+    create: null,
+    specifyDuration: false,
+    isClear: false,
   }
 
   items() {
@@ -267,39 +263,34 @@ export default class ScheduleShiftList extends React.PureComponent {
         </TextField>
       )
     }
-    // todo: use Duration.isValid once Luxon is up to date
-    const regex = /^P(?!$)(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(?=\d)(\d+H)?(\d+M)?(\d+S)?)?$/
-    const isDurationValid = this.state._duration.match(regex)
     return (
       <TextField
         fullWidth
         label='Time Limit (days)'
         value={
-          isDurationValid
-            ? Duration.fromISO(this.state._duration).as('days')
-            : this.state._duration
+          this.state.isClear
+            ? ''
+            : Duration.fromISO(this.props.duration).as('days')
         }
         disabled={this.props.activeOnly}
         max={30}
         min={1}
         type='number'
         onBlur={() => {
-          if (!this.state._duration) {
-            this.setState({ _duration: this.props.duration })
-          }
+          this.setState({ isClear: false })
         }}
         onChange={(e) => {
+          this.setState({ isClear: e.target.value === '' })
           let val = e.target.value
           if (parseInt(val, 10) > 30) {
             val = '30'
           } else if (parseInt(val, 10) < 1) {
             val = '1'
           }
-          this.setState({ _duration: val })
-          if (parseInt(val, 10) > 0) {
+          if (parseInt(e.target.value) > 0) {
             this.props.handleSetDuration(
               Duration.fromObject({
-                days: clamp(1, 30, parseInt(val, 10)),
+                days: clamp(1, 30, parseInt(e.target.value, 10)),
               }).toISO(),
             )
           }
