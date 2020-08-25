@@ -11,11 +11,12 @@ func (data *ScheduleData) TempOnCall(t time.Time) (bool, []string) {
 		return false, nil
 	}
 	var users []string
+	var isActive bool
 	for _, grp := range data.V1.TemporarySchedules {
 		if t.Before(grp.Start) || !t.Before(grp.End) {
 			continue
 		}
-
+		isActive = true
 		for _, shift := range grp.Shifts {
 			if t.Before(shift.Start) || !t.Before(shift.End) {
 				continue
@@ -27,5 +28,5 @@ func (data *ScheduleData) TempOnCall(t time.Time) (bool, []string) {
 		break
 	}
 
-	return true, users
+	return isActive, users
 }
