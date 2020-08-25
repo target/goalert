@@ -12,22 +12,23 @@ type FixedShiftGroup struct {
 }
 
 func trimGroupBefore(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
-	if !t.After(grp.Start) {
-		// t is <= sched.Start so remove it all
+	if !grp.Start.Before(t) {
+		// if it doesn't start before t, delete
 		return FixedShiftGroup{}
 	}
-	if !t.Before(grp.End) {
-		// t is already >= sched.End, so no changes
+	if !grp.End.After(t) {
+		// if it doesn't end after t, no changes
 		return grp
 	}
 
 	grp.End = t
+
 	newShifts := make([]FixedShift, 0, len(grp.Shifts))
 	for _, shift := range grp.Shifts {
-		if !t.After(shift.Start) {
+		if !shift.Start.Before(t) {
 			continue
 		}
-		if t.Before(shift.End) {
+		if shift.End.After(t) {
 			shift.End = t
 		}
 		newShifts = append(newShifts, shift)
@@ -37,12 +38,12 @@ func trimGroupBefore(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 	return grp
 }
 func trimGroupAfter(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
-	if !t.After(grp.Start) {
-		// t is already <= sched.Start, so no changes
+	if !grp.Start.Before(t) {
+		// if it doesn't start before t, no changes
 		return grp
 	}
-	if !t.Before(grp.End) {
-		// t is >= sched.End so remove it all
+	if !grp.End.After(t) {
+		// if it doesn't end after t, delete
 		return FixedShiftGroup{}
 	}
 
@@ -50,10 +51,10 @@ func trimGroupAfter(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 
 	newShifts := make([]FixedShift, 0, len(grp.Shifts))
 	for _, shift := range grp.Shifts {
-		if !t.Before(shift.End) {
+		if !shift.End.After(t) {
 			continue
 		}
-		if t.After(shift.Start) {
+		if shift.Start.Before(t) {
 			shift.Start = t
 		}
 		newShifts = append(newShifts, shift)
@@ -92,14 +93,17 @@ func setFixedShifts(groups []FixedShiftGroup, start, end time.Time, shifts []Fix
 	return mergeGroups(groups)
 }
 func deleteFixedShifts(groups []FixedShiftGroup, start, end time.Time) []FixedShiftGroup {
+	if !end.After(start) {
+		return groups
+	}
 	result := make([]FixedShiftGroup, 0, len(groups))
 	for _, grp := range groups {
 		before := trimGroupBefore(grp, start)
 		after := trimGroupAfter(grp, end)
-		if !before.End.After(before.Start) {
+		if !before.Start.IsZero() {
 			result = append(result, before)
 		}
-		if !after.End.After(after.Start) {
+		if !after.Start.IsZero() {
 			result = append(result, after)
 		}
 	}

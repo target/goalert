@@ -27,10 +27,6 @@ func validateShifts(fname string, max int, shifts []FixedShift) error {
 	return nil
 }
 
-type scheduleData struct {
-	V1 struct{ TemporarySchedules []FixedShiftGroup }
-}
-
 func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID string) ([]FixedShiftGroup, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -55,7 +51,7 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 		return nil, err
 	}
 
-	var data scheduleData
+	var data ScheduleData
 	if len(rawData) > 0 {
 		err = json.Unmarshal(rawData, &data)
 		if err != nil {
@@ -65,7 +61,7 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 
 	return data.V1.TemporarySchedules, nil
 }
-func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, apply func(data *scheduleData) error) error {
+func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, apply func(data *ScheduleData) error) error {
 	var err error
 	externalTx := tx != nil
 	if !externalTx {
@@ -85,7 +81,7 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 		return err
 	}
 
-	var data scheduleData
+	var data ScheduleData
 	if len(rawData) > 0 {
 		err = json.Unmarshal(rawData, &data)
 		if err != nil {
@@ -128,7 +124,7 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 		return err
 	}
 
-	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *scheduleData) error {
+	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *ScheduleData) error {
 		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, start, end, shifts)
 		return nil
 	})
@@ -144,7 +140,7 @@ func (store *Store) ResetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID
 		return err
 	}
 
-	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *scheduleData) error {
+	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *ScheduleData) error {
 		data.V1.TemporarySchedules = deleteFixedShifts(data.V1.TemporarySchedules, start, end)
 		return nil
 	})
