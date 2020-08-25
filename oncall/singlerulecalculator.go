@@ -2,6 +2,7 @@ package oncall
 
 import "time"
 
+// SingleRuleCalculator will calculate the currently active user.
 type SingleRuleCalculator struct {
 	*TimeIterator
 
@@ -13,6 +14,7 @@ type SingleRuleCalculator struct {
 	changed bool
 }
 
+// NewSingleRuleCalculator will create a new SingleRuleCalculator bound to the TimeIterator.
 func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule ResolvedRule) *SingleRuleCalculator {
 	calc := &SingleRuleCalculator{
 		TimeIterator: t,
@@ -44,12 +46,13 @@ func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule Resolved
 		calc.rot.Init()
 	}
 
-	t.Register(calc.next, nil)
+	t.Register(calc)
 
 	return calc
 }
 
-func (rCalc *SingleRuleCalculator) next(int64) int64 {
+// Process implements the SubIterator.Process method.
+func (rCalc *SingleRuleCalculator) Process(int64) int64 {
 	var newUserID string
 	if rCalc.act.Active() {
 		if rCalc.rot != nil {
@@ -68,5 +71,11 @@ func (rCalc *SingleRuleCalculator) next(int64) int64 {
 	return 0
 }
 
+// Done implements the SubIterator.Done method.
+func (rCalc *SingleRuleCalculator) Done() {}
+
+// ActiveUser returns the currently active UserID or an empty string.
 func (rCalc *SingleRuleCalculator) ActiveUser() string { return rCalc.userID }
-func (rCalc *SingleRuleCalculator) Changed() bool      { return rCalc.changed }
+
+// Changed will return true if the ActiveUser has changed this tick.
+func (rCalc *SingleRuleCalculator) Changed() bool { return rCalc.changed }
