@@ -2,6 +2,7 @@ package oncall
 
 import "time"
 
+// UserCalculator will calculate a set of active users for a set of time spans.
 type UserCalculator struct {
 	*TimeIterator
 
@@ -18,6 +19,7 @@ type userCalc struct {
 	Calc *ActiveCalculator
 }
 
+// NewUserCalculator will create a new UserCalculator bound to the TimeIterator.
 func (t *TimeIterator) NewUserCalculator() *UserCalculator {
 	u := &UserCalculator{
 		TimeIterator: t,
@@ -26,6 +28,8 @@ func (t *TimeIterator) NewUserCalculator() *UserCalculator {
 
 	return u
 }
+
+// Init should be called after all SetSpan values have been provided.
 func (u *UserCalculator) Init() *UserCalculator {
 	if u.init {
 		return u
@@ -37,12 +41,16 @@ func (u *UserCalculator) Init() *UserCalculator {
 		u.calc = append(u.calc, userCalc{ID: id, Calc: a})
 	}
 
-	u.Register(u.next, nil)
+	u.Register(u)
 	u.init = true
 
 	return u
 }
 
+// SetSpan is used to set a start & end time for the given user ID.
+//
+// Care should be taken so that there is no overlap between spans of the same id, and
+// no start time should equal any end time for the same id.
 func (u *UserCalculator) SetSpan(start, end time.Time, id string) {
 	if u.init {
 		panic("cannot call SetSpan after init")
@@ -69,7 +77,9 @@ func omitStr(s []string, val string) []string {
 	}
 	return append(s[:idx], s[idx+1:]...)
 }
-func (u *UserCalculator) next(int64) int64 {
+
+// Process implements the SubIterator.Process method.
+func (u *UserCalculator) Process(int64) int64 {
 	if !u.init {
 		panic("init was never called")
 	}
@@ -92,8 +102,17 @@ func (u *UserCalculator) next(int64) int64 {
 	return 0
 }
 
+// Done implements the SubIterator.Done method.
+func (u *UserCalculator) Done() {}
+
+// ActiveUsers returns the current set of active users for the current timestamp.
+// It is only valid until the following Next() call and should not be modified.
 func (u *UserCalculator) ActiveUsers() []string { return u.active }
-func (u *UserCalculator) Changed() bool         { return u.changed }
+
+// Changed will return true if there has been any change this tick.
+func (u *UserCalculator) Changed() bool { return u.changed }
+
+// ActiveTimes will return the original start time for all ActiveUsers.
 func (u *UserCalculator) ActiveTimes() []time.Time {
 	times := make([]time.Time, len(u.active))
 	for i, id := range u.active {
