@@ -16,7 +16,7 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	
+
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 )
@@ -30,7 +30,7 @@ type Store interface {
 	Code(ctx context.Context, id string) (int, error)
 	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
 
-	// LastMessageStatus will return the MessageStatus and creation timestamp of the message matching the filter critera.
+	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
 	LastMessageStatus(ctx context.Context, typ string, cmID string, from time.Time) (*MessageStatus, time.Time, error)
 }
 
@@ -313,25 +313,25 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	return nil
 }
 
-func messageStateFromStatus(lastStatus string, hasNextRetry bool) MessageState {
+func messageStateFromStatus(lastStatus string, hasNextRetry bool) (MessageState, error) {
 	switch lastStatus {
 	case "queued_remotely", "sending":
-		return MessageStateSending
+		return MessageStateSending, nil
 	case "pending":
-		return MessageStatePending
+		return MessageStatePending, nil
 	case "sent":
-		return MessageStateSent
+		return MessageStateSent, nil
 	case "delivered":
-		return MessageStateDelivered
+		return MessageStateDelivered, nil
 	case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
 		// temporary if retry
 		if hasNextRetry {
-			return MessageStateFailedTemp
+			return MessageStateFailedTemp, nil
 		} else {
-			return MessageStateFailedPerm
+			return MessageStateFailedPerm, nil
 		}
 	default:
-		return -1
+		return -1, fmt.Errorf("unknown last_status %s", lastStatus)
 	}
 }
 
@@ -366,9 +366,9 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 			return nil, err
 		}
 		s.ProviderMessageID = providerMsgID.String
-		s.State = messageStateFromStatus(lastStatus, hasNextRetry)
-		if s.State == -1 {
-			return nil, fmt.Errorf("unknown last_status %s", lastStatus)
+		s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
+		if err != nil {
+			return nil, err
 		}
 
 		result = append(result, s)
@@ -402,9 +402,9 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ string, cmID string, fr
 		return nil, time.Time{}, err
 	}
 	s.ProviderMessageID = providerMsgID.String
-	s.State = messageStateFromStatus(lastStatus, hasNextRetry)
-	if s.State == -1 {
-		return nil, time.Time{}, fmt.Errorf("unknown last_status %s", lastStatus)
+	s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
+	if err != nil {
+		return nil, time.Time{}, err
 	}
 
 	return &s, createdAt.Time, nil

@@ -117,8 +117,9 @@ export default function SendTestDialog(
 
       <DialogContent>
         <DialogContentText>
-          GoAlert is sending a {contactMethodType} to {contactMethodToNumber}{' '}
-          from {contactMethodFromNumber}
+          GoAlert is sending{' '}
+          {contactMethodType === 'SMS' ? 'an SMS' : 'a VOICE'} to{' '}
+          {contactMethodToNumber} from {contactMethodFromNumber}
         </DialogContentText>
         {details && (
           <DialogContentText className={getTestStatusClass(status)}>
