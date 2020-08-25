@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTrimGroupBefore(t *testing.T) {
+func TestTrimGroupEnd(t *testing.T) {
 
 	grp := FixedShiftGroup{
 		Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
@@ -26,7 +26,7 @@ func TestTrimGroupBefore(t *testing.T) {
 		},
 	}
 
-	res := trimGroupBefore(grp, time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC))
+	res := TrimGroupEnd(grp, time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC))
 
 	assert.EqualValues(t, FixedShiftGroup{
 
@@ -47,7 +47,7 @@ func TestTrimGroupBefore(t *testing.T) {
 	}, res)
 }
 
-func TestTrimGroupAfter(t *testing.T) {
+func TestTrimGroupStart(t *testing.T) {
 
 	grp := FixedShiftGroup{
 		Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
@@ -66,7 +66,7 @@ func TestTrimGroupAfter(t *testing.T) {
 		},
 	}
 
-	res := trimGroupAfter(grp, time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC))
+	res := TrimGroupStart(grp, time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC))
 
 	assert.EqualValues(t, FixedShiftGroup{
 		Start: time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC),
@@ -131,7 +131,7 @@ func TestMergeGroups(t *testing.T) {
 	},
 	}
 
-	res := mergeGroups(grp)
+	res := MergeGroups(grp)
 
 	assert.EqualValues(t, []FixedShiftGroup{
 		{

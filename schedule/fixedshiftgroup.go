@@ -11,9 +11,9 @@ type FixedShiftGroup struct {
 	Shifts     []FixedShift
 }
 
-// trimGroupBefore will truncate and remove shifts so that the entire group will
+// TrimGroupEnd will truncate and remove shifts so that the entire group will
 // end at the latest exactly t.
-func trimGroupBefore(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
+func TrimGroupEnd(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 	if !grp.Start.Before(t) {
 		// if it doesn't start before t, delete
 		return FixedShiftGroup{}
@@ -40,9 +40,9 @@ func trimGroupBefore(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 	return grp
 }
 
-// trimGroupAfter will truncate and remove shifts so that the entire group
+// TrimGroupStart will truncate and remove shifts so that the entire group
 // will start at the earliest exactly t.
-func trimGroupAfter(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
+func TrimGroupStart(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 	if !grp.Start.Before(t) {
 		// if it doesn't start before t, no changes
 		return grp
@@ -69,10 +69,10 @@ func trimGroupAfter(grp FixedShiftGroup, t time.Time) FixedShiftGroup {
 	return grp
 }
 
-// mergeGroups will sort and merge groups and contained shifts
+// MergeGroups will sort and merge groups and contained shifts
 //
 // The output is guaranteed to be in-order and with no overlapping start/end times.
-func mergeGroups(groups []FixedShiftGroup) []FixedShiftGroup {
+func MergeGroups(groups []FixedShiftGroup) []FixedShiftGroup {
 	if len(groups) == 0 {
 		return groups
 	}
@@ -99,7 +99,7 @@ func mergeGroups(groups []FixedShiftGroup) []FixedShiftGroup {
 func setFixedShifts(groups []FixedShiftGroup, start, end time.Time, shifts []FixedShift) []FixedShiftGroup {
 	groups = deleteFixedShifts(groups, start, end)
 	groups = append(groups, FixedShiftGroup{Start: start, End: end, Shifts: shifts})
-	return mergeGroups(groups)
+	return MergeGroups(groups)
 }
 
 // deleteFixedShifts will cut groups and shifts out between start and end time.
@@ -109,8 +109,8 @@ func deleteFixedShifts(groups []FixedShiftGroup, start, end time.Time) []FixedSh
 	}
 	result := make([]FixedShiftGroup, 0, len(groups))
 	for _, grp := range groups {
-		before := trimGroupBefore(grp, start)
-		after := trimGroupAfter(grp, end)
+		before := TrimGroupEnd(grp, start)
+		after := TrimGroupStart(grp, end)
 		if !before.Start.IsZero() {
 			result = append(result, before)
 		}
