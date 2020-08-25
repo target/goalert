@@ -2,22 +2,38 @@ package oncall
 
 import "time"
 
+// TimeIterator will iterate between start and end at a particular step interval.
 type TimeIterator struct {
 	t, start, end, step int64
 
 	nextStep int64
 
-	next []func(int64) int64
-	done []func()
+	sub []SubIterator
 }
 
-type Iterator interface {
-	// Process takes the current unix timestamp as a parameter and returns the next
-	// actionable step timestamp.
+// A SubIterator can be added to a TimeIterator via the Register method.
+type SubIterator interface {
+	// Process will be called with each timestamp that needs processing. Each call will be sequential, but
+	// it may not be called for each step.
+	//
+	// Process should return the value of the next required timestamp if it is known otherwise 0.
+	// If the iterator has no more events to process -1 can be returned to signal complete.
 	Process(int64) int64
+
+	// Done will be called when the iterator is no longer needed.
 	Done()
 }
 
+// NextFunc can be used as a SubIterator.
+type NextFunc func(int64) int64
+
+// Process implements the SubIterator.Process method by calling the NextFunc.
+func (fn NextFunc) Process(t int64) int64 { return fn(t) }
+
+// Done is just a stub to implement the SubIterator.Done method.
+func (fn NextFunc) Done() {}
+
+// NewTimeIterator will create a new TimeIterator with the given configuration.
 func NewTimeIterator(start, end time.Time, step time.Duration) *TimeIterator {
 	step = step.Truncate(time.Second)
 	stepUnix := step.Nanoseconds() / int64(time.Second)
@@ -32,15 +48,10 @@ func NewTimeIterator(start, end time.Time, step time.Duration) *TimeIterator {
 	}
 }
 
-func (iter *TimeIterator) Register(next func(int64) int64, done func()) {
-	if next != nil {
-		iter.next = append(iter.next, next)
-	}
-	if done != nil {
-		iter.done = append(iter.done, done)
-	}
-}
+// Register adds a new sub Iterator.
+func (iter *TimeIterator) Register(sub SubIterator) { iter.sub = append(iter.sub, sub) }
 
+// Next will return true until iteration completes.
 func (iter *TimeIterator) Next() bool {
 	if iter.t >= iter.end {
 		return false
@@ -49,8 +60,8 @@ func (iter *TimeIterator) Next() bool {
 	iter.nextStep = 0
 
 	var nextStep int64
-	for _, next := range iter.next {
-		nextStep = next(iter.t)
+	for _, sub := range iter.sub {
+		nextStep = sub.Process(iter.t)
 		if nextStep == -1 {
 			nextStep = iter.end
 		}
@@ -68,14 +79,22 @@ func (iter *TimeIterator) Next() bool {
 	return true
 }
 
-func (iter *TimeIterator) Done() {
-	for _, done := range iter.done {
-		done()
+// Close should be called when the iterator is no longer needed.
+func (iter *TimeIterator) Close() error {
+	for _, s := range iter.sub {
+		s.Done()
 	}
+	return nil
 }
 
+// Unix will return the current unix timestamp (seconds).
 func (iter *TimeIterator) Unix() int64 { return iter.t }
 
-func (iter *TimeIterator) Start() time.Time    { return time.Unix(iter.start, 0) }
-func (iter *TimeIterator) End() time.Time      { return time.Unix(iter.end, 0) }
+// Start will return start time of the TimeIterator.
+func (iter *TimeIterator) Start() time.Time { return time.Unix(iter.start, 0) }
+
+// End will return the end time of the TimeIterator.
+func (iter *TimeIterator) End() time.Time { return time.Unix(iter.end, 0) }
+
+// Step will return the iterators step value.
 func (iter *TimeIterator) Step() time.Duration { return time.Second * time.Duration(iter.step) }
