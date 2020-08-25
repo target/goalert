@@ -106,6 +106,7 @@ func (u *UserCalculator) Process(int64) int64 {
 func (u *UserCalculator) Done() {}
 
 // ActiveUsers returns the current set of active users for the current timestamp.
+//
 // It is only valid until the following Next() call and should not be modified.
 func (u *UserCalculator) ActiveUsers() []string { return u.active }
 

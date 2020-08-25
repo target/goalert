@@ -6,6 +6,7 @@ import (
 	"github.com/target/goalert/override"
 )
 
+// OverrideCalculator allows mapping a set of active users against the current set of active overrides.
 type OverrideCalculator struct {
 	*TimeIterator
 
@@ -18,6 +19,7 @@ type OverrideCalculator struct {
 	mapUsers []string
 }
 
+// NewOverrideCalculator will create a new OverrideCalculator bound to the TimeIterator.
 func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) *OverrideCalculator {
 	calc := &OverrideCalculator{
 		TimeIterator: t,
@@ -41,11 +43,13 @@ func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) 
 	calc.add.Init()
 	calc.remove.Init()
 	calc.replace.Init()
-	t.Register(calc.next, nil)
+	t.Register(calc)
 
 	return calc
 }
-func (oCalc *OverrideCalculator) next(int64) int64 {
+
+// Process implements the SubIterator.Process method.
+func (oCalc *OverrideCalculator) Process(int64) int64 {
 	if !oCalc.remove.Changed() && !oCalc.replace.Changed() {
 		return 0
 	}
@@ -65,6 +69,13 @@ func (oCalc *OverrideCalculator) next(int64) int64 {
 	return 0
 }
 
+// Done implements the SubIterator.Done method.
+func (oCalc *OverrideCalculator) Done() {}
+
+// MapUsers will return a sliced of userIDs applying the current set of overrides
+// the the provided list. The provided list is not modified.
+//
+// It is only valid until the following Next() call and should not be modified.
 func (oCalc *OverrideCalculator) MapUsers(userIDs []string) []string {
 	oCalc.mapUsers = oCalc.mapUsers[:0]
 	for _, id := range userIDs {
