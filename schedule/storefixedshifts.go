@@ -27,6 +27,7 @@ func validateShifts(fname string, max int, shifts []FixedShift) error {
 	return nil
 }
 
+// FixedShiftGroups will return the current set for the provided scheduleID.
 func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID string) ([]FixedShiftGroup, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -51,7 +52,7 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 		return nil, err
 	}
 
-	var data ScheduleData
+	var data Data
 	if len(rawData) > 0 {
 		err = json.Unmarshal(rawData, &data)
 		if err != nil {
@@ -61,7 +62,7 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 
 	return data.V1.TemporarySchedules, nil
 }
-func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, apply func(data *ScheduleData) error) error {
+func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, apply func(data *Data) error) error {
 	var err error
 	externalTx := tx != nil
 	if !externalTx {
@@ -81,7 +82,7 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 		return err
 	}
 
-	var data ScheduleData
+	var data Data
 	if len(rawData) > 0 {
 		err = json.Unmarshal(rawData, &data)
 		if err != nil {
@@ -110,6 +111,8 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 
 	return nil
 }
+
+// SetFixedShifts will cause the schedule to use only, and exactly the provided set of shifts between the provided start and end times.
 func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time, shifts []FixedShift) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -124,11 +127,13 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 		return err
 	}
 
-	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *ScheduleData) error {
+	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *Data) error {
 		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, start, end, shifts)
 		return nil
 	})
 }
+
+// ResetFixedShifts will clear out (or split, if needed) any defined fixed-shift groups that exist between the start and end time.
 func (store *Store) ResetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -140,7 +145,7 @@ func (store *Store) ResetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID
 		return err
 	}
 
-	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *ScheduleData) error {
+	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *Data) error {
 		data.V1.TemporarySchedules = deleteFixedShifts(data.V1.TemporarySchedules, start, end)
 		return nil
 	})

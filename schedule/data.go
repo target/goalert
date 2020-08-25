@@ -2,16 +2,18 @@ package schedule
 
 import "time"
 
-type ScheduleData struct {
+// Data contains configuration for a single schedule.
+type Data struct {
 	V1 struct{ TemporarySchedules []FixedShiftGroup }
 }
 
-func (data *ScheduleData) TempOnCall(t time.Time) (bool, []string) {
+// TempOnCall will calculate any on-call users for the given time. isActive will
+// be true if a temporary schedule is active.
+func (data *Data) TempOnCall(t time.Time) (isActive bool, users []string) {
 	if data == nil {
 		return false, nil
 	}
-	var users []string
-	var isActive bool
+
 	for _, grp := range data.V1.TemporarySchedules {
 		if t.Before(grp.Start) || !t.Before(grp.End) {
 			continue

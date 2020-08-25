@@ -11,28 +11,6 @@ type FixedShift struct {
 	UserID     string
 }
 
-// FixedOnCallUsers will return the users that would be on-call for the given configuration.
-func FixedOnCallUsers(groups []FixedShiftGroup, t time.Time) (id []string, ok bool) {
-	for _, grp := range groups {
-		if !timeWithin(grp.Start, grp.End, t) {
-			continue
-		}
-
-		// authoritive
-		var onCall []string
-		for _, s := range grp.Shifts {
-			if !timeWithin(s.Start, s.End, t) {
-				continue
-			}
-			onCall = append(onCall, s.UserID)
-		}
-
-		return dedup(onCall), true
-	}
-
-	return nil, false
-}
-
 func timeWithin(start, end, t time.Time) bool {
 	if start.Before(t) {
 		return false

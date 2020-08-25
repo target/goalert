@@ -41,7 +41,7 @@ func (db *DB) update(ctx context.Context) error {
 		return errors.Wrap(err, "get DB time")
 	}
 
-	scheduleData := make(map[string]*schedule.ScheduleData)
+	scheduleData := make(map[string]*schedule.Data)
 	rows, err := tx.StmtContext(ctx, db.data).QueryContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get schedule data")
@@ -55,7 +55,7 @@ func (db *DB) update(ctx context.Context) error {
 			return errors.Wrap(err, "scan schedule data")
 		}
 
-		var sData schedule.ScheduleData
+		var sData schedule.Data
 		err = json.Unmarshal(data, &sData)
 		if err != nil {
 			log.Log(log.WithField(ctx, "ScheduleID", id), errors.Wrap(err, "unmarshal schedule data"))
