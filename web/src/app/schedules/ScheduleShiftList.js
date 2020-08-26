@@ -281,19 +281,14 @@ export default class ScheduleShiftList extends React.PureComponent {
         }}
         onChange={(e) => {
           this.setState({ isClear: e.target.value === '' })
-          let val = e.target.value
-          if (parseInt(val, 10) > 30) {
-            val = '30'
-          } else if (parseInt(val, 10) < 1) {
-            val = '1'
+          if (parseInt(e.target.value) < 0) {
+            return
           }
-          if (parseInt(e.target.value) > 0) {
-            this.props.handleSetDuration(
-              Duration.fromObject({
-                days: clamp(1, 30, parseInt(e.target.value, 10)),
-              }).toISO(),
-            )
-          }
+          this.props.handleSetDuration(
+            Duration.fromObject({
+              days: clamp(1, 30, parseInt(e.target.value, 10)),
+            }).toISO(),
+          )
         }}
       />
     )
