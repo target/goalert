@@ -31,7 +31,7 @@ type Store interface {
 	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
 
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
-	LastMessageStatus(ctx context.Context, typ string, cmID string, from time.Time) (*MessageStatus, time.Time, error)
+	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
 }
 
 var _ Store = &DB{}
@@ -377,7 +377,7 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	return result, nil
 }
 
-func (db *DB) LastMessageStatus(ctx context.Context, typ string, cmID string, from time.Time) (*MessageStatus, time.Time, error) {
+func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, time.Time{}, err

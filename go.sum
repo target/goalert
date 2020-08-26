@@ -668,13 +668,8 @@ golang.org/x/tools v0.0.0-20200305140159-d7d444866696 h1:uuiLBSsR+ZDddgZ/2k23Y7F
 golang.org/x/tools v0.0.0-20200305140159-d7d444866696/go.mod h1:o4KQGtdN14AW+yjsvvwRTJJuXz8XRtIHtEnmAXLyFUw=
 golang.org/x/tools v0.0.0-20200618155944-c7475b9d7fb2 h1:5uj2ldj1KKGFXJexeG65UpexxnZYU4d1Q6en50MewmU=
 golang.org/x/tools v0.0.0-20200618155944-c7475b9d7fb2/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
-<<<<<<< HEAD
-golang.org/x/tools v0.0.0-20200825210148-b72e8bb66c93 h1:ErMtKusKMWYK6suW/qFH25m7nbhn43A4862xbps5PPE=
-golang.org/x/tools v0.0.0-20200825210148-b72e8bb66c93/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
-=======
 golang.org/x/tools v0.0.0-20200811215021-48a8ffc5b207 h1:8Kg+JssU1jBZs8GIrL5pl4nVyaqyyhdmHAR4D1zGErg=
 golang.org/x/tools v0.0.0-20200811215021-48a8ffc5b207/go.mod h1:njjCfa9FT2d7l9Bc6FUM5FLjQPp3cFF28FI3qnDFljA=
->>>>>>> f0f67220a553ab1e04c5e1f54ec49b6c1ddd5629
 golang.org/x/xerrors v0.0.0-20190410155217-1f06c39b4373/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7 h1:9zdDQZ7Thm29KFXgAX/+yaf3eVbP7djjWp/dXAppNCc=
