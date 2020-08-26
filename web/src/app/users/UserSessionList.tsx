@@ -8,6 +8,8 @@ import { UserSession } from '../../schema'
 import Bowser from 'bowser'
 import { formatTimeSince } from '../util/timeFormat'
 import _ from 'lodash-es'
+import QueryList from '../lists/QueryList'
+import { DateTime } from 'luxon'
 
 const query = gql`
   query($userID: ID!) {
@@ -41,7 +43,7 @@ export default function UserSessionList(
 ): JSX.Element {
   const { userID: curUserID } = useSessionInfo() as any
   const userID = props.userID || curUserID
-  const { data, loading } = useQuery(query, { variables: { userID } })
+  const { data, loading, error } = useQuery(query, { variables: { userID } })
 
   const sessions: UserSession[] = _.sortBy(
     data?.user?.sessions || [],
@@ -51,14 +53,17 @@ export default function UserSessionList(
   return (
     <Card>
       <FlatList
-        loading={loading}
         items={sessions.map((s) => ({
           title: friendlyUAString(s.userAgent),
           highlight: s.current,
           secondaryAction: (
-            <ListItemText>{formatTimeSince(s.lastAccessAt)}</ListItemText>
+            <ListItemText
+              secondary={`Last access: ${formatTimeSince(s.lastAccessAt)}`}
+            />
           ),
-          subText: `Logged in ${formatTimeSince(s.createdAt)} ago.`,
+          subText: `Last login: ${DateTime.fromISO(
+            s.createdAt,
+          ).toLocaleString()}`,
         }))}
       />
     </Card>
