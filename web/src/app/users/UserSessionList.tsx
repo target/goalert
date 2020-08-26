@@ -61,9 +61,9 @@ export default function UserSessionList(
               secondary={`Last access: ${formatTimeSince(s.lastAccessAt)}`}
             />
           ),
-          subText: `Last login: ${DateTime.fromISO(
-            s.createdAt,
-          ).toLocaleString()}`,
+          subText: `Last login: ${DateTime.fromISO(s.createdAt).toLocaleString(
+            DateTime.DATE_FULL,
+          )}`,
         }))}
       />
     </Card>
