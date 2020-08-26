@@ -57,8 +57,9 @@ type Handler struct {
 	fetchSession *sql.Stmt
 	endSession   *sql.Stmt
 
-	userSessions   *sql.Stmt
-	endSessionUser *sql.Stmt
+	userSessions       *sql.Stmt
+	endSessionUser     *sql.Stmt
+	endAllSessionsUser *sql.Stmt
 }
 
 // NewHandler creates a new Handler using the provided config.
@@ -122,6 +123,11 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 			delete from auth_user_sessions
 			where user_id = $1 and id = $2
 		`),
+
+		endAllSessionsUser: p.P(`
+			delete from auth_user_sessions
+			where user_id = $1
+		`),
 	}
 
 	return h, p.Err
@@ -146,6 +152,21 @@ func (h *Handler) EndUserSessionTx(ctx context.Context, tx *sql.Tx, id ...string
 	} else {
 		_, err = tx.StmtContext(ctx, h.endSessionUser).ExecContext(ctx, permission.UserID(ctx), sqlutil.UUIDArray(id))
 	}
+	return err
+}
+
+func (h *Handler) EndAllCurrentUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(permission.UserID(ctx)))
+	if err != nil {
+		return err
+	}
+
+	stmt := h.endAllSessionsUser
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+	_, err = stmt.ExecContext(ctx, permission.UserID(ctx))
+
 	return err
 }
 

@@ -186,6 +186,7 @@ export interface Mutation {
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
   deleteAuthSubject: boolean
+  endAllAuthSessionsByCurrentUser: boolean
   updateUser: boolean
   testContactMethod: boolean
   updateAlerts?: Alert[]

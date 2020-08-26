@@ -210,44 +210,45 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAuthSubject                 func(childComplexity int, input user.AuthSubject) int
-		CreateAlert                    func(childComplexity int, input CreateAlertInput) int
-		CreateEscalationPolicy         func(childComplexity int, input CreateEscalationPolicyInput) int
-		CreateEscalationPolicyStep     func(childComplexity int, input CreateEscalationPolicyStepInput) int
-		CreateHeartbeatMonitor         func(childComplexity int, input CreateHeartbeatMonitorInput) int
-		CreateIntegrationKey           func(childComplexity int, input CreateIntegrationKeyInput) int
-		CreateRotation                 func(childComplexity int, input CreateRotationInput) int
-		CreateSchedule                 func(childComplexity int, input CreateScheduleInput) int
-		CreateService                  func(childComplexity int, input CreateServiceInput) int
-		CreateUserCalendarSubscription func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
-		CreateUserContactMethod        func(childComplexity int, input CreateUserContactMethodInput) int
-		CreateUserNotificationRule     func(childComplexity int, input CreateUserNotificationRuleInput) int
-		CreateUserOverride             func(childComplexity int, input CreateUserOverrideInput) int
-		DebugCarrierInfo               func(childComplexity int, input DebugCarrierInfoInput) int
-		DebugSendSms                   func(childComplexity int, input DebugSendSMSInput) int
-		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
-		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
-		EscalateAlerts                 func(childComplexity int, input []int) int
-		SendContactMethodVerification  func(childComplexity int, input SendContactMethodVerificationInput) int
-		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
-		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
-		SetLabel                       func(childComplexity int, input SetLabelInput) int
-		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
-		TestContactMethod              func(childComplexity int, id string) int
-		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
-		UpdateAlertsByService          func(childComplexity int, input UpdateAlertsByServiceInput) int
-		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
-		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
-		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
-		UpdateRotation                 func(childComplexity int, input UpdateRotationInput) int
-		UpdateSchedule                 func(childComplexity int, input UpdateScheduleInput) int
-		UpdateScheduleTarget           func(childComplexity int, input ScheduleTargetInput) int
-		UpdateService                  func(childComplexity int, input UpdateServiceInput) int
-		UpdateUser                     func(childComplexity int, input UpdateUserInput) int
-		UpdateUserCalendarSubscription func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
-		UpdateUserContactMethod        func(childComplexity int, input UpdateUserContactMethodInput) int
-		UpdateUserOverride             func(childComplexity int, input UpdateUserOverrideInput) int
-		VerifyContactMethod            func(childComplexity int, input VerifyContactMethodInput) int
+		AddAuthSubject                  func(childComplexity int, input user.AuthSubject) int
+		CreateAlert                     func(childComplexity int, input CreateAlertInput) int
+		CreateEscalationPolicy          func(childComplexity int, input CreateEscalationPolicyInput) int
+		CreateEscalationPolicyStep      func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateHeartbeatMonitor          func(childComplexity int, input CreateHeartbeatMonitorInput) int
+		CreateIntegrationKey            func(childComplexity int, input CreateIntegrationKeyInput) int
+		CreateRotation                  func(childComplexity int, input CreateRotationInput) int
+		CreateSchedule                  func(childComplexity int, input CreateScheduleInput) int
+		CreateService                   func(childComplexity int, input CreateServiceInput) int
+		CreateUserCalendarSubscription  func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
+		CreateUserContactMethod         func(childComplexity int, input CreateUserContactMethodInput) int
+		CreateUserNotificationRule      func(childComplexity int, input CreateUserNotificationRuleInput) int
+		CreateUserOverride              func(childComplexity int, input CreateUserOverrideInput) int
+		DebugCarrierInfo                func(childComplexity int, input DebugCarrierInfoInput) int
+		DebugSendSms                    func(childComplexity int, input DebugSendSMSInput) int
+		DeleteAll                       func(childComplexity int, input []assignment.RawTarget) int
+		DeleteAuthSubject               func(childComplexity int, input user.AuthSubject) int
+		EndAllAuthSessionsByCurrentUser func(childComplexity int) int
+		EscalateAlerts                  func(childComplexity int, input []int) int
+		SendContactMethodVerification   func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetConfig                       func(childComplexity int, input []ConfigValueInput) int
+		SetFavorite                     func(childComplexity int, input SetFavoriteInput) int
+		SetLabel                        func(childComplexity int, input SetLabelInput) int
+		SetSystemLimits                 func(childComplexity int, input []SystemLimitInput) int
+		TestContactMethod               func(childComplexity int, id string) int
+		UpdateAlerts                    func(childComplexity int, input UpdateAlertsInput) int
+		UpdateAlertsByService           func(childComplexity int, input UpdateAlertsByServiceInput) int
+		UpdateEscalationPolicy          func(childComplexity int, input UpdateEscalationPolicyInput) int
+		UpdateEscalationPolicyStep      func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateHeartbeatMonitor          func(childComplexity int, input UpdateHeartbeatMonitorInput) int
+		UpdateRotation                  func(childComplexity int, input UpdateRotationInput) int
+		UpdateSchedule                  func(childComplexity int, input UpdateScheduleInput) int
+		UpdateScheduleTarget            func(childComplexity int, input ScheduleTargetInput) int
+		UpdateService                   func(childComplexity int, input UpdateServiceInput) int
+		UpdateUser                      func(childComplexity int, input UpdateUserInput) int
+		UpdateUserCalendarSubscription  func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
+		UpdateUserContactMethod         func(childComplexity int, input UpdateUserContactMethodInput) int
+		UpdateUserOverride              func(childComplexity int, input UpdateUserOverrideInput) int
+		VerifyContactMethod             func(childComplexity int, input VerifyContactMethodInput) int
 	}
 
 	OnCallShift struct {
@@ -522,6 +523,7 @@ type MutationResolver interface {
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	DeleteAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
+	EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, error)
 	UpdateUser(ctx context.Context, input UpdateUserInput) (bool, error)
 	TestContactMethod(ctx context.Context, id string) (bool, error)
 	UpdateAlerts(ctx context.Context, input UpdateAlertsInput) ([]alert.Alert, error)
@@ -1370,6 +1372,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteAuthSubject(childComplexity, args["input"].(user.AuthSubject)), true
+
+	case "Mutation.endAllAuthSessionsByCurrentUser":
+		if e.complexity.Mutation.EndAllAuthSessionsByCurrentUser == nil {
+			break
+		}
+
+		return e.complexity.Mutation.EndAllAuthSessionsByCurrentUser(childComplexity), true
 
 	case "Mutation.escalateAlerts":
 		if e.complexity.Mutation.EscalateAlerts == nil {
@@ -2901,7 +2910,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "./schema.graphql", Input: `type Query {
+	{Name: "./schema.graphql", Input: `type Query {
   phoneNumberInfo(number: String!): PhoneNumberInfo
 
   # Returns the user with the given ID. If no ID is specified,
@@ -3162,6 +3171,7 @@ type Mutation {
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
+  endAllAuthSessionsByCurrentUser: Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
 
   testContactMethod(id: ID!): Boolean!
@@ -7505,6 +7515,40 @@ func (ec *executionContext) _Mutation_deleteAuthSubject(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteAuthSubject(rctx, args["input"].(user.AuthSubject))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_endAllAuthSessionsByCurrentUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EndAllAuthSessionsByCurrentUser(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18093,6 +18137,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteAuthSubject":
 			out.Values[i] = ec._Mutation_deleteAuthSubject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "endAllAuthSessionsByCurrentUser":
+			out.Values[i] = ec._Mutation_endAllAuthSessionsByCurrentUser(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -55,6 +55,14 @@ func (a *Mutation) DeleteAuthSubject(ctx context.Context, input user.AuthSubject
 	return true, nil
 }
 
+func (a *Mutation) EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, error) {
+	err := a.AuthHandler.EndAllCurrentUserSessionsTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (a *Mutation) DeleteAll(ctx context.Context, input []assignment.RawTarget) (bool, error) {
 	tx, err := a.DB.BeginTx(ctx, nil)
 	if err != nil {
