@@ -647,7 +647,12 @@ export interface IntegrationKey {
   href: string
 }
 
-export type IntegrationKeyType = 'generic' | 'grafana' | 'site24x7' | 'email'
+export type IntegrationKeyType =
+  | 'generic'
+  | 'grafana'
+  | 'site24x7'
+  | 'prometheusAlertmanager'
+  | 'email'
 
 export interface ServiceOnCallUser {
   userID: string
@@ -662,6 +667,7 @@ export interface EscalationPolicy {
   repeat: number
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
+  notices: Notice[]
 }
 
 export type AlertStatus =
@@ -800,3 +806,11 @@ export interface AuthSubject {
   subjectID: string
   userID: string
 }
+
+export interface Notice {
+  type: NoticeType
+  message: string
+  details: string
+}
+
+export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'

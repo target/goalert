@@ -23,6 +23,12 @@ const query = gql`
       id
       name
       description
+
+      notices {
+        type
+        message
+        details
+      }
     }
   }
 `
@@ -73,6 +79,7 @@ export default function PolicyDetails(props) {
       <DetailsPage
         title={data.name}
         details={data.description}
+        notices={data.notices}
         links={[
           {
             label: 'Services',
