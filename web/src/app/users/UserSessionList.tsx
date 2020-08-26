@@ -1,15 +1,28 @@
-import React from 'react'
+import React, { ReactNode, useState } from 'react'
 import FlatList from '../lists/FlatList'
 import { useSessionInfo } from '../util/RequireConfig'
 import gql from 'graphql-tag'
-import { useQuery } from 'react-apollo'
-import { Card, ListItemText } from '@material-ui/core'
+import { useMutation, useQuery } from 'react-apollo'
+import {
+  Button,
+  Card,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  ListItemText,
+  makeStyles,
+} from '@material-ui/core'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
 import { formatTimeSince } from '../util/timeFormat'
 import _ from 'lodash-es'
-import QueryList from '../lists/QueryList'
 import { DateTime } from 'luxon'
+import PageActions from '../util/PageActions'
+import FormDialog from '../dialogs/FormDialog'
+import { nonFieldErrors } from '../util/errutil'
+import { getSubtitle } from '../schedules/calendar-subscribe/CalendarSubscribeCreateDialog'
 
 const query = gql`
   query($userID: ID!) {
@@ -26,6 +39,24 @@ const query = gql`
   }
 `
 
+const mutationLogoutOne = gql`
+  mutation($input: [TargetInput!]) {
+    deleteAll(input: $input)
+  }
+`
+
+const mutationLogoutAll = gql`
+  mutation {
+    endAllAuthSessionsByCurrentUser
+  }
+`
+
+const useStyles = makeStyles({
+  button: {
+    width: '250px',
+  },
+})
+
 export interface UserSessionListProps {
   userID?: string
 }
@@ -38,9 +69,20 @@ function friendlyUAString(ua: string): string {
   } on ${b.getOSName()} (${b.getPlatformType()})`
 }
 
+type Session = {
+  id: string
+  userAgent: string
+}
+
 export default function UserSessionList(
   props: UserSessionListProps,
 ): JSX.Element {
+  const classes = useStyles()
+
+  // handles both logout all and logout individual sessions
+  const [showDialog, setShowDialog] = useState(false)
+  const [session, setSession] = useState<Session | null>(null)
+
   const { userID: curUserID } = useSessionInfo() as any
   const userID = props.userID || curUserID
   const { data, loading, error } = useQuery(query, { variables: { userID } })
@@ -50,22 +92,82 @@ export default function UserSessionList(
     (s: UserSession) => (s.current ? '_' + s.lastAccessAt : s.lastAccessAt),
   )
 
+  const [logoutOne, logoutOneStatus] = useMutation(mutationLogoutOne)
+  const [logoutAll, logoutAllStatus] = useMutation(mutationLogoutAll)
+
+  function getSubtitle(): string {
+    if (session?.id) {
+      return `This will log you out of your "${friendlyUAString(
+        session.userAgent,
+      )}" session.`
+    }
+
+    return 'This will log you out of all sessions on all devices.'
+  }
+
   return (
-    <Card>
-      <FlatList
-        items={sessions.map((s) => ({
-          title: friendlyUAString(s.userAgent),
-          highlight: s.current,
-          secondaryAction: (
-            <ListItemText
-              secondary={`Last access: ${formatTimeSince(s.lastAccessAt)}`}
-            />
-          ),
-          subText: `Last login: ${DateTime.fromISO(s.createdAt).toLocaleString(
-            DateTime.DATE_FULL,
-          )}`,
-        }))}
-      />
-    </Card>
+    <React.Fragment>
+      <PageActions>
+        <Button
+          onClick={() => setShowDialog(true)}
+          className={classes.button}
+          variant='contained'
+        >
+          Log Out All Sessions
+        </Button>
+      </PageActions>
+
+      <Card>
+        <FlatList
+          items={sessions.map((s) => ({
+            title: friendlyUAString(s.userAgent),
+            highlight: s.current,
+            secondaryAction: (
+              <Button
+                variant='contained'
+                color='primary'
+                onClick={() => {
+                  setShowDialog(true)
+                  setSession({
+                    id: s.id,
+                    userAgent: s.userAgent,
+                  })
+                }}
+              >
+                Logout
+              </Button>
+            ),
+            subText: `Last access: ${formatTimeSince(s.lastAccessAt)}`,
+          }))}
+        />
+      </Card>
+
+      {showDialog && (
+        <FormDialog
+          title='Are you sure?'
+          confirm
+          loading={logoutOneStatus.loading || logoutAllStatus.loading}
+          errors={nonFieldErrors(
+            logoutOneStatus.error || logoutAllStatus.error,
+          )}
+          subTitle={getSubtitle()}
+          onSubmit={() =>
+            session?.id
+              ? logoutOne({
+                  variables: {
+                    input: [
+                      {
+                        id: session?.id,
+                        type: 'userSession',
+                      },
+                    ],
+                  },
+                })
+              : logoutAll()
+          }
+          onClose={() => setShowDialog(false)}
+        />
+      )}
+    </React.Fragment>
   )
 }
