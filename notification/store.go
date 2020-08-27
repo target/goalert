@@ -387,7 +387,7 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 	if err != nil {
 		return nil, time.Time{}, err
 	}
-	
+
 	var s MessageStatus
 	var lastStatus string
 	var hasNextRetry bool

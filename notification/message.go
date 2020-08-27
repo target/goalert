@@ -47,7 +47,7 @@ func (s MessageType) Value() (driver.Value, error) {
 }
 
 func (s *MessageType) Scan(value interface{}) error {
-	str := value.(string) 
+	str := value.(string)
 
 	switch str {
 	case "alert_notification":
