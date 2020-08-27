@@ -117,9 +117,11 @@ export default function SendTestDialog(
 
       <DialogContent>
         <DialogContentText>
-          GoAlert is sending{' '}
-          {contactMethodType === 'SMS' ? 'an SMS' : 'a VOICE'} to{' '}
-          {contactMethodToNumber} from {contactMethodFromNumber}
+          GoAlert is{' '}
+          {contactMethodType === 'SMS'
+            ? 'sending a test SMS message'
+            : 'making a test voice call'}{' '}
+          to {contactMethodToNumber} from {contactMethodFromNumber}.
         </DialogContentText>
         {details && (
           <DialogContentText className={getTestStatusClass(status)}>
@@ -128,7 +130,7 @@ export default function SendTestDialog(
         )}
         {!details && (
           <DialogContentText className={classes.statusError}>
-            Try again in one minute.
+            Couldn't send a message yet, please try again after about a minute.
           </DialogContentText>
         )}
       </DialogContent>
