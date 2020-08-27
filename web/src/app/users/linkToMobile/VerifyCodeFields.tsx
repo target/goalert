@@ -16,7 +16,7 @@ const useStyles = makeStyles({
     justifyContent: 'center',
   },
   codeContainer: {
-    marginTop: '1em',
+    margin: '0.5em',
   },
   contentText: {
     marginBottom: 0,
