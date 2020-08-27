@@ -51,6 +51,7 @@ const mutation = gql`
     createAuthLink {
       id
       claimCode
+      verifyCode
     }
   }
 `
@@ -71,12 +72,12 @@ export default function LinkToMobile(): JSX.Element {
   const width = useWidth()
   const fullscreen = isWidthDown('md', width)
   const [showDialog, setShowDialog] = useState(false)
-  const [index, setIndex] = useState(0)
 
   const [createAuthLink, createAuthLinkStatus] = useMutation(mutation)
   const loading = !createAuthLinkStatus.data && createAuthLinkStatus.loading
   const authLinkID = createAuthLinkStatus?.data?.createAuthLink.id ?? ''
   const claimCode = createAuthLinkStatus?.data?.createAuthLink.claimCode ?? ''
+  const verifyCode = createAuthLinkStatus?.data?.createAuthLink.verifyCode ?? ''
 
   const { data } = useQuery(query, {
     variables: {
@@ -85,8 +86,8 @@ export default function LinkToMobile(): JSX.Element {
     skip: loading || !authLinkID,
   })
 
-  const claimed = data?.authLinkStatus.claimed ?? ''
-  const authed = data?.authLinkStatus.authed ?? ''
+  const claimed = data?.authLinkStatus?.claimed ?? ''
+  const authed = data?.authLinkStatus?.authed ?? ''
 
   useEffect(() => {
     if (showDialog) {
@@ -94,17 +95,11 @@ export default function LinkToMobile(): JSX.Element {
     }
   }, [showDialog])
 
-  useEffect(() => {
-    if (claimed) {
-      setIndex(1)
-    }
-  }, [claimed])
-
-  useEffect(() => {
-    if (authed) {
-      setIndex(2)
-    }
-  }, [authed])
+  // index of stepper/slide
+  let index = 0
+  const LAST_STEP_IDX = 2
+  if (claimed && index != 1) index = 1
+  if (authed && index != 2) index = 2
 
   function slideRenderer({ index, key }: SlideParams): ReactNode {
     switch (index) {
@@ -117,7 +112,13 @@ export default function LinkToMobile(): JSX.Element {
           />
         )
       case 1:
-        return <VerifyCodeFields key={key} authLinkID={authLinkID} />
+        return (
+          <VerifyCodeFields
+            key={key}
+            authLinkID={authLinkID}
+            verifyCode={verifyCode}
+          />
+        )
       case 2:
         return <Success key={key} isStopped={!authed} />
       case 3:
@@ -154,12 +155,12 @@ export default function LinkToMobile(): JSX.Element {
         ) : (
           <VirtualizeAnimatedViews
             index={index}
-            onChangeIndex={(i: number) => setIndex(i)}
+            onChangeIndex={(i: number) => (index = i)}
             slideRenderer={slideRenderer}
           />
         )}
         <DialogActions>
-          {index === 2 ? (
+          {index === LAST_STEP_IDX ? (
             <Button
               variant='contained'
               color='primary'

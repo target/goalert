@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import {
+  Button,
   DialogContent,
   DialogContentText,
   Grid,
@@ -10,8 +11,12 @@ import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 
 const useStyles = makeStyles({
+  buttonContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
   codeContainer: {
-    marginTop: '2em',
+    marginTop: '1em',
   },
   contentText: {
     marginBottom: 0,
@@ -30,38 +35,44 @@ const mutation = gql`
 
 interface VerifyCodeFieldsProps {
   authLinkID: string
+  verifyCode: string
 }
 
 export default function VerifyCodeFields(
   props: VerifyCodeFieldsProps,
 ): JSX.Element {
   const classes = useStyles()
-  const [numOne, setNumOne] = useState('')
-  const [numTwo, setNumTwo] = useState('')
-  const [numThree, setNumThree] = useState('')
-  const [numFour, setNumFour] = useState('')
 
   const [verifyCode] = useMutation(mutation, {
     variables: {
       input: {
         id: props.authLinkID,
-        code: numOne + numTwo + numThree + numFour,
+        code: props.verifyCode,
       },
     },
   })
 
-  useEffect(() => {
-    if (numOne && numTwo && numThree && numFour) {
-      verifyCode()
-    }
-  }, [numOne, numTwo, numThree, numFour])
+  const renderTextField = (i: number) => (
+    <Grid item xs={3}>
+      <TextField
+        value={props.verifyCode.charAt(i)}
+        InputProps={{
+          readOnly: true,
+        }}
+        inputProps={{
+          className: classes.textField,
+        }}
+      />
+    </Grid>
+  )
 
   return (
     <DialogContent>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <DialogContentText className={classes.contentText}>
-            Enter the code displayed on your mobile device.
+            Please verify that the code displayed is the same on your mobile
+            device.
           </DialogContentText>
         </Grid>
         <Grid
@@ -71,68 +82,19 @@ export default function VerifyCodeFields(
           container
           spacing={2}
         >
-          <Grid item xs={3}>
-            <TextField
-              id='numOne'
-              value={numOne}
-              onChange={(e) => {
-                setNumOne(e.target.value)
-                if (!numTwo) {
-                  const inputTwo = document.getElementById('numTwo')
-                  if (inputTwo) inputTwo.focus()
-                }
-              }}
-              inputProps={{
-                maxLength: 1,
-                className: classes.textField,
-              }}
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              id='numTwo'
-              value={numTwo}
-              onChange={(e) => {
-                setNumTwo(e.target.value)
-                if (!numThree) {
-                  const inputThree = document.getElementById('numThree')
-                  if (inputThree) inputThree.focus()
-                }
-              }}
-              inputProps={{
-                maxLength: 1,
-                className: classes.textField,
-              }}
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              id='numThree'
-              value={numThree}
-              onChange={(e) => {
-                setNumThree(e.target.value)
-                if (!numFour) {
-                  const inputFour = document.getElementById('numFour')
-                  if (inputFour) inputFour.focus()
-                }
-              }}
-              inputProps={{
-                maxLength: 1,
-                className: classes.textField,
-              }}
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <TextField
-              id='numFour'
-              value={numFour}
-              onChange={(e) => setNumFour(e.target.value)}
-              inputProps={{
-                maxLength: 1,
-                className: classes.textField,
-              }}
-            />
-          </Grid>
+          {renderTextField(0)}
+          {renderTextField(1)}
+          {renderTextField(2)}
+          {renderTextField(3)}
+        </Grid>
+        <Grid className={classes.buttonContainer} item xs={12}>
+          <Button
+            variant='contained'
+            color='primary'
+            onClick={() => verifyCode()}
+          >
+            Looks good
+          </Button>
         </Grid>
       </Grid>
     </DialogContent>

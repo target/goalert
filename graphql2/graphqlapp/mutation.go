@@ -38,8 +38,9 @@ func (a *Mutation) CreateAuthLink(ctx context.Context) (*graphql2.AuthLink, erro
 	}
 
 	return &graphql2.AuthLink{
-		ID:        stat.ID,
-		ClaimCode: stat.ClaimCode,
+		ID:         stat.ID,
+		ClaimCode:  stat.ClaimCode,
+		VerifyCode: stat.VerifyCode,
 	}, nil
 }
 
