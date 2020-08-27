@@ -281,7 +281,7 @@ export default class ScheduleShiftList extends React.PureComponent {
         }}
         onChange={(e) => {
           this.setState({ isClear: e.target.value === '' })
-          if (parseInt(e.target.value) < 0) {
+          if (Number.isNaN(parseInt(e.target.value, 10))) {
             return
           }
           this.props.handleSetDuration(
