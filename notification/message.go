@@ -30,28 +30,40 @@ const (
 
 func (s MessageType) Value() (driver.Value, error) {
 	switch s {
-	case 0:
+	case MessageTypeAlert:
 		return "alert_notification", nil
-	case 1:
+	case MessageTypeAlertStatus:
 		return "alert_status_update", nil
-	case 2:
+	case MessageTypeTest:
 		return "test_notification", nil
-	case 3:
+	case MessageTypeVerification:
 		return "verification_message", nil
-	case 4:
+	case MessageTypeAlertBundle:
 		return "alert_notification_bundle", nil
-	case 5:
+	case MessageTypeAlertStatusBundle:
 		return "alert_status_update_bundle", nil
 	}
-	return nil, fmt.Errorf("could not process unknown type for %s", s)
+	return nil, fmt.Errorf("could not process unknown type for MessageType %s", s)
 }
 
 func (s *MessageType) Scan(value interface{}) error {
-	switch t := value.(type) {
-	case int:
-		*s = MessageType(t)
+	str := value.(string) 
+
+	switch str {
+	case "alert_notification":
+		*s = MessageTypeAlert
+	case "alert_status_update":
+		*s = MessageTypeAlertStatus
+	case "test_notification":
+		*s = MessageTypeTest
+	case "verification_message":
+		*s = MessageTypeVerification
+	case "alert_notification_bundle":
+		*s = MessageTypeAlertBundle
+	case "alert_status_update_bundle":
+		*s = MessageTypeAlertStatusBundle
 	default:
-		return fmt.Errorf("could not process unknown type %t", t)
+		return fmt.Errorf("could not process unknown type for MessageType %str", str)
 	}
 	return nil
 }
