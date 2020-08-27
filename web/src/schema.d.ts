@@ -185,6 +185,7 @@ export interface DebugSendSMSInfo {
 export interface AuthLink {
   id: string
   claimCode: string
+  verifyCode: string
 }
 
 export interface AuthLinkStatus {

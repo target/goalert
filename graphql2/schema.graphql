@@ -259,6 +259,7 @@ type DebugSendSMSInfo {
 type AuthLink {
   id: ID!
   claimCode: String!
+  verifyCode: String!
 }
 
 type AuthLinkStatus {

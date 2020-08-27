@@ -122,8 +122,9 @@ type ComplexityRoot struct {
 	}
 
 	AuthLink struct {
-		ClaimCode func(childComplexity int) int
-		ID        func(childComplexity int) int
+		ClaimCode  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		VerifyCode func(childComplexity int) int
 	}
 
 	AuthLinkStatus struct {
@@ -857,6 +858,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthLink.ID(childComplexity), true
+
+	case "AuthLink.verifyCode":
+		if e.complexity.AuthLink.VerifyCode == nil {
+			break
+		}
+
+		return e.complexity.AuthLink.VerifyCode(childComplexity), true
 
 	case "AuthLinkStatus.authed":
 		if e.complexity.AuthLinkStatus.Authed == nil {
@@ -3213,6 +3221,7 @@ type DebugSendSMSInfo {
 type AuthLink {
   id: ID!
   claimCode: String!
+  verifyCode: String!
 }
 
 type AuthLinkStatus {
@@ -5915,6 +5924,40 @@ func (ec *executionContext) _AuthLink_claimCode(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ClaimCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AuthLink_verifyCode(ctx context.Context, field graphql.CollectedField, obj *AuthLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "AuthLink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VerifyCode, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17789,6 +17832,11 @@ func (ec *executionContext) _AuthLink(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "claimCode":
 			out.Values[i] = ec._AuthLink_claimCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verifyCode":
+			out.Values[i] = ec._AuthLink_verifyCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -56,8 +56,9 @@ type AlertSearchOptions struct {
 }
 
 type AuthLink struct {
-	ID        string `json:"id"`
-	ClaimCode string `json:"claimCode"`
+	ID         string `json:"id"`
+	ClaimCode  string `json:"claimCode"`
+	VerifyCode string `json:"verifyCode"`
 }
 
 type AuthLinkStatus struct {
