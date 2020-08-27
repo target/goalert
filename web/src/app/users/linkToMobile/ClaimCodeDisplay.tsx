@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   DialogContent,
   DialogContentText,
+  Fade,
   Grid,
   Typography,
   makeStyles,
@@ -12,6 +13,9 @@ const useStyles = makeStyles({
   centerItemContent: {
     display: 'flex',
     justifyContent: 'center',
+  },
+  claimCode: {
+    letterSpacing: '2.5px',
   },
   contentText: {
     marginBottom: 0,
@@ -33,6 +37,7 @@ export default function ClaimCodeDisplay(
   props: ClaimCodeDisplayProps,
 ): JSX.Element {
   const classes = useStyles()
+  const [showManualCode, setShowManualCode] = useState(false)
 
   useEffect(() => {
     console.log('id: ', props.authLinkID)
@@ -52,13 +57,27 @@ export default function ClaimCodeDisplay(
           <QRCode value={props.claimCode} />
         </Grid>
         <Grid className={classes.centerItemContent} item xs={12}>
-          <Typography
-            className={classes.manualCodeTypography}
-            variant='caption'
-            color='textSecondary'
-          >
-            Code not scanning? Click here to enter manually.
-          </Typography>
+          {!showManualCode && (
+            <Typography
+              className={classes.manualCodeTypography}
+              variant='caption'
+              color='textSecondary'
+              onClick={() => setShowManualCode(true)}
+            >
+              Code not scanning? Click here to enter manually.
+            </Typography>
+          )}
+          {showManualCode && (
+            <Fade in={showManualCode}>
+              <Typography
+                className={classes.claimCode}
+                variant='caption'
+                color='textSecondary'
+              >
+                {props.claimCode}
+              </Typography>
+            </Fade>
+          )}
         </Grid>
       </Grid>
     </DialogContent>
