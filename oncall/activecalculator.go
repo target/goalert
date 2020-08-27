@@ -7,11 +7,8 @@ import (
 )
 
 var (
-	boolMapPool = &sync.Pool{
-		New: func() interface{} { return make([]boolValue, 0, 100) },
-	}
-	timeMapPool = &sync.Pool{
-		New: func() interface{} { return make([]time.Time, 0, 100) },
+	activeCalcValuePool = &sync.Pool{
+		New: func() interface{} { return make([]activeCalcValue, 0, 100) },
 	}
 )
 
@@ -19,36 +16,23 @@ var (
 type ActiveCalculator struct {
 	*TimeIterator
 
-	states []boolValue
-	times  []time.Time
+	states []activeCalcValue
 
 	init    bool
-	activeT time.Time
-	active  bool
+	active  activeCalcValue
 	changed bool
 }
-type boolValue struct {
-	ID    int64
-	Value bool
-}
-
-type activeSortable ActiveCalculator
-
-func (act *activeSortable) Less(i, j int) bool {
-	return act.states[i].ID < act.states[j].ID
-}
-func (act *activeSortable) Len() int { return len(act.states) }
-func (act *activeSortable) Swap(i, j int) {
-	act.states[i], act.states[j] = act.states[j], act.states[i]
-	act.times[i], act.times[j] = act.times[j], act.times[i]
+type activeCalcValue struct {
+	ID         int64
+	Value      bool
+	OriginalID int64
 }
 
 // NewActiveCalculator will create a new ActiveCalculator bound to the TimeIterator.
 func (t *TimeIterator) NewActiveCalculator() *ActiveCalculator {
 	act := &ActiveCalculator{
 		TimeIterator: t,
-		states:       boolMapPool.Get().([]boolValue),
-		times:        timeMapPool.Get().([]time.Time),
+		states:       activeCalcValuePool.Get().([]activeCalcValue),
 	}
 	t.Register(act)
 
@@ -62,7 +46,7 @@ func (act *ActiveCalculator) Init() *ActiveCalculator {
 	}
 	act.init = true
 
-	sort.Sort((*activeSortable)(act))
+	sort.Slice(act.states, func(i, j int) bool { return act.states[i].ID < act.states[j].ID })
 
 	return act
 }
@@ -96,12 +80,12 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 
 func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 	id := t.Truncate(act.Step()).Unix()
+	originalID := id
 	if isStart && t.Before(act.Start()) {
 		id = act.Start().Unix()
 	}
 
-	act.times = append(act.times, t.Truncate(act.Step()))
-	act.states = append(act.states, boolValue{ID: id, Value: isStart})
+	act.states = append(act.states, activeCalcValue{ID: id, Value: isStart, OriginalID: originalID})
 }
 
 // Process implements the SubIterator.Process method.
@@ -117,10 +101,8 @@ func (act *ActiveCalculator) Process(t int64) int64 {
 	v := act.states[0]
 	act.changed = v.ID == t
 	if act.changed {
+		act.active = v
 		act.states = act.states[1:]
-		act.active = v.Value
-		act.activeT = act.times[0]
-		act.times = act.times[1:]
 		if len(act.states) > 0 {
 			return act.states[0].ID
 		}
@@ -134,14 +116,13 @@ func (act *ActiveCalculator) Process(t int64) int64 {
 // Done implements the SubIterator.Done method.
 func (act *ActiveCalculator) Done() {
 	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
-	boolMapPool.Put(act.states[:0])
-	//lint:ignore SA6002 not worth the overhead to avoid the slice-struct allocation
-	timeMapPool.Put(act.times[:0])
-	act.states, act.times = nil, nil
+	activeCalcValuePool.Put(act.states[:0])
+
+	act.states = nil
 }
 
 // Active will return true if the current timestamp is within a span.
-func (act *ActiveCalculator) Active() bool { return act.active }
+func (act *ActiveCalculator) Active() bool { return act.active.Value }
 
 // Changed will return true if the current tick changed the Active() state.
 func (act *ActiveCalculator) Changed() bool { return act.changed }
@@ -149,4 +130,4 @@ func (act *ActiveCalculator) Changed() bool { return act.changed }
 // ActiveTime returns the original start time of the current Active() state.
 //
 // It is only valid if Active() is true.
-func (act *ActiveCalculator) ActiveTime() time.Time { return act.activeT }
+func (act *ActiveCalculator) ActiveTime() time.Time { return time.Unix(act.active.OriginalID, 0).UTC() }
