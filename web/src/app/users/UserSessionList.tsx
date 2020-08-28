@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react'
+import React, { useState } from 'react'
 import FlatList from '../lists/FlatList'
 import { useSessionInfo } from '../util/RequireConfig'
 import gql from 'graphql-tag'
@@ -9,11 +9,9 @@ import { UserSession } from '../../schema'
 import Bowser from 'bowser'
 import { formatTimeSince } from '../util/timeFormat'
 import _ from 'lodash-es'
-import { DateTime } from 'luxon'
 import PageActions from '../util/PageActions'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
-import { getSubtitle } from '../schedules/calendar-subscribe/CalendarSubscribeCreateDialog'
 
 const query = gql`
   query($userID: ID!) {
@@ -74,9 +72,9 @@ export default function UserSessionList(
   const [showDialog, setShowDialog] = useState(false)
   const [session, setSession] = useState<Session | null>(null)
 
-  const { userID: curUserID } = useSessionInfo() as any
+  const { userID: curUserID } = useSessionInfo()
   const userID = props.userID || curUserID
-  const { data, loading, error } = useQuery(query, { variables: { userID } })
+  const { data } = useQuery(query, { variables: { userID } })
 
   const sessions: UserSession[] = _.sortBy(
     data?.user?.sessions || [],
