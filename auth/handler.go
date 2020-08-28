@@ -47,11 +47,10 @@ type Handler struct {
 	providers map[string]IdentityProvider
 	cfg       HandlerConfig
 
-	db            *sql.DB
-	userLookup    *sql.Stmt
-	addSubject    *sql.Stmt
-	updateUA      *sql.Stmt
-	setAccessTime *sql.Stmt
+	db         *sql.DB
+	userLookup *sql.Stmt
+	addSubject *sql.Stmt
+	updateUA   *sql.Stmt
 
 	startSession *sql.Stmt
 	fetchSession *sql.Stmt
