@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -62,6 +63,14 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 
 	return data.V1.TemporarySchedules, nil
 }
+
+func isDataPkeyConflict(err error) bool {
+	dbErr := sqlutil.MapError(err)
+	if dbErr == nil {
+		return false
+	}
+	return dbErr.ConstraintName == "schedule_data_pkey"
+}
 func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, apply func(data *Data) error) error {
 	var err error
 	externalTx := tx != nil
@@ -74,9 +83,14 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 	}
 
 	var rawData json.RawMessage
+	// Select for update, if it does not exist try inserting, if that fails due to a race, re-try select for update
 	err = tx.StmtContext(ctx, store.findUpdData).QueryRowContext(ctx, scheduleID).Scan(&rawData)
 	if err == sql.ErrNoRows {
-		err = nil
+		_, err = tx.StmtContext(ctx, store.insertData).ExecContext(ctx, scheduleID)
+		if isDataPkeyConflict(err) {
+			// insert happened after orig. select for update and our subsequent insert, re-try select for update
+			err = tx.StmtContext(ctx, store.findUpdData).QueryRowContext(ctx, scheduleID).Scan(&rawData)
+		}
 	}
 	if err != nil {
 		return err

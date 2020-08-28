@@ -24,6 +24,7 @@ type Store struct {
 	findData    *sql.Stmt
 	findUpdData *sql.Stmt
 	updateData  *sql.Stmt
+	insertData  *sql.Stmt
 
 	findOneUp *sql.Stmt
 
@@ -38,12 +39,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 		findData:    p.P(`SELECT data FROM schedule_data WHERE schedule_id = $1`),
 		findUpdData: p.P(`SELECT data FROM schedule_data WHERE schedule_id = $1 FOR UPDATE`),
-		updateData: p.P(`
-			INSERT INTO schedule_data (schedule_id, data)
-			VALUES ($1, $2)
-			ON CONFLICT ON CONSTRAINT schedule_data_pkey
-			DO UPDATE SET data = $2
-		`),
+		insertData:  p.P(`INSERT INTO schedule_data (schedule_id, data) VALUES ($1, '{}')`),
+		updateData:  p.P(`UPDATE schedule_data SET data = $2 WHERE schedule_id = $1`),
 
 		create:  p.P(`INSERT INTO schedules (id, name, description, time_zone) VALUES (DEFAULT, $1, $2, $3) RETURNING id`),
 		update:  p.P(`UPDATE schedules SET name = $2, description = $3, time_zone = $4 WHERE id = $1`),
