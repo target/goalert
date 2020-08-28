@@ -152,6 +152,7 @@ export default class ScheduleShiftList extends React.PureComponent {
   state = {
     create: null,
     specifyDuration: false,
+    isClear: false,
   }
 
   items() {
@@ -266,12 +267,23 @@ export default class ScheduleShiftList extends React.PureComponent {
       <TextField
         fullWidth
         label='Time Limit (days)'
-        value={Duration.fromISO(this.props.duration).as('days')}
+        value={
+          this.state.isClear
+            ? ''
+            : Duration.fromISO(this.props.duration).as('days')
+        }
         disabled={this.props.activeOnly}
         max={30}
         min={1}
         type='number'
+        onBlur={() => {
+          this.setState({ isClear: false })
+        }}
         onChange={(e) => {
+          this.setState({ isClear: e.target.value === '' })
+          if (Number.isNaN(parseInt(e.target.value, 10))) {
+            return
+          }
           this.props.handleSetDuration(
             Duration.fromObject({
               days: clamp(1, 30, parseInt(e.target.value, 10)),
