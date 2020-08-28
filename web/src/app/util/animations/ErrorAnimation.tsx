@@ -1,17 +1,19 @@
 import React from 'react'
 import Lottie from 'react-lottie'
-import * as animationData from './check-mark-success.json'
+import * as animationData from './error-sad-face.json'
 
-interface SuccessAnimationProps {
-  isStopped: boolean
+interface ErrorAnimationProps {
+  autoplay?: boolean
+  isStopped?: boolean
+  loop?: boolean
 }
 
-export default function SuccessAnimation(
-  props: SuccessAnimationProps,
+export default function ErrorAnimation(
+  props: ErrorAnimationProps,
 ): JSX.Element {
   const defaultOptions = {
-    loop: false,
-    autoplay: false,
+    loop: props.loop,
+    autoplay: props.autoplay,
     animationData: animationData,
     rendererSettings: {
       preserveAspectRatio: 'xMidYMid slice',
@@ -24,6 +26,9 @@ export default function SuccessAnimation(
       isStopped={props.isStopped}
       height={175}
       width={175}
+      style={{
+        margin: '-40px auto auto auto',
+      }}
     />
   )
 }

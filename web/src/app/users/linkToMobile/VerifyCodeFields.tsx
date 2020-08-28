@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import {
   Button,
   DialogContent,
@@ -9,6 +9,8 @@ import {
 } from '@material-ui/core'
 import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
+import { useDispatch } from 'react-redux'
+import { setURLParam } from '../../actions'
 
 const useStyles = makeStyles({
   buttonContainer: {
@@ -43,12 +45,19 @@ export default function VerifyCodeFields(
 ): JSX.Element {
   const classes = useStyles()
 
+  const dispatch = useDispatch()
+  const setErrorMessage = (value: string) =>
+    dispatch(setURLParam('error', value))
+
   const [verifyCode] = useMutation(mutation, {
     variables: {
       input: {
         id: props.authLinkID,
         code: props.verifyCode,
       },
+    },
+    onError: (err) => {
+      if (err.message) setErrorMessage(err.message)
     },
   })
 

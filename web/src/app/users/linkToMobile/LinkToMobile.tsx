@@ -19,7 +19,12 @@ import { styles as globalStyles } from '../../styles/materialStyles'
 import ClaimCodeDisplay from './ClaimCodeDisplay'
 import VerifyCodeFields from './VerifyCodeFields'
 import Spinner from '../../loading/components/Spinner'
-import SuccessAnimation from '../../util/SuccessAnimation/SuccessAnimation'
+import SuccessAnimation from '../../util/animations/SuccessAnimation'
+import ErrorAnimation from '../../util/animations/ErrorAnimation'
+import { useDispatch, useSelector } from 'react-redux'
+import { urlParamSelector } from '../../selectors'
+import { setURLParam } from '../../actions'
+import DialogContentError from '../../dialogs/components/DialogContentError'
 
 interface SlideParams {
   index: number
@@ -34,7 +39,8 @@ const useStyles = makeStyles((theme) => {
   return {
     cancelButton,
     dialog: {
-      height: 330,
+      height: 345,
+      justifyContent: 'space-between',
     },
     successContainer: {
       height: '100%',
@@ -55,6 +61,7 @@ const mutation = gql`
     }
   }
 `
+
 export const query = gql`
   query authLinkStatus($id: ID!) {
     authLinkStatus(id: $id) {
@@ -73,18 +80,37 @@ export default function LinkToMobile(): JSX.Element {
   const fullscreen = isWidthDown('md', width)
   const [showDialog, setShowDialog] = useState(false)
 
-  const [createAuthLink, createAuthLinkStatus] = useMutation(mutation)
+  // getter for error messages
+  const urlParams = useSelector(urlParamSelector)
+  const errorMsg = urlParams('error', '')
+
+  // setter for error messages
+  const dispatch = useDispatch()
+  const setErrorMessage = (value: string) =>
+    dispatch(setURLParam('error', value))
+
+  const [createAuthLink, createAuthLinkStatus] = useMutation(mutation, {
+    onError: (err) => {
+      if (err.message) setErrorMessage(err.message)
+    },
+  })
   const loading = !createAuthLinkStatus.data && createAuthLinkStatus.loading
   const authLinkID = createAuthLinkStatus?.data?.createAuthLink.id ?? ''
   const claimCode = createAuthLinkStatus?.data?.createAuthLink.claimCode ?? ''
   const verifyCode = createAuthLinkStatus?.data?.createAuthLink.verifyCode ?? ''
 
-  const { data } = useQuery(query, {
+  const { data, error } = useQuery(query, {
     variables: {
       id: authLinkID,
     },
     skip: loading || !authLinkID,
   })
+
+  // set error if query fails
+  const queryErrorMsg = error?.message ?? ''
+  useEffect(() => {
+    if (queryErrorMsg) setErrorMessage(queryErrorMsg)
+  }, [queryErrorMsg])
 
   const claimed = data?.authLinkStatus?.claimed ?? ''
   const authed = data?.authLinkStatus?.authed ?? ''
@@ -98,8 +124,8 @@ export default function LinkToMobile(): JSX.Element {
   // index of stepper/slide
   let index = 0
   const LAST_STEP_IDX = 2
-  if (claimed && index != 1) index = 1
-  if (authed && index != 2) index = 2
+  if (claimed && index !== 1) index = 1
+  if (authed && index !== 2) index = 2
 
   function slideRenderer({ index, key }: SlideParams): ReactNode {
     switch (index) {
@@ -121,32 +147,17 @@ export default function LinkToMobile(): JSX.Element {
         )
       case 2:
         return <Success key={key} isStopped={!authed} />
-      case 3:
-        return <Retry key={key} />
       default:
         return null
     }
   }
 
-  return (
-    <React.Fragment>
-      <Button
-        color='primary'
-        variant='contained'
-        startIcon={<PhonelinkIcon />}
-        onClick={() => setShowDialog(true)}
-      >
-        Link to Mobile
-      </Button>
+  // Render the main link to mobile content
+  function renderDialogContent(): ReactNode {
+    if (errorMsg) return null
 
-      <Dialog
-        classes={{ paper: classes.dialog }}
-        open={showDialog}
-        fullScreen={fullscreen}
-        fullWidth
-        maxWidth='xs'
-        onClose={() => setShowDialog(false)}
-      >
+    return (
+      <React.Fragment>
         <DialogTitleWrapper title='Link to Mobile' />
         {loading ? (
           <DialogContent>
@@ -177,6 +188,60 @@ export default function LinkToMobile(): JSX.Element {
             </Button>
           )}
         </DialogActions>
+      </React.Fragment>
+    )
+  }
+
+  // render an error message if seen in the url parameter
+  function renderDialogError(): ReactNode {
+    if (!errorMsg) return null
+
+    return (
+      <React.Fragment>
+        <DialogTitleWrapper title='An error occurred' />
+        <DialogContent>
+          <DialogContentText>
+            Whoops, looks like something went wrong. Please try again.
+          </DialogContentText>
+        </DialogContent>
+        <ErrorAnimation autoplay />
+        <DialogContentError error={errorMsg} noPadding />
+        <DialogActions>
+          <Button
+            color='primary'
+            variant='contained'
+            onClick={() => setShowDialog(false)}
+          >
+            Okay
+          </Button>
+        </DialogActions>
+      </React.Fragment>
+    )
+  }
+
+  // button on profile and dialog parent
+  return (
+    <React.Fragment>
+      <Button
+        color='primary'
+        variant='contained'
+        startIcon={<PhonelinkIcon />}
+        onClick={() => setShowDialog(true)}
+      >
+        Link to Mobile
+      </Button>
+
+      <Dialog
+        classes={{ paper: classes.dialog }}
+        open={showDialog}
+        fullScreen={fullscreen}
+        fullWidth
+        maxWidth='xs'
+        onClose={() => setShowDialog(false)}
+        onExited={() => setErrorMessage('')}
+      >
+        {renderDialogContent()}
+        {renderDialogError()}
       </Dialog>
     </React.Fragment>
   )
@@ -186,6 +251,7 @@ interface SuccessProps {
   isStopped: boolean
 }
 
+// renders a centered success animation
 function Success(props: SuccessProps): JSX.Element {
   const classes = useStyles()
   return (
@@ -196,8 +262,4 @@ function Success(props: SuccessProps): JSX.Element {
       </DialogContent>
     </div>
   )
-}
-
-function Retry(): JSX.Element {
-  return <span>Retry</span>
 }
