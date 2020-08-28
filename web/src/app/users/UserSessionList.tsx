@@ -6,6 +6,7 @@ import { useMutation, useQuery } from 'react-apollo'
 import {
   Button,
   Card,
+  IconButton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,6 +15,7 @@ import {
   ListItemText,
   makeStyles,
 } from '@material-ui/core'
+import DeleteIcon from '@material-ui/icons/Delete'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
 import { formatTimeSince } from '../util/timeFormat'
@@ -123,8 +125,7 @@ export default function UserSessionList(
             title: friendlyUAString(s.userAgent),
             highlight: s.current,
             secondaryAction: (
-              <Button
-                variant='contained'
+              <IconButton
                 color='primary'
                 onClick={() => {
                   setShowDialog(true)
@@ -134,8 +135,8 @@ export default function UserSessionList(
                   })
                 }}
               >
-                Logout
-              </Button>
+                <DeleteIcon />
+              </IconButton>
             ),
             subText: `Last access: ${formatTimeSince(s.lastAccessAt)}`,
           }))}
