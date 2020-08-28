@@ -29,18 +29,11 @@ const useStyles = makeStyles({
     fontSize: '1.5rem',
   },
 
-  col0: {
-    color: 'red',
-  },
-  col1: {
-    color: 'orange',
-  },
-  col2: {
-    color: 'green',
-  },
-  col3: {
-    color: 'blue',
-  },
+  // verify code colors per character
+  col0: { color: 'red' },
+  col1: { color: 'orange' },
+  col2: { color: 'green' },
+  col3: { color: 'blue' },
 })
 
 const mutation = gql`
