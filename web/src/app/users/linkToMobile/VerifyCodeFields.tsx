@@ -53,8 +53,9 @@ export default function VerifyCodeFields(
   const classes = useStyles()
 
   const dispatch = useDispatch()
-  const setErrorMessage = (value: string) =>
+  const setErrorMessage = (value: string): void => {
     dispatch(setURLParam('error', value))
+  }
 
   const [verifyCode] = useMutation(mutation, {
     variables: {
@@ -63,12 +64,13 @@ export default function VerifyCodeFields(
         code: props.verifyCode,
       },
     },
+
     onError: (err) => {
       if (err.message) setErrorMessage(err.message)
     },
   })
 
-  const renderTextField = (i: number) => (
+  const renderTextField = (i: number): JSX.Element => (
     <Grid item xs={3}>
       <TextField
         value={props.verifyCode.charAt(i)}
@@ -76,7 +78,10 @@ export default function VerifyCodeFields(
           readOnly: true,
         }}
         inputProps={{
-          className: classnames(classes.textField, classes['col' + i]),
+          className: classnames(
+            classes.textField,
+            classes[('col' + i) as 'col0' | 'col1' | 'col2' | 'col3'],
+          ),
         }}
       />
     </Grid>

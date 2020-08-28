@@ -86,8 +86,9 @@ export default function LinkToMobile(): JSX.Element {
 
   // setter for error messages
   const dispatch = useDispatch()
-  const setErrorMessage = (value: string) =>
+  const setErrorMessage = (value: string): void => {
     dispatch(setURLParam('error', value))
+  }
 
   const [createAuthLink, createAuthLinkStatus] = useMutation(mutation, {
     onError: (err) => {
