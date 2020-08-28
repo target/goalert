@@ -11,6 +11,7 @@ import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { useDispatch } from 'react-redux'
 import { setURLParam } from '../../actions'
+import classnames from 'classnames'
 
 const useStyles = makeStyles({
   buttonContainer: {
@@ -26,6 +27,19 @@ const useStyles = makeStyles({
   textField: {
     textAlign: 'center',
     fontSize: '1.5rem',
+  },
+
+  col0: {
+    color: 'red',
+  },
+  col1: {
+    color: 'orange',
+  },
+  col2: {
+    color: 'green',
+  },
+  col3: {
+    color: 'blue',
   },
 })
 
@@ -69,7 +83,7 @@ export default function VerifyCodeFields(
           readOnly: true,
         }}
         inputProps={{
-          className: classes.textField,
+          className: classnames(classes.textField, classes['col' + i]),
         }}
       />
     </Grid>
