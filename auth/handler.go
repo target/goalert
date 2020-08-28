@@ -126,7 +126,7 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 
 		endAllSessionsUser: p.P(`
 			delete from auth_user_sessions
-			where user_id = $1
+			where user_id = $1 and id != $2
 		`),
 	}
 
@@ -155,17 +155,21 @@ func (h *Handler) EndUserSessionTx(ctx context.Context, tx *sql.Tx, id ...string
 	return err
 }
 
-func (h *Handler) EndAllCurrentUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
+// EndAllUserSessionsTx ends all sessions other than the user's currently active session
+func (h *Handler) EndAllUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
 	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(permission.UserID(ctx)))
 	if err != nil {
 		return err
 	}
 
+	// get current session id
+	src := permission.Source(ctx)
+
 	stmt := h.endAllSessionsUser
 	if tx != nil {
 		stmt = tx.StmtContext(ctx, stmt)
 	}
-	_, err = stmt.ExecContext(ctx, permission.UserID(ctx))
+	_, err = stmt.ExecContext(ctx, permission.UserID(ctx), src.ID)
 
 	return err
 }

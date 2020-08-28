@@ -3,18 +3,7 @@ import FlatList from '../lists/FlatList'
 import { useSessionInfo } from '../util/RequireConfig'
 import gql from 'graphql-tag'
 import { useMutation, useQuery } from 'react-apollo'
-import {
-  Button,
-  Card,
-  IconButton,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  ListItemText,
-  makeStyles,
-} from '@material-ui/core'
+import { Button, Card, IconButton, makeStyles } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
@@ -55,7 +44,7 @@ const mutationLogoutAll = gql`
 
 const useStyles = makeStyles({
   button: {
-    width: '250px',
+    width: '270px',
   },
 })
 
@@ -94,8 +83,12 @@ export default function UserSessionList(
     (s: UserSession) => (s.current ? '_' + s.lastAccessAt : s.lastAccessAt),
   )
 
-  const [logoutOne, logoutOneStatus] = useMutation(mutationLogoutOne)
-  const [logoutAll, logoutAllStatus] = useMutation(mutationLogoutAll)
+  const [logoutOne, logoutOneStatus] = useMutation(mutationLogoutOne, {
+    onCompleted: () => setShowDialog(false),
+  })
+  const [logoutAll, logoutAllStatus] = useMutation(mutationLogoutAll, {
+    onCompleted: () => setShowDialog(false),
+  })
 
   function getSubtitle(): string {
     if (session?.id) {
@@ -104,18 +97,18 @@ export default function UserSessionList(
       )}" session.`
     }
 
-    return 'This will log you out of all sessions on all devices.'
+    return 'This will log you out of all other sessions.'
   }
 
   return (
     <React.Fragment>
       <PageActions>
         <Button
+          color='inherit'
           onClick={() => setShowDialog(true)}
           className={classes.button}
-          variant='contained'
         >
-          Log Out All Sessions
+          Log Out Other Sessions
         </Button>
       </PageActions>
 
@@ -124,7 +117,7 @@ export default function UserSessionList(
           items={sessions.map((s) => ({
             title: friendlyUAString(s.userAgent),
             highlight: s.current,
-            secondaryAction: (
+            secondaryAction: s.current ? null : (
               <IconButton
                 color='primary'
                 onClick={() => {

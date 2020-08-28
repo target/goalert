@@ -56,7 +56,7 @@ func (a *Mutation) DeleteAuthSubject(ctx context.Context, input user.AuthSubject
 }
 
 func (a *Mutation) EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, error) {
-	err := a.AuthHandler.EndAllCurrentUserSessionsTx(ctx, nil)
+	err := a.AuthHandler.EndAllUserSessionsTx(ctx, nil)
 	if err != nil {
 		return false, err
 	}
