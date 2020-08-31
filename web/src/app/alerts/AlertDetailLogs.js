@@ -12,6 +12,7 @@ import { DateTime } from 'luxon'
 import _ from 'lodash-es'
 import { formatTimeSince } from '../util/timeFormat'
 import { POLL_INTERVAL } from '../config'
+import { textColors } from '../styles/statusStyles'
 
 const FETCH_LIMIT = 149
 const QUERY_LIMIT = 35
@@ -40,15 +41,7 @@ const query = gql`
 const useStyles = makeStyles({
   // colors generated from status colors, but with saturation locked at 75 and value locked at 52.5
   // so that all three passed contrast requirements (WCAG 2 AA)
-  statusOk: {
-    color: '#218626',
-  },
-  statusWarn: {
-    color: '#867321',
-  },
-  statusError: {
-    color: '#862421',
-  },
+  ...textColors,
 })
 
 export default function AlertDetailLogs(props) {

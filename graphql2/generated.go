@@ -112,11 +112,6 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
-	AlertLogEntryState struct {
-		Details func(childComplexity int) int
-		Status  func(childComplexity int) int
-	}
-
 	AlertState struct {
 		LastEscalation func(childComplexity int) int
 		RepeatCount    func(childComplexity int) int
@@ -263,6 +258,11 @@ type ComplexityRoot struct {
 		Details func(childComplexity int) int
 		Message func(childComplexity int) int
 		Type    func(childComplexity int) int
+	}
+
+	NotificationState struct {
+		Details func(childComplexity int) int
+		Status  func(childComplexity int) int
 	}
 
 	OnCallShift struct {
@@ -462,12 +462,15 @@ type ComplexityRoot struct {
 	}
 
 	UserContactMethod struct {
-		Disabled       func(childComplexity int) int
-		FormattedValue func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		Type           func(childComplexity int) int
-		Value          func(childComplexity int) int
+		Disabled               func(childComplexity int) int
+		FormattedValue         func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		LastTestMessageState   func(childComplexity int) int
+		LastTestVerifyAt       func(childComplexity int) int
+		LastVerifyMessageState func(childComplexity int) int
+		Name                   func(childComplexity int) int
+		Type                   func(childComplexity int) int
+		Value                  func(childComplexity int) int
 	}
 
 	UserNotificationRule struct {
@@ -504,7 +507,7 @@ type AlertResolver interface {
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
-	State(ctx context.Context, obj *alertlog.Entry) (*AlertLogEntryState, error)
+	State(ctx context.Context, obj *alertlog.Entry) (*NotificationState, error)
 }
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
@@ -657,6 +660,9 @@ type UserCalendarSubscriptionResolver interface {
 }
 type UserContactMethodResolver interface {
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
+
+	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
+	LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
 }
 type UserNotificationRuleResolver interface {
 	ContactMethod(ctx context.Context, obj *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error)
@@ -812,20 +818,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
-
-	case "AlertLogEntryState.details":
-		if e.complexity.AlertLogEntryState.Details == nil {
-			break
-		}
-
-		return e.complexity.AlertLogEntryState.Details(childComplexity), true
-
-	case "AlertLogEntryState.status":
-		if e.complexity.AlertLogEntryState.Status == nil {
-			break
-		}
-
-		return e.complexity.AlertLogEntryState.Status(childComplexity), true
 
 	case "AlertState.lastEscalation":
 		if e.complexity.AlertState.LastEscalation == nil {
@@ -1705,6 +1697,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Notice.Type(childComplexity), true
+
+	case "NotificationState.details":
+		if e.complexity.NotificationState.Details == nil {
+			break
+		}
+
+		return e.complexity.NotificationState.Details(childComplexity), true
+
+	case "NotificationState.status":
+		if e.complexity.NotificationState.Status == nil {
+			break
+		}
+
+		return e.complexity.NotificationState.Status(childComplexity), true
 
 	case "OnCallShift.end":
 		if e.complexity.OnCallShift.End == nil {
@@ -2766,6 +2772,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserContactMethod.ID(childComplexity), true
 
+	case "UserContactMethod.lastTestMessageState":
+		if e.complexity.UserContactMethod.LastTestMessageState == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastTestMessageState(childComplexity), true
+
+	case "UserContactMethod.lastTestVerifyAt":
+		if e.complexity.UserContactMethod.LastTestVerifyAt == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastTestVerifyAt(childComplexity), true
+
+	case "UserContactMethod.lastVerifyMessageState":
+		if e.complexity.UserContactMethod.LastVerifyMessageState == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastVerifyMessageState(childComplexity), true
+
 	case "UserContactMethod.name":
 		if e.complexity.UserContactMethod.Name == nil {
 			break
@@ -3726,15 +3753,15 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
-  state: AlertLogEntryState
+  state: NotificationState
 }
 
-type AlertLogEntryState {
+type NotificationState {
   details: String!
-  status: AlertLogStatus
+  status: NotificationStatus
 }
 
-enum AlertLogStatus {
+enum NotificationStatus {
   OK
   WARN
   ERROR
@@ -3955,6 +3982,10 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+
+  lastTestVerifyAt: ISOTimestamp
+  lastTestMessageState: NotificationState
+  lastVerifyMessageState: NotificationState
 }
 
 input CreateUserContactMethodInput {
@@ -5642,9 +5673,9 @@ func (ec *executionContext) _AlertLogEntry_state(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*AlertLogEntryState)
+	res := resTmp.(*NotificationState)
 	fc.Result = res
-	return ec.marshalOAlertLogEntryState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx, field.Selections, res)
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertLogEntryConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryConnection) (ret graphql.Marshaler) {
@@ -5713,71 +5744,6 @@ func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Contex
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertLogEntryState_details(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "AlertLogEntryState",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Details, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertLogEntryState_status(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "AlertLogEntryState",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*AlertLogStatus)
-	fc.Result = res
-	return ec.marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertState_lastEscalation(ctx context.Context, field graphql.CollectedField, obj *alert.State) (ret graphql.Marshaler) {
@@ -9308,6 +9274,71 @@ func (ec *executionContext) _Notice_details(ctx context.Context, field graphql.C
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NotificationState_details(ctx context.Context, field graphql.CollectedField, obj *NotificationState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "NotificationState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Details, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NotificationState_status(ctx context.Context, field graphql.CollectedField, obj *NotificationState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "NotificationState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationStatus)
+	fc.Result = res
+	return ec.marshalONotificationStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OnCallShift_userID(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
@@ -14048,6 +14079,99 @@ func (ec *executionContext) _UserContactMethod_disabled(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserContactMethod_lastTestVerifyAt(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastTestVerifyAt(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserContactMethod_lastTestMessageState(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().LastTestMessageState(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationState)
+	fc.Result = res
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserContactMethod_lastVerifyMessageState(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().LastVerifyMessageState(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationState)
+	fc.Result = res
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17768,35 +17892,6 @@ func (ec *executionContext) _AlertLogEntryConnection(ctx context.Context, sel as
 	return out
 }
 
-var alertLogEntryStateImplementors = []string{"AlertLogEntryState"}
-
-func (ec *executionContext) _AlertLogEntryState(ctx context.Context, sel ast.SelectionSet, obj *AlertLogEntryState) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, alertLogEntryStateImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("AlertLogEntryState")
-		case "details":
-			out.Values[i] = ec._AlertLogEntryState_details(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "status":
-			out.Values[i] = ec._AlertLogEntryState_status(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var alertStateImplementors = []string{"AlertState"}
 
 func (ec *executionContext) _AlertState(ctx context.Context, sel ast.SelectionSet, obj *alert.State) graphql.Marshaler {
@@ -18691,6 +18786,35 @@ func (ec *executionContext) _Notice(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var notificationStateImplementors = []string{"NotificationState"}
+
+func (ec *executionContext) _NotificationState(ctx context.Context, sel ast.SelectionSet, obj *NotificationState) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, notificationStateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NotificationState")
+		case "details":
+			out.Values[i] = ec._NotificationState_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			out.Values[i] = ec._NotificationState_status(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20387,6 +20511,30 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "lastTestVerifyAt":
+			out.Values[i] = ec._UserContactMethod_lastTestVerifyAt(ctx, field, obj)
+		case "lastTestMessageState":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_lastTestMessageState(ctx, field, obj)
+				return res
+			})
+		case "lastVerifyMessageState":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_lastVerifyMessageState(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23035,41 +23183,6 @@ func (ec *executionContext) marshalOAlert2ᚖgithubᚗcomᚋtargetᚋgoalertᚋa
 	return ec._Alert(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOAlertLogEntryState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx context.Context, sel ast.SelectionSet, v AlertLogEntryState) graphql.Marshaler {
-	return ec._AlertLogEntryState(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOAlertLogEntryState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx context.Context, sel ast.SelectionSet, v *AlertLogEntryState) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._AlertLogEntryState(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (AlertLogStatus, error) {
-	var res AlertLogStatus
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v AlertLogStatus) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (*AlertLogStatus, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v *AlertLogStatus) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
-}
-
 func (ec *executionContext) unmarshalOAlertRecentEventsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (AlertRecentEventsOptions, error) {
 	return ec.unmarshalInputAlertRecentEventsOptions(ctx, v)
 }
@@ -23633,6 +23746,41 @@ func (ec *executionContext) unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalOLabelValueSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalONotificationState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v NotificationState) graphql.Marshaler {
+	return ec._NotificationState(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._NotificationState(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalONotificationStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, v interface{}) (NotificationStatus, error) {
+	var res NotificationStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalONotificationStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, sel ast.SelectionSet, v NotificationStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalONotificationStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, v interface{}) (*NotificationStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalONotificationStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalONotificationStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, sel ast.SelectionSet, v *NotificationStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOPhoneNumberInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, v PhoneNumberInfo) graphql.Marshaler {
