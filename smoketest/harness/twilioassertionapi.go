@@ -34,6 +34,8 @@ type twilioAssertionAPI struct {
 	formatNumber func(string) string
 
 	mx sync.Mutex
+
+	abortCh chan struct{}
 }
 
 func newTwilioAssertionAPI(triggerFn func(), formatNumber func(string) string, srv *mocktwilio.Server, sendSMSDest string) *twilioAssertionAPI {
@@ -42,8 +44,10 @@ func newTwilioAssertionAPI(triggerFn func(), formatNumber func(string) string, s
 		Server:       srv,
 		sendSMSDest:  sendSMSDest,
 		formatNumber: formatNumber,
+		abortCh:      make(chan struct{}),
 	}
 }
+func (tw *twilioAssertionAPI) Close() error { close(tw.abortCh); return tw.Server.Close() }
 
 func (tw *twilioAssertionAPI) WithT(t *testing.T) PhoneAssertions {
 	return &twilioAssertionAPIContext{t: t, twilioAssertionAPI: tw}
@@ -70,6 +74,9 @@ func (tw *twilioAssertionAPI) triggerTimeout() (<-chan string, func()) {
 		// 3 engine cycles, or timeout/cancel (whichever is sooner)
 		for i := 0; i < 3; i++ {
 			select {
+			case <-tw.abortCh:
+				errMsgCh <- "test exiting"
+				return
 			case <-t.C:
 				errMsgCh <- "15 seconds"
 				return
@@ -77,8 +84,13 @@ func (tw *twilioAssertionAPI) triggerTimeout() (<-chan string, func()) {
 				tw.triggerFn()
 			}
 		}
-		<-minWait.C // wait for the twilio server queue to empty
-		errMsgCh <- "3 engine cycles"
+		select {
+		case <-minWait.C: // wait for the twilio server queue to empty
+			errMsgCh <- "3 engine cycles"
+		case <-tw.abortCh:
+			errMsgCh <- "test exiting"
+			return
+		}
 	}()
 
 	return errMsgCh, func() { close(cancelCh) }

@@ -125,7 +125,11 @@ export default function ScheduleDetails({ scheduleID }) {
         links={[
           { label: 'Assignments', url: 'assignments' },
           { label: 'Escalation Policies', url: 'escalation-policies' },
-          { label: 'Overrides', url: 'overrides' },
+          {
+            label: 'Overrides',
+            url: 'overrides',
+            subText: 'Temporary changes made to this schedule',
+          },
           { label: 'Shifts', url: 'shifts' },
         ]}
         pageFooter={<ScheduleCalendarQuery scheduleID={scheduleID} />}

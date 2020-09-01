@@ -3,6 +3,10 @@ package graphql
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"sort"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/permission"
@@ -13,9 +17,6 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
-	"io/ioutil"
-	"net/http"
-	"sort"
 
 	g "github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
@@ -101,7 +102,6 @@ func NewHandler(ctx context.Context, c Config) (*Handler, error) {
 			Interfaces:  ifaces,
 		})
 	}
-	c = cachedConfig(c)
 
 	db, err := newLegacyDB(ctx, c.DB)
 	if err != nil {

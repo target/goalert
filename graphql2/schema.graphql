@@ -1,4 +1,6 @@
 type Query {
+  phoneNumberInfo(number: String!): PhoneNumberInfo
+
   # Returns the user with the given ID. If no ID is specified,
   # the current user is implied.
   user(id: ID): User
@@ -221,7 +223,40 @@ type StringConnection {
   pageInfo: PageInfo!
 }
 
+type PhoneNumberInfo {
+  id: String!
+  countryCode: String!
+  regionCode: String!
+  formatted: String!
+  valid: Boolean!
+  error: String!
+}
+
+type DebugCarrierInfo {
+  name: String!
+  type: String!
+  mobileNetworkCode: String!
+  mobileCountryCode: String!
+}
+
+input DebugCarrierInfoInput {
+  number: String!
+}
+
+input DebugSendSMSInput {
+  from: String!
+  to: String!
+  body: String!
+}
+
+type DebugSendSMSInfo {
+  id: ID!
+  providerURL: String!
+}
+
 type Mutation {
+  debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
+  debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
@@ -304,6 +339,7 @@ input CreateAlertInput {
   summary: String!
   details: String
   serviceID: ID!
+  sanitize: Boolean
 }
 
 input CreateUserCalendarSubscriptionInput {
@@ -665,7 +701,7 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
-  includeNotified: Boolean = true
+  includeNotified: Boolean = false
   omit: [Int!]
   sort: AlertSearchSort = statusID
   createdBefore: ISOTimestamp

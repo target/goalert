@@ -30,7 +30,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		return errors.Wrap(err, "get region index")
 	}
 
-	app.engine, err = engine.NewEngine(ctx, app.db, &engine.Config{
+	app.Engine, err = engine.NewEngine(ctx, app.db, &engine.Config{
 		AlertStore:         app.AlertStore,
 		AlertLogStore:      app.AlertLogStore,
 		ContactMethodStore: app.ContactMethodStore,
@@ -51,7 +51,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		return errors.Wrap(err, "init engine")
 	}
 
-	app.notificationManager.RegisterReceiver(app.engine)
+	app.notificationManager.RegisterReceiver(app.Engine)
 
 	return nil
 }

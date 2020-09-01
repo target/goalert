@@ -4,24 +4,32 @@ import (
 	"context"
 
 	"github.com/jackc/pgconn"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
 
-func (app *App) listenEvents(ctx context.Context) error {
+func (app *App) listenEvents(ctx context.Context) (<-chan struct{}, error) {
 	l, err := sqlutil.NewListener(ctx, (*sqlutil.DBConnector)(app.db), "/goalert/config-refresh")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	app.events = l
 	go func() {
-		for err := range l.Errors() {
-			log.Log(ctx, err)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case err := <-l.Errors():
+				log.Log(ctx, errors.Wrap(err, "listen events"))
+			}
 		}
 	}()
 
+	doneCh := make(chan struct{})
 	go func() {
+		defer close(doneCh)
 		for {
 			var n *pgconn.Notification
 			select {
@@ -48,5 +56,5 @@ func (app *App) listenEvents(ctx context.Context) error {
 		}
 	}()
 
-	return nil
+	return doneCh, nil
 }

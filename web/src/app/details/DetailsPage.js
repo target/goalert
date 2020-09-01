@@ -4,16 +4,24 @@ import statusStyles from '../util/statusStyles'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
+import Divider from '@material-ui/core/Divider'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { ChevronRight } from '@material-ui/icons'
+import Hidden from '@material-ui/core/Hidden'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
+import ListSubheader from '@material-ui/core/ListSubheader'
 import IconButton from '@material-ui/core/IconButton'
 import Markdown from '../util/Markdown'
 import { AppLink } from '../util/AppLink'
+import useWidth from '../util/useWidth'
+
+function isDesktopMode(width) {
+  return width === 'md' || width === 'lg' || width === 'xl'
+}
 
 const useLinkStyles = makeStyles(() => statusStyles)
 const useStyles = makeStyles((theme) => ({
@@ -33,13 +41,24 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up('md')]: { float: 'left' },
     margin: 20,
   },
+  listSubheader: {
+    margin: 0,
+    fontSize: 'larger',
+  },
   mainHeading: {
     fontSize: '1.5rem',
+  },
+  quickLinksContainer: {
+    display: 'flex',
+  },
+  quickLinksList: {
+    width: '100%',
   },
 }))
 
 function DetailsLink({ url, label, status, subText }) {
   const classes = useLinkStyles()
+  const width = useWidth()
 
   let itemClass = classes.noStatus
   switch (status) {
@@ -59,7 +78,7 @@ function DetailsLink({ url, label, status, subText }) {
       <ListItemText
         secondary={subText}
         primary={label}
-        primaryTypographyProps={{ variant: 'h5' }}
+        primaryTypographyProps={isDesktopMode(width) ? null : { variant: 'h5' }}
       />
       <ListItemSecondaryAction>
         <IconButton component={AppLink} to={url}>
@@ -69,6 +88,7 @@ function DetailsLink({ url, label, status, subText }) {
     </ListItem>
   )
 }
+
 DetailsLink.propTypes = {
   label: p.string.isRequired,
   url: p.string.isRequired,
@@ -78,21 +98,33 @@ DetailsLink.propTypes = {
 
 export default function DetailsPage(props) {
   const classes = useStyles()
+  const width = useWidth()
 
   const { title, details, icon, titleFooter, pageFooter } = props
 
   let links = null
   if (props.links && props.links.length) {
     links = (
-      <Grid item xs={12} className={classes.spacing}>
-        <Card>
-          <List data-cy='route-links'>
-            {props.links.map((li, idx) => (
-              <DetailsLink key={idx} {...li} />
-            ))}
-          </List>
-        </Card>
-      </Grid>
+      <List
+        data-cy='route-links'
+        className={classes.quickLinksList}
+        subheader={
+          isDesktopMode(width) ? (
+            <ListSubheader
+              className={classes.listSubheader}
+              component='h2'
+              color='primary'
+            >
+              Quick Links
+            </ListSubheader>
+          ) : null
+        }
+      >
+        {isDesktopMode(width) ? <Divider /> : null}
+        {props.links.map((li, idx) => (
+          <DetailsLink key={idx} {...li} />
+        ))}
+      </List>
     )
   }
 
@@ -101,30 +133,50 @@ export default function DetailsPage(props) {
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>
-            {icon && <div className={classes.iconContainer}>{icon}</div>}
-            <Typography
-              data-cy='details-heading'
-              className={classes.mainHeading}
-              component='h2'
-            >
-              {title}
-            </Typography>
-            <Typography data-cy='details' variant='subtitle1' component='div'>
-              <Markdown value={details} />
-            </Typography>
-            {titleFooter && (
-              <Typography
-                component='div'
-                variant='subtitle1'
-                data-cy='title-footer'
-              >
-                {titleFooter}
-              </Typography>
-            )}
+            <Grid container spacing={2}>
+              <Grid item xs={isDesktopMode(width) && links ? 8 : 12}>
+                {icon && <div className={classes.iconContainer}>{icon}</div>}
+                <Typography
+                  data-cy='details-heading'
+                  className={classes.mainHeading}
+                  component='h2'
+                >
+                  {title}
+                </Typography>
+                <Typography
+                  data-cy='details'
+                  variant='subtitle1'
+                  component='div'
+                >
+                  <Markdown value={details} />
+                </Typography>
+                {titleFooter && (
+                  <Typography
+                    component='div'
+                    variant='subtitle1'
+                    data-cy='title-footer'
+                  >
+                    {titleFooter}
+                  </Typography>
+                )}
+              </Grid>
+              {links && (
+                <Hidden smDown>
+                  <Grid className={classes.quickLinksContainer} item xs={4}>
+                    <Divider orientation='vertical' />
+                    {links}
+                  </Grid>
+                </Hidden>
+              )}
+            </Grid>
           </CardContent>
         </Card>
       </Grid>
-      {links}
+      <Hidden mdUp>
+        <Grid item xs={12} className={classes.spacing}>
+          <Card>{links}</Card>
+        </Grid>
+      </Hidden>
       {pageFooter && (
         <Grid item xs={12} className={classes.spacing}>
           {pageFooter}
@@ -134,8 +186,8 @@ export default function DetailsPage(props) {
   )
 }
 DetailsPage.propTypes = {
-  title: p.string.isRequired,
-  details: p.string.isRequired,
+  title: p.string,
+  details: p.string,
 
   icon: p.node,
   links: p.arrayOf(p.shape(DetailsLink.propTypes)),

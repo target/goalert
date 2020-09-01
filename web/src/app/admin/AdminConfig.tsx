@@ -62,6 +62,14 @@ interface ConfigValues {
   [id: string]: string
 }
 
+function formatHeading(s = ''): string {
+  return startCase(s)
+    .replace(/\bTwo Way\b/, 'Two-Way')
+    .replace('Disable V 1 Graph QL', 'Disable V1 GraphQL')
+    .replace('Git Hub', 'GitHub')
+    .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
+}
+
 export default function AdminConfig(): JSX.Element {
   const classes = useStyles()
   const [confirm, setConfirm] = useState(false)
@@ -146,7 +154,7 @@ export default function AdminConfig(): JSX.Element {
                   subtitle1: classes.groupTitle,
                 }}
               >
-                {startCase(groupID).replace('Git Hub', 'GitHub')}
+                {formatHeading(groupID)}
               </Typography>
             </Grid>
             <Grid item xs={12}>
@@ -164,12 +172,7 @@ export default function AdminConfig(): JSX.Element {
                       )
                       .map((f: ConfigValue) => ({
                         id: f.id,
-                        label: startCase(chain(f.id.split('.')).last())
-                          .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
-                          .replace(
-                            'Disable V 1 Graph QL',
-                            'Disable V1 GraphQL',
-                          ),
+                        label: formatHeading(chain(f.id.split('.')).last()),
                         description: f.description,
                         password: f.password,
                         type: f.type,

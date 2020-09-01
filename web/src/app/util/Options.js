@@ -16,7 +16,6 @@ import Dialog from '@material-ui/core/Dialog'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth/index'
-import { LegacyGraphQLClient } from '../apollo'
 
 /*
  * Renders options that will fix to the top right of the screen (in the app bar)
@@ -38,7 +37,6 @@ export default class Options extends Component {
     transformProps: p.object, // override props to position menu on desktop
     options: p.array.isRequired, // [{ disabled: false, text: '', onClick: () => { . . . } }]
     positionRelative: p.bool, // if true, disables the options menu being fixed to the top right
-    legacyClient: p.bool, // if true, uses the legacy graphql client for mutations
   }
 
   state = {
@@ -112,7 +110,6 @@ export default class Options extends Component {
     return (
       <Mutation
         key={idx}
-        client={this.props.legacyClient ? LegacyGraphQLClient : null}
         mutation={o.mutation.query}
         update={(cache, { data }) => {
           // invoke on success function if exists

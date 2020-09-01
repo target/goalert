@@ -88,7 +88,7 @@ export function CreateAlertServiceSelect(props) {
   const fieldRef = useRef()
   const classes = useStyles()
   const searchResults = _.get(data, 'services.nodes', []).filter(
-    (id) => !value.includes(id),
+    ({ id }) => !value.includes(id),
   )
 
   const queryErrorMsg = allErrors(queryError)

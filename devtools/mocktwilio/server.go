@@ -55,6 +55,9 @@ type Server struct {
 	sidSeq uint64
 
 	workers sync.WaitGroup
+
+	carrierInfo   map[string]twilio.CarrierInfo
+	carrierInfoMx sync.Mutex
 }
 
 // NewServer creates a new Server.
@@ -63,17 +66,18 @@ func NewServer(cfg Config) *Server {
 		cfg.MinQueueTime = 100 * time.Millisecond
 	}
 	s := &Server{
-		cfg:       cfg,
-		callbacks: make(map[string]string),
-		mux:       http.NewServeMux(),
-		messages:  make(map[string]*SMS),
-		calls:     make(map[string]*VoiceCall),
-		smsCh:     make(chan *SMS),
-		smsInCh:   make(chan *SMS),
-		callCh:    make(chan *VoiceCall),
-		callInCh:  make(chan *VoiceCall),
-		errs:      make(chan error, 10000),
-		shutdown:  make(chan struct{}),
+		cfg:         cfg,
+		callbacks:   make(map[string]string),
+		mux:         http.NewServeMux(),
+		messages:    make(map[string]*SMS),
+		calls:       make(map[string]*VoiceCall),
+		smsCh:       make(chan *SMS),
+		smsInCh:     make(chan *SMS),
+		callCh:      make(chan *VoiceCall),
+		callInCh:    make(chan *VoiceCall),
+		errs:        make(chan error, 10000),
+		shutdown:    make(chan struct{}),
+		carrierInfo: make(map[string]twilio.CarrierInfo),
 	}
 
 	base := "/Accounts/" + cfg.AccountSID
@@ -82,6 +86,7 @@ func NewServer(cfg Config) *Server {
 	s.mux.HandleFunc(base+"/Messages.json", s.serveNewMessage)
 	s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
 	s.mux.HandleFunc(base+"/Messages/", s.serveMessageStatus)
+	s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
 
 	s.workers.Add(1)
 	go s.loop()
@@ -181,6 +186,14 @@ func apiError(status int, w http.ResponseWriter, e *twilio.Exception) {
 // ServeHTTP implements the http.Handler interface for serving [mock] API requests.
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	s.mux.ServeHTTP(w, req)
+}
+
+// SetCarrierInfo will set/update the carrier info (used for the Lookup API) for the given number.
+func (s *Server) SetCarrierInfo(number string, info twilio.CarrierInfo) {
+	s.carrierInfoMx.Lock()
+	defer s.carrierInfoMx.Unlock()
+
+	s.carrierInfo[number] = info
 }
 
 // RegisterSMSCallback will set/update a callback URL for SMS calls made to the given number.

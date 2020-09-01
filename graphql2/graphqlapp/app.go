@@ -3,14 +3,12 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"github.com/target/goalert/limit"
 	"net/http"
 	"strconv"
-	"sync"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/99designs/gqlgen/handler"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
@@ -21,8 +19,10 @@ import (
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
+	"github.com/target/goalert/limit"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
+	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/override"
@@ -39,7 +39,7 @@ import (
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
-	"github.com/vektah/gqlparser/gqlerror"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opencensus.io/trace"
 )
 
@@ -68,6 +68,7 @@ type App struct {
 	HeartbeatStore heartbeat.Store
 
 	NotificationStore notification.Store
+	Twilio            *twilio.Config
 
 	TimeZoneStore *timezone.Store
 }
@@ -97,135 +98,119 @@ func (a *App) PlayHandler() http.Handler {
 	}))
 }
 
-type apolloTracingExt struct {
-	Version   int           `json:"version"`
-	Start     time.Time     `json:"startTime"`
-	End       time.Time     `json:"endTime"`
-	Duration  time.Duration `json:"duration"`
-	Execution struct {
-		Resolvers []apolloTracingResolver `json:"resolvers"`
-	} `json:"execution"`
-	mx sync.Mutex
-}
-type apolloTracingResolver struct {
-	Path        []interface{} `json:"path"`
-	ParentType  string        `json:"parentType"`
-	FieldName   string        `json:"fieldName"`
-	ReturnType  string        `json:"returnType"`
-	StartOffset time.Duration `json:"startOffset"`
-	Duration    time.Duration `json:"duration"`
-}
-
 type fieldErr struct {
 	FieldName string `json:"fieldName"`
 	Message   string `json:"message"`
 }
 
+type apolloTracer struct {
+	apollotracing.Tracer
+}
+
+func (a apolloTracer) InterceptField(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+	if !permission.Admin(ctx) {
+		return next(ctx)
+	}
+
+	return a.Tracer.InterceptField(ctx, next)
+}
+func (a apolloTracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
+	if !permission.Admin(ctx) {
+		return next(ctx)
+	}
+
+	return a.Tracer.InterceptResponse(ctx, next)
+}
+
 func (a *App) Handler() http.Handler {
-	return mustAuth(handler.GraphQL(
+	h := handler.NewDefaultServer(
 		graphql2.NewExecutableSchema(graphql2.Config{Resolvers: a}),
-		handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
-			ctx = a.registerLoaders(ctx)
+	)
+	h.Use(apolloTracer{Tracer: apollotracing.Tracer{}})
 
-			if permission.Admin(ctx) {
-				rctx := graphql.GetRequestContext(ctx)
-				ext := &apolloTracingExt{
-					Version: 1,
-					Start:   time.Now(),
-				}
-				if rctx.Extensions == nil {
-					rctx.Extensions = make(map[string]interface{}, 1)
-				}
-				rctx.Extensions["tracing"] = ext
-				defer func() {
-					ext.End = time.Now()
-					ext.Duration = ext.End.Sub(ext.Start)
-				}()
-			}
-
-			return next(ctx)
-		}),
-
-		// middleware -> single field err to multi
-		handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
-			rctx := graphql.GetResolverContext(ctx)
-
-			if ext, ok := graphql.GetRequestContext(ctx).Extensions["tracing"].(*apolloTracingExt); ok {
-				var res apolloTracingResolver
-				res.FieldName = rctx.Field.Name
-				res.ParentType = rctx.Object
-				res.Path = rctx.Path()
-				res.ReturnType = rctx.Field.Definition.Type.String()
-				ext.mx.Lock()
-				res.StartOffset = time.Since(ext.Start)
-				ext.mx.Unlock()
-				defer func() {
-					ext.mx.Lock()
-					res.Duration = time.Since(ext.Start) - res.StartOffset
-					ext.Execution.Resolvers = append(ext.Execution.Resolvers, res)
-					ext.mx.Unlock()
-				}()
-			}
-			ctx, sp := trace.StartSpan(ctx, "GQL."+rctx.Object+"."+rctx.Field.Name, trace.WithSpanKind(trace.SpanKindServer))
-			defer sp.End()
-			sp.AddAttributes(
-				trace.StringAttribute("graphql.object", rctx.Object),
-				trace.StringAttribute("graphql.field.name", rctx.Field.Name),
-			)
-			res, err = next(ctx)
+	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+		defer func() {
+			err := recover()
 			if err != nil {
-				sp.Annotate([]trace.Attribute{
-					trace.BoolAttribute("error", true),
-				}, err.Error())
-			} else if rctx.Object == "Mutation" {
-				ctx = log.WithFields(ctx, log.Fields{
-					"MutationName": rctx.Field.Name,
-				})
-				log.Logf(ctx, "Mutation.")
+				panic(err)
 			}
+		}()
+		fieldCtx := graphql.GetFieldContext(ctx)
 
-			return res, err
-		}),
-		handler.ErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
-			if e, ok := err.(*strconv.NumError); ok {
-				// gqlgen doesn't handle exponent notation numbers properly
-				// but we want to return a validation error instead of a 500 at least.
-				err = validation.NewGenericError("parse '" + e.Num + "': " + e.Err.Error())
-			}
-			err = errutil.MapDBError(err)
-			isUnsafe, safeErr := errutil.ScrubError(err)
-			if isUnsafe {
-				log.Log(ctx, err)
-			}
-			gqlErr := graphql.DefaultErrorPresenter(ctx, safeErr)
+		ctx, sp := trace.StartSpan(ctx, "GQL."+fieldCtx.Object+"."+fieldCtx.Field.Name, trace.WithSpanKind(trace.SpanKindServer))
+		defer sp.End()
+		sp.AddAttributes(
+			trace.StringAttribute("graphql.object", fieldCtx.Object),
+			trace.StringAttribute("graphql.field.name", fieldCtx.Field.Name),
+		)
+		res, err = next(ctx)
+		if err != nil {
+			sp.Annotate([]trace.Attribute{
+				trace.BoolAttribute("error", true),
+			}, err.Error())
+		} else if fieldCtx.Object == "Mutation" {
+			ctx = log.WithFields(ctx, log.Fields{
+				"MutationName": fieldCtx.Field.Name,
+			})
+			log.Logf(ctx, "Mutation.")
+		}
 
-			if m, ok := errors.Cause(safeErr).(validation.MultiFieldError); ok {
-				errs := make([]fieldErr, len(m.FieldErrors()))
-				for i, err := range m.FieldErrors() {
-					errs[i].FieldName = err.Field()
-					errs[i].Message = err.Reason()
-				}
-				gqlErr.Message = "Multiple fields failed validation."
-				gqlErr.Extensions = map[string]interface{}{
-					"isMultiFieldError": true,
-					"fieldErrors":       errs,
-				}
-			} else if e, ok := errors.Cause(safeErr).(validation.FieldError); ok {
-				type reasonable interface {
-					Reason() string
-				}
-				msg := e.Error()
-				if rs, ok := e.(reasonable); ok {
-					msg = rs.Reason()
-				}
-				gqlErr.Message = msg
-				gqlErr.Extensions = map[string]interface{}{
-					"fieldName":    e.Field(),
-					"isFieldError": true,
-				}
-			}
+		return res, err
+	})
 
-			return gqlErr
-		}),
-	))
+	h.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+		if e, ok := err.(*strconv.NumError); ok {
+			// gqlgen doesn't handle exponent notation numbers properly
+			// but we want to return a validation error instead of a 500 at least.
+			err = validation.NewGenericError("parse '" + e.Num + "': " + e.Err.Error())
+		}
+		err = errutil.MapDBError(err)
+		isUnsafe, safeErr := errutil.ScrubError(err)
+		if isUnsafe {
+			log.Log(ctx, err)
+		}
+		gqlErr := graphql.DefaultErrorPresenter(ctx, safeErr)
+
+		if m, ok := errors.Cause(safeErr).(validation.MultiFieldError); ok {
+			errs := make([]fieldErr, len(m.FieldErrors()))
+			for i, err := range m.FieldErrors() {
+				errs[i].FieldName = err.Field()
+				errs[i].Message = err.Reason()
+			}
+			gqlErr.Message = "Multiple fields failed validation."
+			gqlErr.Extensions = map[string]interface{}{
+				"isMultiFieldError": true,
+				"fieldErrors":       errs,
+			}
+		} else if e, ok := errors.Cause(safeErr).(validation.FieldError); ok {
+			type reasonable interface {
+				Reason() string
+			}
+			msg := e.Error()
+			if rs, ok := e.(reasonable); ok {
+				msg = rs.Reason()
+			}
+			gqlErr.Message = msg
+			gqlErr.Extensions = map[string]interface{}{
+				"fieldName":    e.Field(),
+				"isFieldError": true,
+			}
+		}
+
+		return gqlErr
+	})
+
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+
+		// ensure some sort of auth before continuing
+		err := permission.LimitCheckAny(ctx)
+		if errutil.HTTPError(ctx, w, err) {
+			return
+		}
+
+		ctx = a.registerLoaders(ctx)
+
+		h.ServeHTTP(w, req.WithContext(ctx))
+	})
 }

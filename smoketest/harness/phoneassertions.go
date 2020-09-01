@@ -65,6 +65,9 @@ type ExpectedSMS interface {
 
 	// Body is the text of the SMS message.
 	Body() string
+
+	// From is the source number of the SMS message.
+	From() string
 }
 
 // SMSReply represents a reply to a received SMS message.

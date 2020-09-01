@@ -464,8 +464,8 @@ Migration: %s (#%d)
 )
 
 // getConfig will load the current configuration from viper
-func getConfig() (appConfig, error) {
-	cfg := appConfig{
+func getConfig() (Config, error) {
+	cfg := Config{
 		JSON:        viper.GetBool("json"),
 		LogRequests: viper.GetBool("log-requests"),
 		Verbose:     viper.GetBool("verbose"),
@@ -533,59 +533,62 @@ func getConfig() (appConfig, error) {
 }
 
 func init() {
-	RootCmd.Flags().StringP("listen", "l", "localhost:8081", "Listen address:port for the application.")
+	def := Defaults()
+	RootCmd.Flags().StringP("listen", "l", def.ListenAddr, "Listen address:port for the application.")
 
-	RootCmd.Flags().StringP("listen-tls", "t", "", "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
+	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-data", "", "Specifies a PEM-encoded private key.  Has no effect if --listen-tls is unset.")
 
-	RootCmd.Flags().String("http-prefix", "", "Specify the HTTP prefix of the application.")
+	RootCmd.Flags().String("http-prefix", def.HTTPPrefix, "Specify the HTTP prefix of the application.")
 
-	RootCmd.Flags().Bool("api-only", false, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
+	RootCmd.Flags().Bool("api-only", def.APIOnly, "Starts in API-only mode (schedules & notifications will not be processed). Useful in clusters.")
 
-	RootCmd.Flags().Int("db-max-open", 15, "Max open DB connections.")
-	RootCmd.Flags().Int("db-max-idle", 5, "Max idle DB connections.")
+	RootCmd.Flags().Int("db-max-open", def.DBMaxOpen, "Max open DB connections.")
+	RootCmd.Flags().Int("db-max-idle", def.DBMaxIdle, "Max idle DB connections.")
 
-	RootCmd.Flags().Int64("max-request-body-bytes", 256*1024, "Max body size for all incoming requests (in bytes). Set to 0 to disable limit.")
-	RootCmd.Flags().Int("max-request-header-bytes", 4096, "Max header size for all incoming requests (in bytes). Set to 0 to disable limit.")
+	RootCmd.Flags().Int64("max-request-body-bytes", def.MaxReqBodyBytes, "Max body size for all incoming requests (in bytes). Set to 0 to disable limit.")
+	RootCmd.Flags().Int("max-request-header-bytes", def.MaxReqHeaderBytes, "Max header size for all incoming requests (in bytes). Set to 0 to disable limit.")
 
+	// No longer used
 	RootCmd.Flags().String("github-base-url", "", "Base URL for GitHub auth and API calls.")
-	RootCmd.Flags().String("twilio-base-url", "", "Override the Twilio API URL.")
-	RootCmd.Flags().String("slack-base-url", "", "Override the Slack base URL.")
 
-	RootCmd.Flags().String("region-name", "default", "Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages.")
+	RootCmd.Flags().String("twilio-base-url", def.TwilioBaseURL, "Override the Twilio API URL.")
+	RootCmd.Flags().String("slack-base-url", def.SlackBaseURL, "Override the Slack base URL.")
 
-	RootCmd.PersistentFlags().String("db-url", "", "Connection string for Postgres.")
-	RootCmd.PersistentFlags().String("db-url-next", "", "Connection string for the *next* Postgres server (enables DB switch-over mode).")
+	RootCmd.Flags().String("region-name", def.RegionName, "Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages.")
 
-	RootCmd.Flags().String("jaeger-endpoint", "", "Jaeger HTTP Thrift endpoint")
-	RootCmd.Flags().String("jaeger-agent-endpoint", "", "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
-	RootCmd.Flags().String("stackdriver-project-id", "", "Project ID for Stackdriver. Enables tracing output to Stackdriver.")
-	RootCmd.Flags().String("tracing-cluster-name", "", "Cluster name to use for tracing (i.e. kubernetes, Stackdriver/GKE environment).")
-	RootCmd.Flags().String("tracing-pod-namespace", "", "Pod namespace to use for tracing.")
-	RootCmd.Flags().String("tracing-pod-name", "", "Pod name to use for tracing.")
-	RootCmd.Flags().String("tracing-container-name", "", "Container name to use for tracing.")
-	RootCmd.Flags().String("tracing-node-name", "", "Node name to use for tracing.")
-	RootCmd.Flags().Float64("tracing-probability", 0.01, "Probability of a new trace to be recorded.")
+	RootCmd.PersistentFlags().String("db-url", def.DBURL, "Connection string for Postgres.")
+	RootCmd.PersistentFlags().String("db-url-next", def.DBURLNext, "Connection string for the *next* Postgres server (enables DB switch-over mode).")
 
-	RootCmd.Flags().Duration("kubernetes-cooldown", 0, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
-	RootCmd.Flags().String("status-addr", "", "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
+	RootCmd.Flags().String("jaeger-endpoint", def.JaegerEndpoint, "Jaeger HTTP Thrift endpoint")
+	RootCmd.Flags().String("jaeger-agent-endpoint", def.JaegerAgentEndpoint, "Instructs Jaeger exporter to send spans to jaeger-agent at this address.")
+	RootCmd.Flags().String("stackdriver-project-id", def.StackdriverProjectID, "Project ID for Stackdriver. Enables tracing output to Stackdriver.")
+	RootCmd.Flags().String("tracing-cluster-name", def.TracingClusterName, "Cluster name to use for tracing (i.e. kubernetes, Stackdriver/GKE environment).")
+	RootCmd.Flags().String("tracing-pod-namespace", def.TracingPodNamespace, "Pod namespace to use for tracing.")
+	RootCmd.Flags().String("tracing-pod-name", def.TracingPodName, "Pod name to use for tracing.")
+	RootCmd.Flags().String("tracing-container-name", def.TracingContainerName, "Container name to use for tracing.")
+	RootCmd.Flags().String("tracing-node-name", def.TracingNodeName, "Node name to use for tracing.")
+	RootCmd.Flags().Float64("tracing-probability", def.TraceProbability, "Probability of a new trace to be recorded.")
+
+	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
+	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
 
 	RootCmd.PersistentFlags().String("data-encryption-key", "", "Encryption key for sensitive data like signing keys. Used for encrypting new and decrypting existing data.")
 	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only.")
 	RootCmd.PersistentFlags().Bool("stack-traces", false, "Enables stack traces with all error logs.")
 
-	RootCmd.Flags().Bool("stub-notifiers", false, "If true, notification senders will be replaced with a stub notifier that always succeeds (useful for staging/sandbox environments).")
+	RootCmd.Flags().Bool("stub-notifiers", def.StubNotifiers, "If true, notification senders will be replaced with a stub notifier that always succeeds (useful for staging/sandbox environments).")
 
-	RootCmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose logging.")
-	RootCmd.Flags().Bool("log-requests", false, "Log all HTTP requests. If false, requests will be logged for debug/trace contexts only.")
-	RootCmd.PersistentFlags().Bool("json", false, "Log in JSON format.")
+	RootCmd.PersistentFlags().BoolP("verbose", "v", def.Verbose, "Enable verbose logging.")
+	RootCmd.Flags().Bool("log-requests", def.LogRequests, "Log all HTTP requests. If false, requests will be logged for debug/trace contexts only.")
+	RootCmd.PersistentFlags().Bool("json", def.JSON, "Log in JSON format.")
 	RootCmd.PersistentFlags().Bool("log-errors-only", false, "Only log errors (superseeds other flags).")
 
-	RootCmd.Flags().String("ui-url", "", "Proxy UI requests to an alternate host. Default is to serve bundled assets from memory.")
-	RootCmd.Flags().Bool("disable-https-redirect", false, "Disable automatic HTTPS redirects.")
+	RootCmd.Flags().String("ui-url", def.UIURL, "Proxy UI requests to an alternate host. Default is to serve bundled assets from memory.")
+	RootCmd.Flags().Bool("disable-https-redirect", def.DisableHTTPSRedirect, "Disable automatic HTTPS redirects.")
 
 	migrateCmd.Flags().String("up", "", "Target UP migration to apply.")
 	migrateCmd.Flags().String("down", "", "Target DOWN migration to roll back to.")

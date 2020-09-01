@@ -230,6 +230,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             variant={this.state.overrideDialog.variant}
             scheduleID={this.props.scheduleID}
             onClose={() => this.setState({ overrideDialog: null })}
+            removeUserReadOnly
           />
         )}
       </React.Fragment>

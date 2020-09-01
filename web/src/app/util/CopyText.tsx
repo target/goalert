@@ -22,19 +22,37 @@ interface CopyTextProps {
   placement?: TooltipProps['placement']
   title?: string
   value: string
+  textOnly?: boolean
 }
 
 export default function CopyText(props: CopyTextProps): JSX.Element {
   const classes = useStyles()
-  const [showTooltip, setShowTooltip] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-  return (
-    <Tooltip
-      onClose={() => setShowTooltip(false)}
-      open={showTooltip}
-      title='Copied!'
-      placement={props.placement || 'right'}
-    >
+  let content
+  if (props.textOnly) {
+    content = (
+      <span
+        role='button'
+        tabIndex={0}
+        onClick={() => {
+          copyToClipboard(props.value)
+          setCopied(true)
+        }}
+        onKeyPress={(e) => {
+          if (e.key !== 'Enter') {
+            return
+          }
+
+          copyToClipboard(props.value)
+          setCopied(true)
+        }}
+      >
+        {props.title}
+      </span>
+    )
+  } else {
+    content = (
       <AppLink
         className={classes.copyContainer}
         to={props.value}
@@ -43,12 +61,22 @@ export default function CopyText(props: CopyTextProps): JSX.Element {
 
           e.preventDefault()
           copyToClipboard(tgt.replace(/^mailto:/, ''))
-          setShowTooltip(true)
+          setCopied(true)
         }}
       >
         <ContentCopy className={classes.icon} fontSize='small' />
         {props.title}
       </AppLink>
+    )
+  }
+
+  return (
+    <Tooltip
+      TransitionProps={{ onExited: () => setCopied(false) }}
+      title={copied ? 'Copied!' : 'Copy'}
+      placement={props.placement || 'right'}
+    >
+      {content}
     </Tooltip>
   )
 }

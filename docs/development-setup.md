@@ -1,4 +1,4 @@
-## Development Setup
+# Development Setup
 
 This guide assumes you have the commands `docker`, `go` (>= 1.13), `node`, `yarn`, and `make` installed/available.
 

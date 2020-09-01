@@ -85,6 +85,7 @@ type CreateAlertInput struct {
 	Summary   string  `json:"summary"`
 	Details   *string `json:"details"`
 	ServiceID string  `json:"serviceID"`
+	Sanitize  *bool   `json:"sanitize"`
 }
 
 type CreateEscalationPolicyInput struct {
@@ -174,6 +175,21 @@ type CreateUserOverrideInput struct {
 	RemoveUserID *string   `json:"removeUserID"`
 }
 
+type DebugCarrierInfoInput struct {
+	Number string `json:"number"`
+}
+
+type DebugSendSMSInfo struct {
+	ID          string `json:"id"`
+	ProviderURL string `json:"providerURL"`
+}
+
+type DebugSendSMSInput struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+	Body string `json:"body"`
+}
+
 type EscalationPolicyConnection struct {
 	Nodes    []escalation.Policy `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
@@ -217,6 +233,15 @@ type LabelValueSearchOptions struct {
 type PageInfo struct {
 	EndCursor   *string `json:"endCursor"`
 	HasNextPage bool    `json:"hasNextPage"`
+}
+
+type PhoneNumberInfo struct {
+	ID          string `json:"id"`
+	CountryCode string `json:"countryCode"`
+	RegionCode  string `json:"regionCode"`
+	Formatted   string `json:"formatted"`
+	Valid       bool   `json:"valid"`
+	Error       string `json:"error"`
 }
 
 type RotationConnection struct {

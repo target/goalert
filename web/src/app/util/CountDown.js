@@ -106,13 +106,11 @@ export default class CountDown extends Component {
 
   componentDidMount() {
     this._counter = setInterval(() => {
-      if (this.state.timeRemaining > 0) {
-        this.setState({
-          timeRemaining:
-            DateTime.fromISO(this.props.end).toSeconds() -
-            DateTime.local().toSeconds(),
-        })
-      }
+      this.setState({
+        timeRemaining:
+          DateTime.fromISO(this.props.end).toSeconds() -
+          DateTime.local().toSeconds(),
+      })
     }, 1000)
   }
 

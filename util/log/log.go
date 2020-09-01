@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/pkg/errors"
@@ -23,6 +24,11 @@ var defaultLogger = logrus.NewEntry(logrus.StandardLogger())
 var defaultContext = context.Background()
 var verbose = false
 var stacks = false
+
+// SetOutput will change the log output.
+func SetOutput(out io.Writer) {
+	defaultLogger.Logger.SetOutput(out)
+}
 
 // EnableStacks enables stack information via the Source field.
 func EnableStacks() {

@@ -29,6 +29,7 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 	}
 	return true, nil
 }
+
 func (a *Mutation) TestContactMethod(ctx context.Context, id string) (bool, error) {
 	err := a.NotificationStore.SendContactMethodTest(ctx, id)
 	if err != nil {

@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"fmt"
+
 	"github.com/target/goalert/notification"
 )
 
@@ -95,7 +96,7 @@ func (msg *Message) messageStatus(id string) *notification.MessageStatus {
 	case MessageStatusSent, MessageStatusUndelivered:
 		status.State = notification.MessageStateSent
 	default:
-		status.State = notification.MessageStateActive
+		status.State = notification.MessageStateSending
 	}
 	return status
 }
