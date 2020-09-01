@@ -9,7 +9,7 @@ import {
 import ExpandIcon from '@material-ui/icons/KeyboardArrowDown'
 import CollapseIcon from '@material-ui/icons/KeyboardArrowUp'
 import { Alert, AlertTitle, AlertProps } from '@material-ui/lab'
-import { toTitleCase } from '../util/toTitleCase'
+import toTitleCase from '../util/toTitleCase'
 import { Notice } from '../../schema'
 
 const useStyles = makeStyles({
