@@ -612,11 +612,16 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		defer rows.Close()
 
 		for rows.Next() {
+			var alertID sql.NullInt64
 			var msg msgMeta
-			err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
+			err = rows.Scan(&msg.MessageID, &alertID, &msg.UserID, &msg.CMID)
 			if err != nil {
 				return errors.Wrap(err, "scan all failed messages")
 			}
+			if !alertID.Valid {
+				continue
+			}
+			msg.AlertID = int(alertID.Int64)
 			msgs = append(msgs, msg)
 		}
 	}
