@@ -8,6 +8,7 @@ import (
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
@@ -85,14 +86,17 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
 	}
-	if (opts.CmValue != "" && opts.CmType != "") {
-		validate.Phone("CmValue", opts.CmValue)
-		validate.OneOf("CmType", opts.CmType, contactmethod.TypeSMS, contactmethod.TypeVoice)
+	if opts.CmValue != "" {
+        err = validate.Phone("CmValue", opts.CmValue)
 	}
-	if (opts.CmValue == "" && opts.CmType != "") {
-		err = errors.New("must provide a CmValue")
-	} 
- 
+	if opts.CmType != "" {
+		if opts.CmValue == "" {
+			err = validation.NewFieldError("CmValue", "must be provided")
+		} else { 
+			err = validate.OneOf("CmType", opts.CmType, contactmethod.TypeSMS, contactmethod.TypeVoice)
+		}
+ 	}
+
 	return &opts, err
 }
 
