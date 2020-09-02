@@ -11,6 +11,8 @@ import (
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
+
+	"github.com/target/goalert/user/contactmethod"
 )
 
 // SearchOptions allow filtering and paginating the list of users.
@@ -22,6 +24,10 @@ type SearchOptions struct {
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
+	//CmValue is matched against the user's contact method phone number.
+	CmValue string		`json:"v,omitempty"`
+	//CmType is matched against the user's contact method type. 
+	CmType contactmethod.Type		`json:"t,cmType"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -31,11 +37,14 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		id, name, email, role
+		usr.id, usr.name, usr.email, usr.role
 	FROM users usr
+	{{ if .CmValue }}
+		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
+	{{ end }}
 	WHERE true
 	{{if .Omit}}
-		AND not id = any(:omit)
+		AND not usr.id = any(:omit)
 	{{end}}
 	{{if .SearchStr}}
 		AND usr.name ILIKE :search
@@ -43,6 +52,12 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .After.Name}}
 		AND lower(usr.name) > lower(:afterName)
 	{{end}}
+	{{ if .CmValue }}
+		AND ucm.value = :cmValue
+	{{ end }}
+	{{ if .CmType }}
+		AND ucm.type = :cmType
+	{{ end }}
 	ORDER BY lower(usr.name)
 	LIMIT {{.Limit}}
 `))
@@ -70,7 +85,14 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
 	}
-
+	if (opts.CmValue != "" && opts.CmType != "") {
+		validate.Phone("CmValue", opts.CmValue)
+		validate.OneOf("CmType", opts.CmType, contactmethod.TypeSMS, contactmethod.TypeVoice)
+	}
+	if (opts.CmValue == "" && opts.CmType != "") {
+		err = errors.New("must provide a CmValue")
+	} 
+ 
 	return &opts, err
 }
 
@@ -79,6 +101,8 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("cmValue", opts.CmValue),
+		sql.Named("cmType", opts.CmType),
 	}
 }
 
