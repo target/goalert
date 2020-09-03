@@ -6,12 +6,22 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
-import { useMutation } from '@apollo/react-hooks'
+import { useMutation, useQuery } from '@apollo/react-hooks'
 
 const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
     createUserContactMethod(input: $input) {
       id
+    }
+  }
+`
+
+const query = gql`
+  query($input: UserSearchOptions) {
+    users(input: $input) {
+      nodes {
+        name
+      }
     }
   }
 `
@@ -22,6 +32,13 @@ export default function UserContactMethodCreateDialog(props) {
     name: '',
     type: 'SMS',
     value: '',
+  })
+
+  const { data } = useQuery(query, {
+    variables: {
+      cmValue: cmValue.value,
+      cmType: cmValue.type,
+    },
   })
 
   const [createCM, createCMStatus] = useMutation(createMutation, {
@@ -61,7 +78,13 @@ export default function UserContactMethodCreateDialog(props) {
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
       // wrapped to prevent event from passing into createCM
-      onSubmit={() => createCM()}
+      onSubmit={() => {
+        if (data) {
+          console.log(data)
+        } else {
+          createCM()
+        }
+      }}
       form={form}
     />
   )

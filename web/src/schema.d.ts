@@ -531,6 +531,8 @@ export interface UserSearchOptions {
   after?: string
   search?: string
   omit?: string[]
+  cmValue?: string
+  cmType?: ContactMethodType
 }
 
 export interface AlertSearchOptions {

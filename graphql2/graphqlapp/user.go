@@ -96,6 +96,12 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	if searchOpts.Limit == 0 {
 		searchOpts.Limit = 15
 	}
+	if opts.CmValue != nil {
+		searchOpts.CmValue = *opts.CmValue
+	}
+	if opts.CmType != nil {
+		searchOpts.CmType = *opts.CmType
+	}
 
 	searchOpts.Limit++
 	users, err := q.UserStore.Search(ctx, &searchOpts)
