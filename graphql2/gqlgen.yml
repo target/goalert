@@ -77,3 +77,7 @@ models:
     model: github.com/target/goalert/notification/twilio.CarrierInfo
   UserSession:
     model: github.com/target/goalert/auth.UserSession
+  Notice:
+    model: github.com/target/goalert/notice.Notice
+  NoticeType:
+    model: github.com/target/goalert/notice.Type

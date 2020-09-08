@@ -6,7 +6,7 @@ function isSearchSelect(sub: HTMLElement): Cypress.Chainable<boolean> {
   })
 }
 
-function clearSelect(sub: HTMLElement): Cypress.Chainable {
+function clearSelect(sub: HTMLElement): Cypress.Chainable<JQuery<HTMLElement>> {
   return cy
     .wrap(sub)
     .parents('[data-cy=material-select]')
@@ -22,7 +22,10 @@ function clearSelect(sub: HTMLElement): Cypress.Chainable {
     .click()
 }
 
-function findByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
+function findByLabel(
+  sub: HTMLElement,
+  label: string,
+): Cypress.Chainable<JQuery<HTMLElement>> {
   return isSearchSelect(sub).then((isSearchSelect) => {
     if (isSearchSelect) {
       cy.wrap(sub)
@@ -52,7 +55,10 @@ function findByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
   })
 }
 
-function selectByLabel(sub: HTMLElement, label: string): Cypress.Chainable {
+function selectByLabel(
+  sub: HTMLElement,
+  label: string,
+): Cypress.Chainable<JQuery<HTMLElement>> {
   return isSearchSelect(sub).then((isSearchSelect) => {
     // clear value in search select
     if ((!label || label === '{backspace}') && isSearchSelect) {

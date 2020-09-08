@@ -37,6 +37,7 @@ require (
 	github.com/jackc/pgconn v1.2.1
 	github.com/jackc/pgtype v1.1.0
 	github.com/jackc/pgx/v4 v4.2.1
+	github.com/jmespath/go-jmespath v0.3.0
 	github.com/joho/godotenv v1.3.0
 	github.com/matryer/moq v0.0.0-20200607124540-4638a53893e6 // indirect
 	github.com/mattn/go-colorable v0.1.4
@@ -65,12 +66,12 @@ require (
 	github.com/vektah/gqlparser v1.3.1
 	github.com/vektah/gqlparser/v2 v2.0.1
 	go.opencensus.io v0.22.2
-	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/mod v0.3.0 // indirect
-	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527
-	golang.org/x/tools v0.0.0-20200618155944-c7475b9d7fb2
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+	golang.org/x/tools v0.0.0-20200811215021-48a8ffc5b207
 	google.golang.org/genproto v0.0.0-20200305110556-506484158171 // indirect
 	gopkg.in/ini.v1 v1.51.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect

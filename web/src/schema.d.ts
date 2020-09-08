@@ -576,15 +576,15 @@ export interface AlertLogEntry {
   id: number
   timestamp: ISOTimestamp
   message: string
-  state?: AlertLogEntryState
+  state?: NotificationState
 }
 
-export interface AlertLogEntryState {
+export interface NotificationState {
   details: string
-  status?: AlertLogStatus
+  status?: NotificationStatus
 }
 
-export type AlertLogStatus = 'OK' | 'WARN' | 'ERROR'
+export type NotificationStatus = 'OK' | 'WARN' | 'ERROR'
 
 export interface AlertState {
   lastEscalation: ISOTimestamp
@@ -648,7 +648,12 @@ export interface IntegrationKey {
   href: string
 }
 
-export type IntegrationKeyType = 'generic' | 'grafana' | 'site24x7' | 'email'
+export type IntegrationKeyType =
+  | 'generic'
+  | 'grafana'
+  | 'site24x7'
+  | 'prometheusAlertmanager'
+  | 'email'
 
 export interface ServiceOnCallUser {
   userID: string
@@ -663,6 +668,7 @@ export interface EscalationPolicy {
   repeat: number
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
+  notices: Notice[]
 }
 
 export type AlertStatus =
@@ -772,6 +778,9 @@ export interface UserContactMethod {
   value: string
   formattedValue: string
   disabled: boolean
+  lastTestVerifyAt?: ISOTimestamp
+  lastTestMessageState?: NotificationState
+  lastVerifyMessageState?: NotificationState
 }
 
 export interface CreateUserContactMethodInput {
@@ -808,3 +817,11 @@ export interface AuthSubject {
   subjectID: string
   userID: string
 }
+
+export interface Notice {
+  type: NoticeType
+  message: string
+  details: string
+}
+
+export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'

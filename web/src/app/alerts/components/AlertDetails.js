@@ -298,6 +298,7 @@ export default class AlertDetails extends Component {
     if (!this.state.fullDescription && details.length > 1000) {
       details = details.slice(0, 1000).trim() + ' ...'
     }
+    if (details.split('```').length % 2 === 0) details += '\n```'
 
     let expandTextAction = null
     if (details.length > 1000) {

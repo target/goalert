@@ -1,6 +1,9 @@
 package contactmethod
 
 import (
+	"database/sql"
+	"time"
+
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/validation/validate"
 )
@@ -13,7 +16,12 @@ type ContactMethod struct {
 	Value    string `json:"value"`
 	Disabled bool   `json:"disabled"`
 	UserID   string `json:"-"`
+
+	lastTestVerifyAt sql.NullTime
 }
+
+// LastTestVerifyAt will return the timestamp of the last test/verify request.
+func (c ContactMethod) LastTestVerifyAt() time.Time { return c.lastTestVerifyAt.Time }
 
 // Normalize will validate and 'normalize' the ContactMethod -- such as making email lower-case
 // and setting carrier to "" (for non-phone types).

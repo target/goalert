@@ -42,33 +42,8 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(), nil
 }
 
-func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
-	e := *obj
-	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
-	if !ok || meta == nil || !meta.NoOneOnCall {
-		return nil, nil
-	}
-
-	status := graphql2.AlertLogStatusWarn
-	return &graphql2.AlertLogEntryState{
-		Details: "No one was on-call",
-		Status:  &status,
-	}, nil
-}
-
-func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
-	e := *obj
-	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
-	if !ok || meta == nil {
-		return nil, nil
-	}
-
-	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
-	if err != nil {
-		return nil, errors.Wrap(err, "find alert log state")
-	}
-
-	var status graphql2.AlertLogStatus
+func notificationStateFromStatus(s notification.MessageStatus) *graphql2.NotificationState {
+	var status graphql2.NotificationStatus
 	switch s.State {
 	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
 		status = "ERROR"
@@ -88,34 +63,67 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		prefix = "Delivered"
 	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
 		prefix = "Failed"
+	default:
+		prefix = "Unknown"
 	}
 
 	details := s.Details
-	if !strings.EqualFold(prefix, details) {
+	if details == "" {
+		details = prefix
+	} else if !strings.EqualFold(prefix, details) {
 		details = prefix + ": " + details
 	}
 
-	return &graphql2.AlertLogEntryState{
+	return &graphql2.NotificationState{
 		Details: details,
+		Status:  &status,
+	}
+}
+
+func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
+	if !ok || meta == nil || !meta.NoOneOnCall {
+		return nil, nil
+	}
+
+	status := graphql2.NotificationStatusWarn
+	return &graphql2.NotificationState{
+		Details: "No one was on-call",
 		Status:  &status,
 	}, nil
 }
 
-func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	if !ok || meta == nil {
+		return nil, nil
+	}
+
+	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
+	if err != nil {
+		return nil, errors.Wrap(err, "find alert log state")
+	}
+
+	return notificationStateFromStatus(*s), nil
+}
+
+func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	e := *obj
 	meta, ok := e.Meta().(*alertlog.CreatedMetaData)
 	if !ok || meta == nil || !meta.EPNoSteps {
 		return nil, nil
 	}
 
-	status := graphql2.AlertLogStatusWarn
-	return &graphql2.AlertLogEntryState{
+	status := graphql2.NotificationStatusWarn
+	return &graphql2.NotificationState{
 		Details: "No escalation policy steps",
 		Status:  &status,
 	}, nil
 }
 
-func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	switch obj.Type() {
 	case alertlog.TypeCreated:
 		return a.createdState(ctx, obj)

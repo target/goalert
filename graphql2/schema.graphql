@@ -702,7 +702,7 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
-  includeNotified: Boolean = true
+  includeNotified: Boolean = false
   omit: [Int!]
 }
 
@@ -743,15 +743,15 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
-  state: AlertLogEntryState
+  state: NotificationState
 }
 
-type AlertLogEntryState {
+type NotificationState {
   details: String!
-  status: AlertLogStatus
+  status: NotificationStatus
 }
 
-enum AlertLogStatus {
+enum NotificationStatus {
   OK
   WARN
   ERROR
@@ -829,6 +829,7 @@ enum IntegrationKeyType {
   generic
   grafana
   site24x7
+  prometheusAlertmanager
   email
 }
 
@@ -846,6 +847,8 @@ type EscalationPolicy {
 
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!
+
+  notices: [Notice!]!
 }
 
 # Different Alert Status.
@@ -979,6 +982,10 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+
+  lastTestVerifyAt: ISOTimestamp
+  lastTestMessageState: NotificationState
+  lastVerifyMessageState: NotificationState
 }
 
 input CreateUserContactMethodInput {
@@ -1016,4 +1023,16 @@ type AuthSubject {
   providerID: ID!
   subjectID: ID!
   userID: ID!
+}
+
+type Notice {
+  type: NoticeType!
+  message: String!
+  details: String!
+}
+
+enum NoticeType {
+  WARNING
+  ERROR
+  INFO
 }

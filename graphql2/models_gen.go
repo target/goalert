@@ -34,11 +34,6 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
-type AlertLogEntryState struct {
-	Details string          `json:"details"`
-	Status  *AlertLogStatus `json:"status"`
-}
-
 type AlertRecentEventsOptions struct {
 	Limit *int    `json:"limit"`
 	After *string `json:"after"`
@@ -225,6 +220,11 @@ type LabelValueSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type NotificationState struct {
+	Details string              `json:"details"`
+	Status  *NotificationStatus `json:"status"`
 }
 
 type PageInfo struct {
@@ -481,49 +481,6 @@ type VerifyContactMethodInput struct {
 	Code            int    `json:"code"`
 }
 
-type AlertLogStatus string
-
-const (
-	AlertLogStatusOk    AlertLogStatus = "OK"
-	AlertLogStatusWarn  AlertLogStatus = "WARN"
-	AlertLogStatusError AlertLogStatus = "ERROR"
-)
-
-var AllAlertLogStatus = []AlertLogStatus{
-	AlertLogStatusOk,
-	AlertLogStatusWarn,
-	AlertLogStatusError,
-}
-
-func (e AlertLogStatus) IsValid() bool {
-	switch e {
-	case AlertLogStatusOk, AlertLogStatusWarn, AlertLogStatusError:
-		return true
-	}
-	return false
-}
-
-func (e AlertLogStatus) String() string {
-	return string(e)
-}
-
-func (e *AlertLogStatus) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AlertLogStatus(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid AlertLogStatus", str)
-	}
-	return nil
-}
-
-func (e AlertLogStatus) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 type AlertStatus string
 
 const (
@@ -615,22 +572,24 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 type IntegrationKeyType string
 
 const (
-	IntegrationKeyTypeGeneric  IntegrationKeyType = "generic"
-	IntegrationKeyTypeGrafana  IntegrationKeyType = "grafana"
-	IntegrationKeyTypeSite24x7 IntegrationKeyType = "site24x7"
-	IntegrationKeyTypeEmail    IntegrationKeyType = "email"
+	IntegrationKeyTypeGeneric                IntegrationKeyType = "generic"
+	IntegrationKeyTypeGrafana                IntegrationKeyType = "grafana"
+	IntegrationKeyTypeSite24x7               IntegrationKeyType = "site24x7"
+	IntegrationKeyTypePrometheusAlertmanager IntegrationKeyType = "prometheusAlertmanager"
+	IntegrationKeyTypeEmail                  IntegrationKeyType = "email"
 )
 
 var AllIntegrationKeyType = []IntegrationKeyType{
 	IntegrationKeyTypeGeneric,
 	IntegrationKeyTypeGrafana,
 	IntegrationKeyTypeSite24x7,
+	IntegrationKeyTypePrometheusAlertmanager,
 	IntegrationKeyTypeEmail,
 }
 
 func (e IntegrationKeyType) IsValid() bool {
 	switch e {
-	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypeEmail:
+	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypePrometheusAlertmanager, IntegrationKeyTypeEmail:
 		return true
 	}
 	return false
@@ -654,6 +613,49 @@ func (e *IntegrationKeyType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type NotificationStatus string
+
+const (
+	NotificationStatusOk    NotificationStatus = "OK"
+	NotificationStatusWarn  NotificationStatus = "WARN"
+	NotificationStatusError NotificationStatus = "ERROR"
+)
+
+var AllNotificationStatus = []NotificationStatus{
+	NotificationStatusOk,
+	NotificationStatusWarn,
+	NotificationStatusError,
+}
+
+func (e NotificationStatus) IsValid() bool {
+	switch e {
+	case NotificationStatusOk, NotificationStatusWarn, NotificationStatusError:
+		return true
+	}
+	return false
+}
+
+func (e NotificationStatus) String() string {
+	return string(e)
+}
+
+func (e *NotificationStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = NotificationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid NotificationStatus", str)
+	}
+	return nil
+}
+
+func (e NotificationStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

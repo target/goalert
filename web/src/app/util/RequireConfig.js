@@ -1,11 +1,13 @@
 import React, { useContext } from 'react'
 import p from 'prop-types'
-import Query from './Query'
 import gql from 'graphql-tag'
 import _ from 'lodash-es'
+import { useQuery } from 'react-apollo'
 
 const ConfigContext = React.createContext({
   config: [],
+  isAdmin: false,
+  userID: null,
 })
 ConfigContext.displayName = 'ConfigContext'
 
@@ -23,29 +25,20 @@ const query = gql`
   }
 `
 
-export class ConfigProvider extends React.PureComponent {
-  render() {
-    return (
-      <Query
-        query={query}
-        noSpin
-        noError
-        render={({ data }) => {
-          return (
-            <ConfigContext.Provider
-              value={{
-                config: data && data.config ? data.config : [],
-                isAdmin: data && data.user ? data.user.role === 'admin' : false,
-                userID: data && data.user ? data.user.id : null,
-              }}
-            >
-              {this.props.children}
-            </ConfigContext.Provider>
-          )
-        }}
-      />
-    )
-  }
+export function ConfigProvider({ children }) {
+  const { data } = useQuery(query)
+
+  return (
+    <ConfigContext.Provider
+      value={{
+        config: data?.config || [],
+        isAdmin: data?.user?.role === 'admin',
+        userID: data?.user?.id || null,
+      }}
+    >
+      {children}
+    </ConfigContext.Provider>
+  )
 }
 
 function parseValue(type, value) {
@@ -114,73 +107,39 @@ export function useConfigValue(...fields) {
   return fields.map((f) => config[f])
 }
 
-export class Config extends React.PureComponent {
-  render() {
-    return (
-      <ConfigContext.Consumer>
-        {(value) =>
-          this.props.children(
-            /*
-              Called with config object like:
-              {
-                'Mailgun.Enable': true,
-                'Slack.Enable': false,
-              }
-              etc..
-            */
-            mapConfig(value.config),
-            {
-              isAdmin: value.isAdmin,
-              userID: value.userID,
-            },
-          )
-        }
-      </ConfigContext.Consumer>
-    )
-  }
+export function Config({ children }) {
+  const { isAdmin, userID, config } = useContext(ConfigContext)
+  return children(mapConfig(config), { isAdmin, userID }) || null
 }
 
-export default class RequireConfig extends React.PureComponent {
-  static propTypes = {
-    isAdmin: p.bool,
-    configID: p.string,
-    test: p.func, // test to determine whether or not else is returned
+export default function RequireConfig(props) {
+  const {
+    configID,
+    test = isTrue,
+    isAdmin: wantIsAdmin,
+    children,
+    else: elseValue = null,
+    ...rest
+  } = props
+  const { config, isAdmin } = useContext(ConfigContext)
 
-    else: p.node, // react element to render if checks failed
-
-    children: p.node, // elements to return if checks pass
+  if (wantIsAdmin && !isAdmin) {
+    return elseValue
+  }
+  if (configID && !test(config[configID])) {
+    return elseValue
   }
 
-  static defaultProps = {
-    test: isTrue,
-    else: null,
-  }
+  return React.Children.map(children, (child) =>
+    React.cloneElement(child, _.omit(rest, Object.keys(child.props))),
+  )
+}
+RequireConfig.propTypes = {
+  isAdmin: p.bool,
+  configID: p.string,
+  test: p.func, // test to determine whether or not else is returned
 
-  render() {
-    const {
-      configID,
-      test,
-      isAdmin,
-      children,
-      else: elseValue,
-      ...rest
-    } = this.props
-    return (
-      <Config>
-        {(cfg, meta) => {
-          if (isAdmin && !meta.isAdmin) {
-            return elseValue
-          }
+  else: p.node, // react element to render if checks failed
 
-          if (configID && !test(cfg[configID])) {
-            return elseValue
-          }
-
-          return React.Children.map(children, (child) =>
-            React.cloneElement(child, _.omit(rest, Object.keys(child.props))),
-          )
-        }}
-      </Config>
-    )
-  }
+  children: p.node, // elements to return if checks pass
 }

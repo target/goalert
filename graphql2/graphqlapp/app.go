@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"github.com/target/goalert/notice"
 	"net/http"
 	"strconv"
 
@@ -67,6 +68,7 @@ type App struct {
 	LimitStore     *limit.Store
 	SlackStore     *slack.ChannelSender
 	HeartbeatStore heartbeat.Store
+	NoticeStore    notice.Store
 
 	AuthHandler *auth.Handler
 

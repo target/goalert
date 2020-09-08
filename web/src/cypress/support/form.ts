@@ -106,95 +106,112 @@ function fillFormField(
 ): Cypress.Chainable<JQuery<HTMLElement>> {
   const selector = `${selPrefix} input[name="${name}"],textarea[name="${name}"]`
 
-  if (typeof value === 'boolean') {
-    if (!value) return cy.get(selector).uncheck()
-
-    return cy.get(selector).check()
-  }
-
-  return cy.get(selector).then((el) => {
-    const isSelect =
-      el.parents('[data-cy=material-select]').data('cy') ===
-        'material-select' ||
-      el.siblings('[role=button]').attr('aria-haspopup') === 'listbox'
-
-    const pickerFallback = el
-      .parents('[data-cy-fallback-type]')
-      .data('cyFallbackType')
-
-    if (isSelect) {
-      if (value === '') return cy.get(selector).clear()
-
-      if (DateTime.isDateTime(value)) {
-        throw new TypeError(
-          'DateTime only supported for time, date, or datetime-local types',
-        )
-      }
-
-      if (Array.isArray(value)) {
-        value.forEach((val) => cy.get(selector).selectByLabel(val))
-        return
-      }
-
-      return cy.get(selector).selectByLabel(value)
-    }
-
-    if (Array.isArray(value)) {
-      throw new TypeError('arrays only supported for search-select inputs')
-    }
-
-    if (value === '') return cy.get(selector).clear()
-
-    if (pickerFallback) {
-      switch (pickerFallback) {
-        case 'time':
-          openPicker(selector)
-          materialClock(value)
-          finishPicker()
-          return
-        case 'date':
-          openPicker(selector)
-          materialCalendar(value)
-          finishPicker()
-          return
-        case 'datetime-local':
-          openPicker(selector)
-          materialCalendar(value)
-          materialClock(value)
-          finishPicker()
-          return
-        default:
-          if (DateTime.isDateTime(value)) {
-            throw new TypeError(
-              'DateTime only supported for time, date, or datetime-local types',
-            )
-          }
-      }
-    }
-
-    return cy.get(selector).then((el) => {
-      if (!DateTime.isDateTime(value)) {
-        if (el.attr('type') === 'hidden') {
-          return cy.get(selector).selectByLabel(value)
+  return cy
+    .get(selector)
+    .then((el) => {
+      // Auto detect/expand accordion sections if need be
+      const accordionSectionID = el
+        .parents('[aria-labelledby][role=region]')
+        .attr('id')
+      if (accordionSectionID) {
+        const ctrl = `[aria-controls=${accordionSectionID}][aria-expanded=false]`
+        if (Cypress.$(ctrl).length > 0) {
+          cy.get(ctrl).click()
         }
-        return cy.wrap(el).clear().type(value)
       }
 
-      // material Select
-      switch (el.attr('type')) {
-        case 'time':
-          return cy.wrap(el).clear().type(value.toFormat('HH:mm'))
-        case 'date':
-          return cy.wrap(el).clear().type(value.toFormat('yyyy-MM-dd'))
-        case 'datetime-local':
-          return cy.wrap(el).clear().type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
-        default:
+      if (typeof value === 'boolean') {
+        if (!value) return cy.get(selector).uncheck()
+
+        return cy.get(selector).check()
+      }
+
+      const isSelect =
+        el.parents('[data-cy=material-select]').data('cy') ===
+          'material-select' ||
+        el.siblings('[role=button]').attr('aria-haspopup') === 'listbox'
+
+      const pickerFallback = el
+        .parents('[data-cy-fallback-type]')
+        .data('cyFallbackType')
+
+      if (isSelect) {
+        if (value === '') return cy.get(selector).clear()
+
+        if (DateTime.isDateTime(value)) {
           throw new TypeError(
             'DateTime only supported for time, date, or datetime-local types',
           )
+        }
+
+        if (Array.isArray(value)) {
+          value.forEach((val) => cy.get(selector).selectByLabel(val))
+          return
+        }
+
+        return cy.get(selector).selectByLabel(value)
       }
+
+      if (Array.isArray(value)) {
+        throw new TypeError('arrays only supported for search-select inputs')
+      }
+
+      if (value === '') return cy.get(selector).clear()
+
+      if (pickerFallback) {
+        switch (pickerFallback) {
+          case 'time':
+            openPicker(selector)
+            materialClock(value)
+            finishPicker()
+            return
+          case 'date':
+            openPicker(selector)
+            materialCalendar(value)
+            finishPicker()
+            return
+          case 'datetime-local':
+            openPicker(selector)
+            materialCalendar(value)
+            materialClock(value)
+            finishPicker()
+            return
+          default:
+            if (DateTime.isDateTime(value)) {
+              throw new TypeError(
+                'DateTime only supported for time, date, or datetime-local types',
+              )
+            }
+        }
+      }
+
+      return cy.get(selector).then((el) => {
+        if (!DateTime.isDateTime(value)) {
+          if (el.attr('type') === 'hidden') {
+            return cy.get(selector).selectByLabel(value)
+          }
+          return cy.wrap(el).clear().type(value)
+        }
+
+        // material Select
+        switch (el.attr('type')) {
+          case 'time':
+            return cy.wrap(el).clear().type(value.toFormat('HH:mm'))
+          case 'date':
+            return cy.wrap(el).clear().type(value.toFormat('yyyy-MM-dd'))
+          case 'datetime-local':
+            return cy
+              .wrap(el)
+              .clear()
+              .type(value.toFormat(`yyyy-MM-dd'T'HH:mm`))
+          default:
+            throw new TypeError(
+              'DateTime only supported for time, date, or datetime-local types',
+            )
+        }
+      })
     })
-  })
+    .then(() => cy.get(selector)) as Cypress.Chainable<JQuery<HTMLElement>>
 }
 
 function form(

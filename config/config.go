@@ -63,6 +63,11 @@ type Config struct {
 		IssuerURL    string
 		ClientID     string
 		ClientSecret string `password:"true"`
+
+		Scopes                    string `info:"Requested scopes for authentication. If left blank, openid, profile, and email will be used."`
+		UserInfoEmailPath         string `info:"JMESPath expression to find email address in UserInfo. If set, the email claim will be ignored in favor of this. (suggestion: email)."`
+		UserInfoEmailVerifiedPath string `info:"JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified)."`
+		UserInfoNamePath          string `info:"JMESPath expression to find full name in UserInfo. If set, the name claim will be ignored in favor of this. (suggestion: name || cn || join(' ', [firstname, lastname]))"`
 	}
 
 	Mailgun struct {
@@ -240,6 +245,18 @@ func (cfg Config) Validate() error {
 	}
 
 	validateKey := func(fname, val string) error { return validate.ASCII(fname, val, 0, 128) }
+	validatePath := func(fname, val string) error {
+		if val == "" {
+			return nil
+		}
+		return validate.JMESPath(fname, val)
+	}
+	validateScopes := func(fname, val string) error {
+		if val == "" {
+			return nil
+		}
+		return validate.OAuthScope(fname, val, "openid")
+	}
 
 	err = validate.Many(
 		err,
@@ -254,10 +271,17 @@ func (cfg Config) Validate() error {
 		validateKey("Slack.AccessToken", cfg.Slack.AccessToken),
 		validate.Range("Maintenance.AlertCleanupDays", cfg.Maintenance.AlertCleanupDays, 0, 9000),
 		validate.Range("Maintenance.APIKeyExpireDays", cfg.Maintenance.APIKeyExpireDays, 0, 9000),
+		validateScopes("OIDC.Scopes", cfg.OIDC.Scopes),
+		validatePath("OIDC.UserInfoEmailPath", cfg.OIDC.UserInfoEmailPath),
+		validatePath("OIDC.UserInfoEmailVerifiedPath", cfg.OIDC.UserInfoEmailVerifiedPath),
+		validatePath("OIDC.UserInfoNamePath", cfg.OIDC.UserInfoNamePath),
 	)
 
 	if cfg.OIDC.IssuerURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("OIDC.IssuerURL", cfg.OIDC.IssuerURL))
+	}
+	if cfg.OIDC.Scopes != "" {
+		err = validate.Many(err, validateScopes("OIDC.Scopes", cfg.OIDC.Scopes))
 	}
 	if cfg.GitHub.EnterpriseURL != "" {
 		err = validate.Many(err, validate.AbsoluteURL("GitHub.EnterpriseURL", cfg.GitHub.EnterpriseURL))

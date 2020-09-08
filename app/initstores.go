@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
@@ -251,6 +252,13 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init calendar subscription store")
+	}
+
+	if app.NoticeStore == nil {
+		app.NoticeStore, err = notice.NewStore(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init notice store")
 	}
 
 	return nil
