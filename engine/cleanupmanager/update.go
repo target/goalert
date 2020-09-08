@@ -90,10 +90,11 @@ func (db *DB) update(ctx context.Context) error {
 	var currentUsers []string
 	if len(m) > 0 {
 		currentUsers, err = db.getUsers(ctx, tx)
+		if err != nil {
+			return err
+		}
 	}
-	if err != nil {
-		return err
-	}
+
 	lookup := lookupMap(currentUsers)
 	for _, dat := range m {
 		cleanupScheduleData(&dat.Data, lookup, now)
