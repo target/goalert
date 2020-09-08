@@ -13,6 +13,9 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+// FixedShiftsPerGroupLimit is the maximum number of shifts that can be configured for a single group at a time.
+const FixedShiftsPerGroupLimit = 500
+
 func validateShifts(fname string, max int, shifts []FixedShift) error {
 	if len(shifts) > max {
 		return validation.NewFieldError(fname, "too many shifts defined")
@@ -135,7 +138,7 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 
 	err = validate.Many(
 		validate.UUID("ScheduleID", scheduleID),
-		validateShifts("Shifts", 500, shifts),
+		validateShifts("Shifts", FixedShiftsPerGroupLimit, shifts),
 	)
 	if err != nil {
 		return err
