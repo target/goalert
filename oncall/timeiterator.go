@@ -18,7 +18,7 @@ type SubIterator interface {
 	//
 	// Process should return the value of the next required timestamp if it is known otherwise 0.
 	// If the iterator has no more events to process -1 can be returned to signal complete.
-	Process(int64) int64
+	Process(t int64) int64
 
 	// Done will be called when the iterator is no longer needed.
 	Done()
