@@ -587,9 +587,9 @@ pxj7Vtvjfk-mrszyj0WZZhZE61JphaVrv6pc3t9nJXDtt04e47TY5RUhgv5hjF6cnnFyXvXDS9vFnzCx
 Th7FdZ-CneQDZBz7zT2F6IWeMI8rF3AZKNdRtOZi_mF2O_jXoaioY4yeaF5SUvfZ5CfuEBK1FAW8lmqs
 VvZ8ejNBEQEEZY9pli2yRYQ-3Exn79Dk-vpifjkZR-mnLP0cPyyLFT-DitV-3AQbRTsaoT-S1OvkcRz9
 7W91fRz3bxhB4_qN3b61DGRg41f6sZL5WoOGMgIJZps6riHMIXw--QJhoagNa7K7gQCvbXBj5I2SutKF
-zdSw450Io6O0-NbFPC9iky8f_MFpujnUHEi643qdVYkIu2jc_FpNyr5SbtPYESkyCwZPjF41aW-ibSea
-BTdg43IlVetNP8iNjp5NWWA4st32HPfxOsmT-6zc3-1jsdvWCWQ1F-gSKtZxuo6r5TqLq2xbUSf713i5
-eLR4hUwXu7RVHJ4AJxOyTyfG5ZmATySKR597WhpdTPYqn538fwAAAP__eTOvOQE8BAA=
+zdSw450Io6O0-NbFPC9iky8f_MFpujnUHEi643qdVYkIu2jc_FpNyr5SbrPpV67Re7IpC1xGttueY-DW
+SZ7cZ-X-vhSL3baeFau5QD9LsY7TdVwt11lcZduKeq6_xsvFo8XVYvqtpf3X8ATY7pPNLzEuDy-8zVfc
+5Nx90ei3sVfZ2A4rGhsGSZA-LqWNqbaXbFZbgY3LI1S1fnby_wEAAP__u4sNNAE8BAA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -816,8 +816,8 @@ eLR4hUwXu7RVHJ4AJxOyTyfG5ZmATySKR597WhpdTPYqn538fwAAAP__eTOvOQE8BAA=
 		{Data: dataRange(275193, 276539), Name: "migrations/20200204152220-calendar-subscriptions-per-user.sql"},
 		{Data: dataRange(276539, 276668), Name: "migrations/20200413113132-add-no-notification-alert-log.sql"},
 		{Data: dataRange(276668, 276825), Name: "migrations/20200702112635-contact-method-metadata.sql"},
-		{Data: dataRange(276825, 276996), Name: "migrations/20200716112112-session-access-time.sql"},
-		{Data: dataRange(276996, 277269), Name: "migrations/20200716212352-prometheus-alertmanager-integration.sql"},
-		{Data: dataRange(277269, 277505), Name: "migrations/20200805132936-test-verify-index.sql"},
+		{Data: dataRange(276825, 277098), Name: "migrations/20200716212352-prometheus-alertmanager-integration.sql"},
+		{Data: dataRange(277098, 277334), Name: "migrations/20200805132936-test-verify-index.sql"},
+		{Data: dataRange(277334, 277505), Name: "migrations/20200908095243-session-access-time.sql"},
 	}
 }
