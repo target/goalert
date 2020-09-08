@@ -109,7 +109,7 @@ export default function RotationForm(props) {
             name='shiftLength'
             label='Shift Length'
             mapOnChangeValue={(value) =>
-              normalizeNumbers(value, 1, 9999).toString()
+              normalizeNumbers(value, 1, 90000).toString()
             }
           />
         </Grid>
