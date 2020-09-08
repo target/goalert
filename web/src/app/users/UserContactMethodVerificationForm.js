@@ -7,6 +7,7 @@ import gql from 'graphql-tag'
 import { makeStyles } from '@material-ui/core/styles'
 import { FormContainer, FormField } from '../forms'
 import { useMutation } from '@apollo/react-hooks'
+import { normalizeNumbers } from '../util/NormalizeNumbers'
 
 /*
  * Triggers sending a verification code to the specified cm
@@ -76,7 +77,9 @@ export default function UserContactMethodVerificationForm(props) {
             component={TextField}
             type='number'
             step='1'
-            mapOnChangeValue={(value) => value.toString()}
+            mapOnChangeValue={(value) =>
+              normalizeNumbers(value, 1, 9999).toString()
+            }
           />
         </Grid>
       </Grid>

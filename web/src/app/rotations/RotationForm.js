@@ -6,6 +6,7 @@ import { TextField, Grid, MenuItem } from '@material-ui/core'
 import { startCase } from 'lodash-es'
 import { DateTime, Info } from 'luxon'
 import { ISOTimePicker } from '../util/ISOPickers'
+import { normalizeNumbers } from '../util/NormalizeNumbers'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
@@ -107,6 +108,9 @@ export default function RotationForm(props) {
             type='number'
             name='shiftLength'
             label='Shift Length'
+            mapOnChangeValue={(value) =>
+              normalizeNumbers(value, 1, 9000).toString()
+            }
           />
         </Grid>
         <Grid item xs={12}>

@@ -16,6 +16,7 @@ import withStyles from '@material-ui/core/styles/withStyles'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
 import MaterialSelect from '../selection/MaterialSelect'
 import { set } from 'lodash-es'
+import { normalizeNumbers } from '../util/NormalizeNumbers'
 
 const styles = {
   fieldItem: {
@@ -137,7 +138,9 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='15'
-              mapOnChangeValue={(value) => value.toString()}
+              mapOnChangeValue={(value) =>
+                normalizeNumbers(value, 1, 9000).toString()
+              }
             />
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
@@ -151,7 +154,9 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='3'
-              mapOnChangeValue={(value) => value.toString()}
+              mapOnChangeValue={(value) =>
+                normalizeNumbers(value, 1, 9000).toString()
+              }
             />
           </Grid>
           <Grid item className={classes.stepItem}>

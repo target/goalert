@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
 import UserContactMethodSelect from './UserContactMethodSelect'
+import { normalizeNumbers } from '../util/NormalizeNumbers'
 
 export default class UserNotificationRuleForm extends React.PureComponent {
   static propTypes = {
@@ -49,6 +50,9 @@ export default class UserNotificationRuleForm extends React.PureComponent {
               label='Delay (minutes)'
               type='number'
               component={TextField}
+              mapOnChangeValue={(value) =>
+                normalizeNumbers(value, 1, 9000).toString()
+              }
             />
           </Grid>
         </Grid>
