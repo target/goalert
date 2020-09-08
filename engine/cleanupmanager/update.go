@@ -136,6 +136,7 @@ func cleanupScheduleData(data *schedule.Data, userMap map[string]struct{}, now t
 	data.V1.TemporarySchedules = schedule.MergeGroups(data.V1.TemporarySchedules)
 }
 
+// getUsers retrieves the current set of user IDs
 func (db *DB) getUsers(ctx context.Context, tx *sql.Tx) ([]string, error) {
 	rows, err := tx.StmtContext(ctx, db.userIDs).QueryContext(ctx)
 	if err != nil {
