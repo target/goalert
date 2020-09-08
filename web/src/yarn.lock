@@ -2859,7 +2859,7 @@ boolbase@^1.0.0, boolbase@~1.0.0:
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
 
-bowser@^2.10.0:
+bowser@2.10.0:
   version "2.10.0"
   resolved "https://registry.yarnpkg.com/bowser/-/bowser-2.10.0.tgz#be3736f161c4bb8b10958027ab99465d2a811198"
   integrity sha512-OCsqTQboTEWWsUjcp5jLSw2ZHsBiv2C105iFs61bOT0Hnwi9p7/uuXdd7mu8RYcarREfdjNN+8LitmEHATsLYg==
