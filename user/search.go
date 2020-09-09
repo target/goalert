@@ -26,9 +26,9 @@ type SearchOptions struct {
 
 	Limit int `json:"-"`
 	//CmValue is matched against the user's contact method phone number.
-	CmValue string		`json:"v,omitempty"`
-	//CmType is matched against the user's contact method type. 
-	CmType contactmethod.Type		`json:"t,cmType"`
+	CmValue string `json:"v,omitempty"`
+	//CmType is matched against the user's contact method type.
+	CmType contactmethod.Type `json:"t,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -87,15 +87,15 @@ func (opts renderData) Normalize() (*renderData, error) {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
 	}
 	if opts.CmValue != "" {
-        err = validate.Phone("CmValue", opts.CmValue)
+		err = validate.Phone("CmValue", opts.CmValue)
 	}
 	if opts.CmType != "" {
 		if opts.CmValue == "" {
 			err = validation.NewFieldError("CmValue", "must be provided")
-		} else { 
+		} else {
 			err = validate.OneOf("CmType", opts.CmType, contactmethod.TypeSMS, contactmethod.TypeVoice)
 		}
- 	}
+	}
 
 	return &opts, err
 }
