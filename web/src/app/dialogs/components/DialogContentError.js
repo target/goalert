@@ -10,7 +10,7 @@ import { Zoom } from '@material-ui/core'
 @withStyles(styles)
 export default class DialogContentError extends Component {
   static propTypes = {
-    error: p.string,
+    error: p.oneOfType([p.string, p.node]),
     noPadding: p.bool,
   }
 
@@ -33,7 +33,7 @@ export default class DialogContentError extends Component {
       )
     }
 
-    return (
+    return typeof error === 'string' ? (
       <DialogContent style={{ textAlign: 'center', ...style }} {...other}>
         <Zoom in>
           <Typography
@@ -47,6 +47,8 @@ export default class DialogContentError extends Component {
           </Typography>
         </Zoom>
       </DialogContent>
+    ) : (
+      <DialogContent>{error}</DialogContent>
     )
   }
 }

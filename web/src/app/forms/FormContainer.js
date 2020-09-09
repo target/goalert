@@ -10,12 +10,15 @@ import { get, set } from 'lodash-es'
 export class FormContainer extends React.PureComponent {
   static propTypes = {
     value: p.object,
-    errors: p.arrayOf(
+
+    errors: p.oneOfType([
       p.shape({
-        field: p.string.isRequired,
         message: p.string.isRequired,
+        field: p.string.isRequired,
       }),
-    ),
+      p.node,
+    ]),
+
     onChange: p.func,
     disabled: p.bool,
 
