@@ -276,7 +276,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 					cm.id = msg.contact_method_id and
 					cm.disabled
 				returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
-			) select distinct msg_id, alert_id, user_id, cm_id from disabled
+			) select distinct msg_id, alert_id, user_id, cm_id from disabled where alert_id notnull
 		`),
 
 		failSMSVoice: p.P(`
@@ -612,11 +612,16 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		defer rows.Close()
 
 		for rows.Next() {
+			var alertID sql.NullInt64
 			var msg msgMeta
-			err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)
+			err = rows.Scan(&msg.MessageID, &alertID, &msg.UserID, &msg.CMID)
 			if err != nil {
 				return errors.Wrap(err, "scan all failed messages")
 			}
+			if !alertID.Valid {
+				continue
+			}
+			msg.AlertID = int(alertID.Int64)
 			msgs = append(msgs, msg)
 		}
 	}
