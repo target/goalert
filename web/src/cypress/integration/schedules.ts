@@ -143,6 +143,7 @@ function testSchedules(screen: ScreenFormat): void {
         cy.get('p').should('contain', 'Showing shifts')
       })
     })
+    // TODO: make test for filter - Active shifts and for specific user.
   })
 
   describe('Schedule Assignments', () => {
