@@ -3602,8 +3602,8 @@ input UserSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
-  cmValue: String = ""
-  cmType: ContactMethodType
+  CMValue: String = ""
+  CMType: ContactMethodType
 }
 
 input AlertSearchOptions {
@@ -17181,15 +17181,15 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "cmValue":
+		case "CMValue":
 			var err error
-			it.CmValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.CMValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "cmType":
+		case "CMType":
 			var err error
-			it.CmType, err = ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			it.CMType, err = ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -474,8 +474,8 @@ type UserSearchOptions struct {
 	After   *string             `json:"after"`
 	Search  *string             `json:"search"`
 	Omit    []string            `json:"omit"`
-	CmValue *string             `json:"cmValue"`
-	CmType  *contactmethod.Type `json:"cmType"`
+	CMValue *string             `json:"CMValue"`
+	CMType  *contactmethod.Type `json:"CMType"`
 }
 
 type VerifyContactMethodInput struct {

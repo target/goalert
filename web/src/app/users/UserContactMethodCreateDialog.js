@@ -34,7 +34,7 @@ const query = gql`
 
 export default function UserContactMethodCreateDialog(props) {
   // values for contact method form
-  const [cmValue, setCmValue] = useState({
+  const [CMValue, setCMValue] = useState({
     name: '',
     type: 'SMS',
     value: '',
@@ -45,8 +45,8 @@ export default function UserContactMethodCreateDialog(props) {
   const { data, loading: queryLoading } = useQuery(query, {
     variables: {
       input: {
-        cmValue: cmValue.value,
-        cmType: cmValue.type,
+        CMValue: CMValue.value,
+        CMType: CMValue.type,
       },
     },
   })
@@ -64,16 +64,16 @@ export default function UserContactMethodCreateDialog(props) {
   }, [queryLoading])
 
   const userConflictSplit = userConflict.split(',')
-  const existingCmName = userConflictSplit[1]
-  const existingCmId = userConflictSplit[0]
+  const existingCMName = userConflictSplit[1]
+  const existingCMId = userConflictSplit[0]
   let errorLink = null
 
-  if (existingCmName && existingCmId && submitted) {
+  if (existingCMName && existingCMId && submitted) {
     errorLink = (
       <Typography>
-        <AppLink to={`/users/${existingCmId}`}>
+        <AppLink to={`/users/${existingCMId}`}>
           Contact method already exists for that type and value:{' '}
-          {existingCmName}
+          {existingCMName}
         </AppLink>
       </Typography>
     )
@@ -85,7 +85,7 @@ export default function UserContactMethodCreateDialog(props) {
     },
     variables: {
       input: {
-        ...cmValue,
+        ...CMValue,
         userID: props.userID,
         newUserNotificationRule: {
           delayMinutes: 0,
@@ -104,8 +104,8 @@ export default function UserContactMethodCreateDialog(props) {
     <UserContactMethodForm
       disabled={loading}
       errors={fieldErrs}
-      onChange={(cmValue) => setCmValue(cmValue)}
-      value={cmValue}
+      onChange={(CMValue) => setCMValue(CMValue)}
+      value={CMValue}
       disclaimer={props.disclaimer}
     />
   )
@@ -124,7 +124,7 @@ export default function UserContactMethodCreateDialog(props) {
       // wrapped to prevent event from passing into createCM
       onSubmit={() => {
         // prevent submitting if a user conflict exists
-        if (existingCmName && existingCmId) {
+        if (existingCMName && existingCMId) {
           setSubmitted(true)
           return
         }

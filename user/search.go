@@ -5,14 +5,11 @@ import (
 	"database/sql"
 	"github.com/target/goalert/util/sqlutil"
 	"text/template"
-
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
 	"github.com/pkg/errors"
-
 	"github.com/target/goalert/user/contactmethod"
 )
 
@@ -25,10 +22,10 @@ type SearchOptions struct {
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
-	//CmValue is matched against the user's contact method phone number.
-	CmValue string `json:"v,omitempty"`
-	//CmType is matched against the user's contact method type.
-	CmType contactmethod.Type `json:"t,omitempty"`
+	//CMValue is matched against the user's contact method phone number.
+	CMValue string `json:"v,omitempty"`
+	//CMType is matched against the user's contact method type.
+	CMType contactmethod.Type `json:"t,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -40,7 +37,7 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
 		usr.id, usr.name, usr.email, usr.role
 	FROM users usr
-	{{ if .CmValue }}
+	{{ if .CMValue }}
 		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
 	{{ end }}
 	WHERE true
@@ -53,11 +50,11 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .After.Name}}
 		AND lower(usr.name) > lower(:afterName)
 	{{end}}
-	{{ if .CmValue }}
-		AND ucm.value = :cmValue
+	{{ if .CMValue }}
+		AND ucm.value = :CMValue
 	{{ end }}
-	{{ if .CmType }}
-		AND ucm.type = :cmType
+	{{ if .CMType }}
+		AND ucm.type = :CMType
 	{{ end }}
 	ORDER BY lower(usr.name)
 	LIMIT {{.Limit}}
@@ -86,15 +83,14 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
 	}
-	if opts.CmValue != "" {
-		err = validate.Phone("CmValue", opts.CmValue)
+	if opts.CMValue != "" {
+		err = validate.Many(err, validate.Phone("CMValue", opts.CMValue))
 	}
-	if opts.CmType != "" {
-		if opts.CmValue == "" {
-			err = validation.NewFieldError("CmValue", "must be provided")
-		} else {
-			err = validate.OneOf("CmType", opts.CmType, contactmethod.TypeSMS, contactmethod.TypeVoice)
+	if opts.CMType != "" {
+		if opts.CMValue == "" {
+			err = validate.Many(err, validation.NewFieldError("CMValue", "is required"))
 		}
+		err = validate.Many(err, validate.OneOf("CMType", opts.CMType, contactmethod.TypeSMS, contactmethod.TypeVoice))
 	}
 
 	return &opts, err
@@ -105,8 +101,8 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
-		sql.Named("cmValue", opts.CmValue),
-		sql.Named("cmType", opts.CmType),
+		sql.Named("CMValue", opts.CMValue),
+		sql.Named("CMType", opts.CMType),
 	}
 }
 

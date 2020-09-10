@@ -692,8 +692,8 @@ input UserSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
-  cmValue: String = ""
-  cmType: ContactMethodType
+  CMValue: String = ""
+  CMType: ContactMethodType
 }
 
 input AlertSearchOptions {
