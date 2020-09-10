@@ -241,6 +241,12 @@ type PhoneNumberInfo struct {
 	Error       string `json:"error"`
 }
 
+type ResetScheduleShiftsInput struct {
+	ScheduleID string    `json:"scheduleID"`
+	Start      time.Time `json:"start"`
+	End        time.Time `json:"end"`
+}
+
 type RotationConnection struct {
 	Nodes    []rotation.Rotation `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
@@ -316,6 +322,13 @@ type SetLabelInput struct {
 	Target *assignment.RawTarget `json:"target"`
 	Key    string                `json:"key"`
 	Value  string                `json:"value"`
+}
+
+type SetScheduleShiftsInput struct {
+	ScheduleID string                `json:"scheduleID"`
+	Start      time.Time             `json:"start"`
+	End        time.Time             `json:"end"`
+	Shifts     []schedule.FixedShift `json:"shifts"`
 }
 
 type SlackChannelConnection struct {

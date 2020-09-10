@@ -16,6 +16,9 @@ var (
 	everyDay  = WeekdayFilter([7]byte{1, 1, 1, 1, 1, 1, 1})
 )
 
+// EveryDay returns a weekday filter that is valid every day.
+func EveryDay() WeekdayFilter { return everyDay }
+
 // Day will return true if the given weekday is enabled.
 func (f WeekdayFilter) Day(d time.Weekday) bool {
 	return f[int(d)] == 1

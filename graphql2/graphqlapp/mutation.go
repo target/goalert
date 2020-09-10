@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+	"database/sql"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
@@ -28,6 +29,20 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 		return false, err
 	}
 	return true, nil
+}
+func (a *Mutation) SetScheduleShifts(ctx context.Context, input graphql2.SetScheduleShiftsInput) (bool, error) {
+	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.ScheduleStore.SetFixedShifts(ctx, tx, input.ScheduleID, input.Start, input.End, input.Shifts)
+	})
+
+	return err == nil, err
+}
+func (a *Mutation) ResetScheduleShifts(ctx context.Context, input graphql2.ResetScheduleShiftsInput) (bool, error) {
+	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.ScheduleStore.ResetFixedShifts(ctx, tx, input.ScheduleID, input.Start, input.End)
+	})
+
+	return err == nil, err
 }
 
 func (a *Mutation) TestContactMethod(ctx context.Context, id string) (bool, error) {

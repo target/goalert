@@ -589,7 +589,7 @@ VvZ8ejNBEQEEZY9pli2yRYQ-3Exn79Dk-vpifjkZR-mnLP0cPyyLFT-DitV-3AQbRTsaoT-S1OvkcRz9
 7W91fRz3bxhB4_qN3b61DGRg41f6sZL5WoOGMgIJZps6riHMIXw--QJhoagNa7K7gQCvbXBj5I2SutKF
 zdSw450Io6O0-NbFPC9iky8f_MFpujnUHEi643qdVYkIu2jc_FpNyr5SbrPpV67Re7IpC1xGttueY-DW
 SZ7cZ-X-vhSL3baeFau5QD9LsY7TdVwt11lcZduKeq6_xsvFo8XVYvqtpf3X8ATY7pPNLzEuDy-8zVfc
-5Nx90ei3sVf57OT_AwAA__-jZ59OVjsEAA==
+5Nx90ei3sVe5YTtc76kk9nhjb2dhj_fb3pHdK5Oz0bajktaDuvtr3tQp9T47-f8AAAD__yAldpU6PAQA
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -605,7 +605,7 @@ SZ7cZ-X-vhSL3baeFau5QD9LsY7TdVwt11lcZduKeq6_xsvFo8XVYvqtpf3X8ATY7pPNLzEuDy-8zVfc
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(46450)
+				buf.Grow(46494)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -818,5 +818,6 @@ SZ7cZ-X-vhSL3baeFau5QD9LsY7TdVwt11lcZduKeq6_xsvFo8XVYvqtpf3X8ATY7pPNLzEuDy-8zVfc
 		{Data: dataRange(276668, 276825), Name: "migrations/20200702112635-contact-method-metadata.sql"},
 		{Data: dataRange(276825, 277098), Name: "migrations/20200716212352-prometheus-alertmanager-integration.sql"},
 		{Data: dataRange(277098, 277334), Name: "migrations/20200805132936-test-verify-index.sql"},
+		{Data: dataRange(277334, 277562), Name: "migrations/20200813093716-temp-schedules.sql"},
 	}
 }

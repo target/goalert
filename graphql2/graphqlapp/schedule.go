@@ -22,8 +22,22 @@ import (
 )
 
 type Schedule App
+type FixedShiftGroup App
 
-func (a *App) Schedule() graphql2.ScheduleResolver { return (*Schedule)(a) }
+func (a *App) Schedule() graphql2.ScheduleResolver               { return (*Schedule)(a) }
+func (a *App) FixedShiftGroup() graphql2.FixedShiftGroupResolver { return (*FixedShiftGroup)(a) }
+
+func (a *FixedShiftGroup) Shifts(ctx context.Context, grp *schedule.FixedShiftGroup) ([]oncall.Shift, error) {
+	result := make([]oncall.Shift, 0, len(grp.Shifts))
+	for _, s := range grp.Shifts {
+		result = append(result, oncall.Shift{
+			UserID: s.UserID,
+			Start:  s.Start,
+			End:    s.End,
+		})
+	}
+	return result, nil
+}
 
 func (q *Query) Schedule(ctx context.Context, id string) (*schedule.Schedule, error) {
 	return (*App)(q).FindOneSchedule(ctx, id)
@@ -36,6 +50,10 @@ func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, en
 		return nil, validation.NewFieldError("EndTime", "cannot be more than 50 days past StartTime")
 	}
 	return s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end)
+}
+
+func (s *Schedule) FixedShifts(ctx context.Context, raw *schedule.Schedule) ([]schedule.FixedShiftGroup, error) {
+	return s.ScheduleStore.FixedShiftGroups(ctx, nil, raw.ID)
 }
 
 func (s *Schedule) Target(ctx context.Context, raw *schedule.Schedule, input assignment.RawTarget) (*graphql2.ScheduleTarget, error) {

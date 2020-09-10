@@ -135,7 +135,7 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init service store")
 	}
 	if app.ScheduleStore == nil {
-		app.ScheduleStore, err = schedule.NewDB(ctx, app.db)
+		app.ScheduleStore, err = schedule.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init schedule store")
@@ -237,7 +237,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.OnCallStore == nil {
-		app.OnCallStore, err = oncall.NewDB(ctx, app.db, app.ScheduleRuleStore)
+		app.OnCallStore, err = oncall.NewDB(ctx, app.db, app.ScheduleRuleStore, app.ScheduleStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init on-call store")

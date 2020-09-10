@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
-	"github.com/target/goalert/notice"
 	"net"
 	"net/http"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/app/lifecycle"
@@ -25,6 +25,7 @@ import (
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
@@ -41,8 +42,6 @@ import (
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/sqlutil"
-
-	"github.com/pkg/errors"
 )
 
 // App represents an instance of the GoAlert application.
@@ -89,7 +88,7 @@ type App struct {
 	IntegrationKeyStore integrationkey.Store
 	ScheduleRuleStore   rule.Store
 	NotificationStore   notification.Store
-	ScheduleStore       schedule.Store
+	ScheduleStore       *schedule.Store
 	RotationStore       rotation.Store
 
 	CalSubStore    *calendarsubscription.Store
