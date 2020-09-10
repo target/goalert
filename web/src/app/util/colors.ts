@@ -1,7 +1,7 @@
 import { round } from 'lodash-es'
 import seedrandom from 'seedrandom'
 
-type Color = [number, number, number]
+export type Color = [number, number, number]
 
 // getAllyColors generates a set of n random colors with a
 // contrast ratio of at least 4.5:1 against a white background
@@ -20,24 +20,7 @@ export function getAllyColors(seed: string, num = 1): Color[] {
       rgb[j] = Math.floor(((rng + 1) * 255) / 2)
     }
 
-    const white: Color = [255, 255, 255]
-    console.log(`color ${i + 1}`)
-    console.log('%c       ', `background: rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`)
-    console.log(`rgb: ${rgb[0]}, ${rgb[1]}, ${rgb[2]}`)
-    console.log(`a11y? ${isA11y(white, rgb)}`)
-    console.log(`initial contrast: ${contrastRatio(white, rgb)}:1`)
-
-    console.log('improving contrast...')
-    rgb = makeColorA11y(rgb)
-    console.log('done!')
-
-    console.log('%c       ', `background: rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`)
-    console.log(`rgb: ${rgb[0]}, ${rgb[1]}, ${rgb[2]}`)
-    console.log(`a11y? ${isA11y(white, rgb)}`)
-    console.log(`final contrast: ${contrastRatio(white, rgb)}:1`)
-    console.log('\n')
-
-    colors.push(rgb)
+    colors.push(makeColorA11y(rgb))
   }
 
   return colors
@@ -53,7 +36,7 @@ function isA11y(lightRgb: Color, darkRgb: Color): boolean {
 // or decrements until the color passes WCAG standards against a white background
 function makeColorA11y(rgb: Color, adjust = 5, maxTries = 100 / adjust): Color {
   if (maxTries == 0) {
-    console.log('limit reached, enjoy darkness: ', rgb)
+    console.warn('limit reached, returning rgb(0, 0, 0)')
     return [0, 0, 0]
   }
 
@@ -63,11 +46,10 @@ function makeColorA11y(rgb: Color, adjust = 5, maxTries = 100 / adjust): Color {
     return rgb
   }
 
+  // adjust contrast
   const curContrast = contrastRatio(bgColor, rgb)
   const _rgb = adjustBrightness(rgb, adjust)
   const nxtContrast = contrastRatio(bgColor, _rgb)
-
-  console.log(`\t${nxtContrast}`)
 
   // contrast is improving if an increase is seen,
   // use previous adjust value
@@ -90,7 +72,7 @@ function adjustBrightness(rgb: Color, percentage: number): Color {
 // @params: rgb: [r, g, b]
 // w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
 function luminance(rgb: Color): number {
-  // calculate sRGB values
+  // calculate srgb values
   const srgb = rgb.map((x) => x / 255)
 
   // calculate R, G, and B values for rel luminance equation
@@ -107,7 +89,6 @@ function luminance(rgb: Color): number {
 function contrastRatio(lightRgb: Color, darkRgb: Color): number {
   const lightLum = luminance(lightRgb)
   const darkLum = luminance(darkRgb)
-
   return round((lightLum + 0.05) / (darkLum + 0.05), 1)
 }
 
@@ -115,7 +96,7 @@ function contrastRatio(lightRgb: Color, darkRgb: Color): number {
 // @params: rgb: [r, g, b]
 // based off of css-tricks.com/converting-color-spaces-in-javascript/#rgb-to-hsl
 function rgbToHsl(rgb: Color): Color {
-  // calculate sRGB values
+  // calculate srgb values
   const srgb = rgb.map((x) => x / 255)
   const r = srgb[0]
   const g = srgb[1]
@@ -125,6 +106,7 @@ function rgbToHsl(rgb: Color): Color {
   const cmin = Math.min(r, g, b)
   const cmax = Math.max(r, g, b)
   const delta = cmax - cmin
+
   let h = 0
   let s = 0
   let l = 0
@@ -136,7 +118,7 @@ function rgbToHsl(rgb: Color): Color {
   else h = (r - g) / delta + 4
   h = Math.round(h * 60)
 
-  // make negative hues positive behind 360°
+  // make negative hues positive behind 360 deg
   if (h < 0) h += 360
 
   l = (cmax + cmin) / 2 // calculate lightness
@@ -161,42 +143,20 @@ function hslToRgb(hsl: Color): Color {
   s /= 100
   l /= 100
 
-  let c = (1 - Math.abs(2 * l - 1)) * s,
-    x = c * (1 - Math.abs(((h / 60) % 2) - 1)),
-    m = l - c / 2,
-    r = 0,
-    g = 0,
-    b = 0
+  let chroma = (1 - Math.abs(2 * l - 1)) * s
+  let x = chroma * (1 - Math.abs(((h / 60) % 2) - 1))
+  let m = l - chroma / 2
 
-  if (0 <= h && h < 60) {
-    r = c
-    g = x
-    b = 0
-  } else if (60 <= h && h < 120) {
-    r = x
-    g = c
-    b = 0
-  } else if (120 <= h && h < 180) {
-    r = 0
-    g = c
-    b = x
-  } else if (180 <= h && h < 240) {
-    r = 0
-    g = x
-    b = c
-  } else if (240 <= h && h < 300) {
-    r = x
-    g = 0
-    b = c
-  } else if (300 <= h && h < 360) {
-    r = c
-    g = 0
-    b = x
-  }
+  let rgb = [0, 0, 0]
 
-  r = round((r + m) * 255)
-  g = round((g + m) * 255)
-  b = round((b + m) * 255)
+  if (0 <= h && h < 60) rgb = [chroma, x, 0]
+  else if (60 <= h && h < 120) rgb = [x, chroma, 0]
+  else if (120 <= h && h < 180) rgb = [0, chroma, x]
+  else if (180 <= h && h < 240) rgb = [0, x, chroma]
+  else if (240 <= h && h < 300) rgb = [x, 0, chroma]
+  else if (300 <= h && h < 360) rgb = [chroma, 0, x]
 
-  return [r, g, b]
+  // finalize rgb values
+  const f = (x: number) => round((x + m) * 255)
+  return rgb.map((x) => f(x)) as Color
 }

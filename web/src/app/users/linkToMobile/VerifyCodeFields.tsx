@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Button,
   DialogContent,
@@ -11,8 +11,7 @@ import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { useDispatch } from 'react-redux'
 import { setURLParam } from '../../actions'
-import classnames from 'classnames'
-import { getAllyColors } from '../../util/colors'
+import { getAllyColors, Color } from '../../util/colors'
 
 const useStyles = makeStyles({
   buttonContainer: {
@@ -27,14 +26,8 @@ const useStyles = makeStyles({
   },
   textField: {
     textAlign: 'center',
-    fontSize: '1.5rem',
+    fontSize: '2.25rem',
   },
-
-  // verify code colors per character
-  col0: { color: 'red' },
-  col1: { color: 'orange' },
-  col2: { color: 'green' },
-  col3: { color: 'blue' },
 })
 
 const mutation = gql`
@@ -52,6 +45,7 @@ export default function VerifyCodeFields(
   props: VerifyCodeFieldsProps,
 ): JSX.Element {
   const classes = useStyles()
+  const [colors, setColors] = useState(null as Color[] | null)
 
   const dispatch = useDispatch()
   const setErrorMessage = (value: string): void => {
@@ -59,7 +53,7 @@ export default function VerifyCodeFields(
   }
 
   useEffect(() => {
-    getAllyColors(props.verifyCode, 4)
+    setColors(getAllyColors(props.verifyCode, 4))
   }, [])
 
   const [verifyCode] = useMutation(mutation, {
@@ -83,10 +77,13 @@ export default function VerifyCodeFields(
           readOnly: true,
         }}
         inputProps={{
-          className: classnames(
-            classes.textField,
-            classes[('col' + i) as 'col0' | 'col1' | 'col2' | 'col3'],
-          ),
+          className: classes.textField,
+          style: {
+            color:
+              colors && colors[i]
+                ? `rgb(${colors[i][0]}, ${colors[i][1]}, ${colors[i][2]})`
+                : 'rgb(0, 0, 0)',
+          },
         }}
       />
     </Grid>
