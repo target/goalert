@@ -70,6 +70,7 @@
     "@material-ui/icons": "4.9.1",
     "@material-ui/lab": "4.0.0-alpha.56",
     "@types/react-lottie": "^1.2.5",
+    "@types/seedrandom": "^2.4.28",
     "apollo-cache-inmemory": "1.6.6",
     "apollo-client": "2.6.10",
     "apollo-link": "1.2.14",
@@ -105,7 +106,8 @@
     "react-swipeable-views": "0.13.9",
     "react-swipeable-views-utils": "0.13.9",
     "redux-thunk": "2.3.0",
-    "reselect": "4.0.0"
+    "reselect": "4.0.0",
+    "seedrandom": "^3.0.5"
   },
   "devDependencies": {
     "@apollo/react-common": "3.1.4",

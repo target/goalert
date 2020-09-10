@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Button,
   DialogContent,
@@ -12,6 +12,7 @@ import { useMutation } from 'react-apollo'
 import { useDispatch } from 'react-redux'
 import { setURLParam } from '../../actions'
 import classnames from 'classnames'
+import { getVerifyCodeColors } from '../util'
 
 const useStyles = makeStyles({
   buttonContainer: {
@@ -56,6 +57,10 @@ export default function VerifyCodeFields(
   const setErrorMessage = (value: string): void => {
     dispatch(setURLParam('error', value))
   }
+
+  useEffect(() => {
+    getVerifyCodeColors(props.verifyCode)
+  }, [])
 
   const [verifyCode] = useMutation(mutation, {
     variables: {
