@@ -12,7 +12,7 @@ import { useMutation } from 'react-apollo'
 import { useDispatch } from 'react-redux'
 import { setURLParam } from '../../actions'
 import classnames from 'classnames'
-import { getColors } from '../util'
+import { getAllyColors } from '../../util/colors'
 
 const useStyles = makeStyles({
   buttonContainer: {
@@ -59,7 +59,7 @@ export default function VerifyCodeFields(
   }
 
   useEffect(() => {
-    getColors(props.verifyCode, 4)
+    getAllyColors(props.verifyCode, 4)
   }, [])
 
   const [verifyCode] = useMutation(mutation, {

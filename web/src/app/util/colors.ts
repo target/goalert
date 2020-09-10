@@ -3,10 +3,10 @@ import seedrandom from 'seedrandom'
 
 type Colors = { r: number; g: number; b: number }[]
 
-// getColors generates a set of n random colors based off
-// of a seeded random number generator from the string.
-// a random int32 value is used to linearly map the rgb values
-export function getColors(seed: string, num = 1): Colors {
+// getAllyColors generates a set of n random colors with a
+// contrast ratio of at least 4.5:1 against a white background
+// as per WCAG standards
+export function getAllyColors(seed: string, num = 1): Colors {
   const seedRng = seedrandom(seed)
 
   let colors = []
@@ -20,7 +20,7 @@ export function getColors(seed: string, num = 1): Colors {
       rgb[j] = Math.floor(((rng + 1) * 255) / 2)
     }
 
-    const whiteLum = luminance([255, 255, 255]) // dialog bg color
+    const whiteLum = luminance([255, 255, 255]) // bg color
     const lum = luminance(rgb)
     const contrast = round(contrastRatio(whiteLum, lum), 1)
     const isAlly = isA11y(whiteLum, lum)
@@ -28,8 +28,7 @@ export function getColors(seed: string, num = 1): Colors {
     console.log(`color ${i + 1}`)
     console.log('%c       ', `background: rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`)
     console.log(`rgb: ${rgb[0]}, ${rgb[1]}, ${rgb[2]}`)
-    console.log(`contrast ratio: ${contrast}`)
-    console.log(`a11y? ${isAlly}`)
+    console.log(`a11y? ${isAlly}, ${contrast}`)
     console.log('\n')
 
     colors.push({
