@@ -13,7 +13,7 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-import 'cypress-plugin-retries'
+// import 'cypress-plugin-retries'
 
 import './alert'
 import './calendar-subscription'
@@ -36,9 +36,9 @@ import './sql'
 import './form'
 import './dialog'
 
-Cypress.env('RETRIES', 2)
+Cypress.env('retries', 1)
 Cypress.Cookies.defaults({
-  whitelist: 'goalert_session.2',
+  preserve: 'goalert_session.2',
 })
 
 export * from './config'
