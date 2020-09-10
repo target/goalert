@@ -53,7 +53,7 @@ type Status struct {
 	AuthedAt   time.Time
 }
 
-const codeAlphabet = "ABCDEFGHJKLMNPQRSTWXYZ23456789"
+const codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func genCode(n int) (string, error) {
 	val := make([]byte, n)
