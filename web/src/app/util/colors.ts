@@ -1,12 +1,12 @@
 import { round } from 'lodash-es'
 import seedrandom from 'seedrandom'
 
-type Colors = { r: number; g: number; b: number }[]
+type Color = [number, number, number]
 
 // getAllyColors generates a set of n random colors with a
 // contrast ratio of at least 4.5:1 against a white background
 // as per WCAG standards
-export function getAllyColors(seed: string, num = 1): Colors {
+export function getAllyColors(seed: string, num = 1): Color[] {
   const seedRng = seedrandom(seed)
 
   let colors = []
@@ -14,37 +14,82 @@ export function getAllyColors(seed: string, num = 1): Colors {
     const colorSeed = seedrandom((seedRng() + i).toString())
 
     // every color needs an red, green, and blue value from 0-255
-    let rgb = [] // [r, g, b]
+    let rgb: Color = [0, 0, 0]
     for (let j = 0; j < 3; j++) {
       const rng = seedrandom((colorSeed() + j).toString())()
       rgb[j] = Math.floor(((rng + 1) * 255) / 2)
     }
 
-    const whiteLum = luminance([255, 255, 255]) // bg color
-    const lum = luminance(rgb)
-    const contrast = round(contrastRatio(whiteLum, lum), 1)
-    const isAlly = isA11y(whiteLum, lum)
-
+    const white: Color = [255, 255, 255]
     console.log(`color ${i + 1}`)
     console.log('%c       ', `background: rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`)
     console.log(`rgb: ${rgb[0]}, ${rgb[1]}, ${rgb[2]}`)
-    console.log(`a11y? ${isAlly}, ${contrast}`)
+    console.log(`a11y? ${isA11y(white, rgb)}`)
+    console.log(`initial contrast: ${contrastRatio(white, rgb)}:1`)
+
+    console.log('improving contrast...')
+    rgb = makeColorA11y(rgb)
+    console.log('done!')
+
+    console.log('%c       ', `background: rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`)
+    console.log(`rgb: ${rgb[0]}, ${rgb[1]}, ${rgb[2]}`)
+    console.log(`a11y? ${isA11y(white, rgb)}`)
+    console.log(`final contrast: ${contrastRatio(white, rgb)}:1`)
     console.log('\n')
 
-    colors.push({
-      r: rgb[0],
-      g: rgb[1],
-      b: rgb[2],
-    })
+    colors.push(rgb)
   }
 
   return colors
 }
 
+// isAlly returns true/false for whether or not two relative
+// luminances have a ratio higher than 4.5 as per WCAG standards
+function isA11y(lightRgb: Color, darkRgb: Color): boolean {
+  return contrastRatio(lightRgb, darkRgb) >= 4.5
+}
+
+// makeColorA11y takes an rgb color and adjusts the lightness in 5% increments
+// or decrements until the color passes WCAG standards against a white background
+function makeColorA11y(rgb: Color, adjust = 5, maxTries = 100 / adjust): Color {
+  if (maxTries == 0) {
+    console.log('limit reached, enjoy darkness: ', rgb)
+    return [0, 0, 0]
+  }
+
+  const bgColor: Color = [255, 255, 255]
+
+  if (isA11y(bgColor, rgb)) {
+    return rgb
+  }
+
+  const curContrast = contrastRatio(bgColor, rgb)
+  const _rgb = adjustBrightness(rgb, adjust)
+  const nxtContrast = contrastRatio(bgColor, _rgb)
+
+  console.log(`\t${nxtContrast}`)
+
+  // contrast is improving if an increase is seen,
+  // use previous adjust value
+  if (curContrast < nxtContrast) {
+    return makeColorA11y(_rgb, adjust, maxTries - 1)
+  }
+
+  // darken color instead if contrast worsens after lightening
+  return makeColorA11y(_rgb, Math.abs(adjust) * -1, maxTries - 1)
+}
+
+// adjustBrightness adjusts the brightness of an rgb color
+function adjustBrightness(rgb: Color, percentage: number): Color {
+  let hsl = rgbToHsl(rgb)
+  hsl[2] += percentage
+  return hslToRgb(hsl)
+}
+
 // luminance returns the relative luminance of a color as defined by w3
 // @params: rgb: [r, g, b]
 // w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
-function luminance(rgb: number[]): number {
+function luminance(rgb: Color): number {
   // calculate sRGB values
   const srgb = rgb.map((x) => x / 255)
 
@@ -59,21 +104,17 @@ function luminance(rgb: number[]): number {
 
 // contrastRatio returns the contrast ratio x:1 as defined by w3
 // w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
-function contrastRatio(lightLum: number, darkLum: number): number {
-  return (lightLum + 0.05) / (darkLum + 0.05)
-}
+function contrastRatio(lightRgb: Color, darkRgb: Color): number {
+  const lightLum = luminance(lightRgb)
+  const darkLum = luminance(darkRgb)
 
-// isAlly returns true/false for whether or not two
-// relative luminances have a ratio higher than 4.5
-// as per WCAG standards
-function isA11y(lightLum: number, darkLum: number): boolean {
-  return contrastRatio(lightLum, darkLum) >= 4.5
+  return round((lightLum + 0.05) / (darkLum + 0.05), 1)
 }
 
 // rgbToHsl takes an rgb color and converts it to its hsl counterpart
 // @params: rgb: [r, g, b]
 // based off of css-tricks.com/converting-color-spaces-in-javascript/#rgb-to-hsl
-function rgbToHsl(rgb: number[]): number[] {
+function rgbToHsl(rgb: Color): Color {
   // calculate sRGB values
   const srgb = rgb.map((x) => x / 255)
   const r = srgb[0]
@@ -111,7 +152,7 @@ function rgbToHsl(rgb: number[]): number[] {
 // rgbToHsl takes an hsl color and converts it to its rgb counterpart
 // @params: hsl: [h, s, l]
 // based off of css-tricks.com/converting-color-spaces-in-javascript/#hsl-to-rgb
-function hslToRgb(hsl: number[]): number[] {
+function hslToRgb(hsl: Color): Color {
   const h = hsl[0]
   let s = hsl[1]
   let l = hsl[2]
