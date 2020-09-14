@@ -28,13 +28,17 @@ export function getAllyColors(seed: string, num = 1): Color[] {
 
 // isAlly returns true/false for whether or not two relative
 // luminances have a ratio higher than 4.5 as per WCAG standards
-function isA11y(lightRgb: Color, darkRgb: Color): boolean {
+export function isA11y(lightRgb: Color, darkRgb: Color): boolean {
   return contrastRatio(lightRgb, darkRgb) >= 4.5
 }
 
 // makeColorA11y takes an rgb color and adjusts the lightness in 5% increments
 // or decrements until the color passes WCAG standards against a white background
-function makeColorA11y(rgb: Color, adjust = 5, maxTries = 100 / adjust): Color {
+export function makeColorA11y(
+  rgb: Color,
+  adjust = 5,
+  maxTries = 100 / adjust,
+): Color {
   if (maxTries == 0) {
     console.warn('limit reached, returning rgb(0, 0, 0)')
     return [0, 0, 0]
@@ -62,7 +66,7 @@ function makeColorA11y(rgb: Color, adjust = 5, maxTries = 100 / adjust): Color {
 }
 
 // adjustBrightness adjusts the brightness of an rgb color
-function adjustBrightness(rgb: Color, percentage: number): Color {
+export function adjustBrightness(rgb: Color, percentage: number): Color {
   let hsl = rgbToHsl(rgb)
   hsl[2] += percentage
   return hslToRgb(hsl)
@@ -71,7 +75,7 @@ function adjustBrightness(rgb: Color, percentage: number): Color {
 // luminance returns the relative luminance of a color as defined by w3
 // @params: rgb: [r, g, b]
 // w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
-function luminance(rgb: Color): number {
+export function luminance(rgb: Color): number {
   // calculate srgb values
   const srgb = rgb.map((x) => x / 255)
 
@@ -86,7 +90,7 @@ function luminance(rgb: Color): number {
 
 // contrastRatio returns the contrast ratio x:1 as defined by w3
 // w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
-function contrastRatio(lightRgb: Color, darkRgb: Color): number {
+export function contrastRatio(lightRgb: Color, darkRgb: Color): number {
   const lightLum = luminance(lightRgb)
   const darkLum = luminance(darkRgb)
   return round((lightLum + 0.05) / (darkLum + 0.05), 1)
@@ -95,7 +99,7 @@ function contrastRatio(lightRgb: Color, darkRgb: Color): number {
 // rgbToHsl takes an rgb color and converts it to its hsl counterpart
 // @params: rgb: [r, g, b]
 // based off of css-tricks.com/converting-color-spaces-in-javascript/#rgb-to-hsl
-function rgbToHsl(rgb: Color): Color {
+export function rgbToHsl(rgb: Color): Color {
   // calculate srgb values
   const srgb = rgb.map((x) => x / 255)
   const r = srgb[0]
@@ -134,7 +138,7 @@ function rgbToHsl(rgb: Color): Color {
 // rgbToHsl takes an hsl color and converts it to its rgb counterpart
 // @params: hsl: [h, s, l]
 // based off of css-tricks.com/converting-color-spaces-in-javascript/#hsl-to-rgb
-function hslToRgb(hsl: Color): Color {
+export function hslToRgb(hsl: Color): Color {
   const h = hsl[0]
   let s = hsl[1]
   let l = hsl[2]
