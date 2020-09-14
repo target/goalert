@@ -12,6 +12,7 @@ import _ from 'lodash-es'
 import PageActions from '../util/PageActions'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
+import { ApolloError } from 'apollo-client'
 
 const query = gql`
   query($userID: ID!) {
@@ -140,7 +141,7 @@ export default function UserSessionList(
           confirm
           loading={logoutOneStatus.loading || logoutAllStatus.loading}
           errors={nonFieldErrors(
-            logoutOneStatus.error || logoutAllStatus.error,
+            (logoutOneStatus.error || logoutAllStatus.error) as ApolloError,
           )}
           subTitle={getSubtitle()}
           onSubmit={() =>
