@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
-import { useMutation, useQuery, useLazyQuery } from '@apollo/react-hooks'
-import Typography from '@material-ui/core/Typography'
+import { useMutation, useLazyQuery } from '@apollo/react-hooks'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
-
-import { useURLParam, useResetURLParams } from '../actions'
 
 const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
