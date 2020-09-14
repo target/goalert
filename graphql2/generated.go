@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -75,6 +76,7 @@ type ResolverRoot interface {
 	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
+	UserSession() UserSessionResolver
 }
 
 type DirectiveRoot struct {
@@ -205,44 +207,45 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAuthSubject                 func(childComplexity int, input user.AuthSubject) int
-		CreateAlert                    func(childComplexity int, input CreateAlertInput) int
-		CreateEscalationPolicy         func(childComplexity int, input CreateEscalationPolicyInput) int
-		CreateEscalationPolicyStep     func(childComplexity int, input CreateEscalationPolicyStepInput) int
-		CreateHeartbeatMonitor         func(childComplexity int, input CreateHeartbeatMonitorInput) int
-		CreateIntegrationKey           func(childComplexity int, input CreateIntegrationKeyInput) int
-		CreateRotation                 func(childComplexity int, input CreateRotationInput) int
-		CreateSchedule                 func(childComplexity int, input CreateScheduleInput) int
-		CreateService                  func(childComplexity int, input CreateServiceInput) int
-		CreateUserCalendarSubscription func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
-		CreateUserContactMethod        func(childComplexity int, input CreateUserContactMethodInput) int
-		CreateUserNotificationRule     func(childComplexity int, input CreateUserNotificationRuleInput) int
-		CreateUserOverride             func(childComplexity int, input CreateUserOverrideInput) int
-		DebugCarrierInfo               func(childComplexity int, input DebugCarrierInfoInput) int
-		DebugSendSms                   func(childComplexity int, input DebugSendSMSInput) int
-		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
-		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
-		EscalateAlerts                 func(childComplexity int, input []int) int
-		SendContactMethodVerification  func(childComplexity int, input SendContactMethodVerificationInput) int
-		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
-		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
-		SetLabel                       func(childComplexity int, input SetLabelInput) int
-		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
-		TestContactMethod              func(childComplexity int, id string) int
-		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
-		UpdateAlertsByService          func(childComplexity int, input UpdateAlertsByServiceInput) int
-		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
-		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
-		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
-		UpdateRotation                 func(childComplexity int, input UpdateRotationInput) int
-		UpdateSchedule                 func(childComplexity int, input UpdateScheduleInput) int
-		UpdateScheduleTarget           func(childComplexity int, input ScheduleTargetInput) int
-		UpdateService                  func(childComplexity int, input UpdateServiceInput) int
-		UpdateUser                     func(childComplexity int, input UpdateUserInput) int
-		UpdateUserCalendarSubscription func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
-		UpdateUserContactMethod        func(childComplexity int, input UpdateUserContactMethodInput) int
-		UpdateUserOverride             func(childComplexity int, input UpdateUserOverrideInput) int
-		VerifyContactMethod            func(childComplexity int, input VerifyContactMethodInput) int
+		AddAuthSubject                  func(childComplexity int, input user.AuthSubject) int
+		CreateAlert                     func(childComplexity int, input CreateAlertInput) int
+		CreateEscalationPolicy          func(childComplexity int, input CreateEscalationPolicyInput) int
+		CreateEscalationPolicyStep      func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateHeartbeatMonitor          func(childComplexity int, input CreateHeartbeatMonitorInput) int
+		CreateIntegrationKey            func(childComplexity int, input CreateIntegrationKeyInput) int
+		CreateRotation                  func(childComplexity int, input CreateRotationInput) int
+		CreateSchedule                  func(childComplexity int, input CreateScheduleInput) int
+		CreateService                   func(childComplexity int, input CreateServiceInput) int
+		CreateUserCalendarSubscription  func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
+		CreateUserContactMethod         func(childComplexity int, input CreateUserContactMethodInput) int
+		CreateUserNotificationRule      func(childComplexity int, input CreateUserNotificationRuleInput) int
+		CreateUserOverride              func(childComplexity int, input CreateUserOverrideInput) int
+		DebugCarrierInfo                func(childComplexity int, input DebugCarrierInfoInput) int
+		DebugSendSms                    func(childComplexity int, input DebugSendSMSInput) int
+		DeleteAll                       func(childComplexity int, input []assignment.RawTarget) int
+		DeleteAuthSubject               func(childComplexity int, input user.AuthSubject) int
+		EndAllAuthSessionsByCurrentUser func(childComplexity int) int
+		EscalateAlerts                  func(childComplexity int, input []int) int
+		SendContactMethodVerification   func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetConfig                       func(childComplexity int, input []ConfigValueInput) int
+		SetFavorite                     func(childComplexity int, input SetFavoriteInput) int
+		SetLabel                        func(childComplexity int, input SetLabelInput) int
+		SetSystemLimits                 func(childComplexity int, input []SystemLimitInput) int
+		TestContactMethod               func(childComplexity int, id string) int
+		UpdateAlerts                    func(childComplexity int, input UpdateAlertsInput) int
+		UpdateAlertsByService           func(childComplexity int, input UpdateAlertsByServiceInput) int
+		UpdateEscalationPolicy          func(childComplexity int, input UpdateEscalationPolicyInput) int
+		UpdateEscalationPolicyStep      func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateHeartbeatMonitor          func(childComplexity int, input UpdateHeartbeatMonitorInput) int
+		UpdateRotation                  func(childComplexity int, input UpdateRotationInput) int
+		UpdateSchedule                  func(childComplexity int, input UpdateScheduleInput) int
+		UpdateScheduleTarget            func(childComplexity int, input ScheduleTargetInput) int
+		UpdateService                   func(childComplexity int, input UpdateServiceInput) int
+		UpdateUser                      func(childComplexity int, input UpdateUserInput) int
+		UpdateUserCalendarSubscription  func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
+		UpdateUserContactMethod         func(childComplexity int, input UpdateUserContactMethodInput) int
+		UpdateUserOverride              func(childComplexity int, input UpdateUserOverrideInput) int
+		VerifyContactMethod             func(childComplexity int, input VerifyContactMethodInput) int
 	}
 
 	Notice struct {
@@ -433,6 +436,7 @@ type ComplexityRoot struct {
 		NotificationRules     func(childComplexity int) int
 		OnCallSteps           func(childComplexity int) int
 		Role                  func(childComplexity int) int
+		Sessions              func(childComplexity int) int
 	}
 
 	UserCalendarSubscription struct {
@@ -485,6 +489,14 @@ type ComplexityRoot struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
+
+	UserSession struct {
+		CreatedAt    func(childComplexity int) int
+		Current      func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LastAccessAt func(childComplexity int) int
+		UserAgent    func(childComplexity int) int
+	}
 }
 
 type AlertResolver interface {
@@ -523,6 +535,7 @@ type MutationResolver interface {
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	DeleteAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
+	EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, error)
 	UpdateUser(ctx context.Context, input UpdateUserInput) (bool, error)
 	TestContactMethod(ctx context.Context, id string) (bool, error)
 	UpdateAlerts(ctx context.Context, input UpdateAlertsInput) ([]alert.Alert, error)
@@ -633,6 +646,7 @@ type UserResolver interface {
 	CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calendarsubscription.CalendarSubscription, error)
 
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
+	Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
 }
 type UserCalendarSubscriptionResolver interface {
@@ -655,6 +669,9 @@ type UserOverrideResolver interface {
 	AddUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	RemoveUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	Target(ctx context.Context, obj *override.UserOverride) (*assignment.RawTarget, error)
+}
+type UserSessionResolver interface {
+	Current(ctx context.Context, obj *auth.UserSession) (bool, error)
 }
 
 type executableSchema struct {
@@ -1363,6 +1380,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteAuthSubject(childComplexity, args["input"].(user.AuthSubject)), true
+
+	case "Mutation.endAllAuthSessionsByCurrentUser":
+		if e.complexity.Mutation.EndAllAuthSessionsByCurrentUser == nil {
+			break
+		}
+
+		return e.complexity.Mutation.EndAllAuthSessionsByCurrentUser(childComplexity), true
 
 	case "Mutation.escalateAlerts":
 		if e.complexity.Mutation.EscalateAlerts == nil {
@@ -2613,6 +2637,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Role(childComplexity), true
 
+	case "User.sessions":
+		if e.complexity.User.Sessions == nil {
+			break
+		}
+
+		return e.complexity.User.Sessions(childComplexity), true
+
 	case "UserCalendarSubscription.disabled":
 		if e.complexity.UserCalendarSubscription.Disabled == nil {
 			break
@@ -2843,6 +2874,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserOverrideConnection.PageInfo(childComplexity), true
+
+	case "UserSession.createdAt":
+		if e.complexity.UserSession.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserSession.CreatedAt(childComplexity), true
+
+	case "UserSession.current":
+		if e.complexity.UserSession.Current == nil {
+			break
+		}
+
+		return e.complexity.UserSession.Current(childComplexity), true
+
+	case "UserSession.id":
+		if e.complexity.UserSession.ID == nil {
+			break
+		}
+
+		return e.complexity.UserSession.ID(childComplexity), true
+
+	case "UserSession.lastAccessAt":
+		if e.complexity.UserSession.LastAccessAt == nil {
+			break
+		}
+
+		return e.complexity.UserSession.LastAccessAt(childComplexity), true
+
+	case "UserSession.userAgent":
+		if e.complexity.UserSession.UserAgent == nil {
+			break
+		}
+
+		return e.complexity.UserSession.UserAgent(childComplexity), true
 
 	}
 	return 0, false
@@ -3169,6 +3235,7 @@ type Mutation {
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
+  endAllAuthSessionsByCurrentUser: Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
 
   testContactMethod(id: ID!): Boolean!
@@ -3793,6 +3860,7 @@ enum TargetType {
   contactMethod
   heartbeatMonitor
   calendarSubscription
+  userSession
 }
 
 type ServiceConnection {
@@ -3854,8 +3922,17 @@ type User {
   statusUpdateContactMethodID: ID!
 
   authSubjects: [AuthSubject!]!
+  sessions: [UserSession!]!
 
   onCallSteps: [EscalationPolicyStep!]!
+}
+
+type UserSession {
+  id: ID!
+  current: Boolean!
+  userAgent: String!
+  createdAt: ISOTimestamp!
+  lastAccessAt: ISOTimestamp!
 }
 
 type UserNotificationRule {
@@ -7490,6 +7567,40 @@ func (ec *executionContext) _Mutation_deleteAuthSubject(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteAuthSubject(rctx, args["input"].(user.AuthSubject))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_endAllAuthSessionsByCurrentUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EndAllAuthSessionsByCurrentUser(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13163,6 +13274,40 @@ func (ec *executionContext) _User_authSubjects(ctx context.Context, field graphq
 	return ec.marshalNAuthSubject2ᚕgithubᚗcomᚋtargetᚋgoalertᚋuserᚐAuthSubjectᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_sessions(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Sessions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]auth.UserSession)
+	fc.Result = res
+	return ec.marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSessionᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_onCallSteps(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14290,6 +14435,176 @@ func (ec *executionContext) _UserOverrideConnection_pageInfo(ctx context.Context
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_id(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_current(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserSession().Current(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_userAgent(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserAgent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_createdAt(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_lastAccessAt(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAccessAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -18119,6 +18434,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "endAllAuthSessionsByCurrentUser":
+			out.Values[i] = ec._Mutation_endAllAuthSessionsByCurrentUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "updateUser":
 			out.Values[i] = ec._Mutation_updateUser(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -19811,6 +20131,20 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "sessions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_sessions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "onCallSteps":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20184,6 +20518,62 @@ func (ec *executionContext) _UserOverrideConnection(ctx context.Context, sel ast
 			out.Values[i] = ec._UserOverrideConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userSessionImplementors = []string{"UserSession"}
+
+func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionSet, obj *auth.UserSession) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userSessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserSession")
+		case "id":
+			out.Values[i] = ec._UserSession_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "current":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserSession_current(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "userAgent":
+			out.Values[i] = ec._UserSession_userAgent(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._UserSession_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "lastAccessAt":
+			out.Values[i] = ec._UserSession_lastAccessAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -22314,6 +22704,47 @@ func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋtargetᚋgoalert�
 
 func (ec *executionContext) marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx context.Context, sel ast.SelectionSet, v UserRole) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSession(ctx context.Context, sel ast.SelectionSet, v auth.UserSession) graphql.Marshaler {
+	return ec._UserSession(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []auth.UserSession) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSession(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyContactMethodInput(ctx context.Context, v interface{}) (VerifyContactMethodInput, error) {
