@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
 
 import gql from 'graphql-tag'
-import { fieldErrors, nonFieldErrors } from '../util/errutil'
+import { useMutation, useQuery, useLazyQuery } from '@apollo/react-hooks'
 import Typography from '@material-ui/core/Typography'
-
+import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
-import { useMutation, useQuery } from '@apollo/react-hooks'
-
-import { AppLink } from '../util/AppLink'
 
 import { useURLParam, useResetURLParams } from '../actions'
 
@@ -21,7 +18,7 @@ const createMutation = gql`
   }
 `
 
-const query = gql`
+const userConflictQuery = gql`
   query($input: UserSearchOptions) {
     users(input: $input) {
       nodes {
@@ -40,48 +37,26 @@ export default function UserContactMethodCreateDialog(props) {
     value: '',
   })
 
-  const [submitted, setSubmitted] = useState(false)
-
-  const { data, loading: queryLoading } = useQuery(query, {
-    variables: {
-      input: {
-        CMValue: CMValue.value,
-        CMType: CMValue.type,
+  const [query, { data, loading: queryLoading }] = useLazyQuery(
+    userConflictQuery,
+    {
+      variables: {
+        input: {
+          CMValue: CMValue.value,
+          CMType: CMValue.type,
+        },
       },
+      pollInterval: 0, // override config poll interval to query once
     },
-  })
-
-  const [userConflict, setUserConflict] = useURLParam('userConflict', '')
-
-  const resetUserConflict = useResetURLParams('userConflict')
-
-  useEffect(() => {
-    if (data && !queryLoading) {
-      setUserConflict(
-        data.users?.nodes[0]?.id + ',' + data.users?.nodes[0]?.name,
-      )
-    }
-  }, [queryLoading])
-
-  const userConflictSplit = userConflict.split(',')
-  const existingCMName = userConflictSplit[1]
-  const existingCMId = userConflictSplit[0]
-  let errorLink = null
-
-  if (existingCMName && existingCMId && submitted) {
-    errorLink = (
-      <Typography>
-        <AppLink to={`/users/${existingCMId}`}>
-          Contact method already exists for that type and value:{' '}
-          {existingCMName}
-        </AppLink>
-      </Typography>
-    )
-  }
+  )
 
   const [createCM, createCMStatus] = useMutation(createMutation, {
     onCompleted: (result) => {
       props.onClose({ contactMethodID: result.createUserContactMethod.id })
+    },
+    onError: () => {
+      console.log('error, trying query')
+      query()
     },
     variables: {
       input: {
@@ -95,10 +70,22 @@ export default function UserContactMethodCreateDialog(props) {
   })
 
   const { loading, error } = createCMStatus
-  const fieldErrs = fieldErrors(error)
   const { title = 'Create New Contact Method', subtitle } = props
 
-  const errors = errorLink ? [errorLink] : nonFieldErrors(error)
+  let fieldErrs = fieldErrors(error)
+  if (!queryLoading && data?.users?.nodes.length > 0) {
+    fieldErrs = fieldErrs.map((err) => {
+      if (
+        err.message === 'contact method already exists for that type and value'
+      ) {
+        return {
+          ...err,
+          message: `${err.message}: ${data.users.nodes[0].name}`,
+          helpLink: `/users/${data.users.nodes[0].id}`,
+        }
+      }
+    })
+  }
 
   const form = (
     <UserContactMethodForm
@@ -116,20 +103,9 @@ export default function UserContactMethodCreateDialog(props) {
       title={title}
       subTitle={subtitle}
       loading={loading}
-      errors={errors}
-      onClose={() => {
-        resetUserConflict()
-        props.onClose()
-      }}
-      // wrapped to prevent event from passing into createCM
-      onSubmit={() => {
-        // prevent submitting if a user conflict exists
-        if (existingCMName && existingCMId) {
-          setSubmitted(true)
-          return
-        }
-        createCM()
-      }}
+      errors={nonFieldErrors(error)}
+      onClose={props.onClose}
+      onSubmit={createCM}
       form={form}
     />
   )

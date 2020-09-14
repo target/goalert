@@ -15,10 +15,7 @@ export class FormContainer extends React.PureComponent {
       p.shape({
         message: p.string,
         field: p.string,
-        helpLink: p.shape({
-          text: p.string.isRequired,
-          to: p.string.isRequired,
-        }),
+        helpLink: p.string,
       }),
     ),
 

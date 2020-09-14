@@ -49,10 +49,12 @@ export default class FormDialog extends React.PureComponent {
     subTitle: p.node,
     caption: p.node,
 
-    errors: p.shape({
-      message: p.string.isRequired,
-      nonSubmit: p.bool, // indicates that it is a non-submit related error
-    }),
+    errors: p.arrayOf(
+      p.shape({
+        message: p.string.isRequired,
+        nonSubmit: p.bool, // indicates that it is a non-submit related error
+      }),
+    ),
 
     form: p.element,
     loading: p.bool,
