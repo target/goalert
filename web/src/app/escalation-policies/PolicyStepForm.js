@@ -264,6 +264,7 @@ export default class PolicyStepForm extends React.Component {
               name='delayMinutes'
               required
               type='number'
+              mapOnChangeValue={(value) => value.toString()}
               hint={
                 value.delayMinutes === '0'
                   ? 'This will cause the step to immediately escalate'

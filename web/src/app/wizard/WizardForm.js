@@ -150,6 +150,7 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='3'
+              mapOnChangeValue={(value) => value.toString()}
               min={0}
               max={5}
             />

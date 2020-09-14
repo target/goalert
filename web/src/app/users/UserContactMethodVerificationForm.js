@@ -76,6 +76,7 @@ export default function UserContactMethodVerificationForm(props) {
             component={TextField}
             type='number'
             step='1'
+            mapOnChangeValue={(value) => value.toString()}
           />
         </Grid>
       </Grid>
