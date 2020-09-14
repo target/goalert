@@ -10,7 +10,6 @@ import StepContent from '@material-ui/core/StepContent'
 import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
-import { normalizeNumbers } from '../util/NormalizeNumbers'
 import {
   RotationSelect,
   ScheduleSelect,
@@ -265,9 +264,6 @@ export default class PolicyStepForm extends React.Component {
               name='delayMinutes'
               required
               type='number'
-              mapOnChangeValue={(value) =>
-                normalizeNumbers(value, 1, 9000).toString()
-              }
               hint={
                 value.delayMinutes === '0'
                   ? 'This will cause the step to immediately escalate'

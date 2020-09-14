@@ -32,6 +32,10 @@ export class FormField extends React.PureComponent {
     name: p.string.isRequired,
     fieldName: p.string,
 
+    // min and max values specify the range to clamp a int value
+    min: p.number,
+    max: p.number,
+
     // used if name is set,
     // but the error name is different from graphql responses
     errorName: p.string,
@@ -58,6 +62,8 @@ export class FormField extends React.PureComponent {
     validate: () => {},
     mapValue: (value) => value,
     mapOnChangeValue: (value) => value,
+    min: 1,
+    max: 9000,
   }
 
   validate = (value) => {
@@ -105,6 +111,8 @@ export class FormField extends React.PureComponent {
       InputLabelProps: _inputProps,
       mapValue,
       mapOnChangeValue,
+      min,
+      max,
       checkbox,
       ...otherFieldProps
     } = this.props
@@ -123,6 +131,8 @@ export class FormField extends React.PureComponent {
       error: errors.find((err) => err.field === (errorName || fieldName)),
       hint,
       value: mapValue(get(value, fieldName)),
+      min,
+      max,
     }
 
     const InputLabelProps = {
@@ -146,8 +156,14 @@ export class FormField extends React.PureComponent {
       props.InputLabelProps = InputLabelProps
     }
 
-    props.onChange = (value) =>
-      onChange(fieldName, mapOnChangeValue(getValueOf(value)))
+    props.onChange = (value) => {
+      let newValue = getValueOf(value)
+      if (props.type === 'number' && typeof props.min === 'number')
+        newValue = Math.max(props.min, newValue)
+      if (props.type === 'number' && typeof props.max === 'number')
+        newValue = Math.min(props.max, newValue)
+      onChange(fieldName, mapOnChangeValue(newValue))
+    }
 
     return (
       <MountWatcher
