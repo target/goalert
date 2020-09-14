@@ -51,10 +51,7 @@ export default function UserContactMethodCreateDialog(props) {
     onCompleted: (result) => {
       props.onClose({ contactMethodID: result.createUserContactMethod.id })
     },
-    onError: () => {
-      console.log('error, trying query')
-      query()
-    },
+    onError: query,
     variables: {
       input: {
         ...CMValue,
@@ -80,6 +77,8 @@ export default function UserContactMethodCreateDialog(props) {
           message: `${err.message}: ${data.users.nodes[0].name}`,
           helpLink: `/users/${data.users.nodes[0].id}`,
         }
+      } else {
+        return err
       }
     })
   }
