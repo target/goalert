@@ -10,7 +10,7 @@ import { Zoom } from '@material-ui/core'
 @withStyles(styles)
 export default class DialogContentError extends Component {
   static propTypes = {
-    error: p.oneOfType([p.string, p.node]),
+    error: p.string,
     noPadding: p.bool,
   }
 

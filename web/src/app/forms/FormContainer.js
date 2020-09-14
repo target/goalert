@@ -11,13 +11,16 @@ export class FormContainer extends React.PureComponent {
   static propTypes = {
     value: p.object,
 
-    errors: p.oneOfType([
+    errors: p.arrayOf(
       p.shape({
-        message: p.string.isRequired,
-        field: p.string.isRequired,
+        message: p.string,
+        field: p.string,
+        helpLink: p.shape({
+          text: p.string.isRequired,
+          to: p.string.isRequired,
+        }),
       }),
-      p.node,
-    ]),
+    ),
 
     onChange: p.func,
     disabled: p.bool,
