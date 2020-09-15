@@ -212,14 +212,7 @@ export default class ScheduleCalendar extends React.PureComponent {
                     {...props}
                   />
                 ),
-                toolbar: (props) => (
-                  <CalendarToolbar
-                    onOverrideClick={() =>
-                      this.setState({ overrideDialog: { variant: 'add' } })
-                    }
-                    {...props}
-                  />
-                ),
+                toolbar: (props) => <CalendarToolbar {...props} />,
               }}
             />
           </div>
