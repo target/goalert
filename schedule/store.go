@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
@@ -29,13 +30,16 @@ type Store struct {
 	findOneUp *sql.Stmt
 
 	findMany *sql.Stmt
+
+	usr user.Store
 }
 
-func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
+func NewStore(ctx context.Context, db *sql.DB, usr user.Store) (*Store, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
 	return &Store{
-		db: db,
+		db:  db,
+		usr: usr,
 
 		findData:    p.P(`SELECT data FROM schedule_data WHERE schedule_id = $1`),
 		findUpdData: p.P(`SELECT data FROM schedule_data WHERE schedule_id = $1 FOR UPDATE`),

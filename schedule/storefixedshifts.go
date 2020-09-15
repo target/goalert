@@ -13,15 +13,24 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-func validateShifts(fname string, max int, shifts []FixedShift) error {
+func (store *Store) validateShifts(ctx context.Context, fname string, max int, shifts []FixedShift) error {
 	if len(shifts) > max {
 		return validation.NewFieldError(fname, "too many shifts defined")
 	}
+
+	check, err := store.usr.UserExists(ctx)
+	if err != nil {
+		return err
+	}
+	defer check.Done()
 
 	for i, s := range shifts {
 		err := validate.UUID(fmt.Sprintf("%s[%d].UserID", fname, i), s.UserID)
 		if err != nil {
 			return err
+		}
+		if !check.UserExistsString(s.UserID) {
+			return validation.NewFieldError(fmt.Sprintf("%s[%d].UserID", fname, i), "user does not exist")
 		}
 	}
 
@@ -135,7 +144,7 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 
 	err = validate.Many(
 		validate.UUID("ScheduleID", scheduleID),
-		validateShifts("Shifts", 500, shifts),
+		store.validateShifts(ctx, "Shifts", 500, shifts),
 	)
 	if err != nil {
 		return err
