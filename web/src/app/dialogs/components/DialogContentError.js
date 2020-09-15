@@ -33,7 +33,7 @@ export default class DialogContentError extends Component {
       )
     }
 
-    return typeof error === 'string' ? (
+    return (
       <DialogContent style={{ textAlign: 'center', ...style }} {...other}>
         <Zoom in>
           <Typography
@@ -47,8 +47,6 @@ export default class DialogContentError extends Component {
           </Typography>
         </Zoom>
       </DialogContent>
-    ) : (
-      <DialogContent>{error}</DialogContent>
     )
   }
 }
