@@ -3283,7 +3283,6 @@ type Mutation {
   # Updates the favorite status of a target.
   setFavorite(input: SetFavoriteInput!): Boolean!
 
-
   updateService(input: UpdateServiceInput!): Boolean!
   updateEscalationPolicy(input: UpdateEscalationPolicyInput!): Boolean!
   updateEscalationPolicyStep(input: UpdateEscalationPolicyStepInput!): Boolean!

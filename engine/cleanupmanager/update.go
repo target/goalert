@@ -90,10 +90,11 @@ func (db *DB) update(ctx context.Context) error {
 	var currentUsers []string
 	if len(m) > 0 {
 		currentUsers, err = db.getUsers(ctx, tx)
+		if err != nil {
+			return err
+		}
 	}
-	if err != nil {
-		return err
-	}
+
 	lookup := lookupMap(currentUsers)
 	for _, dat := range m {
 		cleanupScheduleData(&dat.Data, lookup, now)
@@ -135,6 +136,7 @@ func cleanupScheduleData(data *schedule.Data, userMap map[string]struct{}, now t
 	data.V1.TemporarySchedules = schedule.MergeGroups(data.V1.TemporarySchedules)
 }
 
+// getUsers retrieves the current set of user IDs
 func (db *DB) getUsers(ctx context.Context, tx *sql.Tx) ([]string, error) {
 	rows, err := tx.StmtContext(ctx, db.userIDs).QueryContext(ctx)
 	if err != nil {

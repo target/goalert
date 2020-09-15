@@ -129,5 +129,11 @@ func (act *ActiveCalculator) Changed() bool { return act.changed }
 
 // ActiveTime returns the original start time of the current Active() state.
 //
-// It is only valid if Active() is true.
-func (act *ActiveCalculator) ActiveTime() time.Time { return time.Unix(act.active.OriginalID, 0).UTC() }
+// If Active() is false, it returns a zero value.
+func (act *ActiveCalculator) ActiveTime() time.Time {
+	if !act.active.Value {
+		return time.Time{}
+	}
+
+	return time.Unix(act.active.OriginalID, 0).UTC()
+}
