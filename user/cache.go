@@ -68,26 +68,26 @@ func (db *DB) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) 
 		return nil, err
 	}
 
-	var idData userIDData
-	err = binary.Read(bytes.NewReader(data), binary.BigEndian, &idData)
-	if err != nil {
-		return nil, err
+	m := <-db.userExist
+	if bytes.Equal(data[:sha256.Size], db.userExistHash) {
+		return m, nil
 	}
 
-	m := <-db.userExist
-
-	if bytes.Equal(idData.Hash[:], db.userExistHash) {
-		return m, nil
+	var ids []uuid.UUID
+	err = binary.Read(bytes.NewReader(data[sha256.Size:]), binary.BigEndian, &ids)
+	if err != nil {
+		db.userExist <- m
+		return nil, err
 	}
 
 	for k := range m {
 		delete(m, k)
 	}
 
-	for _, id := range idData.IDs {
+	for _, id := range ids {
 		m[id] = struct{}{}
 	}
-	db.userExistHash = idData.Hash[:]
+	db.userExistHash = data[:sha256.Size]
 
 	return m, nil
 }
@@ -104,7 +104,7 @@ func (db *DB) currentUserIDs(ctx context.Context) (result []byte, err error) {
 	}
 	defer rows.Close()
 
-	var data userIDData
+	var data []uuid.UUID
 	sum := sha256.New()
 	for rows.Next() {
 		var id uuid.UUID
@@ -113,11 +113,11 @@ func (db *DB) currentUserIDs(ctx context.Context) (result []byte, err error) {
 			return nil, err
 		}
 		sum.Write(id[:])
-		data.IDs = append(data.IDs, id)
+		data = append(data, id)
 	}
-	sum.Sum(data.Hash[:0])
 
 	buf := bytes.NewBuffer(nil)
+	buf.Write(sum.Sum(nil))
 	err = binary.Write(buf, binary.BigEndian, data)
 	if err != nil {
 		return nil, err
