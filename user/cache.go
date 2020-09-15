@@ -73,7 +73,7 @@ func (db *DB) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) 
 		return m, nil
 	}
 
-	var ids []uuid.UUID
+	ids := make([]uuid.UUID, (len(data)-sha256.Size)/16)
 	err = binary.Read(bytes.NewReader(data[sha256.Size:]), binary.BigEndian, &ids)
 	if err != nil {
 		db.userExist <- m
@@ -83,7 +83,6 @@ func (db *DB) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) 
 	for k := range m {
 		delete(m, k)
 	}
-
 	for _, id := range ids {
 		m[id] = struct{}{}
 	}
