@@ -92,11 +92,6 @@ func (db *DB) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) 
 	return m, nil
 }
 
-type userIDData struct {
-	Hash [sha256.Size]byte
-	IDs  []uuid.UUID
-}
-
 func (db *DB) currentUserIDs(ctx context.Context) (result []byte, err error) {
 	rows, err := db.ids.QueryContext(ctx)
 	if err != nil {
