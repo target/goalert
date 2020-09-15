@@ -77,9 +77,8 @@ export default function UserContactMethodCreateDialog(props) {
           message: `${err.message}: ${data.users.nodes[0].name}`,
           helpLink: `/users/${data.users.nodes[0].id}`,
         }
-      } else {
-        return err
       }
+      return err
     })
   }
 

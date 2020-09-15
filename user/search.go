@@ -3,14 +3,14 @@ package user
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/util/sqlutil"
-	"text/template"
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"github.com/pkg/errors"
-	"github.com/target/goalert/user/contactmethod"
+	"text/template"
 )
 
 // SearchOptions allow filtering and paginating the list of users.
