@@ -71,6 +71,12 @@ function useISOPicker(
     }
   }
 
+  // starts with label above textfield so format placeholder can be seen
+  const shrinkInputLabel = (p) => ({
+    ...(p?.InputLabelProps ?? {}),
+    shrink: true,
+  })
+
   if (native) {
     return (
       <TextField
@@ -78,6 +84,7 @@ function useISOPicker(
         value={inputValue}
         onChange={handleChange}
         {...otherProps}
+        InputLabelProps={shrinkInputLabel(otherProps)}
       />
     )
   }
@@ -109,6 +116,7 @@ function useISOPicker(
       }}
       {...extraProps}
       {...otherProps}
+      InputLabelProps={shrinkInputLabel(otherProps)}
     />
   )
 }

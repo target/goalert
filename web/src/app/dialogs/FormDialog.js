@@ -57,6 +57,7 @@ export default class FormDialog extends React.PureComponent {
     ),
 
     form: p.element,
+    fullScreen: p.bool,
     loading: p.bool,
     alert: p.bool,
     confirm: p.bool,
@@ -101,6 +102,7 @@ export default class FormDialog extends React.PureComponent {
       confirm,
       disableGutters,
       errors,
+      fullScreen,
       isUnmounting,
       loading,
       primaryActionLabel, // remove from dialogProps spread
@@ -115,23 +117,23 @@ export default class FormDialog extends React.PureComponent {
       ...dialogProps
     } = this.props
 
-    const isWideScreen = isWidthUp('md', width)
+    const isFullScreen = fullScreen || (!isWidthUp('md', width) && !confirm)
 
     return (
       <Dialog
-        disableBackdropClick={!isWideScreen || alert}
-        fullScreen={!isWideScreen && !confirm}
+        disableBackdropClick={isFullScreen || alert}
+        fullScreen={isFullScreen}
         maxWidth={maxWidth}
         fullWidth
         open={!isUnmounting}
         onClose={onClose}
         TransitionComponent={
-          isWideScreen || confirm ? DefaultTransition : FullscreenTransition
+          isFullScreen ? FullscreenTransition : DefaultTransition
         }
         {...dialogProps}
       >
         <DialogTitleWrapper
-          fullScreen={!isWideScreen && !confirm}
+          fullScreen={isFullScreen}
           onClose={onClose}
           title={title}
           subTitle={subTitle}

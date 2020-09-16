@@ -174,7 +174,7 @@ export default class ScheduleCalendar extends React.PureComponent {
   }
 
   render() {
-    const { classes, shifts, start, weekly } = this.props
+    const { classes, scheduleID, shifts, start, weekly } = this.props
 
     return (
       <React.Fragment>
@@ -212,7 +212,9 @@ export default class ScheduleCalendar extends React.PureComponent {
                     {...props}
                   />
                 ),
-                toolbar: (props) => <CalendarToolbar {...props} />,
+                toolbar: (props) => (
+                  <CalendarToolbar scheduleID={scheduleID} {...props} />
+                ),
               }}
             />
           </div>

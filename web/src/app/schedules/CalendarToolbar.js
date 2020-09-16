@@ -11,7 +11,7 @@ import {
 import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
 import FixedSchedIcon from '@material-ui/icons/GroupAdd'
-import CreateFixedScheduleDialog from './CreateFixedScheduleDialog'
+import CreateFixedScheduleDialog from './fixed-sched/CreateFixedScheduleDialog'
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export default function CalendarToolbar(props) {
-  const { date, view } = props
+  const { date, scheduleID, view } = props
   const classes = useStyles()
   const [showFixedSchedDialog, setShowFixedSchedDialog] = useState(false)
 
@@ -146,6 +146,7 @@ export default function CalendarToolbar(props) {
       <CreateFixedScheduleDialog
         open={showFixedSchedDialog}
         onClose={() => setShowFixedSchedDialog(false)}
+        scheduleID={scheduleID}
       />
     </React.Fragment>
   )
@@ -157,4 +158,5 @@ CalendarToolbar.propTypes = {
   onNavigate: p.func.isRequired,
   onView: p.func.isRequired,
   view: p.string.isRequired,
+  scheduleID: p.string.isRequired,
 }
