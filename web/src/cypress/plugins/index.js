@@ -16,8 +16,6 @@ const wp = require('@cypress/webpack-preprocessor')
 const tasks = require('./tasks')
 
 module.exports = (on) => {
-  // require('cypress-plugin-retries/lib/plugin')(on)
-
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
   const options = {

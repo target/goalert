@@ -13,8 +13,6 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// import 'cypress-plugin-retries'
-
 import './alert'
 import './calendar-subscription'
 import './fail-fast'
