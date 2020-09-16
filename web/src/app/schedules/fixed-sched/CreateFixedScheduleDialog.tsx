@@ -59,6 +59,7 @@ export default function CreateFixedScheduleDialog({
         form={
           <FixedScheduleForm
             activeStep={step}
+            setStep={setStep}
             value={value}
             onChange={(newValue: any) => setValue(newValue)}
             disabled={loading}
