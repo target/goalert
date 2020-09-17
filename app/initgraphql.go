@@ -44,6 +44,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 		HeartbeatStore:    app.HeartbeatStore,
 		NoticeStore:       *app.NoticeStore,
 		Twilio:            app.twilioConfig,
+		AuthHandler:       app.AuthHandler,
 	}
 
 	var err error
