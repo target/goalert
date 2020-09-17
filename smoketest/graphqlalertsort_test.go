@@ -8,7 +8,8 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-func TestSortByDate(t *testing.T) {
+// TestGraphQLAlertSort verifies that the alerts query sorts results properly.
+func TestGraphQLAlertSort(t *testing.T) {
 	t.Parallel()
 
 	sql := `
@@ -56,7 +57,7 @@ func TestSortByDate(t *testing.T) {
 	}
 
 	type node struct {
-		ID string
+		ID int `json:",string"`
 	}
 
 	type Alerts struct {
@@ -76,7 +77,7 @@ func TestSortByDate(t *testing.T) {
 		}
 	  }`, &alerts1)
 
-	assert.ElementsMatch(t, []node{{ID: "3"}, {ID: "1"}, {ID: "2"}, {ID: "4"}}, alerts1.Alerts.Nodes)
+	assert.EqualValues(t, []node{{ID: 3}, {ID: 1}, {ID: 2}, {ID: 4}}, alerts1.Alerts.Nodes)
 
 	// Expected output based on the status of the alert by ID
 	doQL(t, h, `query {
@@ -87,7 +88,7 @@ func TestSortByDate(t *testing.T) {
 		}
 	  }`, &alerts2)
 
-	assert.ElementsMatch(t, []node{{ID: "2"}, {ID: "1"}, {ID: "3"}, {ID: "4"}}, alerts2.Alerts.Nodes)
+	assert.EqualValues(t, []node{{ID: 2}, {ID: 1}, {ID: 4}, {ID: 3}}, alerts2.Alerts.Nodes)
 
 	// expected output is based on when alert was created by Id from oldest to newest
 	doQL(t, h, `query {
@@ -98,6 +99,6 @@ func TestSortByDate(t *testing.T) {
 		}
 	  }`, &alerts3)
 
-	assert.ElementsMatch(t, []node{{ID: "4"}, {ID: "2"}, {ID: "1"}, {ID: "3"}}, alerts2.Alerts.Nodes)
+	assert.EqualValues(t, []node{{ID: 4}, {ID: 2}, {ID: 1}, {ID: 3}}, alerts3.Alerts.Nodes)
 
 }
