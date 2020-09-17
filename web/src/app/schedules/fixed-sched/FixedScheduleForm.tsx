@@ -27,7 +27,6 @@ export default function FixedScheduleForm({
 }: FixedScheduleFormProps) {
   const bodyStyle = {
     display: 'flex',
-    alignItems: 'center', // vertical align
     justifyContent: 'center', // horizontal align
     height: '100%',
     width: '100%',
@@ -35,7 +34,7 @@ export default function FixedScheduleForm({
 
   const containerStyle = {
     width: '35%', // ensures form fields don't shrink down too small
-    marginBottom: '10%', // slightly raise higher than center of screen
+    marginTop: '5%', // slightly lower below dialog title toolbar
   }
 
   interface SlideRenderer {
