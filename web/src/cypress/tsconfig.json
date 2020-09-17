@@ -1,8 +1,5 @@
 {
   "extends": "../app/tsconfig",
   "include": ["**/*"],
-  "types": ["./types/*", "../schema.d.ts"],
-  "compilerOptions": {
-    "esModuleInterop": true
-  }
+  "types": ["./types/*", "../schema.d.ts"]
 }
