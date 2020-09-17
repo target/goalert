@@ -73,7 +73,7 @@ interface MultiSelectProps extends CommonSelectProps {
 }
 
 export default function MaterialSelect(
-  props: SingleSelectProps | MultiSelectProps,
+  props: MultiSelectProps | SingleSelectProps, // falls back to single if "multiple" is not set to true
 ): JSX.Element {
   const classes = useStyles()
   const {
@@ -112,9 +112,7 @@ export default function MaterialSelect(
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      // Autocomplete types as 'true' | omitted; we can't omit
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      multiple={multiple as any}
+      multiple={multiple || undefined}
       filterSelectedOptions
       noOptionsText={noOptionsText}
       onChange={(
