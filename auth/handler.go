@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 	"go.opencensus.io/trace"
@@ -50,10 +51,15 @@ type Handler struct {
 	userLookup *sql.Stmt
 	addSubject *sql.Stmt
 	updateUA   *sql.Stmt
+	updateUser *sql.Stmt
 
 	startSession *sql.Stmt
 	fetchSession *sql.Stmt
 	endSession   *sql.Stmt
+
+	userSessions       *sql.Stmt
+	endSessionUser     *sql.Stmt
+	endAllSessionsUser *sql.Stmt
 }
 
 // NewHandler creates a new Handler using the provided config.
@@ -68,6 +74,14 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 		db:        db,
 
 		cfg: cfg,
+
+		updateUser: p.P(`
+			update users
+			set
+				name = case when $2 = '' then name else $2 end,
+				email = case when $3 = '' then email else $3 end
+			where id = $1
+		`),
 
 		userLookup: p.P(`
 			select user_id
@@ -86,7 +100,7 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 		`),
 		endSession: p.P(`
 			delete from auth_user_sessions
-			where id = $1
+			where id = any($1)
 		`),
 
 		updateUA: p.P(`
@@ -96,14 +110,103 @@ func NewHandler(ctx context.Context, db *sql.DB, cfg HandlerConfig) (*Handler, e
 		`),
 
 		fetchSession: p.P(`
+			with update as (
+				update auth_user_sessions
+				set last_access_at = now()
+				where id = $1 AND (last_access_at isnull OR last_access_at < now() - '1 minute'::interval)
+			)
 			select sess.user_id, u.role
 			from auth_user_sessions sess
 			join users u on u.id = sess.user_id
 			where sess.id = $1
 		`),
+
+		userSessions: p.P(`
+			select id, user_agent, created_at, last_access_at
+			from auth_user_sessions
+			where user_id = $1
+		`),
+
+		endSessionUser: p.P(`
+			delete from auth_user_sessions
+			where user_id = $1 and id = $2
+		`),
+
+		endAllSessionsUser: p.P(`
+			delete from auth_user_sessions
+			where user_id = $1 and id != $2
+		`),
 	}
 
 	return h, p.Err
+}
+
+// UserSession represents an active user session.
+type UserSession struct {
+	ID           string
+	UserAgent    string
+	CreatedAt    time.Time
+	LastAccessAt time.Time
+	UserID       string
+}
+
+func (h *Handler) EndUserSessionTx(ctx context.Context, tx *sql.Tx, id ...string) error {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return err
+	}
+	if permission.Admin(ctx) {
+		_, err = tx.StmtContext(ctx, h.endSession).ExecContext(ctx, sqlutil.UUIDArray(id))
+	} else {
+		_, err = tx.StmtContext(ctx, h.endSessionUser).ExecContext(ctx, permission.UserID(ctx), sqlutil.UUIDArray(id))
+	}
+	return err
+}
+
+// EndAllUserSessionsTx ends all sessions other than the user's currently active session
+func (h *Handler) EndAllUserSessionsTx(ctx context.Context, tx *sql.Tx) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(permission.UserID(ctx)))
+	if err != nil {
+		return err
+	}
+
+	// get current session id
+	src := permission.Source(ctx)
+
+	stmt := h.endAllSessionsUser
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+	_, err = stmt.ExecContext(ctx, permission.UserID(ctx), src.ID)
+
+	return err
+}
+
+func (h *Handler) FindAllUserSessions(ctx context.Context, userID string) ([]UserSession, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(userID))
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := h.userSessions.QueryContext(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var sessions []UserSession
+	for rows.Next() {
+		s := UserSession{UserID: userID}
+		var lastAccess sql.NullTime
+		err = rows.Scan(&s.ID, &s.UserAgent, &s.CreatedAt, &lastAccess)
+		if err != nil {
+			return nil, err
+		}
+		s.LastAccessAt = lastAccess.Time.Truncate(time.Minute)
+		s.CreatedAt = s.CreatedAt.Truncate(time.Minute)
+		sessions = append(sessions, s)
+	}
+
+	return sessions, nil
 }
 
 // ServeLogout will clear the current session cookie and end the session (if any).
@@ -112,7 +215,7 @@ func (h *Handler) ServeLogout(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	src := permission.Source(ctx)
 	if src != nil && src.Type == permission.SourceTypeAuthProvider {
-		_, err := h.endSession.ExecContext(context.Background(), src.ID)
+		_, err := h.endSession.ExecContext(context.Background(), sqlutil.UUIDArray([]string{src.ID}))
 		if err != nil {
 			log.Log(ctx, errors.Wrap(err, "end session"))
 		}
@@ -352,6 +455,12 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 			trace.StringAttribute("user.email", u.Email),
 			trace.StringAttribute("user.id", u.ID),
 		}, "Created new user.")
+	} else {
+		_, err = h.updateUser.ExecContext(ctx, userID, validate.SanitizeName(sub.Name),
+			validate.SanitizeEmail(sub.Email))
+		if err != nil {
+			log.Log(ctx, errors.Wrap(err, "update user info"))
+		}
 	}
 
 	tok, err := h.CreateSession(ctx, req.UserAgent(), userID)
@@ -443,6 +552,8 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeGrafana)
 	case "/api/v2/site24x7/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeSite24x7)
+	case "/api/v2/prometheusalertmanager/incoming":
+		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypePrometheusAlertmanager)
 	case "/api/v2/calendar":
 		ctx, err = h.cfg.CalSubStore.Authorize(ctx, *tok)
 	default:

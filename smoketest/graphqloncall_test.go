@@ -18,7 +18,7 @@ func TestGraphQLOnCall(t *testing.T) {
 	t.Parallel()
 
 	doQL := func(t *testing.T, h *harness.Harness, query string, res interface{}) {
-		g := h.GraphQLQueryT(t, query, "/api/graphql")
+		g := h.GraphQLQueryT(t, query)
 		for _, err := range g.Errors {
 			t.Error("GraphQL Error:", err.Message)
 		}

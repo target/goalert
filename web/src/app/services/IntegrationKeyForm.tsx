@@ -9,6 +9,7 @@ import InputAdornment from '@material-ui/core/InputAdornment'
 import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
+import { IntegrationKeyType } from '../../schema'
 
 const useStyles = makeStyles((theme) => ({
   infoIcon: {
@@ -18,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
 
 interface Value {
   name: string
-  type: 'generic' | 'grafana' | 'site24x7' | 'email'
+  type: IntegrationKeyType
 }
 
 interface IntegrationKeyFormProps {
@@ -77,6 +78,9 @@ export default function IntegrationKeyForm(
                 <MenuItem value='generic'>Generic API</MenuItem>
                 <MenuItem value='grafana'>Grafana</MenuItem>
                 <MenuItem value='site24x7'>Site24x7</MenuItem>
+                <MenuItem value='prometheusAlertmanager'>
+                  Prometheus Alertmanager
+                </MenuItem>
               </FormField>
             )}
           </Config>
