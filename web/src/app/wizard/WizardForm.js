@@ -151,8 +151,8 @@ export default class WizardForm extends React.PureComponent {
               type='number'
               placeholder='3'
               mapOnChangeValue={(value) => value.toString()}
-              min={0}
-              max={5}
+              min={1}
+              max={9000}
             />
           </Grid>
           <Grid item className={classes.stepItem}>

@@ -62,8 +62,6 @@ export class FormField extends React.PureComponent {
     validate: () => {},
     mapValue: (value) => value,
     mapOnChangeValue: (value) => value,
-    min: 1,
-    max: 9000,
   }
 
   validate = (value) => {
