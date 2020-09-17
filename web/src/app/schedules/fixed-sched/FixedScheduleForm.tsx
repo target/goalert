@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import SwipeableViews from 'react-swipeable-views'
 import { virtualize, bindKeyboard } from 'react-swipeable-views-utils'
 import { FormContainer } from '../../forms'
@@ -46,7 +46,13 @@ export default function FixedScheduleForm({
       case 0:
         return <SchedulesTimesStep key={key} />
       case 1:
-        return <AddShiftsStep key={key} />
+        return (
+          <AddShiftsStep
+            key={key}
+            value={otherProps.value}
+            onChange={otherProps.onChange}
+          />
+        )
       case 2:
         return <ReviewStep key={key} />
       case 3:

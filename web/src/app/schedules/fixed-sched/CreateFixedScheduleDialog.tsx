@@ -22,21 +22,21 @@ export default function CreateFixedScheduleDialog({
   onClose,
   scheduleID,
 }: CreateFixedScheduleDialogProps) {
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(1)
   const [value, setValue] = useState({
-    // todo: fill in defaults
     scheduleID,
     start: '',
     end: '',
-    shifts: [], // { userID, start, end } fields
+    shifts: [], // { userID, start, end } fields normalized
+    _shift: {}, // used while user is editing, not to be sent with mutation
   })
 
   const [submit, { loading, error, data }] = useMutation(mutation)
 
   const fieldErrs = fieldErrors(error)
-  const stepOneErrs = fieldErrs.some((e) =>
-    ['summary', 'details'].includes(e.field),
-  )
+  const stepOneErrs = fieldErrs.some((e) => ['start', 'end'].includes(e.field))
+
+  // array.fill fn?
   const stepTwoErrs = fieldErrs.some((e) =>
     ['summary', 'details'].includes(e.field),
   )
@@ -48,7 +48,7 @@ export default function CreateFixedScheduleDialog({
 
   const isComplete = data && !loading && !error
   return (
-    open && (
+    open || (
       <FormDialog
         fullScreen
         disableGutters
