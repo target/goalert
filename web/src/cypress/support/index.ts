@@ -34,7 +34,6 @@ import './sql'
 import './form'
 import './dialog'
 
-Cypress.env('retries', 1)
 Cypress.Cookies.defaults({
   preserve: 'goalert_session.2',
 })
