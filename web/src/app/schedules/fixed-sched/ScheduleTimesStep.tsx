@@ -13,9 +13,9 @@ export default function ScheduleTimesStep() {
       </Grid>
       <Grid item xs={12}>
         <DialogContentText>
-          This will define a span of time with a fixed set of shifts. It ignores
-          all rules, rotations, and overrides. From the specified start to end
-          times this on-call schedule will behave exactly as configured here.
+          Selecting a start and end dates will define a span of time on this
+          schedule with a fixed set of shifts. These shifts ignores all rules,
+          rotations, and overrides and will behave exactly as configured here.
         </DialogContentText>
       </Grid>
       <Grid item xs={6}>
