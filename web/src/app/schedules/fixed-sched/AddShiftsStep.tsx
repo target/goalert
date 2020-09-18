@@ -57,8 +57,8 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
   function mapShiftstoItems() {
     return shifts.map((shift: Shift) => ({
       title: shift.user.label,
-      subText: '',
-      icon: <UserAvatar userID={shift.user.value} />,
+      subText: `From ${fmt(shift.start)} to ${fmt(shift.end)}`,
+      icon: <UserAvatar userID={'test'} />,
     }))
   }
 
@@ -106,7 +106,10 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
         />
       </Grid>
       <Grid className={classes.addButtonContainer} item xs={12}>
-        <IconButton onClick={handleAddShift}>
+        <IconButton
+          onClick={handleAddShift}
+          disabled={!_shift.start || !_shift.end || !_shift.user?.value}
+        >
           <AddIcon />
         </IconButton>
       </Grid>
