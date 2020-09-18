@@ -58,7 +58,7 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
     return shifts.map((shift: Shift) => ({
       title: shift.user.label,
       subText: `From ${fmt(shift.start)} to ${fmt(shift.end)}`,
-      icon: <UserAvatar userID={'test'} />,
+      icon: <UserAvatar userID={shift.user.value} />,
     }))
   }
 
