@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Grid,
   DialogContentText,
@@ -8,7 +8,7 @@ import {
 } from '@material-ui/core'
 import AddIcon from '@material-ui/icons/ArrowDownward'
 import { DateTime } from 'luxon'
-import { FormField } from '../../forms'
+import { FormContainer, FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import FlatList from '../../lists/FlatList'
@@ -42,7 +42,8 @@ interface User {
 
 export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
   const classes = useStyles()
-  const { shifts, _shift } = value
+  const [shift, setShift] = useState(null as Shift | null)
+  const { shifts } = value
 
   const fmt = (t: string) =>
     DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
@@ -50,11 +51,13 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
   function handleAddShift() {
     return onChange({
       ...value,
-      shifts: [...shifts, _shift],
+      shifts: [...shifts, shift],
     })
   }
 
   function mapShiftstoItems() {
+    if (!shifts.length) return []
+
     return shifts.map((shift: Shift) => ({
       title: shift.user.label,
       subText: `From ${fmt(shift.start)} to ${fmt(shift.end)}`,
@@ -76,39 +79,44 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
           them to this fixed schedule.
         </DialogContentText>
       </Grid>
-      <Grid item xs={12}>
-        <FormField
-          fullWidth
-          component={UserSelect}
-          required
-          saveLabelOnChange
-          label='Select a User'
-          name={`_shift.user`}
-          mapValue={(u: User) => u?.value ?? ''}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <FormField
-          fullWidth
-          component={ISODateTimePicker}
-          required
-          label='Shift Start'
-          name={`_shift.start`}
-        />
-      </Grid>
-      <Grid item xs={6}>
-        <FormField
-          fullWidth
-          component={ISODateTimePicker}
-          required
-          label='Shift End'
-          name={`_shift.end`}
-        />
-      </Grid>
+
+      <FormContainer value={shift} onChange={(val: Shift) => setShift(val)}>
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            saveLabel
+            component={UserSelect}
+            required
+            saveLabelOnChange
+            label='Select a User'
+            name='user'
+            mapValue={(u: User) => u?.value}
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <FormField
+            fullWidth
+            component={ISODateTimePicker}
+            required
+            label='Shift Start'
+            name='start'
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <FormField
+            fullWidth
+            component={ISODateTimePicker}
+            required
+            label='Shift End'
+            name='end'
+          />
+        </Grid>
+      </FormContainer>
+
       <Grid className={classes.addButtonContainer} item xs={12}>
         <IconButton
           onClick={handleAddShift}
-          disabled={!_shift.start || !_shift.end || !_shift.user?.value}
+          disabled={!shift?.start || !shift.end || !shift.user.label}
         >
           <AddIcon />
         </IconButton>

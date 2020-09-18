@@ -196,8 +196,8 @@ export function makeQuerySelect(displayName, options) {
 
   function QuerySelect(props) {
     const {
-      value = props.multiple ? [] : null,
       multiple = false,
+      value = multiple ? [] : null,
 
       placeholder,
 

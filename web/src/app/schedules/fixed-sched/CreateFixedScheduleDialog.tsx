@@ -27,8 +27,7 @@ export default function CreateFixedScheduleDialog({
     scheduleID,
     start: '',
     end: '',
-    shifts: [], // { userID, start, end } fields normalized
-    _shift: {}, // used while user is editing, not to be sent with mutation
+    shifts: [], // [{ user: { label, value }, start, end }] fields
   })
 
   const [submit, { loading, error, data }] = useMutation(mutation)
