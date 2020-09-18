@@ -23,7 +23,7 @@ interface FixedScheduleFormProps {
 export default function FixedScheduleForm({
   activeStep,
   setStep,
-  ...otherProps
+  ...rest
 }: FixedScheduleFormProps) {
   const bodyStyle = {
     display: 'flex',
@@ -49,8 +49,8 @@ export default function FixedScheduleForm({
         return (
           <AddShiftsStep
             key={key}
-            value={otherProps.value}
-            onChange={otherProps.onChange}
+            value={rest.value}
+            onChange={rest.onChange}
           />
         )
       case 2:
@@ -65,7 +65,7 @@ export default function FixedScheduleForm({
   return (
     <div style={bodyStyle}>
       <div style={containerStyle}>
-        <FormContainer optionalLabels {...otherProps}>
+        <FormContainer optionalLabels {...rest}>
           <VirtualizeAnimatedViews
             index={activeStep}
             onChangeIndex={(i: number) => setStep(i)}
