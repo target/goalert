@@ -11,12 +11,6 @@ import {
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
 
-function asArray<T>(value?: T | T[]): T[] {
-  if (!value) return []
-
-  return Array.isArray(value) ? value : [value]
-}
-
 const useStyles = makeStyles({
   listItemIcon: {
     minWidth: 0,
@@ -60,20 +54,20 @@ interface CommonSelectProps {
   placeholder?: string
 }
 
-interface SingleSelectProps extends CommonSelectProps {
-  multiple?: false
-  value?: SelectOption
+interface SingleSelectProps {
+  multiple: false
+  value: SelectOption
   onChange: (value: SelectOption | null) => void
 }
 
-interface MultiSelectProps extends CommonSelectProps {
+interface MultiSelectProps {
   multiple: true
-  value?: SelectOption[]
+  value: SelectOption[]
   onChange: (value: SelectOption[]) => void
 }
 
 export default function MaterialSelect(
-  props: MultiSelectProps | SingleSelectProps, // falls back to single if "multiple" is not set to true
+  props: CommonSelectProps & (MultiSelectProps | SingleSelectProps),
 ): JSX.Element {
   const classes = useStyles()
   const {
@@ -89,16 +83,14 @@ export default function MaterialSelect(
     options,
     placeholder,
     required,
-    value: _value,
+    value,
   } = props
 
-  // NOTE value is undefined when nothing is selected
-  let value: SelectOption[] | undefined = asArray(_value)
-  if (!multiple && !_value) value = undefined
+  const getLabel = () =>
+    Array.isArray(value) ? value[0]?.label ?? '' : value?.label ?? ''
 
-  const [inputValue, setInputValue] = useState(
-    multiple || !value ? '' : value[0].label,
-  )
+  const [inputValue, setInputValue] = useState(getLabel())
+  const multi = multiple ? { multiple: true } : {}
 
   return (
     <Autocomplete
@@ -108,11 +100,11 @@ export default function MaterialSelect(
         option: classes.option,
         clearIndicator: classes.clearIndicator,
       }}
+      {...multi} // multiple: true | undefined
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      multiple={multiple || undefined}
       filterSelectedOptions
       noOptionsText={noOptionsText}
       onChange={(
@@ -136,7 +128,7 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={() => setInputValue(multiple || !value ? '' : value[0].label)}
+      onBlur={getLabel}
       loading={isLoading}
       getOptionLabel={(option) => option.label || ''}
       options={options}
