@@ -155,7 +155,7 @@
     "eslint-plugin-react-hooks": "4.0.8",
     "eslint-plugin-standard": "4.0.1",
     "file-loader": "6.0.0",
-    "husky": "4.2.5",
+    "husky": "4.3.0",
     "ifdef-loader": "2.1.5",
     "jest": "26.1.0",
     "json-loader": "0.5.7",
