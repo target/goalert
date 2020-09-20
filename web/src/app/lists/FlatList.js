@@ -55,6 +55,8 @@ export default class FlatList extends React.PureComponent {
     //
     // onReorder(id, oldIndex, newIndex)
     onReorder: p.func,
+
+    ListItemProps: p.object, // use mui type once in TS
   }
 
   static defaultProps = {
@@ -90,7 +92,12 @@ export default class FlatList extends React.PureComponent {
     return (
       <ListItem
         key={idx}
+        {...this.props.ListItemProps}
         {...itemProps}
+        divider={
+          this.props.ListItemProps?.divider &&
+          idx !== this.props.items.length - 1
+        }
         style={{ width: '100%' }}
         className={item.highlight ? this.props.classes.highlightedItem : null}
       >
@@ -113,7 +120,7 @@ export default class FlatList extends React.PureComponent {
   renderItems() {
     if (!this.props.items.length) {
       return (
-        <ListItem>
+        <ListItem {...this.props.ListItemProps} divider={false}>
           <ListItemText
             disableTypography
             secondary={
@@ -176,6 +183,7 @@ export default class FlatList extends React.PureComponent {
       headerNote,
       items,
       inset, // don't include in spread
+      ListItemProps, // don't include in spead
       ...otherProps
     } = this.props
 
