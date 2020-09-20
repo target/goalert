@@ -22,6 +22,10 @@ const useStyles = makeStyles({
   contentText: {
     marginBottom: 0,
   },
+  shiftsContainer: {
+    // account for extra 10px of vertical spacing
+    marginTop: -10, // 4px padding from grid item, 6px margin from list item text
+  },
 })
 
 interface AddShiftsStepProps {
@@ -121,8 +125,16 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
           <AddIcon />
         </IconButton>
       </Grid>
-      <Grid item xs={12}>
-        <FlatList items={mapShiftstoItems()} emptyMessage='' />
+      <Grid className={classes.shiftsContainer} item xs={12}>
+        <FlatList
+          items={mapShiftstoItems()}
+          emptyMessage=''
+          dense
+          ListItemProps={{
+            disableGutters: true,
+            divider: true,
+          }}
+        />
       </Grid>
     </Grid>
   )
