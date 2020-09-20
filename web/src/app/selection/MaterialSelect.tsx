@@ -68,7 +68,7 @@ interface MultiSelectProps {
 
 export default function MaterialSelect(
   props: CommonSelectProps & (MultiSelectProps | SingleSelectProps),
-): JSX.Element {
+) {
   const classes = useStyles()
   const {
     disabled,
@@ -80,7 +80,7 @@ export default function MaterialSelect(
     noOptionsText,
     onChange,
     onInputChange,
-    options,
+    options: _options,
     placeholder,
     required,
     value,
@@ -91,6 +91,22 @@ export default function MaterialSelect(
 
   const [inputValue, setInputValue] = useState(getLabel())
   const multi = multiple ? { multiple: true } : {}
+
+  // merge selected values with options to avoid annoying mui warnings while dropdown is closed
+  // https://github.com/mui-org/material-ui/issues/18514
+  // be sure to keep the props `filterSelectedOptions` set to hide selected value from dropdown
+  // and `getOptionSelected` to ensure what shows as selected for all incoming values
+  let options: SelectOption[] = _options
+  if (value) {
+    // merge options with value
+    options = options.concat(Array.isArray(value) ? value : [value])
+
+    // compare value to options as options may be empty
+    const userIDs = options.map((opt) => opt?.value)
+    options = userIDs.map(
+      (id) => options.find((opt) => opt?.value === id) as SelectOption,
+    )
+  }
 
   return (
     <Autocomplete
@@ -106,6 +122,7 @@ export default function MaterialSelect(
       disableClearable={required}
       disabled={disabled}
       filterSelectedOptions
+      getOptionSelected={(opt, val) => opt.value === val.value}
       noOptionsText={noOptionsText}
       onChange={(
         event: ChangeEvent<{}>,
@@ -130,7 +147,7 @@ export default function MaterialSelect(
       }}
       onBlur={getLabel}
       loading={isLoading}
-      getOptionLabel={(option) => option.label || ''}
+      getOptionLabel={(option) => option?.label ?? ''}
       options={options}
       renderInput={(params) => {
         return (
