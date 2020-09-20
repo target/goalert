@@ -100,12 +100,6 @@ export default function MaterialSelect(
   if (value) {
     // merge options with value
     options = options.concat(Array.isArray(value) ? value : [value])
-
-    // compare value to options as options may be empty
-    const userIDs = options.map((opt) => opt?.value)
-    options = userIDs.map(
-      (id) => options.find((opt) => opt?.value === id) as SelectOption,
-    )
   }
 
   return (
