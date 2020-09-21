@@ -256,11 +256,13 @@ export default class ScheduleCalendar extends React.PureComponent {
   getCalEvents = (shifts, _fixedShifts) => {
     // get all fixed shifts
     let fixedShifts = []
-    _fixedShifts.forEach((fs) => {
-      fs.shifts.forEach((s) => {
-        fixedShifts.push(s)
+    if (_fixedShifts) {
+      _fixedShifts.forEach((fs) => {
+        fs.shifts.forEach((s) => {
+          fixedShifts.push(s)
+        })
       })
-    })
+    }
 
     // merge fixed shifts (with identifier added) with shifts
     let filteredShifts = fixedShifts
