@@ -25,6 +25,20 @@ const query = gql`
         end
         truncated
       }
+
+      fixedShifts {
+        start
+        end
+        shifts {
+          user {
+            id
+            name
+          }
+          start
+          end
+          truncated
+        }
+      }
     }
   }
 `
@@ -66,6 +80,7 @@ export default class ScheduleCalendarQuery extends React.PureComponent {
           <ScheduleCalendar
             scheduleID={data.schedule.id}
             shifts={data.schedule.shifts}
+            fixedShifts={data.schedule.fixedShifts}
           />
         )}
       />

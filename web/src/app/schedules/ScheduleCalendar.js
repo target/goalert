@@ -67,6 +67,7 @@ export default class ScheduleCalendar extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
     shifts: p.array.isRequired,
+    fixedShifts: p.array,
     readOnly: p.bool,
     CardProps: p.object, // todo: use CardProps from types once TS
   }
@@ -156,33 +157,36 @@ export default class ScheduleCalendar extends React.PureComponent {
    * darker version of that red if selected
    */
   eventStyleGetter = (event, start, end, isSelected) => {
-    return {
-      style: {
-        backgroundColor: isSelected ? '#8f1022' : '#cd1831',
-        borderColor: '#8f1022',
-      },
-    }
-  }
-
-  /*
-   * Return a light red shade of the current date instead of
-   * the default light blue
-   */
-  dayPropGetter = (date) => {
-    if (DateTime.fromJSDate(date).toLocal().hasSame(DateTime.local(), 'day')) {
+    if (event.fixed) {
       return {
         style: {
-          backgroundColor: '#FFECEC',
+          backgroundColor: isSelected ? '#094819' : '#0D7128',
+          borderColor: '#094819',
         },
       }
     }
   }
+
+  // /*
+  //  * Return a light red shade of the current date instead of
+  //  * the default light blue
+  //  */
+  // dayPropGetter = (date) => {
+  //   if (DateTime.fromJSDate(date).toLocal().hasSame(DateTime.local(), 'day')) {
+  //     return {
+  //       style: {
+  //         backgroundColor: '#FFECEC',
+  //       },
+  //     }
+  //   }
+  // }
 
   render() {
     const {
       classes,
       scheduleID,
       shifts,
+      fixedShifts,
       start,
       weekly,
       readOnly,
@@ -202,7 +206,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             <Calendar
               date={new Date(start)}
               localizer={localizer}
-              events={this.getCalEvents(shifts)}
+              events={this.getCalEvents(shifts, fixedShifts)}
               style={{
                 height: weekly ? '100%' : '45rem',
                 fontFamily: theme.typography.body2.fontFamily,
@@ -213,7 +217,6 @@ export default class ScheduleCalendar extends React.PureComponent {
               view={weekly ? 'week' : 'month'}
               popup
               eventPropGetter={this.eventStyleGetter}
-              dayPropGetter={this.dayPropGetter}
               onNavigate={this.handleCalNavigate}
               onView={this.handleViewChange}
               components={{
@@ -250,9 +253,33 @@ export default class ScheduleCalendar extends React.PureComponent {
     )
   }
 
-  getCalEvents = (shifts) => {
+  getCalEvents = (shifts, _fixedShifts) => {
+    // get all fixed shifts
+    let fixedShifts = []
+    _fixedShifts.forEach((fs) => {
+      fs.shifts.forEach((s) => {
+        fixedShifts.push(s)
+      })
+    })
+
+    // merge fixed shifts (with identifier added) with shifts
+    let filteredShifts = fixedShifts
+      .map((fs) => ({ ...fs, fixed: true }))
+      .concat(shifts)
+
+    // dedupe fixed shifts with shifts
+    const getKey = (id, s, e) =>
+      id + DateTime.fromISO(s).toISO() + DateTime.fromISO(e).toISO()
+    const dedupeKeys = Array.from(
+      new Set(filteredShifts.map((fs) => getKey(fs.user.id, fs.start, fs.end))),
+    )
+    filteredShifts = dedupeKeys.map((el) =>
+      filteredShifts.find((s) => {
+        return getKey(s.user.id, s.start, s.end) === el
+      }),
+    )
+
     // if any users in users array, only show the ids present
-    let filteredShifts = shifts.slice()
     if (this.props.userFilter.length > 0) {
       filteredShifts = filteredShifts.filter((shift) =>
         this.props.userFilter.includes(shift.user.id),
@@ -274,6 +301,7 @@ export default class ScheduleCalendar extends React.PureComponent {
         userID: shift.user.id,
         start: new Date(shift.start),
         end: new Date(shift.end),
+        fixed: shift.fixed,
       }
     })
   }
