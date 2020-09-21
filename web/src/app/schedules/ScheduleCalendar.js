@@ -178,7 +178,7 @@ export default class ScheduleCalendar extends React.PureComponent {
   }
 
   render() {
-    const { classes, scheduleID, shifts, start, weekly } = this.props
+    const { classes, scheduleID, shifts, start, weekly, readOnly } = this.props
 
     return (
       <React.Fragment>
@@ -213,17 +213,22 @@ export default class ScheduleCalendar extends React.PureComponent {
                     onOverrideClick={(overrideDialog) =>
                       this.setState({ overrideDialog })
                     }
+                    readOnly={readOnly}
                     {...props}
                   />
                 ),
                 toolbar: (props) => (
-                  <CalendarToolbar scheduleID={scheduleID} {...props} />
+                  <CalendarToolbar
+                    scheduleID={scheduleID}
+                    readOnly={readOnly}
+                    {...props}
+                  />
                 ),
               }}
             />
           </div>
         </Card>
-        {Boolean(this.state.overrideDialog) && (
+        {Boolean(this.state.overrideDialog) && !readOnly && (
           <ScheduleOverrideCreateDialog
             defaultValue={this.state.overrideDialog.defaultValue}
             variant={this.state.overrideDialog.variant}

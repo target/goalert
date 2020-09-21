@@ -68,6 +68,7 @@ export default class CalendarEventWrapper extends Component {
   static propTypes = {
     event: p.object.isRequired,
     onOverrideClick: p.func.isRequired,
+    readOnly: p.bool,
   }
 
   handleShowOverrideForm = (type) => {
@@ -92,10 +93,10 @@ export default class CalendarEventWrapper extends Component {
    * past).
    */
   renderInteractiveTooltip = () => {
-    const { classes, event } = this.props
+    const { classes, event, readOnly } = this.props
 
     let overrideCtrls = null
-    if (DateTime.fromJSDate(event.end) > DateTime.utc()) {
+    if (!readOnly && DateTime.fromJSDate(event.end) > DateTime.utc()) {
       overrideCtrls = (
         <React.Fragment>
           <Grid item className={classes.buttonContainer}>
@@ -112,7 +113,6 @@ export default class CalendarEventWrapper extends Component {
             </Button>
           </Grid>
           <Grid item className={classes.flexGrow} />
-
           <Grid item className={classes.buttonContainer}>
             <Button
               className={classes.button}

@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export default function CalendarToolbar(props) {
-  const { date, scheduleID, view } = props
+  const { date, readOnly, scheduleID, view } = props
   const classes = useStyles()
   const [showFixedSchedDialog, setShowFixedSchedDialog] = useState(false)
 
@@ -128,23 +128,25 @@ export default function CalendarToolbar(props) {
               Week
             </Button>
           </ButtonGroup>
-          <Button
-            data-cy='add-override'
-            variant='contained'
-            size='small'
-            color='primary'
-            className={classes.fixedSchedBtn}
-            onClick={() => setShowFixedSchedDialog(true)}
-            startIcon={<FixedSchedIcon />}
-            title='Make temporary change to this schedule'
-          >
-            Fixed Sched
-          </Button>
+          {!readOnly && (
+            <Button
+              data-cy='add-override'
+              variant='contained'
+              size='small'
+              color='primary'
+              className={classes.fixedSchedBtn}
+              onClick={() => setShowFixedSchedDialog(true)}
+              startIcon={<FixedSchedIcon />}
+              title='Make temporary change to this schedule'
+            >
+              Fixed Sched
+            </Button>
+          )}
         </Grid>
       </Grid>
 
       <CreateFixedScheduleDialog
-        open={showFixedSchedDialog}
+        open={showFixedSchedDialog && !readOnly}
         onClose={() => setShowFixedSchedDialog(false)}
         scheduleID={scheduleID}
       />
@@ -159,4 +161,5 @@ CalendarToolbar.propTypes = {
   onView: p.func.isRequired,
   view: p.string.isRequired,
   scheduleID: p.string.isRequired,
+  readOnly: p.bool,
 }
