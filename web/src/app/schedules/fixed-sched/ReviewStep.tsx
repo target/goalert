@@ -41,8 +41,8 @@ export default function ReviewStep({
   const shifts = _shifts.map((s) => ({
     ...s,
     user: {
-      id: s.user.value,
-      name: s.user.label,
+      id: s?.user?.value,
+      name: s?.user?.label,
     },
   }))
 

@@ -9,7 +9,7 @@ export interface Value {
 export interface Shift {
   start: string
   end: string
-  user: User
+  user: User | null
 }
 
 export interface User {

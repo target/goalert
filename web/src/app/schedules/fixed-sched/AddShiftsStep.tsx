@@ -45,9 +45,15 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
   function handleAddShift() {
     if (!shift) return
 
-    return onChange({
+    onChange({
       ...value,
       shifts: [...shifts, shift],
+    })
+
+    setShift({
+      start: shift.end,
+      end: '',
+      user: null,
     })
   }
 
@@ -55,9 +61,9 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
     if (!shifts.length) return []
 
     return shifts.map((shift: Shift) => ({
-      title: shift.user.label,
+      title: shift?.user?.label,
       subText: `From ${fmt(shift.start)} to ${fmt(shift.end)}`,
-      icon: <UserAvatar userID={shift.user.value} />,
+      icon: <UserAvatar userID={shift?.user?.value ?? ''} />,
     }))
   }
 
@@ -110,13 +116,13 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
         <Fade
           in={
             shifts.length > 0 ||
-            (!!shift?.start && !!shift?.end && !!shift?.user.label)
+            (!!shift?.start && !!shift?.end && !!shift?.user?.label)
           }
         >
           <Grid className={classes.addButtonContainer} item xs={12}>
             <IconButton
               onClick={handleAddShift}
-              disabled={!shift?.start || !shift.end || !shift.user.label}
+              disabled={!shift?.start || !shift.end || !shift.user?.label}
             >
               {!shifts.length ? <AddIcon /> : <DownIcon />}
             </IconButton>

@@ -1,4 +1,10 @@
-import React, { useState, ReactNode, ReactElement, ChangeEvent } from 'react'
+import React, {
+  useEffect,
+  useState,
+  ReactNode,
+  ReactElement,
+  ChangeEvent,
+} from 'react'
 import {
   TextField,
   makeStyles,
@@ -90,6 +96,10 @@ export default function MaterialSelect(
     Array.isArray(value) ? value[0]?.label ?? '' : value?.label ?? ''
 
   const [inputValue, setInputValue] = useState(getLabel())
+  useEffect(() => {
+    if (!value) setInputValue('')
+  }, [value])
+
   const multi = multiple ? { multiple: true } : {}
 
   // merge selected values with options to avoid annoying mui warnings while dropdown is closed
