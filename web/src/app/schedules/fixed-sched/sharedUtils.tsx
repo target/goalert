@@ -25,8 +25,9 @@ export const contentText = {
 
 interface StepContainerProps {
   children: ReactNode
+  width?: string
 }
-export function StepContainer({ children }: StepContainerProps) {
+export function StepContainer({ children, width = '35%' }: StepContainerProps) {
   const bodyStyle = {
     display: 'flex',
     justifyContent: 'center', // horizontal align
@@ -35,8 +36,9 @@ export function StepContainer({ children }: StepContainerProps) {
     marginTop: '5%', // slightly lower below dialog title toolbar
   }
 
+  // adjusts width of centered child components
   const containerStyle = {
-    width: '35%', // ensures form fields don't shrink down too small
+    width,
   }
 
   return (

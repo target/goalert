@@ -18,10 +18,6 @@ const useStyles = makeStyles({
   contentText,
   calendarContainer: {
     height: 'fit-content',
-    paddingTop: 16,
-    // matches 75% width in rest of app
-    marginRight: '12.5%',
-    marginLeft: '12.5%',
     marginBottom: 5, // room for bottom drop-shadow from card
   },
 })
@@ -43,30 +39,28 @@ export default function ReviewStep({ scheduleID, value }: ReviewStepProps) {
   }))
 
   return (
-    <React.Fragment>
-      <StepContainer>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Typography variant='h6' component='h2'>
-              Review your fixed schedule.
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <DialogContentText className={classes.contentText}>
-              This schedule will be fixed to the following schedule from{' '}
-              {fmt(start)} to {fmt(end)}.
-            </DialogContentText>
-          </Grid>
+    <StepContainer width='75%'>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Typography variant='h6' component='h2'>
+            Review your fixed schedule.
+          </Typography>
         </Grid>
-      </StepContainer>
-      <div className={classes.calendarContainer}>
-        <ScheduleCalendar
-          scheduleID={scheduleID}
-          shifts={shifts}
-          readOnly
-          CardProps={{ elevation: 3 }}
-        />
-      </div>
-    </React.Fragment>
+        <Grid item xs={12}>
+          <DialogContentText className={classes.contentText}>
+            This schedule will be fixed to the following schedule from{' '}
+            {fmt(start)} to {fmt(end)}.
+          </DialogContentText>
+        </Grid>
+        <Grid className={classes.calendarContainer} item xs={12}>
+          <ScheduleCalendar
+            scheduleID={scheduleID}
+            shifts={shifts}
+            readOnly
+            CardProps={{ elevation: 3 }}
+          />
+        </Grid>
+      </Grid>
+    </StepContainer>
   )
 }
