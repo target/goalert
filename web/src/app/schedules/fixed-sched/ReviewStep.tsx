@@ -12,6 +12,7 @@ import { Value, contentText, StepContainer } from './sharedUtils'
 interface ReviewStepProps {
   scheduleID: string
   value: Value
+  activeStep: number
 }
 
 const useStyles = makeStyles({
@@ -22,7 +23,14 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ReviewStep({ scheduleID, value }: ReviewStepProps) {
+export default function ReviewStep({
+  activeStep,
+  scheduleID,
+  value,
+}: ReviewStepProps) {
+  // prevents rendering empty whitespace on other slides because of calendar height
+  if (activeStep !== 2) return null
+
   const { start, end, shifts: _shifts } = value
   const classes = useStyles()
 
@@ -48,7 +56,7 @@ export default function ReviewStep({ scheduleID, value }: ReviewStepProps) {
         </Grid>
         <Grid item xs={12}>
           <DialogContentText className={classes.contentText}>
-            This schedule will be fixed to the following schedule from{' '}
+            This schedule will be fixed to the following shifts from{' '}
             {fmt(start)} to {fmt(end)}.
           </DialogContentText>
         </Grid>

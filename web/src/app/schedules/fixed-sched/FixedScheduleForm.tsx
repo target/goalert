@@ -45,7 +45,12 @@ export default function FixedScheduleForm({
         )
       case 2:
         return (
-          <ReviewStep key={key} scheduleID={scheduleID} value={rest.value} />
+          <ReviewStep
+            key={key}
+            activeStep={activeStep}
+            scheduleID={scheduleID}
+            value={rest.value}
+          />
         )
       case 3:
         return <SuccessStep key={key} />
