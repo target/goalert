@@ -18,11 +18,11 @@ const useStyles = makeStyles({
   contentText,
   calendarContainer: {
     height: 'fit-content',
+    paddingTop: 16,
     // matches 75% width in rest of app
-    paddingTop: 8,
     marginRight: '12.5%',
     marginLeft: '12.5%',
-    marginBottom: 5,
+    marginBottom: 5, // room for bottom drop-shadow from card
   },
 })
 
@@ -60,7 +60,12 @@ export default function ReviewStep({ scheduleID, value }: ReviewStepProps) {
         </Grid>
       </StepContainer>
       <div className={classes.calendarContainer}>
-        <ScheduleCalendar scheduleID={scheduleID} shifts={shifts} readOnly />
+        <ScheduleCalendar
+          scheduleID={scheduleID}
+          shifts={shifts}
+          readOnly
+          CardProps={{ elevation: 3 }}
+        />
       </div>
     </React.Fragment>
   )

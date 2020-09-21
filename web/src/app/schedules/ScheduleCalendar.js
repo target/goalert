@@ -68,6 +68,7 @@ export default class ScheduleCalendar extends React.PureComponent {
     scheduleID: p.string.isRequired,
     shifts: p.array.isRequired,
     readOnly: p.bool,
+    CardProps: p.object, // todo: use CardProps from types once TS
   }
 
   state = {
@@ -178,7 +179,15 @@ export default class ScheduleCalendar extends React.PureComponent {
   }
 
   render() {
-    const { classes, scheduleID, shifts, start, weekly, readOnly } = this.props
+    const {
+      classes,
+      scheduleID,
+      shifts,
+      start,
+      weekly,
+      readOnly,
+      CardProps,
+    } = this.props
 
     return (
       <React.Fragment>
@@ -188,7 +197,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             {Intl.DateTimeFormat().resolvedOptions().timeZone}
           </i>
         </Typography>
-        <Card className={classes.card}>
+        <Card className={classes.card} {...CardProps}>
           <div data-cy='calendar' className={classes.calendarContainer}>
             <Calendar
               date={new Date(start)}
