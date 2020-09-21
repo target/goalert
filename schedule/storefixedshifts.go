@@ -73,6 +73,24 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 		}
 	}
 
+	check, err := store.usr.UserExists(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer check.Done()
+
+	for i, tmp := range data.V1.TemporarySchedules {
+		shifts := tmp.Shifts[:0]
+		for _, shift := range tmp.Shifts {
+			if !check.UserExistsString(shift.UserID) {
+				continue
+			}
+			shifts = append(shifts, shift)
+		}
+		tmp.Shifts = shifts
+		data.V1.TemporarySchedules[i] = tmp
+	}
+
 	return data.V1.TemporarySchedules, nil
 }
 
