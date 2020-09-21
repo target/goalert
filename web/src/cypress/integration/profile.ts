@@ -107,6 +107,7 @@ function testProfile(): void {
             cy.dialogTitle('Create New Contact Method')
             cy.dialogForm({
               name: c.word({ length: 8 }),
+              type: contactMethod.type,
               value: contactMethod.value,
             })
             cy.dialogClick('Submit')
