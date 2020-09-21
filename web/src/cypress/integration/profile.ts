@@ -114,7 +114,7 @@ function testProfile(): void {
             cy.dialogContains(
               'Contact method already exists for that type and value: ' +
                 prof.name,
-            )
+            ).click()
           },
         )
       })
