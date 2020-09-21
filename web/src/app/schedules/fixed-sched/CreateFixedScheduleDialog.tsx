@@ -22,12 +22,21 @@ export default function CreateFixedScheduleDialog({
   onClose,
   scheduleID,
 }: CreateFixedScheduleDialogProps) {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(2)
   const [value, setValue] = useState({
     scheduleID,
-    start: '',
-    end: '',
-    shifts: [], // [{ user: { label, value }, start, end }] fields
+    start: '2020-09-20T06:59:00.000Z',
+    end: '2020-10-04T06:59:00.000Z',
+    shifts: [
+      {
+        start: '2020-09-20T07:00:00.000Z',
+        end: '2020-09-27T06:59:00.000Z',
+        user: {
+          label: 'Nathaniel Cook',
+          value: '6a61f535-f11b-4a88-ad0f-d698bba8fb6d',
+        },
+      },
+    ], // [{ user: { label, value }, start, end }] fields
   })
 
   const [submit, { loading, error, data }] = useMutation(mutation)
@@ -57,6 +66,7 @@ export default function CreateFixedScheduleDialog({
         loading={loading}
         form={
           <FixedScheduleForm
+            scheduleID={scheduleID}
             activeStep={step}
             setStep={setStep}
             value={value}

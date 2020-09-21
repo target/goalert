@@ -22,6 +22,9 @@ const styles = {
   calendarContainer: {
     padding: '1em',
   },
+  card: {
+    marginTop: 4,
+  },
 }
 
 const mapStateToProps = (state) => {
@@ -64,6 +67,7 @@ export default class ScheduleCalendar extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
     shifts: p.array.isRequired,
+    readOnly: p.bool,
   }
 
   state = {
@@ -184,7 +188,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             {Intl.DateTimeFormat().resolvedOptions().timeZone}
           </i>
         </Typography>
-        <Card>
+        <Card className={classes.card}>
           <div data-cy='calendar' className={classes.calendarContainer}>
             <Calendar
               date={new Date(start)}

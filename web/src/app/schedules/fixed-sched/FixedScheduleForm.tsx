@@ -12,6 +12,7 @@ import SuccessStep from './SuccessStep'
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
 interface FixedScheduleFormProps {
+  scheduleID: string
   activeStep: number
   setStep: (step: number) => void
   value: any
@@ -21,22 +22,11 @@ interface FixedScheduleFormProps {
 }
 
 export default function FixedScheduleForm({
+  scheduleID,
   activeStep,
   setStep,
   ...rest
 }: FixedScheduleFormProps) {
-  const bodyStyle = {
-    display: 'flex',
-    justifyContent: 'center', // horizontal align
-    height: '100%',
-    width: '100%',
-  }
-
-  const containerStyle = {
-    width: '35%', // ensures form fields don't shrink down too small
-    marginTop: '5%', // slightly lower below dialog title toolbar
-  }
-
   interface SlideRenderer {
     index: number
     key: number
@@ -54,7 +44,9 @@ export default function FixedScheduleForm({
           />
         )
       case 2:
-        return <ReviewStep key={key} />
+        return (
+          <ReviewStep key={key} scheduleID={scheduleID} value={rest.value} />
+        )
       case 3:
         return <SuccessStep key={key} />
       default:
@@ -63,16 +55,12 @@ export default function FixedScheduleForm({
   }
 
   return (
-    <div style={bodyStyle}>
-      <div style={containerStyle}>
-        <FormContainer optionalLabels {...rest}>
-          <VirtualizeAnimatedViews
-            index={activeStep}
-            onChangeIndex={(i: number) => setStep(i)}
-            slideRenderer={renderSlide}
-          />
-        </FormContainer>
-      </div>
-    </div>
+    <FormContainer optionalLabels {...rest}>
+      <VirtualizeAnimatedViews
+        index={activeStep}
+        onChangeIndex={(i: number) => setStep(i)}
+        slideRenderer={renderSlide}
+      />
+    </FormContainer>
   )
 }
