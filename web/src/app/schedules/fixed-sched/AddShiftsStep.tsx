@@ -4,6 +4,7 @@ import {
   DialogContentText,
   IconButton,
   Typography,
+  Fade,
   makeStyles,
 } from '@material-ui/core'
 import AddIcon from '@material-ui/icons/ArrowDownward'
@@ -23,8 +24,8 @@ const useStyles = makeStyles({
     marginBottom: 0,
   },
   shiftsContainer: {
-    // account for extra 10px of vertical spacing
-    marginTop: -10, // 4px padding from grid item, 6px margin from list item text
+    // account for extra vertical spacing
+    marginTop: -14, // 8px padding from grid item + subtitle, 6px margin from list item text
   },
 })
 
@@ -117,25 +118,32 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
         </Grid>
       </FormContainer>
 
-      <Grid className={classes.addButtonContainer} item xs={12}>
-        <IconButton
-          onClick={handleAddShift}
-          disabled={!shift?.start || !shift.end || !shift.user.label}
-        >
-          <AddIcon />
-        </IconButton>
-      </Grid>
-      <Grid className={classes.shiftsContainer} item xs={12}>
-        <FlatList
-          items={mapShiftstoItems()}
-          emptyMessage=''
-          dense
-          ListItemProps={{
-            disableGutters: true,
-            divider: true,
-          }}
-        />
-      </Grid>
+      <Fade in={!!shift?.start && !!shift?.end && !!shift?.user.label}>
+        <Grid className={classes.addButtonContainer} item xs={12}>
+          <IconButton
+            onClick={handleAddShift}
+            disabled={!shift?.start || !shift.end || !shift.user.label}
+          >
+            <AddIcon />
+          </IconButton>
+        </Grid>
+      </Fade>
+      <Fade in={shifts.length > 0}>
+        <Grid className={classes.shiftsContainer} item xs={12}>
+          <Typography variant='subtitle1' component='h3'>
+            Shifts
+          </Typography>
+          <FlatList
+            items={mapShiftstoItems()}
+            emptyMessage='Add a user above to get started.' // fallback empty message
+            dense
+            ListItemProps={{
+              disableGutters: true,
+              divider: true,
+            }}
+          />
+        </Grid>
+      </Fade>
     </Grid>
   )
 }
