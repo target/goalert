@@ -4,6 +4,7 @@ import gql from 'graphql-tag'
 import { fieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import FixedScheduleForm from './FixedScheduleForm'
+import { Shift } from './sharedUtils'
 
 const mutation = gql`
   mutation($input: SetScheduleShiftsInput!) {
@@ -22,24 +23,27 @@ export default function CreateFixedScheduleDialog({
   onClose,
   scheduleID,
 }: CreateFixedScheduleDialogProps) {
-  const [step, setStep] = useState(2)
+  const [step, setStep] = useState(0)
   const [value, setValue] = useState({
-    scheduleID,
-    start: '2020-09-20T06:59:00.000Z',
-    end: '2020-10-04T06:59:00.000Z',
-    shifts: [
-      {
-        start: '2020-09-20T07:00:00.000Z',
-        end: '2020-09-27T06:59:00.000Z',
-        user: {
-          label: 'Nathaniel Cook',
-          value: '6a61f535-f11b-4a88-ad0f-d698bba8fb6d',
-        },
-      },
-    ], // [{ user: { label, value }, start, end }] fields
+    start: '',
+    end: '',
+    shifts: [], // [{ user: { label, value }, start, end }] fields
   })
 
-  const [submit, { loading, error, data }] = useMutation(mutation)
+  const [submit, { loading, error, data }] = useMutation(mutation, {
+    variables: {
+      input: {
+        scheduleID,
+        start: value.start,
+        end: value.end,
+        shifts: value.shifts.map((shift: Shift) => ({
+          start: shift.start,
+          end: shift.end,
+          userID: shift.user?.value,
+        })),
+      },
+    },
+  })
 
   const fieldErrs = fieldErrors(error)
   const stepOneErrs = fieldErrs.some((e) => ['start', 'end'].includes(e.field))
@@ -56,7 +60,7 @@ export default function CreateFixedScheduleDialog({
 
   const isComplete = data && !loading && !error
   return (
-    open || (
+    open && (
       <FormDialog
         fullScreen
         disableGutters
@@ -76,7 +80,7 @@ export default function CreateFixedScheduleDialog({
           />
         }
         onSubmit={() => (isComplete ? onClose() : submit())}
-        onNext={step === 3 ? null : () => setStep(step + 1)}
+        onNext={step === 2 ? null : () => setStep(step + 1)}
         onBack={step === 0 ? null : () => setStep(step - 1)}
       />
     )
