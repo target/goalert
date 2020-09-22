@@ -13,8 +13,8 @@ export class FormContainer extends React.PureComponent {
 
     errors: p.arrayOf(
       p.shape({
-        message: p.string,
-        field: p.string,
+        message: p.string.isRequired,
+        field: p.string.isRequired,
         helpLink: p.string,
       }),
     ),
