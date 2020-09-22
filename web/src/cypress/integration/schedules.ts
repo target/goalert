@@ -201,72 +201,110 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should create multiple rules on an assignment', () => {
-      // todo: mobile dialog is completely different
-      if (screen === 'mobile' || screen === 'tablet') return
-
       cy.pageFab('Rotation')
-
       cy.dialogTitle('Add Rotation')
-      cy.dialogForm({
-        Sunday: false,
-        targetID: rot.name,
-        'rules[0].start': '02:34',
-        'rules[0].end': '15:34',
-      })
+
+      if (screen === 'mobile' || screen === 'tablet') {
+        cy.dialogForm({
+          targetID: rot.name,
+          'rules[0].start': '02:34',
+          'rules[0].end': '15:34',
+        })
+
+        cy.get('input[name="rules[0].weekdayFilter"]').siblings('div').click()
+        cy.get('li').contains('Sunday').click()
+        cy.focused().type('{esc}', { force: true })
+      } else {
+        cy.dialogForm({
+          Sunday: false,
+          targetID: rot.name,
+          'rules[0].start': '02:34',
+          'rules[0].end': '15:34',
+        })
+      }
 
       cy.get('table[data-cy="target-rules"] tbody tr').should('have.length', 1)
-
       cy.get('button[aria-label="Add rule"]').click()
-
       cy.dialogForm({ 'rules[1].start': '01:23' })
-
       cy.get('table[data-cy="target-rules"] tbody tr').should('have.length', 2)
-
       cy.dialogFinish('Submit')
-
       cy.get('body').should('contain', rot.name)
     })
 
     it('should edit an assignment', () => {
-      // todo: mobile dialog is completely different
-      if (screen === 'mobile' || screen === 'tablet') return
+      if (screen === 'mobile' || screen === 'tablet') {
+        cy.get('body')
+          .contains('li', rot.name)
+          .find('button[data-cy=other-actions]')
+          .menu('Edit')
 
-      cy.get('body')
-        .contains('li', rot.name)
-        .find('button[data-cy=other-actions]')
-        .menu('Edit')
+        cy.dialogTitle('Edit Rules')
+        cy.get('input[name="rules[0].weekdayFilter"]').siblings('div').click()
+        cy.get('li').contains('Wednesday').click()
+        cy.focused().type('{esc}', { force: true })
+        cy.dialogFinish('Submit')
 
-      cy.dialogTitle('Edit Rules')
-      cy.dialogForm({ Wednesday: false })
-      cy.dialogFinish('Submit')
+        cy.get('body').contains('li', rot.name)
+      } else {
+        cy.get('body')
+          .contains('li', rot.name)
+          .find('button[data-cy=other-actions]')
+          .menu('Edit')
 
-      cy.get('body').contains('li', rot.name)
+        cy.dialogTitle('Edit Rules')
+        cy.dialogForm({ Wednesday: false })
+        cy.dialogFinish('Submit')
+
+        cy.get('body').contains('li', rot.name)
+      }
     })
 
     it('should edit then delete an assignment rule', () => {
-      // todo: mobile dialog is completely different
-      if (screen === 'mobile' || screen === 'tablet') return
+      if (screen === 'mobile' || screen === 'tablet') {
+        cy.get('body')
+          .contains('li', rot.name)
+          .get('button[data-cy=other-actions]')
+          .menu('Edit')
 
-      cy.get('body')
-        .contains('li', rot.name)
-        .get('button[data-cy=other-actions]')
-        .menu('Edit')
+        cy.dialogTitle('Edit Rules')
+        cy.get('input[name="rules[0].weekdayFilter"]').siblings('div').click()
+        cy.get('li').contains('Wednesday').click()
+        cy.focused().type('{esc}', { force: true })
 
-      cy.dialogTitle('Edit Rules')
-      cy.dialogForm({ Wednesday: true })
+        cy.get('button[aria-label="Delete rule"]').should('not.exist')
+        cy.get('button[aria-label="Add rule"').click()
+        cy.get('button[aria-label="Add rule"').click()
 
-      cy.get('button[aria-label="Delete rule"]').should('not.exist')
-      cy.get('button[aria-label="Add rule"').click()
-      cy.get('button[aria-label="Add rule"').click()
+        cy.get('button[aria-label="Delete rule"]')
+          .should('have.length', 3)
+          .first()
+          .click()
 
-      cy.get('button[aria-label="Delete rule"]')
-        .should('have.length', 3)
-        .first()
-        .click()
+        cy.dialogFinish('Submit')
 
-      cy.dialogFinish('Submit')
+        cy.get('body').should('contain', 'Always')
+      } else {
+        cy.get('body')
+          .contains('li', rot.name)
+          .get('button[data-cy=other-actions]')
+          .menu('Edit')
 
-      cy.get('body').should('contain', 'Always')
+        cy.dialogTitle('Edit Rules')
+        cy.dialogForm({ Wednesday: true })
+
+        cy.get('button[aria-label="Delete rule"]').should('not.exist')
+        cy.get('button[aria-label="Add rule"').click()
+        cy.get('button[aria-label="Add rule"').click()
+
+        cy.get('button[aria-label="Delete rule"]')
+          .should('have.length', 3)
+          .first()
+          .click()
+
+        cy.dialogFinish('Submit')
+
+        cy.get('body').should('contain', 'Always')
+      }
     })
   })
 

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
@@ -68,6 +69,8 @@ type App struct {
 	SlackStore     *slack.ChannelSender
 	HeartbeatStore heartbeat.Store
 	NoticeStore    notice.Store
+
+	AuthHandler *auth.Handler
 
 	NotificationStore notification.Store
 	Twilio            *twilio.Config
