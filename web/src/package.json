@@ -159,7 +159,7 @@
     "ifdef-loader": "2.1.5",
     "jest": "26.1.0",
     "json-loader": "0.5.7",
-    "lint-staged": "10.2.11",
+    "lint-staged": "10.4.0",
     "postcss-loader": "3.0.0",
     "prettier": "2.0.5",
     "raw-loader": "4.0.1",
