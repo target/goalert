@@ -25,7 +25,6 @@ func (store *Store) validateShifts(ctx context.Context, fname string, max int, s
 	if err != nil {
 		return err
 	}
-	defer check.Done()
 
 	for i, s := range shifts {
 		err := validate.UUID(fmt.Sprintf("%s[%d].UserID", fname, i), s.UserID)
@@ -77,7 +76,6 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 	if err != nil {
 		return nil, err
 	}
-	defer check.Done()
 
 	// omit shifts for non-existant users
 	for i, tmp := range data.V1.TemporarySchedules {

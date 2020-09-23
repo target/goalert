@@ -20,30 +20,21 @@ func keyName(keyWithTime string) string {
 	return strings.SplitN(keyWithTime, "\n", 2)[0]
 }
 
-// ExistanceChecker allows checking if various users exist. Done must be called when finished.
+// ExistanceChecker allows checking if various users exist.
 type ExistanceChecker interface {
 	UserExistsString(id string) bool
 	UserExistsUUID(id uuid.UUID) bool
-	Done()
 }
 
-type checker struct {
-	m  map[uuid.UUID]struct{}
-	ch chan map[uuid.UUID]struct{}
-}
+type checker map[uuid.UUID]struct{}
 
-func (c *checker) UserExistsString(id string) bool { return c.UserExistsUUID(uuid.FromStringOrNil(id)) }
-func (c *checker) UserExistsUUID(id uuid.UUID) bool {
-	_, ok := c.m[id]
-	return ok
-}
-func (c *checker) Done() {
-	if c.m == nil {
-		return
+func (c checker) UserExistsString(id string) bool {
+	if id == "" {
+		return false
 	}
-	c.ch <- c.m
-	c.m = nil
+	return c.UserExistsUUID(uuid.FromStringOrNil(id))
 }
+func (c checker) UserExistsUUID(id uuid.UUID) bool { _, ok := c[id]; return ok }
 
 // UserExists returns an ExistanceChecker.
 func (db *DB) UserExists(ctx context.Context) (ExistanceChecker, error) {
@@ -55,10 +46,7 @@ func (db *DB) UserExists(ctx context.Context) (ExistanceChecker, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &checker{
-		m:  m,
-		ch: db.userExist,
-	}, nil
+	return checker(m), nil
 }
 
 func (db *DB) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) {
@@ -70,6 +58,7 @@ func (db *DB) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) 
 
 	m := <-db.userExist
 	if bytes.Equal(data[:sha256.Size], db.userExistHash) {
+		db.userExist <- m
 		return m, nil
 	}
 
@@ -80,13 +69,12 @@ func (db *DB) userExistMap(ctx context.Context) (map[uuid.UUID]struct{}, error) 
 		return nil, err
 	}
 
-	for k := range m {
-		delete(m, k)
-	}
+	m = make(map[uuid.UUID]struct{}, len(ids))
 	for _, id := range ids {
 		m[id] = struct{}{}
 	}
 	db.userExistHash = data[:sha256.Size]
+	db.userExist <- m
 
 	return m, nil
 }
