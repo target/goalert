@@ -98,6 +98,7 @@ export default function MaterialSelect(
   const [inputValue, setInputValue] = useState(getLabel())
   useEffect(() => {
     if (!value) setInputValue('')
+    if (!inputValue && value) setInputValue(getLabel())
   }, [value])
 
   const multi = multiple ? { multiple: true } : {}

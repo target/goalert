@@ -42,21 +42,45 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
   const [shift, setShift] = useState(null as Shift | null)
   const { shifts } = value
 
+  const shiftFieldsEmpty = !shift?.start || !shift.end || !shift.user?.label
+
   const fmt = (t: string) =>
     DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
 
   function handleAddShift() {
     if (!shift) return
 
+    // update shifts value
     onChange({
       ...value,
       shifts: [...shifts, shift],
     })
 
+    // set next start date equal to the end date just added
     setShift({
       start: shift.end,
       end: '',
       user: null,
+    })
+  }
+
+  function handleRemoveShift(idx: number) {
+    const newShifts = shifts.slice()
+    newShifts.splice(idx, 1)
+
+    // populate shift to be deleted in add shift form if it's currently empty
+    if (shiftFieldsEmpty) {
+      setShift({
+        start: shifts[idx].start,
+        end: shifts[idx].end,
+        user: shifts[idx].user,
+      })
+    }
+
+    // update shifts value
+    onChange({
+      ...value,
+      shifts: newShifts,
     })
   }
 
@@ -68,16 +92,7 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
       subText: `From ${fmt(shift.start)} to ${fmt(shift.end)}`,
       icon: <UserAvatar userID={shift?.user?.value ?? ''} />,
       secondaryAction: (
-        <IconButton
-          onClick={() => {
-            const newShifts = shifts.slice()
-            newShifts.splice(idx, 1)
-            onChange({
-              ...value,
-              shifts: newShifts,
-            })
-          }}
-        >
+        <IconButton onClick={() => handleRemoveShift(idx)}>
           <DeleteIcon />
         </IconButton>
       ),
@@ -139,7 +154,7 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
             <Fab
               className={classes.addButton}
               onClick={handleAddShift}
-              disabled={!shift?.start || !shift.end || !shift.user?.label}
+              disabled={shiftFieldsEmpty}
               size='medium'
               color='primary'
             >
