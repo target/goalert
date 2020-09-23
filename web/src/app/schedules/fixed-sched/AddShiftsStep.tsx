@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import {
+  DialogContentText,
   Fab,
   Grid,
-  DialogContentText,
   IconButton,
   Typography,
   Fade,
   makeStyles,
 } from '@material-ui/core'
-import AddIcon from '@material-ui/icons/Add'
+import { Add as AddIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import { DateTime } from 'luxon'
 import { Value, Shift, User, contentText, StepContainer } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
@@ -63,10 +63,24 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
   function mapShiftstoItems() {
     if (!shifts.length) return []
 
-    return shifts.map((shift: Shift) => ({
+    return shifts.map((shift: Shift, idx: number) => ({
       title: shift?.user?.label,
       subText: `From ${fmt(shift.start)} to ${fmt(shift.end)}`,
       icon: <UserAvatar userID={shift?.user?.value ?? ''} />,
+      secondaryAction: (
+        <IconButton
+          onClick={() => {
+            const newShifts = shifts.slice()
+            newShifts.splice(idx, 1)
+            onChange({
+              ...value,
+              shifts: newShifts,
+            })
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
+      ),
     }))
   }
 
