@@ -271,7 +271,7 @@ export default class ScheduleCalendar extends React.PureComponent {
 
     // dedupe fixed shifts with shifts
     const getKey = (id, s, e) =>
-      id + DateTime.fromISO(s).toISO() + DateTime.fromISO(e).toISO()
+      id + DateTime.fromISO(s).toISO() + DateTime.fromISO(e).toISO() // ensures DT format is exactly the same
     const dedupeKeys = Array.from(
       new Set(filteredShifts.map((fs) => getKey(fs.user.id, fs.start, fs.end))),
     )
