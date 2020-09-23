@@ -16,15 +16,23 @@ import (
 // FixedShiftsPerGroupLimit is the maximum number of shifts that can be configured for a single group at a time.
 const FixedShiftsPerGroupLimit = 500
 
-func validateShifts(fname string, max int, shifts []FixedShift) error {
+func (store *Store) validateShifts(ctx context.Context, fname string, max int, shifts []FixedShift) error {
 	if len(shifts) > max {
 		return validation.NewFieldError(fname, "too many shifts defined")
+	}
+
+	check, err := store.usr.UserExists(ctx)
+	if err != nil {
+		return err
 	}
 
 	for i, s := range shifts {
 		err := validate.UUID(fmt.Sprintf("%s[%d].UserID", fname, i), s.UserID)
 		if err != nil {
 			return err
+		}
+		if !check.UserExistsString(s.UserID) {
+			return validation.NewFieldError(fmt.Sprintf("%s[%d].UserID", fname, i), "user does not exist")
 		}
 	}
 
@@ -62,6 +70,24 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	check, err := store.usr.UserExists(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// omit shifts for non-existant users
+	for i, tmp := range data.V1.TemporarySchedules {
+		shifts := tmp.Shifts[:0]
+		for _, shift := range tmp.Shifts {
+			if !check.UserExistsString(shift.UserID) {
+				continue
+			}
+			shifts = append(shifts, shift)
+		}
+		tmp.Shifts = shifts
+		data.V1.TemporarySchedules[i] = tmp
 	}
 
 	return data.V1.TemporarySchedules, nil
@@ -138,7 +164,7 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 
 	err = validate.Many(
 		validate.UUID("ScheduleID", scheduleID),
-		validateShifts("Shifts", FixedShiftsPerGroupLimit, shifts),
+		store.validateShifts(ctx, "Shifts", FixedShiftsPerGroupLimit, shifts),
 	)
 	if err != nil {
 		return err

@@ -72,6 +72,7 @@ func TestFixedShifts(t *testing.T) {
 		end: "9999-08-24T21:03:54Z",
 		shifts: [{start: "0001-08-24T21:03:54Z", end: "9998-08-24T21:03:54Z", userID: "%s"}]
 	})}`, h.UUID("sched"), h.UUID("alt-user")))
+	h.Trigger()
 
 	h.Escalate(1, 0)
 
@@ -82,6 +83,7 @@ func TestFixedShifts(t *testing.T) {
 		start: "0000-08-24T21:03:54Z",
 		end: "9999-08-24T21:03:54Z"
 	})}`, h.UUID("sched")))
+	h.Trigger()
 
 	h.Escalate(1, 0)
 

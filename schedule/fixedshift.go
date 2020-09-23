@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -55,6 +56,10 @@ func mergeShiftsByTime(shifts []FixedShift) []FixedShift {
 			result = append(result, s)
 			continue
 		}
+
+		// TODO: remove once we switch to uuid.UUID
+		s.UserID = strings.ToLower(s.UserID)
+
 		result[l].End = maxTime(result[l].End, s.End)
 	}
 

@@ -134,8 +134,16 @@ func (app *App) initStores(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "init service store")
 	}
+
+	if app.UserStore == nil {
+		app.UserStore, err = user.NewDB(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init user store")
+	}
+
 	if app.ScheduleStore == nil {
-		app.ScheduleStore, err = schedule.NewStore(ctx, app.db)
+		app.ScheduleStore, err = schedule.NewStore(ctx, app.db, app.UserStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init schedule store")
@@ -146,13 +154,6 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init rotation store")
-	}
-
-	if app.UserStore == nil {
-		app.UserStore, err = user.NewDB(ctx, app.db)
-	}
-	if err != nil {
-		return errors.Wrap(err, "init user store")
 	}
 
 	if app.NCStore == nil {
