@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import {
+  Avatar,
   Grid,
   DialogContentText,
   IconButton,
@@ -8,7 +9,6 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import AddIcon from '@material-ui/icons/Add'
-import DownIcon from '@material-ui/icons/ArrowDownward'
 import { DateTime } from 'luxon'
 import { Value, Shift, User, contentText, StepContainer } from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
@@ -17,17 +17,21 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import FlatList from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   contentText,
   addButtonContainer: {
     display: 'flex',
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatar: {
+    backgroundColor: theme.palette.primary.main,
   },
   shiftsContainer: {
     // account for extra vertical spacing
     marginTop: -14, // 8px padding from grid item + subtitle, 6px margin from list item text
   },
-})
+}))
 
 interface AddShiftsStepProps {
   value: Value
@@ -83,51 +87,54 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
           </DialogContentText>
         </Grid>
 
-        <FormContainer value={shift} onChange={(val: Shift) => setShift(val)}>
-          <Grid item xs={12}>
-            <FormField
-              fullWidth
-              saveLabel
-              component={UserSelect}
-              saveLabelOnChange
-              label='Select a User'
-              name='user'
-              mapValue={(u: User) => u?.value}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <FormField
-              fullWidth
-              component={ISODateTimePicker}
-              label='Shift Start'
-              name='start'
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <FormField
-              fullWidth
-              component={ISODateTimePicker}
-              label='Shift End'
-              name='end'
-            />
-          </Grid>
-        </FormContainer>
-
-        <Fade
-          in={
-            shifts.length > 0 ||
-            (!!shift?.start && !!shift?.end && !!shift?.user?.label)
-          }
-        >
-          <Grid className={classes.addButtonContainer} item xs={12}>
-            <IconButton
-              onClick={handleAddShift}
-              disabled={!shift?.start || !shift.end || !shift.user?.label}
+        <Grid item xs={12} container>
+          <Grid item xs={10} container spacing={2}>
+            <FormContainer
+              value={shift}
+              onChange={(val: Shift) => setShift(val)}
             >
-              {!shifts.length ? <AddIcon /> : <DownIcon />}
-            </IconButton>
+              <Grid item xs={12}>
+                <FormField
+                  fullWidth
+                  saveLabel
+                  component={UserSelect}
+                  saveLabelOnChange
+                  label='Select a User'
+                  name='user'
+                  mapValue={(u: User) => u?.value}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <FormField
+                  fullWidth
+                  component={ISODateTimePicker}
+                  label='Shift Start'
+                  name='start'
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <FormField
+                  fullWidth
+                  component={ISODateTimePicker}
+                  label='Shift End'
+                  name='end'
+                />
+              </Grid>
+            </FormContainer>
           </Grid>
-        </Fade>
+          <Grid className={classes.addButtonContainer} item xs={2}>
+            <Avatar className={classes.avatar}>
+              <IconButton
+                onClick={handleAddShift}
+                // disabled={!shift?.start || !shift.end || !shift.user?.label}
+                color='inherit'
+              >
+                <AddIcon />
+              </IconButton>
+            </Avatar>
+          </Grid>
+        </Grid>
+
         <Fade in={shifts.length > 0}>
           <Grid className={classes.shiftsContainer} item xs={12}>
             <Typography variant='subtitle1' component='h3'>

@@ -27,7 +27,7 @@ interface StepContainerProps {
   children: ReactNode
   width?: string
 }
-export function StepContainer({ children, width = '35%' }: StepContainerProps) {
+export function StepContainer({ children, width = '40%' }: StepContainerProps) {
   const bodyStyle = {
     display: 'flex',
     justifyContent: 'center', // horizontal align
