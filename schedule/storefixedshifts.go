@@ -79,6 +79,7 @@ func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID
 	}
 	defer check.Done()
 
+	// omit shifts for non-existant users
 	for i, tmp := range data.V1.TemporarySchedules {
 		shifts := tmp.Shifts[:0]
 		for _, shift := range tmp.Shifts {

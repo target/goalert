@@ -153,7 +153,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		return nil, p.Err
 	}
 
-	store.userExist <- make(map[uuid.UUID]struct{}, 5000)
+	store.userExist <- make(map[uuid.UUID]struct{})
 
 	store.grp = groupcache.NewGroup(fmt.Sprintf("user.store[%d]", atomic.AddInt64(&grpN, 1)), 1024*1024, groupcache.GetterFunc(store.cacheGet))
 
