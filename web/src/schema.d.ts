@@ -213,6 +213,7 @@ export interface Mutation {
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
   deleteAuthSubject: boolean
+  endAllAuthSessionsByCurrentUser: boolean
   updateUser: boolean
   testContactMethod: boolean
   updateAlerts?: Alert[]
@@ -729,6 +730,7 @@ export type TargetType =
   | 'contactMethod'
   | 'heartbeatMonitor'
   | 'calendarSubscription'
+  | 'userSession'
 
 export interface ServiceConnection {
   nodes: Service[]
@@ -776,7 +778,16 @@ export interface User {
   calendarSubscriptions: UserCalendarSubscription[]
   statusUpdateContactMethodID: string
   authSubjects: AuthSubject[]
+  sessions: UserSession[]
   onCallSteps: EscalationPolicyStep[]
+}
+
+export interface UserSession {
+  id: string
+  current: boolean
+  userAgent: string
+  createdAt: ISOTimestamp
+  lastAccessAt: ISOTimestamp
 }
 
 export interface UserNotificationRule {

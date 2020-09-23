@@ -40,6 +40,9 @@ const query = gql`
           }
         }
       }
+      sessions {
+        id
+      }
     }
   }
 `
@@ -71,7 +74,7 @@ function serviceCount(onCallSteps = []) {
 export default function UserDetails(props) {
   const classes = useStyles()
 
-  const { userID: currentUserID } = useSessionInfo()
+  const { userID: currentUserID, isAdmin } = useSessionInfo()
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
@@ -86,6 +89,7 @@ export default function UserDetails(props) {
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
+  const sessCount = user.sessions.length
 
   const disableNR = user.contactMethods.length === 0
 
@@ -103,6 +107,14 @@ export default function UserDetails(props) {
     links.push({
       label: 'Schedule Calendar Subscriptions',
       url: 'schedule-calendar-subscriptions',
+    })
+  }
+
+  if (isAdmin || props.userID === currentUserID) {
+    links.push({
+      label: 'Active Sessions',
+      url: 'sessions',
+      subText: `${sessCount} active session${sessCount === 1 ? '' : 's'}`,
     })
   }
 

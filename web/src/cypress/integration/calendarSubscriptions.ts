@@ -63,7 +63,7 @@ function testSubs(screen: ScreenFormat): void {
       cy.dialogContains(Cypress.config().baseUrl + '/api/v2/calendar?token=')
       cy.dialogFinish('Done')
 
-      cy.get('[data-cy="list-empty-message"]').should('not', 'exist')
+      cy.get('[data-cy="list-empty-message"]').should('not.exist')
       cy.get('[data-cy=calendar-subscriptions]').should('contain', name)
     })
   })
@@ -176,7 +176,7 @@ function testSubs(screen: ScreenFormat): void {
     })
 
     it('should delete a subscription', () => {
-      cy.get('[data-cy="list-empty-message"]').should('not', 'exist')
+      cy.get('[data-cy="list-empty-message"]').should('not.exist')
       cy.get('[data-cy=calendar-subscriptions]').should('contain', cs.name)
 
       cy.get('[data-cy=calendar-subscriptions]')

@@ -66,8 +66,8 @@ func (app *App) startup(ctx context.Context) error {
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
-	app.initStartup(ctx, "Startup.GraphQL", app.initGraphQL)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)
+	app.initStartup(ctx, "Startup.GraphQL", app.initGraphQL)
 
 	app.initStartup(ctx, "Startup.HTTPServer", app.initHTTP)
 

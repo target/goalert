@@ -76,8 +76,11 @@ const mapConfig = (value) =>
 // - `ready` true if session/config info is available (e.g. before initial page load/fetch)
 export function useSessionInfo() {
   const info = _.pick(useContext(ConfigContext), 'isAdmin', 'userID')
-  info.ready = Boolean(info.userID) // no user ID if not loaded
-  return info
+  return {
+    userID: info.userID,
+    isAdmin: info.isAdmin,
+    ready: Boolean(info.userID), // no user ID if not loaded
+  }
 }
 
 // useConfig will return the current public configuration as an object
