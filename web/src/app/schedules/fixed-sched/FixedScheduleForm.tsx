@@ -6,7 +6,6 @@ import { FieldError } from '../../util/errutil'
 import SchedulesTimesStep from './ScheduleTimesStep'
 import AddShiftsStep from './AddShiftsStep'
 import ReviewStep from './ReviewStep'
-import SuccessStep from './SuccessStep'
 
 // allows changing the index programatically
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
@@ -52,8 +51,6 @@ export default function FixedScheduleForm({
             value={rest.value}
           />
         )
-      case 3:
-        return <SuccessStep key={key} />
       default:
         return null
     }
