@@ -137,7 +137,7 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='15'
-              min={1}
+              min={0}
               max={9000}
             />
           </Grid>

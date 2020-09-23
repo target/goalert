@@ -265,7 +265,7 @@ export default class PolicyStepForm extends React.Component {
               required
               type='number'
               mapOnChangeValue={(value) => value.toString()}
-              min={1}
+              min={0}
               max={9000}
               hint={
                 value.delayMinutes === '0'
