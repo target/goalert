@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import {
-  Avatar,
+  Fab,
   Grid,
   DialogContentText,
   IconButton,
@@ -19,6 +19,9 @@ import { UserAvatar } from '../../util/avatars'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
+  addButton: {
+    boxShadow: 'none',
+  },
   addButtonContainer: {
     display: 'flex',
     justifyContent: 'center',
@@ -26,10 +29,6 @@ const useStyles = makeStyles((theme) => ({
   },
   avatar: {
     backgroundColor: theme.palette.primary.main,
-  },
-  shiftsContainer: {
-    // account for extra vertical spacing
-    marginTop: -14, // 8px padding from grid item + subtitle, 6px margin from list item text
   },
 }))
 
@@ -87,7 +86,7 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
           </DialogContentText>
         </Grid>
 
-        <Grid item xs={12} container>
+        <Grid item xs={12} container spacing={2}>
           <Grid item xs={10} container spacing={2}>
             <FormContainer
               value={shift}
@@ -123,20 +122,20 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
             </FormContainer>
           </Grid>
           <Grid className={classes.addButtonContainer} item xs={2}>
-            <Avatar className={classes.avatar}>
-              <IconButton
-                onClick={handleAddShift}
-                // disabled={!shift?.start || !shift.end || !shift.user?.label}
-                color='inherit'
-              >
-                <AddIcon />
-              </IconButton>
-            </Avatar>
+            <Fab
+              className={classes.addButton}
+              onClick={handleAddShift}
+              disabled={!shift?.start || !shift.end || !shift.user?.label}
+              size='medium'
+              color='primary'
+            >
+              <AddIcon />
+            </Fab>
           </Grid>
         </Grid>
 
         <Fade in={shifts.length > 0}>
-          <Grid className={classes.shiftsContainer} item xs={12}>
+          <Grid item xs={12}>
             <Typography variant='subtitle1' component='h3'>
               Shifts
             </Typography>
