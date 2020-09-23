@@ -13,13 +13,11 @@ const mutation = gql`
 `
 
 interface CreateFixedScheduleDialogProps {
-  open: boolean
   onClose: () => void
   scheduleID: string
 }
 
 export default function CreateFixedScheduleDialog({
-  open,
   onClose,
   scheduleID,
 }: CreateFixedScheduleDialogProps) {
@@ -60,29 +58,27 @@ export default function CreateFixedScheduleDialog({
 
   const isComplete = data && !loading && !error
   return (
-    open && (
-      <FormDialog
-        fullScreen
-        disableGutters
-        title='Define a Fixed Schedule Adjustment'
-        primaryActionLabel={isComplete ? 'Done' : null}
-        onClose={onClose}
-        loading={loading}
-        form={
-          <FixedScheduleForm
-            scheduleID={scheduleID}
-            activeStep={step}
-            setStep={setStep}
-            value={value}
-            onChange={(newValue: any) => setValue(newValue)}
-            disabled={loading}
-            errors={fieldErrors(error)}
-          />
-        }
-        onSubmit={() => (isComplete ? onClose() : submit())}
-        onNext={step === 2 ? null : () => setStep(step + 1)}
-        onBack={step === 0 ? null : () => setStep(step - 1)}
-      />
-    )
+    <FormDialog
+      fullScreen
+      disableGutters
+      title='Define a Fixed Schedule Adjustment'
+      primaryActionLabel={isComplete ? 'Done' : null}
+      onClose={onClose}
+      loading={loading}
+      form={
+        <FixedScheduleForm
+          scheduleID={scheduleID}
+          activeStep={step}
+          setStep={setStep}
+          value={value}
+          onChange={(newValue: any) => setValue(newValue)}
+          disabled={loading}
+          errors={fieldErrors(error)}
+        />
+      }
+      onSubmit={() => (isComplete ? onClose() : submit())}
+      onNext={step === 2 ? null : () => setStep(step + 1)}
+      onBack={step === 0 ? null : () => setStep(step - 1)}
+    />
   )
 }
