@@ -35,7 +35,7 @@ export default function FixedScheduleForm({
   function renderSlide({ index, key }: SlideRenderer): ReactNode {
     switch (index) {
       case 0:
-        return <SchedulesTimesStep key={key} />
+        return <SchedulesTimesStep key={key} value={rest.value} />
       case 1:
         return (
           <AddShiftsStep

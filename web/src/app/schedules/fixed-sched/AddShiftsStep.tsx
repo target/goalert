@@ -22,6 +22,7 @@ import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import FlatList from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
+import { DateTime } from 'luxon'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -51,9 +52,17 @@ export default function AddShiftsStep({
 }: AddShiftsStepProps) {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
-  const { shifts } = value
+  const { start, end, shifts } = value
 
   const shiftFieldsEmpty = !shift?.start || !shift.end || !shift.user?.label
+
+  // don't allow user to set start after end, or end before start
+  // start with value's start/end as min/max
+  const f = (d: string) => DateTime.fromISO(d).toFormat("yyyy-MM-dd'T'HH:mm:ss")
+  let min = f(start)
+  let max = f(end)
+  if (shift?.start) min = f(shift.start)
+  if (shift?.end) max = f(shift.end)
 
   function handleAddShift() {
     if (!shift) return
@@ -149,6 +158,7 @@ export default function AddShiftsStep({
                   component={ISODateTimePicker}
                   label='Shift Start'
                   name='start'
+                  inputProps={{ min, max }}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -157,6 +167,7 @@ export default function AddShiftsStep({
                   component={ISODateTimePicker}
                   label='Shift End'
                   name='end'
+                  inputProps={{ min, max }}
                 />
               </Grid>
             </FormContainer>

@@ -5,16 +5,28 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
+import { DateTime } from 'luxon'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, StepContainer } from './sharedUtils'
+import { contentText, StepContainer, Value } from './sharedUtils'
 
 const useStyles = makeStyles({
   contentText,
 })
 
-export default function ScheduleTimesStep() {
+interface ScheduleTimesStepProps {
+  value: Value
+}
+
+export default function ScheduleTimesStep({ value }: ScheduleTimesStepProps) {
   const classes = useStyles()
+
+  // don't allow user to set start after end, or end before start
+  const f = (d: string) => DateTime.fromISO(d).toFormat("yyyy-MM-dd'T'HH:mm:ss")
+  let min = null
+  let max = null
+  if (value.start) min = f(value.start)
+  if (value.end) max = f(value.end)
 
   return (
     <StepContainer>
@@ -38,6 +50,7 @@ export default function ScheduleTimesStep() {
             component={ISODateTimePicker}
             required
             name='start'
+            inputProps={{ max }}
           />
         </Grid>
         <Grid item xs={6}>
@@ -46,6 +59,7 @@ export default function ScheduleTimesStep() {
             component={ISODateTimePicker}
             required
             name='end'
+            inputProps={{ min }}
           />
         </Grid>
       </Grid>
