@@ -36,13 +36,19 @@ export default function ReviewStep({
   const classes = useStyles()
 
   // map user label/values to name/ids
-  const shifts = _shifts.map((s) => ({
-    ...s,
-    user: {
-      id: s?.user?.value,
-      name: s?.user?.label,
+  const shifts = [
+    {
+      start,
+      end,
+      shifts: _shifts.map((s) => ({
+        ...s,
+        user: {
+          id: s?.user?.value,
+          name: s?.user?.label,
+        },
+      })),
     },
-  }))
+  ]
 
   return (
     <StepContainer width='75%'>
@@ -64,7 +70,8 @@ export default function ReviewStep({
         <Grid className={classes.calendarContainer} item xs={12}>
           <ScheduleCalendar
             scheduleID={scheduleID}
-            shifts={shifts}
+            shifts={[]}
+            fixedShifts={shifts}
             readOnly
             CardProps={{ elevation: 3 }}
           />
