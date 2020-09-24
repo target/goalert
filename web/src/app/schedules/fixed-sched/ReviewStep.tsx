@@ -5,9 +5,8 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
-import { DateTime } from 'luxon'
 import ScheduleCalendar from '../ScheduleCalendar'
-import { Value, contentText, StepContainer } from './sharedUtils'
+import { fmt, Value, contentText, StepContainer } from './sharedUtils'
 
 interface ReviewStepProps {
   scheduleID: string
@@ -35,9 +34,6 @@ export default function ReviewStep({
 
   const { start, end, shifts: _shifts } = value
   const classes = useStyles()
-
-  const fmt = (t: string) =>
-    DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
 
   // map user label/values to name/ids
   const shifts = _shifts.map((s) => ({

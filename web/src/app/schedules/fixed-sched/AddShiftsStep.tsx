@@ -9,8 +9,14 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import { Add as AddIcon, Delete as DeleteIcon } from '@material-ui/icons'
-import { DateTime } from 'luxon'
-import { Value, Shift, User, contentText, StepContainer } from './sharedUtils'
+import {
+  fmt,
+  Value,
+  Shift,
+  User,
+  contentText,
+  StepContainer,
+} from './sharedUtils'
 import { FormContainer, FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
@@ -48,9 +54,6 @@ export default function AddShiftsStep({
   const { shifts } = value
 
   const shiftFieldsEmpty = !shift?.start || !shift.end || !shift.user?.label
-
-  const fmt = (t: string) =>
-    DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
 
   function handleAddShift() {
     if (!shift) return

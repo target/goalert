@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import React, { ReactNode } from 'react'
 
 export interface Value {
@@ -22,6 +23,9 @@ export interface User {
 export const contentText = {
   marginBottom: 0,
 }
+
+export const fmt = (t: string) =>
+  DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
 
 interface StepContainerProps {
   children: ReactNode

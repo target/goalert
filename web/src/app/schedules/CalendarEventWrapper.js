@@ -8,6 +8,7 @@ import { connect } from 'react-redux'
 import { DateTime, Duration } from 'luxon'
 import { urlParamSelector } from '../selectors'
 import FixedScheduleDialog from './fixed-sched/FixedScheduleDialog'
+import DeleteFixedScheduleConfirmation from './fixed-sched/DeleteFixedScheduleConfirmation'
 
 const styles = (theme) => ({
   flexGrow: {
@@ -191,6 +192,7 @@ export default class CalendarEventWrapper extends Component {
 
   render() {
     const { children, classes, readOnly, scheduleID } = this.props
+    const { overrideDialog, fixedSchedDialog } = this.state
 
     return (
       <React.Fragment>
@@ -208,20 +210,27 @@ export default class CalendarEventWrapper extends Component {
         >
           {children}
         </Tooltip>
-        {Boolean(this.state.overrideDialog) && !readOnly && (
+        {Boolean(overrideDialog) && !readOnly && (
           <ScheduleOverrideCreateDialog
-            defaultValue={this.state.overrideDialog.defaultValue}
-            variant={this.state.overrideDialog.variant}
+            defaultValue={overrideDialog.defaultValue}
+            variant={overrideDialog.variant}
             scheduleID={scheduleID}
             onClose={() => this.setState({ overrideDialog: null })}
             removeUserReadOnly
           />
         )}
-        {Boolean(this.state.fixedSchedDialog) && !readOnly && (
+        {fixedSchedDialog?.action === 'edit' && !readOnly && (
           <FixedScheduleDialog
             onClose={() => this.setState({ fixedSchedDialog: null })}
             scheduleID={scheduleID}
-            value={this.state.fixedSchedDialog.value}
+            value={fixedSchedDialog.value}
+          />
+        )}
+        {fixedSchedDialog?.action === 'delete' && !readOnly && (
+          <DeleteFixedScheduleConfirmation
+            onClose={() => this.setState({ fixedSchedDialog: null })}
+            scheduleID={scheduleID}
+            value={fixedSchedDialog.value}
           />
         )}
       </React.Fragment>
