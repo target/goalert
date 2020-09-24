@@ -99,7 +99,7 @@ function testProfile(): void {
       cy.get('body').should('contain', `${name} (${type})`)
     })
 
-    it('should return error with link to conflicting user', () => {
+    it.only('should return error with link to conflicting user', () => {
       cy.fixture('profile').then((prof) => {
         cy.addContactMethod({ userID: prof.id }).then(
           (contactMethod: ContactMethod) => {
@@ -111,10 +111,15 @@ function testProfile(): void {
               value: contactMethod.value,
             })
             cy.dialogClick('Submit')
-            cy.dialogContains(
-              'Contact method already exists for that type and value: ' +
-                prof.name,
-            ).click()
+            cy.dialog()
+              .find('a[data-cy=error-help-link]')
+              .should(
+                'contain',
+                'Contact method already exists for that type and value: ' +
+                  prof.name,
+              )
+              .should('have.attr', 'href')
+              .and('include', `/users/${prof.id}`)
           },
         )
       })

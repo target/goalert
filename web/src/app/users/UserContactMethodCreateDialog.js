@@ -67,7 +67,7 @@ export default function UserContactMethodCreateDialog(props) {
   const { title = 'Create New Contact Method', subtitle } = props
 
   let fieldErrs = fieldErrors(error)
-  if (!queryLoading && data?.users?.nodes.length > 0) {
+  if (!queryLoading && data?.users?.nodes?.length > 0) {
     fieldErrs = fieldErrs.map((err) => {
       if (
         err.message === 'contact method already exists for that type and value'

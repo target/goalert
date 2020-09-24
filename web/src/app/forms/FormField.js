@@ -197,7 +197,7 @@ export class FormField extends React.PureComponent {
     if (error.helpLink) {
       return (
         <FormHelperText>
-          <AppLink to={error.helpLink} newTab>
+          <AppLink to={error.helpLink} newTab data-cy='error-help-link'>
             {error.message.replace(/^./, (str) => str.toUpperCase())}
           </AppLink>
         </FormHelperText>
