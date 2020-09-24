@@ -103,6 +103,7 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
     <StepContainer>
       <Grid container spacing={2}>
         <Grid item xs={12}>
+          <Typography variant='body2'>STEP 2 OF 3</Typography>
           <Typography variant='h6' component='h2'>
             Determine each user's on-call shift.
           </Typography>

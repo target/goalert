@@ -50,6 +50,7 @@ export default function ReviewStep({
     <StepContainer width='75%'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
+          <Typography variant='body2'>STEP 3 OF 3</Typography>
           <Typography variant='h6' component='h2'>
             Review your fixed schedule.
           </Typography>

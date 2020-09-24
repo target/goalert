@@ -20,6 +20,7 @@ export default function ScheduleTimesStep() {
     <StepContainer>
       <Grid container spacing={2}>
         <Grid item xs={12}>
+          <Typography variant='body2'>STEP 1 OF 3</Typography>
           <Typography variant='h6' component='h2'>
             Determine start and end times.
           </Typography>
