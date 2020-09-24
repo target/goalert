@@ -6,5 +6,6 @@
   "viewportWidth": 1440,
   "viewportHeight": 900,
   "requestTimeout": 15000,
-  "defaultCommandTimeout": 15000
+  "defaultCommandTimeout": 15000,
+  "retries": 2
 }
