@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -14,30 +13,7 @@ import (
 )
 
 // FixedShiftsPerGroupLimit is the maximum number of shifts that can be configured for a single group at a time.
-const FixedShiftsPerGroupLimit = 500
-
-func (store *Store) validateShifts(ctx context.Context, fname string, max int, shifts []FixedShift) error {
-	if len(shifts) > max {
-		return validation.NewFieldError(fname, "too many shifts defined")
-	}
-
-	check, err := store.usr.UserExists(ctx)
-	if err != nil {
-		return err
-	}
-
-	for i, s := range shifts {
-		err := validate.UUID(fmt.Sprintf("%s[%d].UserID", fname, i), s.UserID)
-		if err != nil {
-			return err
-		}
-		if !check.UserExistsString(s.UserID) {
-			return validation.NewFieldError(fmt.Sprintf("%s[%d].UserID", fname, i), "user does not exist")
-		}
-	}
-
-	return nil
-}
+const FixedShiftsPerGroupLimit = 150
 
 // FixedShiftGroups will return the current set for the provided scheduleID.
 func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID string) ([]FixedShiftGroup, error) {
@@ -163,8 +139,9 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 	}
 
 	err = validate.Many(
+		validateTimeRange("", start, end),
 		validate.UUID("ScheduleID", scheduleID),
-		store.validateShifts(ctx, "Shifts", FixedShiftsPerGroupLimit, shifts),
+		store.validateShifts(ctx, "Shifts", FixedShiftsPerGroupLimit, shifts, start, end),
 	)
 	if err != nil {
 		return err
@@ -183,7 +160,13 @@ func (store *Store) ResetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID
 		return err
 	}
 
-	err = validate.UUID("ScheduleID", scheduleID)
+	if !end.After(start) {
+		err = validation.NewFieldError("End", "must be after Start")
+	}
+	err = validate.Many(
+		err,
+		validate.UUID("ScheduleID", scheduleID),
+	)
 	if err != nil {
 		return err
 	}
