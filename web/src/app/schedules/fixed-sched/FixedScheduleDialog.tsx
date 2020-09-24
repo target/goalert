@@ -4,7 +4,7 @@ import gql from 'graphql-tag'
 import { fieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import FixedScheduleForm from './FixedScheduleForm'
-import { Shift } from './sharedUtils'
+import { Shift, Value } from './sharedUtils'
 
 const mutation = gql`
   mutation($input: SetScheduleShiftsInput!) {
@@ -12,20 +12,22 @@ const mutation = gql`
   }
 `
 
-interface CreateFixedScheduleDialogProps {
+interface FixedScheduleDialogProps {
   onClose: () => void
   scheduleID: string
+  value?: Value
 }
 
-export default function CreateFixedScheduleDialog({
+export default function FixedScheduleDialog({
   onClose,
   scheduleID,
-}: CreateFixedScheduleDialogProps) {
+  value: _value,
+}: FixedScheduleDialogProps) {
   const [step, setStep] = useState(0)
   const [value, setValue] = useState({
-    start: '',
-    end: '',
-    shifts: [], // [{ user: { label, value }, start, end }] fields
+    start: _value?.start ?? '',
+    end: _value?.end ?? '',
+    shifts: _value?.shifts ?? [],
   })
 
   const [submit, { loading, error, data }] = useMutation(mutation, {
@@ -61,7 +63,7 @@ export default function CreateFixedScheduleDialog({
     <FormDialog
       fullScreen
       disableGutters
-      title='Define a Fixed Schedule Adjustment'
+      title='Define a Fixed Schedule'
       primaryActionLabel={isComplete ? 'Done' : null}
       onClose={onClose}
       loading={loading}

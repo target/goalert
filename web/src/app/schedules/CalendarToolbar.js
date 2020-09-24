@@ -11,7 +11,7 @@ import {
 import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
 import FixedSchedIcon from '@material-ui/icons/GroupAdd'
-import CreateFixedScheduleDialog from './fixed-sched/CreateFixedScheduleDialog'
+import FixedScheduleDialog from './fixed-sched/FixedScheduleDialog'
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -146,7 +146,7 @@ export default function CalendarToolbar(props) {
       </Grid>
 
       {showFixedSchedDialog && !readOnly && (
-        <CreateFixedScheduleDialog
+        <FixedScheduleDialog
           onClose={() => setShowFixedSchedDialog(false)}
           scheduleID={scheduleID}
         />

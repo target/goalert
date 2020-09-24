@@ -222,9 +222,7 @@ export default class ScheduleCalendar extends React.PureComponent {
               components={{
                 eventWrapper: (props) => (
                   <CalendarEventWrapper
-                    onOverrideClick={(overrideDialog) =>
-                      this.setState({ overrideDialog })
-                    }
+                    scheduleID={scheduleID}
                     readOnly={readOnly}
                     {...props}
                   />
@@ -240,15 +238,6 @@ export default class ScheduleCalendar extends React.PureComponent {
             />
           </div>
         </Card>
-        {Boolean(this.state.overrideDialog) && !readOnly && (
-          <ScheduleOverrideCreateDialog
-            defaultValue={this.state.overrideDialog.defaultValue}
-            variant={this.state.overrideDialog.variant}
-            scheduleID={this.props.scheduleID}
-            onClose={() => this.setState({ overrideDialog: null })}
-            removeUserReadOnly
-          />
-        )}
       </React.Fragment>
     )
   }
@@ -267,6 +256,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             name: 'Fixed schedule',
           },
           fixed: true,
+          shifts: fs.shifts,
         })
 
         // each fixed shift within range
@@ -311,11 +301,25 @@ export default class ScheduleCalendar extends React.PureComponent {
     }
 
     return filteredShifts.map((shift) => {
+      let shifts = Array.isArray(shift.shifts)
+        ? {
+            shifts: shift.shifts.map((s) => ({
+              start: s.start,
+              end: s.end,
+              user: {
+                label: s.user.name,
+                value: s.user.id,
+              },
+            })),
+          }
+        : {}
+
       return {
         title: shift.user.name,
         start: new Date(shift.start),
         end: new Date(shift.end),
         fixed: shift.fixed,
+        ...shifts,
       }
     })
   }
