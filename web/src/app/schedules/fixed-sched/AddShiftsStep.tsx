@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   DialogContentText,
   Fab,
@@ -54,7 +54,16 @@ export default function AddShiftsStep({
   const [shift, setShift] = useState(null as Shift | null)
   const { start, end, shifts } = value
 
-  const shiftFieldsEmpty = !shift?.start || !shift.end || !shift.user?.label
+  // set start equal to the fixed schedule's start
+  // can't this do on mount since the step renderer puts everyone on the DOM at once
+  useEffect(() => {
+    if (!value.shifts?.length && value.start && !shift?.start) {
+      setShift({
+        ...shift,
+        start: value.start,
+      } as Shift)
+    }
+  }, [value.start])
 
   // don't allow user to set start after end, or end before start
   // start with value's start/end as min/max
@@ -81,6 +90,7 @@ export default function AddShiftsStep({
     })
   }
 
+  const shiftFieldsEmpty = !shift?.start || !shift.end || !shift.user?.label
   function handleRemoveShift(idx: number) {
     const newShifts = shifts.slice()
     newShifts.splice(idx, 1)
