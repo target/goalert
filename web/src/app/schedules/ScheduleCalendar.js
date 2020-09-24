@@ -257,17 +257,30 @@ export default class ScheduleCalendar extends React.PureComponent {
     // get all fixed shifts
     let fixedShifts = []
     if (_fixedShifts) {
-      _fixedShifts.forEach((fs) => {
+      // fixed header
+      _fixedShifts.forEach((fs, idx) => {
+        fixedShifts.push({
+          start: fs.start,
+          end: fs.end,
+          user: {
+            id: 'fixed-sched-' + idx,
+            name: 'Fixed schedule',
+          },
+          fixed: true,
+        })
+
+        // each fixed shift within range
         fs.shifts.forEach((s) => {
-          fixedShifts.push(s)
+          fixedShifts.push({
+            ...s,
+            fixed: true,
+          })
         })
       })
     }
 
     // merge fixed shifts (with identifier added) with shifts
-    let filteredShifts = fixedShifts
-      .map((fs) => ({ ...fs, fixed: true }))
-      .concat(shifts)
+    let filteredShifts = fixedShifts.concat(shifts)
 
     // dedupe fixed shifts with shifts
     const getKey = (id, s, e) =>
@@ -300,7 +313,6 @@ export default class ScheduleCalendar extends React.PureComponent {
     return filteredShifts.map((shift) => {
       return {
         title: shift.user.name,
-        userID: shift.user.id,
         start: new Date(shift.start),
         end: new Date(shift.end),
         fixed: shift.fixed,
