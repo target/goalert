@@ -23,7 +23,8 @@ export default function FixedScheduleDialog({
   scheduleID,
   value: _value,
 }: FixedScheduleDialogProps) {
-  const [step, setStep] = useState(0)
+  const edit = Boolean(_value)
+  const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
@@ -72,6 +73,7 @@ export default function FixedScheduleDialog({
           scheduleID={scheduleID}
           activeStep={step}
           setStep={setStep}
+          edit={edit}
           value={value}
           onChange={(newValue: any) => setValue(newValue)}
           disabled={loading}
@@ -80,7 +82,7 @@ export default function FixedScheduleDialog({
       }
       onSubmit={() => (isComplete ? onClose() : submit())}
       onNext={step === 2 ? null : () => setStep(step + 1)}
-      onBack={step === 0 ? null : () => setStep(step - 1)}
+      onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
     />
   )
 }

@@ -13,6 +13,7 @@ interface ReviewStepProps {
   scheduleID: string
   value: Value
   activeStep: number
+  edit?: boolean
 }
 
 const useStyles = makeStyles({
@@ -27,6 +28,7 @@ export default function ReviewStep({
   activeStep,
   scheduleID,
   value,
+  edit,
 }: ReviewStepProps) {
   // prevents rendering empty whitespace on other slides because of calendar height
   if (activeStep !== 2) return null
@@ -50,7 +52,9 @@ export default function ReviewStep({
     <StepContainer width='75%'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography variant='body2'>STEP 3 OF 3</Typography>
+          <Typography variant='body2'>
+            {edit ? 'STEP 2 OF 2' : 'STEP 3 OF 3'}
+          </Typography>
           <Typography variant='h6' component='h2'>
             Review your fixed schedule.
           </Typography>

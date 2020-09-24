@@ -14,6 +14,7 @@ interface FixedScheduleFormProps {
   scheduleID: string
   activeStep: number
   setStep: (step: number) => void
+  edit?: boolean
   value: any
   onChange: (val: any) => any
   disabled: boolean
@@ -24,6 +25,7 @@ export default function FixedScheduleForm({
   scheduleID,
   activeStep,
   setStep,
+  edit,
   ...rest
 }: FixedScheduleFormProps) {
   interface SlideRenderer {
@@ -40,6 +42,7 @@ export default function FixedScheduleForm({
             key={key}
             value={rest.value}
             onChange={rest.onChange}
+            edit={edit}
           />
         )
       case 2:
@@ -49,6 +52,7 @@ export default function FixedScheduleForm({
             activeStep={activeStep}
             scheduleID={scheduleID}
             value={rest.value}
+            edit={edit}
           />
         )
       default:

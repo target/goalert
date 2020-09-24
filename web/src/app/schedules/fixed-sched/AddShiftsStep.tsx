@@ -35,9 +35,14 @@ const useStyles = makeStyles((theme) => ({
 interface AddShiftsStepProps {
   value: Value
   onChange: (val: Value) => any
+  edit?: boolean
 }
 
-export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
+export default function AddShiftsStep({
+  value,
+  onChange,
+  edit,
+}: AddShiftsStepProps) {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const { shifts } = value
@@ -103,7 +108,9 @@ export default function AddShiftsStep({ value, onChange }: AddShiftsStepProps) {
     <StepContainer>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography variant='body2'>STEP 2 OF 3</Typography>
+          <Typography variant='body2'>
+            {edit ? 'STEP 1 OF 2' : 'STEP 2 OF 3'}
+          </Typography>
           <Typography variant='h6' component='h2'>
             Determine each user's on-call shift.
           </Typography>
