@@ -1,4 +1,4 @@
-.PHONY: stop start build-docker lint tools resetdb resetdb
+.PHONY: stop start build-docker lint tools regendb resetdb
 .PHONY: smoketest generate check all test test-long install install-race
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
