@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"strconv"
 	"text/template"
+	"time"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -12,6 +13,20 @@ import (
 	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
+)
+
+// SortMode indicates the mode of sorting for alerts.
+type SortMode int
+
+const (
+	// SortModeStatusID will sort by status priority (unacked, then acked, then closed) followed by ID (newest/highest first)
+	SortModeStatusID SortMode = iota
+
+	// SortModeDateID will sort alerts by date newest first, falling back to ID (newest/highest first)
+	SortModeDateID
+
+	// SortModeDateIDReverse will sort alerts by date oldest first, falling back to ID (oldest/lowest first)
+	SortModeDateIDReverse
 )
 
 // SearchOptions contains criteria for filtering and sorting alerts.
@@ -37,6 +52,15 @@ type SearchOptions struct {
 	// Limit restricts the maximum number of rows returned. Default is 50.
 	// Note: Limit is applied AFTER AfterID is taken into account.
 	Limit int `json:"-"`
+
+	// Sort allows customizing the sort method.
+	Sort SortMode `json:"z,omitempty"`
+
+	// NotBefore will omit any alerts created any time before the provided time.
+	NotBefore time.Time `json:"n,omitempty"`
+
+	// Before will only include alerts that were created before the provided time.
+	Before time.Time `json:"b,omitempty"`
 }
 
 type IDFilter struct {
@@ -45,8 +69,9 @@ type IDFilter struct {
 }
 
 type SearchCursor struct {
-	ID     int    `json:"i,omitempty"`
-	Status Status `json:"s,omitempty"`
+	ID      int       `json:"i,omitempty"`
+	Status  Status    `json:"s,omitempty"`
+	Created time.Time `json:"c,omitempty"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
@@ -84,17 +109,43 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 			{{ end }}
 		)
 	{{ end }}
+	{{ if not .Before.IsZero }}
+		AND a.created_at < :beforeTime
+	{{ end }}
+	{{ if not .NotBefore.IsZero }}
+		AND a.created_at >= :notBeforeTime
+	{{ end }}
 	{{ if .After.ID }}
 		AND (
-			a.status > :afterStatus::enum_alert_status OR
-			(a.status = :afterStatus::enum_alert_status AND a.id < :afterID)
+			{{ if eq .Sort 1 }}
+				a.created_at < :afterCreated OR
+				(a.created = :afterCreated AND a.id < :afterID)
+			{{ else if eq .Sort 2}}
+				a.created_at > :afterCreated OR
+				(a.created_at = :afterCreated AND a.id > :afterID)
+			{{ else }}
+				a.status > :afterStatus::enum_alert_status OR
+				(a.status = :afterStatus::enum_alert_status AND a.id < :afterID)
+			{{ end }}
 		)
 	{{ end }}
-	ORDER BY status, id DESC
+	ORDER BY {{.SortStr}}
 	LIMIT {{.Limit}}
 `))
 
 type renderData SearchOptions
+
+func (opts renderData) SortStr() string {
+	switch opts.Sort {
+	case SortModeDateID:
+		return "created_at DESC, id DESC"
+	case SortModeDateIDReverse:
+		return "created_at, id"
+	}
+
+	// SortModeStatusID
+	return "status, id DESC"
+}
 
 func (opts renderData) SearchStr() string {
 	if opts.Search == "" {
@@ -115,6 +166,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Range("Status", len(opts.Status), 0, 3),
 		validate.ManyUUID("Services", opts.ServiceFilter.IDs, 50),
 		validate.Range("Omit", len(opts.Omit), 0, 50),
+		validate.OneOf("Sort", opts.Sort, SortModeStatusID, SortModeDateID, SortModeDateIDReverse),
 	)
 	if opts.After.Status != "" {
 		err = validate.Many(err, validate.OneOf("After.Status", opts.After.Status, StatusTriggered, StatusActive, StatusClosed))
@@ -152,8 +204,11 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("services", sqlutil.UUIDArray(opts.ServiceFilter.IDs)),
 		sql.Named("afterID", opts.After.ID),
 		sql.Named("afterStatus", opts.After.Status),
+		sql.Named("afterCreated", opts.After.Created),
 		sql.Named("omit", sqlutil.IntArray(opts.Omit)),
 		sql.Named("notifiedUserID", opts.NotifiedUserID),
+		sql.Named("beforeTime", opts.Before),
+		sql.Named("notBeforeTime", opts.NotBefore),
 	}
 }
 

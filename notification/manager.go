@@ -215,7 +215,7 @@ func (m *Manager) receive(ctx context.Context, providerID string, resp *MessageR
 	sp.AddAttributes(
 		trace.StringAttribute("provider.id", providerID),
 		trace.StringAttribute("message.id", resp.ID),
-		trace.StringAttribute("dest.type", string(resp.From.Type)),
+		trace.StringAttribute("dest.type", resp.From.Type.String()),
 		trace.StringAttribute("dest.value", resp.From.Value),
 		trace.StringAttribute("response", resp.Result.String()),
 	)

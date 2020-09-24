@@ -52,6 +52,7 @@ DOCKER_TAG=$(GIT_VERSION)
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
+GOFILES += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
 
@@ -177,8 +178,11 @@ check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 migrate/inline_data_gen.go: migrate/migrations migrate/migrations/*.sql $(INLINER)
 	go generate ./migrate
 
-graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go
+graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/main.go
 	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && goimports -w ./mapconfig.go) || go generate ./graphql2
+
+graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/main.go
+	(cd ./graphql2 && go run ../devtools/limitapigen/main.go -out maplimit.go && goimports -w ./maplimit.go) || go generate ./graphql2
 
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
@@ -221,6 +225,9 @@ web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.
 
 web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
 	(cd web/src && node_modules/.bin/webpack --config ./webpack.dll.config.js --progress)
+
+notification/type_string.go: notice/notice.go
+	go generate ./notice
 
 config.json.bak: bin/goalert
 	bin/goalert get-config "--db-url=$(DB_URL)" 2>/dev/null >config.json.new || rm config.json.new

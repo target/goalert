@@ -45,6 +45,8 @@ type DB struct {
 	failDisabledCM *sql.Stmt
 	alertlogstore  alertlog.Store
 
+	failSMSVoice *sql.Stmt
+
 	sentByCMType *sql.Stmt
 
 	updateCMStatusUpdate      *sql.Stmt
@@ -274,7 +276,23 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 					cm.id = msg.contact_method_id and
 					cm.disabled
 				returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
-			) select distinct msg_id, alert_id, user_id, cm_id from disabled
+			) select distinct msg_id, alert_id, user_id, cm_id from disabled where alert_id notnull
+		`),
+
+		failSMSVoice: p.P(`
+			update outgoing_messages msg
+			set
+				last_status = 'failed',
+				last_status_at = now(),
+				status_details = 'SMS/Voice support not enabled by administrator',
+				cycle_id = null,
+				next_retry_at = null
+			from user_contact_methods cm
+			where
+				msg.last_status = 'pending' and
+				cm.type in ('SMS', 'VOICE') and
+				cm.id = msg.contact_method_id
+			returning msg.id as msg_id, alert_id, msg.user_id, cm.id as cm_id
 		`),
 
 		insertAlertBundle: p.P(`
@@ -575,13 +593,6 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		return errors.Wrap(err, "clear disabled status updates")
 	}
 
-	// processes disabled CMs and writes to alert log if disabled
-	rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
-	if err != nil {
-		return errors.Wrap(err, "check for disabled CMs")
-	}
-	defer rows.Close()
-
 	type msgMeta struct {
 		MessageID string
 		AlertID   int
@@ -590,6 +601,38 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	}
 
 	var msgs []msgMeta
+
+	// if twilio is disable, create an entry to notify the user
+	cfg := config.FromContext(ctx)
+	if !cfg.Twilio.Enable {
+		rows, err := tx.StmtContext(ctx, db.failSMSVoice).QueryContext(execCtx)
+		if err != nil {
+			return errors.Wrap(err, "check for failed message")
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var alertID sql.NullInt64
+			var msg msgMeta
+			err = rows.Scan(&msg.MessageID, &alertID, &msg.UserID, &msg.CMID)
+			if err != nil {
+				return errors.Wrap(err, "scan all failed messages")
+			}
+			if !alertID.Valid {
+				continue
+			}
+			msg.AlertID = int(alertID.Int64)
+			msgs = append(msgs, msg)
+		}
+	}
+
+	// processes disabled CMs and writes to alert log if disabled
+	rows, err := tx.Stmt(db.failDisabledCM).QueryContext(execCtx)
+	if err != nil {
+		return errors.Wrap(err, "check for disabled CMs")
+	}
+	defer rows.Close()
+
 	for rows.Next() {
 		var msg msgMeta
 		err = rows.Scan(&msg.MessageID, &msg.AlertID, &msg.UserID, &msg.CMID)

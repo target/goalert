@@ -16,12 +16,14 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/oncall"
@@ -74,6 +76,7 @@ type ResolverRoot interface {
 	UserContactMethod() UserContactMethodResolver
 	UserNotificationRule() UserNotificationRuleResolver
 	UserOverride() UserOverrideResolver
+	UserSession() UserSessionResolver
 }
 
 type DirectiveRoot struct {
@@ -108,11 +111,6 @@ type ComplexityRoot struct {
 	AlertLogEntryConnection struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
-	}
-
-	AlertLogEntryState struct {
-		Details func(childComplexity int) int
-		Status  func(childComplexity int) int
 	}
 
 	AlertState struct {
@@ -162,6 +160,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Notices     func(childComplexity int) int
 		Repeat      func(childComplexity int) int
 		Steps       func(childComplexity int) int
 	}
@@ -208,44 +207,56 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAuthSubject                 func(childComplexity int, input user.AuthSubject) int
-		CreateAlert                    func(childComplexity int, input CreateAlertInput) int
-		CreateEscalationPolicy         func(childComplexity int, input CreateEscalationPolicyInput) int
-		CreateEscalationPolicyStep     func(childComplexity int, input CreateEscalationPolicyStepInput) int
-		CreateHeartbeatMonitor         func(childComplexity int, input CreateHeartbeatMonitorInput) int
-		CreateIntegrationKey           func(childComplexity int, input CreateIntegrationKeyInput) int
-		CreateRotation                 func(childComplexity int, input CreateRotationInput) int
-		CreateSchedule                 func(childComplexity int, input CreateScheduleInput) int
-		CreateService                  func(childComplexity int, input CreateServiceInput) int
-		CreateUserCalendarSubscription func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
-		CreateUserContactMethod        func(childComplexity int, input CreateUserContactMethodInput) int
-		CreateUserNotificationRule     func(childComplexity int, input CreateUserNotificationRuleInput) int
-		CreateUserOverride             func(childComplexity int, input CreateUserOverrideInput) int
-		DebugCarrierInfo               func(childComplexity int, input DebugCarrierInfoInput) int
-		DebugSendSms                   func(childComplexity int, input DebugSendSMSInput) int
-		DeleteAll                      func(childComplexity int, input []assignment.RawTarget) int
-		DeleteAuthSubject              func(childComplexity int, input user.AuthSubject) int
-		EscalateAlerts                 func(childComplexity int, input []int) int
-		SendContactMethodVerification  func(childComplexity int, input SendContactMethodVerificationInput) int
-		SetConfig                      func(childComplexity int, input []ConfigValueInput) int
-		SetFavorite                    func(childComplexity int, input SetFavoriteInput) int
-		SetLabel                       func(childComplexity int, input SetLabelInput) int
-		SetSystemLimits                func(childComplexity int, input []SystemLimitInput) int
-		TestContactMethod              func(childComplexity int, id string) int
-		UpdateAlerts                   func(childComplexity int, input UpdateAlertsInput) int
-		UpdateAlertsByService          func(childComplexity int, input UpdateAlertsByServiceInput) int
-		UpdateEscalationPolicy         func(childComplexity int, input UpdateEscalationPolicyInput) int
-		UpdateEscalationPolicyStep     func(childComplexity int, input UpdateEscalationPolicyStepInput) int
-		UpdateHeartbeatMonitor         func(childComplexity int, input UpdateHeartbeatMonitorInput) int
-		UpdateRotation                 func(childComplexity int, input UpdateRotationInput) int
-		UpdateSchedule                 func(childComplexity int, input UpdateScheduleInput) int
-		UpdateScheduleTarget           func(childComplexity int, input ScheduleTargetInput) int
-		UpdateService                  func(childComplexity int, input UpdateServiceInput) int
-		UpdateUser                     func(childComplexity int, input UpdateUserInput) int
-		UpdateUserCalendarSubscription func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
-		UpdateUserContactMethod        func(childComplexity int, input UpdateUserContactMethodInput) int
-		UpdateUserOverride             func(childComplexity int, input UpdateUserOverrideInput) int
-		VerifyContactMethod            func(childComplexity int, input VerifyContactMethodInput) int
+		AddAuthSubject                  func(childComplexity int, input user.AuthSubject) int
+		CreateAlert                     func(childComplexity int, input CreateAlertInput) int
+		CreateEscalationPolicy          func(childComplexity int, input CreateEscalationPolicyInput) int
+		CreateEscalationPolicyStep      func(childComplexity int, input CreateEscalationPolicyStepInput) int
+		CreateHeartbeatMonitor          func(childComplexity int, input CreateHeartbeatMonitorInput) int
+		CreateIntegrationKey            func(childComplexity int, input CreateIntegrationKeyInput) int
+		CreateRotation                  func(childComplexity int, input CreateRotationInput) int
+		CreateSchedule                  func(childComplexity int, input CreateScheduleInput) int
+		CreateService                   func(childComplexity int, input CreateServiceInput) int
+		CreateUserCalendarSubscription  func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
+		CreateUserContactMethod         func(childComplexity int, input CreateUserContactMethodInput) int
+		CreateUserNotificationRule      func(childComplexity int, input CreateUserNotificationRuleInput) int
+		CreateUserOverride              func(childComplexity int, input CreateUserOverrideInput) int
+		DebugCarrierInfo                func(childComplexity int, input DebugCarrierInfoInput) int
+		DebugSendSms                    func(childComplexity int, input DebugSendSMSInput) int
+		DeleteAll                       func(childComplexity int, input []assignment.RawTarget) int
+		DeleteAuthSubject               func(childComplexity int, input user.AuthSubject) int
+		EndAllAuthSessionsByCurrentUser func(childComplexity int) int
+		EscalateAlerts                  func(childComplexity int, input []int) int
+		SendContactMethodVerification   func(childComplexity int, input SendContactMethodVerificationInput) int
+		SetConfig                       func(childComplexity int, input []ConfigValueInput) int
+		SetFavorite                     func(childComplexity int, input SetFavoriteInput) int
+		SetLabel                        func(childComplexity int, input SetLabelInput) int
+		SetSystemLimits                 func(childComplexity int, input []SystemLimitInput) int
+		TestContactMethod               func(childComplexity int, id string) int
+		UpdateAlerts                    func(childComplexity int, input UpdateAlertsInput) int
+		UpdateAlertsByService           func(childComplexity int, input UpdateAlertsByServiceInput) int
+		UpdateEscalationPolicy          func(childComplexity int, input UpdateEscalationPolicyInput) int
+		UpdateEscalationPolicyStep      func(childComplexity int, input UpdateEscalationPolicyStepInput) int
+		UpdateHeartbeatMonitor          func(childComplexity int, input UpdateHeartbeatMonitorInput) int
+		UpdateRotation                  func(childComplexity int, input UpdateRotationInput) int
+		UpdateSchedule                  func(childComplexity int, input UpdateScheduleInput) int
+		UpdateScheduleTarget            func(childComplexity int, input ScheduleTargetInput) int
+		UpdateService                   func(childComplexity int, input UpdateServiceInput) int
+		UpdateUser                      func(childComplexity int, input UpdateUserInput) int
+		UpdateUserCalendarSubscription  func(childComplexity int, input UpdateUserCalendarSubscriptionInput) int
+		UpdateUserContactMethod         func(childComplexity int, input UpdateUserContactMethodInput) int
+		UpdateUserOverride              func(childComplexity int, input UpdateUserOverrideInput) int
+		VerifyContactMethod             func(childComplexity int, input VerifyContactMethodInput) int
+	}
+
+	Notice struct {
+		Details func(childComplexity int) int
+		Message func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
+	NotificationState struct {
+		Details func(childComplexity int) int
+		Status  func(childComplexity int) int
 	}
 
 	OnCallShift struct {
@@ -425,6 +436,7 @@ type ComplexityRoot struct {
 		NotificationRules     func(childComplexity int) int
 		OnCallSteps           func(childComplexity int) int
 		Role                  func(childComplexity int) int
+		Sessions              func(childComplexity int) int
 	}
 
 	UserCalendarSubscription struct {
@@ -444,12 +456,15 @@ type ComplexityRoot struct {
 	}
 
 	UserContactMethod struct {
-		Disabled       func(childComplexity int) int
-		FormattedValue func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		Type           func(childComplexity int) int
-		Value          func(childComplexity int) int
+		Disabled               func(childComplexity int) int
+		FormattedValue         func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		LastTestMessageState   func(childComplexity int) int
+		LastTestVerifyAt       func(childComplexity int) int
+		LastVerifyMessageState func(childComplexity int) int
+		Name                   func(childComplexity int) int
+		Type                   func(childComplexity int) int
+		Value                  func(childComplexity int) int
 	}
 
 	UserNotificationRule struct {
@@ -474,6 +489,14 @@ type ComplexityRoot struct {
 		Nodes    func(childComplexity int) int
 		PageInfo func(childComplexity int) int
 	}
+
+	UserSession struct {
+		CreatedAt    func(childComplexity int) int
+		Current      func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LastAccessAt func(childComplexity int) int
+		UserAgent    func(childComplexity int) int
+	}
 }
 
 type AlertResolver interface {
@@ -486,11 +509,12 @@ type AlertResolver interface {
 }
 type AlertLogEntryResolver interface {
 	Message(ctx context.Context, obj *alertlog.Entry) (string, error)
-	State(ctx context.Context, obj *alertlog.Entry) (*AlertLogEntryState, error)
+	State(ctx context.Context, obj *alertlog.Entry) (*NotificationState, error)
 }
 type EscalationPolicyResolver interface {
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
 	Steps(ctx context.Context, obj *escalation.Policy) ([]escalation.Step, error)
+	Notices(ctx context.Context, obj *escalation.Policy) ([]notice.Notice, error)
 }
 type EscalationPolicyStepResolver interface {
 	Targets(ctx context.Context, obj *escalation.Step) ([]assignment.RawTarget, error)
@@ -511,6 +535,7 @@ type MutationResolver interface {
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	DeleteAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
+	EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, error)
 	UpdateUser(ctx context.Context, input UpdateUserInput) (bool, error)
 	TestContactMethod(ctx context.Context, id string) (bool, error)
 	UpdateAlerts(ctx context.Context, input UpdateAlertsInput) ([]alert.Alert, error)
@@ -621,6 +646,7 @@ type UserResolver interface {
 	CalendarSubscriptions(ctx context.Context, obj *user.User) ([]calendarsubscription.CalendarSubscription, error)
 
 	AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error)
+	Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error)
 	OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.Step, error)
 }
 type UserCalendarSubscriptionResolver interface {
@@ -632,6 +658,9 @@ type UserCalendarSubscriptionResolver interface {
 }
 type UserContactMethodResolver interface {
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
+
+	LastTestMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
+	LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*NotificationState, error)
 }
 type UserNotificationRuleResolver interface {
 	ContactMethod(ctx context.Context, obj *notificationrule.NotificationRule) (*contactmethod.ContactMethod, error)
@@ -640,6 +669,9 @@ type UserOverrideResolver interface {
 	AddUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	RemoveUser(ctx context.Context, obj *override.UserOverride) (*user.User, error)
 	Target(ctx context.Context, obj *override.UserOverride) (*assignment.RawTarget, error)
+}
+type UserSessionResolver interface {
+	Current(ctx context.Context, obj *auth.UserSession) (bool, error)
 }
 
 type executableSchema struct {
@@ -787,20 +819,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AlertLogEntryConnection.PageInfo(childComplexity), true
-
-	case "AlertLogEntryState.details":
-		if e.complexity.AlertLogEntryState.Details == nil {
-			break
-		}
-
-		return e.complexity.AlertLogEntryState.Details(childComplexity), true
-
-	case "AlertLogEntryState.status":
-		if e.complexity.AlertLogEntryState.Status == nil {
-			break
-		}
-
-		return e.complexity.AlertLogEntryState.Status(childComplexity), true
 
 	case "AlertState.lastEscalation":
 		if e.complexity.AlertState.LastEscalation == nil {
@@ -976,6 +994,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EscalationPolicy.Name(childComplexity), true
+
+	case "EscalationPolicy.notices":
+		if e.complexity.EscalationPolicy.Notices == nil {
+			break
+		}
+
+		return e.complexity.EscalationPolicy.Notices(childComplexity), true
 
 	case "EscalationPolicy.repeat":
 		if e.complexity.EscalationPolicy.Repeat == nil {
@@ -1356,6 +1381,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteAuthSubject(childComplexity, args["input"].(user.AuthSubject)), true
 
+	case "Mutation.endAllAuthSessionsByCurrentUser":
+		if e.complexity.Mutation.EndAllAuthSessionsByCurrentUser == nil {
+			break
+		}
+
+		return e.complexity.Mutation.EndAllAuthSessionsByCurrentUser(childComplexity), true
+
 	case "Mutation.escalateAlerts":
 		if e.complexity.Mutation.EscalateAlerts == nil {
 			break
@@ -1607,6 +1639,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.VerifyContactMethod(childComplexity, args["input"].(VerifyContactMethodInput)), true
+
+	case "Notice.details":
+		if e.complexity.Notice.Details == nil {
+			break
+		}
+
+		return e.complexity.Notice.Details(childComplexity), true
+
+	case "Notice.message":
+		if e.complexity.Notice.Message == nil {
+			break
+		}
+
+		return e.complexity.Notice.Message(childComplexity), true
+
+	case "Notice.type":
+		if e.complexity.Notice.Type == nil {
+			break
+		}
+
+		return e.complexity.Notice.Type(childComplexity), true
+
+	case "NotificationState.details":
+		if e.complexity.NotificationState.Details == nil {
+			break
+		}
+
+		return e.complexity.NotificationState.Details(childComplexity), true
+
+	case "NotificationState.status":
+		if e.complexity.NotificationState.Status == nil {
+			break
+		}
+
+		return e.complexity.NotificationState.Status(childComplexity), true
 
 	case "OnCallShift.end":
 		if e.complexity.OnCallShift.End == nil {
@@ -2570,6 +2637,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Role(childComplexity), true
 
+	case "User.sessions":
+		if e.complexity.User.Sessions == nil {
+			break
+		}
+
+		return e.complexity.User.Sessions(childComplexity), true
+
 	case "UserCalendarSubscription.disabled":
 		if e.complexity.UserCalendarSubscription.Disabled == nil {
 			break
@@ -2660,6 +2734,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserContactMethod.ID(childComplexity), true
+
+	case "UserContactMethod.lastTestMessageState":
+		if e.complexity.UserContactMethod.LastTestMessageState == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastTestMessageState(childComplexity), true
+
+	case "UserContactMethod.lastTestVerifyAt":
+		if e.complexity.UserContactMethod.LastTestVerifyAt == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastTestVerifyAt(childComplexity), true
+
+	case "UserContactMethod.lastVerifyMessageState":
+		if e.complexity.UserContactMethod.LastVerifyMessageState == nil {
+			break
+		}
+
+		return e.complexity.UserContactMethod.LastVerifyMessageState(childComplexity), true
 
 	case "UserContactMethod.name":
 		if e.complexity.UserContactMethod.Name == nil {
@@ -2779,6 +2874,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserOverrideConnection.PageInfo(childComplexity), true
+
+	case "UserSession.createdAt":
+		if e.complexity.UserSession.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserSession.CreatedAt(childComplexity), true
+
+	case "UserSession.current":
+		if e.complexity.UserSession.Current == nil {
+			break
+		}
+
+		return e.complexity.UserSession.Current(childComplexity), true
+
+	case "UserSession.id":
+		if e.complexity.UserSession.ID == nil {
+			break
+		}
+
+		return e.complexity.UserSession.ID(childComplexity), true
+
+	case "UserSession.lastAccessAt":
+		if e.complexity.UserSession.LastAccessAt == nil {
+			break
+		}
+
+		return e.complexity.UserSession.LastAccessAt(childComplexity), true
+
+	case "UserSession.userAgent":
+		if e.complexity.UserSession.UserAgent == nil {
+			break
+		}
+
+		return e.complexity.UserSession.UserAgent(childComplexity), true
 
 	}
 	return 0, false
@@ -3105,6 +3235,7 @@ type Mutation {
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
+  endAllAuthSessionsByCurrentUser: Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
 
   testContactMethod(id: ID!): Boolean!
@@ -3549,6 +3680,15 @@ input AlertSearchOptions {
   favoritesOnly: Boolean = false
   includeNotified: Boolean = false
   omit: [Int!]
+  sort: AlertSearchSort = statusID
+  createdBefore: ISOTimestamp
+  notCreatedBefore: ISOTimestamp
+}
+
+enum AlertSearchSort {
+  statusID
+  dateID
+  dateIDReverse
 }
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
@@ -3588,15 +3728,15 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
-  state: AlertLogEntryState
+  state: NotificationState
 }
 
-type AlertLogEntryState {
+type NotificationState {
   details: String!
-  status: AlertLogStatus
+  status: NotificationStatus
 }
 
-enum AlertLogStatus {
+enum NotificationStatus {
   OK
   WARN
   ERROR
@@ -3674,6 +3814,7 @@ enum IntegrationKeyType {
   generic
   grafana
   site24x7
+  prometheusAlertmanager
   email
 }
 
@@ -3691,6 +3832,8 @@ type EscalationPolicy {
 
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!
+
+  notices: [Notice!]!
 }
 
 # Different Alert Status.
@@ -3726,6 +3869,7 @@ enum TargetType {
   contactMethod
   heartbeatMonitor
   calendarSubscription
+  userSession
 }
 
 type ServiceConnection {
@@ -3787,8 +3931,17 @@ type User {
   statusUpdateContactMethodID: ID!
 
   authSubjects: [AuthSubject!]!
+  sessions: [UserSession!]!
 
   onCallSteps: [EscalationPolicyStep!]!
+}
+
+type UserSession {
+  id: ID!
+  current: Boolean!
+  userAgent: String!
+  createdAt: ISOTimestamp!
+  lastAccessAt: ISOTimestamp!
 }
 
 type UserNotificationRule {
@@ -3814,6 +3967,10 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+
+  lastTestVerifyAt: ISOTimestamp
+  lastTestMessageState: NotificationState
+  lastVerifyMessageState: NotificationState
 }
 
 input CreateUserContactMethodInput {
@@ -3851,6 +4008,18 @@ type AuthSubject {
   providerID: ID!
   subjectID: ID!
   userID: ID!
+}
+
+type Notice {
+  type: NoticeType!
+  message: String!
+  details: String!
+}
+
+enum NoticeType {
+  WARNING
+  ERROR
+  INFO
 }
 `, BuiltIn: false},
 }
@@ -5461,9 +5630,9 @@ func (ec *executionContext) _AlertLogEntry_state(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*AlertLogEntryState)
+	res := resTmp.(*NotificationState)
 	fc.Result = res
-	return ec.marshalOAlertLogEntryState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx, field.Selections, res)
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertLogEntryConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryConnection) (ret graphql.Marshaler) {
@@ -5532,71 +5701,6 @@ func (ec *executionContext) _AlertLogEntryConnection_pageInfo(ctx context.Contex
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertLogEntryState_details(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "AlertLogEntryState",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Details, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AlertLogEntryState_status(ctx context.Context, field graphql.CollectedField, obj *AlertLogEntryState) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "AlertLogEntryState",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Status, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*AlertLogStatus)
-	fc.Result = res
-	return ec.marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AlertState_lastEscalation(ctx context.Context, field graphql.CollectedField, obj *alert.State) (ret graphql.Marshaler) {
@@ -6515,6 +6619,40 @@ func (ec *executionContext) _EscalationPolicy_steps(ctx context.Context, field g
 	res := resTmp.([]escalation.Step)
 	fc.Result = res
 	return ec.marshalNEscalationPolicyStep2ᚕgithubᚗcomᚋtargetᚋgoalertᚋescalationᚐStepᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EscalationPolicy_notices(ctx context.Context, field graphql.CollectedField, obj *escalation.Policy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EscalationPolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.EscalationPolicy().Notices(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]notice.Notice)
+	fc.Result = res
+	return ec.marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNoticeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EscalationPolicyConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *EscalationPolicyConnection) (ret graphql.Marshaler) {
@@ -7438,6 +7576,40 @@ func (ec *executionContext) _Mutation_deleteAuthSubject(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteAuthSubject(rctx, args["input"].(user.AuthSubject))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_endAllAuthSessionsByCurrentUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EndAllAuthSessionsByCurrentUser(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8807,6 +8979,173 @@ func (ec *executionContext) _Mutation_setSystemLimits(ctx context.Context, field
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Notice_type(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Notice",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(notice.Type)
+	fc.Result = res
+	return ec.marshalNNoticeType2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Notice_message(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Notice",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Notice_details(ctx context.Context, field graphql.CollectedField, obj *notice.Notice) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Notice",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Details, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NotificationState_details(ctx context.Context, field graphql.CollectedField, obj *NotificationState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "NotificationState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Details, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _NotificationState_status(ctx context.Context, field graphql.CollectedField, obj *NotificationState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "NotificationState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationStatus)
+	fc.Result = res
+	return ec.marshalONotificationStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OnCallShift_userID(ctx context.Context, field graphql.CollectedField, obj *oncall.Shift) (ret graphql.Marshaler) {
@@ -12944,6 +13283,40 @@ func (ec *executionContext) _User_authSubjects(ctx context.Context, field graphq
 	return ec.marshalNAuthSubject2ᚕgithubᚗcomᚋtargetᚋgoalertᚋuserᚐAuthSubjectᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_sessions(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Sessions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]auth.UserSession)
+	fc.Result = res
+	return ec.marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSessionᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_onCallSteps(ctx context.Context, field graphql.CollectedField, obj *user.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13513,6 +13886,99 @@ func (ec *executionContext) _UserContactMethod_disabled(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserContactMethod_lastTestVerifyAt(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastTestVerifyAt(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserContactMethod_lastTestMessageState(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().LastTestMessageState(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationState)
+	fc.Result = res
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserContactMethod_lastVerifyMessageState(ctx context.Context, field graphql.CollectedField, obj *contactmethod.ContactMethod) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserContactMethod",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserContactMethod().LastVerifyMessageState(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*NotificationState)
+	fc.Result = res
+	return ec.marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserNotificationRule_id(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13978,6 +14444,176 @@ func (ec *executionContext) _UserOverrideConnection_pageInfo(ctx context.Context
 	res := resTmp.(*PageInfo)
 	fc.Result = res
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_id(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_current(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserSession().Current(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_userAgent(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserAgent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_createdAt(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSession_lastAccessAt(ctx context.Context, field graphql.CollectedField, obj *auth.UserSession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAccessAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -15066,6 +15702,9 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 	if _, present := asMap["first"]; !present {
 		asMap["first"] = 15
 	}
+	if _, present := asMap["sort"]; !present {
+		asMap["sort"] = "statusID"
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -15114,6 +15753,24 @@ func (ec *executionContext) unmarshalInputAlertSearchOptions(ctx context.Context
 		case "omit":
 			var err error
 			it.Omit, err = ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sort":
+			var err error
+			it.Sort, err = ec.unmarshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "createdBefore":
+			var err error
+			it.CreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "notCreatedBefore":
+			var err error
+			it.NotCreatedBefore, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17137,35 +17794,6 @@ func (ec *executionContext) _AlertLogEntryConnection(ctx context.Context, sel as
 	return out
 }
 
-var alertLogEntryStateImplementors = []string{"AlertLogEntryState"}
-
-func (ec *executionContext) _AlertLogEntryState(ctx context.Context, sel ast.SelectionSet, obj *AlertLogEntryState) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, alertLogEntryStateImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("AlertLogEntryState")
-		case "details":
-			out.Values[i] = ec._AlertLogEntryState_details(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "status":
-			out.Values[i] = ec._AlertLogEntryState_status(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var alertStateImplementors = []string{"AlertState"}
 
 func (ec *executionContext) _AlertState(ctx context.Context, sel ast.SelectionSet, obj *alert.State) graphql.Marshaler {
@@ -17479,6 +18107,20 @@ func (ec *executionContext) _EscalationPolicy(ctx context.Context, sel ast.Selec
 					}
 				}()
 				res = ec._EscalationPolicy_steps(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "notices":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EscalationPolicy_notices(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -17822,6 +18464,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "endAllAuthSessionsByCurrentUser":
+			out.Values[i] = ec._Mutation_endAllAuthSessionsByCurrentUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "updateUser":
 			out.Values[i] = ec._Mutation_updateUser(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -17953,6 +18600,72 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var noticeImplementors = []string{"Notice"}
+
+func (ec *executionContext) _Notice(ctx context.Context, sel ast.SelectionSet, obj *notice.Notice) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, noticeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Notice")
+		case "type":
+			out.Values[i] = ec._Notice_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "message":
+			out.Values[i] = ec._Notice_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "details":
+			out.Values[i] = ec._Notice_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var notificationStateImplementors = []string{"NotificationState"}
+
+func (ec *executionContext) _NotificationState(ctx context.Context, sel ast.SelectionSet, obj *NotificationState) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, notificationStateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NotificationState")
+		case "details":
+			out.Values[i] = ec._NotificationState_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			out.Values[i] = ec._NotificationState_status(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19448,6 +20161,20 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "sessions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_sessions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "onCallSteps":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -19635,6 +20362,30 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "lastTestVerifyAt":
+			out.Values[i] = ec._UserContactMethod_lastTestVerifyAt(ctx, field, obj)
+		case "lastTestMessageState":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_lastTestMessageState(ctx, field, obj)
+				return res
+			})
+		case "lastVerifyMessageState":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_lastVerifyMessageState(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19797,6 +20548,62 @@ func (ec *executionContext) _UserOverrideConnection(ctx context.Context, sel ast
 			out.Values[i] = ec._UserOverrideConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userSessionImplementors = []string{"UserSession"}
+
+func (ec *executionContext) _UserSession(ctx context.Context, sel ast.SelectionSet, obj *auth.UserSession) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userSessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserSession")
+		case "id":
+			out.Values[i] = ec._UserSession_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "current":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserSession_current(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "userAgent":
+			out.Values[i] = ec._UserSession_userAgent(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._UserSession_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "lastAccessAt":
+			out.Values[i] = ec._UserSession_lastAccessAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -20868,6 +21675,56 @@ func (ec *executionContext) marshalNLabelConnection2ᚖgithubᚗcomᚋtargetᚋg
 	return ec._LabelConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx context.Context, sel ast.SelectionSet, v notice.Notice) graphql.Marshaler {
+	return ec._Notice(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNoticeᚄ(ctx context.Context, sel ast.SelectionSet, v []notice.Notice) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNNotice2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNotice(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNNoticeType2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐType(ctx context.Context, v interface{}) (notice.Type, error) {
+	var res notice.Type
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNNoticeType2githubᚗcomᚋtargetᚋgoalertᚋnoticeᚐType(ctx context.Context, sel ast.SelectionSet, v notice.Type) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNOnCallShift2githubᚗcomᚋtargetᚋgoalertᚋoncallᚐShift(ctx context.Context, sel ast.SelectionSet, v oncall.Shift) graphql.Marshaler {
 	return ec._OnCallShift(ctx, sel, &v)
 }
@@ -21879,6 +22736,47 @@ func (ec *executionContext) marshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋg
 	return v
 }
 
+func (ec *executionContext) marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSession(ctx context.Context, sel ast.SelectionSet, v auth.UserSession) graphql.Marshaler {
+	return ec._UserSession(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserSession2ᚕgithubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []auth.UserSession) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserSession2githubᚗcomᚋtargetᚋgoalertᚋauthᚐUserSession(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐVerifyContactMethodInput(ctx context.Context, v interface{}) (VerifyContactMethodInput, error) {
 	return ec.unmarshalInputVerifyContactMethodInput(ctx, v)
 }
@@ -22160,41 +23058,6 @@ func (ec *executionContext) marshalOAlert2ᚖgithubᚗcomᚋtargetᚋgoalertᚋa
 	return ec._Alert(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOAlertLogEntryState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx context.Context, sel ast.SelectionSet, v AlertLogEntryState) graphql.Marshaler {
-	return ec._AlertLogEntryState(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOAlertLogEntryState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogEntryState(ctx context.Context, sel ast.SelectionSet, v *AlertLogEntryState) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._AlertLogEntryState(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (AlertLogStatus, error) {
-	var res AlertLogStatus
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v AlertLogStatus) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, v interface{}) (*AlertLogStatus, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOAlertLogStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOAlertLogStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertLogStatus(ctx context.Context, sel ast.SelectionSet, v *AlertLogStatus) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
-}
-
 func (ec *executionContext) unmarshalOAlertRecentEventsOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertRecentEventsOptions(ctx context.Context, v interface{}) (AlertRecentEventsOptions, error) {
 	return ec.unmarshalInputAlertRecentEventsOptions(ctx, v)
 }
@@ -22217,6 +23080,30 @@ func (ec *executionContext) unmarshalOAlertSearchOptions2ᚖgithubᚗcomᚋtarge
 	}
 	res, err := ec.unmarshalOAlertSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchOptions(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) unmarshalOAlertSearchSort2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, v interface{}) (AlertSearchSort, error) {
+	var res AlertSearchSort
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOAlertSearchSort2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, sel ast.SelectionSet, v AlertSearchSort) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, v interface{}) (*AlertSearchSort, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAlertSearchSort2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOAlertSearchSort2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐAlertSearchSort(ctx context.Context, sel ast.SelectionSet, v *AlertSearchSort) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOAlertState2githubᚗcomᚋtargetᚋgoalertᚋalertᚐState(ctx context.Context, sel ast.SelectionSet, v alert.State) graphql.Marshaler {
@@ -22758,6 +23645,41 @@ func (ec *executionContext) unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalOLabelValueSearchOptions2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelValueSearchOptions(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalONotificationState2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v NotificationState) graphql.Marshaler {
+	return ec._NotificationState(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalONotificationState2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationState(ctx context.Context, sel ast.SelectionSet, v *NotificationState) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._NotificationState(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalONotificationStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, v interface{}) (NotificationStatus, error) {
+	var res NotificationStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalONotificationStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, sel ast.SelectionSet, v NotificationStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalONotificationStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, v interface{}) (*NotificationStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalONotificationStatus2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalONotificationStatus2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNotificationStatus(ctx context.Context, sel ast.SelectionSet, v *NotificationStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOPhoneNumberInfo2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPhoneNumberInfo(ctx context.Context, sel ast.SelectionSet, v PhoneNumberInfo) graphql.Marshaler {

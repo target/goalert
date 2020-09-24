@@ -178,11 +178,11 @@ export default class ToolbarTitle extends React.Component {
           render={this.renderSubPageTitle}
         />
         <Route
-          path='/:type(users)/:id/:sub(on-call-assignments|schedule-calendar-subscriptions)'
+          path='/:type(users)/:id/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
           render={this.renderSubPageTitle}
         />
         <Route
-          path='/:type(profile)/:sub(on-call-assignments|schedule-calendar-subscriptions)'
+          path='/:type(profile)/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
           render={this.renderSubPageTitle}
         />
         <Route
