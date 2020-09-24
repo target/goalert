@@ -590,7 +590,7 @@ K3t-dTtBCQEEFY95UcyLeYLe3V5N36DJzc3F7HIyTvIPRf4x_bSolvwMKlb7sQ82inYyQn8kqVfZ4zj5
 Zmrc8U6E0VFafOtiXlapyZcP_uD4bg41B5LuuF4V20yEXXg3v1aTsq-U2_T9ynm9J-u6wmUUu805Bm6V
 ldlDUe_vS7HYbetZsZqL9LNUqzRfpdvFqki3xWZLPddf0sX80eJqMf3W0v5reAJs98nmlxiXhxfe5itu
 cu6-8Ppt7FU2tsOKxoZBEqSPS2ljqu0l_WorsHF5hKrWPTv3ZvsnEd0b21AL0X3YTpRUhynvaK2VZCnU
-jap__6nU--z_AwAA___eS8UY5DwEAA==
+jap__6nU--zk_wMAAP__CzykU-U8BAA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -820,6 +820,6 @@ jap__6nU--z_AwAA___eS8UY5DwEAA==
 		{Data: dataRange(276825, 277098), Name: "migrations/20200716212352-prometheus-alertmanager-integration.sql"},
 		{Data: dataRange(277098, 277334), Name: "migrations/20200805132936-test-verify-index.sql"},
 		{Data: dataRange(277334, 277505), Name: "migrations/20200908095243-session-access-time.sql"},
-		{Data: dataRange(277505, 277732), Name: "migrations/20200922141708-temp-schedules.sql"},
+		{Data: dataRange(277505, 277733), Name: "migrations/20200923155516-temp-schedules.sql"},
 	}
 }

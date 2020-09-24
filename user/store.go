@@ -4,6 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync/atomic"
+
+	"github.com/golang/groupcache"
+	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -24,6 +28,8 @@ type Store interface {
 	FindMany(context.Context, []string) ([]User, error)
 	Search(context.Context, *SearchOptions) ([]User, error)
 
+	UserExists(context.Context) (ExistanceChecker, error)
+
 	AddAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	DeleteAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error)
@@ -35,6 +41,8 @@ var _ Store = &DB{}
 // DB implements the Store against a *sql.DB backend.
 type DB struct {
 	db *sql.DB
+
+	ids *sql.Stmt
 
 	insert  *sql.Stmt
 	update  *sql.Stmt
@@ -51,13 +59,24 @@ type DB struct {
 	deleteUserAuthSubject *sql.Stmt
 
 	findAuthSubjectsByUser *sql.Stmt
+
+	grp *groupcache.Group
+
+	userExistHash []byte
+	userExist     chan map[uuid.UUID]struct{}
 }
+
+var grpN int64
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
-	return &DB{
+	store := &DB{
 		db: db,
+
+		userExist: make(chan map[uuid.UUID]struct{}, 1),
+
+		ids: p.P(`SELECT id FROM users`),
 
 		insert: p.P(`
 			INSERT INTO users (
@@ -129,7 +148,16 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				provider_id = $2 AND 
 				subject_id = $3
 		`),
-	}, p.Err
+	}
+	if p.Err != nil {
+		return nil, p.Err
+	}
+
+	store.userExist <- make(map[uuid.UUID]struct{})
+
+	store.grp = groupcache.NewGroup(fmt.Sprintf("user.store[%d]", atomic.AddInt64(&grpN, 1)), 1024*1024, groupcache.GetterFunc(store.cacheGet))
+
+	return store, nil
 }
 
 func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {

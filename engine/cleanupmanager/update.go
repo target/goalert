@@ -98,7 +98,7 @@ func (db *DB) update(ctx context.Context) error {
 	lookup := lookupMap(currentUsers)
 	for _, dat := range m {
 		cleanupScheduleData(&dat.Data, lookup, now)
-		rawData, err := json.Marshal(dat)
+		rawData, err := json.Marshal(dat.Data)
 		if err != nil {
 			return err
 		}
