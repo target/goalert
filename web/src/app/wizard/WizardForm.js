@@ -137,7 +137,7 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='15'
-              min={0}
+              min={1}
               max={9000}
             />
           </Grid>
@@ -153,7 +153,7 @@ export default class WizardForm extends React.PureComponent {
               type='number'
               placeholder='3'
               mapOnChangeValue={(value) => value.toString()}
-              min={1}
+              min={0}
               max={5}
             />
           </Grid>
