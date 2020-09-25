@@ -28,11 +28,17 @@ type queue struct {
 	pending map[notification.DestType][]Message
 	now     time.Time
 
+	firstAlert  map[destID]struct{}
 	serviceSent map[string]time.Time
 	userSent    map[string]time.Time
 	destSent    map[notification.Dest]time.Time
 
 	mx sync.Mutex
+}
+
+type destID struct {
+	ID       string
+	DestType notification.DestType
 }
 
 func newQueue(msgs []Message, now time.Time) *queue {
@@ -41,6 +47,7 @@ func newQueue(msgs []Message, now time.Time) *queue {
 		pending: make(map[notification.DestType][]Message),
 		now:     now,
 
+		firstAlert:  make(map[destID]struct{}),
 		serviceSent: make(map[string]time.Time),
 		userSent:    make(map[string]time.Time),
 		destSent:    make(map[notification.Dest]time.Time),
@@ -61,6 +68,7 @@ func (q *queue) addSent(m Message) {
 		m.SentAt = q.now
 	}
 
+	q.firstAlert[destID{ID: m.ServiceID, DestType: m.Dest.Type}] = struct{}{}
 	if t := q.serviceSent[m.ServiceID]; m.SentAt.After(t) {
 		q.serviceSent[m.ServiceID] = m.SentAt
 	}
@@ -138,12 +146,14 @@ func (q *queue) sortPending(destType notification.DestType) {
 
 		// First Alert to a service takes highest priority
 		piTypePriority := typePriority[pi.Type]
-		if (pi.Type == TypeAlertNotification || pi.Type == TypeAlertNotificationBundle) && q.serviceSent[pi.ServiceID].IsZero() {
+		_, firstAlertI := q.firstAlert[destID{ID: pi.ServiceID, DestType: pi.Dest.Type}]
+		if (pi.Type == TypeAlertNotification || pi.Type == TypeAlertNotificationBundle) && !firstAlertI {
 			piTypePriority = 0
 		}
 
 		pjTypePriority := typePriority[pj.Type]
-		if (pj.Type == TypeAlertNotification || pj.Type == TypeAlertNotificationBundle) && q.serviceSent[pj.ServiceID].IsZero() {
+		_, firstAlertJ := q.firstAlert[destID{ID: pj.ServiceID, DestType: pj.Dest.Type}]
+		if (pj.Type == TypeAlertNotification || pj.Type == TypeAlertNotificationBundle) && !firstAlertJ {
 			pjTypePriority = 0
 		}
 
