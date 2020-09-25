@@ -51,6 +51,11 @@ export const alertAllServicesSelector = createSelector(
   (params) => params('allServices', false),
 )
 
+export const alertShowAsTimestampsSelector = createSelector(
+  urlParamSelector,
+  (params) => params('timestamps', false),
+)
+
 // absURLSelector will return an absolute URL (including protocol) for the given
 // relative or from-root path. It will automatically add any path prefix.
 export const absURLSelector = createSelector(urlPathSelector, (base) =>

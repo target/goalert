@@ -1,5 +1,5 @@
-import { formatTimeSince, logTimeFormat } from './timeFormat'
-import { DateTime, Duration } from 'luxon'
+import { formatTimeSince, formatTimeLocale, logTimeFormat } from './timeFormat'
+import { DateTime, Duration, LocalZone } from 'luxon'
 
 describe('formatTimeSince', () => {
   const check = (time, exp) => {
@@ -9,7 +9,6 @@ describe('formatTimeSince', () => {
       expect(formatTimeSince(since, since.plus(dur))).toBe(exp)
     })
   }
-
   check({ seconds: -1 }, '< 1m ago')
   check({ seconds: 1 }, '< 1m ago')
   check({ seconds: 59 }, '< 1m ago')
@@ -24,6 +23,24 @@ describe('formatTimeSince', () => {
   check({ months: 20, seconds: 1 }, '1y ago')
   check({ months: 200, seconds: 1 }, '16y ago')
 })
+
+describe('formatTimeLocale', () => {
+  const check = (time, exp, type) => {
+    it(`${time} -> ${exp}`, () => {
+      expect(formatTimeLocale(time, type)).toBe(exp)
+    })
+  }
+  const h = 23
+  const d = DateTime.fromISO(`1983-10-14T${h}:59:00.000Z`)
+  const zone = d.offsetNameShort
+  const offset = d.offset / 60
+  const e = h - 12 + offset
+  const amPM = h + offset < 12 ? 'AM' : 'PM'
+  check(d, `October 14, 1983, ${e}:59 ${amPM} ${zone}`, 'full')
+  check(d, `10/14/1983, ${e}:59 ${amPM}`, 'short')
+  check(d, `Oct 14, 1983, ${e}:59 ${amPM}`)
+})
+
 describe('logTimeFormat', () => {
   const check = (to, from, exp) => {
     it(`alert log time format`, () => {

@@ -14,7 +14,7 @@ import AlertsListControls from './components/AlertsListControls'
 import CreateAlertFab from './CreateAlertFab'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
-import { formatTimeSince } from '../util/timeFormat'
+import { formatTimeSince, formatTimeLocale } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
 import { useMutation, useQuery } from '@apollo/react-hooks'
 import QueryList from '../lists/QueryList'
@@ -90,6 +90,7 @@ export default function AlertsList(props) {
   // get redux url vars
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
+  const timestamps = params('timestamps')
   const filter = params('filter', 'active')
 
   // query for current service name if props.serviceID is provided
@@ -250,7 +251,15 @@ export default function AlertsList(props) {
             .toUpperCase()
             .replace('STATUS', '')}`,
           subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-          action: <ListItemText secondary={formatTimeSince(a.createdAt)} />,
+          action: (
+            <ListItemText
+              secondary={
+                timestamps
+                  ? formatTimeLocale(a.createdAt)
+                  : formatTimeSince(a.createdAt)
+              }
+            />
+          ),
           url: `/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}

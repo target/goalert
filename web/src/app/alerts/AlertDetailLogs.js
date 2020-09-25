@@ -10,7 +10,7 @@ import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import { DateTime } from 'luxon'
 import _ from 'lodash-es'
-import { formatTimeSince } from '../util/timeFormat'
+import { formatTimeSince, formatTimeLocale } from '../util/timeFormat'
 import { POLL_INTERVAL } from '../config'
 import { textColors } from '../styles/statusStyles'
 
@@ -124,9 +124,7 @@ export default function AlertDetailLogs(props) {
 
     let timestamp = formatTimeSince(event.timestamp)
     if (props.showExactTimes) {
-      timestamp = DateTime.fromISO(event.timestamp).toLocaleString(
-        DateTime.DATETIME_FULL,
-      )
+      timestamp = formatTimeLocale(event.timestamp, 'full')
     }
 
     return (
