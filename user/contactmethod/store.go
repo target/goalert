@@ -95,23 +95,23 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			VALUES ($1,$2,$3,$4,$5,$6)
 		`),
 		findOne: p.P(`
-			SELECT id,name,type,value,disabled,user_id
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
 			FROM user_contact_methods
 			WHERE id = $1
 		`),
 		findOneUpd: p.P(`
-			SELECT id,name,type,value,disabled,user_id
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
 			FROM user_contact_methods
 			WHERE id = $1
 			FOR UPDATE
 		`),
 		findMany: p.P(`
-			SELECT id,name,type,value,disabled,user_id
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
 			FROM user_contact_methods
 			WHERE id = any($1)
 		`),
 		findAll: p.P(`
-			SELECT id,name,type,value,disabled,user_id
+			SELECT id,name,type,value,disabled,user_id,last_test_verify_at
 			FROM user_contact_methods
 			WHERE user_id = $1
 		`),
@@ -338,7 +338,7 @@ func (db *DB) FindOneTx(ctx context.Context, tx *sql.Tx, id string) (*ContactMet
 
 	var c ContactMethod
 	row := wrapTx(ctx, tx, db.findOneUpd).QueryRowContext(ctx, id)
-	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID)
+	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +359,7 @@ func (db *DB) FindOne(ctx context.Context, id string) (*ContactMethod, error) {
 
 	var c ContactMethod
 	row := db.findOne.QueryRowContext(ctx, id)
-	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID)
+	err = row.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt)
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +436,7 @@ func scanAll(rows *sql.Rows) ([]ContactMethod, error) {
 	var contactMethods []ContactMethod
 	for rows.Next() {
 		var c ContactMethod
-		err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID)
+		err := rows.Scan(&c.ID, &c.Name, &c.Type, &c.Value, &c.Disabled, &c.UserID, &c.lastTestVerifyAt)
 		if err != nil {
 			return nil, err
 		}

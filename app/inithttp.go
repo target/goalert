@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/grafana"
 	"github.com/target/goalert/mailgun"
 	"github.com/target/goalert/notification/twilio"
+	prometheus "github.com/target/goalert/prometheusalertmanager"
 	"github.com/target/goalert/site24x7"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
@@ -185,6 +186,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/mailgun/incoming", mailgun.IngressWebhooks(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/grafana/incoming", grafana.GrafanaToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("/api/v2/site24x7/incoming", site24x7.Site24x7ToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
+	mux.HandleFunc("/api/v2/prometheusalertmanager/incoming", prometheus.PrometheusAlertmanagerEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 
 	mux.HandleFunc("/api/v2/generic/incoming", generic.ServeCreateAlert)
 	mux.HandleFunc("/api/v2/heartbeat/", generic.ServeHeartbeatCheck)

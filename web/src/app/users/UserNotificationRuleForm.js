@@ -48,6 +48,8 @@ export default class UserNotificationRuleForm extends React.PureComponent {
               required
               label='Delay (minutes)'
               type='number'
+              min={0}
+              max={9000}
               component={TextField}
             />
           </Grid>

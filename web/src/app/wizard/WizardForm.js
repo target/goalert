@@ -137,7 +137,8 @@ export default class WizardForm extends React.PureComponent {
               required
               type='number'
               placeholder='15'
-              mapOnChangeValue={(value) => value.toString()}
+              min={1}
+              max={9000}
             />
           </Grid>
           <Grid item xs={12} className={classes.fieldItem}>
@@ -152,6 +153,8 @@ export default class WizardForm extends React.PureComponent {
               type='number'
               placeholder='3'
               mapOnChangeValue={(value) => value.toString()}
+              min={0}
+              max={5}
             />
           </Grid>
           <Grid item className={classes.stepItem}>
@@ -180,6 +183,10 @@ export default class WizardForm extends React.PureComponent {
                 {
                   label: 'Site24x7 Webhook URL',
                   value: 'site24x7',
+                },
+                {
+                  label: 'Prometheus Alertmanager Webhook URL',
+                  value: 'prometheusAlertmanager',
                 },
                 {
                   label: 'Email',

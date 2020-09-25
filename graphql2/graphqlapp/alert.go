@@ -42,33 +42,8 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(), nil
 }
 
-func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
-	e := *obj
-	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
-	if !ok || meta == nil || !meta.NoOneOnCall {
-		return nil, nil
-	}
-
-	status := graphql2.AlertLogStatusWarn
-	return &graphql2.AlertLogEntryState{
-		Details: "No one was on-call",
-		Status:  &status,
-	}, nil
-}
-
-func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
-	e := *obj
-	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
-	if !ok || meta == nil {
-		return nil, nil
-	}
-
-	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
-	if err != nil {
-		return nil, errors.Wrap(err, "find alert log state")
-	}
-
-	var status graphql2.AlertLogStatus
+func notificationStateFromStatus(s notification.MessageStatus) *graphql2.NotificationState {
+	var status graphql2.NotificationStatus
 	switch s.State {
 	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
 		status = "ERROR"
@@ -99,27 +74,56 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 		details = prefix + ": " + details
 	}
 
-	return &graphql2.AlertLogEntryState{
+	return &graphql2.NotificationState{
 		Details: details,
+		Status:  &status,
+	}
+}
+
+func (a *AlertLogEntry) escalationState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.EscalationMetaData)
+	if !ok || meta == nil || !meta.NoOneOnCall {
+		return nil, nil
+	}
+
+	status := graphql2.NotificationStatusWarn
+	return &graphql2.NotificationState{
+		Details: "No one was on-call",
 		Status:  &status,
 	}, nil
 }
 
-func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
+	e := *obj
+	meta, ok := e.Meta().(*alertlog.NotificationMetaData)
+	if !ok || meta == nil {
+		return nil, nil
+	}
+
+	s, err := (*App)(a).FindOneNotificationMessageStatus(ctx, meta.MessageID)
+	if err != nil {
+		return nil, errors.Wrap(err, "find alert log state")
+	}
+
+	return notificationStateFromStatus(*s), nil
+}
+
+func (a *AlertLogEntry) createdState(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	e := *obj
 	meta, ok := e.Meta().(*alertlog.CreatedMetaData)
 	if !ok || meta == nil || !meta.EPNoSteps {
 		return nil, nil
 	}
 
-	status := graphql2.AlertLogStatusWarn
-	return &graphql2.AlertLogEntryState{
+	status := graphql2.NotificationStatusWarn
+	return &graphql2.NotificationState{
 		Details: "No escalation policy steps",
 		Status:  &status,
 	}, nil
 }
 
-func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.AlertLogEntryState, error) {
+func (a *AlertLogEntry) State(ctx context.Context, obj *alertlog.Entry) (*graphql2.NotificationState, error) {
 	switch obj.Type() {
 	case alertlog.TypeCreated:
 		return a.createdState(ctx, obj)
@@ -229,6 +233,22 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 				s.Status = append(s.Status, alert.StatusClosed)
 			}
 		}
+		if opts.Sort != nil {
+			switch *opts.Sort {
+			case graphql2.AlertSearchSortStatusID:
+				s.Sort = alert.SortModeStatusID
+			case graphql2.AlertSearchSortDateID:
+				s.Sort = alert.SortModeDateID
+			case graphql2.AlertSearchSortDateIDReverse:
+				s.Sort = alert.SortModeDateIDReverse
+			}
+		}
+		if opts.CreatedBefore != nil {
+			s.Before = *opts.CreatedBefore
+		}
+		if opts.NotCreatedBefore != nil {
+			s.NotBefore = *opts.NotCreatedBefore
+		}
 	}
 
 	s.Limit++
@@ -248,6 +268,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	if len(alerts) > 0 {
 		s.After.ID = conn.Nodes[len(conn.Nodes)-1].ID
 		s.After.Status = conn.Nodes[len(conn.Nodes)-1].Status
+		s.After.Created = conn.Nodes[len(conn.Nodes)-1].CreatedAt
 		cur, err := search.Cursor(s)
 		if err != nil {
 			return nil, errors.Wrap(err, "serialize cursor")
