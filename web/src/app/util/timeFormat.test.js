@@ -1,5 +1,5 @@
 import { formatTimeSince, formatTimeLocale, logTimeFormat } from './timeFormat'
-import { DateTime, Duration, LocalZone } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 
 describe('formatTimeSince', () => {
   const check = (time, exp) => {
