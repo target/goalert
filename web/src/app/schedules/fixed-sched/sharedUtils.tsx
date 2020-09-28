@@ -31,12 +31,12 @@ interface StepContainerProps {
   children: ReactNode
   width?: string
 }
-export function StepContainer({ children, width = '40%' }: StepContainerProps) {
+export function StepContainer({ children, width = '75%' }: StepContainerProps) {
   const bodyStyle = {
     display: 'flex',
     justifyContent: 'center', // horizontal align
     width: '100%',
-    marginTop: '5%', // slightly lower below dialog title toolbar
+    marginTop: '2%', // slightly lower below dialog title toolbar
   }
 
   // adjusts width of centered child components

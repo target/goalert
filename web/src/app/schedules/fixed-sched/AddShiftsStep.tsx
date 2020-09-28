@@ -128,89 +128,86 @@ export default function AddShiftsStep({
 
   return (
     <StepContainer>
+      {/* main container for fields | button | shifts */}
       <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Typography variant='body2'>
-            {edit ? 'STEP 1 OF 2' : 'STEP 2 OF 3'}
-          </Typography>
-          <Typography variant='h6' component='h2'>
-            Determine each user's on-call shift.
-          </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <DialogContentText className={classes.contentText}>
-            Configuring a fixed schedule from {fmt(value.start)} to{' '}
-            {fmt(value.end)}. Select a user and when they will be on call to add
-            them to this fixed schedule.
-          </DialogContentText>
-        </Grid>
-
-        <Grid item xs={12} container spacing={2}>
-          <Grid item xs={10} container spacing={2}>
-            <FormContainer
-              value={shift}
-              onChange={(val: Shift) => setShift(val)}
-            >
-              <Grid item xs={12}>
-                <FormField
-                  fullWidth
-                  saveLabel
-                  component={UserSelect}
-                  saveLabelOnChange
-                  label='Select a User'
-                  name='user'
-                  mapValue={(u: User) => u?.value}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <FormField
-                  fullWidth
-                  component={ISODateTimePicker}
-                  label='Shift Start'
-                  name='start'
-                  inputProps={{ min, max }}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <FormField
-                  fullWidth
-                  component={ISODateTimePicker}
-                  label='Shift End'
-                  name='end'
-                  inputProps={{ min, max }}
-                />
-              </Grid>
-            </FormContainer>
-          </Grid>
-          <Grid className={classes.addButtonContainer} item xs={2}>
-            <Fab
-              className={classes.addButton}
-              onClick={handleAddShift}
-              disabled={shiftFieldsEmpty}
-              size='medium'
-              color='primary'
-            >
-              <AddIcon />
-            </Fab>
-          </Grid>
-        </Grid>
-
-        <Fade in={shifts.length > 0}>
-          <Grid item xs={12}>
-            <Typography variant='subtitle1' component='h3'>
-              Shifts
+        {/* title + fields container */}
+        <Grid item xs={5} container spacing={2} direction='column'>
+          <Grid item>
+            <Typography variant='body2'>
+              {edit ? 'STEP 1 OF 2' : 'STEP 2 OF 3'}
             </Typography>
-            <FlatList
-              items={mapShiftstoItems()}
-              emptyMessage='Add a user above to get started.' // fallback empty message
-              dense
-              ListItemProps={{
-                disableGutters: true,
-                divider: true,
-              }}
-            />
+            <Typography variant='h6' component='h2'>
+              Determine each user's on-call shift.
+            </Typography>
           </Grid>
-        </Fade>
+          <Grid item>
+            <DialogContentText className={classes.contentText}>
+              Configuring a fixed schedule from {fmt(value.start)} to{' '}
+              {fmt(value.end)}. Select a user and when they will be on call to
+              add them to this fixed schedule.
+            </DialogContentText>
+          </Grid>
+          <FormContainer value={shift} onChange={(val: Shift) => setShift(val)}>
+            <Grid item>
+              <FormField
+                fullWidth
+                saveLabel
+                component={UserSelect}
+                saveLabelOnChange
+                label='Select a User'
+                name='user'
+                mapValue={(u: User) => u?.value}
+              />
+            </Grid>
+            <Grid item>
+              <FormField
+                fullWidth
+                component={ISODateTimePicker}
+                label='Shift Start'
+                name='start'
+                inputProps={{ min, max }}
+              />
+            </Grid>
+            <Grid item>
+              <FormField
+                fullWidth
+                component={ISODateTimePicker}
+                label='Shift End'
+                name='end'
+                inputProps={{ min, max }}
+              />
+            </Grid>
+          </FormContainer>
+        </Grid>
+
+        {/* add button container */}
+        <Grid item xs={2} className={classes.addButtonContainer}>
+          <Fab
+            className={classes.addButton}
+            onClick={handleAddShift}
+            disabled={shiftFieldsEmpty}
+            size='medium'
+            color='primary'
+          >
+            <AddIcon />
+          </Fab>
+        </Grid>
+
+        {/* shifts list container */}
+        <Grid item xs={5}>
+          <Typography variant='subtitle1' component='h3'>
+            Shifts
+          </Typography>
+          <FlatList
+            items={mapShiftstoItems()}
+            emptyMessage='Add a user above to get started.' // fallback empty message
+            dense
+            ListItemProps={{
+              disableGutters: true,
+              divider: true,
+            }}
+          />
+        </Grid>
       </Grid>
     </StepContainer>
   )
