@@ -571,7 +571,12 @@ export interface AlertSearchOptions {
   favoritesOnly?: boolean
   includeNotified?: boolean
   omit?: number[]
+  sort?: AlertSearchSort
+  createdBefore?: ISOTimestamp
+  notCreatedBefore?: ISOTimestamp
 }
+
+export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'
 
 export type ISOTimestamp = string
 
