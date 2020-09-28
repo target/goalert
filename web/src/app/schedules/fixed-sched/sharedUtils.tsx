@@ -5,7 +5,7 @@ import React, { ReactNode } from 'react'
 interface UserObject {
   userID: string
 }
-interface UserInfoObject {
+export interface UserInfoObject {
 
   // adding in id and name to match graphql format
   user: {id: string, name: string}
@@ -22,7 +22,7 @@ export interface Value {
   shifts: Shift[]
 }
 
-export interface Shift {
+export type Shift =  {
   start: string
   end: string
   userID: string

@@ -7,10 +7,9 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
-import { Add as AddIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import { Add as AddIcon } from '@material-ui/icons'
 import {
   fmt,
-  Value,
   Shift,
   User,
   contentText,
@@ -19,9 +18,8 @@ import {
 import { FormContainer, FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import FlatList from '../../lists/FlatList'
-import { UserAvatar } from '../../util/avatars'
-import { DateTime } from 'luxon'
+
+import FixedSchedShiftsList from './FixedSchedShiftsList'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -38,92 +36,33 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
+const shiftEquals = (a: Shift, b: Shift) => a.start===b.start && a.end===b.end && a.userID === b.userID
+
 interface AddShiftsStepProps {
-  value: Value
-  onChange: (val: Value) => any
-  edit?: boolean
+  value: Shift[]
+  onChange: (newValue: Shift[]) => void
+  start: string
+  end: string
+
+  stepText: string
 }
 
 export default function AddShiftsStep({
-  value,
+  stepText,
   onChange,
-  edit,
+  start,
+  end,
+  value
 }: AddShiftsStepProps) {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
-  const { start, end, shifts } = value
 
   // set start equal to the fixed schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
   useEffect(() => {
-    if (!value.shifts?.length && value.start && !shift?.start) {
-      setShift({
-        ...shift,
-        start: value.start,
-      } as Shift)
-    }
-  }, [value.start])
-
-  // don't allow user to set start after end, or end before start
-  // start with value's start/end as min/max
-  const f = (d: string) => DateTime.fromISO(d).toFormat("yyyy-MM-dd'T'HH:mm:ss")
-  let min = f(start)
-  let max = f(end)
-  if (shift?.start) min = f(shift.start)
-  if (shift?.end) max = f(shift.end)
-
-  function handleAddShift() {
-    if (!shift) return
-
-    // update shifts value
-    onChange({
-      ...value,
-      shifts: [...shifts, shift],
-    })
-
-    // set next start date equal to the end date just added
-    setShift({
-      start: shift.end,
-      end: '',
-      user: null,
-    })
-  }
-
-  const shiftFieldsEmpty = !shift?.start || !shift.end || !shift.user?.label
-  function handleRemoveShift(idx: number) {
-    const newShifts = shifts.slice()
-    newShifts.splice(idx, 1)
-
-    // populate shift to be deleted in add shift form if it's currently empty
-    if (shiftFieldsEmpty) {
-      setShift({
-        start: shifts[idx].start,
-        end: shifts[idx].end,
-        user: shifts[idx].user,
-      })
-    }
-
-    // update shifts value
-    onChange({
-      ...value,
-      shifts: newShifts,
-    })
-  }
-
-  function mapShiftstoItems() {
-    if (!shifts.length) return []
-
-    return shifts.map((shift: Shift, idx: number) => ({
-      title: shift?.user?.label,
-      subText: `From ${fmt(shift.start)} to ${fmt(shift.end)}`,
-      icon: <UserAvatar userID={shift?.user?.value ?? ''} />,
-      secondaryAction: (
-        <IconButton onClick={() => handleRemoveShift(idx)}>
-          <DeleteIcon />
-        </IconButton>
-      ),
-    }))
-  }
+    if (shift) return
+    setShift({start, end: '', userID: ''})
+  }, [start])
 
   return (
     <StepContainer>
@@ -133,7 +72,7 @@ export default function AddShiftsStep({
         <Grid item xs={5} container spacing={2} direction='column'>
           <Grid item>
             <Typography variant='body2'>
-              {edit ? 'STEP 1 OF 2' : 'STEP 2 OF 3'}
+              {stepText}
             </Typography>
             <Typography variant='h6' component='h2'>
               Determine each user's on-call shift.
@@ -141,11 +80,12 @@ export default function AddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              Configuring a fixed schedule from {fmt(value.start)} to{' '}
-              {fmt(value.end)}. Select a user and when they will be on call to
+              Configuring a fixed schedule from {fmt(start)} to{' '}
+              {fmt(end)}. Select a user and when they will be on call to
               add them to this fixed schedule.
             </DialogContentText>
           </Grid>
+
           <FormContainer value={shift} onChange={(val: Shift) => setShift(val)}>
             <Grid item>
               <FormField
@@ -164,7 +104,6 @@ export default function AddShiftsStep({
                 component={ISODateTimePicker}
                 label='Shift Start'
                 name='start'
-                inputProps={{ min, max }}
               />
             </Grid>
             <Grid item>
@@ -173,7 +112,6 @@ export default function AddShiftsStep({
                 component={ISODateTimePicker}
                 label='Shift End'
                 name='end'
-                inputProps={{ min, max }}
               />
             </Grid>
           </FormContainer>
@@ -183,8 +121,7 @@ export default function AddShiftsStep({
         <Grid item xs={2} className={classes.addButtonContainer}>
           <Fab
             className={classes.addButton}
-            onClick={handleAddShift}
-            disabled={shiftFieldsEmpty}
+            onClick={()=>shift && onChange(value.concat(shift))}
             size='medium'
             color='primary'
           >
@@ -194,16 +131,11 @@ export default function AddShiftsStep({
 
         {/* shifts list container */}
         <Grid item xs={5}>
-          <Typography variant='subtitle1' component='h3'>
-            Shifts
-          </Typography>
-          <FlatList
-            items={mapShiftstoItems()}
-            emptyMessage='Add a user to the left to get started.'
-            dense
-            ListItemProps={{
-              disableGutters: true,
-              divider: true,
+          <FixedSchedShiftsList
+            value={value}
+            onRemove={(shift: Shift)=>{
+              setShift(shift)
+              onChange(value.filter(s=>!shiftEquals(shift, s)))
             }}
           />
         </Grid>
