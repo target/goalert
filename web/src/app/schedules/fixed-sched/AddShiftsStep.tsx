@@ -5,7 +5,6 @@ import {
   Grid,
   IconButton,
   Typography,
-  Fade,
   makeStyles,
 } from '@material-ui/core'
 import { Add as AddIcon, Delete as DeleteIcon } from '@material-ui/icons'
@@ -200,7 +199,7 @@ export default function AddShiftsStep({
           </Typography>
           <FlatList
             items={mapShiftstoItems()}
-            emptyMessage='Add a user above to get started.' // fallback empty message
+            emptyMessage='Add a user to the left to get started.'
             dense
             ListItemProps={{
               disableGutters: true,

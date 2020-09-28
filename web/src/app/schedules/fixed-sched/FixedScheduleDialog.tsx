@@ -5,6 +5,7 @@ import { fieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import FixedScheduleForm from './FixedScheduleForm'
 import { Shift, Value } from './sharedUtils'
+import _ from 'lodash-es'
 
 const mutation = gql`
   mutation($input: SetScheduleShiftsInput!) {
@@ -24,11 +25,25 @@ export default function FixedScheduleDialog({
   value: _value,
 }: FixedScheduleDialogProps) {
   const edit = Boolean(_value)
-  const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
+
+  const mockStart = '2020-09-15T00:00:00.000Z'
+  const mockEnd = '2020-09-30T00:00:00.000Z'
+  const mockShift: Shift = {
+    end: '2020-09-24T21:02:00.000Z',
+    start: '2020-09-23T21:02:00.000Z',
+    user: {
+      label: 'Cierra Mayer',
+      value: '307e25a3-2377-4b19-9fce-68c5569d2d12',
+    },
+  }
+  const mockShifts: Shift[] = _.fill(Array(30), mockShift)
+
+  // const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
+  const [step, setStep] = useState(1) // edit starting on step 2
   const [value, setValue] = useState({
-    start: _value?.start ?? '',
-    end: _value?.end ?? '',
-    shifts: _value?.shifts ?? [],
+    start: mockStart || (_value?.start ?? ''),
+    end: mockEnd || (_value?.end ?? ''),
+    shifts: mockShifts || (_value?.shifts ?? []),
   })
 
   const [submit, { loading, error, data }] = useMutation(mutation, {

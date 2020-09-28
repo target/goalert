@@ -29,7 +29,7 @@ export default function ScheduleTimesStep({ value }: ScheduleTimesStepProps) {
   if (value.end) max = f(value.end)
 
   return (
-    <StepContainer>
+    <StepContainer width='35%'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Typography variant='body2'>STEP 1 OF 3</Typography>
