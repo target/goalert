@@ -2,6 +2,7 @@ package cleanupmanager
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgtype"
 	"github.com/target/goalert/config"
@@ -29,6 +30,12 @@ func (db *DB) update(ctx context.Context) error {
 	defer tx.Rollback()
 
 	_, err = tx.StmtContext(ctx, db.setTimeout).ExecContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	var now time.Time
+	err = tx.StmtContext(ctx, db.now).QueryRowContext(ctx).Scan(&now)
 	if err != nil {
 		return err
 	}
