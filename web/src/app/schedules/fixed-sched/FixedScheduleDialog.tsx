@@ -81,7 +81,13 @@ export default function FixedScheduleDialog({
   function renderSlide({ index, key }: SlideRenderer): ReactNode {
     switch (index) {
       case 0:
-        return <ScheduleTimesStep key={key} stepText='STEP 1 of 3' />
+        return (
+          <ScheduleTimesStep
+            key={key}
+            stepText='STEP 1 of 3'
+            scheduleID={scheduleID}
+          />
+        )
       case 1:
         return (
           <AddShiftsStep
@@ -89,6 +95,7 @@ export default function FixedScheduleDialog({
             value={value.shifts}
             onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
             stepText={edit ? 'STEP 1 of 2' : 'STEP 2 of 3'}
+            scheduleID={scheduleID}
             start={value.start}
             end={value.end}
           />

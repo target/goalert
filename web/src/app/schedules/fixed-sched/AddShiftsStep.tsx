@@ -12,6 +12,7 @@ import { FormContainer } from '../../forms'
 
 import FixedSchedShiftsList from './FixedSchedShiftsList'
 import FixedSchedAddShiftForm from './FixedSchedAddShiftForm'
+import { ScheduleTZFilter } from '../ScheduleTZFilter'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -44,10 +45,12 @@ interface AddShiftsStepProps {
   start: string
   end: string
 
+  scheduleID: string
   stepText: string
 }
 
 export default function AddShiftsStep({
+  scheduleID,
   stepText,
   onChange,
   start,
@@ -83,7 +86,12 @@ export default function AddShiftsStep({
               fixed schedule.
             </DialogContentText>
           </Grid>
-
+          <Grid item>
+            <ScheduleTZFilter
+              label={(tz) => `Configure in ${tz}`}
+              scheduleID={scheduleID}
+            />
+          </Grid>
           <FormContainer value={shift} onChange={(val: Shift) => setShift(val)}>
             <FixedSchedAddShiftForm />
           </FormContainer>
