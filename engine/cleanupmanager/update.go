@@ -43,6 +43,11 @@ func (db *DB) update(ctx context.Context) error {
 		return err
 	}
 
+	_, err = tx.StmtContext(ctx, db.cleanupSessions).ExecContext(ctx)
+	if err != nil {
+		return err
+	}
+
 	cfg := config.FromContext(ctx)
 	if cfg.Maintenance.AlertCleanupDays > 0 {
 		var dur pgtype.Interval

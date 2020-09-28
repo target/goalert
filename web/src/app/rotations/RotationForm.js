@@ -107,6 +107,8 @@ export default function RotationForm(props) {
             type='number'
             name='shiftLength'
             label='Shift Length'
+            min={1}
+            max={9000}
           />
         </Grid>
         <Grid item xs={12}>

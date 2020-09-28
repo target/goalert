@@ -40,14 +40,17 @@ type AlertRecentEventsOptions struct {
 }
 
 type AlertSearchOptions struct {
-	FilterByStatus    []AlertStatus `json:"filterByStatus"`
-	FilterByServiceID []string      `json:"filterByServiceID"`
-	Search            *string       `json:"search"`
-	First             *int          `json:"first"`
-	After             *string       `json:"after"`
-	FavoritesOnly     *bool         `json:"favoritesOnly"`
-	IncludeNotified   *bool         `json:"includeNotified"`
-	Omit              []int         `json:"omit"`
+	FilterByStatus    []AlertStatus    `json:"filterByStatus"`
+	FilterByServiceID []string         `json:"filterByServiceID"`
+	Search            *string          `json:"search"`
+	First             *int             `json:"first"`
+	After             *string          `json:"after"`
+	FavoritesOnly     *bool            `json:"favoritesOnly"`
+	IncludeNotified   *bool            `json:"includeNotified"`
+	Omit              []int            `json:"omit"`
+	Sort              *AlertSearchSort `json:"sort"`
+	CreatedBefore     *time.Time       `json:"createdBefore"`
+	NotCreatedBefore  *time.Time       `json:"notCreatedBefore"`
 }
 
 type AuthSubjectConnection struct {
@@ -492,6 +495,49 @@ type UserSearchOptions struct {
 type VerifyContactMethodInput struct {
 	ContactMethodID string `json:"contactMethodID"`
 	Code            int    `json:"code"`
+}
+
+type AlertSearchSort string
+
+const (
+	AlertSearchSortStatusID      AlertSearchSort = "statusID"
+	AlertSearchSortDateID        AlertSearchSort = "dateID"
+	AlertSearchSortDateIDReverse AlertSearchSort = "dateIDReverse"
+)
+
+var AllAlertSearchSort = []AlertSearchSort{
+	AlertSearchSortStatusID,
+	AlertSearchSortDateID,
+	AlertSearchSortDateIDReverse,
+}
+
+func (e AlertSearchSort) IsValid() bool {
+	switch e {
+	case AlertSearchSortStatusID, AlertSearchSortDateID, AlertSearchSortDateIDReverse:
+		return true
+	}
+	return false
+}
+
+func (e AlertSearchSort) String() string {
+	return string(e)
+}
+
+func (e *AlertSearchSort) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertSearchSort(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertSearchSort", str)
+	}
+	return nil
+}
+
+func (e AlertSearchSort) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type AlertStatus string
