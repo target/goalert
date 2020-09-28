@@ -124,13 +124,15 @@ export default function UserSessionList(
   return (
     <React.Fragment>
       <PageActions>
-        <Button
-          color='inherit'
-          onClick={() => setEndSession('all')}
-          className={classes.button}
-        >
-          Log Out Other Sessions
-        </Button>
+        {!userID && (
+          <Button
+            color='inherit'
+            onClick={() => setEndSession('all')}
+            className={classes.button}
+          >
+            Log Out Other Sessions
+          </Button>
+        )}
       </PageActions>
 
       <Card>
