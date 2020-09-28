@@ -48,7 +48,7 @@ export function StepContainer({ children, width = '75%' }: StepContainerProps) {
     display: 'flex',
     justifyContent: 'center', // horizontal align
     width: '100%',
-    marginTop: '2%', // slightly lower below dialog title toolbar
+    height: '100%',
   }
 
   // adjusts width of centered child components

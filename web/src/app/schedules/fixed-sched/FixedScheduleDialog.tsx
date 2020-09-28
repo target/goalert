@@ -128,7 +128,8 @@ export default function FixedScheduleDialog({
             onChangeIndex={(i: number) => setStep(i)}
             slideRenderer={renderSlide}
             disabled // disables slides from changing outside of action buttons
-            slideStyle={{ overflow: 'hidden', height: '100%' }}
+            containerStyle={{ height: '100%' }}
+            style={{ height: '100%' }}
           />
         </FormContainer>
       }

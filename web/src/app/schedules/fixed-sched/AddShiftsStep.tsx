@@ -26,13 +26,12 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
+  listContainer: {
+    position: 'relative',
+    overflowY: 'scroll',
+  },
   mainContainer: {
     height: '100%',
-  },
-  shiftsList: {
-    height: '81.5vh', // height needed to extend to action bar
-    overflowY: 'scroll',
-    marginBottom: 8, // room for bottom of scroll bar
   },
 }))
 
@@ -103,14 +102,16 @@ export default function AddShiftsStep({
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5} className={classes.shiftsList}>
-          <FixedSchedShiftsList
-            value={value}
-            onRemove={(shift: Shift) => {
-              setShift(shift)
-              onChange(value.filter((s) => !shiftEquals(shift, s)))
-            }}
-          />
+        <Grid item xs={5} className={classes.listContainer}>
+          <div style={{ position: 'absolute' }}>
+            <FixedSchedShiftsList
+              value={value}
+              onRemove={(shift: Shift) => {
+                setShift(shift)
+                onChange(value.filter((s) => !shiftEquals(shift, s)))
+              }}
+            />
+          </div>
         </Grid>
       </Grid>
     </StepContainer>
