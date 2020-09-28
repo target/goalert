@@ -14,25 +14,18 @@ const useStyles = makeStyles({
   contentText,
 })
 
-interface ScheduleTimesStepProps {
-  value: Value
+type ScheduleTimeStepProps = {
+  stepText: string
 }
 
-export default function ScheduleTimesStep({ value }: ScheduleTimesStepProps) {
+export default function ScheduleTimesStep({stepText}: ScheduleTimeStepProps) {
   const classes = useStyles()
-
-  // don't allow user to set start after end, or end before start
-  const f = (d: string) => DateTime.fromISO(d).toFormat("yyyy-MM-dd'T'HH:mm:ss")
-  let min = null
-  let max = null
-  if (value.start) min = f(value.start)
-  if (value.end) max = f(value.end)
 
   return (
     <StepContainer width='35%'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography variant='body2'>STEP 1 OF 3</Typography>
+          <Typography variant='body2'>{stepText}</Typography>
           <Typography variant='h6' component='h2'>
             Determine start and end times.
           </Typography>
@@ -50,7 +43,6 @@ export default function ScheduleTimesStep({ value }: ScheduleTimesStepProps) {
             component={ISODateTimePicker}
             required
             name='start'
-            inputProps={{ max }}
           />
         </Grid>
         <Grid item xs={6}>
@@ -59,7 +51,6 @@ export default function ScheduleTimesStep({ value }: ScheduleTimesStepProps) {
             component={ISODateTimePicker}
             required
             name='end'
-            inputProps={{ min }}
           />
         </Grid>
       </Grid>

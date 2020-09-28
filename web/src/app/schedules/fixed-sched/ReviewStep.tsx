@@ -6,13 +6,11 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import ScheduleCalendar from '../ScheduleCalendar'
-import { fmt, Value, contentText, StepContainer } from './sharedUtils'
+import { fmt, Value, contentText, StepContainer, useUserInfo } from './sharedUtils'
 
 interface ReviewStepProps {
-  scheduleID: string
   value: Value
-  activeStep: number
-  edit?: boolean
+  stepText: string
 }
 
 const useStyles = makeStyles({
@@ -24,38 +22,21 @@ const useStyles = makeStyles({
 })
 
 export default function ReviewStep({
-  activeStep,
-  scheduleID,
+  stepText,
   value,
-  edit,
 }: ReviewStepProps) {
-  // prevents rendering empty whitespace on other slides because of calendar height
-  if (activeStep !== 2) return null
 
   const { start, end, shifts: _shifts } = value
   const classes = useStyles()
-
-  // map user label/values to name/ids
-  const shifts = [
-    {
-      start,
-      end,
-      shifts: _shifts.map((s) => ({
-        ...s,
-        user: {
-          id: s?.user?.value,
-          name: s?.user?.label,
-        },
-      })),
-    },
-  ]
+  
+  const shifts = useUserInfo(_shifts)
 
   return (
     <StepContainer width='75%'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Typography variant='body2'>
-            {edit ? 'STEP 2 OF 2' : 'STEP 3 OF 3'}
+            {stepText}
           </Typography>
           <Typography variant='h6' component='h2'>
             Review your fixed schedule.
@@ -69,7 +50,6 @@ export default function ReviewStep({
         </Grid>
         <Grid className={classes.calendarContainer} item xs={12}>
           <ScheduleCalendar
-            scheduleID={scheduleID}
             shifts={[]}
             fixedShifts={shifts}
             readOnly

@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, ReactNode } from 'react'
 import { useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
 import { fieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import FixedScheduleForm from './FixedScheduleForm'
 import { Shift, Value } from './sharedUtils'
 import _ from 'lodash-es'
+import { FormContainer } from '../../forms'
+import { bindKeyboard, virtualize } from 'react-swipeable-views-utils'
+import SwipeableViews from 'react-swipeable-views'
+import AddShiftsStep from './AddShiftsStep'
+import ReviewStep from './ReviewStep'
+import ScheduleTimesStep from './ScheduleTimesStep'
+// allows changing the index programatically
+const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
 const mutation = gql`
   mutation($input: SetScheduleShiftsInput!) {
@@ -31,10 +38,7 @@ export default function FixedScheduleDialog({
   const mockShift: Shift = {
     end: '2020-09-24T21:02:00.000Z',
     start: '2020-09-23T21:02:00.000Z',
-    user: {
-      label: 'Cierra Mayer',
-      value: '307e25a3-2377-4b19-9fce-68c5569d2d12',
-    },
+    userID: '307e25a3-2377-4b19-9fce-68c5569d2d12'
   }
   const mockShifts: Shift[] = _.fill(Array(30), mockShift)
 
@@ -49,15 +53,9 @@ export default function FixedScheduleDialog({
   const [submit, { loading, error, data }] = useMutation(mutation, {
     variables: {
       input: {
+        ...value,
         scheduleID,
-        start: value.start,
-        end: value.end,
-        shifts: value.shifts.map((shift: Shift) => ({
-          start: shift.start,
-          end: shift.end,
-          userID: shift.user?.value,
-        })),
-      },
+     },
     },
   })
 
@@ -75,6 +73,42 @@ export default function FixedScheduleDialog({
   }, [stepOneErrs, stepTwoErrs])
 
   const isComplete = data && !loading && !error
+
+
+  interface SlideRenderer {
+    index: number
+    key: number
+  }
+  function renderSlide({ index, key }: SlideRenderer): ReactNode {
+    switch (index) {
+      case 0:
+        return <ScheduleTimesStep key={key} stepText='STEP 1 of 3' />
+      case 1:
+        return (
+          <AddShiftsStep
+            key={key}
+            value={value.shifts}
+            onChange={(shifts: Shift[]) => setValue({...value, shifts})}
+            stepText={edit ? 'STEP 1 of 2' : 'STEP 2 of 3'}
+            start={value.start}
+            end={value.end}
+          />
+        )
+      case 2:
+        if (step !== 2) return null
+        return (
+          <ReviewStep
+            key={key}
+            value={value}
+            stepText={edit ? 'STEP 2 of 2' : 'STEP 3 of 3'}
+          />
+        )
+      default:
+        return null
+    }
+  }
+
+
   return (
     <FormDialog
       fullScreen
@@ -84,16 +118,15 @@ export default function FixedScheduleDialog({
       onClose={onClose}
       loading={loading}
       form={
-        <FixedScheduleForm
-          scheduleID={scheduleID}
-          activeStep={step}
-          setStep={setStep}
-          edit={edit}
-          value={value}
-          onChange={(newValue: any) => setValue(newValue)}
-          disabled={loading}
-          errors={fieldErrors(error)}
+        <FormContainer optionalLabels disabled={loading} value={value} onChange={(newValue: Value) => setValue(newValue)} errors={fieldErrors(error)}>
+        <VirtualizeAnimatedViews
+          index={step}
+          onChangeIndex={(i: number) => setStep(i)}
+          slideRenderer={renderSlide}
+          disabled // disables slides from changing outside of action buttons
+          slideStyle={{ overflow: 'hidden' }}
         />
+      </FormContainer>
       }
       onSubmit={() => (isComplete ? onClose() : submit())}
       onNext={step === 2 ? null : () => setStep(step + 1)}
