@@ -87,6 +87,10 @@ export const IntegerInput = (props: InputProps): JSX.Element => (
     type='number'
     fullWidth
     onChange={(e) => props.onChange(e.target.value)}
+    inputProps={{
+      min: 0,
+      max: 9000,
+    }}
   />
 )
 

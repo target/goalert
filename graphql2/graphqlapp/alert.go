@@ -233,6 +233,22 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 				s.Status = append(s.Status, alert.StatusClosed)
 			}
 		}
+		if opts.Sort != nil {
+			switch *opts.Sort {
+			case graphql2.AlertSearchSortStatusID:
+				s.Sort = alert.SortModeStatusID
+			case graphql2.AlertSearchSortDateID:
+				s.Sort = alert.SortModeDateID
+			case graphql2.AlertSearchSortDateIDReverse:
+				s.Sort = alert.SortModeDateIDReverse
+			}
+		}
+		if opts.CreatedBefore != nil {
+			s.Before = *opts.CreatedBefore
+		}
+		if opts.NotCreatedBefore != nil {
+			s.NotBefore = *opts.NotCreatedBefore
+		}
 	}
 
 	s.Limit++
@@ -252,6 +268,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 	if len(alerts) > 0 {
 		s.After.ID = conn.Nodes[len(conn.Nodes)-1].ID
 		s.After.Status = conn.Nodes[len(conn.Nodes)-1].Status
+		s.After.Created = conn.Nodes[len(conn.Nodes)-1].CreatedAt
 		cur, err := search.Cursor(s)
 		if err != nil {
 			return nil, errors.Wrap(err, "serialize cursor")
