@@ -3,7 +3,6 @@ import {
   DialogContentText,
   Fab,
   Grid,
-  IconButton,
   Typography,
   makeStyles,
 } from '@material-ui/core'
@@ -11,15 +10,13 @@ import { Add as AddIcon } from '@material-ui/icons'
 import {
   fmt,
   Shift,
-  User,
   contentText,
   StepContainer,
 } from './sharedUtils'
-import { FormContainer, FormField } from '../../forms'
-import { UserSelect } from '../../selection'
-import { ISODateTimePicker } from '../../util/ISOPickers'
+import { FormContainer } from '../../forms'
 
 import FixedSchedShiftsList from './FixedSchedShiftsList'
+import FixedSchedAddShiftForm from './FixedSchedAddShiftForm'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -87,33 +84,7 @@ export default function AddShiftsStep({
           </Grid>
 
           <FormContainer value={shift} onChange={(val: Shift) => setShift(val)}>
-            <Grid item>
-              <FormField
-                fullWidth
-                saveLabel
-                component={UserSelect}
-                saveLabelOnChange
-                label='Select a User'
-                name='user'
-                mapValue={(u: User) => u?.value}
-              />
-            </Grid>
-            <Grid item>
-              <FormField
-                fullWidth
-                component={ISODateTimePicker}
-                label='Shift Start'
-                name='start'
-              />
-            </Grid>
-            <Grid item>
-              <FormField
-                fullWidth
-                component={ISODateTimePicker}
-                label='Shift End'
-                name='end'
-              />
-            </Grid>
+            <FixedSchedAddShiftForm />
           </FormContainer>
         </Grid>
 
