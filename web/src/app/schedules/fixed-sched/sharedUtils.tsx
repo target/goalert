@@ -18,7 +18,7 @@ export function useUserInfo<T extends UserObject>(
   }))
 }
 
-export interface Value {
+export type Value = {
   start: string
   end: string
   shifts: Shift[]
@@ -39,7 +39,7 @@ export const contentText = {
 export const fmt = (t: string) =>
   DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
 
-interface StepContainerProps {
+type StepContainerProps = {
   children: ReactNode
   width?: string
 }

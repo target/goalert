@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
 const shiftEquals = (a: Shift, b: Shift) =>
   a.start === b.start && a.end === b.end && a.userID === b.userID
 
-interface AddShiftsStepProps {
+type AddShiftsStepProps = {
   value: Shift[]
   onChange: (newValue: Shift[]) => void
   start: string

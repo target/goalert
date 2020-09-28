@@ -20,7 +20,7 @@ const mutation = gql`
   }
 `
 
-interface FixedScheduleDialogProps {
+type FixedScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
   value?: Value
@@ -74,7 +74,7 @@ export default function FixedScheduleDialog({
 
   const isComplete = data && !loading && !error
 
-  interface SlideRenderer {
+  type SlideRenderer = {
     index: number
     key: number
   }
