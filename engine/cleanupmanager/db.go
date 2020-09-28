@@ -45,6 +45,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db:   db,
 		lock: lock,
 
+		now:     p.P(`select now()`),
+		userIDs: p.P(`select id from users`),
+
 		// Abort any cleanup operation that takes longer than 3 seconds
 		// error will be logged.
 		setTimeout:      p.P(`SET LOCAL statement_timeout = 3000`),
