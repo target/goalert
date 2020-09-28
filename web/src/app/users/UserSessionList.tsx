@@ -144,7 +144,7 @@ export default function UserSessionList(
             (logoutOneStatus.error || logoutAllStatus.error) as ApolloError,
           )}
           subTitle={getSubtitle()}
-          onSubmit={() =>
+          onSubmit={() => {
             session?.id
               ? logoutOne({
                   variables: {
@@ -157,7 +157,11 @@ export default function UserSessionList(
                   },
                 })
               : logoutAll()
-          }
+            setSession({
+              id: '',
+              userAgent: '',
+            })
+          }}
           onClose={() => setShowDialog(false)}
         />
       )}
