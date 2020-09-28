@@ -1,20 +1,22 @@
 import { DateTime } from 'luxon'
 import React, { ReactNode } from 'react'
 
-
 interface UserObject {
   userID: string
 }
 export interface UserInfoObject {
-
   // adding in id and name to match graphql format
-  user: {id: string, name: string}
+  user: { id: string; name: string }
 }
 
-export function useUserInfo<T extends UserObject>(items: T[]): (T & UserInfoObject)[] {
-  return items.map((item: T) => ({...item, user: {id: item.userID, name: 'Bob'}}))
+export function useUserInfo<T extends UserObject>(
+  items: T[],
+): (T & UserInfoObject)[] {
+  return items.map((item: T) => ({
+    ...item,
+    user: { id: item.userID, name: 'Bob' },
+  }))
 }
-
 
 export interface Value {
   start: string
@@ -22,15 +24,10 @@ export interface Value {
   shifts: Shift[]
 }
 
-export type Shift =  {
+export type Shift = {
   start: string
   end: string
   userID: string
-}
-
-export interface User {
-  label: string
-  value: string
 }
 
 // removes bottom margin from content text so form fields
@@ -57,7 +54,6 @@ export function StepContainer({ children, width = '75%' }: StepContainerProps) {
   // adjusts width of centered child components
   const containerStyle = {
     width,
-    height: 'fit-content',
   }
 
   return (

@@ -5,10 +5,9 @@ import {
   Typography,
   makeStyles,
 } from '@material-ui/core'
-import { DateTime } from 'luxon'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, StepContainer, Value } from './sharedUtils'
+import { contentText, StepContainer } from './sharedUtils'
 
 const useStyles = makeStyles({
   contentText,
@@ -18,7 +17,7 @@ type ScheduleTimeStepProps = {
   stepText: string
 }
 
-export default function ScheduleTimesStep({stepText}: ScheduleTimeStepProps) {
+export default function ScheduleTimesStep({ stepText }: ScheduleTimeStepProps) {
   const classes = useStyles()
 
   return (

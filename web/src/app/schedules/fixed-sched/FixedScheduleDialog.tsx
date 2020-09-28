@@ -38,7 +38,7 @@ export default function FixedScheduleDialog({
   const mockShift: Shift = {
     end: '2020-09-24T21:02:00.000Z',
     start: '2020-09-23T21:02:00.000Z',
-    userID: '307e25a3-2377-4b19-9fce-68c5569d2d12'
+    userID: '307e25a3-2377-4b19-9fce-68c5569d2d12',
   }
   const mockShifts: Shift[] = _.fill(Array(30), mockShift)
 
@@ -55,7 +55,7 @@ export default function FixedScheduleDialog({
       input: {
         ...value,
         scheduleID,
-     },
+      },
     },
   })
 
@@ -74,7 +74,6 @@ export default function FixedScheduleDialog({
 
   const isComplete = data && !loading && !error
 
-
   interface SlideRenderer {
     index: number
     key: number
@@ -88,7 +87,7 @@ export default function FixedScheduleDialog({
           <AddShiftsStep
             key={key}
             value={value.shifts}
-            onChange={(shifts: Shift[]) => setValue({...value, shifts})}
+            onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
             stepText={edit ? 'STEP 1 of 2' : 'STEP 2 of 3'}
             start={value.start}
             end={value.end}
@@ -108,7 +107,6 @@ export default function FixedScheduleDialog({
     }
   }
 
-
   return (
     <FormDialog
       fullScreen
@@ -118,15 +116,21 @@ export default function FixedScheduleDialog({
       onClose={onClose}
       loading={loading}
       form={
-        <FormContainer optionalLabels disabled={loading} value={value} onChange={(newValue: Value) => setValue(newValue)} errors={fieldErrors(error)}>
-        <VirtualizeAnimatedViews
-          index={step}
-          onChangeIndex={(i: number) => setStep(i)}
-          slideRenderer={renderSlide}
-          disabled // disables slides from changing outside of action buttons
-          slideStyle={{ overflow: 'hidden' }}
-        />
-      </FormContainer>
+        <FormContainer
+          optionalLabels
+          disabled={loading}
+          value={value}
+          onChange={(newValue: Value) => setValue(newValue)}
+          errors={fieldErrors(error)}
+        >
+          <VirtualizeAnimatedViews
+            index={step}
+            onChangeIndex={(i: number) => setStep(i)}
+            slideRenderer={renderSlide}
+            disabled // disables slides from changing outside of action buttons
+            slideStyle={{ overflow: 'hidden', height: '100%' }}
+          />
+        </FormContainer>
       }
       onSubmit={() => (isComplete ? onClose() : submit())}
       onNext={step === 2 ? null : () => setStep(step + 1)}
