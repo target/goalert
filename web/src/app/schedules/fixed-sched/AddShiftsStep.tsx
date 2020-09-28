@@ -30,9 +30,9 @@ const useStyles = makeStyles((theme) => ({
     height: '100%',
   },
   shiftsList: {
-    height: '100%',
+    height: '81.5vh', // height needed to extend to action bar
     overflowY: 'scroll',
-    backgroundColor: 'slategrey',
+    marginBottom: 8, // room for bottom of scroll bar
   },
 }))
 
@@ -103,16 +103,14 @@ export default function AddShiftsStep({
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5}>
-          <div className={classes.shiftsList}>
-            <FixedSchedShiftsList
-              value={value}
-              onRemove={(shift: Shift) => {
-                setShift(shift)
-                onChange(value.filter((s) => !shiftEquals(shift, s)))
-              }}
-            />
-          </div>
+        <Grid item xs={5} className={classes.shiftsList}>
+          <FixedSchedShiftsList
+            value={value}
+            onRemove={(shift: Shift) => {
+              setShift(shift)
+              onChange(value.filter((s) => !shiftEquals(shift, s)))
+            }}
+          />
         </Grid>
       </Grid>
     </StepContainer>
