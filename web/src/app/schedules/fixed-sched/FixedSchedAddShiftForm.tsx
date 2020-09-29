@@ -5,7 +5,13 @@ import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 
-export default function FixedSchedAddShiftForm() {
+type FixedSchedAddShiftFormProps = {
+  setEndTime: (end: string) => void
+}
+
+export default function FixedSchedAddShiftForm({
+  setEndTime,
+}: FixedSchedAddShiftFormProps) {
   const [manualEntry, setManualEntry] = useState(false)
 
   return (
@@ -16,6 +22,15 @@ export default function FixedSchedAddShiftForm() {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
+          mapOnChangeValue={(value: string, formValue) => {
+            if (!manualEntry) {
+              const diff = DateTime.fromISO(value).diff(
+                DateTime.fromISO(formValue.start),
+              )
+              formValue.end = DateTime.fromISO(formValue.end).plus(diff).toISO()
+            }
+            return value
+          }}
         />
       </Grid>
       <Grid item>
@@ -70,6 +85,7 @@ export default function FixedSchedAddShiftForm() {
           component={UserSelect}
           label='Select a User'
           name='userID'
+          required
         />
       </Grid>
     </React.Fragment>
