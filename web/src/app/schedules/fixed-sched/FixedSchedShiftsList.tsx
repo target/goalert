@@ -70,7 +70,7 @@ export default function FixedSchedShiftsList({
           shiftDetails = `Active until ${endTime}`
         } else {
           // shift starts and continues on for the rest of the day
-          shiftDetails = `Active after ${startTime}`
+          shiftDetails = `Active starting at ${startTime}`
         }
         result.push({
           title: s.shift.user.name,
