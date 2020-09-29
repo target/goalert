@@ -6,9 +6,15 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import ScheduleCalendar from '../ScheduleCalendar'
-import { fmt, Value, contentText, StepContainer, useUserInfo } from './sharedUtils'
+import {
+  fmt,
+  Value,
+  contentText,
+  StepContainer,
+  useUserInfo,
+} from './sharedUtils'
 
-interface ReviewStepProps {
+type ReviewStepProps = {
   value: Value
   stepText: string
 }
@@ -21,23 +27,17 @@ const useStyles = makeStyles({
   },
 })
 
-export default function ReviewStep({
-  stepText,
-  value,
-}: ReviewStepProps) {
-
+export default function ReviewStep({ stepText, value }: ReviewStepProps) {
   const { start, end, shifts: _shifts } = value
   const classes = useStyles()
-  
+
   const shifts = useUserInfo(_shifts)
 
   return (
     <StepContainer width='75%'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Typography variant='body2'>
-            {stepText}
-          </Typography>
+          <Typography variant='body2'>{stepText}</Typography>
           <Typography variant='h6' component='h2'>
             Review your fixed schedule.
           </Typography>

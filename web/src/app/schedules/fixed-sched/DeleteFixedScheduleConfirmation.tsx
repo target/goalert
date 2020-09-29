@@ -10,7 +10,7 @@ const mutation = gql`
   }
 `
 
-interface DeleteFixedScheduleConfirmationProps {
+type DeleteFixedScheduleConfirmationProps = {
   scheduleID: string
   onClose: () => void
   value: Value
