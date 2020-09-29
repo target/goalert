@@ -35,7 +35,7 @@ export default function useMultiQuery(
   })
 
   if (multiQuery) {
-    const queryKey = multiQuery.toString()
+    const queryKey = JSON.stringify(multiQuery)
     if (queryCache[queryKey]) multiQuery = queryCache[queryKey]
     else queryCache[queryKey] = multiQuery
   } else {
