@@ -8,7 +8,7 @@ import {
 } from '@material-ui/core'
 import { Add as AddIcon } from '@material-ui/icons'
 import { fmt, Shift, contentText, StepContainer } from './sharedUtils'
-import { Form, FormContainer } from '../../forms'
+import { FormContainer } from '../../forms'
 import _ from 'lodash-es'
 import FixedSchedShiftsList from './FixedSchedShiftsList'
 import FixedSchedAddShiftForm from './FixedSchedAddShiftForm'
@@ -118,31 +118,34 @@ export default function AddShiftsStep({
     })
   }, [start])
 
-  function fieldErrors(submitted?: boolean): FieldError[] {
+  function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
-    if (!isAfter(shift?.end, shift?.start)) {
+    if (!shift) {
+      return result
+    }
+    if (!isAfter(shift.end, shift?.start)) {
       result.push({
         field: 'end',
         message: 'must be after shift start time',
-      })
+      } as FieldError)
     }
-    if (isBefore(shift?.start, start)) {
+    if (isBefore(shift.start, start)) {
       result.push({
         field: 'start',
         message: 'must not be before fixed schedule start time',
-      })
+      } as FieldError)
     }
-    if (isAfter(shift?.end, end)) {
+    if (isAfter(shift.end, end)) {
       result.push({
         field: 'end',
         message: 'must not extend beyond fixed schedule end time',
-      })
+      } as FieldError)
     }
-    if (submitted && !shift?.userID) {
+    if (s && !shift.userID) {
       result.push({
         field: 'userID',
         message: 'a user must be assigned to the shift',
-      })
+      } as FieldError)
     }
     return result
   }
@@ -173,12 +176,12 @@ export default function AddShiftsStep({
             />
           </Grid>
           <FormContainer
-            errors={fieldErrors(submitted)}
+            errors={fieldErrors()}
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
             <FixedSchedAddShiftForm
-              setEndTime={(end: string) => setShift({ ...shift, end })}
+              setEndTime={(end: string) => setShift({ ...shift, end } as Shift)}
             />
           </FormContainer>
         </Grid>
@@ -188,6 +191,10 @@ export default function AddShiftsStep({
           <Fab
             className={classes.addButton}
             onClick={() => {
+              if (!shift || !shift.start || !shift.end || !shift.userID) {
+                return
+              }
+
               if (fieldErrors(true).length) {
                 setSubmitted(true)
                 return
