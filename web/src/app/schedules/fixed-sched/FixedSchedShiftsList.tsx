@@ -99,10 +99,6 @@ export default function FixedSchedShiftsList({
         items={items()}
         emptyMessage='Add a user to the left to get started.'
         dense
-        ListItemProps={{
-          disableGutters: true,
-          divider: true,
-        }}
       />
     </React.Fragment>
   )

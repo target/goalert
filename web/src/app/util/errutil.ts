@@ -48,7 +48,7 @@ interface RawFieldError extends Error {
 // fieldErrors will return a flat list of field errors (if any) from a graphQL error.
 //
 // All returned errors will be of the format {field, message}
-export function fieldErrors(err?: ApolloError): FieldError[] {
+export function fieldErrors(err: ApolloError): FieldError[] {
   if (!err) return []
   if (!err.graphQLErrors) return []
 

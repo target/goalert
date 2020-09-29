@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  ReactNode,
-  ReactElement,
-  ChangeEvent,
-} from 'react'
+import React, { useState, ReactNode, ReactElement, ChangeEvent } from 'react'
 import {
   TextField,
   makeStyles,
@@ -16,6 +10,12 @@ import {
   InputProps,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
+
+function asArray<T>(value?: T | T[]): T[] {
+  if (!value) return []
+
+  return Array.isArray(value) ? value : [value]
+}
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -60,21 +60,21 @@ interface CommonSelectProps {
   placeholder?: string
 }
 
-interface SingleSelectProps {
-  multiple: false
-  value: SelectOption
+interface SingleSelectProps extends CommonSelectProps {
+  multiple?: false
+  value?: SelectOption
   onChange: (value: SelectOption | null) => void
 }
 
-interface MultiSelectProps {
+interface MultiSelectProps extends CommonSelectProps {
   multiple: true
-  value: SelectOption[]
+  value?: SelectOption[]
   onChange: (value: SelectOption[]) => void
 }
 
 export default function MaterialSelect(
-  props: CommonSelectProps & (MultiSelectProps | SingleSelectProps),
-) {
+  props: SingleSelectProps | MultiSelectProps,
+): JSX.Element {
   const classes = useStyles()
   const {
     disabled,
@@ -86,32 +86,19 @@ export default function MaterialSelect(
     noOptionsText,
     onChange,
     onInputChange,
-    options: _options,
+    options,
     placeholder,
     required,
-    value,
+    value: _value,
   } = props
 
-  const getLabel = () =>
-    Array.isArray(value) ? value[0]?.label ?? '' : value?.label ?? ''
+  // NOTE value is undefined when nothing is selected
+  let value: SelectOption[] | undefined = asArray(_value)
+  if (!multiple && !_value) value = undefined
 
-  const [inputValue, setInputValue] = useState(getLabel())
-  useEffect(() => {
-    if (!value) setInputValue('')
-    if (!inputValue && value) setInputValue(getLabel())
-  }, [value])
-
-  const multi = multiple ? { multiple: true } : {}
-
-  // merge selected values with options to avoid annoying mui warnings while dropdown is closed
-  // https://github.com/mui-org/material-ui/issues/18514
-  // be sure to keep the props `filterSelectedOptions` set to hide selected value from dropdown
-  // and `getOptionSelected` to ensure what shows as selected for all incoming values
-  let options: SelectOption[] = _options
-  if (value) {
-    // merge options with value
-    options = options.concat(Array.isArray(value) ? value : [value])
-  }
+  const [inputValue, setInputValue] = useState(
+    multiple || !value ? '' : value[0].label,
+  )
 
   return (
     <Autocomplete
@@ -121,13 +108,14 @@ export default function MaterialSelect(
         option: classes.option,
         clearIndicator: classes.clearIndicator,
       }}
-      {...multi} // multiple: true | undefined
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
+      // Autocomplete types as 'true' | omitted; we can't omit
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      multiple={multiple as any}
       filterSelectedOptions
-      getOptionSelected={(opt, val) => opt.value === val.value}
       noOptionsText={noOptionsText}
       onChange={(
         event: ChangeEvent<{}>,
@@ -150,9 +138,9 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={getLabel}
+      onBlur={() => setInputValue(multiple || !value ? '' : value[0].label)}
       loading={isLoading}
-      getOptionLabel={(option) => option?.label ?? ''}
+      getOptionLabel={(option) => option.label || ''}
       options={options}
       renderInput={(params) => {
         return (
