@@ -1,4 +1,4 @@
-import { Button, Grid, TextField } from '@material-ui/core'
+import { Grid, TextField, Typography, makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
 import { FormField } from '../../forms'
@@ -6,7 +6,16 @@ import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
 
+const useStyles = makeStyles({
+  typography: {
+    '&:hover': {
+      cursor: 'pointer',
+    },
+  },
+})
+
 export default function FixedSchedAddShiftForm(): JSX.Element {
+  const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
 
   return (
@@ -44,12 +53,14 @@ export default function FixedSchedAddShiftForm(): JSX.Element {
             label='Shift End'
             name='end'
             hint={
-              <React.Fragment>
-                <Button onClick={() => setManualEntry(false)}>
-                  Click here
-                </Button>{' '}
-                to switch to shift duration.
-              </React.Fragment>
+              <Typography
+                className={classes.typography}
+                variant='caption'
+                color='textSecondary'
+                onClick={() => setManualEntry(false)}
+              >
+                Configure as duration?
+              </Typography>
             }
           />
         ) : (
@@ -74,10 +85,14 @@ export default function FixedSchedAddShiftForm(): JSX.Element {
             }}
             min={0.25}
             hint={
-              <React.Fragment>
-                <Button onClick={() => setManualEntry(true)}>Click here</Button>{' '}
-                to enter an exact date-time.
-              </React.Fragment>
+              <Typography
+                className={classes.typography}
+                variant='caption'
+                color='textSecondary'
+                onClick={() => setManualEntry(true)}
+              >
+                Configure as date/time?
+              </Typography>
             }
           />
         )}
