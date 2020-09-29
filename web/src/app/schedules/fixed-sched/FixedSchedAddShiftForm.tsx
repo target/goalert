@@ -23,7 +23,6 @@ export default function FixedSchedAddShiftForm({
           component={UserSelect}
           label='Select a User'
           name='userID'
-          required
         />
       </Grid>
       <Grid item>
@@ -32,7 +31,6 @@ export default function FixedSchedAddShiftForm({
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
-          required
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -51,7 +49,6 @@ export default function FixedSchedAddShiftForm({
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
-            required
             hint={
               <React.Fragment>
                 <Button onClick={() => setManualEntry(false)}>
