@@ -92,7 +92,7 @@ export default function FixedScheduleDialog({
         return (
           <ScheduleTimesStep
             key={key}
-            stepText='STEP 1 of 3'
+            stepText='STEP 1 of 2'
             scheduleID={scheduleID}
           />
         )
@@ -102,7 +102,7 @@ export default function FixedScheduleDialog({
             key={key}
             value={value.shifts}
             onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
-            stepText={edit ? 'STEP 1 of 2' : 'STEP 2 of 3'}
+            stepText={edit ? '' : 'STEP 2 of 2'}
             scheduleID={scheduleID}
             start={value.start}
             end={value.end}
