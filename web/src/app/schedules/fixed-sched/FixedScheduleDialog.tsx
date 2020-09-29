@@ -51,7 +51,7 @@ export default function FixedScheduleDialog({
     },
   })
 
-  const fieldErrs = fieldErrors(error)
+  const fieldErrs = error ? fieldErrors(error) : []
   const stepOneErrs = fieldErrs.some((e) => ['start', 'end'].includes(e.field))
 
   // array.fill fn?
@@ -111,7 +111,7 @@ export default function FixedScheduleDialog({
           disabled={loading}
           value={value}
           onChange={(newValue: Value) => setValue(newValue)}
-          errors={fieldErrors(error)}
+          errors={fieldErrs}
         >
           <VirtualizeAnimatedViews
             index={step}
