@@ -9,11 +9,11 @@ import {
 import { Add as AddIcon } from '@material-ui/icons'
 import { fmt, Shift, contentText, StepContainer } from './sharedUtils'
 import { Form, FormContainer } from '../../forms'
-
+import _ from 'lodash-es'
 import FixedSchedShiftsList from './FixedSchedShiftsList'
 import FixedSchedAddShiftForm from './FixedSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 
 const useStyles = makeStyles((theme) => ({
@@ -51,11 +51,49 @@ type AddShiftsStepProps = {
   stepText: string
 }
 
+type DTShift = {
+  userID: string
+  span: Interval
+}
+
+function shiftsToDT(shifts: Shift[]): DTShift[] {
+  return shifts.map((s) => ({
+    userID: s.userID,
+    span: Interval.fromDateTimes(
+      DateTime.fromISO(s.start),
+      DateTime.fromISO(s.end),
+    ),
+  }))
+}
+function DTToShifts(shifts: DTShift[]): Shift[] {
+  return shifts.map((s) => ({
+    userID: s.userID,
+    start: s.span.start.toISO(),
+    end: s.span.end.toISO(),
+  }))
+}
+
 function isAfter(a: string, b: string): boolean {
   return DateTime.fromISO(a) > DateTime.fromISO(b)
 }
 function isBefore(a: string, b: string): boolean {
   return DateTime.fromISO(a) < DateTime.fromISO(b)
+}
+function mergeShifts(_shifts: Shift[]): Shift[] {
+  const byUser = _.groupBy(shiftsToDT(_shifts), 'userID')
+
+  return DTToShifts(
+    _.flatten(
+      _.values(
+        _.mapValues(byUser, (shifts, userID) => {
+          return Interval.merge(_.map(shifts, 'span')).map((span) => ({
+            userID,
+            span,
+          }))
+        }),
+      ),
+    ),
+  )
 }
 
 export default function AddShiftsStep({
@@ -155,7 +193,7 @@ export default function AddShiftsStep({
                 return
               }
 
-              onChange(value.concat(shift))
+              onChange(mergeShifts(value.concat(shift)))
               const end = DateTime.fromISO(shift.end)
               const diff = end.diff(DateTime.fromISO(shift.start))
               setShift({
