@@ -55,7 +55,7 @@ export class FormField extends React.PureComponent {
     validate: p.func,
 
     // a hint for the user on a form field. errors take priority
-    hint: p.string,
+    hint: p.node,
 
     // disable the form helper text for errors.
     noError: p.bool,
