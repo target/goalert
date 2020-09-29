@@ -15,6 +15,7 @@ import { DateTime, Interval } from 'luxon'
 import { theme } from '../mui'
 import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import LuxonLocalizer from '../util/LuxonLocalizer'
+import { parseInterval, trimSpans } from '../util/shifts'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -68,7 +69,6 @@ export default class ScheduleCalendar extends React.PureComponent {
     scheduleID: p.string.isRequired,
     shifts: p.array.isRequired,
     fixedShifts: p.array,
-    readOnly: p.bool,
     CardProps: p.object, // todo: use CardProps from types once TS
   }
 
@@ -157,7 +157,7 @@ export default class ScheduleCalendar extends React.PureComponent {
    * darker version of that red if selected
    */
   eventStyleGetter = (event, start, end, isSelected) => {
-    if (event.fixed) {
+    if (event.fixedSched) {
       return {
         style: {
           backgroundColor: isSelected ? '#094819' : '#0D7128',
@@ -167,20 +167,6 @@ export default class ScheduleCalendar extends React.PureComponent {
     }
   }
 
-  // /*
-  //  * Return a light red shade of the current date instead of
-  //  * the default light blue
-  //  */
-  // dayPropGetter = (date) => {
-  //   if (DateTime.fromJSDate(date).toLocal().hasSame(DateTime.local(), 'day')) {
-  //     return {
-  //       style: {
-  //         backgroundColor: '#FFECEC',
-  //       },
-  //     }
-  //   }
-  // }
-
   render() {
     const {
       classes,
@@ -189,7 +175,6 @@ export default class ScheduleCalendar extends React.PureComponent {
       fixedShifts,
       start,
       weekly,
-      readOnly,
       CardProps,
       onNewFixedSched,
       onEditFixedSched,
@@ -225,8 +210,9 @@ export default class ScheduleCalendar extends React.PureComponent {
               components={{
                 eventWrapper: (props) => (
                   <CalendarEventWrapper
-                    scheduleID={scheduleID}
-                    readOnly={readOnly}
+                    onOverrideClick={(overrideDialog) =>
+                      this.setState({ overrideDialog })
+                    }
                     onEditFixedSched={onEditFixedSched}
                     onDeleteFixedSched={onDeleteFixedSched}
                     {...props}
@@ -234,8 +220,6 @@ export default class ScheduleCalendar extends React.PureComponent {
                 ),
                 toolbar: (props) => (
                   <CalendarToolbar
-                    scheduleID={scheduleID}
-                    readOnly={readOnly}
                     onNewFixedSched={onNewFixedSched}
                     {...props}
                   />
@@ -244,51 +228,45 @@ export default class ScheduleCalendar extends React.PureComponent {
             />
           </div>
         </Card>
+        {Boolean(this.state.overrideDialog) && (
+          <ScheduleOverrideCreateDialog
+            defaultValue={this.state.overrideDialog.defaultValue}
+            variant={this.state.overrideDialog.variant}
+            scheduleID={this.props.scheduleID}
+            onClose={() => this.setState({ overrideDialog: null })}
+            removeUserReadOnly
+          />
+        )}
       </React.Fragment>
     )
   }
 
   getCalEvents = (shifts, _fixedShifts) => {
-    // get all fixed shifts
-    let fixedShifts = []
-    if (_fixedShifts) {
-      // fixed header
-      _fixedShifts.forEach((fs, idx) => {
-        fixedShifts.push({
-          start: fs.start,
-          end: fs.end,
-          user: {
-            id: 'fixed-sched-' + idx,
-            name: 'Fixed schedule',
-          },
-          fixed: true,
-          fixedSched: fs,
-        })
+    const fixedSchedules = _fixedShifts.map((sched) => ({
+      start: sched.start,
+      end: sched.end,
+      user: { name: 'Fixed Schedule' },
+      fixedSched: sched,
+      fixed: true,
+    }))
 
-        // each fixed shift within range
-        fs.shifts.forEach((s) => {
-          fixedShifts.push({
-            ...s,
-            fixed: true,
-          })
-        })
-      })
-    }
+    // flat list of all fixed schifts, with `fixed` set to true
+    const fixedShifts = _.flatten(_.map(_fixedShifts, 'shifts')).map((s) => ({
+      ...s,
+      fixed: true,
+    }))
 
-    // merge fixed shifts (with identifier added) with shifts
-    let filteredShifts = fixedShifts.concat(shifts)
+    const shiftEquals = (a, b) =>
+      +a.start === +b.start && +a.end === +b.end && a.userID === b.userID
 
-    // dedupe fixed shifts with shifts
-    const getKey = (id, s, e) =>
-      id + DateTime.fromISO(s).toISO() + DateTime.fromISO(e).toISO() // ensures DT format is exactly the same
-    const dedupeKeys = Array.from(
-      new Set(filteredShifts.map((fs) => getKey(fs.user.id, fs.start, fs.end))),
-    )
-    filteredShifts = dedupeKeys.map((el) =>
-      filteredShifts.find((s) => {
-        return getKey(s.user.id, s.start, s.end) === el
-      }),
-    )
+    const fixedIntervals = fixedSchedules.map(parseInterval)
+    const filteredShifts = [
+      ...fixedSchedules,
+      ...fixedShifts,
+
+      // Remove shifts within a fixed schedule, and trim any that overlap
+      ...trimSpans(shifts, ...fixedIntervals),
+    ]
 
     // if any users in users array, only show the ids present
     if (this.props.userFilter.length > 0) {
@@ -298,30 +276,20 @@ export default class ScheduleCalendar extends React.PureComponent {
     }
 
     if (this.props.activeOnly) {
-      filteredShifts = filteredShifts.filter((shift) =>
-        Interval.fromDateTimes(
-          DateTime.fromISO(shift.start),
-          DateTime.fromISO(shift.end),
-        ).contains(DateTime.local()),
+      filteredShifts = filteredShifts.filter(
+        (shift) =>
+          shift.fixedSched ||
+          Interval.fromDateTimes(
+            DateTime.fromISO(shift.start),
+            DateTime.fromISO(shift.end),
+          ).contains(DateTime.local()),
       )
     }
 
     return filteredShifts.map((shift) => {
-      let shifts = Array.isArray(shift.shifts)
-        ? {
-            shifts: shift.shifts.map((s) => ({
-              start: s.start,
-              end: s.end,
-              user: {
-                label: s.user.name,
-                value: s.user.id,
-              },
-            })),
-          }
-        : {}
-
       return {
         title: shift.user.name,
+        userID: shift.user.id,
         start: new Date(shift.start),
         end: new Date(shift.end),
         fixed: shift.fixed,

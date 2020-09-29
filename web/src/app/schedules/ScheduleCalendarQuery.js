@@ -17,6 +17,7 @@ const query = gql`
     schedule(id: $id) {
       id
       shifts(start: $start, end: $end) {
+        userID
         user {
           id
           name

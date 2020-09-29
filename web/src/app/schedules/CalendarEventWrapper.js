@@ -5,10 +5,8 @@ import Grid from '@material-ui/core/Grid'
 import Tooltip from '@material-ui/core/Tooltip'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
-import { DateTime, Duration } from 'luxon'
 import { urlParamSelector } from '../selectors'
-import FixedScheduleDialog from './fixed-sched/FixedScheduleDialog'
-import DeleteFixedScheduleConfirmation from './fixed-sched/DeleteFixedScheduleConfirmation'
+import { DateTime, Duration } from 'luxon'
 
 const styles = (theme) => ({
   flexGrow: {
@@ -60,29 +58,98 @@ const mapStateToProps = (state) => {
 export default class CalendarEventWrapper extends Component {
   static propTypes = {
     event: p.object.isRequired,
-    scheduleID: p.string.isRequired,
-    readOnly: p.bool,
-
+    onOverrideClick: p.func,
     onEditFixedSched: p.func,
     onDeleteFixedSched: p.func,
   }
 
-  state = {
-    overrideDialog: null,
-    fixedSchedDialog: null,
-  }
+  handleShowOverrideForm = (type) => {
+    const { event, onOverrideClick } = this.props
 
-  handleShowOverrideDialog = (type) => {
-    this.setState({
-      overrideDialog: {
-        variant: type,
-        defaultValue: {
-          start: this.props.event.start.toISOString(),
-          end: this.props.event.end.toISOString(),
-          removeUserID: this.props.event.userID,
-        },
+    onOverrideClick({
+      variant: type,
+      defaultValue: {
+        start: event.start.toISOString(),
+        end: event.end.toISOString(),
+        removeUserID: event.userID,
       },
     })
+  }
+
+  renderFixedSchedButtons() {
+    const { classes, event } = this.props
+    return (
+      <React.Fragment>
+        <Grid item>
+          <Button
+            data-cy='edit-fixed-sched'
+            size='small'
+            onClick={() => this.props.onEditFixedSched(event.fixedSched)}
+            variant='contained'
+            color='primary'
+            title='Edit this fixed schedule'
+          >
+            Edit
+          </Button>
+        </Grid>
+        <Grid item className={classes.flexGrow} />
+        <Grid item>
+          <Button
+            data-cy='delete-fixed-sched'
+            size='small'
+            onClick={() => this.props.onDeleteFixedSched(event.fixedSched)}
+            variant='contained'
+            color='primary'
+            title='Delete this fixed schedule'
+          >
+            Delete
+          </Button>
+        </Grid>
+      </React.Fragment>
+    )
+  }
+
+  renderOverrideButtons() {
+    const { classes, event } = this.props
+
+    return (
+      <React.Fragment>
+        <Grid item>
+          <Button
+            data-cy='replace-override'
+            size='small'
+            onClick={() => this.handleShowOverrideForm('replace')}
+            variant='contained'
+            color='primary'
+            title={`Temporarily replace ${event.title} from this schedule`}
+          >
+            Replace
+          </Button>
+        </Grid>
+        <Grid item className={classes.flexGrow} />
+        <Grid item>
+          <Button
+            data-cy='remove-override'
+            size='small'
+            onClick={() => this.handleShowOverrideForm('remove')}
+            variant='contained'
+            color='primary'
+            title={`Temporarily remove ${event.title} from this schedule`}
+          >
+            Remove
+          </Button>
+        </Grid>
+      </React.Fragment>
+    )
+  }
+
+  renderButtons() {
+    const { event } = this.props
+    if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
+    if (event.fixedSched) return this.renderFixedSchedButtons()
+    if (event.fixed) return null
+
+    return this.renderOverrideButtons()
   }
 
   /*
@@ -94,73 +161,7 @@ export default class CalendarEventWrapper extends Component {
    * past).
    */
   renderInteractiveTooltip = () => {
-    const { classes, event, readOnly } = this.props
-
-    let actionButtons = null
-    if (!readOnly && DateTime.fromJSDate(event.end) > DateTime.utc()) {
-      if (event.fixedSched) {
-        actionButtons = (
-          <React.Fragment>
-            <Grid item>
-              <Button
-                data-cy='edit-fixed-sched'
-                size='small'
-                onClick={() => this.props.onEditFixedSched(event.fixedSched)}
-                variant='contained'
-                color='primary'
-                title='Edit this fixed schedule'
-              >
-                Edit
-              </Button>
-            </Grid>
-            <Grid item className={classes.flexGrow} />
-            <Grid item>
-              <Button
-                data-cy='delete-fixed-sched'
-                size='small'
-                onClick={() => this.props.onDeleteFixedSched(event.fixedSched)}
-                variant='contained'
-                color='primary'
-                title='Delete this fixed schedule'
-              >
-                Delete
-              </Button>
-            </Grid>
-          </React.Fragment>
-        )
-      } else if (!event.fixed) {
-        actionButtons = (
-          <React.Fragment>
-            <Grid item>
-              <Button
-                data-cy='replace-override'
-                size='small'
-                onClick={() => this.handleShowOverrideDialog('replace')}
-                variant='contained'
-                color='primary'
-                title={`Temporarily replace ${event.title} from this schedule`}
-              >
-                Replace
-              </Button>
-            </Grid>
-            <Grid item className={classes.flexGrow} />
-            <Grid item>
-              <Button
-                data-cy='remove-override'
-                size='small'
-                onClick={() => this.handleShowOverrideDialog('remove')}
-                variant='contained'
-                color='primary'
-                title={`Temporarily remove ${event.title} from this schedule`}
-              >
-                Remove
-              </Button>
-            </Grid>
-          </React.Fragment>
-        )
-      }
-    }
-
+    const { event } = this.props
     const formatJSDate = (JSDate) =>
       DateTime.fromJSDate(JSDate).toLocaleString(DateTime.DATETIME_FULL)
 
@@ -169,41 +170,29 @@ export default class CalendarEventWrapper extends Component {
         <Grid item xs={12}>
           {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
         </Grid>
-        {actionButtons}
+        {this.renderButtons()}
       </Grid>
     )
   }
 
   render() {
-    const { children, classes, readOnly, scheduleID } = this.props
-    const { overrideDialog, fixedSchedDialog } = this.state
+    const { children, classes } = this.props
 
     return (
-      <React.Fragment>
-        <Tooltip
-          classes={{
-            tooltip: classes.tooltip,
-            popper: classes.popper,
-          }}
-          interactive
-          placement='bottom-start'
-          PopperProps={{
-            'data-cy': 'shift-tooltip',
-          }}
-          title={this.renderInteractiveTooltip()}
-        >
-          {children}
-        </Tooltip>
-        {Boolean(overrideDialog) && !readOnly && (
-          <ScheduleOverrideCreateDialog
-            defaultValue={overrideDialog.defaultValue}
-            variant={overrideDialog.variant}
-            scheduleID={scheduleID}
-            onClose={() => this.setState({ overrideDialog: null })}
-            removeUserReadOnly
-          />
-        )}
-      </React.Fragment>
+      <Tooltip
+        classes={{
+          tooltip: classes.tooltip,
+          popper: classes.popper,
+        }}
+        interactive
+        placement='bottom-start'
+        PopperProps={{
+          'data-cy': 'shift-tooltip',
+        }}
+        title={this.renderInteractiveTooltip()}
+      >
+        {children}
+      </Tooltip>
     )
   }
 }
