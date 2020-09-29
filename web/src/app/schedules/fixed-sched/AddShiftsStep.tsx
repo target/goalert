@@ -217,7 +217,7 @@ export default function AddShiftsStep({
 
         {/* shifts list container */}
         <Grid item xs={5} className={classes.listContainer}>
-          <div style={{ position: 'absolute' }}>
+          <div style={{ position: 'absolute', width: '100%' }}>
             <FixedSchedShiftsList
               value={value}
               start={start}
