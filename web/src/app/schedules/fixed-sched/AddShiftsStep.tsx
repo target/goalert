@@ -8,12 +8,13 @@ import {
 } from '@material-ui/core'
 import { Add as AddIcon } from '@material-ui/icons'
 import { fmt, Shift, contentText, StepContainer } from './sharedUtils'
-import { FormContainer } from '../../forms'
+import { Form, FormContainer } from '../../forms'
 
 import FixedSchedShiftsList from './FixedSchedShiftsList'
 import FixedSchedAddShiftForm from './FixedSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime } from 'luxon'
+import { FieldError } from '../../util/errutil'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -50,6 +51,13 @@ type AddShiftsStepProps = {
   stepText: string
 }
 
+function isAfter(a: string, b: string): boolean {
+  return DateTime.fromISO(a) > DateTime.fromISO(b)
+}
+function isBefore(a: string, b: string): boolean {
+  return DateTime.fromISO(a) < DateTime.fromISO(b)
+}
+
 export default function AddShiftsStep({
   scheduleID,
   stepText,
@@ -60,6 +68,7 @@ export default function AddShiftsStep({
 }: AddShiftsStepProps) {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
+  const [submitted, setSubmitted] = useState(false)
 
   // set start equal to the fixed schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -71,6 +80,35 @@ export default function AddShiftsStep({
       userID: '',
     })
   }, [start])
+
+  function fieldErrors(submitted?: boolean): FieldError[] {
+    const result: FieldError[] = []
+    if (!isAfter(shift?.end, shift?.start)) {
+      result.push({
+        field: 'end',
+        message: 'must be after shift start time',
+      })
+    }
+    if (isBefore(shift?.start, start)) {
+      result.push({
+        field: 'start',
+        message: 'must not be before fixed schedule start time',
+      })
+    }
+    if (isAfter(shift?.end, end)) {
+      result.push({
+        field: 'end',
+        message: 'must not extend beyond fixed schedule end time',
+      })
+    }
+    if (submitted && !shift?.userID) {
+      result.push({
+        field: 'userID',
+        message: 'a user must be assigned to the shift',
+      })
+    }
+    return result
+  }
 
   return (
     <StepContainer>
@@ -97,8 +135,14 @@ export default function AddShiftsStep({
               scheduleID={scheduleID}
             />
           </Grid>
-          <FormContainer value={shift} onChange={(val: Shift) => setShift(val)}>
-            <FixedSchedAddShiftForm />
+          <FormContainer
+            errors={fieldErrors(submitted)}
+            value={shift}
+            onChange={(val: Shift) => setShift(val)}
+          >
+            <FixedSchedAddShiftForm
+              setEndTime={(end: string) => setShift({ ...shift, end })}
+            />
           </FormContainer>
         </Grid>
 
@@ -107,7 +151,11 @@ export default function AddShiftsStep({
           <Fab
             className={classes.addButton}
             onClick={() => {
-              if (!shift) return
+              if (fieldErrors(true).length) {
+                setSubmitted(true)
+                return
+              }
+
               onChange(value.concat(shift))
               const end = DateTime.fromISO(shift.end)
               const diff = end.diff(DateTime.fromISO(shift.start))
@@ -116,6 +164,7 @@ export default function AddShiftsStep({
                 start: shift.end,
                 end: end.plus(diff).toISO(),
               })
+              setSubmitted(false)
             }}
             size='medium'
             color='primary'
