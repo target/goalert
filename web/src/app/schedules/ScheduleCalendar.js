@@ -191,6 +191,8 @@ export default class ScheduleCalendar extends React.PureComponent {
       weekly,
       readOnly,
       CardProps,
+      onNewFixedSched,
+      onEditFixedSched,
     } = this.props
 
     return (
@@ -231,6 +233,7 @@ export default class ScheduleCalendar extends React.PureComponent {
                   <CalendarToolbar
                     scheduleID={scheduleID}
                     readOnly={readOnly}
+                    onNewFixedSched={onNewFixedSched}
                     {...props}
                   />
                 ),

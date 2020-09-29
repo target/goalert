@@ -66,18 +66,20 @@ const mapStateToProps = (state) => {
 @connect(mapStateToProps, null)
 export default class ScheduleCalendarQuery extends React.PureComponent {
   render() {
-    if (isWidthDown('sm', this.props.width)) return null
+    const { width, start, end, scheduleID, ...other } = this.props
+    if (isWidthDown('sm', width)) return null
 
     return (
       <Query
         query={query}
         variables={{
-          id: this.props.scheduleID,
-          start: this.props.start,
-          end: this.props.end,
+          id: scheduleID,
+          start: start,
+          end: end,
         }}
         render={({ data }) => (
           <ScheduleCalendar
+            {...other}
             scheduleID={data.schedule.id}
             shifts={data.schedule.shifts}
             fixedShifts={data.schedule.fixedShifts}

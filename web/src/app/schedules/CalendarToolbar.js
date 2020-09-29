@@ -135,7 +135,7 @@ export default function CalendarToolbar(props) {
               size='small'
               color='primary'
               className={classes.fixedSchedBtn}
-              onClick={() => setShowFixedSchedDialog(true)}
+              onClick={() => props.onNewFixedSched()}
               startIcon={<FixedSchedIcon />}
               title='Make temporary change to this schedule'
             >
@@ -144,18 +144,6 @@ export default function CalendarToolbar(props) {
           )}
         </Grid>
       </Grid>
-
-      {/* <FixedScheduleDialog
-        onClose={() => setShowFixedSchedDialog(false)}
-        scheduleID={scheduleID}
-      /> */}
-
-      {showFixedSchedDialog && !readOnly && (
-        <FixedScheduleDialog
-          onClose={() => setShowFixedSchedDialog(false)}
-          scheduleID={scheduleID}
-        />
-      )}
     </React.Fragment>
   )
 }
@@ -168,4 +156,5 @@ CalendarToolbar.propTypes = {
   view: p.string.isRequired,
   scheduleID: p.string.isRequired,
   readOnly: p.bool,
+  onNewFixedSched: p.func,
 }

@@ -21,6 +21,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
+import FixedScheduleDialog from './fixed-sched/FixedScheduleDialog'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -41,6 +42,7 @@ export default function ScheduleDetails({ scheduleID }) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [configFixedSchedule, setConfigFixedSchedule] = useState(null)
 
   const resetFilter = useResetURLParams(
     'userFilter',
@@ -76,6 +78,13 @@ export default function ScheduleDetails({ scheduleID }) {
         <ScheduleDeleteDialog
           scheduleID={scheduleID}
           onClose={() => setShowDelete(false)}
+        />
+      )}
+      {configFixedSchedule && (
+        <FixedScheduleDialog
+          value={configFixedSchedule === true ? null : configFixedSchedule}
+          onClose={() => setShowFixedSchedDialog(false)}
+          scheduleID={scheduleID}
         />
       )}
       <PageActions>
@@ -132,7 +141,13 @@ export default function ScheduleDetails({ scheduleID }) {
           },
           { label: 'Shifts', url: 'shifts' },
         ]}
-        pageFooter={<ScheduleCalendarQuery scheduleID={scheduleID} />}
+        pageFooter={
+          <ScheduleCalendarQuery
+            scheduleID={scheduleID}
+            onNewFixedSched={() => setConfigFixedSchedule(true)}
+            onEditFixedSched={(sched) => setConfigFixedSchedule(sched)}
+          />
+        }
       />
     </React.Fragment>
   )
