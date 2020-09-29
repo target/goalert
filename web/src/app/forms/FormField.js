@@ -25,6 +25,9 @@ export class FormField extends React.PureComponent {
     // Adjusts props for usage with a Checkbox component.
     checkbox: p.bool,
 
+    // Allows entering decimal number into a numeric field.
+    float: p.bool,
+
     // fieldName specifies the field used for
     // checking errors, change handlers, and value.
     //
@@ -112,6 +115,7 @@ export class FormField extends React.PureComponent {
       min,
       max,
       checkbox,
+      float,
       ...otherFieldProps
     } = this.props
 
@@ -128,7 +132,7 @@ export class FormField extends React.PureComponent {
       disabled: containerDisabled || fieldDisabled,
       error: errors.find((err) => err.field === (errorName || fieldName)),
       hint,
-      value: mapValue(get(value, fieldName)),
+      value: mapValue(get(value, fieldName), value),
       min,
       max,
     }
@@ -148,19 +152,20 @@ export class FormField extends React.PureComponent {
       props.label = label
       props.value = props.value.toString()
       props.InputLabelProps = InputLabelProps
-      getValueOf = (e) => parseInt(e.target.value, 10)
+      getValueOf = (e) =>
+        float ? parseFloat(e.target.value) : parseInt(e.target.value, 10)
     } else {
       props.label = label
       props.InputLabelProps = InputLabelProps
     }
 
-    props.onChange = (value) => {
-      let newValue = getValueOf(value)
+    props.onChange = (_value) => {
+      let newValue = getValueOf(_value)
       if (props.type === 'number' && typeof props.min === 'number')
         newValue = Math.max(props.min, newValue)
       if (props.type === 'number' && typeof props.max === 'number')
         newValue = Math.min(props.max, newValue)
-      onChange(fieldName, mapOnChangeValue(newValue))
+      onChange(fieldName, mapOnChangeValue(newValue, value))
     }
 
     return (
