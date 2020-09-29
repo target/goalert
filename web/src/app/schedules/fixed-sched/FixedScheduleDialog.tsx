@@ -54,7 +54,9 @@ export default function FixedScheduleDialog({
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
-    shifts: _value?.shifts ?? [],
+    shifts: (_value?.shifts ?? []).map((s) =>
+      _.pick(s, 'start', 'end', 'userID'),
+    ),
   })
 
   const [submit, { loading, error, data }] = useMutation(mutation, {
