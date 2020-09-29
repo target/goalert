@@ -29,7 +29,7 @@ export default function FixedScheduleDialog({
   onClose,
   scheduleID,
   value: _value,
-}: FixedScheduleDialogProps) {
+}: FixedScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
 
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2

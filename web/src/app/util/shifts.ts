@@ -1,19 +1,19 @@
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash-es'
 
-interface ISOSpan {
+interface SpanISO {
   start: string
   end: string
 }
 
-export function parseInterval(s: ISOSpan): Interval {
+export function parseInterval(s: SpanISO): Interval {
   return Interval.fromDateTimes(
     DateTime.fromISO(s.start),
     DateTime.fromISO(s.end),
   )
 }
 
-export function trimSpans<T extends ISOSpan>(
+export function trimSpans<T extends SpanISO>(
   spans: T[],
   ...intervals: Interval[]
 ): T[] {

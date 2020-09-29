@@ -6,13 +6,7 @@ import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
 
-type FixedSchedAddShiftFormProps = {
-  setEndTime: (end: string) => void
-}
-
-export default function FixedSchedAddShiftForm({
-  setEndTime,
-}: FixedSchedAddShiftFormProps) {
+export default function FixedSchedAddShiftForm(): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
 
   return (

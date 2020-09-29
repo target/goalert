@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const shiftEquals = (a: Shift, b: Shift) =>
+const shiftEquals = (a: Shift, b: Shift): boolean =>
   +a.start === +b.start && +a.end === +b.end && a.userID === b.userID
 
 type AddShiftsStepProps = {
@@ -103,7 +103,7 @@ export default function AddShiftsStep({
   start,
   end,
   value,
-}: AddShiftsStepProps) {
+}: AddShiftsStepProps): JSX.Element {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)

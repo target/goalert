@@ -20,7 +20,7 @@ export default function DeleteFixedScheduleConfirmation({
   scheduleID,
   onClose,
   value,
-}: DeleteFixedScheduleConfirmationProps) {
+}: DeleteFixedScheduleConfirmationProps): JSX.Element {
   const [deleteFixedSchedule, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {

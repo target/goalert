@@ -13,14 +13,14 @@ export type Shift = {
   userID: string
 }
 
-const parseInterval = (start: string, end: string) =>
+const parseInterval = (start: string, end: string): Interval =>
   Interval.fromDateTimes(DateTime.fromISO(start), DateTime.fromISO(end))
 
 export function validateShift(
   schedStart: string,
   schedEnd: string,
   shift: Shift,
-) {
+): Error | null {
   const schedSpan = parseInterval(schedStart, schedEnd)
   const shiftSpan = parseInterval(shift.start, shift.end)
 
@@ -40,14 +40,17 @@ export const contentText = {
   marginBottom: 0,
 }
 
-export const fmt = (t: string) =>
+export const fmt = (t: string): string =>
   DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
 
 type StepContainerProps = {
   children: ReactNode
   width?: string
 }
-export function StepContainer({ children, width = '75%' }: StepContainerProps) {
+export function StepContainer({
+  children,
+  width = '75%',
+}: StepContainerProps): JSX.Element {
   const bodyStyle = {
     display: 'flex',
     justifyContent: 'center', // horizontal align

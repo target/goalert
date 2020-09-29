@@ -22,7 +22,7 @@ type ScheduleTimeStepProps = {
 export default function ScheduleTimesStep({
   scheduleID,
   stepText,
-}: ScheduleTimeStepProps) {
+}: ScheduleTimeStepProps): JSX.Element {
   const classes = useStyles()
 
   return (

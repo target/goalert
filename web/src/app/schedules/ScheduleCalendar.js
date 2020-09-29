@@ -16,6 +16,7 @@ import { theme } from '../mui'
 import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import LuxonLocalizer from '../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../util/shifts'
+import _ from 'lodash-es'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -170,7 +171,6 @@ export default class ScheduleCalendar extends React.PureComponent {
   render() {
     const {
       classes,
-      scheduleID,
       shifts,
       fixedShifts,
       start,
@@ -256,11 +256,8 @@ export default class ScheduleCalendar extends React.PureComponent {
       fixed: true,
     }))
 
-    const shiftEquals = (a, b) =>
-      +a.start === +b.start && +a.end === +b.end && a.userID === b.userID
-
     const fixedIntervals = fixedSchedules.map(parseInterval)
-    const filteredShifts = [
+    let filteredShifts = [
       ...fixedSchedules,
       ...fixedShifts,
 

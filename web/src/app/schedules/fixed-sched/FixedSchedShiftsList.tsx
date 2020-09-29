@@ -18,17 +18,29 @@ type FixedSchedShiftsListProps = {
   end: string
 }
 
+type FlatListSub = {
+  subHeader: string
+}
+type FlatListItem = {
+  title: string
+  subText: string
+  icon?: JSX.Element
+  secondaryAction?: JSX.Element | null
+}
+
+type FlatListListItem = FlatListSub | FlatListItem
+
 export default function FixedSchedShiftsList({
   start,
   end,
   value,
   onRemove,
-}: FixedSchedShiftsListProps) {
+}: FixedSchedShiftsListProps): JSX.Element {
   const _shifts = useUserInfo(value)
   const [zone] = useURLParam('tz', 'local')
 
-  function items() {
-    let shifts = _.sortBy(_shifts, 'start').map((s) => ({
+  function items(): FlatListListItem[] {
+    const shifts = _.sortBy(_shifts, 'start').map((s) => ({
       shift: s,
       added: false,
       start: DateTime.fromISO(s.start, { zone }),
@@ -44,7 +56,7 @@ export default function FixedSchedShiftsList({
       DateTime.fromISO(end, { zone }).startOf('day'),
     )
 
-    const result: any = []
+    const result: FlatListListItem[] = []
     displaySpan.splitBy({ days: 1 }).forEach((day) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return

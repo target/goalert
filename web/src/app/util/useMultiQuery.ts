@@ -12,6 +12,8 @@ interface MultiQueryHookOptions extends QueryHookOptions {
   variables: OperationVariables[]
 }
 interface MultiQueryResult extends QueryResult {
+  // matching Apollo type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[] | undefined
 }
 
