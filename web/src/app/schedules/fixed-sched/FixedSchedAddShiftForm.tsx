@@ -19,6 +19,14 @@ export default function FixedSchedAddShiftForm({
       <Grid item>
         <FormField
           fullWidth
+          component={UserSelect}
+          label='Select a User'
+          name='userID'
+        />
+      </Grid>
+      <Grid item>
+        <FormField
+          fullWidth
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
@@ -78,15 +86,6 @@ export default function FixedSchedAddShiftForm({
             }
           />
         )}
-      </Grid>
-      <Grid item>
-        <FormField
-          fullWidth
-          component={UserSelect}
-          label='Select a User'
-          name='userID'
-          required
-        />
       </Grid>
     </React.Fragment>
   )

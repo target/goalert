@@ -73,7 +73,6 @@ export default function AddShiftsStep({
   // set start equal to the fixed schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
   useEffect(() => {
-    if (shift) return
     setShift({
       start,
       end: DateTime.fromISO(start).plus({ hours: 8 }).toISO(),
