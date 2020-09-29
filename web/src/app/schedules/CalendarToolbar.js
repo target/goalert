@@ -145,17 +145,17 @@ export default function CalendarToolbar(props) {
         </Grid>
       </Grid>
 
-      <FixedScheduleDialog
+      {/* <FixedScheduleDialog
         onClose={() => setShowFixedSchedDialog(false)}
         scheduleID={scheduleID}
-      />
+      /> */}
 
-      {/* {showFixedSchedDialog && !readOnly && (
+      {showFixedSchedDialog && !readOnly && (
         <FixedScheduleDialog
           onClose={() => setShowFixedSchedDialog(false)}
           scheduleID={scheduleID}
         />
-      )} */}
+      )}
     </React.Fragment>
   )
 }
