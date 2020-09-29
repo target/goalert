@@ -40,7 +40,7 @@ export default function FixedScheduleDialog({
     start: '2020-09-23T21:02:00.000Z',
     userID: '307e25a3-2377-4b19-9fce-68c5569d2d12',
   }
-  const mockShifts: Shift[] = _.fill(Array(30), mockShift)
+  const mockShifts: Shift[] = _.fill(Array(1), mockShift)
 
   // const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
   const [step, setStep] = useState(1) // edit starting on step 2

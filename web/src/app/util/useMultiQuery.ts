@@ -34,9 +34,15 @@ export default function useMultiQuery(
     multiQuery = mergeFields(multiQuery, prefixQuery(query, `q${i}_`))
   })
 
-  const queryKey = multiQuery.toString()
-  if (queryCache[queryKey]) multiQuery = queryCache[queryKey]
-  else queryCache[queryKey] = multiQuery
+  if (multiQuery) {
+    const queryKey = multiQuery.toString()
+    if (queryCache[queryKey]) multiQuery = queryCache[queryKey]
+    else queryCache[queryKey] = multiQuery
+  } else {
+    // no variables passed, nothing to do
+    multiQuery = query
+    variables.skip = true
+  }
 
   const { data, ...resp } = useQuery(multiQuery, { ...options, variables })
 

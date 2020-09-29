@@ -114,6 +114,8 @@ export default function AddShiftsStep({
           <div style={{ position: 'absolute' }}>
             <FixedSchedShiftsList
               value={value}
+              start={start}
+              end={end}
               onRemove={(shift: Shift) => {
                 setShift(shift)
                 onChange(value.filter((s) => !shiftEquals(shift, s)))

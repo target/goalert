@@ -153,7 +153,6 @@ export const querySelectPropTypes = {
   onChange: p.func,
   value: valueCheck,
 
-  saveLabelOnChange: p.bool, // returns { label, value } instead of value
   multiple: p.bool,
   name: p.string,
   placeholder: p.string,
@@ -196,8 +195,8 @@ export function makeQuerySelect(displayName, options) {
 
   function QuerySelect(props) {
     const {
+      value = props.multiple ? [] : null,
       multiple = false,
-      value = multiple ? [] : null,
 
       placeholder,
 
@@ -243,14 +242,12 @@ export function makeQuerySelect(displayName, options) {
     }
 
     const handleChange = (newVal) => {
-      const getVal = (v) => (props.saveLabelOnChange ? v : v?.value ?? null)
-
       setSearch('')
       setSearchInput('')
       const created = asArray(newVal).find((v) => v.isCreate)
-      if (created) onCreate(getVal(created.value))
-      else if (multiple) onChange(asArray(newVal).map((v) => getVal(v)))
-      else onChange(getVal(newVal))
+      if (created) onCreate(created.value)
+      else if (multiple) onChange(asArray(newVal).map((v) => v.value))
+      else onChange((newVal && newVal.value) || null)
     }
 
     let noOptionsText = 'No options'

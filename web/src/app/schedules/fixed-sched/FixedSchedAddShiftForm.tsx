@@ -5,33 +5,32 @@ import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 
 export default function FixedSchedAddShiftForm() {
-    return (
-        <React.Fragment>
-            <Grid item>
-              <FormField
-                fullWidth
-                saveLabel
-                component={UserSelect}
-                label='Select a User'
-                name='user'
-              />
-            </Grid>
-            <Grid item>
-              <FormField
-                fullWidth
-                component={ISODateTimePicker}
-                label='Shift Start'
-                name='start'
-              />
-            </Grid>
-            <Grid item>
-              <FormField
-                fullWidth
-                component={ISODateTimePicker}
-                label='Shift End'
-                name='end'
-              />
-            </Grid>
-        </React.Fragment>
-    )
+  return (
+    <React.Fragment>
+      <Grid item>
+        <FormField
+          fullWidth
+          component={UserSelect}
+          label='Select a User'
+          name='userID'
+        />
+      </Grid>
+      <Grid item>
+        <FormField
+          fullWidth
+          component={ISODateTimePicker}
+          label='Shift Start'
+          name='start'
+        />
+      </Grid>
+      <Grid item>
+        <FormField
+          fullWidth
+          component={ISODateTimePicker}
+          label='Shift End'
+          name='end'
+        />
+      </Grid>
+    </React.Fragment>
+  )
 }

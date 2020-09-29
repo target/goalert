@@ -34,6 +34,7 @@ export function useUserInfo<T extends HasUserID>(
     variables,
     fetchPolicy: 'cache-first',
     pollInterval: 0,
+    skip: items.length === 0,
   })
 
   if (error && !loading) {
