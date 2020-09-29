@@ -27,7 +27,7 @@ export default function FixedSchedShiftsList({
   const [zone] = useURLParam('tz', 'local')
 
   function items() {
-    let shifts = _shifts.map((s) => ({
+    let shifts = _.sortBy(_shifts, 'start').map((s) => ({
       shift: s,
       added: false,
       start: DateTime.fromISO(s.start, { zone }),

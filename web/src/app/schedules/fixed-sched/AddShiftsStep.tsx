@@ -106,7 +106,17 @@ export default function AddShiftsStep({
         <Grid item xs={2} className={classes.addButtonContainer}>
           <Fab
             className={classes.addButton}
-            onClick={() => shift && onChange(value.concat(shift))}
+            onClick={() => {
+              if (!shift) return
+              onChange(value.concat(shift))
+              const end = DateTime.fromISO(shift.end)
+              const diff = end.diff(DateTime.fromISO(shift.start))
+              setShift({
+                userID: '',
+                start: shift.end,
+                end: end.plus(diff).toISO(),
+              })
+            }}
             size='medium'
             color='primary'
           >
