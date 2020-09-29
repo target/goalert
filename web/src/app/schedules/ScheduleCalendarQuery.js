@@ -30,6 +30,7 @@ const query = gql`
         start
         end
         shifts {
+          userID
           user {
             id
             name

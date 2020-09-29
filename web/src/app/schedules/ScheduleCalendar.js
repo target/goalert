@@ -193,6 +193,7 @@ export default class ScheduleCalendar extends React.PureComponent {
       CardProps,
       onNewFixedSched,
       onEditFixedSched,
+      onDeleteFixedSched,
     } = this.props
 
     return (
@@ -226,6 +227,8 @@ export default class ScheduleCalendar extends React.PureComponent {
                   <CalendarEventWrapper
                     scheduleID={scheduleID}
                     readOnly={readOnly}
+                    onEditFixedSched={onEditFixedSched}
+                    onDeleteFixedSched={onDeleteFixedSched}
                     {...props}
                   />
                 ),
@@ -259,7 +262,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             name: 'Fixed schedule',
           },
           fixed: true,
-          shifts: fs.shifts,
+          fixedSched: fs,
         })
 
         // each fixed shift within range
@@ -322,6 +325,7 @@ export default class ScheduleCalendar extends React.PureComponent {
         start: new Date(shift.start),
         end: new Date(shift.end),
         fixed: shift.fixed,
+        fixedSched: shift.fixedSched,
         ...shifts,
       }
     })

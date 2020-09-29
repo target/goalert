@@ -22,6 +22,7 @@ export default function DeleteFixedScheduleConfirmation({
   value,
 }: DeleteFixedScheduleConfirmationProps) {
   const [deleteFixedSchedule, { loading, error }] = useMutation(mutation, {
+    onCompleted: () => onClose(),
     variables: {
       input: {
         scheduleID: scheduleID,

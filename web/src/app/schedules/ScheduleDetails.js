@@ -22,6 +22,7 @@ import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButto
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import FixedScheduleDialog from './fixed-sched/FixedScheduleDialog'
+import DeleteFixedScheduleConfirmation from './fixed-sched/DeleteFixedScheduleConfirmation'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -43,6 +44,7 @@ export default function ScheduleDetails({ scheduleID }) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [configFixedSchedule, setConfigFixedSchedule] = useState(null)
+  const [deleteFixedSchedule, setDeleteFixedSchedule] = useState(null)
 
   const resetFilter = useResetURLParams(
     'userFilter',
@@ -83,7 +85,14 @@ export default function ScheduleDetails({ scheduleID }) {
       {configFixedSchedule && (
         <FixedScheduleDialog
           value={configFixedSchedule === true ? null : configFixedSchedule}
-          onClose={() => setShowFixedSchedDialog(false)}
+          onClose={() => setConfigFixedSchedule(null)}
+          scheduleID={scheduleID}
+        />
+      )}
+      {deleteFixedSchedule && (
+        <DeleteFixedScheduleConfirmation
+          value={deleteFixedSchedule}
+          onClose={() => setDeleteFixedSchedule(null)}
           scheduleID={scheduleID}
         />
       )}
@@ -146,6 +155,7 @@ export default function ScheduleDetails({ scheduleID }) {
             scheduleID={scheduleID}
             onNewFixedSched={() => setConfigFixedSchedule(true)}
             onEditFixedSched={(sched) => setConfigFixedSchedule(sched)}
+            onDeleteFixedSched={(sched) => setDeleteFixedSchedule(sched)}
           />
         }
       />

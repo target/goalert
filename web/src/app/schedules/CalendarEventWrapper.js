@@ -62,6 +62,9 @@ export default class CalendarEventWrapper extends Component {
     event: p.object.isRequired,
     scheduleID: p.string.isRequired,
     readOnly: p.bool,
+
+    onEditFixedSched: p.func,
+    onDeleteFixedSched: p.func,
   }
 
   state = {
@@ -82,25 +85,6 @@ export default class CalendarEventWrapper extends Component {
     })
   }
 
-  // handleShowFixedSchedDialog opens either an edit or a delete
-  // dialog for the selected fixed shifts event
-  // action: 'edit' | 'delete'
-  handleShowFixedSchedDialog = (action) => {
-    const { title, start, end, fixed, shifts } = this.props.event
-    if (!shifts) return
-
-    this.setState({
-      fixedSchedDialog: {
-        action,
-        value: {
-          start: DateTime.fromJSDate(start).toISO(),
-          end: DateTime.fromJSDate(end).toISO(),
-          shifts,
-        },
-      },
-    })
-  }
-
   /*
    * Renders an interactive tooltip when hovering
    * over an event in the calendar that will show
@@ -114,14 +98,14 @@ export default class CalendarEventWrapper extends Component {
 
     let actionButtons = null
     if (!readOnly && DateTime.fromJSDate(event.end) > DateTime.utc()) {
-      if (event.shifts) {
+      if (event.fixedSched) {
         actionButtons = (
           <React.Fragment>
             <Grid item>
               <Button
                 data-cy='edit-fixed-sched'
                 size='small'
-                onClick={() => this.handleShowFixedSchedDialog('edit')}
+                onClick={() => this.props.onEditFixedSched(event.fixedSched)}
                 variant='contained'
                 color='primary'
                 title='Edit this fixed schedule'
@@ -134,7 +118,7 @@ export default class CalendarEventWrapper extends Component {
               <Button
                 data-cy='delete-fixed-sched'
                 size='small'
-                onClick={() => this.handleShowFixedSchedDialog('delete')}
+                onClick={() => this.props.onDeleteFixedSched(event.fixedSched)}
                 variant='contained'
                 color='primary'
                 title='Delete this fixed schedule'
@@ -217,20 +201,6 @@ export default class CalendarEventWrapper extends Component {
             scheduleID={scheduleID}
             onClose={() => this.setState({ overrideDialog: null })}
             removeUserReadOnly
-          />
-        )}
-        {fixedSchedDialog?.action === 'edit' && !readOnly && (
-          <FixedScheduleDialog
-            onClose={() => this.setState({ fixedSchedDialog: null })}
-            scheduleID={scheduleID}
-            value={fixedSchedDialog.value}
-          />
-        )}
-        {fixedSchedDialog?.action === 'delete' && !readOnly && (
-          <DeleteFixedScheduleConfirmation
-            onClose={() => this.setState({ fixedSchedDialog: null })}
-            scheduleID={scheduleID}
-            value={fixedSchedDialog.value}
           />
         )}
       </React.Fragment>
