@@ -58,6 +58,7 @@ export default function FixedScheduleDialog({
   })
 
   const [submit, { loading, error, data }] = useMutation(mutation, {
+    onCompleted: () => onClose(),
     variables: {
       input: {
         ...value,
@@ -113,6 +114,7 @@ export default function FixedScheduleDialog({
           <ReviewStep
             key={key}
             value={value}
+            scheduleID={scheduleID}
             stepText={edit ? 'STEP 2 of 2' : 'STEP 3 of 3'}
           />
         )
@@ -148,7 +150,7 @@ export default function FixedScheduleDialog({
         </FormContainer>
       }
       onSubmit={() => (isComplete ? onClose() : submit())}
-      onNext={step === 2 ? null : () => setStep(step + 1)}
+      onNext={step === 1 ? null : () => setStep(step + 1)}
       onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
     />
   )
