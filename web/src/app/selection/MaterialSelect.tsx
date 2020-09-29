@@ -74,7 +74,7 @@ interface MultiSelectProps {
 
 export default function MaterialSelect(
   props: CommonSelectProps & (MultiSelectProps | SingleSelectProps),
-) {
+): JSX.Element {
   const classes = useStyles()
   const {
     disabled,
@@ -92,7 +92,7 @@ export default function MaterialSelect(
     value,
   } = props
 
-  const getLabel = () =>
+  const getLabel = (): string =>
     Array.isArray(value) ? value[0]?.label ?? '' : value?.label ?? ''
 
   const [inputValue, setInputValue] = useState(getLabel())
