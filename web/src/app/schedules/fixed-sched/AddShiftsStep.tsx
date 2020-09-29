@@ -13,6 +13,7 @@ import { FormContainer } from '../../forms'
 import FixedSchedShiftsList from './FixedSchedShiftsList'
 import FixedSchedAddShiftForm from './FixedSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
+import { DateTime } from 'luxon'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -64,7 +65,11 @@ export default function AddShiftsStep({
   // can't this do on mount since the step renderer puts everyone on the DOM at once
   useEffect(() => {
     if (shift) return
-    setShift({ start, end: '', userID: '' })
+    setShift({
+      start,
+      end: DateTime.fromISO(start).plus({ hours: 8 }).toISO(),
+      userID: '',
+    })
   }, [start])
 
   return (
