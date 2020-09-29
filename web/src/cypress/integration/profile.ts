@@ -99,7 +99,7 @@ function testProfile(): void {
       cy.get('body').should('contain', `${name} (${type})`)
     })
 
-    it.only('should return error with link to conflicting user', () => {
+    it('should return error with link to conflicting user', () => {
       cy.fixture('profile').then((prof) => {
         cy.addContactMethod({ userID: prof.id }).then(
           (contactMethod: ContactMethod) => {
