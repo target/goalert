@@ -15,6 +15,8 @@ interface MultiQueryResult extends QueryResult {
   data: any[] | undefined
 }
 
+const queryCache: Record<string, DocumentNode> = {}
+
 export default function useMultiQuery(
   query: DocumentNode,
   options: MultiQueryHookOptions,
@@ -22,17 +24,32 @@ export default function useMultiQuery(
   let variables: OperationVariables = {}
   let multiQuery: DocumentNode = (null as unknown) as DocumentNode
 
+  // TODO: for cache-first, try cache-only query before joining
+
   options.variables.forEach((vars, i) => {
-    variables = { ...variables, ..._.mapKeys(vars, (key) => `q${i}_${key}`) }
+    variables = {
+      ...variables,
+      ..._.mapKeys(vars, (val, key) => `q${i}_${key}`),
+    }
     multiQuery = mergeFields(multiQuery, prefixQuery(query, `q${i}_`))
   })
+
+  const queryKey = multiQuery.toString()
+  if (queryCache[queryKey]) multiQuery = queryCache[queryKey]
+  else queryCache[queryKey] = multiQuery
 
   const { data, ...resp } = useQuery(multiQuery, { ...options, variables })
 
   if (data) {
-    const newData = options.variables.map((vars, i) =>
-      _.pickBy(data, (val, key) => key.startsWith(`q${i}_`)),
-    )
+    const newData = options.variables.map((vars, i) => {
+      const prefix = `q${i}_`
+
+      return _.mapKeys(
+        _.pickBy(data, (val, key) => key.startsWith(prefix)),
+        (val, key) => key.substr(prefix.length),
+      )
+    })
+
     return {
       ...resp,
       data: newData,

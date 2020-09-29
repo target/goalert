@@ -1,23 +1,6 @@
 import { DateTime } from 'luxon'
 import React, { ReactNode } from 'react'
 
-interface UserObject {
-  userID: string
-}
-export interface UserInfoObject {
-  // adding in id and name to match graphql format
-  user: { id: string; name: string }
-}
-
-export function useUserInfo<T extends UserObject>(
-  items: T[],
-): (T & UserInfoObject)[] {
-  return items.map((item: T) => ({
-    ...item,
-    user: { id: item.userID, name: 'Bob' },
-  }))
-}
-
 export type Value = {
   start: string
   end: string

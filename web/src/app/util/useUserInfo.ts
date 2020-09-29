@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 import _ from 'lodash-es'
-import { useQuery } from 'react-apollo'
+import useMultiQuery from './useMultiQuery'
 
 interface HasUserID {
   userID: string
@@ -30,18 +30,22 @@ export function useUserInfo<T extends HasUserID>(
     items.map((item) => item.userID).sort(),
   ).map((id) => ({ id }))
 
-  const { data, loading, error } = useQuery(infoQuery, { variables })
+  const { data, loading, error } = useMultiQuery(infoQuery, {
+    variables,
+    fetchPolicy: 'cache-first',
+    pollInterval: 0,
+  })
 
-  if (loading) {
-    return items.map((item) => ({
-      ...item,
-      user: { id: item.userID, name: 'Loading...' },
-    }))
-  }
-  if (error) {
+  if (error && !loading) {
     return items.map((item) => ({
       ...item,
       user: { id: item.userID, name: 'Error: ' + error.message },
+    }))
+  }
+  if (!data) {
+    return items.map((item) => ({
+      ...item,
+      user: { id: item.userID, name: 'Loading...' },
     }))
   }
 
@@ -49,10 +53,6 @@ export function useUserInfo<T extends HasUserID>(
   data.forEach((res: WithUserInfo) => {
     lookup[res.user.id] = res.user.name
   })
-
-  if (!data) {
-    throw new Error('not loading but data is missing')
-  }
 
   return items.map((item: T) => ({
     ...item,

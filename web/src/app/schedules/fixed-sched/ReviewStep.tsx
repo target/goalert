@@ -6,13 +6,8 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import ScheduleCalendar from '../ScheduleCalendar'
-import {
-  fmt,
-  Value,
-  contentText,
-  StepContainer,
-  useUserInfo,
-} from './sharedUtils'
+import { fmt, Value, contentText, StepContainer } from './sharedUtils'
+import { useUserInfo } from '../../util/useUserInfo'
 
 type ReviewStepProps = {
   value: Value
