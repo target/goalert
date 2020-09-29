@@ -193,7 +193,7 @@ export default function AddShiftsStep({
                 return
               }
 
-              onChange(mergeShifts(value.concat(shift)))
+              onChange(mergeShifts(value.concat(shift ?? [])))
               const end = DateTime.fromISO(shift.end)
               const diff = end.diff(DateTime.fromISO(shift.start))
               setShift({

@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
+import { Value } from './sharedUtils'
 
 type FixedSchedAddShiftFormProps = {
   setEndTime: (end: string) => void
@@ -30,7 +31,7 @@ export default function FixedSchedAddShiftForm({
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
-          mapOnChangeValue={(value: string, formValue) => {
+          mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
                 DateTime.fromISO(formValue.start),
@@ -65,14 +66,14 @@ export default function FixedSchedAddShiftForm({
             name='end'
             type='number'
             float
-            mapValue={(fieldValue, formValue) => {
-              if (!formValue) return 0
+            mapValue={(fieldValue: string, formValue: Value) => {
+              if (!formValue) return '0'
               return DateTime.fromISO(fieldValue).diff(
                 DateTime.fromISO(formValue.start),
                 'hours',
               ).hours
             }}
-            mapOnChangeValue={(newFieldValue, formValue) => {
+            mapOnChangeValue={(newFieldValue: number, formValue: Value) => {
               return DateTime.fromISO(formValue.start)
                 .plus({ hours: newFieldValue })
                 .toISO()

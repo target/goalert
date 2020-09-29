@@ -8,6 +8,7 @@ import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
 import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
+import _ from 'lodash-es'
 
 type FixedSchedShiftsListProps = {
   value: Shift[]
