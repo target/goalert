@@ -180,9 +180,7 @@ export default function AddShiftsStep({
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
-            <FixedSchedAddShiftForm
-              setEndTime={(end: string) => setShift({ ...shift, end } as Shift)}
-            />
+            <FixedSchedAddShiftForm />
           </FormContainer>
         </Grid>
 
