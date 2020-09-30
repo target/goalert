@@ -21,6 +21,55 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
 
+const userQuery = gql`
+  query userInfo($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      email
+      contactMethods {
+        id
+      }
+      onCallSteps {
+        id
+        escalationPolicy {
+          id
+          assignedTo {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+`
+
+const sessionsQuery = gql`
+  query userInfo($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      email
+      contactMethods {
+        id
+      }
+      onCallSteps {
+        id
+        escalationPolicy {
+          id
+          assignedTo {
+            id
+            name
+          }
+        }
+      }
+      sessions {
+        id
+      }
+    }
+  }
+`
+
 const useStyles = makeStyles({
   gravatarText: {
     textAlign: 'center',
@@ -46,55 +95,6 @@ function serviceCount(onCallSteps = []) {
 }
 
 export default function UserDetails(props) {
-  const userQuery = gql`
-    query userInfo($id: ID!) {
-      user(id: $id) {
-        id
-        name
-        email
-        contactMethods {
-          id
-        }
-        onCallSteps {
-          id
-          escalationPolicy {
-            id
-            assignedTo {
-              id
-              name
-            }
-          }
-        }
-      }
-    }
-  `
-
-  const sessionsQuery = gql`
-    query userInfo($id: ID!) {
-      user(id: $id) {
-        id
-        name
-        email
-        contactMethods {
-          id
-        }
-        onCallSteps {
-          id
-          escalationPolicy {
-            id
-            assignedTo {
-              id
-              name
-            }
-          }
-        }
-        sessions {
-          id
-        }
-      }
-    }
-  `
-
   const classes = useStyles()
 
   const { userID: currentUserID, isAdmin } = useSessionInfo()
