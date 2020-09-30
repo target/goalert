@@ -72,7 +72,7 @@ function DTToShifts(shifts: DTShift[]): Shift[] {
 }
 
 function shiftEquals(a: Shift, b: Shift): boolean {
-  return +a.start === +b.start && +a.end === +b.end && a.userID === b.userID
+  return a.start === b.start && a.end === b.end && a.userID === b.userID
 }
 
 function isAfter(a: string, b: string): boolean {
