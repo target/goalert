@@ -21,32 +21,6 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
 
-const query = gql`
-  query userInfo($id: ID!) {
-    user(id: $id) {
-      id
-      name
-      email
-      contactMethods {
-        id
-      }
-      onCallSteps {
-        id
-        escalationPolicy {
-          id
-          assignedTo {
-            id
-            name
-          }
-        }
-      }
-      sessions {
-        id
-      }
-    }
-  }
-`
-
 const useStyles = makeStyles({
   gravatarText: {
     textAlign: 'center',
@@ -72,6 +46,55 @@ function serviceCount(onCallSteps = []) {
 }
 
 export default function UserDetails(props) {
+  const userQuery = gql`
+    query userInfo($id: ID!) {
+      user(id: $id) {
+        id
+        name
+        email
+        contactMethods {
+          id
+        }
+        onCallSteps {
+          id
+          escalationPolicy {
+            id
+            assignedTo {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  `
+
+  const sessionsQuery = gql`
+    query userInfo($id: ID!) {
+      user(id: $id) {
+        id
+        name
+        email
+        contactMethods {
+          id
+        }
+        onCallSteps {
+          id
+          escalationPolicy {
+            id
+            assignedTo {
+              id
+              name
+            }
+          }
+        }
+        sessions {
+          id
+        }
+      }
+    }
+  `
+
   const classes = useStyles()
 
   const { userID: currentUserID, isAdmin } = useSessionInfo()
@@ -80,16 +103,19 @@ export default function UserDetails(props) {
   const [createNR, setCreateNR] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
 
-  const { data, loading, error } = useQuery(query, {
-    variables: { id: props.userID },
-  })
+  const { data, loading, error } = useQuery(
+    props.readOnly ? userQuery : sessionsQuery,
+    {
+      variables: { id: props.userID },
+    },
+  )
 
   if (error) return <GenericError error={error.message} />
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
-  const sessCount = user.sessions.length
+  const sessCount = props.readOnly ? 0 : user.sessions.length
 
   const disableNR = user.contactMethods.length === 0
 
