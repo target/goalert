@@ -44,8 +44,8 @@ const userQuery = gql`
   }
 `
 
-const sessionsQuery = gql`
-  query userInfo($id: ID!) {
+const profileQuery = gql`
+  query profileInfo($id: ID!) {
     user(id: $id) {
       id
       name
@@ -104,7 +104,7 @@ export default function UserDetails(props) {
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
 
   const { data, loading, error } = useQuery(
-    props.readOnly ? userQuery : sessionsQuery,
+    props.readOnly ? userQuery : profileQuery,
     {
       variables: { id: props.userID },
     },
