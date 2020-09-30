@@ -10,6 +10,7 @@ const useStyles = makeStyles({
   typography: {
     '&:hover': {
       cursor: 'pointer',
+      textDecoration: 'underline',
     },
   },
 })

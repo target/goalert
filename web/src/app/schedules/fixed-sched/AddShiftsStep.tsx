@@ -38,9 +38,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const shiftEquals = (a: Shift, b: Shift): boolean =>
-  +a.start === +b.start && +a.end === +b.end && a.userID === b.userID
-
 type AddShiftsStepProps = {
   value: Shift[]
   onChange: (newValue: Shift[]) => void
@@ -65,6 +62,7 @@ function shiftsToDT(shifts: Shift[]): DTShift[] {
     ),
   }))
 }
+
 function DTToShifts(shifts: DTShift[]): Shift[] {
   return shifts.map((s) => ({
     userID: s.userID,
@@ -73,12 +71,21 @@ function DTToShifts(shifts: DTShift[]): Shift[] {
   }))
 }
 
+function shiftEquals(a: Shift, b: Shift): boolean {
+  return +a.start === +b.start && +a.end === +b.end && a.userID === b.userID
+}
+
 function isAfter(a: string, b: string): boolean {
   return DateTime.fromISO(a) > DateTime.fromISO(b)
 }
+
 function isBefore(a: string, b: string): boolean {
   return DateTime.fromISO(a) < DateTime.fromISO(b)
 }
+
+// mergeShifts will take the incoming shifts and merge them with
+// the shifts stored in value. Using Luxon's Interval, overlaps
+// and edge cases when merging are handled for us.
 function mergeShifts(_shifts: Shift[]): Shift[] {
   const byUser = _.groupBy(shiftsToDT(_shifts), 'userID')
 

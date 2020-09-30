@@ -50,7 +50,9 @@ export default function FixedSchedShiftsList({
         DateTime.fromISO(s.end, { zone }),
       ),
     }))
+
     if (!shifts.length) return []
+
     const displaySpan = Interval.fromDateTimes(
       DateTime.fromISO(start, { zone }).startOf('day'),
       DateTime.fromISO(end, { zone }).startOf('day'),
@@ -60,9 +62,13 @@ export default function FixedSchedShiftsList({
     displaySpan.splitBy({ days: 1 }).forEach((day) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
+
+      // render subheader for each day
       result.push({
         subHeader: relativeDate(day.start),
       })
+
+      // craft user friendly shift string
       dayShifts.forEach((s) => {
         let shiftDetails = ''
         const startTime = s.start.toLocaleString({
@@ -73,6 +79,7 @@ export default function FixedSchedShiftsList({
           hour: 'numeric',
           minute: 'numeric',
         })
+
         if (s.interval.engulfs(day)) {
           // shift (s.interval) spans all day
           shiftDetails = 'All day'
@@ -85,6 +92,7 @@ export default function FixedSchedShiftsList({
           // shift starts and continues on for the rest of the day
           shiftDetails = `Active starting at ${startTime}`
         }
+
         result.push({
           title: s.shift.user.name,
           subText: shiftDetails,
@@ -95,6 +103,7 @@ export default function FixedSchedShiftsList({
             </IconButton>
           ),
         })
+
         s.added = true
       })
     })
