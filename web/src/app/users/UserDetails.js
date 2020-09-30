@@ -104,7 +104,7 @@ export default function UserDetails(props) {
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
 
   const { data, loading, error } = useQuery(
-    props.readOnly ? userQuery : profileQuery,
+    isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
     {
       variables: { id: props.userID },
     },
@@ -115,7 +115,8 @@ export default function UserDetails(props) {
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
-  const sessCount = props.readOnly ? 0 : user.sessions.length
+  const sessCount =
+    isAdmin || props.userID === currentUserID ? user.sessions.length : 0
 
   const disableNR = user.contactMethods.length === 0
 
