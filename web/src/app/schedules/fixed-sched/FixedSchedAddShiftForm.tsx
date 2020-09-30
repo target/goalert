@@ -72,16 +72,19 @@ export default function FixedSchedAddShiftForm(): JSX.Element {
             name='end'
             type='number'
             float
-            mapValue={(fieldValue: string, formValue: Value) => {
-              if (!formValue) return '0'
-              return DateTime.fromISO(fieldValue).diff(
-                DateTime.fromISO(formValue.start),
-                'hours',
-              ).hours
+            // value held in form input
+            mapValue={(nextVal: string, formValue: Value) => {
+              const nextValDT = DateTime.fromISO(nextVal)
+              if (!formValue || !nextValDT.isValid) return ''
+              return nextValDT
+                .diff(DateTime.fromISO(formValue.start), 'hours')
+                .hours.toString()
             }}
-            mapOnChangeValue={(newFieldValue: number, formValue: Value) => {
+            // value held in state
+            mapOnChangeValue={(nextVal: string, formValue: Value) => {
+              if (!nextVal) return ''
               return DateTime.fromISO(formValue.start)
-                .plus({ hours: newFieldValue })
+                .plus({ hours: parseInt(nextVal, 10) })
                 .toISO()
             }}
             min={0.25}
