@@ -8,6 +8,7 @@ import DialogContent from '@material-ui/core/DialogContent'
 import Typography from '@material-ui/core/Typography'
 import { DefaultTransition, FullscreenTransition } from '../util/Transitions'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth/index'
+import _ from 'lodash-es'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogTitleWrapper from './components/DialogTitleWrapper'
 import DialogContentError from './components/DialogContentError'
@@ -105,18 +106,21 @@ export default class FormDialog extends React.PureComponent {
       fullScreen,
       isUnmounting,
       loading,
-      primaryActionLabel, // remove from dialogProps spread
       maxWidth,
       onClose,
       onSubmit,
-      subTitle, // can't be used in dialogProps spread
+      subTitle,
       title,
       width,
       onNext,
       onBack,
-      ...dialogProps
+      ...rest
     } = this.props
 
+    const dialogProps = _.omit(rest, [
+      'primaryActionDisabled',
+      'primaryActionLabel',
+    ])
     const isFullScreen = fullScreen || (!isWidthUp('md', width) && !confirm)
 
     return (
@@ -201,6 +205,7 @@ export default class FormDialog extends React.PureComponent {
       classes,
       errors,
       loading,
+      primaryActionDisabled,
       primaryActionLabel,
       onClose,
       onBack,
@@ -233,6 +238,7 @@ export default class FormDialog extends React.PureComponent {
           attemptCount={errors.filter((e) => !e.nonSubmit).length ? 1 : 0}
           buttonText={primaryActionLabel || (confirm ? 'Confirm' : submitText)}
           color='primary'
+          disabled={primaryActionDisabled}
           loading={loading}
           type='submit'
         />

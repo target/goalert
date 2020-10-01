@@ -158,7 +158,7 @@ export default class ScheduleCalendar extends React.PureComponent {
    * darker version of that red if selected
    */
   eventStyleGetter = (event, start, end, isSelected) => {
-    if (event.fixedSched) {
+    if (event.fixed) {
       return {
         style: {
           backgroundColor: isSelected ? '#094819' : '#0D7128',
@@ -250,7 +250,7 @@ export default class ScheduleCalendar extends React.PureComponent {
       fixed: true,
     }))
 
-    // flat list of all fixed schifts, with `fixed` set to true
+    // flat list of all fixed shifts, with `fixed` set to true
     const fixedShifts = _.flatten(_.map(_fixedShifts, 'shifts')).map((s) => ({
       ...s,
       fixed: true,
