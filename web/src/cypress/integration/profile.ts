@@ -99,6 +99,32 @@ function testProfile(): void {
       cy.get('body').should('contain', `${name} (${type})`)
     })
 
+    it('should return error with link to conflicting user', () => {
+      cy.fixture('profile').then((prof) => {
+        cy.addContactMethod({ userID: prof.id }).then(
+          (contactMethod: ContactMethod) => {
+            cy.pageFab('Add Contact Method')
+            cy.dialogTitle('Create New Contact Method')
+            cy.dialogForm({
+              name: c.word({ length: 8 }),
+              type: contactMethod.type,
+              value: contactMethod.value,
+            })
+            cy.dialogClick('Submit')
+            cy.dialog()
+              .find('a[data-cy=error-help-link]')
+              .should(
+                'contain',
+                'Contact method already exists for that type and value: ' +
+                  prof.name,
+              )
+              .should('have.attr', 'href')
+              .and('include', `/users/${prof.id}`)
+          },
+        )
+      })
+    })
+
     it('should allow editing', () => {
       const name = 'SM CM ' + c.word({ length: 8 })
       cy.get('ul[data-cy=contact-methods]')
