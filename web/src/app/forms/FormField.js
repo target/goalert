@@ -186,15 +186,13 @@ export class FormField extends React.PureComponent {
           error={checkbox ? undefined : Boolean(props.error)}
           label={this.props.formLabel ? null : props.label}
         />
-        {!noError &&
-          (props.error || props.hint) &&
-          this.renderFormHelperText(props.error, props.hint)}
+        {!noError && this.renderFormHelperText(props.error, props.hint)}
       </FormControl>
     )
   }
 
   renderFormHelperText(error, hint) {
-    if (error.helpLink) {
+    if (error?.helpLink) {
       return (
         <FormHelperText>
           <AppLink to={error.helpLink} newTab data-cy='error-help-link'>
@@ -204,7 +202,7 @@ export class FormField extends React.PureComponent {
       )
     }
 
-    if (error.message) {
+    if (error?.message) {
       return (
         <FormHelperText>
           {error.message.replace(/^./, (str) => str.toUpperCase())}
