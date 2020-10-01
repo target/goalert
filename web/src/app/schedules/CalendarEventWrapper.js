@@ -111,7 +111,6 @@ export default class CalendarEventWrapper extends Component {
 
   renderOverrideButtons() {
     const { classes, event } = this.props
-
     return (
       <React.Fragment>
         <Grid item>

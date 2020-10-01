@@ -1,7 +1,7 @@
 import React, { useState, ReactNode } from 'react'
 import { useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
-import { fieldErrors, nonFieldErrors } from '../../util/errutil'
+import { FieldError, fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { Shift, Value } from './sharedUtils'
 import _ from 'lodash-es'
@@ -84,11 +84,13 @@ export default function FixedScheduleDialog({
     }
   }
 
-  const dialogErrors = nonFieldErrors(error).concat(
-    fieldErrors(error).map((f) => ({
-      message: `${f.field}: ${f.message}`,
-    })),
-  )
+  const nonFieldErrs = nonFieldErrors(error).map((e) => ({
+    message: e.message,
+  }))
+  const fieldErrs = fieldErrors(error).map((e) => ({
+    message: `${e.field}: ${e.message}`,
+  }))
+  const errs = nonFieldErrs.concat(fieldErrs)
 
   return (
     <FormDialog
@@ -98,7 +100,7 @@ export default function FixedScheduleDialog({
       primaryActionLabel={isComplete ? 'Done' : null}
       onClose={onClose}
       loading={loading}
-      errors={dialogErrors}
+      errors={errs}
       form={
         <FormContainer
           optionalLabels
