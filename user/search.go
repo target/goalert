@@ -25,7 +25,7 @@ type SearchOptions struct {
 
 	// CMValue is matched against the user's contact method phone number.
 	CMValue string `json:"v,omitempty"`
-	
+
 	// CMType is matched against the user's contact method type.
 	CMType contactmethod.Type `json:"t,omitempty"`
 }
