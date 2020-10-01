@@ -125,11 +125,40 @@ export default function AddShiftsStep({
     })
   }, [start])
 
+  // fieldErrors handles errors manually through the client
+  // as this step form is nested inside the greater form
+  // that makes the network request.
   function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
+
     if (!shift) {
       return result
     }
+
+    if (s) {
+      const message = 'this field is required'
+      if (!shift.userID) {
+        result.push({
+          field: 'userID',
+          message,
+        } as FieldError)
+      }
+      if (!shift.start) {
+        result.push({
+          field: 'start',
+          message,
+        } as FieldError)
+      }
+      if (!shift.end) {
+        result.push({
+          field: 'end',
+          message,
+        } as FieldError)
+      }
+
+      return result
+    }
+
     if (!isAfter(shift.end, shift?.start)) {
       result.push({
         field: 'end',
@@ -148,13 +177,25 @@ export default function AddShiftsStep({
         message: 'must not extend beyond fixed schedule end time',
       } as FieldError)
     }
-    if (s && !shift.userID) {
-      result.push({
-        field: 'userID',
-        message: 'a user must be assigned to the shift',
-      } as FieldError)
-    }
     return result
+  }
+
+  function handleAddShift() {
+    if (fieldErrors(true).length) {
+      setSubmitted(true)
+      return
+    }
+    if (!shift) return // ts sanity check
+
+    onChange(mergeShifts(value.concat(shift)))
+    const end = DateTime.fromISO(shift.end)
+    const diff = end.diff(DateTime.fromISO(shift.start))
+    setShift({
+      userID: '',
+      start: shift.end,
+      end: end.plus(diff).toISO(),
+    })
+    setSubmitted(false)
   }
 
   return (
@@ -195,26 +236,7 @@ export default function AddShiftsStep({
         <Grid item xs={2} className={classes.addButtonContainer}>
           <Fab
             className={classes.addButton}
-            onClick={() => {
-              if (!shift || !shift.start || !shift.end || !shift.userID) {
-                return
-              }
-
-              if (fieldErrors(true).length) {
-                setSubmitted(true)
-                return
-              }
-
-              onChange(mergeShifts(value.concat(shift ?? [])))
-              const end = DateTime.fromISO(shift.end)
-              const diff = end.diff(DateTime.fromISO(shift.start))
-              setShift({
-                userID: '',
-                start: shift.end,
-                end: end.plus(diff).toISO(),
-              })
-              setSubmitted(false)
-            }}
+            onClick={handleAddShift}
             size='medium'
             color='primary'
           >
