@@ -76,7 +76,7 @@ export default function FixedScheduleDialog({
         return (
           <ScheduleTimesStep
             key={key}
-            stepText='STEP 1 OF 2'
+            stepText='STEP 1 of 2'
             scheduleID={scheduleID}
           />
         )
@@ -86,7 +86,7 @@ export default function FixedScheduleDialog({
             key={key}
             value={value.shifts}
             onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
-            stepText={edit ? '' : 'STEP 2 OF 2'}
+            stepText={edit ? '' : 'STEP 2 of 2'}
             scheduleID={scheduleID}
             start={value.start}
             end={value.end}
@@ -94,17 +94,6 @@ export default function FixedScheduleDialog({
         )
       default:
         return null
-    }
-  }
-
-  function getPrimaryActionDisabled() {
-    switch (step) {
-      case 0:
-        return !value.start || !value.end
-      case 1:
-        return !value.shifts?.length ?? false
-      default:
-        return false
     }
   }
 
@@ -134,7 +123,6 @@ export default function FixedScheduleDialog({
           />
         </FormContainer>
       }
-      primaryActionDisabled={getPrimaryActionDisabled()}
       onSubmit={() => (isComplete ? onClose() : submit())}
       onNext={step === 1 ? null : () => setStep(step + 1)}
       onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
