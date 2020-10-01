@@ -1,7 +1,7 @@
-import React, { useState, useEffect, ReactNode } from 'react'
+import React, { useState, ReactNode } from 'react'
 import { useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
-import { fieldErrors } from '../../util/errutil'
+import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { Shift, Value } from './sharedUtils'
 import _ from 'lodash-es'
@@ -51,19 +51,6 @@ export default function FixedScheduleDialog({
     },
   })
 
-  const fieldErrs = error ? fieldErrors(error) : []
-  const stepOneErrs = fieldErrs.some((e) => ['start', 'end'].includes(e.field))
-
-  // array.fill fn?
-  const stepTwoErrs = fieldErrs.some((e) =>
-    ['summary', 'details'].includes(e.field),
-  )
-
-  useEffect(() => {
-    if (stepOneErrs) setStep(0)
-    else if (stepTwoErrs) setStep(1)
-  }, [stepOneErrs, stepTwoErrs])
-
   const isComplete = data && !loading && !error
 
   type SlideRenderer = {
@@ -97,6 +84,12 @@ export default function FixedScheduleDialog({
     }
   }
 
+  const dialogErrors = nonFieldErrors(error).concat(
+    fieldErrors(error).map((f) => ({
+      message: `${f.field}: ${f.message}`,
+    })),
+  )
+
   return (
     <FormDialog
       fullScreen
@@ -105,13 +98,13 @@ export default function FixedScheduleDialog({
       primaryActionLabel={isComplete ? 'Done' : null}
       onClose={onClose}
       loading={loading}
+      errors={dialogErrors}
       form={
         <FormContainer
           optionalLabels
           disabled={loading}
           value={value}
           onChange={(newValue: Value) => setValue(newValue)}
-          errors={fieldErrs}
         >
           <VirtualizeAnimatedViews
             index={step}
