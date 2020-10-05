@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react'
+import React, { useContext } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import _ from 'lodash-es'
