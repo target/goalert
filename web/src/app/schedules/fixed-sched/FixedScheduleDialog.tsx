@@ -1,7 +1,7 @@
 import React, { useState, ReactNode } from 'react'
 import { useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
-import { FieldError, fieldErrors, nonFieldErrors } from '../../util/errutil'
+import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { Shift, Value } from './sharedUtils'
 import _ from 'lodash-es'

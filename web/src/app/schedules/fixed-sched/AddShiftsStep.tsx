@@ -180,7 +180,7 @@ export default function AddShiftsStep({
     return result
   }
 
-  function handleAddShift() {
+  function handleAddShift(): void {
     if (fieldErrors(true).length) {
       setSubmitted(true)
       return
