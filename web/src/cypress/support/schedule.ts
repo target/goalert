@@ -1,5 +1,11 @@
 import { Chance } from 'chance'
-import { Schedule, ScheduleTarget, ScheduleTargetInput } from '../../schema'
+import { DateTime } from 'luxon'
+import {
+  Schedule,
+  ScheduleTarget,
+  ScheduleTargetInput,
+  FixedShiftGroup,
+} from '../../schema'
 
 const c = new Chance()
 
@@ -136,6 +142,46 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
       },
     ],
   })
+}
+
+function createFixedSchedule(
+  scheduleID?: string,
+  options?: Partial<FixedShiftGroup>,
+): Cypress.Chainable<void> {
+  const mutation = `
+    mutation($input: SetScheduleShiftsInput!) {
+      setScheduleShifts(input: $input)
+    }
+  `
+
+  if (!scheduleID) {
+    cy.createSchedule().then((s: Schedule) =>
+      createFixedSchedule(s.id, options),
+    )
+  }
+
+  const nowDT = DateTime.local()
+  let input = options || {}
+  if (!input.start) {
+    input.start = nowDT.startOf('day').toISO()
+  }
+  if (!input.end) {
+    input.end = nowDT.plus({ days: 7 }).endOf('day').toISO()
+  }
+  if (!input.shifts?.length) {
+    cy.fixture('users').then((users) => {
+      input.shifts = [
+        {
+          start: '',
+          end: '',
+          userID: users[0].id,
+          truncated: false,
+        },
+      ]
+    })
+  }
+
+  return cy.graphql(mutation, { input })
 }
 
 Cypress.Commands.add('createSchedule', createSchedule)
