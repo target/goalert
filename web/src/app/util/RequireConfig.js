@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useEffect, useContext } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import _ from 'lodash-es'
@@ -60,7 +60,9 @@ function parseValue(type, value) {
 
 function isTrue(value) {
   if (Array.isArray(value)) return value.length > 0
-
+  if (value === 'true' || value === 'false') {
+    return value === 'true'
+  }
   return Boolean(value)
 }
 
@@ -126,14 +128,18 @@ export default function RequireConfig(props) {
   if (wantIsAdmin && !isAdmin) {
     return elseValue
   }
-  if (configID && !test(config[configID])) {
+
+  const cfgOpt = config.find((c) => c.id === configID)
+  if (configID && !test(cfgOpt.value)) {
     return elseValue
   }
 
+  if (!children) return null
   return React.Children.map(children, (child) =>
     React.cloneElement(child, _.omit(rest, Object.keys(child.props))),
   )
 }
+
 RequireConfig.propTypes = {
   isAdmin: p.bool,
   configID: p.string,
