@@ -144,7 +144,7 @@ func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 				where
 					state.alert_id = esc.alert_id
 			)
-			select esc.alert_id, step isnull and chan isnull
+			select distinct esc.alert_id, step isnull and chan isnull
 			from to_escalate esc
 			left join _step_cycles step on step.ep_step_id = esc.ep_step_id
 			left join _step_channels chan on chan.ep_step_id = esc.ep_step_id
@@ -218,7 +218,7 @@ func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 				where
 					state.alert_id = esc.alert_id
 			)
-			select esc.alert_id, esc.repeated, esc.step_number, step isnull and chan isnull
+			select distinct esc.alert_id, esc.repeated, esc.step_number, step isnull and chan isnull
 			from to_escalate esc
 			left join _step_cycles step on step.ep_step_id = esc.ep_step_id
 			left join _step_channels chan on chan.ep_step_id = esc.ep_step_id
@@ -300,7 +300,7 @@ func NewDB(ctx context.Context, db *sql.DB, log alertlog.Store) (*DB, error) {
 				where
 					state.alert_id = esc.alert_id
 			)
-			select esc.alert_id, esc.repeated, esc.step_number, esc.old_delay, esc.forced, step isnull and chan isnull
+			select distinct esc.alert_id, esc.repeated, esc.step_number, esc.old_delay, esc.forced, step isnull and chan isnull
 			from to_escalate esc
 			left join _step_cycles step on step.ep_step_id = esc.ep_step_id
 			left join _step_channels chan on chan.ep_step_id = esc.ep_step_id
