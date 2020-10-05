@@ -162,18 +162,27 @@ function createFixedSchedule(
 
   const nowDT = DateTime.local()
   let input = options || {}
-  if (!input.start) {
+
+  // set start to start of today or 7 days before set end
+  if (!input.start && !input.end) {
     input.start = nowDT.startOf('day').toISO()
+  } else if (!input.start && input.end) {
+    input.start = DateTime.fromISO(input.end).minus({ days: 7 }).toISO()
   }
+
+  // set end to 7 days after start
   if (!input.end) {
-    input.end = nowDT.plus({ days: 7 }).endOf('day').toISO()
+    const start = DateTime.fromISO(input.start as string)
+    input.end = start.plus({ days: 7 }).endOf('day').toISO()
   }
+
+  // set a single shift to extend entire fixed shift duration
   if (!input.shifts?.length) {
     cy.fixture('users').then((users) => {
       input.shifts = [
         {
-          start: '',
-          end: '',
+          start: input.start as string,
+          end: input.end as string,
           userID: users[0].id,
           truncated: false,
         },
