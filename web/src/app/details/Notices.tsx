@@ -97,7 +97,7 @@ export default function Notices(props: NoticesProps): JSX.Element | null {
           <AlertTitle>
             {toTitleCase(notice.type)}: {notice.message}
           </AlertTitle>
-          {notice.details}
+          <div style={{ whiteSpace: 'pre-line' }}>{notice.details}</div>
         </Alert>
       </Grid>
     )

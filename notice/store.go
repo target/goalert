@@ -99,10 +99,10 @@ func (s *Store) checkPhoneCallback(ctx context.Context, number string) ([]Notice
 
 	var problems []string
 	if phone.SMSMethod != "POST" || phone.SMSURL != cfg.CallbackURL("/api/v2/twilio/message") {
-		problems = append(problems, "SMS webhook method/URL is incorrect, SMS replies may fail")
+		problems = append(problems, "SMS webhook method/URL is incorrect, SMS replies may fail.")
 	}
 	if phone.VoiceMethod != "POST" || phone.VoiceURL != cfg.CallbackURL("/api/v2/twilio/call") {
-		problems = append(problems, "voice webhook method/URL is incorrect, incoming calls may fail")
+		problems = append(problems, "Voice webhook method/URL is incorrect, incoming calls may fail.")
 	}
 
 	if len(problems) > 0 {
