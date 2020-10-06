@@ -236,6 +236,8 @@ export default function AddShiftsStep({
         <Grid item xs={2} className={classes.addButtonContainer}>
           <Fab
             className={classes.addButton}
+            aria-label='Add Shift'
+            title='Add Shift'
             onClick={handleAddShift}
             size='medium'
             color='primary'

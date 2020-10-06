@@ -117,6 +117,7 @@ export default function FixedSchedShiftsList({
         Shifts
       </Typography>
       <FlatList
+        data-cy='shifts-list'
         items={items()}
         emptyMessage='Add a user to the left to get started.'
         dense
