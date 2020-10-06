@@ -24,6 +24,7 @@ import CopyText from '../util/CopyText'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import { ConfigValue, ConfigHint } from '../../schema'
+import Notices from '../details/Notices'
 
 const query = gql`
   query getConfig {
@@ -43,6 +44,15 @@ const query = gql`
 const mutation = gql`
   mutation($input: [ConfigValueInput!]) {
     setConfig(input: $input)
+  }
+`
+const noticeQuery = gql`
+  query {
+    configNotices {
+      type
+      message
+      details
+    }
   }
 `
 
@@ -90,6 +100,21 @@ export default function AdminConfig(): JSX.Element {
   const [section, setSection] = useState(false as false | string)
 
   const { data, loading, error } = useQuery(query)
+  const { data: noticeData, error: noticeError } = useQuery(noticeQuery, {
+    pollInterval: 60000,
+  })
+  let notices = []
+  if (noticeError) {
+    notices = [
+      {
+        type: 'ERROR',
+        message: 'Failed to check configuration.',
+        details: noticeError.message,
+      },
+    ]
+  } else if (noticeData?.configNotices?.length) {
+    notices = noticeData.configNotices
+  }
 
   if (error) {
     return <GenericError error={error.message} />
@@ -166,6 +191,8 @@ export default function AdminConfig(): JSX.Element {
 
   return (
     <React.Fragment>
+      <Notices notices={notices} />
+
       {groups.map((groupID: string, index: number) => (
         <Accordion
           key={groupID}

@@ -131,11 +131,7 @@ export default function DetailsPage(props) {
 
   return (
     <Grid container>
-      {(notices?.length ?? 0) > 0 && (
-        <Grid item xs={12} className={classes.spacing}>
-          <Notices notices={notices} />
-        </Grid>
-      )}
+      <Notices notices={notices} />
       <Grid item xs={12} className={classes.spacing}>
         <Card>
           <CardContent>

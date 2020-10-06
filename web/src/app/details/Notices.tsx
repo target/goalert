@@ -13,6 +13,17 @@ import toTitleCase from '../util/toTitleCase'
 import { Notice } from '../../schema'
 
 const useStyles = makeStyles({
+  spacing: {
+    '&:not(:first-child)': {
+      marginTop: 8,
+    },
+    '&:not(:last-child)': {
+      marginBottom: 8,
+    },
+    '&:last-child': {
+      marginBottom: 64,
+    },
+  },
   alertAction: {
     marginRight: 0,
   },
@@ -34,7 +45,7 @@ interface NoticesProps {
   notices: Notice[] // checks against .length are safe as notices is required
 }
 
-export default function Notices(props: NoticesProps): JSX.Element {
+export default function Notices(props: NoticesProps): JSX.Element | null {
   const classes = useStyles()
   const [noticesExpanded, setNoticesExpanded] = useState(false)
 
@@ -92,15 +103,21 @@ export default function Notices(props: NoticesProps): JSX.Element {
     )
   }
 
+  if (!props.notices?.length) {
+    return null
+  }
+
   return (
-    <Grid container>
-      {renderNotice(props.notices[0], 0)}
-      <Grid item xs={12}>
-        <Collapse in={noticesExpanded}>
-          <Grid container>
-            {props.notices.slice(1).map((n, i) => renderNotice(n, i + 1))}
-          </Grid>
-        </Collapse>
+    <Grid item xs={12} className={classes.spacing}>
+      <Grid container>
+        {renderNotice(props.notices[0], 0)}
+        <Grid item xs={12}>
+          <Collapse in={noticesExpanded}>
+            <Grid container>
+              {props.notices.slice(1).map((n, i) => renderNotice(n, i + 1))}
+            </Grid>
+          </Collapse>
+        </Grid>
       </Grid>
     </Grid>
   )

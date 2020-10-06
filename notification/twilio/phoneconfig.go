@@ -30,7 +30,6 @@ type PhoneNumberConfig struct {
 func (c *Config) PhoneNumberConfig(ctx context.Context, number string) (*PhoneNumberConfig, error) {
 	cfg := config.FromContext(ctx)
 	urlStr := c.url("Accounts", cfg.Twilio.AccountSID, "IncomingPhoneNumbers.json") + "?PhoneNumber=" + url.QueryEscape(number)
-	fmt.Println("GET", urlStr)
 	resp, err := c.get(ctx, urlStr)
 	if err != nil {
 		return nil, err

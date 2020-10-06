@@ -85,14 +85,14 @@ func (s *Store) checkPhoneCallback(ctx context.Context, number string) ([]Notice
 	}
 	if !phone.Capabilities.SMS {
 		notices = append(notices, Notice{
-			Type:    TypeError,
+			Type:    TypeWarning,
 			Message: fmt.Sprintf("Twilio: %s does not support SMS", number),
 			Details: "SMS messages will fail to send from this number",
 		})
 	}
 	if !phone.Capabilities.Voice {
 		notices = append(notices, Notice{
-			Type:    TypeError,
+			Type:    TypeWarning,
 			Message: fmt.Sprintf("Twilio: %s does not support voice", number),
 		})
 	}
