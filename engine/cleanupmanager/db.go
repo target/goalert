@@ -43,6 +43,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		setTimeout:      p.P(`SET LOCAL statement_timeout = 3000`),
 		cleanupAlerts:   p.P(`delete from alerts where id = any(select id from alerts where status = 'closed' AND created_at < (now() - $1::interval) order by id limit 100 for update skip locked)`),
 		cleanupAPIKeys:  p.P(`update user_calendar_subscriptions set disabled = true where id = any(select id from user_calendar_subscriptions where greatest(last_access, last_update) < (now() - $1::interval) order by id limit 100 for update skip locked)`),
-		cleanupSessions: p.P(`DELETE FROM auth_user_sessions WHERE id = any(select id from auth_user_sessions where last_access_at < (now() - '30 days'::interval) LIMIT 1 for update skip locked)`),
+		cleanupSessions: p.P(`DELETE FROM auth_user_sessions WHERE id = any(select id from auth_user_sessions where last_access_at < (now() - '30 days'::interval) LIMIT 100 for update skip locked)`),
 	}, p.Err
 }
