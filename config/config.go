@@ -106,6 +106,27 @@ type Config struct {
 	}
 }
 
+// TwilioSMSFromNumbers returns the current set of possible unique From-numbers for
+// SMS carrier override.
+func (cfg Config) TwilioSMSFromNumbers() []string {
+	numbers := make([]string, 0, len(cfg.Twilio.SMSFromNumberOverride))
+	uniq := make(map[string]struct{})
+
+	for _, s := range cfg.Twilio.SMSFromNumberOverride {
+		parts := strings.SplitN(s, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		if _, ok := uniq[parts[1]]; ok {
+			continue
+		}
+		uniq[parts[1]] = struct{}{}
+		numbers = append(numbers, parts[1])
+	}
+
+	return numbers
+}
+
 // TwilioSMSFromNumber will determine the appropriate FROM number to use for SMS messages to the given number
 func (cfg Config) TwilioSMSFromNumber(carrier string) string {
 	if carrier == "" {

@@ -287,6 +287,7 @@ type ComplexityRoot struct {
 		AuthSubjectsForProvider  func(childComplexity int, first *int, after *string, providerID string) int
 		Config                   func(childComplexity int, all *bool) int
 		ConfigHints              func(childComplexity int) int
+		ConfigNotices            func(childComplexity int) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
 		EscalationPolicy         func(childComplexity int, id string) int
 		HeartbeatMonitor         func(childComplexity int, id string) int
@@ -600,6 +601,7 @@ type QueryResolver interface {
 	UserOverride(ctx context.Context, id string) (*override.UserOverride, error)
 	Config(ctx context.Context, all *bool) ([]ConfigValue, error)
 	ConfigHints(ctx context.Context) ([]ConfigHint, error)
+	ConfigNotices(ctx context.Context) ([]notice.Notice, error)
 	SystemLimits(ctx context.Context) ([]SystemLimit, error)
 	UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error)
 	SlackChannels(ctx context.Context, input *SlackChannelSearchOptions) (*SlackChannelConnection, error)
@@ -1820,6 +1822,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ConfigHints(childComplexity), true
+
+	case "Query.configNotices":
+		if e.complexity.Query.ConfigNotices == nil {
+			break
+		}
+
+		return e.complexity.Query.ConfigNotices(childComplexity), true
 
 	case "Query.escalationPolicies":
 		if e.complexity.Query.EscalationPolicies == nil {
@@ -3061,6 +3070,9 @@ var sources = []*ast.Source{
 
   # Returns configuration hints (must be admin).
   configHints: [ConfigHint!]!
+
+  # Returns a list of possible config issues (must be admin).
+  configNotices: [Notice!]!
 
   # Returns configuration limits
   systemLimits: [SystemLimit!]!
@@ -10569,6 +10581,40 @@ func (ec *executionContext) _Query_configHints(ctx context.Context, field graphq
 	res := resTmp.([]ConfigHint)
 	fc.Result = res
 	return ec.marshalNConfigHint2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHintᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_configNotices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ConfigNotices(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]notice.Notice)
+	fc.Result = res
+	return ec.marshalNNotice2ᚕgithubᚗcomᚋtargetᚋgoalertᚋnoticeᚐNoticeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_systemLimits(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19152,6 +19198,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_configHints(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "configNotices":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_configNotices(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

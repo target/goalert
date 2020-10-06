@@ -94,7 +94,6 @@ func (c *Config) get(ctx context.Context, urlStr string) (*http.Response, error)
 	req = req.WithContext(ctx)
 	req.Header.Set("X-Twilio-Signature", string(Signature(cfg.Twilio.AuthToken, urlStr, nil)))
 	req.SetBasicAuth(cfg.Twilio.AccountSID, cfg.Twilio.AuthToken)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	return c.httpClient().Do(req)
 }

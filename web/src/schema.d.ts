@@ -26,6 +26,7 @@ export interface Query {
   userOverride?: UserOverride
   config: ConfigValue[]
   configHints: ConfigHint[]
+  configNotices: Notice[]
   systemLimits: SystemLimit[]
   userContactMethod?: UserContactMethod
   slackChannels: SlackChannelConnection

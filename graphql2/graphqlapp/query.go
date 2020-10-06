@@ -4,6 +4,7 @@ import (
 	context "context"
 
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/validation/validate"
 
@@ -13,6 +14,10 @@ import (
 type Query App
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
+
+func (a *Query) ConfigNotices(ctx context.Context) ([]notice.Notice, error) {
+	return a.NoticeStore.FindAllConfigNotices(ctx)
+}
 
 func (a *Query) AuthSubjectsForProvider(ctx context.Context, _first *int, _after *string, providerID string) (conn *graphql2.AuthSubjectConnection, err error) {
 	var first int

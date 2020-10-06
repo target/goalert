@@ -86,6 +86,9 @@ type Query {
   # Returns configuration hints (must be admin).
   configHints: [ConfigHint!]!
 
+  # Returns a list of possible config issues (must be admin).
+  configNotices: [Notice!]!
+
   # Returns configuration limits
   systemLimits: [SystemLimit!]!
 

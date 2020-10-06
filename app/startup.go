@@ -63,6 +63,8 @@ func (app *App) startup(ctx context.Context) error {
 	app.initStartup(
 		ctx, "Startup.Twilio", app.initTwilio)
 
+	app.NoticeStore.SetTwilioConfig(app.twilioConfig)
+
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
