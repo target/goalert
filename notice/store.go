@@ -50,6 +50,14 @@ func (s *Store) FindAllConfigNotices(ctx context.Context) ([]Notice, error) {
 		return nil, nil
 	}
 
+	if cfg.General.PublicURL == "" {
+		return []Notice{{
+			Type:    TypeError,
+			Message: "Twilio: Public URL is not set.",
+			Details: "Voice calls and message status will not work properly.",
+		}}, nil
+	}
+
 	var notices []Notice
 
 	phoneN, err := s.checkPhoneCallback(ctx, cfg.Twilio.FromNumber)
