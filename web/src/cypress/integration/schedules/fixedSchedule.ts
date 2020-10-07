@@ -4,7 +4,7 @@ import { Schedule, User } from '../../../schema'
 import { DateTime, Interval } from 'luxon'
 
 const c = new Chance()
-const dtfmt = 'MMddyyyyhhmma'
+const dtfmt = "yyyy-MM-dd'T'HH:mm"
 
 function getStepOneValues(): [string, string, number] {
   const now = DateTime.local()
@@ -25,10 +25,12 @@ function getStepOneValues(): [string, string, number] {
   })
 
   // create start, create end time from start
-  const start = DateTime.fromObject({ year, month, day }).endOf('day')
-  const end = start.plus({
-    days: c.integer({ min: 1, max: 31 }),
-  })
+  const start = DateTime.fromObject({ year, month, day }).startOf('day')
+  const end = start
+    .plus({
+      days: c.integer({ min: 1, max: 31 }),
+    })
+    .endOf('day')
   const duration = Interval.fromDateTimes(start, end).toDuration().hours
 
   return [start.toFormat(dtfmt), end.toFormat(dtfmt), duration]
@@ -47,18 +49,25 @@ function testFixedSchedule(screen: ScreenFormat): void {
   })
 
   it.only('should create a fixed schedule', () => {
+    // check calendar for original shift in weekly view
+    // this allows us to compare shift times with a user's
+    // name in the same div
+    // hit next/back buttons? update url? etc
+
     // fill out step 1 start and end times
     const [start, end, duration] = getStepOneValues()
     cy.dialogForm({ start, end })
 
     // go to step 2
     cy.get('[data-cy="loading-button"]').contains('Next').click()
+    cy.contains('STEP 2 OF 2').should('be.visible')
 
     // add shift for full duration
+    // TODO: get start/end from within current container in dialog (step 1 causing conflict in cypress getter)
     cy.dialogForm({
       start,
-      end: duration,
-      userID: users[0].id,
+      end: duration, // TODO: duration always returning 0?
+      userID: users[0].name,
     })
 
     // verify shift doesn't exist in list yet
@@ -71,7 +80,7 @@ function testFixedSchedule(screen: ScreenFormat): void {
     cy.get('[data-cy="shifts-list"]').should('contain', users[0].name)
 
     // click submit
-    cy.dialogFinish()
+    cy.dialogFinish('Submit')
 
     // check fixed sched length in calendar
     cy.get('div').contains('Fixed Schedule').trigger('mouseover')
@@ -79,9 +88,11 @@ function testFixedSchedule(screen: ScreenFormat): void {
     cy.get('button[data-cy="edit-fixed-sched"]').should('be.visible')
     cy.get('button[data-cy="delete-fixed-sched"]').should('be.visible')
 
-    // check new shift in calendar
+    // check new shift + its tooltip exists in calendar
     cy.get('div').contains(users[0].name).trigger('mouseover')
-    // check overlapped shifts no longer show
+    cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+
+    // check original overlapped shifts no longer show
   })
 
   it('should edit a fixed schedule', () => {
@@ -89,8 +100,7 @@ function testFixedSchedule(screen: ScreenFormat): void {
     // hover over fixed sched span
     // click edit button
     // click delete button in step 2
-    // add shift
-    //
+    // add shift with new info in fields
     // click add shift button
     // verify shift shows up on right
     // click submit
