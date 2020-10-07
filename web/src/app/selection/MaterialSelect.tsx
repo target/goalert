@@ -151,7 +151,7 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={getLabel}
+      onBlur={() => setInputValue(multiple || !value ? '' : getLabel())}
       loading={isLoading}
       getOptionLabel={(option) => option?.label ?? ''}
       options={options}
