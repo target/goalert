@@ -111,7 +111,7 @@ export default function UserSessionList(
   const sessions: UserSession[] = _.sortBy(
     data?.user?.sessions || [],
     (s: UserSession) => (s.current ? '_' + s.lastAccessAt : s.lastAccessAt),
-  )
+  ).reverse()
 
   const [logoutOne, logoutOneStatus] = useMutation(mutationLogoutOne, {
     variables: { id: (endSession as Session)?.id },

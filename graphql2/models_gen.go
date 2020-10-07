@@ -486,10 +486,12 @@ type UserOverrideSearchOptions struct {
 }
 
 type UserSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First   *int                `json:"first"`
+	After   *string             `json:"after"`
+	Search  *string             `json:"search"`
+	Omit    []string            `json:"omit"`
+	CMValue *string             `json:"CMValue"`
+	CMType  *contactmethod.Type `json:"CMType"`
 }
 
 type VerifyContactMethodInput struct {
