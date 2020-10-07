@@ -4,6 +4,7 @@ import { Schedule, User } from '../../../schema'
 import { DateTime, Interval } from 'luxon'
 
 const c = new Chance()
+const dtfmt = 'MMddyyyyhhmma'
 
 function getStepOneValues(): [string, string, number] {
   const now = DateTime.local()
@@ -30,11 +31,7 @@ function getStepOneValues(): [string, string, number] {
   })
   const duration = Interval.fromDateTimes(start, end).toDuration().hours
 
-  return [
-    start.toFormat('MMddyyyyhhmma'),
-    end.toFormat('MMddyyyyhhmma'),
-    duration,
-  ]
+  return [start.toFormat(dtfmt), end.toFormat(dtfmt), duration]
 }
 
 function testFixedSchedule(screen: ScreenFormat): void {
@@ -77,7 +74,13 @@ function testFixedSchedule(screen: ScreenFormat): void {
     cy.dialogFinish()
 
     // check fixed sched length in calendar
+    cy.get('div').contains('Fixed Schedule').trigger('mouseover')
+    cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+    cy.get('button[data-cy="edit-fixed-sched"]').should('be.visible')
+    cy.get('button[data-cy="delete-fixed-sched"]').should('be.visible')
+
     // check new shift in calendar
+    cy.get('div').contains(users[0].name).trigger('mouseover')
     // check overlapped shifts no longer show
   })
 
