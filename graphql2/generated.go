@@ -3769,6 +3769,8 @@ input UserSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  CMValue: String = ""
+  CMType: ContactMethodType
 }
 
 input AlertSearchOptions {
@@ -17966,6 +17968,18 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "CMValue":
+			var err error
+			it.CMValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "CMType":
+			var err error
+			it.CMType, err = ec.unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -23866,6 +23880,21 @@ func (ec *executionContext) unmarshalOContactMethodType2githubᚗcomᚋtargetᚋ
 
 func (ec *executionContext) marshalOContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, sel ast.SelectionSet, v contactmethod.Type) graphql.Marshaler {
 	return MarshalContactMethodType(v)
+}
+
+func (ec *executionContext) unmarshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, v interface{}) (*contactmethod.Type, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOContactMethodType2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx context.Context, sel ast.SelectionSet, v *contactmethod.Type) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOContactMethodType2githubᚗcomᚋtargetᚋgoalertᚋuserᚋcontactmethodᚐType(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOCreateEscalationPolicyInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateEscalationPolicyInput(ctx context.Context, v interface{}) (CreateEscalationPolicyInput, error) {
