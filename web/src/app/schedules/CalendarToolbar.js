@@ -10,10 +10,10 @@ import {
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
-import PersonAddIcon from '@material-ui/icons/PersonAdd'
+import FixedSchedIcon from '@material-ui/icons/GroupAdd'
 
 const useStyles = makeStyles((theme) => ({
-  addOverrideGridItem: {
+  fixedSchedBtn: {
     marginLeft: theme.spacing(1),
   },
   container: {
@@ -46,8 +46,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export default function CalendarToolbar(props) {
-  const { date, onOverrideClick: handleAddOverrideClick, view } = props
-
+  const { date, onNewFixedSched, view } = props
   const classes = useStyles()
   const urlParams = useSelector(urlParamSelector)
   const weekly = urlParams('weekly', false)
@@ -121,18 +120,20 @@ export default function CalendarToolbar(props) {
             Week
           </Button>
         </ButtonGroup>
-        <Button
-          data-cy='add-override'
-          variant='contained'
-          size='small'
-          color='primary'
-          className={classes.addOverrideGridItem}
-          onClick={() => handleAddOverrideClick()}
-          startIcon={<PersonAddIcon />}
-          title='Temporarily add a user to this schedule'
-        >
-          Temp Add
-        </Button>
+        {onNewFixedSched && (
+          <Button
+            data-cy='new-fixed-sched'
+            variant='contained'
+            size='small'
+            color='primary'
+            className={classes.fixedSchedBtn}
+            onClick={() => onNewFixedSched()}
+            startIcon={<FixedSchedIcon />}
+            title='Make temporary change to this schedule'
+          >
+            Fixed Sched
+          </Button>
+        )}
       </Grid>
     </Grid>
   )
@@ -142,7 +143,7 @@ CalendarToolbar.propTypes = {
   date: p.instanceOf(Date).isRequired,
   label: p.string.isRequired,
   onNavigate: p.func.isRequired,
-  onOverrideClick: p.func.isRequired,
   onView: p.func.isRequired,
   view: p.string.isRequired,
+  onNewFixedSched: p.func,
 }

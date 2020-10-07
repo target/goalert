@@ -15,12 +15,17 @@ import { DateTime, Interval } from 'luxon'
 import { theme } from '../mui'
 import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import LuxonLocalizer from '../util/LuxonLocalizer'
+import { parseInterval, trimSpans } from '../util/shifts'
+import _ from 'lodash-es'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
 const styles = {
   calendarContainer: {
     padding: '1em',
+  },
+  card: {
+    marginTop: 4,
   },
 }
 
@@ -64,6 +69,8 @@ export default class ScheduleCalendar extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
     shifts: p.array.isRequired,
+    fixedShifts: p.array,
+    CardProps: p.object, // todo: use CardProps from types once TS
   }
 
   state = {
@@ -151,30 +158,28 @@ export default class ScheduleCalendar extends React.PureComponent {
    * darker version of that red if selected
    */
   eventStyleGetter = (event, start, end, isSelected) => {
-    return {
-      style: {
-        backgroundColor: isSelected ? '#8f1022' : '#cd1831',
-        borderColor: '#8f1022',
-      },
-    }
-  }
-
-  /*
-   * Return a light red shade of the current date instead of
-   * the default light blue
-   */
-  dayPropGetter = (date) => {
-    if (DateTime.fromJSDate(date).toLocal().hasSame(DateTime.local(), 'day')) {
+    if (event.fixed) {
       return {
         style: {
-          backgroundColor: '#FFECEC',
+          backgroundColor: isSelected ? '#094819' : '#0D7128',
+          borderColor: '#094819',
         },
       }
     }
   }
 
   render() {
-    const { classes, shifts, start, weekly } = this.props
+    const {
+      classes,
+      shifts,
+      fixedShifts,
+      start,
+      weekly,
+      CardProps,
+      onNewFixedSched,
+      onEditFixedSched,
+      onDeleteFixedSched,
+    } = this.props
 
     return (
       <React.Fragment>
@@ -184,12 +189,12 @@ export default class ScheduleCalendar extends React.PureComponent {
             {Intl.DateTimeFormat().resolvedOptions().timeZone}
           </i>
         </Typography>
-        <Card>
+        <Card className={classes.card} {...CardProps}>
           <div data-cy='calendar' className={classes.calendarContainer}>
             <Calendar
               date={new Date(start)}
               localizer={localizer}
-              events={this.getCalEvents(shifts)}
+              events={this.getCalEvents(shifts, fixedShifts)}
               style={{
                 height: weekly ? '100%' : '45rem',
                 fontFamily: theme.typography.body2.fontFamily,
@@ -200,7 +205,6 @@ export default class ScheduleCalendar extends React.PureComponent {
               view={weekly ? 'week' : 'month'}
               popup
               eventPropGetter={this.eventStyleGetter}
-              dayPropGetter={this.dayPropGetter}
               onNavigate={this.handleCalNavigate}
               onView={this.handleViewChange}
               components={{
@@ -209,14 +213,14 @@ export default class ScheduleCalendar extends React.PureComponent {
                     onOverrideClick={(overrideDialog) =>
                       this.setState({ overrideDialog })
                     }
+                    onEditFixedSched={onEditFixedSched}
+                    onDeleteFixedSched={onDeleteFixedSched}
                     {...props}
                   />
                 ),
                 toolbar: (props) => (
                   <CalendarToolbar
-                    onOverrideClick={() =>
-                      this.setState({ overrideDialog: { variant: 'add' } })
-                    }
+                    onNewFixedSched={onNewFixedSched}
                     {...props}
                   />
                 ),
@@ -237,9 +241,31 @@ export default class ScheduleCalendar extends React.PureComponent {
     )
   }
 
-  getCalEvents = (shifts) => {
+  getCalEvents = (shifts, _fixedShifts) => {
+    const fixedSchedules = _fixedShifts.map((sched) => ({
+      start: sched.start,
+      end: sched.end,
+      user: { name: 'Fixed Schedule' },
+      fixedSched: sched,
+      fixed: true,
+    }))
+
+    // flat list of all fixed shifts, with `fixed` set to true
+    const fixedShifts = _.flatten(_.map(_fixedShifts, 'shifts')).map((s) => ({
+      ...s,
+      fixed: true,
+    }))
+
+    const fixedIntervals = fixedSchedules.map(parseInterval)
+    let filteredShifts = [
+      ...fixedSchedules,
+      ...fixedShifts,
+
+      // Remove shifts within a fixed schedule, and trim any that overlap
+      ...trimSpans(shifts, ...fixedIntervals),
+    ]
+
     // if any users in users array, only show the ids present
-    let filteredShifts = shifts.slice()
     if (this.props.userFilter.length > 0) {
       filteredShifts = filteredShifts.filter((shift) =>
         this.props.userFilter.includes(shift.user.id),
@@ -247,11 +273,13 @@ export default class ScheduleCalendar extends React.PureComponent {
     }
 
     if (this.props.activeOnly) {
-      filteredShifts = filteredShifts.filter((shift) =>
-        Interval.fromDateTimes(
-          DateTime.fromISO(shift.start),
-          DateTime.fromISO(shift.end),
-        ).contains(DateTime.local()),
+      filteredShifts = filteredShifts.filter(
+        (shift) =>
+          shift.fixedSched ||
+          Interval.fromDateTimes(
+            DateTime.fromISO(shift.start),
+            DateTime.fromISO(shift.end),
+          ).contains(DateTime.local()),
       )
     }
 
@@ -261,6 +289,9 @@ export default class ScheduleCalendar extends React.PureComponent {
         userID: shift.user.id,
         start: new Date(shift.start),
         end: new Date(shift.end),
+        fixed: shift.fixed,
+        fixedSched: shift.fixedSched,
+        ...shifts,
       }
     })
   }

@@ -135,7 +135,7 @@ func cleanupScheduleData(data *schedule.Data, userMap map[string]struct{}, now t
 			grp.Shifts = append(grp.Shifts, shift)
 		}
 
-		data.V1.TemporarySchedules[idx] = schedule.TrimGroupStart(grp, now)
+		data.V1.TemporarySchedules[idx] = schedule.TrimGroupStart(grp, now.Truncate(time.Minute))
 	}
 
 	data.V1.TemporarySchedules = schedule.MergeGroups(data.V1.TemporarySchedules)
