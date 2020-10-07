@@ -185,7 +185,6 @@ export default function MaterialSelect(
             onChange={({ target }) => {
               const newInputVal: string = target.value
               setInputValue(newInputVal)
-              if (onInputChange) onInputChange(newInputVal)
             }}
             error={error}
           />
