@@ -87,6 +87,7 @@ func NewServer(cfg Config) *Server {
 	s.mux.HandleFunc(base+"/Calls/", s.serveCallStatus)
 	s.mux.HandleFunc(base+"/Messages/", s.serveMessageStatus)
 	s.mux.HandleFunc("/v1/PhoneNumbers/", s.serveLookup)
+	s.mux.HandleFunc(base+"/IncomingPhoneNumbers.json", s.servePhoneNumbers)
 
 	s.workers.Add(1)
 	go s.loop()
