@@ -76,6 +76,7 @@ export interface QueryListProps extends ControlledPaginatedListProps {
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   variables?: any
+  mapVariables?: (vars: any) => any
 }
 
 export default function QueryList(props: QueryListProps): JSX.Element {
@@ -89,6 +90,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     query,
     variables = {},
     noSearch,
+    mapVariables = (v) => v,
     ...listProps
   } = props
   const { input, ...vars } = variables
@@ -112,7 +114,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
 
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
     client: GraphQLClientWithErrors,
-    variables: queryVariables,
+    variables: mapVariables(queryVariables),
     fetchPolicy: 'network-only',
     pollInterval: POLL_INTERVAL,
   })
