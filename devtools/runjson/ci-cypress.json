@@ -6,7 +6,8 @@
       "-l=localhost:3042",
       "--db-url=postgres://goalert@localhost:5432/goalert?sslmode=disable",
       "--log-requests=false",
-      "--slack-base-url=http://localhost:3040/slack"
+      "--slack-base-url=http://localhost:3040/slack",
+      "--twilio-base-url=http://localhost:3040/twilio"
     ]
   },
   {
@@ -22,11 +23,26 @@
     ]
   },
   {
+    "Name": "Twilio",
+    "Restart": true,
+    "Watch": true,
+    "Command": [
+      "bin/mocktwilio",
+      "-account-sid=AC00000000000000000000000000000000",
+      "-auth-token=11111111111111111111111111111111",
+      "-sms=+17635550123=http://localhost:3040/api/v2/twilio/message",
+      "-voice=+17635550123=http://localhost:3040/api/v2/twilio/call",
+      "-prefix=/twilio",
+      "-addr=localhost:3047"
+    ]
+  },
+  {
     "Name": "Proxy",
     "Command": [
       "bin/simpleproxy",
       "-addr=localhost:3040",
       "/slack/=http://localhost:3046",
+      "/twilio/=http://localhost:3047",
       "http://localhost:3042"
     ]
   },
