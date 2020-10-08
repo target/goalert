@@ -68,6 +68,48 @@ function testAdmin(): void {
       )
     })
   })
+  describe('Admin Config Notices', () => {
+    describe('Twilio', () => {
+      beforeEach(() => cy.resetConfig())
+      it('Should check for invalid callback URLs', () => {
+        cy.updateConfig({
+          General: { PublicURL: 'http://example.com' },
+          Twilio: {
+            Enable: true,
+            AccountSID: 'AC00000000000000000000000000000000',
+            AuthToken: '11111111111111111111111111111111',
+            FromNumber: '+17635550123',
+          },
+        })
+
+        cy.visit('/admin')
+
+        cy.get('[role=alert]')
+          .should('contain', '+17635550123')
+          .should('contain', 'SMS webhook')
+          .should('contain', 'Voice webhook')
+      })
+
+      it('Should check for invalid FromNumbers', () => {
+        cy.updateConfig({
+          General: { PublicURL: 'http://example.com' },
+          Twilio: {
+            Enable: true,
+            AccountSID: 'AC00000000000000000000000000000000',
+            AuthToken: '11111111111111111111111111111111',
+            FromNumber: '+17635559999',
+            SMSFromNumberOverride: ['examplecarrier=+17635558888'],
+          },
+        })
+
+        cy.visit('/admin')
+
+        cy.get('[role=alert]')
+          .should('contain', '+17635559999 does not exist')
+          .and('contain', '+17635558888 does not exist')
+      })
+    })
+  })
   describe('Admin Config Page', () => {
     let cfg: Config
     beforeEach(() => {
