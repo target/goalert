@@ -80,10 +80,9 @@ function testAdmin(): void {
           },
           Twilio: {
             Enable: true,
-            AccountSID:
-              'AC' + c.string({ length: 32, pool: '0123456789abcdef' }),
-            AuthToken: c.string({ length: 32, pool: '0123456789abcdef' }),
-            FromNumber: '+17633' + c.string({ length: 6, pool: '0123456789' }),
+            AccountSID: 'AC00000000000000000000000000000000',
+            AuthToken: '11111111111111111111111111111111',
+            FromNumber: '+17635550123',
           },
         })
         .then((curCfg: Config) => {

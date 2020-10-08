@@ -63,6 +63,8 @@ $(BIN_DIR)/resetdb: go.sum devtools/resetdb/*.go migrate/*.go
 	go build $(BUILD_FLAGS) -o $@ ./devtools/$(@F)
 $(BIN_DIR)/mockslack: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	go build $(BUILD_FLAGS) -o $@ ./devtools/mockslack/cmd/mockslack
+$(BIN_DIR)/mocktwilio: go.sum $(shell find ./devtools/mocktwilio -name '*.go')
+	go build $(BUILD_FLAGS) -o $@ ./devtools/mocktwilio/cmd/mocktwilio
 $(BIN_DIR)/sendit: go.sum $(shell find ./devtools/sendit -name '*.go')
 	go build $(BUILD_FLAGS) -o $@ ./devtools/sendit/cmd/sendit
 $(BIN_DIR)/sendit-server: go.sum $(shell find ./devtools/sendit -name '*.go')
@@ -84,6 +86,8 @@ $(BIN_DIR)/resetdb.linux: go.sum devtools/resetdb/*.go migrate/*.go
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/$(basename $(@F))
 $(BIN_DIR)/mockslack.linux: go.sum $(shell find ./devtools/mockslack -name '*.go')
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/mockslack/cmd/mockslack
+$(BIN_DIR)/mocktwilio.linux: go.sum $(shell find ./devtools/mocktwilio -name '*.go')
+	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/mocktwilio/cmd/mocktwilio
 $(BIN_DIR)/sendit.linux: go.sum $(shell find ./devtools/sendit -name '*.go')
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ ./devtools/sendit/cmd/sendit
 $(BIN_DIR)/sendit-server.linux: go.sum $(shell find ./devtools/sendit -name '*.go')
@@ -119,7 +123,7 @@ $(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cyp
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert.linux $(BIN_DIR)/mockslack.linux $(BIN_DIR)/simpleproxy.linux $(BIN_DIR)/waitfor.linux $(BIN_DIR)/runjson.linux $(BIN_DIR)/procwrap.linux $(BIN_DIR)/psql-lite.linux
+$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert.linux $(BIN_DIR)/mockslack.linux $(BIN_DIR)/mocktwilio.linux $(BIN_DIR)/simpleproxy.linux $(BIN_DIR)/waitfor.linux $(BIN_DIR)/runjson.linux $(BIN_DIR)/procwrap.linux $(BIN_DIR)/psql-lite.linux
 	rm -rf $@
 	mkdir -p bin/integration/goalert/bin
 	cp bin/*.linux bin/integration/goalert/bin/
@@ -147,7 +151,7 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
+cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/mocktwilio bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
 	web/src/node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js
@@ -272,7 +276,7 @@ resetdb: migrate/inline_data_gen.go config.json.bak
 clean:
 	git clean -xdf ./web ./bin ./vendor ./smoketest
 
-build-docker: bin/goalert bin/mockslack
+build-docker: bin/goalert bin/mockslack bin/mocktwilio
 
 lint: $(GOFILES)
 	go run github.com/golang/lint/golint $(shell go list ./...)
