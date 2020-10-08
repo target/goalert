@@ -10,6 +10,7 @@ import UserOnCallAssignmentList from './UserOnCallAssignmentList'
 import Spinner from '../loading/components/Spinner'
 import UserCalendarSubscriptionList from './UserCalendarSubscriptionList'
 import UserSessionList from './UserSessionList'
+import UserPhoneNumberFilterContainer from './UserPhoneNumberFilterContainer'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -37,6 +38,14 @@ function UserList() {
         url: n.id,
         icon: <UserAvatar userID={n.id} />,
       })}
+      mapVariables={(vars) => {
+        if (vars?.input.search.startsWith('phone=')) {
+          vars.input.CMValue = vars.input.search.replace(/^phone=/, '')
+          vars.input.search = ''
+        }
+        return vars
+      }}
+      searchAdornment={<UserPhoneNumberFilterContainer />}
     />
   )
 }
