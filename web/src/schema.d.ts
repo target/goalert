@@ -187,13 +187,13 @@ export interface TemporarySchedule {
   shifts: OnCallShift[]
 }
 
-export interface ResetScheduleShiftsInput {
+export interface ClearTemporarySchedulesInput {
   scheduleID: string
   start: ISOTimestamp
   end: ISOTimestamp
 }
 
-export interface SetScheduleShiftsInput {
+export interface SetTemporaryScheduleInput {
   scheduleID: string
   start: ISOTimestamp
   end: ISOTimestamp
@@ -207,8 +207,8 @@ export interface SetScheduleShiftInput {
 }
 
 export interface Mutation {
-  setScheduleShifts: boolean
-  resetScheduleShifts: boolean
+  setTemporarySchedule: boolean
+  clearTemporarySchedules: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
