@@ -10,8 +10,8 @@ import { Add as AddIcon } from '@material-ui/icons'
 import { fmt, Shift, contentText, StepContainer } from './sharedUtils'
 import { FormContainer } from '../../forms'
 import _ from 'lodash-es'
-import TempSchedShiftsList from './FixedSchedShiftsList'
-import TempSchedAddShiftForm from './FixedSchedAddShiftForm'
+import TempSchedShiftsList from './TempSchedShiftsList'
+import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -103,7 +103,7 @@ function mergeShifts(_shifts: Shift[]): Shift[] {
   )
 }
 
-export default function AddShiftsStep({
+export default function TempSchedAddShiftsStep({
   scheduleID,
   stepText,
   onChange,

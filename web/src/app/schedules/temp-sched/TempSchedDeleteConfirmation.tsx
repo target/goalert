@@ -10,17 +10,17 @@ const mutation = gql`
   }
 `
 
-type DeleteTempScheduleConfirmationProps = {
+type TempSchedDeleteConfirmationProps = {
   scheduleID: string
   onClose: () => void
   value: Value
 }
 
-export default function DeleteTempScheduleConfirmation({
+export default function TempSchedDeleteConfirmation({
   scheduleID,
   onClose,
   value,
-}: DeleteTempScheduleConfirmationProps): JSX.Element {
+}: TempSchedDeleteConfirmationProps): JSX.Element {
   const [deleteTempSchedule, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {

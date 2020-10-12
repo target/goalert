@@ -21,8 +21,8 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
-import TempScheduleDialog from './fixed-sched/FixedScheduleDialog'
-import DeleteTempScheduleConfirmation from './fixed-sched/DeleteFixedScheduleConfirmation'
+import TempSchedDialog from './temp-sched/TempSchedDialog'
+import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -83,14 +83,14 @@ export default function ScheduleDetails({ scheduleID }) {
         />
       )}
       {configTempSchedule && (
-        <TempScheduleDialog
+        <TempSchedDialog
           value={configTempSchedule === true ? null : configTempSchedule}
           onClose={() => setConfigTempSchedule(null)}
           scheduleID={scheduleID}
         />
       )}
       {deleteTempSchedule && (
-        <DeleteTempScheduleConfirmation
+        <TempSchedDeleteConfirmation
           value={deleteTempSchedule}
           onClose={() => setDeleteTempSchedule(null)}
           scheduleID={scheduleID}
