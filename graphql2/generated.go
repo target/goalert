@@ -209,6 +209,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAuthSubject                  func(childComplexity int, input user.AuthSubject) int
+		ClearTemporarySchedules         func(childComplexity int, input ClearTemporarySchedulesInput) int
 		CreateAlert                     func(childComplexity int, input CreateAlertInput) int
 		CreateEscalationPolicy          func(childComplexity int, input CreateEscalationPolicyInput) int
 		CreateEscalationPolicyStep      func(childComplexity int, input CreateEscalationPolicyStepInput) int
@@ -227,13 +228,12 @@ type ComplexityRoot struct {
 		DeleteAuthSubject               func(childComplexity int, input user.AuthSubject) int
 		EndAllAuthSessionsByCurrentUser func(childComplexity int) int
 		EscalateAlerts                  func(childComplexity int, input []int) int
-		ResetScheduleShifts             func(childComplexity int, input ResetScheduleShiftsInput) int
 		SendContactMethodVerification   func(childComplexity int, input SendContactMethodVerificationInput) int
 		SetConfig                       func(childComplexity int, input []ConfigValueInput) int
 		SetFavorite                     func(childComplexity int, input SetFavoriteInput) int
 		SetLabel                        func(childComplexity int, input SetLabelInput) int
-		SetScheduleShifts               func(childComplexity int, input SetScheduleShiftsInput) int
 		SetSystemLimits                 func(childComplexity int, input []SystemLimitInput) int
+		SetTemporarySchedule            func(childComplexity int, input SetTemporaryScheduleInput) int
 		TestContactMethod               func(childComplexity int, id string) int
 		UpdateAlerts                    func(childComplexity int, input UpdateAlertsInput) int
 		UpdateAlertsByService           func(childComplexity int, input UpdateAlertsByServiceInput) int
@@ -541,8 +541,8 @@ type IntegrationKeyResolver interface {
 	Href(ctx context.Context, obj *integrationkey.IntegrationKey) (string, error)
 }
 type MutationResolver interface {
-	SetScheduleShifts(ctx context.Context, input SetScheduleShiftsInput) (bool, error)
-	ResetScheduleShifts(ctx context.Context, input ResetScheduleShiftsInput) (bool, error)
+	SetTemporarySchedule(ctx context.Context, input SetTemporaryScheduleInput) (bool, error)
+	ClearTemporarySchedules(ctx context.Context, input ClearTemporarySchedulesInput) (bool, error)
 	DebugCarrierInfo(ctx context.Context, input DebugCarrierInfoInput) (*twilio.CarrierInfo, error)
 	DebugSendSms(ctx context.Context, input DebugSendSMSInput) (*DebugSendSMSInfo, error)
 	AddAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
@@ -1205,6 +1205,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAuthSubject(childComplexity, args["input"].(user.AuthSubject)), true
 
+	case "Mutation.clearTemporarySchedules":
+		if e.complexity.Mutation.ClearTemporarySchedules == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_clearTemporarySchedules_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ClearTemporarySchedules(childComplexity, args["input"].(ClearTemporarySchedulesInput)), true
+
 	case "Mutation.createAlert":
 		if e.complexity.Mutation.CreateAlert == nil {
 			break
@@ -1416,18 +1428,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EscalateAlerts(childComplexity, args["input"].([]int)), true
 
-	case "Mutation.resetScheduleShifts":
-		if e.complexity.Mutation.ResetScheduleShifts == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_resetScheduleShifts_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ResetScheduleShifts(childComplexity, args["input"].(ResetScheduleShiftsInput)), true
-
 	case "Mutation.sendContactMethodVerification":
 		if e.complexity.Mutation.SendContactMethodVerification == nil {
 			break
@@ -1476,18 +1476,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SetLabel(childComplexity, args["input"].(SetLabelInput)), true
 
-	case "Mutation.setScheduleShifts":
-		if e.complexity.Mutation.SetScheduleShifts == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setScheduleShifts_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetScheduleShifts(childComplexity, args["input"].(SetScheduleShiftsInput)), true
-
 	case "Mutation.setSystemLimits":
 		if e.complexity.Mutation.SetSystemLimits == nil {
 			break
@@ -1499,6 +1487,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetSystemLimits(childComplexity, args["input"].([]SystemLimitInput)), true
+
+	case "Mutation.setTemporarySchedule":
+		if e.complexity.Mutation.SetTemporarySchedule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setTemporarySchedule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetTemporarySchedule(childComplexity, args["input"].(SetTemporaryScheduleInput)), true
 
 	case "Mutation.testContactMethod":
 		if e.complexity.Mutation.TestContactMethod == nil {
@@ -3305,13 +3305,13 @@ type TemporarySchedule {
   shifts: [OnCallShift!]!
 }
 
-input ResetScheduleShiftsInput {
+input ClearTemporarySchedulesInput {
   scheduleID: ID!
 
   start: ISOTimestamp!
   end: ISOTimestamp!
 }
-input SetScheduleShiftsInput {
+input SetTemporaryScheduleInput {
   scheduleID: ID!
 
   start: ISOTimestamp!
@@ -3326,8 +3326,8 @@ input SetScheduleShiftInput {
 }
 
 type Mutation {
-  setScheduleShifts(input: SetScheduleShiftsInput!): Boolean!
-  resetScheduleShifts(input: ResetScheduleShiftsInput!): Boolean!
+  setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
+  clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
@@ -4159,6 +4159,20 @@ func (ec *executionContext) field_Mutation_addAuthSubject_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_clearTemporarySchedules_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ClearTemporarySchedulesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNClearTemporarySchedulesInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐClearTemporarySchedulesInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4397,20 +4411,6 @@ func (ec *executionContext) field_Mutation_escalateAlerts_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_resetScheduleShifts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 ResetScheduleShiftsInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNResetScheduleShiftsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐResetScheduleShiftsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_sendContactMethodVerification_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4467,12 +4467,12 @@ func (ec *executionContext) field_Mutation_setLabel_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_setScheduleShifts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_setSystemLimits_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 SetScheduleShiftsInput
+	var arg0 []SystemLimitInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNSetScheduleShiftsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetScheduleShiftsInput(ctx, tmp)
+		arg0, err = ec.unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4481,12 +4481,12 @@ func (ec *executionContext) field_Mutation_setScheduleShifts_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_setSystemLimits_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_setTemporarySchedule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 []SystemLimitInput
+	var arg0 SetTemporaryScheduleInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNSystemLimitInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSystemLimitInputᚄ(ctx, tmp)
+		arg0, err = ec.unmarshalNSetTemporaryScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetTemporaryScheduleInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7561,7 +7561,7 @@ func (ec *executionContext) _LabelConnection_pageInfo(ctx context.Context, field
 	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_setScheduleShifts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_setTemporarySchedule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7577,7 +7577,7 @@ func (ec *executionContext) _Mutation_setScheduleShifts(ctx context.Context, fie
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setScheduleShifts_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_setTemporarySchedule_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -7585,7 +7585,7 @@ func (ec *executionContext) _Mutation_setScheduleShifts(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetScheduleShifts(rctx, args["input"].(SetScheduleShiftsInput))
+		return ec.resolvers.Mutation().SetTemporarySchedule(rctx, args["input"].(SetTemporaryScheduleInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7602,7 +7602,7 @@ func (ec *executionContext) _Mutation_setScheduleShifts(ctx context.Context, fie
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_resetScheduleShifts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_clearTemporarySchedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7618,7 +7618,7 @@ func (ec *executionContext) _Mutation_resetScheduleShifts(ctx context.Context, f
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_resetScheduleShifts_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_clearTemporarySchedules_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -7626,7 +7626,7 @@ func (ec *executionContext) _Mutation_resetScheduleShifts(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ResetScheduleShifts(rctx, args["input"].(ResetScheduleShiftsInput))
+		return ec.resolvers.Mutation().ClearTemporarySchedules(rctx, args["input"].(ClearTemporarySchedulesInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16158,6 +16158,36 @@ func (ec *executionContext) unmarshalInputAuthSubjectInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputClearTemporarySchedulesInput(ctx context.Context, obj interface{}) (ClearTemporarySchedulesInput, error) {
+	var it ClearTemporarySchedulesInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "scheduleID":
+			var err error
+			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "start":
+			var err error
+			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end":
+			var err error
+			it.End, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, obj interface{}) (ConfigValueInput, error) {
 	var it ConfigValueInput
 	var asMap = obj.(map[string]interface{})
@@ -16902,36 +16932,6 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputResetScheduleShiftsInput(ctx context.Context, obj interface{}) (ResetScheduleShiftsInput, error) {
-	var it ResetScheduleShiftsInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "scheduleID":
-			var err error
-			it.ScheduleID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "start":
-			var err error
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "end":
-			var err error
-			it.End, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Context, obj interface{}) (RotationSearchOptions, error) {
 	var it RotationSearchOptions
 	var asMap = obj.(map[string]interface{})
@@ -17262,8 +17262,8 @@ func (ec *executionContext) unmarshalInputSetScheduleShiftInput(ctx context.Cont
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSetScheduleShiftsInput(ctx context.Context, obj interface{}) (SetScheduleShiftsInput, error) {
-	var it SetScheduleShiftsInput
+func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.Context, obj interface{}) (SetTemporaryScheduleInput, error) {
+	var it SetTemporaryScheduleInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -18903,13 +18903,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "setScheduleShifts":
-			out.Values[i] = ec._Mutation_setScheduleShifts(ctx, field)
+		case "setTemporarySchedule":
+			out.Values[i] = ec._Mutation_setTemporarySchedule(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "resetScheduleShifts":
-			out.Values[i] = ec._Mutation_resetScheduleShifts(ctx, field)
+		case "clearTemporarySchedules":
+			out.Values[i] = ec._Mutation_clearTemporarySchedules(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -21608,6 +21608,10 @@ func (ec *executionContext) marshalNBoolean2ᚕboolᚄ(ctx context.Context, sel 
 	return ret
 }
 
+func (ec *executionContext) unmarshalNClearTemporarySchedulesInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐClearTemporarySchedulesInput(ctx context.Context, v interface{}) (ClearTemporarySchedulesInput, error) {
+	return ec.unmarshalInputClearTemporarySchedulesInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, v interface{}) (rule.Clock, error) {
 	return UnmarshalClockTime(v)
 }
@@ -22306,10 +22310,6 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋtargetᚋgoalert�
 	return ec._PageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNResetScheduleShiftsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐResetScheduleShiftsInput(ctx context.Context, v interface{}) (ResetScheduleShiftsInput, error) {
-	return ec.unmarshalInputResetScheduleShiftsInput(ctx, v)
-}
-
 func (ec *executionContext) marshalNRotation2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋrotationᚐRotation(ctx context.Context, sel ast.SelectionSet, v rotation.Rotation) graphql.Marshaler {
 	return ec._Rotation(ctx, sel, &v)
 }
@@ -22671,8 +22671,8 @@ func (ec *executionContext) unmarshalNSetScheduleShiftInput2ᚕgithubᚗcomᚋta
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNSetScheduleShiftsInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetScheduleShiftsInput(ctx context.Context, v interface{}) (SetScheduleShiftsInput, error) {
-	return ec.unmarshalInputSetScheduleShiftsInput(ctx, v)
+func (ec *executionContext) unmarshalNSetTemporaryScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetTemporaryScheduleInput(ctx context.Context, v interface{}) (SetTemporaryScheduleInput, error) {
+	return ec.unmarshalInputSetTemporaryScheduleInput(ctx, v)
 }
 
 func (ec *executionContext) marshalNSlackChannel2githubᚗcomᚋtargetᚋgoalertᚋnotificationᚋslackᚐChannel(ctx context.Context, sel ast.SelectionSet, v slack.Channel) graphql.Marshaler {

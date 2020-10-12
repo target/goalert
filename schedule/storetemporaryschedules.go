@@ -131,8 +131,8 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 	return nil
 }
 
-// SetFixedShifts will cause the schedule to use only, and exactly the provided set of shifts between the provided start and end times.
-func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time, shifts []FixedShift) error {
+// SetTemporarySchedule will cause the schedule to use only, and exactly, the provided set of shifts between the provided start and end times.
+func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time, shifts []FixedShift) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
@@ -153,8 +153,8 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 	})
 }
 
-// ResetFixedShifts will clear out (or split, if needed) any defined TemporarySchedules that exist between the start and end time.
-func (store *Store) ResetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time) error {
+// ClearTemporarySchedules will clear out (or split, if needed) any defined TemporarySchedules that exist between the start and end time.
+func (store *Store) ClearTemporarySchedules(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err

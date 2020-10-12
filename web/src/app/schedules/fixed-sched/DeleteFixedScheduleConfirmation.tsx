@@ -5,8 +5,8 @@ import FormDialog from '../../dialogs/FormDialog'
 import { fmt, Value } from './sharedUtils'
 
 const mutation = gql`
-  mutation($input: ResetScheduleShiftsInput!) {
-    resetScheduleShifts(input: $input)
+  mutation($input: ClearTemporarySchedulesInput!) {
+    clearTemporarySchedules(input: $input)
   }
 `
 

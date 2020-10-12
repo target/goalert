@@ -261,13 +261,13 @@ type TemporarySchedule {
   shifts: [OnCallShift!]!
 }
 
-input ResetScheduleShiftsInput {
+input ClearTemporarySchedulesInput {
   scheduleID: ID!
 
   start: ISOTimestamp!
   end: ISOTimestamp!
 }
-input SetScheduleShiftsInput {
+input SetTemporaryScheduleInput {
   scheduleID: ID!
 
   start: ISOTimestamp!
@@ -282,8 +282,8 @@ input SetScheduleShiftInput {
 }
 
 type Mutation {
-  setScheduleShifts(input: SetScheduleShiftsInput!): Boolean!
-  resetScheduleShifts(input: ResetScheduleShiftsInput!): Boolean!
+  setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
+  clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo

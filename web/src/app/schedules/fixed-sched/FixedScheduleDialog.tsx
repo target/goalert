@@ -15,7 +15,7 @@ const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
 const mutation = gql`
   mutation($input: SetScheduleShiftsInput!) {
-    setScheduleShifts(input: $input)
+    setTemporarySchedule(input: $input)
   }
 `
 
