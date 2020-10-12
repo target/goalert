@@ -27,7 +27,7 @@ const query = gql`
         truncated
       }
 
-      fixedShifts {
+      fixedShifts: temporarySchedules {
         start
         end
         shifts {
