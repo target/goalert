@@ -172,13 +172,13 @@ export default class ScheduleCalendar extends React.PureComponent {
     const {
       classes,
       shifts,
-      fixedShifts,
+      tempScheds,
       start,
       weekly,
       CardProps,
-      onNewFixedSched,
-      onEditFixedSched,
-      onDeleteFixedSched,
+      onNewTempSched,
+      onEditTempSched,
+      onDeleteTempSched,
     } = this.props
 
     return (
@@ -194,7 +194,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             <Calendar
               date={new Date(start)}
               localizer={localizer}
-              events={this.getCalEvents(shifts, fixedShifts)}
+              events={this.getCalEvents(shifts, tempScheds)}
               style={{
                 height: weekly ? '100%' : '45rem',
                 fontFamily: theme.typography.body2.fontFamily,
@@ -213,16 +213,13 @@ export default class ScheduleCalendar extends React.PureComponent {
                     onOverrideClick={(overrideDialog) =>
                       this.setState({ overrideDialog })
                     }
-                    onEditFixedSched={onEditFixedSched}
-                    onDeleteFixedSched={onDeleteFixedSched}
+                    onEditTempSched={onEditTempSched}
+                    onDeleteTempSched={onDeleteTempSched}
                     {...props}
                   />
                 ),
                 toolbar: (props) => (
-                  <CalendarToolbar
-                    onNewFixedSched={onNewFixedSched}
-                    {...props}
-                  />
+                  <CalendarToolbar onNewTempSched={onNewTempSched} {...props} />
                 ),
               }}
             />
@@ -241,27 +238,27 @@ export default class ScheduleCalendar extends React.PureComponent {
     )
   }
 
-  getCalEvents = (shifts, _fixedShifts) => {
-    const fixedSchedules = _fixedShifts.map((sched) => ({
+  getCalEvents = (shifts, _tempScheds) => {
+    const TempSchedules = _tempScheds.map((sched) => ({
       start: sched.start,
       end: sched.end,
-      user: { name: 'Fixed Schedule' },
-      fixedSched: sched,
+      user: { name: 'Temporary Schedule' },
+      TempSched: sched,
       fixed: true,
     }))
 
     // flat list of all fixed shifts, with `fixed` set to true
-    const fixedShifts = _.flatten(_.map(_fixedShifts, 'shifts')).map((s) => ({
+    const fixedShifts = _.flatten(_.map(_tempScheds, 'shifts')).map((s) => ({
       ...s,
       fixed: true,
     }))
 
-    const fixedIntervals = fixedSchedules.map(parseInterval)
+    const fixedIntervals = TempSchedules.map(parseInterval)
     let filteredShifts = [
-      ...fixedSchedules,
+      ...TempSchedules,
       ...fixedShifts,
 
-      // Remove shifts within a fixed schedule, and trim any that overlap
+      // Remove shifts within a temporary schedule, and trim any that overlap
       ...trimSpans(shifts, ...fixedIntervals),
     ]
 
@@ -275,7 +272,7 @@ export default class ScheduleCalendar extends React.PureComponent {
     if (this.props.activeOnly) {
       filteredShifts = filteredShifts.filter(
         (shift) =>
-          shift.fixedSched ||
+          shift.TempSched ||
           Interval.fromDateTimes(
             DateTime.fromISO(shift.start),
             DateTime.fromISO(shift.end),
@@ -290,7 +287,7 @@ export default class ScheduleCalendar extends React.PureComponent {
         start: new Date(shift.start),
         end: new Date(shift.end),
         fixed: shift.fixed,
-        fixedSched: shift.fixedSched,
+        TempSched: shift.TempSched,
         ...shifts,
       }
     })

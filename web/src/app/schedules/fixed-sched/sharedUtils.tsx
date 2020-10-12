@@ -29,7 +29,7 @@ export function validateShift(
   if (!schedSpan.isValid) return new Error('invalid schedule times')
 
   if (!schedSpan.engulfs(shiftSpan))
-    return new Error('shift extends beyond fixed schedule')
+    return new Error('shift extends beyond temporary schedule')
 
   return null
 }

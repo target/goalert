@@ -19,17 +19,17 @@ const mutation = gql`
   }
 `
 
-type FixedScheduleDialogProps = {
+type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
   value?: Value
 }
 
-export default function FixedScheduleDialog({
+export default function TempScheduleDialog({
   onClose,
   scheduleID,
   value: _value,
-}: FixedScheduleDialogProps): JSX.Element {
+}: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
 
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
@@ -96,7 +96,7 @@ export default function FixedScheduleDialog({
     <FormDialog
       fullScreen
       disableGutters
-      title='Define a Fixed Schedule'
+      title='Define a Temporary Schedule'
       primaryActionLabel={isComplete ? 'Done' : null}
       onClose={onClose}
       loading={loading}

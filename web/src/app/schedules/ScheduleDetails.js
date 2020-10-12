@@ -21,8 +21,8 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
-import FixedScheduleDialog from './fixed-sched/FixedScheduleDialog'
-import DeleteFixedScheduleConfirmation from './fixed-sched/DeleteFixedScheduleConfirmation'
+import TempScheduleDialog from './fixed-sched/FixedScheduleDialog'
+import DeleteTempScheduleConfirmation from './fixed-sched/DeleteFixedScheduleConfirmation'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -43,8 +43,8 @@ export default function ScheduleDetails({ scheduleID }) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [configFixedSchedule, setConfigFixedSchedule] = useState(null)
-  const [deleteFixedSchedule, setDeleteFixedSchedule] = useState(null)
+  const [configTempSchedule, setConfigTempSchedule] = useState(null)
+  const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
 
   const resetFilter = useResetURLParams(
     'userFilter',
@@ -82,17 +82,17 @@ export default function ScheduleDetails({ scheduleID }) {
           onClose={() => setShowDelete(false)}
         />
       )}
-      {configFixedSchedule && (
-        <FixedScheduleDialog
-          value={configFixedSchedule === true ? null : configFixedSchedule}
-          onClose={() => setConfigFixedSchedule(null)}
+      {configTempSchedule && (
+        <TempScheduleDialog
+          value={configTempSchedule === true ? null : configTempSchedule}
+          onClose={() => setConfigTempSchedule(null)}
           scheduleID={scheduleID}
         />
       )}
-      {deleteFixedSchedule && (
-        <DeleteFixedScheduleConfirmation
-          value={deleteFixedSchedule}
-          onClose={() => setDeleteFixedSchedule(null)}
+      {deleteTempSchedule && (
+        <DeleteTempScheduleConfirmation
+          value={deleteTempSchedule}
+          onClose={() => setDeleteTempSchedule(null)}
           scheduleID={scheduleID}
         />
       )}
@@ -153,9 +153,9 @@ export default function ScheduleDetails({ scheduleID }) {
         pageFooter={
           <ScheduleCalendarQuery
             scheduleID={scheduleID}
-            onNewFixedSched={() => setConfigFixedSchedule(true)}
-            onEditFixedSched={(sched) => setConfigFixedSchedule(sched)}
-            onDeleteFixedSched={(sched) => setDeleteFixedSchedule(sched)}
+            onNewTempSched={() => setConfigTempSchedule(true)}
+            onEditTempSched={(sched) => setConfigTempSchedule(sched)}
+            onDeleteTempSched={(sched) => setDeleteTempSchedule(sched)}
           />
         }
       />

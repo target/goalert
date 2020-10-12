@@ -10,10 +10,10 @@ import {
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { urlParamSelector } from '../selectors'
-import FixedSchedIcon from '@material-ui/icons/GroupAdd'
+import GroupAdd from '@material-ui/icons/GroupAdd'
 
 const useStyles = makeStyles((theme) => ({
-  fixedSchedBtn: {
+  tempSchedBtn: {
     marginLeft: theme.spacing(1),
   },
   container: {
@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export default function CalendarToolbar(props) {
-  const { date, onNewFixedSched, view } = props
+  const { date, onNewTempSched, view } = props
   const classes = useStyles()
   const urlParams = useSelector(urlParamSelector)
   const weekly = urlParams('weekly', false)
@@ -120,18 +120,18 @@ export default function CalendarToolbar(props) {
             Week
           </Button>
         </ButtonGroup>
-        {onNewFixedSched && (
+        {onNewTempSched && (
           <Button
-            data-cy='new-fixed-sched'
+            data-cy='new-temp-sched'
             variant='contained'
             size='small'
             color='primary'
-            className={classes.fixedSchedBtn}
-            onClick={() => onNewFixedSched()}
-            startIcon={<FixedSchedIcon />}
+            className={classes.tempSchedBtn}
+            onClick={() => onNewTempSched()}
+            startIcon={<GroupAdd />}
             title='Make temporary change to this schedule'
           >
-            Fixed Sched
+            Temp Sched
           </Button>
         )}
       </Grid>
@@ -145,5 +145,5 @@ CalendarToolbar.propTypes = {
   onNavigate: p.func.isRequired,
   onView: p.func.isRequired,
   view: p.string.isRequired,
-  onNewFixedSched: p.func,
+  onNewTempSched: p.func,
 }

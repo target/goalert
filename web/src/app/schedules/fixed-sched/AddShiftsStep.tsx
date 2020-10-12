@@ -10,8 +10,8 @@ import { Add as AddIcon } from '@material-ui/icons'
 import { fmt, Shift, contentText, StepContainer } from './sharedUtils'
 import { FormContainer } from '../../forms'
 import _ from 'lodash-es'
-import FixedSchedShiftsList from './FixedSchedShiftsList'
-import FixedSchedAddShiftForm from './FixedSchedAddShiftForm'
+import TempSchedShiftsList from './FixedSchedShiftsList'
+import TempSchedAddShiftForm from './FixedSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
@@ -115,7 +115,7 @@ export default function AddShiftsStep({
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
 
-  // set start equal to the fixed schedule's start
+  // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
   useEffect(() => {
     setShift({
@@ -168,13 +168,13 @@ export default function AddShiftsStep({
     if (isBefore(shift.start, start)) {
       result.push({
         field: 'start',
-        message: 'must not be before fixed schedule start time',
+        message: 'must not be before temporary schedule start time',
       } as FieldError)
     }
     if (isAfter(shift.end, end)) {
       result.push({
         field: 'end',
-        message: 'must not extend beyond fixed schedule end time',
+        message: 'must not extend beyond temporary schedule end time',
       } as FieldError)
     }
     return result
@@ -212,9 +212,8 @@ export default function AddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              Configuring a fixed schedule from {fmt(start)} to {fmt(end)}.
-              Select a user and when they will be on call to add them to this
-              fixed schedule.
+              Configuring a temporary schedule from {fmt(start)} to {fmt(end)}.
+              Select a user to add one or more on-call shifts.
             </DialogContentText>
           </Grid>
           <Grid item>
@@ -228,7 +227,7 @@ export default function AddShiftsStep({
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
-            <FixedSchedAddShiftForm />
+            <TempSchedAddShiftForm />
           </FormContainer>
         </Grid>
 
@@ -247,7 +246,7 @@ export default function AddShiftsStep({
         {/* shifts list container */}
         <Grid item xs={5} className={classes.listContainer}>
           <div style={{ position: 'absolute', width: '100%' }}>
-            <FixedSchedShiftsList
+            <TempSchedShiftsList
               value={value}
               start={start}
               end={end}
