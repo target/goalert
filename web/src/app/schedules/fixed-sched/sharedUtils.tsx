@@ -46,10 +46,12 @@ export const fmt = (t: string): string =>
 type StepContainerProps = {
   children: ReactNode
   width?: string
+  'data-cy'?: string
 }
 export function StepContainer({
   children,
   width = '75%',
+  'data-cy': dataCy,
 }: StepContainerProps): JSX.Element {
   const bodyStyle = {
     display: 'flex',
@@ -65,7 +67,9 @@ export function StepContainer({
 
   return (
     <div style={bodyStyle}>
-      <div style={containerStyle}>{children}</div>
+      <div style={containerStyle} data-cy={dataCy}>
+        {children}
+      </div>
     </div>
   )
 }

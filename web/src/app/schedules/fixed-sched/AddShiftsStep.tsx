@@ -199,7 +199,7 @@ export default function AddShiftsStep({
   }
 
   return (
-    <StepContainer>
+    <StepContainer data-cy='add-shifts-step'>
       {/* main container for fields | button | shifts */}
       <Grid container spacing={2} className={classes.mainContainer}>
         {/* title + fields container */}

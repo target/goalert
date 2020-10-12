@@ -26,7 +26,7 @@ export default function ScheduleTimesStep({
   const classes = useStyles()
 
   return (
-    <StepContainer width='35%'>
+    <StepContainer width='35%' data-cy='sched-times-step'>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Typography variant='body2'>{stepText}</Typography>
