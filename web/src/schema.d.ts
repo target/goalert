@@ -181,7 +181,7 @@ export interface DebugSendSMSInfo {
   providerURL: string
 }
 
-export interface FixedShiftGroup {
+export interface TemporarySchedule {
   start: ISOTimestamp
   end: ISOTimestamp
   shifts: OnCallShift[]
@@ -445,7 +445,7 @@ export interface Schedule {
   targets: ScheduleTarget[]
   target?: ScheduleTarget
   isFavorite: boolean
-  fixedShifts: FixedShiftGroup[]
+  temporarySchedules: TemporarySchedule[]
 }
 
 export interface OnCallShift {

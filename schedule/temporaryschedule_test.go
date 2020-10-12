@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTrimGroupEnd(t *testing.T) {
+func TestTemporarySchedule_TrimEnd(t *testing.T) {
 
-	grp := FixedShiftGroup{
+	temp := TemporarySchedule{
 		Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
 		End:   time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC),
 		Shifts: []FixedShift{
@@ -26,9 +26,9 @@ func TestTrimGroupEnd(t *testing.T) {
 		},
 	}
 
-	res := TrimGroupEnd(grp, time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC))
+	res := temp.TrimEnd(time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC))
 
-	assert.EqualValues(t, FixedShiftGroup{
+	assert.EqualValues(t, TemporarySchedule{
 
 		Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
 		End:   time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC),
@@ -47,9 +47,9 @@ func TestTrimGroupEnd(t *testing.T) {
 	}, res)
 }
 
-func TestTrimGroupStart(t *testing.T) {
+func TestTemporarySchedule_TrimStart(t *testing.T) {
 
-	grp := FixedShiftGroup{
+	temp := TemporarySchedule{
 		Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
 		End:   time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC),
 		Shifts: []FixedShift{
@@ -66,9 +66,9 @@ func TestTrimGroupStart(t *testing.T) {
 		},
 	}
 
-	res := TrimGroupStart(grp, time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC))
+	res := temp.TrimStart(time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC))
 
-	assert.EqualValues(t, FixedShiftGroup{
+	assert.EqualValues(t, TemporarySchedule{
 		Start: time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC),
 		End:   time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC),
 		Shifts: []FixedShift{
@@ -81,9 +81,9 @@ func TestTrimGroupStart(t *testing.T) {
 	}, res)
 }
 
-func TestMergeGroups(t *testing.T) {
+func TestMergeTemporarySchedules(t *testing.T) {
 
-	grp := []FixedShiftGroup{{
+	tempScheds := []TemporarySchedule{{
 		Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
 		End:   time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC),
 		Shifts: []FixedShift{
@@ -131,9 +131,9 @@ func TestMergeGroups(t *testing.T) {
 	},
 	}
 
-	res := MergeGroups(grp)
+	res := MergeTemporarySchedules(tempScheds)
 
-	assert.EqualValues(t, []FixedShiftGroup{
+	assert.EqualValues(t, []TemporarySchedule{
 		{
 			Start: time.Date(2000, 1, 1, 9, 0, 0, 0, time.UTC),
 			End:   time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC),
@@ -166,7 +166,7 @@ func TestMergeGroups(t *testing.T) {
 
 func TestDeleteFixedShifts(t *testing.T) {
 
-	grp := []FixedShiftGroup{
+	tempScheds := []TemporarySchedule{
 		{
 			Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
 			End:   time.Date(2000, 1, 1, 20, 0, 0, 0, time.UTC),
@@ -185,9 +185,9 @@ func TestDeleteFixedShifts(t *testing.T) {
 		},
 	}
 
-	res := deleteFixedShifts(grp, time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC), time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC))
+	res := deleteFixedShifts(tempScheds, time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC), time.Date(2000, 1, 1, 16, 0, 0, 0, time.UTC))
 
-	assert.EqualValues(t, []FixedShiftGroup{
+	assert.EqualValues(t, []TemporarySchedule{
 		{
 			Start: time.Date(2000, 1, 1, 10, 0, 0, 0, time.UTC),
 			End:   time.Date(2000, 1, 1, 14, 0, 0, 0, time.UTC),

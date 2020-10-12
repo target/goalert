@@ -22,14 +22,14 @@ import (
 )
 
 type Schedule App
-type FixedShiftGroup App
+type TemporarySchedule App
 
-func (a *App) Schedule() graphql2.ScheduleResolver               { return (*Schedule)(a) }
-func (a *App) FixedShiftGroup() graphql2.FixedShiftGroupResolver { return (*FixedShiftGroup)(a) }
+func (a *App) Schedule() graphql2.ScheduleResolver                   { return (*Schedule)(a) }
+func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*TemporarySchedule)(a) }
 
-func (a *FixedShiftGroup) Shifts(ctx context.Context, grp *schedule.FixedShiftGroup) ([]oncall.Shift, error) {
-	result := make([]oncall.Shift, 0, len(grp.Shifts))
-	for _, s := range grp.Shifts {
+func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.TemporarySchedule) ([]oncall.Shift, error) {
+	result := make([]oncall.Shift, 0, len(temp.Shifts))
+	for _, s := range temp.Shifts {
 		result = append(result, oncall.Shift{
 			UserID: s.UserID,
 			Start:  s.Start,
@@ -52,8 +52,8 @@ func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, en
 	return s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end)
 }
 
-func (s *Schedule) FixedShifts(ctx context.Context, raw *schedule.Schedule) ([]schedule.FixedShiftGroup, error) {
-	return s.ScheduleStore.FixedShiftGroups(ctx, nil, raw.ID)
+func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedule) ([]schedule.TemporarySchedule, error) {
+	return s.ScheduleStore.TemporarySchedules(ctx, nil, raw.ID)
 }
 
 func (s *Schedule) Target(ctx context.Context, raw *schedule.Schedule, input assignment.RawTarget) (*graphql2.ScheduleTarget, error) {

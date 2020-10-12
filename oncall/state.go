@@ -24,12 +24,12 @@ type ResolvedRotation struct {
 }
 
 type state struct {
-	groups    []schedule.FixedShiftGroup
-	rules     []ResolvedRule
-	overrides []override.UserOverride
-	history   []Shift
-	now       time.Time
-	loc       *time.Location
+	tempScheds []schedule.TemporarySchedule
+	rules      []ResolvedRule
+	overrides  []override.UserOverride
+	history    []Shift
+	now        time.Time
+	loc        *time.Location
 }
 
 func (r *ResolvedRotation) UserID(t time.Time) string {
@@ -101,7 +101,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		hist.SetSpan(s.Start, s.End, s.UserID)
 	}
 	hist.Init()
-	groups := t.NewFixedGroupCalculator(s.groups)
+	tempScheds := t.NewTemporaryScheduleCalculator(s.tempScheds)
 	overrides := t.NewOverrideCalculator(s.overrides)
 	rules := t.NewRulesCalculator(s.loc, s.rules)
 
@@ -151,9 +151,9 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 			continue
 		}
 
-		if groups.Active() {
-			// use fixed shift groups if one is active
-			setOnCall(groups.ActiveUsers(), nil)
+		if tempScheds.Active() {
+			// use TemporarySchedule if one is active
+			setOnCall(tempScheds.ActiveUsers(), nil)
 			continue
 		}
 

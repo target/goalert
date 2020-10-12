@@ -12,11 +12,11 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
-// FixedShiftsPerGroupLimit is the maximum number of shifts that can be configured for a single group at a time.
-const FixedShiftsPerGroupLimit = 150
+// FixedShiftsPerTemporaryScheduleLimit is the maximum number of shifts that can be configured for a single TemporarySchedule at a time.
+const FixedShiftsPerTemporaryScheduleLimit = 150
 
-// FixedShiftGroups will return the current set for the provided scheduleID.
-func (store *Store) FixedShiftGroups(ctx context.Context, tx *sql.Tx, scheduleID string) ([]FixedShiftGroup, error) {
+// TemporarySchedules will return the current set for the provided scheduleID.
+func (store *Store) TemporarySchedules(ctx context.Context, tx *sql.Tx, scheduleID string) ([]TemporarySchedule, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -141,7 +141,7 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 	err = validate.Many(
 		validateTimeRange("", start, end),
 		validate.UUID("ScheduleID", scheduleID),
-		store.validateShifts(ctx, "Shifts", FixedShiftsPerGroupLimit, shifts, start, end),
+		store.validateShifts(ctx, "Shifts", FixedShiftsPerTemporaryScheduleLimit, shifts, start, end),
 	)
 	if err != nil {
 		return err
@@ -153,7 +153,7 @@ func (store *Store) SetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID s
 	})
 }
 
-// ResetFixedShifts will clear out (or split, if needed) any defined fixed-shift groups that exist between the start and end time.
+// ResetFixedShifts will clear out (or split, if needed) any defined TemporarySchedules that exist between the start and end time.
 func (store *Store) ResetFixedShifts(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {

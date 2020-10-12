@@ -254,7 +254,7 @@ type DebugSendSMSInfo {
   providerURL: String!
 }
 
-type FixedShiftGroup {
+type TemporarySchedule {
   start: ISOTimestamp!
   end: ISOTimestamp!
 
@@ -574,7 +574,7 @@ type Schedule {
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
 
-  fixedShifts: [FixedShiftGroup!]!
+  temporarySchedules: [TemporarySchedule!]!
 }
 
 type OnCallShift {
