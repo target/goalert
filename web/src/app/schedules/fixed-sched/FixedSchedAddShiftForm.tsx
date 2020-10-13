@@ -1,10 +1,10 @@
 import { Grid, TextField, Typography, makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { Value } from './sharedUtils'
+import { Shift, Value } from './sharedUtils'
 
 const useStyles = makeStyles({
   typography: {
@@ -15,9 +15,35 @@ const useStyles = makeStyles({
   },
 })
 
-export default function FixedSchedAddShiftForm(): JSX.Element {
+function durToEnd(start: string, dur: string): string {
+  return DateTime.fromISO(start)
+    .plus({ hours: parseInt(dur, 10) })
+    .toISO()
+}
+
+function endToDur(s: string, e: string): number {
+  const start = DateTime.fromISO(s)
+  const end = DateTime.fromISO(e)
+  return end.diff(start, 'hours').hours
+}
+
+type FixedSchedAddShiftFormProps = {
+  shift: Shift
+}
+
+export default function FixedSchedAddShiftForm({
+  shift,
+}: FixedSchedAddShiftFormProps): JSX.Element {
   const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
+  const [duration, setDuration] = useState<number>()
+
+  // update duration when start/end fields change
+  useEffect(() => {
+    if (shift?.start && shift?.end) {
+      setDuration(endToDur(shift.start, shift.end))
+    }
+  }, [shift?.start, shift?.end])
 
   return (
     <React.Fragment>
@@ -73,18 +99,13 @@ export default function FixedSchedAddShiftForm(): JSX.Element {
             type='number'
             float
             // value held in form input
-            mapValue={(nextVal: string, formValue: Value) => {
-              const nextValDT = DateTime.fromISO(nextVal)
-              if (!formValue || !nextValDT.isValid) return ''
-              return nextValDT
-                .diff(DateTime.fromISO(formValue.start), 'hours')
-                .hours.toString()
-            }}
+            mapValue={() => duration?.toString() ?? ''}
             // value held in state
-            mapOnChangeValue={(nextVal: string, formValue: Value) => {
-              if (!nextVal) return ''
+            mapOnChangeValue={(nextVal: number, formValue: Value) => {
+              setDuration(nextVal)
+              if (isNaN(nextVal)) return ''
               return DateTime.fromISO(formValue.start)
-                .plus({ hours: parseInt(nextVal, 10) })
+                .plus({ hours: nextVal })
                 .toISO()
             }}
             min={0.25}
