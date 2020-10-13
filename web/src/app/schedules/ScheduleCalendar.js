@@ -239,7 +239,7 @@ export default class ScheduleCalendar extends React.PureComponent {
   }
 
   getCalEvents = (shifts, _tempScheds) => {
-    const TempSchedules = _tempScheds.map((sched) => ({
+    const tempSchedules = _tempScheds.map((sched) => ({
       start: sched.start,
       end: sched.end,
       user: { name: 'Temporary Schedule' },
@@ -253,9 +253,9 @@ export default class ScheduleCalendar extends React.PureComponent {
       fixed: true,
     }))
 
-    const fixedIntervals = TempSchedules.map(parseInterval)
+    const fixedIntervals = tempSchedules.map(parseInterval)
     let filteredShifts = [
-      ...TempSchedules,
+      ...tempSchedules,
       ...fixedShifts,
 
       // Remove shifts within a temporary schedule, and trim any that overlap
