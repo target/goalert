@@ -27,7 +27,7 @@ const query = gql`
         truncated
       }
 
-      fixedShifts {
+      temporarySchedules {
         start
         end
         shifts {
@@ -84,7 +84,7 @@ export default class ScheduleCalendarQuery extends React.PureComponent {
             {...other}
             scheduleID={data.schedule.id}
             shifts={data.schedule.shifts}
-            fixedShifts={data.schedule.fixedShifts}
+            temporarySchedules={data.schedule.temporarySchedules}
           />
         )}
       />

@@ -30,16 +30,16 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 	}
 	return true, nil
 }
-func (a *Mutation) SetScheduleShifts(ctx context.Context, input graphql2.SetScheduleShiftsInput) (bool, error) {
+func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetTemporaryScheduleInput) (bool, error) {
 	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
-		return a.ScheduleStore.SetFixedShifts(ctx, tx, input.ScheduleID, input.Start, input.End, input.Shifts)
+		return a.ScheduleStore.SetTemporarySchedule(ctx, tx, input.ScheduleID, input.Start, input.End, input.Shifts)
 	})
 
 	return err == nil, err
 }
-func (a *Mutation) ResetScheduleShifts(ctx context.Context, input graphql2.ResetScheduleShiftsInput) (bool, error) {
+func (a *Mutation) ClearTemporarySchedules(ctx context.Context, input graphql2.ClearTemporarySchedulesInput) (bool, error) {
 	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
-		return a.ScheduleStore.ResetFixedShifts(ctx, tx, input.ScheduleID, input.Start, input.End)
+		return a.ScheduleStore.ClearTemporarySchedules(ctx, tx, input.ScheduleID, input.Start, input.End)
 	})
 
 	return err == nil, err

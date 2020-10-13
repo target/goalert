@@ -59,8 +59,8 @@ export default class CalendarEventWrapper extends Component {
   static propTypes = {
     event: p.object.isRequired,
     onOverrideClick: p.func,
-    onEditFixedSched: p.func,
-    onDeleteFixedSched: p.func,
+    onEditTempSched: p.func,
+    onDeleteTempSched: p.func,
   }
 
   handleShowOverrideForm = (type) => {
@@ -76,18 +76,18 @@ export default class CalendarEventWrapper extends Component {
     })
   }
 
-  renderFixedSchedButtons() {
+  renderTempSchedButtons() {
     const { classes, event } = this.props
     return (
       <React.Fragment>
         <Grid item>
           <Button
-            data-cy='edit-fixed-sched'
+            data-cy='edit-temp-sched'
             size='small'
-            onClick={() => this.props.onEditFixedSched(event.fixedSched)}
+            onClick={() => this.props.onEditTempSched(event.tempSched)}
             variant='contained'
             color='primary'
-            title='Edit this fixed schedule'
+            title='Edit this temporary schedule'
           >
             Edit
           </Button>
@@ -95,12 +95,12 @@ export default class CalendarEventWrapper extends Component {
         <Grid item className={classes.flexGrow} />
         <Grid item>
           <Button
-            data-cy='delete-fixed-sched'
+            data-cy='delete-temp-sched'
             size='small'
-            onClick={() => this.props.onDeleteFixedSched(event.fixedSched)}
+            onClick={() => this.props.onDeleteTempSched(event.tempSched)}
             variant='contained'
             color='primary'
-            title='Delete this fixed schedule'
+            title='Delete this temporary schedule'
           >
             Delete
           </Button>
@@ -145,7 +145,7 @@ export default class CalendarEventWrapper extends Component {
   renderButtons() {
     const { event } = this.props
     if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
-    if (event.fixedSched) return this.renderFixedSchedButtons()
+    if (event.tempSched) return this.renderTempSchedButtons()
     if (event.fixed) return null
 
     return this.renderOverrideButtons()

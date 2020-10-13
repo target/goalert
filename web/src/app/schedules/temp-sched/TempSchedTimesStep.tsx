@@ -14,15 +14,15 @@ const useStyles = makeStyles({
   contentText,
 })
 
-type ScheduleTimeStepProps = {
+type TempSchedTimesStepProps = {
   scheduleID: string
   stepText: string
 }
 
-export default function ScheduleTimesStep({
+export default function TempSchedTimesStep({
   scheduleID,
   stepText,
-}: ScheduleTimeStepProps): JSX.Element {
+}: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
 
   return (

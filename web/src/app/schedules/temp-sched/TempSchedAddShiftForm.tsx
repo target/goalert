@@ -16,7 +16,7 @@ const useStyles = makeStyles({
   },
 })
 
-export default function FixedSchedAddShiftForm(): JSX.Element {
+export default function TempSchedAddShiftForm(): JSX.Element {
   const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
 

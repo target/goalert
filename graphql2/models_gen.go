@@ -58,6 +58,12 @@ type AuthSubjectConnection struct {
 	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
+type ClearTemporarySchedulesInput struct {
+	ScheduleID string    `json:"scheduleID"`
+	Start      time.Time `json:"start"`
+	End        time.Time `json:"end"`
+}
+
 type ConfigHint struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
@@ -244,12 +250,6 @@ type PhoneNumberInfo struct {
 	Error       string `json:"error"`
 }
 
-type ResetScheduleShiftsInput struct {
-	ScheduleID string    `json:"scheduleID"`
-	Start      time.Time `json:"start"`
-	End        time.Time `json:"end"`
-}
-
 type RotationConnection struct {
 	Nodes    []rotation.Rotation `json:"nodes"`
 	PageInfo *PageInfo           `json:"pageInfo"`
@@ -327,7 +327,7 @@ type SetLabelInput struct {
 	Value  string                `json:"value"`
 }
 
-type SetScheduleShiftsInput struct {
+type SetTemporaryScheduleInput struct {
 	ScheduleID string                `json:"scheduleID"`
 	Start      time.Time             `json:"start"`
 	End        time.Time             `json:"end"`

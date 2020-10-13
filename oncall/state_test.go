@@ -242,7 +242,7 @@ func TestState_CalculateShifts(t *testing.T) {
 					Target:        assignment.UserTarget("foobar"),
 				}},
 			},
-			groups: []schedule.FixedShiftGroup{
+			tempScheds: []schedule.TemporarySchedule{
 				{
 					Start: time.Date(2018, 1, 1, 8, 15, 0, 0, time.UTC),
 					End:   time.Date(2018, 1, 1, 8, 45, 0, 0, time.UTC),
