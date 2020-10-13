@@ -93,7 +93,6 @@ type causer interface {
 
 func findRootSource(err error) error {
 	var rootErr error
-	errors.Unwrap()
 	for {
 		nextErr := errors.Unwrap(err)
 		if nextErr == nil {

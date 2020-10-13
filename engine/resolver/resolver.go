@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
@@ -254,7 +255,7 @@ func (db *DB) IsUserOnCall(ctx context.Context, userID string) (bool, error) {
 	}
 	var result int
 	err = db.isOnCall.QueryRowContext(ctx, userID).Scan(&result)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
 	if err != nil {

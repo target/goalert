@@ -93,7 +93,7 @@ func (h *ingressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Form == nil {
 		err := r.ParseMultipartForm(32 << 20)
-		if err != nil && err != http.ErrNotMultipart {
+		if err != nil && !errors.Is(err, http.ErrNotMultipart) {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 			return
 		}

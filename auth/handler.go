@@ -401,7 +401,7 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 
 	var userID string
 	err = h.userLookup.QueryRowContext(ctx, id, sub.SubjectID).Scan(&userID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
 	if err != nil {
@@ -522,7 +522,7 @@ func (h *Handler) setSessionCookie(w http.ResponseWriter, req *http.Request, val
 
 func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next http.Handler) bool {
 	err := req.ParseMultipartForm(32 << 20) // 32<<20 (32MiB) value is the `defaultMaxMemory` used in the net/http package when `req.FormValue` is called
-	if err != nil && err != http.ErrNotMultipart {
+	if err != nil && !errors.Is(err, http.ErrNotMultipart) {
 		http.Error(w, err.Error(), 400)
 		return true
 	}
@@ -638,7 +638,7 @@ func (h *Handler) WrapHandler(wrapped http.Handler) http.Handler {
 		var userID string
 		var userRole permission.Role
 		err = h.fetchSession.QueryRowContext(ctx, tok.ID.String()).Scan(&userID, &userRole)
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			if fromCookie {
 				h.setSessionCookie(w, req, "")
 			}

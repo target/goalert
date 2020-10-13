@@ -339,7 +339,7 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 	}
 
 	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids))
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -373,7 +373,7 @@ func (db *DB) _updateStepTarget(ctx context.Context, stepID string, tgt assignme
 		return err
 	}
 	_, err = stmt.ExecContext(ctx, tgtFields(stepID, tgt, insert)...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
 	return err
@@ -457,7 +457,7 @@ func (db *DB) FindAllStepTargetsTx(ctx context.Context, tx *sql.Tx, stepID strin
 	}
 
 	rows, err := stmt.QueryContext(ctx, stepID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -517,7 +517,7 @@ func (db *DB) ActiveStep(ctx context.Context, alertID int, policyID string) (*Ac
 	var step ActiveStep
 	var stepID sql.NullString
 	err = row.Scan(&stepID, &step.LastEscalation, &step.LoopCount, &step.ForceEscalation, &step.StepNumber)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	step.StepID = stepID.String

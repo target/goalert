@@ -3,6 +3,7 @@ package limit
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
@@ -74,7 +75,7 @@ func (s *Store) Max(ctx context.Context, id ID) (int, error) {
 	}
 	var max int
 	err = s.findOne.QueryRowContext(ctx, id).Scan(&max)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return -1, nil
 	}
 	if err != nil {
