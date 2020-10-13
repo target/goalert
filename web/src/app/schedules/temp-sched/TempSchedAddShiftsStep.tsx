@@ -131,52 +131,42 @@ export default function TempSchedAddShiftsStep({
   function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
 
-    if (!shift) {
+    if (!shift || !s) {
       return result
     }
 
-    if (s) {
-      const message = 'this field is required'
-      if (!shift.userID) {
-        result.push({
-          field: 'userID',
-          message,
-        } as FieldError)
-      }
-      if (!shift.start) {
-        result.push({
-          field: 'start',
-          message,
-        } as FieldError)
-      }
-      if (!shift.end) {
-        result.push({
-          field: 'end',
-          message,
-        } as FieldError)
-      }
-
-      return result
+    const message = 'this field is required'
+    if (!shift.userID) {
+      result.push({
+        field: 'userID',
+        message,
+      } as FieldError)
     }
-
-    if (!isAfter(shift.end, shift?.start)) {
+    if (!shift.start) {
+      result.push({
+        field: 'start',
+        message,
+      } as FieldError)
+    }
+    if (!shift.end) {
+      result.push({
+        field: 'end',
+        message,
+      } as FieldError)
+    }
+    if (!isAfter(shift.end, shift.start)) {
       result.push({
         field: 'end',
         message: 'must be after shift start time',
       } as FieldError)
     }
-    if (isBefore(shift.start, start)) {
+    if (!isBefore(shift.start, shift.end)) {
       result.push({
         field: 'start',
-        message: 'must not be before temporary schedule start time',
+        message: 'must be before end time',
       } as FieldError)
     }
-    if (isAfter(shift.end, end)) {
-      result.push({
-        field: 'end',
-        message: 'must not extend beyond temporary schedule end time',
-      } as FieldError)
-    }
+
     return result
   }
 
