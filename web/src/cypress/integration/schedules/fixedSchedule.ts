@@ -2,6 +2,7 @@ import { Chance } from 'chance'
 import { testScreen } from '../../support'
 import { Schedule, User } from '../../../schema'
 import { DateTime, Interval } from 'luxon'
+import { round } from 'lodash-es'
 
 const c = new Chance()
 const dtfmt = "yyyy-MM-dd'T'HH:mm"
@@ -31,9 +32,13 @@ function getStepOneValues(): [string, string, number] {
       days: c.integer({ min: 1, max: 31 }),
     })
     .endOf('day')
-  const duration = Interval.fromDateTimes(start, end).toDuration().hours
 
-  return [start.toFormat(dtfmt), end.toFormat(dtfmt), duration]
+  const duration = Interval.fromDateTimes(
+    start,
+    end.minus({ minute: 1 }),
+  ).toDuration('hours')
+
+  return [start.toFormat(dtfmt), end.toFormat(dtfmt), round(duration.hours, 2)]
 }
 
 function testFixedSchedule(screen: ScreenFormat): void {
@@ -56,41 +61,44 @@ function testFixedSchedule(screen: ScreenFormat): void {
 
     // fill out step 1 start and end times
     const [start, end, duration] = getStepOneValues()
-    cy.dialogForm({ start, end })
+    cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
 
     // go to step 2
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.contains('STEP 2 OF 2').should('be.visible')
 
+    console.log(duration)
     // add shift for full duration
-    // TODO: get start/end from within current container in dialog (step 1 causing conflict in cypress getter)
-    cy.dialogForm({
-      start,
-      end: duration, // TODO: duration always returning 0?
-      userID: users[0].name,
-    })
+    cy.dialogForm(
+      {
+        start,
+        end: duration,
+        userID: users[0].name,
+      },
+      'div[data-cy="add-shifts-step"]',
+    )
 
-    // verify shift doesn't exist in list yet
-    cy.get('[data-cy="shifts-list"]').should('not.contain', users[0].name)
+    // // verify shift doesn't exist in list yet
+    // cy.get('[data-cy="shifts-list"]').should('not.contain', users[0].name)
 
-    // click add shift button
-    cy.get('button[title="Add Shift"]').click()
+    // // click add shift button
+    // cy.get('button[title="Add Shift"]').click()
 
-    // verify shift shows up in list
-    cy.get('[data-cy="shifts-list"]').should('contain', users[0].name)
+    // // verify shift shows up in list
+    // cy.get('[data-cy="shifts-list"]').should('contain', users[0].name)
 
-    // click submit
-    cy.dialogFinish('Submit')
+    // // click submit
+    // cy.dialogFinish('Submit')
 
-    // check fixed sched length in calendar
-    cy.get('div').contains('Fixed Schedule').trigger('mouseover')
-    cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    cy.get('button[data-cy="edit-fixed-sched"]').should('be.visible')
-    cy.get('button[data-cy="delete-fixed-sched"]').should('be.visible')
+    // // check fixed sched length in calendar
+    // cy.get('div').contains('Fixed Schedule').trigger('mouseover')
+    // cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+    // cy.get('button[data-cy="edit-fixed-sched"]').should('be.visible')
+    // cy.get('button[data-cy="delete-fixed-sched"]').should('be.visible')
 
-    // check new shift + its tooltip exists in calendar
-    cy.get('div').contains(users[0].name).trigger('mouseover')
-    cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+    // // check new shift + its tooltip exists in calendar
+    // cy.get('div').contains(users[0].name).trigger('mouseover')
+    // cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
 
     // check original overlapped shifts no longer show
   })
