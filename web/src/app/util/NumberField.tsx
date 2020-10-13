@@ -38,7 +38,7 @@ export default function NumberField(props: NumberFieldProps) {
         setInputValue(val.replace(/[^0-9.]/g, ''))
         if (!isNaN(num)) onChange(val)
       }}
-      inputProps={{ min, max }}
+      inputProps={{ min, max, step: 'any' }}
     />
   )
 }
