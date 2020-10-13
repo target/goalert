@@ -11,7 +11,7 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
-import { QueryResult } from '@apollo/react-common'
+import { OperationVariables, QueryResult } from '@apollo/react-common'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -74,9 +74,10 @@ export interface QueryListProps extends ControlledPaginatedListProps {
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  variables?: any
-  mapVariables?: (vars: any) => any
+  variables?: OperationVariables
+
+  // mapVariables transforms query variables just before submission
+  mapVariables?: (vars: OperationVariables) => OperationVariables
 }
 
 export default function QueryList(props: QueryListProps): JSX.Element {
