@@ -1,6 +1,7 @@
-import { Grid, TextField, Typography, makeStyles } from '@material-ui/core'
-import { DateTime } from 'luxon'
 import React, { useEffect, useState } from 'react'
+import { Grid, TextField, Typography, makeStyles } from '@material-ui/core'
+import { DateTime, Interval } from 'luxon'
+import { round } from 'lodash-es'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
@@ -24,7 +25,7 @@ function durToEnd(start: string, dur: string): string {
 function endToDur(s: string, e: string): number {
   const start = DateTime.fromISO(s)
   const end = DateTime.fromISO(e)
-  return end.diff(start, 'hours').hours
+  return Interval.fromDateTimes(start, end).toDuration('hours').hours
 }
 
 type FixedSchedAddShiftFormProps = {
@@ -41,7 +42,7 @@ export default function FixedSchedAddShiftForm({
   // update duration when start/end fields change
   useEffect(() => {
     if (shift?.start && shift?.end) {
-      setDuration(endToDur(shift.start, shift.end))
+      setDuration(round(endToDur(shift.start, shift.end), 2))
     }
   }, [shift?.start, shift?.end])
 
@@ -102,7 +103,7 @@ export default function FixedSchedAddShiftForm({
             mapValue={() => duration?.toString() ?? ''}
             // value held in state
             mapOnChangeValue={(nextVal: number, formValue: Value) => {
-              setDuration(nextVal)
+              setDuration(round(nextVal, 2))
               if (isNaN(nextVal)) return ''
               return DateTime.fromISO(formValue.start)
                 .plus({ hours: nextVal })
