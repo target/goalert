@@ -41,19 +41,21 @@ function getStepOneValues(): [string, string, number] {
   return [start.toFormat(dtfmt), end.toFormat(dtfmt), round(duration.hours, 2)]
 }
 
-function testFixedSchedule(screen: ScreenFormat): void {
+function testTemporarySchedule(screen: ScreenFormat): void {
+  let schedule: Schedule
   let users: User[]
   beforeEach(() => {
     cy.fixture('users').then((u) => {
       users = u
-      cy.createSchedule().then((sched: Schedule) => {
-        cy.visit('/schedules/' + sched.id)
-        cy.get('[data-cy="new-fixed-sched"]').click()
+      cy.createSchedule().then((s: Schedule) => {
+        schedule = s
+        cy.visit('/schedules/' + s.id)
+        cy.get('[data-cy="new-temp-sched"]').click()
       })
     })
   })
 
-  it.only('should create a fixed schedule', () => {
+  it.only('should create a temporary schedule', () => {
     // check calendar for original shift in weekly view
     // this allows us to compare shift times with a user's
     // name in the same div
@@ -90,40 +92,47 @@ function testFixedSchedule(screen: ScreenFormat): void {
     // click submit
     cy.dialogFinish('Submit')
 
-    // todo: go to correct month in calendar, using URL
+    // go to correct month in calendar, using URL
+    cy.visit(
+      '/schedules/' +
+        schedule.id +
+        '?start=' +
+        DateTime.fromISO(start).startOf('month').toFormat('yyyy-MM-dd') +
+        'T07%3A00%3A00.000Z',
+    )
 
-    // // check fixed sched length in calendar
-    // cy.get('div').contains('Fixed Schedule').trigger('mouseover')
-    // cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-    // cy.get('button[data-cy="edit-fixed-sched"]').should('be.visible')
-    // cy.get('button[data-cy="delete-fixed-sched"]').should('be.visible')
+    // check temp sched length in calendar
+    cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+    cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+    cy.get('button[data-cy="edit-temp-sched"]').should('be.visible')
+    cy.get('button[data-cy="delete-temp-sched"]').should('be.visible')
 
-    // // check new shift + its tooltip exists in calendar
-    // cy.get('div').contains(users[0].name).trigger('mouseover')
-    // cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+    // check new shift + its tooltip exists in calendar
+    cy.get('div').contains(users[0].name).trigger('mouseover')
+    cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
 
     // check original overlapped shifts no longer show
   })
 
-  it('should edit a fixed schedule', () => {
-    // create fixed schedule in graphql
-    // hover over fixed sched span
+  it('should edit a temporary schedule', () => {
+    // create temporary schedule in graphql
+    // hover over temporary sched span
     // click edit button
     // click delete button in step 2
     // add shift with new info in fields
     // click add shift button
     // verify shift shows up on right
     // click submit
-    // check fixed sched length in calendar
+    // check temporary sched length in calendar
     // check new shift in calendar
   })
 
-  it('should delete a fixed schedule', () => {
-    // create fixed schedule (with an active always active assignment) in graphql
-    // hover over fixed sched span
+  it('should delete a temporary schedule', () => {
+    // create temporary schedule (with an active always active assignment) in graphql
+    // hover over temporary sched span
     // click delete button in tooltip
     // click confirm button in dialog
-    // check fixed sched gone in calendar
+    // check temporary sched gone in calendar
     // check old shifts show again
   })
 
@@ -153,8 +162,8 @@ function testFixedSchedule(screen: ScreenFormat): void {
   })
 
   it('should toggle duration field', () => {
-    // create fixed schedule in graphql
-    // hover over fixed sched span
+    // create temporary schedule in graphql
+    // hover over temporary sched span
     // click edit button
     // change duration field
     // click toggle
@@ -165,8 +174,8 @@ function testFixedSchedule(screen: ScreenFormat): void {
   })
 
   it('should refill a shifts info after deleting in step 2', () => {
-    // create fixed schedule in graphql
-    // hover over fixed sched span
+    // create temporary schedule in graphql
+    // hover over temporary sched span
     // click edit button
     // click delete button in step 2
     // verify input fields have deleted shift's values
@@ -186,4 +195,4 @@ function testFixedSchedule(screen: ScreenFormat): void {
   })
 }
 
-testScreen('Fixed Schedule', testFixedSchedule)
+testScreen('temporary Schedule', testTemporarySchedule)
