@@ -228,7 +228,7 @@ export default function AddShiftsStep({
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
-            <FixedSchedAddShiftForm shift={shift} />
+            <FixedSchedAddShiftForm />
           </FormContainer>
         </Grid>
 
