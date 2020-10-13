@@ -125,20 +125,20 @@ func lookupMap(users []string) map[string]struct{} {
 }
 
 func cleanupScheduleData(data *schedule.Data, userMap map[string]struct{}, now time.Time) {
-	for idx, grp := range data.V1.TemporarySchedules {
-		shifts := grp.Shifts
-		grp.Shifts = grp.Shifts[:0]
+	for idx, temp := range data.V1.TemporarySchedules {
+		shifts := temp.Shifts
+		temp.Shifts = temp.Shifts[:0]
 		for _, shift := range shifts {
 			if _, ok := userMap[shift.UserID]; !ok {
 				continue
 			}
-			grp.Shifts = append(grp.Shifts, shift)
+			temp.Shifts = append(temp.Shifts, shift)
 		}
 
-		data.V1.TemporarySchedules[idx] = schedule.TrimGroupStart(grp, now.Truncate(time.Minute))
+		data.V1.TemporarySchedules[idx] = temp.TrimStart(now.Truncate(time.Minute))
 	}
 
-	data.V1.TemporarySchedules = schedule.MergeGroups(data.V1.TemporarySchedules)
+	data.V1.TemporarySchedules = schedule.MergeTemporarySchedules(data.V1.TemporarySchedules)
 }
 
 // getUsers retrieves the current set of user IDs

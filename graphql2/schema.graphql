@@ -254,20 +254,20 @@ type DebugSendSMSInfo {
   providerURL: String!
 }
 
-type FixedShiftGroup {
+type TemporarySchedule {
   start: ISOTimestamp!
   end: ISOTimestamp!
 
   shifts: [OnCallShift!]!
 }
 
-input ResetScheduleShiftsInput {
+input ClearTemporarySchedulesInput {
   scheduleID: ID!
 
   start: ISOTimestamp!
   end: ISOTimestamp!
 }
-input SetScheduleShiftsInput {
+input SetTemporaryScheduleInput {
   scheduleID: ID!
 
   start: ISOTimestamp!
@@ -282,8 +282,8 @@ input SetScheduleShiftInput {
 }
 
 type Mutation {
-  setScheduleShifts(input: SetScheduleShiftsInput!): Boolean!
-  resetScheduleShifts(input: ResetScheduleShiftsInput!): Boolean!
+  setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
+  clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
 
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
@@ -574,7 +574,7 @@ type Schedule {
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
 
-  fixedShifts: [FixedShiftGroup!]!
+  temporarySchedules: [TemporarySchedule!]!
 }
 
 type OnCallShift {
