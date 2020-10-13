@@ -1,5 +1,4 @@
-import React from 'react'
-import p from 'prop-types'
+import React, { Ref } from 'react'
 import Grid from '@material-ui/core/Grid'
 import { Filter as LabelFilterIcon } from 'mdi-material-ui'
 import FilterContainer from '../util/FilterContainer'
@@ -8,10 +7,18 @@ import { searchSelector } from '../selectors'
 import { setURLParam } from '../actions'
 import { useDispatch, useSelector } from 'react-redux'
 
-export default function UserPhoneNumberFilterContainer(props) {
-  const searchParam = useSelector(searchSelector) // current total search string on page load
+interface UserPhoneNumberFilterContainerProps {
+  anchorRef?: Ref<HTMLElement>
+}
+
+export default function UserPhoneNumberFilterContainer(
+  props: UserPhoneNumberFilterContainerProps,
+): JSX.Element {
+  const searchParam = String(useSelector(searchSelector))
   const dispatch = useDispatch()
-  const setSearchParam = (value) => dispatch(setURLParam('search', value))
+  function setSearchParam(value: string): void {
+    dispatch(setURLParam('search', value))
+  }
 
   return (
     <FilterContainer
@@ -23,7 +30,7 @@ export default function UserPhoneNumberFilterContainer(props) {
         edge: 'end',
         size: 'small',
       }}
-      onReset={() => setSearchParam()}
+      onReset={() => setSearchParam('')}
       anchorRef={props.anchorRef}
     >
       <Grid data-cy='phone-number-container' item xs={12}>
@@ -38,11 +45,4 @@ export default function UserPhoneNumberFilterContainer(props) {
       </Grid>
     </FilterContainer>
   )
-}
-
-UserPhoneNumberFilterContainer.propTypes = {
-  onReset: p.func,
-
-  // optionally anchors the popover to a specified element's ref
-  anchorRef: p.object,
 }
