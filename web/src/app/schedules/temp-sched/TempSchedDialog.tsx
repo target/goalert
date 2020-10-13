@@ -14,7 +14,7 @@ import TempSchedTimesStep from './TempSchedTimesStep'
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
 const mutation = gql`
-  mutation($input: SetScheduleShiftsInput!) {
+  mutation($input: SetTemporaryScheduleInput!) {
     setTemporarySchedule(input: $input)
   }
 `

@@ -69,7 +69,7 @@ export default class ScheduleCalendar extends React.PureComponent {
   static propTypes = {
     scheduleID: p.string.isRequired,
     shifts: p.array.isRequired,
-    fixedShifts: p.array,
+    temporarySchedules: p.array,
     CardProps: p.object, // todo: use CardProps from types once TS
   }
 
@@ -172,7 +172,7 @@ export default class ScheduleCalendar extends React.PureComponent {
     const {
       classes,
       shifts,
-      tempScheds,
+      temporarySchedules,
       start,
       weekly,
       CardProps,
@@ -194,7 +194,7 @@ export default class ScheduleCalendar extends React.PureComponent {
             <Calendar
               date={new Date(start)}
               localizer={localizer}
-              events={this.getCalEvents(shifts, tempScheds)}
+              events={this.getCalEvents(shifts, temporarySchedules)}
               style={{
                 height: weekly ? '100%' : '45rem',
                 fontFamily: theme.typography.body2.fontFamily,
@@ -243,7 +243,7 @@ export default class ScheduleCalendar extends React.PureComponent {
       start: sched.start,
       end: sched.end,
       user: { name: 'Temporary Schedule' },
-      TempSched: sched,
+      tempSched: sched,
       fixed: true,
     }))
 
@@ -287,7 +287,7 @@ export default class ScheduleCalendar extends React.PureComponent {
         start: new Date(shift.start),
         end: new Date(shift.end),
         fixed: shift.fixed,
-        TempSched: shift.TempSched,
+        tempSched: shift.tempSched,
         ...shifts,
       }
     })
