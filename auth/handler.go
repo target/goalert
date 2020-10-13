@@ -365,7 +365,8 @@ func (h *Handler) handleProvider(id string, p IdentityProvider, refU *url.URL, w
 	route.CurrentURL = u.String()
 
 	sub, err := p.ExtractIdentity(&route, w, req)
-	if r, ok := err.(Redirector); ok {
+	var r Redirector
+	if errors.As(err, &r) {
 		sp.Annotate([]trace.Attribute{trace.StringAttribute("auth.redirectURL", r.RedirectURL())}, "Redirected.")
 		http.Redirect(w, req, r.RedirectURL(), http.StatusFound)
 		return
