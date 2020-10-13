@@ -87,10 +87,6 @@ func addSource(ctx context.Context, err error) context.Context {
 	return ctx
 }
 
-type causer interface {
-	Cause() error
-}
-
 func findRootSource(err error) error {
 	var rootErr error
 	for {
