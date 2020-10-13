@@ -32,10 +32,13 @@ function useISOPicker(
     if (input instanceof DateTime) return input
     if (!input) return null
 
+    if (type === 'time' && !dtValue)
+      throw new Error('initial value is required for type=time')
+
     const dt = DateTime.fromFormat(input, format, { zone })
     if (dt.isValid) {
       if (type === 'time') {
-        return DateTime.fromISO(value, { zone }).set({
+        return dtValue.set({
           hour: dt.hour,
           minute: dt.minute,
         })
