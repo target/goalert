@@ -78,17 +78,19 @@ function testFixedSchedule(screen: ScreenFormat): void {
       'div[data-cy="add-shifts-step"]',
     )
 
-    // // verify shift doesn't exist in list yet
-    // cy.get('[data-cy="shifts-list"]').should('not.contain', users[0].name)
+    // verify shift doesn't exist in list yet
+    cy.get('[data-cy="shifts-list"]').should('not.contain', users[0].name)
 
-    // // click add shift button
-    // cy.get('button[title="Add Shift"]').click()
+    // click add shift button
+    cy.get('button[title="Add Shift"]').click()
 
-    // // verify shift shows up in list
-    // cy.get('[data-cy="shifts-list"]').should('contain', users[0].name)
+    // verify shift shows up in list
+    cy.get('[data-cy="shifts-list"]').should('contain', users[0].name)
 
-    // // click submit
-    // cy.dialogFinish('Submit')
+    // click submit
+    cy.dialogFinish('Submit')
+
+    // todo: go to correct month in calendar, using URL
 
     // // check fixed sched length in calendar
     // cy.get('div').contains('Fixed Schedule').trigger('mouseover')
