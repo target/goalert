@@ -93,12 +93,14 @@ type causer interface {
 
 func findRootSource(err error) error {
 	var rootErr error
+	errors.Unwrap()
 	for {
-		if c, ok := err.(causer); ok {
-			err = c.Cause()
-		} else {
+		nextErr := errors.Unwrap(err)
+		if nextErr == nil {
 			break
 		}
+		err = nextErr
+
 		if _, ok := err.(stackTracer); ok {
 			rootErr = err
 		}
