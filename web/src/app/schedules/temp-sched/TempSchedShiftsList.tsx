@@ -10,7 +10,7 @@ import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import _ from 'lodash-es'
 
-type FixedSchedShiftsListProps = {
+type TempSchedShiftsListProps = {
   value: Shift[]
   onRemove: (shift: Shift) => void
 
@@ -30,12 +30,12 @@ type FlatListItem = {
 
 type FlatListListItem = FlatListSub | FlatListItem
 
-export default function FixedSchedShiftsList({
+export default function TempSchedShiftsList({
   start,
   end,
   value,
   onRemove,
-}: FixedSchedShiftsListProps): JSX.Element {
+}: TempSchedShiftsListProps): JSX.Element {
   const _shifts = useUserInfo(value)
   const [zone] = useURLParam('tz', 'local')
 

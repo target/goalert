@@ -8,28 +8,28 @@ import _ from 'lodash-es'
 import { FormContainer } from '../../forms'
 import { bindKeyboard, virtualize } from 'react-swipeable-views-utils'
 import SwipeableViews from 'react-swipeable-views'
-import AddShiftsStep from './AddShiftsStep'
-import ScheduleTimesStep from './ScheduleTimesStep'
+import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
+import TempSchedTimesStep from './TempSchedTimesStep'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
 const mutation = gql`
-  mutation($input: SetScheduleShiftsInput!) {
+  mutation($input: SetTemporaryScheduleInput!) {
     setTemporarySchedule(input: $input)
   }
 `
 
-type FixedScheduleDialogProps = {
+type TempScheduleDialogProps = {
   onClose: () => void
   scheduleID: string
   value?: Value
 }
 
-export default function FixedScheduleDialog({
+export default function TempSchedDialog({
   onClose,
   scheduleID,
   value: _value,
-}: FixedScheduleDialogProps): JSX.Element {
+}: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
 
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
@@ -61,7 +61,7 @@ export default function FixedScheduleDialog({
     switch (index) {
       case 0:
         return (
-          <ScheduleTimesStep
+          <TempSchedTimesStep
             key={key}
             stepText='STEP 1 OF 2'
             scheduleID={scheduleID}
@@ -69,7 +69,7 @@ export default function FixedScheduleDialog({
         )
       case 1:
         return (
-          <AddShiftsStep
+          <TempSchedAddShiftsStep
             key={key}
             value={value.shifts}
             onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
@@ -96,7 +96,7 @@ export default function FixedScheduleDialog({
     <FormDialog
       fullScreen
       disableGutters
-      title='Define a Fixed Schedule'
+      title='Define a Temporary Schedule'
       primaryActionLabel={isComplete ? 'Done' : null}
       onClose={onClose}
       loading={loading}

@@ -10,18 +10,18 @@ const mutation = gql`
   }
 `
 
-type DeleteFixedScheduleConfirmationProps = {
+type TempSchedDeleteConfirmationProps = {
   scheduleID: string
   onClose: () => void
   value: Value
 }
 
-export default function DeleteFixedScheduleConfirmation({
+export default function TempSchedDeleteConfirmation({
   scheduleID,
   onClose,
   value,
-}: DeleteFixedScheduleConfirmationProps): JSX.Element {
-  const [deleteFixedSchedule, { loading, error }] = useMutation(mutation, {
+}: TempSchedDeleteConfirmationProps): JSX.Element {
+  const [deleteTempSchedule, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {
       input: {
@@ -36,13 +36,13 @@ export default function DeleteFixedScheduleConfirmation({
     <FormDialog
       title='Are you sure?'
       confirm
-      subTitle={`Deleting this fixed schedule will remove all fixed shifts from ${fmt(
+      subTitle={`This will clear all temporary schedule data from ${fmt(
         value.start,
       )} to ${fmt(value.end)}.`}
       loading={loading}
       errors={error ? [error] : []}
       onClose={onClose}
-      onSubmit={() => deleteFixedSchedule()}
+      onSubmit={() => deleteTempSchedule()}
     />
   )
 }
