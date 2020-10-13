@@ -15,7 +15,15 @@ const useStyles = makeStyles({
   },
 })
 
-export default function TempSchedAddShiftForm(): JSX.Element {
+type TempSchedAddShiftFormProps = {
+  start: string
+  end: string
+}
+
+export default function TempSchedAddShiftForm({
+  start,
+  end,
+}: TempSchedAddShiftFormProps): JSX.Element {
   const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
 
@@ -35,6 +43,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
+          inputProps={{ min: start }}
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -53,6 +62,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
+            inputProps={{ max: end }}
             hint={
               <Typography
                 className={classes.typography}

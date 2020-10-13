@@ -17,7 +17,7 @@ function hasInputSupport(name) {
 }
 
 function useISOPicker(
-  { value, onChange, timeZone, ...otherProps },
+  { value, onChange, timeZone, inputProps, ...otherProps },
   { format, truncateTo, type, Fallback },
 ) {
   const native = hasInputSupport(type)
@@ -85,6 +85,7 @@ function useISOPicker(
         type={type}
         value={inputValue}
         onChange={handleChange}
+        inputProps={inputProps}
         {...otherProps}
         InputLabelProps={shrinkInputLabel(otherProps)}
       />

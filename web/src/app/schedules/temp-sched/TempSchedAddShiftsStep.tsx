@@ -227,7 +227,7 @@ export default function TempSchedAddShiftsStep({
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
-            <TempSchedAddShiftForm />
+            <TempSchedAddShiftForm start={start} end={end} />
           </FormContainer>
         </Grid>
 
