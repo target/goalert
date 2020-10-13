@@ -84,7 +84,7 @@ export default function FixedSchedAddShiftForm(): JSX.Element {
             mapOnChangeValue={(nextVal: string, formValue: Value) => {
               if (!nextVal) return ''
               return DateTime.fromISO(formValue.start)
-                .plus({ hours: parseInt(nextVal, 10) })
+                .plus({ hours: parseFloat(nextVal) })
                 .toISO()
             }}
             min={0.25}
