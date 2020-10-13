@@ -238,6 +238,7 @@ export default function TempSchedAddShiftsStep({
             onClick={handleAddShift}
             size='medium'
             color='primary'
+            disabled={Boolean(fieldErrors().length)}
           >
             <AddIcon />
           </Fab>
