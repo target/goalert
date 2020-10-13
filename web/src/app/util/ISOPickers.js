@@ -23,8 +23,10 @@ function useISOPicker(
   const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
   const zone = timeZone || params('tz', 'local')
-  const dtValue = DateTime.fromISO(value, { zone })
-  const [inputValue, setInputValue] = useState(dtValue.toFormat(format))
+  const dtValue = value ? DateTime.fromISO(value, { zone }) : null
+  const [inputValue, setInputValue] = useState(
+    value ? dtValue.toFormat(format) : '',
+  )
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
@@ -35,7 +37,7 @@ function useISOPicker(
     const dt = DateTime.fromFormat(input, format, { zone })
     if (dt.isValid) {
       if (type === 'time') {
-        return dtValue.set({
+        return DateTime.fromISO(value, { zone }).set({
           hour: dt.hour,
           minute: dt.minute,
         })
@@ -66,7 +68,7 @@ function useISOPicker(
     const newVal = inputToISO(e.target.value)
     // Only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
-    if (newVal && newVal !== dtValue.toUTC().toISO()) {
+    if (newVal && newVal !== dtValue?.toUTC().toISO()) {
       onChange(newVal)
     }
   }
