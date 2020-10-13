@@ -39,11 +39,11 @@ func httpError(ctx context.Context, w http.ResponseWriter, err error) bool {
 		return false
 	}
 
-	type clientErr interface {
+	var clientErr interface {
 		ClientError() bool
 	}
 
-	if e, ok := err.(clientErr); ok && e.ClientError() {
+	if errors.As(err, &clientErr) && clientErr.ClientError() {
 		log.Debug(ctx, err)
 		http.Error(w, err.Error(), http.StatusNotAcceptable)
 		return true
