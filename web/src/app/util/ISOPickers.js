@@ -24,9 +24,7 @@ function useISOPicker(
   const params = useSelector(urlParamSelector)
   const zone = timeZone || params('tz', 'local')
   const dtValue = value ? DateTime.fromISO(value, { zone }) : null
-  const [inputValue, setInputValue] = useState(
-    value ? dtValue.toFormat(format) : '',
-  )
+  const [inputValue, setInputValue] = useState(dtValue?.toFormat(format) ?? '')
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
