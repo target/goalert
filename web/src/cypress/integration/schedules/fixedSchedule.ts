@@ -67,9 +67,8 @@ function testTemporarySchedule(screen: ScreenFormat): void {
 
     // go to step 2
     cy.get('[data-cy="loading-button"]').contains('Next').click()
-    cy.contains('STEP 2 OF 2').should('be.visible')
+    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
 
-    console.log(duration)
     // add shift for full duration
     cy.dialogForm(
       {
@@ -97,7 +96,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       '/schedules/' +
         schedule.id +
         '?start=' +
-        DateTime.fromISO(start).startOf('month').toFormat('yyyy-MM-dd') +
+        DateTime.fromISO(start).toFormat('yyyy-MM-dd') +
         'T07%3A00%3A00.000Z',
     )
 
