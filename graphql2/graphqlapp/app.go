@@ -133,6 +133,11 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return false
 	}
 
+	var numErr *strconv.NumError
+	if errors.As(gqlErr, &numErr) {
+		return true
+	}
+
 	if gqlErr.Extensions == nil {
 		return false
 	}
@@ -182,12 +187,6 @@ func (a *App) Handler() http.Handler {
 	})
 
 	h.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
-		var numErr *strconv.NumError
-		if errors.As(err, &numErr) {
-			// gqlgen doesn't handle exponent notation numbers properly
-			// but we want to return a validation error instead of a 500 at least.
-			err = validation.NewGenericError("parse '" + numErr.Num + "': " + numErr.Err.Error())
-		}
 		err = errutil.MapDBError(err)
 		var gqlErr *gqlerror.Error
 
