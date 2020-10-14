@@ -8,5 +8,8 @@ declare namespace Cypress {
 
     /** Configures a schedule target and rules. */
     setScheduleTarget: typeof setScheduleTarget
+
+    /** Creates a new temporary schedule. */
+    createTemporarySchedule: typeof createTemporarySchedule
   }
 }

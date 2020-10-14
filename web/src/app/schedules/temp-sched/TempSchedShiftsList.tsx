@@ -98,7 +98,7 @@ export default function TempSchedShiftsList({
           subText: shiftDetails,
           icon: <UserAvatar userID={s.shift.userID} />,
           secondaryAction: s.added ? null : (
-            <IconButton onClick={() => onRemove(s.shift)}>
+            <IconButton data-cy='delete-shift' onClick={() => onRemove(s.shift)}>
               <Delete />
             </IconButton>
           ),

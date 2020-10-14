@@ -43,23 +43,30 @@ function getStepOneValues(): [string, string, number] {
 
 function testTemporarySchedule(screen: ScreenFormat): void {
   let schedule: Schedule
-  let users: User[]
+  let manualAddUser: User
+  let graphQLAddUser: User
+  let schedAssignmentUser: User
   beforeEach(() => {
     cy.fixture('users').then((u) => {
-      users = u
+      manualAddUser = u[0]
+      graphQLAddUser = u[1]
+      schedAssignmentUser = u[2]
+
       cy.createSchedule().then((s: Schedule) => {
         schedule = s
         cy.visit('/schedules/' + s.id)
-        cy.get('[data-cy="new-temp-sched"]').click()
       })
     })
   })
 
-  it.only('should create a temporary schedule', () => {
+  // todo: start with shifts on schedule and check they disappear after creating
+  it('should create a temporary schedule', () => {
     // check calendar for original shift in weekly view
     // this allows us to compare shift times with a user's
     // name in the same div
-    // hit next/back buttons? update url? etc
+
+    // open form
+    cy.get('[data-cy="new-temp-sched"]').click()
 
     // fill out step 1 start and end times
     const [start, end, duration] = getStepOneValues()
@@ -74,19 +81,19 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       {
         start,
         end: duration,
-        userID: users[0].name,
+        userID: manualAddUser.name,
       },
       'div[data-cy="add-shifts-step"]',
     )
 
     // verify shift doesn't exist in list yet
-    cy.get('[data-cy="shifts-list"]').should('not.contain', users[0].name)
+    cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
 
     // click add shift button
     cy.get('button[title="Add Shift"]').click()
 
     // verify shift shows up in list
-    cy.get('[data-cy="shifts-list"]').should('contain', users[0].name)
+    cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
 
     // click submit
     cy.dialogFinish('Submit')
@@ -107,23 +114,41 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('button[data-cy="delete-temp-sched"]').should('be.visible')
 
     // check new shift + its tooltip exists in calendar
-    cy.get('div').contains(users[0].name).trigger('mouseover')
+    cy.get('div').contains(manualAddUser.name).trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
 
     // check original overlapped shifts no longer show
   })
 
-  it('should edit a temporary schedule', () => {
+  it.only('should edit a temporary schedule', () => {
     // create temporary schedule in graphql
-    // hover over temporary sched span
-    // click edit button
-    // click delete button in step 2
-    // add shift with new info in fields
-    // click add shift button
-    // verify shift shows up on right
-    // click submit
-    // check temporary sched length in calendar
-    // check new shift in calendar
+    cy.createTemporarySchedule(schedule.id).then(() => {
+      cy.get('[data-cy="calendar"]').should('exist')
+      cy.wait(3000)
+
+      // hover over temporary sched span
+      cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+
+      // click edit button
+      cy.get('button[data-cy="edit-temp-sched"]').click()
+
+      // verify shift is in list
+      cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
+
+      // click delete button in step 2
+      cy.get('[data-cy="shifts-list"] li').contains(graphQLAddUser.name).eq(0).parent().parent().siblings().click()
+
+      // verify shift was deleted from list
+      cy.get('[data-cy="shifts-list"]').should('not.contain', graphQLAddUser.name)
+
+      // add shift with new info in fields
+      // click add shift button
+      // verify shift shows up on right
+      // click submit
+      // check temporary sched length in calendar
+      // check new shift in calendar
+    })
   })
 
   it('should delete a temporary schedule', () => {

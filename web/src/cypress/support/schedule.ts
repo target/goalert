@@ -1,10 +1,11 @@
 import { Chance } from 'chance'
 import { DateTime } from 'luxon'
 import {
+  OnCallShift,
   Schedule,
   ScheduleTarget,
   ScheduleTargetInput,
-  FixedShiftGroup,
+  TemporarySchedule,
 } from '../../schema'
 
 const c = new Chance()
@@ -144,24 +145,25 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
   })
 }
 
-function createFixedSchedule(
+function createTemporarySchedule(
   scheduleID?: string,
-  options?: Partial<FixedShiftGroup>,
+  options?: Partial<TemporarySchedule> & { scheduleID?: string },
 ): Cypress.Chainable<void> {
   const mutation = `
-    mutation($input: SetScheduleShiftsInput!) {
-      setScheduleShifts(input: $input)
+    mutation($input: SetTemporaryScheduleInput!) {
+      setTemporarySchedule(input: $input)
     }
   `
 
   if (!scheduleID) {
-    cy.createSchedule().then((s: Schedule) =>
-      createFixedSchedule(s.id, options),
+    return cy.createSchedule().then((s: Schedule) =>
+      createTemporarySchedule(s.id, options),
     )
   }
 
   const nowDT = DateTime.local()
   let input = options || {}
+  input.scheduleID = scheduleID
 
   // set start to start of today or 7 days before set end
   if (!input.start && !input.end) {
@@ -183,9 +185,8 @@ function createFixedSchedule(
         {
           start: input.start as string,
           end: input.end as string,
-          userID: users[0].id,
-          truncated: false,
-        },
+          userID: users[1].id,
+        } as OnCallShift,
       ]
     })
   }
@@ -196,3 +197,4 @@ function createFixedSchedule(
 Cypress.Commands.add('createSchedule', createSchedule)
 Cypress.Commands.add('setScheduleTarget', setScheduleTarget)
 Cypress.Commands.add('deleteSchedule', deleteSchedule)
+Cypress.Commands.add('createTemporarySchedule', createTemporarySchedule)
