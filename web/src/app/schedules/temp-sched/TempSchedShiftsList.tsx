@@ -1,14 +1,23 @@
 import React from 'react'
-import { IconButton, Typography } from '@material-ui/core'
+import { IconButton, makeStyles, Typography } from '@material-ui/core'
 import FlatList from '../../lists/FlatList'
 import { Shift } from './sharedUtils'
 import { UserAvatar } from '../../util/avatars'
 import { Delete } from '@material-ui/icons'
+import { Warning } from '../../icons/components/Icons'
 import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
 import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import _ from 'lodash-es'
+import { isBefore, isAfter } from '../../util/luxon-helpers'
+
+const useStyles = makeStyles({
+  secondaryActionWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+})
 
 type TempSchedShiftsListProps = {
   value: Shift[]
@@ -36,6 +45,7 @@ export default function TempSchedShiftsList({
   value,
   onRemove,
 }: TempSchedShiftsListProps): JSX.Element {
+  const classes = useStyles()
   const _shifts = useUserInfo(value)
   const [zone] = useURLParam('tz', 'local')
 
@@ -49,6 +59,7 @@ export default function TempSchedShiftsList({
         DateTime.fromISO(s.start, { zone }),
         DateTime.fromISO(s.end, { zone }),
       ),
+      isValid: !isAfter(start, s.start) && !isBefore(end, s.end),
     }))
 
     if (!shifts.length) return []
@@ -104,9 +115,17 @@ export default function TempSchedShiftsList({
           subText: shiftDetails,
           icon: <UserAvatar userID={s.shift.userID} />,
           secondaryAction: s.added ? null : (
-            <IconButton onClick={() => onRemove(s.shift)}>
-              <Delete />
-            </IconButton>
+            <div className={classes.secondaryActionWrapper}>
+              {!s.isValid && (
+                <Warning
+                  message='This shift extends beyond the start and/or end of this temporary schedule'
+                  placement='left'
+                />
+              )}
+              <IconButton onClick={() => onRemove(s.shift)}>
+                <Delete />
+              </IconButton>
+            </div>
           ),
         })
 
