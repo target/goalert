@@ -31,3 +31,13 @@ export function getEndOfWeek(luxonDateTime = DateTime.local()) {
     })
     .endOf('day')
 }
+
+// compare two iso datetime strings
+export function isAfter(a, b) {
+  return DateTime.fromISO(a) > DateTime.fromISO(b)
+}
+
+// compare two iso datetime strings
+export function isBefore(a, b) {
+  return DateTime.fromISO(a) < DateTime.fromISO(b)
+}

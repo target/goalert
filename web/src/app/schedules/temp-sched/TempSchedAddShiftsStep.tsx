@@ -15,6 +15,7 @@ import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
+import { isAfter, isBefore } from '../../util/luxon-helpers'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -73,14 +74,6 @@ function DTToShifts(shifts: DTShift[]): Shift[] {
 
 function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
-}
-
-function isAfter(a: string, b: string): boolean {
-  return DateTime.fromISO(a) > DateTime.fromISO(b)
-}
-
-function isBefore(a: string, b: string): boolean {
-  return DateTime.fromISO(a) < DateTime.fromISO(b)
 }
 
 // mergeShifts will take the incoming shifts and merge them with
