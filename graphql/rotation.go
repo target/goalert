@@ -2,14 +2,14 @@ package graphql
 
 import (
 	"fmt"
-	"github.com/target/goalert/assignment"
-	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/util"
-	"github.com/target/goalert/validation"
 	"time"
 
 	g "github.com/graphql-go/graphql"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/schedule/rotation"
+	"github.com/target/goalert/util"
+	"github.com/target/goalert/validation"
 )
 
 var rotationTypeEnum = g.NewEnum(g.EnumConfig{
@@ -113,7 +113,7 @@ func (h *Handler) rotationFields() g.Fields {
 				scrub := newScrubber(p.Context).scrub
 
 				state, err := h.c.RotationStore.State(p.Context, r.ID)
-				if err == rotation.ErrNoState {
+				if errors.Is(err, rotation.ErrNoState) {
 					return -1, nil
 				}
 				if err != nil {
@@ -139,7 +139,7 @@ func (h *Handler) rotationFields() g.Fields {
 				}
 
 				shiftState, err := h.c.RotationStore.State(p.Context, r.ID)
-				if err == rotation.ErrNoState {
+				if errors.Is(err, rotation.ErrNoState) {
 					// rotation hasn't been started/processed yet
 					return nil, nil
 				}

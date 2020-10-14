@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -116,7 +117,7 @@ func (s *Store) Authorize(ctx context.Context, tok authtoken.Token) (context.Con
 
 	var userID string
 	err := s.authUser.QueryRowContext(ctx, tok.ID, tok.CreatedAt).Scan(&userID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return ctx, validation.NewFieldError("sub", "invalid")
 	}
 	if err != nil {
@@ -143,7 +144,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*CalendarSubscription, 
 
 	var cs CalendarSubscription
 	err = cs.scanFrom(s.findOne.QueryRowContext(ctx, id).Scan)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, validation.NewFieldError("ID", "not found")
 	}
 	if err != nil {

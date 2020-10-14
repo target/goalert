@@ -2,6 +2,7 @@ package remotemonitor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -85,7 +86,7 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 }
 func (m *Monitor) serve(l net.Listener) {
 	err := m.srv.Serve(l)
-	if err != nil && err != http.ErrServerClosed {
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalln("ERROR:", err)
 	}
 }
