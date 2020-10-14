@@ -125,7 +125,14 @@ export default function TempSchedDialog({
         >
           <VirtualizeAnimatedViews
             index={step}
-            onChangeIndex={(i: number) => setStep(i)}
+            onChangeIndex={(i: number) => {
+              if (i < 0 || i > 1) return
+              if (edit) {
+                setStep(1)
+                return
+              }
+              setStep(i)
+            }}
             slideRenderer={renderSlide}
             disabled // disables slides from changing outside of action buttons
             containerStyle={{ height: '100%' }}
