@@ -40,7 +40,7 @@ func (app *App) _Run(ctx context.Context) error {
 		"Listening.",
 	)
 	err = app.srv.Serve(app.l)
-	if err != nil && err != http.ErrServerClosed {
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return errors.Wrap(err, "serve HTTP")
 	}
 

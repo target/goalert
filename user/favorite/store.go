@@ -146,7 +146,7 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		rotationID.String = tgt.TargetID()
 	}
 	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID, rotationID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		// ignoring since it is safe to unset favorite (with retries)
 		err = nil
 	}
@@ -188,7 +188,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 	}
 
 	rows, err := db.findAll.QueryContext(ctx, userID, allowServices, allowSchedules, allowRotations)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

@@ -63,7 +63,8 @@ func makeCodeFrame(q string, e *sqlutil.Error) string {
 func (t *terminalFormatter) Format(e *logrus.Entry) ([]byte, error) {
 	err, ok := e.Data["error"].(error)
 	if ok {
-		if qe, ok := errors.Cause(err).(queryError); ok {
+		var qe queryError
+		if errors.As(err, &qe) {
 			e.Message += qe.Cause().Message
 			frame := makeCodeFrame(qe.Query(), qe.Cause())
 			if frame != "" {

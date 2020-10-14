@@ -142,7 +142,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Schedule, erro
 	}
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

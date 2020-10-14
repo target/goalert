@@ -3,7 +3,9 @@ package user
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -246,7 +248,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]User, error) {
 	}
 
 	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids))
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -445,7 +447,7 @@ func (db *DB) DeleteAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubjec
 		s = tx.Stmt(s)
 	}
 	_, err = s.ExecContext(ctx, a.UserID, n.ProviderID, n.SubjectID)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		// do not return error if auth subject doesn't exist
 		return err
 	}
