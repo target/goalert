@@ -84,9 +84,10 @@ export default function ScheduleDetails({ scheduleID }) {
       )}
       {configTempSchedule && (
         <TempSchedDialog
-          value={configTempSchedule === true ? null : configTempSchedule}
+          value={
+            configTempSchedule === true ? { scheduleID } : configTempSchedule
+          }
           onClose={() => setConfigTempSchedule(null)}
-          scheduleID={scheduleID}
         />
       )}
       {deleteTempSchedule && (
@@ -154,8 +155,12 @@ export default function ScheduleDetails({ scheduleID }) {
           <ScheduleCalendarQuery
             scheduleID={scheduleID}
             onNewTempSched={() => setConfigTempSchedule(true)}
-            onEditTempSched={(sched) => setConfigTempSchedule(sched)}
-            onDeleteTempSched={(sched) => setDeleteTempSchedule(sched)}
+            onEditTempSched={(sched) =>
+              setConfigTempSchedule({ ...sched, scheduleID })
+            }
+            onDeleteTempSched={(sched) =>
+              setDeleteTempSchedule({ ...sched, scheduleID })
+            }
           />
         }
       />

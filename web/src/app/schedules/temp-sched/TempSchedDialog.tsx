@@ -3,13 +3,14 @@ import { useMutation } from 'react-apollo'
 import gql from 'graphql-tag'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
-import { Shift, Value } from './sharedUtils'
+import { Shift } from './sharedUtils'
 import _ from 'lodash-es'
 import { FormContainer } from '../../forms'
 import { bindKeyboard, virtualize } from 'react-swipeable-views-utils'
 import SwipeableViews from 'react-swipeable-views'
 import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
+import { SetTemporaryScheduleInput } from '../../../schema'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
@@ -21,19 +22,18 @@ const mutation = gql`
 
 type TempScheduleDialogProps = {
   onClose: () => void
-  scheduleID: string
-  value?: Value
+  value?: SetTemporaryScheduleInput
 }
 
 export default function TempSchedDialog({
   onClose,
-  scheduleID,
   value: _value,
 }: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
 
   const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
   const [value, setValue] = useState({
+    scheduleID: _value?.scheduleID ?? '',
     start: _value?.start ?? '',
     end: _value?.end ?? '',
     shifts: (_value?.shifts ?? []).map((s) =>
@@ -44,10 +44,7 @@ export default function TempSchedDialog({
   const [submit, { loading, error, data }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {
-      input: {
-        ...value,
-        scheduleID,
-      },
+      input: value,
     },
   })
 
@@ -64,7 +61,7 @@ export default function TempSchedDialog({
           <TempSchedTimesStep
             key={key}
             stepText='STEP 1 OF 2'
-            scheduleID={scheduleID}
+            scheduleID={value.scheduleID}
           />
         )
       case 1:
@@ -74,7 +71,7 @@ export default function TempSchedDialog({
             value={value.shifts}
             onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
             stepText={edit ? '' : 'STEP 2 OF 2'}
-            scheduleID={scheduleID}
+            scheduleID={value.scheduleID}
             start={value.start}
             end={value.end}
           />
@@ -106,7 +103,7 @@ export default function TempSchedDialog({
           optionalLabels
           disabled={loading}
           value={value}
-          onChange={(newValue: Value) => setValue(newValue)}
+          onChange={(newValue: SetTemporaryScheduleInput) => setValue(newValue)}
         >
           <VirtualizeAnimatedViews
             index={step}
