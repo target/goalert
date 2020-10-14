@@ -10,6 +10,7 @@ import { bindKeyboard, virtualize } from 'react-swipeable-views-utils'
 import SwipeableViews from 'react-swipeable-views'
 import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
+import { isAfter, isBefore } from '../../util/luxon-helpers'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
@@ -40,6 +41,19 @@ export default function TempSchedDialog({
       _.pick(s, 'start', 'end', 'userID'),
     ),
   })
+
+  const hasInvalidShift = value.shifts.some(
+    (s) => isAfter(value.start, s.start) || isBefore(value.end, s.end),
+  )
+
+  const shiftErrors = hasInvalidShift
+    ? [
+        {
+          message:
+            'One or more shifts extend beyond the start and/or end of this temporary schedule',
+        },
+      ]
+    : []
 
   const [submit, { loading, error, data }] = useMutation(mutation, {
     onCompleted: () => onClose(),
@@ -91,7 +105,7 @@ export default function TempSchedDialog({
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
   }))
-  const errs = nonFieldErrs.concat(fieldErrs)
+  const errs = nonFieldErrs.concat(fieldErrs).concat(shiftErrors)
 
   return (
     <FormDialog
