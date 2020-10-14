@@ -3,20 +3,26 @@ import { IconButton, makeStyles, Typography } from '@material-ui/core'
 import FlatList from '../../lists/FlatList'
 import { Shift } from './sharedUtils'
 import { UserAvatar } from '../../util/avatars'
-import { Delete } from '@material-ui/icons'
-import { Warning } from '../../icons/components/Icons'
+import { Delete, Error } from '@material-ui/icons'
 import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
 import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import _ from 'lodash-es'
 import { isBefore, isAfter } from '../../util/luxon-helpers'
+import Tooltip from '@material-ui/core/Tooltip/Tooltip'
+import { styles } from '../../styles/materialStyles'
 
-const useStyles = makeStyles({
-  secondaryActionWrapper: {
-    display: 'flex',
-    alignItems: 'center',
-  },
+const useStyles = makeStyles((theme) => {
+  return {
+    secondaryActionWrapper: {
+      display: 'flex',
+      alignItems: 'center',
+    },
+    secondaryActionError: {
+      color: styles(theme).error.color,
+    },
+  }
 })
 
 type TempSchedShiftsListProps = {
@@ -117,10 +123,12 @@ export default function TempSchedShiftsList({
           secondaryAction: s.added ? null : (
             <div className={classes.secondaryActionWrapper}>
               {!s.isValid && (
-                <Warning
-                  message='This shift extends beyond the start and/or end of this temporary schedule'
+                <Tooltip
+                  title='This shift extends beyond the start and/or end of this temporary schedule'
                   placement='left'
-                />
+                >
+                  <Error className={classes.secondaryActionError} />
+                </Tooltip>
               )}
               <IconButton onClick={() => onRemove(s.shift)}>
                 <Delete />
