@@ -3,6 +3,7 @@ package sqltrace
 import (
 	"context"
 	"database/sql/driver"
+	"errors"
 	"io"
 
 	"github.com/target/goalert/util/sqlutil"
@@ -30,7 +31,7 @@ func errSpan(err error, sp *trace.Span) error {
 	if err == nil {
 		return nil
 	}
-	if err == io.EOF {
+	if errors.Is(err, io.EOF) {
 		return err
 	}
 

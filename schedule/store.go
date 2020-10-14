@@ -4,12 +4,11 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/target/goalert/user"
-	"github.com/target/goalert/util/sqlutil"
-
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/user"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -90,7 +89,7 @@ func (store *Store) FindMany(ctx context.Context, ids []string) ([]Schedule, err
 	}
 	userID := permission.UserID(ctx)
 	rows, err := store.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

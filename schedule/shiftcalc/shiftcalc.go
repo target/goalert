@@ -337,7 +337,7 @@ func (r *ShiftCalculator) RotationShifts(ctx context.Context, start, end time.Ti
 	}
 	ctx = log.WithField(ctx, "RotationID", rotationID)
 	state, err := r.RotStore.State(ctx, rotationID)
-	if err == rotation.ErrNoState {
+	if errors.Is(err, rotation.ErrNoState) {
 		return nil, nil
 	}
 	if err != nil {

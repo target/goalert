@@ -37,7 +37,7 @@ var ErrCarrierUnavailable = errors.New("carrier data is unavailable")
 
 func (c *Config) dbCarrierInfo(ctx context.Context, number string) (*CarrierInfo, error) {
 	m, err := c.CMStore.MetadataByTypeValue(ctx, nil, contactmethod.TypeSMS, number)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrCarrierUnavailable
 	}
 	if err != nil {
@@ -65,7 +65,7 @@ func (c *Config) CarrierInfo(ctx context.Context, number string, fetch bool) (*C
 		return info, err
 	}
 
-	if err != ErrCarrierStale && err != ErrCarrierUnavailable {
+	if !errors.Is(err, ErrCarrierStale) && !errors.Is(err, ErrCarrierUnavailable) {
 		log.Log(ctx, err)
 	}
 

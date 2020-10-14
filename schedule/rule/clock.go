@@ -18,7 +18,7 @@ func ParseClock(value string) (Clock, error) {
 	var h, m int
 	var s float64
 	n, err := fmt.Sscanf(value, "%d:%d:%f", &h, &m, &s)
-	if n == 2 && err == io.ErrUnexpectedEOF {
+	if n == 2 && errors.Is(err, io.ErrUnexpectedEOF) {
 		err = nil
 	}
 	if err != nil {

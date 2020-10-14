@@ -94,23 +94,18 @@ func (db *DB) processEscalations(ctx context.Context, stmt *sql.Stmt, scan func(
 	}
 	defer rows.Close()
 
-	type record struct {
-		alertID int
-		esc     *alertlog.EscalationMetaData
-	}
+	batch := make(map[alertlog.EscalationMetaData][]int)
 
-	var data []record
 	for rows.Next() {
-		var rec record
-		rec.alertID, rec.esc, err = scan(rows)
+		id, esc, err := scan(rows)
 		if err != nil {
 			return err
 		}
-		data = append(data, rec)
+		batch[*esc] = append(batch[*esc], id)
 	}
 
-	for _, rec := range data {
-		err = db.log.LogTx(ctx, tx, rec.alertID, alertlog.TypeEscalated, rec.esc)
+	for meta, ids := range batch {
+		err = db.log.LogManyTx(ctx, tx, ids, alertlog.TypeEscalated, meta)
 		if err != nil {
 			return errors.Wrap(err, "log escalation")
 		}

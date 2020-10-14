@@ -109,7 +109,7 @@ func (store *Store) Search(ctx context.Context, opts *SearchOptions) ([]string, 
 	}
 
 	rows, err := store.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

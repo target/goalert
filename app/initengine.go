@@ -13,7 +13,7 @@ func (app *App) initEngine(ctx context.Context) error {
 
 	var regionIndex int
 	err := app.db.QueryRowContext(ctx, `SELECT id FROM region_ids WHERE name = $1`, app.cfg.RegionName).Scan(&regionIndex)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		// doesn't exist, try to create
 		err = app.db.QueryRowContext(ctx, `
 		WITH inserted AS (

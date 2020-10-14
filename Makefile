@@ -198,10 +198,10 @@ migrate/inline_data_gen.go: migrate/migrations migrate/migrations/*.sql $(INLINE
 	go generate ./migrate
 
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/main.go
-	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && goimports -w ./mapconfig.go) || go generate ./graphql2
+	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
 
 graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/limitapigen/main.go
-	(cd ./graphql2 && go run ../devtools/limitapigen/main.go -out maplimit.go && goimports -w ./maplimit.go) || go generate ./graphql2
+	(cd ./graphql2 && go run ../devtools/limitapigen/main.go -out maplimit.go && go run golang.org/x/tools/cmd/goimports -w ./maplimit.go) || go generate ./graphql2
 
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
