@@ -38,7 +38,14 @@ function makeIntervalDates(): [string, string, number] {
     end.minus({ minute: 1 }),
   ).toDuration('hours')
 
-  return [start.toFormat(dtFmt), end.toFormat(dtFmt), round(duration.hours, 2)]
+  // been seeing sporadic errors here and there, logging when they come up
+  const s = start.toFormat(dtFmt)
+  const e = end.toFormat(dtFmt)
+  const d = round(duration.hours, 2)
+  if (!start.isValid) cy.log('Invalid Start Date Spotted! ', start.invalidExplanation)
+  if (!end.isValid) cy.log('Invalid End Date Spotted! ', end.invalidExplanation)
+
+  return [s, e, d]
 }
 
 function testTemporarySchedule(screen: ScreenFormat): void {
@@ -121,7 +128,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div[data-cy="sched-times-step"] input[name="end"]').should('have.value', lTZ(end))
   })
 
-  it.only('should refill a shifts info after deleting in step 2', () => {
+  it('should refill a shifts info after deleting in step 2', () => {
     cy.createTemporarySchedule(schedule.id).then(() => {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
