@@ -1,15 +1,11 @@
 import { Chance } from 'chance'
 import { testScreen } from '../../support'
 import { Schedule, User } from '../../../schema'
-import { DateTime, Info, Interval, LocalZone, Zone } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import { round } from 'lodash-es'
 
-// todo: 
-//   return data from create temp sched call instead of
-//   using users fixture in beforeEach
-
 const c = new Chance()
-const dtfmt = "yyyy-MM-dd'T'HH:mm"
+const dtFmt = "yyyy-MM-dd'T'HH:mm"
 
 function makeIntervalDates(): [string, string, number] {
   const now = DateTime.local()
@@ -42,7 +38,7 @@ function makeIntervalDates(): [string, string, number] {
     end.minus({ minute: 1 }),
   ).toDuration('hours')
 
-  return [start.toFormat(dtfmt), end.toFormat(dtfmt), round(duration.hours, 2)]
+  return [start.toFormat(dtFmt), end.toFormat(dtFmt), round(duration.hours, 2)]
 }
 
 function testTemporarySchedule(screen: ScreenFormat): void {
@@ -78,7 +74,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
   })
 
-  const datePlusEight = (dt: string) => DateTime.fromFormat(dt, dtfmt).plus({ hours: 8 }).toFormat(dtfmt)
+  const datePlusEight = (dt: string) => DateTime.fromFormat(dt, dtFmt).plus({ hours: 8 }).toFormat(dtFmt)
 
   it('should toggle duration field', () => {
     const [start, end] = makeIntervalDates()
@@ -97,10 +93,10 @@ function testTemporarySchedule(screen: ScreenFormat): void {
 
   it('should toggle timezone switches', () => {
     const c = (t: string, tz: string) => {
-      let dt = DateTime.fromFormat(t, dtfmt)
+      let dt = DateTime.fromFormat(t, dtFmt)
       dt = dt.setZone(tz)
       console.log(dt)
-      return dt.toFormat(dtfmt)
+      return dt.toFormat(dtFmt)
     }
     const lTZ = (t: string): string => c(t, DateTime.local().zoneName)
     const sTZ = (t: string): string => c(t, schedule.timeZone)
@@ -116,7 +112,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div[data-cy="sched-times-step"] input[name="end"]').should('have.value', sTZ(end))
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
-    cy.get('div[data-cy="add-shifts-step"] [data-cy="toggle-duration"]').click()
+    cy.get('div[data-cy="add-shifts-step"] [data-cy="toggle-duration-off"]').click()
     cy.get('div[data-cy="add-shifts-step"] input[name="start"]').should('have.value', sTZ(start))
     cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should('have.value', sTZ(datePlusEight(start)))
     cy.get('div[data-cy="add-shifts-step"] [data-cy="tz-switch"]').click()
