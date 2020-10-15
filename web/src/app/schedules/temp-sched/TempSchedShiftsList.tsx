@@ -78,15 +78,12 @@ export default function TempSchedShiftsList({
       shifts[0],
     )
 
-    const scheduleStart = DateTime.fromISO(start, { zone })
-    const scheduleEnd = DateTime.fromISO(end, { zone })
-
     const firstShiftStart = shifts[0].start
     const lastShiftEnd = lastShift.end
 
     const displaySpan = Interval.fromDateTimes(
-      DateTime.min(scheduleStart, firstShiftStart).startOf('day'),
-      DateTime.max(scheduleEnd, lastShiftEnd).endOf('day'),
+      DateTime.min(schedInterval.start, firstShiftStart).startOf('day'),
+      DateTime.max(schedInterval.end, lastShiftEnd).endOf('day'),
     )
 
     const result: FlatListListItem[] = []
