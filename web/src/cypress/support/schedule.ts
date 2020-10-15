@@ -1,7 +1,6 @@
 import { Chance } from 'chance'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import {
-  OnCallShift,
   Schedule,
   ScheduleTarget,
   ScheduleTargetInput,
@@ -161,7 +160,6 @@ function createTemporarySchedule(
   }
 
   const input = options || {}
-  input.scheduleID = scheduleID
   const scheduleDuration = c.integer({ min: 1, max: 30 })
   const cur = DateTime.local()
   const curDay = cur.day
@@ -169,7 +167,7 @@ function createTemporarySchedule(
   const curYear = cur.year
 
   if (!input.start && !input.end) {
-    // set start to anytime between now and 3 years
+    // set start to anytime between now and 3 years (arbitrary but not too far in the future)
     input.start = DateTime.fromJSDate(c.date({
       year: curYear + c.integer({ min: 0, max: 3 })
     }) as Date)
@@ -184,14 +182,13 @@ function createTemporarySchedule(
     input.end = start.plus({ days: scheduleDuration }).toISO()
   }
 
-  // set a single shift to extend entire fixed shift duration
   if (!input.shifts?.length) {
-    cy.fixture('users').then((users) => {
-      const numUsers = c.integer({ min: 1, max: users.length })
+    // addShifts adds a shift for each user specified to the input
+    const addShifts = (users: string[]) => {
       const s = DateTime.fromISO(input.start)
       const e = DateTime.fromISO(input.end)
 
-      for(let i = 0; i < numUsers; i++) {
+      for(let i = 0; i < users.length; i++) {
         const startYear = c.integer({ min: s.year, max: e.year })
         const startMonth = c.integer({ min: curYear === startYear ? s.month : 1, max: 12 })
         const start = DateTime.fromObject({
@@ -202,11 +199,22 @@ function createTemporarySchedule(
         
         input.shifts.push({
           start: start.toISO(), // anytime between (input.start and input.end) - scheduleDuration
-          end: start.plus({ hours: c.floating({ min: 0.25, max: 9000 }) }), // anytime after set start and before input.end, random duration
+          end: start.plus({ hours: c.floating({ min: 0.25, max: Interval.fromDateTimes(start, e).toDuration('hours') }) }), // anytime after set start and before input.end, random duration
           userID: users[i]
         })
       }
-    })
+    }
+
+    if (input.shiftUserIDs.length) {
+      addShifts(input.shiftUserIDs)
+    } else {
+      cy.fixture('users').then((_users) => {
+        const numUsers = c.integer({ min: 1, max: _users.length })
+        let users = _users.slice()
+        users.splice(numUsers - 1, 1)
+        addShifts(users)
+      })
+    }
   }
 
   return cy.graphql(mutation, { input })

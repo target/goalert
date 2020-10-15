@@ -14,4 +14,6 @@ declare namespace Cypress {
   }
 }
 
-type TemporaryScheduleOptions = Partial<TemporarySchedule> & { scheduleID?: string }
+type TemporaryScheduleOptions = Partial<TemporarySchedule> & {
+  shiftUserIDs?: string[]
+}
