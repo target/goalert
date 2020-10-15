@@ -153,16 +153,12 @@ export default class ScheduleCalendar extends React.PureComponent {
     }
   }
 
-  /*
-   * Return a GoAlert dog red color for the events, and a slightly
-   * darker version of that red if selected
-   */
   eventStyleGetter = (event, start, end, isSelected) => {
     if (event.fixed) {
       return {
         style: {
-          backgroundColor: isSelected ? '#094819' : '#0D7128',
-          borderColor: '#094819',
+          backgroundColor: isSelected ? '#094F13' : '#0C6618',
+          borderColor: '#094F13',
         },
       }
     }
