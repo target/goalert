@@ -92,17 +92,15 @@ function testTemporarySchedule(screen: ScreenFormat): void {
   })
 
   it('should toggle timezone switches', () => {
+    const [start, end] = makeIntervalDates()
     const c = (t: string, tz: string) => {
       let dt = DateTime.fromFormat(t, dtFmt)
       dt = dt.setZone(tz)
-      console.log(dt)
       return dt.toFormat(dtFmt)
     }
     const lTZ = (t: string): string => c(t, DateTime.local().zoneName)
     const sTZ = (t: string): string => c(t, schedule.timeZone)
     
-    const [start, end] = makeIntervalDates()
-
     cy.get('[data-cy="new-temp-sched"]').click()
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
     cy.get('div[data-cy="sched-times-step"] input[name="start"]').should('have.value', lTZ(start))
@@ -123,7 +121,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div[data-cy="sched-times-step"] input[name="end"]').should('have.value', lTZ(end))
   })
 
-  it('should refill a shifts info after deleting in step 2', () => {
+  it.only('should refill a shifts info after deleting in step 2', () => {
     cy.createTemporarySchedule(schedule.id).then(() => {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
@@ -131,10 +129,8 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       cy.get('button[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get('div[data-cy="add-shifts-step"] input[name="userID"]').should('have.value', '')
-      // todo: check start and end input values before deleting
       cy.get('[data-cy="shifts-list"] li').contains(graphQLAddUser.name).eq(0).parent().parent().siblings().click() // delete
       cy.get('div[data-cy="add-shifts-step"] input[name="userID"]').should('have.value', graphQLAddUser.name)
-      // todo: check start and end input values from data
     })
   })
 
@@ -157,9 +153,9 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
     cy.dialogForm(
       {
+        userID: manualAddUser.name,
         start,
         end: duration,
-        userID: manualAddUser.name,
       },
       'div[data-cy="add-shifts-step"]',
     )
@@ -229,9 +225,9 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
     cy.dialogForm(
       {
+        userID: manualAddUser.name,
         start,
         end: duration / 2,
-        userID: manualAddUser.name,
       },
       'div[data-cy="add-shifts-step"]',
     )
