@@ -349,7 +349,7 @@ func (db *DB) EscalateMany(ctx context.Context, alertIDs []int) ([]int, error) {
 	}
 
 	rows, err := tx.StmtContext(ctx, db.escalate).QueryContext(ctx, ids)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		log.Debugf(ctx, "escalate alert: no rows matched")
 		err = nil
 	}
@@ -624,7 +624,7 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 			Scan(&n.ID, &n.Summary, &n.Details, &n.CreatedAt)
 		logType = alertlog.TypeClosed
 	}
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		// already closed/doesn't exist
 		return nil, false, nil
 	}
@@ -838,7 +838,7 @@ func (db *DB) State(ctx context.Context, alertIDs []int) ([]State, error) {
 
 	var t sqlutil.NullTime
 	rows, err := db.epState.QueryContext(ctx, sqlutil.IntArray(alertIDs))
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
 	if err != nil {

@@ -3,6 +3,7 @@ package rule
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
@@ -285,7 +286,7 @@ func (db *DB) FindByTargetTx(ctx context.Context, tx *sql.Tx, scheduleID string,
 	}
 
 	rows, err := stmt.QueryContext(ctx, scheduleID, tgtUser, tgtRot)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

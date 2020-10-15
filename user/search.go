@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"database/sql"
+	"text/template"
+
 	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -10,7 +12,6 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"text/template"
 )
 
 // SearchOptions allow filtering and paginating the list of users.
@@ -126,7 +127,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]User, error) {
 	}
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
