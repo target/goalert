@@ -13,3 +13,5 @@ declare namespace Cypress {
     createTemporarySchedule: typeof createTemporarySchedule
   }
 }
+
+type TemporaryScheduleOptions = Partial<TemporarySchedule> & { scheduleID?: string }

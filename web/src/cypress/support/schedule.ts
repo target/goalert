@@ -5,7 +5,6 @@ import {
   Schedule,
   ScheduleTarget,
   ScheduleTargetInput,
-  TemporarySchedule,
 } from '../../schema'
 
 const c = new Chance()
@@ -147,7 +146,7 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
 
 function createTemporarySchedule(
   scheduleID?: string,
-  options?: Partial<TemporarySchedule> & { scheduleID?: string },
+  options?: TemporaryScheduleOptions,
 ): Cypress.Chainable<void> {
   const mutation = `
     mutation($input: SetTemporaryScheduleInput!) {
