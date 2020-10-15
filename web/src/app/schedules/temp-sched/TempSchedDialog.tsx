@@ -52,6 +52,7 @@ export default function TempSchedDialog({
         {
           message:
             'One or more shifts extend beyond the start and/or end of this temporary schedule',
+          nonSubmit: step !== 1,
         },
       ]
     : []
