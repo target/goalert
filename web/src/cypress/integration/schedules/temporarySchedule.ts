@@ -4,6 +4,10 @@ import { Schedule, User } from '../../../schema'
 import { DateTime, Interval } from 'luxon'
 import { round } from 'lodash-es'
 
+// todo: 
+//   return data from create temp sched call instead of
+//   using users fixture in beforeEach
+
 const c = new Chance()
 const dtfmt = "yyyy-MM-dd'T'HH:mm"
 
@@ -92,15 +96,22 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     // verify duration is updated from new time
   })
 
-  it('should refill a shifts info after deleting in step 2', () => {
-    // create temporary schedule in graphql
-    // hover over temporary sched span
-    // click edit button
-    // click delete button in step 2
-    // verify input fields have deleted shift's values
+  it.only('should refill a shifts info after deleting in step 2', () => {
+    cy.createTemporarySchedule(schedule.id).then(() => {
+      cy.reload()
+      cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+      cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
+      cy.get('div[data-cy="add-shifts-step"] input[name="userID"]').should('have.value', '')
+      // todo: check start and end input values before deleting
+      cy.get('[data-cy="shifts-list"] li').contains(graphQLAddUser.name).eq(0).parent().parent().siblings().click() // delete
+      cy.get('div[data-cy="add-shifts-step"] input[name="userID"]').should('have.value', graphQLAddUser.name)
+      // todo: check start and end input values from data
+    })
   })
 
-  it.only('should cancel and close form', () => {
+  it('should cancel and close form', () => {
     cy.get('[role="dialog"]').should('not.exist')
     cy.get('[data-cy="new-temp-sched"]').click()
     cy.get('[role="dialog"]').should('be.visible')
@@ -154,7 +165,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
-      cy.get('[data-cy="shifts-list"] li').contains(graphQLAddUser.name).eq(0).parent().parent().siblings().click()
+      cy.get('[data-cy="shifts-list"] li').contains(graphQLAddUser.name).eq(0).parent().parent().siblings().click() // delete
       cy.get('[data-cy="shifts-list"]').should('not.contain', graphQLAddUser.name)
       cy.dialogForm({ userID: manualAddUser.name }, 'div[data-cy="add-shifts-step"]')
       cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
