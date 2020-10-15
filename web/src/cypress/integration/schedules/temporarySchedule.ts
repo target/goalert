@@ -29,7 +29,10 @@ function makeIntervalDates(): [string, string, number] {
   const start = DateTime.fromObject({ year, month, day }).startOf('day')
   const end = start
     .plus({
-      days: c.integer({ min: 1, max: 31 }),
+      days: c.integer({
+        min: 1,
+        max: DateTime.fromFormat(month.toString(), 'M').daysInMonth,
+      }),
     })
     .endOf('day')
 
@@ -38,15 +41,7 @@ function makeIntervalDates(): [string, string, number] {
     end.minus({ minute: 1 }),
   ).toDuration('hours')
 
-  // been seeing sporadic errors here and there, logging when they come up
-  const s = start.toFormat(dtFmt)
-  const e = end.toFormat(dtFmt)
-  const d = round(duration.hours, 2)
-  if (!start.isValid)
-    cy.log('Invalid Start Date Spotted! ', start.invalidExplanation)
-  if (!end.isValid) cy.log('Invalid End Date Spotted! ', end.invalidExplanation)
-
-  return [s, e, d]
+  return [start.toFormat(dtFmt), end.toFormat(dtFmt), round(duration.hours, 2)]
 }
 
 function testTemporarySchedule(): void {
@@ -68,16 +63,18 @@ function testTemporarySchedule(): void {
   it('should go back and forth between steps', () => {
     const [start, end] = makeIntervalDates()
     cy.get('[data-cy="new-temp-sched"]').click()
-    cy.get('div[data-cy="sched-times-step"]').should('be.visible')
+    cy.get('div[data-cy="sched-times-step"]').as('step1')
+    cy.get('div[data-cy="add-shifts-step"]').as('step2')
+    cy.get('@step1').should('be.visible')
     cy.get('[data-cy="loading-button"]').contains('Next').click() // should error
     cy.focused().blur() // dismiss error
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
     cy.get('[data-cy="loading-button"]').contains('Next').click()
-    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
+    cy.get('@step2').should('be.visible')
     cy.dialogClick('Back')
-    cy.get('div[data-cy="sched-times-step"]').should('be.visible')
+    cy.get('@step1').should('be.visible')
     cy.get('[data-cy="loading-button"]').contains('Next').click()
-    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
+    cy.get('@step2').should('be.visible')
   })
 
   const datePlusEight = (dt: string): string =>
@@ -87,34 +84,22 @@ function testTemporarySchedule(): void {
     const [start, end] = makeIntervalDates()
     const shiftEnd = datePlusEight(start)
     cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('div[data-cy="add-shifts-step"]').as('step2')
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
     cy.get('[data-cy="loading-button"]').contains('Next').click()
-    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
-    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should(
-      'have.value',
-      8,
-    )
-    cy.get(
-      'div[data-cy="add-shifts-step"] span[data-cy="toggle-duration-off"]',
-    ).click()
-    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should(
-      'have.value',
-      shiftEnd,
-    )
+    cy.get('@step2').should('be.visible')
+    cy.get('@step2').find('input[name="end"]').should('have.value', 8)
+    cy.get('@step2').find('span[data-cy="toggle-duration-off"]').click()
+    cy.get('@step2').find('input[name="end"]').should('have.value', shiftEnd)
     cy.dialogForm(
       { end: datePlusEight(shiftEnd) },
       'div[data-cy="add-shifts-step"]',
     )
-    cy.get(
-      'div[data-cy="add-shifts-step"] span[data-cy="toggle-duration-on"]',
-    ).click()
-    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should(
-      'have.value',
-      16,
-    )
+    cy.get('@step2').find('span[data-cy="toggle-duration-on"]').click()
+    cy.get('@step2').find('input[name="end"]').should('have.value', 16)
   })
 
-  it.only('should toggle timezone switches', () => {
+  it('should toggle timezone switches', () => {
     const [start, end] = makeIntervalDates()
     const c = (t: string, tz: string): string =>
       DateTime.fromFormat(t, dtFmt).setZone(tz).toFormat(dtFmt)
@@ -122,55 +107,39 @@ function testTemporarySchedule(): void {
     const sTZ = (t: string): string => c(t, schedule.timeZone)
 
     cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('div[data-cy="sched-times-step"]').as('step1')
+    cy.get('div[data-cy="add-shifts-step"]').as('step2')
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
-    cy.get('div[data-cy="sched-times-step"] input[name="start"]').should(
-      'have.value',
-      lTZ(start),
-    )
-    cy.get('div[data-cy="sched-times-step"] input[name="end"]').should(
-      'have.value',
-      lTZ(end),
-    )
-    cy.get('div[data-cy="sched-times-step"] [data-cy="tz-switch"]').click()
-    cy.get('div[data-cy="sched-times-step"] input[name="start"]').should(
-      'have.value',
-      sTZ(start),
-    )
-    cy.get('div[data-cy="sched-times-step"] input[name="end"]').should(
-      'have.value',
-      sTZ(end),
-    )
+    cy.get('@step1')
+      .find('input[name="start"]')
+      .should('have.value', lTZ(start))
+    cy.get('@step1').find('input[name="end"]').should('have.value', lTZ(end))
+    cy.get('@step1').find('[data-cy="tz-switch"]').click()
+    cy.get('@step1')
+      .find('input[name="start"]')
+      .should('have.value', sTZ(start))
+    cy.get('@step1').find('input[name="end"]').should('have.value', sTZ(end))
     cy.get('[data-cy="loading-button"]').contains('Next').click()
-    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
-    cy.get(
-      'div[data-cy="add-shifts-step"] [data-cy="toggle-duration-off"]',
-    ).click()
-    cy.get('div[data-cy="add-shifts-step"] input[name="start"]').should(
-      'have.value',
-      sTZ(start),
-    )
-    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should(
-      'have.value',
-      sTZ(datePlusEight(start)),
-    )
-    cy.get('div[data-cy="add-shifts-step"] [data-cy="tz-switch"]').click()
-    cy.get('div[data-cy="add-shifts-step"] input[name="start"]').should(
-      'have.value',
-      lTZ(start),
-    )
-    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should(
-      'have.value',
-      lTZ(datePlusEight(start)),
-    )
+    cy.get('@step2').should('be.visible')
+    cy.get('@step2').find('[data-cy="toggle-duration-off"]').click()
+    cy.get('@step2')
+      .find('input[name="start"]')
+      .should('have.value', sTZ(start))
+    cy.get('@step2')
+      .find('input[name="end"]')
+      .should('have.value', sTZ(datePlusEight(start)))
+    cy.get('@step2').find('[data-cy="tz-switch"]').click()
+    cy.get('@step2')
+      .find('input[name="start"]')
+      .should('have.value', lTZ(start))
+    cy.get('@step2')
+      .find('input[name="end"]')
+      .should('have.value', lTZ(datePlusEight(start)))
     cy.dialogClick('Back')
-    cy.get('div[data-cy="sched-times-step"] input[name="start"]').should(
-      'have.value',
-      lTZ(start),
-    )
-    cy.get('div[data-cy="sched-times-step"] input[name="end"]').should(
-      'have.value',
-      lTZ(end),
-    )
+    cy.get('@step1')
+      .find('input[name="start"]')
+      .should('have.value', lTZ(start))
+    cy.get('@step1').find('input[name="end"]').should('have.value', lTZ(end))
   })
 
   it('should refill a shifts info after deleting in step 2', () => {
@@ -179,11 +148,9 @@ function testTemporarySchedule(): void {
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="edit-temp-sched"]').click()
+      cy.get('div[data-cy="add-shifts-step"]').as('step2')
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
-      cy.get('div[data-cy="add-shifts-step"] input[name="userID"]').should(
-        'have.value',
-        '',
-      )
+      cy.get('@step2').find('input[name="userID"]').should('have.value', '')
       cy.get('[data-cy="shifts-list"] li')
         .contains(graphQLAddUser.name)
         .eq(0)
@@ -191,10 +158,9 @@ function testTemporarySchedule(): void {
         .parent()
         .siblings()
         .click() // delete
-      cy.get('div[data-cy="add-shifts-step"] input[name="userID"]').should(
-        'have.value',
-        graphQLAddUser.name,
-      )
+      cy.get('@step2')
+        .find('input[name="userID"]')
+        .should('have.value', graphQLAddUser.name)
     })
   })
 
