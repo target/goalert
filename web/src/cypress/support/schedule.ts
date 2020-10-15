@@ -183,6 +183,7 @@ function createTemporarySchedule(
   }
 
   if (!input.shifts?.length) {
+    input.shifts = []
     // addShifts adds a shift for each user specified to the input
     const addShifts = (users: string[]) => {
       const s = DateTime.fromISO(input.start)
@@ -190,16 +191,18 @@ function createTemporarySchedule(
 
       for(let i = 0; i < users.length; i++) {
         const startYear = c.integer({ min: s.year, max: e.year })
-        const startMonth = c.integer({ min: curYear === startYear ? s.month : 1, max: 12 })
+        const startMonth = c.integer({ min: curYear === startYear ? s.month : 1, max: curYear === e.year ? e.month : 12 })
         const start = DateTime.fromObject({
           year: startYear,
           month: startMonth,
-          day: c.integer({ min: curYear === startYear && curMonth === startMonth ? curDay : 0, max: DateTime.local(startYear, startMonth).daysInMonth }),
+          day: c.integer({ min: curYear === startYear && curMonth === startMonth ? curDay : 0, max: curMonth === e.month ? e.day : DateTime.local(startYear, startMonth).daysInMonth }),
         })
+
+        console.log('max: ', Interval.fromDateTimes(start, e).toDuration('hours'))
         
         input.shifts.push({
           start: start.toISO(), // anytime between (input.start and input.end) - scheduleDuration
-          end: start.plus({ hours: c.floating({ min: 0.25, max: Interval.fromDateTimes(start, e).toDuration('hours') }) }), // anytime after set start and before input.end, random duration
+          end: start.plus({ hours: c.floating({ min: 0.25, max: Interval.fromDateTimes(start, e).toDuration('hours').hours }) }), // anytime after set start and before input.end, random duration
           userID: users[i]
         })
       }

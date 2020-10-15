@@ -145,7 +145,9 @@ function testTemporarySchedule(): void {
   })
 
   it('should refill a shifts info after deleting in step 2', () => {
-    cy.createTemporarySchedule(schedule.id).then(() => {
+    cy.createTemporarySchedule(schedule.id, {
+      shiftUserIDs: [graphQLAddUser.id]
+    }).then(() => {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -208,7 +210,9 @@ function testTemporarySchedule(): void {
   })
 
   it('should edit a temporary schedule', () => {
-    cy.createTemporarySchedule(schedule.id).then(() => {
+    cy.createTemporarySchedule(schedule.id, {
+      shiftUserIDs: [graphQLAddUser.id]
+    }).then(() => {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
@@ -243,7 +247,9 @@ function testTemporarySchedule(): void {
   })
 
   it('should delete a temporary schedule', () => {
-    cy.createTemporarySchedule(schedule.id).then(() => {
+    cy.createTemporarySchedule(schedule.id, {
+      shiftUserIDs: [graphQLAddUser.id]
+    }).then(() => {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
