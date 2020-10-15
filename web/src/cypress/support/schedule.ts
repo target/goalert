@@ -156,13 +156,13 @@ function createTemporarySchedule(
   `
 
   if (!scheduleID) {
-    return cy.createSchedule().then((s: Schedule) =>
-      createTemporarySchedule(s.id, options),
-    )
+    return cy
+      .createSchedule()
+      .then((s: Schedule) => createTemporarySchedule(s.id, options))
   }
 
   const nowDT = DateTime.local()
-  let input = options || {}
+  const input = options || {}
   input.scheduleID = scheduleID
 
   // set start to start of today or 7 days before set end
