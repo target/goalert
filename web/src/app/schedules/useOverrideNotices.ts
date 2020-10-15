@@ -31,9 +31,6 @@ export default function useOverrideNotices(
     return []
   }
   const tempSchedules = _.get(data, 'schedule.temporarySchedules')
-
-  console.log('loading data: ', loading)
-  console.log('scheduleDetails: ', tempSchedules)
   const valueInterval = parseInterval(value)
   const doesOverlap = tempSchedules
     .map(parseInterval)
