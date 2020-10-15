@@ -9,7 +9,7 @@ const dtFmt = "yyyy-MM-dd'T'HH:mm"
 
 function makeIntervalDates(): [string, string, number] {
   const now = DateTime.local()
-  // year is either between now and 3 years in the future
+  // year is between now and 3 years in the future
   const year = c.integer({
     min: now.year,
     max: now.year + c.integer({ min: 1, max: 3 }),
