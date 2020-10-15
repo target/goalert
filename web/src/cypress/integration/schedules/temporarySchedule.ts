@@ -63,12 +63,19 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     })
   })
 
-  it('should go back and forth between steps', () => {
-    // fill in step 1
-    // click next button
-    // verify on step 2
-    // click back button
-    // verify back on step 1
+  it.only('should go back and forth between steps', () => {
+    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('div[data-cy="sched-times-step"]').should('be.visible')
+    cy.get('[data-cy="loading-button"]').contains('Next').click() // should error
+    cy.focused().blur() // dismiss error
+    const [start, end] = makeIntervalDates()
+    cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
+    cy.get('[data-cy="loading-button"]').contains('Next').click()
+    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
+    cy.dialogClick('Back')
+    cy.get('div[data-cy="sched-times-step"]').should('be.visible')
+    cy.get('[data-cy="loading-button"]').contains('Next').click()
+    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
   })
 
   it('should toggle timezone switches', () => {
@@ -96,7 +103,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     // verify duration is updated from new time
   })
 
-  it.only('should refill a shifts info after deleting in step 2', () => {
+  it('should refill a shifts info after deleting in step 2', () => {
     cy.createTemporarySchedule(schedule.id).then(() => {
       cy.reload()
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
