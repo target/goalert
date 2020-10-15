@@ -21,7 +21,7 @@ function makeIntervalDates(): [string, string, number] {
   })
   // random day, keep in future if using current month
   const day = c.integer({
-    min: month === now.month ? now.day : 1,
+    min: (year === now.year && month === now.month) ? now.day : 1,
     max: now.daysInMonth,
   })
 
