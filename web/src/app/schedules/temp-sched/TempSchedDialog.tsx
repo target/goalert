@@ -10,7 +10,7 @@ import { bindKeyboard, virtualize } from 'react-swipeable-views-utils'
 import SwipeableViews from 'react-swipeable-views'
 import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
-import { isAfter, isBefore } from '../../util/luxon-helpers'
+import { parseInterval } from '../../util/shifts'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
@@ -42,8 +42,9 @@ export default function TempSchedDialog({
     ),
   })
 
+  const schedInterval = parseInterval(value)
   const hasInvalidShift = value.shifts.some(
-    (s) => isAfter(value.start, s.start) || isBefore(value.end, s.end),
+    (s) => !schedInterval.engulfs(parseInterval(s)),
   )
 
   const shiftErrors = hasInvalidShift

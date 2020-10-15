@@ -9,9 +9,9 @@ import { DateTime, Interval } from 'luxon'
 import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import _ from 'lodash-es'
-import { isBefore, isAfter } from '../../util/luxon-helpers'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
 import { styles } from '../../styles/materialStyles'
+import { parseInterval } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -54,6 +54,7 @@ export default function TempSchedShiftsList({
   const classes = useStyles()
   const _shifts = useUserInfo(value)
   const [zone] = useURLParam('tz', 'local')
+  const schedInterval = parseInterval({ start, end })
 
   function items(): FlatListListItem[] {
     const shifts = _.sortBy(_shifts, 'start').map((s) => ({
@@ -65,20 +66,27 @@ export default function TempSchedShiftsList({
         DateTime.fromISO(s.start, { zone }),
         DateTime.fromISO(s.end, { zone }),
       ),
-      isValid: !isAfter(start, s.start) && !isBefore(end, s.end),
+      isValid: schedInterval.engulfs(
+        parseInterval({ start: s.start, end: s.end }),
+      ),
     }))
 
     if (!shifts.length) return []
 
-    const scheduleDawn = DateTime.fromISO(start, { zone }).startOf('day')
-    const scheduleDusk = DateTime.fromISO(end, { zone }).endOf('day')
+    const lastShift = shifts.reduce(
+      (result, candidate) => (candidate.end > result.end ? candidate : result),
+      shifts[0],
+    )
 
-    const firstShiftDawn = shifts[0].start.startOf('day')
-    const lastShiftDusk = shifts[shifts.length - 1].end.endOf('day')
+    const scheduleStart = DateTime.fromISO(start, { zone })
+    const scheduleEnd = DateTime.fromISO(end, { zone })
+
+    const firstShiftStart = shifts[0].start
+    const lastShiftEnd = lastShift.end
 
     const displaySpan = Interval.fromDateTimes(
-      DateTime.min(scheduleDawn, firstShiftDawn),
-      DateTime.max(scheduleDusk, lastShiftDusk),
+      DateTime.min(scheduleStart, firstShiftStart).startOf('day'),
+      DateTime.max(scheduleEnd, lastShiftEnd).endOf('day'),
     )
 
     const result: FlatListListItem[] = []
