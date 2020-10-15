@@ -61,9 +61,8 @@ function testTemporarySchedule(screen: ScreenFormat): void {
 
   // todo: start with shifts on schedule and check they disappear after creating
   it('should create a temporary schedule', () => {
-    // check calendar for original shift in weekly view
-    // this allows us to compare shift times with a user's
-    // name in the same div
+    // note: could check calendar for original shift in weekly view
+    // it would us to compare shift times with a user's name in the same div without having to open a tooltip
 
     // open form
     cy.get('[data-cy="new-temp-sched"]').click()
@@ -122,7 +121,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       // check by color being green
   })
 
-  it.only('should edit a temporary schedule', () => {
+  it('should edit a temporary schedule', () => {
     // create temporary schedule in graphql
     cy.createTemporarySchedule(schedule.id).then(() => {
       cy.reload()
@@ -131,7 +130,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
 
-      // click edit button
+      // click edit button in tooltip
       cy.get('button[data-cy="edit-temp-sched"]').click()
 
       // verify shift is in list
@@ -170,13 +169,28 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     })
   })
 
-  it('should delete a temporary schedule', () => {
-    // create temporary schedule (with an active always active assignment) in graphql
-    // hover over temporary sched span
-    // click delete button in tooltip
-    // click confirm button in dialog
-    // check temporary sched gone in calendar
-    // check old shifts show again
+  it.only('should delete a temporary schedule', () => {
+      // create temporary schedule in graphql
+      cy.createTemporarySchedule(schedule.id).then(() => {
+        cy.reload()
+
+        // todo: check original schedule assignment shifts in calendar
+
+        // hover over temporary sched span
+        cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+        cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+
+        // click delete button in tooltip
+        cy.get('button[data-cy="delete-temp-sched"]').click()
+        
+        // click confirm button in dialog
+        cy.dialogFinish('Confirm')
+
+        // check temporary sched gone in calendar
+        cy.get('div').contains('Temporary Schedule').should('not.exist')
+
+        // todo: check that original shifts show again
+      })
   })
 
   it('should be able to add multiple shifts on step 2', () => {
