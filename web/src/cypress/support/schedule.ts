@@ -160,33 +160,52 @@ function createTemporarySchedule(
       .then((s: Schedule) => createTemporarySchedule(s.id, options))
   }
 
-  const nowDT = DateTime.local()
   const input = options || {}
   input.scheduleID = scheduleID
+  const scheduleDuration = c.integer({ min: 1, max: 30 })
+  const cur = DateTime.local()
+  const curDay = cur.day
+  const curMonth = cur.month
+  const curYear = cur.year
 
-  // set start to start of today or 7 days before set end
   if (!input.start && !input.end) {
-    input.start = nowDT.startOf('day').toISO()
+    // set start to anytime between now and 3 years
+    input.start = DateTime.fromJSDate(c.date({
+      year: curYear + c.integer({ min: 0, max: 3 })
+    }) as Date)
   } else if (!input.start && input.end) {
-    input.start = DateTime.fromISO(input.end).minus({ days: 7 }).toISO()
+    // set start to a random duration before end, if end is set
+    input.start = DateTime.fromISO(input.end).minus({ days: scheduleDuration }).toISO()
   }
 
-  // set end to 7 days after start
   if (!input.end) {
+    // set end to a random duration after start
     const start = DateTime.fromISO(input.start as string)
-    input.end = start.plus({ days: 7 }).endOf('day').toISO()
+    input.end = start.plus({ days: scheduleDuration }).toISO()
   }
 
   // set a single shift to extend entire fixed shift duration
   if (!input.shifts?.length) {
     cy.fixture('users').then((users) => {
-      input.shifts = [
-        {
-          start: input.start as string,
-          end: input.end as string,
-          userID: users[1].id,
-        } as OnCallShift,
-      ]
+      const numUsers = c.integer({ min: 1, max: users.length })
+      const s = DateTime.fromISO(input.start)
+      const e = DateTime.fromISO(input.end)
+
+      for(let i = 0; i < numUsers; i++) {
+        const startYear = c.integer({ min: s.year, max: e.year })
+        const startMonth = c.integer({ min: curYear === startYear ? s.month : 1, max: 12 })
+        const start = DateTime.fromObject({
+          year: startYear,
+          month: startMonth,
+          day: c.integer({ min: curYear === startYear && curMonth === startMonth ? curDay : 0, max: DateTime.local(startYear, startMonth).daysInMonth }),
+        })
+        
+        input.shifts.push({
+          start: start.toISO(), // anytime between (input.start and input.end) - scheduleDuration
+          end: start.plus({ hours: c.floating({ min: 0.25, max: 9000 }) }), // anytime after set start and before input.end, random duration
+          userID: users[i]
+        })
+      }
     })
   }
 
