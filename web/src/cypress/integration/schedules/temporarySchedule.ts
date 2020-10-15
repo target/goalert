@@ -134,16 +134,34 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       })
   })
 
-  it('should be able to add multiple shifts on step 2', () => {
-    // fill out step 1 start and end times
-    // go to step 2
-    // add shift
-    // verify
-    // add shift
-    // verify
-    // add shift
-    // verify
-    // verify list is sorted on right
+  it.only('should be able to add multiple shifts on step 2', () => {
+    cy.get('[data-cy="new-temp-sched"]').click()
+    const [start, end, duration] = makeIntervalDates()
+    cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
+    cy.get('[data-cy="loading-button"]').contains('Next').click()
+    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
+    cy.dialogForm(
+      {
+        start,
+        end: duration / 2,
+        userID: manualAddUser.name,
+      },
+      'div[data-cy="add-shifts-step"]',
+    )
+    cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
+    cy.get('button[title="Add Shift"]').click()
+    cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
+    cy.dialogForm(
+      {
+        userID: graphQLAddUser.name, // gql not in this test, safe to use here
+      },
+      'div[data-cy="add-shifts-step"]',
+    )
+    cy.get('[data-cy="shifts-list"]').should('not.contain', graphQLAddUser.name)
+    cy.get('button[title="Add Shift"]').click()
+    cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
+    cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
+    // todo: verify list is sorted
   })
 
   it('should toggle timezone', () => {
