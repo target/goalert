@@ -202,7 +202,7 @@ export default function TempSchedAddShiftsStep({
       {/* main container for fields | button | shifts */}
       <Grid container spacing={2} className={classes.mainContainer}>
         {/* title + fields container */}
-        <Grid item xs={5} container spacing={2} direction='column'>
+        <Grid item xs={10} md={5} container spacing={2} direction='column'>
           <Grid item>
             <Typography variant='body2'>{stepText}</Typography>
             <Typography variant='h6' component='h2'>
@@ -245,7 +245,8 @@ export default function TempSchedAddShiftsStep({
         {/* shifts list container */}
         <Grid
           item
-          xs={5}
+          xs={12}
+          md={5}
           container
           spacing={2}
           direction='column'
