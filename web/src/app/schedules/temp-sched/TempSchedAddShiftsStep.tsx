@@ -30,7 +30,6 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.primary.main,
   },
   listContainer: {
-    position: 'relative',
     overflowY: 'scroll',
   },
   mainContainer: {
@@ -244,7 +243,14 @@ export default function TempSchedAddShiftsStep({
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5} className={classes.listContainer}>
+        <Grid
+          item
+          xs={5}
+          container
+          spacing={2}
+          direction='column'
+          className={classes.listContainer}
+        >
           <div style={{ position: 'absolute', width: '100%' }}>
             <TempSchedShiftsList
               value={value}
