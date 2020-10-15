@@ -55,12 +55,12 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             name='end'
             hint={
               <Typography
+                component='a'
                 className={classes.typography}
                 variant='caption'
-                color='textSecondary'
                 onClick={() => setManualEntry(false)}
               >
-                Configure as duration?
+                Configure as duration
               </Typography>
             }
           />
@@ -90,9 +90,9 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             min={0.25}
             hint={
               <Typography
+                component='a'
                 className={classes.typography}
                 variant='caption'
-                color='textSecondary'
                 onClick={() => setManualEntry(true)}
               >
                 Configure as date/time?
