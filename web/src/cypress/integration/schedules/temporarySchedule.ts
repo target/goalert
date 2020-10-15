@@ -123,8 +123,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
   it.only('should edit a temporary schedule', () => {
     // create temporary schedule in graphql
     cy.createTemporarySchedule(schedule.id).then(() => {
-      cy.get('[data-cy="calendar"]').should('exist')
-      cy.wait(3000)
+      cy.reload()
 
       // hover over temporary sched span
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
@@ -148,6 +147,8 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       // click submit
       // check temporary sched length in calendar
       // check new shift in calendar
+      // find by day then name? (eq[0] since business logic = should always be sorted as first in calendar)
+      // check that color is green?
     })
   })
 
