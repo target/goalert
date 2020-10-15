@@ -63,19 +63,11 @@ function testTemporarySchedule(screen: ScreenFormat): void {
   it('should create a temporary schedule', () => {
     // note: could check calendar for original shift in weekly view
     // it would us to compare shift times with a user's name in the same div without having to open a tooltip
-
-    // open form
     cy.get('[data-cy="new-temp-sched"]').click()
-
-    // fill out step 1 start and end times
     const [start, end, duration] = makeIntervalDates()
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
-
-    // go to step 2
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
-
-    // add shift for full duration
     cy.dialogForm(
       {
         start,
@@ -84,20 +76,10 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       },
       'div[data-cy="add-shifts-step"]',
     )
-
-    // verify shift doesn't exist in list yet
     cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
-
-    // click add shift button
     cy.get('button[title="Add Shift"]').click()
-
-    // verify shift shows up in list
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-
-    // click submit
     cy.dialogFinish('Submit')
-
-    // go to correct month in calendar, using URL
     cy.visit(
       '/schedules/' +
         schedule.id +
@@ -105,90 +87,49 @@ function testTemporarySchedule(screen: ScreenFormat): void {
         DateTime.fromISO(start).toFormat('yyyy-MM-dd') +
         'T07%3A00%3A00.000Z',
     )
-
-    // check temp sched length in calendar
     cy.get('div').contains('Temporary Schedule').trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="edit-temp-sched"]').should('be.visible')
     cy.get('button[data-cy="delete-temp-sched"]').should('be.visible')
-
-    // check new shift + its tooltip exists in calendar
     cy.get('div').contains(manualAddUser.name).trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-
-      // todo
-      // find by day then name to verify as temporary? (eq[0] since business logic = should always be sorted as first in calendar)
-      // check by color being green
+    // todo
+    // find by day then name to verify as temporary? (eq[0] since business logic = should always be sorted as first in calendar)
+    // check by color being green
   })
 
   it('should edit a temporary schedule', () => {
-    // create temporary schedule in graphql
     cy.createTemporarySchedule(schedule.id).then(() => {
       cy.reload()
-
-      // hover over temporary sched span
       cy.get('div').contains('Temporary Schedule').trigger('mouseover')
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-
-      // click edit button in tooltip
       cy.get('button[data-cy="edit-temp-sched"]').click()
-
-      // verify shift is in list
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
-
-      // click delete button in step 2
       cy.get('[data-cy="shifts-list"] li').contains(graphQLAddUser.name).eq(0).parent().parent().siblings().click()
-
-      // verify shift was deleted from list
       cy.get('[data-cy="shifts-list"]').should('not.contain', graphQLAddUser.name)
-
-      // add shift with new user
       cy.dialogForm({ userID: manualAddUser.name }, 'div[data-cy="add-shifts-step"]')
-  
-      // verify shift doesn't exist in list yet
       cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
-  
-      // click add shift button
       cy.get('button[title="Add Shift"]').click()
-  
-      // verify shift shows up in list
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
-  
-      // click submit
       cy.dialogFinish('Submit')
-
       cy.reload() // ensure calendar update
-
-      // check new shift + its tooltip exists in calendar
       cy.get('div').contains(manualAddUser.name).trigger('mouseover')
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-
       // todo
       // find by day then name to verify as temporary? (eq[0] since business logic = should always be sorted as first in calendar)
       // check by color being green
     })
   })
 
-  it.only('should delete a temporary schedule', () => {
-      // create temporary schedule in graphql
+  it('should delete a temporary schedule', () => {
       cy.createTemporarySchedule(schedule.id).then(() => {
         cy.reload()
-
         // todo: check original schedule assignment shifts in calendar
-
-        // hover over temporary sched span
         cy.get('div').contains('Temporary Schedule').trigger('mouseover')
         cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
-
-        // click delete button in tooltip
         cy.get('button[data-cy="delete-temp-sched"]').click()
-        
-        // click confirm button in dialog
         cy.dialogFinish('Confirm')
-
-        // check temporary sched gone in calendar
         cy.get('div').contains('Temporary Schedule').should('not.exist')
-
         // todo: check that original shifts show again
       })
   })
