@@ -12,7 +12,7 @@ function makeIntervalDates(): [string, string, number] {
   // year is between now and 3 years in the future
   const year = c.integer({
     min: now.year,
-    max: now.year + c.integer({ min: 1, max: 3 }),
+    max: now.year + c.integer({ min: 0, max: 3 }),
   })
   // random month, keep in the future if using current year
   const month = c.integer({
