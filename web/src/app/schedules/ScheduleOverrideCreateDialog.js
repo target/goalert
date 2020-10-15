@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import gql from 'graphql-tag'
+import useOverrideNotices from './useOverrideNotices'
 
 const copyText = {
   add: {
@@ -42,6 +43,8 @@ export default function ScheduleOverrideCreateDialog(props) {
     ...props.defaultValue,
   })
 
+  const notices = useOverrideNotices(props.scheduleID, value)
+
   const [mutate, { loading, error }] = useMutation(mutation, {
     variables: {
       input: {
@@ -58,6 +61,7 @@ export default function ScheduleOverrideCreateDialog(props) {
       title={copyText[props.variant].title}
       subTitle={copyText[props.variant].desc}
       errors={nonFieldErrors(error)}
+      notices={notices} // create and edit dialogue
       onSubmit={() => mutate()}
       form={
         <ScheduleOverrideForm
