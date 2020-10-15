@@ -24,7 +24,7 @@ function makeIntervalDates(): [string, string, number] {
   // random day, keep in future if using current month
   const day = c.integer({
     min: (year === now.year && month === now.month) ? now.day : 1,
-    max: now.daysInMonth,
+    max: DateTime.local(year, month).daysInMonth,
   })
 
   // create start, create end time from start
