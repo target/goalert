@@ -131,7 +131,7 @@ export default function MaterialSelect(
       getOptionSelected={(opt, val) => opt.value === val.value}
       noOptionsText={noOptionsText}
       onChange={(
-        event: ChangeEvent<{}>,
+        event: ChangeEvent<Record<string, unknown>>,
         selected: SelectOption | SelectOption[] | null,
       ) => {
         if (selected) {

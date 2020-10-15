@@ -9,7 +9,7 @@ interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule'
   isFavorite?: boolean
   loading: boolean
-  onClick: Function
+  onClick: () => void
 }
 
 export function SetFavoriteButton({

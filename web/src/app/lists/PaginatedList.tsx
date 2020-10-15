@@ -61,6 +61,100 @@ const useStyles = makeStyles((theme) => ({
   ...statusStyles,
 }))
 
+function PageControls(props: {
+  isLoading: boolean
+  onNext?: () => void
+  onBack?: () => void
+}): JSX.Element {
+  const classes = useStyles()
+  const { isLoading, onBack, onNext } = props
+
+  return (
+    <Grid
+      item // item within main render grid
+      xs={12}
+      container // container for control items
+      spacing={1}
+      justify='flex-end'
+      alignItems='center'
+      className={classes.controls}
+    >
+      <Grid item>
+        <IconButton
+          title='back page'
+          data-cy='back-button'
+          disabled={!onBack}
+          onClick={() => {
+            onBack && onBack()
+            window.scrollTo(0, 0)
+          }}
+        >
+          <LeftIcon />
+        </IconButton>
+      </Grid>
+      <Grid item>
+        <IconButton
+          title='next page'
+          data-cy='next-button'
+          disabled={!onNext}
+          onClick={() => {
+            onNext && onNext()
+            window.scrollTo(0, 0)
+          }}
+        >
+          {isLoading && !onNext && (
+            <CircularProgress
+              color='secondary'
+              size={24}
+              className={classes.progress}
+            />
+          )}
+          <RightIcon />
+        </IconButton>
+      </Grid>
+    </Grid>
+  )
+}
+
+const loadingStyle = {
+  color: 'lightgrey',
+  background: 'lightgrey',
+  height: '10.3333px',
+}
+
+const useLoadingStyles = makeStyles({
+  item: {
+    display: 'block',
+    minHeight: (dense) => (dense ? 57 : 71),
+  },
+  lineOne: {
+    ...loadingStyle,
+    width: '50%',
+  },
+  lineTwo: {
+    ...loadingStyle,
+    width: '35%',
+    margin: '5px 0 5px 0',
+  },
+  lineThree: {
+    ...loadingStyle,
+    width: '65%',
+  },
+})
+
+// LoadingItem is used as a placeholder for loading content
+function LoadingItem(props: { dense?: boolean }): JSX.Element {
+  const classes = useLoadingStyles(props.dense)
+
+  return (
+    <ListItem className={classes.item} dense={props.dense}>
+      <ListItemText className={classes.lineOne} />
+      <ListItemText className={classes.lineTwo} />
+      <ListItemText className={classes.lineThree} />
+    </ListItem>
+  )
+}
+
 export interface PaginatedListProps {
   // cardHeader will be displayed at the top of the card
   cardHeader?: ReactNode
@@ -310,99 +404,5 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         <PageControls onBack={onBack} onNext={onNext} isLoading={isLoading} />
       )}
     </Grid>
-  )
-}
-
-function PageControls(props: {
-  isLoading: boolean
-  onNext?: () => void
-  onBack?: () => void
-}): JSX.Element {
-  const classes = useStyles()
-  const { isLoading, onBack, onNext } = props
-
-  return (
-    <Grid
-      item // item within main render grid
-      xs={12}
-      container // container for control items
-      spacing={1}
-      justify='flex-end'
-      alignItems='center'
-      className={classes.controls}
-    >
-      <Grid item>
-        <IconButton
-          title='back page'
-          data-cy='back-button'
-          disabled={!onBack}
-          onClick={() => {
-            onBack && onBack()
-            window.scrollTo(0, 0)
-          }}
-        >
-          <LeftIcon />
-        </IconButton>
-      </Grid>
-      <Grid item>
-        <IconButton
-          title='next page'
-          data-cy='next-button'
-          disabled={!onNext}
-          onClick={() => {
-            onNext && onNext()
-            window.scrollTo(0, 0)
-          }}
-        >
-          {isLoading && !onNext && (
-            <CircularProgress
-              color='secondary'
-              size={24}
-              className={classes.progress}
-            />
-          )}
-          <RightIcon />
-        </IconButton>
-      </Grid>
-    </Grid>
-  )
-}
-
-const loadingStyle = {
-  color: 'lightgrey',
-  background: 'lightgrey',
-  height: '10.3333px',
-}
-
-const useLoadingStyles = makeStyles({
-  item: {
-    display: 'block',
-    minHeight: (dense) => (dense ? 57 : 71),
-  },
-  lineOne: {
-    ...loadingStyle,
-    width: '50%',
-  },
-  lineTwo: {
-    ...loadingStyle,
-    width: '35%',
-    margin: '5px 0 5px 0',
-  },
-  lineThree: {
-    ...loadingStyle,
-    width: '65%',
-  },
-})
-
-// LoadingItem is used as a placeholder for loading content
-function LoadingItem(props: { dense?: boolean }): JSX.Element {
-  const classes = useLoadingStyles(props.dense)
-
-  return (
-    <ListItem className={classes.item} dense={props.dense}>
-      <ListItemText className={classes.lineOne} />
-      <ListItemText className={classes.lineTwo} />
-      <ListItemText className={classes.lineThree} />
-    </ListItem>
   )
 }
