@@ -11,7 +11,7 @@ type NumberFieldProps = TextFieldProps & {
 }
 
 export default function NumberField(props: NumberFieldProps): JSX.Element {
-  const { float, min = 0, max = 9000, onChange, value, ...rest } = props
+  const { float, min, max, onChange, value, ...rest } = props
 
   const [inputValue, setInputValue] = useState(value)
 
@@ -31,12 +31,12 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
         let val = e.target.value
         let num = parse(val)
 
-        if (min) num = Math.max(min, num)
-        if (max) num = Math.min(max, num)
+        if (typeof min === 'number') num = Math.max(min, num)
+        if (typeof max === 'number') num = Math.min(max, num)
         val = num.toString()
 
-        setInputValue(val.replace(/[^0-9.]/g, ''))
-        if (!isNaN(num)) onChange(val)
+        setInputValue(val.replace(/[^0-9.-]/g, ''))
+        if (!Number.isNaN(num)) onChange(val)
       }}
       inputProps={{ min, max, step: 'any' }}
     />
