@@ -59,6 +59,55 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     })
   })
 
+  it('should go back and forth between steps', () => {
+    // fill in step 1
+    // click next button
+    // verify on step 2
+    // click back button
+    // verify back on step 1
+  })
+
+  it('should toggle timezone switches', () => {
+    // get local tz and compare to schedule tz
+    // fill in start and end
+    // click toggle timezone to switch to schedule tz
+    // check values of start/end display with schedule tz
+    // click next button
+    // check toggle still active
+    // click toggle button to go back to local tz
+    // click back button
+    // check toggle is off
+    // checkvalues of start/end display with local tz
+  })
+
+  it('should toggle duration field', () => {
+    // create temporary schedule in graphql
+    // hover over temporary sched span
+    // click edit button
+    // change duration field
+    // click toggle
+    // verify end date-time is updated with new duration
+    // change date-time
+    // click toggle
+    // verify duration is updated from new time
+  })
+
+  it('should refill a shifts info after deleting in step 2', () => {
+    // create temporary schedule in graphql
+    // hover over temporary sched span
+    // click edit button
+    // click delete button in step 2
+    // verify input fields have deleted shift's values
+  })
+
+  it.only('should cancel and close form', () => {
+    cy.get('[role="dialog"]').should('not.exist')
+    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.get('[role="dialog"]').should('be.visible')
+    cy.dialogFinish('Cancel')
+    cy.get('[role="dialog"]').should('not.exist')
+  })
+
   // todo: start with shifts on schedule and check they disappear after creating
   it('should create a temporary schedule', () => {
     // note: could check calendar for original shift in weekly view
@@ -134,7 +183,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       })
   })
 
-  it.only('should be able to add multiple shifts on step 2', () => {
+  it('should be able to add multiple shifts on step 2', () => {
     cy.get('[data-cy="new-temp-sched"]').click()
     const [start, end, duration] = makeIntervalDates()
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
@@ -162,52 +211,6 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
     // todo: verify list is sorted
-  })
-
-  it('should toggle timezone', () => {
-    // get local tz and compare to schedule tz
-    // fill in start and end
-    // click toggle timezone to switch to schedule tz
-    // check values of start/end display with schedule tz
-    // click next button
-    // check toggle still active
-    // click toggle button to go back to local tz
-    // click back button
-    // check toggle is off
-    // checkvalues of start/end display with local tz
-  })
-
-  it('should toggle duration field', () => {
-    // create temporary schedule in graphql
-    // hover over temporary sched span
-    // click edit button
-    // change duration field
-    // click toggle
-    // verify end date-time is updated with new duration
-    // change date-time
-    // click toggle
-    // verify duration is updated from new time
-  })
-
-  it('should refill a shifts info after deleting in step 2', () => {
-    // create temporary schedule in graphql
-    // hover over temporary sched span
-    // click edit button
-    // click delete button in step 2
-    // verify input fields have deleted shift's values
-  })
-
-  it('should go back and forth between steps', () => {
-    // fill in step 1
-    // click next button
-    // verify on step 2
-    // click back button
-    // verify back on step 1
-  })
-
-  it('should cancel and close form', () => {
-    // click cancel on step 1
-    // verify dialog closed
   })
 }
 
