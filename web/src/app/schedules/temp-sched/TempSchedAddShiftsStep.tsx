@@ -207,13 +207,14 @@ export default function TempSchedAddShiftsStep({
           <Grid item>
             <Typography variant='body2'>{stepText}</Typography>
             <Typography variant='h6' component='h2'>
-              Determine each user's on-call shift.
+              Specify on-call shifts.
             </Typography>
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              Configuring a temporary schedule from {fmt(start)} to {fmt(end)}.
-              Select a user to add one or more on-call shifts.
+              This temporary schedule will go into effect: {fmt(start)}
+              <br />
+              and end on: {fmt(end)}.
             </DialogContentText>
           </Grid>
           <Grid item>

@@ -36,9 +36,10 @@ export default function TempSchedTimesStep({
         </Grid>
         <Grid item xs={12}>
           <DialogContentText className={classes.contentText}>
-            Selecting a start and end dates will define a span of time on this
-            schedule with a fixed set of shifts. These shifts ignores all rules,
-            rotations, and overrides and will behave exactly as configured here.
+            During a temporary schedule, all on-call shifts will be set as
+            configured on the next step. A temporary schedule ignores all rules,
+            rotations, and overrides. On-call will be exactly as configured here
+            for the entire duration.
           </DialogContentText>
         </Grid>
         <Grid item xs={12}>
