@@ -11,10 +11,10 @@ const addShiftsSelector = 'div[data-cy="add-shifts-step"]'
 
 function makeIntervalDates(): [string, string, number] {
   const now = DateTime.local()
-  // year is either between now and 3 years in the future
+  // year is between now and 3 years in the future
   const year = c.integer({
     min: now.year,
-    max: now.year + c.integer({ min: 1, max: 3 }),
+    max: now.year + c.integer({ min: 0, max: 3 }),
   })
   // random month, keep in the future if using current year
   const month = c.integer({
@@ -23,7 +23,7 @@ function makeIntervalDates(): [string, string, number] {
   })
   // random day, keep in future if using current month
   const day = c.integer({
-    min: month === now.month ? now.day : 1,
+    min: (year === now.year && month === now.month) ? now.day : 1,
     max: now.daysInMonth,
   })
 
