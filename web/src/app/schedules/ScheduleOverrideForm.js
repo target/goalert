@@ -30,6 +30,18 @@ const query = gql`
     }
   }
 `
+const scheduleQuery = gql`
+  query($id: ID!) {
+    schedule(id: $id) {
+      id
+      name
+      temporarySchedules {
+        start
+        end
+      }
+    }
+  }
+`
 
 const useStyles = makeStyles({
   tzNote: {
@@ -58,7 +70,7 @@ export default function ScheduleOverrideForm(props) {
   )
 
   // used to grab conflicting errors from pre-existing overrides
-  const { data } = useQuery(query, {
+  const { data: overrides } = useQuery(query, {
     variables: {
       id: _.get(conflictingUserFieldError, 'details.CONFLICTING_ID', ''),
     },
@@ -66,11 +78,22 @@ export default function ScheduleOverrideForm(props) {
     skip: !conflictingUserFieldError,
   })
 
+  const { data: tempSchedules } = useQuery(scheduleQuery, {
+    variables: {
+      id: scheduleID,
+    },
+    pollInterval: 0,
+  })
+
+  const scheduleDetails = _.get(tempSchedules, 'schedule.temporarySchedules')
+
+  console.log('scheduleDetails: ', scheduleDetails)
+
   const userConflictErrors = errors
     .filter((e) => e.field !== 'userID')
     .concat(
       conflictingUserFieldError
-        ? mapOverrideUserError(_.get(data, 'userOverride'), value, zone)
+        ? mapOverrideUserError(_.get(overrides, 'userOverride'), value, zone)
         : [],
     )
 
