@@ -7,7 +7,7 @@ import { round } from 'lodash-es'
 const c = new Chance()
 const dtfmt = "yyyy-MM-dd'T'HH:mm"
 
-function getStepOneValues(): [string, string, number] {
+function makeIntervalDates(): [string, string, number] {
   const now = DateTime.local()
   // year is either between now and 3 years in the future
   const year = c.integer({
@@ -69,7 +69,7 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('[data-cy="new-temp-sched"]').click()
 
     // fill out step 1 start and end times
-    const [start, end, duration] = getStepOneValues()
+    const [start, end, duration] = makeIntervalDates()
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
 
     // go to step 2
@@ -117,7 +117,9 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div').contains(manualAddUser.name).trigger('mouseover')
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
 
-    // check original overlapped shifts no longer show
+      // todo
+      // find by day then name to verify as temporary? (eq[0] since business logic = should always be sorted as first in calendar)
+      // check by color being green
   })
 
   it.only('should edit a temporary schedule', () => {
@@ -141,14 +143,30 @@ function testTemporarySchedule(screen: ScreenFormat): void {
       // verify shift was deleted from list
       cy.get('[data-cy="shifts-list"]').should('not.contain', graphQLAddUser.name)
 
-      // add shift with new info in fields
+      // add shift with new user
+      cy.dialogForm({ userID: manualAddUser.name }, 'div[data-cy="add-shifts-step"]')
+  
+      // verify shift doesn't exist in list yet
+      cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
+  
       // click add shift button
-      // verify shift shows up on right
+      cy.get('button[title="Add Shift"]').click()
+  
+      // verify shift shows up in list
+      cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
+  
       // click submit
-      // check temporary sched length in calendar
-      // check new shift in calendar
-      // find by day then name? (eq[0] since business logic = should always be sorted as first in calendar)
-      // check that color is green?
+      cy.dialogFinish('Submit')
+
+      cy.reload() // ensure calendar update
+
+      // check new shift + its tooltip exists in calendar
+      cy.get('div').contains(manualAddUser.name).trigger('mouseover')
+      cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
+
+      // todo
+      // find by day then name to verify as temporary? (eq[0] since business logic = should always be sorted as first in calendar)
+      // check by color being green
     })
   })
 
