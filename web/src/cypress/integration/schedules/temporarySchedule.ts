@@ -1,7 +1,7 @@
 import { Chance } from 'chance'
 import { testScreen } from '../../support'
 import { Schedule, User } from '../../../schema'
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Info, Interval, LocalZone, Zone } from 'luxon'
 import { round } from 'lodash-es'
 
 // todo: 
@@ -63,12 +63,12 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     })
   })
 
-  it.only('should go back and forth between steps', () => {
+  it('should go back and forth between steps', () => {
+    const [start, end] = makeIntervalDates()
     cy.get('[data-cy="new-temp-sched"]').click()
     cy.get('div[data-cy="sched-times-step"]').should('be.visible')
     cy.get('[data-cy="loading-button"]').contains('Next').click() // should error
     cy.focused().blur() // dismiss error
-    const [start, end] = makeIntervalDates()
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
@@ -78,29 +78,53 @@ function testTemporarySchedule(screen: ScreenFormat): void {
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
   })
 
-  it('should toggle timezone switches', () => {
-    // get local tz and compare to schedule tz
-    // fill in start and end
-    // click toggle timezone to switch to schedule tz
-    // check values of start/end display with schedule tz
-    // click next button
-    // check toggle still active
-    // click toggle button to go back to local tz
-    // click back button
-    // check toggle is off
-    // checkvalues of start/end display with local tz
-  })
+  const datePlusEight = (dt: string) => DateTime.fromFormat(dt, dtfmt).plus({ hours: 8 }).toFormat(dtfmt)
 
   it('should toggle duration field', () => {
-    // create temporary schedule in graphql
-    // hover over temporary sched span
-    // click edit button
-    // change duration field
-    // click toggle
-    // verify end date-time is updated with new duration
-    // change date-time
-    // click toggle
-    // verify duration is updated from new time
+    const [start, end] = makeIntervalDates()
+    const shiftEnd = datePlusEight(start)
+    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
+    cy.get('[data-cy="loading-button"]').contains('Next').click()
+    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
+    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should('have.value', 8)
+    cy.get('div[data-cy="add-shifts-step"] span[data-cy="toggle-duration-off"]').click()
+    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should('have.value', shiftEnd)
+    cy.dialogForm({ end: datePlusEight(shiftEnd) }, 'div[data-cy="add-shifts-step"]')
+    cy.get('div[data-cy="add-shifts-step"] span[data-cy="toggle-duration-on"]').click()
+    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should('have.value', 16)
+  })
+
+  it('should toggle timezone switches', () => {
+    const c = (t: string, tz: string) => {
+      let dt = DateTime.fromFormat(t, dtfmt)
+      dt = dt.setZone(tz)
+      console.log(dt)
+      return dt.toFormat(dtfmt)
+    }
+    const lTZ = (t: string): string => c(t, DateTime.local().zoneName)
+    const sTZ = (t: string): string => c(t, schedule.timeZone)
+    
+    const [start, end] = makeIntervalDates()
+
+    cy.get('[data-cy="new-temp-sched"]').click()
+    cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
+    cy.get('div[data-cy="sched-times-step"] input[name="start"]').should('have.value', lTZ(start))
+    cy.get('div[data-cy="sched-times-step"] input[name="end"]').should('have.value', lTZ(end))
+    cy.get('div[data-cy="sched-times-step"] [data-cy="tz-switch"]').click()
+    cy.get('div[data-cy="sched-times-step"] input[name="start"]').should('have.value', sTZ(start))
+    cy.get('div[data-cy="sched-times-step"] input[name="end"]').should('have.value', sTZ(end))
+    cy.get('[data-cy="loading-button"]').contains('Next').click()
+    cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
+    cy.get('div[data-cy="add-shifts-step"] [data-cy="toggle-duration"]').click()
+    cy.get('div[data-cy="add-shifts-step"] input[name="start"]').should('have.value', sTZ(start))
+    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should('have.value', sTZ(datePlusEight(start)))
+    cy.get('div[data-cy="add-shifts-step"] [data-cy="tz-switch"]').click()
+    cy.get('div[data-cy="add-shifts-step"] input[name="start"]').should('have.value', lTZ(start))
+    cy.get('div[data-cy="add-shifts-step"] input[name="end"]').should('have.value', lTZ(datePlusEight(start)))
+    cy.dialogClick('Back')
+    cy.get('div[data-cy="sched-times-step"] input[name="start"]').should('have.value', lTZ(start))
+    cy.get('div[data-cy="sched-times-step"] input[name="end"]').should('have.value', lTZ(end))
   })
 
   it('should refill a shifts info after deleting in step 2', () => {
@@ -130,8 +154,8 @@ function testTemporarySchedule(screen: ScreenFormat): void {
   it('should create a temporary schedule', () => {
     // note: could check calendar for original shift in weekly view
     // it would us to compare shift times with a user's name in the same div without having to open a tooltip
-    cy.get('[data-cy="new-temp-sched"]').click()
     const [start, end, duration] = makeIntervalDates()
+    cy.get('[data-cy="new-temp-sched"]').click()
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
@@ -202,8 +226,8 @@ function testTemporarySchedule(screen: ScreenFormat): void {
   })
 
   it('should be able to add multiple shifts on step 2', () => {
-    cy.get('[data-cy="new-temp-sched"]').click()
     const [start, end, duration] = makeIntervalDates()
+    cy.get('[data-cy="new-temp-sched"]').click()
     cy.dialogForm({ start, end }, 'div[data-cy="sched-times-step"]')
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('div[data-cy="add-shifts-step"]').should('be.visible')
