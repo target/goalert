@@ -1,22 +1,13 @@
-import { Grid, TextField, Typography, makeStyles } from '@material-ui/core'
+import { Grid, TextField } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
+import { AppLink } from '../../util/AppLink'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
 
-const useStyles = makeStyles({
-  typography: {
-    '&:hover': {
-      cursor: 'pointer',
-      textDecoration: 'underline',
-    },
-  },
-})
-
 export default function TempSchedAddShiftForm(): JSX.Element {
-  const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
 
   return (
@@ -54,14 +45,15 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             label='Shift End'
             name='end'
             hint={
-              <Typography
-                className={classes.typography}
-                variant='caption'
-                color='textSecondary'
-                onClick={() => setManualEntry(false)}
+              <AppLink
+                to='#'
+                onClick={(e) => {
+                  e.preventDefault()
+                  setManualEntry(false)
+                }}
               >
-                Configure as duration?
-              </Typography>
+                Configure as duration
+              </AppLink>
             }
           />
         ) : (
@@ -89,14 +81,15 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             }}
             min={0.25}
             hint={
-              <Typography
-                className={classes.typography}
-                variant='caption'
-                color='textSecondary'
-                onClick={() => setManualEntry(true)}
+              <AppLink
+                to='#'
+                onClick={(e) => {
+                  e.preventDefault()
+                  setManualEntry(true)
+                }}
               >
-                Configure as date/time?
-              </Typography>
+                Configure as date/time
+              </AppLink>
             }
           />
         )}
