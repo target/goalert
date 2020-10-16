@@ -7,8 +7,9 @@ import {
 } from '@material-ui/core'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, StepContainer } from './sharedUtils'
+import { contentText, StepContainer, Value } from './sharedUtils'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
+import { isISOBefore } from '../../util/shifts'
 
 const useStyles = makeStyles({
   contentText,
@@ -17,13 +18,20 @@ const useStyles = makeStyles({
 type TempSchedTimesStepProps = {
   scheduleID: string
   stepText: string
+  value: Value
 }
 
 export default function TempSchedTimesStep({
   scheduleID,
   stepText,
+  value,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
+
+  function validate(): Error | null {
+    if (isISOBefore(value.start, value.end)) return null
+    return new Error('Start date/time cannot be after end date/time.')
+  }
 
   return (
     <StepContainer width='35%'>
@@ -54,6 +62,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='start'
+            validate={() => validate()}
           />
         </Grid>
         <Grid item xs={6}>
@@ -62,6 +71,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='end'
+            validate={() => validate()}
           />
         </Grid>
       </Grid>

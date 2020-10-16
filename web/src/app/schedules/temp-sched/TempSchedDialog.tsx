@@ -10,6 +10,7 @@ import { bindKeyboard, virtualize } from 'react-swipeable-views-utils'
 import SwipeableViews from 'react-swipeable-views'
 import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
+import { parseInterval } from '../../util/shifts'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
 
@@ -41,6 +42,21 @@ export default function TempSchedDialog({
     ),
   })
 
+  const schedInterval = parseInterval(value)
+  const hasInvalidShift = value.shifts.some(
+    (s) => !schedInterval.engulfs(parseInterval(s)),
+  )
+
+  const shiftErrors = hasInvalidShift
+    ? [
+        {
+          message:
+            'One or more shifts extend beyond the start and/or end of this temporary schedule',
+          nonSubmit: step !== 1,
+        },
+      ]
+    : []
+
   const [submit, { loading, error, data }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {
@@ -65,6 +81,7 @@ export default function TempSchedDialog({
             key={key}
             stepText='STEP 1 OF 2'
             scheduleID={scheduleID}
+            value={value}
           />
         )
       case 1:
@@ -90,7 +107,7 @@ export default function TempSchedDialog({
   const fieldErrs = fieldErrors(error).map((e) => ({
     message: `${e.field}: ${e.message}`,
   }))
-  const errs = nonFieldErrs.concat(fieldErrs)
+  const errs = nonFieldErrs.concat(fieldErrs).concat(shiftErrors)
 
   return (
     <FormDialog

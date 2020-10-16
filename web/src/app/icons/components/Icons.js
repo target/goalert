@@ -28,10 +28,11 @@ export class Trash extends Component {
 export class Warning extends Component {
   static propTypes = {
     message: p.string,
+    placement: p.string,
   }
 
   render() {
-    const { classes, message } = this.props
+    const { classes, message, placement } = this.props
 
     const warningIcon = (
       <WarningIcon
@@ -46,7 +47,7 @@ export class Warning extends Component {
     }
 
     return (
-      <Tooltip title={message} placement='right'>
+      <Tooltip title={message} placement={placement || 'right'}>
         {warningIcon}
       </Tooltip>
     )
