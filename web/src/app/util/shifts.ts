@@ -31,3 +31,15 @@ export function trimSpans<T extends SpanISO>(
     }),
   )
 }
+
+// isISOAfter
+// Compares two ISO timestamps, returning true if `a` occurs after `b`.
+export function isISOAfter(a: string, b: string): boolean {
+  return DateTime.fromISO(a) > DateTime.fromISO(b)
+}
+
+// isISOBefore
+// Compares two ISO timestamps, returning true if `a` occurs before `b`.
+export function isISOBefore(a: string, b: string): boolean {
+  return DateTime.fromISO(a) < DateTime.fromISO(b)
+}

@@ -15,7 +15,7 @@ import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
-import { isAfter, isBefore } from '../../util/luxon-helpers'
+import { isISOAfter, isISOBefore } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -152,19 +152,19 @@ export default function TempSchedAddShiftsStep({
       return result
     }
 
-    if (!isAfter(shift.end, shift?.start)) {
+    if (!isISOAfter(shift.end, shift?.start)) {
       result.push({
         field: 'end',
         message: 'must be after shift start time',
       } as FieldError)
     }
-    if (isBefore(shift.start, start)) {
+    if (isISOBefore(shift.start, start)) {
       result.push({
         field: 'start',
         message: 'must not be before temporary schedule start time',
       } as FieldError)
     }
-    if (isAfter(shift.end, end)) {
+    if (isISOAfter(shift.end, end)) {
       result.push({
         field: 'end',
         message: 'must not extend beyond temporary schedule end time',
