@@ -9,8 +9,7 @@ import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { contentText, StepContainer, Value } from './sharedUtils'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
-
-import { DateTime } from 'luxon'
+import { isISOBefore } from '../../util/shifts'
 
 const useStyles = makeStyles({
   contentText,
@@ -29,8 +28,8 @@ export default function TempSchedTimesStep({
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
 
-  function isValid(): Error | null {
-    if (DateTime.fromISO(value.start) < DateTime.fromISO(value.end)) return null
+  function validate(): Error | null {
+    if (isISOBefore(value.start, value.end)) return null
     return new Error('Start date/time cannot be after end date/time.')
   }
 
@@ -62,7 +61,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='start'
-            validate={() => isValid()}
+            validate={() => validate()}
           />
         </Grid>
         <Grid item xs={6}>
@@ -71,7 +70,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='end'
-            validate={() => isValid()}
+            validate={() => validate()}
           />
         </Grid>
       </Grid>
