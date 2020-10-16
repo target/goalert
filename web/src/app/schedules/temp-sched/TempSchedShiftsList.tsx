@@ -66,9 +66,7 @@ export default function TempSchedShiftsList({
         DateTime.fromISO(s.start, { zone }),
         DateTime.fromISO(s.end, { zone }),
       ),
-      isValid: schedInterval.engulfs(
-        parseInterval({ start: s.start, end: s.end }),
-      ),
+      isValid: schedInterval.engulfs(parseInterval(s)),
     }))
 
     if (!shifts.length) return []
