@@ -138,7 +138,7 @@ export default function TempSchedAddShiftsStep({
     if (!shift.start) add('start', message)
     if (!shift.end) add('end', message)
     if (!isAfter(shift.end, shift.start)) add('end', 'must be after shift start time')
-    if (!isBefore(shift.start, shift.end)) add('start', 'must be before end time')
+    if (!isBefore(shift.start, shift.end)) add('start', 'must be before shift end time')
     return result
   }
 
