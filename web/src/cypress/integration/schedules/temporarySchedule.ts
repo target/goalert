@@ -146,6 +146,7 @@ function testTemporarySchedule(): void {
 
   it('should refill a shifts info after deleting in step 2', () => {
     cy.createTemporarySchedule(schedule.id, {
+      start: DateTime.local().toISO(),
       shiftUserIDs: [graphQLAddUser.id]
     }).then(() => {
       cy.reload()
@@ -210,7 +211,9 @@ function testTemporarySchedule(): void {
   })
 
   it('should edit a temporary schedule', () => {
+    const now = DateTime.local()
     cy.createTemporarySchedule(schedule.id, {
+      start: now.toISO(),
       shiftUserIDs: [graphQLAddUser.id]
     }).then(() => {
       cy.reload()
@@ -230,7 +233,7 @@ function testTemporarySchedule(): void {
         graphQLAddUser.name,
       )
       cy.dialogForm(
-        { userID: manualAddUser.name },
+        { userID: manualAddUser.name, start: now.toFormat(dtFmt) },
         addShiftsSelector,
       )
       cy.get('[data-cy="shifts-list"]').should(
@@ -248,6 +251,7 @@ function testTemporarySchedule(): void {
 
   it('should delete a temporary schedule', () => {
     cy.createTemporarySchedule(schedule.id, {
+      start: DateTime.local().toISO(),
       shiftUserIDs: [graphQLAddUser.id]
     }).then(() => {
       cy.reload()

@@ -1,9 +1,11 @@
 import { Chance } from 'chance'
 import { DateTime, Interval } from 'luxon'
+import { omit } from 'lodash-es'
 import {
   Schedule,
   ScheduleTarget,
   ScheduleTargetInput,
+  User,
 } from '../../schema'
 
 const c = new Chance()
@@ -146,7 +148,7 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
 function createTemporarySchedule(
   scheduleID?: string,
   options?: TemporaryScheduleOptions,
-): Cypress.Chainable<void> {
+): Cypress.Chainable<null> {
   const mutation = `
     mutation($input: SetTemporaryScheduleInput!) {
       setTemporarySchedule(input: $input)
@@ -159,65 +161,57 @@ function createTemporarySchedule(
       .then((s: Schedule) => createTemporarySchedule(s.id, options))
   }
 
-  const input = options || {}
-  const scheduleDuration = c.integer({ min: 1, max: 30 })
-  const cur = DateTime.local()
-  const curDay = cur.day
-  const curMonth = cur.month
-  const curYear = cur.year
+  let input = omit(options ?? {}, 'shiftUserIDs')
+  input.scheduleID = scheduleID
 
+  const now = DateTime.local()
+  const r = (min: number, max: number): number => c.integer({ min, max })
+
+  const MAX_FUTURE = 1576800 // up to 3 years (in minutes) in the future
+  const MIN = 60 // minimum temp sched length of 1 hour, in minutes
+  const MAX = 43800 // maximum temp sched length of 1 month, in minutes
+  const S_MIN = 1 // minimum shift length, in hours
+
+  // set temp sched start and end dates
   if (!input.start && !input.end) {
-    // set start to anytime between now and 3 years (arbitrary but not too far in the future)
-    input.start = DateTime.fromJSDate(c.date({
-      year: curYear + c.integer({ min: 0, max: 3 })
-    }) as Date)
+    let s = now.plus({ minutes: r(0, MAX_FUTURE) })
+    input.start = s.toISO()
+    input.end = s.plus({ minutes: r(MIN, MAX) }).toISO()
   } else if (!input.start && input.end) {
-    // set start to a random duration before end, if end is set
-    input.start = DateTime.fromISO(input.end).minus({ days: scheduleDuration }).toISO()
+    const end = DateTime.fromISO(input.end)
+    if (!end.isValid) return cy.log('invalid end date')
+    if (+end < +now) return cy.log('cannot provide end time before now() without also providing start time')
+    const max = Interval.fromDateTimes(now, end).toDuration('hours').hours
+    input.start = end.minus({ hours: r(1, max) }).toISO()
+  } else if (input.start && !input.end) {
+    const start = DateTime.fromISO(input.start)
+    if (!start.isValid) return cy.log('invalid start date')
+    input.end = start.plus({ minutes: r(MIN, MAX) }).toISO()
   }
 
-  if (!input.end) {
-    // set end to a random duration after start
-    const start = DateTime.fromISO(input.start as string)
-    input.end = start.plus({ days: scheduleDuration }).toISO()
-  }
-
+  // set shifts
   if (!input.shifts?.length) {
-    input.shifts = []
-    // addShifts adds a shift for each user specified to the input
-    const addShifts = (users: string[]) => {
-      const s = DateTime.fromISO(input.start)
-      const e = DateTime.fromISO(input.end)
+    cy.fixture('users').then((users) => {
+      const userIDs = options.shiftUserIDs || c.pickset(users.map((u: User) => u.id), r(1, users.length))
+      const schedStart = DateTime.fromISO(input.start)
+      const schedEnd = DateTime.fromISO(input.end)
+      if (!schedStart.isValid) return cy.log('invalid start date')
+      if (!schedEnd.isValid) return cy.log('invalid end date')
 
-      for(let i = 0; i < users.length; i++) {
-        const startYear = c.integer({ min: s.year, max: e.year })
-        const startMonth = c.integer({ min: curYear === startYear ? s.month : 1, max: curYear === e.year ? e.month : 12 })
-        const start = DateTime.fromObject({
-          year: startYear,
-          month: startMonth,
-          day: c.integer({ min: curYear === startYear && curMonth === startMonth ? curDay : 0, max: curMonth === e.month ? e.day : DateTime.local(startYear, startMonth).daysInMonth }),
-        })
+      if (+schedStart > +schedEnd) return cy.log('start cannot begin after end')
+      const schedLength = Interval.fromDateTimes(schedStart, schedEnd).toDuration(['hours', 'minutes'])
 
-        console.log('max: ', Interval.fromDateTimes(start, e).toDuration('hours'))
-        
-        input.shifts.push({
-          start: start.toISO(), // anytime between (input.start and input.end) - scheduleDuration
-          end: start.plus({ hours: c.floating({ min: 0.25, max: Interval.fromDateTimes(start, e).toDuration('hours').hours }) }), // anytime after set start and before input.end, random duration
-          userID: users[i]
-        })
-      }
-    }
+      // make 1 shift per user, within range of sched
+      input.shifts = []
+      userIDs.forEach((userID: string) => {
 
-    if (input.shiftUserIDs.length) {
-      addShifts(input.shiftUserIDs)
-    } else {
-      cy.fixture('users').then((_users) => {
-        const numUsers = c.integer({ min: 1, max: _users.length })
-        let users = _users.slice()
-        users.splice(numUsers - 1, 1)
-        addShifts(users)
+        const start = schedStart.plus({ minutes: r(0, schedLength.minutes - S_MIN) })
+        const timeUntilEnd = Interval.fromDateTimes(start, schedEnd).toDuration('minutes').minutes
+        const end = start.plus({ minutes: r(S_MIN, timeUntilEnd) })
+
+        input.shifts.push({ userID, start, end })
       })
-    }
+    })
   }
 
   return cy.graphql(mutation, { input })
