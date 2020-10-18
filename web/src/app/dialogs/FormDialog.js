@@ -15,6 +15,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import gracefulUnmount from '../util/gracefulUnmount'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
+import Notices from '../details/Notices'
 
 const styles = (theme) => {
   const { cancelButton, dialogWidth } = globalStyles(theme)
@@ -48,7 +49,13 @@ export default class FormDialog extends React.PureComponent {
     title: p.node.isRequired,
     subTitle: p.node,
     caption: p.node,
-
+    notices: p.arrayOf(
+      p.shape({
+        type: p.oneOf(['WARNING', 'ERROR', 'INFO']).isRequired,
+        message: p.string.isRequired,
+        details: p.string.isRequired,
+      }),
+    ),
     errors: p.arrayOf(
       p.shape({
         message: p.string.isRequired,
@@ -86,6 +93,7 @@ export default class FormDialog extends React.PureComponent {
   }
 
   static defaultProps = {
+    notices: [],
     errors: [],
     onClose: () => {},
     onSubmit: () => {},
@@ -101,6 +109,7 @@ export default class FormDialog extends React.PureComponent {
       classes,
       confirm,
       disableGutters,
+      notices,
       errors,
       fullScreen,
       isUnmounting,
@@ -132,6 +141,7 @@ export default class FormDialog extends React.PureComponent {
         }
         {...dialogProps}
       >
+        <Notices notices={notices} />
         <DialogTitleWrapper
           fullScreen={isFullScreen}
           onClose={onClose}

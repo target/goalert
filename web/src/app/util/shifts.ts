@@ -1,7 +1,7 @@
 import { DateTime, Interval } from 'luxon'
 import _ from 'lodash-es'
 
-interface SpanISO {
+export interface SpanISO {
   start: string
   end: string
 }
@@ -30,4 +30,16 @@ export function trimSpans<T extends SpanISO>(
       }))
     }),
   )
+}
+
+// isISOAfter
+// Compares two ISO timestamps, returning true if `a` occurs after `b`.
+export function isISOAfter(a: string, b: string): boolean {
+  return DateTime.fromISO(a) > DateTime.fromISO(b)
+}
+
+// isISOBefore
+// Compares two ISO timestamps, returning true if `a` occurs before `b`.
+export function isISOBefore(a: string, b: string): boolean {
+  return DateTime.fromISO(a) < DateTime.fromISO(b)
 }

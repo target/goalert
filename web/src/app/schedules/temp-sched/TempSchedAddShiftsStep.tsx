@@ -15,6 +15,7 @@ import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
+import { isISOAfter, isISOBefore } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -75,14 +76,6 @@ function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
 }
 
-function isAfter(a: string, b: string): boolean {
-  return DateTime.fromISO(a) > DateTime.fromISO(b)
-}
-
-function isBefore(a: string, b: string): boolean {
-  return DateTime.fromISO(a) < DateTime.fromISO(b)
-}
-
 // mergeShifts will take the incoming shifts and merge them with
 // the shifts stored in value. Using Luxon's Interval, overlaps
 // and edge cases when merging are handled for us.
@@ -130,15 +123,15 @@ export default function TempSchedAddShiftsStep({
   // that makes the network request.
   function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
-    const message = 'this field is required'
     const add = (field: string, message: string) => result.push({ field, message } as FieldError)
     
+    const requiredMsg = 'this field is required'
     if (!shift || !s) return result
-    if (!shift.userID) add('userID', message)
-    if (!shift.start) add('start', message)
-    if (!shift.end) add('end', message)
-    if (!isAfter(shift.end, shift.start)) add('end', 'must be after shift start time')
-    if (!isBefore(shift.start, shift.end)) add('start', 'must be before shift end time')
+    if (!shift.userID) add('userID', requiredMsg)
+    if (!shift.start) add('start', requiredMsg)
+    if (!shift.end) add('end', requiredMsg)
+    if (!isISOAfter(shift.end, shift.start)) add('end', 'must be after shift start time')
+    if (!isISOBefore(shift.start, shift.end)) add('start', 'must be before shift end time')
     return result
   }
 
@@ -169,13 +162,14 @@ export default function TempSchedAddShiftsStep({
           <Grid item>
             <Typography variant='body2'>{stepText}</Typography>
             <Typography variant='h6' component='h2'>
-              Determine each user's on-call shift.
+              Specify on-call shifts.
             </Typography>
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              Configuring a temporary schedule from {fmt(start)} to {fmt(end)}.
-              Select a user to add one or more on-call shifts.
+              This temporary schedule will go into effect: {fmt(start)}
+              <br />
+              and end on: {fmt(end)}.
             </DialogContentText>
           </Grid>
           <Grid item>
