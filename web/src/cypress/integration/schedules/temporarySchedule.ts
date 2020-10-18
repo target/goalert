@@ -162,6 +162,7 @@ function testTemporarySchedule(): void {
         .parent()
         .parent()
         .siblings()
+        .scrollIntoView()
         .click() // delete
       cy.get('@step2')
         .find('input[name="userID"]')
