@@ -137,14 +137,7 @@ function testTemporarySchedule(): void {
       cy.get(addShiftsSelector).as('step2')
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
       cy.get('@step2').find('input[name="userID"]').should('have.value', '')
-      cy.get('[data-cy="shifts-list"] li')
-        .contains(graphQLAddUser.name)
-        .eq(0)
-        .parent()
-        .parent()
-        .siblings()
-        .find('[data-cy="delete-shift"]')
-        .click() // delete
+      cy.get('[data-cy="shifts-list"] li [data-cy="delete-shift"]').click({ force: true }) // delete
       cy.get('@step2')
         .find('input[name="userID"]')
         .should('have.value', graphQLAddUser.name)
