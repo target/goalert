@@ -114,7 +114,7 @@ func (l *Listener) run(ctx context.Context) {
 		default:
 		}
 		err := l.handleNotifications(ctx)
-		if err == context.Canceled {
+		if errors.Is(err, context.Canceled) {
 			err = nil
 		}
 		if err != nil {

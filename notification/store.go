@@ -168,7 +168,7 @@ func (db *DB) cmUserID(ctx context.Context, id string) (string, error) {
 
 	var userID string
 	err = db.getCMUserID.QueryRowContext(ctx, id).Scan(&userID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", validation.NewFieldError("ContactMethodID", "does not exist")
 	}
 	if err != nil {
@@ -288,7 +288,7 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	}
 
 	res, err := db.verifyAndEnableContactMethod.ExecContext(ctx, cmID, code)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return validation.NewFieldError("code", "invalid code")
 	}
 	if err != nil {
@@ -395,7 +395,7 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 	var createdAt sql.NullTime
 	row := db.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from)
 	err = row.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry, &createdAt)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
 	}
 	if err != nil {

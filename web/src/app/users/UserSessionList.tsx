@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import FlatList from '../lists/FlatList'
-import { useSessionInfo } from '../util/RequireConfig'
 import gql from 'graphql-tag'
-import { useMutation, useQuery } from 'react-apollo'
+import { QueryHookOptions, useMutation, useQuery } from 'react-apollo'
 import { Button, Card, IconButton, makeStyles } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete'
 import { UserSession } from '../../schema'
@@ -14,7 +13,22 @@ import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
 import { ApolloError } from 'apollo-client'
 
-const query = gql`
+const profileQuery = gql`
+  query {
+    user {
+      id
+      sessions {
+        id
+        userAgent
+        current
+        createdAt
+        lastAccessAt
+      }
+    }
+  }
+`
+
+const byUserQuery = gql`
   query($userID: ID!) {
     user(id: $userID) {
       id
@@ -30,8 +44,8 @@ const query = gql`
 `
 
 const mutationLogoutOne = gql`
-  mutation($input: [TargetInput!]) {
-    deleteAll(input: $input)
+  mutation($id: ID!) {
+    deleteAll(input: [{ id: $id, type: userSession }])
   }
 `
 
@@ -52,11 +66,26 @@ export interface UserSessionListProps {
 }
 
 function friendlyUAString(ua: string): string {
+  if (!ua) return 'Unknown device'
   const b = Bowser.getParser(ua)
 
-  return `${b.getBrowserName()} ${
-    b.getBrowserVersion().split('.')[0]
-  } on ${b.getOSName()} (${b.getPlatformType()})`
+  let str
+  if (b.getBrowserName()) {
+    str = b.getBrowserName() + ' ' + b.getBrowserVersion().split('.')[0]
+  }
+  if (!str) {
+    str = 'Unknown device'
+  }
+
+  if (b.getOSName()) {
+    str += ' on ' + b.getOSName()
+  }
+
+  if (b.getPlatformType()) {
+    str += ' (' + b.getPlatformType() + ')'
+  }
+
+  return str
 }
 
 type Session = {
@@ -70,45 +99,40 @@ export default function UserSessionList(
   const classes = useStyles()
 
   // handles both logout all and logout individual sessions
-  const [showDialog, setShowDialog] = useState(false)
-  const [session, setSession] = useState<Session | null>(null)
+  const [endSession, setEndSession] = useState<Session | 'all' | null>(null)
 
-  const { userID: curUserID } = useSessionInfo()
-  const userID = props.userID || curUserID
-  const { data } = useQuery(query, { variables: { userID } })
+  const userID = props.userID
+  const options: QueryHookOptions = {}
+  if (userID) {
+    options.variables = { userID }
+  }
+  const { data } = useQuery(userID ? byUserQuery : profileQuery, options)
 
   const sessions: UserSession[] = _.sortBy(
     data?.user?.sessions || [],
     (s: UserSession) => (s.current ? '_' + s.lastAccessAt : s.lastAccessAt),
-  )
+  ).reverse()
 
   const [logoutOne, logoutOneStatus] = useMutation(mutationLogoutOne, {
-    onCompleted: () => setShowDialog(false),
+    variables: { id: (endSession as Session)?.id },
+    onCompleted: () => setEndSession(null),
   })
   const [logoutAll, logoutAllStatus] = useMutation(mutationLogoutAll, {
-    onCompleted: () => setShowDialog(false),
+    onCompleted: () => setEndSession(null),
   })
-
-  function getSubtitle(): string {
-    if (session?.id) {
-      return `This will log you out of your "${friendlyUAString(
-        session.userAgent,
-      )}" session.`
-    }
-
-    return 'This will log you out of all other sessions.'
-  }
 
   return (
     <React.Fragment>
       <PageActions>
-        <Button
-          color='inherit'
-          onClick={() => setShowDialog(true)}
-          className={classes.button}
-        >
-          Log Out Other Sessions
-        </Button>
+        {!userID && (
+          <Button
+            color='inherit'
+            onClick={() => setEndSession('all')}
+            className={classes.button}
+          >
+            Log Out Other Sessions
+          </Button>
+        )}
       </PageActions>
 
       <Card>
@@ -119,13 +143,12 @@ export default function UserSessionList(
             secondaryAction: s.current ? null : (
               <IconButton
                 color='primary'
-                onClick={() => {
-                  setShowDialog(true)
-                  setSession({
+                onClick={() =>
+                  setEndSession({
                     id: s.id,
                     userAgent: s.userAgent,
                   })
-                }}
+                }
               >
                 <DeleteIcon />
               </IconButton>
@@ -135,30 +158,29 @@ export default function UserSessionList(
         />
       </Card>
 
-      {showDialog && (
+      {endSession === 'all' && (
         <FormDialog
           title='Are you sure?'
           confirm
-          loading={logoutOneStatus.loading || logoutAllStatus.loading}
-          errors={nonFieldErrors(
-            (logoutOneStatus.error || logoutAllStatus.error) as ApolloError,
-          )}
-          subTitle={getSubtitle()}
-          onSubmit={() =>
-            session?.id
-              ? logoutOne({
-                  variables: {
-                    input: [
-                      {
-                        id: session?.id,
-                        type: 'userSession',
-                      },
-                    ],
-                  },
-                })
-              : logoutAll()
-          }
-          onClose={() => setShowDialog(false)}
+          loading={logoutAllStatus.loading}
+          errors={nonFieldErrors(logoutAllStatus.error as ApolloError)}
+          subTitle='This will log you out of all other sessions.'
+          onSubmit={() => logoutAll()}
+          onClose={() => setEndSession(null)}
+        />
+      )}
+
+      {endSession && endSession !== 'all' && (
+        <FormDialog
+          title='Are you sure?'
+          confirm
+          loading={logoutOneStatus.loading}
+          errors={nonFieldErrors(logoutOneStatus.error as ApolloError)}
+          subTitle={`This will log you out of your "${friendlyUAString(
+            endSession.userAgent,
+          )}" session.`}
+          onSubmit={() => logoutOne()}
+          onClose={() => setEndSession(null)}
         />
       )}
     </React.Fragment>

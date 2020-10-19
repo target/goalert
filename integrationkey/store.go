@@ -57,7 +57,7 @@ func (db *DB) Authorize(ctx context.Context, tok authtoken.Token, t Type) (conte
 	permission.SudoContext(ctx, func(c context.Context) {
 		serviceID, err = db.GetServiceID(c, tok.ID.String(), t)
 	})
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return ctx, validation.NewFieldError("IntegrationKeyID", "not found")
 	}
 	if err != nil {
@@ -87,7 +87,7 @@ func (db *DB) GetServiceID(ctx context.Context, id string, t Type) (string, erro
 
 	var serviceID string
 	err = row.Scan(&serviceID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
 	if err != nil {

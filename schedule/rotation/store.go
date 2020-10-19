@@ -275,7 +275,7 @@ func (db *DB) FindAllRotationsByScheduleID(ctx context.Context, schedID string) 
 		return nil, err
 	}
 	rows, err := db.findAllBySched.QueryContext(ctx, schedID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -312,7 +312,7 @@ func (db *DB) IsParticipantActive(ctx context.Context, partID string) (bool, err
 	}
 	var n int
 	err = db.participantActive.QueryRowContext(ctx, partID).Scan(&n)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
 	if err != nil {
@@ -342,7 +342,7 @@ func (db *DB) StateTx(ctx context.Context, tx *sql.Tx, id string) (*State, error
 	var s State
 	var part sql.NullString
 	err = row.Scan(&s.Position, &part, &s.ShiftStart)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNoState
 	}
 	if err != nil {
@@ -365,7 +365,7 @@ func (db *DB) FindAllStateByScheduleID(ctx context.Context, scheduleID string) (
 	}
 
 	rows, err := db.findAllStateBySched.QueryContext(ctx, scheduleID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -486,7 +486,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Rotation, error) {
 
 	userID := permission.UserID(ctx)
 	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
@@ -748,7 +748,7 @@ func (db *DB) RemoveParticipantTx(ctx context.Context, tx *sql.Tx, id string) (s
 	if err != nil {
 		return "", err
 	}
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
 	if err != nil {
