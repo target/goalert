@@ -74,6 +74,8 @@ export default class PolicyForm extends PureComponent {
               ]}
               required
               value={this.props.value.repeat.value}
+              min={0}
+              max={5}
             />
           </Grid>
         </Grid>

@@ -91,7 +91,7 @@ function useISOPicker(
   const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
-      value={dtValue}
+      value={value ? dtValue : null}
       onChange={(v) => handleChange({ target: { value: v } })}
       showTodayButton
       DialogProps={{

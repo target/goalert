@@ -259,6 +259,7 @@ type Mutation {
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
+  endAllAuthSessionsByCurrentUser: Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
 
   testContactMethod(id: ID!): Boolean!
@@ -692,6 +693,8 @@ input UserSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  CMValue: String = ""
+  CMType: ContactMethodType
 }
 
 input AlertSearchOptions {
@@ -701,8 +704,17 @@ input AlertSearchOptions {
   first: Int = 15
   after: String = ""
   favoritesOnly: Boolean = false
-  includeNotified: Boolean = true
+  includeNotified: Boolean = false
   omit: [Int!]
+  sort: AlertSearchSort = statusID
+  createdBefore: ISOTimestamp
+  notCreatedBefore: ISOTimestamp
+}
+
+enum AlertSearchSort {
+  statusID
+  dateID
+  dateIDReverse
 }
 
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
@@ -742,15 +754,15 @@ type AlertLogEntry {
   id: Int!
   timestamp: ISOTimestamp!
   message: String!
-  state: AlertLogEntryState
+  state: NotificationState
 }
 
-type AlertLogEntryState {
+type NotificationState {
   details: String!
-  status: AlertLogStatus
+  status: NotificationStatus
 }
 
-enum AlertLogStatus {
+enum NotificationStatus {
   OK
   WARN
   ERROR
@@ -828,6 +840,7 @@ enum IntegrationKeyType {
   generic
   grafana
   site24x7
+  prometheusAlertmanager
   email
 }
 
@@ -845,6 +858,8 @@ type EscalationPolicy {
 
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!
+
+  notices: [Notice!]!
 }
 
 # Different Alert Status.
@@ -880,6 +895,7 @@ enum TargetType {
   contactMethod
   heartbeatMonitor
   calendarSubscription
+  userSession
 }
 
 type ServiceConnection {
@@ -941,8 +957,17 @@ type User {
   statusUpdateContactMethodID: ID!
 
   authSubjects: [AuthSubject!]!
+  sessions: [UserSession!]!
 
   onCallSteps: [EscalationPolicyStep!]!
+}
+
+type UserSession {
+  id: ID!
+  current: Boolean!
+  userAgent: String!
+  createdAt: ISOTimestamp!
+  lastAccessAt: ISOTimestamp!
 }
 
 type UserNotificationRule {
@@ -968,6 +993,10 @@ type UserContactMethod {
   value: String!
   formattedValue: String!
   disabled: Boolean!
+
+  lastTestVerifyAt: ISOTimestamp
+  lastTestMessageState: NotificationState
+  lastVerifyMessageState: NotificationState
 }
 
 input CreateUserContactMethodInput {
@@ -1005,4 +1034,16 @@ type AuthSubject {
   providerID: ID!
   subjectID: ID!
   userID: ID!
+}
+
+type Notice {
+  type: NoticeType!
+  message: String!
+  details: String!
+}
+
+enum NoticeType {
+  WARNING
+  ERROR
+  INFO
 }

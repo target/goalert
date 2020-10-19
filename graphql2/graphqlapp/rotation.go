@@ -99,7 +99,7 @@ func (r *Rotation) NextHandoffTimes(ctx context.Context, rot *rotation.Rotation,
 	}
 
 	s, err := r.RotationStore.State(ctx, rot.ID)
-	if err == rotation.ErrNoState {
+	if errors.Is(err, rotation.ErrNoState) {
 		return nil, nil
 	}
 	if err != nil {
@@ -167,7 +167,7 @@ func (r *Rotation) Users(ctx context.Context, rot *rotation.Rotation) ([]user.Us
 
 func (r *Rotation) ActiveUserIndex(ctx context.Context, obj *rotation.Rotation) (int, error) {
 	s, err := r.RotationStore.State(ctx, obj.ID)
-	if err == rotation.ErrNoState {
+	if errors.Is(err, rotation.ErrNoState) {
 		return -1, nil
 	}
 	if err != nil {
@@ -281,7 +281,7 @@ func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, r
 	} else if updateActive {
 		// get current active participant
 		s, err := m.RotationStore.StateTx(ctx, tx, rotationID)
-		if err == rotation.ErrNoState {
+		if errors.Is(err, rotation.ErrNoState) {
 			return nil
 		}
 		if err != nil {

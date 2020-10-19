@@ -3,6 +3,8 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+
+	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calendarsubscription"
 
 	"github.com/pkg/errors"
@@ -16,8 +18,26 @@ import (
 )
 
 type User App
+type UserSession App
 
 func (a *App) User() graphql2.UserResolver { return (*User)(a) }
+
+func (a *App) UserSession() graphql2.UserSessionResolver { return (*UserSession)(a) }
+
+func (a *User) Sessions(ctx context.Context, obj *user.User) ([]auth.UserSession, error) {
+	return a.AuthHandler.FindAllUserSessions(ctx, obj.ID)
+}
+func (a *UserSession) Current(ctx context.Context, obj *auth.UserSession) (bool, error) {
+	src := permission.Source(ctx)
+	if src == nil {
+		return false, nil
+	}
+	if src.Type != permission.SourceTypeAuthProvider {
+		return false, nil
+	}
+
+	return obj.ID == src.ID, nil
+}
 
 func (a *User) AuthSubjects(ctx context.Context, obj *user.User) ([]user.AuthSubject, error) {
 	return a.UserStore.FindAllAuthSubjectsForUser(ctx, obj.ID)
@@ -95,6 +115,12 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 	}
 	if searchOpts.Limit == 0 {
 		searchOpts.Limit = 15
+	}
+	if opts.CMValue != nil {
+		searchOpts.CMValue = *opts.CMValue
+	}
+	if opts.CMType != nil {
+		searchOpts.CMType = *opts.CMType
 	}
 
 	searchOpts.Limit++

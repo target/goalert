@@ -14,5 +14,8 @@ declare namespace Cypress {
 
     /** Update a dialog's form fields with the given values. */
     dialogForm: typeof dialogForm
+
+    /** Gets the dialog container. */
+    dialog: typeof dialog
   }
 }

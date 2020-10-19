@@ -36,7 +36,8 @@ func (e logError) Error() string {
 }
 
 func AlertID(err error) int {
-	if e, ok := errors.Cause(err).(logError); ok {
+	var e logError
+	if errors.As(err, &e) {
 		return e.alertID
 	}
 
@@ -44,14 +45,16 @@ func AlertID(err error) int {
 }
 
 func IsAlreadyAcknowledged(err error) bool {
-	if e, ok := errors.Cause(err).(logError); ok {
+	var e logError
+	if errors.As(err, &e) {
 		return e.isAlreadyAcknowledged
 	}
 	return false
 }
 
 func IsAlreadyClosed(err error) bool {
-	if e, ok := errors.Cause(err).(logError); ok {
+	var e logError
+	if errors.As(err, &e) {
 		return e.isAlreadyClosed
 	}
 	return false

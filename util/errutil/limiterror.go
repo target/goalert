@@ -26,7 +26,8 @@ var _ LimitError = &limitErr{}
 
 // IsLimitError will determine if an error's cause is a limit.Error.
 func IsLimitError(err error) bool {
-	if e, ok := errors.Cause(err).(LimitError); ok && e.Limit() {
+	var e LimitError
+	if errors.As(err, &e) && e.Limit() {
 		return true
 	}
 	return false

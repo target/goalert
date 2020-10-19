@@ -21,7 +21,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'
 
-const query = gql`
+const userQuery = gql`
   query userInfo($id: ID!) {
     user(id: $id) {
       id
@@ -39,6 +39,32 @@ const query = gql`
             name
           }
         }
+      }
+    }
+  }
+`
+
+const profileQuery = gql`
+  query profileInfo($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      email
+      contactMethods {
+        id
+      }
+      onCallSteps {
+        id
+        escalationPolicy {
+          id
+          assignedTo {
+            id
+            name
+          }
+        }
+      }
+      sessions {
+        id
       }
     }
   }
@@ -71,21 +97,26 @@ function serviceCount(onCallSteps = []) {
 export default function UserDetails(props) {
   const classes = useStyles()
 
-  const { userID: currentUserID } = useSessionInfo()
+  const { userID: currentUserID, isAdmin } = useSessionInfo()
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
 
-  const { data, loading, error } = useQuery(query, {
-    variables: { id: props.userID },
-  })
+  const { data, loading, error } = useQuery(
+    isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
+    {
+      variables: { id: props.userID },
+    },
+  )
 
   if (error) return <GenericError error={error.message} />
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
 
   const user = _.get(data, 'user')
   const svcCount = serviceCount(user.onCallSteps)
+  const sessCount =
+    isAdmin || props.userID === currentUserID ? user.sessions.length : 0
 
   const disableNR = user.contactMethods.length === 0
 
@@ -103,6 +134,14 @@ export default function UserDetails(props) {
     links.push({
       label: 'Schedule Calendar Subscriptions',
       url: 'schedule-calendar-subscriptions',
+    })
+  }
+
+  if (isAdmin || props.userID === currentUserID) {
+    links.push({
+      label: 'Active Sessions',
+      url: 'sessions',
+      subText: `${sessCount} active session${sessCount === 1 ? '' : 's'}`,
     })
   }
 

@@ -1,14 +1,15 @@
 module github.com/target/goalert
 
-go 1.13
+go 1.15
 
 require (
 	cloud.google.com/go v0.51.0
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.12.9
-	github.com/99designs/gqlgen v0.11.3
+	github.com/99designs/gqlgen v0.13.0
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
+	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/alecthomas/chroma v0.7.1
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
@@ -18,7 +19,6 @@ require (
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/dgryski/trifles v0.0.0-20190809233526-a06f71cd0619 // indirect
 	github.com/dlclark/regexp2 v1.2.0 // indirect
 	github.com/fatih/color v1.9.0
 	github.com/felixge/httpsnoop v1.0.1
@@ -30,17 +30,16 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/graphql-go/graphql v0.7.8
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d
 	github.com/jackc/pgconn v1.2.1
 	github.com/jackc/pgtype v1.1.0
 	github.com/jackc/pgx/v4 v4.2.1
+	github.com/jmespath/go-jmespath v0.3.0
 	github.com/joho/godotenv v1.3.0
-	github.com/matryer/moq v0.0.0-20200607124540-4638a53893e6 // indirect
 	github.com/mattn/go-colorable v0.1.4
-	github.com/mitchellh/mapstructure v1.3.2 // indirect
+	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
@@ -58,19 +57,15 @@ require (
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0
 	github.com/uber/jaeger-client-go v2.20.1+incompatible // indirect
-	github.com/urfave/cli v1.22.2 // indirect
 	github.com/urfave/cli/v2 v2.2.0 // indirect
 	github.com/vbauerster/mpb/v4 v4.11.2
-	github.com/vektah/dataloaden v0.3.0 // indirect
-	github.com/vektah/gqlparser v1.3.1
-	github.com/vektah/gqlparser/v2 v2.0.1
+	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opencensus.io v0.22.2
-	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
-	golang.org/x/mod v0.3.0 // indirect
-	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527
-	golang.org/x/tools v0.0.0-20200618155944-c7475b9d7fb2
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+	golang.org/x/tools v0.0.0-20201013174405-d88ec18c69c7
 	google.golang.org/genproto v0.0.0-20200305110556-506484158171 // indirect
 	gopkg.in/ini.v1 v1.51.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect

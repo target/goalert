@@ -12,12 +12,13 @@ import (
 	"database/sql"
 	"encoding/binary"
 	"encoding/json"
-	"github.com/target/goalert/util"
-	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/validation/validate"
 	"math/big"
 	"sync"
 	"time"
+
+	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/validation/validate"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
@@ -403,7 +404,7 @@ func (db *DB) refreshAndRotateKeys(ctx context.Context, forceRotation bool) erro
 	var rotateT *time.Time
 	var count int
 	err = row.Scan(&vKeysData, &signKeyData, &nextKeyData, &t, &rotateT, &count)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return db.commitNewKeyring(ctx, tx)
 	}
 	if err != nil {

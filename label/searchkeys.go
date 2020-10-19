@@ -105,7 +105,7 @@ func (db *DB) SearchKeys(ctx context.Context, opts *KeySearchOptions) ([]string,
 	}
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

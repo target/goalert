@@ -34,25 +34,23 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
-type AlertLogEntryState struct {
-	Details string          `json:"details"`
-	Status  *AlertLogStatus `json:"status"`
-}
-
 type AlertRecentEventsOptions struct {
 	Limit *int    `json:"limit"`
 	After *string `json:"after"`
 }
 
 type AlertSearchOptions struct {
-	FilterByStatus    []AlertStatus `json:"filterByStatus"`
-	FilterByServiceID []string      `json:"filterByServiceID"`
-	Search            *string       `json:"search"`
-	First             *int          `json:"first"`
-	After             *string       `json:"after"`
-	FavoritesOnly     *bool         `json:"favoritesOnly"`
-	IncludeNotified   *bool         `json:"includeNotified"`
-	Omit              []int         `json:"omit"`
+	FilterByStatus    []AlertStatus    `json:"filterByStatus"`
+	FilterByServiceID []string         `json:"filterByServiceID"`
+	Search            *string          `json:"search"`
+	First             *int             `json:"first"`
+	After             *string          `json:"after"`
+	FavoritesOnly     *bool            `json:"favoritesOnly"`
+	IncludeNotified   *bool            `json:"includeNotified"`
+	Omit              []int            `json:"omit"`
+	Sort              *AlertSearchSort `json:"sort"`
+	CreatedBefore     *time.Time       `json:"createdBefore"`
+	NotCreatedBefore  *time.Time       `json:"notCreatedBefore"`
 }
 
 type AuthSubjectConnection struct {
@@ -225,6 +223,11 @@ type LabelValueSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
+}
+
+type NotificationState struct {
+	Details string              `json:"details"`
+	Status  *NotificationStatus `json:"status"`
 }
 
 type PageInfo struct {
@@ -470,10 +473,12 @@ type UserOverrideSearchOptions struct {
 }
 
 type UserSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First   *int                `json:"first"`
+	After   *string             `json:"after"`
+	Search  *string             `json:"search"`
+	Omit    []string            `json:"omit"`
+	CMValue *string             `json:"CMValue"`
+	CMType  *contactmethod.Type `json:"CMType"`
 }
 
 type VerifyContactMethodInput struct {
@@ -481,46 +486,46 @@ type VerifyContactMethodInput struct {
 	Code            int    `json:"code"`
 }
 
-type AlertLogStatus string
+type AlertSearchSort string
 
 const (
-	AlertLogStatusOk    AlertLogStatus = "OK"
-	AlertLogStatusWarn  AlertLogStatus = "WARN"
-	AlertLogStatusError AlertLogStatus = "ERROR"
+	AlertSearchSortStatusID      AlertSearchSort = "statusID"
+	AlertSearchSortDateID        AlertSearchSort = "dateID"
+	AlertSearchSortDateIDReverse AlertSearchSort = "dateIDReverse"
 )
 
-var AllAlertLogStatus = []AlertLogStatus{
-	AlertLogStatusOk,
-	AlertLogStatusWarn,
-	AlertLogStatusError,
+var AllAlertSearchSort = []AlertSearchSort{
+	AlertSearchSortStatusID,
+	AlertSearchSortDateID,
+	AlertSearchSortDateIDReverse,
 }
 
-func (e AlertLogStatus) IsValid() bool {
+func (e AlertSearchSort) IsValid() bool {
 	switch e {
-	case AlertLogStatusOk, AlertLogStatusWarn, AlertLogStatusError:
+	case AlertSearchSortStatusID, AlertSearchSortDateID, AlertSearchSortDateIDReverse:
 		return true
 	}
 	return false
 }
 
-func (e AlertLogStatus) String() string {
+func (e AlertSearchSort) String() string {
 	return string(e)
 }
 
-func (e *AlertLogStatus) UnmarshalGQL(v interface{}) error {
+func (e *AlertSearchSort) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = AlertLogStatus(str)
+	*e = AlertSearchSort(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid AlertLogStatus", str)
+		return fmt.Errorf("%s is not a valid AlertSearchSort", str)
 	}
 	return nil
 }
 
-func (e AlertLogStatus) MarshalGQL(w io.Writer) {
+func (e AlertSearchSort) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -615,22 +620,24 @@ func (e ConfigType) MarshalGQL(w io.Writer) {
 type IntegrationKeyType string
 
 const (
-	IntegrationKeyTypeGeneric  IntegrationKeyType = "generic"
-	IntegrationKeyTypeGrafana  IntegrationKeyType = "grafana"
-	IntegrationKeyTypeSite24x7 IntegrationKeyType = "site24x7"
-	IntegrationKeyTypeEmail    IntegrationKeyType = "email"
+	IntegrationKeyTypeGeneric                IntegrationKeyType = "generic"
+	IntegrationKeyTypeGrafana                IntegrationKeyType = "grafana"
+	IntegrationKeyTypeSite24x7               IntegrationKeyType = "site24x7"
+	IntegrationKeyTypePrometheusAlertmanager IntegrationKeyType = "prometheusAlertmanager"
+	IntegrationKeyTypeEmail                  IntegrationKeyType = "email"
 )
 
 var AllIntegrationKeyType = []IntegrationKeyType{
 	IntegrationKeyTypeGeneric,
 	IntegrationKeyTypeGrafana,
 	IntegrationKeyTypeSite24x7,
+	IntegrationKeyTypePrometheusAlertmanager,
 	IntegrationKeyTypeEmail,
 }
 
 func (e IntegrationKeyType) IsValid() bool {
 	switch e {
-	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypeEmail:
+	case IntegrationKeyTypeGeneric, IntegrationKeyTypeGrafana, IntegrationKeyTypeSite24x7, IntegrationKeyTypePrometheusAlertmanager, IntegrationKeyTypeEmail:
 		return true
 	}
 	return false
@@ -654,6 +661,49 @@ func (e *IntegrationKeyType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e IntegrationKeyType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type NotificationStatus string
+
+const (
+	NotificationStatusOk    NotificationStatus = "OK"
+	NotificationStatusWarn  NotificationStatus = "WARN"
+	NotificationStatusError NotificationStatus = "ERROR"
+)
+
+var AllNotificationStatus = []NotificationStatus{
+	NotificationStatusOk,
+	NotificationStatusWarn,
+	NotificationStatusError,
+}
+
+func (e NotificationStatus) IsValid() bool {
+	switch e {
+	case NotificationStatusOk, NotificationStatusWarn, NotificationStatusError:
+		return true
+	}
+	return false
+}
+
+func (e NotificationStatus) String() string {
+	return string(e)
+}
+
+func (e *NotificationStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = NotificationStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid NotificationStatus", str)
+	}
+	return nil
+}
+
+func (e NotificationStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
