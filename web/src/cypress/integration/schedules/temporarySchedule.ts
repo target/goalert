@@ -125,7 +125,7 @@ function testTemporarySchedule(): void {
     cy.get('@step1').find('input[name="end"]').should('have.value', locTZ(end))
   })
 
-  it('should refill a shifts info after deleting in step 2', () => {
+  it("should add shift's info to form after deleting it from shift list", () => {
     cy.createTemporarySchedule(schedule.id, {
       start: DateTime.local().toISO(),
       shiftUserIDs: [graphQLAddUser.id]
