@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk --no-cache add tzdata ca-certificates
+RUN apk --no-cache add ca-certificates
 ENV GOALERT_LISTEN :8081
 EXPOSE 8081
 CMD ["/usr/bin/goalert"]
