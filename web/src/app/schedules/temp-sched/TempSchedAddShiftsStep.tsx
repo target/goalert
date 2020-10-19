@@ -252,17 +252,15 @@ export default function TempSchedAddShiftsStep({
           direction='column'
           className={classes.listContainer}
         >
-          <div style={{ position: 'absolute', width: '100%' }}>
-            <TempSchedShiftsList
-              value={value}
-              start={start}
-              end={end}
-              onRemove={(shift: Shift) => {
-                setShift(shift)
-                onChange(value.filter((s) => !shiftEquals(shift, s)))
-              }}
-            />
-          </div>
+          <TempSchedShiftsList
+            value={value}
+            start={start}
+            end={end}
+            onRemove={(shift: Shift) => {
+              setShift(shift)
+              onChange(value.filter((s) => !shiftEquals(shift, s)))
+            }}
+          />
         </Grid>
       </Grid>
     </StepContainer>
