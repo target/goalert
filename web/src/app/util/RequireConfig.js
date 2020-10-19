@@ -130,7 +130,7 @@ export default function RequireConfig(props) {
   }
 
   const cfgOpt = config.find((c) => c.id === configID)
-  if (configID && !test(cfgOpt.value)) {
+  if (configID && !test(cfgOpt?.value)) {
     return elseValue
   }
 
