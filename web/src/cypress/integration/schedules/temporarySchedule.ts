@@ -162,7 +162,7 @@ function testTemporarySchedule(): void {
         .parent()
         .parent()
         .siblings()
-        .scrollIntoView()
+        .find('[data-cy="delete-shift"]')
         .click() // delete
       cy.get('@step2')
         .find('input[name="userID"]')
@@ -211,10 +211,11 @@ function testTemporarySchedule(): void {
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
   })
 
+  // seems buggy when shift list has overflow
   it('should edit a temporary schedule', () => {
     const now = DateTime.local()
     cy.createTemporarySchedule(schedule.id, {
-      start: now.toISO(),
+      start: now.startOf('minute').toISO(),
       shiftUserIDs: [graphQLAddUser.id]
     }).then(() => {
       cy.reload()
@@ -228,6 +229,7 @@ function testTemporarySchedule(): void {
         .parent()
         .parent()
         .siblings()
+        .find('[data-cy="delete-shift"]')
         .click() // delete
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
