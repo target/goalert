@@ -204,14 +204,7 @@ function testTemporarySchedule(): void {
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
-      cy.get('[data-cy="shifts-list"] li')
-        .contains(graphQLAddUser.name)
-        .eq(0)
-        .parent()
-        .parent()
-        .siblings()
-        .find('[data-cy="delete-shift"]')
-        .click() // delete
+      cy.get('[data-cy="shifts-list"] li [data-cy="delete-shift"]').click({ force: true }) // delete
       cy.get('[data-cy="shifts-list"]').should(
         'not.contain',
         graphQLAddUser.name,
