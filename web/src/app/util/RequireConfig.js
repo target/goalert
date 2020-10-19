@@ -132,10 +132,7 @@ export default function RequireConfig(props) {
     return elseValue
   }
 
-  if (!children) return null
-  return React.Children.map(children, (child) =>
-    React.cloneElement(child, _.omit(rest, Object.keys(child.props))),
-  )
+  return <React.Fragment>{children}</React.Fragment>
 }
 
 RequireConfig.propTypes = {
