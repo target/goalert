@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core'
-import React from 'react'
+import React, { ButtonHTMLAttributes } from 'react'
 
 const karakurenai = '#cd1831'
 
@@ -23,7 +23,7 @@ const useStyles = makeStyles({
   },
 })
 
-interface ClickableTextProps {
+interface ClickableTextProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   text: string
   onClick: () => void
 }
@@ -32,7 +32,11 @@ interface ClickableTextProps {
 // since anchor elements have become entrenched with navigation by convention
 // it is recommended that clickable text be implemented using a button element
 // see https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/master/docs/rules/anchor-is-valid.md
-function ClickableText({ text, onClick }: ClickableTextProps): JSX.Element {
+function ClickableText({
+  text,
+  onClick,
+  ...props
+}: ClickableTextProps): JSX.Element {
   const classes = useStyles()
   return (
     <button
@@ -41,6 +45,7 @@ function ClickableText({ text, onClick }: ClickableTextProps): JSX.Element {
         onClick()
       }}
       className={classes.button}
+      {...props}
     >
       {text}
     </button>
