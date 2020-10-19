@@ -160,19 +160,12 @@ function testTemporarySchedule(): void {
   })
 
   it('should create a temporary schedule', () => {
-    const [start, end, duration] = makeIntervalDates()
+    const [start, end] = makeIntervalDates()
     cy.get('[data-cy="new-temp-sched"]').click()
     cy.dialogForm({ start, end }, schedTimesSelector)
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get(addShiftsSelector).should('be.visible.and.contain', 'STEP 2 OF 2')
-    cy.dialogForm(
-      {
-        userID: manualAddUser.name,
-        start,
-        end: duration,
-      },
-      addShiftsSelector,
-    )
+    cy.dialogForm({ userID: manualAddUser.name }, addShiftsSelector)
     cy.get('[data-cy="shifts-list"]').should('not.contain', manualAddUser.name)
     cy.get('button[title="Add Shift"]').click()
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
