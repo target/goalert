@@ -60,9 +60,7 @@ function parseValue(type, value) {
 
 function isTrue(value) {
   if (Array.isArray(value)) return value.length > 0
-  if (value === 'true' || value === 'false') {
-    return value === 'true'
-  }
+  if (value === 'false') return false
   return Boolean(value)
 }
 
