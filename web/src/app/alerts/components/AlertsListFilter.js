@@ -138,7 +138,7 @@ export default class AlertsListFilter extends Component {
               control={
                 <Switch
                   aria-label='Show full timestamps toggle'
-                  data-cy='toggle-full-time'
+                  name='toggle-full-time'
                   checked={showAsFullTime}
                   onChange={() => setShowAsFullTime(!showAsFullTime)}
                 />
