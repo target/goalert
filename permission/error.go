@@ -50,7 +50,8 @@ func (e genericError) Error() string {
 
 // IsPermissionError will determine if the root error cause is a permission error.
 func IsPermissionError(err error) bool {
-	if e, ok := errors.Cause(err).(Error); ok && e.Permission() {
+	var e Error
+	if errors.As(err, &e) && e.Permission() {
 		return true
 	}
 	return false
@@ -58,7 +59,8 @@ func IsPermissionError(err error) bool {
 
 // IsUnauthorized will determine if the root error cause is an unauthorized permission error.
 func IsUnauthorized(err error) bool {
-	if e, ok := errors.Cause(err).(Error); ok && e.Permission() && e.Unauthorized() {
+	var e Error
+	if errors.As(err, &e) && e.Permission() && e.Unauthorized() {
 		return true
 	}
 	return false

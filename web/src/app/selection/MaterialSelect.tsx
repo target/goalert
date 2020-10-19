@@ -95,11 +95,12 @@ export default function MaterialSelect(
   const getLabel = (): string =>
     Array.isArray(value) ? value[0]?.label ?? '' : value?.label ?? ''
 
-  const [inputValue, setInputValue] = useState(getLabel())
+  const [inputValue, setInputValue] = useState(multiple ? '' : getLabel())
   useEffect(() => {
+    if (multiple) return
     if (!value) setInputValue('')
     if (!inputValue && value) setInputValue(getLabel())
-  }, [value])
+  }, [value, multiple])
 
   const multi = multiple ? { multiple: true } : {}
 

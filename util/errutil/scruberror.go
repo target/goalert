@@ -18,11 +18,11 @@ func ScrubError(err error) (bool, error) {
 	if err == nil {
 		return false, nil
 	}
-	type safe interface {
+	var safe interface {
 		ClientError() bool
 	}
 
-	if c, ok := errors.Cause(err).(safe); ok && c.ClientError() {
+	if errors.As(err, &safe) && safe.ClientError() {
 		return false, err
 	}
 
