@@ -23,8 +23,8 @@ export function setAlertsAllServicesFilter(bool) {
 }
 
 // setAlertsAllServicesFilter will set the alert list to include all services.
-export function setAlertsShowAsTimestampsFilter(bool) {
-  return setURLParam('timestamps', bool ? '1' : null)
+export function setAlertsShowAsFullTimeFilter(bool) {
+  return setURLParam('fullTime', bool ? '1' : null)
 }
 
 // resetAlertsFilters will reset all alert list filters to their defaults (NOT including search).

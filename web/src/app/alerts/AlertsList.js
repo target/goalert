@@ -90,7 +90,7 @@ export default function AlertsList(props) {
   // get redux url vars
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
-  const timestamps = params('timestamps')
+  const fullTime = params('fullTime')
   const filter = params('filter', 'active')
 
   // query for current service name if props.serviceID is provided
@@ -254,7 +254,7 @@ export default function AlertsList(props) {
           action: (
             <ListItemText
               secondary={
-                timestamps
+                fullTime
                   ? formatTimeLocale(a.createdAt)
                   : formatTimeSince(a.createdAt)
               }

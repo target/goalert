@@ -21,12 +21,12 @@ import {
   resetAlertsFilters,
   setAlertsStatusFilter,
   setAlertsAllServicesFilter,
-  setAlertsShowAsTimestampsFilter,
+  setAlertsShowAsFullTimeFilter,
 } from '../../actions'
 import {
   alertAllServicesSelector,
   alertFilterSelector,
-  alertShowAsTimestampsSelector,
+  alertShowAsFullTimeSelector,
 } from '../../selectors'
 
 const styles = (theme) => ({
@@ -52,15 +52,15 @@ const styles = (theme) => ({
 const mapStateToProps = (state) => ({
   allServices: alertAllServicesSelector(state),
   filter: alertFilterSelector(state),
-  showAsTimestamps: alertShowAsTimestampsSelector(state),
+  showAsFullTime: alertShowAsFullTimeSelector(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
   resetAll: () => dispatch(resetAlertsFilters()), // don't reset search param
   setFilter: (value) => dispatch(setAlertsStatusFilter(value)),
   setAllServices: (value) => dispatch(setAlertsAllServicesFilter(value)),
-  setShowAsTimestamps: (value) =>
-    dispatch(setAlertsShowAsTimestampsFilter(value)),
+  setShowAsFullTime: (value) =>
+    dispatch(setAlertsShowAsFullTimeFilter(value)),
 })
 
 @withStyles(styles)
@@ -71,7 +71,7 @@ export default class AlertsListFilter extends Component {
     serviceID: p.string,
     allServices: p.bool,
     filter: p.string,
-    showAsTimestamps: p.bool,
+    showAsFullTime: p.bool,
   }
 
   state = {
@@ -98,14 +98,14 @@ export default class AlertsListFilter extends Component {
       classes,
       filter,
       serviceID: sid,
-      showAsTimestamps,
+      showAsFullTime,
       width,
     } = this.props
     const {
       resetAll,
       setFilter,
       setAllServices,
-      setShowAsTimestamps,
+      setShowAsFullTime,
     } = this.props
 
     // grabs class for width depending on breakpoints (md or higher uses popover width)
@@ -138,9 +138,9 @@ export default class AlertsListFilter extends Component {
               control={
                 <Switch
                   aria-label='Show full timestamps toggle'
-                  data-cy='toggle-timestamps'
-                  checked={showAsTimestamps}
-                  onChange={() => setShowAsTimestamps(!showAsTimestamps)}
+                  data-cy='toggle-full-time'
+                  checked={showAsFullTime}
+                  onChange={() => setShowAsFullTime(!showAsFullTime)}
                 />
               }
               label='Show full timestamps'

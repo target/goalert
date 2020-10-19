@@ -51,9 +51,9 @@ export const alertAllServicesSelector = createSelector(
   (params) => params('allServices', false),
 )
 
-export const alertShowAsTimestampsSelector = createSelector(
+export const alertShowAsFullTimeSelector = createSelector(
   urlParamSelector,
-  (params) => params('timestamps', false),
+  (params) => params('fullTime', false),
 )
 
 // absURLSelector will return an absolute URL (including protocol) for the given
