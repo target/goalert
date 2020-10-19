@@ -9,41 +9,25 @@ const dtFmt = "yyyy-MM-dd'T'HH:mm"
 const schedTimesSelector = 'div[data-cy="sched-times-step"]'
 const addShiftsSelector = 'div[data-cy="add-shifts-step"]'
 
-function makeIntervalDates(): [string, string, number] {
-  const now = DateTime.local()
-  // year is between now and 3 years in the future
-  const year = c.integer({
-    min: now.year,
-    max: now.year + c.integer({ min: 0, max: 3 }),
-  })
-  // random month, keep in the future if using current year
-  const month = c.integer({
-    min: year === now.year ? now.month : 1,
-    max: 12,
-  })
-  // random day, keep in future if using current month
-  const day = c.integer({
-    min: (year === now.year && month === now.month) ? now.day : 1,
-    max: DateTime.local(year, month).daysInMonth,
-  })
+// makeIntervalDates creates an interval, returning the start
+// end, and duration (in hours)
+function makeIntervalDates(): [DateTime, DateTime, number] {
+  const MAX_FUTURE = 1576800 // up to 3 years (in minutes) in the future
+  const MIN = 60 // minimum temp sched length of 1 hour, in minutes
+  const MAX = 43800 // maximum temp sched length of 1 month, in minutes
 
-  // create start, create end time from start
-  const start = DateTime.fromObject({ year, month, day }).startOf('day')
-  const end = start
-    .plus({
-      days: c.integer({
-        min: 1,
-        max: DateTime.fromFormat(month.toString(), 'M').daysInMonth,
-      }),
-    })
-    .endOf('day')
+  const now = DateTime.local()
+  const r = (min: number, max: number): number => c.integer({ min, max })
+
+  const start = now.plus({ minutes: r(0, MAX_FUTURE) })
+  const end = start.plus({ minutes: r(MIN, MAX) })
 
   const duration = Interval.fromDateTimes(
     start,
-    end.minus({ minute: 1 }),
+    end,
   ).toDuration('hours')
 
-  return [start.toFormat(dtFmt), end.toFormat(dtFmt), round(duration.hours, 2)]
+  return [start, end, round(duration.hours, 2)]
 }
 
 function testTemporarySchedule(): void {
@@ -79,12 +63,9 @@ function testTemporarySchedule(): void {
     cy.get('@step2').should('be.visible')
   })
 
-  const datePlusEight = (dt: string): string =>
-    DateTime.fromFormat(dt, dtFmt).plus({ hours: 8 }).toFormat(dtFmt)
-
   it('should toggle duration field', () => {
     const [start, end] = makeIntervalDates()
-    const shiftEnd = datePlusEight(start)
+    const shiftEnd = start.plus({ hours: 8 })
     cy.get('[data-cy="new-temp-sched"]').click()
     cy.get(addShiftsSelector).as('step2')
     cy.dialogForm({ start, end }, schedTimesSelector)
@@ -92,9 +73,9 @@ function testTemporarySchedule(): void {
     cy.get('@step2').should('be.visible.and.contain', 'STEP 2 OF 2')
     cy.get('@step2').find('input[name="end"]').should('have.value', 8)
     cy.get('@step2').find('span[data-cy="toggle-duration-off"]').click()
-    cy.get('@step2').find('input[name="end"]').should('have.value', shiftEnd)
+    cy.get('@step2').find('input[name="end"]').should('have.value', shiftEnd.toFormat(dtFmt))
     cy.dialogForm(
-      { end: datePlusEight(shiftEnd) },
+      { end: shiftEnd.plus({ hours: 8 }).toFormat(dtFmt) },
       addShiftsSelector,
     )
     cy.get('@step2').find('span[data-cy="toggle-duration-on"]').click()
@@ -103,10 +84,10 @@ function testTemporarySchedule(): void {
 
   it('should toggle timezone switches', () => {
     const [start, end] = makeIntervalDates()
-    const c = (t: string, tz: string): string =>
-      DateTime.fromFormat(t, dtFmt).setZone(tz).toFormat(dtFmt)
-    const lTZ = (t: string): string => c(t, DateTime.local().zoneName)
-    const sTZ = (t: string): string => c(t, schedule.timeZone)
+    const c = (t: DateTime, tz: string): string =>
+      t.setZone(tz).toFormat(dtFmt)
+    const locTZ = (t: DateTime): string => c(t, DateTime.local().zoneName)
+    const schedTZ = (t: DateTime): string => c(t, schedule.timeZone)
 
     cy.get('[data-cy="new-temp-sched"]').click()
     cy.get(schedTimesSelector).as('step1')
@@ -114,34 +95,34 @@ function testTemporarySchedule(): void {
     cy.dialogForm({ start, end }, schedTimesSelector)
     cy.get('@step1')
       .find('input[name="start"]')
-      .should('have.value', lTZ(start))
-    cy.get('@step1').find('input[name="end"]').should('have.value', lTZ(end))
+      .should('have.value', locTZ(start))
+    cy.get('@step1').find('input[name="end"]').should('have.value', locTZ(end))
     cy.get('@step1').find('[data-cy="tz-switch"]').click()
     cy.get('@step1')
       .find('input[name="start"]')
-      .should('have.value', sTZ(start))
-    cy.get('@step1').find('input[name="end"]').should('have.value', sTZ(end))
+      .should('have.value', schedTZ(start))
+    cy.get('@step1').find('input[name="end"]').should('have.value', schedTZ(end))
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('@step2').should('be.visible.and.contain', 'STEP 2 OF 2')
     cy.get('@step2').find('[data-cy="toggle-duration-off"]').click()
     cy.get('@step2')
       .find('input[name="start"]')
-      .should('have.value', sTZ(start))
+      .should('have.value', schedTZ(start))
     cy.get('@step2')
       .find('input[name="end"]')
-      .should('have.value', sTZ(datePlusEight(start)))
+      .should('have.value', schedTZ(start.plus({ hours: 8 })))
     cy.get('@step2').find('[data-cy="tz-switch"]').click()
     cy.get('@step2')
       .find('input[name="start"]')
-      .should('have.value', lTZ(start))
+      .should('have.value', locTZ(start))
     cy.get('@step2')
       .find('input[name="end"]')
-      .should('have.value', lTZ(datePlusEight(start)))
+      .should('have.value', locTZ(start.plus({ hours: 8 })))
     cy.dialogClick('Back')
     cy.get('@step1')
       .find('input[name="start"]')
-      .should('have.value', lTZ(start))
-    cy.get('@step1').find('input[name="end"]').should('have.value', lTZ(end))
+      .should('have.value', locTZ(start))
+    cy.get('@step1').find('input[name="end"]').should('have.value', locTZ(end))
   })
 
   it('should refill a shifts info after deleting in step 2', () => {
@@ -200,7 +181,7 @@ function testTemporarySchedule(): void {
       '/schedules/' +
         schedule.id +
         '?start=' +
-        DateTime.fromISO(start).toFormat('yyyy-MM-dd') +
+        start.toFormat('yyyy-MM-dd') +
         'T07%3A00%3A00.000Z',
     )
     cy.get('div').contains('Temporary Schedule').trigger('mouseover')
