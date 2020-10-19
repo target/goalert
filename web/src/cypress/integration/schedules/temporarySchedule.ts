@@ -12,8 +12,8 @@ const addShiftsSelector = 'div[data-cy="add-shifts-step"]'
 // makeIntervalDates creates an interval, returning the start
 // end, and duration (in hours)
 function makeIntervalDates(): [DateTime, DateTime, number] {
-  const MAX_FUTURE = 1576800 // up to 3 years (in minutes) in the future
-  const MIN = 60 // minimum temp sched length of 1 hour, in minutes
+  const MAX_FUTURE = (60 * 24 * 365) * 3 // up to 3 years (in minutes) in the future
+  const MIN = 60 * 24 * 30 // minimum temp sched length of 1 hour, in minutes
   const MAX = 43800 // maximum temp sched length of 1 month, in minutes
 
   const now = DateTime.local()
