@@ -3,9 +3,11 @@ package twilio
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
-	"github.com/target/goalert/util/sqlutil"
 	"time"
+
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/target/goalert/util"
 )
@@ -55,7 +57,7 @@ func (db *dbBan) IsBanned(ctx context.Context, number string, outgoing bool) (bo
 	row := db.isBanned.QueryRowContext(ctx, outgoing, number)
 	var count int
 	err := row.Scan(&count)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return false, err
 	}
 	return count >= banErrorCount, nil

@@ -3,14 +3,15 @@ package shiftcalc
 import (
 	"context"
 	"fmt"
+	"sort"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util/log"
-	"sort"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -336,7 +337,7 @@ func (r *ShiftCalculator) RotationShifts(ctx context.Context, start, end time.Ti
 	}
 	ctx = log.WithField(ctx, "RotationID", rotationID)
 	state, err := r.RotStore.State(ctx, rotationID)
-	if err == rotation.ErrNoState {
+	if errors.Is(err, rotation.ErrNoState) {
 		return nil, nil
 	}
 	if err != nil {

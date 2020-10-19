@@ -318,7 +318,7 @@ func RunShell(oldURL, newURL string) error {
 			noSwitch := fset.Bool("no-switch", false, "Run the entire procedure, but don't actually switch DB at the end.")
 			err := fset.Parse(sh.Args)
 			if err != nil {
-				if err == flag.ErrHelp {
+				if errors.Is(err, flag.ErrHelp) {
 					return nil
 				}
 				return err

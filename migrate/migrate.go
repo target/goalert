@@ -159,7 +159,7 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 	if err == nil && hasLatest {
 		return 0, nil
 	}
-	if err != nil && err != pgx.ErrNoRows {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return 0, err
 	}
 
@@ -173,7 +173,7 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 	}
 
 	rows, err := conn.Query(ctx, `select id from gorp_migrations order by id`)
-	if err != nil && err != pgx.ErrNoRows {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return 0, err
 	}
 	defer rows.Close()

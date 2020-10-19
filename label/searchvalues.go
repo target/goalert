@@ -102,7 +102,7 @@ func (db *DB) SearchValues(ctx context.Context, opts *ValueSearchOptions) ([]str
 	}
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
