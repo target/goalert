@@ -1,9 +1,9 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import React from 'react'
 import { Card } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
 import { sortBy, values } from 'lodash-es'
-import { useQuery } from 'react-apollo'
+
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 

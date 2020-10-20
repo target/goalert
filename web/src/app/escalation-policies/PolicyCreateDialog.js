@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client'
 import React, { PureComponent } from 'react'
 import p from 'prop-types'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import { Redirect } from 'react-router-dom'
 import FormDialog from '../dialogs/FormDialog'

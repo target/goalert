@@ -13,7 +13,7 @@ import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import WizardForm from './WizardForm'
 import LoadingButton from '../loading/components/LoadingButton'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import gql from 'graphql-tag'
 import { Form } from '../forms'
 import {

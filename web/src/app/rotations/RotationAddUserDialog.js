@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client'
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserForm from './UserForm'
 import FormDialog from '../dialogs/FormDialog'

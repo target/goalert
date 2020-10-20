@@ -1,8 +1,7 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import React, { useContext } from 'react'
 import p from 'prop-types'
 import _ from 'lodash-es'
-import { useQuery } from 'react-apollo'
 
 const ConfigContext = React.createContext({
   config: [],

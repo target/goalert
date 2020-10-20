@@ -1,9 +1,9 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { Grid, Typography, makeStyles } from '@material-ui/core'
-import { useQuery } from 'react-apollo'
+
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'

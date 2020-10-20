@@ -1,7 +1,7 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
-import { useQuery, useMutation } from 'react-apollo'
+
 import { SetFavoriteButton } from './SetFavoriteButton'
 import { oneOfShape } from '../util/propTypes'
 import { Button, Dialog, DialogActions, DialogTitle } from '@material-ui/core'

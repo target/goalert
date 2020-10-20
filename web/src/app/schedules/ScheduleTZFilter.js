@@ -1,8 +1,8 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
 import { FormControlLabel, Switch } from '@material-ui/core'
-import { useQuery } from 'react-apollo'
+
 import { useURLParam } from '../actions/hooks'
 
 const tzQuery = gql`

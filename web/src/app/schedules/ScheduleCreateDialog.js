@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 import React from 'react'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import { Redirect } from 'react-router'
 

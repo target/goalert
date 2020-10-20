@@ -1,9 +1,9 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
-import { useQuery, useMutation } from 'react-apollo'
+
 import { get } from 'lodash-es'
 
 const query = gql`

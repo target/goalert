@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
@@ -7,7 +7,7 @@ import { UserAvatar } from '../util/avatars'
 import { CircularProgress, makeStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
-import { useQuery } from 'react-apollo'
+
 import { Error } from '@material-ui/icons'
 import _ from 'lodash-es'
 

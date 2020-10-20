@@ -6,7 +6,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import { omit } from 'lodash-es'
 import FormDialog from '../dialogs/FormDialog'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Diff from '../util/Diff'
 

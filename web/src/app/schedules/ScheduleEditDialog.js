@@ -3,7 +3,7 @@ import React from 'react'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleForm from './ScheduleForm'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 

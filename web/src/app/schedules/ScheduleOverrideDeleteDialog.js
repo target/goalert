@@ -3,7 +3,7 @@ import p from 'prop-types'
 
 import { connect } from 'react-redux'
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 import { Typography } from '@material-ui/core'

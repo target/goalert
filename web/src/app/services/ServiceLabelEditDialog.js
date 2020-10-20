@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 import React from 'react'
 
 import p from 'prop-types'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 

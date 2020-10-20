@@ -1,8 +1,8 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import React, { useState } from 'react'
 
 import p from 'prop-types'
-import { useQuery, useMutation } from 'react-apollo'
+
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'

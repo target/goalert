@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
 import Query from '../util/Query'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
 
 const query = gql`

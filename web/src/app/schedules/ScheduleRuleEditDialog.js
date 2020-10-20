@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'

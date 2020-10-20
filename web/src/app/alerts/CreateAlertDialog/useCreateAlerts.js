@@ -1,5 +1,5 @@
-import { gql } from '@apollo/client'
-import { useMutation } from 'react-apollo'
+import { gql, useMutation } from '@apollo/client'
+
 import { fieldAlias, mergeFields, mapInputVars } from '../../util/graphql'
 import { GraphQLClientWithErrors } from '../../apollo'
 

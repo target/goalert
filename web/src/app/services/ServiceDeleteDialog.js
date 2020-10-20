@@ -1,7 +1,7 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
-import { useQuery, useMutation } from 'react-apollo'
+
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Checkbox from '@material-ui/core/Checkbox'
 import FormControlLabel from '@material-ui/core/FormControlLabel'

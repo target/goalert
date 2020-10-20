@@ -4,7 +4,7 @@ import Chip from '@material-ui/core/Chip'
 import { withRouter } from 'react-router-dom'
 import { push } from 'connected-react-router'
 import { useDispatch } from 'react-redux'
-import { useQuery } from 'react-apollo'
+import { useQuery } from '@apollo/client'
 
 import {
   Layers as PolicyIcon,

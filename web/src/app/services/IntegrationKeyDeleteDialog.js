@@ -1,8 +1,8 @@
-import { gql } from '@apollo/client'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import React from 'react'
 
 import p from 'prop-types'
-import { useQuery, useMutation } from 'react-apollo'
+
 import { nonFieldErrors } from '../util/errutil'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'

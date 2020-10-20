@@ -15,12 +15,12 @@ import {
   ListItemText,
   Tooltip,
 } from '@material-ui/core'
-import { useMutation, useQuery } from 'react-apollo'
+import { useMutation, useQuery, ApolloError, gql } from '@apollo/client'
 import CopyText from '../util/CopyText'
 import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { ApolloError, gql } from '@apollo/client'
+
 import { PhoneNumberInfo, DebugCarrierInfo } from '../../schema'
 
 const carrierInfoMut = gql`
