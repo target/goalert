@@ -57,8 +57,7 @@ function parseValue(type: ConfigType, value: string): Value {
     case 'string':
       return value
     case 'stringList':
-      if (value === '') return []
-      return value.split('\n')
+      return value === '' ? [] : value.split('\n')
   }
 
   throw new TypeError(`unknown config type '${type}'`)
@@ -66,7 +65,7 @@ function parseValue(type: ConfigType, value: string): Value {
 
 function isTrue(value: Value): boolean {
   if (Array.isArray(value)) return value.length > 0
-
+  if (value === 'false') return false
   return Boolean(value)
 }
 
@@ -155,6 +154,7 @@ export default function RequireConfig(
   if (wantIsAdmin && !isAdmin) {
     return elseValue
   }
+
   if (configID && !test(config[configID])) {
     return elseValue
   }
