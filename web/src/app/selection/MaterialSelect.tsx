@@ -101,7 +101,7 @@ export default function MaterialSelect(
 
   const [inputValue, _setInputValue] = useState(getInputLabel())
 
-  const setInputValue = (input: string) => {
+  const setInputValue = (input: string): void => {
     _setInputValue(input)
     onInputChange(input)
   }
