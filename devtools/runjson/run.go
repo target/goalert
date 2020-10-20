@@ -81,7 +81,7 @@ func Run(ctx context.Context, tasks []Task) error {
 		err := <-ch
 		if err != nil {
 			cancel()
-			if err != context.Canceled {
+			if !errors.Is(err, context.Canceled) {
 				hasError = true
 				log.Println("ERROR:", err)
 			}

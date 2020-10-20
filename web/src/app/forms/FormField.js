@@ -6,7 +6,7 @@ import FormHelperText from '@material-ui/core/FormHelperText'
 import FormLabel from '@material-ui/core/FormLabel'
 import { get, isEmpty, startCase } from 'lodash-es'
 import shrinkWorkaround from '../util/shrinkWorkaround'
-
+import { AppLink } from '../util/AppLink'
 import { FormContainerContext } from './context'
 
 export class FormField extends React.PureComponent {
@@ -31,6 +31,10 @@ export class FormField extends React.PureComponent {
     // If unset, it defaults to `name`.
     name: p.string.isRequired,
     fieldName: p.string,
+
+    // min and max values specify the range to clamp a int value
+    min: p.number,
+    max: p.number,
 
     // used if name is set,
     // but the error name is different from graphql responses
@@ -105,6 +109,8 @@ export class FormField extends React.PureComponent {
       InputLabelProps: _inputProps,
       mapValue,
       mapOnChangeValue,
+      min,
+      max,
       checkbox,
       ...otherFieldProps
     } = this.props
@@ -123,6 +129,8 @@ export class FormField extends React.PureComponent {
       error: errors.find((err) => err.field === (errorName || fieldName)),
       hint,
       value: mapValue(get(value, fieldName)),
+      min,
+      max,
     }
 
     const InputLabelProps = {
@@ -146,8 +154,14 @@ export class FormField extends React.PureComponent {
       props.InputLabelProps = InputLabelProps
     }
 
-    props.onChange = (value) =>
-      onChange(fieldName, mapOnChangeValue(getValueOf(value)))
+    props.onChange = (value) => {
+      let newValue = getValueOf(value)
+      if (props.type === 'number' && typeof props.min === 'number')
+        newValue = Math.max(props.min, newValue)
+      if (props.type === 'number' && typeof props.max === 'number')
+        newValue = Math.min(props.max, newValue)
+      onChange(fieldName, mapOnChangeValue(newValue))
+    }
 
     return (
       <MountWatcher
@@ -186,14 +200,34 @@ export class FormField extends React.PureComponent {
           error={checkbox ? undefined : Boolean(props.error)}
           label={this.props.formLabel ? null : props.label}
         />
-        {!noError && (props.error || props.hint) && (
-          <FormHelperText>
-            {(props.error &&
-              props.error.message.replace(/^./, (str) => str.toUpperCase())) ||
-              props.hint}
-          </FormHelperText>
-        )}
+        {!noError && this.renderFormHelperText(props.error, props.hint)}
       </FormControl>
     )
+  }
+
+  renderFormHelperText(error, hint) {
+    if (error?.helpLink) {
+      return (
+        <FormHelperText>
+          <AppLink to={error.helpLink} newTab data-cy='error-help-link'>
+            {error.message.replace(/^./, (str) => str.toUpperCase())}
+          </AppLink>
+        </FormHelperText>
+      )
+    }
+
+    if (error?.message) {
+      return (
+        <FormHelperText>
+          {error.message.replace(/^./, (str) => str.toUpperCase())}
+        </FormHelperText>
+      )
+    }
+
+    if (hint) {
+      return <FormHelperText>{hint}</FormHelperText>
+    }
+
+    return null
   }
 }

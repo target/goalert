@@ -3,14 +3,15 @@ package user
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/util/sqlutil"
 	"text/template"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
+	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-
-	"github.com/pkg/errors"
 )
 
 // SearchOptions allow filtering and paginating the list of users.
@@ -22,6 +23,12 @@ type SearchOptions struct {
 	Omit []string `json:"o,omitempty"`
 
 	Limit int `json:"-"`
+
+	// CMValue is matched against the user's contact method phone number.
+	CMValue string `json:"v,omitempty"`
+
+	// CMType is matched against the user's contact method type.
+	CMType contactmethod.Type `json:"t,omitempty"`
 }
 
 // SearchCursor is used to indicate a position in a paginated list.
@@ -31,11 +38,14 @@ type SearchCursor struct {
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		id, name, email, role
+		usr.id, usr.name, usr.email, usr.role
 	FROM users usr
+	{{ if .CMValue }}
+		JOIN user_contact_methods ucm ON ucm.user_id = usr.id
+	{{ end }}
 	WHERE true
 	{{if .Omit}}
-		AND not id = any(:omit)
+		AND not usr.id = any(:omit)
 	{{end}}
 	{{if .SearchStr}}
 		AND usr.name ILIKE :search
@@ -43,6 +53,12 @@ var searchTemplate = template.Must(template.New("search").Parse(`
 	{{if .After.Name}}
 		AND lower(usr.name) > lower(:afterName)
 	{{end}}
+	{{ if .CMValue }}
+		AND ucm.value = :CMValue
+	{{ end }}
+	{{ if .CMType }}
+		AND ucm.type = :CMType
+	{{ end }}
 	ORDER BY lower(usr.name)
 	LIMIT {{.Limit}}
 `))
@@ -70,6 +86,15 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
 	}
+	if opts.CMValue != "" {
+		err = validate.Many(err, validate.Phone("CMValue", opts.CMValue))
+	}
+	if opts.CMType != "" {
+		if opts.CMValue == "" {
+			err = validate.Many(err, validation.NewFieldError("CMValue", "is required"))
+		}
+		err = validate.Many(err, validate.OneOf("CMType", opts.CMType, contactmethod.TypeSMS, contactmethod.TypeVoice))
+	}
 
 	return &opts, err
 }
@@ -79,6 +104,8 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("CMValue", opts.CMValue),
+		sql.Named("CMType", opts.CMType),
 	}
 }
 
@@ -100,7 +127,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]User, error) {
 	}
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

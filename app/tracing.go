@@ -17,7 +17,8 @@ func configTracing(ctx context.Context, c Config) ([]trace.Exporter, error) {
 	var exporters []trace.Exporter
 	if c.JaegerEndpoint != "" || c.JaegerAgentEndpoint != "" {
 		exporter, err := jaeger.NewExporter(jaeger.Options{
-			Endpoint:      c.JaegerEndpoint,
+			CollectorEndpoint: c.JaegerEndpoint + "/api/traces",
+
 			AgentEndpoint: c.JaegerAgentEndpoint,
 			ServiceName:   "goalert",
 		})

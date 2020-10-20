@@ -2,6 +2,7 @@ package dbsync
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"os"
 	"os/signal"
@@ -64,7 +65,7 @@ func (sh *ctxShell) AddCmd(cmd ctxCmd) {
 			if err == nil {
 				err = cmd.Func(ctx, c)
 			}
-			if err == flag.ErrHelp {
+			if errors.Is(err, flag.ErrHelp) {
 				err = nil
 			}
 			if err != nil {

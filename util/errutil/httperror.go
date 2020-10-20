@@ -13,13 +13,13 @@ import (
 )
 
 func isCtxCause(err error) bool {
-	if err == context.Canceled {
+	if errors.Is(err, context.Canceled) {
 		return true
 	}
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		return true
 	}
-	if err == sql.ErrTxDone {
+	if errors.Is(err, sql.ErrTxDone) {
 		return true
 	}
 
@@ -32,6 +32,17 @@ func isCtxCause(err error) bool {
 	return false
 }
 
+func unwrapAll(err error) error {
+	for {
+		next := errors.Unwrap(err)
+		if next == nil {
+			break
+		}
+		err = next
+	}
+	return err
+}
+
 // HTTPError will respond in a standard way when err != nil. If
 // err is nil, false is returned, true otherwise.
 func HTTPError(ctx context.Context, w http.ResponseWriter, err error) bool {
@@ -42,26 +53,26 @@ func HTTPError(ctx context.Context, w http.ResponseWriter, err error) bool {
 	err = MapDBError(err)
 	if permission.IsUnauthorized(err) {
 		log.Debug(ctx, err)
-		http.Error(w, errors.Cause(err).Error(), http.StatusUnauthorized)
+		http.Error(w, unwrapAll(err).Error(), http.StatusUnauthorized)
 		return true
 	}
 	if permission.IsPermissionError(err) {
 		log.Debug(ctx, err)
-		http.Error(w, errors.Cause(err).Error(), http.StatusForbidden)
+		http.Error(w, unwrapAll(err).Error(), http.StatusForbidden)
 		return true
 	}
 	if validation.IsClientError(err) {
 		log.Debug(ctx, err)
-		http.Error(w, errors.Cause(err).Error(), http.StatusBadRequest)
+		http.Error(w, unwrapAll(err).Error(), http.StatusBadRequest)
 		return true
 	}
 	if IsLimitError(err) {
 		log.Debug(ctx, err)
-		http.Error(w, errors.Cause(err).Error(), http.StatusConflict)
+		http.Error(w, unwrapAll(err).Error(), http.StatusConflict)
 		return true
 	}
 
-	if ctx.Err() != nil && isCtxCause(errors.Cause(err)) {
+	if ctx.Err() != nil && isCtxCause(err) {
 		// context timed out or was canceled
 		log.Debug(ctx, err)
 		http.Error(w, http.StatusText(http.StatusGatewayTimeout), http.StatusGatewayTimeout)

@@ -3,11 +3,12 @@ package escalation
 import (
 	"context"
 	"database/sql"
+	"text/template"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation/validate"
-	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -99,7 +100,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Policy, error)
 	}
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

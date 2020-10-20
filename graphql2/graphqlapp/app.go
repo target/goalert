@@ -3,9 +3,10 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"github.com/target/goalert/notice"
 	"net/http"
 	"strconv"
+
+	"github.com/target/goalert/notice"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -127,6 +128,28 @@ func (a apolloTracer) InterceptResponse(ctx context.Context, next graphql.Respon
 	return a.Tracer.InterceptResponse(ctx, next)
 }
 
+func isGQLValidation(gqlErr *gqlerror.Error) bool {
+	if gqlErr == nil {
+		return false
+	}
+
+	var numErr *strconv.NumError
+	if errors.As(gqlErr, &numErr) {
+		return true
+	}
+
+	if gqlErr.Extensions == nil {
+		return false
+	}
+
+	code, ok := gqlErr.Extensions["code"].(string)
+	if !ok {
+		return false
+	}
+
+	return code == "GRAPHQL_VALIDATION_FAILED"
+}
+
 func (a *App) Handler() http.Handler {
 	h := handler.NewDefaultServer(
 		graphql2.NewExecutableSchema(graphql2.Config{Resolvers: a}),
@@ -164,21 +187,26 @@ func (a *App) Handler() http.Handler {
 	})
 
 	h.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
-		if e, ok := err.(*strconv.NumError); ok {
-			// gqlgen doesn't handle exponent notation numbers properly
-			// but we want to return a validation error instead of a 500 at least.
-			err = validation.NewGenericError("parse '" + e.Num + "': " + e.Err.Error())
-		}
 		err = errutil.MapDBError(err)
+		var gqlErr *gqlerror.Error
+
 		isUnsafe, safeErr := errutil.ScrubError(err)
-		if isUnsafe {
+		if !errors.As(err, &gqlErr) {
+			gqlErr = &gqlerror.Error{
+				Message: safeErr.Error(),
+			}
+		}
+
+		if isUnsafe && !isGQLValidation(gqlErr) {
+			gqlErr.Message = safeErr.Error()
 			log.Log(ctx, err)
 		}
-		gqlErr := graphql.DefaultErrorPresenter(ctx, safeErr)
 
-		if m, ok := errors.Cause(safeErr).(validation.MultiFieldError); ok {
-			errs := make([]fieldErr, len(m.FieldErrors()))
-			for i, err := range m.FieldErrors() {
+		var multiFieldErr validation.MultiFieldError
+		var singleFieldErr validation.FieldError
+		if errors.As(err, &multiFieldErr) {
+			errs := make([]fieldErr, len(multiFieldErr.FieldErrors()))
+			for i, err := range multiFieldErr.FieldErrors() {
 				errs[i].FieldName = err.Field()
 				errs[i].Message = err.Reason()
 			}
@@ -187,17 +215,17 @@ func (a *App) Handler() http.Handler {
 				"isMultiFieldError": true,
 				"fieldErrors":       errs,
 			}
-		} else if e, ok := errors.Cause(safeErr).(validation.FieldError); ok {
+		} else if errors.As(err, &singleFieldErr) {
 			type reasonable interface {
 				Reason() string
 			}
-			msg := e.Error()
-			if rs, ok := e.(reasonable); ok {
+			msg := singleFieldErr.Error()
+			if rs, ok := singleFieldErr.(reasonable); ok {
 				msg = rs.Reason()
 			}
 			gqlErr.Message = msg
 			gqlErr.Extensions = map[string]interface{}{
-				"fieldName":    e.Field(),
+				"fieldName":    singleFieldErr.Field(),
 				"isFieldError": true,
 			}
 		}

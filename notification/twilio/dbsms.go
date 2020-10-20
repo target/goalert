@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/util"
 )
 
@@ -105,7 +106,7 @@ func (db *dbSMS) insertDB(ctx context.Context, phoneNumber, callbackID string, a
 
 	var existingCode sql.NullInt64
 	err = tx.StmtContext(ctx, db.existingCode).QueryRowContext(ctx, phoneNumber, aID, sID).Scan(&existingCode)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
 	if err != nil {

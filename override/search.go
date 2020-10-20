@@ -3,9 +3,10 @@ package override
 import (
 	"context"
 	"database/sql"
-	"github.com/target/goalert/util/sqlutil"
 	"text/template"
 	"time"
+
+	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
@@ -145,7 +146,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]UserOverride, 
 	}
 
 	rows, err := db.db.QueryContext(ctx, query, args...)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

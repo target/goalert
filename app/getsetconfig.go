@@ -19,7 +19,7 @@ func getSetConfig(setCfg bool, data []byte) error {
 
 	err := viper.ReadInConfig()
 	// ignore file not found error
-	if _, ok := err.(viper.ConfigFileNotFoundError); err != nil && !ok {
+	if err != nil && !isCfgNotFound(err) {
 		return errors.Wrap(err, "read config")
 	}
 
