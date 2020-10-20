@@ -119,7 +119,6 @@ export default function RequireConfig(props) {
     isAdmin: wantIsAdmin,
     children,
     else: elseValue = null,
-    ...rest
   } = props
   const { config, isAdmin } = useContext(ConfigContext)
 
