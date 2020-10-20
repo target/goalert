@@ -6,7 +6,7 @@ COPY bin/goalert-linux-amd64 /linux/amd64/goalert
 
 FROM alpine
 ARG TARGETPLATFORM
-RUN apk --no-cache add tzdata ca-certificates
+RUN apk --no-cache add ca-certificates
 ENV GOALERT_LISTEN :8081
 EXPOSE 8081
 CMD ["/usr/bin/goalert"]
