@@ -9,7 +9,7 @@ COPY bin/resetdb-linux-amd64 /linux/amd64/resetdb
 
 FROM alpine:3.12
 ARG TARGETPLATFORM
-RUN apk --no-cache add postgresql postgresql-contrib musl-locales tzdata ca-certificates
+RUN apk --no-cache add postgresql postgresql-contrib musl-locales ca-certificates
 COPY --from=binaries /$TARGETPLATFORM/* /bin/
 COPY devtools/ci/dockerfiles/all-in-one/start.sh /bin/start.sh
 ENV GOALERT_LISTEN :8081
