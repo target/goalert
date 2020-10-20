@@ -1,11 +1,10 @@
+import { useMutation, gql } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import { nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 
 import FormDialog from '../dialogs/FormDialog'
-import { useMutation } from '@apollo/react-hooks'
 
 const query = gql`
   query($id: ID!) {

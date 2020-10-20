@@ -1,5 +1,5 @@
+import { gql } from '@apollo/client'
 import React from 'react'
-import gql from 'graphql-tag'
 import { Switch, Route } from 'react-router-dom'
 import PolicyCreateDialog from './PolicyCreateDialog'
 import PolicyDetails from './PolicyDetails'

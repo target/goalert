@@ -1,9 +1,9 @@
+import { gql } from '@apollo/client'
 import React, { useState } from 'react'
+
 import p from 'prop-types'
 
 import { Redirect } from 'react-router-dom'
-
-import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 

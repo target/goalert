@@ -1,7 +1,7 @@
+import { gql } from '@apollo/client'
 import React, { PureComponent } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Query from '../util/Query'
-import gql from 'graphql-tag'
 import PolicyServicesCard from './PolicyServicesCard'
 
 const query = gql`

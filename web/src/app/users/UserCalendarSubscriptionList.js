@@ -1,7 +1,6 @@
+import { useQuery, gql } from '@apollo/client'
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import { useQuery } from '@apollo/react-hooks'
-import gql from 'graphql-tag'
 import { Card } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
 import FlatList from '../lists/FlatList'

@@ -1,3 +1,4 @@
+import { gql } from '@apollo/client'
 import React, { useState } from 'react'
 import { Form } from '../forms'
 import {
@@ -14,7 +15,6 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import gql from 'graphql-tag'
 import { useMutation } from 'react-apollo'
 import { useConfigValue } from '../util/RequireConfig'
 import { AppLink } from '../util/AppLink'

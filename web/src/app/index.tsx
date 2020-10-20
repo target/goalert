@@ -1,3 +1,5 @@
+import { ApolloProvider } from '@apollo/client'
+
 // set webpack public path for loading additional assets
 import { GOALERT_VERSION } from './env'
 
@@ -9,7 +11,6 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ConnectedRouter } from 'connected-react-router'
-import { ApolloProvider } from '@apollo/react-hooks'
 import { MuiThemeProvider } from '@material-ui/core/styles'
 import { theme } from './mui'
 import { GraphQLClient } from './apollo'

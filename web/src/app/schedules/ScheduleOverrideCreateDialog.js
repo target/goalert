@@ -1,3 +1,4 @@
+import { gql } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
 import { useMutation } from 'react-apollo'
@@ -5,7 +6,6 @@ import FormDialog from '../dialogs/FormDialog'
 import { DateTime } from 'luxon'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import gql from 'graphql-tag'
 
 const copyText = {
   add: {

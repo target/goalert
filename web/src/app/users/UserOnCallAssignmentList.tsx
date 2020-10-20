@@ -1,5 +1,5 @@
+import { gql } from '@apollo/client'
 import React from 'react'
-import gql from 'graphql-tag'
 import { Card } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
 import { sortBy, values } from 'lodash-es'

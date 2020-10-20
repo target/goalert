@@ -1,7 +1,7 @@
+import { gql } from '@apollo/client'
 import React, { Component } from 'react'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
-import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
 import AlertDetails from '../components/AlertDetails'
 import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../../config'

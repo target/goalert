@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import FlatList from '../lists/FlatList'
-import gql from 'graphql-tag'
 import { QueryHookOptions, useMutation, useQuery } from 'react-apollo'
 import { Button, Card, IconButton, makeStyles } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete'
@@ -11,7 +10,7 @@ import _ from 'lodash-es'
 import PageActions from '../util/PageActions'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
-import { ApolloError } from 'apollo-client'
+import { ApolloError, gql } from '@apollo/client'
 
 const profileQuery = gql`
   query {

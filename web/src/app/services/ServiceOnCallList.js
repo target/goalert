@@ -1,3 +1,4 @@
+import { gql } from '@apollo/client'
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
@@ -8,7 +9,6 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
 import { useQuery } from 'react-apollo'
 import { Error } from '@material-ui/icons'
-import gql from 'graphql-tag'
 import _ from 'lodash-es'
 
 const useStyles = makeStyles((theme) => {

@@ -1,8 +1,7 @@
+import { useMutation, useLazyQuery, gql } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
 
-import gql from 'graphql-tag'
-import { useMutation, useLazyQuery } from '@apollo/react-hooks'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'

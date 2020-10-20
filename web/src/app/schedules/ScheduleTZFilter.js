@@ -1,6 +1,6 @@
+import { gql } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import { FormControlLabel, Switch } from '@material-ui/core'
 import { useQuery } from 'react-apollo'
 import { useURLParam } from '../actions/hooks'

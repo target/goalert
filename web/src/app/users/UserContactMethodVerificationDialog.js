@@ -1,12 +1,11 @@
+import { useMutation, gql } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
-import gql from 'graphql-tag'
 import Query from '../util/Query'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserContactMethodVerificationForm from './UserContactMethodVerificationForm'
 import { useConfigValue } from '../util/RequireConfig'
-import { useMutation } from '@apollo/react-hooks'
 
 /*
  * Reactivates a cm if disabled and the verification code matches

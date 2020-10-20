@@ -1,8 +1,10 @@
-import ApolloClient from 'apollo-client'
-import { ApolloLink } from 'apollo-link'
-import { createHttpLink } from 'apollo-link-http'
-import { RetryLink } from 'apollo-link-retry'
-import { InMemoryCache } from 'apollo-cache-inmemory'
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloLink,
+  createHttpLink,
+} from '@apollo/client'
+import { RetryLink } from '@apollo/client/link/retry'
 import { camelCase } from 'lodash-es'
 import { toIdValue } from 'apollo-utilities'
 import { authLogout } from './actions'

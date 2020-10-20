@@ -1,6 +1,6 @@
+import { useQuery, QueryResult } from '@apollo/client'
 import React, { useMemo } from 'react'
 import { useSelector } from 'react-redux'
-import { useQuery } from '@apollo/react-hooks'
 import { Grid } from '@material-ui/core'
 import { once } from 'lodash-es'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
@@ -11,7 +11,6 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
-import { QueryResult } from '@apollo/react-common'
 
 // any && object type map
 // used for objects with unknown key/values from parent

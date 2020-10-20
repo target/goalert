@@ -1,6 +1,6 @@
+import { useMutation, useQuery, gql } from '@apollo/client'
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
 import { Hidden, ListItemText, isWidthDown } from '@material-ui/core'
 import {
   ArrowUpward as EscalateIcon,
@@ -16,7 +16,6 @@ import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
 import { formatTimeSince } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
-import { useMutation, useQuery } from '@apollo/react-hooks'
 import QueryList from '../lists/QueryList'
 import useWidth from '../util/useWidth'
 

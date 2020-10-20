@@ -1,3 +1,4 @@
+import { useQuery, gql } from '@apollo/client'
 import React, { useEffect, useState } from 'react'
 import TextField, { TextFieldProps } from '@material-ui/core/TextField'
 import { InputProps } from '@material-ui/core/Input'
@@ -6,9 +7,6 @@ import _ from 'lodash-es'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import { makeStyles } from '@material-ui/core'
 import { DEBOUNCE_DELAY } from '../config'
-
-import gql from 'graphql-tag'
-import { useQuery } from '@apollo/react-hooks'
 
 const isValidNumber = gql`
   query($number: String!) {

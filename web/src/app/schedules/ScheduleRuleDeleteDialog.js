@@ -1,9 +1,9 @@
+import { gql } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
 import { Mutation } from 'react-apollo'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
-import gql from 'graphql-tag'
 import { startCase } from 'lodash-es'
 import Query from '../util/Query'
 

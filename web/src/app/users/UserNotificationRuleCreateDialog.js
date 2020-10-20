@@ -1,7 +1,7 @@
+import { gql } from '@apollo/client'
 import React from 'react'
-import p from 'prop-types'
 
-import gql from 'graphql-tag'
+import p from 'prop-types'
 import { Mutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 

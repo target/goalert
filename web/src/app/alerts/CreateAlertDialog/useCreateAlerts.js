@@ -1,4 +1,4 @@
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import { useMutation } from 'react-apollo'
 import { fieldAlias, mergeFields, mapInputVars } from '../../util/graphql'
 import { GraphQLClientWithErrors } from '../../apollo'

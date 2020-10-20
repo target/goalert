@@ -1,6 +1,6 @@
+import { gql } from '@apollo/client'
 import React from 'react'
 import { Redirect } from 'react-router'
-import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'

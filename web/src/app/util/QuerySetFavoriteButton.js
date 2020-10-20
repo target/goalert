@@ -1,6 +1,6 @@
+import { gql } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import { useQuery, useMutation } from 'react-apollo'
 import { SetFavoriteButton } from './SetFavoriteButton'
 import { oneOfShape } from '../util/propTypes'

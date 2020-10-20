@@ -1,12 +1,11 @@
+import { useMutation, gql } from '@apollo/client'
 import React, { useEffect } from 'react'
 import p from 'prop-types'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import LoadingButton from '../loading/components/LoadingButton'
-import gql from 'graphql-tag'
 import { makeStyles } from '@material-ui/core/styles'
 import { FormContainer, FormField } from '../forms'
-import { useMutation } from '@apollo/react-hooks'
 
 /*
  * Triggers sending a verification code to the specified cm

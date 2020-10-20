@@ -1,6 +1,6 @@
+import { gql } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import _ from 'lodash-es'
 
 import PageActions from '../util/PageActions'

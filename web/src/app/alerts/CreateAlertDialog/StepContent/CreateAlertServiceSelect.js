@@ -1,3 +1,4 @@
+import { gql } from '@apollo/client'
 import React, { useRef, useState, useEffect } from 'react'
 import p from 'prop-types'
 import {
@@ -25,7 +26,6 @@ import _ from 'lodash-es'
 import getServiceLabel from '../../../util/getServiceLabel'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 import { useQuery } from 'react-apollo'
-import gql from 'graphql-tag'
 import { allErrors } from '../../../util/errutil'
 
 const query = gql`

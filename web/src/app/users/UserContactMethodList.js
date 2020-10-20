@@ -1,6 +1,6 @@
+import { gql } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
 import { useQuery } from 'react-apollo'

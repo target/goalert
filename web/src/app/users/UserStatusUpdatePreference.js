@@ -1,6 +1,6 @@
+import { gql } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import Query from '../util/Query'
 import { Mutation } from 'react-apollo'
 import UserContactMethodSelect from './UserContactMethodSelect'
