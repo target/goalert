@@ -19,6 +19,7 @@ module.exports = {
       'luxon',
       'lodash-es',
       'reselect',
+      '@apollo/client',
       'apollo-utilities',
       'axios',
       'redux',
