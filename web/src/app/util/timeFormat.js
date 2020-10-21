@@ -1,15 +1,5 @@
 import { Interval, DateTime } from 'luxon'
 
-// fortmateTimeLocale returns a formatted time stamp from a given ISO string
-// @params: iso: string, type: 'short' | 'full'
-// in a full, medium, or short locale. Defaults to medium.
-export function formatTimeLocale(iso, type) {
-  let locale = DateTime.DATETIME_MED
-  if (type === 'short') locale = DateTime.DATETIME_SHORT
-  if (type === 'full') locale = DateTime.DATETIME_FULL
-  return DateTime.fromISO(iso).toLocaleString(locale)
-}
-
 export function formatTimeSince(_since, _now = DateTime.utc()) {
   if (!_since) return ''
   const since = _since instanceof DateTime ? _since : DateTime.fromISO(_since)

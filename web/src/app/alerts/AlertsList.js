@@ -8,13 +8,14 @@ import {
   Close as CloseIcon,
 } from '@material-ui/icons'
 import { useSelector } from 'react-redux'
+import { DateTime } from 'luxon'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
 import CreateAlertFab from './CreateAlertFab'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
-import { formatTimeSince, formatTimeLocale } from '../util/timeFormat'
+import { formatTimeSince } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
 import { useMutation, useQuery } from '@apollo/react-hooks'
 import QueryList from '../lists/QueryList'
@@ -255,7 +256,7 @@ export default function AlertsList(props) {
             <ListItemText
               secondary={
                 fullTime
-                  ? formatTimeLocale(a.createdAt)
+                  ? DateTime.fromISO(a.createdAt).toLocaleString(DateTime.DATETIME_MED)
                   : formatTimeSince(a.createdAt)
               }
             />

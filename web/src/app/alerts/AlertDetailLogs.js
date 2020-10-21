@@ -9,7 +9,8 @@ import { makeStyles } from '@material-ui/core'
 import gql from 'graphql-tag'
 import { useQuery } from '@apollo/react-hooks'
 import _ from 'lodash-es'
-import { formatTimeSince, formatTimeLocale } from '../util/timeFormat'
+import { DateTime } from 'luxon'
+import { formatTimeSince } from '../util/timeFormat'
 import { POLL_INTERVAL } from '../config'
 import { textColors } from '../styles/statusStyles'
 
@@ -123,7 +124,7 @@ export default function AlertDetailLogs(props) {
 
     let timestamp = formatTimeSince(event.timestamp)
     if (props.showExactTimes) {
-      timestamp = formatTimeLocale(event.timestamp, 'full')
+      timestamp = DateTime.fromISO(event.timestamp).toLocaleString(DateTime.DATETIME_FULL)
     }
 
     return (
