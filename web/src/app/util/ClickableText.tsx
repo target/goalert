@@ -1,11 +1,11 @@
 import { makeStyles } from '@material-ui/core'
 import React, { ButtonHTMLAttributes } from 'react'
 
-const karakurenai = '#cd1831'
+const crimson = '#cd1831'
 
 const useStyles = makeStyles({
   button: {
-    color: karakurenai,
+    color: crimson,
     all: 'unset',
     backgroundColor: 'transparent',
     border: 'none',
