@@ -52,3 +52,14 @@ More information about smoketests can be found [here](../smoketest/README.md).
 All unit tests can be run with `make test`.
 
 UI Unit tests are found under the directory of the file being tested, with the same file name, appended with `.test.js`. They can be run independently of the Go unit tests with `make jest`. Watch mode can be enabled with `make jest JEST_ARGS=--watch`.
+
+## Toolbox
+
+There is an abundance of free/open-source tooling out there, but these are some that work well for our team on mac at the time of writing
+
+- VS Code for general development (with various Go and Typescript extensions)
+- [Postico](https://eggerapps.at/postico/) database client
+- [SchemaSpy](http://schemaspy.org/) for database schema visualization
+
+      # assuming local DB is up, generate schema GUI in diagram/
+      docker run -v `pwd`/diagram:/output schemaspy/schemaspy:snapshot -t pgsql --port 5432 -u goalert -host docker.for.mac.localhost -db goalert
