@@ -59,8 +59,7 @@ const mapDispatchToProps = (dispatch) => ({
   resetAll: () => dispatch(resetAlertsFilters()), // don't reset search param
   setFilter: (value) => dispatch(setAlertsStatusFilter(value)),
   setAllServices: (value) => dispatch(setAlertsAllServicesFilter(value)),
-  setShowAsFullTime: (value) =>
-    dispatch(setAlertsShowAsFullTimeFilter(value)),
+  setShowAsFullTime: (value) => dispatch(setAlertsShowAsFullTimeFilter(value)),
 })
 
 @withStyles(styles)

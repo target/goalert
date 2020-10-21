@@ -124,7 +124,9 @@ export default function AlertDetailLogs(props) {
 
     let timestamp = formatTimeSince(event.timestamp)
     if (props.showExactTimes) {
-      timestamp = DateTime.fromISO(event.timestamp).toLocaleString(DateTime.DATETIME_FULL)
+      timestamp = DateTime.fromISO(event.timestamp).toLocaleString(
+        DateTime.DATETIME_FULL,
+      )
     }
 
     return (

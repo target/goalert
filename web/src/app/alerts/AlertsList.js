@@ -256,7 +256,9 @@ export default function AlertsList(props) {
             <ListItemText
               secondary={
                 fullTime
-                  ? DateTime.fromISO(a.createdAt).toLocaleString(DateTime.DATETIME_MED)
+                  ? DateTime.fromISO(a.createdAt).toLocaleString(
+                      DateTime.DATETIME_MED,
+                    )
                   : formatTimeSince(a.createdAt)
               }
             />
