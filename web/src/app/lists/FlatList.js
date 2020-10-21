@@ -7,11 +7,11 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import withStyles from '@material-ui/core/styles/withStyles'
 import ListSubheader from '@material-ui/core/ListSubheader'
 import { AppLink } from '../util/AppLink'
+import { makeStyles } from '@material-ui/core'
 
-const styles = {
+const useStyles = makeStyles({
   background: { backgroundColor: 'white' },
   highlightedItem: {
     borderLeft: '6px solid #93ed94',
@@ -20,64 +20,27 @@ const styles = {
   participantDragging: {
     backgroundColor: '#ebebeb',
   },
-}
+})
 
-@withStyles(styles)
-export default class FlatList extends React.PureComponent {
-  static propTypes = {
-    // headerNote will be displayed at the top of the list.
-    headerNote: p.node,
+export default function FlatList(props) {
+  const classes = useStyles()
 
-    // emptyMessage will be displayed if there are no items in the list.
-    emptyMessage: p.string,
-
-    items: p.arrayOf(
-      p.oneOfType([
-        p.shape({
-          highlight: p.bool,
-          title: p.node.isRequired,
-          subText: p.node,
-          secondaryAction: p.element,
-          url: p.string,
-          icon: p.element, // renders a list item icon (or avatar)
-          id: p.string, // required for drag and drop
-        }),
-        p.shape({
-          subHeader: p.node.isRequired,
-        }),
-      ]),
-    ),
-
-    // indent text of each list item if no icon is present
-    inset: p.bool,
-
-    // If specified, enables drag and drop
-    //
-    // onReorder(id, oldIndex, newIndex)
-    onReorder: p.func,
-  }
-
-  static defaultProps = {
-    items: [],
-    emptyMessage: 'No results',
-  }
-
-  handleDragStart = () => {
+  const handleDragStart = () => {
     // adds a little vibration if the browser supports it
     if (window.navigator.vibrate) {
       window.navigator.vibrate(100)
     }
   }
 
-  handleDragEnd = (result) => {
-    this.props.onReorder(
+  const handleDragEnd = (result) => {
+    props.onReorder(
       // result.draggableId, : removed this as per new reorderList function
       result.source.index,
       result.destination.index,
     )
   }
 
-  renderItem(item, idx) {
+  function renderItem(item, idx) {
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -92,14 +55,14 @@ export default class FlatList extends React.PureComponent {
         key={idx}
         {...itemProps}
         style={{ width: '100%' }}
-        className={item.highlight ? this.props.classes.highlightedItem : null}
+        className={item.highlight ? classes.highlightedItem : null}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText
           primary={item.title}
           secondary={item.subText}
           secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
-          inset={this.props.inset && !item.icon}
+          inset={props.inset && !item.icon}
         />
         {item.secondaryAction && (
           <ListItemSecondaryAction>
@@ -110,15 +73,15 @@ export default class FlatList extends React.PureComponent {
     )
   }
 
-  renderItems() {
-    if (!this.props.items.length) {
+  function renderItems() {
+    if (!props.items.length) {
       return (
         <ListItem>
           <ListItemText
             disableTypography
             secondary={
               <Typography data-cy='list-empty-message' variant='caption'>
-                {this.props.emptyMessage}
+                {props.emptyMessage}
               </Typography>
             }
           />
@@ -126,11 +89,11 @@ export default class FlatList extends React.PureComponent {
       )
     }
 
-    return this.props.items.map((item, idx) => {
-      if (!this.props.onReorder) {
+    return props.items.map((item, idx) => {
+      if (!props.onReorder) {
         if (item.subHeader) {
           return (
-            <ListSubheader key={idx} className={this.props.classes.background}>
+            <ListSubheader key={idx} className={classes.background}>
               <Typography
                 component='h2'
                 variant='subtitle1'
@@ -142,14 +105,14 @@ export default class FlatList extends React.PureComponent {
             </ListSubheader>
           )
         }
-        return this.renderItem(item, idx)
+        return renderItem(item, idx)
       }
       return (
         <Draggable key={idx + item.id} draggableId={item.id} index={idx}>
           {(provided, snapshot) => {
             // light grey background while dragging non-active user
             const draggingBackground = snapshot.isDragging
-              ? this.props.classes.participantDragging
+              ? classes.participantDragging
               : null
             return (
               <div
@@ -158,7 +121,7 @@ export default class FlatList extends React.PureComponent {
                 {...provided.dragHandleProps}
                 className={draggingBackground}
               >
-                {this.renderItem(item, idx)}
+                {renderItem(item, idx)}
               </div>
             )
           }}
@@ -167,7 +130,7 @@ export default class FlatList extends React.PureComponent {
     })
   }
 
-  renderList() {
+  function renderList() {
     const {
       dispatch,
       onReorder,
@@ -177,7 +140,7 @@ export default class FlatList extends React.PureComponent {
       items,
       inset, // don't include in spread
       ...otherProps
-    } = this.props
+    } = props
 
     return (
       <List {...otherProps}>
@@ -192,21 +155,18 @@ export default class FlatList extends React.PureComponent {
             />
           </ListItem>
         )}
-        {this.renderItems()}
+        {renderItems()}
       </List>
     )
   }
 
-  renderDragAndDrop() {
+  function renderDragAndDrop() {
     return (
-      <DragDropContext
-        onDragStart={this.handleDragStart}
-        onDragEnd={this.handleDragEnd}
-      >
+      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <Droppable droppableId='droppable'>
           {(provided) => (
             <div ref={provided.innerRef} {...provided.droppableProps}>
-              {this.renderList()}
+              {renderList()}
               {provided.placeholder}
             </div>
           )}
@@ -215,11 +175,47 @@ export default class FlatList extends React.PureComponent {
     )
   }
 
-  render() {
-    if (this.props.onReorder) {
-      // Enable drag and drop
-      return this.renderDragAndDrop()
-    }
-    return this.renderList()
+  if (props.onReorder) {
+    // Enable drag and drop
+    return renderDragAndDrop()
   }
+  return renderList()
+}
+
+FlatList.propTypes = {
+  // headerNote will be displayed at the top of the list.
+  headerNote: p.node,
+
+  // emptyMessage will be displayed if there are no items in the list.
+  emptyMessage: p.string,
+
+  items: p.arrayOf(
+    p.oneOfType([
+      p.shape({
+        highlight: p.bool,
+        title: p.node.isRequired,
+        subText: p.node,
+        secondaryAction: p.element,
+        url: p.string,
+        icon: p.element, // renders a list item icon (or avatar)
+        id: p.string, // required for drag and drop
+      }),
+      p.shape({
+        subHeader: p.node.isRequired,
+      }),
+    ]),
+  ),
+
+  // indent text of each list item if no icon is present
+  inset: p.bool,
+
+  // If specified, enables drag and drop
+  //
+  // onReorder(id, oldIndex, newIndex)
+  onReorder: p.func,
+}
+
+FlatList.defaultProps = {
+  items: [],
+  emptyMessage: 'No results',
 }
