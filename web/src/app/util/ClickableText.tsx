@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core'
-import React, { ButtonHTMLAttributes } from 'react'
+import React, { ButtonHTMLAttributes, MouseEventHandler } from 'react'
 
 const crimson = '#cd1831'
 
@@ -25,7 +25,7 @@ const useStyles = makeStyles({
 
 interface ClickableTextProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   text: string
-  onClick: () => void
+  onClick: MouseEventHandler<HTMLButtonElement>
 }
 
 // ClickableText
@@ -42,7 +42,7 @@ function ClickableText({
     <button
       onClick={(e) => {
         e.preventDefault()
-        onClick()
+        onClick(e)
       }}
       className={classes.button}
       {...props}
