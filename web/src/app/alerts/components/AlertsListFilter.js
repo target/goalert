@@ -21,8 +21,13 @@ import {
   resetAlertsFilters,
   setAlertsStatusFilter,
   setAlertsAllServicesFilter,
+  setAlertsShowAsFullTimeFilter,
 } from '../../actions'
-import { alertAllServicesSelector, alertFilterSelector } from '../../selectors'
+import {
+  alertAllServicesSelector,
+  alertFilterSelector,
+  alertShowAsFullTimeSelector,
+} from '../../selectors'
 
 const styles = (theme) => ({
   ...globalStyles(theme),
@@ -47,12 +52,14 @@ const styles = (theme) => ({
 const mapStateToProps = (state) => ({
   allServices: alertAllServicesSelector(state),
   filter: alertFilterSelector(state),
+  showAsFullTime: alertShowAsFullTimeSelector(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
   resetAll: () => dispatch(resetAlertsFilters()), // don't reset search param
   setFilter: (value) => dispatch(setAlertsStatusFilter(value)),
   setAllServices: (value) => dispatch(setAlertsAllServicesFilter(value)),
+  setShowAsFullTime: (value) => dispatch(setAlertsShowAsFullTimeFilter(value)),
 })
 
 @withStyles(styles)
@@ -63,6 +70,7 @@ export default class AlertsListFilter extends Component {
     serviceID: p.string,
     allServices: p.bool,
     filter: p.string,
+    showAsFullTime: p.bool,
   }
 
   state = {
@@ -84,8 +92,20 @@ export default class AlertsListFilter extends Component {
   }
 
   renderFilters = () => {
-    const { allServices, classes, filter, serviceID: sid, width } = this.props
-    const { resetAll, setFilter, setAllServices } = this.props
+    const {
+      allServices,
+      classes,
+      filter,
+      serviceID: sid,
+      showAsFullTime,
+      width,
+    } = this.props
+    const {
+      resetAll,
+      setFilter,
+      setAllServices,
+      setShowAsFullTime,
+    } = this.props
 
     // grabs class for width depending on breakpoints (md or higher uses popover width)
     const widthClass = isWidthUp('md', width) ? classes.popover : classes.drawer
@@ -113,6 +133,17 @@ export default class AlertsListFilter extends Component {
         <Grid item xs={12} className={classes.gridItem}>
           <FormControl>
             {favoritesFilter}
+            <FormControlLabel
+              control={
+                <Switch
+                  aria-label='Show full timestamps toggle'
+                  name='toggle-full-time'
+                  checked={showAsFullTime}
+                  onChange={() => setShowAsFullTime(!showAsFullTime)}
+                />
+              }
+              label='Show full timestamps'
+            />
             <RadioGroup
               aria-label='Alert Status Filters'
               name='status-filters'

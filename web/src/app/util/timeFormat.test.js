@@ -9,7 +9,6 @@ describe('formatTimeSince', () => {
       expect(formatTimeSince(since, since.plus(dur))).toBe(exp)
     })
   }
-
   check({ seconds: -1 }, '< 1m ago')
   check({ seconds: 1 }, '< 1m ago')
   check({ seconds: 59 }, '< 1m ago')
@@ -24,6 +23,7 @@ describe('formatTimeSince', () => {
   check({ months: 20, seconds: 1 }, '1y ago')
   check({ months: 200, seconds: 1 }, '16y ago')
 })
+
 describe('logTimeFormat', () => {
   const check = (to, from, exp) => {
     it(`alert log time format`, () => {
