@@ -34,19 +34,12 @@ interface ClickableTextProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // see https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/master/docs/rules/anchor-is-valid.md
 function ClickableText({
   text,
-  onClick,
+  type = 'button',
   ...props
 }: ClickableTextProps): JSX.Element {
   const classes = useStyles()
   return (
-    <button
-      onClick={(e) => {
-        e.preventDefault()
-        onClick(e)
-      }}
-      className={classes.button}
-      {...props}
-    >
+    <button className={classes.button} type={type} {...props}>
       {text}
     </button>
   )
