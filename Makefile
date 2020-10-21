@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test test-long install install-race
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
-.PHONY: docker-goalert docker-all-in-one release release-binaries
+.PHONY: docker-goalert docker-all-in-one release
 .SUFFIXES:
 
 GOFILES = $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print | grep -v web/inline_data_gen.go) go.sum
