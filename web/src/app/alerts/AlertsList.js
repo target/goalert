@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import gql from 'graphql-tag'
-import { Hidden, ListItemText, isWidthDown } from '@material-ui/core'
+import {
+  Hidden,
+  ListItemText,
+  isWidthDown,
+  makeStyles,
+} from '@material-ui/core'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
@@ -63,6 +68,12 @@ const escalateMutation = gql`
   }
 `
 
+const useStyles = makeStyles({
+  alertTimeContainer: {
+    width: 'max-content',
+  },
+})
+
 function getStatusFilter(s) {
   switch (s) {
     case 'acknowledged':
@@ -80,6 +91,7 @@ function getStatusFilter(s) {
 }
 
 export default function AlertsList(props) {
+  const classes = useStyles()
   const width = useWidth()
   const isMobileScreenSize = isWidthDown('md', width)
 
@@ -254,6 +266,7 @@ export default function AlertsList(props) {
           subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
           action: (
             <ListItemText
+              className={classes.alertTimeContainer}
               secondary={
                 fullTime
                   ? DateTime.fromISO(a.createdAt).toLocaleString(
