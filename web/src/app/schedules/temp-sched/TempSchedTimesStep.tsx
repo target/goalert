@@ -3,13 +3,15 @@ import {
   Grid,
   DialogContentText,
   Typography,
-  makeStyles,
 } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { contentText, StepContainer, Value } from './sharedUtils'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { isISOBefore } from '../../util/shifts'
+import { DateTime } from 'luxon'
+import { useURLParam } from '../../actions'
 
 const useStyles = makeStyles({
   contentText,
@@ -27,6 +29,8 @@ export default function TempSchedTimesStep({
   value,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
+  const [zone] = useURLParam('tz', 'local')
+  const now = DateTime.local().setZone(zone).startOf('day').toFormat("yyyy-MM-dd'T'HH:mm:ss")
 
   function validate(): Error | null {
     if (isISOBefore(value.start, value.end)) return null
@@ -63,6 +67,7 @@ export default function TempSchedTimesStep({
             required
             name='start'
             validate={() => validate()}
+            min={now}
           />
         </Grid>
         <Grid item xs={6}>
@@ -72,6 +77,7 @@ export default function TempSchedTimesStep({
             required
             name='end'
             validate={() => validate()}
+            min={now}
           />
         </Grid>
       </Grid>

@@ -1,28 +1,50 @@
-import React, { useState, useEffect } from 'react'
-import { DatePicker, TimePicker, DateTimePicker } from '@material-ui/pickers'
+import React, { useState, useEffect, ChangeEvent, FC } from 'react'
+import { DatePicker, TimePicker, DateTimePicker, TimePickerProps, DatePickerProps, DateTimePickerProps } from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
-import { DateTime } from 'luxon'
+import { DateTime, DurationUnit } from 'luxon'
 import { TextField, InputAdornment, IconButton } from '@material-ui/core'
 
 import Modernizr from '../../modernizr.config'
 import { DateRange, AccessTime } from '@material-ui/icons'
 
-function hasInputSupport(name) {
+type ISOPickersProps = {
+  value?: string
+  onChange: (newValue: string) => void
+  timeZone?: string
+  min?: string // yyyy-MM-dd'T'HH:mm:ss
+  max?: string // yyyy-MM-dd'T'HH:mm:ss
+}
+
+// Supported fallback types
+type FallbackType =  FC<TimePickerProps> | FC<DatePickerProps> | FC<DateTimePickerProps>
+
+// Static settings defined in the ISOPickers variations (date, time, etc)
+type ISOPickersSettings = {
+  format: string
+  Fallback: FallbackType
+  truncateTo: DurationUnit
+  type: 'date' | 'time' | 'datetime-local'
+}
+
+type Input = DateTime | string | null
+
+function hasInputSupport(name: string): boolean {
   if (new URLSearchParams(location.search).get('nativeInput') === '0') {
     return false
   }
 
+  // @ts-ignore: types are generated at build
   return Modernizr.inputtypes[name]
 }
 
 function useISOPicker(
-  { value, onChange, timeZone, ...otherProps },
-  { format, truncateTo, type, Fallback },
+  { value = '', onChange, timeZone, min, max, ...otherProps }: ISOPickersProps,
+  { format, truncateTo, type, Fallback }: ISOPickersSettings,
 ) {
   const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
-  const zone = timeZone || params('tz', 'local')
+  const zone = timeZone || params('tz', 'local') as string
   const dtValue = DateTime.fromISO(value, { zone })
   const [inputValue, setInputValue] = useState(
     value ? dtValue.toFormat(format) : '',
@@ -30,7 +52,7 @@ function useISOPicker(
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
-  const parseInput = (input) => {
+  const parseInput = (input: Input) => {
     if (input instanceof DateTime) return input
     if (!input) return null
 
@@ -53,7 +75,7 @@ function useISOPicker(
 
   // inputToISO returns a UTC ISO timestamp representing the provided
   // input value, or an empty string if invalid.
-  const inputToISO = (input) => {
+  const inputToISO = (input: Input): string => {
     const val = parseInput(input)
     return val ? val.startOf(truncateTo).toUTC().toISO() : ''
   }
@@ -62,10 +84,14 @@ function useISOPicker(
     setInputValue(value ? dtValue.toFormat(format) : '')
   }, [value, zone])
 
-  const handleChange = (e) => {
-    setInputValue(e.target.value)
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setInputValue(val)
+    handleChange(val)
+  }
 
-    const newVal = inputToISO(e.target.value)
+  const handleChange = (val: Input) => {
+    const newVal = inputToISO(val)
     // Only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
     if (newVal && newVal !== dtValue.toUTC().toISO()) {
@@ -74,7 +100,7 @@ function useISOPicker(
   }
 
   // starts with label above textfield so format placeholder can be seen
-  const shrinkInputLabel = (p) => ({
+  const shrinkInputLabel = (p: { [key: string]: any }) => ({
     ...(p?.InputLabelProps ?? {}),
     shrink: true,
   })
@@ -84,29 +110,31 @@ function useISOPicker(
       <TextField
         type={type}
         value={inputValue}
-        onChange={handleChange}
+        onChange={handleInputChange}
+        inputProps={{ min, max }}
         {...otherProps}
         InputLabelProps={shrinkInputLabel(otherProps)}
       />
     )
   }
 
-  const extraProps = {}
+  const cypressProps: { [key: string]: { 'data-cy'?: string } } = {}
+  cypressProps.DialogProps = { 'data-cy': 'picker-fallback' }
   if (type !== 'time') {
-    extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
-    extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
+    cypressProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
+    cypressProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
   }
 
   const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
       value={dtValue}
-      onChange={(v) => handleChange({ target: { value: v } })}
+      onChange={handleChange}
       showTodayButton
-      DialogProps={{
-        'data-cy': 'picker-fallback',
-      }}
+      minDate={min}
+      maxDate={max}
       InputProps={{
+        // @ts-ignore
         'data-cy-fallback-type': type,
         endAdornment: (
           <InputAdornment position='end'>
@@ -116,35 +144,35 @@ function useISOPicker(
           </InputAdornment>
         ),
       }}
-      {...extraProps}
+      {...cypressProps}
       {...otherProps}
       InputLabelProps={shrinkInputLabel(otherProps)}
     />
   )
 }
 
-export function ISOTimePicker(props) {
+export function ISOTimePicker(props: ISOPickersProps) {
   return useISOPicker(props, {
+    Fallback: TimePicker,
     format: 'HH:mm',
     truncateTo: 'minute',
     type: 'time',
-    Fallback: TimePicker,
   })
 }
 
-export function ISODateTimePicker(props) {
+export function ISODateTimePicker(props: ISOPickersProps) {
   return useISOPicker(props, {
-    format: `yyyy-MM-dd'T'HH:mm`,
     Fallback: DateTimePicker,
+    format: `yyyy-MM-dd'T'HH:mm`,
     truncateTo: 'minute',
     type: 'datetime-local',
   })
 }
 
-export function ISODatePicker(props) {
+export function ISODatePicker(props: ISOPickersProps) {
   return useISOPicker(props, {
-    format: 'yyyy-MM-dd',
     Fallback: DatePicker,
+    format: 'yyyy-MM-dd',
     truncateTo: 'day',
     type: 'date',
   })

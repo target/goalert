@@ -1,6 +1,7 @@
 import { Grid, TextField, Typography, makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import React, { useState } from 'react'
+import { useURLParam } from '../../actions'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import { ISODateTimePicker } from '../../util/ISOPickers'
@@ -18,6 +19,8 @@ const useStyles = makeStyles({
 export default function TempSchedAddShiftForm(): JSX.Element {
   const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
+  const [zone] = useURLParam('tz', 'local')
+  const now = DateTime.local().setZone(zone).startOf('day').toFormat("yyyy-MM-dd'T'HH:mm:ss")
 
   return (
     <React.Fragment>
@@ -35,6 +38,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
+          min={now}
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -53,6 +57,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
+            min={now}
             hint={
               <Typography
                 className={classes.typography}
