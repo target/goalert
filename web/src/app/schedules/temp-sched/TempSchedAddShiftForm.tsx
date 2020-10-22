@@ -20,7 +20,10 @@ export default function TempSchedAddShiftForm(): JSX.Element {
   const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
   const [zone] = useURLParam('tz', 'local')
-  const now = DateTime.local().setZone(zone).startOf('day').toFormat("yyyy-MM-dd'T'HH:mm:ss")
+  const now = DateTime.local()
+    .setZone(zone)
+    .startOf('day')
+    .toFormat("yyyy-MM-dd'T'HH:mm:ss")
 
   return (
     <React.Fragment>

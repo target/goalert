@@ -1,9 +1,5 @@
 import React from 'react'
-import {
-  Grid,
-  DialogContentText,
-  Typography,
-} from '@material-ui/core'
+import { Grid, DialogContentText, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
@@ -30,7 +26,10 @@ export default function TempSchedTimesStep({
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
   const [zone] = useURLParam('tz', 'local')
-  const now = DateTime.local().setZone(zone).startOf('day').toFormat("yyyy-MM-dd'T'HH:mm:ss")
+  const now = DateTime.local()
+    .setZone(zone)
+    .startOf('day')
+    .toFormat("yyyy-MM-dd'T'HH:mm:ss")
 
   function validate(): Error | null {
     if (isISOBefore(value.start, value.end)) return null

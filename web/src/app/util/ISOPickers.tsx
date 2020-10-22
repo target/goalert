@@ -1,5 +1,12 @@
-import React, { useState, useEffect, ChangeEvent, FC } from 'react'
-import { DatePicker, TimePicker, DateTimePicker, TimePickerProps, DatePickerProps, DateTimePickerProps } from '@material-ui/pickers'
+import React, { useState, useEffect, ChangeEvent, FC, ReactNode } from 'react'
+import {
+  DatePicker,
+  TimePicker,
+  DateTimePicker,
+  TimePickerProps,
+  DatePickerProps,
+  DateTimePickerProps,
+} from '@material-ui/pickers'
 import { useSelector } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { DateTime, DurationUnit } from 'luxon'
@@ -17,7 +24,10 @@ type ISOPickersProps = {
 }
 
 // Supported fallback types
-type FallbackType =  FC<TimePickerProps> | FC<DatePickerProps> | FC<DateTimePickerProps>
+type FallbackType =
+  | FC<TimePickerProps>
+  | FC<DatePickerProps>
+  | FC<DateTimePickerProps>
 
 // Static settings defined in the ISOPickers variations (date, time, etc)
 type ISOPickersSettings = {
@@ -41,10 +51,10 @@ function hasInputSupport(name: string): boolean {
 function useISOPicker(
   { value = '', onChange, timeZone, min, max, ...otherProps }: ISOPickersProps,
   { format, truncateTo, type, Fallback }: ISOPickersSettings,
-) {
+): ReactNode {
   const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
-  const zone = timeZone || params('tz', 'local') as string
+  const zone = timeZone || (params('tz', 'local') as string)
   const dtValue = DateTime.fromISO(value, { zone })
   const [inputValue, setInputValue] = useState(
     value ? dtValue.toFormat(format) : '',
@@ -52,7 +62,7 @@ function useISOPicker(
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
-  const parseInput = (input: Input) => {
+  const parseInput = (input: Input): DateTime | null => {
     if (input instanceof DateTime) return input
     if (!input) return null
 
@@ -84,13 +94,7 @@ function useISOPicker(
     setInputValue(value ? dtValue.toFormat(format) : '')
   }, [value, zone])
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setInputValue(val)
-    handleChange(val)
-  }
-
-  const handleChange = (val: Input) => {
+  const handleChange = (val: Input): void => {
     const newVal = inputToISO(val)
     // Only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
@@ -99,11 +103,11 @@ function useISOPicker(
     }
   }
 
-  // starts with label above textfield so format placeholder can be seen
-  const shrinkInputLabel = (p: { [key: string]: any }) => ({
-    ...(p?.InputLabelProps ?? {}),
-    shrink: true,
-  })
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    const val = e.target.value
+    setInputValue(val)
+    handleChange(val)
+  }
 
   if (native) {
     return (
@@ -113,7 +117,10 @@ function useISOPicker(
         onChange={handleInputChange}
         inputProps={{ min, max }}
         {...otherProps}
-        InputLabelProps={shrinkInputLabel(otherProps)}
+        InputLabelProps={{
+          ...otherProps,
+          shrink: true,
+        }}
       />
     )
   }
@@ -146,12 +153,15 @@ function useISOPicker(
       }}
       {...cypressProps}
       {...otherProps}
-      InputLabelProps={shrinkInputLabel(otherProps)}
+      InputLabelProps={{
+        ...otherProps,
+        shrink: true,
+      }}
     />
   )
 }
 
-export function ISOTimePicker(props: ISOPickersProps) {
+export function ISOTimePicker(props: ISOPickersProps): ReactNode {
   return useISOPicker(props, {
     Fallback: TimePicker,
     format: 'HH:mm',
@@ -160,7 +170,7 @@ export function ISOTimePicker(props: ISOPickersProps) {
   })
 }
 
-export function ISODateTimePicker(props: ISOPickersProps) {
+export function ISODateTimePicker(props: ISOPickersProps): ReactNode {
   return useISOPicker(props, {
     Fallback: DateTimePicker,
     format: `yyyy-MM-dd'T'HH:mm`,
@@ -169,7 +179,7 @@ export function ISODateTimePicker(props: ISOPickersProps) {
   })
 }
 
-export function ISODatePicker(props: ISOPickersProps) {
+export function ISODatePicker(props: ISOPickersProps): ReactNode {
   return useISOPicker(props, {
     Fallback: DatePicker,
     format: 'yyyy-MM-dd',
