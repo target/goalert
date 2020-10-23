@@ -68,7 +68,7 @@ function useISOPicker(
     const newVal = inputToISO(e.target.value)
     // Only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
-    if (!dtValue || newVal && newVal !== dtValue.toUTC().toISO()) {
+    if (!dtValue || (newVal && newVal !== dtValue.toUTC().toISO())) {
       onChange(newVal)
     }
   }
