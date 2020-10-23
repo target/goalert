@@ -1,6 +1,6 @@
+import React, { useState } from 'react'
 import { Grid, TextField } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import React, { useState } from 'react'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
@@ -9,6 +9,7 @@ import { Value } from './sharedUtils'
 
 export default function TempSchedAddShiftForm(): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   return (
     <React.Fragment>
@@ -26,6 +27,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
+          min={now}
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -44,6 +46,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
+            min={now}
             hint={
               <ClickableText
                 text='Configure as duration'
