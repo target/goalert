@@ -17,7 +17,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
       DateTime.local()
         .setZone(zone)
         .startOf('minute')
-        .toFormat("yyyy-MM-dd'T'HH:mm:ss"),
+        .toISO(),
     )
   }, [])
 

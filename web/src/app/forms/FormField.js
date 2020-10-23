@@ -36,7 +36,7 @@ export class FormField extends React.PureComponent {
     fieldName: p.string,
 
     // min and max values specify the range to clamp a int value
-    // expects a parsable date, if string
+    // expects an ISO timestamp, if string
     min: p.oneOfType([p.number, p.string]),
     max: p.oneOfType([p.number, p.string]),
 

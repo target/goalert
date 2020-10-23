@@ -73,11 +73,14 @@ function useISOPicker(
     }
   }
 
-  // starts with label above textfield so format placeholder can be seen
-  const shrinkInputLabel = (p) => ({
-    ...(p?.InputLabelProps ?? {}),
-    shrink: true,
-  })
+  // shrink: true sets the label above the textfield so the placeholder can be properly seen
+  const inputLabelProps = otherProps?.InputLabelProps ?? {}
+  inputLabelProps.shrink = true
+
+  // sets min and max if set
+  const inputProps = otherProps?.inputProps ?? {}
+  if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
+  if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
 
   if (native) {
     return (
@@ -86,8 +89,8 @@ function useISOPicker(
         value={inputValue}
         onChange={handleChange}
         {...otherProps}
-        inputProps={{ ...(otherProps?.inputProps ?? {}), min, max }}
-        InputLabelProps={shrinkInputLabel(otherProps)}
+        InputLabelProps={inputLabelProps}
+        inputProps={inputProps}
       />
     )
   }
@@ -121,7 +124,7 @@ function useISOPicker(
       }}
       {...extraProps}
       {...otherProps}
-      InputLabelProps={shrinkInputLabel(otherProps)}
+      InputLabelProps={inputLabelProps}
     />
   )
 }
@@ -137,7 +140,7 @@ export function ISOTimePicker(props) {
 
 export function ISODateTimePicker(props) {
   return useISOPicker(props, {
-    format: `yyyy-MM-dd'T'HH:mm`,
+    format: `yyyy-MM-dd'T'HH:mm`, // yyyy-MM-dd'T'HH:mm:ss
     Fallback: DateTimePicker,
     truncateTo: 'minute',
     type: 'datetime-local',

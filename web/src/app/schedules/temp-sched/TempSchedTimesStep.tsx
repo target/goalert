@@ -37,7 +37,7 @@ export default function TempSchedTimesStep({
       DateTime.local()
         .setZone(zone)
         .startOf('minute')
-        .toFormat("yyyy-MM-dd'T'HH:mm:ss"),
+        .toISO(),
     )
   }, [])
 
