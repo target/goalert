@@ -140,7 +140,7 @@ export function ISOTimePicker(props) {
 
 export function ISODateTimePicker(props) {
   return useISOPicker(props, {
-    format: `yyyy-MM-dd'T'HH:mm`, // yyyy-MM-dd'T'HH:mm:ss
+    format: `yyyy-MM-dd'T'HH:mm`,
     Fallback: DateTimePicker,
     truncateTo: 'minute',
     type: 'datetime-local',
