@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Grid,
   DialogContentText,
@@ -31,15 +31,10 @@ export default function TempSchedTimesStep({
   const classes = useStyles()
 
   const [zone] = useURLParam('tz', 'local')
-  const [now, setNow] = useState<string>()
-  useEffect(() => {
-    setNow(
-      DateTime.local()
-        .setZone(zone)
-        .startOf('minute')
-        .toISO(),
-    )
-  }, [])
+  const [now] = useState(DateTime.local()
+  .setZone(zone)
+  .startOf('minute')
+  .toISO())
 
   function validate(): Error | null {
     if (isISOBefore(value.start, value.end)) return null

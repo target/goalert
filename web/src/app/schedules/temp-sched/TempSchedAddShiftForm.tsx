@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Grid, TextField } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { useURLParam } from '../../actions'
@@ -11,15 +11,10 @@ import { Value } from './sharedUtils'
 export default function TempSchedAddShiftForm(): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
   const [zone] = useURLParam('tz', 'local')
-  const [now, setNow] = useState<string>()
-  useEffect(() => {
-    setNow(
-      DateTime.local()
-        .setZone(zone)
-        .startOf('minute')
-        .toISO(),
-    )
-  }, [])
+  const [now] = useState(DateTime.local()
+  .setZone(zone)
+  .startOf('minute')
+  .toISO())
 
   return (
     <React.Fragment>
