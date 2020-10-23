@@ -50,7 +50,6 @@ function testTemporarySchedule(): void {
     cy.get(addShiftsSelector).as('step2')
     cy.get('@step1').should('be.visible.and.contain', 'STEP 1 OF 2')
     cy.get('[data-cy="loading-button"]').contains('Next').click() // should error
-    cy.focused().blur() // dismiss error
     cy.dialogForm({ start, end }, schedTimesSelector)
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('@step2').should('be.visible.and.contain', 'STEP 2 OF 2')
