@@ -17,7 +17,7 @@ function hasInputSupport(name) {
 }
 
 function useISOPicker(
-  { value, onChange, timeZone, ...otherProps },
+  { value, onChange, timeZone, min, max, ...otherProps },
   { format, truncateTo, type, Fallback },
 ) {
   const native = hasInputSupport(type)
@@ -86,6 +86,7 @@ function useISOPicker(
         value={inputValue}
         onChange={handleChange}
         {...otherProps}
+        inputProps={{ ...(otherProps?.inputProps ?? {}), min, max }}
         InputLabelProps={shrinkInputLabel(otherProps)}
       />
     )
@@ -103,6 +104,8 @@ function useISOPicker(
       value={dtValue}
       onChange={(v) => handleChange({ target: { value: v } })}
       showTodayButton
+      minDate={min}
+      maxDate={max}
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
