@@ -1,6 +1,10 @@
 package oncall
 
-import "time"
+import (
+	"time"
+
+	"github.com/target/goalert/assignment"
+)
 
 // SingleRuleCalculator will calculate the currently active user.
 type SingleRuleCalculator struct {
@@ -48,12 +52,20 @@ func (t *TimeIterator) NewSingleRuleCalculator(loc *time.Location, rule Resolved
 
 	if rule.Rotation != nil {
 		calc.rot = t.NewUserCalculator()
-		cur := t.Start().In(loc)
-		// loop through rotations
-		for cur.Before(t.End()) && limit() {
-			userID := rule.Rotation.UserID(cur)
-			calc.rot.SetSpan(rule.Rotation.CurrentStart, rule.Rotation.CurrentEnd, userID)
-			cur = rule.Rotation.CurrentEnd
+		switch len(rule.Rotation.Users) {
+		case 0:
+			// nothing, no on-call
+		case 1:
+			// always same user
+			calc.rot.SetSpan(t.Start(), t.End().Add(t.Step()), rule.Rotation.UserID(t.Start()))
+		default:
+			cur := t.Start().In(loc)
+			// loop through rotations
+			for cur.Before(t.End()) && limit() {
+				userID := rule.Rotation.UserID(cur)
+				calc.rot.SetSpan(rule.Rotation.CurrentStart, rule.Rotation.CurrentEnd, userID)
+				cur = rule.Rotation.CurrentEnd
+			}
 		}
 		calc.rot.Init()
 	}
@@ -73,7 +85,7 @@ func (rCalc *SingleRuleCalculator) Process(int64) int64 {
 				// rotation will only ever have 1 active user
 				newUserID = usrs[0]
 			}
-		} else {
+		} else if rCalc.rule.Target.TargetType() == assignment.TargetTypeUser {
 			newUserID = rCalc.rule.Target.TargetID()
 		}
 	}

@@ -1,24 +1,17 @@
 import React, { useState } from 'react'
 import { Grid, Typography, makeStyles } from '@material-ui/core'
+import { Grid, TextField } from '@material-ui/core'
 import { DateTime } from 'luxon'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
+import ClickableText from '../../util/ClickableText'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
 import NumberField from '../../util/NumberField'
 
-const useStyles = makeStyles({
-  typography: {
-    '&:hover': {
-      cursor: 'pointer',
-      textDecoration: 'underline',
-    },
-  },
-})
-
 export default function TempSchedAddShiftForm(): JSX.Element {
-  const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   return (
     <React.Fragment>
@@ -36,6 +29,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
+          min={now}
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -54,16 +48,13 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
+            min={now}
             hint={
-              <Typography
+              <ClickableText
                 data-cy='toggle-duration-on'
-                className={classes.typography}
-                variant='caption'
-                color='textSecondary'
+                text='Configure as duration'
                 onClick={() => setManualEntry(false)}
-              >
-                Configure as duration?
-              </Typography>
+              />
             }
           />
         ) : (
@@ -90,15 +81,11 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             }}
             min={0.25}
             hint={
-              <Typography
+              <ClickableText
                 data-cy='toggle-duration-off'
-                className={classes.typography}
-                variant='caption'
-                color='textSecondary'
+                text='Configure as date/time'
                 onClick={() => setManualEntry(true)}
-              >
-                Configure as date/time?
-              </Typography>
+              />
             }
           />
         )}

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Grid,
   DialogContentText,
@@ -10,6 +10,7 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { contentText, StepContainer, Value } from './sharedUtils'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { isISOBefore } from '../../util/shifts'
+import { DateTime } from 'luxon'
 
 const useStyles = makeStyles({
   contentText,
@@ -27,6 +28,7 @@ export default function TempSchedTimesStep({
   value,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   function validate(): Error | null {
     if (isISOBefore(value.start, value.end)) return null
@@ -62,6 +64,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='start'
+            min={now}
             validate={() => validate()}
           />
         </Grid>
@@ -71,6 +74,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='end'
+            min={now}
             validate={() => validate()}
           />
         </Grid>
