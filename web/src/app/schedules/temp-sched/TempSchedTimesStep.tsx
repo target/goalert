@@ -31,10 +31,9 @@ export default function TempSchedTimesStep({
   const classes = useStyles()
 
   const [zone] = useURLParam('tz', 'local')
-  const [now] = useState(DateTime.local()
-  .setZone(zone)
-  .startOf('minute')
-  .toISO())
+  const [now] = useState(
+    DateTime.local().setZone(zone).startOf('minute').toISO(),
+  )
 
   function validate(): Error | null {
     if (isISOBefore(value.start, value.end)) return null

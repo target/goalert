@@ -11,10 +11,9 @@ import { Value } from './sharedUtils'
 export default function TempSchedAddShiftForm(): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
   const [zone] = useURLParam('tz', 'local')
-  const [now] = useState(DateTime.local()
-  .setZone(zone)
-  .startOf('minute')
-  .toISO())
+  const [now] = useState(
+    DateTime.local().setZone(zone).startOf('minute').toISO(),
+  )
 
   return (
     <React.Fragment>
