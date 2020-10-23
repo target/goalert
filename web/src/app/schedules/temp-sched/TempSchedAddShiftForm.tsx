@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Grid, TextField } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import { useURLParam } from '../../actions'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
@@ -10,10 +9,7 @@ import { Value } from './sharedUtils'
 
 export default function TempSchedAddShiftForm(): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
-  const [zone] = useURLParam('tz', 'local')
-  const [now] = useState(
-    DateTime.local().setZone(zone).startOf('minute').toISO(),
-  )
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   return (
     <React.Fragment>

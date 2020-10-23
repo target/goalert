@@ -10,7 +10,6 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { contentText, StepContainer, Value } from './sharedUtils'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { isISOBefore } from '../../util/shifts'
-import { useURLParam } from '../../actions'
 import { DateTime } from 'luxon'
 
 const useStyles = makeStyles({
@@ -30,10 +29,7 @@ export default function TempSchedTimesStep({
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
 
-  const [zone] = useURLParam('tz', 'local')
-  const [now] = useState(
-    DateTime.local().setZone(zone).startOf('minute').toISO(),
-  )
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   function validate(): Error | null {
     if (isISOBefore(value.start, value.end)) return null
