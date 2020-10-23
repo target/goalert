@@ -13,8 +13,12 @@ export default function TempSchedAddShiftForm(): JSX.Element {
   const [zone] = useURLParam('tz', 'local')
   const [now, setNow] = useState<string>()
   useEffect(() => {
-    setNow( DateTime.local().setZone(zone)
-    .startOf('minute').toFormat("yyyy-MM-dd'T'HH:mm:ss"))
+    setNow(
+      DateTime.local()
+        .setZone(zone)
+        .startOf('minute')
+        .toFormat("yyyy-MM-dd'T'HH:mm:ss"),
+    )
   }, [])
 
   return (

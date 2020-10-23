@@ -33,8 +33,12 @@ export default function TempSchedTimesStep({
   const [zone] = useURLParam('tz', 'local')
   const [now, setNow] = useState<string>()
   useEffect(() => {
-    setNow( DateTime.local().setZone(zone)
-    .startOf('minute').toFormat("yyyy-MM-dd'T'HH:mm:ss"))
+    setNow(
+      DateTime.local()
+        .setZone(zone)
+        .startOf('minute')
+        .toFormat("yyyy-MM-dd'T'HH:mm:ss"),
+    )
   }, [])
 
   function validate(): Error | null {
