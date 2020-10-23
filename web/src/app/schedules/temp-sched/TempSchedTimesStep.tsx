@@ -28,7 +28,6 @@ export default function TempSchedTimesStep({
   value,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
-
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   function validate(): Error | null {
