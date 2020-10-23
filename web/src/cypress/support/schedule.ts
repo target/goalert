@@ -161,26 +161,29 @@ function createTemporarySchedule(
       .then((s: Schedule) => createTemporarySchedule(s.id, options))
   }
 
-  let input = omit(options ?? {}, 'shiftUserIDs')
+  const input = omit(options ?? {}, 'shiftUserIDs')
   input.scheduleID = scheduleID
 
   const now = DateTime.local()
   const r = (min: number, max: number): number => c.integer({ min, max })
 
-  const MAX_FUTURE = (60 * 24 * 365) * 3 // up to 3 years (in minutes) in the future
+  const MAX_FUTURE = 60 * 24 * 365 * 3 // up to 3 years (in minutes) in the future
   const MIN = 60 // minimum temp sched length of 1 hour, in minutes
   const MAX = 60 * 24 * 30 // maximum temp sched length of 1 month, in minutes
   const SHIFT_MIN = 1 // minimum shift length, in hours
 
   // set temp sched start and end dates
   if (!input.start && !input.end) {
-    let s = now.plus({ minutes: r(0, MAX_FUTURE) })
+    const s = now.plus({ minutes: r(0, MAX_FUTURE) })
     input.start = s.toISO()
     input.end = s.plus({ minutes: r(MIN, MAX) }).toISO()
   } else if (!input.start && input.end) {
     const end = DateTime.fromISO(input.end)
     if (!end.isValid) return cy.log('invalid end date')
-    if (+end < +now) return cy.log('cannot provide end time before now() without also providing start time')
+    if (+end < +now)
+      return cy.log(
+        'cannot provide end time before now() without also providing start time',
+      )
     const max = Interval.fromDateTimes(now, end).toDuration('hours').hours
     input.start = end.minus({ hours: r(1, max) }).toISO()
   } else if (input.start && !input.end) {
@@ -192,21 +195,32 @@ function createTemporarySchedule(
   // set shifts
   if (!input.shifts?.length) {
     cy.fixture('users').then((users) => {
-      const userIDs = options.shiftUserIDs || c.pickset(users.map((u: User) => u.id), r(1, users.length))
+      const userIDs =
+        options.shiftUserIDs ||
+        c.pickset(
+          users.map((u: User) => u.id),
+          r(1, users.length),
+        )
       const schedStart = DateTime.fromISO(input.start)
       const schedEnd = DateTime.fromISO(input.end)
       if (!schedStart.isValid) return cy.log('invalid start date')
       if (!schedEnd.isValid) return cy.log('invalid end date')
 
       if (+schedStart > +schedEnd) return cy.log('start cannot begin after end')
-      const schedLength = Interval.fromDateTimes(schedStart, schedEnd).toDuration(['hours', 'minutes'])
+      const schedLength = Interval.fromDateTimes(
+        schedStart,
+        schedEnd,
+      ).toDuration(['hours', 'minutes'])
 
       // make 1 shift per user, within range of sched
       input.shifts = []
       userIDs.forEach((userID: string) => {
-
-        const start = schedStart.plus({ minutes: r(0, schedLength.minutes - SHIFT_MIN) })
-        const timeUntilEnd = Interval.fromDateTimes(start, schedEnd).toDuration('minutes').minutes
+        const start = schedStart.plus({
+          minutes: r(0, schedLength.minutes - SHIFT_MIN),
+        })
+        const timeUntilEnd = Interval.fromDateTimes(start, schedEnd).toDuration(
+          'minutes',
+        ).minutes
         const end = start.plus({ minutes: r(SHIFT_MIN, timeUntilEnd) })
 
         input.shifts.push({ userID, start, end })

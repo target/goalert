@@ -133,7 +133,10 @@ export default function TempSchedShiftsList({
                   <Error className={classes.secondaryActionError} />
                 </Tooltip>
               )}
-              <IconButton data-cy='delete-shift' onClick={() => onRemove(s.shift)}>
+              <IconButton
+                data-cy='delete-shift'
+                onClick={() => onRemove(s.shift)}
+              >
                 <Delete />
               </IconButton>
             </div>

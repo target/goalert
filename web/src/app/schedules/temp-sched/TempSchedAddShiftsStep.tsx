@@ -122,15 +122,19 @@ export default function TempSchedAddShiftsStep({
   // that makes the network request.
   function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
-    const add = (field: string, message: string) => result.push({ field, message } as FieldError)
-    
+    const add = (field: string, message: string): void => {
+      result.push({ field, message } as FieldError)
+    }
+
     const requiredMsg = 'this field is required'
     if (!shift || !s) return result
     if (!shift.userID) add('userID', requiredMsg)
     if (!shift.start) add('start', requiredMsg)
     if (!shift.end) add('end', requiredMsg)
-    if (!isISOAfter(shift.end, shift.start)) add('end', 'must be after shift start time')
-    if (!isISOBefore(shift.start, shift.end)) add('start', 'must be before shift end time')
+    if (!isISOAfter(shift.end, shift.start))
+      add('end', 'must be after shift start time')
+    if (!isISOBefore(shift.start, shift.end))
+      add('start', 'must be before shift end time')
     return result
   }
 
