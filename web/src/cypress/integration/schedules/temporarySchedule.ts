@@ -69,7 +69,7 @@ function testTemporarySchedule(): void {
     cy.get('[data-cy="loading-button"]').contains('Next').click()
     cy.get('@step2').should('be.visible.and.contain', 'STEP 2 OF 2')
     cy.get('@step2').find('input[name="end"]').should('have.value', 8)
-    cy.get('@step2').find('span[data-cy="toggle-duration-off"]').click()
+    cy.get('@step2').find('[data-cy="toggle-duration-off"]').click()
     cy.get('@step2')
       .find('input[name="end"]')
       .should('have.value', shiftEnd.toFormat(dtFmt))
@@ -77,7 +77,7 @@ function testTemporarySchedule(): void {
       { end: shiftEnd.plus({ hours: 8 }).toFormat(dtFmt) },
       addShiftsSelector,
     )
-    cy.get('@step2').find('span[data-cy="toggle-duration-on"]').click()
+    cy.get('@step2').find('[data-cy="toggle-duration-on"]').click()
     cy.get('@step2').find('input[name="end"]').should('have.value', 16)
   })
 
