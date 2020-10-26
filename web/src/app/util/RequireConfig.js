@@ -60,7 +60,7 @@ function parseValue(type, value) {
 
 function isTrue(value) {
   if (Array.isArray(value)) return value.length > 0
-
+  if (value === 'false') return false
   return Boolean(value)
 }
 
@@ -119,21 +119,21 @@ export default function RequireConfig(props) {
     isAdmin: wantIsAdmin,
     children,
     else: elseValue = null,
-    ...rest
   } = props
   const { config, isAdmin } = useContext(ConfigContext)
 
   if (wantIsAdmin && !isAdmin) {
     return elseValue
   }
-  if (configID && !test(config[configID])) {
+
+  const cfgOpt = config.find((c) => c.id === configID)
+  if (configID && !test(cfgOpt?.value)) {
     return elseValue
   }
 
-  return React.Children.map(children, (child) =>
-    React.cloneElement(child, _.omit(rest, Object.keys(child.props))),
-  )
+  return <React.Fragment>{children}</React.Fragment>
 }
+
 RequireConfig.propTypes = {
   isAdmin: p.bool,
   configID: p.string,
