@@ -7340,10 +7340,10 @@ linkify-it@^2.0.0:
   dependencies:
     uc.micro "^1.0.1"
 
-lint-staged@10.4.0:
-  version "10.4.0"
-  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-10.4.0.tgz#d18628f737328e0bbbf87d183f4020930e9a984e"
-  integrity sha512-uaiX4U5yERUSiIEQc329vhCTDDwUcSvKdRLsNomkYLRzijk3v8V9GWm2Nz0RMVB87VcuzLvtgy6OsjoH++QHIg==
+lint-staged@10.4.2:
+  version "10.4.2"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-10.4.2.tgz#9fee4635c4b5ddb845746f237c6d43494ccd21c1"
+  integrity sha512-OLCA9K1hS+Sl179SO6kX0JtnsaKj/MZalEhUj5yAgXsb63qPI/Gfn6Ua1KuZdbfkZNEu3/n5C/obYCu70IMt9g==
   dependencies:
     chalk "^4.1.0"
     cli-truncate "^2.1.0"
@@ -9448,10 +9448,10 @@ react-ga@3.1.2:
   resolved "https://registry.yarnpkg.com/react-ga/-/react-ga-3.1.2.tgz#e13f211c51a2e5c401ea69cf094b9501fe3c51ce"
   integrity sha512-OJrMqaHEHbodm+XsnjA6ISBEHTwvpFrxco65mctzl/v3CASMSLSyUkFqz9yYrPDKGBUfNQzKCjuMJwctjlWBbw==
 
-react-hot-loader@4.12.21:
-  version "4.12.21"
-  resolved "https://registry.yarnpkg.com/react-hot-loader/-/react-hot-loader-4.12.21.tgz#332e830801fb33024b5a147d6b13417f491eb975"
-  integrity sha512-Ynxa6ROfWUeKWsTHxsrL2KMzujxJVPjs385lmB2t5cHUxdoRPGind9F00tOkdc1l5WBleOF4XEAMILY1KPIIDA==
+react-hot-loader@4.13.0:
+  version "4.13.0"
+  resolved "https://registry.yarnpkg.com/react-hot-loader/-/react-hot-loader-4.13.0.tgz#c27e9408581c2a678f5316e69c061b226dc6a202"
+  integrity sha512-JrLlvUPqh6wIkrK2hZDfOyq/Uh/WeVEr8nc7hkn2/3Ul0sx1Kr5y4kOGNacNRoj7RhwLNcQ3Udf1KJXrqc0ZtA==
   dependencies:
     fast-levenshtein "^2.0.6"
     global "^4.3.0"

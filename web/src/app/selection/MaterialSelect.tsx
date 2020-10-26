@@ -85,21 +85,30 @@ export default function MaterialSelect(
     name,
     noOptionsText,
     onChange,
-    onInputChange,
+    onInputChange = () => {},
     options: _options,
     placeholder,
     required,
     value,
   } = props
 
-  const getLabel = (): string =>
-    Array.isArray(value) ? value[0]?.label ?? '' : value?.label ?? ''
+  // getInputLabel will return the label of the current value.
+  //
+  // If in multi-select mode an empty string is always returned as selected values
+  // are never preserved in the input field (they are chips instead).
+  const getInputLabel = (): string =>
+    multiple || Array.isArray(value) ? '' : value?.label || ''
 
-  const [inputValue, setInputValue] = useState(multiple ? '' : getLabel())
+  const [inputValue, _setInputValue] = useState(getInputLabel())
+
+  const setInputValue = (input: string): void => {
+    _setInputValue(input)
+    onInputChange(input)
+  }
   useEffect(() => {
     if (multiple) return
     if (!value) setInputValue('')
-    if (!inputValue && value) setInputValue(getLabel())
+    if (!inputValue && value) setInputValue(getInputLabel())
   }, [value, multiple])
 
   const multi = multiple ? { multiple: true } : {}
@@ -151,7 +160,7 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={getLabel}
+      onBlur={() => setInputValue(getInputLabel())}
       loading={isLoading}
       getOptionLabel={(option) => option?.label ?? ''}
       options={options}
@@ -176,7 +185,6 @@ export default function MaterialSelect(
             onChange={({ target }) => {
               const newInputVal: string = target.value
               setInputValue(newInputVal)
-              if (onInputChange) onInputChange(newInputVal)
             }}
             error={error}
           />
