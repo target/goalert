@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
@@ -45,6 +45,10 @@ export default function ScheduleDetails({ scheduleID }) {
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
+
+  const onNewTempSched = useCallback(() => setConfigTempSchedule(true), [])
+  const onEditTempSched = useCallback(setConfigTempSchedule, [])
+  const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
 
   const resetFilter = useResetURLParams(
     'userFilter',
@@ -153,9 +157,9 @@ export default function ScheduleDetails({ scheduleID }) {
         pageFooter={
           <ScheduleCalendarQuery
             scheduleID={scheduleID}
-            onNewTempSched={() => setConfigTempSchedule(true)}
-            onEditTempSched={(sched) => setConfigTempSchedule(sched)}
-            onDeleteTempSched={(sched) => setDeleteTempSchedule(sched)}
+            onNewTempSched={onNewTempSched}
+            onEditTempSched={onEditTempSched}
+            onDeleteTempSched={onDeleteTempSched}
           />
         }
       />
