@@ -17,4 +17,4 @@ image_resource:
 run:
   path: sh
   dir: goalert
-  args: [-e, ./devtools/ci/tasks/scripts/build-binaries.sh, ../bin]
+  args: [-e, ./devtools/ci/tasks/scripts/build-binaries.sh, ../bin/]
