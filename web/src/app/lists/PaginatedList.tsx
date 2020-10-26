@@ -39,6 +39,12 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     padding: '0.25em 0 0.25em 0',
   },
+  itemAction: {
+    paddingLeft: 14,
+  },
+  itemText: {
+    wordBreak: 'break-word',
+  },
   progress: {
     color: theme.palette.secondary.main,
     position: 'absolute',
@@ -165,7 +171,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   function renderItem(item: PaginatedListItemProps, idx: number): ReactElement {
-    let favIcon = <ListItemSecondaryAction />
+    let favIcon = null
     if (item.isFavorite) {
       favIcon = (
         <ListItemSecondaryAction>
@@ -207,11 +213,13 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         {...urlProps}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-        <ListItemText primary={item.title} secondary={item.subText} />
+        <ListItemText
+          className={classes.itemText}
+          primary={item.title}
+          secondary={item.subText}
+        />
         {favIcon}
-        {item.action && (
-          <ListItemSecondaryAction>{item.action}</ListItemSecondaryAction>
-        )}
+        {item.action && <div className={classes.itemAction}>{item.action}</div>}
       </ListItem>
     )
   }

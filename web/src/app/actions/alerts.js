@@ -22,6 +22,11 @@ export function setAlertsAllServicesFilter(bool) {
   return setURLParam('allServices', bool ? '1' : null)
 }
 
+// setAlertsAllServicesFilter will set the alert list to include all services.
+export function setAlertsShowAsFullTimeFilter(bool) {
+  return setURLParam('fullTime', bool ? '1' : null)
+}
+
 // resetAlertsFilters will reset all alert list filters to their defaults (NOT including search).
 export function resetAlertsFilters() {
   return resetURLParams('filter', 'allServices')
