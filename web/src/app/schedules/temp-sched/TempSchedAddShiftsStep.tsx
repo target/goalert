@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
     overflowY: 'scroll',
   },
   mainContainer: {
-    height: '100%',
+    height: 'auto',
   },
 }))
 
