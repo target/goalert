@@ -194,7 +194,7 @@ export default function TempSchedAddShiftsStep({
   return (
     <StepContainer>
       {/* main container for fields | button | shifts */}
-      <Grid container spacing={2} className={classes.mainContainer}>
+      <Grid container spacing={0} className={classes.mainContainer}>
         {/* title + fields container */}
         <Grid item xs={5} container spacing={2} direction='column'>
           <Grid item>
