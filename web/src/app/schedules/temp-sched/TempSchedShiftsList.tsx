@@ -119,7 +119,7 @@ export default function TempSchedShiftsList({
       <FlatList
         items={items()}
         emptyMessage='Add a user to the left to get started.'
-        dense
+        listProps={{ dense: true }}
       />
     </React.Fragment>
   )
