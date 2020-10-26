@@ -19,7 +19,6 @@ GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
 GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_FLAGS=
-BUILD_TAGS+=timetzdata
 
 export ZONEINFO=$(shell go env GOROOT)/lib/time/zoneinfo.zip
 

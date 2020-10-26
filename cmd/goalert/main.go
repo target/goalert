@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/target/goalert/app"
-	"github.com/target/goalert/util/log"
 	"os"
+	_ "time/tzdata"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/target/goalert/app"
+	"github.com/target/goalert/util/log"
 )
 
 func main() {
