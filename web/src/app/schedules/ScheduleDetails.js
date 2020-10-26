@@ -46,16 +46,14 @@ export default function ScheduleDetails({ scheduleID }) {
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
 
-  const onNewTempSched = useMemo(() => () => setConfigTempSchedule(true), [
-    scheduleID,
-  ])
+  const onNewTempSched = useMemo(() => () => setConfigTempSchedule(true), [])
   const onEditTempSched = useMemo(
     () => (sched) => setConfigTempSchedule(sched),
-    [scheduleID],
+    [],
   )
   const onDeleteTempSched = useMemo(
     () => (sched) => setDeleteTempSchedule(sched),
-    [scheduleID],
+    [],
   )
 
   const resetFilter = useResetURLParams(
