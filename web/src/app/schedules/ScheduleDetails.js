@@ -47,14 +47,8 @@ export default function ScheduleDetails({ scheduleID }) {
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
 
   const onNewTempSched = useCallback(() => setConfigTempSchedule(true), [])
-  const onEditTempSched = useCallback(
-    (sched) => setConfigTempSchedule(sched),
-    [],
-  )
-  const onDeleteTempSched = useCallback(
-    (sched) => setDeleteTempSchedule(sched),
-    [],
-  )
+  const onEditTempSched = useCallback(setConfigTempSchedule, [])
+  const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
 
   const resetFilter = useResetURLParams(
     'userFilter',
