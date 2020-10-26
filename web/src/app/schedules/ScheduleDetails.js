@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useCallback } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
 import { useQuery } from 'react-apollo'
@@ -46,13 +46,13 @@ export default function ScheduleDetails({ scheduleID }) {
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
   const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
 
-  const onNewTempSched = useMemo(() => () => setConfigTempSchedule(true), [])
-  const onEditTempSched = useMemo(
-    () => (sched) => setConfigTempSchedule(sched),
+  const onNewTempSched = useCallback(() => setConfigTempSchedule(true), [])
+  const onEditTempSched = useCallback(
+    (sched) => setConfigTempSchedule(sched),
     [],
   )
-  const onDeleteTempSched = useMemo(
-    () => (sched) => setDeleteTempSchedule(sched),
+  const onDeleteTempSched = useCallback(
+    (sched) => setDeleteTempSchedule(sched),
     [],
   )
 
