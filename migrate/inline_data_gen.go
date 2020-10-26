@@ -590,7 +590,8 @@ K3t-dTtBCQEEFY95UcyLeYLe3V5N36DJzc3F7HIyTvIPRf4x_bSolvwMKlb7sQ82inYyQn8kqVfZ4zj5
 Zmrc8U6E0VFafOtiXlapyZcP_uD4bg41B5LuuF4V20yEXXg3v1aTsq-U2_T9ynm9J-u6wmUUu805Bm6V
 ldlDUe_vS7HYbetZsZqL9LNUqzRfpdvFqki3xWZLPddf0sX80eJqMf3W0v5reAJs98nmlxiXhxfe5itu
 cu6-8Ppt7FU2tsOKxoZBEqSPS2ljqu0l_WorsHF5hKrWrV4mgMsIn7e0uo2ZZDiFW_vIz3VBzZevDDQ7
-MnO8rArvyRJKIt-iRj4ueSh5wyr__wEAAP__oEPyB3I9BAA=
+MnO8rArvyRJKIt-iRj4ueSi5lVVeOSo1-21JWcDY91uUBcK2_qRuTOpIG16SDoh6MvBv-JV6n538fwAA
+AP__IuNXjVY-BAA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -606,7 +607,7 @@ MnO8rArvyRJKIt-iRj4ueSh5wyr__wEAAP__oEPyB3I9BAA=
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(46543)
+				buf.Grow(46592)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -821,5 +822,6 @@ MnO8rArvyRJKIt-iRj4ueSh5wyr__wEAAP__oEPyB3I9BAA=
 		{Data: dataRange(277098, 277334), Name: "migrations/20200805132936-test-verify-index.sql"},
 		{Data: dataRange(277334, 277505), Name: "migrations/20200908095243-session-access-time.sql"},
 		{Data: dataRange(277505, 277874), Name: "migrations/20200922140909-session-last-access-time.sql"},
+		{Data: dataRange(277874, 278102), Name: "migrations/20200923155516-temp-schedules.sql"},
 	}
 }

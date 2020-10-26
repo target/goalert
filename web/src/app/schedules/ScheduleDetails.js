@@ -21,6 +21,8 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
+import TempSchedDialog from './temp-sched/TempSchedDialog'
+import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -41,6 +43,8 @@ export default function ScheduleDetails({ scheduleID }) {
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [configTempSchedule, setConfigTempSchedule] = useState(null)
+  const [deleteTempSchedule, setDeleteTempSchedule] = useState(null)
 
   const resetFilter = useResetURLParams(
     'userFilter',
@@ -76,6 +80,20 @@ export default function ScheduleDetails({ scheduleID }) {
         <ScheduleDeleteDialog
           scheduleID={scheduleID}
           onClose={() => setShowDelete(false)}
+        />
+      )}
+      {configTempSchedule && (
+        <TempSchedDialog
+          value={configTempSchedule === true ? null : configTempSchedule}
+          onClose={() => setConfigTempSchedule(null)}
+          scheduleID={scheduleID}
+        />
+      )}
+      {deleteTempSchedule && (
+        <TempSchedDeleteConfirmation
+          value={deleteTempSchedule}
+          onClose={() => setDeleteTempSchedule(null)}
+          scheduleID={scheduleID}
         />
       )}
       <PageActions>
@@ -132,7 +150,14 @@ export default function ScheduleDetails({ scheduleID }) {
           },
           { label: 'Shifts', url: 'shifts' },
         ]}
-        pageFooter={<ScheduleCalendarQuery scheduleID={scheduleID} />}
+        pageFooter={
+          <ScheduleCalendarQuery
+            scheduleID={scheduleID}
+            onNewTempSched={() => setConfigTempSchedule(true)}
+            onEditTempSched={(sched) => setConfigTempSchedule(sched)}
+            onDeleteTempSched={(sched) => setDeleteTempSchedule(sched)}
+          />
+        }
       />
     </React.Fragment>
   )

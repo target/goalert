@@ -17,14 +17,16 @@ function hasInputSupport(name) {
 }
 
 function useISOPicker(
-  { value, onChange, timeZone, ...otherProps },
+  { value, onChange, timeZone, min, max, ...otherProps },
   { format, truncateTo, type, Fallback },
 ) {
   const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
   const zone = timeZone || params('tz', 'local')
   const dtValue = DateTime.fromISO(value, { zone })
-  const [inputValue, setInputValue] = useState(dtValue.toFormat(format))
+  const [inputValue, setInputValue] = useState(
+    value ? dtValue.toFormat(format) : '',
+  )
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
@@ -57,7 +59,7 @@ function useISOPicker(
   }
 
   useEffect(() => {
-    setInputValue(dtValue.toFormat(format))
+    setInputValue(value ? dtValue.toFormat(format) : '')
   }, [value, zone])
 
   const handleChange = (e) => {
@@ -71,6 +73,15 @@ function useISOPicker(
     }
   }
 
+  // shrink: true sets the label above the textfield so the placeholder can be properly seen
+  const inputLabelProps = otherProps?.InputLabelProps ?? {}
+  inputLabelProps.shrink = true
+
+  // sets min and max if set
+  const inputProps = otherProps?.inputProps ?? {}
+  if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
+  if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
+
   if (native) {
     return (
       <TextField
@@ -78,6 +89,8 @@ function useISOPicker(
         value={inputValue}
         onChange={handleChange}
         {...otherProps}
+        InputLabelProps={inputLabelProps}
+        inputProps={inputProps}
       />
     )
   }
@@ -94,6 +107,8 @@ function useISOPicker(
       value={value ? dtValue : null}
       onChange={(v) => handleChange({ target: { value: v } })}
       showTodayButton
+      minDate={min}
+      maxDate={max}
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
@@ -109,6 +124,7 @@ function useISOPicker(
       }}
       {...extraProps}
       {...otherProps}
+      InputLabelProps={inputLabelProps}
     />
   )
 }

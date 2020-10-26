@@ -40,7 +40,7 @@ func (s Shift) String() string {
 
 type ShiftCalculator struct {
 	RuleStore  rule.Store
-	SchedStore schedule.Store
+	SchedStore *schedule.Store
 	RotStore   rotation.Store
 	OStore     override.Store
 }

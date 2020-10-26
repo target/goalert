@@ -15,6 +15,7 @@ import { styles as globalStyles } from '../styles/materialStyles'
 import gracefulUnmount from '../util/gracefulUnmount'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
+import Notices from '../details/Notices'
 
 const styles = (theme) => {
   const { cancelButton, dialogWidth } = globalStyles(theme)
@@ -48,7 +49,13 @@ export default class FormDialog extends React.PureComponent {
     title: p.node.isRequired,
     subTitle: p.node,
     caption: p.node,
-
+    notices: p.arrayOf(
+      p.shape({
+        type: p.oneOf(['WARNING', 'ERROR', 'INFO']).isRequired,
+        message: p.string.isRequired,
+        details: p.string.isRequired,
+      }),
+    ),
     errors: p.arrayOf(
       p.shape({
         message: p.string.isRequired,
@@ -57,6 +64,7 @@ export default class FormDialog extends React.PureComponent {
     ),
 
     form: p.element,
+    fullScreen: p.bool,
     loading: p.bool,
     alert: p.bool,
     confirm: p.bool,
@@ -85,6 +93,7 @@ export default class FormDialog extends React.PureComponent {
   }
 
   static defaultProps = {
+    notices: [],
     errors: [],
     onClose: () => {},
     onSubmit: () => {},
@@ -100,7 +109,9 @@ export default class FormDialog extends React.PureComponent {
       classes,
       confirm,
       disableGutters,
+      notices,
       errors,
+      fullScreen,
       isUnmounting,
       loading,
       primaryActionLabel, // remove from dialogProps spread
@@ -115,23 +126,24 @@ export default class FormDialog extends React.PureComponent {
       ...dialogProps
     } = this.props
 
-    const isWideScreen = isWidthUp('md', width)
+    const isFullScreen = fullScreen || (!isWidthUp('md', width) && !confirm)
 
     return (
       <Dialog
-        disableBackdropClick={!isWideScreen || alert}
-        fullScreen={!isWideScreen && !confirm}
+        disableBackdropClick={isFullScreen || alert}
+        fullScreen={isFullScreen}
         maxWidth={maxWidth}
         fullWidth
         open={!isUnmounting}
         onClose={onClose}
         TransitionComponent={
-          isWideScreen || confirm ? DefaultTransition : FullscreenTransition
+          isFullScreen ? FullscreenTransition : DefaultTransition
         }
         {...dialogProps}
       >
+        <Notices notices={notices} />
         <DialogTitleWrapper
-          fullScreen={!isWideScreen && !confirm}
+          fullScreen={isFullScreen}
           onClose={onClose}
           title={title}
           subTitle={subTitle}
