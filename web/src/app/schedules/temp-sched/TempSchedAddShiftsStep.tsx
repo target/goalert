@@ -32,10 +32,13 @@ const useStyles = makeStyles((theme) => ({
   },
   listContainer: {
     position: 'relative',
-    overflowY: 'scroll',
+    overflowY: 'auto',
   },
   mainContainer: {
     height: '100%',
+  },
+  shiftFormContainer: {
+    maxHeight: '100%',
   },
 }))
 
@@ -196,7 +199,14 @@ export default function TempSchedAddShiftsStep({
       {/* main container for fields | button | shifts */}
       <Grid container spacing={0} className={classes.mainContainer}>
         {/* title + fields container */}
-        <Grid item xs={5} container spacing={2} direction='column'>
+        <Grid
+          item
+          xs={5}
+          container
+          spacing={2}
+          direction='column'
+          className={classes.shiftFormContainer}
+        >
           <Grid item>
             <Typography variant='body2'>{stepText}</Typography>
             <Typography variant='h6' component='h2'>
