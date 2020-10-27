@@ -63,8 +63,19 @@ export default class CalendarEventWrapper extends Component {
     onDeleteTempSched: p.func,
   }
 
+  // Handle showing tooltips with tab focus
+  // but also toggling via clicks event
+  // state is tracked separately as an additional
+  // click on the shift span will close the tooltip
+  state = {
+    eventClicked: false,
+    eventHasFocus: false,
+  }
+
   handleShowOverrideForm = (type) => {
     const { event, onOverrideClick } = this.props
+
+    this.handleBlurTooltip()
 
     onOverrideClick({
       variant: type,
@@ -76,6 +87,22 @@ export default class CalendarEventWrapper extends Component {
     })
   }
 
+  handleClickTooltip = () => {
+    if (!this.state.eventClicked) {
+      this.setState({ eventClicked: true, eventHasFocus: true })
+    } else {
+      this.setState({ eventClicked: false, eventHasFocus: false })
+    }
+  }
+
+  handleFocusTooltip = () => {
+    this.setState({ eventHasFocus: true, eventClicked: false })
+  }
+
+  handleBlurTooltip = () => {
+    this.setState({ eventHasFocus: false, eventClicked: false })
+  }
+
   renderTempSchedButtons() {
     const { classes, event } = this.props
     return (
@@ -84,7 +111,10 @@ export default class CalendarEventWrapper extends Component {
           <Button
             data-cy='edit-temp-sched'
             size='small'
-            onClick={() => this.props.onEditTempSched(event.tempSched)}
+            onClick={() => {
+              this.handleBlurTooltip()
+              return this.props.onEditTempSched(event.tempSched)
+            }}
             variant='contained'
             color='primary'
             title='Edit this temporary schedule'
@@ -97,7 +127,10 @@ export default class CalendarEventWrapper extends Component {
           <Button
             data-cy='delete-temp-sched'
             size='small'
-            onClick={() => this.props.onDeleteTempSched(event.tempSched)}
+            onClick={() => {
+              this.handleBlurTooltip()
+              return this.props.onDeleteTempSched(event.tempSched)
+            }}
             variant='contained'
             color='primary'
             title='Delete this temporary schedule'
@@ -176,9 +209,11 @@ export default class CalendarEventWrapper extends Component {
 
   render() {
     const { children, classes } = this.props
+    const { eventClicked, eventHasFocus } = this.state
 
     return (
       <Tooltip
+        open={eventHasFocus || eventClicked}
         classes={{
           tooltip: classes.tooltip,
           popper: classes.popper,
@@ -190,7 +225,14 @@ export default class CalendarEventWrapper extends Component {
         }}
         title={this.renderInteractiveTooltip()}
       >
-        {children}
+        {React.cloneElement(children, {
+          onClick: () => {
+            children.props.onClick() // toggles selected
+            this.handleClickTooltip() // toggles tooltip
+          },
+          onFocus: this.handleFocusTooltip,
+          onBlur: this.handleBlurTooltip,
+        })}
       </Tooltip>
     )
   }
