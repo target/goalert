@@ -11,7 +11,6 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
@@ -174,11 +173,11 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
     let favIcon = null
     if (item.isFavorite) {
       favIcon = (
-        <ListItemSecondaryAction>
+        <div className={classes.itemAction}>
           <Avatar className={classes.favoriteIcon}>
             <FavoriteIcon data-cy='fav-icon' />
           </Avatar>
-        </ListItemSecondaryAction>
+        </div>
       )
     }
 
