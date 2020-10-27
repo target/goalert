@@ -232,6 +232,7 @@ export default class CalendarEventWrapper extends Component {
           },
           onFocus: this.handleFocusTooltip,
           onBlur: this.handleBlurTooltip,
+          role: 'button',
         })}
       </Tooltip>
     )
