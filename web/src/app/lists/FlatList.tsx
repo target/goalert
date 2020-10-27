@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react'
-import p from 'prop-types'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -235,42 +234,4 @@ export default function FlatList(props: FlatListType): JSX.Element {
     return renderDragAndDrop()
   }
   return renderList()
-}
-
-FlatList.propTypes = {
-  // headerNote will be displayed at the top of the list.
-  headerNote: p.node,
-
-  // emptyMessage will be displayed if there are no items in the list.
-  emptyMessage: p.string,
-
-  items: p.arrayOf(
-    p.oneOfType([
-      p.shape({
-        highlight: p.bool,
-        title: p.node.isRequired,
-        subText: p.node,
-        secondaryAction: p.element,
-        url: p.string,
-        icon: p.element, // renders a list item icon (or avatar)
-        id: p.string, // required for drag and drop
-      }),
-      p.shape({
-        subHeader: p.node.isRequired,
-      }),
-    ]),
-  ),
-
-  // indent text of each list item if no icon is present
-  inset: p.bool,
-
-  // If specified, enables drag and drop
-  //
-  // onReorder(id, oldIndex, newIndex)
-  onReorder: p.func,
-}
-
-FlatList.defaultProps = {
-  items: [],
-  emptyMessage: 'No results',
 }
