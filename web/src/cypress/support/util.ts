@@ -70,11 +70,12 @@ export function testScreen(
   adminLogin = false,
 ): void {
   describe(label, () => {
-    before(() =>
+    before(() => {
+      cy.clearCookie('goalert_session.2')
       resetQuery().then((query) =>
         cy.task('engine:stop').sql(query).task('engine:start'),
-      ),
-    )
+      )
+    })
     it('reset db', () => {}) // required due to mocha skip bug
 
     if (!skipLogin) {
