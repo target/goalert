@@ -17,6 +17,8 @@ import {
 import ListSubheader from '@material-ui/core/ListSubheader'
 import { AppLink } from '../util/AppLink'
 import { makeStyles } from '@material-ui/core'
+import { CSSTransition, TransitionGroup } from 'react-transition-group'
+import '../styles/base/elements.css'
 
 const useStyles = makeStyles({
   background: { backgroundColor: 'white' },
@@ -62,6 +64,9 @@ type FlatListType = {
   //
   // onReorder(id, oldIndex, newIndex)
   onReorder?: (oldIndex: number, newIndex: number) => void
+
+  // will render transition in list
+  transition?: boolean
 }
 
 export default function FlatList(props: FlatListType): JSX.Element {
@@ -70,8 +75,9 @@ export default function FlatList(props: FlatListType): JSX.Element {
     emptyMessage,
     headerNote,
     items,
-    inset, // don't include in spread
-    listProps,
+    inset,
+    transition,
+    listProps
   } = props
 
   const classes = useStyles()
@@ -103,6 +109,35 @@ export default function FlatList(props: FlatListType): JSX.Element {
         to: item.url,
         button: true,
       }
+    }
+    if(transition) {
+      return (
+        <CSSTransition
+        key={idx}
+        timeout={500}
+        classNames={'fade'}
+      >
+          <ListItem
+            key={idx}
+            {...itemProps}
+            style={{ width: '100%' }}
+            className={item.highlight ? classes.highlightedItem : ''}
+          >
+            {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
+            <ListItemText
+              primary={item.title}
+              secondary={item.subText}
+              secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
+              inset={inset && !item.icon}
+            />
+            {item.secondaryAction && (
+              <ListItemSecondaryAction>
+                {item.secondaryAction}
+              </ListItemSecondaryAction>
+            )}
+          </ListItem>
+      </CSSTransition>
+      )
     }
 
     return (
@@ -148,6 +183,26 @@ export default function FlatList(props: FlatListType): JSX.Element {
       if (!onReorder) {
         if ('subHeader' in item) {
           if (item.subHeader) {
+            if(transition) {
+              return (
+                <CSSTransition
+                  key={idx}
+                  timeout={500}
+                  classNames={'fade'}
+                >
+                  <ListSubheader key={idx} className={classes.background}>
+                    <Typography
+                      component='h2'
+                      variant='subtitle1'
+                      color='textSecondary'
+                      data-cy='flat-list-item-subheader'
+                    >
+                      {item.subHeader}
+                    </Typography>
+                  </ListSubheader>
+                </CSSTransition>
+              )
+            }
             return (
               <ListSubheader key={idx} className={classes.background}>
                 <Typography
@@ -214,6 +269,27 @@ export default function FlatList(props: FlatListType): JSX.Element {
     )
   }
 
+  function renderTransitionList(): JSX.Element {
+    return (
+      <List {...listProps}>
+        <TransitionGroup>
+          {headerNote && (
+            <ListItem>
+              <ListItemText
+                disableTypography
+                secondary={
+                  <Typography color='textSecondary'>{headerNote}</Typography>
+                }
+                style={{ fontStyle: 'italic' }}
+              />
+            </ListItem>
+          )}
+          {renderItems()}
+        </TransitionGroup>
+      </List>
+    )
+  }
+
   function renderDragAndDrop(): JSX.Element {
     return (
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -232,6 +308,9 @@ export default function FlatList(props: FlatListType): JSX.Element {
   if (onReorder) {
     // Enable drag and drop
     return renderDragAndDrop()
+  }
+  if (transition) {
+    return renderTransitionList()
   }
   return renderList()
 }
