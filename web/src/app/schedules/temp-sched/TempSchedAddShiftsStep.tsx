@@ -217,9 +217,16 @@ export default function TempSchedAddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              This temporary schedule will go into effect: {fmt(start, zone)}
-              <br />
-              and end on: {fmt(end, zone)}.
+              <table>
+                <tr>
+                  <td>Schedule start:</td>
+                  <td> {fmt(start, zone)}</td>
+                </tr>
+                <tr>
+                  <td>Schedule end:</td>
+                  <td> {fmt(end, zone)}</td>
+                </tr>
+              </table>
             </DialogContentText>
           </Grid>
           <Grid item>
