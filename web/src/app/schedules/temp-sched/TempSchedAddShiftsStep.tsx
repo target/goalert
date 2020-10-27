@@ -15,6 +15,7 @@ import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
+import { isISOAfter, isISOBefore } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -31,10 +32,13 @@ const useStyles = makeStyles((theme) => ({
   },
   listContainer: {
     position: 'relative',
-    overflowY: 'scroll',
+    overflowY: 'auto',
   },
   mainContainer: {
     height: '100%',
+  },
+  shiftFormContainer: {
+    maxHeight: '100%',
   },
 }))
 
@@ -73,14 +77,6 @@ function DTToShifts(shifts: DTShift[]): Shift[] {
 
 function shiftEquals(a: Shift, b: Shift): boolean {
   return a.start === b.start && a.end === b.end && a.userID === b.userID
-}
-
-function isAfter(a: string, b: string): boolean {
-  return DateTime.fromISO(a) > DateTime.fromISO(b)
-}
-
-function isBefore(a: string, b: string): boolean {
-  return DateTime.fromISO(a) < DateTime.fromISO(b)
 }
 
 // mergeShifts will take the incoming shifts and merge them with
@@ -159,19 +155,19 @@ export default function TempSchedAddShiftsStep({
       return result
     }
 
-    if (!isAfter(shift.end, shift?.start)) {
+    if (!isISOAfter(shift.end, shift?.start)) {
       result.push({
         field: 'end',
         message: 'must be after shift start time',
       } as FieldError)
     }
-    if (isBefore(shift.start, start)) {
+    if (isISOBefore(shift.start, start)) {
       result.push({
         field: 'start',
         message: 'must not be before temporary schedule start time',
       } as FieldError)
     }
-    if (isAfter(shift.end, end)) {
+    if (isISOAfter(shift.end, end)) {
       result.push({
         field: 'end',
         message: 'must not extend beyond temporary schedule end time',
@@ -201,19 +197,27 @@ export default function TempSchedAddShiftsStep({
   return (
     <StepContainer>
       {/* main container for fields | button | shifts */}
-      <Grid container spacing={2} className={classes.mainContainer}>
+      <Grid container spacing={0} className={classes.mainContainer}>
         {/* title + fields container */}
-        <Grid item xs={5} container spacing={2} direction='column'>
+        <Grid
+          item
+          xs={5}
+          container
+          spacing={2}
+          direction='column'
+          className={classes.shiftFormContainer}
+        >
           <Grid item>
             <Typography variant='body2'>{stepText}</Typography>
             <Typography variant='h6' component='h2'>
-              Determine each user's on-call shift.
+              Specify on-call shifts.
             </Typography>
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              Configuring a temporary schedule from {fmt(start)} to {fmt(end)}.
-              Select a user to add one or more on-call shifts.
+              This temporary schedule will go into effect: {fmt(start)}
+              <br />
+              and end on: {fmt(end)}.
             </DialogContentText>
           </Grid>
           <Grid item>

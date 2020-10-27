@@ -17,7 +17,7 @@ function hasInputSupport(name) {
 }
 
 function useISOPicker(
-  { value, onChange, timeZone, ...otherProps },
+  { value, onChange, timeZone, min, max, ...otherProps },
   { format, truncateTo, type, Fallback },
 ) {
   const native = hasInputSupport(type)
@@ -73,11 +73,14 @@ function useISOPicker(
     }
   }
 
-  // starts with label above textfield so format placeholder can be seen
-  const shrinkInputLabel = (p) => ({
-    ...(p?.InputLabelProps ?? {}),
-    shrink: true,
-  })
+  // shrink: true sets the label above the textfield so the placeholder can be properly seen
+  const inputLabelProps = otherProps?.InputLabelProps ?? {}
+  inputLabelProps.shrink = true
+
+  // sets min and max if set
+  const inputProps = otherProps?.inputProps ?? {}
+  if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
+  if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
 
   if (native) {
     return (
@@ -86,7 +89,8 @@ function useISOPicker(
         value={inputValue}
         onChange={handleChange}
         {...otherProps}
-        InputLabelProps={shrinkInputLabel(otherProps)}
+        InputLabelProps={inputLabelProps}
+        inputProps={inputProps}
       />
     )
   }
@@ -100,9 +104,11 @@ function useISOPicker(
   const FallbackIcon = type === 'time' ? AccessTime : DateRange
   return (
     <Fallback
-      value={dtValue}
+      value={value ? dtValue : null}
       onChange={(v) => handleChange({ target: { value: v } })}
       showTodayButton
+      minDate={min}
+      maxDate={max}
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
@@ -118,7 +124,7 @@ function useISOPicker(
       }}
       {...extraProps}
       {...otherProps}
-      InputLabelProps={shrinkInputLabel(otherProps)}
+      InputLabelProps={inputLabelProps}
     />
   )
 }

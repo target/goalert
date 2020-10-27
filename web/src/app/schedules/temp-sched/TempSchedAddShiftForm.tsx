@@ -1,23 +1,15 @@
-import { Grid, TextField, Typography, makeStyles } from '@material-ui/core'
-import { DateTime } from 'luxon'
 import React, { useState } from 'react'
+import { Grid, TextField } from '@material-ui/core'
+import { DateTime } from 'luxon'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
+import ClickableText from '../../util/ClickableText'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
 
-const useStyles = makeStyles({
-  typography: {
-    '&:hover': {
-      cursor: 'pointer',
-      textDecoration: 'underline',
-    },
-  },
-})
-
 export default function TempSchedAddShiftForm(): JSX.Element {
-  const classes = useStyles()
   const [manualEntry, setManualEntry] = useState(false)
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   return (
     <React.Fragment>
@@ -35,6 +27,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
+          min={now}
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -53,15 +46,12 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
+            min={now}
             hint={
-              <Typography
-                className={classes.typography}
-                variant='caption'
-                color='textSecondary'
+              <ClickableText
+                text='Configure as duration'
                 onClick={() => setManualEntry(false)}
-              >
-                Configure as duration?
-              </Typography>
+              />
             }
           />
         ) : (
@@ -89,14 +79,10 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             }}
             min={0.25}
             hint={
-              <Typography
-                className={classes.typography}
-                variant='caption'
-                color='textSecondary'
+              <ClickableText
+                text='Configure as date/time'
                 onClick={() => setManualEntry(true)}
-              >
-                Configure as date/time?
-              </Typography>
+              />
             }
           />
         )}

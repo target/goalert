@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Grid,
   DialogContentText,
@@ -7,8 +7,10 @@ import {
 } from '@material-ui/core'
 import { FormField } from '../../forms'
 import { ISODateTimePicker } from '../../util/ISOPickers'
-import { contentText, StepContainer } from './sharedUtils'
+import { contentText, StepContainer, Value } from './sharedUtils'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
+import { isISOBefore } from '../../util/shifts'
+import { DateTime } from 'luxon'
 
 const useStyles = makeStyles({
   contentText,
@@ -17,13 +19,21 @@ const useStyles = makeStyles({
 type TempSchedTimesStepProps = {
   scheduleID: string
   stepText: string
+  value: Value
 }
 
 export default function TempSchedTimesStep({
   scheduleID,
   stepText,
+  value,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
+  const [now] = useState(DateTime.utc().startOf('minute').toISO())
+
+  function validate(): Error | null {
+    if (isISOBefore(value.start, value.end)) return null
+    return new Error('Start date/time cannot be after end date/time.')
+  }
 
   return (
     <StepContainer width='35%'>
@@ -36,9 +46,10 @@ export default function TempSchedTimesStep({
         </Grid>
         <Grid item xs={12}>
           <DialogContentText className={classes.contentText}>
-            Selecting a start and end dates will define a span of time on this
-            schedule with a fixed set of shifts. These shifts ignores all rules,
-            rotations, and overrides and will behave exactly as configured here.
+            During a temporary schedule, all on-call shifts will be set as
+            configured on the next step. A temporary schedule ignores all rules,
+            rotations, and overrides. On-call will be exactly as configured here
+            for the entire duration.
           </DialogContentText>
         </Grid>
         <Grid item xs={12}>
@@ -53,6 +64,8 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='start'
+            min={now}
+            validate={() => validate()}
           />
         </Grid>
         <Grid item xs={6}>
@@ -61,6 +74,8 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='end'
+            min={now}
+            validate={() => validate()}
           />
         </Grid>
       </Grid>
