@@ -6,13 +6,13 @@ import FormDialog from '../../dialogs/FormDialog'
 import { Shift, Value } from './sharedUtils'
 import _ from 'lodash-es'
 import { FormContainer } from '../../forms'
-import { bindKeyboard, virtualize } from 'react-swipeable-views-utils'
+import { virtualize } from 'react-swipeable-views-utils'
 import SwipeableViews from 'react-swipeable-views'
 import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
 import { parseInterval } from '../../util/shifts'
 // allows changing the index programatically
-const VirtualizeAnimatedViews = bindKeyboard(virtualize(SwipeableViews))
+const VirtualizeAnimatedViews = virtualize(SwipeableViews)
 
 const mutation = gql`
   mutation($input: SetTemporaryScheduleInput!) {

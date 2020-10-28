@@ -31,10 +31,14 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.primary.main,
   },
   listContainer: {
-    overflowY: 'scroll',
+    position: 'relative',
+    overflowY: 'auto',
   },
   mainContainer: {
     height: '100%',
+  },
+  shiftFormContainer: {
+    maxHeight: '100%',
   },
 }))
 
@@ -122,19 +126,28 @@ export default function TempSchedAddShiftsStep({
   // that makes the network request.
   function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
+    const requiredMsg = 'this field is required'
     const add = (field: string, message: string): void => {
       result.push({ field, message } as FieldError)
     }
 
-    const requiredMsg = 'this field is required'
-    if (!shift || !s) return result
-    if (!shift.userID) add('userID', requiredMsg)
-    if (!shift.start) add('start', requiredMsg)
-    if (!shift.end) add('end', requiredMsg)
-    if (!isISOAfter(shift.end, shift.start))
+    if (!shift) return result
+    if (s) {
+      if (!shift.userID) add('userID', requiredMsg)
+      if (!shift.start) add('start', requiredMsg)
+      if (!shift.end) add('end', requiredMsg)
+    }
+
+    if (!isISOAfter(shift.end, shift.start)) {
       add('end', 'must be after shift start time')
-    if (!isISOBefore(shift.start, shift.end))
       add('start', 'must be before shift end time')
+    }
+    if (isISOBefore(shift.start, start)) {
+      add('start', 'must not be before temporary schedule start time')
+    }
+    if (isISOAfter(shift.end, end)) {
+      add('end', 'must not extend beyond temporary schedule end time')
+    }
     return result
   }
 
@@ -159,9 +172,16 @@ export default function TempSchedAddShiftsStep({
   return (
     <StepContainer data-cy='add-shifts-step'>
       {/* main container for fields | button | shifts */}
-      <Grid container spacing={2} className={classes.mainContainer}>
+      <Grid container spacing={0} className={classes.mainContainer}>
         {/* title + fields container */}
-        <Grid item xs={10} md={5} container spacing={2} direction='column'>
+        <Grid
+          item
+          xs={5}
+          container
+          spacing={2}
+          direction='column'
+          className={classes.shiftFormContainer}
+        >
           <Grid item>
             <Typography variant='body2'>{stepText}</Typography>
             <Typography variant='h6' component='h2'>
@@ -206,24 +226,18 @@ export default function TempSchedAddShiftsStep({
         </Grid>
 
         {/* shifts list container */}
-        <Grid
-          item
-          xs={12}
-          md={5}
-          container
-          spacing={2}
-          direction='column'
-          className={classes.listContainer}
-        >
-          <TempSchedShiftsList
-            value={value}
-            start={start}
-            end={end}
-            onRemove={(shift: Shift) => {
-              setShift(shift)
-              onChange(value.filter((s) => !shiftEquals(shift, s)))
-            }}
-          />
+        <Grid item xs={5} className={classes.listContainer}>
+          <div style={{ position: 'absolute', width: '100%' }}>
+            <TempSchedShiftsList
+              value={value}
+              start={start}
+              end={end}
+              onRemove={(shift: Shift) => {
+                setShift(shift)
+                onChange(value.filter((s) => !shiftEquals(shift, s)))
+              }}
+            />
+          </div>
         </Grid>
       </Grid>
     </StepContainer>
