@@ -75,5 +75,11 @@ func mergeShifts(shifts []FixedShift) []FixedShift {
 		result = append(result, mergeShiftsByTime(s)...)
 	}
 
+	// Return deterministic output by sorting by UserID
+	// if the Start times are equal.
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].Start.Equal(result[j].Start) && result[i].UserID < result[j].UserID
+	})
+
 	return result
 }
