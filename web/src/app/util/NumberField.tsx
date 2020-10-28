@@ -28,15 +28,17 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
       type='number'
       onBlur={() => setInputValue(value.toString())}
       onChange={(e) => {
-        let val = e.target.value
-        let num = parse(val)
+        const val = e.target.value
+        const num = parse(val)
 
-        if (typeof min === 'number') num = Math.max(min, num)
-        if (typeof max === 'number') num = Math.min(max, num)
-        val = num.toString()
+        e.target.value = num.toString().replace(/[^0-9.-]/g, '')
+        setInputValue(e.target.value)
 
-        setInputValue(val.replace(/[^0-9.-]/g, ''))
-        if (!Number.isNaN(num)) onChange(val)
+        if (typeof min === 'number' && min > num) return
+        if (typeof max === 'number' && max < num) return
+        if (Number.isNaN(num)) return
+
+        return onChange(e)
       }}
       inputProps={{ min, max, step: 'any' }}
     />
