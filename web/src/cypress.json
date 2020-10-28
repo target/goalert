@@ -7,5 +7,8 @@
   "viewportHeight": 900,
   "requestTimeout": 15000,
   "defaultCommandTimeout": 15000,
-  "retries": 2
+  "retries": {
+    "runMode": 2,
+    "openMode": 0
+  }
 }

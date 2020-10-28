@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 import { urlPathSelector } from '../selectors'
 import joinURL from './joinURL'
 
-interface AppLinkProps extends LinkProps {
+export interface AppLinkProps extends LinkProps {
   to: string
   newTab?: boolean
 }
