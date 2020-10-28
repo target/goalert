@@ -8,7 +8,7 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
 import NumberField from '../../util/NumberField'
 
-export default function TempSchedAddShiftForm(): JSX.Element {
+export default function TempSchedAddShiftForm({ min }: { min?: string }): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
@@ -28,7 +28,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
-          min={now}
+          min={min ?? now}
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -47,7 +47,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
-            min={now}
+            min={min ?? now}
             hint={
               <ClickableText
                 data-cy='toggle-duration-on'

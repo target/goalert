@@ -93,6 +93,7 @@ export default function TempSchedDialog({
             scheduleID={scheduleID}
             start={value.start}
             end={value.end}
+            edit={edit}
           />
         )
       default:
