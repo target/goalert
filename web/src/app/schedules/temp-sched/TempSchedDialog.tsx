@@ -80,6 +80,7 @@ export default function TempSchedDialog({
             stepText='STEP 1 OF 2'
             scheduleID={scheduleID}
             value={value}
+            edit={edit}
           />
         )
       case 1:

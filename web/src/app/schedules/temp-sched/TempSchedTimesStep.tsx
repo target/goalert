@@ -20,12 +20,14 @@ type TempSchedTimesStepProps = {
   scheduleID: string
   stepText: string
   value: Value
+  edit?: boolean
 }
 
 export default function TempSchedTimesStep({
   scheduleID,
   stepText,
   value,
+  edit,
 }: TempSchedTimesStepProps): JSX.Element {
   const classes = useStyles()
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
@@ -64,7 +66,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='start'
-            min={now}
+            min={edit ? value.start : now}
             validate={() => validate()}
           />
         </Grid>
@@ -74,7 +76,7 @@ export default function TempSchedTimesStep({
             component={ISODateTimePicker}
             required
             name='end'
-            min={now}
+            min={edit ? value.start : now}
             validate={() => validate()}
           />
         </Grid>
