@@ -189,54 +189,59 @@ export default function FlatList(props: FlatListType): JSX.Element {
     )
   }
 
+  function renderEmptyMessage(): JSX.Element {
+    return (
+      <ListItem>
+        <ListItemText
+          disableTypography
+          secondary={
+            <Typography data-cy='list-empty-message' variant='caption'>
+              {emptyMessage}
+            </Typography>
+          }
+        />
+      </ListItem>
+    )
+  }
+
+  function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
+    return (
+      <ListSubheader key={idx} className={classes.background}>
+        <Typography
+          component='h2'
+          variant='subtitle1'
+          color='textSecondary'
+          data-cy='flat-list-item-subheader'
+        >
+          {item.subHeader}
+        </Typography>
+      </ListSubheader>
+    )
+  }
+
+  function renderTransitionItems(): JSX.Element[] {
+    return items.map((item, idx) => {
+      if ('subHeader' in item) {
+        return (
+          <Transition key={idx} timeout={500}>
+            {renderSubheaderItem(item, idx)}
+          </Transition>
+        )
+      }
+      return renderItem(item as FlatListItem, idx)
+    })
+  }
+
   function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
     if (!items.length) {
-      return (
-        <ListItem>
-          <ListItemText
-            disableTypography
-            secondary={
-              <Typography data-cy='list-empty-message' variant='caption'>
-                {emptyMessage}
-              </Typography>
-            }
-          />
-        </ListItem>
-      )
+      return renderEmptyMessage()
     }
 
     return items.map((item: FlatListListItem, idx: number) => {
       if (!onReorder) {
         if ('subHeader' in item) {
           if (item.subHeader) {
-            if (transition) {
-              return (
-                <Transition timeout={500}>
-                  <ListSubheader key={idx} className={classes.background}>
-                    <Typography
-                      component='h2'
-                      variant='subtitle1'
-                      color='textSecondary'
-                      data-cy='flat-list-item-subheader'
-                    >
-                      {item.subHeader}
-                    </Typography>
-                  </ListSubheader>
-                </Transition>
-              )
-            }
-            return (
-              <ListSubheader key={idx} className={classes.background}>
-                <Typography
-                  component='h2'
-                  variant='subtitle1'
-                  color='textSecondary'
-                  data-cy='flat-list-item-subheader'
-                >
-                  {item.subHeader}
-                </Typography>
-              </ListSubheader>
-            )
+            return renderSubheaderItem(item as FlatListSub, idx)
           }
         } else {
           return renderItem(item, idx)
@@ -294,20 +299,19 @@ export default function FlatList(props: FlatListType): JSX.Element {
   function renderTransitionList(): JSX.Element {
     return (
       <List {...listProps}>
-        <TransitionGroup>
-          {headerNote && (
-            <ListItem>
-              <ListItemText
-                disableTypography
-                secondary={
-                  <Typography color='textSecondary'>{headerNote}</Typography>
-                }
-                style={{ fontStyle: 'italic' }}
-              />
-            </ListItem>
-          )}
-          {renderItems()}
-        </TransitionGroup>
+        {headerNote && (
+          <ListItem>
+            <ListItemText
+              disableTypography
+              secondary={
+                <Typography color='textSecondary'>{headerNote}</Typography>
+              }
+              style={{ fontStyle: 'italic' }}
+            />
+          </ListItem>
+        )}
+        {!items.length && renderEmptyMessage()}
+        <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
       </List>
     )
   }
