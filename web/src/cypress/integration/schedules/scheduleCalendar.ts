@@ -173,15 +173,6 @@ function testCalendar(screen: ScreenFormat): void {
     )
   })
 
-  it('should add an override from the calendar', () => {
-    cy.fixture('users').then((users) => {
-      cy.get('button[data-cy="add-override"]').click()
-      cy.dialogTitle('Add a User')
-      cy.dialogForm({ addUserID: users[0].name })
-      cy.dialogFinish('Submit')
-    })
-  })
-
   it('should create a replace override from a shift tooltip', () => {
     const name = rot.users[0].name
 
