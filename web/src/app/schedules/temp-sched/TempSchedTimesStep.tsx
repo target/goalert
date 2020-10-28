@@ -33,7 +33,9 @@ export default function TempSchedTimesStep({
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
   function validate(): Error | null {
-    if (isISOAfter(value.start, value.end)) return new Error('Start date/time cannot be after end date/time.')
+    if (isISOAfter(value.start, value.end)) {
+      return new Error('Start date/time cannot be after end date/time.')
+    }
     return null
   }
 
