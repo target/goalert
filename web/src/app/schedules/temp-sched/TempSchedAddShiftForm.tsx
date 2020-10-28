@@ -8,7 +8,11 @@ import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
 import NumberField from '../../util/NumberField'
 
-export default function TempSchedAddShiftForm({ min }: { min?: string }): JSX.Element {
+export default function TempSchedAddShiftForm({
+  min,
+}: {
+  min?: string
+}): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
