@@ -17,8 +17,11 @@ import {
 import ListSubheader from '@material-ui/core/ListSubheader'
 import { AppLink } from '../util/AppLink'
 import { makeStyles } from '@material-ui/core'
-import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import '../styles/base/elements.css'
+import {
+  CSSTransition,
+  TransitionGroup,
+  Transition,
+} from 'react-transition-group'
 
 const useStyles = makeStyles({
   background: { backgroundColor: 'white' },
@@ -28,6 +31,24 @@ const useStyles = makeStyles({
   },
   participantDragging: {
     backgroundColor: '#ebebeb',
+  },
+
+  fadeEnter: {
+    opacity: 0,
+    transform: 'translateX(-100%)',
+  },
+  fadeEnterActive: {
+    opacity: 1,
+    transform: 'translateX(0%)',
+    transition: 'opacity 500ms, transform 500ms',
+  },
+  fadeExit: {
+    opacity: 1,
+    transform: 'translateX(0%)',
+  },
+  fadeExitActive: {
+    transform: 'translateX(-100%)',
+    transition: 'opacity 500ms, transform 500ms',
   },
 })
 
@@ -77,7 +98,7 @@ export default function FlatList(props: FlatListType): JSX.Element {
     items,
     inset,
     transition,
-    listProps
+    listProps,
   } = props
 
   const classes = useStyles()
@@ -110,13 +131,18 @@ export default function FlatList(props: FlatListType): JSX.Element {
         button: true,
       }
     }
-    if(transition) {
+    if (transition) {
       return (
         <CSSTransition
-        key={idx}
-        timeout={500}
-        classNames={'fade'}
-      >
+          key={item.id}
+          timeout={500}
+          classNames={{
+            enter: classes.fadeEnter,
+            enterActive: classes.fadeEnterActive,
+            exit: classes.fadeExit,
+            exitActive: classes.fadeExitActive,
+          }}
+        >
           <ListItem
             key={idx}
             {...itemProps}
@@ -136,7 +162,7 @@ export default function FlatList(props: FlatListType): JSX.Element {
               </ListItemSecondaryAction>
             )}
           </ListItem>
-      </CSSTransition>
+        </CSSTransition>
       )
     }
 
@@ -183,13 +209,9 @@ export default function FlatList(props: FlatListType): JSX.Element {
       if (!onReorder) {
         if ('subHeader' in item) {
           if (item.subHeader) {
-            if(transition) {
+            if (transition) {
               return (
-                <CSSTransition
-                  key={idx}
-                  timeout={500}
-                  classNames={'fade'}
-                >
+                <Transition timeout={500}>
                   <ListSubheader key={idx} className={classes.background}>
                     <Typography
                       component='h2'
@@ -200,7 +222,7 @@ export default function FlatList(props: FlatListType): JSX.Element {
                       {item.subHeader}
                     </Typography>
                   </ListSubheader>
-                </CSSTransition>
+                </Transition>
               )
             }
             return (

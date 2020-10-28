@@ -41,6 +41,7 @@ type FlatListItem = {
   subText: string
   icon?: JSX.Element
   secondaryAction?: JSX.Element | null
+  id?: string
 }
 
 type FlatListListItem = FlatListSub | FlatListItem
@@ -85,7 +86,7 @@ export default function TempSchedShiftsList({
     )
 
     const result: FlatListListItem[] = []
-    displaySpan.splitBy({ days: 1 }).forEach((day) => {
+    displaySpan.splitBy({ days: 1 }).forEach((day, idx) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
 
@@ -120,6 +121,7 @@ export default function TempSchedShiftsList({
         }
 
         result.push({
+          id: s.shift.userID + idx.toString(),
           title: s.shift.user.name,
           subText: shiftDetails,
           icon: <UserAvatar userID={s.shift.userID} />,
