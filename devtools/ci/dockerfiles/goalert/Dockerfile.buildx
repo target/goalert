@@ -1,0 +1,14 @@
+FROM --platform=$BUILDPLATFORM goalert/build-env AS binaries
+ARG BUILDPLATFORM
+COPY bin/goalert-linux-arm /linux/arm/v7/goalert
+COPY bin/goalert-linux-arm64 /linux/arm64/goalert
+COPY bin/goalert-linux-amd64 /linux/amd64/goalert
+
+FROM alpine
+ARG TARGETPLATFORM
+RUN apk --no-cache add ca-certificates
+ENV GOALERT_LISTEN :8081
+EXPOSE 8081
+CMD ["/usr/bin/goalert"]
+
+COPY --from=binaries /$TARGETPLATFORM/goalert /usr/bin/goalert
