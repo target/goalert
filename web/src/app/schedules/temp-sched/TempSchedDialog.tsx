@@ -57,7 +57,7 @@ export default function TempSchedDialog({
       ]
     : []
 
-  const [submit, { loading, error, data }] = useMutation(mutation, {
+  const [submit, { loading, error }] = useMutation(mutation, {
     onCompleted: () => onClose(),
     variables: {
       input: {
@@ -66,8 +66,6 @@ export default function TempSchedDialog({
       },
     },
   })
-
-  const isComplete = data && !loading && !error
 
   type SlideRenderer = {
     index: number
@@ -114,7 +112,6 @@ export default function TempSchedDialog({
       fullScreen
       disableGutters
       title='Define a Temporary Schedule'
-      primaryActionLabel={isComplete ? 'Done' : null}
       onClose={onClose}
       loading={loading}
       errors={errs}
@@ -142,7 +139,7 @@ export default function TempSchedDialog({
           />
         </FormContainer>
       }
-      onSubmit={() => (isComplete ? onClose() : submit())}
+      onSubmit={() => submit()}
       onNext={step === 1 ? null : () => setStep(step + 1)}
       onBack={(edit ? step === 1 : step === 0) ? null : () => setStep(step - 1)}
     />
