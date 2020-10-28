@@ -1,6 +1,6 @@
 import { Chance } from 'chance'
-import { testScreen } from '../../support'
-import { Schedule, User } from '../../../schema'
+import { testScreen } from '../support'
+import { Schedule, User } from '../../schema'
 import { DateTime, Interval } from 'luxon'
 import { round } from 'lodash-es'
 

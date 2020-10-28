@@ -1,6 +1,6 @@
-import { testScreen } from '../../support'
+import { testScreen } from '../support'
 import { DateTime } from 'luxon'
-import { Schedule } from '../../../schema'
+import { Schedule } from '../../schema'
 
 const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
 const weekHeaderFormat = (t: DateTime): string => {
