@@ -39,7 +39,7 @@ function testCalendar(screen: ScreenFormat): void {
         numUsers: 3,
         type: 'hourly',
         // based on production data the majority of rotations have a shiftLength of
-        // 4-12 hours. ~50% of these have are 12 hours, pick between 12 or 4-11 hours
+        // 4-12 hours. Roughly 50% of these are 12 hours, so pick between 12 or 4-11 hours
         shiftLength: c.pickone([c.integer({ min: 4, max: 11 }), 12]),
       }).then((r: Rotation) => {
         rot = r
