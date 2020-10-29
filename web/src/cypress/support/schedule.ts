@@ -1,12 +1,14 @@
 import { Chance } from 'chance'
 import { DateTime, Interval } from 'luxon'
-import { omit } from 'lodash-es'
 import {
   Schedule,
   ScheduleTarget,
   ScheduleTargetInput,
+  SetScheduleShiftInput,
+  SetTemporaryScheduleInput,
   User,
 } from '../../schema'
+import { randDT, randSubInterval } from './util'
 
 const c = new Chance()
 
@@ -145,9 +147,61 @@ function deleteSchedule(id: string): Cypress.Chainable<void> {
   })
 }
 
+function genShifts(
+  userIDs: string[],
+  start: DateTime,
+  end: DateTime,
+  _shifts?: Partial<SetScheduleShiftInput>[],
+): SetScheduleShiftInput[] {
+  const shifts = _shifts || new Array(c.integer({ min: 0, max: 10 })).fill({})
+  if (shifts.length === 0) return []
+
+  const schedIvl = Interval.fromDateTimes(start, end)
+  return schedIvl.divideEqually(shifts.length).map((ivl, i) => {
+    const shift = shifts[i]
+    const rIvl = randSubInterval(ivl)
+    return {
+      userID: shift.userID || c.pickone(userIDs),
+      start: shift.start || rIvl.start.toISO(),
+      end: shift.end || rIvl.end.toISO(),
+    }
+  })
+}
+
+function shiftRange(
+  shifts?: Partial<SetScheduleShiftInput>[],
+): [DateTime, DateTime] {
+  if (!shifts || !shifts.length)
+    return [DateTime.fromISO(''), DateTime.fromISO('')]
+
+  let min = DateTime.fromISO('')
+  let max = DateTime.fromISO('')
+  shifts.forEach((s) => {
+    const start = DateTime.fromISO(s.start || '')
+    const end = DateTime.fromISO(s.end || '')
+
+    if ((start.isValid && !min.isValid) || start < min) {
+      min = start
+    }
+
+    if ((end.isValid && !max.isValid) || end > max) {
+      max = end
+    }
+  })
+
+  return [min, max]
+}
+
+interface SetTemporarySchedule {
+  scheduleID: string
+  schedule: Partial<Schedule>
+  start: string
+  end: string
+  shifts: Partial<SetScheduleShiftInput>[]
+}
+
 function createTemporarySchedule(
-  scheduleID?: string,
-  options?: TemporaryScheduleOptions,
+  opts: Partial<SetTemporarySchedule> = {},
 ): Cypress.Chainable<null> {
   const mutation = `
     mutation($input: SetTemporaryScheduleInput!) {
@@ -155,80 +209,56 @@ function createTemporarySchedule(
     }
   `
 
-  if (!scheduleID) {
+  // create schedule if necessary
+  if (!opts.scheduleID) {
     return cy
-      .createSchedule()
-      .then((s: Schedule) => createTemporarySchedule(s.id, options))
-  }
-
-  const input = omit(options ?? {}, 'shiftUserIDs')
-  input.scheduleID = scheduleID
-
-  const now = DateTime.local()
-  const r = (min: number, max: number): number => c.integer({ min, max })
-
-  const MAX_FUTURE = 60 * 24 * 365 * 3 // up to 3 years (in minutes) in the future
-  const MIN = 60 // minimum temp sched length of 1 hour, in minutes
-  const MAX = 60 * 24 * 30 // maximum temp sched length of 1 month, in minutes
-  const SHIFT_MIN = 1 // minimum shift length, in hours
-
-  // set temp sched start and end dates
-  if (!input.start && !input.end) {
-    const s = now.plus({ minutes: r(0, MAX_FUTURE) })
-    input.start = s.toISO()
-    input.end = s.plus({ minutes: r(MIN, MAX) }).toISO()
-  } else if (!input.start && input.end) {
-    const end = DateTime.fromISO(input.end)
-    if (!end.isValid) return cy.log('invalid end date')
-    if (+end < +now)
-      return cy.log(
-        'cannot provide end time before now() without also providing start time',
+      .createSchedule(opts.schedule)
+      .then((s: Schedule) =>
+        createTemporarySchedule({ ...opts, scheduleID: s.id }),
       )
-    const max = Interval.fromDateTimes(now, end).toDuration('hours').hours
-    input.start = end.minus({ hours: r(1, max) }).toISO()
-  } else if (input.start && !input.end) {
-    const start = DateTime.fromISO(input.start)
-    if (!start.isValid) return cy.log('invalid start date')
-    input.end = start.plus({ minutes: r(MIN, MAX) }).toISO()
   }
 
-  // set shifts
-  if (!input.shifts?.length) {
-    cy.fixture('users').then((users) => {
-      const userIDs =
-        options.shiftUserIDs ||
-        c.pickset(
-          users.map((u: User) => u.id),
-          r(1, users.length),
-        )
-      const schedStart = DateTime.fromISO(input.start)
-      const schedEnd = DateTime.fromISO(input.end)
-      if (!schedStart.isValid) return cy.log('invalid start date')
-      if (!schedEnd.isValid) return cy.log('invalid end date')
+  const [shiftStart, shiftEnd] = shiftRange(opts.shifts)
 
-      if (+schedStart > +schedEnd) return cy.log('start cannot begin after end')
-      const schedLength = Interval.fromDateTimes(
-        schedStart,
-        schedEnd,
-      ).toDuration(['hours', 'minutes'])
-
-      // make 1 shift per user, within range of sched
-      input.shifts = []
-      userIDs.forEach((userID: string) => {
-        const start = schedStart.plus({
-          minutes: r(0, schedLength.minutes - SHIFT_MIN),
-        })
-        const timeUntilEnd = Interval.fromDateTimes(start, schedEnd).toDuration(
-          'minutes',
-        ).minutes
-        const end = start.plus({ minutes: r(SHIFT_MIN, timeUntilEnd) })
-
-        input.shifts.push({ userID, start, end })
+  // set start/end time if necessary
+  const now = DateTime.utc().plus({ hour: 1 })
+  let start = DateTime.fromISO(opts.start || '')
+  let end = DateTime.fromISO(opts.end || '')
+  if (start.isValid && !end.isValid) {
+    if (shiftEnd.isValid) {
+      end = randDT({ min: shiftEnd })
+    } else {
+      end = randDT({ min: start.plus({ day: 1 }) })
+    }
+  } else if (end.isValid && !start.isValid) {
+    if (shiftStart.isValid) {
+      start = randDT({ min: now, max: shiftStart })
+    } else {
+      start = randDT({
+        min: now,
+        max: end.plus({ hour: -8 }),
       })
-    })
+    }
+  } else if (!start.isValid && !end.isValid) {
+    start = now.plus({ days: c.floating({ min: 1, max: 3 }) })
+    end = start.plus({ days: c.floating({ min: 2, max: 4 }) })
   }
+  if (!start.isValid) throw new Error('invalid start time')
+  if (!end.isValid) throw new Error('invalid end time')
 
-  return cy.graphql(mutation, { input })
+  return cy.fixture('users').then((users) => {
+    const userIDs: string[] = users.map((u: User) => u.id)
+    const shifts = genShifts(userIDs, start, end, opts.shifts)
+
+    const input: SetTemporaryScheduleInput = {
+      scheduleID: opts.scheduleID as string, // checked above
+      start: start.toISO(),
+      end: end.toISO(),
+      shifts,
+    }
+
+    return cy.graphql(mutation, { input })
+  })
 }
 
 Cypress.Commands.add('createSchedule', createSchedule)

@@ -134,7 +134,7 @@ export default function TempSchedShiftsList({
                 </Tooltip>
               )}
               <IconButton
-                data-cy='delete-shift'
+                aria-label='delete shift'
                 onClick={() => onRemove(s.shift)}
               >
                 <Delete />
