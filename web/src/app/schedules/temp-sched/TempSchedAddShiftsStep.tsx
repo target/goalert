@@ -16,6 +16,7 @@ import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter, isISOBefore } from '../../util/shifts'
+import { useURLParam } from '../../actions'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -114,6 +115,7 @@ export default function TempSchedAddShiftsStep({
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
+  const [zone] = useURLParam('tz', 'local')
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -194,9 +196,16 @@ export default function TempSchedAddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              This temporary schedule will go into effect: {fmt(start)}
-              <br />
-              and end on: {fmt(end)}.
+              <table>
+                <tr>
+                  <td>Schedule start:</td>
+                  <td> {fmt(start, zone)}</td>
+                </tr>
+                <tr>
+                  <td>Schedule end:</td>
+                  <td> {fmt(end, zone)}</td>
+                </tr>
+              </table>
             </DialogContentText>
           </Grid>
           <Grid item>
