@@ -40,8 +40,8 @@ export const contentText = {
   marginBottom: 0,
 }
 
-export const fmt = (t: string): string =>
-  DateTime.fromISO(t).toLocaleString(DateTime.DATETIME_MED)
+export const fmt = (t: string, zone = 'local'): string =>
+  DateTime.fromISO(t, { zone }).toLocaleString(DateTime.DATETIME_MED)
 
 type StepContainerProps = {
   children: ReactNode

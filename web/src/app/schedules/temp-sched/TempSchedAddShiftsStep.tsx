@@ -16,6 +16,7 @@ import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter, isISOBefore } from '../../util/shifts'
+import { useURLParam } from '../../actions'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -30,9 +31,13 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
-  listContainer: {
+  listOuterContainer: {
     position: 'relative',
     overflowY: 'auto',
+  },
+  listInnerContainer: {
+    position: 'absolute',
+    width: '100%',
   },
   mainContainer: {
     height: '100%',
@@ -110,6 +115,7 @@ export default function TempSchedAddShiftsStep({
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
+  const [zone] = useURLParam('tz', 'local')
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -126,52 +132,27 @@ export default function TempSchedAddShiftsStep({
   // that makes the network request.
   function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
-
-    if (!shift) {
-      return result
+    const requiredMsg = 'this field is required'
+    const add = (field: string, message: string): void => {
+      result.push({ field, message } as FieldError)
     }
 
+    if (!shift) return result
     if (s) {
-      const message = 'this field is required'
-      if (!shift.userID) {
-        result.push({
-          field: 'userID',
-          message,
-        } as FieldError)
-      }
-      if (!shift.start) {
-        result.push({
-          field: 'start',
-          message,
-        } as FieldError)
-      }
-      if (!shift.end) {
-        result.push({
-          field: 'end',
-          message,
-        } as FieldError)
-      }
-
-      return result
+      if (!shift.userID) add('userID', requiredMsg)
+      if (!shift.start) add('start', requiredMsg)
+      if (!shift.end) add('end', requiredMsg)
     }
 
-    if (!isISOAfter(shift.end, shift?.start)) {
-      result.push({
-        field: 'end',
-        message: 'must be after shift start time',
-      } as FieldError)
+    if (!isISOAfter(shift.end, shift.start)) {
+      add('end', 'must be after shift start time')
+      add('start', 'must be before shift end time')
     }
     if (isISOBefore(shift.start, start)) {
-      result.push({
-        field: 'start',
-        message: 'must not be before temporary schedule start time',
-      } as FieldError)
+      add('start', 'must not be before temporary schedule start time')
     }
     if (isISOAfter(shift.end, end)) {
-      result.push({
-        field: 'end',
-        message: 'must not extend beyond temporary schedule end time',
-      } as FieldError)
+      add('end', 'must not extend beyond temporary schedule end time')
     }
     return result
   }
@@ -215,9 +196,16 @@ export default function TempSchedAddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              This temporary schedule will go into effect: {fmt(start)}
-              <br />
-              and end on: {fmt(end)}.
+              <table>
+                <tr>
+                  <td>Schedule start:</td>
+                  <td> {fmt(start, zone)}</td>
+                </tr>
+                <tr>
+                  <td>Schedule end:</td>
+                  <td> {fmt(end, zone)}</td>
+                </tr>
+              </table>
             </DialogContentText>
           </Grid>
           <Grid item>
@@ -239,17 +227,21 @@ export default function TempSchedAddShiftsStep({
         <Grid item xs={2} className={classes.addButtonContainer}>
           <Fab
             className={classes.addButton}
+            aria-label='Add Shift'
+            title='Add Shift'
             onClick={handleAddShift}
             size='medium'
             color='primary'
+            type='button'
+            disabled={Boolean(fieldErrors().length)}
           >
             <AddIcon />
           </Fab>
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5} className={classes.listContainer}>
-          <div style={{ position: 'absolute', width: '100%' }}>
+        <Grid item xs={5} className={classes.listOuterContainer}>
+          <div className={classes.listInnerContainer}>
             <TempSchedShiftsList
               value={value}
               start={start}
