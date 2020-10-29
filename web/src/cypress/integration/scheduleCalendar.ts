@@ -1,6 +1,9 @@
+import { Chance } from 'chance'
 import { testScreen } from '../support'
 import { DateTime } from 'luxon'
 import { Schedule } from '../../schema'
+
+const c = new Chance()
 
 const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
 const weekHeaderFormat = (t: DateTime): string => {
@@ -33,9 +36,11 @@ function testCalendar(screen: ScreenFormat): void {
       sched = s
 
       cy.createRotation({
-        count: 3,
+        numUsers: 3,
         type: 'hourly',
-        shiftLength: 1,
+        // based on production data the majority of rotations have a shiftLength of
+        // 4-12 hours. Roughly 50% of these are 12 hours, so pick between 12 or 4-11 hours
+        shiftLength: c.pickone([c.integer({ min: 4, max: 11 }), 12]),
       }).then((r: Rotation) => {
         rot = r
 
@@ -60,29 +65,11 @@ function testCalendar(screen: ScreenFormat): void {
     })
   })
 
-  it('should view shifts', () => {
-    let check = rot.users.length
-    // TODO: This could still fail between 10pm and 11:59pm
-    // on the last day of the month (since the next day/shift isn't rendered)
-    //
-    // Once the calendar render fixes are in, it could still happen if the last day
-    // of the month is a Saturday.
-    //
-    // Until then, it will also fail on the last day of any month based on the current time.
-    //
-    // Proper fix would be to control the time (frontend and backend) when these tests are run
-    // to explicitly (and predictably) check these edge cases.
+  it('should view shifts in month view', () => {
+    cy.get('button[data-cy="next"]').click() // view shifts within the scope of a full month
 
-    if (now.endOf('month').day === now.day) {
-      if (now.hour >= 11) {
-        check = 1
-      } else if (now.hour >= 10) {
-        check = 2
-      }
-    }
-
-    for (let i = 0; i < check; i++) {
-      cy.get('body').should('contain', rot.users[i].name)
+    for (let i = 0; i < rot.users.length; i++) {
+      cy.get('body [data-cy="calendar"]').should('contain', rot.users[i].name)
     }
   })
 
