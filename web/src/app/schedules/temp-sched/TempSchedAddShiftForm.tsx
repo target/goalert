@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Grid } from '@material-ui/core'
+import Grid from '@material-ui/core/Grid'
+import ToggleIcon from '@material-ui/icons/CompareArrows'
 import { DateTime } from 'luxon'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
@@ -55,9 +56,11 @@ export default function TempSchedAddShiftForm({
             hint={
               <ClickableText
                 data-cy='toggle-duration-on'
-                text='Configure as duration'
                 onClick={() => setManualEntry(false)}
-              />
+                endIcon={<ToggleIcon />}
+              >
+                Configure as duration
+              </ClickableText>
             }
           />
         ) : (
@@ -86,9 +89,11 @@ export default function TempSchedAddShiftForm({
             hint={
               <ClickableText
                 data-cy='toggle-duration-off'
-                text='Configure as date/time'
                 onClick={() => setManualEntry(true)}
-              />
+                endIcon={<ToggleIcon />}
+              >
+                Configure as date/time
+              </ClickableText>
             }
           />
         )}
