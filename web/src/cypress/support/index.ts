@@ -37,6 +37,7 @@ import './dialog'
 Cypress.Cookies.defaults({
   preserve: 'goalert_session.2',
 })
+Cypress.Cookies.debug(true)
 
 export * from './config'
 export * from './limits'

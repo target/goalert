@@ -31,9 +31,13 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
-  listContainer: {
+  listOuterContainer: {
     position: 'relative',
     overflowY: 'auto',
+  },
+  listInnerContainer: {
+    position: 'absolute',
+    width: '100%',
   },
   mainContainer: {
     height: '100%',
@@ -128,52 +132,27 @@ export default function TempSchedAddShiftsStep({
   // that makes the network request.
   function fieldErrors(s = submitted): FieldError[] {
     const result: FieldError[] = []
-
-    if (!shift) {
-      return result
+    const requiredMsg = 'this field is required'
+    const add = (field: string, message: string): void => {
+      result.push({ field, message } as FieldError)
     }
 
+    if (!shift) return result
     if (s) {
-      const message = 'this field is required'
-      if (!shift.userID) {
-        result.push({
-          field: 'userID',
-          message,
-        } as FieldError)
-      }
-      if (!shift.start) {
-        result.push({
-          field: 'start',
-          message,
-        } as FieldError)
-      }
-      if (!shift.end) {
-        result.push({
-          field: 'end',
-          message,
-        } as FieldError)
-      }
-
-      return result
+      if (!shift.userID) add('userID', requiredMsg)
+      if (!shift.start) add('start', requiredMsg)
+      if (!shift.end) add('end', requiredMsg)
     }
 
-    if (!isISOAfter(shift.end, shift?.start)) {
-      result.push({
-        field: 'end',
-        message: 'must be after shift start time',
-      } as FieldError)
+    if (!isISOAfter(shift.end, shift.start)) {
+      add('end', 'must be after shift start time')
+      add('start', 'must be before shift end time')
     }
     if (isISOBefore(shift.start, start)) {
-      result.push({
-        field: 'start',
-        message: 'must not be before temporary schedule start time',
-      } as FieldError)
+      add('start', 'must not be before temporary schedule start time')
     }
     if (isISOAfter(shift.end, end)) {
-      result.push({
-        field: 'end',
-        message: 'must not extend beyond temporary schedule end time',
-      } as FieldError)
+      add('end', 'must not extend beyond temporary schedule end time')
     }
     return result
   }
@@ -248,17 +227,21 @@ export default function TempSchedAddShiftsStep({
         <Grid item xs={2} className={classes.addButtonContainer}>
           <Fab
             className={classes.addButton}
+            aria-label='Add Shift'
+            title='Add Shift'
             onClick={handleAddShift}
             size='medium'
             color='primary'
+            type='button'
+            disabled={Boolean(fieldErrors().length)}
           >
             <AddIcon />
           </Fab>
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5} className={classes.listContainer}>
-          <div style={{ position: 'absolute', width: '100%' }}>
+        <Grid item xs={5} className={classes.listOuterContainer}>
+          <div className={classes.listInnerContainer}>
             <TempSchedShiftsList
               value={value}
               start={start}
