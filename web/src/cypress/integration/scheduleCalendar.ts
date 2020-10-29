@@ -1,6 +1,9 @@
+import { Chance } from 'chance'
 import { testScreen } from '../support'
 import { DateTime } from 'luxon'
 import { Schedule } from '../../schema'
+
+const c = new Chance()
 
 const monthHeaderFormat = (t: DateTime): string => t.toFormat('MMMM')
 const weekHeaderFormat = (t: DateTime): string => {
@@ -33,9 +36,11 @@ function testCalendar(screen: ScreenFormat): void {
       sched = s
 
       cy.createRotation({
-        count: 3,
+        numUsers: 3,
         type: 'hourly',
-        shiftLength: 1,
+        // based on production data, roughly 50% of hourly rotations have
+        // a 12 hour shiftLength. pick that or 4-12 hours, outliers excluded
+        shiftLength: c.pickone([c.integer({ min: 4, max: 12 }), 12]),
       }).then((r: Rotation) => {
         rot = r
 
