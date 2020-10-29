@@ -30,9 +30,13 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     backgroundColor: theme.palette.primary.main,
   },
-  listContainer: {
+  listOuterContainer: {
     position: 'relative',
     overflowY: 'auto',
+  },
+  listInnerContainer: {
+    position: 'absolute',
+    width: '100%',
   },
   mainContainer: {
     height: '100%',
@@ -228,8 +232,8 @@ export default function TempSchedAddShiftsStep({
         </Grid>
 
         {/* shifts list container */}
-        <Grid item xs={5} className={classes.listContainer}>
-          <div style={{ position: 'absolute', width: '100%' }}>
+        <Grid item xs={5} className={classes.listOuterContainer}>
+          <div className={classes.listInnerContainer}>
             <TempSchedShiftsList
               value={value}
               start={start}

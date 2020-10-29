@@ -26,6 +26,7 @@ const styles = (theme) => {
       height: '100%', // pushes caption to bottom if room is available
     },
     dialogContent: {
+      height: '100%', // parents of form need height set to properly function in Safari
       padding: 0,
     },
     formContainer: {
