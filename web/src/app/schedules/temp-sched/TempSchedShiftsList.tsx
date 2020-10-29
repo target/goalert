@@ -1,6 +1,6 @@
 import React from 'react'
 import { IconButton, makeStyles, Typography } from '@material-ui/core'
-import FlatList from '../../lists/FlatList'
+import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { Shift } from './sharedUtils'
 import { UserAvatar } from '../../util/avatars'
 import { Delete, Error } from '@material-ui/icons'
@@ -32,19 +32,6 @@ type TempSchedShiftsListProps = {
   start: string
   end: string
 }
-
-type FlatListSub = {
-  subHeader: string
-}
-type FlatListItem = {
-  title: string
-  subText: string
-  icon?: JSX.Element
-  secondaryAction?: JSX.Element | null
-  id?: string
-}
-
-type FlatListListItem = FlatListSub | FlatListItem
 
 export default function TempSchedShiftsList({
   start,

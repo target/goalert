@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -17,11 +17,7 @@ import {
 import ListSubheader from '@material-ui/core/ListSubheader'
 import { AppLink } from '../util/AppLink'
 import { makeStyles } from '@material-ui/core'
-import {
-  CSSTransition,
-  TransitionGroup,
-  Transition,
-} from 'react-transition-group'
+import { CSSTransition, TransitionGroup } from 'react-transition-group'
 
 const useStyles = makeStyles({
   background: { backgroundColor: 'white' },
@@ -32,49 +28,45 @@ const useStyles = makeStyles({
   participantDragging: {
     backgroundColor: '#ebebeb',
   },
-
-  fadeEnter: {
-    opacity: 0,
+  slideEnter: {
     transform: 'translateX(-100%)',
   },
-  fadeEnterActive: {
-    opacity: 1,
+  slideEnterActive: {
     transform: 'translateX(0%)',
     transition: 'opacity 500ms, transform 500ms',
   },
-  fadeExit: {
-    opacity: 1,
+  slideExit: {
     transform: 'translateX(0%)',
   },
-  fadeExitActive: {
+  slideExitActive: {
     transform: 'translateX(-100%)',
     transition: 'opacity 500ms, transform 500ms',
   },
 })
 
-type FlatListSub = {
+export interface FlatListSub {
   subHeader: string
 }
-type FlatListItem = {
-  highlight?: boolean
+export interface FlatListItem {
   title: string
-  subText?: string
+  highlight?: boolean
+  subText?: JSX.Element | string
   icon?: JSX.Element
   secondaryAction?: JSX.Element | null
   url?: string
   id?: string
 }
 
-type FlatListListItem = FlatListSub | FlatListItem
+export type FlatListListItem = FlatListSub | FlatListItem
 
-type FlatListType = {
+export interface FlatListType {
+  items: FlatListListItem[]
+
   // headerNote will be displayed at the top of the list.
-  headerNote?: ReactNode
+  headerNote?: string
 
   // emptyMessage will be displayed if there are no items in the list.
   emptyMessage?: string
-
-  items: FlatListListItem[]
 
   listProps?: { dense: boolean }
 
@@ -122,6 +114,21 @@ export default function FlatList(props: FlatListType): JSX.Element {
     }
   }
 
+  function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
+    return (
+      <ListSubheader key={idx} className={classes.background}>
+        <Typography
+          component='h2'
+          variant='subtitle1'
+          color='textSecondary'
+          data-cy='flat-list-item-subheader'
+        >
+          {item.subHeader}
+        </Typography>
+      </ListSubheader>
+    )
+  }
+
   function renderItem(item: FlatListItem, idx: number): JSX.Element {
     let itemProps = {}
     if (item.url) {
@@ -131,41 +138,6 @@ export default function FlatList(props: FlatListType): JSX.Element {
         button: true,
       }
     }
-    if (transition) {
-      return (
-        <CSSTransition
-          key={item.id}
-          timeout={500}
-          classNames={{
-            enter: classes.fadeEnter,
-            enterActive: classes.fadeEnterActive,
-            exit: classes.fadeExit,
-            exitActive: classes.fadeExitActive,
-          }}
-        >
-          <ListItem
-            key={idx}
-            {...itemProps}
-            style={{ width: '100%' }}
-            className={item.highlight ? classes.highlightedItem : ''}
-          >
-            {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-            <ListItemText
-              primary={item.title}
-              secondary={item.subText}
-              secondaryTypographyProps={{ style: { whiteSpace: 'pre-line' } }}
-              inset={inset && !item.icon}
-            />
-            {item.secondaryAction && (
-              <ListItemSecondaryAction>
-                {item.secondaryAction}
-              </ListItemSecondaryAction>
-            )}
-          </ListItem>
-        </CSSTransition>
-      )
-    }
-
     return (
       <ListItem
         key={idx}
@@ -189,6 +161,32 @@ export default function FlatList(props: FlatListType): JSX.Element {
     )
   }
 
+  function renderTransitionItems(): JSX.Element[] {
+    return items.map((item, idx) => {
+      if ('subHeader' in item) {
+        return (
+          <CSSTransition key={idx} timeout={500}>
+            {renderSubheaderItem(item, idx)}
+          </CSSTransition>
+        )
+      }
+      return (
+        <CSSTransition
+          key={item.id}
+          timeout={500}
+          classNames={{
+            enter: classes.slideEnter,
+            enterActive: classes.slideEnterActive,
+            exit: classes.slideExit,
+            exitActive: classes.slideExitActive,
+          }}
+        >
+          {renderItem(item, idx)}
+        </CSSTransition>
+      )
+    })
+  }
+
   function renderEmptyMessage(): JSX.Element {
     return (
       <ListItem>
@@ -204,77 +202,44 @@ export default function FlatList(props: FlatListType): JSX.Element {
     )
   }
 
-  function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
-    return (
-      <ListSubheader key={idx} className={classes.background}>
-        <Typography
-          component='h2'
-          variant='subtitle1'
-          color='textSecondary'
-          data-cy='flat-list-item-subheader'
-        >
-          {item.subHeader}
-        </Typography>
-      </ListSubheader>
-    )
-  }
-
-  function renderTransitionItems(): JSX.Element[] {
-    return items.map((item, idx) => {
+  function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
+    return items.map((item: FlatListListItem, idx: number) => {
       if ('subHeader' in item) {
+        return renderSubheaderItem(item, idx)
+      }
+      if (!onReorder) {
+        return renderItem(item, idx)
+      }
+      if (item.id) {
         return (
-          <Transition key={idx} timeout={500}>
-            {renderSubheaderItem(item, idx)}
-          </Transition>
+          <Draggable key={idx + item.id} draggableId={item.id} index={idx}>
+            {(
+              provided: DraggableProvided,
+              snapshot: DraggableStateSnapshot,
+            ) => {
+              // light grey background while dragging non-active user
+              const draggingBackground = snapshot.isDragging
+                ? classes.participantDragging
+                : ''
+              return (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.draggableProps}
+                  {...provided.dragHandleProps}
+                  className={draggingBackground}
+                >
+                  {renderItem(item, idx)}
+                </div>
+              )
+            }}
+          </Draggable>
         )
       }
-      return renderItem(item as FlatListItem, idx)
     })
   }
 
-  function renderItems(): (JSX.Element | undefined)[] | JSX.Element {
-    if (!items.length) {
-      return renderEmptyMessage()
-    }
-
-    return items.map((item: FlatListListItem, idx: number) => {
-      if (!onReorder) {
-        if ('subHeader' in item) {
-          if (item.subHeader) {
-            return renderSubheaderItem(item as FlatListSub, idx)
-          }
-        } else {
-          return renderItem(item, idx)
-        }
-      }
-      if ('id' in item) {
-        if (item.id) {
-          return (
-            <Draggable key={idx + item.id} draggableId={item.id} index={idx}>
-              {(
-                provided: DraggableProvided,
-                snapshot: DraggableStateSnapshot,
-              ) => {
-                // light grey background while dragging non-active user
-                const draggingBackground = snapshot.isDragging
-                  ? classes.participantDragging
-                  : ''
-                return (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    className={draggingBackground}
-                  >
-                    {renderItem(item, idx)}
-                  </div>
-                )
-              }}
-            </Draggable>
-          )
-        }
-      }
-    })
+  function renderTransitions(): JSX.Element {
+    return <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
   }
 
   function renderList(): JSX.Element {
@@ -291,27 +256,8 @@ export default function FlatList(props: FlatListType): JSX.Element {
             />
           </ListItem>
         )}
-        {renderItems()}
-      </List>
-    )
-  }
-
-  function renderTransitionList(): JSX.Element {
-    return (
-      <List {...listProps}>
-        {headerNote && (
-          <ListItem>
-            <ListItemText
-              disableTypography
-              secondary={
-                <Typography color='textSecondary'>{headerNote}</Typography>
-              }
-              style={{ fontStyle: 'italic' }}
-            />
-          </ListItem>
-        )}
         {!items.length && renderEmptyMessage()}
-        <TransitionGroup>{renderTransitionItems()}</TransitionGroup>
+        {transition ? renderTransitions() : renderItems()}
       </List>
     )
   }
@@ -334,9 +280,6 @@ export default function FlatList(props: FlatListType): JSX.Element {
   if (onReorder) {
     // Enable drag and drop
     return renderDragAndDrop()
-  }
-  if (transition) {
-    return renderTransitionList()
   }
   return renderList()
 }
