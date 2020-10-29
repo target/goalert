@@ -6,7 +6,9 @@ const dtFmt = "yyyy-MM-dd'T'HH:mm"
 const schedTimesSelector = 'div[data-cy="sched-times-step"]'
 const addShiftsSelector = 'div[data-cy="add-shifts-step"]'
 
-function testTemporarySchedule(): void {
+function testTemporarySchedule(screen: string): void {
+  if (screen !== 'widescreen') return
+
   let schedule: Schedule
   let manualAddUser: User
   let graphQLAddUser: User
