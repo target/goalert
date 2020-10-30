@@ -77,33 +77,78 @@ export default function TempSchedShiftsList({
   const [zone] = useURLParam('tz', 'local')
   const schedInterval = parseInterval({ start, end })
 
-  function shiftsByDay(sortedShifts: ShiftItem[]): FlatListListItem[] {
-    const result: FlatListListItem[] = []
-    const lastShift = sortedShifts.reduce(
-      (result, candidate) => (candidate.end > result.end ? candidate : result),
-      sortedShifts[0],
-    )
+  // show no coverage info in place of middle day subheaders until a first shift is added
+  // format start and end as only times (since we will have the subheader)
+  function items(): FlatListListItem[] {
+    // sort shifts and add some properties
+    const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
+      shift: s,
+      added: false,
+      start: DateTime.fromISO(s.start, { zone }),
+      end: DateTime.fromISO(s.end, { zone }),
+      interval: Interval.fromDateTimes(
+        DateTime.fromISO(s.start, { zone }),
+        DateTime.fromISO(s.end, { zone }),
+      ),
+      isValid: schedInterval.engulfs(parseInterval(s)),
+    }))
 
-    const firstShiftStart = sortedShifts[0].start
-    const lastShiftEnd = lastShift.end
+    const result: FlatListListItem[] = []
 
     const displaySpan = Interval.fromDateTimes(
-      DateTime.min(schedInterval.start, firstShiftStart).startOf('day'),
-      DateTime.max(schedInterval.end, lastShiftEnd).endOf('day'),
+      DateTime.fromISO(start).startOf('day'),
+      DateTime.fromISO(end).endOf('day'),
     )
 
     const days = displaySpan.splitBy({ days: 1 })
     days.forEach((day, dayIdx) => {
       const dayShifts = sortedShifts.filter((s) => day.overlaps(s.interval))
 
+      // if no shifts, only render subheaders for start/end days
+      if (!sortedShifts.length && dayIdx > 0 && dayIdx < days.length - 1) {
+        return
+      }
+
       // render subheader for each day
       result.push({
         subHeader: relativeDate(day.start),
       })
 
-      // render no coverage if no shifts for the day
-      if (!dayShifts.length) {
+      // add start time of temp schedule to top of list
+      if (dayIdx === 0) {
         result.push({
+          render: () => (
+            <Alert
+              key='start'
+              className={classes.alert}
+              severity='success'
+              icon={<ScheduleIcon />}
+            >
+              Starts at{' '}
+              {DateTime.fromISO(start).setZone(zone).toFormat('hh:mm a')}
+            </Alert>
+          ),
+        })
+
+        if (!sortedShifts.length) {
+          result.push({
+            render: () => (
+              <Alert
+                key='no-coverage'
+                className={classes.alert}
+                severity='info'
+              >
+                <AlertTitle>No coverage</AlertTitle>
+                Add a shift to get started
+              </Alert>
+            ),
+          })
+        }
+      }
+
+      // render no coverage and continue if no shifts for the day
+      if (!dayShifts.length && sortedShifts.length) {
+        return result.push({
           render: () => (
             <Alert
               key={day.start.toISO() + '-no-coverage'}
@@ -114,7 +159,6 @@ export default function TempSchedShiftsList({
             </Alert>
           ),
         })
-        return
       }
 
       // checkCoverage will determine if there is a gap of 1 minute or more between the given datetimes
@@ -122,7 +166,7 @@ export default function TempSchedShiftsList({
         return Interval.fromDateTimes(s, e).length('minutes') > 1
       }
 
-      // craft user friendly shift string
+      // craft list items for each day
       dayShifts.forEach((s, shiftIdx) => {
         // check start of day coverage for the first shift
         // if on the first day, temp sched start is used
@@ -226,52 +270,7 @@ export default function TempSchedShiftsList({
       })
     })
 
-    return result
-  }
-
-  function items(): FlatListListItem[] {
-    // sort shifts and add some properties
-    const shifts = _.sortBy(_shifts, 'start').map((s) => ({
-      shift: s,
-      added: false,
-      start: DateTime.fromISO(s.start, { zone }),
-      end: DateTime.fromISO(s.end, { zone }),
-      interval: Interval.fromDateTimes(
-        DateTime.fromISO(s.start, { zone }),
-        DateTime.fromISO(s.end, { zone }),
-      ),
-      isValid: schedInterval.engulfs(parseInterval(s)),
-    }))
-
-    let result: FlatListListItem[] = []
-
-    // add start time of temp schedule to top of list
-    result.push({
-      render: () => (
-        <Alert
-          key='start'
-          className={classes.alert}
-          severity='success'
-          icon={<ScheduleIcon />}
-        >
-          Starts on {fmt(start, zone)}
-        </Alert>
-      ),
-    })
-
-    if (shifts.length > 0) {
-      result = result.concat(shiftsByDay(shifts))
-    } else {
-      result.push({
-        render: () => (
-          <Alert key='no-coverage' className={classes.alert} severity='info'>
-            <AlertTitle>No coverage</AlertTitle> Add a shift to get started
-          </Alert>
-        ),
-      })
-    }
-
-    // add end time of temp schedule to top of list
+    // add end time of temp schedule to bottom of list
     result.push({
       render: () => (
         <Alert
@@ -280,7 +279,7 @@ export default function TempSchedShiftsList({
           severity='success'
           icon={<ScheduleIcon />}
         >
-          Ends on {fmt(end, zone)}
+          Ends at {DateTime.fromISO(end).setZone(zone).toFormat('hh:mm a')}
         </Alert>
       ),
     })
