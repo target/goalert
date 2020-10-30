@@ -13,7 +13,7 @@ import _ from 'lodash-es'
 import FlatList from '../../lists/FlatList'
 import { fmt, Shift } from './sharedUtils'
 import { UserAvatar } from '../../util/avatars'
-import { useUserInfo, WithUserInfo } from '../../util/useUserInfo'
+import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
 import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
@@ -58,15 +58,6 @@ type FlatListItem = {
   render?: (item: FlatListItem) => ReactNode
 }
 
-type ShiftItem = {
-  shift: Shift & WithUserInfo
-  added: boolean
-  start: DateTime
-  end: DateTime
-  interval: Interval
-  isValid: boolean
-}
-
 type FlatListListItem = FlatListSub | FlatListItem
 
 export default function TempSchedShiftsList({
@@ -80,8 +71,6 @@ export default function TempSchedShiftsList({
   const [zone] = useURLParam('tz', 'local')
   const schedInterval = parseInterval({ start, end })
 
-  // show no coverage info in place of middle day subheaders until a first shift is added
-  // format start and end as only times (since we will have the subheader)
   function items(): FlatListListItem[] {
     // sort shifts and add some properties
     const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
@@ -133,6 +122,7 @@ export default function TempSchedShiftsList({
           ),
         })
 
+        // render no coverage/get started below start time if no shifts
         if (!sortedShifts.length) {
           result.push({
             render: () => (
@@ -149,7 +139,8 @@ export default function TempSchedShiftsList({
         }
       }
 
-      // render no coverage and continue if no shifts for the day
+      // for temp scheds with at least 1 shift
+      // render no coverage and continue if no shifts for the given day
       if (!dayShifts.length && sortedShifts.length) {
         return result.push({
           render: () => (
@@ -235,7 +226,7 @@ export default function TempSchedShiftsList({
         // prevents actions from rendering on each item if it's for the same shift
         s.added = true
 
-        // check coverage until next shift within the current day, if exists
+        // check coverage until the next shift (if there is one) within the current day
         if (
           shiftIdx < dayShifts.length - 1 &&
           checkCoverage(s.end, dayShifts[shiftIdx + 1].start)
