@@ -238,8 +238,8 @@ export default function TempSchedShiftsList({
                 className={classes.alert}
                 severity='warning'
               >
-                No coverage from {fmt(s.end.toISO(), zone)} to{' '}
-                {fmt(dayShifts[shiftIdx + 1].start.toISO(), zone)}
+                No coverage from {s.end.setZone(zone).toFormat('h:mm a')} to{' '}
+                {dayShifts[shiftIdx + 1].start.setZone(zone).toFormat('h:mm a')}
               </Alert>
             ),
           })
