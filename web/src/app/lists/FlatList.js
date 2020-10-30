@@ -6,9 +6,9 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import withStyles from '@material-ui/core/styles/withStyles'
 import ListSubheader from '@material-ui/core/ListSubheader'
+import withStyles from '@material-ui/core/styles/withStyles'
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { AppLink } from '../util/AppLink'
 
 const styles = {
@@ -41,9 +41,10 @@ export default class FlatList extends React.PureComponent {
           url: p.string,
           icon: p.element, // renders a list item icon (or avatar)
           id: p.string, // required for drag and drop
+          render: p.func, // overrides render logic
         }),
         p.shape({
-          subHeader: p.node.isRequired,
+          subHeader: p.string.isRequired,
         }),
       ]),
     ),
@@ -78,6 +79,10 @@ export default class FlatList extends React.PureComponent {
   }
 
   renderItem(item, idx) {
+    if (item.render) {
+      return item.render()
+    }
+
     let itemProps = {}
     if (item.url) {
       itemProps = {
