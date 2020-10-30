@@ -182,7 +182,7 @@ export default function TempSchedShiftsList({
                 className={classes.alert}
                 severity='warning'
               >
-                No coverage until {s.start.setZone(zone).toFormat('hh:mm a')}
+                No coverage until {s.start.setZone(zone).toFormat('h:mm a')}
               </Alert>
             ),
           })
@@ -265,7 +265,7 @@ export default function TempSchedShiftsList({
                 className={classes.alert}
                 severity='warning'
               >
-                No coverage after {s.end.setZone(zone).toFormat('hh:mm a')}
+                No coverage after {s.end.setZone(zone).toFormat('h:mm a')}
               </Alert>
             ),
           })
@@ -282,7 +282,7 @@ export default function TempSchedShiftsList({
           severity='success'
           icon={<ScheduleIcon />}
         >
-          Ends at {DateTime.fromISO(end).setZone(zone).toFormat('hh:mm a')}
+          Ends at {DateTime.fromISO(end).setZone(zone).toFormat('h:mm a')}
         </Alert>
       ),
     })
