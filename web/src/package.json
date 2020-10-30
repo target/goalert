@@ -101,7 +101,7 @@
     "react-redux": "7.2.1",
     "react-router-dom": "5.2.0",
     "react-swipeable-views": "0.13.9",
-    "react-transition-group": "^4.4.1",
+    "react-transition-group": "4.4.1",
     "redux-thunk": "2.3.0",
     "reselect": "4.0.0"
   },
@@ -127,7 +127,7 @@
     "@types/lodash-es": "4.17.3",
     "@types/luxon": "1.25.0",
     "@types/react": "16.9.52",
-    "@types/react-beautiful-dnd": "^13.0.0",
+    "@types/react-beautiful-dnd": "13.0.0",
     "@types/react-dom": "16.9.8",
     "@types/react-redux": "7.1.9",
     "@types/react-router": "5.1.8",

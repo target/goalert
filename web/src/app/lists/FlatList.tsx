@@ -19,14 +19,19 @@ import { AppLink } from '../util/AppLink'
 import { makeStyles } from '@material-ui/core'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 
+const lime = '#93ed94'
+const lightLime = '#defadf'
+const lightGrey = '#ebebeb'
+
 const useStyles = makeStyles({
   background: { backgroundColor: 'white' },
   highlightedItem: {
-    borderLeft: '6px solid #93ed94',
-    background: '#defadf',
+    width: '100%',
+    borderLeft: '6px solid ' + lime,
+    background: lightLime,
   },
   participantDragging: {
-    backgroundColor: '#ebebeb',
+    backgroundColor: lightGrey,
   },
   slideEnter: {
     transform: 'translateX(-100%)',
@@ -41,6 +46,12 @@ const useStyles = makeStyles({
   slideExitActive: {
     transform: 'translateX(-100%)',
     transition: 'opacity 500ms, transform 500ms',
+  },
+  listItem: {
+    width: '100%',
+  },
+  listItemText: {
+    fontStyle: 'italic',
   },
 })
 
@@ -103,14 +114,8 @@ export default function FlatList(props: FlatListType): JSX.Element {
   }
 
   const handleDragEnd = (result: DropResult): void => {
-    if (result.destination) {
-      if (onReorder) {
-        onReorder(
-          // result.draggableId, : removed this as per new reorderList function
-          result.source.index,
-          result.destination.index,
-        )
-      }
+    if (result.destination && onReorder) {
+      onReorder(result.source.index, result.destination.index)
     }
   }
 
@@ -142,8 +147,7 @@ export default function FlatList(props: FlatListType): JSX.Element {
       <ListItem
         key={idx}
         {...itemProps}
-        style={{ width: '100%' }}
-        className={item.highlight ? classes.highlightedItem : ''}
+        className={item.highlight ? classes.highlightedItem : classes.listItem}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
         <ListItemText
@@ -212,7 +216,7 @@ export default function FlatList(props: FlatListType): JSX.Element {
       }
       if (item.id) {
         return (
-          <Draggable key={idx + item.id} draggableId={item.id} index={idx}>
+          <Draggable key={item.id} draggableId={item.id} index={idx}>
             {(
               provided: DraggableProvided,
               snapshot: DraggableStateSnapshot,
@@ -252,7 +256,7 @@ export default function FlatList(props: FlatListType): JSX.Element {
               secondary={
                 <Typography color='textSecondary'>{headerNote}</Typography>
               }
-              style={{ fontStyle: 'italic' }}
+              className={classes.listItemText}
             />
           </ListItem>
         )}
