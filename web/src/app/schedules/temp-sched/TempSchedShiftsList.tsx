@@ -117,7 +117,7 @@ export default function TempSchedShiftsList({
               icon={<ScheduleIcon />}
             >
               Starts at{' '}
-              {DateTime.fromISO(start).setZone(zone).toFormat('hh:mm a')}
+              {DateTime.fromISO(start).setZone(zone).toFormat('h:mm a')}
             </Alert>
           ),
         })
