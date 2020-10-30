@@ -189,10 +189,7 @@ export default class CalendarEventWrapper extends Component {
         title={this.renderInteractiveTooltip()}
       >
         {React.cloneElement(children, {
-          onClick: () => {
-            children.props.onClick() // toggles selected
-            this.handleClickTooltip() // toggles tooltip
-          },
+          onMouseUp: this.handleClickTooltip,
           onFocus: this.handleFocusTooltip,
           onBlur: this.handleBlurTooltip,
           role: 'button',
