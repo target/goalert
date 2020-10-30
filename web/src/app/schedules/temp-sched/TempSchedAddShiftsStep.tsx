@@ -193,13 +193,13 @@ export default function TempSchedAddShiftsStep({
             </Typography>
           </Grid>
           <Grid item>
-          <DialogContentText className={classes.contentText}>
-            During a temporary schedule, all on-call shifts will be set as
-            configured here. A temporary schedule ignores all rules,
-            rotations, and overrides. On-call will be exactly as configured here
-            for the entire duration.
-          </DialogContentText>
-        </Grid>
+            <DialogContentText className={classes.contentText}>
+              During a temporary schedule, all on-call shifts will be set as
+              configured here. A temporary schedule ignores all rules,
+              rotations, and overrides. On-call will be exactly as configured
+              here for the entire duration.
+            </DialogContentText>
+          </Grid>
           <Grid item>
             <ScheduleTZFilter
               label={(tz) => `Configure in ${tz}`}

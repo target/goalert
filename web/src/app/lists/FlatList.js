@@ -35,7 +35,7 @@ export default class FlatList extends React.PureComponent {
       p.oneOfType([
         p.shape({
           highlight: p.bool,
-          title: p.node.isRequired,
+          title: p.node,
           subText: p.node,
           secondaryAction: p.element,
           url: p.string,
@@ -80,7 +80,7 @@ export default class FlatList extends React.PureComponent {
 
   renderItem(item, idx) {
     if (item.render) {
-      return item.render()
+      return item.render(item)
     }
 
     let itemProps = {}
@@ -135,7 +135,11 @@ export default class FlatList extends React.PureComponent {
       if (!this.props.onReorder) {
         if (item.subHeader) {
           return (
-            <ListSubheader key={idx} className={this.props.classes.background}>
+            <ListSubheader
+              key={idx}
+              className={this.props.classes.background}
+              disableGutters
+            >
               <Typography
                 component='h2'
                 variant='subtitle1'
