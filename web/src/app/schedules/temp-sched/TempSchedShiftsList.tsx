@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => {
       color: styles(theme).error.color,
     },
     shiftsContainer: {
-      paddingRight: 8
+      paddingRight: 8,
     },
   }
 })
