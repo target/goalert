@@ -32,6 +32,9 @@ const useStyles = makeStyles((theme) => {
     secondaryActionError: {
       color: styles(theme).error.color,
     },
+    shiftsContainer: {
+      paddingRight: 8
+    },
   }
 })
 
@@ -288,7 +291,7 @@ export default function TempSchedShiftsList({
   }
 
   return (
-    <React.Fragment>
+    <div className={classes.shiftsContainer}>
       <Typography variant='subtitle1' component='h3'>
         Shifts
       </Typography>
@@ -297,6 +300,6 @@ export default function TempSchedShiftsList({
         emptyMessage='Add a user to the left to get started.'
         dense
       />
-    </React.Fragment>
+    </div>
   )
 }
