@@ -7,7 +7,9 @@ type NumberFieldProps = TextFieldProps & {
   min?: number
   max?: number
   value: string
-  onChange: (val: string) => void
+  onChange: (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => void
 }
 
 export default function NumberField(props: NumberFieldProps): JSX.Element {
