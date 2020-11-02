@@ -70,7 +70,7 @@ export interface FlatListItem {
 
 export type FlatListListItem = FlatListSub | FlatListItem
 
-export interface FlatListType {
+export interface FlatListProps {
   items: FlatListListItem[]
 
   // headerNote will be displayed at the top of the list.
@@ -93,27 +93,25 @@ export interface FlatListType {
   transition?: boolean
 }
 
-export default function FlatList(props: FlatListType): JSX.Element {
-  const {
-    onReorder,
-    emptyMessage,
-    headerNote,
-    items,
-    inset,
-    transition,
-    listProps,
-  } = props
-
+export default function FlatList({
+  onReorder,
+  emptyMessage,
+  headerNote,
+  items,
+  inset,
+  transition,
+  listProps,
+}: FlatListProps): JSX.Element {
   const classes = useStyles()
 
-  const handleDragStart = (): void => {
+  function handleDragStart(): void {
     // adds a little vibration if the browser supports it
     if (window.navigator.vibrate) {
       window.navigator.vibrate(100)
     }
   }
 
-  const handleDragEnd = (result: DropResult): void => {
+  function handleDragEnd(result: DropResult): void {
     if (result.destination && onReorder) {
       onReorder(result.source.index, result.destination.index)
     }
