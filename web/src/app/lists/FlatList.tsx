@@ -167,7 +167,7 @@ export default function FlatList({
     return items.map((item, idx) => {
       if ('subHeader' in item) {
         return (
-          <CSSTransition key={idx} timeout={500}>
+          <CSSTransition key={idx} timeout={0}>
             {renderSubheaderItem(item, idx)}
           </CSSTransition>
         )
