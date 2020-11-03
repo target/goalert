@@ -81,7 +81,7 @@ function materialCalendar(date: string | DateTime): void {
         .should(
           'contain',
           displayedDT
-            .plus({ months: (diff < 0 ? -1 : 1) * i + 1 })
+            .plus({ months: (diff < 0 ? -1 : 1) * (i + 1) })
             .toFormat('MMMM'),
         )
         .should(

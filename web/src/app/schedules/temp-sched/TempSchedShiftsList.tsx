@@ -133,7 +133,10 @@ export default function TempSchedShiftsList({
                   <Error className={classes.secondaryActionError} />
                 </Tooltip>
               )}
-              <IconButton onClick={() => onRemove(s.shift)}>
+              <IconButton
+                aria-label='delete shift'
+                onClick={() => onRemove(s.shift)}
+              >
                 <Delete />
               </IconButton>
             </div>
@@ -153,6 +156,7 @@ export default function TempSchedShiftsList({
         Shifts
       </Typography>
       <FlatList
+        data-cy='shifts-list'
         items={items()}
         emptyMessage='Add a user to the left to get started.'
         dense
