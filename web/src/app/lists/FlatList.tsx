@@ -101,6 +101,7 @@ export default function FlatList({
   inset,
   transition,
   listProps,
+  ...rest
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
@@ -246,7 +247,7 @@ export default function FlatList({
 
   function renderList(): JSX.Element {
     return (
-      <List {...listProps}>
+      <List {...rest} {...listProps}>
         {headerNote && (
           <ListItem>
             <ListItemText
