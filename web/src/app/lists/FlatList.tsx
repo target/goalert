@@ -1,5 +1,5 @@
 import React from 'react'
-import List from '@material-ui/core/List'
+import List, { ListProps } from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
@@ -68,13 +68,9 @@ export interface FlatListItem {
   id?: string
 }
 
-export interface ListProps {
-  dense: boolean
-}
-
 export type FlatListListItem = FlatListSub | FlatListItem
 
-export interface FlatListProps extends Partial<ListProps> {
+export interface FlatListProps extends ListProps {
   items: FlatListListItem[]
 
   // headerNote will be displayed at the top of the list.
