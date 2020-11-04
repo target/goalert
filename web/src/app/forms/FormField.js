@@ -136,6 +136,7 @@ export class FormField extends React.PureComponent {
       value: mapValue(get(value, fieldName), value),
       min,
       max,
+      float,
     }
 
     const InputLabelProps = {

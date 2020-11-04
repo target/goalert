@@ -69,7 +69,7 @@ function testRotations(): void {
   describe('Details Page', () => {
     let rot: Rotation
     beforeEach(() =>
-      cy.createRotation({ count: 3 }).then((r: Rotation) => {
+      cy.createRotation({ numUsers: 3 }).then((r: Rotation) => {
         rot = r
         return cy.visit(`/rotations/${r.id}`)
       }),

@@ -50,6 +50,7 @@ type StepContainerProps = {
 export function StepContainer({
   children,
   width = '75%',
+  ...rest
 }: StepContainerProps): JSX.Element {
   const bodyStyle = {
     display: 'flex',
@@ -65,7 +66,9 @@ export function StepContainer({
 
   return (
     <div style={bodyStyle}>
-      <div style={containerStyle}>{children}</div>
+      <div style={containerStyle} {...rest}>
+        {children}
+      </div>
     </div>
   )
 }

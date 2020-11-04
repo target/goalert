@@ -55,6 +55,7 @@ type AddShiftsStepProps = {
 
   scheduleID: string
   stepText: string
+  edit?: boolean
 }
 
 type DTShift = {
@@ -111,6 +112,7 @@ export default function TempSchedAddShiftsStep({
   start,
   end,
   value,
+  edit,
 }: AddShiftsStepProps): JSX.Element {
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
@@ -176,7 +178,7 @@ export default function TempSchedAddShiftsStep({
   }
 
   return (
-    <StepContainer>
+    <StepContainer data-cy='add-shifts-step'>
       {/* main container for fields | button | shifts */}
       <Grid container spacing={0} className={classes.mainContainer}>
         {/* title + fields container */}
@@ -219,7 +221,7 @@ export default function TempSchedAddShiftsStep({
             value={shift}
             onChange={(val: Shift) => setShift(val)}
           >
-            <TempSchedAddShiftForm />
+            <TempSchedAddShiftForm min={edit ? start : undefined} />
           </FormContainer>
         </Grid>
 
@@ -233,7 +235,6 @@ export default function TempSchedAddShiftsStep({
             size='medium'
             color='primary'
             type='button'
-            disabled={Boolean(fieldErrors().length)}
           >
             <AddIcon />
           </Fab>

@@ -1,13 +1,19 @@
 import React, { useState } from 'react'
-import { Grid, TextField } from '@material-ui/core'
+import Grid from '@material-ui/core/Grid'
+import ToggleIcon from '@material-ui/icons/CompareArrows'
 import { DateTime } from 'luxon'
 import { FormField } from '../../forms'
 import { UserSelect } from '../../selection'
 import ClickableText from '../../util/ClickableText'
 import { ISODateTimePicker } from '../../util/ISOPickers'
 import { Value } from './sharedUtils'
+import NumberField from '../../util/NumberField'
 
-export default function TempSchedAddShiftForm(): JSX.Element {
+export default function TempSchedAddShiftForm({
+  min,
+}: {
+  min?: string
+}): JSX.Element {
   const [manualEntry, setManualEntry] = useState(false)
   const [now] = useState(DateTime.utc().startOf('minute').toISO())
 
@@ -27,7 +33,7 @@ export default function TempSchedAddShiftForm(): JSX.Element {
           component={ISODateTimePicker}
           label='Shift Start'
           name='start'
-          min={now}
+          min={min ?? now}
           mapOnChangeValue={(value: string, formValue: Value) => {
             if (!manualEntry) {
               const diff = DateTime.fromISO(value).diff(
@@ -46,21 +52,23 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             component={ISODateTimePicker}
             label='Shift End'
             name='end'
-            min={now}
+            min={min ?? now}
             hint={
               <ClickableText
-                text='Configure as duration'
+                data-cy='toggle-duration-on'
                 onClick={() => setManualEntry(false)}
-              />
+                endIcon={<ToggleIcon />}
+              >
+                Configure as duration
+              </ClickableText>
             }
           />
         ) : (
           <FormField
             fullWidth
-            component={TextField}
+            component={NumberField}
             label='Shift Duration (hours)'
             name='end'
-            type='number'
             float
             // value held in form input
             mapValue={(nextVal: string, formValue: Value) => {
@@ -74,15 +82,18 @@ export default function TempSchedAddShiftForm(): JSX.Element {
             mapOnChangeValue={(nextVal: string, formValue: Value) => {
               if (!nextVal) return ''
               return DateTime.fromISO(formValue.start)
-                .plus({ hours: parseInt(nextVal, 10) })
+                .plus({ hours: parseFloat(nextVal) })
                 .toISO()
             }}
             min={0.25}
             hint={
               <ClickableText
-                text='Configure as date/time'
+                data-cy='toggle-duration-off'
                 onClick={() => setManualEntry(true)}
-              />
+                endIcon={<ToggleIcon />}
+              >
+                Configure as date/time
+              </ClickableText>
             }
           />
         )}

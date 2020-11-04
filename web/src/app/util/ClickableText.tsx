@@ -1,48 +1,37 @@
-import { makeStyles } from '@material-ui/core'
-import React, { ButtonHTMLAttributes, MouseEventHandler } from 'react'
-
-const crimson = '#cd1831'
+import React from 'react'
+import makeStyles from '@material-ui/core/styles/makeStyles'
+import Button, { ButtonProps } from '@material-ui/core/Button'
 
 const useStyles = makeStyles({
   button: {
-    color: crimson,
-    all: 'unset',
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    textDecoration: 'none',
-    display: 'inline',
-    margin: 0,
-    padding: 0,
-    '&:hover': {
-      textDecoration: 'underline',
-    },
-    '&:focus': {
-      textDecoration: 'underline',
-    },
+    fontWeight: 'normal', // disable MUI bold
+    padding: '1px',
+    textTransform: 'none', // disable MUI uppercase
   },
 })
 
-interface ClickableTextProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  text: string
-  onClick: MouseEventHandler<HTMLButtonElement>
-}
-
-// ClickableText
+// ClickableText utilizes MUI's outlined button while adding some default  stylistic changes
 // since anchor elements have become entrenched with navigation by convention
-// it is recommended that clickable text be implemented using a button element
+//
+// it's recommended that clickable text is implemented using a button element
 // see https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/master/docs/rules/anchor-is-valid.md
-function ClickableText({
-  text,
+export default function ClickableText({
+  children,
+  color = 'secondary',
+  size = 'small',
   type = 'button',
   ...props
-}: ClickableTextProps): JSX.Element {
+}: ButtonProps): JSX.Element {
   const classes = useStyles()
   return (
-    <button className={classes.button} type={type} {...props}>
-      {text}
-    </button>
+    <Button
+      className={classes.button}
+      color={color}
+      size={size}
+      type={type}
+      {...props}
+    >
+      {children}
+    </Button>
   )
 }
-
-export default ClickableText
