@@ -148,7 +148,7 @@ export default function TempSchedShiftsList({
         data-cy='shifts-list'
         items={items()}
         emptyMessage='Add a user to the left to get started.'
-        listProps={{ dense: true }}
+        dense
         transition
       />
     </React.Fragment>

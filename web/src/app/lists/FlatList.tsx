@@ -68,9 +68,13 @@ export interface FlatListItem {
   id?: string
 }
 
+export interface ListProps {
+  dense: boolean
+}
+
 export type FlatListListItem = FlatListSub | FlatListItem
 
-export interface FlatListProps {
+export interface FlatListProps extends Partial<ListProps> {
   items: FlatListListItem[]
 
   // headerNote will be displayed at the top of the list.
@@ -78,8 +82,6 @@ export interface FlatListProps {
 
   // emptyMessage will be displayed if there are no items in the list.
   emptyMessage?: string
-
-  listProps?: { dense: boolean }
 
   // indent text of each list item if no icon is present
   inset?: boolean
@@ -100,8 +102,7 @@ export default function FlatList({
   items,
   inset,
   transition,
-  listProps,
-  ...rest
+  ...listProps
 }: FlatListProps): JSX.Element {
   const classes = useStyles()
 
@@ -247,7 +248,7 @@ export default function FlatList({
 
   function renderList(): JSX.Element {
     return (
-      <List {...rest} {...listProps}>
+      <List {...listProps}>
         {headerNote && (
           <ListItem>
             <ListItemText
