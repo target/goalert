@@ -197,13 +197,14 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
-      component: function ListAppLink(props: AppLinkProps) {
-        return (
-          <li>
-            <AppLink {...props} />
+      component: React.forwardRef<HTMLLIElement, AppLinkProps>(
+        ({ children, ...props }, ref) => (
+          <li ref={ref}>
+            <AppLink {...props}>{children}</AppLink>
           </li>
-        )
-      },
+        ),
+      ),
+
       // NOTE button: false? not assignable to true
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
