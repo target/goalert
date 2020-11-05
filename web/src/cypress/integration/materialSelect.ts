@@ -96,6 +96,22 @@ function testMaterialSelect(): void {
       })
     })
   })
+
+  describe('render options', () => {
+    it.only('should show selected value as an option in single-select mode', () => {
+      cy.visit('/wizard')
+
+      cy.form({ 'primarySchedule.timeZone': 'America/Chicago' })
+
+      cy.get(`input[name="primarySchedule.timeZone"]`)
+        .should('have.value', 'America/Chicago')
+        .click()
+
+      cy.get('[data-cy=select-dropdown]')
+        .should('exist')
+        .contains('America/Chicago')
+    })
+  })
 }
 
 testScreen('Material Select', testMaterialSelect)
