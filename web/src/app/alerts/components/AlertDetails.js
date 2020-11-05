@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
@@ -12,8 +12,6 @@ import TableCell from '@material-ui/core/TableCell'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import Typography from '@material-ui/core/Typography'
-import withStyles from '@material-ui/core/styles/withStyles'
-import isFullScreen from '@material-ui/core/withMobileDialog'
 import Countdown from 'react-countdown-now'
 import { RotationLink, ScheduleLink, ServiceLink, UserLink } from '../../links'
 import { styles } from '../../styles/materialStyles'
@@ -23,51 +21,49 @@ import PageActions from '../../util/PageActions'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
 import { AppLink } from '../../util/AppLink'
+import { makeStyles } from '@material-ui/core'
+import { isWidthDown } from '@material-ui/core/withWidth'
+import useWidth from '../../util/useWidth'
+
+const useStyles = makeStyles((theme) => {
+  return styles(theme)
+})
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
 
-@withStyles(styles)
-@isFullScreen()
-export default class AlertDetails extends Component {
-  static propTypes = {
-    loading: p.bool,
-    error: p.shape({ message: p.string }),
+function AlertDetails(props) {
+  const classes = useStyles()
+  const width = useWidth()
+  const fullScreen = isWidthDown('md', width)
+
+  // localstorage stores true/false as a string; convert to a bool
+  // default to true if localstorage is not set
+  let _showExactTimes = localStorage.getItem(exactTimesKey) || false
+  if (typeof _showExactTimes !== 'boolean') {
+    _showExactTimes = _showExactTimes === 'true'
   }
 
-  constructor(props) {
-    super(props)
-
-    // localstorage stores true/false as a string; convert to a bool
-    // default to true if localstorage is not set
-    let showExactTimes = localStorage.getItem(exactTimesKey) || false
-    if (typeof showExactTimes !== 'boolean') {
-      showExactTimes = showExactTimes === 'true'
-    }
-
-    this.state = {
-      fullDescription: false,
-      loading: '',
-      escalateWaiting: false,
-      showExactTimes,
-    }
-  }
+  const [fullDescription, setFullDescription] = useState(false)
+  const [showExactTimes, setShowExactTimes] = useState(_showExactTimes)
 
   /*
    * Update state and local storage with new boolean value
    * telling whether or not the show exact times toggle is active
    */
-  handleToggleExactTimes = () => {
-    const newVal = !this.state.showExactTimes
-    this.setState({
-      showExactTimes: newVal,
-    })
+  function handleToggleExactTimes() {
+    const newVal = !showExactTimes
+    setShowExactTimes(newVal)
     localStorage.setItem(exactTimesKey, newVal.toString())
   }
 
-  renderAlertLogs() {
+  function getCardClassName() {
+    return fullScreen ? classes.cardFull : classes.card
+  }
+
+  function renderAlertLogs() {
     return (
-      <Card className={this.getCardClassName()}>
+      <Card className={getCardClassName()}>
         <div style={{ display: 'flex' }}>
           <CardContent style={{ flex: 1, paddingBottom: 0 }}>
             <Typography component='h3' variant='h5'>
@@ -77,8 +73,8 @@ export default class AlertDetails extends Component {
           <FormControlLabel
             control={
               <Switch
-                checked={this.state.showExactTimes}
-                onChange={this.handleToggleExactTimes}
+                checked={showExactTimes}
+                onChange={handleToggleExactTimes}
               />
             }
             label='Full Timestamps'
@@ -86,19 +82,19 @@ export default class AlertDetails extends Component {
           />
         </div>
         <CardContent
-          className={this.props.classes.tableCardContent}
+          className={classes.tableCardContent}
           style={{ paddingBottom: 0 }}
         >
           <AlertDetailLogs
-            alertID={this.props.data.alertID}
-            showExactTimes={this.state.showExactTimes}
+            alertID={props.data.alertID}
+            showExactTimes={showExactTimes}
           />
         </CardContent>
       </Card>
     )
   }
 
-  renderRotations(rotations, stepID) {
+  function renderRotations(rotations, stepID) {
     return rotations.map((rotation, i) => {
       const sep = i === 0 ? '' : ', '
       return (
@@ -110,7 +106,7 @@ export default class AlertDetails extends Component {
     })
   }
 
-  renderSchedules(schedules, stepID) {
+  function renderSchedules(schedules, stepID) {
     return schedules.map((schedule, i) => {
       const sep = i === 0 ? '' : ', '
       return (
@@ -122,7 +118,7 @@ export default class AlertDetails extends Component {
     })
   }
 
-  renderUsers(users, stepID) {
+  function renderUsers(users, stepID) {
     return users.map((user, i) => {
       const sep = i === 0 ? '' : ', '
       return (
@@ -138,10 +134,10 @@ export default class AlertDetails extends Component {
    * Returns properties from the escalation policy
    * for easier use in functions.
    */
-  epsHelper() {
-    const ep = this.props.data.service.escalationPolicy
-    const alert = this.props.data
-    const state = this.props.data.state
+  function epsHelper() {
+    const ep = props.data.service.escalationPolicy
+    const alert = props.data
+    const state = props.data.state
 
     return {
       repeat: state?.repeatCount,
@@ -153,8 +149,8 @@ export default class AlertDetails extends Component {
     }
   }
 
-  canAutoEscalate() {
-    const { repeat, numSteps, status, currentLevel } = this.epsHelper()
+  function canAutoEscalate() {
+    const { repeat, numSteps, status, currentLevel } = epsHelper()
     if (status !== 'StatusUnacknowledged') return false
     if (repeat === -1) return true
     return currentLevel + 1 < numSteps * (repeat + 1)
@@ -163,11 +159,11 @@ export default class AlertDetails extends Component {
   /*
    * Renders a timer that counts down time until the next escalation
    */
-  renderTimer(index, delayMinutes) {
-    const { currentLevel, numSteps, lastEscalation } = this.epsHelper()
+  function renderTimer(index, delayMinutes) {
+    const { currentLevel, numSteps, lastEscalation } = epsHelper()
     const prevEscalation = new Date(lastEscalation)
 
-    if (currentLevel % numSteps === index && this.canAutoEscalate()) {
+    if (currentLevel % numSteps === index && canAutoEscalate()) {
       return (
         <Countdown
           date={new Date(prevEscalation.getTime() + delayMinutes * 60000)}
@@ -192,8 +188,8 @@ export default class AlertDetails extends Component {
     return <Typography>&mdash;</Typography>
   }
 
-  renderEscalationPolicySteps() {
-    const { steps, status, currentLevel } = this.epsHelper()
+  function renderEscalationPolicySteps() {
+    const { steps, status, currentLevel } = epsHelper()
 
     if (!steps.length) {
       return (
@@ -214,26 +210,22 @@ export default class AlertDetails extends Component {
 
       let rotationsRender
       if (rotations.length > 0) {
-        rotationsRender = (
-          <div>Rotations: {this.renderRotations(rotations, id)}</div>
-        )
+        rotationsRender = <div>Rotations: {renderRotations(rotations, id)}</div>
       }
 
       let schedulesRender
       if (schedules.length > 0) {
-        schedulesRender = (
-          <div>Schedules: {this.renderSchedules(schedules, id)}</div>
-        )
+        schedulesRender = <div>Schedules: {renderSchedules(schedules, id)}</div>
       }
 
       let usersRender
       if (users.length > 0) {
-        usersRender = <div>Users: {this.renderUsers(users, id)}</div>
+        usersRender = <div>Users: {renderUsers(users, id)}</div>
       }
 
       let className
       if (status !== 'closed' && currentLevel % steps.length === index) {
-        className = this.props.classes.highlightRow
+        className = classes.highlightRow
       }
 
       return (
@@ -245,17 +237,17 @@ export default class AlertDetails extends Component {
             {schedulesRender}
             {usersRender}
           </TableCell>
-          <TableCell>{this.renderTimer(index, delayMinutes)}</TableCell>
+          <TableCell>{renderTimer(index, delayMinutes)}</TableCell>
         </TableRow>
       )
     })
   }
 
-  renderEscalationPolicy() {
-    const alert = this.props.data
+  function renderEscalationPolicy() {
+    const alert = props.data
 
     return (
-      <Card className={this.getCardClassName()} style={{ overflowX: 'auto' }}>
+      <Card className={getCardClassName()} style={{ overflowX: 'auto' }}>
         <CardContent>
           <Typography component='h3' variant='h5'>
             <AppLink
@@ -265,20 +257,20 @@ export default class AlertDetails extends Component {
             </AppLink>
           </Typography>
         </CardContent>
-        <CardContent className={this.props.classes.tableCardContent}>
+        <CardContent className={classes.tableCardContent}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Step</TableCell>
                 <TableCell>Alert</TableCell>
                 <TableCell>
-                  {this.canAutoEscalate()
+                  {canAutoEscalate()
                     ? 'Time Until Next Escalation'
                     : 'Time Between Escalations'}
                 </TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>{this.renderEscalationPolicySteps()}</TableBody>
+            <TableBody>{renderEscalationPolicySteps()}</TableBody>
           </Table>
         </CardContent>
         <CardContent>
@@ -290,12 +282,12 @@ export default class AlertDetails extends Component {
     )
   }
 
-  renderAlertDetails() {
-    const alert = this.props.data
+  function renderAlertDetails() {
+    const alert = props.data
     let details = (alert.details || '').trim()
     if (!details) return null
 
-    if (!this.state.fullDescription && details.length > 1000) {
+    if (!fullDescription && details.length > 1000) {
       details = details.slice(0, 1000).trim() + ' ...'
     }
     if (details.split('```').length % 2 === 0) details += '\n```'
@@ -304,16 +296,14 @@ export default class AlertDetails extends Component {
     if (details.length > 1000) {
       let text = 'Show Less'
 
-      if (!this.state.fullDescription) {
+      if (!fullDescription) {
         text = 'Show More'
       }
 
       expandTextAction = (
         <Typography
           color='textSecondary'
-          onClick={() => {
-            this.setState({ fullDescription: !this.state.fullDescription })
-          }}
+          onClick={() => setFullDescription(!fullDescription)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -333,9 +323,9 @@ export default class AlertDetails extends Component {
         item
         xs={12}
         data-cy='alert-details'
-        className={this.props.classes.cardContainer}
+        className={classes.cardContainer}
       >
-        <Card className={this.getCardClassName()}>
+        <Card className={getCardClassName()}>
           <CardContent>
             <Typography component='h3' variant='h5'>
               Details
@@ -356,8 +346,8 @@ export default class AlertDetails extends Component {
   /*
    * Options to show for alert details menu
    */
-  getMenuOptions = () => {
-    const { id, status } = this.props.data
+  function getMenuOptions() {
+    const { id, status } = props.data
 
     if (status === 'StatusClosed') return [] // no options to show if alert is already closed
     const updateStatusMutation = gql`
@@ -416,54 +406,52 @@ export default class AlertDetails extends Component {
     return options
   }
 
-  getCardClassName = () => {
-    const { classes, fullScreen } = this.props
-    return fullScreen ? classes.cardFull : classes.card
-  }
+  const { data: alert } = props
 
-  render() {
-    const { classes, data: alert } = this.props
+  const options = getMenuOptions()
+  const optionsMenu = options.length > 0 ? <Options options={options} /> : null
 
-    const options = this.getMenuOptions()
-    const optionsMenu =
-      options.length > 0 ? <Options options={options} /> : null
-
-    return (
-      <Grid container spacing={2}>
-        <PageActions>{optionsMenu}</PageActions>
-        <Grid item xs={12} className={classes.cardContainer}>
-          <Card className={this.getCardClassName()}>
-            <CardContent data-cy='alert-summary'>
-              <Grid container spacing={1}>
-                <Grid item xs={12}>
-                  <Typography variant='body1'>
-                    {ServiceLink(alert.service)}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography component='h2' variant='h5'>
-                    {alert.alertID}: {alert.summary}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant='body1' data-cy='alert-status'>
-                    {alert.status.toUpperCase().replace('STATUS', '')}
-                  </Typography>
-                </Grid>
+  return (
+    <Grid container spacing={2}>
+      <PageActions>{optionsMenu}</PageActions>
+      <Grid item xs={12} className={classes.cardContainer}>
+        <Card className={getCardClassName()}>
+          <CardContent data-cy='alert-summary'>
+            <Grid container spacing={1}>
+              <Grid item xs={12}>
+                <Typography variant='body1'>
+                  {ServiceLink(alert.service)}
+                </Typography>
               </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-        {this.renderAlertDetails()}
-        <Hidden smDown>
-          <Grid item xs={12} className={classes.cardContainer}>
-            {this.renderEscalationPolicy()}
-          </Grid>
-        </Hidden>
-        <Grid item xs={12} className={classes.cardContainer}>
-          {this.renderAlertLogs()}
-        </Grid>
+              <Grid item xs={12}>
+                <Typography component='h2' variant='h5'>
+                  {alert.alertID}: {alert.summary}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant='body1' data-cy='alert-status'>
+                  {alert.status.toUpperCase().replace('STATUS', '')}
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
       </Grid>
-    )
-  }
+      {renderAlertDetails()}
+      <Hidden smDown>
+        <Grid item xs={12} className={classes.cardContainer}>
+          {renderEscalationPolicy()}
+        </Grid>
+      </Hidden>
+      <Grid item xs={12} className={classes.cardContainer}>
+        {renderAlertLogs()}
+      </Grid>
+    </Grid>
+  )
 }
+
+AlertDetails.propTypes = {
+  error: p.shape({ message: p.string }),
+}
+
+export default AlertDetails
