@@ -105,22 +105,26 @@ export default function MaterialSelect(
     _setInputValue(input)
     onInputChange(input)
   }
+
+  const multi = multiple ? { multiple: true, filterSelectedOptions: true } : {}
+
   useEffect(() => {
     if (multiple) return
     if (!value) setInputValue('')
     if (!inputValue && value) setInputValue(getInputLabel())
   }, [value, multiple])
 
-  const multi = multiple ? { multiple: true } : {}
-
-  // merge selected values with options to avoid annoying mui warnings while dropdown is closed
+  // merge selected values with options to avoid annoying mui warnings
   // https://github.com/mui-org/material-ui/issues/18514
-  // be sure to keep the props `filterSelectedOptions` set to hide selected value from dropdown
-  // and `getOptionSelected` to ensure what shows as selected for all incoming values
-  let options: SelectOption[] = _options
-  if (value) {
-    // merge options with value
-    options = options.concat(Array.isArray(value) ? value : [value])
+  let options = _options
+  if (value && Array.isArray(value)) {
+    options = [...options, ...value]
+  } else if (
+    value &&
+    !Array.isArray(value) &&
+    options.every((opt) => opt.value !== value.value)
+  ) {
+    options = [value, ...options]
   }
 
   return (
@@ -131,12 +135,11 @@ export default function MaterialSelect(
         option: classes.option,
         clearIndicator: classes.clearIndicator,
       }}
-      {...multi} // multiple: true | undefined
+      {...multi}
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      filterSelectedOptions
       getOptionSelected={(opt, val) => opt.value === val.value}
       noOptionsText={noOptionsText}
       onChange={(
