@@ -28,7 +28,24 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
       {...rest}
       value={inputValue}
       type='number'
-      onBlur={() => setInputValue(value.toString())}
+      onBlur={(e) => {
+        let num = parse(inputValue)
+        if (typeof min === 'number' && min > num) num = min
+        if (typeof max === 'number' && max < num) num = max
+        if (Number.isNaN(num)) {
+          // invalid, so revert to actual value
+          setInputValue(value.toString())
+          return
+        }
+
+        // no change
+        if (num.toString() === inputValue) return
+
+        // fire change event to clamped value
+        setInputValue(num.toString())
+        e.target.value = num.toString()
+        onChange(e)
+      }}
       onChange={(e) => {
         const val = e.target.value
         const num = parse(val)
