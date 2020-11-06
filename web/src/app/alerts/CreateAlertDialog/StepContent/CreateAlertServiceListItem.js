@@ -10,7 +10,7 @@ import {
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
 import gql from 'graphql-tag'
-import { AppLink } from '../../../util/AppLink'
+import AppLink from '../../../util/AppLink'
 
 const serviceQuery = gql`
   query service($id: ID!) {

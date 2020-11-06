@@ -22,7 +22,7 @@ import gql from 'graphql-tag'
 import PageActions from '../../util/PageActions'
 import Markdown from '../../util/Markdown'
 import AlertDetailLogs from '../AlertDetailLogs'
-import { AppLink } from '../../util/AppLink'
+import AppLink from '../../util/AppLink'
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'

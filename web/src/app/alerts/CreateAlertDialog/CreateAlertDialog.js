@@ -17,7 +17,7 @@ import { fieldErrors, allErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
-import { AppLink } from '../../util/AppLink'
+import AppLink from '../../util/AppLink'
 
 const pluralize = (num) => (num !== 1 ? 's' : '')
 

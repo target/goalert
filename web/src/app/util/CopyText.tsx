@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import p from 'prop-types'
 import copyToClipboard from './copyToClipboard'
 import ContentCopy from 'mdi-material-ui/ContentCopy'
-import { AppLink } from './AppLink'
+import AppLink from './AppLink'
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip'
 
 const useStyles = makeStyles({

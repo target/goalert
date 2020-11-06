@@ -16,7 +16,7 @@ import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { formatTimeSince } from '../util/timeFormat'
 import { useConfigValue } from '../util/RequireConfig'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 
 export const calendarSubscriptionsQuery = gql`
   query calendarSubscriptions($id: ID!) {
