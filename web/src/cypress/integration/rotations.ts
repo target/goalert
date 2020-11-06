@@ -106,7 +106,6 @@ function testRotations(): void {
     it('should allow re-ordering participants', () => {
       // ensure list has fully loaded before drag/drop
       cy.get('ul[data-cy=users]').find('li').should('have.length', 4)
-      cy.get('[data-cy=avatar-fallback]').should('not.exist')
 
       cy.get('ul[data-cy=users]')
         .find('li')
