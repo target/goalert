@@ -98,7 +98,7 @@ function testMaterialSelect(): void {
   })
 
   describe('render options', () => {
-    it.only('should show selected value as an option in single-select mode', () => {
+    it('should show selected value as an option in single-select mode', () => {
       cy.visit('/wizard')
 
       cy.form({ 'primarySchedule.timeZone': 'America/Chicago' })
