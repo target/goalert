@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import Button from '@material-ui/core/Button'
 import IconButton from '@material-ui/core/IconButton'
@@ -8,28 +8,18 @@ import Hidden from '@material-ui/core/Hidden'
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
 import Switch from '@material-ui/core/Switch'
 import Grid from '@material-ui/core/Grid'
-import { withStyles } from '@material-ui/core/styles'
+import { makeStyles } from '@material-ui/core/styles'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import Radio from '@material-ui/core/Radio'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormControl from '@material-ui/core/FormControl'
-import withWidth, { isWidthUp } from '@material-ui/core/withWidth'
+import { isWidthUp } from '@material-ui/core/withWidth'
 import classnames from 'classnames'
-import { connect } from 'react-redux'
-import {
-  resetAlertsFilters,
-  setAlertsStatusFilter,
-  setAlertsAllServicesFilter,
-  setAlertsShowAsFullTimeFilter,
-} from '../../actions'
-import {
-  alertAllServicesSelector,
-  alertFilterSelector,
-  alertShowAsFullTimeSelector,
-} from '../../selectors'
+import { useURLParam, useResetURLParams } from '../../actions'
+import useWidth from '../../util/useWidth'
 
-const styles = (theme) => ({
+const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
   drawer: {
     width: 'fit-content', // width placed on mobile drawer
@@ -47,72 +37,35 @@ const styles = (theme) => ({
   popover: {
     width: '17em', // width placed on desktop popover
   },
-})
+}))
 
-const mapStateToProps = (state) => ({
-  allServices: alertAllServicesSelector(state),
-  filter: alertFilterSelector(state),
-  showAsFullTime: alertShowAsFullTimeSelector(state),
-})
+function AlertsListFilter({ serviceID }) {
+  const classes = useStyles()
+  const width = useWidth()
+  const [show, setShow] = useState(false)
+  const [anchorEl, setAnchorEl] = useState(null)
 
-const mapDispatchToProps = (dispatch) => ({
-  resetAll: () => dispatch(resetAlertsFilters()), // don't reset search param
-  setFilter: (value) => dispatch(setAlertsStatusFilter(value)),
-  setAllServices: (value) => dispatch(setAlertsAllServicesFilter(value)),
-  setShowAsFullTime: (value) => dispatch(setAlertsShowAsFullTimeFilter(value)),
-})
+  const [filter, setFilter] = useURLParam('filter', 'active')
+  const [allServices, setAllServices] = useURLParam('allServices', false)
+  const [showAsFullTime, setShowAsFullTime] = useURLParam('fullTime', false)
+  const resetAll = useResetURLParams('filter', 'allServices', 'fullTime') // don't reset search param
 
-@withStyles(styles)
-@withWidth()
-@connect(mapStateToProps, mapDispatchToProps)
-export default class AlertsListFilter extends Component {
-  static propTypes = {
-    serviceID: p.string,
-    allServices: p.bool,
-    filter: p.string,
-    showAsFullTime: p.bool,
+  function handleOpenFilters(event) {
+    setAnchorEl(event.currentTarget)
+    setShow(true)
   }
 
-  state = {
-    show: false,
-    anchorEl: null, // element in which filters form under
+  function handleCloseFilters() {
+    setShow(false)
   }
 
-  handleOpenFilters = (event) => {
-    this.setState({
-      anchorEl: event.currentTarget,
-      show: true,
-    })
-  }
-
-  handleCloseFilters = () => {
-    this.setState({
-      show: false,
-    })
-  }
-
-  renderFilters = () => {
-    const {
-      allServices,
-      classes,
-      filter,
-      serviceID: sid,
-      showAsFullTime,
-      width,
-    } = this.props
-    const {
-      resetAll,
-      setFilter,
-      setAllServices,
-      setShowAsFullTime,
-    } = this.props
-
+  function renderFilters() {
     // grabs class for width depending on breakpoints (md or higher uses popover width)
     const widthClass = isWidthUp('md', width) ? classes.popover : classes.drawer
     const gridClasses = classnames(classes.grid, widthClass)
 
     let favoritesFilter = null
-    if (!sid) {
+    if (!serviceID) {
       favoritesFilter = (
         <FormControlLabel
           control={
@@ -180,7 +133,7 @@ export default class AlertsListFilter extends Component {
         </Grid>
         <Grid item xs={12} className={classes.filterActions}>
           <Button onClick={resetAll}>Reset</Button>
-          <Button onClick={this.handleCloseFilters}>Done</Button>
+          <Button onClick={handleCloseFilters}>Done</Button>
         </Grid>
       </Grid>
     )
@@ -190,9 +143,9 @@ export default class AlertsListFilter extends Component {
       <React.Fragment>
         <Hidden smDown>
           <Popover
-            anchorEl={() => this.state.anchorEl}
-            open={!!this.state.anchorEl && this.state.show}
-            onClose={this.handleCloseFilters}
+            anchorEl={() => anchorEl}
+            open={!!anchorEl && show}
+            onClose={handleCloseFilters}
             anchorOrigin={{
               vertical: 'bottom',
               horizontal: 'right',
@@ -210,9 +163,9 @@ export default class AlertsListFilter extends Component {
             anchor='top'
             disableDiscovery
             disableSwipeToOpen
-            open={this.state.show}
-            onClose={this.handleCloseFilters}
-            onOpen={this.handleOpenFilters}
+            open={show}
+            onClose={handleCloseFilters}
+            onOpen={handleOpenFilters}
           >
             {content}
           </SwipeableDrawer>
@@ -226,18 +179,23 @@ export default class AlertsListFilter extends Component {
    * element to that node (after all the toolbar's children
    * are done being rendered)
    */
-  render() {
-    return (
-      <React.Fragment>
-        <IconButton
-          aria-label='Filter Alerts'
-          color='inherit'
-          onClick={this.handleOpenFilters}
-        >
-          <FilterList />
-        </IconButton>
-        {this.renderFilters()}
-      </React.Fragment>
-    )
-  }
+
+  return (
+    <React.Fragment>
+      <IconButton
+        aria-label='Filter Alerts'
+        color='inherit'
+        onClick={handleOpenFilters}
+      >
+        <FilterList />
+      </IconButton>
+      {renderFilters()}
+    </React.Fragment>
+  )
 }
+
+AlertsListFilter.propTypes = {
+  serviceID: p.string,
+}
+
+export default AlertsListFilter
