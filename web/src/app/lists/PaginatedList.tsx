@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, ReactElement } from 'react'
+import React, { ReactNode, useState, ReactElement, forwardRef } from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
 
 import Avatar from '@material-ui/core/Avatar'
@@ -22,7 +22,7 @@ import { makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
-import { AppLink, AppLinkProps } from '../util/AppLink'
+import AppLink, { AppLinkProps } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
 
@@ -197,13 +197,11 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
-      component: React.forwardRef<HTMLLIElement, AppLinkProps>(
-        ({ children, ...props }, ref) => (
-          <li ref={ref}>
-            <AppLink {...props}>{children}</AppLink>
-          </li>
-        ),
-      ),
+      component: forwardRef<HTMLAnchorElement, AppLinkProps>((props, ref) => (
+        <li>
+          <AppLink ref={ref} {...props} />
+        </li>
+      )),
 
       // NOTE button: false? not assignable to true
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
