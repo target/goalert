@@ -1,10 +1,9 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import gql from 'graphql-tag'
-import { Query } from 'react-apollo'
+import { useQuery } from 'react-apollo'
 import AlertDetails from '../components/AlertDetails'
-import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../../config'
 
 const query = gql`
   query AlertDetailsPageQuery($id: Int!) {
@@ -39,26 +38,18 @@ const query = gql`
   }
 `
 
-export default class AlertDetailPage extends Component {
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.match.params.alertID }}
-        pollInterval={POLL_INTERVAL}
-      >
-        {({ loading, error, data, startPolling }) => {
-          if (!data && loading) return <Spinner />
-          if (error) {
-            startPolling(POLL_ERROR_INTERVAL)
-            return <GenericError error={error.message} />
-          }
+function AlertDetailPage(props) {
+  const { loading, error, data } = useQuery(query, {
+    variables: { id: props.match.params.alertID },
+  })
 
-          if (!data.alert) return <ObjectNotFound type='alert' />
-          startPolling(POLL_INTERVAL)
-          return <AlertDetails data={data.alert} />
-        }}
-      </Query>
-    )
-  }
+  if (!data && loading) return <Spinner />
+
+  if (error) return <GenericError error={error.message} />
+
+  if (!data.alert) return <ObjectNotFound type='alert' />
+
+  return <AlertDetails data={data.alert} />
 }
+
+export default AlertDetailPage
