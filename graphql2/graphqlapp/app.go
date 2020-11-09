@@ -198,8 +198,8 @@ func (a *App) Handler() http.Handler {
 		}
 
 		if isUnsafe && !isGQLValidation(gqlErr) {
-			gqlErr.Message = safeErr.Error()
 			log.Log(ctx, err)
+			gqlErr.Message = safeErr.Error()
 		}
 
 		var multiFieldErr validation.MultiFieldError

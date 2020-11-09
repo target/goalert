@@ -105,6 +105,9 @@ func (a *AlertLogEntry) notificationSentState(ctx context.Context, obj *alertlog
 	if err != nil {
 		return nil, errors.Wrap(err, "find alert log state")
 	}
+	if s == nil {
+		return nil, nil
+	}
 
 	return notificationStateFromStatus(*s), nil
 }
