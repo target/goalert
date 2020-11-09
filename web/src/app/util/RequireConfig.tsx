@@ -1,13 +1,15 @@
 import React, { useContext } from 'react'
-import p from 'prop-types'
 import gql from 'graphql-tag'
-import _ from 'lodash-es'
 import { useQuery } from 'react-apollo'
+import { ConfigType, ConfigValue, ConfigID } from '../../schema'
+
+type Value = boolean | number | string | string[] | null
+export type ConfigData = Record<ConfigID, Value>
 
 const ConfigContext = React.createContext({
-  config: [],
-  isAdmin: false,
-  userID: null,
+  config: [] as ConfigValue[],
+  isAdmin: false as boolean,
+  userID: null as string | null,
 })
 ConfigContext.displayName = 'ConfigContext'
 
@@ -25,7 +27,11 @@ const query = gql`
   }
 `
 
-export function ConfigProvider({ children }) {
+type ConfigProviderProps = {
+  children: JSX.Element | JSX.Element[]
+}
+
+export function ConfigProvider(props: ConfigProviderProps): JSX.Element {
   const { data } = useQuery(query)
 
   return (
@@ -36,12 +42,12 @@ export function ConfigProvider({ children }) {
         userID: data?.user?.id || null,
       }}
     >
-      {children}
+      {props.children}
     </ConfigContext.Provider>
   )
 }
 
-function parseValue(type, value) {
+function parseValue(type: ConfigType, value: string): Value {
   if (!type) return null
   switch (type) {
     case 'boolean':
@@ -51,35 +57,43 @@ function parseValue(type, value) {
     case 'string':
       return value
     case 'stringList':
-      if (value === '') return []
-      return value.split('\n')
+      return value === '' ? [] : value.split('\n')
   }
 
   throw new TypeError(`unknown config type '${type}'`)
 }
 
-function isTrue(value) {
+function isTrue(value: Value): boolean {
   if (Array.isArray(value)) return value.length > 0
   if (value === 'false') return false
   return Boolean(value)
 }
 
-const mapConfig = (value) =>
-  _.chain(value)
-    .groupBy('id')
-    .mapValues((v) => parseValue(v[0].type, v[0].value))
-    .value()
+const mapConfig = (value: ConfigValue[]): ConfigData => {
+  const data: { [x: string]: Value } = {}
+  value.forEach((v) => {
+    data[v.id] = parseValue(v.type, v.value)
+  })
+  return data as ConfigData
+}
+
+export type SessionInfo = {
+  isAdmin: boolean
+  userID: string | null
+  ready: boolean
+}
 
 // useSessionInfo returns an object with the following properties:
 // - `isAdmin` true if the current session is an admin
 // - `userID` the current users ID
 // - `ready` true if session/config info is available (e.g. before initial page load/fetch)
-export function useSessionInfo() {
-  const info = _.pick(useContext(ConfigContext), 'isAdmin', 'userID')
+export function useSessionInfo(): SessionInfo {
+  const ctx = useContext(ConfigContext)
+
   return {
-    userID: info.userID,
-    isAdmin: info.isAdmin,
-    ready: Boolean(info.userID), // no user ID if not loaded
+    isAdmin: ctx.isAdmin,
+    userID: ctx.userID,
+    ready: Boolean(ctx.userID),
   }
 }
 
@@ -91,7 +105,7 @@ export function useSessionInfo() {
 //   "Mailgun.Enable": true
 // }
 // ```
-export function useConfig() {
+export function useConfig(): ConfigData {
   return mapConfig(useContext(ConfigContext).config)
 }
 
@@ -102,17 +116,31 @@ export function useConfig() {
 // ```js
 // const [mailgun, slack] = useConfigValue('Mailgun.Enable', 'Slack.Enable')
 // ```
-export function useConfigValue(...fields) {
+export function useConfigValue(...fields: ConfigID[]): Value[] {
   const config = useConfig()
   return fields.map((f) => config[f])
 }
 
-export function Config({ children }) {
-  const { isAdmin, userID, config } = useContext(ConfigContext)
-  return children(mapConfig(config), { isAdmin, userID }) || null
+export function Config(props: {
+  children: (x: ConfigData, s?: SessionInfo) => JSX.Element
+}): JSX.Element {
+  return props.children(useConfig(), useSessionInfo()) || null
 }
 
-export default function RequireConfig(props) {
+export type RequireConfigProps = {
+  configID: ConfigID
+  // test to determine whether or not children or else is returned
+  test?: (x: Value) => boolean
+
+  // react element to render if checks failed
+  else?: JSX.Element
+  isAdmin?: boolean
+  children: React.ReactChildren
+}
+
+export default function RequireConfig(
+  props: RequireConfigProps,
+): JSX.Element | null {
   const {
     configID,
     test = isTrue,
@@ -120,26 +148,16 @@ export default function RequireConfig(props) {
     children,
     else: elseValue = null,
   } = props
-  const { config, isAdmin } = useContext(ConfigContext)
+  const config = useConfig()
+  const { isAdmin } = useSessionInfo()
 
   if (wantIsAdmin && !isAdmin) {
     return elseValue
   }
 
-  const cfgOpt = config.find((c) => c.id === configID)
-  if (configID && !test(cfgOpt?.value)) {
+  if (configID && !test(config[configID])) {
     return elseValue
   }
 
   return <React.Fragment>{children}</React.Fragment>
-}
-
-RequireConfig.propTypes = {
-  isAdmin: p.bool,
-  configID: p.string,
-  test: p.func, // test to determine whether or not else is returned
-
-  else: p.node, // react element to render if checks failed
-
-  children: p.node, // elements to return if checks pass
 }
