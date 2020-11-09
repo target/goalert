@@ -9,7 +9,7 @@ interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule'
   isFavorite?: boolean
   loading: boolean
-  onClick: () => void
+  onClick: (event: React.FormEvent<HTMLFormElement>) => void
 }
 
 export function SetFavoriteButton({
@@ -27,7 +27,7 @@ export function SetFavoriteButton({
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        onClick()
+        onClick(e)
       }}
     >
       <IconButton
