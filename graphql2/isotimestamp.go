@@ -16,7 +16,7 @@ func MarshalISOTimestamp(t time.Time) graphql.Marshaler {
 			io.WriteString(w, "null")
 			return
 		}
-		io.WriteString(w, `"`+t.Format(time.RFC3339Nano)+`"`)
+		io.WriteString(w, `"`+t.UTC().Format(time.RFC3339Nano)+`"`)
 	})
 }
 func UnmarshalISOTimestamp(v interface{}) (time.Time, error) {

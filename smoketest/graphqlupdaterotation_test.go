@@ -170,7 +170,7 @@ func TestGraphQLUpdateRotation(t *testing.T) {
 	assert.Equal(t, "new name", updatedRotation.Rotation.Name)
 	assert.Equal(t, "new description", updatedRotation.Rotation.Description)
 	assert.Equal(t, "America/New_York", updatedRotation.Rotation.TimeZone)
-	assert.Equal(t, "1997-11-26T12:08:00-05:00", updatedRotation.Rotation.Start) // truncate to minute
+	assert.Equal(t, "1997-11-26T17:08:00Z", updatedRotation.Rotation.Start) // truncate to minute
 	assert.Equal(t, "hourly", updatedRotation.Rotation.Type)
 	assert.Equal(t, 12, updatedRotation.Rotation.ShiftLength)
 	assert.Equal(t, 0, updatedRotation.Rotation.ActiveUserIndex)

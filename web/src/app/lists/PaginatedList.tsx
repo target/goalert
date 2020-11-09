@@ -11,7 +11,6 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 
 import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
@@ -23,7 +22,7 @@ import { makeStyles } from '@material-ui/core'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Spinner from '../loading/components/Spinner'
 import { CheckboxItemsProps } from './ControlledPaginatedList'
-import { AppLink } from '../util/AppLink'
+import { AppLink, AppLinkProps } from '../util/AppLink'
 import statusStyles from '../util/statusStyles'
 import { debug } from '../util/debug'
 
@@ -38,6 +37,12 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'center',
     padding: '0.25em 0 0.25em 0',
+  },
+  itemAction: {
+    paddingLeft: 14,
+  },
+  itemText: {
+    wordBreak: 'break-word',
   },
   progress: {
     color: theme.palette.secondary.main,
@@ -165,14 +170,14 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
   }
 
   function renderItem(item: PaginatedListItemProps, idx: number): ReactElement {
-    let favIcon = <ListItemSecondaryAction />
+    let favIcon = null
     if (item.isFavorite) {
       favIcon = (
-        <ListItemSecondaryAction>
+        <div className={classes.itemAction}>
           <Avatar className={classes.favoriteIcon}>
             <FavoriteIcon data-cy='fav-icon' />
           </Avatar>
-        </ListItemSecondaryAction>
+        </div>
       )
     }
 
@@ -192,7 +197,13 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
 
     // must be explicitly set when using, in accordance with TS definitions
     const urlProps = item.url && {
-      component: AppLink,
+      component: function ListAppLink(props: AppLinkProps) {
+        return (
+          <li>
+            <AppLink {...props} />
+          </li>
+        )
+      },
       // NOTE button: false? not assignable to true
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       button: true as any,
@@ -207,11 +218,13 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
         {...urlProps}
       >
         {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-        <ListItemText primary={item.title} secondary={item.subText} />
+        <ListItemText
+          className={classes.itemText}
+          primary={item.title}
+          secondary={item.subText}
+        />
         {favIcon}
-        {item.action && (
-          <ListItemSecondaryAction>{item.action}</ListItemSecondaryAction>
-        )}
+        {item.action && <div className={classes.itemAction}>{item.action}</div>}
       </ListItem>
     )
   }
