@@ -85,33 +85,46 @@ export default function MaterialSelect(
     name,
     noOptionsText,
     onChange,
-    onInputChange,
+    onInputChange = () => {},
     options: _options,
     placeholder,
     required,
     value,
   } = props
 
-  const getLabel = (): string =>
-    Array.isArray(value) ? value[0]?.label ?? '' : value?.label ?? ''
+  // getInputLabel will return the label of the current value.
+  //
+  // If in multi-select mode an empty string is always returned as selected values
+  // are never preserved in the input field (they are chips instead).
+  const getInputLabel = (): string =>
+    multiple || Array.isArray(value) ? '' : value?.label || ''
 
-  const [inputValue, setInputValue] = useState(multiple ? '' : getLabel())
+  const [inputValue, _setInputValue] = useState(getInputLabel())
+
+  const setInputValue = (input: string): void => {
+    _setInputValue(input)
+    onInputChange(input)
+  }
+
+  const multi = multiple ? { multiple: true, filterSelectedOptions: true } : {}
+
   useEffect(() => {
     if (multiple) return
     if (!value) setInputValue('')
-    if (!inputValue && value) setInputValue(getLabel())
+    if (!inputValue && value) setInputValue(getInputLabel())
   }, [value, multiple])
 
-  const multi = multiple ? { multiple: true } : {}
-
-  // merge selected values with options to avoid annoying mui warnings while dropdown is closed
+  // merge selected values with options to avoid annoying mui warnings
   // https://github.com/mui-org/material-ui/issues/18514
-  // be sure to keep the props `filterSelectedOptions` set to hide selected value from dropdown
-  // and `getOptionSelected` to ensure what shows as selected for all incoming values
-  let options: SelectOption[] = _options
-  if (value) {
-    // merge options with value
-    options = options.concat(Array.isArray(value) ? value : [value])
+  let options = _options
+  if (value && Array.isArray(value)) {
+    options = [...options, ...value]
+  } else if (
+    value &&
+    !Array.isArray(value) &&
+    options.every((opt) => opt.value !== value.value)
+  ) {
+    options = [value, ...options]
   }
 
   return (
@@ -122,12 +135,11 @@ export default function MaterialSelect(
         option: classes.option,
         clearIndicator: classes.clearIndicator,
       }}
-      {...multi} // multiple: true | undefined
+      {...multi}
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      filterSelectedOptions
       getOptionSelected={(opt, val) => opt.value === val.value}
       noOptionsText={noOptionsText}
       onChange={(
@@ -151,7 +163,7 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={getLabel}
+      onBlur={() => setInputValue(getInputLabel())}
       loading={isLoading}
       getOptionLabel={(option) => option?.label ?? ''}
       options={options}
@@ -176,7 +188,6 @@ export default function MaterialSelect(
             onChange={({ target }) => {
               const newInputVal: string = target.value
               setInputValue(newInputVal)
-              if (onInputChange) onInputChange(newInputVal)
             }}
             error={error}
           />
