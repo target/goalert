@@ -5,7 +5,54 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestWeekdayFilter_NextInactive(t *testing.T) {
+	var loc *time.Location
+	setLocation := func(newLoc *time.Location, err error) {
+		t.Helper()
+		loc = newLoc
+		require.NoError(t, err)
+	}
+	check := func(expTime, start string, filter WeekdayFilter) {
+		t.Helper()
+
+		ts, err := time.ParseInLocation("2006-01-02 15:04:05.999999999 -0700 MST", start, loc)
+		if err != nil {
+			// workaround for being unable to parse "+1030" as "MST"
+			parts := strings.Split(start, " ")
+			ts, err = time.ParseInLocation("2006-01-02 15:04:05.999999999 -0700", strings.Join(parts[:3], " "), loc)
+		}
+		require.NoError(t, err)
+
+		res := filter.NextInactive(ts)
+
+		assert.Equalf(t, expTime, res.String(),
+			"next start of inactive day %s from %s (%s, filter=%v)", res.String(), start, loc.String(), filter,
+		)
+
+	}
+
+	setLocation(time.UTC, nil)
+	check(
+		"2020-11-03 00:00:00 -0500 CDT",
+		"2020-11-01 01:00:00 -0500 CDT",
+		WeekdayFilter{1, 1, 0, 1, 1, 1, 1},
+	)
+	check(
+		"2020-11-10 00:00:00 -0500 CDT",
+		"2020-11-03 00:00:00 -0500 CDT",
+		WeekdayFilter{1, 1, 0, 1, 1, 1, 1},
+	)
+	check(
+		"2020-11-10 00:00:00 -0500 CDT",
+		"2020-11-04 01:00:00 -0500 CDT",
+		WeekdayFilter{1, 1, 0, 1, 1, 1, 1},
+	)
+}
 
 func TestWeekdayFilter_String(t *testing.T) {
 	check := func(f WeekdayFilter, exp string) {

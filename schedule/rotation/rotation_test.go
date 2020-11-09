@@ -1,9 +1,12 @@
 package rotation
 
 import (
-	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const timeFmt = "Jan 2 2006 3:04 pm"
@@ -22,6 +25,216 @@ func mustParse(t *testing.T, value string) time.Time {
 	return tm
 }
 
+func TestAddClockHours(t *testing.T) {
+	var loc *time.Location
+	setLocation := func(newLoc *time.Location, err error) {
+		t.Helper()
+		loc = newLoc
+		require.NoError(t, err)
+	}
+	check := func(exp, start string, hours int) {
+		t.Helper()
+
+		ts, err := time.ParseInLocation("2006-01-02 15:04:05.999999999 -0700 MST", start, loc)
+		if err != nil {
+			// workaround for being unable to parse "+1030" as "MST"
+			parts := strings.Split(start, " ")
+			ts, err = time.ParseInLocation("2006-01-02 15:04:05.999999999 -0700", strings.Join(parts[:3], " "), loc)
+		}
+		require.NoError(t, err)
+
+		op := "add"
+		op2 := "to"
+		hoursV := hours
+		if hours < 0 {
+			op = "subtract"
+			op2 = "from"
+			hoursV = -hours
+		}
+		p := "s"
+		if hoursV == 1 {
+			p = ""
+		}
+
+		assert.Equalf(t, exp, addClockHours(ts, hours).String(),
+			"%s %d hour%s %s %s (%s)", op, hours, p, op2, start, loc.String(),
+		)
+	}
+
+	// UTC basics
+	setLocation(time.UTC, nil)
+	check(
+		"2020-01-01 01:00:00 +0000 UTC",
+		"2020-01-01 00:00:00 +0000 UTC", 1,
+	)
+	check(
+		"2020-01-01 04:00:00 +0000 UTC",
+		"2020-01-01 00:00:00 +0000 UTC", 4,
+	)
+	check(
+		"2020-01-01 00:00:00 +0000 UTC",
+		"2020-01-01 01:00:00 +0000 UTC", -1,
+	)
+	check(
+		"2020-01-01 00:00:00 +0000 UTC",
+		"2020-01-01 04:00:00 +0000 UTC", -4,
+	)
+
+	// Leap second @ 23:59:60
+	check(
+		"2017-01-01 00:00:00 +0000 UTC",
+		"2016-12-31 23:00:00 +0000 UTC", 1,
+	)
+	check(
+		"2016-12-31 23:00:00 +0000 UTC",
+		"2017-01-01 00:00:00 +0000 UTC", -1,
+	)
+
+	// CST -> CDT (spring)
+	// // Midnight, March 8th 2020 -- at 2:00AM CST the time becomes 3:00AM CDT
+	setLocation(time.LoadLocation("America/Chicago"))
+
+	// Adding 1 clock hour to 1:00AM CST should result in 3:00AM CDT due to the
+	// transition at 2:00AM CST (2:00AM doesn't exist outside of ambiguity)
+	check(
+		"2020-03-08 03:00:00 -0500 CDT",
+		"2020-03-08 01:00:00 -0600 CST", 1,
+	)
+
+	// Adding 2 clock hours to 1:00AM CST should also result in 3:00AM CDT
+	check(
+		"2020-03-08 03:00:00 -0500 CDT",
+		"2020-03-08 01:00:00 -0600 CST", 2,
+	)
+
+	// Adding 4 clock hours to 12:00AM CST should result in 4:00AM CDT
+	check(
+		"2020-03-08 04:00:00 -0500 CDT",
+		"2020-03-08 00:00:00 -0600 CST", 4,
+	)
+
+	// Two hours past 12:00AM CST would be 3:00AM CDT
+	// subtracting 1 hour would be 1:00AM CST, reversing the transition
+	check(
+		"2020-03-08 01:00:00 -0600 CST",
+		"2020-03-08 03:00:00 -0500 CDT", -1,
+	)
+
+	// Likewise, subtracting 2 clock-hours would also be 1:00AM CST
+	check(
+		"2020-03-08 01:00:00 -0600 CST",
+		"2020-03-08 03:00:00 -0500 CDT", -2,
+	)
+
+	// Lastly, subtracting 4 clock-hours from 4:00AM CDT would be 12:00AM CST.
+	// 4:00AM CDT would be 3 real-time hours past midnight.
+	check(
+		"2020-03-08 00:00:00 -0600 CST",
+		"2020-03-08 04:00:00 -0500 CDT", -4,
+	)
+
+	// CDT -> CST (fall)
+	// Midnight, November 1st 2020 -- at 2:00AM CDT the time becomes 1:00AM CST
+	setLocation(time.LoadLocation("America/Chicago"))
+
+	// Adding 1 clock hour to 1:00AM CDT should result in 2:00AM CST due to the
+	// transition at 2:00AM (1:00AM repeats, first in CDT, then in CST)
+	// so to advance the clock 2 hours end up passing.
+	check(
+		"2020-11-01 02:00:00 -0600 CST",
+		"2020-11-01 01:00:00 -0500 CDT", 1,
+	)
+
+	// Adding 2 clock hours to 1:00AM CDT should result in 3:00AM CDT
+	check(
+		"2020-11-01 03:00:00 -0600 CST",
+		"2020-11-01 01:00:00 -0500 CDT", 2,
+	)
+
+	// Adding 4 clock hours to 12:00AM CDT should result in 4:00AM CST
+	check(
+		"2020-11-01 04:00:00 -0600 CST",
+		"2020-11-01 00:00:00 -0500 CDT", 4,
+	)
+
+	// Two hours past 12:00AM CDT would be 1:00AM CST
+	// subtracting 1 clock-hour would be 12:00AM CDT, reversing the transition
+	check(
+		"2020-11-01 00:00:00 -0500 CDT",
+		"2020-11-01 01:00:00 -0600 CST", -1,
+	)
+
+	// subtracting 1 clock-hour from 1:00AM CDT would also be 12:00AM CDT
+	check(
+		"2020-11-01 00:00:00 -0500 CDT",
+		"2020-11-01 01:00:00 -0500 CDT", -1,
+	)
+
+	// Subtracting 2 clock-hours from 1:00AM CDT would be Oct 31st 11:00PM CDT
+	check(
+		"2020-10-31 23:00:00 -0500 CDT",
+		"2020-11-01 01:00:00 -0500 CDT", -2,
+	)
+
+	// Subtracting 2 clock-hours from 1:00AM CST would also be Oct 31st 11:00PM CDT
+	check(
+		"2020-10-31 23:00:00 -0500 CDT",
+		"2020-11-01 01:00:00 -0600 CST", -2,
+	)
+
+	// Lastly, subtracting 4 clock-hours from 4:00AM CST should be 12:00AM CDT.
+	// 4:00AM CST would be 5 real-time hours past midnight.
+	check(
+		"2020-11-01 00:00:00 -0500 CDT",
+		"2020-11-01 04:00:00 -0600 CST", -4,
+	)
+
+	// fancy edge case (30 minute DST)
+	// 12:00AM April 5th 2020 -- at 2:00AM time becomes 1:30AM
+	setLocation(time.LoadLocation("Australia/Lord_Howe"))
+
+	// Adding 1 clock hour to 1:00AM should result in 2:00AM. Due to the
+	// transition at 2:00AM (1:30AM repeats), 1.5 hours end up passing.
+	check(
+		"2020-04-05 02:00:00 +1030 +1030",
+		"2020-04-05 01:00:00 +1100 +11", 1,
+	)
+
+	// Adding 4 clock-hours should result in 4:00AM +1030 and 4.5 hours passing.
+	check(
+		"2020-04-05 04:00:00 +1030 +1030",
+		"2020-04-05 00:00:00 +1100 +11", 4,
+	)
+
+	// Subtracting 4 clock-hours from 4:00AM +1030 should result in 12:00AM +11
+	check(
+		"2020-04-05 00:00:00 +1100 +11",
+		"2020-04-05 04:00:00 +1030 +1030", -4,
+	)
+	// 12:00AM Oct 4th 2020 -- at 2:00AM time becomes 2:30AM
+	setLocation(time.LoadLocation("Australia/Lord_Howe"))
+
+	// Adding 1 clock hour to 1:00AM should result in 2:30AM. Due to the
+	// transition at 2:00AM.
+	check(
+		"2020-10-04 02:30:00 +1100 +11",
+		"2020-10-04 01:00:00 +1030 +1030", 1,
+	)
+
+	// Adding 4 clock-hours should result in 4:00AM +1030 and 4.5 hours passing.
+	check(
+		"2020-04-05 04:00:00 +1030 +1030",
+		"2020-04-05 00:00:00 +1100 +11", 4,
+	)
+
+	// Subtracting 4 clock-hours from 4:00AM +1030 should result in 12:00AM +11
+	check(
+		"2020-04-05 00:00:00 +1100 +11",
+		"2020-04-05 04:00:00 +1030 +1030", -4,
+	)
+
+}
+
 func TestRotation_EndTime_DST(t *testing.T) {
 	tFmt := timeFmt + " (-07:00)"
 	rot := &Rotation{
@@ -31,7 +244,9 @@ func TestRotation_EndTime_DST(t *testing.T) {
 	t.Logf("Rotation Start=%s", rot.Start.Format(tFmt))
 
 	test := func(start, end time.Time) {
+		t.Helper()
 		t.Run("", func(t *testing.T) {
+			t.Helper()
 			t.Logf("Shift Start=%s", start.Format(tFmt))
 			e := rot.EndTime(start)
 			if !e.Equal(end) {

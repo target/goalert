@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 )
 
 type WeekdayFilter [7]byte
@@ -16,9 +17,71 @@ var (
 	everyDay  = WeekdayFilter([7]byte{1, 1, 1, 1, 1, 1, 1})
 )
 
+// StartTime returns midnight of the day the filter became active, from the perspective of t.
+//
+// If the filter is active every day or no days, zero time is returned.
+// If the current day is not active, zero time is returned.
+func (f WeekdayFilter) StartTime(t time.Time) time.Time {
+	w := int(t.Weekday())
+	var days int
+	for i := range f {
+		day := 6 - (w+(i+1))%7
+
+		// keep going until we find the first time we go from enabled to disabled
+		if f[day] == 0 {
+			break
+		}
+		days++
+	}
+	if days == 0 || days == 7 {
+		return time.Time{}
+	}
+	year, mon, day := t.Date()
+	return time.Date(year, mon, day-days, 0, 0, 0, 0, t.Location())
+}
+
+// NextActive returns the next time, at midnight, from t that is active.
+//
+// If the filter is active every day or no days, zero time is returned.
+// Otherwise the returned value will always be in the future.
+func (f WeekdayFilter) NextActive(t time.Time) time.Time {
+	w := int(t.Weekday())
+	for i := range f {
+		day := (w + (i + 1)) % 7
+
+		// keep going until we find the first time we go from enabled to disabled
+		if f[day] == 1 {
+			return timeutil.NextWeekday(t, time.Weekday(day))
+		}
+	}
+	return t
+}
+
+// NextInactive returns the next time, at midnight, from t that is no longer active.
+//
+// If the filter is active every day or no days, zero time is returned.
+// Otherwise the returned value will always be in the future.
+func (f WeekdayFilter) NextInactive(t time.Time) time.Time {
+	w := int(t.Weekday())
+	for i := range f {
+		day := (w + (i + 1)) % 7
+
+		// keep going until we find the first time we go from enabled to disabled
+		if f[day] == 0 {
+			return timeutil.NextWeekday(t, time.Weekday(day))
+		}
+	}
+
+	// no disabled days (or all disabled)
+	return time.Time{}
+}
+
 // Day will return true if the given weekday is enabled.
 func (f WeekdayFilter) Day(d time.Weekday) bool {
-	return f[int(d)] == 1
+	if d < 0 {
+		d += 7
+	}
+	return f[int(d)%7] == 1
 }
 
 // SetDay will update the filter for the given weekday.

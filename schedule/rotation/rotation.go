@@ -1,9 +1,10 @@
 package rotation
 
 import (
+	"time"
+
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
 )
 
 type Rotation struct {
@@ -21,25 +22,26 @@ func (r Rotation) IsUserFavorite() bool {
 	return r.isUserFavorite
 }
 
-func addHours(t time.Time, n int) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour()+n, t.Minute(), t.Second(), t.Nanosecond(), t.Location())
-}
+func addClockHours(t time.Time, n int) time.Time {
+	if n == 0 {
+		return t
+	}
+	next := t.Add(time.Duration(n) * time.Hour)
 
-func addHoursAlwaysInc(t time.Time, n int) time.Time {
-	res := addHours(t, n)
-	if n < 0 {
-		for !res.Before(t) {
-			n--
-			res = addHours(t, n)
-		}
-	} else {
-		for !res.After(t) {
-			n++
-			res = addHours(t, n)
-		}
+	_, offset := t.Zone()
+	_, nextOffset := next.Zone()
+	if offset == nextOffset {
+		return next
 	}
 
-	return res
+	diffSec := offset - nextOffset
+	n *= 3600 // convert to seconds
+
+	if diffSec == -n {
+		return next
+	}
+
+	return next.Add(time.Duration(diffSec) * time.Second)
 }
 
 // StartTime calculates the start of the "shift" that started at (or was active) at t.
@@ -52,7 +54,7 @@ func (r Rotation) StartTime(t time.Time) time.Time {
 
 	switch r.Type {
 	case TypeHourly:
-		return addHoursAlwaysInc(end, -r.ShiftLength)
+		return addClockHours(end, -r.ShiftLength)
 	case TypeWeekly:
 		r.ShiftLength *= 7
 	case TypeDaily:
@@ -84,7 +86,7 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 		case TypeHourly:
 			for cTime.After(t) {
 				last = cTime
-				cTime = addHoursAlwaysInc(cTime, -r.ShiftLength)
+				cTime = addClockHours(cTime, -r.ShiftLength)
 			}
 		case TypeWeekly, TypeDaily:
 			for cTime.After(t) {
@@ -101,7 +103,7 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 	switch r.Type {
 	case TypeHourly:
 		for !cTime.After(t) {
-			cTime = addHoursAlwaysInc(cTime, r.ShiftLength)
+			cTime = addClockHours(cTime, r.ShiftLength)
 		}
 	case TypeWeekly, TypeDaily:
 		for !cTime.After(t) {
