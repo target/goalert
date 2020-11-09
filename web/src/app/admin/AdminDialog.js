@@ -8,7 +8,7 @@ import { omit } from 'lodash-es'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Diff from '../util/Diff'
-import { useMutation } from 'react-apollo'
+import { useMutation } from '@apollo/client'
 
 function AdminDialog(props) {
   const [commit, { error }] = useMutation(props.mutation, {
