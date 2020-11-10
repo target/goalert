@@ -9,42 +9,40 @@ import { FormContext } from './context'
  *
  * onSubmit (if provided) will be called with a second `isValid` argument.
  */
-export class Form extends React.PureComponent {
-  static propTypes = {
-    onSubmit: p.func,
-    disabled: p.bool,
+export function Form(props) {
+  let _checks = []
+
+  function handleFormSubmit(e) {
+    const valid = !_checks.some((f) => !f())
+    return props.onSubmit(e, valid)
   }
 
-  _checks = []
-
-  handleFormSubmit = (e) => {
-    const valid = !this._checks.some((f) => !f())
-    return this.props.onSubmit(e, valid)
-  }
-
-  addSubmitCheck = (checkFn) => {
-    this._checks.push(checkFn)
+  function addSubmitCheck(checkFn) {
+    _checks.push(checkFn)
 
     // return function to un-register it
     return () => {
-      this._checks = this._checks.filter((fn) => fn !== checkFn)
+      _checks = _checks.filter((fn) => fn !== checkFn)
     }
   }
 
-  render() {
-    const { onSubmit, disabled, ...formProps } = this.props
+  const { onSubmit, disabled, ...formProps } = props
 
-    return (
-      <form {...formProps} onSubmit={this.handleFormSubmit}>
-        <FormContext.Provider
-          value={{
-            disabled,
-            addSubmitCheck: this.addSubmitCheck,
-          }}
-        >
-          {this.props.children}
-        </FormContext.Provider>
-      </form>
-    )
-  }
+  return (
+    <form {...formProps} onSubmit={handleFormSubmit}>
+      <FormContext.Provider
+        value={{
+          disabled,
+          addSubmitCheck: addSubmitCheck,
+        }}
+      >
+        {props.children}
+      </FormContext.Provider>
+    </form>
+  )
+}
+
+Form.propTypes = {
+  onSubmit: p.func,
+  disabled: p.bool,
 }
