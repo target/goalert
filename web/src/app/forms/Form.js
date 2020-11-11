@@ -13,16 +13,16 @@ export function Form(props) {
   const checks = useRef([])
 
   function handleFormSubmit(e) {
-    const valid = !checks.currrent.some((f) => !f())
+    const valid = !checks.current.some((f) => !f())
     return props.onSubmit(e, valid)
   }
 
   function addSubmitCheck(checkFn) {
-    checks.currrent.push(checkFn)
+    checks.current.push(checkFn)
 
     // return function to un-register it
     return () => {
-      checks.currrent = checks.currrent.filter((fn) => fn !== checkFn)
+      checks.current = checks.current.filter((fn) => fn !== checkFn)
     }
   }
 
