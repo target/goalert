@@ -1,3 +1,4 @@
+import React from 'react'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
 import Typography from '@material-ui/core/Typography'
@@ -10,7 +11,7 @@ function replaceAll(target, search, replacement) {
 
 const replaceString = 'https://<example.goalert.me>'
 
-export function IntegrationKeyAPI() {
+export default function IntegrationKeyAPI() {
   const protocol = window.location.protocol || 'https:'
   const host = window.location.host
 
