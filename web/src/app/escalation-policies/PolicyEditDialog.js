@@ -1,9 +1,8 @@
-import React, { PureComponent } from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { useMutation, useQuery } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import Query from '../util/Query'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyForm from './PolicyForm'
 
@@ -24,78 +23,58 @@ const mutation = gql`
   }
 `
 
-export default class PolicyEditDialog extends PureComponent {
-  static propTypes = {
-    escalationPolicyID: p.string.isRequired,
-    onClose: p.func,
+function PolicyEditDialog(props) {
+  const [value, setValue] = useState(null)
+  const { data, editDialogQueryStatus } = useQuery(query, {
+    variables: { id: props.escalationPolicyID },
+  })
+  const defaultValue = {
+    id: props.escalationPolicyID,
+    name: data.escalationPolicy.name,
+    description: data.escalationPolicy.description,
+    repeat: {
+      label: data.escalationPolicy.repeat.toString(),
+      value: data.escalationPolicy.repeat.toString(),
+    },
   }
 
-  state = {
-    value: null,
-    errors: [],
-  }
+  const [editDialogMutation, editDialogMutationStatus] = useMutation(mutation, {
+    variables: {
+      input: {
+        id: props.escalationPolicyID,
+        name: (value && value.name) || defaultValue.name,
+        description: (value && value.description) || defaultValue.description,
+        repeat: (value && value.repeat.value) || defaultValue.repeat.value,
+      },
+    },
+    onCompleted: props.onClose,
+  })
+  const fieldErrs = fieldErrors(editDialogMutationStatus.error)
 
-  renderMutation = (defaultValue) => {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(defaultValue, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(defaultValue, commit, status) {
-    const { loading, error } = status
-    const { value } = this.state
-    const fieldErrs = fieldErrors(error)
-
-    return (
-      <FormDialog
-        title='Edit Escalation Policy'
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: {
-                id: this.props.escalationPolicyID,
-                name: (value && value.name) || defaultValue.name,
-                description:
-                  (value && value.description) || defaultValue.description,
-                repeat:
-                  (value && value.repeat.value) || defaultValue.repeat.value,
-              },
-            },
-          })
-        }}
-        form={
-          <PolicyForm
-            errors={fieldErrs}
-            disabled={loading}
-            value={this.state.value || defaultValue}
-            onChange={(value) => this.setState({ value })}
-          />
-        }
-      />
-    )
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.escalationPolicyID }}
-        noPoll
-        render={({ data }) => {
-          const { id, name, description, repeat } = data.escalationPolicy || {}
-          return this.renderMutation({
-            id,
-            name,
-            description,
-            repeat: { label: repeat.toString(), value: repeat.toString() },
-          })
-        }}
-      />
-    )
-  }
+  return (
+    <FormDialog
+      title='Edit Escalation Policy'
+      loading={
+        (!data && editDialogQueryStatus) || editDialogMutationStatus.loading
+      }
+      errors={nonFieldErrors(editDialogMutationStatus.error)}
+      onClose={props.onClose}
+      onSubmit={() => editDialogMutation()}
+      form={
+        <PolicyForm
+          errors={fieldErrs}
+          disabled={editDialogMutationStatus.loading}
+          value={value || defaultValue}
+          onChange={(value) => setValue(value)}
+        />
+      }
+    />
+  )
 }
+
+PolicyEditDialog.propTypes = {
+  escalationPolicyID: p.string.isRequired,
+  onClose: p.func,
+}
+
+export default PolicyEditDialog
