@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import p from 'prop-types'
 import { FormContext } from './context'
 
@@ -10,19 +10,19 @@ import { FormContext } from './context'
  * onSubmit (if provided) will be called with a second `isValid` argument.
  */
 export function Form(props) {
-  let _checks = []
+  const checks = useRef([])
 
   function handleFormSubmit(e) {
-    const valid = !_checks.some((f) => !f())
+    const valid = !checks.currrent.some((f) => !f())
     return props.onSubmit(e, valid)
   }
 
   function addSubmitCheck(checkFn) {
-    _checks.push(checkFn)
+    checks.currrent.push(checkFn)
 
     // return function to un-register it
     return () => {
-      _checks = _checks.filter((fn) => fn !== checkFn)
+      checks.currrent = checks.currrent.filter((fn) => fn !== checkFn)
     }
   }
 
@@ -45,4 +45,6 @@ export function Form(props) {
 Form.propTypes = {
   onSubmit: p.func,
   disabled: p.bool,
+  children: p.node,
+  className: p.string,
 }
