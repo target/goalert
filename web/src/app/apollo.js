@@ -104,16 +104,14 @@ const typePolicyQueryFields = {}
 simpleCacheTypes.forEach((name) => {
   typePolicyQueryFields[camelCase(name)] = function (
     existingData,
-    { args, toReference },
+    { args, toReference, canRead },
   ) {
-    // console.log(name, existingData, args)
-    return (
-      existingData ||
-      toReference({
-        __typename: name,
-        id: args?.id,
-      })
-    )
+    return canRead(existingData)
+      ? existingData
+      : toReference({
+          __typename: name,
+          id: args?.id,
+        })
   }
 })
 
