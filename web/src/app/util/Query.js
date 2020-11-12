@@ -10,25 +10,6 @@ import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../config'
 const hasNull = (data) =>
   isEmpty(data) || Object.keys(data).some((key) => data[key] === null)
 
-export function withQuery(
-  query,
-  mapQueryToProps,
-  mapPropsToQueryProps = () => ({}),
-) {
-  return (Component) =>
-    function WithQuery(componentProps) {
-      return (
-        <Query
-          {...mapPropsToQueryProps(componentProps)}
-          query={query}
-          render={(renderProps) => (
-            <Component {...componentProps} {...mapQueryToProps(renderProps)} />
-          )}
-        />
-      )
-    }
-}
-
 export default class Query extends React.PureComponent {
   static propTypes = {
     render: p.func.isRequired,
@@ -150,4 +131,23 @@ export default class Query extends React.PureComponent {
       </ApolloQuery>
     )
   }
+}
+
+export function withQuery(
+  query,
+  mapQueryToProps,
+  mapPropsToQueryProps = () => ({}),
+) {
+  return (Component) =>
+    function WithQuery(componentProps) {
+      return (
+        <Query
+          {...mapPropsToQueryProps(componentProps)}
+          query={query}
+          render={(renderProps) => (
+            <Component {...componentProps} {...mapQueryToProps(renderProps)} />
+          )}
+        />
+      )
+    }
 }

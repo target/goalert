@@ -21,25 +21,6 @@ const query = gql`
   }
 `
 
-export default function HeartbeatMonitorEditDialog(props) {
-  return (
-    <Query
-      query={query}
-      variables={{ id: props.monitorID }}
-      render={({ data }) => (
-        <HeartbeatMonitorEditDialogContent
-          props={props}
-          data={data.heartbeatMonitor}
-        />
-      )}
-    />
-  )
-}
-HeartbeatMonitorEditDialog.propTypes = {
-  monitorID: p.string.isRequired,
-  onClose: p.func,
-}
-
 // TODO: broken out until `useQuery` is built
 function HeartbeatMonitorEditDialogContent({ props, data }) {
   const [value, setValue] = useState({
@@ -78,4 +59,23 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
       }
     />
   )
+}
+
+export default function HeartbeatMonitorEditDialog(props) {
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.monitorID }}
+      render={({ data }) => (
+        <HeartbeatMonitorEditDialogContent
+          props={props}
+          data={data.heartbeatMonitor}
+        />
+      )}
+    />
+  )
+}
+HeartbeatMonitorEditDialog.propTypes = {
+  monitorID: p.string.isRequired,
+  onClose: p.func,
 }

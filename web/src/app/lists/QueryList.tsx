@@ -66,7 +66,7 @@ export interface QueryListProps extends ControlledPaginatedListProps {
    *   }
    *  ```
    */
-  query: object
+  query: Record<string, unknown>
 
   // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
   mapDataNode?: (n: ObjectMap) => PaginatedListItemProps

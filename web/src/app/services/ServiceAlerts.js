@@ -1,5 +1,4 @@
 import { gql, useMutation } from '@apollo/client'
-/* eslint @typescript-eslint/camelcase: 0 */
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 
