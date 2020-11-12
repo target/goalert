@@ -55,7 +55,7 @@ function PolicyEditDialog(props) {
     <FormDialog
       title='Edit Escalation Policy'
       loading={
-        (!data && editDialogQueryStatus) || editDialogMutationStatus.loading
+        (!data && editDialogQueryStatus.loading) || editDialogMutationStatus.loading
       }
       errors={nonFieldErrors(editDialogMutationStatus.error)}
       onClose={props.onClose}
