@@ -1,41 +1,41 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
-import withStyles from '@material-ui/core/styles/withStyles'
+import { makeStyles } from '@material-ui/core/styles'
 import FlatList from '../lists/FlatList'
 
-const styles = {
+const useStyles = makeStyles(() => ({
   card: {
     width: '100%',
   },
-}
+}))
 
-@withStyles(styles)
-export default class PolicyServicesCard extends Component {
-  static propTypes = {
-    services: p.arrayOf(
-      p.shape({
-        id: p.string.isRequired,
-        name: p.string.isRequired,
-      }),
-    ).isRequired,
-  }
+function PolicyServicesCard(props) {
+  const classes = useStyles()
 
-  getServicesItems = () => {
-    return this.props.services.map((service) => ({
+  function getServicesItems() {
+    return props.services.map((service) => ({
       title: service.name,
       url: `/services/${service.id}`,
     }))
   }
-
-  render() {
-    return (
-      <Card className={this.props.classes.card}>
-        <FlatList
-          emptyMessage='No services are associated with this Escalation Policy.'
-          items={this.getServicesItems()}
-        />
-      </Card>
-    )
-  }
+  return (
+    <Card className={classes.card}>
+      <FlatList
+        emptyMessage='No services are associated with this Escalation Policy.'
+        items={getServicesItems()}
+      />
+    </Card>
+  )
 }
+
+PolicyServicesCard.propTypes = {
+  services: p.arrayOf(
+    p.shape({
+      id: p.string.isRequired,
+      name: p.string.isRequired,
+    }),
+  ).isRequired,
+}
+
+export default PolicyServicesCard
