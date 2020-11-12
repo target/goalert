@@ -53,7 +53,7 @@ export default class IntegrationKeyCreateDialog extends React.PureComponent {
             query,
             variables: { serviceID: this.props.serviceID },
           })
-          cache.writeData({
+          cache.writeQuery({
             query,
             variables: { serviceID: this.props.serviceID },
             data: {

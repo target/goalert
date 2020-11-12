@@ -39,7 +39,7 @@ export default function ServiceLabelCreateDialog(props) {
       if (value.value) {
         labels.push({ ...value, __typename: 'Label' })
       }
-      cache.writeData({
+      cache.writeQuery({
         query,
         variables: { serviceID: props.serviceID },
         data: {

@@ -73,7 +73,7 @@ export default class ServiceLabelCreateDialog extends React.PureComponent {
           if (this.state.value.value) {
             labels.push({ ...this.state.value, __typename: 'Label' })
           }
-          cache.writeData({
+          cache.writeQuery({
             query,
             variables: { serviceID: this.props.serviceID },
             data: {
