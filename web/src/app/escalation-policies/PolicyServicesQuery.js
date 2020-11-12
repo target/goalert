@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react'
+import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import Query from '../util/Query'
 import gql from 'graphql-tag'
@@ -16,22 +16,20 @@ const query = gql`
   }
 `
 
-export default class PolicyServicesQuery extends PureComponent {
-  static propTypes = {
-    escalationPolicyID: p.string.isRequired,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        render={({ data }) => (
-          <PolicyServicesCard
-            services={data.escalationPolicy.assignedTo || []}
-          />
-        )}
-        variables={{ id: this.props.escalationPolicyID }}
-      />
-    )
-  }
+function PolicyServicesQuery(props) {
+  return (
+    <Query
+      query={query}
+      render={({ data }) => (
+        <PolicyServicesCard services={data.escalationPolicy.assignedTo || []} />
+      )}
+      variables={{ id: props.escalationPolicyID }}
+    />
+  )
 }
+
+PolicyServicesQuery.propTypes = {
+  escalationPolicyID: p.string.isRequired,
+}
+
+export default PolicyServicesQuery
