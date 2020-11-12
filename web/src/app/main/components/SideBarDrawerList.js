@@ -202,5 +202,5 @@ export default function SideBarDrawerList() {
 }
 
 SideBarDrawerList.propTypes = {
-  onWizard: p.func.isRequired
+  onWizard: p.func.isRequired,
 }
