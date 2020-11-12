@@ -42,9 +42,9 @@ function PolicyEditDialog(props) {
     variables: {
       input: {
         id: props.escalationPolicyID,
-        name: (value && value.name) || defaultValue.name,
-        description: (value && value.description) || defaultValue.description,
-        repeat: (value && value.repeat.value) || defaultValue.repeat.value,
+        name: value?.name || defaultValue.name,
+        description: value?.description || defaultValue.description,
+        repeat: value?.repeat?.value ?? defaultValue.repeat.value,
       },
     },
     onCompleted: props.onClose,
