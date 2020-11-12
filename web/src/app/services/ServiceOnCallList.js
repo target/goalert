@@ -72,7 +72,7 @@ export default function ServiceOnCallList({ serviceID }) {
     ]
     style.color = 'gray'
   } else {
-    items = _.chain(data.service.onCallUsers)
+    items = _.chain(data?.service?.onCallUsers)
       .groupBy('userID')
       .mapValues((v) => ({
         id: v[0].userID,
