@@ -20,7 +20,6 @@ module.exports = {
       'lodash-es',
       'reselect',
       '@apollo/client',
-      'apollo-utilities',
       'axios',
       'redux',
       'redux-devtools-extension',
