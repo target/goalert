@@ -1,8 +1,10 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import Query from '../util/Query'
 import gql from 'graphql-tag'
 import PolicyServicesCard from './PolicyServicesCard'
+import { useQuery } from '@apollo/react-hooks'
+import Spinner from '../loading/components/Spinner'
+import { GenericError } from '../error-pages'
 
 const query = gql`
   query($id: ID!) {
@@ -17,14 +19,20 @@ const query = gql`
 `
 
 function PolicyServicesQuery(props) {
+  const { data, loading, error } = useQuery(query, {
+    variables: { id: props.escalationPolicyID },
+  })
+
+  if (!data && loading) {
+    return <Spinner />
+  }
+
+  if (error) {
+    return <GenericError error={error.message} />
+  }
+
   return (
-    <Query
-      query={query}
-      render={({ data }) => (
-        <PolicyServicesCard services={data.escalationPolicy.assignedTo || []} />
-      )}
-      variables={{ id: props.escalationPolicyID }}
-    />
+    <PolicyServicesCard services={data.escalationPolicy.assignedTo || []} />
   )
 }
 
