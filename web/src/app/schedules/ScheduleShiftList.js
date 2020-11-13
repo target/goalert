@@ -1,11 +1,8 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { DateTime, Duration, Interval } from 'luxon'
 import p from 'prop-types'
 import FlatList from '../lists/FlatList'
 import gql from 'graphql-tag'
-import { withQuery } from '../util/Query'
-import { connect } from 'react-redux'
-import { urlParamSelector } from '../selectors'
 import { relativeDate } from '../util/timeFormat'
 import {
   Card,
@@ -14,17 +11,18 @@ import {
   Switch,
   TextField,
   MenuItem,
-  withStyles,
+  makeStyles,
 } from '@material-ui/core'
 import { UserAvatar } from '../util/avatars'
 import PageActions from '../util/PageActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
-import { setURLParam, resetURLParams } from '../actions'
+import { useURLParam, useResetURLParams } from '../actions'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { ISODatePicker } from '../util/ISOPickers'
+import { useQuery } from '@apollo/react-hooks'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`
@@ -55,115 +53,59 @@ const durString = (dur) => {
   return `${dur.days} day${dur.days > 1 ? 's' : ''}`
 }
 
-const mapQueryToProps = ({ data }) => {
-  return {
-    shifts: data.schedule.shifts.map((s) => ({
-      ...s,
-      userID: s.user.id,
-      userName: s.user.name,
-    })),
-  }
-}
-const mapPropsToQueryProps = ({ scheduleID, start, end }) => ({
-  variables: {
-    id: scheduleID,
-    start,
-    end,
+const useStyles = makeStyles({
+  datePicker: {
+    width: '100%',
   },
 })
 
-const mapStateToProps = (state) => {
-  const duration = urlParamSelector(state)('duration', 'P14D')
-  const zone = urlParamSelector(state)('tz', 'local')
-  let start = urlParamSelector(state)(
+function ScheduleShiftList({ scheduleID }) {
+  const classes = useStyles()
+
+  const [create, setCreate] = useState(null)
+  const [specifyDuration, setSpecifyDuration] = useState(false)
+  const [isClear, setIsClear] = useState(false)
+
+  const [duration, setDuration] = useURLParam('duration', 'P14D')
+  const [zone] = useURLParam('tz', 'local')
+  const [userFilter, setUserFilter] = useURLParam('userFilter', [])
+  const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
+  const [_start, setStart] = useURLParam(
     'start',
     DateTime.fromObject({ zone }).startOf('day').toISO(),
   )
-
-  const activeOnly = urlParamSelector(state)('activeOnly', false)
-  if (activeOnly) {
-    start = DateTime.fromObject({ zone }).toISO()
-  }
+  const start = useMemo(
+    () => (activeOnly ? DateTime.fromObject({ zone }).toISO() : _start),
+    [activeOnly, _start],
+  )
 
   const end = DateTime.fromISO(start, { zone })
     .plus(Duration.fromISO(duration))
     .toISO()
 
-  return {
-    start,
-    end,
-    userFilter: urlParamSelector(state)('userFilter', []),
-    activeOnly,
-    duration,
-    zone,
-  }
-}
+  const handleFilterReset = useResetURLParams(
+    'userFilter',
+    'start',
+    'activeOnly',
+    'tz',
+    'duration',
+  )
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    handleUserFilterSelect: (value) =>
-      dispatch(setURLParam('userFilter', value)),
-    handleActiveOnlySwitch: (value) =>
-      dispatch(setURLParam('activeOnly', value)),
-    handleSetDuration: (value) =>
-      dispatch(setURLParam('duration', value, 'P14D')),
-    handleSetStart: (value) => dispatch(setURLParam('start', value)),
-    handleFilterReset: () =>
-      dispatch(
-        resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'duration'),
-      ),
-  }
-}
-
-const styles = {
-  datePicker: {
-    width: '100%',
-  },
-}
-
-@withStyles(styles)
-@connect(mapStateToProps, mapDispatchToProps)
-@withQuery(query, mapQueryToProps, mapPropsToQueryProps)
-export default class ScheduleShiftList extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
-
-    // provided by connect
-    start: p.string.isRequired,
-    end: p.string.isRequired,
-    zone: p.string.isRequired,
-
-    // provided by withQuery
-    shifts: p.arrayOf(
-      p.shape({
-        start: p.string.isRequired,
-        end: p.string.isRequired,
-        userID: p.string.isRequired,
-        userName: p.string.isRequired,
-        truncated: p.bool,
-      }),
-    ),
-  }
-
-  static defaultProps = {
-    shifts: [],
-  }
-
-  state = {
-    create: null,
-    specifyDuration: false,
-    isClear: false,
-  }
-
-  items() {
-    const {
-      shifts: _shifts,
+  const { data } = useQuery(query, {
+    variables: {
+      id: scheduleID,
       start,
       end,
-      userFilter,
-      activeOnly,
-      zone,
-    } = this.props
+    },
+  })
+
+  function items() {
+    const _shifts =
+      data?.schedule?.shifts?.map((s) => ({
+        ...s,
+        userID: s.user.id,
+        userName: s.user.name,
+      })) ?? []
 
     let shifts = _shifts
       .filter((s) => !userFilter.length || userFilter.includes(s.userID))
@@ -231,27 +173,24 @@ export default class ScheduleShiftList extends React.PureComponent {
     return result
   }
 
-  renderDurationSelector() {
+  function renderDurationSelector() {
     // Dropdown options (in ISO_8601 format)
     // https://en.wikipedia.org/wiki/ISO_8601#Durations
     const quickOptions = ['P1D', 'P3D', 'P7D', 'P14D', 'P1M']
     const clamp = (min, max, value) => Math.min(max, Math.max(min, value))
 
-    if (
-      quickOptions.includes(this.props.duration) &&
-      !this.state.specifyDuration
-    ) {
+    if (quickOptions.includes(duration) && !specifyDuration) {
       return (
         <TextField
           select
           fullWidth
           label='Time Limit'
-          disabled={this.props.activeOnly}
-          value={this.props.duration}
+          disabled={activeOnly}
+          value={duration}
           onChange={(e) => {
             e.target.value === 'SPECIFY'
-              ? this.setState({ specifyDuration: true })
-              : this.props.handleSetDuration(e.target.value)
+              ? setSpecifyDuration(true)
+              : setDuration(e.target.value)
           }}
         >
           {quickOptions.map((opt) => (
@@ -267,24 +206,18 @@ export default class ScheduleShiftList extends React.PureComponent {
       <TextField
         fullWidth
         label='Time Limit (days)'
-        value={
-          this.state.isClear
-            ? ''
-            : Duration.fromISO(this.props.duration).as('days')
-        }
-        disabled={this.props.activeOnly}
+        value={isClear ? '' : Duration.fromISO(duration).as('days')}
+        disabled={activeOnly}
         max={30}
         min={1}
         type='number'
-        onBlur={() => {
-          this.setState({ isClear: false })
-        }}
+        onBlur={() => setIsClear(false)}
         onChange={(e) => {
-          this.setState({ isClear: e.target.value === '' })
+          setIsClear(e.target.value === '')
           if (Number.isNaN(parseInt(e.target.value, 10))) {
             return
           }
-          this.props.handleSetDuration(
+          setDuration(
             Duration.fromObject({
               days: clamp(1, 30, parseInt(e.target.value, 10)),
             }).toISO(),
@@ -294,85 +227,83 @@ export default class ScheduleShiftList extends React.PureComponent {
     )
   }
 
-  render() {
-    const zone = this.props.zone
-    const dur = Duration.fromISO(this.props.duration)
+  const dur = Duration.fromISO(duration)
+  const timeStr = durString(dur)
 
-    const timeStr = durString(dur)
-
-    const zoneText = zone === 'local' ? 'local time' : zone
-    const userText = this.props.userFilter.length ? ' for selected users' : ''
-    const note = this.props.activeOnly
-      ? `Showing currently active shifts${userText} in ${zoneText}.`
-      : `Showing shifts${userText} up to ${timeStr} from ${DateTime.fromISO(
-          this.props.start,
-          {
-            zone,
-          },
-        ).toLocaleString()} in ${zoneText}.`
-    return (
-      <React.Fragment>
-        <PageActions>
-          <FilterContainer
-            onReset={() => {
-              this.props.handleFilterReset()
-              this.setState({ specifyDuration: false })
-            }}
-          >
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={this.props.activeOnly}
-                    onChange={(e) =>
-                      this.props.handleActiveOnlySwitch(e.target.checked)
-                    }
-                    value='activeOnly'
-                  />
-                }
-                label='Active shifts only'
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={this.props.scheduleID} />
-            </Grid>
-            <Grid item xs={12}>
-              <ISODatePicker
-                className={this.props.classes.datePicker}
-                disabled={this.props.activeOnly}
-                label='Start Date'
-                name='filterStart'
-                value={this.props.start}
-                onChange={(v) => this.props.handleSetStart(v)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              {this.renderDurationSelector()}
-            </Grid>
-            <Grid item xs={12}>
-              <UserSelect
-                label='Filter users...'
-                multiple
-                value={this.props.userFilter}
-                onChange={this.props.handleUserFilterSelect}
-              />
-            </Grid>
-          </FilterContainer>
-          <ScheduleNewOverrideFAB
-            onClick={(variant) => this.setState({ create: variant })}
-          />
-        </PageActions>
-        <Card style={{ width: '100%' }}>
-          <FlatList headerNote={note} items={this.items()} />
-        </Card>
-        {this.state.create && (
-          <ScheduleOverrideCreateDialog
-            scheduleID={this.props.scheduleID}
-            variant={this.state.create}
-            onClose={() => this.setState({ create: null })}
-          />
-        )}
-      </React.Fragment>
-    )
-  }
+  const zoneText = zone === 'local' ? 'local time' : zone
+  const userText = userFilter.length ? ' for selected users' : ''
+  const note = activeOnly
+    ? `Showing currently active shifts${userText} in ${zoneText}.`
+    : `Showing shifts${userText} up to ${timeStr} from ${DateTime.fromISO(
+        start,
+        {
+          zone,
+        },
+      ).toLocaleString()} in ${zoneText}.`
+  return (
+    <React.Fragment>
+      <PageActions>
+        <FilterContainer
+          onReset={() => {
+            handleFilterReset()
+            setSpecifyDuration(false)
+          }}
+        >
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={activeOnly}
+                  onChange={(e) => setActiveOnly(e.target.checked)}
+                  value='activeOnly'
+                />
+              }
+              label='Active shifts only'
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <ScheduleTZFilter scheduleID={scheduleID} />
+          </Grid>
+          <Grid item xs={12}>
+            <ISODatePicker
+              className={classes.datePicker}
+              disabled={activeOnly}
+              label='Start Date'
+              name='filterStart'
+              value={start}
+              onChange={(v) => setStart(v)}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            {renderDurationSelector()}
+          </Grid>
+          <Grid item xs={12}>
+            <UserSelect
+              label='Filter users...'
+              multiple
+              value={userFilter}
+              onChange={setUserFilter}
+            />
+          </Grid>
+        </FilterContainer>
+        <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
+      </PageActions>
+      <Card style={{ width: '100%' }}>
+        <FlatList headerNote={note} items={items()} />
+      </Card>
+      {create && (
+        <ScheduleOverrideCreateDialog
+          scheduleID={scheduleID}
+          variant={create}
+          onClose={() => setCreate(null)}
+        />
+      )}
+    </React.Fragment>
+  )
 }
+
+ScheduleShiftList.propTypes = {
+  scheduleID: p.string.isRequired,
+}
+
+export default ScheduleShiftList
