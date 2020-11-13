@@ -13,7 +13,7 @@ const mutation = gql`
 function UserContactMethodDeleteDialog(props) {
   const { contactMethodID, ...rest } = props
 
-  const [deleteUserMethod, deleteMethodStatus] = useMutation(mutation, {
+  const [deleteCM, deleteCMStatus] = useMutation(mutation, {
     variables: {
       id: contactMethodID,
     },
@@ -24,11 +24,11 @@ function UserContactMethodDeleteDialog(props) {
     <FormDialog
       title='Are you sure?'
       confirm
-      loading={deleteMethodStatus.loading}
-      errors={nonFieldErrors(deleteMethodStatus.error)}
+      loading={deleteCMStatus.loading}
+      errors={nonFieldErrors(deleteCMStatus.error)}
       subTitle='This will delete the contact method.'
       caption='This will also delete any notification rules associated with this contact method.'
-      onSubmit={() => deleteUserMethod()}
+      onSubmit={() => deleteCM()}
       {...rest}
     />
   )
