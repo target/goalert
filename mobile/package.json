@@ -7,7 +7,6 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "test": "jest --watchAll",
-    
     "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}'",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "ts-compile": "tsc -p ./tsconfig.json",
@@ -53,6 +52,7 @@
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-standard": "^4.1.0",
