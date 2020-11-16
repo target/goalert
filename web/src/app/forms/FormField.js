@@ -6,7 +6,7 @@ import FormHelperText from '@material-ui/core/FormHelperText'
 import FormLabel from '@material-ui/core/FormLabel'
 import { get, isEmpty, startCase } from 'lodash-es'
 import shrinkWorkaround from '../util/shrinkWorkaround'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 import { FormContainerContext } from './context'
 
 export class FormField extends React.PureComponent {
