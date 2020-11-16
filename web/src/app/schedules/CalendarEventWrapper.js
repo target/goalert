@@ -170,6 +170,8 @@ export default class CalendarEventWrapper extends Component {
     )
   }
 
+  // todo: don't close tooltip when clicking in content pane
+  // todo: fix mouse up issue on other events
   render() {
     const { children, classes } = this.props
     const { eventClicked, eventHasFocus } = this.state
