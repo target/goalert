@@ -72,14 +72,6 @@ export const styles = (theme) => ({
   selectedOption: {
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
   },
-  trashIcon: {
-    color: '#666',
-    cursor: 'pointer',
-    float: 'right',
-  },
-  warningColor: {
-    color: '#FFD602',
-  },
   dialogWidth: {
     minWidth: '33vw',
   },
