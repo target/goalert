@@ -14,7 +14,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {

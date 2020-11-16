@@ -17,7 +17,7 @@ import {
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
 import { useConfigValue } from '../util/RequireConfig'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'

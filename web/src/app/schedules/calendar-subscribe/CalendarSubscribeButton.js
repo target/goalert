@@ -7,7 +7,7 @@ import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash-es'
-import { AppLink } from '../../util/AppLink'
+import AppLink from '../../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({
   calIcon: {

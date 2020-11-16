@@ -12,7 +12,7 @@ import IntegrationKeyCreateDialog from './IntegrationKeyCreateDialog'
 import IntegrationKeyDeleteDialog from './IntegrationKeyDeleteDialog'
 import RequireConfig from '../util/RequireConfig'
 import CopyText from '../util/CopyText'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 
 import { makeStyles } from '@material-ui/core'
 import Spinner from '../loading/components/Spinner'

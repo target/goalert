@@ -31,7 +31,7 @@ import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 
 import logo from '../../public/goalert-alt-logo-scaled.png'
-import { AppLink } from '../../util/AppLink'
+import AppLink from '../../util/AppLink'
 
 const navIcons = {
   Alerts: AlertsIcon,

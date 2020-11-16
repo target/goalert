@@ -10,7 +10,7 @@ import {
 } from '@material-ui/core'
 
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import { AppLink } from '../../../util/AppLink'
+import AppLink from '../../../util/AppLink'
 
 const serviceQuery = gql`
   query service($id: ID!) {

@@ -18,7 +18,7 @@ import _ from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
