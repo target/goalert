@@ -6,7 +6,12 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    
+    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}'",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix .",
+    "ts-compile": "tsc -p ./tsconfig.json",
+    "check": "yarn fmt && yarn lint && yarn ts-compile"
   },
   "jest": {
     "preset": "jest-expo"
