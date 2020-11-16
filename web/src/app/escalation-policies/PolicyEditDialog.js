@@ -26,6 +26,7 @@ const mutation = gql`
 function PolicyEditDialog(props) {
   const [value, setValue] = useState(null)
   const { data, editDialogQueryStatus } = useQuery(query, {
+  pollInterval: 0,
     variables: { id: props.escalationPolicyID },
   })
   const defaultValue = {
