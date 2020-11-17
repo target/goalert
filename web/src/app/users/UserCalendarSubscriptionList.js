@@ -54,7 +54,7 @@ export default function UserCalendarSubscriptionList(props) {
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
 
   // sort by schedule names, then subscription names
-  const subs = data.user.calendarSubscriptions.sort((a, b) => {
+  const subs = data.user.calendarSubscriptions.slice().sort((a, b) => {
     if (a.schedule.name < b.schedule.name) return -1
     if (a.schedule.name > b.schedule.name) return 1
 
