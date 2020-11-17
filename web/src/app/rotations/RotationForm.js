@@ -2,53 +2,35 @@ import React from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
-import { TextField, Grid, MenuItem } from '@material-ui/core'
+import {
+  TextField,
+  Grid,
+  MenuItem,
+  List,
+  ListItem,
+  ListItemText,
+  makeStyles,
+} from '@material-ui/core'
 import { startCase } from 'lodash-es'
-import { DateTime, Info } from 'luxon'
-import { ISOTimePicker } from '../util/ISOPickers'
+import { ISODateTimePicker } from '../util/ISOPickers'
+import { getNextHandoffs } from './util'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
+const useStyles = makeStyles({
+  noVerticalSpace: {
+    marginTop: 0,
+    marginBottom: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+  },
+  semiBold: {
+    fontWeight: 600,
+  },
+})
 export default function RotationForm(props) {
-  function dayOfWeek() {
-    const { start, timeZone } = props.value
-    return DateTime.fromISO(start, { zone: timeZone }).weekday
-  }
-
-  function setDayOfWeek(weekday) {
-    const { start, timeZone, ...other } = props.value
-    props.onChange({
-      ...other,
-      timeZone,
-      start: DateTime.fromISO(start, { zone: timeZone })
-        .set({ weekday })
-        .toISO(),
-    })
-  }
-
-  function renderDayOfWeekField() {
-    return (
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          select
-          required
-          label='Day of Week'
-          name='dayOfWeek'
-          value={dayOfWeek()}
-          onChange={(e) => setDayOfWeek(e.target.value)}
-        >
-          {Info.weekdaysFormat('long').map((day, idx) => {
-            return (
-              <MenuItem key={day} value={idx + 1}>
-                {day}
-              </MenuItem>
-            )
-          })}
-        </TextField>
-      </Grid>
-    )
-  }
+  const { value } = props
+  const classes = useStyles()
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -111,16 +93,46 @@ export default function RotationForm(props) {
             max={9000}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormField
             fullWidth
-            component={ISOTimePicker}
-            label='Handoff Time'
+            component={ISODateTimePicker}
+            label='Next Handoff Time'
             name='start'
             required
           />
         </Grid>
-        {props.value.type === 'weekly' && renderDayOfWeekField()}
+        <Grid item xs={6}>
+          <List
+            dense
+            disablePadding
+            subheader={
+              <ListItem disableGutters className={classes.noVerticalSpace}>
+                <ListItemText
+                  primary='Upcoming Handoff Times'
+                  primaryTypographyProps={{ className: classes.semiBold }}
+                />
+              </ListItem>
+            }
+          >
+            {getNextHandoffs(3, value.start, value.type, value.shiftLength).map(
+              (text, i) => {
+                return (
+                  <ListItem
+                    key={i}
+                    className={classes.noVerticalSpace}
+                    disableGutters
+                  >
+                    <ListItemText
+                      primary={text}
+                      className={classes.noVerticalSpace}
+                    />
+                  </ListItem>
+                )
+              },
+            )}
+          </List>
+        </Grid>
       </Grid>
     </FormContainer>
   )

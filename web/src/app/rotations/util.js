@@ -112,3 +112,33 @@ export function reorderList(_items, oldIndex, newIndex) {
   items.splice(newIndex, 0, _items[oldIndex]) // add dest to newIndex position
   return items
 }
+
+export function getNextHandoffs(count, handoffTime, rotationType, shiftLength) {
+  const result = []
+  const rotationTypeToLuxonUnit = {
+    hourly: 'hours',
+    daily: 'days',
+    weekly: 'weeks',
+  }
+  const luxonUnit = rotationTypeToLuxonUnit[rotationType]
+  const now = DateTime.utc()
+
+  let nextHandoff = DateTime.fromISO(handoffTime)
+  if (nextHandoff < now) {
+    while (nextHandoff < now) {
+      nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
+    }
+  } else if (nextHandoff > now) {
+    while (nextHandoff > now) {
+      nextHandoff = nextHandoff.minus({ [luxonUnit]: shiftLength })
+    }
+    nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
+  }
+
+  do {
+    result.push(nextHandoff.toLocaleString(DateTime.DATETIME_FULL))
+    nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
+  } while (result.length < count)
+
+  return result
+}
