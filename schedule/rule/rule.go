@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation/validate"
 )
 
@@ -14,9 +15,9 @@ type Rule struct {
 	ID         string `json:"id"`
 	ScheduleID string `json:"schedule_id"`
 	WeekdayFilter
-	Start     Clock     `json:"start"`
-	End       Clock     `json:"end"`
-	CreatedAt time.Time `json:"created_at"`
+	Start     timeutil.Clock `json:"start"`
+	End       timeutil.Clock `json:"end"`
+	CreatedAt time.Time      `json:"created_at"`
 	Target    assignment.Target
 }
 
@@ -33,8 +34,8 @@ func (r Rule) Normalize() (*Rule, error) {
 	if err != nil {
 		return nil, err
 	}
-	r.Start = Clock(time.Duration(r.Start).Truncate(time.Minute))
-	r.End = Clock(time.Duration(r.End).Truncate(time.Minute))
+	r.Start = timeutil.Clock(time.Duration(r.Start).Truncate(time.Minute))
+	r.End = timeutil.Clock(time.Duration(r.End).Truncate(time.Minute))
 	return &r, nil
 }
 
@@ -93,11 +94,34 @@ func (r Rule) everyDay() bool {
 	return r.WeekdayFilter == everyDay
 }
 
+// nextStartIncl will return the next valid start time, inclusively
+// if the current timestamp would be a start time, it is returned.
+func (r Rule) nextStartIncl(t time.Time) time.Time {
+	if r.Start.Is(t) && r.WeekdayFilter.Day(t.Weekday()) {
+		return t
+	}
+
+	t = timeutil.NextClock(t, r.Start)
+	if !r.WeekdayFilter.Day(t.Weekday()) {
+		t = timeutil.NextClock(r.WeekdayFilter.NextActive(t), r.Start)
+	}
+	if r.Start != r.End && r.End.Is(t) {
+		// due to DST we could skip forward
+		// and need to find the *next* start time
+		return r.nextStartIncl(t)
+	}
+
+	return t
+}
+
 // StartTime will return the next time the rule would be active.
 // If the rule is currently active, it will return the time it
 // became active (in the past).
 //
 // If the rule is NeverActive or AlwaysActive, zero time is returned.
+//
+// It may break when processing a timezone where daylight savings repeats or skips
+// ahead at midnight.
 func (r Rule) StartTime(t time.Time) time.Time {
 	if r.NeverActive() {
 		return time.Time{}
@@ -106,58 +130,66 @@ func (r Rule) StartTime(t time.Time) time.Time {
 		return time.Time{}
 	}
 	t = t.Truncate(time.Minute)
-	start := time.Date(t.Year(), t.Month(), t.Day(), r.Start.Hour(), r.Start.Minute(), 0, 0, t.Location())
 
-	if r.IsActive(t) {
-		if start.After(t) {
-			start = start.AddDate(0, 0, -1)
-		}
-		if r.everyDay() {
-			return start
-		}
-		if r.Start == r.End {
-			start = start.AddDate(0, 0, -r.DaysSince(start.Weekday(), false)+1)
-		}
-	} else {
-		if start.Before(t) {
-			start = start.AddDate(0, 0, 1)
-		}
-		if r.everyDay() {
-			return start
-		}
+	w := t.Weekday()
+	isTodayEnabled := r.WeekdayFilter.Day(w)
 
-		start = start.AddDate(0, 0, r.DaysUntil(start.Weekday(), true))
+	if isTodayEnabled && r.Start == r.End {
+		return r.Start.FirstOfDay(r.WeekdayFilter.StartTime(t))
 	}
 
-	return start
+	if r.Start < r.End {
+		if !isTodayEnabled {
+			return r.Start.FirstOfDay(r.WeekdayFilter.NextActive(t))
+		}
+
+		// same-day shift, was active today
+		// see if it's already ended
+		end := r.End.LastOfDay(t)
+		if t.Before(end) {
+			return r.Start.FirstOfDay(t)
+		}
+
+		// shift has ended for the day, find the next start
+		return r.Start.FirstOfDay(r.WeekdayFilter.NextActive(t))
+	}
+
+	end := r.End.LastOfDay(t)
+	if r.WeekdayFilter.Day(w-1) && t.Before(end) {
+		// yesterday's shift is still active
+		return r.Start.FirstOfDay(t.AddDate(0, 0, -1))
+	}
+
+	if isTodayEnabled {
+		// started or will start today
+		return r.Start.FirstOfDay(t)
+	}
+
+	// find the next start time
+	return r.Start.FirstOfDay(r.WeekdayFilter.NextActive(t))
 }
 
 // EndTime will return the next time the rule would be inactive.
 // If the rule is currently inactive, it will return the end
 // of the next shift.
+//
+// If the rule is always active, or never active, it returns a zero time.
 func (r Rule) EndTime(t time.Time) time.Time {
-	if r.NeverActive() {
-		return time.Time{}
-	}
-	if r.AlwaysActive() {
-		return time.Time{}
-	}
-
 	start := r.StartTime(t)
-	end := time.Date(start.Year(), start.Month(), start.Day(), r.End.Hour(), r.End.Minute(), 0, 0, t.Location())
-	if !end.After(start) {
-		end = end.AddDate(0, 0, 1)
+	if start.IsZero() {
+		return start
 	}
 
-	if r.everyDay() {
-		return end
+	if r.Start < r.End {
+		return r.End.LastOfDay(start)
+	}
+	if r.Start > r.End {
+		// always the day after the start
+		return r.End.LastOfDay(start.AddDate(0, 0, 1))
 	}
 
-	if r.Start == r.End {
-		end = end.AddDate(0, 0, r.DaysUntil(start.Weekday(), false)-1)
-	}
-
-	return end
+	// 24-hour rule, end time of the next inactive day
+	return r.End.LastOfDay(r.WeekdayFilter.NextInactive(start))
 }
 
 // NeverActive returns true if the rule will never be active.
@@ -174,18 +206,8 @@ func (r Rule) IsActive(t time.Time) bool {
 	if r.AlwaysActive() {
 		return true
 	}
-	t = t.Truncate(time.Minute)
 
-	c := NewClock(t.Hour(), t.Minute())
-	if r.Start >= r.End { // overnight
-		prevDay := (t.Weekday() - 1) % 7
-		if prevDay < 0 {
-			prevDay += 7
-		}
-		return (r.Day(t.Weekday()) && c >= r.Start) || (r.Day(prevDay) && c < r.End)
-	}
-
-	return r.Day(t.Weekday()) && c >= r.Start && c < r.End
+	return !r.StartTime(t).After(t)
 }
 
 // String returns a human-readable string describing the rule

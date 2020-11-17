@@ -12,11 +12,13 @@ const timeFmt = "Mon Jan _2 3:04PM 2006"
 func TestRule_IsActive(t *testing.T) {
 
 	test := func(r Rule, tm time.Time, expected bool) {
+		t.Helper()
 		name := r.String() + "/" + tm.Format(timeFmt)
 		if r.Start > r.End {
 			name += "(overnight)"
 		}
 		t.Run(name, func(t *testing.T) {
+			t.Helper()
 			result := r.IsActive(tm)
 			if result != expected {
 				t.Errorf("got '%t'; want '%t'", result, expected)

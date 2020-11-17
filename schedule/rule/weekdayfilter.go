@@ -25,7 +25,7 @@ func (f WeekdayFilter) StartTime(t time.Time) time.Time {
 	w := int(t.Weekday())
 	var days int
 	for i := range f {
-		day := 6 - (w+(i+1))%7
+		day := (7 + (w - (i))) % 7
 
 		// keep going until we find the first time we go from enabled to disabled
 		if f[day] == 0 {
@@ -33,11 +33,11 @@ func (f WeekdayFilter) StartTime(t time.Time) time.Time {
 		}
 		days++
 	}
-	if days == 0 || days == 7 {
-		return time.Time{}
+	if days == 0 {
+		return f.NextActive(t)
 	}
 	year, mon, day := t.Date()
-	return time.Date(year, mon, day-days, 0, 0, 0, 0, t.Location())
+	return time.Date(year, mon, day-days+1, 0, 0, 0, 0, t.Location())
 }
 
 // NextActive returns the next time, at midnight, from t that is active.
@@ -49,12 +49,13 @@ func (f WeekdayFilter) NextActive(t time.Time) time.Time {
 	for i := range f {
 		day := (w + (i + 1)) % 7
 
-		// keep going until we find the first time we go from enabled to disabled
 		if f[day] == 1 {
 			return timeutil.NextWeekday(t, time.Weekday(day))
 		}
 	}
-	return t
+
+	// no active days
+	return time.Time{}
 }
 
 // NextInactive returns the next time, at midnight, from t that is no longer active.
@@ -66,13 +67,12 @@ func (f WeekdayFilter) NextInactive(t time.Time) time.Time {
 	for i := range f {
 		day := (w + (i + 1)) % 7
 
-		// keep going until we find the first time we go from enabled to disabled
 		if f[day] == 0 {
 			return timeutil.NextWeekday(t, time.Weekday(day))
 		}
 	}
 
-	// no disabled days (or all disabled)
+	// no disabled days
 	return time.Time{}
 }
 

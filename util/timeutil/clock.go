@@ -63,6 +63,82 @@ func FindNextOffsetChange(t time.Time, dur time.Duration) (at time.Time, changeB
 	return t.Add(time.Duration(mins) * time.Minute), Clock(time.Duration(newOffset-oldOffset) * time.Second)
 }
 
+// IsDST will return true if there is a DST change within 24-hours AFTER t.
+//
+// If so, the clock-time and amount of change is calculated.
+func IsDST(t time.Time) (dst bool, at, change Clock) {
+
+	next := t.Add(24 * time.Hour)
+	_, oldOffset := t.Zone()
+	_, newOffset := next.Zone()
+	if oldOffset == newOffset {
+		return false, 0, 0
+	}
+
+	mins := sort.Search(int(24*time.Hour/time.Minute), func(min int) bool {
+		_, n := t.Add(time.Duration(min) * time.Minute).Zone()
+		return n == newOffset
+	})
+
+	return true, NewClock(0, mins), Clock(time.Duration(newOffset-oldOffset) * time.Second)
+}
+
+// FirstOfDay will return the first timestamp where the time matches
+// the clock value, or the first instant after, if it does not exist.
+func (c Clock) FirstOfDay(t time.Time) time.Time {
+	y, m, d := t.Date()
+	t = time.Date(y, m, d, 0, 0, 0, 0, t.Location())
+
+	isDST, dstAt, dstChange := IsDST(t)
+	if !isDST || c < dstAt {
+		// if we spring forward, DST won't happen yet
+		// if we fall back, we'll land on the 'first' instance
+		return t.Add(time.Duration(c))
+	}
+	// c >= dstAt
+
+	if dstChange > 0 {
+		if c < dstAt+dstChange {
+			// e.g. 2:30AM when we go from 2AM->3AM, so return 3AM.
+			return t.Add(time.Duration(dstAt))
+		}
+		// spring forward, so lose the amount of time
+		return t.Add(time.Duration(c - dstChange))
+	}
+
+	// falls back and the target time is >= the fallback time
+	// so add extra clock time
+	return t.Add(time.Duration(c + -dstChange))
+}
+
+// LastOfDay will return the last timestamp where the time matches
+// the clock value, or the first instant after, if it does not exist.
+func (c Clock) LastOfDay(t time.Time) time.Time {
+	y, m, d := t.Date()
+	t = time.Date(y, m, d, 0, 0, 0, 0, t.Location())
+
+	isDST, dstAt, dstChange := IsDST(t)
+	if !isDST || (dstChange > 0 && c < dstAt) {
+		return t.Add(time.Duration(c))
+	}
+
+	if dstChange > 0 {
+		if c < dstAt+dstChange {
+			// e.g. 2:30AM when we go from 2AM->3AM, so return 3AM.
+			return t.Add(time.Duration(dstAt))
+		}
+		// >=dstAt so subtract the change
+		return t.Add(time.Duration(c - dstChange))
+	}
+
+	dstRepeatAt := dstAt + dstChange
+	if c < dstRepeatAt {
+		return t.Add(time.Duration(c))
+	}
+
+	return t.Add(time.Duration(c + -dstChange))
+}
+
 // NextClock returns the next instant that the clock would read the provided value.
 // The returned value is always in the future.
 //
