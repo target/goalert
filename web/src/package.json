@@ -14,10 +14,7 @@
   "jest": {
     "transform": {
       "^.+\\.(j|t)sx?$": "babel-jest"
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!lodash-es).+\\.js$"
-    ]
+    }
   },
   "husky": {
     "hooks": {
@@ -84,7 +81,7 @@
     "graphql": "14.7.0",
     "graphql-tag": "2.11.0",
     "history": "4.10.1",
-    "lodash-es": "4.17.15",
+    "lodash": "4.17.20",
     "luxon": "1.24.1",
     "mdi-material-ui": "6.17.0",
     "modernizr": "3.11.3",
@@ -122,7 +119,7 @@
     "@types/diff": "4.0.2",
     "@types/history": "4.7.7",
     "@types/jest": "26.0.14",
-    "@types/lodash-es": "4.17.3",
+    "@types/lodash": "4.14.165",
     "@types/luxon": "1.25.0",
     "@types/react": "16.9.52",
     "@types/react-dom": "16.9.8",

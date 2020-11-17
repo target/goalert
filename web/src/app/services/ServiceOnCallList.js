@@ -9,7 +9,7 @@ import FlatList from '../lists/FlatList'
 import { useQuery } from 'react-apollo'
 import { Error } from '@material-ui/icons'
 import gql from 'graphql-tag'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)
