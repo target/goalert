@@ -1,4 +1,5 @@
-import * as React from 'react'
+import React from 'react'
+import { it, expect } from 'jest-expo'
 import renderer from 'react-test-renderer'
 
 import { MonoText } from '../StyledText'
