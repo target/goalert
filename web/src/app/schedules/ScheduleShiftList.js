@@ -70,14 +70,16 @@ function ScheduleShiftList({ scheduleID }) {
   const [zone] = useURLParam('tz', 'local')
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
-  const [_start, setStart] = useURLParam(
-    'start',
-    DateTime.fromObject({ zone }).startOf('day').toISO(),
+
+  const defaultStart = useMemo(
+    () => DateTime.fromObject({ zone }).startOf('day').toISO(),
+    [zone],
   )
-  const start = useMemo(
-    () => (activeOnly ? DateTime.fromObject({ zone }).toISO() : _start),
-    [activeOnly, _start],
-  )
+  const [_start, setStart] = useURLParam('start', defaultStart)
+  const start = useMemo(() => (activeOnly ? DateTime.utc().toISO() : _start), [
+    activeOnly,
+    _start,
+  ])
 
   const end = DateTime.fromISO(start, { zone })
     .plus(Duration.fromISO(duration))
