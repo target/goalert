@@ -58,3 +58,4 @@ ngrok.log
 
 smoketest_db_dump
 *.pid
+node_modules
