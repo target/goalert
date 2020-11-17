@@ -4,20 +4,6 @@ import { StyleSheet } from 'react-native'
 import EditScreenInfo from '../components/EditScreenInfo'
 import { Text, View } from '../components/Themed'
 
-export default function TabTwoScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View
-        style={styles.separator}
-        lightColor='#eee'
-        darkColor='rgba(255,255,255,0.1)'
-      />
-      <EditScreenInfo path='/screens/TabTwoScreen.js' />
-    </View>
-  )
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -34,3 +20,17 @@ const styles = StyleSheet.create({
     width: '80%',
   },
 })
+
+export default function SettingsScreen() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Settings</Text>
+      <View
+        style={styles.separator}
+        lightColor='#eee'
+        darkColor='rgba(255,255,255,0.1)'
+      />
+      <EditScreenInfo path='/screens/SettingsScreen.js' />
+    </View>
+  )
+}
