@@ -23,7 +23,7 @@ function HomeScreenNavigator() {
   return (
     <TabOneStack.Navigator>
       <TabOneStack.Screen
-        name='HomeScreen'
+        name='Home'
         component={HomeScreen}
         options={{ headerTitle: 'Home' }}
       />
@@ -37,7 +37,7 @@ function SettingsScreenNavigator() {
   return (
     <TabTwoStack.Navigator>
       <TabTwoStack.Screen
-        name='SettingsScreen'
+        name='Settings'
         component={SettingsScreen}
         options={{ headerTitle: 'Settings' }}
       />
@@ -52,11 +52,11 @@ export default function BottomTabNavigator() {
 
   return (
     <BottomTab.Navigator
-      initialRouteName='TabOne'
+      initialRouteName='Home'
       tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}
     >
       <BottomTab.Screen
-        name='TabOne'
+        name='Home'
         component={HomeScreenNavigator}
         options={{
           tabBarIcon: ({ color }) => (
@@ -65,7 +65,7 @@ export default function BottomTabNavigator() {
         }}
       />
       <BottomTab.Screen
-        name='TabTwo'
+        name='Settings'
         component={SettingsScreenNavigator}
         options={{
           tabBarIcon: ({ color }) => (
