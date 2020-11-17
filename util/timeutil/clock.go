@@ -30,6 +30,16 @@ func IsDST(t time.Time) (dst bool, at, change Clock) {
 	return true, NewClock(0, mins), Clock(time.Duration(newOffset-oldOffset) * time.Second)
 }
 
+// Days will return the number of whole days and the remainder Clock value.
+func (c Clock) Days() (int, Clock) {
+	whole := NewClock(c.Hour()/24*24, 0)
+	if whole == 0 {
+		return 0, c
+	}
+
+	return int(c / whole), c % whole
+}
+
 // FirstOfDay will return the first timestamp where the time matches
 // the clock value, or the first instant after, if it does not exist.
 func (c Clock) FirstOfDay(t time.Time) time.Time {
@@ -132,6 +142,12 @@ func (c Clock) String() string {
 // NewClock returns a Clock value equal to the provided 24-hour value and minute.
 func NewClock(hour, minute int) Clock {
 	return Clock(time.Duration(hour)*time.Hour + time.Duration(minute)*time.Minute)
+}
+
+// NewClockFromTime will return the Clock value of the provided time.
+func NewClockFromTime(t time.Time) Clock {
+	h, m, _ := t.Clock()
+	return NewClock(h, m)
 }
 
 // Minute returns the minute of the Clock value.
