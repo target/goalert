@@ -2,12 +2,14 @@ package graphql
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	g "github.com/graphql-go/graphql"
 	"github.com/pkg/errors"
@@ -142,11 +144,11 @@ func (h *Handler) createScheduleRuleField() *g.Field {
 
 			startStr, _ := m["start"].(string)
 			endStr, _ := m["end"].(string)
-			r.Start, err = rule.ParseClock(startStr)
+			r.Start, err = timeutil.ParseClock(startStr)
 			if err != nil {
 				return nil, validation.NewFieldError("start", err.Error())
 			}
-			r.End, err = rule.ParseClock(endStr)
+			r.End, err = timeutil.ParseClock(endStr)
 			if err != nil {
 				return nil, validation.NewFieldError("end", err.Error())
 			}
@@ -227,11 +229,11 @@ func (h *Handler) updateScheduleRuleField() *g.Field {
 
 			startStr, _ := m["start"].(string)
 			endStr, _ := m["end"].(string)
-			r.Start, err = rule.ParseClock(startStr)
+			r.Start, err = timeutil.ParseClock(startStr)
 			if err != nil {
 				return nil, validation.NewFieldError("start", err.Error())
 			}
-			r.End, err = rule.ParseClock(endStr)
+			r.End, err = timeutil.ParseClock(endStr)
 			if err != nil {
 				return nil, validation.NewFieldError("end", err.Error())
 			}

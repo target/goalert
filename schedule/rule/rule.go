@@ -94,26 +94,6 @@ func (r Rule) everyDay() bool {
 	return r.WeekdayFilter == everyDay
 }
 
-// nextStartIncl will return the next valid start time, inclusively
-// if the current timestamp would be a start time, it is returned.
-func (r Rule) nextStartIncl(t time.Time) time.Time {
-	if r.Start.Is(t) && r.WeekdayFilter.Day(t.Weekday()) {
-		return t
-	}
-
-	t = timeutil.NextClock(t, r.Start)
-	if !r.WeekdayFilter.Day(t.Weekday()) {
-		t = timeutil.NextClock(r.WeekdayFilter.NextActive(t), r.Start)
-	}
-	if r.Start != r.End && r.End.Is(t) {
-		// due to DST we could skip forward
-		// and need to find the *next* start time
-		return r.nextStartIncl(t)
-	}
-
-	return t
-}
-
 // StartTime will return the next time the rule would be active.
 // If the rule is currently active, it will return the time it
 // became active (in the past).
