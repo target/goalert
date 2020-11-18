@@ -29,6 +29,7 @@ function PolicyEditDialog(props) {
     pollInterval: 0,
     variables: { id: props.escalationPolicyID },
   })
+
   const defaultValue = {
     id: props.escalationPolicyID,
     name: data.escalationPolicy.name,
@@ -51,6 +52,8 @@ function PolicyEditDialog(props) {
     onCompleted: props.onClose,
   })
   const fieldErrs = fieldErrors(editDialogMutationStatus.error)
+
+  if (editDialogQueryStatus.loading && !data.escalationPolicy) return null
 
   return (
     <FormDialog
