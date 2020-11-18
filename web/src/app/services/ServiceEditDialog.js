@@ -7,7 +7,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm from './ServiceForm'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 const query = gql`
   query service($id: ID!) {

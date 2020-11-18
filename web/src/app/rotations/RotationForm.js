@@ -11,7 +11,7 @@ import {
   ListItemText,
   makeStyles,
 } from '@material-ui/core'
-import { startCase } from 'lodash-es'
+import { startCase } from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import { getNextHandoffs } from './util'
 

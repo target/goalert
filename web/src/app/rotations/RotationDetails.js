@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import p from 'prop-types'
 import gql from 'graphql-tag'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'

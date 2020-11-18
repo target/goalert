@@ -6,7 +6,7 @@ import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { useQuery } from '@apollo/react-hooks'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import AppLink from '../../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({
