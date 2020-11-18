@@ -2,7 +2,7 @@ import React from 'react'
 import p from 'prop-types'
 
 import { connect } from 'react-redux'
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'

@@ -1,5 +1,5 @@
 import React from 'react'
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import Query from '../util/Query'
 import ScheduleCalendar from './ScheduleCalendar'
 import { urlParamSelector } from '../selectors'

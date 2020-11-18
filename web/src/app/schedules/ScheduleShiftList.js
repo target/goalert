@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { DateTime, Duration, Interval } from 'luxon'
 import p from 'prop-types'
 import FlatList from '../lists/FlatList'
-import gql from 'graphql-tag'
+import { gql, useQuery } from '@apollo/client'
 import { relativeDate } from '../util/timeFormat'
 import {
   Card,
@@ -22,7 +22,6 @@ import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { ISODatePicker } from '../util/ISOPickers'
-import { useQuery } from '@apollo/client'
 
 // query name is important, as it's used for refetching data after mutations
 const query = gql`

@@ -1,6 +1,6 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import PolicyStepForm from './PolicyStepForm'
