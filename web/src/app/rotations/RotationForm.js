@@ -14,6 +14,7 @@ import {
 import { startCase } from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import { getNextHandoffs } from './util'
+import NumberField from '../util/NumberField'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
@@ -84,7 +85,7 @@ export default function RotationForm(props) {
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={TextField}
+            component={NumberField}
             required
             type='number'
             name='shiftLength'
