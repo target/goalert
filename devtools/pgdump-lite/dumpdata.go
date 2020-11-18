@@ -2,6 +2,7 @@ package pgdump
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -90,6 +91,9 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer) error {
 				tbl.table_name = $1 and
 				constraint_type = 'PRIMARY KEY'
 		`, table)
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("read primary key for '%s': %w", table, err)
+		}
 		sortColumns(primaryCols)
 
 		colNames := strings.Join(columns, ", ")
