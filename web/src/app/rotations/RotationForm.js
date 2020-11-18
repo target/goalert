@@ -116,22 +116,26 @@ export default function RotationForm(props) {
               </ListItem>
             }
           >
-            {getNextHandoffs(3, value.start, value.type, value.shiftLength).map(
-              (text, i) => {
-                return (
-                  <ListItem
-                    key={i}
+            {getNextHandoffs(
+              3,
+              value.start,
+              value.type,
+              value.shiftLength,
+              value.timeZone,
+            ).map((text, i) => {
+              return (
+                <ListItem
+                  key={i}
+                  className={classes.noVerticalSpace}
+                  disableGutters
+                >
+                  <ListItemText
+                    primary={text}
                     className={classes.noVerticalSpace}
-                    disableGutters
-                  >
-                    <ListItemText
-                      primary={text}
-                      className={classes.noVerticalSpace}
-                    />
-                  </ListItem>
-                )
-              },
-            )}
+                  />
+                </ListItem>
+              )
+            })}
           </List>
         </Grid>
       </Grid>

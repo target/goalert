@@ -113,7 +113,13 @@ export function reorderList(_items, oldIndex, newIndex) {
   return items
 }
 
-export function getNextHandoffs(count, handoffTime, rotationType, shiftLength) {
+export function getNextHandoffs(
+  count,
+  handoffTime,
+  rotationType,
+  shiftLength,
+  inputTimeZone,
+) {
   const result = []
   const rotationTypeToLuxonUnit = {
     hourly: 'hours',
@@ -125,7 +131,7 @@ export function getNextHandoffs(count, handoffTime, rotationType, shiftLength) {
 
   if (count <= 0 || !handoffTime || !rotationType || !shiftLength) return []
 
-  let nextHandoff = DateTime.fromISO(handoffTime)
+  let nextHandoff = DateTime.fromISO(handoffTime).setZone(inputTimeZone)
   if (nextHandoff < now) {
     while (nextHandoff < now) {
       nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
@@ -138,7 +144,7 @@ export function getNextHandoffs(count, handoffTime, rotationType, shiftLength) {
   }
 
   while (result.length < count) {
-    result.push(nextHandoff.toLocaleString(DateTime.DATETIME_FULL))
+    result.push(nextHandoff.toLocal().toLocaleString(DateTime.DATETIME_FULL))
     nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
   }
 
