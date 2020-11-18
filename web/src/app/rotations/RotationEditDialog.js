@@ -18,6 +18,7 @@ const query = gql`
       type
       shiftLength
       start
+      nextHandoffTimes(num: 1)
     }
   }
 `
@@ -69,7 +70,7 @@ export default function RotationEditDialog(props) {
               timeZone: data.rotation.timeZone,
               type: data.rotation.type,
               shiftLength: data.rotation.shiftLength,
-              start: data.rotation.start,
+              start: data.rotation.nextHandoffTimes[0],
             }
           }
           onChange={(value) => setValue(value)}
