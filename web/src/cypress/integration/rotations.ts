@@ -1,6 +1,4 @@
 import { Chance } from 'chance'
-import { DateTime } from 'luxon'
-
 import { testScreen } from '../support'
 const c = new Chance()
 
@@ -41,7 +39,6 @@ function testRotations(): void {
           const description = c.word({ length: 10 })
           const tz = c.pickone(['America/Chicago', 'Africa/Accra', 'Etc/UTC'])
           const shiftLength = c.integer({ min: 1, max: 10 })
-          const start = DateTime.fromISO((c.date() as Date).toISOString())
 
           cy.pageFab()
           cy.dialogTitle('Create Rotation')
@@ -50,9 +47,8 @@ function testRotations(): void {
             description,
             timeZone: tz,
             type,
-            dayOfWeek: type === 'Weekly' ? start.weekdayLong : null,
             shiftLength: shiftLength.toString(),
-            start: '15:04',
+            start: '2020-05-25T15:04',
           })
           cy.dialogFinish('Submit')
 
