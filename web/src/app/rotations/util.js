@@ -135,10 +135,10 @@ export function getNextHandoffs(count, handoffTime, rotationType, shiftLength) {
     nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
   }
 
-  do {
+  while (result.length < count) {
     result.push(nextHandoff.toLocaleString(DateTime.DATETIME_FULL))
     nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
-  } while (result.length < count)
+  }
 
   return result
 }
