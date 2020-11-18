@@ -70,7 +70,7 @@ export default function RotationEditDialog(props) {
               timeZone: data.rotation.timeZone,
               type: data.rotation.type,
               shiftLength: data.rotation.shiftLength,
-              start: data.rotation.nextHandoffTimes[0],
+              start: data.rotation.nextHandoffTimes[0] || data.rotation.start,
             }
           }
           onChange={(value) => setValue(value)}
