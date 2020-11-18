@@ -129,8 +129,6 @@ export function getNextHandoffs(
   const luxonUnit = rotationTypeToLuxonUnit[rotationType]
   const now = DateTime.utc()
 
-  if (count <= 0 || !handoffTime || !rotationType || !shiftLength) return []
-
   let nextHandoff = DateTime.fromISO(handoffTime).setZone(inputTimeZone)
   if (nextHandoff < now) {
     while (nextHandoff < now) {
