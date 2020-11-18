@@ -10,7 +10,7 @@ import { UserSelect } from '../selection'
 import gql from 'graphql-tag'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 
 const query = gql`

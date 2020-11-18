@@ -10,7 +10,7 @@ import FormHelperText from '@material-ui/core/FormHelperText'
 import Typography from '@material-ui/core/Typography'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 function DeleteForm({ epName, error, value, onChange }) {
   return (

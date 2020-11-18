@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-import { debounce } from 'lodash-es'
+import { debounce } from 'lodash'
 
 const PageActionsContext = React.createContext({
   actions: null,

@@ -4,7 +4,7 @@ import gql from 'graphql-tag'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useQuery, useMutation } from 'react-apollo'
-import { get } from 'lodash-es'
+import { get } from 'lodash'
 
 const query = gql`
   query($id: ID!) {
