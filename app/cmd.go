@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -211,6 +212,24 @@ Migration: %s (#%d)
 				runtime.GOOS, runtime.GOARCH,
 				migrations[len(migrations)-1], len(migrations),
 			)
+
+			return nil
+		},
+	}
+
+	testCmd = &cobra.Command{
+		Use:   "self-test",
+		Short: "GET request to twilio to return the status code",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			start := time.Now()
+			fmt.Println("Execution Time:", time.Since(start))
+			resp, err := http.Get("https://api.twilio.com/2010-04-01")
+			if err != nil {
+				return errors.Wrap(err, "Request to Twilio failed")
+			}
+			defer resp.Body.Close()
+
+			fmt.Println("Response:", resp.StatusCode)
 
 			return nil
 		},
@@ -609,7 +628,7 @@ func init() {
 	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
-	RootCmd.AddCommand(versionCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {
