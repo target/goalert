@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
@@ -32,6 +32,19 @@ const useStyles = makeStyles({
 export default function RotationForm(props) {
   const { value } = props
   const classes = useStyles()
+
+  // NOTE memoize to prevent calculation on each poll request
+  const nextHandoffs = useMemo(
+    () =>
+      getNextHandoffs(
+        3,
+        value.start,
+        value.type,
+        value.shiftLength,
+        value.timeZone,
+      ),
+    [value.start, value.type, value.shiftLength, value.timeZone],
+  )
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -116,13 +129,7 @@ export default function RotationForm(props) {
               </ListItem>
             }
           >
-            {getNextHandoffs(
-              3,
-              value.start,
-              value.type,
-              value.shiftLength,
-              value.timeZone,
-            ).map((text, i) => {
+            {nextHandoffs.map((text, i) => {
               return (
                 <ListItem
                   key={i}
