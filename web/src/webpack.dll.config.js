@@ -50,7 +50,6 @@ module.exports = {
       'events',
       'fast-levenshtein',
       'html-entities',
-      'indexof',
       'lodash',
       'loglevel',
       'querystring-es3',
