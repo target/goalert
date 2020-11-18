@@ -96,7 +96,7 @@
     "react-dom": "16.13.1",
     "react-ga": "3.1.2",
     "react-infinite-scroll-component": "5.1.0",
-    "react-markdown": "4.3.1",
+    "react-markdown": "5.0.2",
     "react-redux": "7.2.1",
     "react-router-dom": "5.2.0",
     "redux-thunk": "2.3.0",
