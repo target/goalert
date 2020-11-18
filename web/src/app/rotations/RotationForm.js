@@ -97,7 +97,7 @@ export default function RotationForm(props) {
           <FormField
             fullWidth
             component={ISODateTimePicker}
-            label='Next Handoff Time'
+            label='Initial Handoff Time'
             name='start'
             required
           />
@@ -109,7 +109,7 @@ export default function RotationForm(props) {
             subheader={
               <ListItem disableGutters className={classes.noVerticalSpace}>
                 <ListItemText
-                  primary='Upcoming Handoff Times'
+                  primary='Upcoming Handoff Times:'
                   primaryTypographyProps={{ className: classes.semiBold }}
                 />
               </ListItem>
