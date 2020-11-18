@@ -5,7 +5,7 @@ import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import Query from '../util/Query'
 import { gqlClockTimeToISO, isoToGQLClockTime } from './util'
 

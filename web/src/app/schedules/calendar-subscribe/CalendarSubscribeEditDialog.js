@@ -4,7 +4,7 @@ import { PropTypes as p } from 'prop-types'
 import FormDialog from '../../dialogs/FormDialog'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
 import { GenericError, ObjectNotFound } from '../../error-pages'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import Spinner from '../../loading/components/Spinner'
 import { fieldErrors } from '../../util/errutil'
 

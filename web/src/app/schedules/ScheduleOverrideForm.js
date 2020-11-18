@@ -10,7 +10,7 @@ import { urlParamSelector } from '../selectors'
 import { UserSelect } from '../selection'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 
 const query = gql`

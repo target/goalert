@@ -6,7 +6,7 @@ import CalendarIcon from 'mdi-material-ui/Calendar'
 import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import AppLink from '../../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({

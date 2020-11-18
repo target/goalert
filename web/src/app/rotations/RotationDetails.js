@@ -1,7 +1,7 @@
 import { gql, useQuery } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'

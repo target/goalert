@@ -1,7 +1,7 @@
 import { useQuery, useMutation, gql } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
-import { get } from 'lodash-es'
+import { get } from 'lodash'
 import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 

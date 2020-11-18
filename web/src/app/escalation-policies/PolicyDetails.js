@@ -2,7 +2,7 @@ import { useQuery, gql } from '@apollo/client'
 import React, { useState } from 'react'
 import p from 'prop-types'
 import { Redirect } from 'react-router-dom'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 import PageActions from '../util/PageActions'
 import PolicyStepsQuery from './PolicyStepsQuery'

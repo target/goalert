@@ -15,7 +15,7 @@ import { value as valuePropType } from './propTypes'
 import withStyles from '@material-ui/core/styles/withStyles'
 import withWidth, { isWidthDown } from '@material-ui/core/withWidth'
 import MaterialSelect from '../selection/MaterialSelect'
-import { set } from 'lodash-es'
+import { set } from 'lodash'
 
 const styles = {
   fieldItem: {

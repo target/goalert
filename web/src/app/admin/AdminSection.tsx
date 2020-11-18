@@ -4,7 +4,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import { FormContainer } from '../forms'
-import _, { defaultTo } from 'lodash-es'
+import _, { defaultTo } from 'lodash'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import {
   StringInput,

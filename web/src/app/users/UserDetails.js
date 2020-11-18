@@ -14,7 +14,7 @@ import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'

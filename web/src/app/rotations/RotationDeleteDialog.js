@@ -4,7 +4,7 @@ import p from 'prop-types'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 
-import { get } from 'lodash-es'
+import { get } from 'lodash'
 
 const query = gql`
   query($id: ID!) {

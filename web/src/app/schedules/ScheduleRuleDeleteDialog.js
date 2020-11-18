@@ -4,7 +4,7 @@ import p from 'prop-types'
 import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
-import { startCase } from 'lodash-es'
+import { startCase } from 'lodash'
 import Query from '../util/Query'
 
 const query = gql`

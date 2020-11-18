@@ -6,7 +6,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import Query from '../util/Query'
-import { pick } from 'lodash-es'
+import { pick } from 'lodash'
 
 const query = gql`
   query($id: ID!) {

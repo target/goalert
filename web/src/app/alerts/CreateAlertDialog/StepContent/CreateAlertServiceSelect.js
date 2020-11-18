@@ -22,7 +22,7 @@ import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
 import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import getServiceLabel from '../../../util/getServiceLabel'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 

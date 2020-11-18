@@ -5,7 +5,7 @@ import {
   createHttpLink,
 } from '@apollo/client'
 import { RetryLink } from '@apollo/client/link/retry'
-import { camelCase } from 'lodash-es'
+import { camelCase } from 'lodash'
 import { authLogout } from './actions'
 
 import reduxStore from './reduxStore'

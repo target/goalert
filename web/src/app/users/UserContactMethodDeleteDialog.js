@@ -1,8 +1,7 @@
-import { gql } from '@apollo/client'
+import { gql, useMutation } from '@apollo/client'
 import React from 'react'
 import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
-import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
@@ -10,33 +9,33 @@ const mutation = gql`
     deleteAll(input: [{ id: $id, type: contactMethod }])
   }
 `
-export default class UserContactMethodDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    contactMethodID: p.string.isRequired,
-    onClose: p.func.isRequired, // passed to FormDialog
-  }
+function UserContactMethodDeleteDialog(props) {
+  const { contactMethodID, ...rest } = props
 
-  render() {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
+  const [deleteCM, deleteCMStatus] = useMutation(mutation, {
+    variables: {
+      id: contactMethodID,
+    },
+    onCompleted: props.onClose,
+  })
 
-  renderDialog(commit, { loading, error }) {
-    const { contactMethodID, ...rest } = this.props
-    return (
-      <FormDialog
-        title='Are you sure?'
-        confirm
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        subTitle='This will delete the contact method.'
-        caption='This will also delete any notification rules associated with this contact method.'
-        onSubmit={() => commit({ variables: { id: contactMethodID } })}
-        {...rest}
-      />
-    )
-  }
+  return (
+    <FormDialog
+      title='Are you sure?'
+      confirm
+      loading={deleteCMStatus.loading}
+      errors={nonFieldErrors(deleteCMStatus.error)}
+      subTitle='This will delete the contact method.'
+      caption='This will also delete any notification rules associated with this contact method.'
+      onSubmit={() => deleteCM()}
+      {...rest}
+    />
+  )
 }
+
+UserContactMethodDeleteDialog.propTypes = {
+  contactMethodID: p.string.isRequired,
+  onClose: p.func.isRequired, // passed to FormDialog
+}
+
+export default UserContactMethodDeleteDialog

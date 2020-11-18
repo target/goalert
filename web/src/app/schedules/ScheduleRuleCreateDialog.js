@@ -5,7 +5,7 @@ import p from 'prop-types'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleRuleForm from './ScheduleRuleForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import { startCase } from 'lodash-es'
+import { startCase } from 'lodash'
 import { DateTime } from 'luxon'
 import { isoToGQLClockTime } from './util'
 
