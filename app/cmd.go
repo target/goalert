@@ -219,7 +219,7 @@ Migration: %s (#%d)
 
 	testCmd = &cobra.Command{
 		Use:   "self-test",
-		Short: "GET request to twilio to return the status code",
+		Short: "test suite to validate functionality of Goalert environemnt",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			start := time.Now()
 			fmt.Println("Execution Time:", time.Since(start))
