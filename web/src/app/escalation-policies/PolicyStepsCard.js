@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
 import CardContent from '@material-ui/core/CardContent'
@@ -38,21 +38,25 @@ function PolicyStepsCard(props) {
 
   const width = useWidth()
 
-  let oldID = null
-  let oldIdx = null
-  let newIdx = null
+  const oldID = useRef(null)
+  const oldIdx = useRef(null)
+  const newIdx = useRef(null)
 
   const [error, setError] = useState(null)
 
   function arrayMove(arr) {
-    const el = arr[oldIdx]
-    arr.splice(oldIdx, 1)
-    arr.splice(newIdx, 0, el)
+    const el = arr[oldIdx.current]
+    arr.splice(oldIdx.current, 1)
+    arr.splice(newIdx.current, 0, el)
   }
 
   function onStepUpdate(cache, data) {
     // mutation returns true on a success
-    if (!data.updateEscalationPolicy || oldIdx == null || newIdx == null) {
+    if (
+      !data.updateEscalationPolicy ||
+      oldIdx.current == null ||
+      newIdx.current == null
+    ) {
       return
     }
 
@@ -71,7 +75,7 @@ function PolicyStepsCard(props) {
     const steps = escalationPolicy.steps.slice()
 
     // if optimistic cache update was successful, return out
-    if (steps[newIdx].id === oldID) return
+    if (steps[newIdx.current].id === oldID.current) return
 
     // re-order escalationPolicy.steps array
     arrayMove(steps)
@@ -89,11 +93,11 @@ function PolicyStepsCard(props) {
     })
   }
 
-  const [stepChange] = useMutation(mutation, {
+  const [updateEscalationPolicy] = useMutation(mutation, {
     onCompleted: () => {
-      oldID = null
-      oldIdx = null
-      newIdx = null
+      oldID.current = null
+      oldIdx.current = null
+      newIdx.current = null
     },
     onError: (err) => setError(err),
     onUpdate: (cache, data) => onStepUpdate(cache, data),
@@ -116,14 +120,14 @@ function PolicyStepsCard(props) {
 
     // map ids to swap elements
     const sids = steps.map((s) => s.id)
-    oldID = result.draggableId
-    oldIdx = sids.indexOf(oldID)
-    newIdx = result.destination.index
+    oldID.current = result.draggableId
+    oldIdx.current = sids.indexOf(oldID.current)
+    newIdx.current = result.destination.index
 
     // re-order sids array
     arrayMove(sids)
 
-    return stepChange({
+    return updateEscalationPolicy({
       variables: {
         input: {
           id: escalationPolicyID,
