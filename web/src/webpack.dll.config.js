@@ -19,7 +19,6 @@ module.exports = {
       'luxon',
       'reselect',
       '@apollo/client',
-      'axios',
       'redux',
       'redux-devtools-extension',
       'redux-thunk',
