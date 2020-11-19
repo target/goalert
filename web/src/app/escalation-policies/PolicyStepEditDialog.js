@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
+import { gql, useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'
 import { useURLParam } from '../actions'
-import { useMutation } from '@apollo/react-hooks'
 
 const mutation = gql`
   mutation($input: UpdateEscalationPolicyStepInput!) {

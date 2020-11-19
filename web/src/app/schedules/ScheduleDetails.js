@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
+import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
-import { useQuery } from 'react-apollo'
+
 import { Redirect } from 'react-router-dom'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'

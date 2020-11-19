@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
+import { useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { useQuery } from '@apollo/react-hooks'
-import gql from 'graphql-tag'
 import { Card } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
 import FlatList from '../lists/FlatList'
@@ -55,7 +54,7 @@ export default function UserCalendarSubscriptionList(props) {
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
 
   // sort by schedule names, then subscription names
-  const subs = data.user.calendarSubscriptions.sort((a, b) => {
+  const subs = data.user.calendarSubscriptions.slice().sort((a, b) => {
     if (a.schedule.name < b.schedule.name) return -1
     if (a.schedule.name > b.schedule.name) return 1
 

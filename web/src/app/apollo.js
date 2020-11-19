@@ -1,10 +1,11 @@
-import ApolloClient from 'apollo-client'
-import { ApolloLink } from 'apollo-link'
-import { createHttpLink } from 'apollo-link-http'
-import { RetryLink } from 'apollo-link-retry'
-import { InMemoryCache } from 'apollo-cache-inmemory'
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloLink,
+  createHttpLink,
+} from '@apollo/client'
+import { RetryLink } from '@apollo/client/link/retry'
 import { camelCase } from 'lodash'
-import { toIdValue } from 'apollo-utilities'
 import { authLogout } from './actions'
 
 import reduxStore from './reduxStore'
@@ -98,26 +99,26 @@ const simpleCacheTypes = [
   'PhoneNumberInfo',
 ]
 
-// tell Apollo to use cached data for `type(id: foo) {... }` queries
-const queryCache = {}
-// eslint-disable-next-line prefer-const
-let cache
-
+// NOTE: see https://www.apollographql.com/docs/react/caching/advanced-topics/#cache-redirects-using-field-policy-read-functions
+const typePolicyQueryFields = {}
 simpleCacheTypes.forEach((name) => {
-  queryCache[camelCase(name)] = (_, args) =>
-    args &&
-    toIdValue(
-      cache.config.dataIdFromObject({
-        __typename: name,
-        id: args.id,
-      }),
-    )
+  typePolicyQueryFields[camelCase(name)] = function (
+    existingData,
+    { args, toReference, canRead },
+  ) {
+    return canRead(existingData)
+      ? existingData
+      : toReference({
+          __typename: name,
+          id: args?.id,
+        })
+  }
 })
 
-cache = new InMemoryCache({
-  cacheRedirects: {
+const cache = new InMemoryCache({
+  typePolicies: {
     Query: {
-      ...queryCache,
+      fields: typePolicyQueryFields,
     },
   },
 })

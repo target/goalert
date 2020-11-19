@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
+import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
-import { useQuery } from '@apollo/react-hooks'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
 
