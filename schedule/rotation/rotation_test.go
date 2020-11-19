@@ -32,8 +32,9 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 	// both StartTime and EndTime on the rotation and asserting it gives the exact expectedHandoffs.
 	check := func(rot *Rotation, start, end time.Time, expectedHandoffs ...string) {
 		t.Helper()
-
 		ts := start
+		require.Equalf(t, expectedHandoffs[1], rot.EndTime(ts).String(), "first shift end %s", ts.String())
+		require.Equalf(t, expectedHandoffs[0], rot.StartTime(ts).String(), "first shift start %s", ts.String())
 		timesM := make(map[string]bool)
 		var times []string
 		for !ts.After(end) {
@@ -42,12 +43,14 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 				timesM[res] = true
 				times = append(times, res)
 			}
+			require.Contains(t, expectedHandoffs, res, "StartTime for %s", ts.String())
 
 			res = rot.EndTime(ts).String()
 			if !timesM[res] {
 				timesM[res] = true
 				times = append(times, res)
 			}
+			require.Contains(t, expectedHandoffs, res, "EndTime for %s", ts.String())
 
 			ts = ts.Add(30 * time.Second)
 		}
@@ -69,7 +72,6 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		"2020-11-02 01:30:00 -0600 CST",
 		"2020-11-03 01:30:00 -0600 CST",
 	)
-	return
 
 	// Daily & 24 hour should be identical
 	check(&Rotation{
@@ -129,6 +131,7 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		"2020-03-08 01:00:00 -0600 CST",
 		"2020-03-08 03:00:00 -0500 CDT",
 		"2020-03-08 04:00:00 -0500 CDT",
+		"2020-03-08 05:00:00 -0500 CDT",
 	)
 
 	check(&Rotation{
@@ -389,7 +392,7 @@ func TestRotation_FutureStart(t *testing.T) {
 	assert.Equal(t, time.Date(2019, 0, 5, 0, 0, 0, 0, time.UTC),
 		rot.StartTime(time.Date(2019, 0, 5, 0, 0, 0, 0, time.UTC)),
 	)
-	assert.Equal(t, time.Date(2019, 0, 4, 0, 0, 0, 0, time.UTC),
+	require.Equal(t, time.Date(2019, 0, 4, 0, 0, 0, 0, time.UTC),
 		rot.StartTime(time.Date(2019, 0, 5, 0, 0, 0, -1, time.UTC)),
 	)
 	assert.Equal(t, time.Date(2019, 0, 11, 0, 0, 0, 0, time.UTC),

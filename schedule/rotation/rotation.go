@@ -23,25 +23,36 @@ func (r Rotation) IsUserFavorite() bool {
 	return r.isUserFavorite
 }
 
+func (r Rotation) shiftClock() timeutil.Clock {
+	switch r.Type {
+	case TypeHourly:
+		return timeutil.NewClock(r.ShiftLength, 0)
+	case TypeDaily:
+		return timeutil.NewClock(r.ShiftLength*24, 0)
+	case TypeWeekly:
+		return timeutil.NewClock(r.ShiftLength*24*7, 0)
+	default:
+		panic("unexpected rotation type")
+	}
+}
+
 // StartTime calculates the start of the "shift" that started at (or was active) at t.
 // For daily and weekly rotations, start time will be the previous handoff time (from start).
 func (r Rotation) StartTime(t time.Time) time.Time {
 	if r.ShiftLength <= 0 {
 		r.ShiftLength = 1
 	}
-	end := r.EndTime(t)
+	t = t.Truncate(time.Minute)
+	r.Start = r.Start.Truncate(time.Minute)
 
-	switch r.Type {
-	case TypeHourly:
-	case TypeDaily:
-		r.ShiftLength *= 24
-	case TypeWeekly:
-		r.ShiftLength *= 24 * 7
-	default:
-		panic("unexpected rotation type")
+	shiftClockLen := r.shiftClock()
+	rem := timeutil.ClockDiff(r.Start, t) % shiftClockLen
+
+	if rem < 0 {
+		rem += shiftClockLen
 	}
 
-	return timeutil.AddClock(end, timeutil.NewClock(-r.ShiftLength, 0))
+	return timeutil.AddClock(t, -rem)
 }
 
 // EndTime calculates the end of the "shift" that started at (or was active) at t.
@@ -54,26 +65,14 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 	t = t.Truncate(time.Minute)
 	r.Start = r.Start.Truncate(time.Minute)
 
-	switch r.Type {
-	case TypeHourly:
-	case TypeDaily:
-		r.ShiftLength *= 24
-	case TypeWeekly:
-		r.ShiftLength *= 24 * 7
-	default:
-		panic("unexpected rotation type")
+	shiftClockLen := r.shiftClock()
+	rem := timeutil.ClockDiff(r.Start, t) % shiftClockLen
+
+	if rem < 0 {
+		rem += shiftClockLen
 	}
 
-	// number of clock hours that have passed
-	hours := timeutil.HoursBetween(r.Start, t)
-
-	// add the remainder of the shift length to get the next shift
-	rem := hours % r.ShiftLength
-	if rem != 0 {
-		hours += r.ShiftLength - rem
-	}
-
-	return timeutil.AddClock(r.Start, timeutil.NewClock(hours, 0))
+	return timeutil.AddClock(t, shiftClockLen-rem)
 }
 
 func (r Rotation) Normalize() (*Rotation, error) {

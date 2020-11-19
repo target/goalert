@@ -34,6 +34,10 @@ func IsDST(t time.Time) (dst bool, at, change Clock) {
 func (c Clock) Days() (int, Clock) {
 	days := time.Duration(c) / (24 * time.Hour)
 	rem := time.Duration(c) % (24 * time.Hour)
+	if rem < 0 {
+		days--
+		rem += 24 * time.Hour
+	}
 
 	return int(days), Clock(rem)
 }
