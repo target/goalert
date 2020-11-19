@@ -1,9 +1,8 @@
 import React from 'react'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import { nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
-import { useMutation, useQuery } from '@apollo/react-hooks'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 

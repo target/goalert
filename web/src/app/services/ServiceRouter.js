@@ -1,6 +1,6 @@
 import React from 'react'
+import { gql } from '@apollo/client'
 import { useDispatch, useSelector } from 'react-redux'
-import gql from 'graphql-tag'
 import { Switch, Route } from 'react-router-dom'
 
 import SimpleListPage from '../lists/SimpleListPage'

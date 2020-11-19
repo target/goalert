@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
+import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import _ from 'lodash'
 
 import PageActions from '../util/PageActions'
@@ -14,7 +14,7 @@ import RotationUserList from './RotationUserList'
 import RotationAddUserDialog from './RotationAddUserDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import { Redirect } from 'react-router-dom'
-import { useQuery } from 'react-apollo'
+
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 

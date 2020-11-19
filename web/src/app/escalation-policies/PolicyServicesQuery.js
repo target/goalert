@@ -1,8 +1,7 @@
 import React from 'react'
+import { gql, useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
 import PolicyServicesCard from './PolicyServicesCard'
-import { useQuery } from '@apollo/react-hooks'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 
