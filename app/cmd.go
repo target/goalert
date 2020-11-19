@@ -227,29 +227,17 @@ Migration: %s (#%d)
 			zone, offset := start.Zone()
 			fmt.Println(zone, offset)
 
-			resp, err := http.Get("https://api.twilio.com/2010-04-01")
-			if err != nil {
-				return errors.Wrap(err, "Request to Twilio failed.")
+			apiMap := map[string]string{"Twilio": "https://api.twilio.com/2010-04-01", "Mailgun": "https://api.mailgun.net/v3", "Slack": "https://slack.com/api/api.test"}
+
+			for service, baseURL := range apiMap {
+				resp, err := http.Get(baseURL)
+				if err != nil {
+					return errors.New("Request failed.")
+				}
+				defer resp.Body.Close()
+
+				fmt.Println("Response from", service, "status code:", resp.StatusCode)
 			}
-			defer resp.Body.Close()
-
-			fmt.Println("Response from Twilio:", resp.StatusCode)
-
-			resp1, err := http.Get("https://api.mailgun.net/v3")
-			if err != nil {
-				return errors.Wrap(err, "Request to Mailgun failed.")
-			}
-			defer resp1.Body.Close()
-
-			fmt.Println("Response from Mailgun:", resp1.StatusCode)
-
-			resp2, err := http.Get("https://slack.com/api/api.test")
-			if err != nil {
-				return errors.Wrap(err, "Request to Slack failed.")
-			}
-			defer resp2.Body.Close()
-
-			fmt.Println("Response from Slack:", resp2.StatusCode)
 
 			return nil
 		},
