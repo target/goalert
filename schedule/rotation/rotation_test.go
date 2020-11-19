@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const timeFmt = "Jan 2 2006 3:04 pm"
@@ -21,6 +22,140 @@ func mustParse(t *testing.T, value string) time.Time {
 	}
 	tm = tm.In(loc)
 	return tm
+}
+
+func TestRotation_StartEnd_BruteForce(t *testing.T) {
+	loc, err := time.LoadLocation("America/Chicago")
+	require.NoError(t, err)
+
+	check := func(rot *Rotation, start, end time.Time, expectedHandoffs ...string) {
+		t.Helper()
+		ts := start
+		timesM := make(map[string]bool)
+		var times []string
+		for !ts.After(end) {
+			res := rot.StartTime(ts).String()
+			if !timesM[res] {
+				timesM[res] = true
+				times = append(times, res)
+			}
+
+			res = rot.EndTime(ts).String()
+			if !timesM[res] {
+				timesM[res] = true
+				times = append(times, res)
+			}
+
+			ts = ts.Add(30 * time.Second)
+		}
+		assert.EqualValues(t, expectedHandoffs, times)
+	}
+
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 24,
+		Start:       time.Date(2020, time.October, 30, 1, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.October, 30, 1, 0, 0, 0, loc),
+		time.Date(2020, time.November, 3, 1, 0, 0, 0, loc),
+
+		"2020-10-29 01:30:00 -0500 CDT", // StartTime as of 1AM on the 30th would be 1AM on the 29th
+		"2020-10-30 01:30:00 -0500 CDT",
+		"2020-10-31 01:30:00 -0500 CDT",
+		"2020-11-01 01:30:00 -0500 CDT",
+		"2020-10-02 01:30:00 -0600 CST",
+		"2020-10-03 01:30:00 -0600 CST",
+	)
+
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.October, 30, 1, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.October, 30, 1, 0, 0, 0, loc),
+		time.Date(2020, time.November, 3, 1, 0, 0, 0, loc),
+
+		"2020-10-29 01:30:00 -0500 CDT", // StartTime as of 1AM on the 30th would be 1AM on the 29th
+		"2020-10-30 01:30:00 -0500 CDT",
+		"2020-10-31 01:30:00 -0500 CDT",
+		"2020-11-01 01:30:00 -0500 CDT",
+		"2020-10-02 01:30:00 -0600 CST",
+		"2020-10-03 01:30:00 -0600 CST",
+	)
+
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.March, 6, 2, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.March, 6, 1, 0, 0, 0, loc),
+		time.Date(2020, time.March, 10, 1, 0, 0, 0, loc),
+
+		"2020-03-05 02:30:00 -0600 CST", // StartTime as of 1AM on the 6th would be 1:30AM on the 5th
+		"2020-03-06 02:30:00 -0600 CST",
+		"2020-03-07 02:30:00 -0600 CST",
+		"2020-03-08 03:00:00 -0500 CDT",
+		"2020-03-09 02:30:00 -0500 CDT",
+		"2020-03-10 02:30:00 -0500 CDT",
+	)
+
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.March, 6, 2, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.March, 8, 1, 0, 0, 0, loc),
+		time.Date(2020, time.March, 8, 4, 0, 0, 0, loc),
+
+		"2020-03-08 00:30:00 -0600 CST",
+		"2020-03-08 01:30:00 -0600 CST",
+		"2020-03-08 03:00:00 -0500 CDT",
+		"2020-03-08 03:30:00 -0500 CDT",
+		"2020-03-08 04:30:00 -0500 CDT",
+	)
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.March, 6, 2, 0, 0, 0, loc),
+	},
+		time.Date(2020, time.March, 8, 1, 0, 0, 0, loc),
+		time.Date(2020, time.March, 8, 4, 0, 0, 0, loc),
+
+		"2020-03-08 01:00:00 -0600 CST",
+		"2020-03-08 03:00:00 -0500 CDT",
+		"2020-03-08 04:00:00 -0500 CDT",
+	)
+
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.July, 6, 2, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.November, 1, 0, 0, 0, 0, loc),
+		time.Date(2020, time.November, 1, 4, 0, 0, 0, loc),
+
+		"2020-10-31 23:30:00 -0500 CDT",
+		"2020-11-01 00:30:00 -0500 CDT",
+		"2020-11-01 01:30:00 -0500 CDT",
+		"2020-11-01 02:30:00 -0600 CST",
+		"2020-11-01 03:30:00 -0600 CST",
+		"2020-11-01 04:30:00 -0600 CST",
+	)
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.July, 6, 2, 0, 0, 0, loc),
+	},
+		time.Date(2020, time.November, 1, 0, 0, 0, 0, loc),
+		time.Date(2020, time.November, 1, 4, 0, 0, 0, loc),
+
+		"2020-11-01 00:00:00 -0500 CDT",
+		"2020-11-01 01:00:00 -0500 CDT",
+		"2020-11-01 02:00:00 -0600 CST",
+		"2020-11-01 03:00:00 -0600 CST",
+		"2020-11-01 04:00:00 -0600 CST",
+		"2020-11-01 05:00:00 -0600 CST",
+	)
 }
 
 func TestRotation_EndTime_DST(t *testing.T) {
