@@ -24,7 +24,6 @@ module.exports = {
       'apollo-cache-inmemory',
       'reselect',
       'apollo-utilities',
-      'axios',
       'redux',
       'redux-devtools-extension',
       'redux-thunk',
