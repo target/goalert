@@ -189,6 +189,7 @@ PolicyStep.propTypes = {
   repeat: p.number.isRequired, // # of times EP repeats escalation process
   step: shapeStep.isRequired,
   steps: p.arrayOf(shapeStep).isRequired,
+  index: p.number,
 }
 
 export default PolicyStep
