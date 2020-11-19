@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
@@ -71,9 +70,9 @@ export default function Login() {
 
   useEffect(() => {
     // get providers
-    axios
-      .get(PROVIDERS_URL)
-      .then((res) => setProviders(res.data))
+    fetch(PROVIDERS_URL)
+      .then((res) => res.json())
+      .then((data) => setProviders(data))
       .catch((err) => setError(err))
   }, [])
 

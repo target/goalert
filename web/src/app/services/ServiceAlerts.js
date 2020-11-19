@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
+import { gql, useMutation } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { useMutation } from 'react-apollo'
+
 import AlertsList from '../alerts/AlertsList'
-import gql from 'graphql-tag'
 import PageActions from '../util/PageActions'
 import FormDialog from '../dialogs/FormDialog'
 import OtherActions from '../util/OtherActions'

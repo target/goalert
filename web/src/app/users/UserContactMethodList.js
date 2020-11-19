@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
+import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import FlatList from '../lists/FlatList'
 import { Button, Card, CardHeader, Grid, IconButton } from '@material-ui/core'
-import { useQuery } from 'react-apollo'
+
 import { isWidthUp } from '@material-ui/core/withWidth'
 import { sortContactMethods } from './util'
 import OtherActions from '../util/OtherActions'

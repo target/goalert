@@ -1,6 +1,6 @@
+import { gql } from '@apollo/client'
 import p from 'prop-types'
 import { makeQuerySelect } from './QuerySelect'
-import gql from 'graphql-tag'
 
 const query = gql`
   query($input: LabelValueSearchOptions) {
