@@ -100,7 +100,7 @@ function PolicyStepsCard(props) {
       newIdx.current = null
     },
     onError: (err) => setError(err),
-    onUpdate: (cache, data) => onStepUpdate(cache, data),
+    update: (cache, { data }) => onStepUpdate(cache, data),
     optimisticResponse: { updateEscalationPolicy: true },
   })
 
