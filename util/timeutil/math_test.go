@@ -40,6 +40,12 @@ func TestAddClock(t *testing.T) {
 		time.Date(2017, time.January, 1, 0, 0, 0, 0, loc),
 		NewClock(60, 0),
 	)
+
+	check(
+		"2020-11-01 01:30:00 -0500 CDT",
+		time.Date(2020, 11, 2, 1, 30, 0, 0, loc),
+		NewClock(-24, 0),
+	)
 }
 
 func TestHoursBetween(t *testing.T) {
@@ -72,4 +78,9 @@ func TestHoursBetween(t *testing.T) {
 		time.Date(2018, time.November, 4, 4, 0, 0, 0, loc),
 	)
 
+	check(
+		49,
+		time.Date(2020, 10, 30, 1, 30, 0, 0, loc),
+		time.Date(2020, 11, 1, 2, 30, 0, 0, loc),
+	)
 }

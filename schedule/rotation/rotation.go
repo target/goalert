@@ -33,16 +33,15 @@ func (r Rotation) StartTime(t time.Time) time.Time {
 
 	switch r.Type {
 	case TypeHourly:
-		return timeutil.AddClock(end, timeutil.NewClock(-r.ShiftLength, 0))
-	case TypeWeekly:
-		r.ShiftLength *= 7
 	case TypeDaily:
+		r.ShiftLength *= 24
+	case TypeWeekly:
+		r.ShiftLength *= 24 * 7
 	default:
 		panic("unexpected rotation type")
 	}
 
-	end = timeutil.StartOfDay(end).AddDate(0, 0, -r.ShiftLength)
-	return timeutil.NewClockFromTime(r.Start).FirstOfDay(end)
+	return timeutil.AddClock(end, timeutil.NewClock(-r.ShiftLength, 0))
 }
 
 // EndTime calculates the end of the "shift" that started at (or was active) at t.
@@ -70,7 +69,9 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 
 	// add the remainder of the shift length to get the next shift
 	rem := hours % r.ShiftLength
-	hours += r.ShiftLength - rem
+	if rem != 0 {
+		hours += r.ShiftLength - rem
+	}
 
 	return timeutil.AddClock(r.Start, timeutil.NewClock(hours, 0))
 }

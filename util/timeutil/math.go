@@ -9,6 +9,10 @@ import (
 func AddClock(t time.Time, c Clock) time.Time {
 	c += NewClockFromTime(t)
 	days, c := c.Days()
+	if c < 0 {
+		days--
+		c += NewClock(24, 0)
+	}
 
 	start := StartOfDay(t)
 	if days != 0 {

@@ -28,8 +28,11 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 	loc, err := time.LoadLocation("America/Chicago")
 	require.NoError(t, err)
 
+	// check will walk through, in 30 sec. increments, from the start to the end time calling
+	// both StartTime and EndTime on the rotation and asserting it gives the exact expectedHandoffs.
 	check := func(rot *Rotation, start, end time.Time, expectedHandoffs ...string) {
 		t.Helper()
+
 		ts := start
 		timesM := make(map[string]bool)
 		var times []string
@@ -59,14 +62,16 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		time.Date(2020, time.October, 30, 1, 0, 0, 0, loc),
 		time.Date(2020, time.November, 3, 1, 0, 0, 0, loc),
 
-		"2020-10-29 01:30:00 -0500 CDT", // StartTime as of 1AM on the 30th would be 1AM on the 29th
+		"2020-10-29 01:30:00 -0500 CDT", // StartTime as of 1AM on the 30th would be 1:30AM on the 29th
 		"2020-10-30 01:30:00 -0500 CDT",
 		"2020-10-31 01:30:00 -0500 CDT",
 		"2020-11-01 01:30:00 -0500 CDT",
-		"2020-10-02 01:30:00 -0600 CST",
-		"2020-10-03 01:30:00 -0600 CST",
+		"2020-11-02 01:30:00 -0600 CST",
+		"2020-11-03 01:30:00 -0600 CST",
 	)
+	return
 
+	// Daily & 24 hour should be identical
 	check(&Rotation{
 		Type:        TypeDaily,
 		ShiftLength: 1,
@@ -75,12 +80,12 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		time.Date(2020, time.October, 30, 1, 0, 0, 0, loc),
 		time.Date(2020, time.November, 3, 1, 0, 0, 0, loc),
 
-		"2020-10-29 01:30:00 -0500 CDT", // StartTime as of 1AM on the 30th would be 1AM on the 29th
+		"2020-10-29 01:30:00 -0500 CDT",
 		"2020-10-30 01:30:00 -0500 CDT",
 		"2020-10-31 01:30:00 -0500 CDT",
 		"2020-11-01 01:30:00 -0500 CDT",
-		"2020-10-02 01:30:00 -0600 CST",
-		"2020-10-03 01:30:00 -0600 CST",
+		"2020-11-02 01:30:00 -0600 CST",
+		"2020-11-03 01:30:00 -0600 CST",
 	)
 
 	check(&Rotation{
