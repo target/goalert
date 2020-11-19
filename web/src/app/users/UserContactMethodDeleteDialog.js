@@ -1,8 +1,7 @@
 import React from 'react'
+import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import FormDialog from '../dialogs/FormDialog'
-import { useMutation } from '@apollo/react-hooks'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`

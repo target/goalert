@@ -1,5 +1,5 @@
+import { gql } from '@apollo/client'
 import { makeQuerySelect } from './QuerySelect'
-import gql from 'graphql-tag'
 import p from 'prop-types'
 
 const query = gql`
