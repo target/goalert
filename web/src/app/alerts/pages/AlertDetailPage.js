@@ -1,5 +1,5 @@
-import { gql, useQuery } from '@apollo/client'
 import React from 'react'
+import { gql, useQuery } from '@apollo/client'
 import { GenericError, ObjectNotFound } from '../../error-pages'
 import Spinner from '../../loading/components/Spinner'
 import AlertDetails from '../components/AlertDetails'
