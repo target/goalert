@@ -1,4 +1,4 @@
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import { print } from 'graphql/language/printer'
 
 import { queryByName, fieldAlias, mapInputVars, mergeFields } from './graphql'
