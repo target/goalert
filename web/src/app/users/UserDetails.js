@@ -1,5 +1,5 @@
-import { useQuery, gql } from '@apollo/client'
 import React, { useState } from 'react'
+import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import DetailsPage from '../details/DetailsPage'
 import StatusUpdateNotification from './UserStatusUpdatePreference'

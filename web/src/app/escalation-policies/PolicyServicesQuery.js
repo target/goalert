@@ -1,5 +1,5 @@
-import { gql, useQuery } from '@apollo/client'
 import React from 'react'
+import { gql, useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
 import PolicyServicesCard from './PolicyServicesCard'
 import Spinner from '../loading/components/Spinner'

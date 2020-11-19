@@ -1,5 +1,5 @@
-import { gql, useQuery } from '@apollo/client'
 import React, { useContext } from 'react'
+import { gql, useQuery } from '@apollo/client'
 import { ConfigType, ConfigValue, ConfigID } from '../../schema'
 
 type Value = boolean | number | string | string[] | null

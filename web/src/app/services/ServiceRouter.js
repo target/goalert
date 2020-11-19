@@ -1,5 +1,5 @@
-import { gql } from '@apollo/client'
 import React from 'react'
+import { gql } from '@apollo/client'
 import { useDispatch, useSelector } from 'react-redux'
 import { Switch, Route } from 'react-router-dom'
 
