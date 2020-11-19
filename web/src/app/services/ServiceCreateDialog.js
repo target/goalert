@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
+import { gql, useMutation } from '@apollo/client'
+
 import p from 'prop-types'
 
 import { Redirect } from 'react-router-dom'
 
-import gql from 'graphql-tag'
-import { useMutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
