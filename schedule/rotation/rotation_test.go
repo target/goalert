@@ -69,6 +69,34 @@ func TestRotation_EndTime_ConfigChange(t *testing.T) {
 }
 
 func TestRotation_EndTime(t *testing.T) {
+
+	t.Run("cycle forward", func(t *testing.T) {
+		// 2am june 1st
+		orig := time.Date(2020, time.June, 1, 3, 0, 0, 0, time.UTC)
+		rot := &Rotation{
+			Type:        TypeHourly,
+			ShiftLength: 10,
+			Start:       orig,
+		}
+
+		res := rot.EndTime(orig.Add(30 * time.Hour))
+		// 7pm following day (40 hours)
+		assert.Equal(t, "2020-06-02 19:00:00 +0000 UTC", res.String())
+	})
+	t.Run("cycle back", func(t *testing.T) {
+		// 2am june 1st
+		orig := time.Date(2020, time.June, 1, 3, 0, 0, 0, time.UTC)
+		rot := &Rotation{
+			Type:        TypeHourly,
+			ShiftLength: 10,
+			Start:       orig,
+		}
+
+		res := rot.EndTime(orig.Add(-30 * time.Hour))
+		// 7am previous day (-30 hours + 10 hours)
+		assert.Equal(t, "2020-05-31 07:00:00 +0000 UTC", res.String())
+	})
+
 	test := func(start, end string, len int, dur time.Duration, typ Type) {
 		t.Run(string(typ), func(t *testing.T) {
 			s := mustParse(t, start)
@@ -138,6 +166,40 @@ func TestRotation_EndTime(t *testing.T) {
 	for _, d := range data {
 		test(d.s, d.exp, d.l, d.dur, TypeHourly)
 	}
+
+	t.Run("subsequent calls (hourly)", func(t *testing.T) {
+		orig := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
+		r := &Rotation{
+			Type:        TypeHourly,
+			ShiftLength: 1,
+			Start:       orig,
+		}
+		ts := r.EndTime(orig.Add(-2 * time.Hour))
+		assert.Equal(t, orig.Add(-time.Hour).String(), ts.String())
+
+		ts = r.EndTime(ts)
+		assert.Equal(t, orig.String(), ts.String())
+
+		ts = r.EndTime(ts)
+		assert.Equal(t, orig.Add(time.Hour).String(), ts.String())
+	})
+
+	t.Run("subsequent calls (daily)", func(t *testing.T) {
+		orig := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
+		r := &Rotation{
+			Type:        TypeDaily,
+			ShiftLength: 1,
+			Start:       orig,
+		}
+		ts := r.EndTime(orig.AddDate(0, 0, -2))
+		assert.Equal(t, orig.AddDate(0, 0, -1).String(), ts.String())
+
+		ts = r.EndTime(ts)
+		assert.Equal(t, orig.String(), ts.String())
+
+		ts = r.EndTime(ts)
+		assert.Equal(t, orig.AddDate(0, 0, 1).String(), ts.String())
+	})
 }
 
 func TestRotation_Normalize(t *testing.T) {

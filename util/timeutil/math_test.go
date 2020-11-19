@@ -34,6 +34,12 @@ func TestAddClock(t *testing.T) {
 		time.Date(2018, time.March, 11, 0, 0, 0, 0, loc),
 		NewClock(2, 30),
 	)
+
+	check(
+		"2017-01-03 12:00:00 -0600 CST",
+		time.Date(2017, time.January, 1, 0, 0, 0, 0, loc),
+		NewClock(60, 0),
+	)
 }
 
 func TestHoursBetween(t *testing.T) {

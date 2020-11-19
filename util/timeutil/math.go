@@ -1,6 +1,8 @@
 package timeutil
 
-import "time"
+import (
+	"time"
+)
 
 // AddClock will add the provided number of clock hours to the given time, taking
 // things like DST into account.

@@ -54,61 +54,25 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 	}
 	t = t.Truncate(time.Minute)
 	r.Start = r.Start.Truncate(time.Minute)
-	startClock := timeutil.NewClockFromTime(r.Start)
 
-	if r.Type == TypeWeekly {
-		r.ShiftLength *= 7
-	}
 	switch r.Type {
 	case TypeHourly:
-		startDay := timeutil.StartOfDay(r.Start)
-		tDay := timeutil.StartOfDay(t)
-
-		// number of full hours that have passed
-		hours := timeutil.HoursBetween(startDay, tDay)
-
-		// the remainder of the shift length
-		rem := hours % r.ShiftLength
-		if rem != 0 {
-			startClock += timeutil.Clock(time.Duration(rem) * time.Hour)
-		}
-		startHrs := startClock.Hour()
-		if startHrs >= 24 {
-			whole := startHrs / 24
-			tDay = tDay.AddDate(0, 0, whole)
-			startClock -= timeutil.Clock(time.Hour * time.Duration(whole*24))
-		}
-
-		res := startClock.FirstOfDay(tDay)
-		if res.After(t) {
-			return res
-		}
-
-		return timeutil.AddClock(res, timeutil.NewClock(r.ShiftLength, 0))
-	case TypeDaily, TypeWeekly:
-
-		// get the number of full days that have passed
-		startDay := timeutil.StartOfDay(r.Start)
-		tDay := timeutil.StartOfDay(t)
-		days := timeutil.DaysBetween(startDay, tDay)
-
-		// the remainder of the shift length
-		rem := days % r.ShiftLength
-		if rem != 0 {
-			tDay = tDay.AddDate(0, 0, r.ShiftLength-rem)
-		}
-
-		res := startClock.FirstOfDay(tDay)
-		// already in the future
-		if res.After(t) {
-			return res
-		}
-
-		// t is the day of the handoff, but it has already occured, jump to next
-		return startClock.FirstOfDay(res.AddDate(0, 0, r.ShiftLength))
+	case TypeDaily:
+		r.ShiftLength *= 24
+	case TypeWeekly:
+		r.ShiftLength *= 24 * 7
 	default:
 		panic("unexpected rotation type")
 	}
+
+	// number of clock hours that have passed
+	hours := timeutil.HoursBetween(r.Start, t)
+
+	// add the remainder of the shift length to get the next shift
+	rem := hours % r.ShiftLength
+	hours += r.ShiftLength - rem
+
+	return timeutil.AddClock(r.Start, timeutil.NewClock(hours, 0))
 }
 
 func (r Rotation) Normalize() (*Rotation, error) {

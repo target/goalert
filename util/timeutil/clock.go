@@ -32,12 +32,10 @@ func IsDST(t time.Time) (dst bool, at, change Clock) {
 
 // Days will return the number of whole days and the remainder Clock value.
 func (c Clock) Days() (int, Clock) {
-	whole := NewClock(c.Hour()/24*24, 0)
-	if whole == 0 {
-		return 0, c
-	}
+	days := time.Duration(c) / (24 * time.Hour)
+	rem := time.Duration(c) % (24 * time.Hour)
 
-	return int(c / whole), c % whole
+	return int(days), Clock(rem)
 }
 
 // FirstOfDay will return the first timestamp where the time matches

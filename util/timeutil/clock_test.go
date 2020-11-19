@@ -8,6 +8,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestClock_Days(t *testing.T) {
+
+	check := func(expDays int, expHrs string, c Clock) {
+		t.Helper()
+		days, c := c.Days()
+		assert.Equal(t, expDays, days, "days")
+		assert.Equal(t, expHrs, c.String())
+	}
+
+	check(2, "12:00", NewClock(60, 0)) // 2 days, 12 hrs
+	check(0, "12:00", NewClock(12, 0)) //  12 hrs
+	check(1, "00:00", NewClock(24, 0)) // 1 day, 0 hrs
+
+	check(1, "01:00", NewClock(25, 0))  // 1 day, 0 hrs
+	check(1, "01:30", NewClock(25, 30)) // 1 day, 0 hrs
+}
+
 func TestLastOfDay(t *testing.T) {
 	check := func(expTs string, c Clock, ts time.Time) {
 		t.Helper()
