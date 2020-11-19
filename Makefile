@@ -96,7 +96,7 @@ $(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -name '*.go')
 $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
 
-$(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
+$(BIN_DIR)/integration/goalert/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
 	(cd web/src && yarn webpack --config webpack.cypress.js --target node)
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
@@ -130,8 +130,8 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
-	web/src/node_modules/.bin/cypress install
+cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
+	node_modules/.bin/cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js
 	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
@@ -146,10 +146,10 @@ cy-wide-prod-run: web/inline_data_gen.go cypress
 cy-mobile-prod-run: web/inline_data_gen.go cypress
 	make cy-mobile-prod CY_ACTION=run
 
-web/src/schema.d.ts: graphql2/schema.graphql web/src/node_modules web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
+start: bin/waitfor node_modules web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
@@ -161,13 +161,13 @@ start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
 	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
 	bin/runjson <devtools/runjson/localdev-prod.json
 
-jest: web/src/node_modules
-	cd web/src && node_modules/.bin/jest $(JEST_ARGS)
+jest: node_modules
+	node_modules/.bin/jest $(JEST_ARGS)
 
-test: web/src/node_modules jest
+test: node_modules web/src/node_modules jest
 	go test -short ./...
 
-check: generate web/src/node_modules
+check: generate node_modules web/src/node_modules
 	# go run devtools/ordermigrations/main.go -check
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign .
@@ -189,7 +189,7 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-generate: web/src/node_modules
+generate: node_modules web/src/node_modules
 	go generate ./...
 
 smoketest:
@@ -212,11 +212,14 @@ tools:
 yarn.lock: web/src/package.json
 	(yarn --no-progress --silent && touch yarn.lock)
 
-web/src/node_modules: web/src/node_modules/.bin/cypress
+node_modules: node_modules/.bin/cypress
+	touch node_modules
+
+web/src/node_modules:
 	touch web/src/node_modules
 
-web/src/node_modules/.bin/cypress: yarn.lock
-	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
+node_modules/.bin/cypress: yarn.lock
+	(yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js yarn.lock $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
@@ -225,8 +228,8 @@ web/src/build/static/app.js: web/src/webpack.prod.config.js yarn.lock $(shell fi
 web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
-web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
-	(cd web/src && node_modules/.bin/webpack --config ./webpack.dll.config.js --progress)
+web/src/build/vendorPackages.dll.js: ode_modules web/src/webpack.dll.config.js
+	(node_modules/.bin/webpack --config .web/src/webpack.dll.config.js --progress)
 
 notification/type_string.go: notice/notice.go
 	go generate ./notice

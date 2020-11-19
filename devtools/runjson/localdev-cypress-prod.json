@@ -90,7 +90,7 @@
     "Env": [
       "CYPRESS_DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable"
     ],
-    "Dir": "web/src",
+    "Dir": "/",
     "ExitAfter": true
   }
 ]

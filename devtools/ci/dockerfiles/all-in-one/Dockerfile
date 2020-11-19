@@ -1,8 +1,9 @@
 FROM goalert/build-env AS build
 
 COPY Makefile /goalert/Makefile
-COPY web/src/yarn.lock web/src/package.json /goalert/web/src/
+COPY yarn.lock web/src/package.json /goalert/web/src/
 WORKDIR /goalert
+RUN make node_modules
 RUN make web/src/node_modules
 
 COPY go.mod go.sum /goalert/
