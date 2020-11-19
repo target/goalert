@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
@@ -15,6 +15,9 @@ import { startCase } from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import { getNextHandoffs } from './util'
 import NumberField from '../util/NumberField'
+import TimeZoneSwitch from '../util/TimeZoneSwitch'
+import { useResetURLParams, useURLParam } from '../actions'
+import { DateTime } from 'luxon'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
@@ -32,18 +35,16 @@ const useStyles = makeStyles({
 export default function RotationForm(props) {
   const { value } = props
   const classes = useStyles()
+  const [zone] = useURLParam('tz', 'local')
+  const resetTZ = useResetURLParams('tz')
+  const localZone = useMemo(() => DateTime.local().zone.name, [])
+
+  useEffect(() => resetTZ(), [])
 
   // NOTE memoize to prevent calculation on each poll request
   const nextHandoffs = useMemo(
-    () =>
-      getNextHandoffs(
-        3,
-        value.start,
-        value.type,
-        value.shiftLength,
-        value.timeZone,
-      ),
-    [value.start, value.type, value.shiftLength, value.timeZone],
+    () => getNextHandoffs(3, value.start, value.type, value.shiftLength, zone),
+    [value.start, value.type, value.shiftLength, zone],
   )
 
   return (
@@ -107,6 +108,11 @@ export default function RotationForm(props) {
             max={9000}
           />
         </Grid>
+        {localZone !== props.value.timeZone && (
+          <Grid item xs={12}>
+            <TimeZoneSwitch option={props.value.timeZone} />
+          </Grid>
+        )}
         <Grid item xs={6}>
           <FormField
             fullWidth

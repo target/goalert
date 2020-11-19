@@ -142,7 +142,7 @@ export function getNextHandoffs(
   }
 
   while (result.length < count) {
-    result.push(nextHandoff.toLocal().toLocaleString(DateTime.DATETIME_FULL))
+    result.push(nextHandoff.toLocaleString(DateTime.DATETIME_FULL))
     nextHandoff = nextHandoff.plus({ [luxonUnit]: shiftLength })
   }
 
