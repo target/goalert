@@ -17,11 +17,11 @@ import {
   Typography,
 } from '@material-ui/core'
 import { UserSelect, RotationSelect } from '../selection'
-import { startCase } from 'lodash-es'
+import { startCase } from 'lodash'
 import { Add, Trash } from '../icons'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import Query from '../util/Query'
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import { connect } from 'react-redux'
 import { urlParamSelector } from '../selectors'
 import { ISOTimePicker } from '../util/ISOPickers'

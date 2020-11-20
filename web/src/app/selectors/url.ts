@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect'
 import joinURL from '../util/joinURL'
-import { memoize } from 'lodash-es'
+import { memoize } from 'lodash'
 import { History } from 'history'
 import { pathPrefix } from '../env'
 

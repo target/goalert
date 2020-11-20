@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
+import { useQuery, QueryResult } from '@apollo/client'
 import { useSelector } from 'react-redux'
-import { useQuery } from '@apollo/react-hooks'
 import { Grid } from '@material-ui/core'
-import { once } from 'lodash-es'
+import { once } from 'lodash'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
@@ -11,7 +11,6 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
-import { QueryResult } from '@apollo/react-common'
 
 // any && object type map
 // used for objects with unknown key/values from parent

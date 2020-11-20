@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import { useMutation, gql } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 import FormDialog from '../dialogs/FormDialog'
 import HeartbeatMonitorForm from './HeartbeatMonitorForm'
-import { useMutation } from '@apollo/react-hooks'
 
 const mutation = gql`
   mutation($input: UpdateHeartbeatMonitorInput!) {

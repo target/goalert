@@ -1,12 +1,12 @@
 import React from 'react'
+import { gql } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
 import Query from '../util/Query'
-import { pick } from 'lodash-es'
+import { pick } from 'lodash'
 
 const query = gql`
   query($id: ID!) {

@@ -5,10 +5,10 @@ import { Switch, Route } from 'react-router-dom'
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth'
 import { ChevronRight } from '@material-ui/icons'
 import withStyles from '@material-ui/core/styles/withStyles'
-import gql from 'graphql-tag'
-import { Query } from 'react-apollo'
-import { startCase } from 'lodash-es'
-import { AppLink } from '../../util/AppLink'
+import { gql } from '@apollo/client'
+import { Query } from '@apollo/client/react/components'
+import { startCase } from 'lodash'
+import AppLink from '../../util/AppLink'
 
 const styles = {
   backPage: {

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
-import { useMutation, useQuery } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import PolicyForm from './PolicyForm'
@@ -25,7 +24,7 @@ const mutation = gql`
 
 function PolicyEditDialog(props) {
   const [value, setValue] = useState(null)
-  const { data, editDialogQueryStatus } = useQuery(query, {
+  const { data, loading } = useQuery(query, {
     pollInterval: 0,
     variables: { id: props.escalationPolicyID },
   })
@@ -53,15 +52,12 @@ function PolicyEditDialog(props) {
   })
   const fieldErrs = fieldErrors(editDialogMutationStatus.error)
 
-  if (editDialogQueryStatus.loading && !data.escalationPolicy) return null
+  if (loading && !data.escalationPolicy) return null
 
   return (
     <FormDialog
       title='Edit Escalation Policy'
-      loading={
-        (!data && editDialogQueryStatus.loading) ||
-        editDialogMutationStatus.loading
-      }
+      loading={(!data && loading) || editDialogMutationStatus.loading}
       errors={nonFieldErrors(editDialogMutationStatus.error)}
       onClose={props.onClose}
       onSubmit={() => editDialogMutation()}
