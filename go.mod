@@ -33,19 +33,18 @@ require (
 	github.com/graphql-go/graphql v0.7.8
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d
-	github.com/jackc/pgconn v1.2.1
-	github.com/jackc/pgtype v1.1.0
-	github.com/jackc/pgx/v4 v4.2.1
+	github.com/jackc/pgconn v1.7.2
+	github.com/jackc/pgtype v1.6.1
+	github.com/jackc/pgx/v4 v4.9.2
 	github.com/jmespath/go-jmespath v0.3.0
 	github.com/joho/godotenv v1.3.0
-	github.com/mattn/go-colorable v0.1.4
+	github.com/mattn/go-colorable v0.1.6
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20200119084958-8794cecc920c
 	github.com/satori/go.uuid v1.2.0
-	github.com/shopspring/decimal v0.0.0-20191009025716-f1972eb1d1f5 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.3.1 // indirect

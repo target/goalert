@@ -1,7 +1,7 @@
 import React from 'react'
 import p from 'prop-types'
 import Query from '../util/Query'
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import FlatList from '../lists/FlatList'
 import {
   Grid,

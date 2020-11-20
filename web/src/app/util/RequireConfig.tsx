@@ -1,6 +1,5 @@
 import React, { useContext } from 'react'
-import gql from 'graphql-tag'
-import { useQuery } from 'react-apollo'
+import { gql, useQuery } from '@apollo/client'
 import { ConfigType, ConfigValue, ConfigID } from '../../schema'
 
 type Value = boolean | number | string | string[] | null

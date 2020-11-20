@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
-import { useQuery } from '@apollo/react-hooks'
+import { useQuery, gql } from '@apollo/client'
 import Button from '@material-ui/core/Button'
 import Divider from '@material-ui/core/Divider'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import gql from 'graphql-tag'
-import _, { startCase, isEmpty, uniq } from 'lodash-es'
-import chain from 'lodash'
+import _, { startCase, isEmpty, uniq, chain } from 'lodash'
 import AdminSection from './AdminSection'
 import AdminDialog from './AdminDialog'
 import PageActions from '../util/PageActions'
@@ -219,7 +217,7 @@ export default function AdminConfig(): JSX.Element {
                   )
                   .map((f: ConfigValue) => ({
                     id: f.id,
-                    label: formatHeading(chain(f.id.split('.')).last()),
+                    label: formatHeading(_.last(f.id.split('.'))),
                     description: f.description,
                     password: f.password,
                     type: f.type,
