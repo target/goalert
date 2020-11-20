@@ -90,10 +90,6 @@ func (r Rule) readFields() []interface{} {
 	return append(f, usr, rot)
 }
 
-func (r Rule) everyDay() bool {
-	return r.WeekdayFilter == everyDay
-}
-
 // StartTime will return the next time the rule would be active.
 // If the rule is currently active, it will return the time it
 // became active (in the past).
