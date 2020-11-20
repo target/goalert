@@ -32,11 +32,11 @@ function PolicyEditDialog(props) {
 
   const defaultValue = {
     id: props.escalationPolicyID,
-    name: data.escalationPolicy.name,
-    description: data.escalationPolicy.description,
+    name: data?.escalationPolicy?.name,
+    description: data?.escalationPolicy?.description,
     repeat: {
-      label: data.escalationPolicy.repeat.toString(),
-      value: data.escalationPolicy.repeat.toString(),
+      label: data?.escalationPolicy?.repeat.toString(),
+      value: data?.escalationPolicy?.repeat.toString(),
     },
   }
 
