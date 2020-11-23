@@ -1,7 +1,7 @@
 {
   "name": "mobile",
   "version": "1.0.0",
-  "main": "__generated__/AppEntry.js",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -12,8 +12,7 @@
     "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}'",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix .",
     "ts-compile": "tsc -p ./tsconfig.json",
-    "check": "yarn fmt && yarn lint && yarn ts-compile",
-    "postinstall": "expo-yarn-workspaces postinstall"
+    "check": "yarn fmt && yarn lint && yarn ts-compile"
   },
   "jest": {
     "preset": "jest-expo"
@@ -34,8 +33,8 @@
     "expo-status-bar": "~1.0.2",
     "expo-web-browser": "~8.5.0",
     "goalert-ui": "1.0.0",
-    "react": "16.14.0",
-    "react-dom": "16.13.1",
+    "react": "17.0.1",
+    "react-dom": "17.0.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-39.0.4.tar.gz",
     "react-native-gesture-handler": "~1.7.0",
     "react-native-paper": "^4.4.0",
@@ -45,8 +44,8 @@
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",
-    "@types/react": "16.9.52",
-    "@types/react-dom": "16.9.8",
+    "@types/react": "~16.9.35",
+    "@types/react-dom": "^16.9.9",
     "@types/react-native": "~0.63.2",
     "@typescript-eslint/eslint-plugin": "^4.8.0",
     "@typescript-eslint/parser": "^4.8.0",
@@ -62,7 +61,6 @@
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-standard": "^4.1.0",
-    "expo-yarn-workspaces": "^1.2.1",
     "jest-expo": "~39.0.0",
     "prettier": "^2.1.2",
     "typescript": "~4.0.5"
