@@ -221,23 +221,38 @@ Migration: %s (#%d)
 		Use:   "self-test",
 		Short: "test suite to validate functionality of Goalert environemnt",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			type service struct {
+				name    string
+				baseUrl string
+			}
+			type apiList []service
+
+			serviceList := []service{
+				{name: "Twilio", baseUrl: "https://api.twilio.com/2010-04-01"},
+				{name: "Mailgun", baseUrl: "https://api.mailgun.net/v3"},
+				{name: "Slack", baseUrl: "https://slack.com/api/api.test"},
+			}
 			start := time.Now()
 			fmt.Println("Execution Time:", time.Since(start))
 
+			//create a fixed timestamp, assert March/November ....
+			//set to midnight/March-November via time.Date() which creates timestamp, assert on zone method, add 3 and return if valid
 			zone, offset := start.Zone()
 			fmt.Println(zone, offset)
 
-			apiMap := map[string]string{"Twilio": "https://api.twilio.com/2010-04-01", "Mailgun": "https://api.mailgun.net/v3", "Slack": "https://slack.com/api/api.test"}
-
-			for service, baseURL := range apiMap {
+			//slice of custom structs
+			for service, baseURL := range serviceList {
 				resp, err := http.Get(baseURL)
 				if err != nil {
-					return errors.New("Request failed.")
+					return errors.Wrap(err, "request failed")
 				}
 				defer resp.Body.Close()
 
 				fmt.Println("Response from", service, "status code:", resp.StatusCode)
 			}
+			//for DB: set as Command Line flag
+			//argument will be passed into CLI
+			//if error is set return
 
 			return nil
 		},
