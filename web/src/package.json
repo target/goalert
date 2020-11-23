@@ -68,7 +68,6 @@
     "@material-ui/lab": "4.0.0-alpha.56",
     "bowser": "2.11.0",
     "classnames": "2.2.6",
-    "cross-env": "5.0.5",
     "connected-react-router": "6.6.1",
     "diff": "4.0.2",
     "graphql": "14.7.0",
