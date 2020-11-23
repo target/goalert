@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
+import { useQuery, useMutation, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
-import { useQuery, useMutation } from '@apollo/react-hooks'
 import FormDialog from '../../dialogs/FormDialog'
 import CalendarSubscribeForm from './CalendarSubscribeForm'
 import { GenericError, ObjectNotFound } from '../../error-pages'

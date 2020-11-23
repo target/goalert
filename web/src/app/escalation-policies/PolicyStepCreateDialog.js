@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
-import { useMutation } from 'react-apollo'
+import { gql, useMutation } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import PolicyStepForm from './PolicyStepForm'
 import FormDialog from '../dialogs/FormDialog'

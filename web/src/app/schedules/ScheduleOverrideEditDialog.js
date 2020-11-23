@@ -1,10 +1,10 @@
 import React from 'react'
+import { gql } from '@apollo/client'
 import p from 'prop-types'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
 import ScheduleOverrideForm from './ScheduleOverrideForm'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-import gql from 'graphql-tag'
 import Query from '../util/Query'
 
 const query = gql`
