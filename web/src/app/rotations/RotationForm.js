@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
@@ -18,6 +18,9 @@ import NumberField from '../util/NumberField'
 import TimeZoneSwitch from '../util/TimeZoneSwitch'
 import { useResetURLParams, useURLParam } from '../actions'
 import { DateTime } from 'luxon'
+import ClickableText from '../util/ClickableText'
+import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown'
+import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
@@ -28,9 +31,6 @@ const useStyles = makeStyles({
     paddingTop: 0,
     paddingBottom: 0,
   },
-  semiBold: {
-    fontWeight: 600,
-  },
 })
 export default function RotationForm(props) {
   const { value } = props
@@ -38,6 +38,7 @@ export default function RotationForm(props) {
   const [zone] = useURLParam('tz', 'local')
   const resetTZ = useResetURLParams('tz')
   const localZone = useMemo(() => DateTime.local().zone.name, [])
+  const [showHandoffs, setShowHandoffs] = useState(false)
 
   useEffect(() => resetTZ(), [])
 
@@ -113,44 +114,45 @@ export default function RotationForm(props) {
             <TimeZoneSwitch option={props.value.timeZone} />
           </Grid>
         )}
-        <Grid item xs={6}>
+        <Grid item xs={12}>
           <FormField
             fullWidth
             component={ISODateTimePicker}
             label='Initial Handoff Time'
             name='start'
             required
+            hint={
+              <ClickableText
+                onClick={() => setShowHandoffs(!showHandoffs)}
+                endIcon={
+                  showHandoffs ? <KeyboardArrowUp /> : <KeyboardArrowDown />
+                }
+              >
+                {`${showHandoffs ? 'Hide' : 'Preview'} upcoming handoffs`}
+              </ClickableText>
+            }
           />
         </Grid>
-        <Grid item xs={6}>
-          <List
-            dense
-            disablePadding
-            subheader={
-              <ListItem disableGutters className={classes.noVerticalSpace}>
-                <ListItemText
-                  primary='Upcoming Handoff Times:'
-                  primaryTypographyProps={{ className: classes.semiBold }}
-                />
-              </ListItem>
-            }
-          >
-            {nextHandoffs.map((text, i) => {
-              return (
-                <ListItem
-                  key={i}
-                  className={classes.noVerticalSpace}
-                  disableGutters
-                >
-                  <ListItemText
-                    primary={text}
+        {showHandoffs && (
+          <Grid item xs={12} style={{ paddingTop: 0 }}>
+            <List dense disablePadding>
+              {nextHandoffs.map((text, i) => {
+                return (
+                  <ListItem
+                    key={i}
                     className={classes.noVerticalSpace}
-                  />
-                </ListItem>
-              )
-            })}
-          </List>
-        </Grid>
+                    disableGutters
+                  >
+                    <ListItemText
+                      primary={text}
+                      className={classes.noVerticalSpace}
+                    />
+                  </ListItem>
+                )
+              })}
+            </List>
+          </Grid>
+        )}
       </Grid>
     </FormContainer>
   )
