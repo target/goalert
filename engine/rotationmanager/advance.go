@@ -1,8 +1,11 @@
 package rotationmanager
 
 import (
-	"github.com/target/goalert/schedule/rotation"
+	"context"
 	"time"
+
+	"github.com/target/goalert/schedule/rotation"
+	"github.com/target/goalert/util/log"
 )
 
 type advance struct {
@@ -12,7 +15,7 @@ type advance struct {
 }
 
 // calcAdvance will calculate rotation advancement if it is required. If not, nil is returned
-func calcAdvance(t time.Time, rot *rotation.Rotation, state rotation.State, partCount int) *advance {
+func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotation.State, partCount int) *advance {
 
 	// get next shift start time
 	newStart := rot.EndTime(state.ShiftStart)
@@ -33,6 +36,11 @@ func calcAdvance(t time.Time, rot *rotation.Rotation, state rotation.State, part
 		}
 		// in the future, so nothing to do yet
 		return nil
+	}
+
+	warningThreshold := time.Minute * -15
+	if !newStart.After(t.Add(warningThreshold)) {
+		log.Debugf(ctx, "unexpected rotation advancement")
 	}
 
 	state.ShiftStart = newStart
