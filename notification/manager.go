@@ -198,7 +198,7 @@ func (m *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, error)
 			log.Log(sendCtx, errors.Wrap(err, "send notification"))
 			continue
 		}
-		log.Debugf(sendCtx, "notification sent")
+		log.Logf(sendCtx, "notification sent")
 		// status already wrapped via namedSender
 		return status, nil
 	}
