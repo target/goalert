@@ -38,8 +38,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 		return nil
 	}
 
-	warningThreshold := time.Minute * -15
-	if !newStart.After(t.Add(warningThreshold)) {
+	if !newStart.After(t.Add(-15 * time.Minute)) {
 		log.Debugf(ctx, "unexpected rotation advancement")
 	}
 
