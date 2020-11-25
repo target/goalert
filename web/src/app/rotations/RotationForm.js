@@ -6,9 +6,7 @@ import {
   TextField,
   Grid,
   MenuItem,
-  List,
-  ListItem,
-  ListItemText,
+  Typography,
   makeStyles,
 } from '@material-ui/core'
 import { startCase } from 'lodash'
@@ -17,7 +15,7 @@ import { getNextHandoffs } from './util'
 import NumberField from '../util/NumberField'
 import TimeZoneSwitch from '../util/TimeZoneSwitch'
 import { useResetURLParams, useURLParam } from '../actions'
-import { DateTime, Duration } from 'luxon'
+import { DateTime } from 'luxon'
 import ClickableText from '../util/ClickableText'
 import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown'
 import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp'
@@ -25,11 +23,8 @@ import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp'
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
 const useStyles = makeStyles({
-  noVerticalSpace: {
-    marginTop: 0,
-    marginBottom: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
+  listNone: {
+    listStyle: 'none',
   },
 })
 export default function RotationForm(props) {
@@ -41,8 +36,8 @@ export default function RotationForm(props) {
   const [showHandoffs, setShowHandoffs] = useState(false)
   const [minStart, maxStart] = useMemo(
     () => [
-      DateTime.local().minus(Duration.fromObject({ year: 1 })),
-      DateTime.local().plus(Duration.fromObject({ year: 1 })),
+      DateTime.fromObject({ year: 2000 }),
+      DateTime.fromObject({ year: 2500 }),
     ],
     [],
   )
@@ -156,23 +151,19 @@ export default function RotationForm(props) {
           />
         </Grid>
         {showHandoffs && (
-          <Grid item xs={12} style={{ paddingTop: 0 }}>
-            <List dense disablePadding>
-              {nextHandoffs.map((text, i) => {
-                return (
-                  <ListItem
-                    key={i}
-                    className={classes.noVerticalSpace}
-                    disableGutters
-                  >
-                    <ListItemText
-                      primary={text}
-                      className={classes.noVerticalSpace}
-                    />
-                  </ListItem>
-                )
-              })}
-            </List>
+          <Grid item xs={12} style={{ paddingTop: 0 }} component='ul'>
+            {nextHandoffs.map((text, i) => {
+              return (
+                <Typography
+                  key={i}
+                  component='li'
+                  className={classes.listNone}
+                  variant='body2'
+                >
+                  {text}
+                </Typography>
+              )
+            })}
           </Grid>
         )}
       </Grid>
