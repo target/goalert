@@ -222,16 +222,15 @@ Migration: %s (#%d)
 		Short: "test suite to validate functionality of Goalert environemnt",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			type service struct {
-				name    string
-				baseUrl string
+				name, baseUrl string
 			}
-			type apiList []service
 
 			serviceList := []service{
 				{name: "Twilio", baseUrl: "https://api.twilio.com/2010-04-01"},
 				{name: "Mailgun", baseUrl: "https://api.mailgun.net/v3"},
 				{name: "Slack", baseUrl: "https://slack.com/api/api.test"},
 			}
+
 			start := time.Now()
 			fmt.Println("Execution Time:", time.Since(start))
 
@@ -240,19 +239,44 @@ Migration: %s (#%d)
 			zone, offset := start.Zone()
 			fmt.Println(zone, offset)
 
+			loc := time.FixedZone("UTC-6", -6*60*60)
+			startNov := time.Date(2020, time.November, 1, 0, 00, 00, 0, loc)
+			startMar := time.Date(2020, time.March, 8, 0, 00, 00, 0, loc)
+
+			zoneNov, offsetNov := startNov.Zone()
+			fmt.Println(zoneNov, offsetNov)
+
+			zoneMar, offsetMar := startMar.Zone()
+			fmt.Println(zoneMar, offsetMar)
+
+			startNov = startNov.Add(time.Hour * 3)
+			startMar = startMar.Add(time.Hour * 3)
+
+			zoneNovAfter, offsetNovAfter := startNov.Zone()
+			fmt.Println(zoneNovAfter, offsetNovAfter)
+
+			zoneMarAfter, offsetMarAfter := startNov.Zone()
+			fmt.Println(zoneMarAfter, offsetMarAfter)
+
 			//slice of custom structs
-			for service, baseURL := range serviceList {
-				resp, err := http.Get(baseURL)
+			for _, s := range serviceList {
+				resp, err := http.Get(s.baseUrl)
 				if err != nil {
 					return errors.Wrap(err, "request failed")
 				}
 				defer resp.Body.Close()
-
-				fmt.Println("Response from", service, "status code:", resp.StatusCode)
+				fmt.Println("Response from", s.name, "status code:", resp.StatusCode)
 			}
 			//for DB: set as Command Line flag
 			//argument will be passed into CLI
 			//if error is set return
+			cfg, err := getConfig()
+			if err != nil {
+				return err
+			}
+			if cfg.DBURL == "postgres://goalert@localhost:5432" {
+				fmt.Println("the connection is successful!")
+			}
 
 			return nil
 		},
