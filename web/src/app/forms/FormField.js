@@ -33,8 +33,9 @@ export class FormField extends React.PureComponent {
     fieldName: p.string,
 
     // min and max values specify the range to clamp a int value
-    min: p.number,
-    max: p.number,
+    // expects an ISO timestamp, if string
+    min: p.oneOfType([p.number, p.string]),
+    max: p.oneOfType([p.number, p.string]),
 
     // used if name is set,
     // but the error name is different from graphql responses

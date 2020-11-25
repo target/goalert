@@ -17,7 +17,7 @@ import { getNextHandoffs } from './util'
 import NumberField from '../util/NumberField'
 import TimeZoneSwitch from '../util/TimeZoneSwitch'
 import { useResetURLParams, useURLParam } from '../actions'
-import { DateTime } from 'luxon'
+import { DateTime, Duration } from 'luxon'
 import ClickableText from '../util/ClickableText'
 import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown'
 import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp'
@@ -39,14 +39,33 @@ export default function RotationForm(props) {
   const resetTZ = useResetURLParams('tz')
   const localZone = useMemo(() => DateTime.local().zone.name, [])
   const [showHandoffs, setShowHandoffs] = useState(false)
+  const [minStart, maxStart] = useMemo(
+    () => [
+      DateTime.local().minus(Duration.fromObject({ year: 1 })),
+      DateTime.local().plus(Duration.fromObject({ year: 1 })),
+    ],
+    [],
+  )
 
-  useEffect(() => resetTZ(), [])
+  const isValidStart = useMemo(
+    () =>
+      DateTime.fromISO(value.start) >= minStart &&
+      DateTime.fromISO(value.start) <= maxStart,
+    [value.start],
+  )
+
+  useEffect(() => {
+    if (!isValidStart) setShowHandoffs(false)
+  }, [isValidStart])
+
+  useEffect(() => resetTZ(), [value.timeZone])
 
   // NOTE memoize to prevent calculation on each poll request
-  const nextHandoffs = useMemo(
-    () => getNextHandoffs(3, value.start, value.type, value.shiftLength, zone),
-    [value.start, value.type, value.shiftLength, zone],
-  )
+  const nextHandoffs = useMemo(() => {
+    return isValidStart
+      ? getNextHandoffs(3, value.start, value.type, value.shiftLength, zone)
+      : []
+  }, [value.start, value.type, value.shiftLength, zone])
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -120,9 +139,12 @@ export default function RotationForm(props) {
             component={ISODateTimePicker}
             label='Initial Handoff Time'
             name='start'
+            min={minStart.toISO()}
+            max={maxStart.toISO()}
             required
             hint={
               <ClickableText
+                disabled={!isValidStart}
                 onClick={() => setShowHandoffs(!showHandoffs)}
                 endIcon={
                   showHandoffs ? <KeyboardArrowUp /> : <KeyboardArrowDown />

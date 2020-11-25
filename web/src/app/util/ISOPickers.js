@@ -17,14 +17,16 @@ function hasInputSupport(name) {
 }
 
 function useISOPicker(
-  { value, onChange, timeZone, ...otherProps },
+  { value, onChange, timeZone, min, max, ...otherProps },
   { format, truncateTo, type, Fallback },
 ) {
   const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
   const zone = timeZone || params('tz', 'local')
-  const dtValue = DateTime.fromISO(value, { zone })
-  const [inputValue, setInputValue] = useState(dtValue.toFormat(format))
+  const dtValue = value ? DateTime.fromISO(value, { zone }) : null
+  const [inputValue, setInputValue] = useState(
+    value && dtValue ? dtValue.toFormat(format) : '',
+  )
 
   // parseInput takes input from the form control and returns a DateTime
   // object representing the value, or null (if invalid or empty).
@@ -57,7 +59,7 @@ function useISOPicker(
   }
 
   useEffect(() => {
-    setInputValue(dtValue.toFormat(format))
+    setInputValue(value && dtValue ? dtValue.toFormat(format) : '')
   }, [value, zone])
 
   const handleChange = (e) => {
@@ -66,10 +68,19 @@ function useISOPicker(
     const newVal = inputToISO(e.target.value)
     // Only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
-    if (newVal && newVal !== dtValue.toUTC().toISO()) {
+    if (!dtValue || (newVal && newVal !== dtValue.toUTC().toISO())) {
       onChange(newVal)
     }
   }
+
+  // shrink: true sets the label above the textfield so the placeholder can be properly seen
+  const inputLabelProps = otherProps?.InputLabelProps ?? {}
+  inputLabelProps.shrink = true
+
+  // sets min and max if set
+  const inputProps = otherProps?.inputProps ?? {}
+  if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
+  if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
 
   if (native) {
     return (
@@ -78,12 +89,16 @@ function useISOPicker(
         value={inputValue}
         onChange={handleChange}
         {...otherProps}
+        InputLabelProps={inputLabelProps}
+        inputProps={inputProps}
       />
     )
   }
 
+  let emptyLabel = 'Select a time...'
   const extraProps = {}
   if (type !== 'time') {
+    emptyLabel = 'Select a date...'
     extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
     extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
   }
@@ -94,6 +109,9 @@ function useISOPicker(
       value={value ? dtValue : null}
       onChange={(v) => handleChange({ target: { value: v } })}
       showTodayButton
+      minDate={min}
+      maxDate={max}
+      emptyLabel={emptyLabel}
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
