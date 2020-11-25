@@ -39,7 +39,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	}
 
 	if !newStart.After(t.Add(-15 * time.Minute)) {
-		log.Debugf(ctx, "unexpected rotation advancement")
+		log.Debugf(ctx, "rotation advanced late (%s)", t.Sub(newStart).String())
 	}
 
 	state.ShiftStart = newStart
