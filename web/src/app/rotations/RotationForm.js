@@ -26,6 +26,9 @@ const useStyles = makeStyles({
   listNone: {
     listStyle: 'none',
   },
+  padding0: {
+    padding: 0,
+  },
 })
 export default function RotationForm(props) {
   const { value } = props
@@ -128,44 +131,47 @@ export default function RotationForm(props) {
             <TimeZoneSwitch option={props.value.timeZone} />
           </Grid>
         )}
+
         <Grid item xs={12}>
-          <FormField
-            fullWidth
-            component={ISODateTimePicker}
-            label='Initial Handoff Time'
-            name='start'
-            min={minStart.toISO()}
-            max={maxStart.toISO()}
-            required
-            hint={
-              <ClickableText
-                disabled={!isValidStart}
-                onClick={() => setShowHandoffs(!showHandoffs)}
-                endIcon={
-                  showHandoffs ? <KeyboardArrowUp /> : <KeyboardArrowDown />
+          <Grid container spacing={0}>
+            <Grid item xs={12}>
+              <FormField
+                fullWidth
+                component={ISODateTimePicker}
+                label='Initial Handoff Time'
+                name='start'
+                min={minStart.toISO()}
+                max={maxStart.toISO()}
+                required
+                hint={
+                  <ClickableText
+                    disabled={!isValidStart}
+                    onClick={() => setShowHandoffs(!showHandoffs)}
+                    endIcon={
+                      showHandoffs ? <KeyboardArrowUp /> : <KeyboardArrowDown />
+                    }
+                  >
+                    {`${showHandoffs ? 'Hide' : 'Preview'} upcoming handoffs`}
+                  </ClickableText>
                 }
-              >
-                {`${showHandoffs ? 'Hide' : 'Preview'} upcoming handoffs`}
-              </ClickableText>
-            }
-          />
-        </Grid>
-        {showHandoffs && (
-          <Grid item xs={12} style={{ paddingTop: 0 }} component='ul'>
-            {nextHandoffs.map((text, i) => {
-              return (
-                <Typography
-                  key={i}
-                  component='li'
-                  className={classes.listNone}
-                  variant='body2'
-                >
-                  {text}
-                </Typography>
-              )
-            })}
+              />
+            </Grid>
+            {showHandoffs && (
+              <Grid item xs={12} component='ul' className={classes.padding0}>
+                {nextHandoffs.map((text, i) => (
+                  <Typography
+                    key={i}
+                    component='li'
+                    className={classes.listNone}
+                    variant='body2'
+                  >
+                    {text}
+                  </Typography>
+                ))}
+              </Grid>
+            )}
           </Grid>
-        )}
+        </Grid>
       </Grid>
     </FormContainer>
   )
