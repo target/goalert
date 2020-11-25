@@ -36,6 +36,9 @@ import (
 
 var shutdownSignalCh = make(chan os.Signal, 2)
 
+// ErrDBRequired is returned when the DB URL is unset.
+var ErrDBRequired = validation.NewFieldError("db-url", "is required")
+
 func init() {
 	signal.Notify(shutdownSignalCh, shutdownSignals...)
 }
@@ -234,8 +237,9 @@ Migration: %s (#%d)
 			start := time.Now()
 			fmt.Println("Execution Time:", time.Since(start))
 
-			//create a fixed timestamp, assert March/November ....
-			//set to midnight/March-November via time.Date() which creates timestamp, assert on zone method, add 3 and return if valid
+			//load known timezone that observes DST/ CST America/Chicago
+			//check offset matches expected ex: America/Chicago 5 hours (in seconds)
+			//if we add 2 hours, offset should change by 1 hour (in seconds)
 			zone, offset := start.Zone()
 			fmt.Println(zone, offset)
 
@@ -249,7 +253,7 @@ Migration: %s (#%d)
 			zoneMar, offsetMar := startMar.Zone()
 			fmt.Println(zoneMar, offsetMar)
 
-			startNov = startNov.Add(time.Hour * 3)
+			startNov = startNov.Add(time.Hour * 1)
 			startMar = startMar.Add(time.Hour * 3)
 
 			zoneNovAfter, offsetNovAfter := startNov.Zone()
@@ -258,7 +262,6 @@ Migration: %s (#%d)
 			zoneMarAfter, offsetMarAfter := startNov.Zone()
 			fmt.Println(zoneMarAfter, offsetMarAfter)
 
-			//slice of custom structs
 			for _, s := range serviceList {
 				resp, err := http.Get(s.baseUrl)
 				if err != nil {
@@ -270,14 +273,15 @@ Migration: %s (#%d)
 			//for DB: set as Command Line flag
 			//argument will be passed into CLI
 			//if error is set return
-			cfg, err := getConfig()
+			_, err := getConfig()
+			if errors.Is(err, ErrDBRequired) {
+				return nil
+			}
 			if err != nil {
 				return err
 			}
-			if cfg.DBURL == "postgres://goalert@localhost:5432" {
-				fmt.Println("the connection is successful!")
-			}
-
+			//Ping()
+			//Sentinel Errors
 			return nil
 		},
 	}
@@ -587,7 +591,7 @@ func getConfig() (Config, error) {
 	}
 
 	if cfg.DBURL == "" {
-		return cfg, validation.NewFieldError("db-url", "is required")
+		return cfg, ErrDBRequired
 	}
 
 	var err error
