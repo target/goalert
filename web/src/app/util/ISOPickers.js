@@ -125,6 +125,7 @@ function useISOPicker(
           </InputAdornment>
         ),
       }}
+      inputProps={inputProps}
       {...extraProps}
       {...otherProps}
     />
