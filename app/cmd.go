@@ -243,24 +243,41 @@ Migration: %s (#%d)
 			zone, offset := start.Zone()
 			fmt.Println(zone, offset)
 
-			loc := time.FixedZone("UTC-6", -6*60*60)
-			startNov := time.Date(2020, time.November, 1, 0, 00, 00, 0, loc)
-			startMar := time.Date(2020, time.March, 8, 0, 00, 00, 0, loc)
+			location, locationerr := time.LoadLocation("America/Chicago")
+			if locationerr != nil {
+				return locationerr
+			}
+			startNov := time.Date(2020, time.November, 1, 0, 00, 00, 0, location)
 
 			zoneNov, offsetNov := startNov.Zone()
 			fmt.Println(zoneNov, offsetNov)
+			if offsetNov != (-5 * 60 * 60) {
+				fmt.Println("Time Zone Error: expected CDT")
+			}
 
-			zoneMar, offsetMar := startMar.Zone()
-			fmt.Println(zoneMar, offsetMar)
-
-			startNov = startNov.Add(time.Hour * 1)
-			startMar = startMar.Add(time.Hour * 3)
+			startNov = startNov.Add(time.Hour * 3)
 
 			zoneNovAfter, offsetNovAfter := startNov.Zone()
 			fmt.Println(zoneNovAfter, offsetNovAfter)
+			if offsetNovAfter != (-6 * 60 * 60) {
+				fmt.Println("Time Zone Error: expected CST")
+			}
 
-			zoneMarAfter, offsetMarAfter := startNov.Zone()
+			startMar := time.Date(2020, time.March, 8, 0, 00, 00, 0, location)
+
+			zoneMar, offsetMar := startMar.Zone()
+			fmt.Println(zoneMar, offsetMar)
+			if offsetMar != (-6 * 60 * 60) {
+				fmt.Println("Time Zone Error: expected CST but got ", zoneMar)
+			}
+
+			startMar = startMar.Add(time.Hour * 3)
+
+			zoneMarAfter, offsetMarAfter := startMar.Zone()
 			fmt.Println(zoneMarAfter, offsetMarAfter)
+			if offsetMarAfter != (-5 * 60 * 60) {
+				fmt.Println("Time Zone Error: expected CDT but got ", zoneMarAfter)
+			}
 
 			for _, s := range serviceList {
 				resp, err := http.Get(s.baseUrl)
