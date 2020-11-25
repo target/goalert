@@ -157,7 +157,7 @@ export default function RotationForm(props) {
               />
             </Grid>
             {showHandoffs && (
-              <Grid item xs={12} component='ul' className={classes.padding0}>
+              <Grid item xs={12} component='ol' className={classes.padding0}>
                 {nextHandoffs.map((text, i) => (
                   <Typography
                     key={i}
