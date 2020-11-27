@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -136,10 +135,6 @@ func (db *DB) MetadataByTypeValue(ctx context.Context, tx *sql.Tx, typ Type, val
 	var data json.RawMessage
 	var t time.Time
 	err = wrapTx(ctx, tx, db.metaTV).QueryRowContext(ctx, typ, value).Scan(&data, &t)
-	if errors.Is(err, sql.ErrNoRows) {
-		data = []byte("{}")
-		err = nil
-	}
 	if err != nil {
 		return nil, err
 	}
