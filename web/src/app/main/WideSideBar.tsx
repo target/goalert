@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import Drawer from '@material-ui/core/Drawer'
 import { makeStyles } from '@material-ui/core'
 
@@ -14,7 +14,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-function WideSideBar(props) {
+interface WideSideBarProps {
+  children: ReactNode
+}
+
+function WideSideBar(props: WideSideBarProps): JSX.Element {
   const classes = useStyles()
 
   return (
