@@ -1,9 +1,9 @@
 import React from 'react'
-import withStyles from '@material-ui/core/styles/withStyles'
 import Drawer from '@material-ui/core/Drawer'
+import { makeStyles } from '@material-ui/core'
 
 const drawerWidth = '12em'
-const styles = (theme) => ({
+const useStyles = makeStyles((theme) => ({
   sidebarPaper: {
     width: drawerWidth,
     position: 'fixed',
@@ -12,25 +12,21 @@ const styles = (theme) => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
   },
-})
+}))
 
-@withStyles(styles)
-export default class WideSideBar extends React.PureComponent {
-  state = {
-    show: false,
-  }
+function WideSideBar(props) {
+  const classes = useStyles()
 
-  render() {
-    const { classes } = this.props
-    return (
-      <Drawer
-        variant='permanent'
-        classes={{
-          paper: classes.sidebarPaper,
-        }}
-      >
-        {this.props.children}
-      </Drawer>
-    )
-  }
+  return (
+    <Drawer
+      variant='permanent'
+      classes={{
+        paper: classes.sidebarPaper,
+      }}
+    >
+      {props.children}
+    </Drawer>
+  )
 }
+
+export default WideSideBar
