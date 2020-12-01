@@ -126,7 +126,11 @@ func (c Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierIn
 	m.CarrierV1.MobileNetworkCode = result.Carrier.MobileNetworkCode
 
 	err = c.CMStore.SetCarrierV1MetadataByTypeValue(ctx, nil, contactmethod.TypeSMS, number, &m)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Log(ctx, err)
+	}
+	err = c.CMStore.SetCarrierV1MetadataByTypeValue(ctx, nil, contactmethod.TypeVoice, number, &m)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Log(ctx, err)
 	}
 
