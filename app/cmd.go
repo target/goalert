@@ -105,6 +105,7 @@ var RootCmd = &cobra.Command{
 		} else {
 			q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
 		}
+		q.Set("enable_seqscan", "off")
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
 
@@ -130,6 +131,7 @@ var RootCmd = &cobra.Command{
 			}
 			q := u.Query()
 			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
+			q.Set("enable_seqscan", "off")
 			u.RawQuery = q.Encode()
 			cfg.DBURLNext = u.String()
 
