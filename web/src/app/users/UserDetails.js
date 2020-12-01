@@ -96,18 +96,25 @@ function serviceCount(onCallSteps = []) {
 export default function UserDetails(props) {
   const classes = useStyles()
 
-  const { userID: currentUserID, isAdmin } = useSessionInfo()
+  const {
+    userID: currentUserID,
+    isAdmin,
+    ready: isSessionReady,
+  } = useSessionInfo()
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
 
-  const { data, loading, error } = useQuery(
+  const { data, loading: isQueryLoading, error } = useQuery(
     isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
     {
       variables: { id: props.userID },
+      skip: !isSessionReady,
     },
   )
+
+  const loading = !isSessionReady || isQueryLoading
 
   if (error) return <GenericError error={error.message} />
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />
