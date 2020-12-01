@@ -100,7 +100,7 @@
     "@babel/preset-env": "7.11.5",
     "@babel/preset-react": "7.10.4",
     "@babel/preset-typescript": "7.12.7",
-    "@cypress/webpack-preprocessor": "5.4.2",
+    "@cypress/webpack-preprocessor": "5.5.0",
     "@hot-loader/react-dom": "16.14.0",
     "@material-ui/pickers": "3.2.10",
     "@types/chance": "1.1.0",
