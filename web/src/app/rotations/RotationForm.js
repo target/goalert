@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
@@ -8,17 +8,14 @@ import {
   MenuItem,
   Typography,
   makeStyles,
+  Switch,
+  FormControlLabel,
 } from '@material-ui/core'
 import { startCase } from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 import { getNextHandoffs } from './util'
 import NumberField from '../util/NumberField'
-import TimeZoneSwitch from '../util/TimeZoneSwitch'
-import { useResetURLParams, useURLParam } from '../actions'
 import { DateTime } from 'luxon'
-import ClickableText from '../util/ClickableText'
-import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown'
-import KeyboardArrowUp from '@material-ui/icons/KeyboardArrowUp'
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
@@ -26,17 +23,17 @@ const useStyles = makeStyles({
   listNone: {
     listStyle: 'none',
   },
-  padding0: {
-    padding: 0,
+  bolder: {
+    fontWeight: 'bolder',
   },
 })
 export default function RotationForm(props) {
   const { value } = props
   const classes = useStyles()
-  const [zone] = useURLParam('tz', 'local')
-  const resetTZ = useResetURLParams('tz')
+  const [configInZone, setConfigInZone] = useState(false)
   const localZone = useMemo(() => DateTime.local().zone.name, [])
-  const [showHandoffs, setShowHandoffs] = useState(false)
+  const configZone = configInZone ? value.timeZone : 'local'
+
   const [minStart, maxStart] = useMemo(
     () => [
       DateTime.fromObject({ year: 2000 }),
@@ -52,18 +49,19 @@ export default function RotationForm(props) {
     [value.start],
   )
 
-  useEffect(() => {
-    if (!isValidStart) setShowHandoffs(false)
-  }, [isValidStart])
-
-  useEffect(() => resetTZ(), [value.timeZone])
-
   // NOTE memoize to prevent calculation on each poll request
   const nextHandoffs = useMemo(() => {
+    console.log('running')
     return isValidStart
-      ? getNextHandoffs(3, value.start, value.type, value.shiftLength, zone)
+      ? getNextHandoffs(
+          3,
+          value.start,
+          value.type,
+          value.shiftLength,
+          configZone,
+        )
       : []
-  }, [value.start, value.type, value.shiftLength, zone])
+  }, [value.start, value.type, value.shiftLength, value.timeZone, configInZone])
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -87,18 +85,7 @@ export default function RotationForm(props) {
             required
           />
         </Grid>
-        <Grid item xs={12}>
-          <FormField
-            fullWidth
-            component={TimeZoneSelect}
-            multiline
-            name='timeZone'
-            fieldName='timeZone'
-            label='Time Zone'
-            required
-          />
-        </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormField
             fullWidth
             component={TextField}
@@ -114,7 +101,7 @@ export default function RotationForm(props) {
             ))}
           </FormField>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormField
             fullWidth
             component={NumberField}
@@ -126,51 +113,59 @@ export default function RotationForm(props) {
             max={9000}
           />
         </Grid>
-        {localZone !== props.value.timeZone && (
-          <Grid item xs={12}>
-            <TimeZoneSwitch option={props.value.timeZone} />
+        <Grid item xs={localZone === value.timeZone ? 12 : 6}>
+          <FormField
+            fullWidth
+            component={TimeZoneSelect}
+            multiline
+            name='timeZone'
+            fieldName='timeZone'
+            label='Time Zone'
+            required
+          />
+        </Grid>
+        {localZone !== value.timeZone && (
+          <Grid item xs={6}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={configInZone}
+                  onChange={() => setConfigInZone(!configInZone)}
+                  value={value.timeZone}
+                />
+              }
+              label={`Configure in ${value.timeZone}`}
+            />
           </Grid>
         )}
 
         <Grid item xs={12}>
-          <Grid container spacing={0}>
-            <Grid item xs={12}>
-              <FormField
-                fullWidth
-                component={ISODateTimePicker}
-                label='Initial Handoff Time'
-                name='start'
-                min={minStart.toISO()}
-                max={maxStart.toISO()}
-                required
-                hint={
-                  <ClickableText
-                    disabled={!isValidStart}
-                    onClick={() => setShowHandoffs(!showHandoffs)}
-                    endIcon={
-                      showHandoffs ? <KeyboardArrowUp /> : <KeyboardArrowDown />
-                    }
-                  >
-                    {`${showHandoffs ? 'Hide' : 'Preview'} upcoming handoffs`}
-                  </ClickableText>
-                }
-              />
-            </Grid>
-            {showHandoffs && (
-              <Grid item xs={12} component='ol' className={classes.padding0}>
-                {nextHandoffs.map((text, i) => (
-                  <Typography
-                    key={i}
-                    component='li'
-                    className={classes.listNone}
-                    variant='body2'
-                  >
-                    {text}
-                  </Typography>
-                ))}
-              </Grid>
-            )}
-          </Grid>
+          <FormField
+            fullWidth
+            component={ISODateTimePicker}
+            timeZone={configZone}
+            label='Initial Handoff Time'
+            name='start'
+            min={minStart.toISO()}
+            max={maxStart.toISO()}
+            required
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography variant='body2' className={classes.bolder}>
+            Upcoming Handoff times:
+          </Typography>
+          {nextHandoffs.map((text, i) => (
+            <Typography
+              key={i}
+              component='li'
+              className={classes.listNone}
+              variant='body2'
+            >
+              {text}
+            </Typography>
+          ))}
         </Grid>
       </Grid>
     </FormContainer>
