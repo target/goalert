@@ -30,8 +30,8 @@ const useStyles = makeStyles({
 export default function RotationForm(props) {
   const { value } = props
   const classes = useStyles()
-  const [configInZone, setConfigInZone] = useState(false)
   const localZone = useMemo(() => DateTime.local().zone.name, [])
+  const [configInZone, setConfigInZone] = useState(value.timeZone !== localZone)
   const configZone = configInZone ? value.timeZone : 'local'
 
   const [minStart, maxStart] = useMemo(
