@@ -26,6 +26,9 @@ const useStyles = makeStyles({
   bolder: {
     fontWeight: 'bolder',
   },
+  flex: {
+    display: 'flex',
+  },
 })
 export default function RotationForm(props) {
   const { value } = props
@@ -125,17 +128,19 @@ export default function RotationForm(props) {
           />
         </Grid>
         {localZone !== value.timeZone && (
-          <Grid item xs={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={configInZone}
-                  onChange={() => setConfigInZone(!configInZone)}
-                  value={value.timeZone}
-                />
-              }
-              label={`Configure in ${value.timeZone}`}
-            />
+          <Grid item xs={6} className={classes.flex}>
+            <Grid container justify='center'>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={configInZone}
+                    onChange={() => setConfigInZone(!configInZone)}
+                    value={value.timeZone}
+                  />
+                }
+                label={`Configure in ${value.timeZone}`}
+              />
+            </Grid>
           </Grid>
         )}
 
