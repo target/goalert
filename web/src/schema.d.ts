@@ -12,6 +12,7 @@ export interface Query {
   services: ServiceConnection
   rotation?: Rotation
   rotations: RotationConnection
+  upcomingHandoffTimes: ISOTimestamp[]
   schedule?: Schedule
   userCalendarSubscription?: UserCalendarSubscription
   schedules: ScheduleConnection

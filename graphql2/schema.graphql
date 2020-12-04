@@ -37,6 +37,8 @@ type Query {
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
 
+  upcomingHandoffTimes(start: ISOTimestamp! timeZone: String!, hours: Int!, count: Int!): [ISOTimestamp!]!
+
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
 

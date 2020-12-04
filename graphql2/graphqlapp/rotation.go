@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"strconv"
 	"time"
 
 	"github.com/target/goalert/assignment"
@@ -374,4 +375,35 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 		return false, err
 	}
 	return true, nil
+}
+
+func (a *Query) UpcomingHandoffTimes(ctx context.Context, start time.Time, timeZone string, hours int, count int) ([]time.Time, error) {
+	var result []time.Time
+
+	if hours <= 0 || count <= 0 {
+		return result, errors.New("invalid input")
+	}
+
+	now := time.Now().Local()
+	dur, err := time.ParseDuration(strconv.Itoa(hours) + "h")
+
+	nextHandOff := start
+
+	if nextHandOff.Before(now) {
+		for nextHandOff.Before(now) {
+			nextHandOff = nextHandOff.Add(dur)
+		}
+	} else if nextHandOff.After(now) {
+		for nextHandOff.After(now) {
+			nextHandOff = nextHandOff.Add(-dur)
+		}
+		nextHandOff = nextHandOff.Add(dur)
+	}
+
+	for len(result) < count {
+		result = append(result, nextHandOff)
+		nextHandOff = nextHandOff.Add(dur)
+	}
+
+	return result, err
 }

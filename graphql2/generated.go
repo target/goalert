@@ -305,6 +305,7 @@ type ComplexityRoot struct {
 		SlackChannels            func(childComplexity int, input *SlackChannelSearchOptions) int
 		SystemLimits             func(childComplexity int) int
 		TimeZones                func(childComplexity int, input *TimeZoneSearchOptions) int
+		UpcomingHandoffTimes     func(childComplexity int, start time.Time, timeZone string, hours int, count int) int
 		User                     func(childComplexity int, id *string) int
 		UserCalendarSubscription func(childComplexity int, id string) int
 		UserContactMethod        func(childComplexity int, id string) int
@@ -586,6 +587,7 @@ type QueryResolver interface {
 	Services(ctx context.Context, input *ServiceSearchOptions) (*ServiceConnection, error)
 	Rotation(ctx context.Context, id string) (*rotation.Rotation, error)
 	Rotations(ctx context.Context, input *RotationSearchOptions) (*RotationConnection, error)
+	UpcomingHandoffTimes(ctx context.Context, start time.Time, timeZone string, hours int, count int) ([]time.Time, error)
 	Schedule(ctx context.Context, id string) (*schedule.Schedule, error)
 	UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error)
 	Schedules(ctx context.Context, input *ScheduleSearchOptions) (*ScheduleConnection, error)
@@ -2032,6 +2034,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.TimeZones(childComplexity, args["input"].(*TimeZoneSearchOptions)), true
 
+	case "Query.upcomingHandoffTimes":
+		if e.complexity.Query.UpcomingHandoffTimes == nil {
+			break
+		}
+
+		args, err := ec.field_Query_upcomingHandoffTimes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UpcomingHandoffTimes(childComplexity, args["start"].(time.Time), args["timeZone"].(string), args["hours"].(int), args["count"].(int)), true
+
 	case "Query.user":
 		if e.complexity.Query.User == nil {
 			break
@@ -3012,6 +3026,8 @@ var sources = []*ast.Source{
 
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
+
+  upcomingHandoffTimes(start: ISOTimestamp! timeZone: String!, hours: Int!, count: Int!): [ISOTimestamp!]!
 
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
@@ -4961,6 +4977,48 @@ func (ec *executionContext) field_Query_timeZones_args(ctx context.Context, rawA
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_upcomingHandoffTimes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 time.Time
+	if tmp, ok := rawArgs["start"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
+		arg0, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["start"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["timeZone"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timeZone"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["hours"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hours"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["hours"] = arg2
+	var arg3 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg3
 	return args, nil
 }
 
@@ -10229,6 +10287,48 @@ func (ec *executionContext) _Query_rotations(ctx context.Context, field graphql.
 	res := resTmp.(*RotationConnection)
 	fc.Result = res
 	return ec.marshalNRotationConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐRotationConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_upcomingHandoffTimes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_upcomingHandoffTimes_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UpcomingHandoffTimes(rctx, args["start"].(time.Time), args["timeZone"].(string), args["hours"].(int), args["count"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]time.Time)
+	fc.Result = res
+	return ec.marshalNISOTimestamp2ᚕtimeᚐTimeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_schedule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19764,6 +19864,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_rotations(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "upcomingHandoffTimes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_upcomingHandoffTimes(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
