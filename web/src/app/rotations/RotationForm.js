@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
@@ -13,9 +13,26 @@ import {
 } from '@material-ui/core'
 import { startCase } from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
-import { getNextHandoffs } from './util'
 import NumberField from '../util/NumberField'
 import { DateTime } from 'luxon'
+import { useQuery, gql } from '@apollo/client'
+import { getHours } from './util'
+
+const query = gql`
+  query x(
+    $start: ISOTimestamp!
+    $timeZone: String!
+    $hours: Int!
+    $count: Int!
+  ) {
+    upcomingHandoffTimes(
+      start: $start
+      timeZone: $timeZone
+      hours: $hours
+      count: $count
+    )
+  }
+`
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
@@ -30,12 +47,14 @@ const useStyles = makeStyles({
     display: 'flex',
   },
 })
+
 export default function RotationForm(props) {
   const { value } = props
   const classes = useStyles()
   const localZone = useMemo(() => DateTime.local().zone.name, [])
-  const [configInZone, setConfigInZone] = useState(value.timeZone !== localZone)
+  const [configInZone, setConfigInZone] = useState(false)
   const configZone = configInZone ? value.timeZone : 'local'
+  const [upcomingHandoffs, setUpcomingHandoffs] = useState([])
 
   const [minStart, maxStart] = useMemo(
     () => [
@@ -45,26 +64,26 @@ export default function RotationForm(props) {
     [],
   )
 
-  const isValidStart = useMemo(
-    () =>
-      DateTime.fromISO(value.start) >= minStart &&
-      DateTime.fromISO(value.start) <= maxStart,
-    [value.start],
-  )
+  const handoffsToShow = 3
+  const { data } = useQuery(query, {
+    variables: {
+      start: value.start,
+      timeZone: value.timeZone,
+      hours: getHours(value.shiftLength, value.type),
+      count: handoffsToShow,
+    },
+  })
 
-  // NOTE memoize to prevent calculation on each poll request
-  const nextHandoffs = useMemo(() => {
-    console.log('running')
-    return isValidStart
-      ? getNextHandoffs(
-          3,
-          value.start,
-          value.type,
-          value.shiftLength,
-          configZone,
-        )
-      : []
-  }, [value.start, value.type, value.shiftLength, value.timeZone, configInZone])
+  useEffect(() => {
+    if (data?.upcomingHandoffTimes) {
+      const upcomingHandoffTimes = data.upcomingHandoffTimes.map((iso) =>
+        DateTime.fromISO(iso)
+          .setZone(configZone)
+          .toLocaleString(DateTime.DATETIME_FULL),
+      )
+      setUpcomingHandoffs(upcomingHandoffTimes)
+    }
+  }, [configInZone, data])
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -161,7 +180,7 @@ export default function RotationForm(props) {
           <Typography variant='body2' className={classes.bolder}>
             Upcoming Handoff times:
           </Typography>
-          {nextHandoffs.map((text, i) => (
+          {upcomingHandoffs.map((text, i) => (
             <Typography
               key={i}
               component='li'

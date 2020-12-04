@@ -112,3 +112,12 @@ export function reorderList(_items, oldIndex, newIndex) {
   items.splice(newIndex, 0, _items[oldIndex]) // add dest to newIndex position
   return items
 }
+
+export function getHours(count, unit) {
+  const lookup = {
+    hourly: 1,
+    daily: 24,
+    weekly: 24 * 7,
+  }
+  return lookup[unit] * count
+}
