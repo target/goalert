@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { gql, useQuery } from '@apollo/client'
+import p from 'prop-types'
 import { FormControlLabel, Switch } from '@material-ui/core'
-import { DateTime } from 'luxon'
 
 import { useURLParam } from '../actions/hooks'
 
@@ -14,36 +14,21 @@ const tzQuery = gql`
   }
 `
 
-interface ScheduleTZFilterProps {
-  label: (timeZone: string) => string
-  scheduleID: string
-}
-
-export function ScheduleTZFilter(
-  props: ScheduleTZFilterProps,
-): JSX.Element | null {
-  const [zone, setZone] = useURLParam<string>('tz', 'local')
-  const localTZ = useMemo(() => DateTime.local().zoneName, [])
+export function ScheduleTZFilter(props) {
+  const [zone, setZone] = useURLParam('tz', 'local')
   const { data, loading, error } = useQuery(tzQuery, {
     pollInterval: 0,
     variables: { id: props.scheduleID },
   })
 
-  const scheduleTZ = data?.schedule?.timeZone
-
-  if (localTZ === scheduleTZ) {
-    return null
-  }
-
-  let label = ''
+  let label, tz
   if (error) {
     label = 'Error: ' + (error.message || error)
   } else if (!data && loading) {
     label = 'Fetching timezone information...'
   } else {
-    label = props.label
-      ? props.label(scheduleTZ)
-      : `Show times in ${scheduleTZ}`
+    tz = data.schedule.timeZone
+    label = props.label ? props.label(tz) : `Show times in ${tz}`
   }
 
   return (
@@ -51,12 +36,21 @@ export function ScheduleTZFilter(
       control={
         <Switch
           checked={zone !== 'local'}
-          onChange={(e) => setZone(e.target.checked ? scheduleTZ : 'local')}
-          value={scheduleTZ}
+          onChange={(e) => setZone(e.target.checked ? tz : 'local')}
+          value={tz}
           disabled={Boolean(loading || error)}
         />
       }
       label={label}
     />
   )
+}
+ScheduleTZFilter.propTypes = {
+  label: p.func,
+
+  scheduleID: p.string.isRequired,
+
+  // provided by connect
+  zone: p.string,
+  setZone: p.func,
 }
