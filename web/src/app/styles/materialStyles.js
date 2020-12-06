@@ -32,9 +32,6 @@ export const styles = (theme) => ({
   defaultFlex: {
     flex: '0 1 auto',
   },
-  dndDragging: {
-    backgroundColor: '#ebebeb',
-  },
   // align reset and done buttons to the right in grid item
   filterActions: {
     display: 'flex',
