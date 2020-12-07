@@ -5,13 +5,12 @@ import { FormContainer, FormField } from '../forms'
 import { Grid, Typography, makeStyles } from '@material-ui/core'
 
 import { ScheduleTZFilter } from './ScheduleTZFilter'
-import { useSelector } from 'react-redux'
-import { urlParamSelector } from '../selectors'
 import { UserSelect } from '../selection'
 import { mapOverrideUserError } from './util'
 import DialogContentError from '../dialogs/components/DialogContentError'
 import _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
+import useTimeZone from '../util/useTimeZone'
 
 const query = gql`
   query($id: ID!) {
@@ -50,8 +49,7 @@ export default function ScheduleOverrideForm(props) {
   } = props
 
   const classes = useStyles()
-  const params = useSelector(urlParamSelector)
-  const zone = params('tz', 'local')
+  const { urlZone: zone, isUrlZoneLocal: isLocalTZ } = useTimeZone()
 
   const conflictingUserFieldError = props.errors.find(
     (e) => e && e.field === 'userID',
@@ -82,7 +80,13 @@ export default function ScheduleOverrideForm(props) {
       {...formProps}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          md={isLocalTZ ? 12 : 6}
+          className={classes.tzNote}
+        >
           <Typography
             // variant='caption'
             color='textSecondary'
@@ -92,13 +96,15 @@ export default function ScheduleOverrideForm(props) {
             .
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={12} md={6}>
-          {/* Purposefully leaving out of form, as it's only used for converting display times. */}
-          <ScheduleTZFilter
-            label={(tz) => `Configure in ${tz}`}
-            scheduleID={scheduleID}
-          />
-        </Grid>
+        {!isLocalTZ && (
+          <Grid item xs={12} sm={12} md={6}>
+            {/* Purposefully leaving out of form, as it's only used for converting display times. */}
+            <ScheduleTZFilter
+              label={(tz) => `Configure in ${tz}`}
+              scheduleID={scheduleID}
+            />
+          </Grid>
+        )}
         {remove && (
           <Grid item xs={12}>
             <FormField
