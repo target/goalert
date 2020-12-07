@@ -7,7 +7,6 @@ import Stepper from '@material-ui/core/Stepper'
 import Step from '@material-ui/core/Step'
 import StepButton from '@material-ui/core/StepButton'
 import StepContent from '@material-ui/core/StepContent'
-import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import {
@@ -24,6 +23,7 @@ import {
 } from '@material-ui/icons'
 import { SlackBW as SlackIcon } from '../icons/components/Icons'
 import { Config } from '../util/RequireConfig'
+import NumberField from '../util/NumberField'
 
 const useStyles = makeStyles(() => ({
   badge: {
@@ -232,7 +232,7 @@ function PolicyStepForm(props) {
         </Grid>
         <Grid item xs={12}>
           <FormField
-            component={TextField}
+            component={NumberField}
             disabled={disabled}
             fullWidth
             label='Delay (minutes)'
