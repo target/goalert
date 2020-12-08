@@ -23,6 +23,36 @@ var typePriority = map[Type]int{
 	TypeAlertStatusUpdateBundle: 4,
 }
 
+var perCMThrottle = throttleConfig{
+	notification.DestTypeVoice: {
+		{Count: 1, Per: time.Minute},
+		{Count: 3, Per: 15 * time.Minute},
+		{Count: 5, Per: time.Hour},
+		{Count: 10, Per: 3 * time.Hour},
+	},
+	notification.DestTypeSMS: {
+		{Count: 1, Per: time.Minute},
+		{Count: 5, Per: 15 * time.Minute},
+		{Count: 12, Per: time.Hour},
+		{Count: 20, Per: 3 * time.Hour},
+	},
+	notification.DestTypeSlackChannel: {
+		{Count: 1, Per: time.Minute},
+	},
+}
+
+var globalCMThrottle = throttleConfig{
+	notification.DestTypeVoice: {
+		{Count: 5, Per: 5 * time.Second},
+	},
+	notification.DestTypeSMS: {
+		{Count: 5, Per: 5 * time.Second},
+	},
+	notification.DestTypeSlackChannel: {
+		{Count: 5, Per: 5 * time.Second},
+	},
+}
+
 type queue struct {
 	sent    []Message
 	pending map[notification.DestType][]Message
@@ -31,6 +61,9 @@ type queue struct {
 	serviceSent map[string]time.Time
 	userSent    map[string]time.Time
 	destSent    map[notification.Dest]time.Time
+
+	cmThrottle     *throttle
+	globalThrottle *throttle
 
 	mx sync.Mutex
 }
@@ -44,6 +77,9 @@ func newQueue(msgs []Message, now time.Time) *queue {
 		serviceSent: make(map[string]time.Time),
 		userSent:    make(map[string]time.Time),
 		destSent:    make(map[notification.Dest]time.Time),
+
+		cmThrottle:     newThrottle(perCMThrottle, now, false),
+		globalThrottle: newThrottle(globalCMThrottle, now, true),
 	}
 
 	for _, m := range msgs {
@@ -61,6 +97,8 @@ func (q *queue) addSent(m Message) {
 		m.SentAt = q.now
 	}
 
+	q.cmThrottle.Record(m)
+	q.globalThrottle.Record(m)
 	if t := q.serviceSent[m.ServiceID]; m.SentAt.After(t) {
 		q.serviceSent[m.ServiceID] = m.SentAt
 	}
@@ -104,10 +142,12 @@ func (q *queue) filterPending(destType notification.DestType) {
 		return
 	}
 
-	cutoffTime := q.now.Add(-cmCooldown)
 	filtered := pending[:0]
 	for _, p := range pending {
-		if q.destSent[p.Dest].After(cutoffTime) {
+		if q.globalThrottle.InCooldown(p) {
+			continue
+		}
+		if q.cmThrottle.InCooldown(p) {
 			continue
 		}
 		filtered = append(filtered, p)

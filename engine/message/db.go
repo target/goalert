@@ -360,7 +360,7 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
 			where
-				sent_at > now() - '10 minutes'::interval or
+				sent_at > now() - '3 hours'::interval or
 				last_status = 'pending' and
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
 		`),
