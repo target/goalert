@@ -168,7 +168,7 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 	loc, err = time.LoadLocation("Australia/Lord_Howe")
 	require.NoError(t, err)
 
-	// check when DT starts using a non-cst tz (hourly)
+	// check when DT ends using a non-cst tz (hourly)
 	check(&Rotation{
 		Type:        TypeHourly,
 		ShiftLength: 1,
@@ -236,6 +236,59 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		"2021-04-05 02:00:00 +1030 +1030",
 		"2021-04-06 02:00:00 +1030 +1030",
 	)
+
+	// check when DST starts for non-CST timezone (Lord_Howe)
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 24,
+		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.October, 2, 1, 0, 0, 0, loc),
+		time.Date(2020, time.October, 6, 1, 0, 0, 0, loc),
+
+		"2020-10-01 01:30:00 +1030 +1030",
+		"2020-10-02 01:30:00 +1030 +1030",
+		"2020-10-03 01:30:00 +1030 +1030",
+		"2020-10-04 01:30:00 +1030 +1030", // On 10/04 02:00 clocks go forward 30 mins.
+		"2020-10-05 01:30:00 +1100 +11",
+		"2020-10-06 01:30:00 +1100 +11",
+	)
+
+	// Daily & 24 hour should be identical
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.October, 2, 1, 30, 0, 0, loc),
+	},
+		time.Date(2020, time.October, 2, 1, 0, 0, 0, loc),
+		time.Date(2020, time.October, 6, 1, 0, 0, 0, loc),
+
+		"2020-10-01 01:30:00 +1030 +1030",
+		"2020-10-02 01:30:00 +1030 +1030",
+		"2020-10-03 01:30:00 +1030 +1030",
+		"2020-10-04 01:30:00 +1030 +1030", // On 10/04 02:00 clocks go forward 30 mins.
+		"2020-10-05 01:30:00 +1100 +11",
+		"2020-10-06 01:30:00 +1100 +11",
+	)
+
+	// check when DST starts for non-CST timezone (Lord_Howe)
+	// handoff time is in between the 30 min forwarding interval.
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2020, time.October, 2, 2, 15, 0, 0, loc),
+	},
+		time.Date(2020, time.October, 2, 1, 0, 0, 0, loc),
+		time.Date(2020, time.October, 6, 1, 0, 0, 0, loc),
+
+		"2020-10-01 02:15:00 +1030 +1030",
+		"2020-10-02 02:15:00 +1030 +1030",
+		"2020-10-03 02:15:00 +1030 +1030",
+		"2020-10-04 02:30:00 +1100 +11", // On 10/04 02:00 clocks go forward 30 mins. Meaning 2:15 time does not actually exist anymore (since 2:00 becomes 2:30). Next immediate time that exists is 2:30.
+		"2020-10-05 02:15:00 +1100 +11",
+		"2020-10-06 02:15:00 +1100 +11",
+	)
+
 }
 
 func TestRotation_EndTime_DST(t *testing.T) {
