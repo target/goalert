@@ -164,6 +164,78 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		"2020-11-01 04:00:00 -0600 CST",
 		"2020-11-01 05:00:00 -0600 CST",
 	)
+
+	loc, err = time.LoadLocation("Australia/Lord_Howe")
+	require.NoError(t, err)
+
+	// check when DT starts using a non-cst tz (hourly)
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 1,
+		Start:       time.Date(2021, time.April, 3, 2, 30, 0, 0, loc),
+	},
+		time.Date(2021, time.April, 4, 1, 0, 0, 0, loc),
+		time.Date(2021, time.April, 4, 4, 0, 0, 0, loc),
+
+		"2021-04-04 00:30:00 +1100 +11",
+		"2021-04-04 01:30:00 +1100 +11",   // clock goes back, extra 30 minutes on-call from 1:30-2
+		"2021-04-04 02:30:00 +1030 +1030", // new shift starts at 2:30
+		"2021-04-04 03:30:00 +1030 +1030",
+		"2021-04-04 04:30:00 +1030 +1030",
+	)
+
+	// DST ending using a tz with a 30 minute offset change (daily)
+	// handoff at end
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2021, time.April, 1, 2, 30, 0, 0, loc),
+	},
+		time.Date(2021, time.April, 2, 1, 0, 0, 0, loc),
+		time.Date(2021, time.April, 6, 1, 0, 0, 0, loc),
+
+		"2021-04-01 02:30:00 +1100 +11",
+		"2021-04-02 02:30:00 +1100 +11",
+		"2021-04-03 02:30:00 +1100 +11",
+		"2021-04-04 02:30:00 +1030 +1030", // new offset changes 30 minutes
+		"2021-04-05 02:30:00 +1030 +1030",
+		"2021-04-06 02:30:00 +1030 +1030",
+	)
+
+	// DST ending using a tz with a 30 minute offset change
+	// handoff at start
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2021, time.April, 2, 2, 0, 0, 0, loc),
+	},
+		time.Date(2021, time.April, 2, 1, 0, 0, 0, loc),
+		time.Date(2021, time.April, 6, 1, 0, 0, 0, loc),
+
+		"2021-04-01 02:00:00 +1100 +11",
+		"2021-04-02 02:00:00 +1100 +11",
+		"2021-04-03 02:00:00 +1100 +11",
+		"2021-04-04 02:00:00 +1030 +1030", // TZ switches at start, +30 minutes on-call for this shift
+		"2021-04-05 02:00:00 +1030 +1030",
+		"2021-04-06 02:00:00 +1030 +1030",
+	)
+
+	// daily as 24 hours - sanity check
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 24,
+		Start:       time.Date(2021, time.April, 2, 2, 0, 0, 0, loc),
+	},
+		time.Date(2021, time.April, 2, 1, 0, 0, 0, loc),
+		time.Date(2021, time.April, 6, 1, 0, 0, 0, loc),
+
+		"2021-04-01 02:00:00 +1100 +11",
+		"2021-04-02 02:00:00 +1100 +11",
+		"2021-04-03 02:00:00 +1100 +11",
+		"2021-04-04 02:00:00 +1030 +1030", // TZ switches at start, +30 minutes on-call for this shift
+		"2021-04-05 02:00:00 +1030 +1030",
+		"2021-04-06 02:00:00 +1030 +1030",
+	)
 }
 
 func TestRotation_EndTime_DST(t *testing.T) {
