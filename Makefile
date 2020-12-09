@@ -106,7 +106,7 @@ $(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/go
 	rm -rf $@
 	mkdir -p bin/integration/goalert/bin
 	cp bin/*-linux-amd64 bin/integration/goalert/bin/
-	for f in bin/integration/goalert/bin/*-linux-amd64; do mv $$f bin/integration/goalert/bin/$$(basename $$f -linux-amd64); done
+	for f in bin/integration/goalert/bin/*-linux-amd64; do ln -s $$(basename $$f) bin/integration/goalert/bin/$$(basename $$f -linux-amd64); done
 	touch $@
 
 $(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
