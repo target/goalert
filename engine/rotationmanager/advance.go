@@ -2,6 +2,7 @@ package rotationmanager
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/target/goalert/schedule/rotation"
@@ -39,7 +40,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	}
 
 	if !newStart.After(t.Add(-15 * time.Minute)) {
-		log.Debugf(ctx, "rotation advanced late (%s)", t.Sub(newStart).String())
+		log.Log(log.WithField(ctx, "RotationID", rot.ID), fmt.Errorf("rotation advanced late (%s)", t.Sub(newStart).String()))
 	}
 
 	state.ShiftStart = newStart
