@@ -503,6 +503,13 @@ export interface RotationSearchOptions {
   favoritesFirst?: boolean
 }
 
+export interface UpcomingHandoffTimesInput {
+  start: ISOTimestamp
+  timeZone: string
+  hours: number
+  count: number
+}
+
 export interface EscalationPolicySearchOptions {
   first?: number
   after?: string

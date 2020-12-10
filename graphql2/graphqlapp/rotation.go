@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"strconv"
 	"time"
 
 	"github.com/target/goalert/assignment"
@@ -377,32 +376,25 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 	return true, nil
 }
 
-func (a *Query) UpcomingHandoffTimes(ctx context.Context, start time.Time, timeZone string, hours int, count int) ([]time.Time, error) {
+func (a *Query) UpcomingHandoffTimes(ctx context.Context, input *graphql2.UpcomingHandoffTimesInput) ([]time.Time, error) {
 	var result []time.Time
 
-	if hours <= 0 || count <= 0 {
-		return result, errors.New("invalid input")
+	if input.Hours <= 0 || input.Count <= 0 {
+		return result, errors.New("invalid upcoming handoff times input")
 	}
 
-	now := time.Now().Local()
-	dur, err := time.ParseDuration(strconv.Itoa(hours) + "h")
+	loc, err := time.LoadLocation(input.TimeZone)
 
-	nextHandOff := start
-
-	if nextHandOff.Before(now) {
-		for nextHandOff.Before(now) {
-			nextHandOff = nextHandOff.Add(dur)
-		}
-	} else if nextHandOff.After(now) {
-		for nextHandOff.After(now) {
-			nextHandOff = nextHandOff.Add(-dur)
-		}
-		nextHandOff = nextHandOff.Add(dur)
+	rot := &rotation.Rotation{
+		Start:       input.Start.In(loc),
+		ShiftLength: input.Hours,
+		Type:        rotation.TypeHourly,
 	}
 
-	for len(result) < count {
-		result = append(result, nextHandOff)
-		nextHandOff = nextHandOff.Add(dur)
+	t := time.Now()
+	for len(result) < input.Count {
+		t = rot.EndTime(t)
+		result = append(result, t)
 	}
 
 	return result, err

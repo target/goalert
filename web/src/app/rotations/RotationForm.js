@@ -19,18 +19,8 @@ import { useQuery, gql } from '@apollo/client'
 import { getHours } from './util'
 
 const query = gql`
-  query x(
-    $start: ISOTimestamp!
-    $timeZone: String!
-    $hours: Int!
-    $count: Int!
-  ) {
-    upcomingHandoffTimes(
-      start: $start
-      timeZone: $timeZone
-      hours: $hours
-      count: $count
-    )
+  query upcomingHandoffTimes($input: UpcomingHandoffTimesInput) {
+    upcomingHandoffTimes(input: $input)
   }
 `
 
@@ -67,10 +57,12 @@ export default function RotationForm(props) {
   const handoffsToShow = 3
   const { data } = useQuery(query, {
     variables: {
-      start: value.start,
-      timeZone: value.timeZone,
-      hours: getHours(value.shiftLength, value.type),
-      count: handoffsToShow,
+      input: {
+        start: value.start,
+        timeZone: value.timeZone,
+        hours: getHours(value.shiftLength, value.type),
+        count: handoffsToShow,
+      },
     },
   })
 

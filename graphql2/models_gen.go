@@ -365,6 +365,13 @@ type TimeZoneSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type UpcomingHandoffTimesInput struct {
+	Start    time.Time `json:"start"`
+	TimeZone string    `json:"timeZone"`
+	Hours    int       `json:"hours"`
+	Count    int       `json:"count"`
+}
+
 type UpdateAlertsByServiceInput struct {
 	ServiceID string      `json:"serviceID"`
 	NewStatus AlertStatus `json:"newStatus"`
