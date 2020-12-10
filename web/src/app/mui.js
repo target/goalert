@@ -18,8 +18,8 @@ export const theme = createMuiTheme({
     primary: {
       ...grey,
       main: '#616161',
-      '500': '#616161',
-      '400': '#757575',
+      500: '#616161',
+      400: '#757575',
     },
     secondary: grey,
     error: red,
