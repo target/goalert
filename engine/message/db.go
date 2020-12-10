@@ -62,6 +62,9 @@ type DB struct {
 
 	insertAlertBundle  *sql.Stmt
 	insertStatusBundle *sql.Stmt
+
+	lastSent     time.Time
+	sentMessages []Message
 }
 
 // NewDB creates a new DB. If config is nil, DefaultConfig() is used.
@@ -350,21 +353,40 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
 			where
-				sent_at > now() - '3 hours'::interval or
+				sent_at >= $1 or
 				last_status = 'pending' and
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
 		`),
 	}, p.Err
 }
 
+var maxMessageAge = maxThrottleDuration(perCMThrottle, globalCMThrottle)
+
 func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*queue, error) {
-	rows, err := tx.Stmt(db.messages).QueryContext(ctx)
+	cutoff := now.Add(-maxMessageAge)
+	sentSince := db.lastSent
+	if sentSince.IsZero() {
+		sentSince = cutoff
+	}
+
+	// TODO: possibly dedup (e.g. multiple engines)
+	msgs := db.sentMessages[:0]
+	for _, msg := range db.sentMessages {
+		if msg.SentAt.Before(cutoff) {
+			continue
+		}
+		msgs = append(msgs, msg)
+	}
+	db.sentMessages = msgs
+
+	rows, err := tx.Stmt(db.messages).QueryContext(ctx, sentSince)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
 	defer rows.Close()
 
-	var result []Message
+	result := make([]Message, len(db.sentMessages))
+	copy(result, db.sentMessages)
 	for rows.Next() {
 		var msg Message
 		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
@@ -413,7 +435,11 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 
 		result = append(result, msg)
+		if !msg.SentAt.IsZero() {
+			db.sentMessages = append(db.sentMessages, msg)
+		}
 	}
+	db.lastSent = now
 
 	cfg := config.FromContext(ctx)
 	if cfg.General.MessageBundles {

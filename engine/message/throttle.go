@@ -33,6 +33,29 @@ type throttleItem struct {
 
 type throttleConfig map[notification.DestType][]throttleRule
 
+func (cfg throttleConfig) MaxDuration() time.Duration {
+	var max time.Duration
+	for _, rules := range cfg {
+		for _, rule := range rules {
+			if rule.Per > max {
+				max = rule.Per
+			}
+		}
+	}
+	return max
+}
+
+func maxThrottleDuration(cfgs ...throttleConfig) time.Duration {
+	var max time.Duration
+	for _, cfg := range cfgs {
+		dur := cfg.MaxDuration()
+		if dur > max {
+			max = dur
+		}
+	}
+	return max
+}
+
 type throttleRule struct {
 	Count int
 	Per   time.Duration
