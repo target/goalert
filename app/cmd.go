@@ -289,18 +289,26 @@ Migration: %s (#%d)
 				defer resp.Body.Close()
 				fmt.Println("Response from", s.name, "status code:", resp.StatusCode)
 			}
-			//for DB: set as Command Line flag
-			//argument will be passed into CLI
-			//if error is set return
-			_, err := getConfig()
+
+			cfg, err := getConfig()
 			if errors.Is(err, ErrDBRequired) {
 				return nil
 			}
 			if err != nil {
 				return err
 			}
-			//Ping()
-			//Sentinel Errors
+			conn, err := sql.Open("pgx", cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "Cannot open DBurl")
+			}
+			err = conn.Ping()
+			if err != nil {
+				return errors.Wrap(err, "Connection unsuccessful")
+			} else {
+				fmt.Println("DB: Connection is succesful.")
+			}
+			conn.Close()
+
 			return nil
 		},
 	}
