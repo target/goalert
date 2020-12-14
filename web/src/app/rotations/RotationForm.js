@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
@@ -51,41 +51,32 @@ function getHours(count, unit) {
 export default function RotationForm(props) {
   const { value } = props
   const classes = useStyles()
-  const localZone = useMemo(() => DateTime.local().zone.name, [])
+  const localZone = DateTime.local().zone.name
   const [configInZone, setConfigInZone] = useState(false)
   const configZone = configInZone ? value.timeZone : 'local'
-  const [upcomingHandoffs, setUpcomingHandoffs] = useState([])
 
-  const [minStart, maxStart] = useMemo(
-    () => [
-      DateTime.fromObject({ year: 2000 }),
-      DateTime.fromObject({ year: 2500 }),
-    ],
-    [],
-  )
+  const [minStart, maxStart] = useMemo(() => [
+    DateTime.local().minus({ year: 1 }),
+    DateTime.local().plus({ year: 1 }),
+  ])
 
-  const handoffsToShow = 3
   const { data } = useQuery(query, {
     variables: {
       input: {
         start: value.start,
         timeZone: value.timeZone,
         hours: getHours(value.shiftLength, value.type),
-        count: handoffsToShow,
+        count: 3,
       },
     },
   })
 
-  useEffect(() => {
-    if (data?.upcomingHandoffTimes) {
-      const upcomingHandoffTimes = data.upcomingHandoffTimes.map((iso) =>
-        DateTime.fromISO(iso)
-          .setZone(configZone)
-          .toLocaleString(DateTime.DATETIME_FULL),
-      )
-      setUpcomingHandoffs(upcomingHandoffTimes)
-    }
-  }, [configInZone, data])
+  const upcomingHandoffs =
+    data?.upcomingHandoffTimes?.map((iso) =>
+      DateTime.fromISO(iso)
+        .setZone(configZone)
+        .toLocaleString(DateTime.DATETIME_FULL),
+    ) ?? []
 
   return (
     <FormContainer optionalLabels {...props}>
