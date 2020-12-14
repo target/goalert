@@ -16,7 +16,6 @@ import { ISODateTimePicker } from '../util/ISOPickers'
 import NumberField from '../util/NumberField'
 import { DateTime } from 'luxon'
 import { useQuery, gql } from '@apollo/client'
-import { getHours } from './util'
 
 const query = gql`
   query upcomingHandoffTimes($input: UpcomingHandoffTimesInput) {
@@ -37,6 +36,17 @@ const useStyles = makeStyles({
     display: 'flex',
   },
 })
+
+// getHours converts a count and one of ['hourly', 'daily', 'weekly']
+// into length in hours e.g. (2, daily) => 48
+function getHours(count, unit) {
+  const lookup = {
+    hourly: 1,
+    daily: 24,
+    weekly: 24 * 7,
+  }
+  return lookup[unit] * count
+}
 
 export default function RotationForm(props) {
   const { value } = props
