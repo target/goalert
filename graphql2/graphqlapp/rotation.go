@@ -378,12 +378,16 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 
 func (a *Query) UpcomingHandoffTimes(ctx context.Context, input *graphql2.UpcomingHandoffTimesInput) ([]time.Time, error) {
 	var result []time.Time
+	const maxCount = 15
 
-	if input.Hours <= 0 || input.Count <= 0 {
+	if input.Hours <= 0 || input.Count <= 0 || input.Count > maxCount {
 		return result, errors.New("invalid upcoming handoff times input")
 	}
 
-	loc, err := time.LoadLocation(input.TimeZone)
+	loc, err := util.LoadLocation(input.TimeZone)
+	if err != nil {
+		return result, errors.Wrap(err, "failed to load location for "+input.TimeZone)
+	}
 
 	rot := &rotation.Rotation{
 		Start:       input.Start.In(loc),
