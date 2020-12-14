@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
@@ -54,6 +54,7 @@ export default function RotationForm(props) {
   const localZone = DateTime.local().zone.name
   const [configInZone, setConfigInZone] = useState(false)
   const configZone = configInZone ? value.timeZone : 'local'
+  const [upcomingHandoffs, setUpcomingHandoffs] = useState([])
 
   const [minStart, maxStart] = useMemo(() => [
     DateTime.local().minus({ year: 1 }),
@@ -71,12 +72,17 @@ export default function RotationForm(props) {
     },
   })
 
-  const upcomingHandoffs =
-    data?.upcomingHandoffTimes?.map((iso) =>
-      DateTime.fromISO(iso)
-        .setZone(configZone)
-        .toLocaleString(DateTime.DATETIME_FULL),
-    ) ?? []
+  useEffect(() => {
+    if (data?.upcomingHandoffTimes) {
+      const upcomingHandoffTimes = data.upcomingHandoffTimes.map((iso) =>
+        DateTime.fromISO(iso)
+          .setZone(configZone)
+          .toLocaleString(DateTime.DATETIME_FULL),
+      )
+
+      setUpcomingHandoffs(upcomingHandoffTimes)
+    }
+  }, [configInZone, data])
 
   return (
     <FormContainer optionalLabels {...props}>
