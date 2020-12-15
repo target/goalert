@@ -238,8 +238,6 @@ function PolicyStepForm(props) {
             label='Delay (minutes)'
             name='delayMinutes'
             required
-            type='number'
-            mapOnChangeValue={(value) => value.toString()}
             min={1}
             max={9000}
             hint={
