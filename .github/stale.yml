@@ -1,0 +1,18 @@
+# Configuration for probot-stale - https://github.com/probot/stale
+
+staleLabel: stale # Label to use when marking as stale
+limitPerRun: 30 # Limit the number of actions per hour, from 1-30. Default is 30
+exemptLabels:
+  - security
+
+pulls:
+  daysUntilStale: 30
+  markComment: >
+    This pull request has been automatically marked as stale because it has not had
+    recent activity. Thank you for your contributions.
+
+issues:
+  daysUntilStale: 180
+  markComment: >
+    This issue has been automatically marked as stale because it has not had
+    recent activity.
