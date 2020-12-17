@@ -1,14 +1,13 @@
 package message
 
 import (
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/target/goalert/notification"
 	"math/rand"
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/target/goalert/notification"
 )
 
 func TestQueue_Sort(t *testing.T) {
@@ -27,6 +26,8 @@ func TestQueue_Sort(t *testing.T) {
 		- Verify to User A -- Not sent, (will get an alert for Service A)
 		- Test to User B
 		- Alert to User C, Service A
+
+		Throttled:
 		- Status to User D
 		- Status to User G (created 2nd)
 	*/
@@ -95,7 +96,10 @@ func TestQueue_Sort(t *testing.T) {
 			UserID:    "User C",
 			ServiceID: "Service A",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS C"},
-		}, {
+		},
+
+		// ThrottleConfig limits 5 messages to be sent in 15 min for DestTypeSMS
+		{
 			ID:        "5",
 			Type:      TypeAlertStatusUpdate,
 			UserID:    "User D",
@@ -124,6 +128,11 @@ func TestQueue_Sort(t *testing.T) {
 	rand.Shuffle(len(messages), func(i, j int) { messages[i], messages[j] = messages[j], messages[i] })
 
 	q := newQueue(messages, n)
+
+	// limit the number expected messages to the number allowed to be sent in 15 min
+	rules := q.cmThrottle.cfg[notification.DestTypeSMS]
+	expected = expected[:rules[1].Count]
+
 	for i, exp := range expected {
 		msg := q.NextByType(notification.DestTypeSMS)
 		require.NotNilf(t, msg, "message #%d", i)
