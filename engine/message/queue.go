@@ -1,16 +1,12 @@
 package message
 
 import (
+	"github.com/target/goalert/notification"
 	"math/rand"
 	"sort"
 	"sync"
 	"time"
-
-	"github.com/target/goalert/notification"
 )
-
-// cmCooldown is the amount of time (minimum) between messages to a particular contact method.
-const cmCooldown = time.Minute
 
 var typePriority = map[Type]int{
 	TypeVerificationMessage: 1,
@@ -23,7 +19,7 @@ var typePriority = map[Type]int{
 	TypeAlertStatusUpdateBundle: 4,
 }
 
-var perCMThrottle = throttleConfig{
+var perCMThrottle = ThrottleConfig{
 	notification.DestTypeVoice: {
 		{Count: 1, Per: time.Minute},
 		{Count: 3, Per: 15 * time.Minute},
@@ -41,7 +37,7 @@ var perCMThrottle = throttleConfig{
 	},
 }
 
-var globalCMThrottle = throttleConfig{
+var globalCMThrottle = ThrottleConfig{
 	notification.DestTypeVoice: {
 		{Count: 5, Per: 5 * time.Second},
 	},
@@ -62,8 +58,8 @@ type queue struct {
 	userSent    map[string]time.Time
 	destSent    map[notification.Dest]time.Time
 
-	cmThrottle     *throttle
-	globalThrottle *throttle
+	cmThrottle     *Throttle
+	globalThrottle *Throttle
 
 	mx sync.Mutex
 }
@@ -78,8 +74,8 @@ func newQueue(msgs []Message, now time.Time) *queue {
 		userSent:    make(map[string]time.Time),
 		destSent:    make(map[notification.Dest]time.Time),
 
-		cmThrottle:     newThrottle(perCMThrottle, now, false),
-		globalThrottle: newThrottle(globalCMThrottle, now, true),
+		cmThrottle:     NewThrottle(perCMThrottle, now, false),
+		globalThrottle: NewThrottle(globalCMThrottle, now, true),
 	}
 
 	for _, m := range msgs {
