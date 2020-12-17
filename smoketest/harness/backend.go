@@ -27,6 +27,9 @@ func (h *Harness) watchBackendLogs(r io.Reader) {
 		}
 		return false
 	}
+
+	h.IgnoreErrorsWith("rotation advanced late")
+
 	var err error
 	for {
 		err = dec.Decode(&entry)

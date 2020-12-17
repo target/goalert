@@ -18,10 +18,11 @@ func TestQueue_Sort(t *testing.T) {
 		Sent:
 		- Test to User C
 		- Verify to User H (< 60 seconds ago)
+		- Alert to Slack for Service B
 
 		Pending:
 		- Alert to User A, Service A (first alert)
-		- Alert to User E, Service B (created 2nd)
+		- Alert to User E, Service B (created 2nd -- SMS so Slack doesn't affect first alert status)
 		- Alert to User H, Service C (created 3nd) -- Not sent, user H already notified
 		- Verify to User F
 		- Verify to User A -- Not sent, (will get an alert for Service A)
@@ -50,6 +51,12 @@ func TestQueue_Sort(t *testing.T) {
 			UserID: "User H",
 			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
 			SentAt: n.Add(-30 * time.Second),
+		},
+		{
+			Type:      TypeAlertNotification,
+			ServiceID: "Service B",
+			Dest:      notification.Dest{Type: notification.DestTypeSlackChannel, ID: "Slack B"},
+			SentAt:    n.Add(-30 * time.Second),
 		},
 
 		// Pending

@@ -9,7 +9,7 @@ import Typography from '@material-ui/core/Typography'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import withStyles from '@material-ui/core/styles/withStyles'
 import ListSubheader from '@material-ui/core/ListSubheader'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 
 const styles = {
   background: { backgroundColor: 'white' },

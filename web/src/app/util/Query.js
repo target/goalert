@@ -1,33 +1,14 @@
 import React from 'react'
 import p from 'prop-types'
-import { Query as ApolloQuery } from 'react-apollo'
+import { Query as ApolloQuery } from '@apollo/client/react/components'
 import Spinner from '../loading/components/Spinner'
-import { isEmpty } from 'lodash-es'
+import { isEmpty } from 'lodash'
 import { GenericError, ObjectNotFound } from '../error-pages/Errors'
 
 import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../config'
 
 const hasNull = (data) =>
   isEmpty(data) || Object.keys(data).some((key) => data[key] === null)
-
-export function withQuery(
-  query,
-  mapQueryToProps,
-  mapPropsToQueryProps = () => ({}),
-) {
-  return (Component) =>
-    function WithQuery(componentProps) {
-      return (
-        <Query
-          {...mapPropsToQueryProps(componentProps)}
-          query={query}
-          render={(renderProps) => (
-            <Component {...componentProps} {...mapQueryToProps(renderProps)} />
-          )}
-        />
-      )
-    }
-}
 
 export default class Query extends React.PureComponent {
   static propTypes = {
@@ -150,4 +131,23 @@ export default class Query extends React.PureComponent {
       </ApolloQuery>
     )
   }
+}
+
+export function withQuery(
+  query,
+  mapQueryToProps,
+  mapPropsToQueryProps = () => ({}),
+) {
+  return (Component) =>
+    function WithQuery(componentProps) {
+      return (
+        <Query
+          {...mapPropsToQueryProps(componentProps)}
+          query={query}
+          render={(renderProps) => (
+            <Component {...componentProps} {...mapQueryToProps(renderProps)} />
+          )}
+        />
+      )
+    }
 }

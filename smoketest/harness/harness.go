@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -29,6 +28,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
+	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
@@ -508,22 +508,24 @@ func (h *Harness) dumpDB() {
 	if err != nil {
 		h.t.Fatalf("failed to get current timestamp: %v", err)
 	}
-	cmd := exec.Command(
-		"pg_dump",
-		"-O", "-x", "-a",
-		"-f", file,
-		h.dbURL,
-	)
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+
+	conn, err := h.db.Acquire(context.Background())
+	if err != nil {
+		h.t.Fatalf("failed to get db connection: %v", err)
+	}
+	defer conn.Release()
+
+	fd, err := os.Create(file)
+	if err != nil {
+		h.t.Fatalf("failed to open dump file: %v", err)
+	}
+	defer fd.Close()
+
+	err = pgdump.DumpData(context.Background(), conn.Conn(), fd)
 	if err != nil {
 		h.t.Errorf("failed to dump database '%s': %v", h.dbName, err)
 	}
-	fd, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		h.t.Fatalf("failed to open DB dump: %v", err)
-	}
-	defer fd.Close()
+
 	_, err = fmt.Fprintf(fd, "\n-- Last Timestamp: %s\n", t.Format(time.RFC3339Nano))
 	if err != nil {
 		h.t.Fatalf("failed to open DB dump: %v", err)

@@ -1,8 +1,6 @@
-import React, { Component } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PropTypes as p } from 'prop-types'
-import withStyles from '@material-ui/core/styles/withStyles'
 import { DateTime } from 'luxon'
-import { styles } from '../styles/materialStyles'
 
 export function formatTimeRemaining(
   timeRemaining,
@@ -49,32 +47,12 @@ export function formatTimeRemaining(
   return timeString
 }
 
-@withStyles(styles)
-export default class CountDown extends Component {
-  static propTypes = {
-    end: p.string.isRequired,
-    expiredMessage: p.string,
-    prefix: p.string,
-    expiredTimeout: p.number,
-    seconds: p.bool,
-    minutes: p.bool,
-    hours: p.bool,
-    days: p.bool,
-    weeks: p.bool,
-    WrapComponent: p.func,
-  }
+function CountDown(props) {
+  const [timeRemaining, setTimeRemaining] = useState(
+    DateTime.fromISO(props.end).toSeconds() - DateTime.local().toSeconds(),
+  )
 
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      timeRemaining:
-        DateTime.fromISO(props.end).toSeconds() - DateTime.local().toSeconds(),
-    }
-  }
-
-  formatTime() {
-    const { timeRemaining } = this.state
+  function formatTime() {
     const {
       expiredTimeout,
       prefix,
@@ -84,7 +62,7 @@ export default class CountDown extends Component {
       hours,
       minutes,
       seconds,
-    } = this.props
+    } = props
 
     const timeout = expiredTimeout || 1
 
@@ -104,30 +82,41 @@ export default class CountDown extends Component {
     return timeString
   }
 
-  componentDidMount() {
-    this._counter = setInterval(() => {
-      this.setState({
-        timeRemaining:
-          DateTime.fromISO(this.props.end).toSeconds() -
-          DateTime.local().toSeconds(),
-      })
-    }, 1000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this._counter)
-  }
-
-  render() {
-    const WrapComponent = this.props.WrapComponent
-
-    if (WrapComponent) {
-      return (
-        <WrapComponent {...this.props.componentProps} style={this.props.style}>
-          {this.formatTime()}
-        </WrapComponent>
+  useEffect(() => {
+    const _counter = setInterval(() => {
+      setTimeRemaining(
+        DateTime.fromISO(props.end).toSeconds() - DateTime.local().toSeconds(),
       )
+    }, 1000)
+
+    return () => {
+      clearInterval(_counter)
     }
-    return this.formatTime()
+  }, [])
+
+  const WrapComponent = props.WrapComponent
+
+  if (WrapComponent) {
+    return (
+      <WrapComponent {...props.componentProps} style={props.style}>
+        {formatTime()}
+      </WrapComponent>
+    )
   }
+  return formatTime()
 }
+
+CountDown.propTypes = {
+  end: p.string.isRequired,
+  expiredMessage: p.string,
+  prefix: p.string,
+  expiredTimeout: p.number,
+  seconds: p.bool,
+  minutes: p.bool,
+  hours: p.bool,
+  days: p.bool,
+  weeks: p.bool,
+  WrapComponent: p.func,
+}
+
+export default CountDown

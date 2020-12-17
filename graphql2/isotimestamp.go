@@ -7,6 +7,7 @@ import (
 
 	graphql "github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/validation"
 )
 
 func MarshalISOTimestamp(t time.Time) graphql.Marshaler {
@@ -15,7 +16,7 @@ func MarshalISOTimestamp(t time.Time) graphql.Marshaler {
 			io.WriteString(w, "null")
 			return
 		}
-		io.WriteString(w, `"`+t.Format(time.RFC3339Nano)+`"`)
+		io.WriteString(w, `"`+t.UTC().Format(time.RFC3339Nano)+`"`)
 	})
 }
 func UnmarshalISOTimestamp(v interface{}) (time.Time, error) {
@@ -25,5 +26,6 @@ func UnmarshalISOTimestamp(v interface{}) (time.Time, error) {
 	}
 	str = strings.Trim(str, `"`)
 
-	return time.Parse(time.RFC3339Nano, str)
+	t, err := time.Parse(time.RFC3339Nano, str)
+	return t, validation.WrapError(err)
 }

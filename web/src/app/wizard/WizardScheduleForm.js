@@ -14,7 +14,7 @@ import InfoIcon from '@material-ui/icons/Info'
 import { TimeZoneSelect, UserSelect } from '../selection'
 import { FormField } from '../forms'
 import { value as valuePropType } from './propTypes'
-import { set } from 'lodash-es'
+import { set } from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 
 const styles = {

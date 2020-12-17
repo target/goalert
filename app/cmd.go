@@ -39,6 +39,11 @@ func init() {
 	signal.Notify(shutdownSignalCh, shutdownSignals...)
 }
 
+func isCfgNotFound(err error) bool {
+	var cfgErr viper.ConfigFileNotFoundError
+	return errors.As(err, &cfgErr)
+}
+
 // RootCmd is the configuration for running the app binary.
 var RootCmd = &cobra.Command{
 	Use:   "goalert",
@@ -58,7 +63,7 @@ var RootCmd = &cobra.Command{
 
 		err := viper.ReadInConfig()
 		// ignore file not found error
-		if _, ok := err.(viper.ConfigFileNotFoundError); err != nil && !ok {
+		if err != nil && !isCfgNotFound(err) {
 			return errors.Wrap(err, "read config")
 		}
 
@@ -96,6 +101,7 @@ var RootCmd = &cobra.Command{
 		} else {
 			q.Set("application_name", fmt.Sprintf("GoAlert %s", version.GitVersion()))
 		}
+		q.Set("enable_seqscan", "off")
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
 
@@ -121,6 +127,7 @@ var RootCmd = &cobra.Command{
 			}
 			q := u.Query()
 			q.Set("application_name", fmt.Sprintf("GoAlert %s (S/O Mode)", version.GitVersion()))
+			q.Set("enable_seqscan", "off")
 			u.RawQuery = q.Encode()
 			cfg.DBURLNext = u.String()
 
@@ -272,7 +279,7 @@ Migration: %s (#%d)
 
 			err := viper.ReadInConfig()
 			// ignore file not found error
-			if _, ok := err.(viper.ConfigFileNotFoundError); err != nil && !ok {
+			if err != nil && !isCfgNotFound(err) {
 				return errors.Wrap(err, "read config")
 			}
 
@@ -290,7 +297,7 @@ Migration: %s (#%d)
 
 			err := viper.ReadInConfig()
 			// ignore file not found error
-			if _, ok := err.(viper.ConfigFileNotFoundError); err != nil && !ok {
+			if err != nil && !isCfgNotFound(err) {
 				return errors.Wrap(err, "read config")
 			}
 
@@ -385,7 +392,7 @@ Migration: %s (#%d)
 
 			err := viper.ReadInConfig()
 			// ignore file not found error
-			if _, ok := err.(viper.ConfigFileNotFoundError); err != nil && !ok {
+			if err != nil && !isCfgNotFound(err) {
 				return errors.Wrap(err, "read config")
 			}
 

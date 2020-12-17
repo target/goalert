@@ -1,6 +1,6 @@
 import React from 'react'
+import { gql } from '@apollo/client'
 import { Switch, Route } from 'react-router-dom'
-import gql from 'graphql-tag'
 import { UserAvatar } from '../util/avatars'
 import QueryList from '../lists/QueryList'
 import UserDetails from './UserDetails'

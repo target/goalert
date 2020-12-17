@@ -3,7 +3,7 @@ import p from 'prop-types'
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
 import { TextField, Grid, MenuItem } from '@material-ui/core'
-import { startCase } from 'lodash-es'
+import { startCase } from 'lodash'
 import { DateTime, Info } from 'luxon'
 import { ISOTimePicker } from '../util/ISOPickers'
 
