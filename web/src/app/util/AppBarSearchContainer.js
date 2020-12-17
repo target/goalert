@@ -116,11 +116,9 @@ export default function AppBarSearchContainer(props) {
   return (
     <SearchContext.Consumer>
       {({ setActions, trackMount }) => (
-        <SearchUpdater
-          setActions={setActions}
-          trackMount={trackMount}
-          children={props.children}
-        />
+        <SearchUpdater setActions={setActions} trackMount={trackMount}>
+          {props.children}
+        </SearchUpdater>
       )}
     </SearchContext.Consumer>
   )
