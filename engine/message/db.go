@@ -67,7 +67,7 @@ type DB struct {
 	sentMessages []Message
 }
 
-// NewDB creates a new DB. If config is nil, DefaultConfig() is used.
+// NewDB creates a new DB.
 func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,

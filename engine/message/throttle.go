@@ -4,6 +4,7 @@ import (
 	"github.com/target/goalert/notification"
 	"time"
 )
+
 // Throttle represents the throttled messages for a queue.
 type Throttle struct {
 	cfg      ThrottleConfig
