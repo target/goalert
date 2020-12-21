@@ -10,14 +10,14 @@ import {
   Typography,
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 import { useCreateAlerts } from './useCreateAlerts'
 import { fieldErrors, allErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { CreateAlertForm } from './StepContent/CreateAlertForm'
 import { CreateAlertReview } from './StepContent/CreateAlertReview'
-import { AppLink } from '../../util/AppLink'
+import AppLink from '../../util/AppLink'
 
 const pluralize = (num) => (num !== 1 ? 's' : '')
 

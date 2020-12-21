@@ -13,8 +13,8 @@ import { DateTime } from 'luxon'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import WizardForm from './WizardForm'
 import LoadingButton from '../loading/components/LoadingButton'
-import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
+import { Mutation } from '@apollo/client/react/components'
+import { gql } from '@apollo/client'
 import { Form } from '../forms'
 import {
   getService,

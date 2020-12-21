@@ -20,7 +20,7 @@ module.exports = (env) => ({
     filename: 'static/[name].js',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
+    extensions: ['.mjs', '.ts', '.tsx', '.js', '.jsx', '.css'],
   },
   module: {
     rules: [

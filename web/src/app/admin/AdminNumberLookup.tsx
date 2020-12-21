@@ -15,13 +15,12 @@ import {
   ListItemText,
   Tooltip,
 } from '@material-ui/core'
-import gql from 'graphql-tag'
-import { useMutation, useQuery } from 'react-apollo'
+import { useMutation, useQuery, ApolloError, gql } from '@apollo/client'
 import CopyText from '../util/CopyText'
 import TelTextField from '../util/TelTextField'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogContentError from '../dialogs/components/DialogContentError'
-import { ApolloError } from 'apollo-client'
+
 import { PhoneNumberInfo, DebugCarrierInfo } from '../../schema'
 
 const carrierInfoMut = gql`
@@ -54,7 +53,7 @@ export default function AdminNumberLookup(): JSX.Element {
   const [lastError, setLastError] = useState(null as null | ApolloError)
 
   const { data: numData } = useQuery(numInfoQuery, {
-    variables: { number: '+' + number },
+    variables: { number },
     pollInterval: 0,
     onError: (err) => setLastError(err),
   })
@@ -63,7 +62,7 @@ export default function AdminNumberLookup(): JSX.Element {
   const [lookup, { data: carrData, loading: carrLoading }] = useMutation(
     carrierInfoMut,
     {
-      variables: { number: '+' + number },
+      variables: { number },
       onError: (err) => setLastError(err),
     },
   )

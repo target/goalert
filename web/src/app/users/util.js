@@ -1,4 +1,4 @@
-import { sortBy } from 'lodash-es'
+import { sortBy } from 'lodash'
 
 export function formatNotificationRule(
   delayMinutes,

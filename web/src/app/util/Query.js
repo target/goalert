@@ -1,8 +1,8 @@
 import React from 'react'
 import p from 'prop-types'
-import { Query as ApolloQuery } from 'react-apollo'
+import { Query as ApolloQuery } from '@apollo/client/react/components'
 import Spinner from '../loading/components/Spinner'
-import { isEmpty } from 'lodash-es'
+import { isEmpty } from 'lodash'
 import { GenericError, ObjectNotFound } from '../error-pages/Errors'
 
 import { POLL_ERROR_INTERVAL, POLL_INTERVAL } from '../config'

@@ -17,7 +17,7 @@ import ListSubheader from '@material-ui/core/ListSubheader'
 import IconButton from '@material-ui/core/IconButton'
 import Notices from './Notices'
 import Markdown from '../util/Markdown'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 
 function isDesktopMode(width) {
