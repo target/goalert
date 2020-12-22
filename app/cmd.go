@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
@@ -27,6 +28,7 @@ import (
 	"github.com/target/goalert/switchover"
 	"github.com/target/goalert/switchover/dbsync"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
@@ -226,6 +228,44 @@ Migration: %s (#%d)
 		Use:   "self-test",
 		Short: "test suite to validate functionality of Goalert environemnt",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			var failed bool
+			result := func(name string, err error) {
+				if err != nil {
+					failed = true
+					fmt.Printf("%s: FAIL (%v)\n", name, err)
+					return
+				}
+				fmt.Printf("%s: OK\n", name)
+			}
+
+			cf, err := getConfig()
+			if errors.Is(err, ErrDBRequired) {
+				err = nil
+			}
+			if err != nil {
+				return err
+			}
+			var cfg config.Config
+			loadConfigDB := func() error {
+				conn, err := sql.Open("pgx", cf.DBURL)
+				if err != nil {
+					return fmt.Errorf("open db: %w", err)
+				}
+
+				ctx := context.Background()
+
+				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "")
+				if err != nil {
+					return fmt.Errorf("read config: %w", err)
+				}
+				cfg = store.Config()
+				store.Shutdown(ctx)
+				return nil
+			}
+			if cf.DBURL != "" {
+				result("DB", loadConfigDB())
+			}
+
 			type service struct {
 				name, baseUrl string
 			}
@@ -236,79 +276,63 @@ Migration: %s (#%d)
 				{name: "Slack", baseUrl: "https://slack.com/api/api.test"},
 			}
 
-			start := time.Now()
-			fmt.Println("Execution Time:", time.Since(start))
-
-			//load known timezone that observes DST/ CST America/Chicago
-			//check offset matches expected ex: America/Chicago 5 hours (in seconds)
-			//if we add 2 hours, offset should change by 1 hour (in seconds)
-			zone, offset := start.Zone()
-			fmt.Println(zone, offset)
-
-			location, locationerr := time.LoadLocation("America/Chicago")
-			if locationerr != nil {
-				return locationerr
-			}
-			startNov := time.Date(2020, time.November, 1, 0, 00, 00, 0, location)
-
-			zoneNov, offsetNov := startNov.Zone()
-			fmt.Println(zoneNov, offsetNov)
-			if offsetNov != (-5 * 60 * 60) {
-				fmt.Println("Time Zone Error: expected CDT")
+			if cfg.OIDC.Enable {
+				serviceList = append(serviceList, service{name: "OIDC", baseUrl: cfg.OIDC.IssuerURL + "/.well-known.openid-configuration"})
 			}
 
-			startNov = startNov.Add(time.Hour * 3)
-
-			zoneNovAfter, offsetNovAfter := startNov.Zone()
-			fmt.Println(zoneNovAfter, offsetNovAfter)
-			if offsetNovAfter != (-6 * 60 * 60) {
-				fmt.Println("Time Zone Error: expected CST")
-			}
-
-			startMar := time.Date(2020, time.March, 8, 0, 00, 00, 0, location)
-
-			zoneMar, offsetMar := startMar.Zone()
-			fmt.Println(zoneMar, offsetMar)
-			if offsetMar != (-6 * 60 * 60) {
-				fmt.Println("Time Zone Error: expected CST but got ", zoneMar)
-			}
-
-			startMar = startMar.Add(time.Hour * 3)
-
-			zoneMarAfter, offsetMarAfter := startMar.Zone()
-			fmt.Println(zoneMarAfter, offsetMarAfter)
-			if offsetMarAfter != (-5 * 60 * 60) {
-				fmt.Println("Time Zone Error: expected CDT but got ", zoneMarAfter)
+			if cfg.GitHub.Enable {
+				url := "https://github.com"
+				if cfg.GitHub.EnterpriseURL != "" {
+					url = cfg.GitHub.EnterpriseURL
+				}
+				serviceList = append(serviceList, service{name: "GitHub", baseUrl: url})
 			}
 
 			for _, s := range serviceList {
 				resp, err := http.Get(s.baseUrl)
-				if err != nil {
-					return errors.Wrap(err, "request failed")
+				result(s.name, err)
+				if err == nil {
+					resp.Body.Close()
 				}
-				defer resp.Body.Close()
-				fmt.Println("Response from", s.name, "status code:", resp.StatusCode)
 			}
 
-			cfg, err := getConfig()
-			if errors.Is(err, ErrDBRequired) {
+			dstCheck := func() error {
+				const (
+					standardOffset = -21600
+					daylightOffset = -18000
+				)
+				loc, err := util.LoadLocation("America/Chicago")
+				if err != nil {
+					return fmt.Errorf("load location: %w", err)
+				}
+				t := time.Date(2020, time.March, 8, 0, 0, 0, 0, loc)
+				_, offset := t.Zone()
+				if offset != standardOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, standardOffset)
+				}
+				t = t.Add(3 * time.Hour)
+				_, offset = t.Zone()
+				if offset != daylightOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, daylightOffset)
+				}
+				t = time.Date(2020, time.November, 1, 0, 0, 0, 0, loc)
+				_, offset = t.Zone()
+				if offset != daylightOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, daylightOffset)
+				}
+				t = t.Add(3 * time.Hour)
+				_, offset = t.Zone()
+				if offset != standardOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, standardOffset)
+				}
 				return nil
 			}
-			if err != nil {
-				return err
-			}
-			conn, err := sql.Open("pgx", cfg.DBURL)
-			if err != nil {
-				return errors.Wrap(err, "Cannot open DBurl")
-			}
-			err = conn.Ping()
-			if err != nil {
-				return errors.Wrap(err, "Connection unsuccessful")
-			} else {
-				fmt.Println("DB: Connection is succesful.")
-			}
-			conn.Close()
 
+			result("DST Rules", dstCheck())
+
+			if failed {
+				return errors.New("one or more checks failed.")
+			}
 			return nil
 		},
 	}
