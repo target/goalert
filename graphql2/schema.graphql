@@ -37,7 +37,7 @@ type Query {
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
 
-  upcomingHandoffTimes(input: UpcomingHandoffTimesInput): [ISOTimestamp!]!
+  nextRotationHandoffTimes(input: NextRotationHandoffTimesInput): [ISOTimestamp!]!
 
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
@@ -657,7 +657,7 @@ input RotationSearchOptions {
   favoritesFirst: Boolean = false
 }
 
-input UpcomingHandoffTimesInput {
+input NextRotationHandoffTimesInput {
   start: ISOTimestamp!
   timeZone: String!
   hours: Int!

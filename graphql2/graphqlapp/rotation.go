@@ -376,7 +376,7 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 	return true, nil
 }
 
-func (a *Query) UpcomingHandoffTimes(ctx context.Context, input *graphql2.UpcomingHandoffTimesInput) ([]time.Time, error) {
+func (a *Query) NextRotationHandoffTimes(ctx context.Context, input *graphql2.NextRotationHandoffTimesInput) ([]time.Time, error) {
 	var result []time.Time
 	var err error
 

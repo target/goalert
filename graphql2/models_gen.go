@@ -225,6 +225,13 @@ type LabelValueSearchOptions struct {
 	Omit   []string `json:"omit"`
 }
 
+type NextRotationHandoffTimesInput struct {
+	Start    time.Time `json:"start"`
+	TimeZone string    `json:"timeZone"`
+	Hours    int       `json:"hours"`
+	Count    int       `json:"count"`
+}
+
 type NotificationState struct {
 	Details string              `json:"details"`
 	Status  *NotificationStatus `json:"status"`
@@ -363,13 +370,6 @@ type TimeZoneSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
-}
-
-type UpcomingHandoffTimesInput struct {
-	Start    time.Time `json:"start"`
-	TimeZone string    `json:"timeZone"`
-	Hours    int       `json:"hours"`
-	Count    int       `json:"count"`
 }
 
 type UpdateAlertsByServiceInput struct {

@@ -20,8 +20,8 @@ import NumberField from '../util/NumberField'
 import Spinner from '../loading/components/Spinner'
 
 const query = gql`
-  query upcomingHandoffTimes($input: UpcomingHandoffTimesInput) {
-    upcomingHandoffTimes(input: $input)
+  query nextRotationHandoffTimes($input: NextRotationHandoffTimesInput) {
+    nextRotationHandoffTimes(input: $input)
   }
 `
 
@@ -82,9 +82,9 @@ export default function RotationForm(props) {
 
   const isCalculating = !data || loading
 
-  const upcomingHandoffs = isCalculating
+  const nextHandoffs = isCalculating
     ? []
-    : data.upcomingHandoffTimes.map((iso) =>
+    : data.nextRotationHandoffTimes.map((iso) =>
         DateTime.fromISO(iso)
           .setZone(configZone)
           .toLocaleString(DateTime.DATETIME_FULL),
@@ -186,7 +186,7 @@ export default function RotationForm(props) {
             Upcoming Handoff times:
           </Typography>
           <ol className={classes.noSpacing}>
-            {upcomingHandoffs.map((text, i) => (
+            {nextHandoffs.map((text, i) => (
               <Typography
                 key={i}
                 component='li'

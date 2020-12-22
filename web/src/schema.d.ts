@@ -12,7 +12,7 @@ export interface Query {
   services: ServiceConnection
   rotation?: Rotation
   rotations: RotationConnection
-  upcomingHandoffTimes: ISOTimestamp[]
+  nextRotationHandoffTimes: ISOTimestamp[]
   schedule?: Schedule
   userCalendarSubscription?: UserCalendarSubscription
   schedules: ScheduleConnection
@@ -503,7 +503,7 @@ export interface RotationSearchOptions {
   favoritesFirst?: boolean
 }
 
-export interface UpcomingHandoffTimesInput {
+export interface NextRotationHandoffTimesInput {
   start: ISOTimestamp
   timeZone: string
   hours: number
