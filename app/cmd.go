@@ -226,7 +226,7 @@ Migration: %s (#%d)
 
 	testCmd = &cobra.Command{
 		Use:   "self-test",
-		Short: "test suite to validate functionality of Goalert environemnt",
+		Short: "test suite to validate functionality of GoAlert environment",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var failed bool
 			result := func(name string, err error) {
