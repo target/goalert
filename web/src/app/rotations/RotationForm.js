@@ -28,19 +28,19 @@ const query = gql`
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
 const useStyles = makeStyles({
-  listNone: {
+  handoffTimestamp: {
     listStyle: 'none',
   },
-  bolder: {
+  handoffsTitle: {
     fontWeight: 'bolder',
   },
-  flex: {
+  tzContainer: {
     display: 'flex',
   },
-  height7rem: {
+  handoffsContainer: {
     height: '7rem',
   },
-  noSpacing: {
+  handoffsList: {
     margin: 0,
     padding: 0,
   },
@@ -152,7 +152,7 @@ export default function RotationForm(props) {
           />
         </Grid>
         {localZone !== value.timeZone && (
-          <Grid item xs={6} className={classes.flex}>
+          <Grid item xs={6} className={classes.tzContainer}>
             <Grid container justify='center'>
               <FormControlLabel
                 control={
@@ -181,16 +181,16 @@ export default function RotationForm(props) {
           />
         </Grid>
 
-        <Grid item xs={12} className={classes.height7rem}>
-          <Typography variant='body2' className={classes.bolder}>
+        <Grid item xs={12} className={classes.handoffsContainer}>
+          <Typography variant='body2' className={classes.handoffsTitle}>
             Upcoming Handoff times:
           </Typography>
-          <ol className={classes.noSpacing}>
+          <ol className={classes.handoffsList}>
             {nextHandoffs.map((text, i) => (
               <Typography
                 key={i}
                 component='li'
-                className={classes.listNone}
+                className={classes.handoffTimestamp}
                 variant='body2'
               >
                 {text}
