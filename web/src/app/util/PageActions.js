@@ -121,11 +121,9 @@ export default class PageActions extends React.PureComponent {
     return (
       <PageActionsContext.Consumer>
         {({ setActions, trackMount }) => (
-          <PageActionUpdater
-            setActions={setActions}
-            trackMount={trackMount}
-            children={this.props.children}
-          />
+          <PageActionUpdater setActions={setActions} trackMount={trackMount}>
+            {this.props.children}
+          </PageActionUpdater>
         )}
       </PageActionsContext.Consumer>
     )

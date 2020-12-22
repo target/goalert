@@ -117,8 +117,15 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		db: db,
 
-		createRotation:   p.P(`INSERT INTO rotations (id, name, description, type, start_time, shift_length, time_zone) VALUES ($1, $2, $3, $4, $5, $6, $7)`),
-		updateRotation:   p.P(`UPDATE rotations SET name = $2, description = $3, type = $4, start_time = $5, shift_length = $6, time_zone = $7 WHERE id = $1`),
+		createRotation: p.P(`INSERT INTO rotations (id, name, description, type, start_time, shift_length, time_zone) VALUES ($1, $2, $3, $4, $5, $6, $7)`),
+		updateRotation: p.P(`
+			WITH set_shift_start AS (
+				UPDATE rotation_state
+				SET shift_start = now()
+				WHERE rotation_id = $1
+			)
+			UPDATE rotations SET name = $2, description = $3, type = $4, start_time = $5, shift_length = $6, time_zone = $7 WHERE id = $1
+		`),
 		findAllRotations: p.P(`SELECT id, name, description, type, start_time, shift_length, time_zone FROM rotations`),
 		findRotation: p.P(`
 			SELECT 
