@@ -1,7 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import p from 'prop-types'
-import { FormContainer, FormField } from '../forms'
-import { TimeZoneSelect } from '../selection'
 import {
   TextField,
   Grid,
@@ -12,10 +10,14 @@ import {
   FormControlLabel,
 } from '@material-ui/core'
 import { startCase } from 'lodash'
-import { ISODateTimePicker } from '../util/ISOPickers'
-import NumberField from '../util/NumberField'
 import { DateTime } from 'luxon'
 import { useQuery, gql } from '@apollo/client'
+
+import { FormContainer, FormField } from '../forms'
+import { TimeZoneSelect } from '../selection'
+import { ISODateTimePicker } from '../util/ISOPickers'
+import NumberField from '../util/NumberField'
+import Spinner from '../loading/components/Spinner'
 
 const query = gql`
   query upcomingHandoffTimes($input: UpcomingHandoffTimesInput) {
@@ -34,6 +36,13 @@ const useStyles = makeStyles({
   },
   flex: {
     display: 'flex',
+  },
+  height7rem: {
+    height: '7rem',
+  },
+  noSpacing: {
+    margin: 0,
+    padding: 0,
   },
 })
 
@@ -54,14 +63,13 @@ export default function RotationForm(props) {
   const localZone = DateTime.local().zone.name
   const [configInZone, setConfigInZone] = useState(false)
   const configZone = configInZone ? value.timeZone : 'local'
-  const [upcomingHandoffs, setUpcomingHandoffs] = useState([])
 
   const [minStart, maxStart] = useMemo(() => [
     DateTime.local().minus({ year: 1 }),
     DateTime.local().plus({ year: 1 }),
   ])
 
-  const { data } = useQuery(query, {
+  const { data, loading, error } = useQuery(query, {
     variables: {
       input: {
         start: value.start,
@@ -72,17 +80,15 @@ export default function RotationForm(props) {
     },
   })
 
-  useEffect(() => {
-    if (data?.upcomingHandoffTimes) {
-      const upcomingHandoffTimes = data.upcomingHandoffTimes.map((iso) =>
+  const isCalculating = !data || loading
+
+  const upcomingHandoffs = isCalculating
+    ? []
+    : data.upcomingHandoffTimes.map((iso) =>
         DateTime.fromISO(iso)
           .setZone(configZone)
           .toLocaleString(DateTime.DATETIME_FULL),
       )
-
-      setUpcomingHandoffs(upcomingHandoffTimes)
-    }
-  }, [configInZone, data])
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -175,20 +181,28 @@ export default function RotationForm(props) {
           />
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid item xs={12} className={classes.height7rem}>
           <Typography variant='body2' className={classes.bolder}>
             Upcoming Handoff times:
           </Typography>
-          {upcomingHandoffs.map((text, i) => (
-            <Typography
-              key={i}
-              component='li'
-              className={classes.listNone}
-              variant='body2'
-            >
-              {text}
+          <ol className={classes.noSpacing}>
+            {upcomingHandoffs.map((text, i) => (
+              <Typography
+                key={i}
+                component='li'
+                className={classes.listNone}
+                variant='body2'
+              >
+                {text}
+              </Typography>
+            ))}
+          </ol>
+          {isCalculating && <Spinner text='Calculating...' />}
+          {error && (
+            <Typography variant='body2' color='error'>
+              {error.message}
             </Typography>
-          ))}
+          )}
         </Grid>
       </Grid>
     </FormContainer>
