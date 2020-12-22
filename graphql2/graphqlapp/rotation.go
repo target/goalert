@@ -391,7 +391,7 @@ func (a *Query) NextRotationHandoffTimes(ctx context.Context, input *graphql2.Ne
 
 	loc, err := util.LoadLocation(input.TimeZone)
 	if err != nil {
-		return result, errors.Wrap(err, "failed to load location for "+input.TimeZone)
+		return result, err
 	}
 
 	rot := &rotation.Rotation{
