@@ -406,5 +406,5 @@ func (a *Query) NextRotationHandoffTimes(ctx context.Context, input *graphql2.Ne
 		result = append(result, t)
 	}
 
-	return result, err
+	return result, nil
 }
