@@ -506,7 +506,7 @@ export interface RotationSearchOptions {
 export interface NextRotationHandoffTimesInput {
   start: ISOTimestamp
   timeZone: string
-  hours: number
+  shiftLengthHours: number
   count: number
 }
 

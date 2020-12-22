@@ -226,10 +226,10 @@ type LabelValueSearchOptions struct {
 }
 
 type NextRotationHandoffTimesInput struct {
-	Start    time.Time `json:"start"`
-	TimeZone string    `json:"timeZone"`
-	Hours    int       `json:"hours"`
-	Count    int       `json:"count"`
+	Start            time.Time `json:"start"`
+	TimeZone         string    `json:"timeZone"`
+	ShiftLengthHours int       `json:"shiftLengthHours"`
+	Count            int       `json:"count"`
 }
 
 type NotificationState struct {

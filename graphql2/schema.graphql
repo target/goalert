@@ -660,7 +660,7 @@ input RotationSearchOptions {
 input NextRotationHandoffTimesInput {
   start: ISOTimestamp!
   timeZone: String!
-  hours: Int!
+  shiftLengthHours: Int!
   count: Int!
 }
 

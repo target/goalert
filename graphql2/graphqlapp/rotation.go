@@ -383,7 +383,7 @@ func (a *Query) NextRotationHandoffTimes(ctx context.Context, input *graphql2.Ne
 	err = validate.Many(
 		err,
 		validate.Range("input.count", input.Count, 0, 20),
-		validate.Range("input.hours", input.Hours, 0, 99999),
+		validate.Range("input.hours", input.ShiftLengthHours, 0, 99999),
 	)
 	if err != nil {
 		return result, err
@@ -396,7 +396,7 @@ func (a *Query) NextRotationHandoffTimes(ctx context.Context, input *graphql2.Ne
 
 	rot := &rotation.Rotation{
 		Start:       input.Start.In(loc),
-		ShiftLength: input.Hours,
+		ShiftLength: input.ShiftLengthHours,
 		Type:        rotation.TypeHourly,
 	}
 
