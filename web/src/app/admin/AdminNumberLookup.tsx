@@ -53,7 +53,7 @@ export default function AdminNumberLookup(): JSX.Element {
   const [lastError, setLastError] = useState(null as null | ApolloError)
 
   const { data: numData } = useQuery(numInfoQuery, {
-    variables: { number: '+' + number },
+    variables: { number },
     pollInterval: 0,
     onError: (err) => setLastError(err),
   })
@@ -62,7 +62,7 @@ export default function AdminNumberLookup(): JSX.Element {
   const [lookup, { data: carrData, loading: carrLoading }] = useMutation(
     carrierInfoMut,
     {
-      variables: { number: '+' + number },
+      variables: { number },
       onError: (err) => setLastError(err),
     },
   )
