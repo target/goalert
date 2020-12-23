@@ -391,7 +391,7 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 
 	loc, err := util.LoadLocation(input.TimeZone)
 	if err != nil {
-		return result, validation.NewFieldError("timeZone", err.Error())
+		return result, validation.NewFieldError("input.timeZone", err.Error())
 	}
 
 	rot := &rotation.Rotation{
