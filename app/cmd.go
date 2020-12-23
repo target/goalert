@@ -330,6 +330,25 @@ Migration: %s (#%d)
 
 			result("DST Rules", dstCheck())
 
+			versionCheck := func() error {
+				const filepath = "./web/src/build/static/app.js"
+				appjs, err := ioutil.ReadFile(filepath)
+				if err != nil {
+					return fmt.Errorf("read app js bundle: %w", err)
+				}
+
+				cleanGitVersion := strings.TrimSuffix(version.GitVersion(), "-dirty")
+
+				ok := strings.Contains(string(appjs), cleanGitVersion)
+				if !ok {
+					return errors.Errorf("version mismatch; want %s", cleanGitVersion)
+				}
+
+				return nil
+			}
+
+			result("Version Check", versionCheck())
+
 			if failed {
 				return errors.New("one or more checks failed.")
 			}
