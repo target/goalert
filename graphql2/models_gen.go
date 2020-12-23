@@ -58,6 +58,13 @@ type AuthSubjectConnection struct {
 	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
+type CalcRotationHandoffTimesInput struct {
+	Start            time.Time `json:"start"`
+	TimeZone         string    `json:"timeZone"`
+	ShiftLengthHours int       `json:"shiftLengthHours"`
+	Count            int       `json:"count"`
+}
+
 type ConfigHint struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
@@ -223,13 +230,6 @@ type LabelValueSearchOptions struct {
 	After  *string  `json:"after"`
 	Search *string  `json:"search"`
 	Omit   []string `json:"omit"`
-}
-
-type NextRotationHandoffTimesInput struct {
-	Start            time.Time `json:"start"`
-	TimeZone         string    `json:"timeZone"`
-	ShiftLengthHours int       `json:"shiftLengthHours"`
-	Count            int       `json:"count"`
 }
 
 type NotificationState struct {

@@ -20,8 +20,8 @@ import NumberField from '../util/NumberField'
 import Spinner from '../loading/components/Spinner'
 
 const query = gql`
-  query nextRotationHandoffTimes($input: NextRotationHandoffTimesInput) {
-    nextRotationHandoffTimes(input: $input)
+  query calcRotationHandoffTimes($input: CalcRotationHandoffTimesInput) {
+    calcRotationHandoffTimes(input: $input)
   }
 `
 
@@ -84,7 +84,7 @@ export default function RotationForm(props) {
 
   const nextHandoffs = isCalculating
     ? []
-    : data.nextRotationHandoffTimes.map((iso) =>
+    : data.calcRotationHandoffTimes.map((iso) =>
         DateTime.fromISO(iso)
           .setZone(configZone)
           .toLocaleString(DateTime.DATETIME_FULL),

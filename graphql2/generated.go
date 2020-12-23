@@ -285,6 +285,7 @@ type ComplexityRoot struct {
 		Alert                    func(childComplexity int, id int) int
 		Alerts                   func(childComplexity int, input *AlertSearchOptions) int
 		AuthSubjectsForProvider  func(childComplexity int, first *int, after *string, providerID string) int
+		CalcRotationHandoffTimes func(childComplexity int, input *CalcRotationHandoffTimesInput) int
 		Config                   func(childComplexity int, all *bool) int
 		ConfigHints              func(childComplexity int) int
 		EscalationPolicies       func(childComplexity int, input *EscalationPolicySearchOptions) int
@@ -294,7 +295,6 @@ type ComplexityRoot struct {
 		LabelKeys                func(childComplexity int, input *LabelKeySearchOptions) int
 		LabelValues              func(childComplexity int, input *LabelValueSearchOptions) int
 		Labels                   func(childComplexity int, input *LabelSearchOptions) int
-		NextRotationHandoffTimes func(childComplexity int, input *NextRotationHandoffTimesInput) int
 		PhoneNumberInfo          func(childComplexity int, number string) int
 		Rotation                 func(childComplexity int, id string) int
 		Rotations                func(childComplexity int, input *RotationSearchOptions) int
@@ -587,7 +587,7 @@ type QueryResolver interface {
 	Services(ctx context.Context, input *ServiceSearchOptions) (*ServiceConnection, error)
 	Rotation(ctx context.Context, id string) (*rotation.Rotation, error)
 	Rotations(ctx context.Context, input *RotationSearchOptions) (*RotationConnection, error)
-	NextRotationHandoffTimes(ctx context.Context, input *NextRotationHandoffTimesInput) ([]time.Time, error)
+	CalcRotationHandoffTimes(ctx context.Context, input *CalcRotationHandoffTimesInput) ([]time.Time, error)
 	Schedule(ctx context.Context, id string) (*schedule.Schedule, error)
 	UserCalendarSubscription(ctx context.Context, id string) (*calendarsubscription.CalendarSubscription, error)
 	Schedules(ctx context.Context, input *ScheduleSearchOptions) (*ScheduleConnection, error)
@@ -1804,6 +1804,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AuthSubjectsForProvider(childComplexity, args["first"].(*int), args["after"].(*string), args["providerID"].(string)), true
 
+	case "Query.calcRotationHandoffTimes":
+		if e.complexity.Query.CalcRotationHandoffTimes == nil {
+			break
+		}
+
+		args, err := ec.field_Query_calcRotationHandoffTimes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CalcRotationHandoffTimes(childComplexity, args["input"].(*CalcRotationHandoffTimesInput)), true
+
 	case "Query.config":
 		if e.complexity.Query.Config == nil {
 			break
@@ -1906,18 +1918,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Labels(childComplexity, args["input"].(*LabelSearchOptions)), true
-
-	case "Query.nextRotationHandoffTimes":
-		if e.complexity.Query.NextRotationHandoffTimes == nil {
-			break
-		}
-
-		args, err := ec.field_Query_nextRotationHandoffTimes_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.NextRotationHandoffTimes(childComplexity, args["input"].(*NextRotationHandoffTimesInput)), true
 
 	case "Query.phoneNumberInfo":
 		if e.complexity.Query.PhoneNumberInfo == nil {
@@ -3027,7 +3027,7 @@ var sources = []*ast.Source{
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
 
-  nextRotationHandoffTimes(input: NextRotationHandoffTimesInput): [ISOTimestamp!]!
+  calcRotationHandoffTimes(input: CalcRotationHandoffTimesInput): [ISOTimestamp!]!
 
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
@@ -3647,7 +3647,7 @@ input RotationSearchOptions {
   favoritesFirst: Boolean = false
 }
 
-input NextRotationHandoffTimesInput {
+input CalcRotationHandoffTimesInput {
   start: ISOTimestamp!
   timeZone: String!
   shiftLengthHours: Int!
@@ -4717,6 +4717,21 @@ func (ec *executionContext) field_Query_authSubjectsForProvider_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_calcRotationHandoffTimes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *CalcRotationHandoffTimesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOCalcRotationHandoffTimesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCalcRotationHandoffTimesInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_config_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4829,21 +4844,6 @@ func (ec *executionContext) field_Query_labels_args(ctx context.Context, rawArgs
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOLabelSearchOptions2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐLabelSearchOptions(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_nextRotationHandoffTimes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *NextRotationHandoffTimesInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalONextRotationHandoffTimesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNextRotationHandoffTimesInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -10269,7 +10269,7 @@ func (ec *executionContext) _Query_rotations(ctx context.Context, field graphql.
 	return ec.marshalNRotationConnection2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐRotationConnection(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_nextRotationHandoffTimes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_calcRotationHandoffTimes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10286,7 +10286,7 @@ func (ec *executionContext) _Query_nextRotationHandoffTimes(ctx context.Context,
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_nextRotationHandoffTimes_args(ctx, rawArgs)
+	args, err := ec.field_Query_calcRotationHandoffTimes_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -10294,7 +10294,7 @@ func (ec *executionContext) _Query_nextRotationHandoffTimes(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().NextRotationHandoffTimes(rctx, args["input"].(*NextRotationHandoffTimesInput))
+		return ec.resolvers.Query().CalcRotationHandoffTimes(rctx, args["input"].(*CalcRotationHandoffTimesInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16304,6 +16304,50 @@ func (ec *executionContext) unmarshalInputAuthSubjectInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx context.Context, obj interface{}) (CalcRotationHandoffTimesInput, error) {
+	var it CalcRotationHandoffTimesInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "start":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
+			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timeZone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
+			it.TimeZone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "shiftLengthHours":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLengthHours"))
+			it.ShiftLengthHours, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "count":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+			it.Count, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigValueInput(ctx context.Context, obj interface{}) (ConfigValueInput, error) {
 	var it ConfigValueInput
 	var asMap = obj.(map[string]interface{})
@@ -17203,50 +17247,6 @@ func (ec *executionContext) unmarshalInputLabelValueSearchOptions(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omit"))
 			it.Omit, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNextRotationHandoffTimesInput(ctx context.Context, obj interface{}) (NextRotationHandoffTimesInput, error) {
-	var it NextRotationHandoffTimesInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "start":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "timeZone":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timeZone"))
-			it.TimeZone, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "shiftLengthHours":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shiftLengthHours"))
-			it.ShiftLengthHours, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "count":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-			it.Count, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19893,7 +19893,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "nextRotationHandoffTimes":
+		case "calcRotationHandoffTimes":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -19901,7 +19901,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_nextRotationHandoffTimes(ctx, field)
+				res = ec._Query_calcRotationHandoffTimes(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -24221,6 +24221,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
+func (ec *executionContext) unmarshalOCalcRotationHandoffTimesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCalcRotationHandoffTimesInput(ctx context.Context, v interface{}) (*CalcRotationHandoffTimesInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCalcRotationHandoffTimesInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, v interface{}) (*rule.Clock, error) {
 	if v == nil {
 		return nil, nil
@@ -24602,14 +24610,6 @@ func (ec *executionContext) unmarshalOLabelValueSearchOptions2ᚖgithubᚗcomᚋ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputLabelValueSearchOptions(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalONextRotationHandoffTimesInput2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐNextRotationHandoffTimesInput(ctx context.Context, v interface{}) (*NextRotationHandoffTimesInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputNextRotationHandoffTimesInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
