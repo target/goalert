@@ -19,36 +19,6 @@ var typePriority = map[Type]int{
 	TypeAlertStatusUpdateBundle: 4,
 }
 
-var perCMThrottle = ThrottleConfig{
-	notification.DestTypeVoice: {
-		{Count: 1, Per: time.Minute},
-		{Count: 3, Per: 15 * time.Minute},
-		{Count: 5, Per: time.Hour},
-		{Count: 10, Per: 3 * time.Hour},
-	},
-	notification.DestTypeSMS: {
-		{Count: 1, Per: time.Minute},
-		{Count: 5, Per: 15 * time.Minute},
-		{Count: 12, Per: time.Hour},
-		{Count: 20, Per: 3 * time.Hour},
-	},
-	notification.DestTypeSlackChannel: {
-		{Count: 1, Per: time.Minute},
-	},
-}
-
-var globalCMThrottle = ThrottleConfig{
-	notification.DestTypeVoice: {
-		{Count: 5, Per: 5 * time.Second},
-	},
-	notification.DestTypeSMS: {
-		{Count: 5, Per: 5 * time.Second},
-	},
-	notification.DestTypeSlackChannel: {
-		{Count: 5, Per: 5 * time.Second},
-	},
-}
-
 type queue struct {
 	sent    []Message
 	pending map[notification.DestType][]Message
@@ -81,8 +51,8 @@ func newQueue(msgs []Message, now time.Time) *queue {
 		userSent:    make(map[string]time.Time),
 		destSent:    make(map[notification.Dest]time.Time),
 
-		cmThrottle:     NewThrottle(perCMThrottle, now, false),
-		globalThrottle: NewThrottle(globalCMThrottle, now, true),
+		cmThrottle:     NewThrottle(PerCMThrottle, now, false),
+		globalThrottle: NewThrottle(GlobalCMThrottle, now, true),
 	}
 
 	for _, m := range msgs {

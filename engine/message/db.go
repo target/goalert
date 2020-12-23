@@ -360,7 +360,7 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 	}, p.Err
 }
 
-var maxMessageAge = maxThrottleDuration(perCMThrottle, globalCMThrottle)
+var maxMessageAge = maxThrottleDuration(PerCMThrottle, GlobalCMThrottle)
 
 func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*queue, error) {
 	cutoff := now.Add(-maxMessageAge)
