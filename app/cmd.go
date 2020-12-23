@@ -444,13 +444,13 @@ Migration: %s (#%d)
 			}
 
 			if pass == "" {
-				fmt.Printf("New Password: ")
+				fmt.Fprint(os.Stderr, "New Password: ")
 				p, err := term.ReadPassword(int(os.Stdin.Fd()))
 				if err != nil {
 					return errors.Wrap(err, "get password")
 				}
 				pass = string(p)
-				fmt.Print("\n")
+				fmt.Fprintln(os.Stderr)
 			}
 
 			err = basicStore.CreateTx(ctx, tx, id, username, pass)
