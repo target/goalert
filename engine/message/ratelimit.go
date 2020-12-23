@@ -36,4 +36,3 @@ var GlobalCMThrottle = ThrottleConfig{
 		{Count: 5, Per: 5 * time.Second},
 	},
 }
-
