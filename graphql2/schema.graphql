@@ -658,7 +658,7 @@ input RotationSearchOptions {
 }
 
 input CalcRotationHandoffTimesInput {
-  start: ISOTimestamp!
+  handoff: ISOTimestamp!
   timeZone: String!
   shiftLengthHours: Int!
   count: Int!

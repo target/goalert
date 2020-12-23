@@ -72,7 +72,7 @@ export default function RotationForm(props) {
   const { data, loading, error } = useQuery(query, {
     variables: {
       input: {
-        start: value.start,
+        handoff: value.start,
         timeZone: value.timeZone,
         shiftLengthHours: getHours(value.shiftLength, value.type),
         count: 3,

@@ -3648,7 +3648,7 @@ input RotationSearchOptions {
 }
 
 input CalcRotationHandoffTimesInput {
-  start: ISOTimestamp!
+  handoff: ISOTimestamp!
   timeZone: String!
   shiftLengthHours: Int!
   count: Int!
@@ -16310,11 +16310,11 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 
 	for k, v := range asMap {
 		switch k {
-		case "start":
+		case "handoff":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("handoff"))
+			it.Handoff, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}

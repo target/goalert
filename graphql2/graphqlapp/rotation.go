@@ -395,7 +395,7 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 	}
 
 	rot := &rotation.Rotation{
-		Start:       input.Start.In(loc),
+		Start:       input.Handoff.In(loc),
 		ShiftLength: input.ShiftLengthHours,
 		Type:        rotation.TypeHourly,
 	}
