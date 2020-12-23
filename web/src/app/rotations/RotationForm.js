@@ -173,7 +173,7 @@ export default function RotationForm(props) {
             fullWidth
             component={ISODateTimePicker}
             timeZone={configZone}
-            label='Initial Handoff Time'
+            label='Handoff Time'
             name='start'
             min={minStart.toISO()}
             max={maxStart.toISO()}
