@@ -450,7 +450,7 @@ Migration: %s (#%d)
 					return errors.Wrap(err, "get password")
 				}
 				pass = string(p)
-				fmt.Printf("\n'%s'\n", pass)
+				fmt.Print("\n")
 			}
 
 			err = basicStore.CreateTx(ctx, tx, id, username, pass)
