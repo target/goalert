@@ -30,7 +30,7 @@ import (
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
 	"go.opencensus.io/trace"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 var shutdownSignalCh = make(chan os.Signal, 2)
@@ -347,7 +347,7 @@ Migration: %s (#%d)
 			if viper.GetString("data") != "" {
 				data = []byte(viper.GetString("data"))
 			} else {
-				if terminal.IsTerminal(int(os.Stdin.Fd())) {
+				if term.IsTerminal(int(os.Stdin.Fd())) {
 					// Only print message if we're not piping
 					fmt.Println("Enter or paste config data (JSON), then press CTRL+D when done or CTRL+C to quit.")
 				}
@@ -444,13 +444,13 @@ Migration: %s (#%d)
 			}
 
 			if pass == "" {
-				fmt.Printf("New Password: ")
-				p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+				fmt.Fprint(os.Stderr, "New Password: ")
+				p, err := term.ReadPassword(int(os.Stdin.Fd()))
 				if err != nil {
 					return errors.Wrap(err, "get password")
 				}
 				pass = string(p)
-				fmt.Printf("\n'%s'\n", pass)
+				fmt.Fprintln(os.Stderr)
 			}
 
 			err = basicStore.CreateTx(ctx, tx, id, username, pass)
