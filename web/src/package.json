@@ -79,7 +79,7 @@
     "modernizr-loader": "1.0.1",
     "react": "16.14.0",
     "react-beautiful-dnd": "13.0.0",
-    "react-big-calendar": "0.28.6",
+    "react-big-calendar": "0.30.0",
     "react-countdown-now": "2.1.2",
     "react-dom": "16.14.0",
     "react-ga": "3.1.2",
