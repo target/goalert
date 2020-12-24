@@ -64,7 +64,7 @@ type DB struct {
 	insertStatusBundle *sql.Stmt
 
 	lastSent     time.Time
-	sentMessages []Message
+	sentMessages map[string]Message
 }
 
 // NewDB creates a new DB.
@@ -128,6 +128,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 		updateStatus: updateStatus,
 		tempFail:     tempFail,
 		permFail:     permFail,
+
+		sentMessages: make(map[string]Message),
 
 		advLock: p.P(`select pg_advisory_lock($1)`),
 		advLockCleanup: p.P(`
@@ -369,15 +371,14 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		sentSince = cutoff
 	}
 
-	// TODO: possibly dedup (e.g. multiple engines)
-	msgs := db.sentMessages[:0]
-	for _, msg := range db.sentMessages {
+	result := make([]Message, 0, len(db.sentMessages))
+	for id, msg := range db.sentMessages {
 		if msg.SentAt.Before(cutoff) {
+			delete(db.sentMessages, id)
 			continue
 		}
-		msgs = append(msgs, msg)
+		result = append(result, msg)
 	}
-	db.sentMessages = msgs
 
 	rows, err := tx.Stmt(db.messages).QueryContext(ctx, sentSince)
 	if err != nil {
@@ -385,8 +386,6 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 	defer rows.Close()
 
-	result := make([]Message, len(db.sentMessages))
-	copy(result, db.sentMessages)
 	for rows.Next() {
 		var msg Message
 		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
@@ -436,7 +435,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 
 		result = append(result, msg)
 		if !msg.SentAt.IsZero() {
-			db.sentMessages = append(db.sentMessages, msg)
+			db.sentMessages[msg.ID] = msg
 		}
 	}
 	db.lastSent = now
