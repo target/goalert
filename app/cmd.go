@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -18,6 +19,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/target/goalert/auth/basic"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/keyring"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/permission"
@@ -26,6 +28,7 @@ import (
 	"github.com/target/goalert/switchover"
 	"github.com/target/goalert/switchover/dbsync"
 	"github.com/target/goalert/user"
+	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
@@ -34,6 +37,9 @@ import (
 )
 
 var shutdownSignalCh = make(chan os.Signal, 2)
+
+// ErrDBRequired is returned when the DB URL is unset.
+var ErrDBRequired = validation.NewFieldError("db-url", "is required")
 
 func init() {
 	signal.Notify(shutdownSignalCh, shutdownSignals...)
@@ -214,6 +220,119 @@ Migration: %s (#%d)
 				migrations[len(migrations)-1], len(migrations),
 			)
 
+			return nil
+		},
+	}
+
+	testCmd = &cobra.Command{
+		Use:   "self-test",
+		Short: "test suite to validate functionality of GoAlert environment",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var failed bool
+			result := func(name string, err error) {
+				if err != nil {
+					failed = true
+					fmt.Printf("%s: FAIL (%v)\n", name, err)
+					return
+				}
+				fmt.Printf("%s: OK\n", name)
+			}
+
+			cf, err := getConfig()
+			if errors.Is(err, ErrDBRequired) {
+				err = nil
+			}
+			if err != nil {
+				return err
+			}
+			var cfg config.Config
+			loadConfigDB := func() error {
+				conn, err := sql.Open("pgx", cf.DBURL)
+				if err != nil {
+					return fmt.Errorf("open db: %w", err)
+				}
+
+				ctx := context.Background()
+
+				store, err := config.NewStore(ctx, conn, cf.EncryptionKeys, "")
+				if err != nil {
+					return fmt.Errorf("read config: %w", err)
+				}
+				cfg = store.Config()
+				store.Shutdown(ctx)
+				return nil
+			}
+			if cf.DBURL != "" {
+				result("DB", loadConfigDB())
+			}
+
+			type service struct {
+				name, baseUrl string
+			}
+
+			serviceList := []service{
+				{name: "Twilio", baseUrl: "https://api.twilio.com/2010-04-01"},
+				{name: "Mailgun", baseUrl: "https://api.mailgun.net/v3"},
+				{name: "Slack", baseUrl: "https://slack.com/api/api.test"},
+			}
+
+			if cfg.OIDC.Enable {
+				serviceList = append(serviceList, service{name: "OIDC", baseUrl: cfg.OIDC.IssuerURL + "/.well-known.openid-configuration"})
+			}
+
+			if cfg.GitHub.Enable {
+				url := "https://github.com"
+				if cfg.GitHub.EnterpriseURL != "" {
+					url = cfg.GitHub.EnterpriseURL
+				}
+				serviceList = append(serviceList, service{name: "GitHub", baseUrl: url})
+			}
+
+			for _, s := range serviceList {
+				resp, err := http.Get(s.baseUrl)
+				result(s.name, err)
+				if err == nil {
+					resp.Body.Close()
+				}
+			}
+
+			dstCheck := func() error {
+				const (
+					standardOffset = -21600
+					daylightOffset = -18000
+				)
+				loc, err := util.LoadLocation("America/Chicago")
+				if err != nil {
+					return fmt.Errorf("load location: %w", err)
+				}
+				t := time.Date(2020, time.March, 8, 0, 0, 0, 0, loc)
+				_, offset := t.Zone()
+				if offset != standardOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, standardOffset)
+				}
+				t = t.Add(3 * time.Hour)
+				_, offset = t.Zone()
+				if offset != daylightOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, daylightOffset)
+				}
+				t = time.Date(2020, time.November, 1, 0, 0, 0, 0, loc)
+				_, offset = t.Zone()
+				if offset != daylightOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, daylightOffset)
+				}
+				t = t.Add(3 * time.Hour)
+				_, offset = t.Zone()
+				if offset != standardOffset {
+					return errors.Errorf("invalid offset: got %d; want %d", offset, standardOffset)
+				}
+				return nil
+			}
+
+			result("DST Rules", dstCheck())
+
+			if failed {
+				return errors.New("one or more checks failed.")
+			}
 			return nil
 		},
 	}
@@ -523,7 +642,7 @@ func getConfig() (Config, error) {
 	}
 
 	if cfg.DBURL == "" {
-		return cfg, validation.NewFieldError("db-url", "is required")
+		return cfg, ErrDBRequired
 	}
 
 	var err error
@@ -611,7 +730,7 @@ func init() {
 	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
-	RootCmd.AddCommand(versionCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {
