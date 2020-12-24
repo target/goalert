@@ -114,7 +114,7 @@ export default function CalendarEventWrapper(props) {
 
   return (
     <Tooltip
-      open={props.selected}
+      open={focused && props.selected}
       classes={{
         tooltip: classes.tooltip,
         popper: classes.popper,
@@ -128,7 +128,7 @@ export default function CalendarEventWrapper(props) {
     >
       {React.cloneElement(children, {
         onBlur: () => setFocused(false),
-        // onFocus: () => setFocused(true),
+        onFocus: () => setFocused(true),
         role: 'button',
       })}
     </Tooltip>
