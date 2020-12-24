@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
@@ -38,10 +38,10 @@ const useStyles = makeStyles((theme) => ({
 export default function CalendarEventWrapper(props) {
   const classes = useStyles()
   const { children, event, onOverrideClick } = props
-  const [focused, setFocused] = useState(false)
+  const [open, setOpen] = useState(false)
 
   function handleShowOverrideForm(type) {
-    setFocused(false)
+    setOpen(false)
 
     onOverrideClick({
       variant: type,
@@ -114,7 +114,7 @@ export default function CalendarEventWrapper(props) {
 
   return (
     <Tooltip
-      open={focused && props.selected}
+      open={open}
       classes={{
         tooltip: classes.tooltip,
         popper: classes.popper,
@@ -127,9 +127,11 @@ export default function CalendarEventWrapper(props) {
       title={renderInteractiveTooltip()}
     >
       {React.cloneElement(children, {
-        onBlur: () => setFocused(false),
-        onFocus: () => setFocused(true),
+        onClick: () => setOpen(true), // handles opening by mouse
+        onKeyDown: () => setOpen(true), // handles opening by screen reader/keyboard
+        onBlur: () => setOpen(false),
         role: 'button',
+        'aria-pressed': open,
       })}
     </Tooltip>
   )
