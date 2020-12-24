@@ -58,6 +58,13 @@ type AuthSubjectConnection struct {
 	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
+type CalcRotationHandoffTimesInput struct {
+	Handoff          time.Time `json:"handoff"`
+	TimeZone         string    `json:"timeZone"`
+	ShiftLengthHours int       `json:"shiftLengthHours"`
+	Count            int       `json:"count"`
+}
+
 type ConfigHint struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
