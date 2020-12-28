@@ -12,6 +12,7 @@ export interface Query {
   services: ServiceConnection
   rotation?: Rotation
   rotations: RotationConnection
+  calcRotationHandoffTimes: ISOTimestamp[]
   schedule?: Schedule
   userCalendarSubscription?: UserCalendarSubscription
   schedules: ScheduleConnection
@@ -500,6 +501,13 @@ export interface RotationSearchOptions {
   omit?: string[]
   favoritesOnly?: boolean
   favoritesFirst?: boolean
+}
+
+export interface CalcRotationHandoffTimesInput {
+  handoff: ISOTimestamp
+  timeZone: string
+  shiftLengthHours: number
+  count: number
 }
 
 export interface EscalationPolicySearchOptions {

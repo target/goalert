@@ -1,54 +1,94 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import p from 'prop-types'
+import {
+  TextField,
+  Grid,
+  MenuItem,
+  Typography,
+  makeStyles,
+  Switch,
+  FormControlLabel,
+} from '@material-ui/core'
+import { startCase } from 'lodash'
+import { DateTime } from 'luxon'
+import { useQuery, gql } from '@apollo/client'
+
 import { FormContainer, FormField } from '../forms'
 import { TimeZoneSelect } from '../selection'
-import { TextField, Grid, MenuItem } from '@material-ui/core'
-import { startCase } from 'lodash'
-import { DateTime, Info } from 'luxon'
-import { ISOTimePicker } from '../util/ISOPickers'
+import { ISODateTimePicker } from '../util/ISOPickers'
+import NumberField from '../util/NumberField'
+import Spinner from '../loading/components/Spinner'
+
+const query = gql`
+  query calcRotationHandoffTimes($input: CalcRotationHandoffTimesInput) {
+    calcRotationHandoffTimes(input: $input)
+  }
+`
 
 const rotationTypes = ['hourly', 'daily', 'weekly']
 
+const useStyles = makeStyles({
+  handoffTimestamp: {
+    listStyle: 'none',
+  },
+  handoffsTitle: {
+    fontWeight: 'bolder',
+  },
+  tzContainer: {
+    display: 'flex',
+  },
+  handoffsContainer: {
+    height: '7rem',
+  },
+  handoffsList: {
+    margin: 0,
+    padding: 0,
+  },
+})
+
+// getHours converts a count and one of ['hourly', 'daily', 'weekly']
+// into length in hours e.g. (2, daily) => 48
+function getHours(count, unit) {
+  const lookup = {
+    hourly: 1,
+    daily: 24,
+    weekly: 24 * 7,
+  }
+  return lookup[unit] * count
+}
+
 export default function RotationForm(props) {
-  function dayOfWeek() {
-    const { start, timeZone } = props.value
-    return DateTime.fromISO(start, { zone: timeZone }).weekday
-  }
+  const { value } = props
+  const classes = useStyles()
+  const localZone = DateTime.local().zone.name
+  const [configInZone, setConfigInZone] = useState(false)
+  const configZone = configInZone ? value.timeZone : 'local'
 
-  function setDayOfWeek(weekday) {
-    const { start, timeZone, ...other } = props.value
-    props.onChange({
-      ...other,
-      timeZone,
-      start: DateTime.fromISO(start, { zone: timeZone })
-        .set({ weekday })
-        .toISO(),
-    })
-  }
+  const [minStart, maxStart] = useMemo(() => [
+    DateTime.local().minus({ year: 1 }),
+    DateTime.local().plus({ year: 1 }),
+  ])
 
-  function renderDayOfWeekField() {
-    return (
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          select
-          required
-          label='Day of Week'
-          name='dayOfWeek'
-          value={dayOfWeek()}
-          onChange={(e) => setDayOfWeek(e.target.value)}
-        >
-          {Info.weekdaysFormat('long').map((day, idx) => {
-            return (
-              <MenuItem key={day} value={idx + 1}>
-                {day}
-              </MenuItem>
-            )
-          })}
-        </TextField>
-      </Grid>
-    )
-  }
+  const { data, loading, error } = useQuery(query, {
+    variables: {
+      input: {
+        handoff: value.start,
+        timeZone: value.timeZone,
+        shiftLengthHours: getHours(value.shiftLength, value.type),
+        count: 3,
+      },
+    },
+  })
+
+  const isCalculating = !data || loading
+
+  const nextHandoffs = isCalculating
+    ? []
+    : data.calcRotationHandoffTimes.map((iso) =>
+        DateTime.fromISO(iso)
+          .setZone(configZone)
+          .toLocaleString(DateTime.DATETIME_FULL),
+      )
 
   return (
     <FormContainer optionalLabels {...props}>
@@ -72,18 +112,7 @@ export default function RotationForm(props) {
             required
           />
         </Grid>
-        <Grid item xs={12}>
-          <FormField
-            fullWidth
-            component={TimeZoneSelect}
-            multiline
-            name='timeZone'
-            fieldName='timeZone'
-            label='Time Zone'
-            required
-          />
-        </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormField
             fullWidth
             component={TextField}
@@ -99,10 +128,10 @@ export default function RotationForm(props) {
             ))}
           </FormField>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <FormField
             fullWidth
-            component={TextField}
+            component={NumberField}
             required
             type='number'
             name='shiftLength'
@@ -111,16 +140,70 @@ export default function RotationForm(props) {
             max={9000}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={localZone === value.timeZone ? 12 : 6}>
           <FormField
             fullWidth
-            component={ISOTimePicker}
-            label='Handoff Time'
-            name='start'
+            component={TimeZoneSelect}
+            multiline
+            name='timeZone'
+            fieldName='timeZone'
+            label='Time Zone'
             required
           />
         </Grid>
-        {props.value.type === 'weekly' && renderDayOfWeekField()}
+        {localZone !== value.timeZone && (
+          <Grid item xs={6} className={classes.tzContainer}>
+            <Grid container justify='center'>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={configInZone}
+                    onChange={() => setConfigInZone(!configInZone)}
+                    value={value.timeZone}
+                  />
+                }
+                label={`Configure in ${value.timeZone}`}
+              />
+            </Grid>
+          </Grid>
+        )}
+
+        <Grid item xs={12}>
+          <FormField
+            fullWidth
+            component={ISODateTimePicker}
+            timeZone={configZone}
+            label='Handoff Time'
+            name='start'
+            min={minStart.toISO()}
+            max={maxStart.toISO()}
+            required
+          />
+        </Grid>
+
+        <Grid item xs={12} className={classes.handoffsContainer}>
+          <Typography variant='body2' className={classes.handoffsTitle}>
+            Upcoming Handoff times:
+          </Typography>
+          <ol className={classes.handoffsList}>
+            {nextHandoffs.map((text, i) => (
+              <Typography
+                key={i}
+                component='li'
+                className={classes.handoffTimestamp}
+                variant='body2'
+              >
+                {text}
+              </Typography>
+            ))}
+          </ol>
+          {isCalculating && <Spinner text='Calculating...' />}
+          {error && (
+            <Typography variant='body2' color='error'>
+              {error.message}
+            </Typography>
+          )}
+        </Grid>
       </Grid>
     </FormContainer>
   )

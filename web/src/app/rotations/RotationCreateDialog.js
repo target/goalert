@@ -28,7 +28,7 @@ export default class RotationCreateDialog extends React.PureComponent {
       description: '',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       type: 'daily',
-      start: DateTime.local().startOf('hour').toISO(),
+      start: DateTime.local().plus({ hours: 1 }).startOf('hour').toISO(),
       shiftLength: 1,
       favorite: true,
     },
