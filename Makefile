@@ -1,4 +1,4 @@
-.PHONY: stop start build-docker lint tools regendb resetdb
+.PHONY: stop start build-docker lint tools regendb resetdb mobile
 .PHONY: smoketest generate check all test test-long install install-race
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
@@ -265,3 +265,9 @@ new-migration:
 	@test ! -f migrate/migrations/*-$(NAME).sql || (echo "Migration already exists with the name $(NAME)." && false)
 	@echo "-- +migrate Up\n\n\n-- +migrate Down\n" >migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql
 	@echo "Created: migrate/migrations/$(shell date +%Y%m%d%H%M%S)-$(NAME).sql"
+
+mobile: mobile/yarn.lock
+	bin/runjson <devtools/runjson/localmobiledev.json
+
+mobile/yarn.lock: mobile/package.json
+	yarn --cwd mobile --no-progress --silent && touch $@
