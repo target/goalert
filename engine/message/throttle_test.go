@@ -1,14 +1,15 @@
 package message_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/engine/message"
 	"github.com/target/goalert/notification"
-	"testing"
-	"time"
 )
 
-func TestThrottle_InCooldown(t *testing.T) {
+func TestThrottle(t *testing.T) {
 	n := time.Now()
 
 	var cfg = message.ThrottleConfig{
