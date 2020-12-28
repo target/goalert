@@ -380,7 +380,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		result = append(result, msg)
 	}
 
-	rows, err := tx.Stmt(db.messages).QueryContext(ctx, sentSince)
+	rows, err := tx.StmtContext(ctx, db.messages).QueryContext(ctx, sentSince)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch outgoing messages")
 	}
