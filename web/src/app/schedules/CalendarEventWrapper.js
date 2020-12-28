@@ -112,6 +112,16 @@ export default function CalendarEventWrapper(props) {
     )
   }
 
+  function handleKeyDown(event) {
+    const code = event.keyCode || event.which
+    if (code === 13 || code === 32) {
+      event.preventDefault()
+      setOpen(true)
+    }
+  }
+
+  // calendar event selection is not set when focused by key press
+  // event focus and click events handled manually
   return (
     <Tooltip
       open={open}
@@ -127,8 +137,8 @@ export default function CalendarEventWrapper(props) {
       title={renderInteractiveTooltip()}
     >
       {React.cloneElement(children, {
-        onClick: () => setOpen(true), // handles opening by mouse
-        onKeyDown: () => setOpen(true), // handles opening by screen reader/keyboard
+        onClick: () => setOpen(true),
+        onKeyDown: handleKeyDown, // handles opening by screen reader/keyboard
         onBlur: () => setOpen(false),
         role: 'button',
         'aria-pressed': open,
