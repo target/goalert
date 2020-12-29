@@ -240,6 +240,7 @@ function testAlerts(screen: ScreenFormat): void {
       )
 
       // ack all three
+      cy.reload()
       cy.get(`span[data-cy=item-${alert1.id}] input`).check()
       cy.get(`span[data-cy=item-${alert2.id}] input`).check()
       cy.get(`span[data-cy=item-${alert3.id}] input`).check()
