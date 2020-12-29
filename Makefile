@@ -3,7 +3,6 @@
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
 .PHONY: docker-goalert docker-all-in-one release
-.PHONY: goalert-web
 .SUFFIXES:
 
 GOFILES = $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print | grep -v web/inline_data_gen.go) go.sum
@@ -219,9 +218,6 @@ node_modules/.yarn-integrity:
 
 node_modules: yarn.lock node_modules/.yarn-integrity
 	touch -c $@
-
-goalert-web:
-	yarn workspace goalert-web install --no-progress --silent
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
