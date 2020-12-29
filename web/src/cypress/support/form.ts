@@ -141,7 +141,7 @@ function fillFormField(
 
           // clear chips on multi-select
           el.parent()
-            .find('[data-cy="multi-value"] > svg')
+            .find('[data-cy="multi-value"]')
             .each(() => {
               cy.get(selector).type(`{backspace}`)
             })
