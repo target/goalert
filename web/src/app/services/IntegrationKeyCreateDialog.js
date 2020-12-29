@@ -1,8 +1,8 @@
 import React from 'react'
-import p from 'prop-types'
+import { gql } from '@apollo/client'
 
-import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import p from 'prop-types'
+import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
@@ -53,7 +53,7 @@ export default class IntegrationKeyCreateDialog extends React.PureComponent {
             query,
             variables: { serviceID: this.props.serviceID },
           })
-          cache.writeData({
+          cache.writeQuery({
             query,
             variables: { serviceID: this.props.serviceID },
             data: {

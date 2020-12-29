@@ -37,6 +37,8 @@ type Query {
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
 
+  calcRotationHandoffTimes(input: CalcRotationHandoffTimesInput): [ISOTimestamp!]!
+
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
 
@@ -653,6 +655,13 @@ input RotationSearchOptions {
 
   # Sort favorite rotations first.
   favoritesFirst: Boolean = false
+}
+
+input CalcRotationHandoffTimesInput {
+  handoff: ISOTimestamp!
+  timeZone: String!
+  shiftLengthHours: Int!
+  count: Int!
 }
 
 input EscalationPolicySearchOptions {

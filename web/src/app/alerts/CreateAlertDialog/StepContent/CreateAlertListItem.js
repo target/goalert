@@ -8,7 +8,7 @@ import {
 } from '@material-ui/core'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import CopyText from '../../../util/CopyText'
-import { AppLink } from '../../../util/AppLink'
+import AppLink from '../../../util/AppLink'
 
 const useStyles = makeStyles({
   listItemText: {

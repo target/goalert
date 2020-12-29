@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
+import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import DetailsPage from '../details/DetailsPage'
 import StatusUpdateNotification from './UserStatusUpdatePreference'
 import { UserAvatar } from '../util/avatars'
@@ -14,12 +14,11 @@ import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
-import { useQuery } from '@apollo/react-hooks'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -97,18 +96,25 @@ function serviceCount(onCallSteps = []) {
 export default function UserDetails(props) {
   const classes = useStyles()
 
-  const { userID: currentUserID, isAdmin } = useSessionInfo()
+  const {
+    userID: currentUserID,
+    isAdmin,
+    ready: isSessionReady,
+  } = useSessionInfo()
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
 
-  const { data, loading, error } = useQuery(
+  const { data, loading: isQueryLoading, error } = useQuery(
     isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
     {
       variables: { id: props.userID },
+      skip: !isSessionReady,
     },
   )
+
+  const loading = !isSessionReady || isQueryLoading
 
   if (error) return <GenericError error={error.message} />
   if (!_.get(data, 'user.id')) return loading ? <Spinner /> : <ObjectNotFound />

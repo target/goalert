@@ -1,7 +1,6 @@
 import React from 'react'
+import { useMutation, gql } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
-import { useMutation } from '@apollo/react-hooks'
 import { push } from 'connected-react-router'
 import { useDispatch } from 'react-redux'
 import FormDialog from '../dialogs/FormDialog'

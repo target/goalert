@@ -1,6 +1,6 @@
 import React from 'react'
+import { gql } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import Query from '../util/Query'
 import FlatList from '../lists/FlatList'
 import Card from '@material-ui/core/Card'

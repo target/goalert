@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-import { debounce } from 'lodash-es'
+import { debounce } from 'lodash'
 
 const SearchContext = React.createContext({
   actions: null,
@@ -116,11 +116,9 @@ export default function AppBarSearchContainer(props) {
   return (
     <SearchContext.Consumer>
       {({ setActions, trackMount }) => (
-        <SearchUpdater
-          setActions={setActions}
-          trackMount={trackMount}
-          children={props.children}
-        />
+        <SearchUpdater setActions={setActions} trackMount={trackMount}>
+          {props.children}
+        </SearchUpdater>
       )}
     </SearchContext.Consumer>
   )

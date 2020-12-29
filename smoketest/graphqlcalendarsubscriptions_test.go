@@ -3,9 +3,10 @@ package smoketest
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/target/goalert/smoketest/harness"
-	"testing"
 )
 
 type calSub struct {
@@ -119,7 +120,7 @@ func TestGraphQLCalendarSubscriptions(t *testing.T) {
 	}
 
 	// find many
-	doQL(t, fmt.Sprintf(`
+	doQL(t, `
 		query{
 			user {
 				calendarSubscriptions {
@@ -131,7 +132,7 @@ func TestGraphQLCalendarSubscriptions(t *testing.T) {
 				}
 		    }
 		}
-	`), &csFindMany)
+	`, &csFindMany)
 	assert.Equal(t, []calSub{{
 		Name:            "updated",
 		Disabled:        true,
@@ -154,7 +155,7 @@ func TestGraphQLCalendarSubscriptions(t *testing.T) {
 	assert.True(t, delete.DeleteAll)
 
 	// ensure delete happened
-	doQL(t, fmt.Sprintf(`
+	doQL(t, `
 		query{
 			user {
 				calendarSubscriptions {
@@ -166,6 +167,6 @@ func TestGraphQLCalendarSubscriptions(t *testing.T) {
 				}
 		    }
 		}
-	`), &csFindMany)
+	`, &csFindMany)
 	assert.Equal(t, []calSub{}, csFindMany.User.CalendarSubscriptions)
 }

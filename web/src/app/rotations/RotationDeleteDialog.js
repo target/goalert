@@ -1,10 +1,10 @@
 import React from 'react'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
-import { useQuery, useMutation } from 'react-apollo'
-import { get } from 'lodash-es'
+
+import { get } from 'lodash'
 
 const query = gql`
   query($id: ID!) {

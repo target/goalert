@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import { useMutation, gql } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 import FormDialog from '../dialogs/FormDialog'
 import HeartbeatMonitorForm from './HeartbeatMonitorForm'
-import { useMutation } from '@apollo/react-hooks'
 
 const mutation = gql`
   mutation($input: UpdateHeartbeatMonitorInput!) {
@@ -21,25 +20,6 @@ const query = gql`
     }
   }
 `
-
-export default function HeartbeatMonitorEditDialog(props) {
-  return (
-    <Query
-      query={query}
-      variables={{ id: props.monitorID }}
-      render={({ data }) => (
-        <HeartbeatMonitorEditDialogContent
-          props={props}
-          data={data.heartbeatMonitor}
-        />
-      )}
-    />
-  )
-}
-HeartbeatMonitorEditDialog.propTypes = {
-  monitorID: p.string.isRequired,
-  onClose: p.func,
-}
 
 // TODO: broken out until `useQuery` is built
 function HeartbeatMonitorEditDialogContent({ props, data }) {
@@ -79,4 +59,23 @@ function HeartbeatMonitorEditDialogContent({ props, data }) {
       }
     />
   )
+}
+
+export default function HeartbeatMonitorEditDialog(props) {
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.monitorID }}
+      render={({ data }) => (
+        <HeartbeatMonitorEditDialogContent
+          props={props}
+          data={data.heartbeatMonitor}
+        />
+      )}
+    />
+  )
+}
+HeartbeatMonitorEditDialog.propTypes = {
+  monitorID: p.string.isRequired,
+  onClose: p.func,
 }
