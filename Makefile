@@ -97,7 +97,7 @@ $(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -name '*.go')
 $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
 
-$(BIN_DIR)/integration/goalert/cypress: node_modules web/src/node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
+$(BIN_DIR)/integration/goalert/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
 	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
@@ -131,7 +131,7 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/node_modules web/src/schema.d.ts
+cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
 
 cy-wide: cypress web/src/build/vendorPackages.dll.js
@@ -147,10 +147,10 @@ cy-wide-prod-run: web/inline_data_gen.go cypress
 cy-mobile-prod-run: web/inline_data_gen.go cypress
 	make cy-mobile-prod CY_ACTION=run
 
-web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/node_modules web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/waitfor node_modules web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
+start: bin/waitfor node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
@@ -162,13 +162,13 @@ start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
 	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
 	bin/runjson <devtools/runjson/localdev-prod.json
 
-jest: node_modules web/src/node_modules
+jest: node_modules 
 	yarn workspace goalert-web run jest $(JEST_ARGS)
 
-test: node_modules web/src/node_modules jest
+test: node_modules jest
 	go test -short ./...
 
-check: generate node_modules web/src/node_modules
+check: generate node_modules
 	# go run devtools/ordermigrations/main.go -check
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign .
@@ -190,7 +190,7 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-generate: node_modules web/src/node_modules
+generate: node_modules
 	go generate ./...
 
 smoketest:
@@ -213,23 +213,24 @@ tools:
 yarn.lock: package.json web/src/package.json
 	yarn --no-progress --silent && touch $@
 
-node_modules: yarn.lock
+node_modules/.yarn-integrity:
+	yarn install --no-progress --silent --frozen-lockfile
 	touch $@
 
-web/src/node_modules: yarn.lock
-	touch $@
+node_modules: yarn.lock node_modules/.yarn-integrity
+	touch -c $@
 
 goalert-web:
 	yarn workspace goalert-web install --no-progress --silent
 
-web/src/build/static/app.js: web/src/webpack.prod.config.js yarn.lock $(shell find ./web/src/app -type f ) web/src/schema.d.ts
+web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
-	(yarn workspace goalert-web install --no-progress --silent --frozen-lockfile && yarn workspace goalert-web webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION))
+	yarn workspace goalert-web webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION)
 
 web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
-web/src/build/vendorPackages.dll.js: node_modules web/src/node_modules web/src/webpack.dll.config.js
+web/src/build/vendorPackages.dll.js: node_modules web/src/webpack.dll.config.js
 	yarn workspace goalert-web webpack --config webpack.dll.config.js --progress
 
 notification/type_string.go: notice/notice.go
@@ -257,7 +258,7 @@ resetdb: migrate/inline_data_gen.go config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
-	git clean -xdf ./web ./bin ./vendor ./smoketest
+	git clean -xdf
 
 build-docker: bin/goalert bin/mockslack
 
