@@ -11,7 +11,8 @@ import { MoreVert as MoreVertIcon } from '@material-ui/icons'
 
 function DropDownMenu(props) {
   const [anchorEl, setAnchorEl] = useState(null)
-  const { options, onExited } = props
+  const [_fn, setFn] = useState(null)
+  const { options } = props
 
   return (
     <div>
@@ -27,7 +28,12 @@ function DropDownMenu(props) {
       <Menu
         anchorEl={anchorEl}
         open={!!anchorEl}
-        onExited={onExited}
+        onExited={() => {
+          if (_fn) {
+            _fn()
+            setFn(null)
+          }
+        }}
         onClose={() => {
           setAnchorEl(null)
         }}
@@ -37,7 +43,7 @@ function DropDownMenu(props) {
             key={option.label}
             onClick={() => {
               setAnchorEl(null)
-              option.onClick()
+              setFn(option.onClick())
             }}
           >
             {option.label}
@@ -55,7 +61,6 @@ DropDownMenu.propTypes = {
       onClick: p.func,
     }),
   ),
-  onExited: p.func,
 }
 
 export default DropDownMenu
