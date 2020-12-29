@@ -1,5 +1,5 @@
 {
-  "name": "goalert-ui",
+  "name": "goalert-web",
   "version": "1.0.0",
   "description": "user interface for the goalert project",
   "main": "index.js",
