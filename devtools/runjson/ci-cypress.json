@@ -37,7 +37,8 @@
       "Command": ["bin/waitfor", "http://localhost:3042"]
     },
     "Command": [
-      "./node_modules/.bin/cypress",
+      "yarn",
+      "cypress",
       "run",
       "--config",
       "baseUrl=http://localhost:3040"

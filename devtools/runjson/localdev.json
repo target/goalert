@@ -27,7 +27,8 @@
   {
     "Name": "UI",
     "Command": [
-      "./node_modules/.bin/webpack-dev-server",
+      "yarn",
+      "webpack-dev-server",
       "--inline",
       "--devtool=inline-source-map",
       "--allowed-hosts=docker.for.mac.host.internal",

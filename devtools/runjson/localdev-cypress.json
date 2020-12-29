@@ -32,7 +32,8 @@
   {
     "Name": "UI",
     "Command": [
-      "./node_modules/.bin/webpack-dev-server",
+      "yarn",
+      "webpack-dev-server",
       "--inline",
       "--devtool=cheap-module-source-map",
       "--allowed-hosts=docker.for.mac.host.internal",
@@ -95,7 +96,8 @@
       "Command": ["bin/waitfor", "http://localhost:3042"]
     },
     "Command": [
-      "./node_modules/.bin/cypress",
+      "yarn",
+      "cypress",
       "open",
       "--config",
       "baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX"
