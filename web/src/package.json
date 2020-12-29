@@ -112,7 +112,7 @@
     "@types/luxon": "1.25.0",
     "@types/react": "16.9.52",
     "@types/react-dom": "17.0.0",
-    "@types/react-redux": "7.1.11",
+    "@types/react-redux": "7.1.14",
     "@types/react-router": "5.1.8",
     "@types/react-router-dom": "5.1.6",
     "@typescript-eslint/eslint-plugin": "4.10.0",
