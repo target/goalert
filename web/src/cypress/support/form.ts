@@ -146,7 +146,7 @@ function fillFormField(
               cy.get(selector).type(`{backspace}`)
             })
 
-          return cy.get(selector).clear()
+          return cy.get(selector)
         }
 
         if (DateTime.isDateTime(value)) {
