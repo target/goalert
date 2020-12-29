@@ -38,6 +38,8 @@
     },
     "Command": [
       "yarn",
+      "workspace",
+      "goalert-web",
       "cypress",
       "run",
       "--config",
@@ -46,7 +48,6 @@
     "Env": [
       "CYPRESS_DB_URL=postgres://goalert@localhost:5432/goalert?sslmode=disable"
     ],
-    "Dir": "web/src",
     "ExitAfter": true
   }
 ]
