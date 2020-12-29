@@ -28,6 +28,8 @@
     "Name": "UI",
     "Command": [
       "yarn",
+      "workspace",
+      "goalert-web",
       "webpack-dev-server",
       "--inline",
       "--devtool=inline-source-map",
@@ -36,8 +38,7 @@
       "--progress=false",
       "--mode=development",
       "--env.GOALERT_VERSION=$GOALERT_VERSION"
-    ],
-    "Dir": "web/src"
+    ]
   },
   {
     "Name": "Jaeger",
