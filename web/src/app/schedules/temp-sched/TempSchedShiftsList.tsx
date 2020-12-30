@@ -1,6 +1,6 @@
 import React from 'react'
 import { IconButton, makeStyles, Typography } from '@material-ui/core'
-import FlatList from '../../lists/FlatList'
+import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { Shift } from './sharedUtils'
 import { UserAvatar } from '../../util/avatars'
 import { Delete, Error } from '@material-ui/icons'
@@ -32,18 +32,6 @@ type TempSchedShiftsListProps = {
   start: string
   end: string
 }
-
-type FlatListSub = {
-  subHeader: string
-}
-type FlatListItem = {
-  title: string
-  subText: string
-  icon?: JSX.Element
-  secondaryAction?: JSX.Element | null
-}
-
-type FlatListListItem = FlatListSub | FlatListItem
 
 export default function TempSchedShiftsList({
   start,
@@ -85,7 +73,7 @@ export default function TempSchedShiftsList({
     )
 
     const result: FlatListListItem[] = []
-    displaySpan.splitBy({ days: 1 }).forEach((day) => {
+    displaySpan.splitBy({ days: 1 }).forEach((day, idx) => {
       const dayShifts = shifts.filter((s) => day.overlaps(s.interval))
       if (!dayShifts.length) return
 
@@ -120,6 +108,7 @@ export default function TempSchedShiftsList({
         }
 
         result.push({
+          id: s.shift.userID + idx.toString(),
           title: s.shift.user.name,
           subText: shiftDetails,
           icon: <UserAvatar userID={s.shift.userID} />,
@@ -160,6 +149,7 @@ export default function TempSchedShiftsList({
         items={items()}
         emptyMessage='Add a user to the left to get started.'
         dense
+        transition
       />
     </React.Fragment>
   )
