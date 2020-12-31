@@ -7877,14 +7877,14 @@ modernizr-loader@1.0.1:
   resolved "https://registry.yarnpkg.com/modernizr-loader/-/modernizr-loader-1.0.1.tgz#e52a6f9a12578b944abbd6cbd65c863ea4a83f49"
   integrity sha1-5SpvmhJXi5RKu9bL1lyGPqSoP0k=
 
-modernizr@3.11.3:
-  version "3.11.3"
-  resolved "https://registry.yarnpkg.com/modernizr/-/modernizr-3.11.3.tgz#15be7aa86743cc0081a74ddc9b3a739bed4cc67e"
-  integrity sha512-912QnDnkDxs1w1EbFD3btEGI67rssfjWwJsVXpyoLBvHUwr0r8x6KN0IUCZFH/5xnK0000YxI0N3qcqHVzWjcQ==
+modernizr@3.11.4:
+  version "3.11.4"
+  resolved "https://registry.yarnpkg.com/modernizr/-/modernizr-3.11.4.tgz#a31e88749cda234f9424692c936f707bfd3084f6"
+  integrity sha512-xLtXwvuOqh4WJEKusCmtWLncNWyyjpWDwR7ak9c0oPkR+00tC/6s51Atxf51NKxmPhfVmtQNHU0gYfbIhzixFg==
   dependencies:
     doctrine "^3.0.0"
     file "^0.2.2"
-    lodash "^4.17.15"
+    lodash "^4.17.20"
     markdown-it "^10.0.0"
     mkdirp "0.5.5"
     requirejs "^2.3.6"
