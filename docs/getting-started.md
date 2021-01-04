@@ -27,7 +27,7 @@ in your setup.
 
 ### Encryption of Sensitive Data
 
-It is also recomended to set the `--data-encryption-key` which is used to encrypt sensitive information (like API keys) before transmitting to the database.
+It is also recommended to set the `--data-encryption-key` which is used to encrypt sensitive information (like API keys) before transmitting to the database.
 
 It can be set to any value as it is internally passed through a key derivation function. All instances of GoAlert must be configured to use the same key for things to work properly.
 
