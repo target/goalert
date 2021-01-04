@@ -142,6 +142,7 @@ export default function CalendarEventWrapper(props) {
         onBlur: () => setOpen(false),
         role: 'button',
         'aria-pressed': open,
+        className: open ? 'rbc-selected rbc-event' : 'rbc-event',
       })}
     </Tooltip>
   )
