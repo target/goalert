@@ -32,15 +32,17 @@
   {
     "Name": "UI",
     "Command": [
-      "./node_modules/.bin/webpack-dev-server",
+      "yarn",
+      "workspace",
+      "goalert-web",
+      "webpack-dev-server",
       "--inline",
       "--devtool=cheap-module-source-map",
       "--allowed-hosts=docker.for.mac.host.internal",
       "--port=3045",
       "--progress=false",
       "--mode=development"
-    ],
-    "Dir": "web/src"
+    ]
   },
   {
     "Name": "Slack",
@@ -95,7 +97,10 @@
       "Command": ["bin/waitfor", "http://localhost:3042"]
     },
     "Command": [
-      "./node_modules/.bin/cypress",
+      "yarn",
+      "workspace",
+      "goalert-web",
+      "cypress",
       "open",
       "--config",
       "baseUrl=http://localhost:3040$GOALERT_HTTP_PREFIX"
@@ -103,7 +108,6 @@
     "Env": [
       "CYPRESS_DB_URL=postgres://postgres@localhost:5433/postgres?sslmode=disable"
     ],
-    "Dir": "web/src",
     "ExitAfter": true
   }
 ]
