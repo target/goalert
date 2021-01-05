@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/binary"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -127,6 +128,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 
 	tok, err := oaCfg.Exchange(ctx, req.FormValue("code"))
 	if err != nil {
+		log.Log(ctx, fmt.Errorf("github: exchange token: %w", err))
 		return nil, auth.Error("Failed to get token from GitHub.")
 	}
 
@@ -145,7 +147,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 
 	u, _, err := g.Users.Get(ctx, "")
 	if err != nil {
-		log.Debug(ctx, errors.Wrap(err, "fetch GitHub user"))
+		log.Log(ctx, fmt.Errorf("github: fetch user: %w", err))
 		return nil, auth.Error("Failed to fetch user profile from GitHub.")
 	}
 

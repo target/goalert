@@ -136,7 +136,18 @@ function fillFormField(
         .data('cyFallbackType')
 
       if (isSelect) {
-        if (value === '') return cy.get(selector).clear()
+        if (value === '') {
+          cy.get(selector).clear()
+
+          // clear chips on multi-select
+          el.parent()
+            .find('[data-cy="multi-value"]')
+            .each(() => {
+              cy.get(selector).type(`{backspace}`)
+            })
+
+          return cy.get(selector)
+        }
 
         if (DateTime.isDateTime(value)) {
           throw new TypeError(
