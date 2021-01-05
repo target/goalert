@@ -23,6 +23,7 @@ _obj
 _test
 temp
 bin
+node_modules
 
 # Architecture specific extensions/prefixes
 *.[568vq]

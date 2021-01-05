@@ -702,7 +702,7 @@ func init() {
 	RootCmd.Flags().Duration("kubernetes-cooldown", def.KubernetesCooldown, "Cooldown period, from the last TCP connection, before terminating the listener when receiving a shutdown signal.")
 	RootCmd.Flags().String("status-addr", def.StatusAddr, "Open a port to emit status updates. Connections are closed when the server shuts down. Can be used to keep containers running until GoAlert has exited.")
 
-	RootCmd.PersistentFlags().String("data-encryption-key", "", "Encryption key for sensitive data like signing keys. Used for encrypting new and decrypting existing data.")
+	RootCmd.PersistentFlags().String("data-encryption-key", "", "Used to generate an encryption key for sensitive data like signing keys. Can be any length.")
 	RootCmd.PersistentFlags().String("data-encryption-key-old", "", "Fallback key. Used for decrypting existing data only.")
 	RootCmd.PersistentFlags().Bool("stack-traces", false, "Enables stack traces with all error logs.")
 

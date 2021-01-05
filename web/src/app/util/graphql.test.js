@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client'
-import { print } from 'graphql/language/printer'
+import { print } from 'graphql'
 
 import { queryByName, fieldAlias, mapInputVars, mergeFields } from './graphql'
 

@@ -24,6 +24,7 @@ export default class OtherActions extends React.PureComponent {
         onClick: p.func.isRequired,
       }),
     ).isRequired,
+    color: p.string,
     icon: p.element,
     placement: p.oneOf(['left', 'right']),
   }
@@ -53,7 +54,7 @@ export default class OtherActions extends React.PureComponent {
           {React.cloneElement(this.props.icon, {
             'aria-label': 'Other Actions',
             'data-cy': 'other-actions',
-            color: 'inherit',
+            color: this.props.color ? this.props.color : 'inherit',
             'aria-expanded': Boolean(this.state.anchorEl),
             onClick: (e) => {
               onClose.cancel()
