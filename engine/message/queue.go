@@ -1,22 +1,23 @@
 package message
 
 import (
-	"github.com/target/goalert/notification"
 	"math/rand"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/target/goalert/notification"
 )
 
-var typePriority = map[Type]int{
-	TypeVerificationMessage: 1,
-	TypeTestNotification:    2,
+var typePriority = map[notification.MessageType]int{
+	notification.MessageTypeVerification: 1,
+	notification.MessageTypeTest:         2,
 
-	TypeAlertNotification:       3,
-	TypeAlertNotificationBundle: 3,
+	notification.MessageTypeAlert:       3,
+	notification.MessageTypeAlertBundle: 3,
 
-	TypeAlertStatusUpdate:       4,
-	TypeAlertStatusUpdateBundle: 4,
+	notification.MessageTypeAlertStatus:       4,
+	notification.MessageTypeAlertStatusBundle: 4,
 }
 
 type queue struct {
@@ -153,13 +154,13 @@ func (q *queue) sortPending(destType notification.DestType) {
 		// First Alert to a service takes highest priority
 		piTypePriority := typePriority[pi.Type]
 		_, firstAlertI := q.firstAlert[destID{ID: pi.ServiceID, DestType: pi.Dest.Type}]
-		if (pi.Type == TypeAlertNotification || pi.Type == TypeAlertNotificationBundle) && !firstAlertI {
+		if (pi.Type == notification.MessageTypeAlert || pi.Type == notification.MessageTypeAlertBundle) && !firstAlertI {
 			piTypePriority = 0
 		}
 
 		pjTypePriority := typePriority[pj.Type]
 		_, firstAlertJ := q.firstAlert[destID{ID: pj.ServiceID, DestType: pj.Dest.Type}]
-		if (pj.Type == TypeAlertNotification || pj.Type == TypeAlertNotificationBundle) && !firstAlertJ {
+		if (pj.Type == notification.MessageTypeAlert || pj.Type == notification.MessageTypeAlertBundle) && !firstAlertJ {
 			pjTypePriority = 0
 		}
 

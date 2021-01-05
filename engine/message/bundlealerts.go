@@ -22,7 +22,7 @@ func bundleAlertMessages(messages []Message, bundleFunc func(Message, []string) 
 	byID := make(map[bundleID]*bundle)
 	filtered := messages[:0]
 	for _, msg := range messages {
-		if (msg.Type != TypeAlertNotification && msg.Type != TypeAlertNotificationBundle) || !msg.SentAt.IsZero() {
+		if (msg.Type != notification.MessageTypeAlert && msg.Type != notification.MessageTypeAlertBundle) || !msg.SentAt.IsZero() {
 			filtered = append(filtered, msg)
 			continue
 		}
@@ -49,7 +49,7 @@ func bundleAlertMessages(messages []Message, bundleFunc func(Message, []string) 
 			continue
 		}
 
-		msg.Type = TypeAlertNotificationBundle
+		msg.Type = notification.MessageTypeAlertBundle
 		msg.AlertID = 0
 		msg.ID = uuid.NewV4().String()
 		err := bundleFunc(msg.Message, msg.IDs)
