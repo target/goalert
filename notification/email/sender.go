@@ -18,10 +18,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-type Sender struct {
-	status chan *notification.MessageStatus
-	resp   chan *notification.MessageResponse
-}
+type Sender struct{}
 
 func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
@@ -187,5 +184,5 @@ func (s *Sender) Status(ctx context.Context, id, providerID string) (*notificati
 	return nil, errors.New("notification/email: status not supported")
 }
 
-func (s *Sender) ListenStatus() <-chan *notification.MessageStatus     { return s.status }
-func (s *Sender) ListenResponse() <-chan *notification.MessageResponse { return s.resp }
+func (s *Sender) ListenStatus() <-chan *notification.MessageStatus     { return nil }
+func (s *Sender) ListenResponse() <-chan *notification.MessageResponse { return nil }

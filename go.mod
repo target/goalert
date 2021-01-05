@@ -37,6 +37,7 @@ require (
 	github.com/jackc/pgx/v4 v4.9.2
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.3.0
+	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pelletier/go-toml v1.8.1
@@ -65,6 +66,7 @@ require (
 	golang.org/x/sys v0.0.0-20201223074533-0d417f636930
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	golang.org/x/tools v0.0.0-20201223174954-9cbb1efa7745
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/ini.v1 v1.51.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
