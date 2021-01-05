@@ -12,6 +12,7 @@ type Throttle struct {
 	ignoreID bool
 	now      time.Time
 
+	first    map[ThrottleItem]time.Time
 	count    map[ThrottleItem]int
 	cooldown map[notification.Dest]bool
 }
@@ -46,6 +47,7 @@ func NewThrottle(cfg ThrottleConfig, now time.Time, ignoreID bool) *Throttle {
 		now:      now,
 		ignoreID: ignoreID,
 
+		first:    make(map[ThrottleItem]time.Time),
 		count:    make(map[ThrottleItem]int),
 		cooldown: make(map[notification.Dest]bool),
 	}
@@ -59,15 +61,44 @@ func (tr *Throttle) Record(msg Message) {
 	msg.Dest.Value = ""
 
 	since := tr.now.Sub(msg.SentAt)
-	for _, rule := range tr.cfg.Rules(msg) {
+	rules := tr.cfg.Rules(msg)
+	for i, rule := range rules {
 		if since >= rule.Per {
 			continue
 		}
 		key := ThrottleItem{Dest: msg.Dest, BucketDur: rule.Per}
 		tr.count[key]++
 		count := tr.count[key]
+		if tr.first[key].IsZero() {
+			tr.first[key] = msg.SentAt
+		}
 
 		if count >= rule.Count {
+			tr.cooldown[msg.Dest] = true
+			continue
+		}
+
+		if !rule.Smooth {
+			continue
+		}
+
+		// flat rate
+		var prevRule ThrottleRule
+		if i > 0 {
+			prevRule = rules[i-1]
+		}
+
+		if count < prevRule.Count {
+			// allow prev rule in entirety
+			continue
+		}
+
+		// spread remainder evenly
+		count -= prevRule.Count
+		elapsed := tr.now.Sub(tr.first[key]) - prevRule.Per
+		per := rule.Per - prevRule.Per
+
+		if count >= int(time.Duration(count)*elapsed/per) {
 			tr.cooldown[msg.Dest] = true
 		}
 	}
