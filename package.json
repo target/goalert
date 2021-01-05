@@ -1,4 +1,11 @@
 {
   "private": true,
-  "workspaces": ["web/src"]
+  "workspaces": [
+    "web/src",
+    "mobile"
+  ],
+  "dependencies": {
+    "react": "16.9.0",
+    "react-dom": "16.9.0"
+  }
 }
