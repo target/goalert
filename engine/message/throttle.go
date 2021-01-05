@@ -1,8 +1,9 @@
 package message
 
 import (
-	"github.com/target/goalert/notification"
 	"time"
+
+	"github.com/target/goalert/notification"
 )
 
 // Throttle represents the throttled messages for a queue.
@@ -21,21 +22,10 @@ type ThrottleItem struct {
 	BucketDur time.Duration
 }
 
-// ThrottleConfig contains the ThrottleRules for each
-// notification Destination Type (i.e. DestTypeVoice, DestTypeSMS, DestTypeSlackChannel).
-type ThrottleConfig map[notification.DestType][]ThrottleRule
-
-// MaxDuration returns the max duration set in the ThrottleConfig rules.
-func (cfg ThrottleConfig) MaxDuration() time.Duration {
-	var max time.Duration
-	for _, rules := range cfg {
-		for _, rule := range rules {
-			if rule.Per > max {
-				max = rule.Per
-			}
-		}
-	}
-	return max
+// ThrottleConfig provides ThrottleRules for a given message.
+type ThrottleConfig interface {
+	Rules(Message) []ThrottleRule
+	MaxDuration() time.Duration
 }
 
 func maxThrottleDuration(cfgs ...ThrottleConfig) time.Duration {
@@ -47,12 +37,6 @@ func maxThrottleDuration(cfgs ...ThrottleConfig) time.Duration {
 		}
 	}
 	return max
-}
-
-// ThrottleRules set the number of messages allowed to be sent per set duration.
-type ThrottleRule struct {
-	Count int
-	Per   time.Duration
 }
 
 // NewThrottle creates a new Throttle used to manage outgoing messages in a queue.
@@ -75,7 +59,7 @@ func (tr *Throttle) Record(msg Message) {
 	msg.Dest.Value = ""
 
 	since := tr.now.Sub(msg.SentAt)
-	for _, rule := range tr.cfg[msg.Dest.Type] {
+	for _, rule := range tr.cfg.Rules(msg) {
 		if since >= rule.Per {
 			continue
 		}
