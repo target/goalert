@@ -4,9 +4,9 @@ import MountWatcher from '../util/MountWatcher'
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import FormLabel from '@material-ui/core/FormLabel'
-import { get, isEmpty, startCase } from 'lodash-es'
+import { get, isEmpty, startCase } from 'lodash'
 import shrinkWorkaround from '../util/shrinkWorkaround'
-
+import AppLink from '../util/AppLink'
 import { FormContainerContext } from './context'
 
 export class FormField extends React.PureComponent {
@@ -33,8 +33,9 @@ export class FormField extends React.PureComponent {
     fieldName: p.string,
 
     // min and max values specify the range to clamp a int value
-    min: p.number,
-    max: p.number,
+    // expects an ISO timestamp, if string
+    min: p.oneOfType([p.number, p.string]),
+    max: p.oneOfType([p.number, p.string]),
 
     // used if name is set,
     // but the error name is different from graphql responses
@@ -200,14 +201,34 @@ export class FormField extends React.PureComponent {
           error={checkbox ? undefined : Boolean(props.error)}
           label={this.props.formLabel ? null : props.label}
         />
-        {!noError && (props.error || props.hint) && (
-          <FormHelperText>
-            {(props.error &&
-              props.error.message.replace(/^./, (str) => str.toUpperCase())) ||
-              props.hint}
-          </FormHelperText>
-        )}
+        {!noError && this.renderFormHelperText(props.error, props.hint)}
       </FormControl>
     )
+  }
+
+  renderFormHelperText(error, hint) {
+    if (error?.helpLink) {
+      return (
+        <FormHelperText>
+          <AppLink to={error.helpLink} newTab data-cy='error-help-link'>
+            {error.message.replace(/^./, (str) => str.toUpperCase())}
+          </AppLink>
+        </FormHelperText>
+      )
+    }
+
+    if (error?.message) {
+      return (
+        <FormHelperText>
+          {error.message.replace(/^./, (str) => str.toUpperCase())}
+        </FormHelperText>
+      )
+    }
+
+    if (hint) {
+      return <FormHelperText>{hint}</FormHelperText>
+    }
+
+    return null
   }
 }

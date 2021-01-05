@@ -22,7 +22,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
     hotUpdateMainFilename: 'build/hot-update.json',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
+    extensions: ['.mjs', '.ts', '.tsx', '.js', '.jsx', '.css'],
     alias: {
       'react-dom': '@hot-loader/react-dom',
     },

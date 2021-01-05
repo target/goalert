@@ -1,7 +1,6 @@
 import React, { useEffect, useState, MouseEvent } from 'react'
+import { useQuery, useMutation, gql } from '@apollo/client'
 
-import gql from 'graphql-tag'
-import { useQuery, useMutation } from '@apollo/react-hooks'
 import Spinner from '../loading/components/Spinner'
 
 import {

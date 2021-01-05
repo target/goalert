@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect'
 import joinURL from '../util/joinURL'
-import { memoize } from 'lodash-es'
+import { memoize } from 'lodash'
 import { History } from 'history'
 import { pathPrefix } from '../env'
 
@@ -49,6 +49,11 @@ export const alertFilterSelector = createSelector(urlParamSelector, (params) =>
 export const alertAllServicesSelector = createSelector(
   urlParamSelector,
   (params) => params('allServices', false),
+)
+
+export const alertShowAsFullTimeSelector = createSelector(
+  urlParamSelector,
+  (params) => params('fullTime', false),
 )
 
 // absURLSelector will return an absolute URL (including protocol) for the given

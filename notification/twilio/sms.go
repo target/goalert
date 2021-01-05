@@ -153,7 +153,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 			Code: makeSMSCode(t.AlertID, ""),
 		}.Render()
 	case notification.Test:
-		message = fmt.Sprintf("This is a test message from GoAlert.")
+		message = "This is a test message from GoAlert."
 	case notification.Verification:
 		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
 	default:
@@ -414,7 +414,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		retry.FibBackoff(time.Second),
 	)
 
-	if errors.Cause(err) == sql.ErrNoRows || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0) {
+	if errors.Is(err, sql.ErrNoRows) || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0) {
 		respond("unknown callbackID", "Unknown reply code for this action. Visit the dashboard to manage alerts.")
 		return
 	}
@@ -429,8 +429,9 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if nonSystemErr {
+		var e alert.LogEntryFetcher
 		// alert store returns the special error struct, twilio checks if it's special, and if so, pulls the log entry
-		if e, ok := errors.Cause(err).(alert.LogEntryFetcher); ok {
+		if errors.As(err, &e) {
 			err = nil
 			// we pass a 'sudo' context to give permission
 			permission.SudoContext(ctx, func(sCtx context.Context) {

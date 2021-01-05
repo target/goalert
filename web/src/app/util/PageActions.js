@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-import { debounce } from 'lodash-es'
+import { debounce } from 'lodash'
 
 const PageActionsContext = React.createContext({
   actions: null,
@@ -121,11 +121,9 @@ export default class PageActions extends React.PureComponent {
     return (
       <PageActionsContext.Consumer>
         {({ setActions, trackMount }) => (
-          <PageActionUpdater
-            setActions={setActions}
-            trackMount={trackMount}
-            children={this.props.children}
-          />
+          <PageActionUpdater setActions={setActions} trackMount={trackMount}>
+            {this.props.children}
+          </PageActionUpdater>
         )}
       </PageActionsContext.Consumer>
     )

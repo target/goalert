@@ -3,6 +3,8 @@
 /setup.pid
 /config.json.bak
 
+*.tgz
+
 # Created by .ignore support plugin (hsz.mobi)
 ### Go template
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
@@ -21,6 +23,7 @@ _obj
 _test
 temp
 bin
+node_modules
 
 # Architecture specific extensions/prefixes
 *.[568vq]

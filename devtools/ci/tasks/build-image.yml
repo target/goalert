@@ -2,12 +2,10 @@ platform: linux
 
 image_resource:
   type: registry-image
-  source: { repository: concourse/builder-task }
+  source: { repository: vito/oci-build-task }
 
 params:
-  REPOSITORY: goalert/goalert
-  TAG: latest
-  CONTEXT: bin/goalert
+  CONTEXT: .
   DOCKERFILE: goalert/devtools/ci/dockerfiles/goalert/Dockerfile
 
 inputs:
@@ -17,4 +15,4 @@ inputs:
 outputs:
   - name: image
 
-run: { path: /usr/bin/build }
+run: { path: build }

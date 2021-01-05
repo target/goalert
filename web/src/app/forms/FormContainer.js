@@ -3,19 +3,22 @@ import p from 'prop-types'
 import MountWatcher from '../util/MountWatcher'
 
 import { FormContext, FormContainerContext } from './context'
-import { get, set } from 'lodash-es'
+import { get, set } from 'lodash'
 
 // FormContainer handles grouping multiple FormFields.
 // It works with the Form component to handle validation.
 export class FormContainer extends React.PureComponent {
   static propTypes = {
     value: p.object,
+
     errors: p.arrayOf(
       p.shape({
-        field: p.string.isRequired,
         message: p.string.isRequired,
+        field: p.string.isRequired,
+        helpLink: p.string,
       }),
     ),
+
     onChange: p.func,
     disabled: p.bool,
 

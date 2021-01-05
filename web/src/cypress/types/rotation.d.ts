@@ -36,5 +36,5 @@ interface RotationOptions {
   favorite?: boolean
 
   /** Number of participants to add to the rotation. */
-  count?: number
+  numUsers?: number
 }

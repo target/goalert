@@ -684,7 +684,7 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 		go func(typ notification.DestType) {
 			defer wg.Done()
 			err := db.sendMessagesByType(ctx, cLock, send, q, typ)
-			if err != nil && errors.Cause(err) != processinglock.ErrNoLock {
+			if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
 				log.Log(ctx, errors.Wrap(err, "send"))
 			}
 		}(t)

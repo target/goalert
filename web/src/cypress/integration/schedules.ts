@@ -163,16 +163,16 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should add a rotation as an assignment', () => {
-      const name = rot.name
+      cy.createRotation().then(({ name }: Rotation) => {
+        cy.get('ul').should('not.contain', name)
 
-      cy.get('body').should('not.contain', name)
+        cy.pageFab('Rotation')
+        cy.dialogTitle('Add Rotation to Schedule')
+        cy.dialogForm({ targetID: name })
+        cy.dialogFinish('Submit')
 
-      cy.pageFab('Rotation')
-      cy.dialogTitle('Add Rotation to Schedule')
-      cy.dialogForm({ targetID: name })
-      cy.dialogFinish('Submit')
-
-      cy.get('body').contains('li', name)
+        cy.get('body').contains('li', name)
+      })
     })
 
     it('should add a user as an assignment', () => {

@@ -17,7 +17,8 @@
       "-l=localhost:3030",
       "--ui-url=http://localhost:3035",
       "--jaeger-endpoint=http://localhost:14268",
-      "--db-url=postgres://goalert@localhost:5432/goalert?sslmode=disable"
+      "--db-url=postgres://goalert@localhost:5432/goalert?sslmode=disable",
+      "--tracing-probability=1"
     ],
     "Restart": true,
     "IgnoreErrors": true,
@@ -26,7 +27,10 @@
   {
     "Name": "UI",
     "Command": [
-      "./node_modules/.bin/webpack-dev-server",
+      "yarn",
+      "workspace",
+      "goalert-web",
+      "webpack-dev-server",
       "--inline",
       "--devtool=inline-source-map",
       "--allowed-hosts=docker.for.mac.host.internal",
@@ -34,8 +38,7 @@
       "--progress=false",
       "--mode=development",
       "--env.GOALERT_VERSION=$GOALERT_VERSION"
-    ],
-    "Dir": "web/src"
+    ]
   },
   {
     "Name": "Jaeger",

@@ -8,7 +8,7 @@ import Tooltip from '@material-ui/core/Tooltip'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import { FormContainer, FormField } from '../forms'
 import { Config } from '../util/RequireConfig'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 import { IntegrationKeyType } from '../../schema'
 
 const useStyles = makeStyles((theme) => ({

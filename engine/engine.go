@@ -186,7 +186,7 @@ func (p *Engine) processModule(ctx context.Context, m updater) {
 			// https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
 			continue
 		}
-		if err != nil && errors.Cause(err) != processinglock.ErrNoLock {
+		if err != nil && !errors.Is(err, processinglock.ErrNoLock) {
 			log.Log(ctx, errors.Wrap(err, m.Name()))
 		}
 		break
@@ -201,10 +201,10 @@ func (p *Engine) processMessages(ctx context.Context) {
 	defer cancel()
 
 	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationSender.Status)
-	if errors.Cause(err) == processinglock.ErrNoLock {
+	if errors.Is(err, processinglock.ErrNoLock) {
 		return
 	}
-	if errors.Cause(err) == message.ErrAbort {
+	if errors.Is(err, message.ErrAbort) {
 		return
 	}
 	if err != nil {

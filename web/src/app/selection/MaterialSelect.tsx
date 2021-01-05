@@ -1,4 +1,10 @@
-import React, { useState, ReactNode, ReactElement, ChangeEvent } from 'react'
+import React, {
+  useEffect,
+  useState,
+  ReactNode,
+  ReactElement,
+  ChangeEvent,
+} from 'react'
 import {
   TextField,
   makeStyles,
@@ -10,12 +16,6 @@ import {
   InputProps,
 } from '@material-ui/core'
 import { Autocomplete } from '@material-ui/lab'
-
-function asArray<T>(value?: T | T[]): T[] {
-  if (!value) return []
-
-  return Array.isArray(value) ? value : [value]
-}
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -60,20 +60,20 @@ interface CommonSelectProps {
   placeholder?: string
 }
 
-interface SingleSelectProps extends CommonSelectProps {
-  multiple?: false
-  value?: SelectOption
+interface SingleSelectProps {
+  multiple: false
+  value: SelectOption
   onChange: (value: SelectOption | null) => void
 }
 
-interface MultiSelectProps extends CommonSelectProps {
+interface MultiSelectProps {
   multiple: true
-  value?: SelectOption[]
+  value: SelectOption[]
   onChange: (value: SelectOption[]) => void
 }
 
 export default function MaterialSelect(
-  props: SingleSelectProps | MultiSelectProps,
+  props: CommonSelectProps & (MultiSelectProps | SingleSelectProps),
 ): JSX.Element {
   const classes = useStyles()
   const {
@@ -85,20 +85,47 @@ export default function MaterialSelect(
     name,
     noOptionsText,
     onChange,
-    onInputChange,
-    options,
+    onInputChange = () => {},
+    options: _options,
     placeholder,
     required,
-    value: _value,
+    value,
   } = props
 
-  // NOTE value is undefined when nothing is selected
-  let value: SelectOption[] | undefined = asArray(_value)
-  if (!multiple && !_value) value = undefined
+  // getInputLabel will return the label of the current value.
+  //
+  // If in multi-select mode an empty string is always returned as selected values
+  // are never preserved in the input field (they are chips instead).
+  const getInputLabel = (): string =>
+    multiple || Array.isArray(value) ? '' : value?.label || ''
 
-  const [inputValue, setInputValue] = useState(
-    multiple || !value ? '' : value[0].label,
-  )
+  const [inputValue, _setInputValue] = useState(getInputLabel())
+
+  const setInputValue = (input: string): void => {
+    _setInputValue(input)
+    onInputChange(input)
+  }
+
+  const multi = multiple ? { multiple: true, filterSelectedOptions: true } : {}
+
+  useEffect(() => {
+    if (multiple) return
+    if (!value) setInputValue('')
+    if (!inputValue && value) setInputValue(getInputLabel())
+  }, [value, multiple])
+
+  // merge selected values with options to avoid annoying mui warnings
+  // https://github.com/mui-org/material-ui/issues/18514
+  let options = _options
+  if (value && Array.isArray(value)) {
+    options = [...options, ...value]
+  } else if (
+    value &&
+    !Array.isArray(value) &&
+    options.every((opt) => opt.value !== value.value)
+  ) {
+    options = [value, ...options]
+  }
 
   return (
     <Autocomplete
@@ -108,17 +135,15 @@ export default function MaterialSelect(
         option: classes.option,
         clearIndicator: classes.clearIndicator,
       }}
+      {...multi}
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
-      // Autocomplete types as 'true' | omitted; we can't omit
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      multiple={multiple as any}
-      filterSelectedOptions
+      getOptionSelected={(opt, val) => opt.value === val.value}
       noOptionsText={noOptionsText}
       onChange={(
-        event: ChangeEvent<{}>,
+        event: ChangeEvent<Record<string, unknown>>,
         selected: SelectOption | SelectOption[] | null,
       ) => {
         if (selected) {
@@ -138,9 +163,9 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={() => setInputValue(multiple || !value ? '' : value[0].label)}
+      onBlur={() => setInputValue(getInputLabel())}
       loading={isLoading}
-      getOptionLabel={(option) => option.label || ''}
+      getOptionLabel={(option) => option?.label ?? ''}
       options={options}
       renderInput={(params) => {
         return (
@@ -163,7 +188,6 @@ export default function MaterialSelect(
             onChange={({ target }) => {
               const newInputVal: string = target.value
               setInputValue(newInputVal)
-              if (onInputChange) onInputChange(newInputVal)
             }}
             error={error}
           />

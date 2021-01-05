@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
+import { useMutation, useLazyQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 
-import gql from 'graphql-tag'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
-
 import FormDialog from '../dialogs/FormDialog'
 import UserContactMethodForm from './UserContactMethodForm'
-import { useMutation } from '@apollo/react-hooks'
 import { useConfigValue } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@material-ui/core'
 import DialogContentError from '../dialogs/components/DialogContentError'
@@ -15,6 +13,17 @@ const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
     createUserContactMethod(input: $input) {
       id
+    }
+  }
+`
+
+const userConflictQuery = gql`
+  query($input: UserSearchOptions) {
+    users(input: $input) {
+      nodes {
+        id
+        name
+      }
     }
   }
 `
@@ -28,19 +37,33 @@ export default function UserContactMethodCreateDialog(props) {
     typeVal = 'EMAIL'
   }
   // values for contact method form
-  const [cmValue, setCmValue] = useState({
+  const [CMValue, setCMValue] = useState({
     name: '',
     type: typeVal,
     value: '',
   })
 
+  const [query, { data, loading: queryLoading }] = useLazyQuery(
+    userConflictQuery,
+    {
+      variables: {
+        input: {
+          CMValue: CMValue.value,
+          CMType: CMValue.type,
+        },
+      },
+      pollInterval: 0, // override config poll interval to query once
+    },
+  )
+
   const [createCM, createCMStatus] = useMutation(createMutation, {
     onCompleted: (result) => {
       props.onClose({ contactMethodID: result.createUserContactMethod.id })
     },
+    onError: query,
     variables: {
       input: {
-        ...cmValue,
+        ...CMValue,
         userID: props.userID,
         newUserNotificationRule: {
           delayMinutes: 0,
@@ -68,18 +91,34 @@ export default function UserContactMethodCreateDialog(props) {
   }
 
   const { loading, error } = createCMStatus
-  const fieldErrs = fieldErrors(error)
   const { title = 'Create New Contact Method', subtitle } = props
+
+  let fieldErrs = fieldErrors(error)
+  if (!queryLoading && data?.users?.nodes?.length > 0) {
+    fieldErrs = fieldErrs.map((err) => {
+      if (
+        err.message === 'contact method already exists for that type and value'
+      ) {
+        return {
+          ...err,
+          message: `${err.message}: ${data.users.nodes[0].name}`,
+          helpLink: `/users/${data.users.nodes[0].id}`,
+        }
+      }
+      return err
+    })
+  }
 
   const form = (
     <UserContactMethodForm
       disabled={loading}
       errors={fieldErrs}
-      onChange={(cmValue) => setCmValue(cmValue)}
-      value={cmValue}
+      onChange={(CMValue) => setCMValue(CMValue)}
+      value={CMValue}
       disclaimer={props.disclaimer}
     />
   )
+
   return (
     <FormDialog
       data-cy='create-form'

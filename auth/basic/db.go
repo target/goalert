@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/validation/validate"
@@ -74,7 +75,7 @@ func (b *Store) Validate(ctx context.Context, username, password string) (string
 	var userID, hashed string
 	err = row.Scan(&userID, &hashed)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", errors.New("invalid username")
 		}
 		return "", errors.WithMessage(err, "user lookup failure")

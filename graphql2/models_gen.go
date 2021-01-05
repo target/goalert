@@ -58,6 +58,13 @@ type AuthSubjectConnection struct {
 	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
+type CalcRotationHandoffTimesInput struct {
+	Handoff          time.Time `json:"handoff"`
+	TimeZone         string    `json:"timeZone"`
+	ShiftLengthHours int       `json:"shiftLengthHours"`
+	Count            int       `json:"count"`
+}
+
 type ConfigHint struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
@@ -473,10 +480,12 @@ type UserOverrideSearchOptions struct {
 }
 
 type UserSearchOptions struct {
-	First  *int     `json:"first"`
-	After  *string  `json:"after"`
-	Search *string  `json:"search"`
-	Omit   []string `json:"omit"`
+	First   *int                `json:"first"`
+	After   *string             `json:"after"`
+	Search  *string             `json:"search"`
+	Omit    []string            `json:"omit"`
+	CMValue *string             `json:"CMValue"`
+	CMType  *contactmethod.Type `json:"CMType"`
 }
 
 type VerifyContactMethodInput struct {

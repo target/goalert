@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
+import { gql, useQuery, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
-import { useQuery, useMutation } from 'react-apollo'
+
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
@@ -18,6 +18,7 @@ const query = gql`
       type
       shiftLength
       start
+      nextHandoffTimes(num: 1)
     }
   }
 `
@@ -69,7 +70,7 @@ export default function RotationEditDialog(props) {
               timeZone: data.rotation.timeZone,
               type: data.rotation.type,
               shiftLength: data.rotation.shiftLength,
-              start: data.rotation.start,
+              start: data.rotation.nextHandoffTimes[0] || data.rotation.start,
             }
           }
           onChange={(value) => setValue(value)}
