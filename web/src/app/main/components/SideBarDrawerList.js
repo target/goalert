@@ -1,4 +1,5 @@
 import React from 'react'
+import { PropTypes as p } from 'prop-types'
 import Divider from '@material-ui/core/Divider'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
@@ -66,7 +67,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export default function SideBarDrawerList() {
+export default function SideBarDrawerList(props) {
+  const { setShowMobile } = props
   const classes = useStyles()
   const dispatch = useDispatch()
   const logout = () => dispatch(authLogout(true))
@@ -108,6 +110,7 @@ export default function SideBarDrawerList() {
         to={path}
         className={classes.nav}
         activeClassName={classes.navSelected}
+        onClick={() => setShowMobile(false)}
       >
         {renderSidebarItem(icon, label)}
       </NavLink>
@@ -123,6 +126,7 @@ export default function SideBarDrawerList() {
         parentTitle={cfg.title}
         path={getPath(cfg)}
         subMenuRoutes={cfg.subRoutes}
+        setShowMobile={setShowMobile}
       >
         {renderSidebarItem(navIcons[cfg.title], cfg.title)}
       </NavSubMenu>
@@ -203,4 +207,8 @@ export default function SideBarDrawerList() {
       </List>
     </React.Fragment>
   )
+}
+
+SideBarDrawerList.propTypes = {
+  setShowMobile: p.func.isRequired,
 }

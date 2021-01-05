@@ -95,7 +95,7 @@ export default function App() {
           <Hidden smDown>
             <LazyWideSideBar>
               <div className={classes.toolbar} />
-              <LazySideBarDrawerList />
+              <LazySideBarDrawerList setShowMobile={setShowMobile} />
             </LazyWideSideBar>
           </Hidden>
           <Hidden mdUp>
@@ -104,10 +104,9 @@ export default function App() {
               open={showMobile}
               onOpen={() => setShowMobile(true)}
               onClose={() => setShowMobile(false)}
-              onClick={() => setShowMobile(false)}
               onEscapeKeyDown={() => setShowMobile(false)}
             >
-              <LazySideBarDrawerList />
+              <LazySideBarDrawerList setShowMobile={setShowMobile} />
             </SwipeableDrawer>
           </Hidden>
 
