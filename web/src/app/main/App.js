@@ -13,7 +13,7 @@ import { authSelector } from '../selectors'
 import { PageActionContainer, PageActionProvider } from '../util/PageActions'
 import { PageNotFound as LazyPageNotFound } from '../error-pages/Errors'
 import LazySideBarDrawerList from './components/SideBarDrawerList'
-import LazyMobileSideBar from './MobileSideBar'
+import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
 import LazyWideSideBar from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
@@ -22,6 +22,7 @@ import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import { isWidthDown, makeStyles } from '@material-ui/core'
 import useWidth from '../util/useWidth'
+import { isIOS } from '../util/browsers'
 
 const drawerWidth = '12em'
 
@@ -81,6 +82,7 @@ export default function App() {
             <SkipToContentLink />
             <Toolbar className={classes.toolbar}>
               <ToolbarAction
+                showMobile={showMobile}
                 handleShowMobileSidebar={() => setShowMobile(true)}
               />
               <ToolbarTitle />
@@ -93,16 +95,20 @@ export default function App() {
           <Hidden smDown>
             <LazyWideSideBar>
               <div className={classes.toolbar} />
-              <LazySideBarDrawerList onWizard={() => setShowMobile(true)} />
+              <LazySideBarDrawerList />
             </LazyWideSideBar>
           </Hidden>
           <Hidden mdUp>
-            <LazyMobileSideBar
-              show={showMobile}
-              onChange={(val) => setShowMobile(val)}
+            <SwipeableDrawer
+              disableDiscovery={isIOS}
+              open={showMobile}
+              onOpen={() => setShowMobile(true)}
+              onClose={() => setShowMobile(false)}
+              onClick={() => setShowMobile(false)}
+              onEscapeKeyDown={() => setShowMobile(false)}
             >
-              <LazySideBarDrawerList onWizard={() => setShowMobile(true)} />
-            </LazyMobileSideBar>
+              <LazySideBarDrawerList />
+            </SwipeableDrawer>
           </Hidden>
 
           <URLErrorDialog />

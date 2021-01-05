@@ -1,5 +1,4 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
 import Divider from '@material-ui/core/Divider'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
@@ -149,7 +148,12 @@ export default function SideBarDrawerList() {
         />
       </div>
       <Divider />
-      <List role='navigation' className={classes.list} data-cy='nav-list'>
+      <List
+        component='nav'
+        role='navigation'
+        className={classes.list}
+        data-cy='nav-list'
+      >
         {routeConfig
           .filter((cfg) => cfg.nav !== false)
           .map((cfg, idx) => {
@@ -199,8 +203,4 @@ export default function SideBarDrawerList() {
       </List>
     </React.Fragment>
   )
-}
-
-SideBarDrawerList.propTypes = {
-  onWizard: p.func.isRequired,
 }
