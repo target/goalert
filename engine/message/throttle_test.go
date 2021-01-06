@@ -12,17 +12,13 @@ import (
 func TestThrottle(t *testing.T) {
 	n := time.Now()
 
-	var cfg = message.ThrottleConfig{
-		notification.DestTypeSMS: {
-			{Count: 1, Per: time.Minute},
-		},
-	}
+	cfg := message.ThrottleRules{{Count: 1, Per: time.Minute}}
 
 	throttle := message.NewThrottle(cfg, n, false)
 
 	msg := message.Message{
 		ID:        "0",
-		Type:      message.TypeAlertNotification,
+		Type:      notification.MessageTypeAlert,
 		UserID:    "User A",
 		ServiceID: "Service A",
 		Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},

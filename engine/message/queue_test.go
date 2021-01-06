@@ -138,7 +138,7 @@ func TestQueue_Sort(t *testing.T) {
 	q := newQueue(messages, n)
 
 	// limit the number expected messages to the number allowed to be sent in 15 min
-	rules := q.cmThrottle.cfg[notification.DestTypeSMS]
+	rules := q.cmThrottle.cfg.Rules(Message{Type: notification.MessageTypeAlert, Dest: notification.Dest{Type: notification.DestTypeSMS}})
 	expected = expected[:rules[1].Count]
 
 	for i, exp := range expected {
