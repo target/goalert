@@ -7,7 +7,7 @@ type ThrottleRule struct {
 	Count int
 	Per   time.Duration
 
-	// If Smooth is set, the rule will spread the count limit over the duration.
+	// Smooth indicates that the rule should impose a rate limit over the entire duration.
 	Smooth bool
 }
 
