@@ -24,21 +24,25 @@ func init() {
 		AddRules([]ThrottleRule{{Count: 1, Per: 15 * time.Minute}})
 
 	// alert-specific rules
-	alerts := perCM.
-		WithMsgTypes(notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
-	alerts.WithDestTypes(notification.DestTypeVoice).
+
+	alertMessages := perCM.WithMsgTypes(notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
+
+	alertMessages.
+		WithDestTypes(notification.DestTypeVoice).
 		AddRules([]ThrottleRule{
 			{Count: 1, Per: time.Minute},
 			{Count: 3, Per: 15 * time.Minute},
 			{Count: 7, Per: time.Hour, Smooth: true},
 			{Count: 15, Per: 3 * time.Hour, Smooth: true},
 		})
-	alerts.WithDestTypes(notification.DestTypeSMS).
+
+	alertMessages.
+		WithDestTypes(notification.DestTypeVoice).
 		AddRules([]ThrottleRule{
 			{Count: 1, Per: time.Minute},
 			{Count: 5, Per: 15 * time.Minute},
-			{Count: 12, Per: time.Hour},
-			{Count: 20, Per: 3 * time.Hour},
+			{Count: 11, Per: time.Hour, Smooth: true},
+			{Count: 21, Per: 3 * time.Hour, Smooth: true},
 		})
 
 	PerCMThrottle = perCM.Config()
