@@ -43,13 +43,13 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/joho/godotenv v1.3.0
 	github.com/mailhog/MailHog v1.0.1 // indirect
-	github.com/mailhog/MailHog-Server v1.0.1 // indirect
+	github.com/mailhog/MailHog-Server v1.0.1
 	github.com/mailhog/MailHog-UI v1.0.1 // indirect
-	github.com/mailhog/data v1.0.1 // indirect
+	github.com/mailhog/data v1.0.1
 	github.com/mailhog/http v1.0.1 // indirect
 	github.com/mailhog/mhsendmail v0.2.0 // indirect
 	github.com/mailhog/smtp v1.0.1 // indirect
-	github.com/mailhog/storage v1.0.1 // indirect
+	github.com/mailhog/storage v1.0.1
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mhale/smtpd v0.0.0-20200509114310-d7a07f752336
