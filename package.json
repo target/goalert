@@ -5,7 +5,7 @@
     "mobile"
   ],
   "scripts": {
-    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}'"
+    "fmt": "prettier -l --write '**/*.{js,jsx,yml,yaml,json,css,ts,tsx,html}'"
   },
   "dependencies": {
     "react": "16.9.0",
