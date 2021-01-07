@@ -106,7 +106,7 @@ func (e *emailServer) messages() []emailMessage {
 			addrs = append(addrs, p.Mailbox+"@"+p.Domain)
 		}
 
-		for _, part := range msg.Content.MIME.Parts {
+		for _, part := range msg.MIME.Parts {
 			if !containsStr(part.Headers["Content-Type"], "text/plain") {
 				continue
 			}
@@ -117,7 +117,7 @@ func (e *emailServer) messages() []emailMessage {
 		}
 	}
 
-	return nil
+	return result
 }
 
 func (e *emailServer) waitAndAssert(timeout <-chan time.Time) bool {
@@ -159,6 +159,10 @@ func (e *emailServer) waitAndAssert(timeout <-chan time.Time) bool {
 		}
 	}
 
+	for _, msg := range msgs {
+		e.h.t.Errorf("unexpected message: to=%s; body=%s", strings.Join(msg.address, ","), msg.body)
+	}
+
 	return true
 }
 
@@ -172,4 +176,6 @@ func (e *emailServer) WaitAndAssert() {
 	for !e.waitAndAssert(timeout.C) {
 		<-t.C
 	}
+
+	e.expected = nil
 }

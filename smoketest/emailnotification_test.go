@@ -44,6 +44,6 @@ func TestEmailNotification(t *testing.T) {
 	h := harness.NewHarness(t, sql, "ids-to-uuids")
 	defer h.Close()
 
-	h.SMTP().ExpectMessage(h.Email("1"), "test4ing")
+	h.SMTP().ExpectMessage(h.Email("1"), "testing")
 
 }
