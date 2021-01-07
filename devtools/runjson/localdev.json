@@ -27,7 +27,10 @@
   {
     "Name": "UI",
     "Command": [
-      "./node_modules/.bin/webpack-dev-server",
+      "yarn",
+      "workspace",
+      "goalert-web",
+      "webpack-dev-server",
       "--inline",
       "--devtool=inline-source-map",
       "--allowed-hosts=docker.for.mac.host.internal",
@@ -35,8 +38,7 @@
       "--progress=false",
       "--mode=development",
       "--env.GOALERT_VERSION=$GOALERT_VERSION"
-    ],
-    "Dir": "web/src"
+    ]
   },
   {
     "Name": "Jaeger",

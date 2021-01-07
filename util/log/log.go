@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/target/goalert/util/sqlutil"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 type logContextKey int
@@ -46,7 +46,7 @@ func ErrorsOnly() {
 }
 
 func init() {
-	if terminal.IsTerminal(int(os.Stderr.Fd())) {
+	if term.IsTerminal(int(os.Stderr.Fd())) {
 		logrus.SetFormatter(&terminalFormatter{})
 	}
 }

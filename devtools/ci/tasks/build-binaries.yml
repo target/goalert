@@ -3,6 +3,7 @@ params:
   BUILD_INTEGRATION: "1"
 caches:
   - path: ../../../go/pkg
+  - path: goalert/node_modules
   - path: goalert/web/src/node_modules
   - path: ../../../usr/local/share/.cache
   - path: ../../../root/.cache

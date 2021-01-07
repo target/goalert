@@ -3,7 +3,7 @@ import { testScreen } from '../support'
 const c = new Chance()
 
 function testMaterialSelect(): void {
-  describe('Clear Fields', () => {
+  describe('Clear Optional Fields', () => {
     describe('Escalation Policy Steps', () => {
       let ep: EP
       beforeEach(() => {
@@ -20,21 +20,19 @@ function testMaterialSelect(): void {
           cy.pageFab()
           cy.dialogTitle('Create Step')
 
+          // populate users
           cy.get('button[data-cy="users-step"]').click()
           cy.dialogForm({ users: [u1.name, u2.name] })
 
-          // Should clear field
+          // clear field
           cy.dialogForm({ users: '' })
-          cy.get(`[role=dialog] #dialog-form input[name="rotations"]`)
+          cy.get(`input[name="users"]`)
             .should('not.contain', u1.name)
             .should('not.contain', u2.name)
 
-          cy.get(
-            `[role=dialog] #dialog-form input[name="delayMinutes"]`,
-          ).click()
-
-          // Field should remian clear
-          cy.get(`[role=dialog] #dialog-form input[name="rotations"]`)
+          // unfocus
+          cy.get(`input[name="users"]`).blur()
+          cy.get(`input[name="users"]`)
             .should('not.contain', u1.name)
             .should('not.contain', u2.name)
 
