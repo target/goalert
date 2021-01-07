@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
-import Tooltip from '@material-ui/core/Tooltip'
+import Popover from '@material-ui/core/Popover'
+import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
 import { DateTime } from 'luxon'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
   button: {
     padding: '4px',
     minHeight: 0,
@@ -19,29 +20,36 @@ const useStyles = makeStyles((theme) => ({
   flexGrow: {
     flexGrow: 1,
   },
-  icon: {
-    color: theme.palette.primary['500'],
+  paper: {
+    padding: 8,
+    maxWidth: 275,
   },
-  tooltip: {
-    background: theme.palette.common.white,
-    color: theme.palette.text.primary,
-    boxShadow: theme.shadows[1],
-    fontSize: 12,
-    marginTop: '0.1em',
-    marginBottom: '0.1em',
-  },
-  popper: {
-    opacity: 1,
-  },
-}))
+})
 
 export default function CalendarEventWrapper(props) {
   const classes = useStyles()
   const { children, event, onOverrideClick } = props
-  const [open, setOpen] = useState(false)
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
+  const id = open ? 'shift-popover' : undefined
+
+  function handleClick(event) {
+    setAnchorEl(event.currentTarget)
+  }
+
+  function handleCloseShiftInfo() {
+    setAnchorEl(null)
+  }
+
+  function handleKeyDown(event) {
+    const code = event.keyCode || event.which
+    if (code === 13 || code === 32) {
+      setAnchorEl(event.currentTarget)
+    }
+  }
 
   function handleShowOverrideForm(type) {
-    setOpen(false)
+    handleCloseShiftInfo()
 
     onOverrideClick({
       variant: type,
@@ -61,7 +69,7 @@ export default function CalendarEventWrapper(props) {
    * shift as an override, if possible (not in the
    * past).
    */
-  function renderInteractiveTooltip() {
+  function renderShiftInfo() {
     let overrideCtrls = null
 
     if (DateTime.fromJSDate(event.end) > DateTime.utc()) {
@@ -80,6 +88,7 @@ export default function CalendarEventWrapper(props) {
               Replace
             </Button>
           </Grid>
+
           <Grid item className={classes.flexGrow} />
 
           <Grid item className={classes.buttonContainer}>
@@ -105,46 +114,50 @@ export default function CalendarEventWrapper(props) {
     return (
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
+          <Typography variant='body2'>
+            {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
+          </Typography>
         </Grid>
         {overrideCtrls}
       </Grid>
     )
   }
 
-  function handleKeyDown(event) {
-    const code = event.keyCode || event.which
-    if (code === 13 || code === 32) {
-      event.preventDefault()
-      setOpen(true)
-    }
-  }
-
-  // calendar event selection is not set when focused by key press
-  // event focus and click events handled manually
+  if (!children) return null
   return (
-    <Tooltip
-      open={open}
-      classes={{
-        tooltip: classes.tooltip,
-        popper: classes.popper,
-      }}
-      interactive
-      placement='bottom-start'
-      PopperProps={{
-        'data-cy': 'shift-tooltip',
-      }}
-      title={renderInteractiveTooltip()}
-    >
-      {React.cloneElement(children, {
-        onClick: () => setOpen(true),
-        onKeyDown: handleKeyDown, // handles opening by screen reader/keyboard
-        onBlur: () => setOpen(false),
-        role: 'button',
-        'aria-pressed': open,
-        className: open ? 'rbc-selected rbc-event' : 'rbc-event',
-      })}
-    </Tooltip>
+    <div>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleCloseShiftInfo}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        classes={{
+          paper: classes.paper,
+        }}
+      >
+        {renderShiftInfo()}
+      </Popover>
+      <div
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        role='button'
+        tabIndex={0}
+        aria-pressed={open}
+        aria-describedby={open ? id : undefined}
+      >
+        {React.cloneElement(children, {
+          tabIndex: -1,
+        })}
+      </div>
+    </div>
   )
 }
 
