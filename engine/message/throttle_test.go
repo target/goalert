@@ -46,6 +46,12 @@ func TestThrottle(t *testing.T) {
 		n.Add(3*time.Minute),
 	)
 
+	check("not_at_cap",
+		message.ThrottleRules{{Count: 3, Per: 15 * time.Minute}},
+		[]time.Time{n},
+		n,
+	)
+
 	check("smooth_rate",
 		message.ThrottleRules{{Count: 3, Per: 15 * time.Minute, Smooth: true}},
 		[]time.Time{n},
