@@ -25,7 +25,11 @@ GoAlert requires the `pgcrypto` extension enabled (you can enable it with `CREAT
 Upon first startup, it will attempt to enable the extension if it's not already enabled, but this requires elevated privileges that may not be available
 in your setup.
 
-It is also recomended to set the `--data-encryption-key` which is used to encrypt sensitive information before transmitting to the database. It can be set to any value, keep it secret.
+### Encryption of Sensitive Data
+
+It is also recommended to set the `--data-encryption-key` which is used to encrypt sensitive information (like API keys) before transmitting to the database.
+
+It can be set to any value as it is internally passed through a key derivation function. All instances of GoAlert must be configured to use the same key for things to work properly.
 
 ## Running GoAlert
 
@@ -178,7 +182,7 @@ To configure Mailgun to forward to GoAlert:
 
 ### Slack
 
-GoAlert supports generating a notification to a Slack channel or user as part of the [Escalation Policy](link to EP doc here).
+GoAlert supports generating a notification to a Slack channel as part of the Escalation Policy.
 
 For the time being you will need to create your own Slack app in your workspace for GoAlert to interface with.
 
@@ -188,16 +192,23 @@ To configure Slack, first [create a workspace](https://slack.com/create#email) o
 1. Enter a name for your app (e.g. `GoAlert`)
 1. Select your workspace
 1. Click **Create App**
-1. Under **Bot Users** click **Add a Bot User** configure as desired and click **Add Bot User**
-1. Under **OAuth & Permissions** add your `<General.Public URL>` with **Add New Redirect URL**
-1. Under **OAuth & Permissions** click **Install App to Workspace** and complete the flow
+1. In the list under Features, click **OAuth & Permissions**
+1. Click on **Add New Redirect URL** and enter your `<General.Public URL>` and click **Add**
+1. Under **Scopes** find **Bot Token Scopes**, click on **Add an OAuth Scope**
+1. Add the following scopes:  
+  `channels:read`  
+  `groups:read`  
+  `chat:write`  
+1. At the top of the page, click **Install App to Workspace** and **Allow**
 
-You may now configure the **Slack** section of the Admin page.
+You may now configure the **Slack** section of the GoAlert Admin page.
 
 - You may find your **Access Token** under **OAuth & Permissions** -- it is the **Bot User OAuth Access Token**
 - **Client ID** and **Client Secret** are found under **Basic Information** in the **App Credentials** section.
 
 Be sure to **Enable** Slack using the toggle.
+
+You must invite the new app (e.g. GoAlert) by typing `/invite @GoAlert` in the desired Slack channel(s).
 
 ### Twilio
 
