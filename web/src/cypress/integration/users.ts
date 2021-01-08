@@ -1,6 +1,6 @@
 import { testScreen } from '../support'
 
-function testUsers(screen: ScreenFormat): void {
+function testUsers(): void {
   describe('List Page', () => {
     let cm: ContactMethod
     let prof: Profile
