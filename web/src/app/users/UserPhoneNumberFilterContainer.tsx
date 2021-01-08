@@ -12,7 +12,7 @@ interface UserPhoneNumberFilterContainerProps {
 export default function UserPhoneNumberFilterContainer(
   props: UserPhoneNumberFilterContainerProps,
 ): JSX.Element {
-  const [searchParam, setSearchParam] = useURLParam('search', '')
+  const [searchParam, setSearchParam] = useURLParam('search', '' as string)
 
   return (
     <FilterContainer
