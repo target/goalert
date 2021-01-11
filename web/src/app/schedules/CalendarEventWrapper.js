@@ -125,7 +125,7 @@ export default function CalendarEventWrapper(props) {
 
   if (!children) return null
   return (
-    <div>
+    <React.Fragment>
       <Popover
         id={id}
         open={open}
@@ -145,19 +145,15 @@ export default function CalendarEventWrapper(props) {
       >
         {renderShiftInfo()}
       </Popover>
-      <div
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        role='button'
-        tabIndex={0}
-        aria-pressed={open}
-        aria-describedby={open ? id : undefined}
-      >
-        {React.cloneElement(children, {
-          tabIndex: -1,
-        })}
-      </div>
-    </div>
+      {React.cloneElement(children, {
+        tabIndex: 0,
+        onClick: handleClick,
+        onKeyDown: handleKeyDown,
+        role: 'button',
+        'aria-pressed': open,
+        'aria-describedby': open ? id : undefined,
+      })}
+    </React.Fragment>
   )
 }
 
