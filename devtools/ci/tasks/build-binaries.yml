@@ -1,6 +1,6 @@
 platform: linux
 params:
-  BUILD_INTEGRATION: "1"
+  BUILD_INTEGRATION: '1'
 caches:
   - path: ../../../go/pkg
   - path: goalert/node_modules

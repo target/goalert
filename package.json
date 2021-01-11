@@ -1,4 +1,12 @@
 {
   "private": true,
-  "workspaces": ["web/src"]
+  "workspaces": [
+    "web/src"
+  ],
+  "scripts": {
+    "fmt": "prettier -l --write '**/*.{js,jsx,yml,yaml,json,css,ts,tsx,html}'"
+  },
+  "devDependencies": {
+    "prettier": "2.2.1"
+  }
 }

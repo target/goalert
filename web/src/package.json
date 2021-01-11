@@ -4,7 +4,6 @@
   "description": "user interface for the goalert project",
   "main": "index.js",
   "scripts": {
-    "fmt": "prettier -l --write '**/*.{js,yml,yaml,json,css,ts,tsx,html}'",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx --fix . && stylelint --fix ./app/**/*.css",
     "ts-compile": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
     "check": "yarn fmt && yarn lint && yarn ts-compile",
@@ -147,7 +146,6 @@
     "json-loader": "0.5.7",
     "lint-staged": "10.4.2",
     "postcss-loader": "3.0.0",
-    "prettier": "2.2.1",
     "raw-loader": "4.0.2",
     "react-hot-loader": "4.13.0",
     "redux": "4.0.5",
