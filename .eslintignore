@@ -1,2 +1,5 @@
 /web/src/build
 /web/src/profile.json
+
+/mobile/__generated__/
+/mobile/.expo/
