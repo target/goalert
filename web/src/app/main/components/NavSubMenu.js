@@ -48,7 +48,13 @@ const useStyles = makeStyles((theme) => {
 })
 
 export default function NavSubMenu(props) {
-  const { parentIcon, parentTitle, path, subMenuRoutes, setShowMobile } = props
+  const {
+    parentIcon,
+    parentTitle,
+    path,
+    subMenuRoutes,
+    closeMobileSidebar,
+  } = props
   const classes = useStyles()
   const pathname = useSelector(urlPathSelector)
   const isRoute = pathname.startsWith(path)
@@ -92,7 +98,7 @@ export default function NavSubMenu(props) {
           key={key}
           className={classes.nav}
           to={route.path}
-          onClick={() => setShowMobile(false)}
+          onClick={closeMobileSidebar}
         >
           <ListItem button tabIndex={-1}>
             <ListItemText className={classes.subMenuLinkText}>
@@ -123,5 +129,5 @@ NavSubMenu.propTypes = {
   parentTitle: p.string.isRequired,
   path: p.string.isRequired,
   subMenuRoutes: p.array.isRequired,
-  setShowMobile: p.func.isRequired,
+  closeMobileSidebar: p.func.isRequired,
 }

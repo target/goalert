@@ -68,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export default function SideBarDrawerList(props) {
-  const { setShowMobile } = props
+  const { closeMobileSidebar } = props
   const classes = useStyles()
   const dispatch = useDispatch()
   const logout = () => dispatch(authLogout(true))
@@ -110,7 +110,7 @@ export default function SideBarDrawerList(props) {
         to={path}
         className={classes.nav}
         activeClassName={classes.navSelected}
-        onClick={() => setShowMobile(false)}
+        onClick={closeMobileSidebar}
       >
         {renderSidebarItem(icon, label)}
       </NavLink>
@@ -126,7 +126,7 @@ export default function SideBarDrawerList(props) {
         parentTitle={cfg.title}
         path={getPath(cfg)}
         subMenuRoutes={cfg.subRoutes}
-        setShowMobile={setShowMobile}
+        closeMobileSidebar={closeMobileSidebar}
       >
         {renderSidebarItem(navIcons[cfg.title], cfg.title)}
       </NavSubMenu>
@@ -210,5 +210,5 @@ export default function SideBarDrawerList(props) {
 }
 
 SideBarDrawerList.propTypes = {
-  setShowMobile: p.func.isRequired,
+  closeMobileSidebar: p.func.isRequired,
 }
