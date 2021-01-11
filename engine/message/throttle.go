@@ -88,7 +88,7 @@ func (tr *Throttle) Record(msg Message) {
 			prevRule = rules[i-1]
 		}
 
-		if count < prevRule.Count {
+		if count < prevRule.Count || count == 0 {
 			// allow prev rule in entirety
 			continue
 		}
@@ -98,7 +98,7 @@ func (tr *Throttle) Record(msg Message) {
 		elapsed := tr.now.Sub(tr.first[key]) - prevRule.Per
 		per := rule.Per - prevRule.Per
 
-		if count >= int(time.Duration(count)*elapsed/per) {
+		if count > int(elapsed*time.Duration(rule.Count-prevRule.Count)/per) {
 			tr.cooldown[msg.Dest] = true
 		}
 	}
