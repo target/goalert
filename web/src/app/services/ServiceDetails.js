@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
+import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
-import { useQuery } from 'react-apollo'
+
 import { Redirect } from 'react-router-dom'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'
@@ -14,7 +14,7 @@ import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {

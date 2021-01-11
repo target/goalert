@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import Snackbar from '@material-ui/core/Snackbar'
 import SnackbarContent from '@material-ui/core/SnackbarContent'
@@ -6,13 +6,13 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle'
 import CloseIcon from '@material-ui/icons/Close'
 import ErrorIcon from '@material-ui/icons/Error'
 import IconButton from '@material-ui/core/IconButton'
-import withStyles from '@material-ui/core/styles/withStyles'
+import { makeStyles } from '@material-ui/core'
 
 const icon = {
   fontSize: 20,
 }
 
-const styles = (theme) => ({
+const useStyles = makeStyles((theme) => ({
   success: {
     backgroundColor: 'green',
   },
@@ -31,19 +31,18 @@ const styles = (theme) => ({
     display: 'flex',
     alignItems: 'center',
   },
-})
+}))
 
-@withStyles(styles)
-export default class UpdateAlertsSnackbar extends Component {
-  static propTypes = {
-    errorMessage: p.string,
-    open: p.bool.isRequired,
-    updateMessage: p.string,
-  }
+function UpdateAlertsSnackbar({
+  errorMessage,
+  updateMessage,
+  onClose,
+  onExited,
+  open,
+}) {
+  const classes = useStyles()
 
-  getMessage = () => {
-    const { classes, errorMessage, updateMessage } = this.props
-
+  function getMessage() {
     if (errorMessage) {
       return (
         <span className={classes.message}>
@@ -60,35 +59,39 @@ export default class UpdateAlertsSnackbar extends Component {
     )
   }
 
-  render() {
-    const { classes, errorMessage, onClose, onExited, open } = this.props
-
-    return (
-      <Snackbar
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        autoHideDuration={!errorMessage ? 3000 : null}
-        open={open}
-        onClose={onClose}
-        onExited={onExited}
-      >
-        <SnackbarContent
-          className={errorMessage ? classes.error : classes.success}
-          message={this.getMessage()}
-          action={[
-            <IconButton
-              key='close'
-              aria-label='Close'
-              color='inherit'
-              onClick={onClose}
-            >
-              <CloseIcon className={classes.closeIcon} />
-            </IconButton>,
-          ]}
-        />
-      </Snackbar>
-    )
-  }
+  return (
+    <Snackbar
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'left',
+      }}
+      autoHideDuration={!errorMessage ? 3000 : null}
+      open={open}
+      onClose={onClose}
+      onExited={onExited}
+    >
+      <SnackbarContent
+        className={errorMessage ? classes.error : classes.success}
+        message={getMessage()}
+        action={[
+          <IconButton
+            key='close'
+            aria-label='Close'
+            color='inherit'
+            onClick={onClose}
+          >
+            <CloseIcon className={classes.closeIcon} />
+          </IconButton>,
+        ]}
+      />
+    </Snackbar>
+  )
 }
+
+UpdateAlertsSnackbar.propTypes = {
+  errorMessage: p.string,
+  open: p.bool.isRequired,
+  updateMessage: p.string,
+}
+
+export default UpdateAlertsSnackbar

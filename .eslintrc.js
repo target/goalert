@@ -1,6 +1,3 @@
-const fs = require('fs')
-const path = require('path')
-
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -47,12 +44,22 @@ module.exports = {
         ignoreRestSiblings: true,
       },
     ],
+    'no-use-before-define': 'off',
+    '@typescript-eslint/no-use-before-define': ['error'],
+    'array-callback-return': 'off',
   },
   overrides: [
     {
       files: ['*.js', '*.jsx'],
       rules: {
         '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+      },
+    },
+    {
+      files: ['*.d.ts'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'off',
       },
     },
   ],

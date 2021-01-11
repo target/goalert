@@ -3,6 +3,7 @@ package schedule
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/util/sqlutil"
 
 	"github.com/pkg/errors"
@@ -93,7 +94,7 @@ func (db *DB) FindMany(ctx context.Context, ids []string) ([]Schedule, error) {
 	}
 	userID := permission.UserID(ctx)
 	rows, err := db.findMany.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {

@@ -189,7 +189,7 @@ func (s *Store) ConfigData(ctx context.Context, tx *sql.Tx) (id, schemaVersion i
 	}
 
 	err = wrapTx(ctx, tx, s.latestConfig).QueryRowContext(ctx, SchemaVersion).Scan(&id, &data, &schemaVersion)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return 0, SchemaVersion, []byte("{}"), nil
 	}
 	if err != nil {

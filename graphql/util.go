@@ -35,13 +35,13 @@ var HourTime = g.NewScalar(g.ScalarConfig{
 type scrubber struct{ ctx context.Context }
 
 func isCtxCause(err error) bool {
-	if err == context.Canceled {
+	if errors.Is(err, context.Canceled) {
 		return true
 	}
-	if err == context.DeadlineExceeded {
+	if errors.Is(err, context.DeadlineExceeded) {
 		return true
 	}
-	if err == sql.ErrTxDone {
+	if errors.Is(err, sql.ErrTxDone) {
 		return true
 	}
 
@@ -59,8 +59,7 @@ func (s *scrubber) scrub(val interface{}, err error) (interface{}, error) {
 	if err == nil {
 		return val, nil
 	}
-	cause := errors.Cause(err)
-	if cause == sql.ErrNoRows || (s.ctx.Err() != nil && isCtxCause(cause)) {
+	if errors.Is(err, sql.ErrNoRows) || (s.ctx.Err() != nil && isCtxCause(err)) {
 		log.Debug(s.ctx, errors.Wrap(err, "graphql"))
 		return nil, nil
 	}

@@ -3,12 +3,13 @@ package rotationmanager
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
@@ -114,7 +115,7 @@ func (db *DB) calcAdvances(ctx context.Context, tx *sql.Tx, all bool, rotID *str
 			return nil, errors.Wrap(err, "load timezone")
 		}
 		rot.Start = rot.Start.In(loc)
-		adv = calcAdvance(t, &rot, state, partCount)
+		adv = calcAdvance(ctx, t, &rot, state, partCount)
 		if adv != nil {
 			needsAdvance = append(needsAdvance, *adv)
 			if len(needsAdvance) == 150 {

@@ -1,17 +1,21 @@
 import React, { useState } from 'react'
 import FlatList from '../lists/FlatList'
-import gql from 'graphql-tag'
-import { QueryHookOptions, useMutation, useQuery } from 'react-apollo'
+import {
+  QueryHookOptions,
+  useMutation,
+  useQuery,
+  ApolloError,
+  gql,
+} from '@apollo/client'
 import { Button, Card, IconButton, makeStyles } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
 import { formatTimeSince } from '../util/timeFormat'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import PageActions from '../util/PageActions'
 import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
-import { ApolloError } from 'apollo-client'
 
 const profileQuery = gql`
   query {

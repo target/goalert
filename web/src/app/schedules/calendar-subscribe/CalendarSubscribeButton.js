@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
+import { useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
 import { Button, Grid, makeStyles, Typography } from '@material-ui/core/index'
 import CalendarIcon from 'mdi-material-ui/Calendar'
 import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
-import { useQuery } from '@apollo/react-hooks'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
-import _ from 'lodash-es'
-import { AppLink } from '../../util/AppLink'
+import _ from 'lodash'
+import AppLink from '../../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({
   calIcon: {
@@ -25,12 +25,13 @@ export default function CalendarSubscribeButton(props) {
 
   const [showDialog, setShowDialog] = useState(false)
   const classes = useStyles()
-  const { userID } = useSessionInfo()
+  const { userID, ready } = useSessionInfo()
 
   const { data, error } = useQuery(calendarSubscriptionsQuery, {
     variables: {
       id: userID,
     },
+    skip: !ready,
   })
 
   const numSubs = _.get(data, 'user.calendarSubscriptions', []).filter(

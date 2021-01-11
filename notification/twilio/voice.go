@@ -104,7 +104,8 @@ type twiMLEnd struct {
 var rmParen = regexp.MustCompile(`\s*\(.*?\)`)
 
 func voiceErrorMessage(ctx context.Context, err error) (string, error) {
-	if e, ok := errors.Cause(err).(alert.LogEntryFetcher); ok {
+	var e alert.LogEntryFetcher
+	if errors.As(err, &e) {
 		// we pass a 'sudo' context to give permission
 		var msg string
 		permission.SudoContext(ctx, func(sCtx context.Context) {
@@ -496,7 +497,7 @@ func (v *Voice) getCall(w http.ResponseWriter, req *http.Request) (context.Conte
 		// always log the failure
 		log.Log(ctx, err)
 
-		if (errors.Cause(err) == errVoiceTimeout || retry.IsTemporaryError(err)) && retryCount < 3 {
+		if (errors.Is(err, errVoiceTimeout) || retry.IsTemporaryError(err)) && retryCount < 3 {
 			// schedule a retry
 			q.Set("retry_count", strconv.Itoa(retryCount+1))
 			q.Set("retry_digits", digits)

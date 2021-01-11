@@ -1,13 +1,19 @@
 import React, { useState } from 'react'
+import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
-import { Hidden, ListItemText, isWidthDown } from '@material-ui/core'
+import {
+  Hidden,
+  ListItemText,
+  isWidthDown,
+  makeStyles,
+} from '@material-ui/core'
 import {
   ArrowUpward as EscalateIcon,
   Check as AcknowledgeIcon,
   Close as CloseIcon,
 } from '@material-ui/icons'
 import { useSelector } from 'react-redux'
+import { DateTime } from 'luxon'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
@@ -16,7 +22,6 @@ import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
 import { formatTimeSince } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
-import { useMutation, useQuery } from '@apollo/react-hooks'
 import QueryList from '../lists/QueryList'
 import useWidth from '../util/useWidth'
 
@@ -62,6 +67,12 @@ const escalateMutation = gql`
   }
 `
 
+const useStyles = makeStyles({
+  alertTimeContainer: {
+    width: 'max-content',
+  },
+})
+
 function getStatusFilter(s) {
   switch (s) {
     case 'acknowledged':
@@ -79,6 +90,7 @@ function getStatusFilter(s) {
 }
 
 export default function AlertsList(props) {
+  const classes = useStyles()
   const width = useWidth()
   const isMobileScreenSize = isWidthDown('md', width)
 
@@ -90,6 +102,7 @@ export default function AlertsList(props) {
   // get redux url vars
   const params = useSelector(urlParamSelector)
   const allServices = params('allServices')
+  const fullTime = params('fullTime')
   const filter = params('filter', 'active')
 
   // query for current service name if props.serviceID is provided
@@ -250,12 +263,23 @@ export default function AlertsList(props) {
             .toUpperCase()
             .replace('STATUS', '')}`,
           subText: (props.serviceID ? '' : a.service.name + ': ') + a.summary,
-          action: <ListItemText secondary={formatTimeSince(a.createdAt)} />,
+          action: (
+            <ListItemText
+              className={classes.alertTimeContainer}
+              secondary={
+                fullTime
+                  ? DateTime.fromISO(a.createdAt).toLocaleString(
+                      DateTime.DATETIME_MED,
+                    )
+                  : formatTimeSince(a.createdAt)
+              }
+            />
+          ),
           url: `/alerts/${a.id}`,
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
-        filter={<AlertsListFilter />}
+        filter={<AlertsListFilter serviceID={props.serviceID} />}
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />

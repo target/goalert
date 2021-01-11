@@ -4,7 +4,7 @@ import Chip from '@material-ui/core/Chip'
 import { withRouter } from 'react-router-dom'
 import { push } from 'connected-react-router'
 import { useDispatch } from 'react-redux'
-import { useQuery } from 'react-apollo'
+import { useQuery, gql } from '@apollo/client'
 
 import {
   Layers as PolicyIcon,
@@ -14,7 +14,6 @@ import {
 import Avatar from '@material-ui/core/Avatar'
 import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'
-import gql from 'graphql-tag'
 
 const serviceQuery = gql`
   query service($id: ID!) {

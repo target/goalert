@@ -39,16 +39,19 @@ type fieldErrors struct {
 
 // AddPrefix will prepend a prefix to all field names within the given error.
 func AddPrefix(fieldPrefix string, err error) error {
-	switch e := errors.Cause(err).(type) {
-	case *fieldError:
-		e.fieldName = fieldPrefix + e.fieldName
-	case *fieldErrors:
-		for _, err := range e.errors {
-			if e, ok := err.(*fieldError); ok {
+	var fieldErr *fieldError
+	var fieldErrs *fieldErrors
+
+	if errors.As(err, &fieldErr) {
+		fieldErr.fieldName = fieldPrefix + fieldErr.fieldName
+	} else if errors.As(err, &fieldErrs) {
+		for _, ferr := range fieldErrs.errors {
+			if e, ok := ferr.(*fieldError); ok {
 				e.fieldName = fieldPrefix + e.fieldName
 			}
 		}
 	}
+
 	return err
 }
 
@@ -101,7 +104,8 @@ func NewFieldError(fieldName string, reason string) FieldError {
 
 // IsValidationError will determine if an error's cause is a field validation error.
 func IsValidationError(err error) bool {
-	if e, ok := errors.Cause(err).(validation); ok && e.Validation() {
+	var e validation
+	if errors.As(err, &e) && e.Validation() {
 		return true
 	}
 	return false
@@ -109,7 +113,8 @@ func IsValidationError(err error) bool {
 
 // IsClientError will determine if an error's cause is due to request/client error.
 func IsClientError(err error) bool {
-	if e, ok := errors.Cause(err).(client); ok && e.ClientError() {
+	var e client
+	if errors.As(err, &e) && e.ClientError() {
 		return true
 	}
 	return false

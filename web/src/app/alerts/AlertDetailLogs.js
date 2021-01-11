@@ -1,15 +1,13 @@
 import React, { useState } from 'react'
+import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import Button from '@material-ui/core/Button'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import { makeStyles } from '@material-ui/core'
-import gql from 'graphql-tag'
-import { useQuery } from '@apollo/react-hooks'
 import { DateTime } from 'luxon'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import { formatTimeSince } from '../util/timeFormat'
 import { POLL_INTERVAL } from '../config'
 import { textColors } from '../styles/statusStyles'
@@ -42,6 +40,9 @@ const useStyles = makeStyles({
   // colors generated from status colors, but with saturation locked at 75 and value locked at 52.5
   // so that all three passed contrast requirements (WCAG 2 AA)
   ...textColors,
+  logTimeContainer: {
+    width: 'max-content',
+  },
 })
 
 export default function AlertDetailLogs(props) {
@@ -136,9 +137,12 @@ export default function AlertDetailLogs(props) {
           secondary={details}
           secondaryTypographyProps={detailsProps}
         />
-        <ListItemSecondaryAction>
-          <ListItemText secondary={timestamp} />
-        </ListItemSecondaryAction>
+        <div>
+          <ListItemText
+            className={classes.logTimeContainer}
+            secondary={timestamp}
+          />
+        </div>
       </ListItem>
     )
   }

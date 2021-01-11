@@ -99,7 +99,7 @@ func (r *Rotation) NextHandoffTimes(ctx context.Context, rot *rotation.Rotation,
 	}
 
 	s, err := r.RotationStore.State(ctx, rot.ID)
-	if err == rotation.ErrNoState {
+	if errors.Is(err, rotation.ErrNoState) {
 		return nil, nil
 	}
 	if err != nil {
@@ -167,7 +167,7 @@ func (r *Rotation) Users(ctx context.Context, rot *rotation.Rotation) ([]user.Us
 
 func (r *Rotation) ActiveUserIndex(ctx context.Context, obj *rotation.Rotation) (int, error) {
 	s, err := r.RotationStore.State(ctx, obj.ID)
-	if err == rotation.ErrNoState {
+	if errors.Is(err, rotation.ErrNoState) {
 		return -1, nil
 	}
 	if err != nil {
@@ -281,7 +281,7 @@ func (m *Mutation) updateRotationParticipants(ctx context.Context, tx *sql.Tx, r
 	} else if updateActive {
 		// get current active participant
 		s, err := m.RotationStore.StateTx(ctx, tx, rotationID)
-		if err == rotation.ErrNoState {
+		if errors.Is(err, rotation.ErrNoState) {
 			return nil
 		}
 		if err != nil {
@@ -374,4 +374,37 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 		return false, err
 	}
 	return true, nil
+}
+
+func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.CalcRotationHandoffTimesInput) ([]time.Time, error) {
+	var result []time.Time
+	var err error
+
+	err = validate.Many(
+		err,
+		validate.Range("count", input.Count, 0, 20),
+		validate.Range("hours", input.ShiftLengthHours, 0, 99999),
+	)
+	if err != nil {
+		return result, err
+	}
+
+	loc, err := util.LoadLocation(input.TimeZone)
+	if err != nil {
+		return result, validation.NewFieldError("timeZone", err.Error())
+	}
+
+	rot := &rotation.Rotation{
+		Start:       input.Handoff.In(loc),
+		ShiftLength: input.ShiftLengthHours,
+		Type:        rotation.TypeHourly,
+	}
+
+	t := time.Now()
+	for len(result) < input.Count {
+		t = rot.EndTime(t)
+		result = append(result, t)
+	}
+
+	return result, nil
 }

@@ -20,17 +20,19 @@ func IsTemporaryError(err error) bool {
 	if err == nil {
 		return false
 	}
-	if e, ok := err.(clientErr); ok && e.ClientError() {
+	var cliErr clientErr
+	if errors.As(err, &cliErr) && cliErr.ClientError() {
 		return false
 	}
-	cause := errors.Cause(err)
-	if _, ok := cause.(net.Error); ok {
+
+	var netErr net.Error
+	if errors.As(err, &netErr) {
 		return true
 	}
-	if cause == sql.ErrConnDone {
+	if errors.Is(err, sql.ErrConnDone) {
 		return true
 	}
-	if cause == driver.ErrBadConn {
+	if errors.Is(err, driver.ErrBadConn) {
 		return true
 	}
 	if e := sqlutil.MapError(err); e != nil {
