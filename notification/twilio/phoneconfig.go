@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/validation"
 )
 
 type PhoneNumberConfig struct {
@@ -35,6 +36,10 @@ func (c *Config) PhoneNumberConfig(ctx context.Context, number string) (*PhoneNu
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == 401 {
+		return nil, validation.NewGenericError("invalid Twilio SID/Token combination")
+	}
 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("non-200 response: %s", resp.Status)
