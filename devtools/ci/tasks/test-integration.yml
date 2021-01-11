@@ -1,6 +1,6 @@
 platform: linux
 params:
-  MOBILE: "0"
+  MOBILE: '0'
 inputs:
   - name: integration
 outputs:
