@@ -173,6 +173,7 @@ check: generate node_modules
 	go run github.com/gordonklaus/ineffassign .
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
 	yarn run fmt
+	yarn run lint
 	yarn workspaces run check
 	./devtools/ci/tasks/scripts/codecheck.sh
 
