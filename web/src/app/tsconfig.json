@@ -3,7 +3,7 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "jsx": "react",
-    "lib": ["es6", "dom"],
+    "lib": ["es6", "dom"]
   },
   "include": ["**/*", "../schema.d.ts"]
 }
