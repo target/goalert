@@ -152,59 +152,56 @@ export default function SideBarDrawerList(props) {
         />
       </div>
       <Divider />
-      <List
-        component='nav'
-        role='navigation'
-        className={classes.list}
-        data-cy='nav-list'
-      >
-        {routeConfig
-          .filter((cfg) => cfg.nav !== false)
-          .map((cfg, idx) => {
-            if (cfg.subRoutes) {
-              return (
-                <NavSubMenu
-                  key={idx}
-                  parentIcon={navIcons[cfg.title]}
-                  parentTitle={cfg.title}
-                  path={getPath(cfg)}
-                  subMenuRoutes={cfg.subRoutes}
-                >
-                  {renderSidebarItem(navIcons[cfg.title], cfg.title)}
-                </NavSubMenu>
+      <nav>
+        <List role='navigation' className={classes.list} data-cy='nav-list'>
+          {routeConfig
+            .filter((cfg) => cfg.nav !== false)
+            .map((cfg, idx) => {
+              if (cfg.subRoutes) {
+                return (
+                  <NavSubMenu
+                    key={idx}
+                    parentIcon={navIcons[cfg.title]}
+                    parentTitle={cfg.title}
+                    path={getPath(cfg)}
+                    subMenuRoutes={cfg.subRoutes}
+                  >
+                    {renderSidebarItem(navIcons[cfg.title], cfg.title)}
+                  </NavSubMenu>
+                )
+              }
+              return renderSidebarNavLink(
+                navIcons[cfg.title],
+                getPath(cfg),
+                cfg.title,
+                idx,
+              )
+            })}
+          <RequireConfig isAdmin>
+            <Divider aria-hidden />
+            {renderAdmin()}
+          </RequireConfig>
+
+          <Divider aria-hidden />
+          {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
+          <Config>
+            {(cfg) =>
+              cfg['Feedback.Enable'] &&
+              renderFeedback(
+                cfg['Feedback.OverrideURL'] ||
+                  'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
               )
             }
-            return renderSidebarNavLink(
-              navIcons[cfg.title],
-              getPath(cfg),
-              cfg.title,
-              idx,
-            )
+          </Config>
+          {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
+            onClick: (e) => {
+              e.preventDefault()
+              logout()
+            },
           })}
-        <RequireConfig isAdmin>
-          <Divider aria-hidden />
-          {renderAdmin()}
-        </RequireConfig>
-
-        <Divider aria-hidden />
-        {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
-        <Config>
-          {(cfg) =>
-            cfg['Feedback.Enable'] &&
-            renderFeedback(
-              cfg['Feedback.OverrideURL'] ||
-                'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
-            )
-          }
-        </Config>
-        {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
-          onClick: (e) => {
-            e.preventDefault()
-            logout()
-          },
-        })}
-        {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
-      </List>
+          {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
+        </List>
+      </nav>
     </React.Fragment>
   )
 }
