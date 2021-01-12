@@ -42,8 +42,8 @@ export default function CalendarEventWrapper(props) {
   }
 
   function handleKeyDown(event) {
-    const code = event.keyCode || event.which
-    if (code === 13 || code === 32) {
+    const code = event.key
+    if (code === 'Enter' || code === ' ') {
       setAnchorEl(event.currentTarget)
     }
   }
@@ -62,12 +62,10 @@ export default function CalendarEventWrapper(props) {
   }
 
   /*
-   * Renders an interactive tooltip when hovering
-   * over an event in the calendar that will show
+   * Renders an interactive tooltip when selecting
+   * an event in the calendar that will show
    * the full shift start and end date times, as
-   * well as the ability to replace or remove that
-   * shift as an override, if possible (not in the
-   * past).
+   * well as the controls relevant to the event.
    */
   function renderShiftInfo() {
     let overrideCtrls = null
@@ -151,7 +149,7 @@ export default function CalendarEventWrapper(props) {
         onKeyDown: handleKeyDown,
         role: 'button',
         'aria-pressed': open,
-        'aria-describedby': open ? id : undefined,
+        'aria-describedby': id,
       })}
     </React.Fragment>
   )
