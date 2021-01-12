@@ -113,13 +113,12 @@ export default function SendTestDialog(
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
-
+      
       <DialogContent>
         <DialogContentText>
           GoAlert is{' '}
-          {contactMethodType === 'SMS'
-            ? 'sending a test SMS message'
-            : 'making a test voice call'}{' '}
+         {contactMethodType === 'SMS'
+            ? 'sending a test SMS message': (contactMethodType === 'VOICE' ? 'making a test voice call' : 'sending a test email')}{' '}
           to {contactMethodToNumber} from {contactMethodFromNumber}.
         </DialogContentText>
         {details && (
