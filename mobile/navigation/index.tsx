@@ -16,7 +16,7 @@ import LinkingConfiguration from './LinkingConfiguration'
 // Read more here: https://reactnavigation.org/docs/modal
 const Stack = createStackNavigator<RootStackParamList>()
 
-function RootNavigator() {
+function RootNavigator(): JSX.Element {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name='Root' component={BottomTabNavigator} />
@@ -35,7 +35,7 @@ export default function Navigation({
   colorScheme,
 }: {
   colorScheme: ColorSchemeName
-}) {
+}): JSX.Element {
   return (
     <NavigationContainer
       linking={LinkingConfiguration}

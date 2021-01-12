@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
 })
 
-export default function SettingsScreen() {
+export default function SettingsScreen(): JSX.Element {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Settings</Text>

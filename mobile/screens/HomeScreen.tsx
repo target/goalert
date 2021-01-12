@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
 })
 
-export default function HomeScreen() {
+export default function HomeScreen(): JSX.Element {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Home</Text>

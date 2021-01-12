@@ -64,13 +64,17 @@ const styles = StyleSheet.create({
   },
 })
 
-function handleHelpPress() {
+function handleHelpPress(): void {
   WebBrowser.openBrowserAsync(
     'https://docs.expo.io/get-started/create-a-new-app/#opening-the-app-on-your-phonetablet',
   )
 }
 
-export default function EditScreenInfo({ path }: { path: string }) {
+export default function EditScreenInfo({
+  path,
+}: {
+  path: string
+}): JSX.Element {
   return (
     <View>
       <View style={styles.getStartedContainer}>
