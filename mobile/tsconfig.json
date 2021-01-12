@@ -1,12 +1,11 @@
 {
+  "extends": "../tsconfig.json",
+
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
+    "target": "esnext",
+    "module": "commonjs",
+    "lib": ["es6", "es2016.array.include", "es2017.object"],
     "jsx": "react-native",
-    "lib": ["dom", "esnext"],
-    "moduleResolution": "node",
-    "noEmit": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "strict": true
+    "moduleResolution": "node"
   }
 }

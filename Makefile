@@ -98,7 +98,7 @@ $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
 
 $(BIN_DIR)/integration/goalert/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
-	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
+	yarn workspace goalert-web webpack-cli --config webpack.cypress.js --target node
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
@@ -223,13 +223,13 @@ node_modules: yarn.lock node_modules/.yarn-integrity
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
-	yarn workspace goalert-web webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION)
+	yarn workspace goalert-web webpack-cli --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION)
 
 web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
 web/src/build/vendorPackages.dll.js: node_modules web/src/webpack.dll.config.js
-	yarn workspace goalert-web webpack --config webpack.dll.config.js --progress
+	yarn workspace goalert-web webpack-cli --config webpack.dll.config.js --progress
 
 notification/type_string.go: notice/notice.go
 	go generate ./notice

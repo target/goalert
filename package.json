@@ -25,9 +25,10 @@
     ]
   },
   "dependencies": {
-    "react": "16.9.0"
+    "react": "16.14.0"
   },
   "devDependencies": {
+    "@types/react": "17.0.0",
     "@typescript-eslint/eslint-plugin": "4.10.0",
     "@typescript-eslint/parser": "4.11.0",
     "babel-eslint": "10.1.0",
