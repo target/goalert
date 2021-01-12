@@ -74,11 +74,7 @@ function testProfile(): void {
   })
 
   describe('Contact Methods', () => {
-    it('should allow creating', () => {
-      const value = '+1763' + c.integer({ min: 3000000, max: 3999999 })
-      const name = 'SM CM ' + c.word({ length: 8 })
-      const type = c.pickone(['SMS', 'VOICE'])
-
+    function check(name:string, type:string, value:string): void {
       cy.pageFab('Contact')
       cy.dialogTitle('Create New Contact Method')
       cy.dialogForm({
@@ -88,7 +84,7 @@ function testProfile(): void {
       })
       cy.dialogFinish('Submit')
 
-      // todo: closing form pending twilio mock server verification
+      // todo: closing form pending mock server verification
       cy.dialogTitle('Verify Contact Method')
       cy.dialogFinish('Cancel')
 
@@ -97,6 +93,39 @@ function testProfile(): void {
         .find(`button[data-cy='cm-disabled']`)
 
       cy.get('body').should('contain', `${name} (${type})`)
+    }
+
+    it('should allow creating sms/voice', () => {
+      cy.updateConfig({
+         Twilio: {
+            Enable: true,
+            AccountSID:
+              'AC' + c.string({ length: 32, pool: '0123456789abcdef' }),
+            AuthToken: c.string({ length: 32, pool: '0123456789abcdef' }),
+            FromNumber: '+17633' + c.string({ length: 6, pool: '0123456789' }),
+          },
+      })
+      cy.reload()
+
+      const value = '+1763' + c.integer({ min: 3000000, max: 3999999 })
+      const name = 'SM CM ' + c.word({ length: 8 })
+      const type = c.pickone(['SMS', 'VOICE'])
+
+      check(name, type, value)
+    })
+
+    it('should allow creating email', () => {
+      cy.updateConfig({
+         SMTP: {
+            Enable: true,
+          },
+      })
+      cy.reload()
+
+      const name = 'SM CM ' + c.word({ length: 8 })
+      const type = c.pickone(['EMAIL'])
+      const value = c.email()
+      check(name, type, value)
     })
 
     it('should return error with link to conflicting user', () => {
