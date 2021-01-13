@@ -15,7 +15,7 @@ var PerCMThrottle ThrottleConfig
 func init() {
 	var perCM ThrottleConfigBuilder
 
-	// 1 per minute for all message types
+	// all message types
 	perCM.AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
 
 	// 1 per 15-minute for all status notifications
