@@ -60,7 +60,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
       },
       {
         test: /\.md$/,
-        use: 'raw-loader',
+        type: 'asset/source',
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico|webp)$/i,
