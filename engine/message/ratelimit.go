@@ -21,10 +21,13 @@ func init() {
 	// 1 per 15-minute for all status notifications
 	perCM.
 		WithMsgTypes(notification.MessageTypeAlertStatus, notification.MessageTypeAlertStatusBundle).
-		AddRules([]ThrottleRule{{Count: 1, Per: 15 * time.Minute}})
+		AddRules([]ThrottleRule{
+			{Count: 1, Per: 3 * time.Minute},
+			{Count: 3, Per: 20 * time.Minute},
+			{Count: 8, Per: 120 * time.Minute, Smooth: true},
+		})
 
 	// alert-specific rules
-
 	alertMessages := perCM.WithMsgTypes(notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
 
 	alertMessages.
