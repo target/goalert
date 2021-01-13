@@ -74,7 +74,7 @@ function testProfile(): void {
   })
 
   describe('Contact Methods', () => {
-    function check(name:string, type:string, value:string): void {
+    function check(name: string, type: string, value: string): void {
       cy.pageFab('Contact')
       cy.dialogTitle('Create New Contact Method')
       cy.dialogForm({
@@ -97,13 +97,12 @@ function testProfile(): void {
 
     it('should allow creating sms/voice', () => {
       cy.updateConfig({
-         Twilio: {
-            Enable: true,
-            AccountSID:
-              'AC' + c.string({ length: 32, pool: '0123456789abcdef' }),
-            AuthToken: c.string({ length: 32, pool: '0123456789abcdef' }),
-            FromNumber: '+17633' + c.string({ length: 6, pool: '0123456789' }),
-          },
+        Twilio: {
+          Enable: true,
+          AccountSID: 'AC' + c.string({ length: 32, pool: '0123456789abcdef' }),
+          AuthToken: c.string({ length: 32, pool: '0123456789abcdef' }),
+          FromNumber: '+17633' + c.string({ length: 6, pool: '0123456789' }),
+        },
       })
       cy.reload()
 
@@ -116,9 +115,9 @@ function testProfile(): void {
 
     it('should allow creating email', () => {
       cy.updateConfig({
-         SMTP: {
-            Enable: true,
-          },
+        SMTP: {
+          Enable: true,
+        },
       })
       cy.reload()
 
