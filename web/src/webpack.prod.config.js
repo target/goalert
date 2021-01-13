@@ -55,14 +55,10 @@ module.exports = (env) => ({
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico|webp)$/i,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: 'static/[hash].[ext]',
-            },
-          },
-        ],
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/[hash].[ext]',
+        },
       },
     ],
   },
