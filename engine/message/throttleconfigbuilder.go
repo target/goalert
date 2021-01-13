@@ -100,11 +100,8 @@ func (r builderRules) match(msg Message) bool {
 		destMatch = true
 		break
 	}
-	if !destMatch {
-		return false
-	}
 
-	return true
+	return destMatch
 }
 
 type builderConfig struct {
