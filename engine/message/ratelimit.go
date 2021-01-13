@@ -27,7 +27,7 @@ func init() {
 			{Count: 8, Per: 120 * time.Minute, Smooth: true},
 		})
 
-	// alert-specific rules
+	// alert notifications
 	alertMessages := perCM.WithMsgTypes(notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
 
 	alertMessages.
