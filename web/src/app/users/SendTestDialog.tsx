@@ -18,6 +18,7 @@ import { useConfigValue } from '../util/RequireConfig'
 import { textColors } from '../styles/statusStyles'
 
 import { DateTime } from 'luxon'
+import { ContactMethodType } from '../../schema'
 
 const query = gql`
   query($id: ID!, $number: String!) {
@@ -54,7 +55,10 @@ export default function SendTestDialog(
 
   const { title = 'Test Delivery Status', onClose, messageID } = props
 
-  let [contactMethodFromNumber] = useConfigValue('Twilio.FromNumber')
+  const [_twilioFrom, smtpFrom] = useConfigValue(
+    'Twilio.FromNumber',
+    'SMTP.From',
+  )
 
   const [now] = useState(DateTime.local())
 
@@ -67,17 +71,17 @@ export default function SendTestDialog(
   const { data, loading, error } = useQuery(query, {
     variables: {
       id: messageID,
-      number: contactMethodFromNumber,
+      number: _twilioFrom,
     },
     fetchPolicy: 'network-only',
   })
 
   const status = data?.userContactMethod?.lastTestMessageState?.status ?? ''
-  const contactMethodToNumber = data?.userContactMethod?.formattedValue ?? ''
-  const contactMethodType = data?.userContactMethod?.type ?? ''
+  const cmDestValue = data?.userContactMethod?.formattedValue ?? ''
+  const cmType: ContactMethodType = data?.userContactMethod?.type ?? ''
   const lastTestVerifyAt = data?.userContactMethod?.lastTestVerifyAt ?? ''
   const timeSinceLastVerified = now.diff(DateTime.fromISO(lastTestVerifyAt))
-  contactMethodFromNumber = data?.phoneNumberInfo?.formatted ?? ''
+  const twilioFrom = data?.phoneNumberInfo?.formatted ?? ''
   const errorMessage = error?.message ?? ''
 
   useEffect(() => {
@@ -110,19 +114,27 @@ export default function SendTestDialog(
 
   if (loading || sendTestStatus.loading) return <Spinner text='Loading...' />
 
+  const msg = () => {
+    switch (cmType) {
+      case 'SMS':
+      case 'VOICE':
+        return `${
+          cmType === 'SMS' ? 'SMS message' : 'voice call'
+        } to ${cmDestValue} from ${twilioFrom}`
+      case 'EMAIL':
+        return `email to ${cmDestValue} from ${smtpFrom}`
+      default:
+        return `to ${cmDestValue}`
+    }
+  }
+
   return (
     <Dialog open onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
 
       <DialogContent>
         <DialogContentText>
-          GoAlert is{' '}
-          {contactMethodType === 'SMS'
-            ? 'sending a test SMS message'
-            : contactMethodType === 'VOICE'
-            ? 'making a test voice call'
-            : 'sending a test email'}{' '}
-          to {contactMethodToNumber} from {contactMethodFromNumber}.
+          GoAlert is sending a test {msg()}.
         </DialogContentText>
         {details && (
           <DialogContentText className={getTestStatusClass(status)}>
