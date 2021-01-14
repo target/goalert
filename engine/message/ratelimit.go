@@ -33,7 +33,6 @@ func init() {
 	alertMessages.
 		WithDestTypes(notification.DestTypeVoice).
 		AddRules([]ThrottleRule{
-			{Count: 1, Per: time.Minute},
 			{Count: 3, Per: 15 * time.Minute},
 			{Count: 7, Per: time.Hour, Smooth: true},
 			{Count: 15, Per: 3 * time.Hour, Smooth: true},
@@ -42,7 +41,6 @@ func init() {
 	alertMessages.
 		WithDestTypes(notification.DestTypeSMS).
 		AddRules([]ThrottleRule{
-			{Count: 1, Per: time.Minute},
 			{Count: 5, Per: 15 * time.Minute},
 			{Count: 11, Per: time.Hour, Smooth: true},
 			{Count: 21, Per: 3 * time.Hour, Smooth: true},
