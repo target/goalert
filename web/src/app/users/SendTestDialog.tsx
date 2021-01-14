@@ -114,7 +114,7 @@ export default function SendTestDialog(
 
   if (loading || sendTestStatus.loading) return <Spinner text='Loading...' />
 
-  const msg = () => {
+  const msg = (): string => {
     switch (cmType) {
       case 'SMS':
       case 'VOICE':
