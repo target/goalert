@@ -74,9 +74,6 @@ func NewDB(ctx context.Context, db *sql.DB, c *Config, a alertlog.Store) (*DB, e
 	}
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
-	if c == nil {
-		c = DefaultConfig()
-	}
 	err = validate.Range("MaxMessagesPerCycle", c.MaxMessagesPerCycle, 0, 9000)
 	if err != nil {
 		return nil, err
@@ -417,6 +414,8 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			msg.Dest.Type = notification.DestTypeVoice
 		case chanType.String == string(notificationchannel.TypeSlack):
 			msg.Dest.Type = notification.DestTypeSlackChannel
+		case cmType.String == string(contactmethod.TypeEmail):
+			msg.Dest.Type = notification.DestTypeUserEmail
 		default:
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue

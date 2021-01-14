@@ -231,6 +231,8 @@ web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.
 web/src/build/vendorPackages.dll.js: node_modules web/src/webpack.dll.config.js
 	yarn workspace goalert-web webpack --config webpack.dll.config.js --progress
 
+notification/desttype_string.go: notification/dest.go
+	go generate ./notification
 notification/type_string.go: notice/notice.go
 	go generate ./notice
 

@@ -31,19 +31,3 @@ type Config struct {
 	// message sending when IsPaused returns true.
 	Pausable lifecycle.Pausable
 }
-
-// DefaultConfig returns the default configuration.
-func DefaultConfig() *Config {
-	return &Config{
-		RateLimit: map[notification.DestType]*RateConfig{
-			notification.DestTypeSMS: {
-				PerSecond: 1,
-				Batch:     5 * time.Second,
-			},
-			notification.DestTypeVoice: {
-				PerSecond: 1,
-				Batch:     5 * time.Second,
-			},
-		},
-	}
-}
