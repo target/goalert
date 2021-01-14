@@ -784,7 +784,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
 
 export interface UserContactMethod {
   id: string
@@ -886,5 +886,12 @@ type ConfigID =
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'
+  | 'SMTP.Enable'
+  | 'SMTP.From'
+  | 'SMTP.Address'
+  | 'SMTP.DisableTLS'
+  | 'SMTP.SkipVerify'
+  | 'SMTP.Username'
+  | 'SMTP.Password'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'

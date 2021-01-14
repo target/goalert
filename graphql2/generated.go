@@ -3980,6 +3980,7 @@ type UserNotificationRule {
 enum ContactMethodType {
   SMS
   VOICE
+  EMAIL
 }
 
 # A method of contacting a user.
