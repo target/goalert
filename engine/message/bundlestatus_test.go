@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/target/goalert/notification"
 )
 
 func TestDB_BundleStatusMessages(t *testing.T) {
@@ -14,7 +15,7 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 			ID:         "a",
 			AlertLogID: 5,
 			AlertID:    1,
-			Type:       TypeAlertStatusUpdate,
+			Type:       notification.MessageTypeAlertStatus,
 			UserID:     "User A",
 			CreatedAt:  n,
 		},
@@ -22,7 +23,7 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 			ID:         "b",
 			AlertLogID: 7,
 			AlertID:    2,
-			Type:       TypeAlertStatusUpdate,
+			Type:       notification.MessageTypeAlertStatus,
 			UserID:     "User A",
 			CreatedAt:  n.Add(time.Minute),
 		},
@@ -30,7 +31,7 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 			ID:         "c",
 			AlertLogID: 6,
 			AlertID:    4,
-			Type:       TypeAlertStatusUpdate,
+			Type:       notification.MessageTypeAlertStatus,
 			UserID:     "User A",
 			CreatedAt:  n.Add(-time.Hour),
 		},
@@ -38,14 +39,14 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 			ID:         "d",
 			AlertLogID: 4,
 			AlertID:    4,
-			Type:       TypeAlertStatusUpdate,
+			Type:       notification.MessageTypeAlertStatus,
 			UserID:     "User A",
 			CreatedAt:  n.Add(time.Hour),
 		},
 		{
 			ID:             "e",
 			AlertLogID:     3,
-			Type:           TypeAlertStatusUpdateBundle,
+			Type:           notification.MessageTypeAlertStatusBundle,
 			UserID:         "User A",
 			StatusAlertIDs: []int{7, 8},
 			CreatedAt:      n.Add(time.Hour),
@@ -67,7 +68,7 @@ func TestDB_BundleStatusMessages(t *testing.T) {
 	assert.NotEmpty(t, bundleID, "bundled output")
 	assert.Equal(t, []Message{{
 		ID:             bundleID,
-		Type:           TypeAlertStatusUpdateBundle,
+		Type:           notification.MessageTypeAlertStatusBundle,
 		CreatedAt:      n.Add(-time.Hour), // oldest CreatedAt
 		AlertLogID:     7,                 // highest ID
 		AlertID:        2,                 // Should match Log ID
