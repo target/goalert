@@ -335,6 +335,9 @@ func (cfg Config) Validate() error {
 			"ClientID", cfg.OIDC.ClientID,
 			"ClientSecret", cfg.OIDC.ClientSecret,
 		),
+		validateEnable("SMTP", cfg.SMTP.Enable,
+			"From", cfg.SMTP.From,
+		),
 	)
 
 	if cfg.Feedback.OverrideURL != "" {
