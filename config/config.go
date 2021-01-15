@@ -340,6 +340,7 @@ func (cfg Config) Validate() error {
 		),
 		validateEnable("SMTP", cfg.SMTP.Enable,
 			"From", cfg.SMTP.From,
+			"Address", cfg.SMTP.Address,
 		),
 	)
 
