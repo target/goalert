@@ -31,10 +31,6 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   module: {
     rules: [
       {
-        test: /modernizr.config.js$/,
-        use: ['modernizr-loader'],
-      },
-      {
         test: /\.(t|j)sx?$/,
         use: [
           'react-hot-loader/webpack',

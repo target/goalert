@@ -24,10 +24,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /modernizr.config.js$/,
-        use: ['modernizr-loader'],
-      },
-      {
         test: /\.json$/,
         loader: 'json-loader',
         type: 'javascript/auto',

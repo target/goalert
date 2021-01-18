@@ -54,6 +54,7 @@ module.exports = {
       'strip-ansi',
       'uncontrollable',
       'url',
+      'modernizr-esm',
     ],
   },
   mode: 'development',
