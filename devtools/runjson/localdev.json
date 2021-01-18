@@ -46,7 +46,7 @@
       "webpack",
       "serve",
       "--inline",
-      "--devtool=inline-source-map",
+      "--devtool=eval-nosources-source-map",
       "--allowed-hosts=docker.for.mac.host.internal",
       "--port=3035",
       "--mode=development",
