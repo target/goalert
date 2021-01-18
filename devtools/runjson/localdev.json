@@ -50,7 +50,7 @@
       "--port=3035",
       "--progress=false",
       "--mode=development",
-      "--env.GOALERT_VERSION=$GOALERT_VERSION"
+      "--env=GOALERT_VERSION=$GOALERT_VERSION"
     ]
   },
   {

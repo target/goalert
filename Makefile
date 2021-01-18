@@ -223,7 +223,7 @@ node_modules: yarn.lock node_modules/.yarn-integrity
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
-	yarn workspace goalert-web webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION)
+	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
 
 web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
