@@ -13,7 +13,6 @@ module.exports = {
   target: 'node',
   output: {
     path: path.join(__dirname, '../../bin/integration/goalert/cypress'),
-    library: '',
     libraryTarget: 'commonjs-module',
     libraryExport: 'default',
   },
@@ -23,10 +22,6 @@ module.exports = {
   // Loaders for processing different file types
   module: {
     rules: [
-      {
-        test: /modernizr.config.js$/,
-        use: ['modernizr-loader'],
-      },
       {
         test: /\.json$/,
         loader: 'json-loader',
@@ -45,5 +40,5 @@ module.exports = {
   },
 
   // Source maps used for debugging information
-  devtool: 'cheap-module-eval-source-map',
+  devtool: 'eval-cheap-module-source-map',
 }
