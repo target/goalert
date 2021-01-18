@@ -97,7 +97,7 @@
     "redux-devtools-extension": "2.13.8",
     "style-loader": "2.0.0",
     "terser-webpack-plugin": "4.2.3",
-    "webpack": "4.44.2",
+    "webpack": "5.15.0",
     "webpack-cli": "3.3.12",
     "webpack-dev-server": "3.11.1"
   }
