@@ -33,7 +33,7 @@
     "connected-react-router": "6.6.1",
     "diff": "5.0.0",
     "graphql": "15.4.0",
-    "history": "4.10.1",
+    "history": "5.0.0",
     "lodash": "4.17.20",
     "luxon": "1.25.0",
     "mdi-material-ui": "6.21.0",
