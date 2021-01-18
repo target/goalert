@@ -305,6 +305,9 @@ func (cfg Config) Validate() error {
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))
 	}
+	if cfg.SMTP.From != "" {
+		err = validate.Many(err, validate.Email("SMTP.From", cfg.SMTP.From))
+	}
 
 	err = validate.Many(
 		err,
@@ -334,6 +337,10 @@ func (cfg Config) Validate() error {
 			"IssuerURL", cfg.OIDC.IssuerURL,
 			"ClientID", cfg.OIDC.ClientID,
 			"ClientSecret", cfg.OIDC.ClientSecret,
+		),
+		validateEnable("SMTP", cfg.SMTP.Enable,
+			"From", cfg.SMTP.From,
+			"Address", cfg.SMTP.Address,
 		),
 	)
 
