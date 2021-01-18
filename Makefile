@@ -211,11 +211,11 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-yarn.lock: package.json web/src/package.json
-	yarn --no-progress --silent && touch $@
+yarn.lock: package.json web/src/package.json Makefile
+	yarn --no-progress --silent --check-files && touch $@
 
-node_modules/.yarn-integrity:
-	yarn install --no-progress --silent --frozen-lockfile
+node_modules/.yarn-integrity: yarn.lock Makefile
+	yarn install --no-progress --silent --frozen-lockfile --check-files
 	touch $@
 
 node_modules: yarn.lock node_modules/.yarn-integrity
