@@ -4,8 +4,7 @@
   "description": "user interface for the goalert project",
   "main": "index.js",
   "scripts": {
-    "check": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json",
-    "build-deps": "webpack --config ./webpack.dll.config.js --progress"
+    "check": "tsc -p app/tsconfig.json && tsc -p cypress/tsconfig.json"
   },
   "jest": {
     "transform": {
