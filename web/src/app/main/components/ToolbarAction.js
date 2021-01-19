@@ -58,10 +58,11 @@ function ToolbarAction(props) {
         render={() => (
           <Hidden mdUp>
             <IconButton
-              aria-label='Navigation Menu'
+              aria-label='Open Navigation Menu'
+              aria-expanded={props.showMobileSidebar}
               color='inherit'
               data-cy='nav-menu-icon'
-              onClick={() => props.handleShowMobileSidebar(true)}
+              onClick={() => props.openMobileSidebar(true)}
             >
               <MenuIcon />
             </IconButton>
@@ -73,7 +74,8 @@ function ToolbarAction(props) {
 }
 
 ToolbarAction.propTypes = {
-  handleShowMobileSidebar: p.func,
+  showMobileSidebar: p.bool,
+  openMobileSidebar: p.func,
 }
 
 export default ToolbarAction

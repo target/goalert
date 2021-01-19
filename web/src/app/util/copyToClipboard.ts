@@ -1,6 +1,5 @@
-function isOS(): boolean {
-  return Boolean(navigator.userAgent.match(/ipad|ipod|iphone/i))
-}
+import { isIOS } from './browsers'
+
 /*
  * Creates a temporary text area element, selects the
  * text inside, and copies it to the clipboard.
@@ -22,7 +21,7 @@ function fallback(str: string): void {
       : false
 
   // iOS requires some special finesse
-  if (isOS()) {
+  if (isIOS) {
     const range = document.createRange()
     range.selectNodeContents(textArea)
     const windowSelection = window.getSelection()
