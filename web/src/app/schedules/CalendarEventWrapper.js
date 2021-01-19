@@ -137,6 +137,9 @@ export default function CalendarEventWrapper(props) {
           vertical: 'top',
           horizontal: 'left',
         }}
+        PaperProps={{
+          'data-cy': 'shift-tooltip',
+        }}
         classes={{
           paper: classes.paper,
         }}
