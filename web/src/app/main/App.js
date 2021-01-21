@@ -20,7 +20,7 @@ import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
 import { SkipToContentLink } from '../util/SkipToContentLink'
 import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
-import { isWidthDown, makeStyles } from '@material-ui/core'
+import { isWidthUp, makeStyles } from '@material-ui/core'
 import useWidth from '../util/useWidth'
 import { isIOS } from '../util/browsers'
 
@@ -59,13 +59,13 @@ export default function App() {
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
   const width = useWidth()
-  const fullScreen = isWidthDown('md', width)
+  const fullScreen = isWidthUp('md', width)
+  const marginLeft = fullScreen ? drawerWidth : 0
   const authValid = useSelector(authSelector)
 
   if (!authValid) {
     return <Login />
   }
-  const marginLeft = fullScreen ? 0 : drawerWidth
 
   let cyFormat = 'wide'
   if (fullScreen) cyFormat = 'mobile'
