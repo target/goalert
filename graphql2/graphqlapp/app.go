@@ -93,11 +93,11 @@ func mustAuth(h http.Handler) http.Handler {
 
 func (a *App) PlayHandler() http.Handler {
 	var data struct {
-		Version string
-		Url     string
+		Version     string
+		PackageName string
 	}
 	data.Version = playVersion
-	data.Url = playUrl
+	data.PackageName = playPackageName
 	return mustAuth(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		err := playTmpl.Execute(w, data)
 		if err != nil {
