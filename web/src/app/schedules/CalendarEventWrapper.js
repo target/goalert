@@ -1,14 +1,13 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
-import Tooltip from '@material-ui/core/Tooltip'
-import withStyles from '@material-ui/core/styles/withStyles'
-import { connect } from 'react-redux'
-import { urlParamSelector } from '../selectors'
-import { DateTime, Duration } from 'luxon'
+import Popover from '@material-ui/core/Popover'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core'
+import { DateTime } from 'luxon'
 
-const styles = (theme) => ({
+const useStyles = makeStyles({
   button: {
     padding: '4px',
     minHeight: 0,
@@ -21,57 +20,36 @@ const styles = (theme) => ({
   flexGrow: {
     flexGrow: 1,
   },
-  icon: {
-    color: theme.palette.primary['500'],
-  },
-  tooltip: {
-    background: theme.palette.common.white,
-    color: theme.palette.text.primary,
-    boxShadow: theme.shadows[1],
-    fontSize: 12,
-    marginTop: '0.1em',
-    marginBottom: '0.1em',
-  },
-  popper: {
-    opacity: 1,
+  paper: {
+    padding: 8,
+    maxWidth: 275,
   },
 })
 
-const mapStateToProps = (state) => {
-  // false: monthly, true: weekly
-  const weekly = urlParamSelector(state)('weekly', false)
-  let start = urlParamSelector(state)(
-    'start',
-    DateTime.local().startOf('day').toISO(),
-  )
+export default function CalendarEventWrapper(props) {
+  const classes = useStyles()
+  const { children, event, onOverrideClick } = props
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
+  const id = open ? 'shift-popover' : undefined
 
-  const activeOnly = urlParamSelector(state)('activeOnly', false)
-  if (activeOnly) {
-    start = DateTime.local().toISO()
+  function handleClick(event) {
+    setAnchorEl(event.currentTarget)
   }
 
-  const end = DateTime.fromISO(start)
-    .plus(Duration.fromISO(weekly ? 'P7D' : 'P1M'))
-    .toISO()
-
-  return {
-    start,
-    end,
-    userFilter: urlParamSelector(state)('userFilter', []),
-    activeOnly,
-  }
-}
-
-@withStyles(styles)
-@connect(mapStateToProps, null)
-export default class CalendarEventWrapper extends Component {
-  static propTypes = {
-    event: p.object.isRequired,
-    onOverrideClick: p.func.isRequired,
+  function handleCloseShiftInfo() {
+    setAnchorEl(null)
   }
 
-  handleShowOverrideForm = (type) => {
-    const { event, onOverrideClick } = this.props
+  function handleKeyDown(event) {
+    const code = event.key
+    if (code === 'Enter' || code === ' ') {
+      setAnchorEl(event.currentTarget)
+    }
+  }
+
+  function handleShowOverrideForm(type) {
+    handleCloseShiftInfo()
 
     onOverrideClick({
       variant: type,
@@ -84,17 +62,14 @@ export default class CalendarEventWrapper extends Component {
   }
 
   /*
-   * Renders an interactive tooltip when hovering
-   * over an event in the calendar that will show
+   * Renders an interactive tooltip when selecting
+   * an event in the calendar that will show
    * the full shift start and end date times, as
-   * well as the ability to replace or remove that
-   * shift as an override, if possible (not in the
-   * past).
+   * well as the controls relevant to the event.
    */
-  renderInteractiveTooltip = () => {
-    const { classes, event } = this.props
-
+  function renderShiftInfo() {
     let overrideCtrls = null
+
     if (DateTime.fromJSDate(event.end) > DateTime.utc()) {
       overrideCtrls = (
         <React.Fragment>
@@ -103,7 +78,7 @@ export default class CalendarEventWrapper extends Component {
               className={classes.button}
               data-cy='replace-override'
               size='small'
-              onClick={() => this.handleShowOverrideForm('replace')}
+              onClick={() => handleShowOverrideForm('replace')}
               variant='contained'
               color='primary'
               title={`Temporarily replace ${event.title} from this schedule`}
@@ -111,6 +86,7 @@ export default class CalendarEventWrapper extends Component {
               Replace
             </Button>
           </Grid>
+
           <Grid item className={classes.flexGrow} />
 
           <Grid item className={classes.buttonContainer}>
@@ -118,7 +94,7 @@ export default class CalendarEventWrapper extends Component {
               className={classes.button}
               data-cy='remove-override'
               size='small'
-              onClick={() => this.handleShowOverrideForm('remove')}
+              onClick={() => handleShowOverrideForm('remove')}
               variant='contained'
               color='primary'
               title={`Temporarily remove ${event.title} from this schedule`}
@@ -136,31 +112,53 @@ export default class CalendarEventWrapper extends Component {
     return (
       <Grid container spacing={1}>
         <Grid item xs={12}>
-          {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
+          <Typography variant='body2'>
+            {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
+          </Typography>
         </Grid>
         {overrideCtrls}
       </Grid>
     )
   }
 
-  render() {
-    const { children, classes } = this.props
-
-    return (
-      <Tooltip
-        classes={{
-          tooltip: classes.tooltip,
-          popper: classes.popper,
+  if (!children) return null
+  return (
+    <React.Fragment>
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleCloseShiftInfo}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
         }}
-        interactive
-        placement='bottom-start'
-        PopperProps={{
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        PaperProps={{
           'data-cy': 'shift-tooltip',
         }}
-        title={this.renderInteractiveTooltip()}
+        classes={{
+          paper: classes.paper,
+        }}
       >
-        {children}
-      </Tooltip>
-    )
-  }
+        {renderShiftInfo()}
+      </Popover>
+      {React.cloneElement(children, {
+        tabIndex: 0,
+        onClick: handleClick,
+        onKeyDown: handleKeyDown,
+        role: 'button',
+        'aria-pressed': open,
+        'aria-describedby': id,
+      })}
+    </React.Fragment>
+  )
+}
+
+CalendarEventWrapper.propTypes = {
+  event: p.object.isRequired,
+  onOverrideClick: p.func.isRequired,
 }
