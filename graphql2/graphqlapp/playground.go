@@ -2,7 +2,8 @@ package graphqlapp
 
 import "html/template"
 
-const playVersion = "1.7.23"
+const playVersion = "1.7.33"
+const playUrl = "@apollographql/graphql-playground-react"
 
 const playHTML = `
 <!DOCTYPE html>
@@ -10,9 +11,9 @@ const playHTML = `
 <head>
 	<meta charset=utf-8/>
 	<meta name="viewport" content="user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, minimal-ui">
-	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/graphql-playground-react@{{ .Version }}/build/static/css/index.css"/>
-	<link rel="shortcut icon" href="//cdn.jsdelivr.net/npm/graphql-playground-react@{{ .Version }}/build/favicon.png"/>
-	<script src="//cdn.jsdelivr.net/npm/graphql-playground-react@{{ .Version }}/build/static/js/middleware.js"></script>
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/{{ .Url }}@{{ .Version }}/build/static/css/index.css"/>
+	<link rel="shortcut icon" href="//cdn.jsdelivr.net/npm/{{ .Url }}@{{ .Version }}/build/favicon.png"/>
+	<script src="//cdn.jsdelivr.net/npm/{{ .Url }}@{{ .Version }}/build/static/js/middleware.js"></script>
 	<title>GoAlert - GraphQL API</title>
 	<style type="text/css">
 		html { font-family: "Open Sans", sans-serif; overflow: hidden; }
