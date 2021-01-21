@@ -3,6 +3,7 @@ import { gql, useQuery } from '@apollo/client'
 import { FormControlLabel, Switch } from '@material-ui/core'
 
 import { useURLParam } from '../actions/hooks'
+import { DateTime } from 'luxon'
 
 const tzQuery = gql`
   query($id: ID!) {
@@ -26,6 +27,9 @@ export function ScheduleTZFilter(
     variables: { id: props.scheduleID },
   })
   const tz = data?.schedule?.timeZone
+  const isLocalZone = DateTime.local().zone.name === tz
+
+  if (isLocalZone) return null
 
   let label = ''
   if (error) {
