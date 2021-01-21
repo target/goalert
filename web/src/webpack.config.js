@@ -98,9 +98,15 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
       },
     }),
     new CopyPlugin({
-      patterns: [16, 32, 64, 192].map((size) => ({
-        from: path.resolve(APP, `./public/favicon-${size}.png`),
-        to: path.resolve(BUILD, `./static/favicon-${size}.png`),
+      patterns: [
+        'favicon-16.png',
+        'favicon-32.png',
+        'favicon-64.png',
+        'favicon-192.png',
+        'goalert-alt-logo.png',
+      ].map((filename) => ({
+        from: path.resolve(APP, `./public/${filename}`),
+        to: path.resolve(BUILD, `./static/${filename}`),
       })),
     }),
   ],
