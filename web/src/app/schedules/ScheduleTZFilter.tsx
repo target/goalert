@@ -16,6 +16,7 @@ const tzQuery = gql`
 interface ScheduleTZFilterProps {
   scheduleID: string
   label?: string | ((tz: string) => string)
+  render?: (children: JSX.Element) => JSX.Element
 }
 
 export function ScheduleTZFilter(
@@ -28,6 +29,7 @@ export function ScheduleTZFilter(
   })
   const tz = data?.schedule?.timeZone
   const isLocalZone = DateTime.local().zone.name === tz
+  const { render = (children) => children } = props
 
   if (isLocalZone) return null
 
@@ -50,7 +52,7 @@ export function ScheduleTZFilter(
     }
   }
 
-  return (
+  return render(
     <FormControlLabel
       control={
         <Switch
@@ -61,6 +63,6 @@ export function ScheduleTZFilter(
         />
       }
       label={label}
-    />
+    />,
   )
 }

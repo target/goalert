@@ -115,9 +115,14 @@ export default class ScheduleOverrideList extends React.PureComponent {
                 label='Show past overrides'
               />
             </Grid>
-            <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={this.props.scheduleID} />
-            </Grid>
+            <ScheduleTZFilter
+              scheduleID={this.props.scheduleID}
+              render={(children) => (
+                <Grid item xs={12}>
+                  {children}
+                </Grid>
+              )}
+            />
             <Grid item xs={12}>
               <UserSelect
                 label='Filter users...'

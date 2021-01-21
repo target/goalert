@@ -111,11 +111,16 @@ export default class ScheduleRuleList extends React.PureComponent {
     return (
       <React.Fragment>
         <PageActions>
-          <FilterContainer onReset={() => this.props.resetFilter()}>
-            <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={this.props.scheduleID} />
-            </Grid>
-          </FilterContainer>
+          <ScheduleTZFilter
+            scheduleID={this.props.scheduleID}
+            render={(children) => (
+              <FilterContainer onReset={() => this.props.resetFilter()}>
+                <Grid item xs={12}>
+                  {children}
+                </Grid>
+              </FilterContainer>
+            )}
+          />
           <SpeedDial
             label='Add Assignment'
             actions={[
