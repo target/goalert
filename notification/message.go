@@ -20,7 +20,8 @@ type MessageType int
 
 // Allowed types
 const (
-	MessageTypeAlert MessageType = iota
+	MessageTypeUnknown MessageType = iota
+	MessageTypeAlert
 	MessageTypeAlertStatus
 	MessageTypeTest
 	MessageTypeVerification

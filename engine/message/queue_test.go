@@ -28,15 +28,16 @@ func TestQueue_Sort(t *testing.T) {
 		- Verify to User A -- Not sent, (will get an alert for Service A)
 		- Test to User B
 		- Alert to User C, Service A
+
+		Throttled:
 		- Status to User D
 		- Status to User G (created 2nd)
 	*/
 
 	messages := []Message{
-
 		// Sent
 		{
-			Type:   TypeTestNotification,
+			Type:   notification.MessageTypeTest,
 			UserID: "User C",
 
 			// Sent messages are considered regardless of the Dest.Type
@@ -47,13 +48,13 @@ func TestQueue_Sort(t *testing.T) {
 			SentAt: n.Add(-2 * time.Minute),
 		},
 		{
-			Type:   TypeTestNotification,
+			Type:   notification.MessageTypeTest,
 			UserID: "User H",
 			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
 			SentAt: n.Add(-30 * time.Second),
 		},
 		{
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			ServiceID: "Service B",
 			Dest:      notification.Dest{Type: notification.DestTypeSlackChannel, ID: "Slack B"},
 			SentAt:    n.Add(-30 * time.Second),
@@ -62,55 +63,58 @@ func TestQueue_Sort(t *testing.T) {
 		// Pending
 		{
 			ID:        "0",
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			UserID:    "User A",
 			ServiceID: "Service A",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},
 			CreatedAt: n,
 		}, {
 			ID:        "1",
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			UserID:    "User E",
 			ServiceID: "Service B",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS E"},
 			CreatedAt: n.Add(1),
 		}, {
 			// no ID, this message should not be sent this cycle
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			UserID:    "User H",
 			ServiceID: "Service C",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS H"},
 			CreatedAt: n.Add(2),
 		}, {
 			ID:     "2",
-			Type:   TypeVerificationMessage,
+			Type:   notification.MessageTypeVerification,
 			UserID: "User F",
 			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS F"},
 		}, {
 			// no ID, this message should not be sent this cycle
-			Type:   TypeVerificationMessage,
+			Type:   notification.MessageTypeVerification,
 			UserID: "User A",
 			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS A"},
 		}, {
 			ID:     "3",
-			Type:   TypeTestNotification,
+			Type:   notification.MessageTypeTest,
 			UserID: "User B",
 			Dest:   notification.Dest{Type: notification.DestTypeSMS, ID: "SMS B"},
 		}, {
 			ID:        "4",
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			UserID:    "User C",
 			ServiceID: "Service A",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS C"},
-		}, {
+		},
+
+		// ThrottleConfig limits 5 messages to be sent in 15 min for DestTypeSMS
+		{
 			ID:        "5",
-			Type:      TypeAlertStatusUpdate,
+			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User D",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS D"},
 			CreatedAt: n,
 		}, {
 			ID:        "6",
-			Type:      TypeAlertStatusUpdate,
+			Type:      notification.MessageTypeAlertStatus,
 			UserID:    "User G",
 			Dest:      notification.Dest{Type: notification.DestTypeSMS, ID: "SMS G"},
 			CreatedAt: n.Add(1),
@@ -131,6 +135,11 @@ func TestQueue_Sort(t *testing.T) {
 	rand.Shuffle(len(messages), func(i, j int) { messages[i], messages[j] = messages[j], messages[i] })
 
 	q := newQueue(messages, n)
+
+	// limit the number expected messages to the number allowed to be sent in 15 min
+	rules := q.cmThrottle.cfg.Rules(Message{Type: notification.MessageTypeAlert, Dest: notification.Dest{Type: notification.DestTypeSMS}})
+	expected = expected[:rules[1].Count]
+
 	for i, exp := range expected {
 		msg := q.NextByType(notification.DestTypeSMS)
 		require.NotNilf(t, msg, "message #%d", i)

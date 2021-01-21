@@ -133,9 +133,9 @@ install: $(GOFILES)
 cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
 	yarn cypress install
 
-cy-wide: cypress web/src/build/vendorPackages.dll.js
+cy-wide: cypress
 	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
-cy-mobile: cypress web/src/build/vendorPackages.dll.js
+cy-mobile: cypress
 	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
 cy-wide-prod: web/inline_data_gen.go cypress
 	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
@@ -149,7 +149,7 @@ cy-mobile-prod-run: web/inline_data_gen.go cypress
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/waitfor node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
+start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
@@ -211,11 +211,11 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-yarn.lock: package.json web/src/package.json
-	yarn --no-progress --silent && touch $@
+yarn.lock: package.json web/src/package.json Makefile
+	yarn --no-progress --silent --check-files && touch $@
 
-node_modules/.yarn-integrity:
-	yarn install --no-progress --silent --frozen-lockfile
+node_modules/.yarn-integrity: yarn.lock Makefile
+	yarn install --no-progress --silent --frozen-lockfile --check-files
 	touch $@
 
 node_modules: yarn.lock node_modules/.yarn-integrity
@@ -223,14 +223,13 @@ node_modules: yarn.lock node_modules/.yarn-integrity
 
 web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
-	yarn workspace goalert-web webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION)
+	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
 
 web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
-web/src/build/vendorPackages.dll.js: node_modules web/src/webpack.dll.config.js
-	yarn workspace goalert-web webpack --config webpack.dll.config.js --progress
-
+notification/desttype_string.go: notification/dest.go
+	go generate ./notification
 notification/type_string.go: notice/notice.go
 	go generate ./notice
 

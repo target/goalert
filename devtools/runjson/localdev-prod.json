@@ -13,6 +13,19 @@
     "IgnoreErrors": true
   },
   {
+    "Name": "MailHog",
+    "Command": [
+      "go",
+      "run",
+      "github.com/mailhog/MailHog",
+      "-ui-bind-addr=localhost:8025",
+      "-api-bind-addr=localhost:8025",
+      "-smtp-bind-addr=localhost:1025"
+    ],
+    "Restart": true,
+    "IgnoreErrors": true
+  },
+  {
     "Name": "Backend",
     "Before": {
       "Name": "Wait JE",

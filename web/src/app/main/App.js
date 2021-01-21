@@ -59,13 +59,13 @@ export default function App() {
   const classes = useStyles()
   const [showMobile, setShowMobile] = useState(false)
   const width = useWidth()
-  const fullScreen = isWidthDown('md', width)
+  const fullScreen = isWidthDown('sm', width)
+  const marginLeft = fullScreen ? 0 : drawerWidth
   const authValid = useSelector(authSelector)
 
   if (!authValid) {
     return <Login />
   }
-  const marginLeft = fullScreen ? 0 : drawerWidth
 
   let cyFormat = 'wide'
   if (fullScreen) cyFormat = 'mobile'

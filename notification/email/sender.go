@@ -1,0 +1,188 @@
+package email
+
+import (
+	"bytes"
+	"context"
+	"crypto/tls"
+	"errors"
+	"fmt"
+	"net"
+	"net/mail"
+	"net/smtp"
+	"strconv"
+	"strings"
+
+	"github.com/matcornic/hermes/v2"
+	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification"
+	"gopkg.in/gomail.v2"
+)
+
+type Sender struct{}
+
+func NewSender(ctx context.Context) *Sender {
+	return &Sender{}
+}
+
+var _ notification.Sender = &Sender{}
+
+// Send will send an for the provided message type.
+func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
+	cfg := config.FromContext(ctx)
+
+	fromAddr, err := mail.ParseAddress(cfg.SMTP.From)
+	if err != nil {
+		return nil, err
+	}
+	toAddr, err := mail.ParseAddress(msg.Destination().Value)
+	if err != nil {
+		return nil, err
+	}
+
+	h := hermes.Hermes{
+		Product: hermes.Product{
+			Name: "GoAlert",
+			Link: cfg.General.PublicURL,
+			Logo: cfg.CallbackURL("/static/goalert-alt-logo.png"),
+		},
+	}
+	var e hermes.Email
+	var subject string
+	switch m := msg.(type) {
+	case notification.Test:
+		subject = "GoAlert: Test Message"
+		e.Body.Title = "Test Message"
+		e.Body.Intros = []string{"This is a test message from GoAlert."}
+	case notification.Verification:
+		subject = "GoAlert: Verification Message"
+		e.Body.Title = "Verification Message"
+		e.Body.Intros = []string{"This is a verification message from GoAlert."}
+		e.Body.Actions = []hermes.Action{{
+			Instructions: "Click the REACTIVATE link on your profile page and enter the verification code.",
+			InviteCode:   strconv.Itoa(m.Code),
+		}}
+	case notification.Alert:
+		subject = fmt.Sprintf("GoAlert: Alert #%d: %s", m.AlertID, m.Summary)
+		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
+		e.Body.Intros = []string{m.Summary, m.Details}
+		e.Body.Actions = []hermes.Action{{
+			Button: hermes.Button{
+				Text: "Open Alert Details",
+				Link: cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
+			},
+		}}
+	case notification.AlertBundle:
+		subject = fmt.Sprintf("GoAlert: Service %s has %d unacknowledged alerts", m.ServiceName, m.Count)
+		e.Body.Title = "Multiple Unacknowledged Alerts"
+		e.Body.Intros = []string{fmt.Sprintf("The GoAlert service %s has %d unacknowledged alerts.", m.ServiceName, m.Count)}
+		e.Body.Actions = []hermes.Action{{
+			Button: hermes.Button{
+				Text: "Open Alert List",
+				Link: cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", m.ServiceID)),
+			},
+		}}
+	case notification.AlertStatus:
+		subject = fmt.Sprintf("GoAlert: Alert #%d: %s", m.AlertID, m.LogEntry)
+		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
+		e.Body.Intros = []string{m.LogEntry}
+		e.Body.Actions = []hermes.Action{{
+			Button: hermes.Button{
+				Text: "Open Alert Details",
+				Link: cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
+			},
+		}}
+		e.Body.Outros = []string{"You are receiving this message because you have status updates enabled. Visit your Profile page to change this."}
+
+	case notification.AlertStatusBundle:
+		plural := "s"
+		if m.Count == 2 {
+			plural = ""
+		}
+		subject = fmt.Sprintf("GoAlert: Alert #%d: %s (and %d other%s)", m.AlertID, m.LogEntry, m.Count-1, plural)
+		e.Body.Title = fmt.Sprintf("Alert #%d", m.AlertID)
+		e.Body.Intros = []string{m.LogEntry, fmt.Sprintf("%d additional alert%s have been updated.", m.Count-1, plural)}
+		e.Body.Actions = []hermes.Action{{
+			Button: hermes.Button{
+				Text: "Open Alert Details",
+				Link: cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
+			},
+		}}
+		e.Body.Outros = []string{"You are receiving this message because you have status updates enabled. Visit your Profile page to change this."}
+
+	default:
+		return nil, errors.New("message type not supported")
+	}
+
+	htmlBody, err := h.GenerateHTML(e)
+	if err != nil {
+		return nil, err
+	}
+	textBody, err := h.GeneratePlainText(e)
+	if err != nil {
+		return nil, err
+	}
+
+	g := gomail.NewMessage()
+	g.SetHeader("From", fromAddr.String())
+	g.SetAddressHeader("To", toAddr.Address, toAddr.Name)
+	g.SetHeader("Subject", subject)
+	g.SetBody("text/plain", textBody)
+	g.AddAlternative("text/html", htmlBody)
+
+	var buf bytes.Buffer
+
+	_, err = g.WriteTo(&buf)
+	if err != nil {
+		return nil, err
+	}
+
+	host, port, _ := net.SplitHostPort(cfg.SMTP.Address)
+	if host == "" {
+		host = cfg.SMTP.Address
+	}
+	tlsCfg := &tls.Config{
+		InsecureSkipVerify: cfg.SMTP.SkipVerify,
+		ServerName:         host,
+	}
+	sendFn := SendMailTLS
+	if cfg.SMTP.DisableTLS {
+		sendFn = SendMail
+		if port == "" {
+			port = "25"
+		}
+	} else if port == "" {
+		port = "587"
+	}
+
+	var authFn NegotiateAuth
+	if cfg.SMTP.Username+cfg.SMTP.Password != "" {
+		authFn = func(auths string) smtp.Auth {
+			if strings.Contains(auths, "CRAM-MD5") {
+				return smtp.CRAMMD5Auth(cfg.SMTP.Username, cfg.SMTP.Password)
+			}
+			if strings.Contains(auths, "PLAIN") {
+				return smtp.PlainAuth("", cfg.SMTP.Username, cfg.SMTP.Password, host)
+			}
+			if strings.Contains(auths, "LOGIN") {
+				return LoginAuth(cfg.SMTP.Username, cfg.SMTP.Password, host)
+			}
+
+			return nil
+		}
+	}
+
+	err = sendFn(ctx, net.JoinHostPort(host, port), authFn, fromAddr.Address, []string{toAddr.Address}, buf.Bytes(), tlsCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent, ProviderMessageID: msg.ID()}, nil
+}
+
+// Status is not supported by the email provider and will aways return an error.
+func (s *Sender) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
+	return nil, errors.New("notification/email: status not supported")
+}
+
+func (s *Sender) ListenStatus() <-chan *notification.MessageStatus     { return nil }
+func (s *Sender) ListenResponse() <-chan *notification.MessageResponse { return nil }

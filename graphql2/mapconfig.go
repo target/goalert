@@ -68,6 +68,13 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.DisableTwoWaySMS", Type: ConfigTypeBoolean, Description: "Disables SMS reply codes for alert messages.", Value: fmt.Sprintf("%t", cfg.Twilio.DisableTwoWaySMS)},
 		{ID: "Twilio.SMSCarrierLookup", Type: ConfigTypeBoolean, Description: "Perform carrier lookup of SMS contact methods (required for SMSFromNumberOverride). Extra charges may apply.", Value: fmt.Sprintf("%t", cfg.Twilio.SMSCarrierLookup)},
 		{ID: "Twilio.SMSFromNumberOverride", Type: ConfigTypeStringList, Description: "List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number.", Value: strings.Join(cfg.Twilio.SMSFromNumberOverride, "\n")},
+		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
+		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
+		{ID: "SMTP.Address", Type: ConfigTypeString, Description: "The server address to use for sending email. Port is optional.", Value: cfg.SMTP.Address},
+		{ID: "SMTP.DisableTLS", Type: ConfigTypeBoolean, Description: "Disables TLS on the connection (STARTTLS will still be used if supported).", Value: fmt.Sprintf("%t", cfg.SMTP.DisableTLS)},
+		{ID: "SMTP.SkipVerify", Type: ConfigTypeBoolean, Description: "Disables certificate validation for TLS/STARTTLS (insecure).", Value: fmt.Sprintf("%t", cfg.SMTP.SkipVerify)},
+		{ID: "SMTP.Username", Type: ConfigTypeString, Description: "Username for authentication.", Value: cfg.SMTP.Username},
+		{ID: "SMTP.Password", Type: ConfigTypeString, Description: "Password for authentication.", Value: cfg.SMTP.Password, Password: true},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -93,6 +100,8 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
+		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
+		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -284,6 +293,32 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Twilio.SMSCarrierLookup = val
 		case "Twilio.SMSFromNumberOverride":
 			cfg.Twilio.SMSFromNumberOverride = parseStringList(v.Value)
+		case "SMTP.Enable":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.SMTP.Enable = val
+		case "SMTP.From":
+			cfg.SMTP.From = v.Value
+		case "SMTP.Address":
+			cfg.SMTP.Address = v.Value
+		case "SMTP.DisableTLS":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.SMTP.DisableTLS = val
+		case "SMTP.SkipVerify":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.SMTP.SkipVerify = val
+		case "SMTP.Username":
+			cfg.SMTP.Username = v.Value
+		case "SMTP.Password":
+			cfg.SMTP.Password = v.Value
 		case "Feedback.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

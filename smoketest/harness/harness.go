@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	stdlog "log"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -68,15 +70,16 @@ func DBURL(name string) string {
 
 // Harness is a helper for smoketests. It deals with assertions, database management, and backend monitoring during tests.
 type Harness struct {
-	phoneCCG, uuidG *DataGen
-	t               *testing.T
-	closing         bool
+	phoneCCG, uuidG, emailG *DataGen
+	t                       *testing.T
+	closing                 bool
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
 
 	cfg config.Config
 
+	email     *emailServer
 	slack     *slackServer
 	slackS    *httptest.Server
 	slackApp  mockslack.AppInfo
@@ -111,6 +114,7 @@ func (h *Harness) Config() config.Config {
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
+	stdlog.SetOutput(ioutil.Discard)
 	t.Helper()
 	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Start()
@@ -179,6 +183,7 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 	h := &Harness{
 		uuidG:          NewDataGen(t, "UUID", DataGenFunc(GenUUID)),
 		phoneCCG:       NewDataGen(t, "Phone", DataGenArgFunc(GenPhoneCC)),
+		emailG:         NewDataGen(t, "Email", DataGenFunc(func() string { return GenUUID() + "@example.com" })),
 		dbName:         name,
 		dbURL:          DBURL(name),
 		lastTimeChange: start,
@@ -188,6 +193,7 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 
 		t: t,
 	}
+	h.email = newEmailServer(h)
 
 	h.tw = newTwilioAssertionAPI(func() {
 		h.FastForward(time.Minute)
@@ -238,6 +244,11 @@ func (h *Harness) Start() {
 	cfg.Twilio.AccountSID = twilioAccountSID
 	cfg.Twilio.AuthToken = twilioAuthToken
 	cfg.Twilio.FromNumber = h.phoneCCG.Get("twilio")
+
+	cfg.SMTP.Enable = true
+	cfg.SMTP.Address = h.email.Addr()
+	cfg.SMTP.DisableTLS = true
+	cfg.SMTP.From = "goalert-test@localhost"
 
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey
@@ -374,6 +385,7 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 	t.Funcs(template.FuncMap{
 		"uuid":    func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
 		"phone":   func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
+		"email":   func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
 		"phoneCC": func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
 
 		"slackChannelID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
@@ -542,6 +554,7 @@ func (h *Harness) Close() error {
 
 	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
+	h.email.WaitAndAssert()
 
 	h.mx.Lock()
 	h.closing = true

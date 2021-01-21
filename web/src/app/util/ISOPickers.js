@@ -5,7 +5,7 @@ import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
 import { TextField, InputAdornment, IconButton } from '@material-ui/core'
 
-import Modernizr from '../../modernizr.config'
+import { inputtypes } from 'modernizr-esm/feature/inputtypes'
 import { DateRange, AccessTime } from '@material-ui/icons'
 
 function hasInputSupport(name) {
@@ -13,7 +13,7 @@ function hasInputSupport(name) {
     return false
   }
 
-  return Modernizr.inputtypes[name]
+  return inputtypes[name]
 }
 
 function useISOPicker(
