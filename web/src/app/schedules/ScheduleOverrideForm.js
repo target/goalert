@@ -82,7 +82,7 @@ export default function ScheduleOverrideForm(props) {
       {...formProps}
     >
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={6} className={classes.tzNote}>
+        <Grid item xs={12} sm={12} md={7} className={classes.tzNote}>
           <Typography
             // variant='caption'
             color='textSecondary'
@@ -92,7 +92,7 @@ export default function ScheduleOverrideForm(props) {
             .
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={12} md={6}>
+        <Grid item xs={12} sm={12} md={5}>
           {/* Purposefully leaving out of form, as it's only used for converting display times. */}
           <ScheduleTZFilter
             label={(tz) => `Configure in ${tz}`}
