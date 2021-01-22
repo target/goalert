@@ -401,6 +401,10 @@ func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.Ca
 	}
 
 	t := time.Now()
+	if input.From != nil {
+		t = input.From.In(loc)
+	}
+
 	for len(result) < input.Count {
 		t = rot.EndTime(t)
 		result = append(result, t)

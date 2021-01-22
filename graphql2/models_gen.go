@@ -59,10 +59,11 @@ type AuthSubjectConnection struct {
 }
 
 type CalcRotationHandoffTimesInput struct {
-	Handoff          time.Time `json:"handoff"`
-	TimeZone         string    `json:"timeZone"`
-	ShiftLengthHours int       `json:"shiftLengthHours"`
-	Count            int       `json:"count"`
+	Handoff          time.Time  `json:"handoff"`
+	From             *time.Time `json:"from"`
+	TimeZone         string     `json:"timeZone"`
+	ShiftLengthHours int        `json:"shiftLengthHours"`
+	Count            int        `json:"count"`
 }
 
 type ConfigHint struct {

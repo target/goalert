@@ -73,6 +73,7 @@ export default function RotationForm(props) {
     variables: {
       input: {
         handoff: value.start,
+        from: value.start,
         timeZone: value.timeZone,
         shiftLengthHours: getHours(value.shiftLength, value.type),
         count: 3,
