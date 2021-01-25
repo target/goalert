@@ -20,8 +20,8 @@ if [ "$PKG_JSON_VER" != "$DOCKERFILE_VER" ]; then
   exit 1
 fi
 
-# task file should have a 'v' prefix
-if [ "v$PKG_JSON_VER" != "$TASKFILE_VER" ]; then
+# taskfile contains quotes
+if [ "'$PKG_JSON_VER'" != "$TASKFILE_VER" ]; then
   echo "Cypress versions do not match:"
   echo "package.json: ${PKG_JSON_VER} - test-integration.yml: ${TASKFILE_VER}"
   exit 1
