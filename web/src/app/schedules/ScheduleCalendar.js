@@ -51,10 +51,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     setWeekly: (value) => dispatch(setURLParam('weekly', value)),
     setStart: (value) => dispatch(setURLParam('start', value)),
-    resetFilter: () =>
-      dispatch(
-        resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'weekly'),
-      ),
+    resetTzParam: () => dispatch(resetURLParams('tz')),
   }
 }
 
@@ -229,7 +226,10 @@ export default class ScheduleCalendar extends React.PureComponent {
             defaultValue={this.state.overrideDialog.defaultValue}
             variant={this.state.overrideDialog.variant}
             scheduleID={this.props.scheduleID}
-            onClose={() => this.setState({ overrideDialog: null })}
+            onClose={() => {
+              this.setState({ overrideDialog: null })
+              this.props.resetTzParam()
+            }}
             removeUserReadOnly
           />
         )}
