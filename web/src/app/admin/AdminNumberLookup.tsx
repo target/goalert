@@ -139,6 +139,7 @@ export default function AdminNumberLookup(): JSX.Element {
                     }}
                     disabled={!numInfo?.valid}
                     loading={carrLoading}
+                    noSubmit
                   />
                 </Tooltip>
               </CardActions>
