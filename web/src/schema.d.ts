@@ -505,6 +505,7 @@ export interface RotationSearchOptions {
 
 export interface CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp
+  from?: ISOTimestamp
   timeZone: string
   shiftLengthHours: number
   count: number
