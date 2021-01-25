@@ -47,18 +47,14 @@ module.exports = (env) => ({
       },
       {
         test: /\.md$/,
-        use: 'raw-loader',
+        type: 'asset/source',
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico|webp)$/i,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: 'static/[hash].[ext]',
-            },
-          },
-        ],
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/[hash].[ext]',
+        },
       },
     ],
   },
