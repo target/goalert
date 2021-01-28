@@ -3,13 +3,15 @@ package override
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"time"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
-	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -129,6 +131,9 @@ func (db *DB) FindOneUserOverrideTx(ctx context.Context, tx *sql.Tx, id string, 
 	var o UserOverride
 	var add, rem, schedTgt sql.NullString
 	err = stmt.QueryRowContext(ctx, id).Scan(&o.ID, &add, &rem, &o.Start, &o.End, &schedTgt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

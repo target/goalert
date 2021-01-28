@@ -15,7 +15,7 @@ import {
   DroppableProvided,
 } from 'react-beautiful-dnd'
 import ListSubheader from '@material-ui/core/ListSubheader'
-import { AppLink } from '../util/AppLink'
+import AppLink from '../util/AppLink'
 import { makeStyles } from '@material-ui/core'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
 

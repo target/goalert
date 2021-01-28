@@ -74,7 +74,7 @@ function testCalendar(screen: ScreenFormat): void {
   })
 
   it(`should view a shift's tooltip`, () => {
-    cy.get('div').contains(rot.users[0].name).trigger('mouseover')
+    cy.get('div').contains(rot.users[0].name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="replace-override"]').should('be.visible')
     cy.get('button[data-cy="remove-override"]').should('be.visible')
@@ -169,7 +169,7 @@ function testCalendar(screen: ScreenFormat): void {
       cy.get('[data-cy=calendar]')
         .should('contain', name)
         .contains('div', name)
-        .trigger('mouseover')
+        .click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="replace-override"]').click()
       cy.dialogTitle('Replace a User')
@@ -184,7 +184,7 @@ function testCalendar(screen: ScreenFormat): void {
     cy.get('[data-cy=calendar]')
       .should('contain', name)
       .contains('div', name)
-      .trigger('mouseover')
+      .click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="remove-override"]').click()
     cy.dialogTitle('Remove a User')

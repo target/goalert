@@ -1,14 +1,17 @@
 version: 1
 update_configs:
-  - package_manager: "javascript"
-    directory: "/web/src/"
-    update_schedule: "daily"
+  - package_manager: 'javascript'
+    directory: '/'
+    update_schedule: 'daily'
     ignored_updates:
       # see https://github.com/target/goalert/pull/625
       - match:
-          dependency_name: "@date-io/luxon"
-          version_requirement: "<=2.6.0"
-      # see https://github.com/target/goalert/pull/634
+          dependency_name: '@date-io/luxon'
+          version_requirement: '<=2.6.0'
+      # react, react-dom, and @hot-loader/react-dom should be upgraded all at once
       - match:
-          dependency_name: "@material-ui/core"
-          version_requirement: "<=4.10.0"
+          dependency_name: 'react'
+      - match:
+          dependency_name: 'react-dom'
+      - match:
+          dependency_name: '@hot-loader/react-dom'

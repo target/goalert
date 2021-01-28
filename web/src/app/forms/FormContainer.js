@@ -3,7 +3,7 @@ import p from 'prop-types'
 import MountWatcher from '../util/MountWatcher'
 
 import { FormContext, FormContainerContext } from './context'
-import { get, set } from 'lodash-es'
+import { get, set } from 'lodash'
 
 // FormContainer handles grouping multiple FormFields.
 // It works with the Form component to handle validation.

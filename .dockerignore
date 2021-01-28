@@ -1,3 +1,3 @@
-/web/src/node_modules/
+node_modules
 smoketest_db_dump
 .git/

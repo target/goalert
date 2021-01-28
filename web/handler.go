@@ -34,7 +34,7 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 		mux.Handle("/build/", proxy)
 
 		// dev mode
-		extraScripts = []string{"../build/vendorPackages.dll.js"}
+		extraScripts = []string{"vendor.js"}
 	}
 
 	var buf bytes.Buffer
@@ -50,7 +50,7 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 	indexETag := fmt.Sprintf(`"sha256-%s"`, hex.EncodeToString(h.Sum(nil)))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Cache-Control", "private; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
+		w.Header().Set("Cache-Control", "private; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
 		w.Header().Set("ETag", indexETag)
 		http.ServeContent(w, req, "/", time.Time{}, bytes.NewReader(buf.Bytes()))
 	})
@@ -120,7 +120,7 @@ func newMemoryHandler() http.Handler {
 		etag := m.ETag(req.URL.Path)
 		if etag != "" {
 			w.Header().Set("ETag", etag)
-			w.Header().Set("Cache-Control", "public; max-age=31536000, stale-while-revalidate=600, stale-if-error=259200")
+			w.Header().Set("Cache-Control", "public; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
 		}
 		fs.ServeHTTP(w, req)
 	})

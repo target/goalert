@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/notification"
+	"github.com/target/goalert/notification/email"
 	"github.com/target/goalert/retry"
 	"github.com/target/goalert/util/log"
 
@@ -64,6 +65,7 @@ func (app *App) startup(ctx context.Context) error {
 		ctx, "Startup.Twilio", app.initTwilio)
 
 	app.initStartup(ctx, "Startup.Slack", app.initSlack)
+	app.notificationManager.RegisterSender(notification.DestTypeUserEmail, "smtp", email.NewSender(ctx))
 
 	app.initStartup(ctx, "Startup.Engine", app.initEngine)
 	app.initStartup(ctx, "Startup.Auth", app.initAuth)

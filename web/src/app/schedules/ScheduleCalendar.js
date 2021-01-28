@@ -5,7 +5,7 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
 import { Calendar } from 'react-big-calendar'
-import '../../node_modules/react-big-calendar/lib/css/react-big-calendar.css'
+import 'react-big-calendar/lib/css/react-big-calendar.css'
 import CalendarEventWrapper from './CalendarEventWrapper'
 import CalendarToolbar from './CalendarToolbar'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
@@ -16,7 +16,7 @@ import { theme } from '../mui'
 import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import LuxonLocalizer from '../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../util/shifts'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -199,7 +199,7 @@ export default class ScheduleCalendar extends React.PureComponent {
               tooltipAccessor={() => null}
               views={['month', 'week']}
               view={weekly ? 'week' : 'month'}
-              popup
+              showAllEvents
               eventPropGetter={this.eventStyleGetter}
               onNavigate={this.handleCalNavigate}
               onView={this.handleViewChange}

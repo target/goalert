@@ -60,6 +60,9 @@ func (c *Config) dbCarrierInfo(ctx context.Context, number string) (*CarrierInfo
 // CarrierInfo will return carrier information for the provided number. If fetch is true, it will fetch
 // data from the Twilio API if it is not available from the DB.
 func (c *Config) CarrierInfo(ctx context.Context, number string, fetch bool) (*CarrierInfo, error) {
+	if c.CMStore == nil {
+		return nil, nil
+	}
 	info, err := c.dbCarrierInfo(ctx, number)
 	if !fetch || err == nil {
 		return info, err
@@ -74,6 +77,9 @@ func (c *Config) CarrierInfo(ctx context.Context, number string, fetch bool) (*C
 
 // FetchCarrierInfo will lookup carrier information for the provided number using the Twilio API.
 func (c Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierInfo, error) {
+	if c.CMStore == nil {
+		return nil, nil
+	}
 	// must be admin to fetch carrier info
 	err := permission.LimitCheckAny(ctx, permission.Admin)
 	if err != nil {
@@ -126,7 +132,11 @@ func (c Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierIn
 	m.CarrierV1.MobileNetworkCode = result.Carrier.MobileNetworkCode
 
 	err = c.CMStore.SetCarrierV1MetadataByTypeValue(ctx, nil, contactmethod.TypeSMS, number, &m)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Log(ctx, err)
+	}
+	err = c.CMStore.SetCarrierV1MetadataByTypeValue(ctx, nil, contactmethod.TypeVoice, number, &m)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Log(ctx, err)
 	}
 

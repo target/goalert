@@ -32,9 +32,6 @@ export const styles = (theme) => ({
   defaultFlex: {
     flex: '0 1 auto',
   },
-  dndDragging: {
-    backgroundColor: '#ebebeb',
-  },
   // align reset and done buttons to the right in grid item
   filterActions: {
     display: 'flex',
@@ -71,14 +68,6 @@ export const styles = (theme) => ({
   },
   selectedOption: {
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
-  },
-  trashIcon: {
-    color: '#666',
-    cursor: 'pointer',
-    float: 'right',
-  },
-  warningColor: {
-    color: '#FFD602',
   },
   dialogWidth: {
     minWidth: '33vw',

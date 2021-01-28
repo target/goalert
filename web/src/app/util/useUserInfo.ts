@@ -1,5 +1,5 @@
 import gql from 'graphql-tag'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import useMultiQuery from './useMultiQuery'
 
 interface HasUserID {

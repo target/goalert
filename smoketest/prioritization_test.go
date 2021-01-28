@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/target/goalert/smoketest/harness"
 )
@@ -67,6 +68,9 @@ func TestPrioritization(t *testing.T) {
 	d1.ExpectSMS("service-1-alert")
 
 	d1.ExpectSMS("service-1-alert")
+
+	// account for throttling
+	h.FastForward(10 * time.Minute)
 
 	h.CreateAlert(h.UUID("s2"), "service-2-alert")
 

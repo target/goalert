@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
+import { gql, useQuery, useMutation } from '@apollo/client'
+
 import p from 'prop-types'
 
-import gql from 'graphql-tag'
-import { useQuery, useMutation } from 'react-apollo'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'
 import ServiceForm from './ServiceForm'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 const query = gql`
   query service($id: ID!) {

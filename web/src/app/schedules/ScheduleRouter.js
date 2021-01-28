@@ -1,5 +1,5 @@
 import React from 'react'
-import gql from 'graphql-tag'
+import { gql } from '@apollo/client'
 import { Switch, Route } from 'react-router-dom'
 import ScheduleCreateDialog from './ScheduleCreateDialog'
 import ScheduleDetails from './ScheduleDetails'

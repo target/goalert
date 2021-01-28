@@ -9,7 +9,7 @@ import {
 import { Add as AddIcon } from '@material-ui/icons'
 import { fmt, Shift, contentText, StepContainer } from './sharedUtils'
 import { FormContainer } from '../../forms'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import TempSchedShiftsList from './TempSchedShiftsList'
 import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'

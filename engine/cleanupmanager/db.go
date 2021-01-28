@@ -24,6 +24,10 @@ type DB struct {
 	setSchedData *sql.Stmt
 
 	cleanupSessions *sql.Stmt
+
+	cleanupAlertLogs *sql.Stmt
+
+	logIndex int
 }
 
 // Name returns the name of the module.
@@ -63,5 +67,21 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		setSchedData:    p.P(`update schedule_data set last_cleanup_at = now(), data = $2 where schedule_id = $1`),
 		cleanupSessions: p.P(`DELETE FROM auth_user_sessions WHERE id = any(select id from auth_user_sessions where last_access_at < (now() - '30 days'::interval) LIMIT 100 for update skip locked)`),
+
+		cleanupAlertLogs: p.P(`
+			with
+				scope as (select id from alert_logs where id > $1 order by id limit 1000),
+				id_range as (select min(id), max(id) from scope),
+				_delete as (
+					delete from alert_logs where id = any(
+						select id from alert_logs
+						where
+							id between (select min from id_range) and (select max from id_range) and
+							not exists (select 1 from alerts where alert_id = id)
+						for update skip locked
+					)
+				)
+			select id from scope offset 999
+		`),
 	}, p.Err
 }
