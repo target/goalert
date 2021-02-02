@@ -120,6 +120,7 @@ FilterContainer.propTypes = {
   title: p.string,
 
   anchorRef: p.object,
+  children: p.node,
 }
 
 FilterContainer.defaultProps = {

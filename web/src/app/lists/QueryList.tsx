@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { useQuery, QueryResult } from '@apollo/client'
+import { useQuery, OperationVariables, QueryResult } from '@apollo/client'
 import { useSelector } from 'react-redux'
 import { Grid } from '@material-ui/core'
 import { once } from 'lodash'
@@ -73,8 +73,10 @@ export interface QueryListProps extends ControlledPaginatedListProps {
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  variables?: any
+  variables?: OperationVariables
+
+  // mapVariables transforms query variables just before submission
+  mapVariables?: (vars: OperationVariables) => OperationVariables
 }
 
 export default function QueryList(props: QueryListProps): JSX.Element {
@@ -88,6 +90,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     query,
     variables = {},
     noSearch,
+    mapVariables = (v) => v,
     ...listProps
   } = props
   const { input, ...vars } = variables
@@ -111,7 +114,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
 
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
     client: GraphQLClientWithErrors,
-    variables: queryVariables,
+    variables: mapVariables(queryVariables),
     fetchPolicy: 'network-only',
     pollInterval: POLL_INTERVAL,
   })
