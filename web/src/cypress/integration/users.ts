@@ -1,6 +1,6 @@
 import { testScreen } from '../support'
 
-function testUsers(): void {
+function testUsers(screen: ScreenFormat): void {
   describe('List Page', () => {
     let cm: ContactMethod
     let prof: Profile
@@ -25,6 +25,9 @@ function testUsers(): void {
     })
 
     it('should handle searching by phone number', () => {
+      if (screen === 'mobile') {
+        cy.get('[data-cy=app-bar] button[data-cy=open-search]').click()
+      }
       cy.get('button[data-cy="users-filter-button"]').click()
       cy.form({ 'user-phone-search': cm.value })
       cy.get('[data-cy=apollo-list] > li').should('have.lengthOf', 1)
