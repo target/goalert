@@ -12,7 +12,7 @@ import LoadingButton from '../loading/components/LoadingButton'
 import DialogTitleWrapper from './components/DialogTitleWrapper'
 import DialogContentError from './components/DialogContentError'
 import { styles as globalStyles } from '../styles/materialStyles'
-import gracefulUnmount from '../util/gracefulUnmount'
+import withGracefulUnmount from '../util/gracefulUnmount'
 import { Form } from '../forms'
 import ErrorBoundary from '../main/ErrorBoundary'
 
@@ -42,8 +42,7 @@ const styles = (theme) => {
 
 @withStyles(styles)
 @withWidth()
-@gracefulUnmount()
-export default class FormDialog extends React.PureComponent {
+class FormDialog extends React.PureComponent {
   static propTypes = {
     title: p.node.isRequired,
     subTitle: p.node,
@@ -76,7 +75,7 @@ export default class FormDialog extends React.PureComponent {
     // if onBack is specified the cancel button will be replaced with a 'Back' button
     onBack: p.func,
 
-    // provided by gracefulUnmount()
+    // provided by graceful unmount
     isUnmounting: p.bool,
     onExited: p.func,
 
@@ -238,3 +237,5 @@ export default class FormDialog extends React.PureComponent {
     )
   }
 }
+
+export default withGracefulUnmount(FormDialog)
