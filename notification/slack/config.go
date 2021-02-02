@@ -2,11 +2,14 @@ package slack
 
 import (
 	"strings"
+
+	"github.com/target/goalert/alert"
 )
 
-// Config contains values used for the Slack notification sender.
+// Config contains values used for the Slack notification sender and handler
 type Config struct {
-	BaseURL string
+	BaseURL    string
+	AlertStore alert.Store
 }
 
 func (c Config) url(path string) string {

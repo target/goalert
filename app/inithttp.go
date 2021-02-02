@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/genericapi"
 	"github.com/target/goalert/grafana"
 	"github.com/target/goalert/mailgun"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
 	prometheus "github.com/target/goalert/prometheusalertmanager"
 	"github.com/target/goalert/site24x7"
@@ -164,6 +165,10 @@ func (app *App) initHTTP(ctx context.Context) error {
 		UserStore:           app.UserStore,
 	})
 
+	slack := slack.NewHandler(slack.Config{
+		AlertStore: app.AlertStore,
+	})
+
 	mux.Handle("/api/graphql", app.graphql2.Handler())
 	mux.Handle("/api/graphql/explore", app.graphql2.PlayHandler())
 
@@ -197,6 +202,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/twilio/message/status", app.twilioSMS.ServeStatusCallback)
 	mux.HandleFunc("/api/v2/twilio/call", app.twilioVoice.ServeCall)
 	mux.HandleFunc("/api/v2/twilio/call/status", app.twilioVoice.ServeStatusCallback)
+
+	mux.HandleFunc("/api/v2/slack/actions", slack.ServeActionCallback)
 
 	// Legacy (v1) API mapping
 	mux.HandleFunc("/v1/graphql", app.graphql.ServeHTTP)
