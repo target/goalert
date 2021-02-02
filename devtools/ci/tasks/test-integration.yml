@@ -1,13 +1,13 @@
 platform: linux
 params:
-  MOBILE: "0"
+  MOBILE: '0'
 inputs:
   - name: integration
 outputs:
   - name: debug
 image_resource:
   type: registry-image
-  source: { repository: goalert/cypress-env, tag: v6.2.0 }
+  source: { repository: goalert/cypress-env, tag: '6.3.0' }
 run:
   path: sh
   dir: integration/goalert

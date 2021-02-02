@@ -9,7 +9,7 @@ import (
 // Message represents the data for an outgoing message.
 type Message struct {
 	ID         string
-	Type       Type
+	Type       notification.MessageType
 	Dest       notification.Dest
 	AlertID    int
 	AlertLogID int

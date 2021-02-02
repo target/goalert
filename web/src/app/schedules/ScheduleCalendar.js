@@ -198,7 +198,7 @@ export default class ScheduleCalendar extends React.PureComponent {
               tooltipAccessor={() => null}
               views={['month', 'week']}
               view={weekly ? 'week' : 'month'}
-              popup
+              showAllEvents
               eventPropGetter={this.eventStyleGetter}
               dayPropGetter={this.dayPropGetter}
               onNavigate={this.handleCalNavigate}

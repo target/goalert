@@ -100,6 +100,19 @@ type Config struct {
 		SMSFromNumberOverride []string `info:"List of 'carrier=number' pairs, SMS messages to numbers of the provided carrier string (exact match) will use the alternate From Number."`
 	}
 
+	SMTP struct {
+		Enable bool `public:"true" info:"Enables email as a contact method."`
+
+		From string `public:"true" info:"The email address messages should be sent from."`
+
+		Address    string `info:"The server address to use for sending email. Port is optional."`
+		DisableTLS bool   `info:"Disables TLS on the connection (STARTTLS will still be used if supported)."`
+		SkipVerify bool   `info:"Disables certificate validation for TLS/STARTTLS (insecure)."`
+
+		Username string `info:"Username for authentication."`
+		Password string `password:"true" info:"Password for authentication."`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
@@ -292,6 +305,9 @@ func (cfg Config) Validate() error {
 	if cfg.Mailgun.EmailDomain != "" {
 		err = validate.Many(err, validate.Email("Mailgun.EmailDomain", "example@"+cfg.Mailgun.EmailDomain))
 	}
+	if cfg.SMTP.From != "" {
+		err = validate.Many(err, validate.Email("SMTP.From", cfg.SMTP.From))
+	}
 
 	err = validate.Many(
 		err,
@@ -321,6 +337,10 @@ func (cfg Config) Validate() error {
 			"IssuerURL", cfg.OIDC.IssuerURL,
 			"ClientID", cfg.OIDC.ClientID,
 			"ClientSecret", cfg.OIDC.ClientSecret,
+		),
+		validateEnable("SMTP", cfg.SMTP.Enable,
+			"From", cfg.SMTP.From,
+			"Address", cfg.SMTP.Address,
 		),
 	)
 

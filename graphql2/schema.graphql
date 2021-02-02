@@ -659,6 +659,7 @@ input RotationSearchOptions {
 
 input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
+  from: ISOTimestamp
   timeZone: String!
   shiftLengthHours: Int!
   count: Int!
@@ -990,6 +991,7 @@ type UserNotificationRule {
 enum ContactMethodType {
   SMS
   VOICE
+  EMAIL
 }
 
 # A method of contacting a user.

@@ -29,11 +29,9 @@ function materialClock(
     .click() // select AM or PM
 
     .get('[role=dialog][data-cy=picker-fallback] [role=menu]')
-    .parent()
     .then(clickArc(hour / 12)) // select the hour
 
     .get('[role=dialog][data-cy=picker-fallback] [role=menu]')
-    .parent()
     .then(clickArc(dt.minute / 60)) // minutes
 }
 

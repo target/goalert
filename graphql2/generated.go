@@ -3649,6 +3649,7 @@ input RotationSearchOptions {
 
 input CalcRotationHandoffTimesInput {
   handoff: ISOTimestamp!
+  from: ISOTimestamp
   timeZone: String!
   shiftLengthHours: Int!
   count: Int!
@@ -3980,6 +3981,7 @@ type UserNotificationRule {
 enum ContactMethodType {
   SMS
   VOICE
+  EMAIL
 }
 
 # A method of contacting a user.
@@ -16315,6 +16317,14 @@ func (ec *executionContext) unmarshalInputCalcRotationHandoffTimesInput(ctx cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("handoff"))
 			it.Handoff, err = ec.unmarshalNISOTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "from":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("from"))
+			it.From, err = ec.unmarshalOISOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}

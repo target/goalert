@@ -1,4 +1,4 @@
-FROM cypress/included:6.2.0
+FROM cypress/included:6.3.0
 ENTRYPOINT [ "/bin/sh" ]
 RUN apt-get update && apt-get install -y --no-install-recommends postgresql postgresql-contrib && rm -rf /var/lib/apt/lists/*
 ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@

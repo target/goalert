@@ -34,7 +34,7 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 		mux.Handle("/build/", proxy)
 
 		// dev mode
-		extraScripts = []string{"../build/vendorPackages.dll.js"}
+		extraScripts = []string{"vendor.js"}
 	}
 
 	var buf bytes.Buffer
