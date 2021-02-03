@@ -5,9 +5,10 @@ update_configs:
     update_schedule: 'daily'
     ignored_updates:
       # see https://github.com/target/goalert/pull/625
+      # and https://material-ui-pickers.dev/getting-started/installation
       - match:
           dependency_name: '@date-io/luxon'
-          version_requirement: '<=2.6.0'
+          version_requirement: '<=3.0.0'
       # react, react-dom, and @hot-loader/react-dom should be upgraded all at once
       - match:
           dependency_name: 'react'
