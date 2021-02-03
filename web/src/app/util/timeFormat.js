@@ -23,10 +23,10 @@ export function formatTimeSince(_since, _now = DateTime.utc()) {
   }
 
   if (diff.as('years') < 1) {
-    return `${Math.floor(diff.as('months'))}mo ago`
+    return `> ${Math.floor(diff.as('months'))}mo ago`
   }
 
-  return `${Math.floor(diff.as('years'))}y ago`
+  return `> ${Math.floor(diff.as('years'))}y ago`
 }
 
 export function relativeDate(_to, _from = DateTime.utc()) {
