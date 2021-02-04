@@ -93,22 +93,21 @@ export class GracefulUnmounterProvider extends React.PureComponent {
   }
 }
 
-export default function gracefulUnmount() {
-  return (Component) =>
-    function GracefulUnmount(props) {
-      return (
-        <GracefulUnmountContext.Consumer>
-          {(ctxProps) => (
-            <GracefulUnmounter
-              {...ctxProps}
-              component={Component}
-              componentProps={props}
-              render={(gracefulProps) => (
-                <Component {...gracefulProps} {...props} />
-              )}
-            />
-          )}
-        </GracefulUnmountContext.Consumer>
-      )
-    }
+export default function withGracefulUnmount(Component) {
+  return function GracefulUnmount(props) {
+    return (
+      <GracefulUnmountContext.Consumer>
+        {(ctxProps) => (
+          <GracefulUnmounter
+            {...ctxProps}
+            component={Component}
+            componentProps={props}
+            render={(gracefulProps) => (
+              <Component {...gracefulProps} {...props} />
+            )}
+          />
+        )}
+      </GracefulUnmountContext.Consumer>
+    )
+  }
 }
