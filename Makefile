@@ -96,17 +96,17 @@ $(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -name '*.go')
 $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
 	sed 's/\.ts/\.js/' web/src/cypress.json >bin/integration/goalert/cypress.json
 
-$(BIN_DIR)/integration/goalert/cypress: web/src/node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
+$(BIN_DIR)/integration/goalert/cypress: node_modules web/src/webpack.cypress.js $(BIN_DIR)/integration/goalert/cypress.json $(shell find ./web/src/cypress)
 	rm -rf $@
-	(cd web/src && yarn webpack --config webpack.cypress.js --target node)
+	yarn workspace goalert-web webpack --config webpack.cypress.js --target node
 	cp -r web/src/cypress/fixtures bin/integration/goalert/cypress/
 	touch $@
 
-$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/goalert-smoketest-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64 $(BIN_DIR)/procwrap-linux-amd64
+$(BIN_DIR)/integration/goalert/bin: $(BIN_DIR)/goalert-linux-amd64 $(BIN_DIR)/goalert-smoketest-linux-amd64 $(BIN_DIR)/mockslack-linux-amd64 $(BIN_DIR)/simpleproxy-linux-amd64 $(BIN_DIR)/pgdump-lite-linux-amd64 $(BIN_DIR)/waitfor-linux-amd64 $(BIN_DIR)/runjson-linux-amd64 $(BIN_DIR)/psql-lite-linux-amd64 $(BIN_DIR)/procwrap-linux-amd64
 	rm -rf $@
 	mkdir -p bin/integration/goalert/bin
 	cp bin/*-linux-amd64 bin/integration/goalert/bin/
-	for f in bin/integration/goalert/bin/*-linux-amd64; do mv $$f bin/integration/goalert/bin/$$(basename $$f -linux-amd64); done
+	for f in bin/integration/goalert/bin/*-linux-amd64; do ln -s $$(basename $$f) bin/integration/goalert/bin/$$(basename $$f -linux-amd64); done
 	touch $@
 
 $(BIN_DIR)/integration/goalert/devtools: $(shell find ./devtools/ci)
@@ -130,12 +130,12 @@ $(BIN_DIR)/integration.tgz: bin/integration
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
-cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite web/src/node_modules web/src/schema.d.ts
-	web/src/node_modules/.bin/cypress install
+cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
+	yarn cypress install
 
-cy-wide: cypress web/src/build/vendorPackages.dll.js
+cy-wide: cypress
 	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
-cy-mobile: cypress web/src/build/vendorPackages.dll.js
+cy-mobile: cypress
 	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
 cy-wide-prod: web/inline_data_gen.go cypress
 	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
@@ -146,10 +146,10 @@ cy-wide-prod-run: web/inline_data_gen.go cypress
 cy-mobile-prod-run: web/inline_data_gen.go cypress
 	make cy-mobile-prod CY_ACTION=run
 
-web/src/schema.d.ts: graphql2/schema.graphql web/src/node_modules
+web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/waitfor web/src/node_modules web/src/build/vendorPackages.dll.js bin/runjson web/src/schema.d.ts
+start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
@@ -161,18 +161,20 @@ start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
 	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
 	bin/runjson <devtools/runjson/localdev-prod.json
 
-jest: web/src/node_modules
-	cd web/src && node_modules/.bin/jest $(JEST_ARGS)
+jest: node_modules 
+	yarn workspace goalert-web run jest $(JEST_ARGS)
 
-test: web/src/node_modules jest
+test: node_modules jest
 	go test -short ./...
 
-check: generate web/src/node_modules
+check: generate node_modules
 	# go run devtools/ordermigrations/main.go -check
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign .
 	CGO_ENABLED=0 go run honnef.co/go/tools/cmd/staticcheck ./...
-	(cd web/src && yarn run check)
+	yarn run fmt
+	yarn run lint
+	yarn workspaces run check
 	./devtools/ci/tasks/scripts/codecheck.sh
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
@@ -189,7 +191,7 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-generate: web/src/node_modules
+generate: node_modules
 	go generate ./...
 
 smoketest:
@@ -209,25 +211,25 @@ tools:
 	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u golang.org/x/tools/cmd/stringer
 
-web/src/yarn.lock: web/src/package.json
-	(cd web/src && yarn --no-progress --silent && touch yarn.lock)
+yarn.lock: package.json web/src/package.json Makefile
+	yarn --no-progress --silent --check-files && touch $@
 
-web/src/node_modules: web/src/node_modules/.bin/cypress
-	touch web/src/node_modules
+node_modules/.yarn-integrity: yarn.lock Makefile
+	yarn install --no-progress --silent --frozen-lockfile --check-files
+	touch $@
 
-web/src/node_modules/.bin/cypress: web/src/yarn.lock
-	(cd web/src && yarn --no-progress --silent --frozen-lockfile && touch node_modules/.bin/cypress)
+node_modules: yarn.lock node_modules/.yarn-integrity
+	touch -c $@
 
-web/src/build/static/app.js: web/src/webpack.prod.config.js web/src/yarn.lock $(shell find ./web/src/app -type f ) web/src/schema.d.ts
+web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell find ./web/src/app -type f ) web/src/schema.d.ts
 	rm -rf web/src/build/static
-	(cd web/src && yarn --no-progress --silent --frozen-lockfile && node_modules/.bin/webpack --config webpack.prod.config.js --env.GOALERT_VERSION=$(GIT_VERSION))
+	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
 
 web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
 	go generate ./web
 
-web/src/build/vendorPackages.dll.js: web/src/node_modules web/src/webpack.dll.config.js
-	(cd web/src && node_modules/.bin/webpack --config ./webpack.dll.config.js --progress)
-
+notification/desttype_string.go: notification/dest.go
+	go generate ./notification
 notification/type_string.go: notice/notice.go
 	go generate ./notice
 
@@ -253,7 +255,7 @@ resetdb: migrate/inline_data_gen.go config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
-	git clean -xdf ./web ./bin ./vendor ./smoketest
+	git clean -xdf
 
 build-docker: bin/goalert bin/mockslack
 

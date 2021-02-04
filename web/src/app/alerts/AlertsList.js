@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
+import { useMutation, useQuery, gql } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import gql from 'graphql-tag'
 import {
   Hidden,
   ListItemText,
@@ -22,7 +22,6 @@ import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
 import { formatTimeSince } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
-import { useMutation, useQuery } from '@apollo/react-hooks'
 import QueryList from '../lists/QueryList'
 import useWidth from '../util/useWidth'
 
@@ -280,7 +279,7 @@ export default function AlertsList(props) {
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
-        filter={<AlertsListFilter />}
+        filter={<AlertsListFilter serviceID={props.serviceID} />}
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />

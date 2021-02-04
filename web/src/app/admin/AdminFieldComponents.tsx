@@ -17,34 +17,6 @@ interface InputProps {
   autoComplete?: string
 }
 
-export const StringListInput = (props: InputProps): JSX.Element => {
-  const value = props.value ? props.value.split('\n').concat('') : ['']
-  return (
-    <Grid container spacing={1}>
-      {value.map((val, idx) => (
-        <Grid key={idx} item xs={12}>
-          <StringInput
-            type={props.type}
-            value={val}
-            name={val ? props.name + '-' + idx : props.name + '-new-item'}
-            onChange={(newVal) =>
-              props.onChange(
-                value
-                  .slice(0, idx)
-                  .concat(newVal || '', ...value.slice(idx + 1))
-                  .filter((v: string) => v)
-                  .join('\n'),
-              )
-            }
-            autoComplete='new-password'
-            password={props.password}
-          />
-        </Grid>
-      ))}
-    </Grid>
-  )
-}
-
 export function StringInput(props: InputProps): JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
   const { onChange, password, type = 'text', ...rest } = props
@@ -76,6 +48,34 @@ export function StringInput(props: InputProps): JSX.Element {
       endAdornment={renderPasswordAdornment()}
       {...rest}
     />
+  )
+}
+
+export const StringListInput = (props: InputProps): JSX.Element => {
+  const value = props.value ? props.value.split('\n').concat('') : ['']
+  return (
+    <Grid container spacing={1}>
+      {value.map((val, idx) => (
+        <Grid key={idx} item xs={12}>
+          <StringInput
+            type={props.type}
+            value={val}
+            name={val ? props.name + '-' + idx : props.name + '-new-item'}
+            onChange={(newVal) =>
+              props.onChange(
+                value
+                  .slice(0, idx)
+                  .concat(newVal || '', ...value.slice(idx + 1))
+                  .filter((v: string) => v)
+                  .join('\n'),
+              )
+            }
+            autoComplete='new-password'
+            password={props.password}
+          />
+        </Grid>
+      ))}
+    </Grid>
   )
 }
 

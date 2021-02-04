@@ -29,11 +29,9 @@ function materialClock(
     .click() // select AM or PM
 
     .get('[role=dialog][data-cy=picker-fallback] [role=menu]')
-    .parent()
     .then(clickArc(hour / 12)) // select the hour
 
     .get('[role=dialog][data-cy=picker-fallback] [role=menu]')
-    .parent()
     .then(clickArc(dt.minute / 60)) // minutes
 }
 
@@ -136,7 +134,18 @@ function fillFormField(
         .data('cyFallbackType')
 
       if (isSelect) {
-        if (value === '') return cy.get(selector).clear()
+        if (value === '') {
+          cy.get(selector).clear()
+
+          // clear chips on multi-select
+          el.parent()
+            .find('[data-cy="multi-value"]')
+            .each(() => {
+              cy.get(selector).type(`{backspace}`)
+            })
+
+          return cy.get(selector)
+        }
 
         if (DateTime.isDateTime(value)) {
           throw new TypeError(

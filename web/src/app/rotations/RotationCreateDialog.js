@@ -1,7 +1,7 @@
 import React from 'react'
+import { gql } from '@apollo/client'
 import { Redirect } from 'react-router'
-import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
@@ -28,7 +28,7 @@ export default class RotationCreateDialog extends React.PureComponent {
       description: '',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       type: 'daily',
-      start: DateTime.local().startOf('hour').toISO(),
+      start: DateTime.local().plus({ hours: 1 }).startOf('hour').toISO(),
       shiftLength: 1,
       favorite: true,
     },

@@ -1,8 +1,8 @@
 import { Notice } from '../../schema'
 import { parseInterval, SpanISO } from '../util/shifts'
 import gql from 'graphql-tag'
-import { useQuery } from 'react-apollo'
-import _ from 'lodash-es'
+import { useQuery } from '@apollo/client'
+import _ from 'lodash'
 import { Interval } from 'luxon'
 
 const scheduleQuery = gql`

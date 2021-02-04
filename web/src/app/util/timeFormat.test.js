@@ -19,9 +19,9 @@ describe('formatTimeSince', () => {
   check({ hours: 3, seconds: 1 }, '3h ago')
   check({ days: 1, seconds: 1 }, '1d ago')
   check({ days: 20, seconds: 1 }, '20d ago')
-  check({ months: 3 }, '3mo ago')
-  check({ months: 20, seconds: 1 }, '1y ago')
-  check({ months: 200, seconds: 1 }, '16y ago')
+  check({ months: 3, days: 5 }, '> 3mo ago')
+  check({ months: 20, seconds: 1 }, '> 1y ago')
+  check({ months: 200, seconds: 1 }, '> 16y ago')
 })
 
 describe('logTimeFormat', () => {

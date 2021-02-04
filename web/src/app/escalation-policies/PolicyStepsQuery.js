@@ -1,8 +1,9 @@
-import React, { PureComponent } from 'react'
+import React from 'react'
+import { gql, useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import Query from '../util/Query'
-import gql from 'graphql-tag'
 import PolicyStepsCard from './PolicyStepsCard'
+import Spinner from '../loading/components/Spinner'
+import { GenericError, ObjectNotFound } from '../error-pages'
 
 export const policyStepsQuery = gql`
   query stepsQuery($id: ID!) {
@@ -22,26 +23,32 @@ export const policyStepsQuery = gql`
   }
 `
 
-export default class PolicyStepsQuery extends PureComponent {
-  static propTypes = {
-    escalationPolicyID: p.string.isRequired,
+function PolicyStepsQuery(props) {
+  const { data, loading, error } = useQuery(policyStepsQuery, {
+    variables: { id: props.escalationPolicyID },
+  })
+
+  if (!data && loading) {
+    return <Spinner />
+  }
+  if (error) {
+    return <GenericError error={error.message} />
+  }
+  if (!data?.escalationPolicy) {
+    return <ObjectNotFound />
   }
 
-  render() {
-    return (
-      <Query
-        query={policyStepsQuery}
-        render={({ data }) => {
-          return (
-            <PolicyStepsCard
-              escalationPolicyID={this.props.escalationPolicyID}
-              repeat={data.escalationPolicy.repeat}
-              steps={data.escalationPolicy.steps || []}
-            />
-          )
-        }}
-        variables={{ id: this.props.escalationPolicyID }}
-      />
-    )
-  }
+  return (
+    <PolicyStepsCard
+      escalationPolicyID={props.escalationPolicyID}
+      repeat={data.escalationPolicy.repeat}
+      steps={data.escalationPolicy.steps || []}
+    />
+  )
 }
+
+PolicyStepsQuery.propTypes = {
+  escalationPolicyID: p.string.isRequired,
+}
+
+export default PolicyStepsQuery

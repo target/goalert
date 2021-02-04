@@ -4,9 +4,9 @@ import {
   QueryHookOptions,
   QueryResult,
   useQuery,
-} from 'react-apollo'
+} from '@apollo/client'
 import { mergeFields, prefixQuery } from './graphql'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 interface MultiQueryHookOptions extends QueryHookOptions {
   variables: OperationVariables[]

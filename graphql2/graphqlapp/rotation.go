@@ -375,3 +375,40 @@ func (m *Mutation) UpdateRotation(ctx context.Context, input graphql2.UpdateRota
 	}
 	return true, nil
 }
+
+func (a *Query) CalcRotationHandoffTimes(ctx context.Context, input *graphql2.CalcRotationHandoffTimesInput) ([]time.Time, error) {
+	var result []time.Time
+	var err error
+
+	err = validate.Many(
+		err,
+		validate.Range("count", input.Count, 0, 20),
+		validate.Range("hours", input.ShiftLengthHours, 0, 99999),
+	)
+	if err != nil {
+		return result, err
+	}
+
+	loc, err := util.LoadLocation(input.TimeZone)
+	if err != nil {
+		return result, validation.NewFieldError("timeZone", err.Error())
+	}
+
+	rot := &rotation.Rotation{
+		Start:       input.Handoff.In(loc),
+		ShiftLength: input.ShiftLengthHours,
+		Type:        rotation.TypeHourly,
+	}
+
+	t := time.Now()
+	if input.From != nil {
+		t = input.From.In(loc)
+	}
+
+	for len(result) < input.Count {
+		t = rot.EndTime(t)
+		result = append(result, t)
+	}
+
+	return result, nil
+}

@@ -6,7 +6,7 @@ const CY: any = Cypress
 afterEach(function () {
   if (
     this.currentTest?.state === 'failed' &&
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore _currentRetry is private but required to work properly
     this.currentTest._currentRetry === this.currentTest.retries()
   ) {

@@ -1,16 +1,16 @@
 import React from 'react'
+import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import { useQuery } from 'react-apollo'
+
 import {
   ListItem,
   ListItemText,
   Typography,
   makeStyles,
 } from '@material-ui/core'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
-import gql from 'graphql-tag'
-import { AppLink } from '../../../util/AppLink'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
+import AppLink from '../../../util/AppLink'
 
 const serviceQuery = gql`
   query service($id: ID!) {

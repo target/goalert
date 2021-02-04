@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
+import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 import {
   TextField,
@@ -21,11 +22,10 @@ import { Search as SearchIcon } from '@material-ui/icons'
 import FavoriteIcon from '@material-ui/icons/Star'
 import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
-import _ from 'lodash-es'
+import _ from 'lodash'
 import getServiceLabel from '../../../util/getServiceLabel'
 import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
-import { useQuery } from 'react-apollo'
-import gql from 'graphql-tag'
+
 import { allErrors } from '../../../util/errutil'
 
 const query = gql`

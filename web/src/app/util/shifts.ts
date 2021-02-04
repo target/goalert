@@ -1,5 +1,5 @@
 import { DateTime, Interval } from 'luxon'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
 export interface SpanISO {
   start: string

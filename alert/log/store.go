@@ -370,7 +370,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 				}
 				r.subject.classifier = fmt.Sprintf("expired after %d minute"+s, minutes)
 			} else if r.Type() == TypeClosed {
-				r.subject.classifier = fmt.Sprintf("healthy")
+				r.subject.classifier = "healthy"
 			}
 			r.subject.heartbeatMonitorID.Valid = true
 			r.subject.heartbeatMonitorID.String = src.ID
