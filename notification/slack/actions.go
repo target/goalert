@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/alert"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 )
 
@@ -61,21 +62,26 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 	ts := req.Header.Get("X-Slack-Request-Timestamp")
 
 	// ignore request if more than 5 minutes from local time
-	_ts, _ := strconv.ParseInt(ts, 10, 64)
+	_ts, err := strconv.ParseInt(ts, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return false
+	}
 	if abs(time.Now().Unix()-_ts) > 60*5 {
 		return false
 	}
 
 	defer req.Body.Close()
-	body, err := ioutil.ReadAll(req.Body) // handle the error
+	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		panic(err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		return false
 	}
 	req.Body.Close()
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-	// todo: pull from cfg
-	h := hmac.New(sha256.New, []byte(""))
+	secret := config.FromContext(req.Context()).Slack.SigningSecret
+	h := hmac.New(sha256.New, []byte(secret))
 	fmt.Fprintf(h, "v0:%s:%s", ts, body)
 	calculatedSignature := "v0=" + hex.EncodeToString(h.Sum(nil))
 	signature := []byte(req.Header.Get("X-Slack-Signature"))
@@ -92,17 +98,20 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	}
 
 	payload := req.FormValue("payload")
-
 	p := Payload{}
 	json.Unmarshal([]byte(payload), &p)
+
+	writeHTTPErr := func(err error) {
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+	}
 
 	process := func(ctx context.Context) {
 		for _, a := range p.Actions {
 			v, err := strconv.Atoi(a.Value)
-
 			if err != nil {
-				// todo: return something that's not a 200
-				fmt.Println("error parsing value")
+				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 				return
 			}
 
@@ -110,20 +119,18 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			case "ack":
 				fmt.Println("acknowledging alert...")
 				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusActive)
-				if err != nil {
-					fmt.Println("error acking alert: ", err)
-				}
+				writeHTTPErr(err)
 			case "esc":
-				h.c.AlertStore.Escalate(ctx, v)
+				err := h.c.AlertStore.Escalate(ctx, v)
+				writeHTTPErr(err)
 			case "close":
-				h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusClosed)
+				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusClosed)
+				writeHTTPErr(err)
 			case "open":
-				return
 			}
 		}
 	}
 
 	permission.SudoContext(req.Context(), process)
-
-	w.WriteHeader(http.StatusOK) // needed?
+	w.WriteHeader(http.StatusOK)
 }
