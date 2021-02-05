@@ -485,7 +485,7 @@ func (h *Harness) Escalate(alertID, level int) {
 	h.t.Helper()
 	h.t.Logf("escalate alert #%d (from level %d)", alertID, level)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
-		err := h.backend.AlertStore.Escalate(ctx, alertID, level)
+		err := h.backend.AlertStore.Escalate(ctx, alertID)
 		if err != nil {
 			h.t.Fatalf("failed to escalate alert: %v", err)
 		}
