@@ -117,7 +117,6 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 
 			switch a.ActionID {
 			case "ack":
-				fmt.Println("acknowledging alert...")
 				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusActive)
 				writeHTTPErr(err)
 			case "esc":

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -365,7 +364,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	vals.Set("blocks", blocks)
 
 	// send request
-	resp, err := http.Post(s.cfg.url("/api/chat.postMessage"), "application/x-www-form-urlencoded", strings.NewReader(vals.Encode()))
+	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
 		return nil, err
 	}
