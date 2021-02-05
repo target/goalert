@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -271,13 +272,16 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 // by Slack to add elements to the message
 // https://api.slack.com/reference/block-kit/blocks
 func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
-	var text, url string
+	var summaryText, url string
+	var alertID int
 	switch t := msg.(type) {
 	case notification.Alert:
-		text = fmt.Sprintf("Alert: %s", t.Summary)
-		url = cfg.CallbackURL("/alerts/" + strconv.Itoa(t.AlertID))
+		summaryText = fmt.Sprintf("Alert: %s", t.Summary)
+		alertID = t.AlertID
+		url = cfg.CallbackURL("/alerts/" + strconv.Itoa(alertID))
+	// todo: handle actions on bundle items
 	case notification.AlertBundle:
-		text = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
+		summaryText = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
 		url = cfg.CallbackURL("/services/" + t.ServiceID + "/alerts")
 	default:
 		return "", errors.Errorf("unsupported message type: %T", t)
@@ -304,7 +308,8 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 						"text": "Acknowledge",
 						"emoji": true
 					},
-					"action_id": "ack"
+					"action_id": "ack",
+					"value": "%[2]d"
 				},
 				{
 					"type": "button",
@@ -313,7 +318,8 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 						"text": "Close",
 						"emoji": true
 					},
-					"action_id": "close"
+					"action_id": "close",
+					"value": "%[2]d"
 				},
 				{
 					"type": "button",
@@ -322,7 +328,8 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 						"text": "Escalate",
 						"emoji": true
 					},
-					"action_id": "esc"
+					"action_id": "esc",
+					"value": "%[2]d"
 				},
 				{
 					"type": "button",
@@ -337,7 +344,7 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 			]
 		}
 	]
-`, text, url)
+`, summaryText, alertID, url)
 
 	return blocks, nil
 }
@@ -358,7 +365,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	vals.Set("blocks", blocks)
 
 	// send request
-	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
+	resp, err := http.Post(s.cfg.url("/api/chat.postMessage"), "application/x-www-form-urlencoded", strings.NewReader(vals.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -386,6 +393,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		State:             notification.MessageStateDelivered,
 	}, nil
 }
+
 func (s *ChannelSender) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
 	return nil, errors.New("not implemented")
 }
