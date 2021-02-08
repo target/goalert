@@ -35,7 +35,7 @@ type Store interface {
 	CreateOrUpdateTx(context.Context, *sql.Tx, *Alert) (a *Alert, isNew bool, err error)
 
 	FindAllSummary(ctx context.Context) ([]Summary, error)
-	Escalate(ctx context.Context, alertID int, currentLevel int) error
+	Escalate(ctx context.Context, alertID int) error
 	EscalateMany(ctx context.Context, alertIDs []int) ([]int, error)
 	GetCreationTime(ctx context.Context, alertID int) (time.Time, error)
 
@@ -312,7 +312,7 @@ func (db *DB) canTouchAlert(ctx context.Context, alertID int) error {
 	return permission.LimitCheckAny(ctx, checks...)
 }
 
-func (db *DB) Escalate(ctx context.Context, alertID int, currentLevel int) error {
+func (db *DB) Escalate(ctx context.Context, alertID int) error {
 	_, err := db.EscalateMany(ctx, []int{alertID})
 	if err != nil {
 		return err

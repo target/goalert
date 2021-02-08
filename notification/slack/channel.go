@@ -267,23 +267,105 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
+// buildBlocks creates a stringified JSON object that is used
+// by Slack to add elements to the message
+// https://api.slack.com/reference/block-kit/blocks
+func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
+	var summaryText, url string
+	var alertID int
+	switch t := msg.(type) {
+	case notification.Alert:
+		summaryText = fmt.Sprintf("Alert: %s", t.Summary)
+		alertID = t.AlertID
+		url = cfg.CallbackURL("/alerts/" + strconv.Itoa(alertID))
+	// todo: handle actions on bundle items
+	case notification.AlertBundle:
+		summaryText = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
+		url = cfg.CallbackURL("/services/" + t.ServiceID + "/alerts")
+	default:
+		return "", errors.Errorf("unsupported message type: %T", t)
+	}
+
+	fmt.Println("url: ", url)
+
+	blocks := fmt.Sprintf(`
+	[
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "%s"
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": ":eyes: Acknowledge",
+						"emoji": true
+					},
+					"action_id": "ack",
+					"value": "%[2]d",
+					"style": "primary"
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": ":done: Close",
+						"emoji": true
+					},
+					"action_id": "close",
+					"value": "%[2]d"
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": ":arrow_up: Escalate",
+						"emoji": true
+					},
+					"action_id": "esc",
+					"value": "%[2]d",
+					"style": "danger"
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": ":open_file_folder: Open in GoAlert",
+						"emoji": true
+					},
+					"action_id": "open",
+					"url": "%s"
+				}
+			]
+		}
+	]
+`, summaryText, alertID, url)
+
+	return blocks, nil
+}
+
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 	cfg := config.FromContext(ctx)
 
-	vals := make(url.Values)
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
+	vals := make(url.Values)
 	vals.Set("channel", msg.Destination().Value)
-	switch t := msg.(type) {
-	case notification.Alert:
-		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
-	case notification.AlertBundle:
-		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
-	default:
-		return nil, errors.Errorf("unsupported message type: %T", t)
-	}
 	vals.Set("token", cfg.Slack.AccessToken)
 
+	blocks, err := buildBlocks(cfg, msg)
+	if err != nil {
+		return nil, err
+	}
+	vals.Set("blocks", blocks)
+
+	// send request
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
 		return nil, err
@@ -312,6 +394,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		State:             notification.MessageStateDelivered,
 	}, nil
 }
+
 func (s *ChannelSender) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
 	return nil, errors.New("not implemented")
 }

@@ -60,6 +60,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientID},
 		{ID: "Slack.ClientSecret", Type: ConfigTypeString, Description: "", Value: cfg.Slack.ClientSecret, Password: true},
+		{ID: "Slack.SigningSecret", Type: ConfigTypeString, Description: "", Value: cfg.Slack.SigningSecret, Password: true},
 		{ID: "Slack.AccessToken", Type: ConfigTypeString, Description: "Slack app bot user OAuth access token (should start with xoxb-).", Value: cfg.Slack.AccessToken, Password: true},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.AccountSID", Type: ConfigTypeString, Description: "", Value: cfg.Twilio.AccountSID},
@@ -265,6 +266,8 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Slack.ClientID = v.Value
 		case "Slack.ClientSecret":
 			cfg.Slack.ClientSecret = v.Value
+		case "Slack.SigningSecret":
+			cfg.Slack.SigningSecret = v.Value
 		case "Slack.AccessToken":
 			cfg.Slack.AccessToken = v.Value
 		case "Twilio.Enable":

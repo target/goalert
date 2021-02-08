@@ -24,6 +24,7 @@ require (
 	github.com/fatih/color v1.10.0
 	github.com/felixge/httpsnoop v1.0.1
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
+	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/golang/mock v1.4.4
 	github.com/google/go-github v17.0.0+incompatible
