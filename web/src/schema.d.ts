@@ -12,6 +12,7 @@ export interface Query {
   services: ServiceConnection
   rotation?: Rotation
   rotations: RotationConnection
+  calcRotationHandoffTimes: ISOTimestamp[]
   schedule?: Schedule
   userCalendarSubscription?: UserCalendarSubscription
   schedules: ScheduleConnection
@@ -530,6 +531,14 @@ export interface RotationSearchOptions {
   favoritesFirst?: boolean
 }
 
+export interface CalcRotationHandoffTimesInput {
+  handoff: ISOTimestamp
+  from?: ISOTimestamp
+  timeZone: string
+  shiftLengthHours: number
+  count: number
+}
+
 export interface EscalationPolicySearchOptions {
   first?: number
   after?: string
@@ -804,7 +813,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
 
 export interface UserContactMethod {
   id: string
@@ -860,3 +869,58 @@ export interface Notice {
 }
 
 export type NoticeType = 'WARNING' | 'ERROR' | 'INFO'
+
+type ConfigID =
+  | 'General.PublicURL'
+  | 'General.GoogleAnalyticsID'
+  | 'General.NotificationDisclaimer'
+  | 'General.MessageBundles'
+  | 'General.ShortURL'
+  | 'General.DisableSMSLinks'
+  | 'General.DisableLabelCreation'
+  | 'General.DisableCalendarSubscriptions'
+  | 'General.DisableV1GraphQL'
+  | 'Maintenance.AlertCleanupDays'
+  | 'Maintenance.APIKeyExpireDays'
+  | 'Auth.RefererURLs'
+  | 'Auth.DisableBasic'
+  | 'GitHub.Enable'
+  | 'GitHub.NewUsers'
+  | 'GitHub.ClientID'
+  | 'GitHub.ClientSecret'
+  | 'GitHub.AllowedUsers'
+  | 'GitHub.AllowedOrgs'
+  | 'GitHub.EnterpriseURL'
+  | 'OIDC.Enable'
+  | 'OIDC.NewUsers'
+  | 'OIDC.OverrideName'
+  | 'OIDC.IssuerURL'
+  | 'OIDC.ClientID'
+  | 'OIDC.ClientSecret'
+  | 'OIDC.Scopes'
+  | 'OIDC.UserInfoEmailPath'
+  | 'OIDC.UserInfoEmailVerifiedPath'
+  | 'OIDC.UserInfoNamePath'
+  | 'Mailgun.Enable'
+  | 'Mailgun.APIKey'
+  | 'Mailgun.EmailDomain'
+  | 'Slack.Enable'
+  | 'Slack.ClientID'
+  | 'Slack.ClientSecret'
+  | 'Slack.AccessToken'
+  | 'Twilio.Enable'
+  | 'Twilio.AccountSID'
+  | 'Twilio.AuthToken'
+  | 'Twilio.FromNumber'
+  | 'Twilio.DisableTwoWaySMS'
+  | 'Twilio.SMSCarrierLookup'
+  | 'Twilio.SMSFromNumberOverride'
+  | 'SMTP.Enable'
+  | 'SMTP.From'
+  | 'SMTP.Address'
+  | 'SMTP.DisableTLS'
+  | 'SMTP.SkipVerify'
+  | 'SMTP.Username'
+  | 'SMTP.Password'
+  | 'Feedback.Enable'
+  | 'Feedback.OverrideURL'

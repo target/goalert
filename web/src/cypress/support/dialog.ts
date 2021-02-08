@@ -9,11 +9,19 @@ function dialog(): Cypress.Chainable {
     .should('be.visible')
 }
 
-function dialogForm(values: {
-  [key: string]: string | string[] | null | boolean | DateTime
-}): void {
+function dialogForm(
+  values: {
+    [key: string]: string | string[] | null | boolean | DateTime
+  },
+  parentSelector?: string,
+): void {
   dialog()
-  cy.form(values, '[role=dialog] #dialog-form')
+
+  const dialogSelector = '[role=dialog] #dialog-form'
+  let selector = dialogSelector
+  if (parentSelector) selector = `${dialogSelector} ${parentSelector}`
+
+  cy.form(values, selector)
 }
 
 function dialogTitle(title: string): Cypress.Chainable {

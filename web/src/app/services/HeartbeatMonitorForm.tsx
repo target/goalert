@@ -2,6 +2,7 @@ import React from 'react'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
+import NumberField from '../util/NumberField'
 
 function clampTimeout(val: string): number | string {
   if (!val) return ''
@@ -45,7 +46,7 @@ export default function HeartbeatMonitorForm(
         <Grid item xs={12}>
           <FormField
             fullWidth
-            component={TextField}
+            component={NumberField}
             required
             type='number'
             label='Timeout (minutes)'

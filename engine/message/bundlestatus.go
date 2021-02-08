@@ -21,7 +21,7 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 	byDest := make(map[notification.Dest]*bundle)
 	filtered := messages[:0]
 	for _, msg := range messages {
-		if (msg.Type != TypeAlertStatusUpdate && msg.Type != TypeAlertStatusUpdateBundle) || !msg.SentAt.IsZero() {
+		if (msg.Type != notification.MessageTypeAlertStatus && msg.Type != notification.MessageTypeAlertStatusBundle) || !msg.SentAt.IsZero() {
 			filtered = append(filtered, msg)
 			continue
 		}
@@ -59,7 +59,7 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 			continue
 		}
 
-		msg.Type = TypeAlertStatusUpdateBundle
+		msg.Type = notification.MessageTypeAlertStatusBundle
 		msg.ID = uuid.NewV4().String()
 		msg.StatusAlertIDs = make([]int, 0, len(msg.StatusAlertIDs))
 		for id := range msg.Alerts {

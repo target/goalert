@@ -45,7 +45,7 @@ func (m *Monitor) sendSMS(to, body string) {
 	log.Printf("SENT SMS: %s -> %s %s; SID=%s; Status=%s\n", msg.From, msg.To, strconv.Quote(body), msg.SID, msg.Status)
 }
 
-var actionRx = regexp.MustCompile(`'(\d+c)'`)
+var actionRx = regexp.MustCompile(`'(\d+c+)'`)
 
 func (m *Monitor) processSMS(from, body string) {
 	log.Println("INCOMING SMS:", from, strconv.Quote(body))

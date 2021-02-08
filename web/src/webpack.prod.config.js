@@ -20,19 +20,15 @@ module.exports = (env) => ({
     filename: 'static/[name].js',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
+    extensions: ['.mjs', '.ts', '.tsx', '.js', '.jsx', '.css'],
   },
   module: {
     rules: [
       {
-        test: /modernizr.config.js$/,
-        use: ['modernizr-loader'],
-      },
-      {
         test: /\.(t|j)sx?$/,
         use: [
           'babel-loader',
-          { loader: 'ifdef-loader', options: { production: true, HMR: false } },
+          { loader: 'ifdef-loader', options: { production: true } },
         ],
         include: [APP],
       },
@@ -51,18 +47,14 @@ module.exports = (env) => ({
       },
       {
         test: /\.md$/,
-        use: 'raw-loader',
+        type: 'asset/source',
       },
       {
         test: /\.(gif|png|jpe?g|svg|ico|webp)$/i,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              name: 'static/[hash].[ext]',
-            },
-          },
-        ],
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/[hash].[ext]',
+        },
       },
     ],
   },
@@ -80,9 +72,15 @@ module.exports = (env) => ({
       },
     }),
     new CopyPlugin({
-      patterns: [16, 32, 64, 192].map((size) => ({
-        from: path.resolve(APP, `./public/favicon-${size}.png`),
-        to: path.resolve(BUILD, `./static/favicon-${size}.png`),
+      patterns: [
+        'favicon-16.png',
+        'favicon-32.png',
+        'favicon-64.png',
+        'favicon-192.png',
+        'goalert-alt-logo.png',
+      ].map((filename) => ({
+        from: path.resolve(APP, `./public/${filename}`),
+        to: path.resolve(BUILD, `./static/${filename}`),
       })),
     }),
   ],

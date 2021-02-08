@@ -1,8 +1,8 @@
 import React from 'react'
+import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import gql from 'graphql-tag'
 import { FormControlLabel, Switch } from '@material-ui/core'
-import { useQuery } from 'react-apollo'
+
 import { useURLParam } from '../actions/hooks'
 
 const tzQuery = gql`
@@ -33,6 +33,7 @@ export function ScheduleTZFilter(props) {
 
   return (
     <FormControlLabel
+      data-cy='tz-switch'
       control={
         <Switch
           checked={zone !== 'local'}
@@ -45,6 +46,7 @@ export function ScheduleTZFilter(props) {
     />
   )
 }
+
 ScheduleTZFilter.propTypes = {
   label: p.func,
 

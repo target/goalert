@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint @typescript-eslint/camelcase: 0 */
+/* eslint-disable camelcase */
+
 declare global {
   namespace NodeJS {
     interface Global {

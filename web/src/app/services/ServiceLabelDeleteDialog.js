@@ -1,8 +1,8 @@
 import React from 'react'
-import p from 'prop-types'
+import { gql } from '@apollo/client'
 
-import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import p from 'prop-types'
+import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors } from '../util/errutil'
 
 import FormDialog from '../dialogs/FormDialog'

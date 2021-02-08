@@ -1,4 +1,4 @@
-import React, { Ref } from 'react'
+import React, { forwardRef, ForwardRefRenderFunction } from 'react'
 import { Link, LinkProps } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { urlPathSelector } from '../selectors'
@@ -9,12 +9,10 @@ export interface AppLinkProps extends LinkProps {
   newTab?: boolean
 }
 
-export const AppLink = React.forwardRef(function AppLink(
-  props: AppLinkProps,
-  // NOTE react-router-dom uses history namespace
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ref: Ref<any>,
-) {
+const AppLink: ForwardRefRenderFunction<
+  HTMLAnchorElement,
+  AppLinkProps
+> = function AppLink(props, ref): JSX.Element {
   const { to: _to, newTab, ...other } = props
   const path = useSelector(urlPathSelector)
 
@@ -33,4 +31,6 @@ export const AppLink = React.forwardRef(function AppLink(
 
   const to = _to.startsWith('/') ? _to : joinURL(path, _to)
   return <Link to={to} ref={ref} {...other} />
-})
+}
+
+export default forwardRef(AppLink)

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/target/goalert/notification"
 )
 
 func TestBundleAlertMessages(t *testing.T) {
@@ -13,31 +14,31 @@ func TestBundleAlertMessages(t *testing.T) {
 		{
 			ID:        "a",
 			AlertID:   1,
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			CreatedAt: n,
 		},
 		{
 			ID:        "b",
 			AlertID:   2,
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			CreatedAt: n.Add(time.Minute),
 		},
 		{
 			ID:        "c",
 			AlertID:   3,
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			CreatedAt: n.Add(-time.Hour),
 		},
 		{
 			ID:        "d",
 			AlertID:   4,
-			Type:      TypeAlertNotification,
+			Type:      notification.MessageTypeAlert,
 			CreatedAt: n.Add(time.Hour),
 		},
 		{
 			ID: "e",
 			// bundles for alerts should also be joined
-			Type:      TypeAlertNotificationBundle,
+			Type:      notification.MessageTypeAlertBundle,
 			CreatedAt: n.Add(time.Hour),
 		},
 	}
@@ -57,7 +58,7 @@ func TestBundleAlertMessages(t *testing.T) {
 	assert.NotEmpty(t, bundleID, "bundled output")
 	assert.Equal(t, []Message{{
 		ID:        bundleID,
-		Type:      TypeAlertNotificationBundle,
+		Type:      notification.MessageTypeAlertBundle,
 		CreatedAt: n.Add(-time.Hour), // oldest CreatedAt
 	}}, out)
 }

@@ -8,10 +8,10 @@ import AlertTitle from '@material-ui/lab/AlertTitle'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
-import _ from 'lodash-es'
+import _ from 'lodash'
 
-import FlatList from '../../lists/FlatList'
 import { fmt, Shift } from './sharedUtils'
+import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
 import { DateTime, Interval } from 'luxon'
@@ -46,20 +46,6 @@ type TempSchedShiftsListProps = {
   end: string
 }
 
-type FlatListSub = {
-  subHeader: string
-}
-
-type FlatListItem = {
-  title?: string
-  subText?: string
-  icon?: JSX.Element
-  secondaryAction?: JSX.Element | null
-  render?: (item: FlatListItem) => ReactNode
-}
-
-type FlatListListItem = FlatListSub | FlatListItem
-
 export default function TempSchedShiftsList({
   start,
   end,
@@ -85,13 +71,12 @@ export default function TempSchedShiftsList({
       isValid: schedInterval.engulfs(parseInterval(s)),
     }))
 
-    const result: FlatListListItem[] = []
-
     const displaySpan = Interval.fromDateTimes(
       DateTime.fromISO(start).startOf('day'),
       DateTime.fromISO(end).endOf('day'),
     )
 
+    const result: FlatListListItem[] = []
     const days = displaySpan.splitBy({ days: 1 })
     days.forEach((day, dayIdx) => {
       const dayShifts = sortedShifts.filter((s) => day.overlaps(s.interval))
@@ -203,6 +188,7 @@ export default function TempSchedShiftsList({
         }
 
         result.push({
+          id: s.shift.userID + dayIdx.toString(),
           title: s.shift.user.name,
           subText: shiftDetails,
           icon: <UserAvatar userID={s.shift.userID} />,
@@ -216,7 +202,10 @@ export default function TempSchedShiftsList({
                   <Error className={classes.secondaryActionError} />
                 </Tooltip>
               )}
-              <IconButton onClick={() => onRemove(s.shift)}>
+              <IconButton
+                aria-label='delete shift'
+                onClick={() => onRemove(s.shift)}
+              >
                 <Delete />
               </IconButton>
             </div>
@@ -287,9 +276,11 @@ export default function TempSchedShiftsList({
         Shifts
       </Typography>
       <FlatList
+        data-cy='shifts-list'
         items={items()}
         emptyMessage='Add a user to the left to get started.'
         dense
+        transition
       />
     </div>
   )

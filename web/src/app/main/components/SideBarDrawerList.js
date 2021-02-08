@@ -5,7 +5,7 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
-import withStyles from '@material-ui/core/styles/withStyles'
+import { makeStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import {
   Build as WizardIcon,
@@ -26,12 +26,12 @@ import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { CurrentUserAvatar } from '../../util/avatars'
 import { authLogout } from '../../actions'
-import { connect } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 
 import logo from '../../public/goalert-alt-logo-scaled.png'
-import { AppLink } from '../../util/AppLink'
+import AppLink from '../../util/AppLink'
 
 const navIcons = {
   Alerts: AlertsIcon,
@@ -43,7 +43,7 @@ const navIcons = {
   Admin: AdminIcon,
 }
 
-const styles = (theme) => ({
+const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
   logoDiv: {
     width: '100%',
@@ -65,48 +65,19 @@ const styles = (theme) => ({
   listItemText: {
     color: theme.palette.primary['500'],
   },
-})
+}))
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    logout: () => dispatch(authLogout(true)),
-  }
-}
+export default function SideBarDrawerList(props) {
+  const { closeMobileSidebar } = props
+  const classes = useStyles()
+  const dispatch = useDispatch()
+  const logout = () => dispatch(authLogout(true))
 
-@withStyles(styles, { withTheme: true })
-@connect(null, mapDispatchToProps)
-export default class SideBarDrawerList extends React.PureComponent {
-  static propTypes = {
-    onWizard: p.func.isRequired,
-    classes: p.object.isRequired,
-  }
-
-  renderSidebarLink = (icon, path, label, props = {}) => {
-    return (
-      <AppLink to={path} className={this.props.classes.nav} {...props}>
-        {this.renderSidebarItem(icon, label)}
-      </AppLink>
-    )
-  }
-
-  renderSidebarNavLink = (icon, path, label, key) => {
-    return (
-      <NavLink
-        key={key}
-        to={path}
-        className={this.props.classes.nav}
-        activeClassName={this.props.classes.navSelected}
-      >
-        {this.renderSidebarItem(icon, label)}
-      </NavLink>
-    )
-  }
-
-  renderSidebarItem = (IconComponent, label) => {
+  function renderSidebarItem(IconComponent, label) {
     return (
       <ListItem button tabIndex={-1}>
         <ListItemIcon>
-          <IconComponent className={this.props.classes.navIcon} />
+          <IconComponent className={classes.navIcon} />
         </ListItemIcon>
         <ListItemText
           disableTypography
@@ -114,7 +85,7 @@ export default class SideBarDrawerList extends React.PureComponent {
             <Typography
               variant='subtitle1'
               component='p'
-              className={this.props.classes.listItemText}
+              className={classes.listItemText}
             >
               {label}
             </Typography>
@@ -124,7 +95,29 @@ export default class SideBarDrawerList extends React.PureComponent {
     )
   }
 
-  renderAdmin() {
+  function renderSidebarLink(icon, path, label, props = {}) {
+    return (
+      <AppLink to={path} className={classes.nav} {...props}>
+        {renderSidebarItem(icon, label)}
+      </AppLink>
+    )
+  }
+
+  function renderSidebarNavLink(icon, path, label, key) {
+    return (
+      <NavLink
+        key={key}
+        to={path}
+        className={classes.nav}
+        activeClassName={classes.navSelected}
+        onClick={closeMobileSidebar}
+      >
+        {renderSidebarItem(icon, label)}
+      </NavLink>
+    )
+  }
+
+  function renderAdmin() {
     const cfg = routeConfig.find((c) => c.title === 'Admin')
 
     return (
@@ -133,39 +126,33 @@ export default class SideBarDrawerList extends React.PureComponent {
         parentTitle={cfg.title}
         path={getPath(cfg)}
         subMenuRoutes={cfg.subRoutes}
+        closeMobileSidebar={closeMobileSidebar}
       >
-        {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
+        {renderSidebarItem(navIcons[cfg.title], cfg.title)}
       </NavSubMenu>
     )
   }
 
-  renderFeedback(url) {
+  function renderFeedback(url) {
     return (
-      <AppLink
-        to={url}
-        className={this.props.classes.nav}
-        newTab
-        data-cy='feedback-link'
-      >
-        {this.renderSidebarItem(FeedbackIcon, 'Feedback')}
+      <AppLink to={url} className={classes.nav} newTab data-cy='feedback-link'>
+        {renderSidebarItem(FeedbackIcon, 'Feedback')}
       </AppLink>
     )
   }
 
-  render() {
-    const { classes } = this.props
-
-    return (
-      <React.Fragment>
-        <div aria-hidden className={classes.logoDiv}>
-          <img
-            className={classes.logo}
-            height={32}
-            src={logo}
-            alt='GoAlert Logo'
-          />
-        </div>
-        <Divider />
+  return (
+    <React.Fragment>
+      <div aria-hidden className={classes.logoDiv}>
+        <img
+          className={classes.logo}
+          height={32}
+          src={logo}
+          alt='GoAlert Logo'
+        />
+      </div>
+      <Divider />
+      <nav>
         <List role='navigation' className={classes.list} data-cy='nav-list'>
           {routeConfig
             .filter((cfg) => cfg.nav !== false)
@@ -179,11 +166,11 @@ export default class SideBarDrawerList extends React.PureComponent {
                     path={getPath(cfg)}
                     subMenuRoutes={cfg.subRoutes}
                   >
-                    {this.renderSidebarItem(navIcons[cfg.title], cfg.title)}
+                    {renderSidebarItem(navIcons[cfg.title], cfg.title)}
                   </NavSubMenu>
                 )
               }
-              return this.renderSidebarNavLink(
+              return renderSidebarNavLink(
                 navIcons[cfg.title],
                 getPath(cfg),
                 cfg.title,
@@ -192,34 +179,33 @@ export default class SideBarDrawerList extends React.PureComponent {
             })}
           <RequireConfig isAdmin>
             <Divider aria-hidden />
-            {this.renderAdmin()}
+            {renderAdmin()}
           </RequireConfig>
 
           <Divider aria-hidden />
-          {this.renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
+          {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
           <Config>
             {(cfg) =>
               cfg['Feedback.Enable'] &&
-              this.renderFeedback(
+              renderFeedback(
                 cfg['Feedback.OverrideURL'] ||
                   'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
               )
             }
           </Config>
-          {this.renderSidebarLink(
-            LogoutIcon,
-            '/api/v2/identity/logout',
-            'Logout',
-            {
-              onClick: (e) => {
-                e.preventDefault()
-                this.props.logout()
-              },
+          {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
+            onClick: (e) => {
+              e.preventDefault()
+              logout()
             },
-          )}
-          {this.renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
+          })}
+          {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
         </List>
-      </React.Fragment>
-    )
-  }
+      </nav>
+    </React.Fragment>
+  )
+}
+
+SideBarDrawerList.propTypes = {
+  closeMobileSidebar: p.func.isRequired,
 }

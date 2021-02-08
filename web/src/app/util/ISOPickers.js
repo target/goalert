@@ -5,7 +5,7 @@ import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
 import { TextField, InputAdornment, IconButton } from '@material-ui/core'
 
-import Modernizr from '../../modernizr.config'
+import { inputtypes } from 'modernizr-esm/feature/inputtypes'
 import { DateRange, AccessTime } from '@material-ui/icons'
 
 function hasInputSupport(name) {
@@ -13,7 +13,7 @@ function hasInputSupport(name) {
     return false
   }
 
-  return Modernizr.inputtypes[name]
+  return inputtypes[name]
 }
 
 function useISOPicker(
@@ -23,9 +23,9 @@ function useISOPicker(
   const native = hasInputSupport(type)
   const params = useSelector(urlParamSelector)
   const zone = timeZone || params('tz', 'local')
-  const dtValue = DateTime.fromISO(value, { zone })
+  const dtValue = value ? DateTime.fromISO(value, { zone }) : null
   const [inputValue, setInputValue] = useState(
-    value ? dtValue.toFormat(format) : '',
+    value && dtValue ? dtValue.toFormat(format) : '',
   )
 
   // parseInput takes input from the form control and returns a DateTime
@@ -59,7 +59,7 @@ function useISOPicker(
   }
 
   useEffect(() => {
-    setInputValue(value ? dtValue.toFormat(format) : '')
+    setInputValue(value && dtValue ? dtValue.toFormat(format) : '')
   }, [value, zone])
 
   const handleChange = (e) => {
@@ -68,7 +68,7 @@ function useISOPicker(
     const newVal = inputToISO(e.target.value)
     // Only fire the parent's `onChange` handler when we have a new valid value,
     // taking care to ensure we ignore any zonal differences.
-    if (newVal && newVal !== dtValue.toUTC().toISO()) {
+    if (!dtValue || (newVal && newVal !== dtValue.toUTC().toISO())) {
       onChange(newVal)
     }
   }
@@ -95,8 +95,10 @@ function useISOPicker(
     )
   }
 
+  let emptyLabel = 'Select a time...'
   const extraProps = {}
   if (type !== 'time') {
+    emptyLabel = 'Select a date...'
     extraProps.leftArrowButtonProps = { 'data-cy': 'month-back' }
     extraProps.rightArrowButtonProps = { 'data-cy': 'month-next' }
   }
@@ -109,6 +111,7 @@ function useISOPicker(
       showTodayButton
       minDate={min}
       maxDate={max}
+      emptyLabel={emptyLabel}
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
@@ -122,9 +125,9 @@ function useISOPicker(
           </InputAdornment>
         ),
       }}
+      inputProps={inputProps}
       {...extraProps}
       {...otherProps}
-      InputLabelProps={inputLabelProps}
     />
   )
 }

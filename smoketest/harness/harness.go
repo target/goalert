@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	stdlog "log"
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -29,6 +30,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/devtools/mockslack"
 	"github.com/target/goalert/devtools/mocktwilio"
+	"github.com/target/goalert/devtools/pgdump-lite"
 	"github.com/target/goalert/migrate"
 	"github.com/target/goalert/notification/twilio"
 	"github.com/target/goalert/permission"
@@ -68,15 +70,16 @@ func DBURL(name string) string {
 
 // Harness is a helper for smoketests. It deals with assertions, database management, and backend monitoring during tests.
 type Harness struct {
-	phoneCCG, uuidG *DataGen
-	t               *testing.T
-	closing         bool
+	phoneCCG, uuidG, emailG *DataGen
+	t                       *testing.T
+	closing                 bool
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
 
 	cfg config.Config
 
+	email     *emailServer
 	slack     *slackServer
 	slackS    *httptest.Server
 	slackApp  mockslack.AppInfo
@@ -111,6 +114,7 @@ func (h *Harness) Config() config.Config {
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
+	stdlog.SetOutput(ioutil.Discard)
 	t.Helper()
 	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Start()
@@ -179,6 +183,7 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 	h := &Harness{
 		uuidG:          NewDataGen(t, "UUID", DataGenFunc(GenUUID)),
 		phoneCCG:       NewDataGen(t, "Phone", DataGenArgFunc(GenPhoneCC)),
+		emailG:         NewDataGen(t, "Email", DataGenFunc(func() string { return GenUUID() + "@example.com" })),
 		dbName:         name,
 		dbURL:          DBURL(name),
 		lastTimeChange: start,
@@ -188,6 +193,7 @@ func NewStoppedHarness(t *testing.T, initSQL string, sqlData interface{}, migrat
 
 		t: t,
 	}
+	h.email = newEmailServer(h)
 
 	h.tw = newTwilioAssertionAPI(func() {
 		h.FastForward(time.Minute)
@@ -238,6 +244,11 @@ func (h *Harness) Start() {
 	cfg.Twilio.AccountSID = twilioAccountSID
 	cfg.Twilio.AuthToken = twilioAuthToken
 	cfg.Twilio.FromNumber = h.phoneCCG.Get("twilio")
+
+	cfg.SMTP.Enable = true
+	cfg.SMTP.Address = h.email.Addr()
+	cfg.SMTP.DisableTLS = true
+	cfg.SMTP.From = "goalert-test@localhost"
 
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey
@@ -372,11 +383,11 @@ func (h *Harness) execQuery(sql string, data interface{}) {
 	h.t.Helper()
 	t := template.New("sql")
 	t.Funcs(template.FuncMap{
-		"uuidJSON": func(id string) string { return fmt.Sprintf(`"%s"`, h.uuidG.Get(id)) },
-		"uuid":     func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
-		"phone":    func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
-		"phoneCC":  func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
-
+		"uuidJSON":       func(id string) string { return fmt.Sprintf(`"%s"`, h.uuidG.Get(id)) },
+		"uuid":           func(id string) string { return fmt.Sprintf("'%s'", h.uuidG.Get(id)) },
+		"phone":          func(id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.Get(id)) },
+		"email":          func(id string) string { return fmt.Sprintf("'%s'", h.emailG.Get(id)) },
+		"phoneCC":        func(cc, id string) string { return fmt.Sprintf("'%s'", h.phoneCCG.GetWithArg(cc, id)) },
 		"slackChannelID": func(name string) string { return fmt.Sprintf("'%s'", h.Slack().Channel(name).ID()) },
 	})
 	_, err := t.Parse(sql)
@@ -509,22 +520,24 @@ func (h *Harness) dumpDB() {
 	if err != nil {
 		h.t.Fatalf("failed to get current timestamp: %v", err)
 	}
-	cmd := exec.Command(
-		"pg_dump",
-		"-O", "-x", "-a",
-		"-f", file,
-		h.dbURL,
-	)
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+
+	conn, err := h.db.Acquire(context.Background())
+	if err != nil {
+		h.t.Fatalf("failed to get db connection: %v", err)
+	}
+	defer conn.Release()
+
+	fd, err := os.Create(file)
+	if err != nil {
+		h.t.Fatalf("failed to open dump file: %v", err)
+	}
+	defer fd.Close()
+
+	err = pgdump.DumpData(context.Background(), conn.Conn(), fd)
 	if err != nil {
 		h.t.Errorf("failed to dump database '%s': %v", h.dbName, err)
 	}
-	fd, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		h.t.Fatalf("failed to open DB dump: %v", err)
-	}
-	defer fd.Close()
+
 	_, err = fmt.Fprintf(fd, "\n-- Last Timestamp: %s\n", t.Format(time.RFC3339Nano))
 	if err != nil {
 		h.t.Fatalf("failed to open DB dump: %v", err)
@@ -541,6 +554,7 @@ func (h *Harness) Close() error {
 
 	h.tw.WaitAndAssert(h.t)
 	h.slack.WaitAndAssert()
+	h.email.WaitAndAssert()
 
 	h.mx.Lock()
 	h.closing = true

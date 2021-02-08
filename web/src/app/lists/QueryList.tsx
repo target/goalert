@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
+import { useQuery, OperationVariables, QueryResult } from '@apollo/client'
 import { useSelector } from 'react-redux'
-import { useQuery } from '@apollo/react-hooks'
 import { Grid } from '@material-ui/core'
-import { once } from 'lodash-es'
+import { once } from 'lodash'
 import { PaginatedList, PaginatedListItemProps } from './PaginatedList'
 import { ITEMS_PER_PAGE, POLL_INTERVAL } from '../config'
 import { searchSelector, urlKeySelector } from '../selectors'
@@ -11,7 +11,6 @@ import { GraphQLClientWithErrors } from '../apollo'
 import ControlledPaginatedList, {
   ControlledPaginatedListProps,
 } from './ControlledPaginatedList'
-import { QueryResult } from '@apollo/react-common'
 
 // any && object type map
 // used for objects with unknown key/values from parent
@@ -67,15 +66,17 @@ export interface QueryListProps extends ControlledPaginatedListProps {
    *   }
    *  ```
    */
-  query: object
+  query: Record<string, unknown>
 
   // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
   mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
   // note: The `input.search` and `input.first` parameters are included by default, but can be overridden
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  variables?: any
+  variables?: OperationVariables
+
+  // mapVariables transforms query variables just before submission
+  mapVariables?: (vars: OperationVariables) => OperationVariables
 }
 
 export default function QueryList(props: QueryListProps): JSX.Element {
@@ -89,6 +90,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     query,
     variables = {},
     noSearch,
+    mapVariables = (v) => v,
     ...listProps
   } = props
   const { input, ...vars } = variables
@@ -112,7 +114,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
 
   const { data, loading, fetchMore, stopPolling } = useQuery(aliasedQuery, {
     client: GraphQLClientWithErrors,
-    variables: queryVariables,
+    variables: mapVariables(queryVariables),
     fetchPolicy: 'network-only',
     pollInterval: POLL_INTERVAL,
   })

@@ -1,15 +1,11 @@
 // set webpack public path for loading additional assets
 import { GOALERT_VERSION } from './env'
 
-/// #if HMR
-import './rhl'
-/// #endif
-
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider as ReduxProvider } from 'react-redux'
 import { ConnectedRouter } from 'connected-react-router'
-import { ApolloProvider } from '@apollo/react-hooks'
+import { ApolloProvider } from '@apollo/client'
 import { MuiThemeProvider } from '@material-ui/core/styles'
 import { theme } from './mui'
 import { GraphQLClient } from './apollo'
@@ -20,7 +16,7 @@ import history from './history'
 import store from './reduxStore'
 import { GracefulUnmounterProvider } from './util/gracefulUnmount'
 import GoogleAnalytics from './util/GoogleAnalytics'
-import { Config, ConfigProvider } from './util/RequireConfig'
+import { Config, ConfigProvider, ConfigData } from './util/RequireConfig'
 import { warn } from './util/debug'
 import NewVersionCheck from './NewVersionCheck'
 
@@ -66,9 +62,9 @@ ReactDOM.render(
             <ConfigProvider>
               <NewVersionCheck />
               <Config>
-                {(config: { 'General.GoogleAnalyticsID': string }) => (
+                {(config: ConfigData) => (
                   <LazyGARouteTracker
-                    trackingID={config['General.GoogleAnalyticsID']}
+                    trackingID={config['General.GoogleAnalyticsID'] as string}
                   />
                 )}
               </Config>
