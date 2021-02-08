@@ -24,7 +24,7 @@ const serviceQuery = gql`
 type WithID<T> = { id: string } & T
 
 export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
-  const { id, label, onClick, ...rest } = props
+  const { id, label, ...rest } = props
   const dispatch = useDispatch()
 
   const { data, loading, error } = useQuery(serviceQuery, {
@@ -47,7 +47,7 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
     <Chip
       data-cy='service-chip'
       avatar={<ServiceAvatar />}
-      onClick={onClick || (() => dispatch(push(`/services/${id}`)))}
+      onClick={() => dispatch(push(`/services/${id}`))}
       label={getLabel()}
       {...rest}
     />
@@ -55,21 +55,21 @@ export function ServiceChip(props: WithID<ChipProps>): JSX.Element {
 }
 
 export function UserChip(props: WithID<ChipProps>): JSX.Element {
-  const { id, onClick, ...rest } = props
+  const { id, ...rest } = props
   const dispatch = useDispatch()
 
   return (
     <Chip
       data-cy='user-chip'
       avatar={<UserAvatar userID={id} />}
-      onClick={onClick || (() => dispatch(push(`/users/${id}`)))}
+      onClick={() => dispatch(push(`/users/${id}`))}
       {...rest}
     />
   )
 }
 
 export function RotationChip(props: WithID<ChipProps>): JSX.Element {
-  const { id, onClick, ...rest } = props
+  const { id, ...rest } = props
   const dispatch = useDispatch()
 
   return (
@@ -80,14 +80,14 @@ export function RotationChip(props: WithID<ChipProps>): JSX.Element {
           <RotationIcon />
         </Avatar>
       }
-      onClick={onClick || (() => dispatch(push(`/rotations/${id}`)))}
+      onClick={() => dispatch(push(`/rotations/${id}`))}
       {...rest}
     />
   )
 }
 
 export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
-  const { id, onClick, ...rest } = props
+  const { id, ...rest } = props
   const dispatch = useDispatch()
 
   return (
@@ -98,7 +98,7 @@ export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
           <ScheduleIcon />
         </Avatar>
       }
-      onClick={onClick || (() => dispatch(push(`/schedules/${id}`)))}
+      onClick={() => dispatch(push(`/schedules/${id}`))}
       {...rest}
     />
   )
