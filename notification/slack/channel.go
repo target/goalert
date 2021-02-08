@@ -304,17 +304,18 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": "Acknowledge",
+						"text": ":eyes: Acknowledge",
 						"emoji": true
 					},
 					"action_id": "ack",
-					"value": "%[2]d"
+					"value": "%[2]d",
+					"style": "primary"
 				},
 				{
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": "Close",
+						"text": ":done: Close",
 						"emoji": true
 					},
 					"action_id": "close",
@@ -324,17 +325,18 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": "Escalate",
+						"text": ":arrow_up: Escalate",
 						"emoji": true
 					},
 					"action_id": "esc",
-					"value": "%[2]d"
+					"value": "%[2]d",
+					"style": "danger"
 				},
 				{
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": "Open in GoAlert",
+						"text": ":open_file_folder: Open in GoAlert",
 						"emoji": true
 					},
 					"action_id": "open",
