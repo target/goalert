@@ -5,24 +5,16 @@ import Typography from '@material-ui/core/Typography'
 import markdownText from '../IntegrationKeys.md'
 import Markdown from '../../util/Markdown'
 
-function replaceAll(target, search, replacement) {
-  return target.split(search).join(replacement)
-}
-
-const replaceString = 'https://<example.goalert.me>'
-
 export default function IntegrationKeyAPI() {
-  const protocol = window.location.protocol || 'https:'
-  const host = window.location.host
+  const finalText = markdownText.replaceAll(
+    'https://<example.goalert.me>',
+    window.location.origin,
+  )
 
-  let finalText = markdownText
-  if (host) {
-    finalText = replaceAll(finalText, replaceString, protocol + '//' + host)
-  }
   return (
     <Card>
       <CardContent>
-        <Typography name='details' variant='subtitle1'>
+        <Typography variant='subtitle1' component='div'>
           <Markdown value={finalText} />
         </Typography>
       </CardContent>
