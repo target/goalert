@@ -785,7 +785,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBHOOK'
 
 export interface UserContactMethod {
   id: string

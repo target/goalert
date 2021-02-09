@@ -16,12 +16,13 @@ const (
 	DestTypeSMS
 	DestTypeSlackChannel
 	DestTypeUserEmail
+	DestTypeUserWebhook
 )
 
 // IsUserCM returns true if the DestType represents a user contact method.
 func (t DestType) IsUserCM() bool {
 	switch t {
-	case DestTypeSMS, DestTypeVoice, DestTypeUserEmail:
+	case DestTypeSMS, DestTypeVoice, DestTypeUserEmail, DestTypeUserWebhook:
 		return true
 	}
 	return false
