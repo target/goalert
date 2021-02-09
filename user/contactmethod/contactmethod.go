@@ -40,6 +40,8 @@ func (c ContactMethod) Normalize() (*ContactMethod, error) {
 		err = validate.Many(err, validate.Phone("Value", c.Value))
 	case TypeEmail:
 		err = validate.Many(err, validate.Email("Value", c.Value))
+	case TypeWebhook:
+		err = validate.Many(err, validate.URI("Value", c.Value))
 	case TypePush:
 		c.Value = ""
 	}
