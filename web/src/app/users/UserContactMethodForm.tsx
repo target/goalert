@@ -62,6 +62,8 @@ function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
       return renderPhoneField(edit)
     case 'EMAIL':
       return renderEmailField(edit)
+    case 'WEBHOOK':
+      return renderURLField(edit)
     default:
   }
 
@@ -72,6 +74,21 @@ function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
       name='value'
       required
       label='Value'
+      component={TextField}
+      disabled={edit}
+    />
+  )
+}
+
+function renderURLField(edit: boolean): JSX.Element {
+  return (
+    <FormField
+      placeholder='https://example.com'
+      fullWidth
+      name='value'
+      required
+      label='Webhook URL'
+      type='url'
       component={TextField}
       disabled={edit}
     />
@@ -108,6 +125,7 @@ export default function UserContactMethodForm(
               <MenuItem value='VOICE'>VOICE</MenuItem>
             )}
             {(edit || emailEnabled) && <MenuItem value='EMAIL'>EMAIL</MenuItem>}
+            {<MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>}
           </FormField>
         </Grid>
         <Grid item xs={12}>
