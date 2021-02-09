@@ -304,7 +304,7 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": ":eyes: Acknowledge",
+						"text": "Acknowledge :eyes:",
 						"emoji": true
 					},
 					"action_id": "ack",
@@ -315,7 +315,7 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": ":done: Close",
+						"text": "Close :ballot_box_with_check:",
 						"emoji": true
 					},
 					"action_id": "close",
@@ -325,7 +325,7 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": ":arrow_up: Escalate",
+						"text": "Escalate :arrow_up:",
 						"emoji": true
 					},
 					"action_id": "esc",
@@ -336,7 +336,7 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": ":open_file_folder: Open in GoAlert",
+						"text": "Open in GoAlert :link:",
 						"emoji": true
 					},
 					"action_id": "open",
