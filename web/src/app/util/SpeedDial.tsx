@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
-import p from 'prop-types'
-import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab'
+import {
+  SpeedDial,
+  SpeedDialIcon,
+  SpeedDialAction,
+  SpeedDialActionProps,
+  SpeedDialProps,
+} from '@material-ui/lab'
 import { makeStyles } from '@material-ui/styles'
 
 const useStyles = makeStyles({
@@ -20,16 +25,31 @@ const useStyles = makeStyles({
   },
 })
 
-export default function CustomSpeedDial(props) {
+interface CustomSpeedDialProps {
+  label: SpeedDialProps['ariaLabel']
+  actions: {
+    icon: SpeedDialActionProps['icon']
+    onClick: NonNullable<SpeedDialActionProps['onClick']>
+    label: SpeedDialActionProps['tooltipTitle'] &
+      SpeedDialActionProps['aria-label']
+    disabled?: boolean
+  }[]
+}
+
+export default function CustomSpeedDial(
+  props: CustomSpeedDialProps,
+): JSX.Element {
   const [open, setOpen] = useState(false)
   const classes = useStyles()
 
   return (
     <SpeedDial
       ariaLabel={props.label}
-      FabProps={{
-        'data-cy': 'page-fab',
-      }}
+      FabProps={
+        {
+          'data-cy': 'page-fab',
+        } as SpeedDialProps['FabProps']
+      }
       icon={<SpeedDialIcon />}
       onClick={() => setOpen(!open)}
       onClose={() => setOpen(false)}
@@ -59,22 +79,10 @@ export default function CustomSpeedDial(props) {
                 e.stopPropagation()
                 return
               }
-              action.onClick()
+              action.onClick(e)
             }}
           />
         ))}
     </SpeedDial>
   )
-}
-
-CustomSpeedDial.propsTypes = {
-  label: p.string.isRequired,
-  disabled: p.bool,
-  actions: p.arrayOf(
-    p.shape({
-      icon: p.element.isRequired,
-      onClick: p.func.isRequired,
-      label: p.string.isRequired,
-    }),
-  ).isRequired,
 }

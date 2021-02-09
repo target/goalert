@@ -153,7 +153,7 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 			Code: makeSMSCode(t.AlertID, ""),
 		}.Render()
 	case notification.Test:
-		message = fmt.Sprintf("This is a test message from GoAlert.")
+		message = "This is a test message from GoAlert."
 	case notification.Verification:
 		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
 	default:

@@ -94,6 +94,8 @@ func TestGraphQLMultipleAlerts(t *testing.T) {
 	h.Twilio(t).Device(phone).ExpectSMS("alert1")
 	h.Twilio(t).Device(phone).ExpectSMS("alert2")
 
+	h.FastForward(30 * time.Minute)
+
 	// Escalating multiple (3) alerts
 	doQL2(fmt.Sprintf(`
 		mutation {

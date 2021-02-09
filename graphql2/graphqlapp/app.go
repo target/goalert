@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/notice"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/pkg/errors"
@@ -92,9 +93,11 @@ func mustAuth(h http.Handler) http.Handler {
 
 func (a *App) PlayHandler() http.Handler {
 	var data struct {
-		Version string
+		Version     string
+		PackageName string
 	}
 	data.Version = playVersion
+	data.PackageName = playPackageName
 	return mustAuth(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		err := playTmpl.Execute(w, data)
 		if err != nil {
@@ -147,7 +150,7 @@ func isGQLValidation(gqlErr *gqlerror.Error) bool {
 		return false
 	}
 
-	return code == "GRAPHQL_VALIDATION_FAILED"
+	return code == errcode.ValidationFailed || code == errcode.ParseFailed
 }
 
 func (a *App) Handler() http.Handler {

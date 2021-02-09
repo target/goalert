@@ -30,6 +30,17 @@ type Monitor struct {
 	srv        *http.Server
 }
 
+func setRequestScheme(scheme string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		// required for Twilio sig validation to work
+		req.URL.Host = req.Host
+		req.URL.Scheme = scheme
+
+		h.ServeHTTP(w, req)
+	})
+}
+
 // NewMonitor creates and starts a new Monitor with the given Config.
 func NewMonitor(cfg Config) (*Monitor, error) {
 	http.DefaultTransport.(*http.Transport).DisableKeepAlives = true
@@ -66,7 +77,10 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 	m.appCfg.Twilio.FromNumber = cfg.Twilio.FromNumber
 	mux.Handle("/", twilio.WrapHeaderHack(h))
 	m.srv = &http.Server{
-		Handler:           config.Handler(mux, config.Static(m.appCfg)),
+		Handler: config.Handler(
+			setRequestScheme(u.Scheme, mux),
+			config.Static(m.appCfg),
+		),
 		IdleTimeout:       15 * time.Second,
 		ReadHeaderTimeout: 15 * time.Second,
 		ReadTimeout:       15 * time.Second,

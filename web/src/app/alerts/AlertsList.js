@@ -279,7 +279,7 @@ export default function AlertsList(props) {
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
-        filter={<AlertsListFilter />}
+        filter={<AlertsListFilter serviceID={props.serviceID} />}
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />

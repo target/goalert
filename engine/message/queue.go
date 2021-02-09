@@ -9,18 +9,15 @@ import (
 	"github.com/target/goalert/notification"
 )
 
-// cmCooldown is the amount of time (minimum) between messages to a particular contact method.
-const cmCooldown = time.Minute
+var typePriority = map[notification.MessageType]int{
+	notification.MessageTypeVerification: 1,
+	notification.MessageTypeTest:         2,
 
-var typePriority = map[Type]int{
-	TypeVerificationMessage: 1,
-	TypeTestNotification:    2,
+	notification.MessageTypeAlert:       3,
+	notification.MessageTypeAlertBundle: 3,
 
-	TypeAlertNotification:       3,
-	TypeAlertNotificationBundle: 3,
-
-	TypeAlertStatusUpdate:       4,
-	TypeAlertStatusUpdateBundle: 4,
+	notification.MessageTypeAlertStatus:       4,
+	notification.MessageTypeAlertStatusBundle: 4,
 }
 
 type queue struct {
@@ -28,11 +25,20 @@ type queue struct {
 	pending map[notification.DestType][]Message
 	now     time.Time
 
+	firstAlert  map[destID]struct{}
 	serviceSent map[string]time.Time
 	userSent    map[string]time.Time
 	destSent    map[notification.Dest]time.Time
 
+	cmThrottle     *Throttle
+	globalThrottle *Throttle
+
 	mx sync.Mutex
+}
+
+type destID struct {
+	ID       string
+	DestType notification.DestType
 }
 
 func newQueue(msgs []Message, now time.Time) *queue {
@@ -41,9 +47,13 @@ func newQueue(msgs []Message, now time.Time) *queue {
 		pending: make(map[notification.DestType][]Message),
 		now:     now,
 
+		firstAlert:  make(map[destID]struct{}),
 		serviceSent: make(map[string]time.Time),
 		userSent:    make(map[string]time.Time),
 		destSent:    make(map[notification.Dest]time.Time),
+
+		cmThrottle:     NewThrottle(PerCMThrottle, now, false),
+		globalThrottle: NewThrottle(GlobalCMThrottle, now, true),
 	}
 
 	for _, m := range msgs {
@@ -61,6 +71,9 @@ func (q *queue) addSent(m Message) {
 		m.SentAt = q.now
 	}
 
+	q.cmThrottle.Record(m)
+	q.globalThrottle.Record(m)
+	q.firstAlert[destID{ID: m.ServiceID, DestType: m.Dest.Type}] = struct{}{}
 	if t := q.serviceSent[m.ServiceID]; m.SentAt.After(t) {
 		q.serviceSent[m.ServiceID] = m.SentAt
 	}
@@ -104,10 +117,12 @@ func (q *queue) filterPending(destType notification.DestType) {
 		return
 	}
 
-	cutoffTime := q.now.Add(-cmCooldown)
 	filtered := pending[:0]
 	for _, p := range pending {
-		if q.destSent[p.Dest].After(cutoffTime) {
+		if q.globalThrottle.InCooldown(p) {
+			continue
+		}
+		if q.cmThrottle.InCooldown(p) {
 			continue
 		}
 		filtered = append(filtered, p)
@@ -138,12 +153,14 @@ func (q *queue) sortPending(destType notification.DestType) {
 
 		// First Alert to a service takes highest priority
 		piTypePriority := typePriority[pi.Type]
-		if (pi.Type == TypeAlertNotification || pi.Type == TypeAlertNotificationBundle) && q.serviceSent[pi.ServiceID].IsZero() {
+		_, firstAlertI := q.firstAlert[destID{ID: pi.ServiceID, DestType: pi.Dest.Type}]
+		if (pi.Type == notification.MessageTypeAlert || pi.Type == notification.MessageTypeAlertBundle) && !firstAlertI {
 			piTypePriority = 0
 		}
 
 		pjTypePriority := typePriority[pj.Type]
-		if (pj.Type == TypeAlertNotification || pj.Type == TypeAlertNotificationBundle) && q.serviceSent[pj.ServiceID].IsZero() {
+		_, firstAlertJ := q.firstAlert[destID{ID: pj.ServiceID, DestType: pj.Dest.Type}]
+		if (pj.Type == notification.MessageTypeAlert || pj.Type == notification.MessageTypeAlertBundle) && !firstAlertJ {
 			pjTypePriority = 0
 		}
 

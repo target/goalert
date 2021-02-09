@@ -5,7 +5,7 @@ import { urlParamSelector } from '../selectors'
 import { DateTime } from 'luxon'
 import { TextField, InputAdornment, IconButton } from '@material-ui/core'
 
-import Modernizr from '../../modernizr.config'
+import { inputtypes } from 'modernizr-esm/feature/inputtypes'
 import { DateRange, AccessTime } from '@material-ui/icons'
 
 function hasInputSupport(name) {
@@ -13,11 +13,11 @@ function hasInputSupport(name) {
     return false
   }
 
-  return Modernizr.inputtypes[name]
+  return inputtypes[name]
 }
 
 function useISOPicker(
-  { value, onChange, timeZone, ...otherProps },
+  { value, onChange, timeZone, min, max, ...otherProps },
   { format, truncateTo, type, Fallback },
 ) {
   const native = hasInputSupport(type)
@@ -71,6 +71,15 @@ function useISOPicker(
     }
   }
 
+  // shrink: true sets the label above the textfield so the placeholder can be properly seen
+  const inputLabelProps = otherProps?.InputLabelProps ?? {}
+  inputLabelProps.shrink = true
+
+  // sets min and max if set
+  const inputProps = otherProps?.inputProps ?? {}
+  if (min) inputProps.min = DateTime.fromISO(min).toFormat(format)
+  if (max) inputProps.max = DateTime.fromISO(max).toFormat(format)
+
   if (native) {
     return (
       <TextField
@@ -78,6 +87,8 @@ function useISOPicker(
         value={inputValue}
         onChange={handleChange}
         {...otherProps}
+        InputLabelProps={inputLabelProps}
+        inputProps={inputProps}
       />
     )
   }
@@ -94,6 +105,8 @@ function useISOPicker(
       value={value ? dtValue : null}
       onChange={(v) => handleChange({ target: { value: v } })}
       showTodayButton
+      minDate={min}
+      maxDate={max}
       DialogProps={{
         'data-cy': 'picker-fallback',
       }}
@@ -107,6 +120,7 @@ function useISOPicker(
           </InputAdornment>
         ),
       }}
+      inputProps={inputProps}
       {...extraProps}
       {...otherProps}
     />

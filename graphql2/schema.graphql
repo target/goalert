@@ -37,6 +37,8 @@ type Query {
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
 
+  calcRotationHandoffTimes(input: CalcRotationHandoffTimesInput): [ISOTimestamp!]!
+
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
 
@@ -655,6 +657,14 @@ input RotationSearchOptions {
   favoritesFirst: Boolean = false
 }
 
+input CalcRotationHandoffTimesInput {
+  handoff: ISOTimestamp!
+  from: ISOTimestamp
+  timeZone: String!
+  shiftLengthHours: Int!
+  count: Int!
+}
+
 input EscalationPolicySearchOptions {
   first: Int = 15
   after: String = ""
@@ -981,6 +991,7 @@ type UserNotificationRule {
 enum ContactMethodType {
   SMS
   VOICE
+  EMAIL
 }
 
 # A method of contacting a user.

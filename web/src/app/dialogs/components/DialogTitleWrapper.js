@@ -6,9 +6,9 @@ import IconButton from '@material-ui/core/IconButton'
 import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import CloseIcon from '@material-ui/icons/Close'
-import DropDownMenu from '../../dialogs/components/DropDownMenu'
 import { styles as globalStyles } from '../../styles/materialStyles'
 import { DialogContent, makeStyles } from '@material-ui/core'
+import OtherActions from '../../util/OtherActions'
 
 const useStyles = makeStyles((theme) => {
   const { topRightActions } = globalStyles(theme)
@@ -44,18 +44,18 @@ function DialogTitleWrapper(props) {
     fullScreen,
     toolbarItems,
     onClose,
-    options,
+    actions,
     subTitle,
     title,
   } = props
 
   let menu
-  if (options && options.length > 0 && fullScreen) {
-    menu = <DropDownMenu options={options} color='white' />
-  } else if (options && options.length > 0) {
+  if (actions && actions.length > 0 && fullScreen) {
+    menu = <OtherActions actions={actions} color='white' />
+  } else if (actions && actions.length > 0) {
     menu = (
       <div className={classes.topRightActions}>
-        <DropDownMenu options={options} />
+        <OtherActions actions={actions} />
       </div>
     )
   }
@@ -131,7 +131,7 @@ DialogTitleWrapper.propTypes = {
   title: p.node.isRequired,
   subTitle: p.node,
   onClose: p.func,
-  options: p.array, // list of options to display as list items from option icon
+  actions: p.array, // list of actions to display as list items from option icon
 }
 
 export default DialogTitleWrapper

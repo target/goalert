@@ -5,7 +5,7 @@ import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
 import { Calendar } from 'react-big-calendar'
-import '../../node_modules/react-big-calendar/lib/css/react-big-calendar.css'
+import 'react-big-calendar/lib/css/react-big-calendar.css'
 import CalendarEventWrapper from './CalendarEventWrapper'
 import CalendarToolbar from './CalendarToolbar'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
@@ -198,7 +198,7 @@ export default class ScheduleCalendar extends React.PureComponent {
               tooltipAccessor={() => null}
               views={['month', 'week']}
               view={weekly ? 'week' : 'month'}
-              popup
+              showAllEvents
               eventPropGetter={this.eventStyleGetter}
               dayPropGetter={this.dayPropGetter}
               onNavigate={this.handleCalNavigate}

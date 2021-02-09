@@ -8,17 +8,18 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[MessageTypeAlert-0]
-	_ = x[MessageTypeAlertStatus-1]
-	_ = x[MessageTypeTest-2]
-	_ = x[MessageTypeVerification-3]
-	_ = x[MessageTypeAlertBundle-4]
-	_ = x[MessageTypeAlertStatusBundle-5]
+	_ = x[MessageTypeUnknown-0]
+	_ = x[MessageTypeAlert-1]
+	_ = x[MessageTypeAlertStatus-2]
+	_ = x[MessageTypeTest-3]
+	_ = x[MessageTypeVerification-4]
+	_ = x[MessageTypeAlertBundle-5]
+	_ = x[MessageTypeAlertStatusBundle-6]
 }
 
-const _MessageType_name = "MessageTypeAlertMessageTypeAlertStatusMessageTypeTestMessageTypeVerificationMessageTypeAlertBundleMessageTypeAlertStatusBundle"
+const _MessageType_name = "MessageTypeUnknownMessageTypeAlertMessageTypeAlertStatusMessageTypeTestMessageTypeVerificationMessageTypeAlertBundleMessageTypeAlertStatusBundle"
 
-var _MessageType_index = [...]uint8{0, 16, 38, 53, 76, 98, 126}
+var _MessageType_index = [...]uint8{0, 18, 34, 56, 71, 94, 116, 144}
 
 func (i MessageType) String() string {
 	if i < 0 || i >= MessageType(len(_MessageType_index)-1) {
