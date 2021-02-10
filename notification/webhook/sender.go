@@ -23,25 +23,17 @@ func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
 
-func post(ctx context.Context, url string, body string) (*http.Response, error) {
-	req, err := http.NewRequest("POST", url, bytes.NewBufferString(body))
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	req.Header.Add("Content-Type", "application/json")
-	return http.DefaultClient.Do(req)
-}
-
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 
 	postWithBody := func(body string) (*http.Response, error) {
-		resp, err := post(ctx, msg.Destination().Value, body)
+		req, err := http.NewRequest("POST", msg.Destination().Value, bytes.NewBufferString(body))
 		if err != nil {
 			return nil, err
 		}
-		return resp, nil
+		req = req.WithContext(ctx)
+		req.Header.Add("Content-Type", "application/json")
+		return http.DefaultClient.Do(req)
 	}
 
 	switch m := msg.(type) {
