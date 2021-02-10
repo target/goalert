@@ -25,6 +25,11 @@ type WebhookAlertBundle struct {
 	Count       int
 }
 
+type WebhookAlertStatus struct {
+	AlertID  int
+	LogEntry string
+}
+
 func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
@@ -80,6 +85,26 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			return nil, err
 		}
 		jsonbytes, err = json.Marshal(wab)
+		if err != nil {
+			return nil, err
+		}
+		jsonstring := string(jsonbytes)
+
+		postWithBody(jsonstring)
+
+	case notification.AlertStatus:
+
+		var was WebhookAlertStatus
+
+		jsonbytes, err := json.Marshal(m)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(jsonbytes, &was)
+		if err != nil {
+			return nil, err
+		}
+		jsonbytes, err = json.Marshal(was)
 		if err != nil {
 			return nil, err
 		}
