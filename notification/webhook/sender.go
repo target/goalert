@@ -27,6 +27,26 @@ func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
 
+func getWebhookAlertBody(msg notification.Message) (*string, error) {
+	var wa WebhookAlert
+
+	jsonbytes, err := json.Marshal(msg)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(jsonbytes, &wa)
+	if err != nil {
+		return nil, err
+	}
+	jsonbytes, err = json.Marshal(wa)
+	if err != nil {
+		return nil, err
+	}
+
+	result := string(jsonbytes)
+	return &result, nil
+}
+
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 
@@ -45,84 +65,15 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		postWithBody(`{"Message": "Test"}`)
 	case notification.Verification:
 		postWithBody(`{"Message": "Verification Code: ` + strconv.Itoa(m.Code) + `"}`)
-	case notification.Alert:
-
-		var wa WebhookAlert
-
-		jsonbytes, err := json.Marshal(m)
+	case notification.Alert, notification.AlertBundle, notification.AlertStatus, notification.AlertStatusBundle:
+		body, err := getWebhookAlertBody(m)
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(jsonbytes, &wa)
+		_, err = postWithBody(*body)
 		if err != nil {
 			return nil, err
 		}
-		jsonbytes, err = json.Marshal(wa)
-		if err != nil {
-			return nil, err
-		}
-		jsonstring := string(jsonbytes)
-
-		postWithBody(jsonstring)
-
-	case notification.AlertBundle:
-
-		var wa WebhookAlert
-
-		jsonbytes, err := json.Marshal(m)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(jsonbytes, &wa)
-		if err != nil {
-			return nil, err
-		}
-		jsonbytes, err = json.Marshal(wa)
-		if err != nil {
-			return nil, err
-		}
-		jsonstring := string(jsonbytes)
-
-		postWithBody(jsonstring)
-
-	case notification.AlertStatus:
-
-		var wa WebhookAlert
-
-		jsonbytes, err := json.Marshal(m)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(jsonbytes, &wa)
-		if err != nil {
-			return nil, err
-		}
-		jsonbytes, err = json.Marshal(wa)
-		if err != nil {
-			return nil, err
-		}
-		jsonstring := string(jsonbytes)
-
-		postWithBody(jsonstring)
-
-	case notification.AlertStatusBundle:
-		var wa WebhookAlert
-
-		jsonbytes, err := json.Marshal(m)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(jsonbytes, &wa)
-		if err != nil {
-			return nil, err
-		}
-		jsonbytes, err = json.Marshal(wa)
-		if err != nil {
-			return nil, err
-		}
-		jsonstring := string(jsonbytes)
-
-		postWithBody(jsonstring)
 
 	default:
 		return nil, errors.New("message type not supported")
