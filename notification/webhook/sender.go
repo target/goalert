@@ -14,25 +14,13 @@ import (
 type Sender struct{}
 
 type WebhookAlert struct {
-	AlertID int
-	Summary string
-	Details string
-}
-
-type WebhookAlertBundle struct {
-	ServiceID   string
-	ServiceName string
-	Count       int
-}
-
-type WebhookAlertStatus struct {
-	AlertID  int
-	LogEntry string
-}
-
-type WebhookAlertStatusBundle struct {
-	LogEntry string
-	Count    int
+	AlertID     int    `json:",omitempty"`
+	Summary     string `json:",omitempty"`
+	Details     string `json:",omitempty"`
+	ServiceID   string `json:",omitempty"`
+	ServiceName string `json:",omitempty"`
+	Count       int    `json:",omitempty"`
+	LogEntry    string `json:",omitempty"`
 }
 
 func NewSender(ctx context.Context) *Sender {
@@ -79,17 +67,17 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 
 	case notification.AlertBundle:
 
-		var wab WebhookAlertBundle
+		var wa WebhookAlert
 
 		jsonbytes, err := json.Marshal(m)
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(jsonbytes, &wab)
+		err = json.Unmarshal(jsonbytes, &wa)
 		if err != nil {
 			return nil, err
 		}
-		jsonbytes, err = json.Marshal(wab)
+		jsonbytes, err = json.Marshal(wa)
 		if err != nil {
 			return nil, err
 		}
@@ -99,17 +87,17 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 
 	case notification.AlertStatus:
 
-		var was WebhookAlertStatus
+		var wa WebhookAlert
 
 		jsonbytes, err := json.Marshal(m)
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(jsonbytes, &was)
+		err = json.Unmarshal(jsonbytes, &wa)
 		if err != nil {
 			return nil, err
 		}
-		jsonbytes, err = json.Marshal(was)
+		jsonbytes, err = json.Marshal(wa)
 		if err != nil {
 			return nil, err
 		}
@@ -118,17 +106,17 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		postWithBody(jsonstring)
 
 	case notification.AlertStatusBundle:
-		var wasb WebhookAlertStatusBundle
+		var wa WebhookAlert
 
 		jsonbytes, err := json.Marshal(m)
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(jsonbytes, &wasb)
+		err = json.Unmarshal(jsonbytes, &wa)
 		if err != nil {
 			return nil, err
 		}
-		jsonbytes, err = json.Marshal(wasb)
+		jsonbytes, err = json.Marshal(wa)
 		if err != nil {
 			return nil, err
 		}
