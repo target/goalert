@@ -54,9 +54,9 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 
 	switch m := msg.(type) {
 	case notification.Test:
-		postWithBody("This is a test message from GoAlert")
+		postWithBody(`{"Message": "Test"}`)
 	case notification.Verification:
-		postWithBody(strconv.Itoa(m.Code))
+		postWithBody(`{"Message": "Verification Code: ` + strconv.Itoa(m.Code) + `"}`)
 	case notification.Alert:
 
 		var wa WebhookAlert
