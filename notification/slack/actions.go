@@ -93,50 +93,8 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
+
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
-	if !validRequest(w, req) {
-		fmt.Println("request invalid")
-		return
-	}
-
-	payload := req.FormValue("payload")
-	p := Payload{}
-	json.Unmarshal([]byte(payload), &p)
-
-	writeHTTPErr := func(err error) {
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		}
-	}
-
-	process := func(ctx context.Context) {
-		for _, a := range p.Actions {
-			v, err := strconv.Atoi(a.Value)
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-				return
-			}
-
-			switch a.ActionID {
-			case "ack":
-				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusActive)
-				writeHTTPErr(err)
-			case "esc":
-				err := h.c.AlertStore.Escalate(ctx, v)
-				writeHTTPErr(err)
-			case "close":
-				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusClosed)
-				writeHTTPErr(err)
-			case "open":
-			}
-		}
-	}
-
-	permission.SudoContext(req.Context(), process)
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *Handler) _ServeActionCallback(w http.ResponseWriter, req *http.Request) {
 	writeHTTPErr := func(err error) {
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
