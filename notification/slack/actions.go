@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
@@ -27,6 +28,7 @@ type Handler struct {
 type Payload struct {
 	ResponseURL string `json:"response_url"`
 	Actions     []Action
+	Channel     slack.Channel
 }
 
 // Action represents the information given from an action event within Slack
@@ -132,4 +134,50 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 
 	permission.SudoContext(req.Context(), process)
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) _ServeActionCallback(w http.ResponseWriter, req *http.Request) {
+	writeHTTPErr := func(err error) {
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+	}
+	if !validRequest(w, req) {
+		fmt.Println("request invalid")
+		return
+	}
+
+	payload := req.FormValue("payload")
+	p := Payload{}
+	json.Unmarshal([]byte(payload), &p)
+
+	process := func(ctx context.Context) {
+		cfg := config.FromContext(ctx)
+		var api = slack.New(cfg.Slack.AccessToken)
+		for _, a := range p.Actions {
+			v, err := strconv.Atoi(a.Value)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+				return
+			}
+
+			switch a.ActionID {
+			case "ack":
+				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusActive)
+				var1, var2, var3 := api.PostMessage(p.Channel.ID, slack.MsgOptionText("Yes, hello.", false))
+				fmt.Println(var1, var2, var3)
+				writeHTTPErr(err)
+
+			case "esc":
+				err := h.c.AlertStore.Escalate(ctx, v)
+				writeHTTPErr(err)
+			case "close":
+				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusClosed)
+				writeHTTPErr(err)
+			case "open":
+			}
+		}
+	}
+
+	permission.SudoContext(req.Context(), process)
 }
