@@ -42,7 +42,7 @@ func (r Rotation) StartTime(t time.Time) time.Time {
 	if r.ShiftLength <= 0 {
 		r.ShiftLength = 1
 	}
-	t = t.Truncate(time.Minute)
+	t = t.In(r.Start.Location()).Truncate(time.Minute)
 	r.Start = r.Start.Truncate(time.Minute)
 
 	shiftClockLen := r.shiftClock()
@@ -62,7 +62,7 @@ func (r Rotation) EndTime(t time.Time) time.Time {
 	if r.ShiftLength <= 0 {
 		r.ShiftLength = 1
 	}
-	t = t.Truncate(time.Minute)
+	t = t.In(r.Start.Location()).Truncate(time.Minute)
 	r.Start = r.Start.Truncate(time.Minute)
 
 	shiftClockLen := r.shiftClock()
