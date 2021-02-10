@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/target/goalert/notification"
@@ -24,8 +23,8 @@ func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
 }
 
-func post(ctx context.Context, urlStr string, v url.Values) (*http.Response, error) {
-	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(v.Encode()))
+func post(ctx context.Context, url string, body string) (*http.Response, error) {
+	req, err := http.NewRequest("POST", url, bytes.NewBufferString(body))
 	if err != nil {
 		return nil, err
 	}
@@ -38,9 +37,7 @@ func post(ctx context.Context, urlStr string, v url.Values) (*http.Response, err
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 
 	postWithBody := func(body string) (*http.Response, error) {
-		v := make(url.Values)
-		v.Set("Body", body)
-		resp, err := post(ctx, msg.Destination().Value, v)
+		resp, err := post(ctx, msg.Destination().Value, body)
 		if err != nil {
 			return nil, err
 		}
