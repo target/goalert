@@ -8,10 +8,10 @@ import (
 	"github.com/slack-go/slack"
 )
 
-func AlertIDAndStatusSection(id int, status string) *slack.SectionBlock {
+func AlertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
 	txt := fmt.Sprintf("%d: %s", id, status)
-	summaryText := slack.NewTextBlockObject("plain_text", txt, false, true)
-	return slack.NewSectionBlock(summaryText, nil, nil)
+	summaryText := slack.NewTextBlockObject("plain_text", txt, false, false)
+	return slack.NewHeaderBlock(summaryText)
 }
 
 func AlertSummarySection(summary string) *slack.SectionBlock {
@@ -23,34 +23,35 @@ func AlertSummarySection(summary string) *slack.SectionBlock {
 // +1 goal of see details button
 func AlertActionsSection(alertID int, ack, escalate, close, openLink bool) *slack.ActionBlock {
 	var ackButton, escButton, closeButton, openLinkButton *slack.ButtonBlockElement
-	var buttons = make([]slack.BlockElement, 0)
+	var buttons = make([]slack.BlockElement, 4)
 	value := strconv.Itoa(alertID)
 
 	if ack {
-		txt := slack.NewTextBlockObject("plain_text", "Acknowledge :eyes:", true, true)
+		txt := slack.NewTextBlockObject("plain_text", "Acknowledge :eyes:", true, false)
 		ackButton = slack.NewButtonBlockElement("", value, txt)
 		buttons = append(buttons, *ackButton)
 	}
 
 	if escalate {
-		txt := slack.NewTextBlockObject("plain_text", "Escalate :arrow_up:", true, true)
+		txt := slack.NewTextBlockObject("plain_text", "Escalate :arrow_up:", true, false)
 		escButton = slack.NewButtonBlockElement("", value, txt)
 		buttons = append(buttons, *escButton)
 	}
 
 	if close {
-		txt := slack.NewTextBlockObject("plain_text", "Close :ballot_box_with_check:", true, true)
+		txt := slack.NewTextBlockObject("plain_text", "Close :ballot_box_with_check:", true, false)
 		closeButton = slack.NewButtonBlockElement("", value, txt)
 		buttons = append(buttons, *closeButton)
 	}
 
-	if ack {
-		txt := slack.NewTextBlockObject("plain_text", "Open in GoAlert :link:", true, true)
+	if openLink {
+		txt := slack.NewTextBlockObject("plain_text", "Open in GoAlert :link:", true, false)
 		openLinkButton = slack.NewButtonBlockElement("", value, txt)
 		buttons = append(buttons, *openLinkButton)
 	}
 
-	return slack.NewActionBlock("", buttons...)
+	return slack.NewActionBlock("", ackButton, escButton, closeButton, openLinkButton)
+
 }
 
 func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {
