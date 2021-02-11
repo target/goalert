@@ -287,6 +287,7 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 	}
 
 	fmt.Println("url: ", url)
+	fmt.Println("value (alertID): ", alertID)
 
 	blocks := fmt.Sprintf(`
 	[
@@ -315,22 +316,22 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 					"type": "button",
 					"text": {
 						"type": "plain_text",
-						"text": "Close :ballot_box_with_check:",
-						"emoji": true
-					},
-					"action_id": "close",
-					"value": "%[2]d"
-				},
-				{
-					"type": "button",
-					"text": {
-						"type": "plain_text",
 						"text": "Escalate :arrow_up:",
 						"emoji": true
 					},
 					"action_id": "esc",
 					"value": "%[2]d",
 					"style": "danger"
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "Close :ballot_box_with_check:",
+						"emoji": true
+					},
+					"action_id": "close",
+					"value": "%[2]d"
 				},
 				{
 					"type": "button",

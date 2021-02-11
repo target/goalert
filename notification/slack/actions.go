@@ -29,7 +29,12 @@ type Handler struct {
 type Payload struct {
 	ResponseURL string `json:"response_url"`
 	Actions     []Action
-	Channel     slack.Channel
+	Channel     Channel
+	Message     Message
+}
+
+type Message struct {
+	ts string
 }
 
 // Action represents the information given from an action event within Slack
@@ -106,7 +111,8 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	}
 
 	payload := req.FormValue("payload")
-	var p slack.InteractionCallback
+	fmt.Println("payload: ", payload)
+	var p Payload
 	err := json.NewDecoder(strings.NewReader(payload)).Decode(&p)
 	if err != nil {
 		//toDo: handle dis error
@@ -119,7 +125,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
-		alertID, err := strconv.Atoi(p.Value)
+		alertID, err := strconv.Atoi(p.Actions[0].Value)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 			return
@@ -130,17 +136,17 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		msg := slack.MsgOptionBlocks(
 			AlertIDAndStatusSection(alertID, string(a.Status)),
 			AlertSummarySection(a.Summary),
-			AlertActionsSection(alertID, p.ActionID == "ack", p.ActionID == "esc", p.ActionID == "close", p.ActionID == "openLink"),
+			AlertActionsSection(alertID, p.Actions[0].ActionID == "ack", p.Actions[0].ActionID == "esc", p.Actions[0].ActionID == "close", p.Actions[0].ActionID == "openLink"),
 		)
 
-		switch p.ActionID {
+		switch p.Actions[0].ActionID {
 		case "ack":
 			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 			writeHTTPErr(err)
 
-			_, _, _, e := api.UpdateMessage(p.Channel.ID, p.OriginalMessage.Timestamp, msg)
+			_, _, _, e := api.UpdateMessage(p.Channel.ID, p.Message.ts, msg)
 			if e != nil {
-				fmt.Println(e)
+				fmt.Println("error updating slack message: ", e)
 			}
 		case "esc":
 			err := h.c.AlertStore.Escalate(ctx, alertID)
