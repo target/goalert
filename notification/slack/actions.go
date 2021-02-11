@@ -26,12 +26,12 @@ type Handler struct {
 }
 
 // Payload represents the relevant payload information sent from Slack
-type Payload struct {
+/*type Payload struct {
 	ResponseURL string `json:"response_url"`
 	Actions     []Action
 	Channel     Channel
 	Message     Message
-}
+}*/
 
 type Message struct {
 	ts string
@@ -112,7 +112,8 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 
 	payload := req.FormValue("payload")
 	fmt.Println("payload: ", payload)
-	var p Payload
+	// todo: range over BlockActions
+	var p slack.InteractionCallback
 	err := json.NewDecoder(strings.NewReader(payload)).Decode(&p)
 	if err != nil {
 		//toDo: handle dis error
@@ -120,31 +121,43 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	}
 	json.Unmarshal([]byte(payload), &p)
 
-	// todo: why is p.value coming in empty
-
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
-		alertID, err := strconv.Atoi(p.Actions[0].Value)
+		alertID, err := strconv.Atoi(p.ActionCallback.BlockActions[0].Value)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 			return
 		}
 
 		a, _ := h.c.AlertStore.FindOne(ctx, alertID)
+		actionID := p.ActionCallback.BlockActions[0].ActionID
 
-		msg := slack.MsgOptionBlocks(
+		/*blocks := slack.MsgOptionBlocks(
 			AlertIDAndStatusSection(alertID, string(a.Status)),
 			AlertSummarySection(a.Summary),
-			AlertActionsSection(alertID, p.Actions[0].ActionID == "ack", p.Actions[0].ActionID == "esc", p.Actions[0].ActionID == "close", p.Actions[0].ActionID == "openLink"),
+			AlertActionsSection(alertID, actionID == "ack", actionID == "esc", actionID == "close", actionID == "openLink"),
+		)*/
+
+		var opts []slack.MsgOption
+		opts = append(opts,
+			// desktop notification text
+			slack.MsgOptionText(a.Summary, false),
+
+			// blockkit elements
+			slack.MsgOptionBlocks(
+				//AlertIDAndStatusSection(alertID, string(a.Status)),
+				AlertSummarySection(a.Summary),
+				//AlertActionsSection(alertID, actionID == "ack", actionID == "esc", actionID == "close", actionID == "openLink"),
+			),
 		)
 
-		switch p.Actions[0].ActionID {
+		switch actionID {
 		case "ack":
 			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 			writeHTTPErr(err)
 
-			_, _, _, e := api.UpdateMessage(p.Channel.ID, p.Message.ts, msg)
+			_, _, _, e := api.UpdateMessage(p.Channel.ID, p.Message.Msg.Timestamp, opts...)
 			if e != nil {
 				fmt.Println("error updating slack message: ", e)
 			}
