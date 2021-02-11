@@ -1,8 +1,9 @@
 package validate
 
 import (
-	"github.com/target/goalert/validation"
 	"net/url"
+
+	"github.com/target/goalert/validation"
 )
 
 // URL will validate a URL, returning a FieldError
