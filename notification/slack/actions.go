@@ -94,7 +94,6 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
-
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
 	writeHTTPErr := func(err error) {
 		if err != nil {
@@ -115,28 +114,41 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	}
 	json.Unmarshal([]byte(payload), &p)
 
+	// todo: why is p.value coming in empty
+
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
-		v, err := strconv.Atoi(p.Value)
+		alertID, err := strconv.Atoi(p.Value)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 			return
 		}
 
+		a, _ := h.c.AlertStore.FindOne(ctx, alertID)
+
+		msg := slack.MsgOptionBlocks(
+			AlertIDAndStatusSection(alertID, string(a.Status)),
+			AlertSummarySection(a.Summary),
+			AlertActionsSection(alertID, p.ActionID == "ack", p.ActionID == "esc", p.ActionID == "close", p.ActionID == "openLink"),
+		)
+
 		switch p.ActionID {
 		case "ack":
-			err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusActive)
-			api.PostMessage(p.Channel.ID, slack.MsgOptionText("yes, henlo", false))
-			api.UpdateMessage(p.Channel.ID, p.OriginalMessage.Timestamp, slack.MsgOptionBlocks())
+			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 			writeHTTPErr(err)
+
+			_, _, _, e := api.UpdateMessage(p.Channel.ID, p.OriginalMessage.Timestamp, msg)
+			if e != nil {
+				fmt.Println(e)
+			}
 		case "esc":
-			err := h.c.AlertStore.Escalate(ctx, v)
+			err := h.c.AlertStore.Escalate(ctx, alertID)
 			writeHTTPErr(err)
 		case "close":
-			err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusClosed)
+			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
 			writeHTTPErr(err)
-		case "open":
+		case "openLink":
 		}
 
 	}
