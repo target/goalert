@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/slack-go/slack"
@@ -28,7 +29,12 @@ type Handler struct {
 type Payload struct {
 	ResponseURL string `json:"response_url"`
 	Actions     []Action
-	Channel     slack.Channel
+	Channel     Channel
+	Message     Message
+}
+
+type Message struct {
+	ts string
 }
 
 // Action represents the information given from an action event within Slack
@@ -94,49 +100,6 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
-	if !validRequest(w, req) {
-		fmt.Println("request invalid")
-		return
-	}
-
-	payload := req.FormValue("payload")
-	p := Payload{}
-	json.Unmarshal([]byte(payload), &p)
-
-	writeHTTPErr := func(err error) {
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		}
-	}
-
-	process := func(ctx context.Context) {
-		for _, a := range p.Actions {
-			v, err := strconv.Atoi(a.Value)
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-				return
-			}
-
-			switch a.ActionID {
-			case "ack":
-				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusActive)
-				writeHTTPErr(err)
-			case "esc":
-				err := h.c.AlertStore.Escalate(ctx, v)
-				writeHTTPErr(err)
-			case "close":
-				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusClosed)
-				writeHTTPErr(err)
-			case "open":
-			}
-		}
-	}
-
-	permission.SudoContext(req.Context(), process)
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *Handler) _ServeActionCallback(w http.ResponseWriter, req *http.Request) {
 	writeHTTPErr := func(err error) {
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -148,35 +111,52 @@ func (h *Handler) _ServeActionCallback(w http.ResponseWriter, req *http.Request)
 	}
 
 	payload := req.FormValue("payload")
-	p := Payload{}
+	fmt.Println("payload: ", payload)
+	var p Payload
+	err := json.NewDecoder(strings.NewReader(payload)).Decode(&p)
+	if err != nil {
+		//toDo: handle dis error
+		panic(err)
+	}
 	json.Unmarshal([]byte(payload), &p)
+
+	// todo: why is p.value coming in empty
 
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
-		for _, a := range p.Actions {
-			v, err := strconv.Atoi(a.Value)
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-				return
-			}
-
-			switch a.ActionID {
-			case "ack":
-				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusActive)
-				var1, var2, var3 := api.PostMessage(p.Channel.ID, slack.MsgOptionText("Yes, hello.", false))
-				fmt.Println(var1, var2, var3)
-				writeHTTPErr(err)
-
-			case "esc":
-				err := h.c.AlertStore.Escalate(ctx, v)
-				writeHTTPErr(err)
-			case "close":
-				err := h.c.AlertStore.UpdateStatus(ctx, v, alert.StatusClosed)
-				writeHTTPErr(err)
-			case "open":
-			}
+		alertID, err := strconv.Atoi(p.Actions[0].Value)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+			return
 		}
+
+		a, _ := h.c.AlertStore.FindOne(ctx, alertID)
+
+		msg := slack.MsgOptionBlocks(
+			AlertIDAndStatusSection(alertID, string(a.Status)),
+			AlertSummarySection(a.Summary),
+			AlertActionsSection(alertID, p.Actions[0].ActionID == "ack", p.Actions[0].ActionID == "esc", p.Actions[0].ActionID == "close", p.Actions[0].ActionID == "openLink"),
+		)
+
+		switch p.Actions[0].ActionID {
+		case "ack":
+			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
+			writeHTTPErr(err)
+
+			_, _, _, e := api.UpdateMessage(p.Channel.ID, p.Message.ts, msg)
+			if e != nil {
+				fmt.Println("error updating slack message: ", e)
+			}
+		case "esc":
+			err := h.c.AlertStore.Escalate(ctx, alertID)
+			writeHTTPErr(err)
+		case "close":
+			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
+			writeHTTPErr(err)
+		case "openLink":
+		}
+
 	}
 
 	permission.SudoContext(req.Context(), process)
