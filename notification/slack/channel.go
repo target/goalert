@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/slack-go/slack"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -356,42 +357,51 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
-	vals := make(url.Values)
-	vals.Set("channel", msg.Destination().Value)
-	vals.Set("token", cfg.Slack.AccessToken)
 
-	blocks, err := buildBlocks(cfg, msg)
-	if err != nil {
-		return nil, err
+	var summaryText, url string
+	var alertID int
+	switch t := msg.(type) {
+	case notification.Alert:
+		summaryText = fmt.Sprintf("Alert: %s", t.Summary)
+		alertID = t.AlertID
+		url = cfg.CallbackURL("/alerts/" + strconv.Itoa(alertID))
+	// todo: handle actions on bundle items
+	case notification.AlertBundle:
+		summaryText = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
+		url = cfg.CallbackURL("/services/" + t.ServiceID + "/alerts")
+	default:
+		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
-	vals.Set("blocks", blocks)
+
+	fmt.Println("url: ", url)
+	fmt.Println("value (alertID): ", alertID)
+
+	var api = slack.New(cfg.Slack.AccessToken)
+
+	var blocks []slack.MsgOption
+	blocks = append(blocks,
+		// desktop notification text
+		slack.MsgOptionText(summaryText, false),
+
+		// blockkit elements
+		slack.MsgOptionBlocks(
+			// todo: Figure out how to retrieve alert status here (use Store?)
+			AlertIDAndStatusSection(alertID, "unacknowledged"),
+			AlertSummarySection(summaryText),
+			AlertActionsSection(alertID, true, true, true, true),
+		),
+	)
 
 	// send request
-	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
+	_, ts, _, err := api.SendMessage(msg.Destination().Value, blocks...)
 	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, errors.Errorf("non-200 response: %s", resp.Status)
-	}
-
-	var resData struct {
-		OK    bool
-		Error string
-		TS    string
-	}
-	err = json.NewDecoder(resp.Body).Decode(&resData)
-	if err != nil {
-		return nil, errors.Wrap(err, "decode response")
-	}
-	if !resData.OK {
-		return nil, errors.Errorf("Slack error: %s", resData.Error)
+		// todo
+		fmt.Println("Error ", err)
 	}
 
 	return &notification.MessageStatus{
 		ID:                msg.ID(),
-		ProviderMessageID: resData.TS,
+		ProviderMessageID: ts,
 		State:             notification.MessageStateDelivered,
 	}, nil
 }
