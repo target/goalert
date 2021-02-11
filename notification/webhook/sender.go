@@ -62,9 +62,9 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 
 	switch m := msg.(type) {
 	case notification.Test:
-		postWithBody(`{"Message": "Test"}`)
+		postWithBody(`{"Summary": "Test"}`)
 	case notification.Verification:
-		postWithBody(`{"Message": "Verification Code: ` + strconv.Itoa(m.Code) + `"}`)
+		postWithBody(`{"Summary": "Verification Code", "Details": "` + strconv.Itoa(m.Code) + `"}`)
 	case notification.Alert, notification.AlertBundle, notification.AlertStatus, notification.AlertStatusBundle:
 		body, err := getWebhookAlertBody(m)
 		if err != nil {
