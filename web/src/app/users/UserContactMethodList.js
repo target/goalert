@@ -17,6 +17,7 @@ import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
+import AppLink from '../util/AppLink'
 
 const query = gql`
   query cmList($id: ID!) {
@@ -146,7 +147,7 @@ export default function UserContactMethodList(props) {
           data-cy='contact-methods'
           items={sortContactMethods(contactMethods).map((cm) => ({
             title: `${cm.name} (${cm.type})${cm.disabled ? ' - Disabled' : ''}`,
-            subText: cm.formattedValue,
+            subText: <>{cm.formattedValue} {cm.type == 'WEBHOOK' ? <AppLink to="/docs">see Docs</AppLink> : ''}</>,
             secondaryAction: getSecondaryAction(cm),
             icon: getIcon(cm),
           }))}
