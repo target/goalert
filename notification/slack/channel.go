@@ -339,7 +339,7 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 						"text": "Open in GoAlert :link:",
 						"emoji": true
 					},
-					"action_id": "open",
+					"action_id": "openLink",
 					"url": "%s"
 				}
 			]
