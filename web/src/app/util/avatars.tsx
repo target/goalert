@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Layers, RotateRight, Today, VpnKey, Person } from '@material-ui/icons'
 import { useSessionInfo } from './RequireConfig'
-import { Avatar, AvatarTypeMap, SvgIconProps } from '@material-ui/core'
-import { OverridableComponent } from '@material-ui/core/OverridableComponent'
+import { Avatar, SvgIconProps, AvatarProps } from '@material-ui/core'
 import { pathPrefix } from '../env'
 
 type IconProps = (props: SvgIconProps) => JSX.Element
-type AvatarProps = OverridableComponent<AvatarTypeMap>
+
 interface UserAvatarProps extends AvatarProps {
   userID: string
 }

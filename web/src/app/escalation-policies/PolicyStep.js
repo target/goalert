@@ -59,7 +59,7 @@ function PolicyStep(props) {
     }
 
     const items = targets.map((tgt) => {
-      const tgtChip = (Chip) => <Chip id={tgt.id} name={tgt.name} />
+      const tgtChip = (Chip) => <Chip id={tgt.id} label={tgt.name} />
 
       let chip = null
       switch (tgt.type) {
