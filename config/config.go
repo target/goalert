@@ -113,6 +113,10 @@ type Config struct {
 		Password string `password:"true" info:"Password for authentication."`
 	}
 
+	Webhook struct {
+		Enable bool `public:"true" info:"Enables webhook as a contact method."`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`

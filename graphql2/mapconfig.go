@@ -75,6 +75,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "SMTP.SkipVerify", Type: ConfigTypeBoolean, Description: "Disables certificate validation for TLS/STARTTLS (insecure).", Value: fmt.Sprintf("%t", cfg.SMTP.SkipVerify)},
 		{ID: "SMTP.Username", Type: ConfigTypeString, Description: "Username for authentication.", Value: cfg.SMTP.Username},
 		{ID: "SMTP.Password", Type: ConfigTypeString, Description: "Password for authentication.", Value: cfg.SMTP.Password, Password: true},
+		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -102,6 +103,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
 		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
+		{ID: "Webhook.Enable", Type: ConfigTypeBoolean, Description: "Enables webhook as a contact method.", Value: fmt.Sprintf("%t", cfg.Webhook.Enable)},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -319,6 +321,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.SMTP.Username = v.Value
 		case "SMTP.Password":
 			cfg.SMTP.Password = v.Value
+		case "Webhook.Enable":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Webhook.Enable = val
 		case "Feedback.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

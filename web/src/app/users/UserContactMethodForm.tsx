@@ -55,6 +55,21 @@ function renderPhoneField(edit: boolean): JSX.Element {
   )
 }
 
+function renderURLField(edit: boolean): JSX.Element {
+  return (
+    <FormField
+      placeholder='https://example.com'
+      fullWidth
+      name='value'
+      required
+      label='Webhook URL'
+      type='url'
+      component={TextField}
+      disabled={edit}
+    />
+  )
+}
+
 function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
   switch (type) {
     case 'SMS':
@@ -80,29 +95,15 @@ function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
   )
 }
 
-function renderURLField(edit: boolean): JSX.Element {
-  return (
-    <FormField
-      placeholder='https://example.com'
-      fullWidth
-      name='value'
-      required
-      label='Webhook URL'
-      type='url'
-      component={TextField}
-      disabled={edit}
-    />
-  )
-}
-
 export default function UserContactMethodForm(
   props: UserContactMethodFormProps,
 ): JSX.Element {
   const { value, edit = false, disclaimer, ...other } = props
 
-  const [smsVoiceEnabled, emailEnabled] = useConfigValue(
+  const [smsVoiceEnabled, emailEnabled, webhookEnabled] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',
+    'Webhook.Enable',
   )
 
   return (
@@ -125,7 +126,9 @@ export default function UserContactMethodForm(
               <MenuItem value='VOICE'>VOICE</MenuItem>
             )}
             {(edit || emailEnabled) && <MenuItem value='EMAIL'>EMAIL</MenuItem>}
-            {<MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>}
+            {(edit || webhookEnabled) && (
+              <MenuItem value='WEBHOOK'>WEBHOOK</MenuItem>
+            )}
           </FormField>
         </Grid>
         <Grid item xs={12}>

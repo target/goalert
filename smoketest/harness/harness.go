@@ -250,6 +250,8 @@ func (h *Harness) Start() {
 	cfg.SMTP.DisableTLS = true
 	cfg.SMTP.From = "goalert-test@localhost"
 
+	cfg.Webhook.Enable = true
+
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"

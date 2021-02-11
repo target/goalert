@@ -147,7 +147,16 @@ export default function UserContactMethodList(props) {
           data-cy='contact-methods'
           items={sortContactMethods(contactMethods).map((cm) => ({
             title: `${cm.name} (${cm.type})${cm.disabled ? ' - Disabled' : ''}`,
-            subText: <>{cm.formattedValue} {cm.type == 'WEBHOOK' ? <AppLink to="/docs">see Docs</AppLink> : ''}</>,
+            subText: (
+              <React.Fragment>
+                {cm.formattedValue}{' '}
+                {cm.type === 'WEBHOOK' ? (
+                  <AppLink to='/docs'>see Docs</AppLink>
+                ) : (
+                  ''
+                )}
+              </React.Fragment>
+            ),
             secondaryAction: getSecondaryAction(cm),
             icon: getIcon(cm),
           }))}
