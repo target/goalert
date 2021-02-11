@@ -135,6 +135,20 @@ export default function UserContactMethodList(props) {
     )
   }
 
+  function getSubText(cm) {
+    if (cm.type === 'WEBHOOK') {
+      const { origin } = new URL(cm.formattedValue)
+      return (
+        <React.Fragment>
+          <React.Fragment>{`${origin} (`}</React.Fragment>
+          <AppLink to='/docs'>docs</AppLink>)
+        </React.Fragment>
+      )
+    }
+
+    return cm.formattedValue
+  }
+
   return (
     <Grid item xs={12}>
       <Card>
@@ -147,16 +161,7 @@ export default function UserContactMethodList(props) {
           data-cy='contact-methods'
           items={sortContactMethods(contactMethods).map((cm) => ({
             title: `${cm.name} (${cm.type})${cm.disabled ? ' - Disabled' : ''}`,
-            subText: (
-              <React.Fragment>
-                {cm.formattedValue}{' '}
-                {cm.type === 'WEBHOOK' ? (
-                  <AppLink to='/docs'>see Docs</AppLink>
-                ) : (
-                  ''
-                )}
-              </React.Fragment>
-            ),
+            subText: getSubText(cm),
             secondaryAction: getSecondaryAction(cm),
             icon: getIcon(cm),
           }))}
