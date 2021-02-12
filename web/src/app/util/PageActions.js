@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import p from 'prop-types'
 import { debounce } from 'lodash'
 
@@ -8,104 +8,90 @@ const PageActionsContext = React.createContext({
 })
 PageActionsContext.displayName = 'PageActionsContext'
 
-export class PageActionContainer extends React.PureComponent {
-  render() {
-    return (
-      <PageActionsContext.Consumer>
-        {({ actions }) => actions}
-      </PageActionsContext.Consumer>
-    )
-  }
+export const PageActionContainer = () => {
+  const { actions } = useContext(PageActionsContext)
+  return actions
 }
 
-export class PageActionProvider extends React.PureComponent {
-  state = {
-    actions: null,
-  }
+export const PageActionProvider = (props) => {
+  const [actions, setActions] = useState(null)
 
-  _mountCount = 0
-  _mounted = false
+  let _mountCount = 0
+  let _mounted = false
+  let _pending = null
 
-  componentDidMount() {
-    this._mounted = true
-    if (this._pending) {
-      this.setActions(this._pending)
-      this._pending = null
-    }
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-    this._pending = false
-    this.setActions.cancel()
-  }
-
-  _setActions = (actions) => {
-    if (!this._mounted) {
-      this._pending = actions
+  const _setActions = (actions) => {
+    if (!_mounted) {
+      _pending = actions
       return
     }
 
-    this.setState({ actions })
+    setActions(actions)
   }
 
-  setActions = debounce(this._setActions)
+  const debouncedSetActions = debounce(_setActions)
 
-  updateMounted = (mount) => {
+  const updateMounted = (mount) => {
     if (mount) {
-      this._mountCount++
+      _mountCount++
     } else {
-      this._mountCount--
+      _mountCount--
     }
 
-    if (this._mountCount > 1 && global.console && console.error) {
+    if (_mountCount > 1 && global.console && console.error) {
       console.error(
         'PageActions: Found more than one <PageActions> component mounted within the same provider.',
       )
     }
   }
 
-  render() {
-    return (
-      <PageActionsContext.Provider
-        value={{
-          actions: this.state.actions,
-          setActions: this.setActions,
-          trackMount: this.updateMounted,
-        }}
-      >
-        {this.props.children}
-      </PageActionsContext.Provider>
-    )
-  }
+  useEffect(() => {
+    _mounted = true
+    if (_pending) {
+      debouncedSetActions(_pending)
+      _pending = null
+    }
+    return () => {
+      _mounted = false
+      _pending = false
+      debouncedSetActions.cancel()
+    }
+  })
+
+  return (
+    <PageActionsContext.Provider
+      value={{
+        actions: actions,
+        setActions: debouncedSetActions,
+        trackMount: updateMounted,
+      }}
+    >
+      {props.children}
+    </PageActionsContext.Provider>
+  )
 }
 
-class PageActionUpdater extends React.PureComponent {
-  static propTypes = {
-    setActions: p.func.isRequired,
-  }
+const PageActionUpdater = (props) => {
+  let _mounted = false
 
-  _mounted = false
+  useEffect(() => {
+    _mounted = true
+    props.trackMount(true)
+    props.setActions(props.children)
 
-  componentDidMount() {
-    this._mounted = true
-    this.props.trackMount(true)
-    this.props.setActions(this.props.children)
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-    this.props.trackMount(false)
-    this.props.setActions(null)
-  }
-
-  render() {
-    if (this._mounted) {
-      this.props.setActions(this.props.children)
+    return () => {
+      _mounted = false
+      props.trackMount(false)
+      props.setActions(null)
     }
+  })
 
-    return null
-  }
+  return _mounted ? props.setActions(props.children) : null
+}
+
+PageActionUpdater.propTypes = {
+  setActions: p.func.isRequired,
+  trackMount: p.func.isRequired,
 }
 
 /*
@@ -116,16 +102,13 @@ class PageActionUpdater extends React.PureComponent {
  * </PageActions>
  *
  */
-export default class PageActions extends React.PureComponent {
-  render() {
-    return (
-      <PageActionsContext.Consumer>
-        {({ setActions, trackMount }) => (
-          <PageActionUpdater setActions={setActions} trackMount={trackMount}>
-            {this.props.children}
-          </PageActionUpdater>
-        )}
-      </PageActionsContext.Consumer>
-    )
-  }
+const PageActions = (props) => {
+  const { setActions, trackMount } = useContext(PageActionsContext)
+  return (
+    <PageActionUpdater setActions={setActions} trackMount={trackMount}>
+      {props.children}
+    </PageActionUpdater>
+  )
 }
+
+export default PageActions
