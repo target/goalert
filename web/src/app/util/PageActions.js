@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import p from 'prop-types'
 import { debounce } from 'lodash'
 
@@ -15,14 +15,13 @@ export const PageActionContainer = () => {
 
 export const PageActionProvider = (props) => {
   const [actions, setActions] = useState(null)
-
-  let _mountCount = 0
-  let _mounted = false
-  let _pending = null
+  const _mountCount = useRef(0)
+  const _mounted = useRef(false)
+  const _pending = useRef(null)
 
   const _setActions = (actions) => {
-    if (!_mounted) {
-      _pending = actions
+    if (!_mounted.current) {
+      _pending.current = actions
       return
     }
 
@@ -33,12 +32,12 @@ export const PageActionProvider = (props) => {
 
   const updateMounted = (mount) => {
     if (mount) {
-      _mountCount++
+      _mountCount.current++
     } else {
-      _mountCount--
+      _mountCount.current--
     }
 
-    if (_mountCount > 1 && global.console && console.error) {
+    if (_mountCount.current > 1 && global.console && console.error) {
       console.error(
         'PageActions: Found more than one <PageActions> component mounted within the same provider.',
       )
@@ -46,14 +45,14 @@ export const PageActionProvider = (props) => {
   }
 
   useEffect(() => {
-    _mounted = true
-    if (_pending) {
-      debouncedSetActions(_pending)
-      _pending = null
+    _mounted.current = true
+    if (_pending.current) {
+      debouncedSetActions(_pending.current)
+      _pending.current = false
     }
     return () => {
-      _mounted = false
-      _pending = false
+      _mounted.current = false
+      _pending.current = false
       debouncedSetActions.cancel()
     }
   })
@@ -72,21 +71,23 @@ export const PageActionProvider = (props) => {
 }
 
 const PageActionUpdater = (props) => {
-  let _mounted = false
+  const _mounted = useRef(false)
 
   useEffect(() => {
-    _mounted = true
-    props.trackMount(true)
-    props.setActions(props.children)
+    if (!_mounted.current) {
+      _mounted.current = true
+      props.trackMount(true)
+      props.setActions(props.children)
+    }
 
     return () => {
-      _mounted = false
+      _mounted.current = false
       props.trackMount(false)
       props.setActions(null)
     }
   })
 
-  return _mounted ? props.setActions(props.children) : null
+  return null
 }
 
 PageActionUpdater.propTypes = {
