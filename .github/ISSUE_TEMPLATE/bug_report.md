@@ -6,6 +6,7 @@ labels: bug
 assignees: ''
 
 ---
+
 <!--
 Please search existing issues to avoid creating duplicates. 
 If the matter is security related, please send an email to support@goalert.me instead.
