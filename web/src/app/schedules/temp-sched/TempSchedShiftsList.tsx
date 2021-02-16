@@ -58,7 +58,6 @@ export default function TempSchedShiftsList({
   const schedInterval = parseInterval({ start, end })
 
   function items(): FlatListListItem[] {
-    // sort shifts and add some properties
     const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
       shift: s,
       added: false,
