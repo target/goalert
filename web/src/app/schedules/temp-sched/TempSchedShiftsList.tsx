@@ -58,6 +58,20 @@ export default function TempSchedShiftsList({
   const schedInterval = parseInterval({ start, end })
 
   function items(): FlatListListItem[] {
+    // render no coverage/get started below start time if no shifts
+    if (!_shifts.length) {
+      return [
+        {
+          render: () => (
+            <Alert key='no-coverage' className={classes.alert} severity='info'>
+              <AlertTitle>No coverage</AlertTitle>
+              Add a shift to get started
+            </Alert>
+          ),
+        },
+      ]
+    }
+
     const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
       shift: s,
       added: false,
@@ -70,28 +84,41 @@ export default function TempSchedShiftsList({
       isValid: schedInterval.engulfs(parseInterval(s)),
     }))
 
+    const firstShift = DateTime.fromISO(sortedShifts[0].shift.start)
+    const lastShift = DateTime.fromISO(
+      sortedShifts[sortedShifts.length - 1].shift.end,
+    )
+
     const displaySpan = Interval.fromDateTimes(
-      DateTime.fromISO(start).startOf('day'),
-      DateTime.fromISO(end).endOf('day'),
+      DateTime.min(schedInterval.start, firstShift).startOf('day'),
+      DateTime.max(schedInterval.end, lastShift).endOf('day'),
     )
 
     const result: FlatListListItem[] = []
     const days = displaySpan.splitBy({ days: 1 })
-    days.forEach((day, dayIdx) => {
-      const dayShifts = sortedShifts.filter((s) => day.overlaps(s.interval))
+    days.forEach((dayInterval, dayIdx) => {
+      const dayShifts = sortedShifts.filter((s) =>
+        dayInterval.overlaps(s.interval),
+      )
 
-      // if no shifts, only render subheaders for start/end days
+      // if no shifts, only render the start and end day subheaders
       if (!sortedShifts.length && dayIdx > 0 && dayIdx < days.length - 1) {
         return
       }
 
       // render subheader for each day
       result.push({
-        subHeader: relativeDate(day.start),
+        subHeader: relativeDate(dayInterval.start),
       })
 
+      let dayStart = dayInterval.start
+      if (dayIdx === 0 && firstShift.day === schedInterval.start.day) {
+        dayStart = schedInterval.start
+      }
+
       // add start time of temp schedule to top of list
-      if (dayIdx === 0) {
+      // for day that it will start on
+      if (dayStart.day === schedInterval.start.day) {
         result.push({
           render: () => (
             <Alert
@@ -106,22 +133,6 @@ export default function TempSchedShiftsList({
             </Alert>
           ),
         })
-
-        // render no coverage/get started below start time if no shifts
-        if (!sortedShifts.length) {
-          result.push({
-            render: () => (
-              <Alert
-                key='no-coverage'
-                className={classes.alert}
-                severity='info'
-              >
-                <AlertTitle>No coverage</AlertTitle>
-                Add a shift to get started
-              </Alert>
-            ),
-          })
-        }
       }
 
       // for temp scheds with at least 1 shift
@@ -130,7 +141,7 @@ export default function TempSchedShiftsList({
         return result.push({
           render: () => (
             <Alert
-              key={day.start.toISO() + '-no-coverage'}
+              key={dayInterval.start.toISO() + '-no-coverage'}
               className={classes.alert}
               severity='warning'
             >
@@ -145,16 +156,13 @@ export default function TempSchedShiftsList({
         return Interval.fromDateTimes(s, e).length('minutes') >= 1
       }
 
-      // craft list items for each day
+      // craft list item JSX for each day
       dayShifts.forEach((s, shiftIdx) => {
-        // check start of day coverage for the first shift
-        // if on the first day, temp sched start is used
-        const _s = dayIdx === 0 ? DateTime.fromISO(start) : day.start
-        if (shiftIdx === 0 && checkCoverage(_s, s.start)) {
+        if (s.isValid && shiftIdx === 0 && checkCoverage(dayStart, s.start)) {
           result.push({
             render: () => (
               <Alert
-                key={_s.toISO() + '-no-start-coverage'}
+                key={dayStart.toISO() + '-no-start-coverage'}
                 className={classes.alert}
                 severity='warning'
               >
@@ -174,13 +182,13 @@ export default function TempSchedShiftsList({
           minute: 'numeric',
         })
 
-        if (s.interval.engulfs(day)) {
+        if (s.interval.engulfs(dayInterval)) {
           // shift (s.interval) spans all day
           shiftDetails = 'All day'
-        } else if (day.engulfs(s.interval)) {
+        } else if (dayInterval.engulfs(s.interval)) {
           // shift is inside the day
           shiftDetails = `From ${startTime} to ${endTime}`
-        } else if (day.contains(s.end)) {
+        } else if (dayInterval.contains(s.end)) {
           shiftDetails = `Active until ${endTime}`
         } else {
           // shift starts and continues on for the rest of the day
@@ -218,6 +226,7 @@ export default function TempSchedShiftsList({
 
         // check coverage until the next shift (if there is one) within the current day
         if (
+          s.isValid &&
           shiftIdx < dayShifts.length - 1 &&
           checkCoverage(s.end, dayShifts[shiftIdx + 1].start)
         ) {
@@ -238,13 +247,23 @@ export default function TempSchedShiftsList({
         }
 
         // check end of day/temp sched coverage
-        // if on the last day, temp sched end is used
-        const _e = dayIdx === days.length - 1 ? DateTime.fromISO(end) : day.end
-        if (shiftIdx === dayShifts.length - 1 && checkCoverage(s.end, _e)) {
+        // if on the day of temp sched's end, temp sched end is used
+        let dayEnd = dayInterval.end
+        if (
+          dayIdx === days.length - 1 &&
+          lastShift.day === schedInterval.end.day
+        ) {
+          dayEnd = schedInterval.end
+        }
+        if (
+          s.isValid &&
+          shiftIdx === dayShifts.length - 1 &&
+          checkCoverage(s.end, dayEnd)
+        ) {
           result.push({
             render: () => (
               <Alert
-                key={_e.toISO() + '-no-end-coverage'}
+                key={dayEnd.toISO() + '-no-end-coverage'}
                 className={classes.alert}
                 severity='warning'
               >
