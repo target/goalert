@@ -15,6 +15,8 @@ type Sender struct{}
 
 type WebhookAlert struct {
 	AlertID     int    `json:",omitempty"`
+	AlertType   string `json:",omitempty"`
+	Code        string `json:",omitempty"`
 	Summary     string `json:",omitempty"`
 	Details     string `json:",omitempty"`
 	ServiceID   string `json:",omitempty"`
@@ -25,26 +27,6 @@ type WebhookAlert struct {
 
 func NewSender(ctx context.Context) *Sender {
 	return &Sender{}
-}
-
-func getWebhookAlertBody(msg notification.Message) (*string, error) {
-	var wa WebhookAlert
-
-	jsonbytes, err := json.Marshal(msg)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(jsonbytes, &wa)
-	if err != nil {
-		return nil, err
-	}
-	jsonbytes, err = json.Marshal(wa)
-	if err != nil {
-		return nil, err
-	}
-
-	result := string(jsonbytes)
-	return &result, nil
 }
 
 // Send will send an alert for the provided message type
@@ -60,24 +42,54 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		return http.DefaultClient.Do(req)
 	}
 
+	var payload WebhookAlert
+
 	switch m := msg.(type) {
 	case notification.Test:
-		postWithBody(`{"Summary": "Test"}`)
+		payload.AlertType = "Test"
+		payload.Summary = "Test Message"
+		payload.Details = "This is a test message from GoAlert"
+
 	case notification.Verification:
-		postWithBody(`{"Summary": "Verification Code", "Details": "` + strconv.Itoa(m.Code) + `"}`)
-	case notification.Alert, notification.AlertBundle, notification.AlertStatus, notification.AlertStatusBundle:
-		body, err := getWebhookAlertBody(m)
-		if err != nil {
-			return nil, err
-		}
-		_, err = postWithBody(*body)
-		if err != nil {
-			return nil, err
-		}
+		payload.AlertType = "Verification"
+		payload.Summary = "Verification Message"
+		payload.Details = "This is a verification message from GoAlert"
+		payload.Code = strconv.Itoa(m.Code)
+
+	case notification.Alert:
+		payload.AlertType = "Alert"
+		payload.AlertID = m.AlertID
+		payload.Summary = m.Summary
+		payload.Details = m.Details
+
+	case notification.AlertBundle:
+		payload.AlertType = "AlertBundle"
+		payload.ServiceID = m.ServiceID
+		payload.ServiceName = m.ServiceName
+		payload.Count = m.Count
+
+	case notification.AlertStatus:
+		payload.AlertType = "AlertStatus"
+		payload.AlertID = m.AlertID
+		payload.LogEntry = m.LogEntry
+
+	case notification.AlertStatusBundle:
+		payload.AlertType = "AlertStatusBundle"
+		payload.AlertID = m.AlertID
+		payload.Count = m.Count
+		payload.LogEntry = m.LogEntry
 
 	default:
 		return nil, errors.New("message type not supported")
 	}
+
+	jsonbytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	postWithBody(string(jsonbytes))
+
 	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent, ProviderMessageID: msg.ID()}, nil
 }
 
