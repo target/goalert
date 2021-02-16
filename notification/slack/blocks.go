@@ -27,25 +27,25 @@ func AlertActionsSection(alertID int, ack, escalate, close, openLink bool) *slac
 
 	if ack {
 		txt := slack.NewTextBlockObject("plain_text", "Acknowledge :eyes:", true, false)
-		ackButton = slack.NewButtonBlockElement("", value, txt)
+		ackButton = slack.NewButtonBlockElement("ack", value, txt)
 		buttons = append(buttons, *ackButton)
 	}
 
 	if escalate {
 		txt := slack.NewTextBlockObject("plain_text", "Escalate :arrow_up:", true, false)
-		escButton = slack.NewButtonBlockElement("", value, txt)
+		escButton = slack.NewButtonBlockElement("esc", value, txt)
 		buttons = append(buttons, *escButton)
 	}
 
 	if close {
 		txt := slack.NewTextBlockObject("plain_text", "Close :ballot_box_with_check:", true, false)
-		closeButton = slack.NewButtonBlockElement("", value, txt)
+		closeButton = slack.NewButtonBlockElement("close", value, txt)
 		buttons = append(buttons, *closeButton)
 	}
 
 	if openLink {
 		txt := slack.NewTextBlockObject("plain_text", "Open in GoAlert :link:", true, false)
-		openLinkButton = slack.NewButtonBlockElement("", value, txt)
+		openLinkButton = slack.NewButtonBlockElement("openLink", value, txt)
 		buttons = append(buttons, *openLinkButton)
 	}
 

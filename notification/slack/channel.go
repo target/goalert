@@ -289,8 +289,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var api = slack.New(cfg.Slack.AccessToken)
 
-	var blocks []slack.MsgOption
-	blocks = append(blocks,
+	var msgOpt []slack.MsgOption
+	msgOpt = append(msgOpt,
 		// desktop notification text
 		slack.MsgOptionText(summaryText, false),
 
@@ -304,7 +304,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	)
 
 	// send request
-	_, ts, _, err := api.SendMessage(msg.Destination().Value, blocks...)
+	_, ts, _, err := api.SendMessage(msg.Destination().Value, msgOpt...)
 	if err != nil {
 		// todo
 		fmt.Println("Error ", err)
