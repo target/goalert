@@ -6,6 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/slackevents"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
@@ -104,60 +104,56 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	payload, err := slackevents.ParseActionEvent(req.FormValue("payload"))
-	//err := json.NewDecoder().Decode(&payload)
+	var payload slack.InteractionCallback
+	err := json.Unmarshal([]byte(req.FormValue("payload")), &payload)
 	if err != nil {
-		//toDo: handle dis error
 		panic(err)
 	}
-	// err := json.Unmarshal([]byte(req.FormValue("payload")), &payload)
-	// if err != nil {
-	// 	fmt.Printf("Could not parse action response JSON: %v", err)
-	// }
-	//alertID
-	fmt.Printf("%v", payload.Value)
-	// todo: why is p.value coming in empty
 
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
-		alertID, err := strconv.Atoi(payload.Value)
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-			fmt.Println("Error: ", err)
-			return
-		}
 
-		a, err := h.c.AlertStore.FindOne(ctx, alertID)
-		if err != nil {
-			fmt.Println("alertStore:", err)
-		}
+		for _, action := range payload.ActionCallback.BlockActions {
 
-		msg := slack.MsgOptionBlocks(
-			AlertIDAndStatusSection(alertID, string(a.Status)),
-			AlertSummarySection(a.Summary),
-			AlertActionsSection(alertID, payload.ActionID == "ack", payload.ActionID == "esc", payload.ActionID == "close", payload.ActionID == "openLink"),
-		)
-		fmt.Println("------->attempting Update Alert Status")
-		switch payload.ActionID {
-		case "ack":
-			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
-			writeHTTPErr(err)
-
-			_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.OriginalMessage.Timestamp, msg)
-			fmt.Println("------>updated slack Message")
-			if e != nil {
-				fmt.Println(e)
+			alertID, err := strconv.Atoi(action.Value)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+				fmt.Println("Error: ", err)
+				return
 			}
-		case "esc":
-			err := h.c.AlertStore.Escalate(ctx, alertID)
-			writeHTTPErr(err)
-		case "close":
-			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
-			writeHTTPErr(err)
-		case "openLink":
-		}
 
+			a, err := h.c.AlertStore.FindOne(ctx, alertID)
+			if err != nil {
+				fmt.Println("alertStore:", err)
+			}
+
+			msg := slack.MsgOptionBlocks(
+				AlertIDAndStatusSection(alertID, string(a.Status)),
+				AlertSummarySection(a.Summary),
+				AlertActionsSection(alertID, action.ActionID == "ack", action.ActionID == "esc", action.ActionID == "close", action.ActionID == "openLink"),
+			)
+			fmt.Println("------->attempting Update Alert Status")
+			switch action.ActionID {
+			case "ack":
+				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
+				writeHTTPErr(err)
+
+				_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.OriginalMessage.Timestamp, msg)
+				fmt.Println("------>updated slack Message")
+				if e != nil {
+					fmt.Println(e)
+				}
+			case "esc":
+				err := h.c.AlertStore.Escalate(ctx, alertID)
+				writeHTTPErr(err)
+			case "close":
+				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
+				writeHTTPErr(err)
+			case "openLink":
+			}
+
+		}
 	}
 
 	permission.SudoContext(req.Context(), process)
