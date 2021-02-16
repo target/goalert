@@ -12,7 +12,7 @@ Before opening a feature request, search for similar or duplicates and vote/comm
 This helps prioritize new features.
 -->
 
-**Is your feature request related to a problem? Please describe:**
+**What problem would you like to solve? Please describe:**
 A clear and concise description of what the problem is.
 
 **Describe the solution you'd like:**
