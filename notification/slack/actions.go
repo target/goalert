@@ -133,17 +133,18 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				AlertSummarySection(a.Summary),
 				AlertActionsSection(alertID, action.ActionID == "ack", action.ActionID == "esc", action.ActionID == "close", action.ActionID == "openLink"),
 			)
-			fmt.Println("------->attempting Update Alert Status")
+
 			switch action.ActionID {
 			case "ack":
 				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 				writeHTTPErr(err)
 
-				_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.OriginalMessage.Timestamp, msg)
-				fmt.Println("------>updated slack Message")
+				// todo: updatemessage returning invalid blocks
+				_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msg)
 				if e != nil {
 					fmt.Println(e)
 				}
+
 			case "esc":
 				err := h.c.AlertStore.Escalate(ctx, alertID)
 				writeHTTPErr(err)
