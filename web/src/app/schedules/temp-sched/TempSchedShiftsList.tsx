@@ -141,7 +141,7 @@ export default function TempSchedShiftsList({
 
       // checkCoverage will determine if there is a gap of 1 minute or more between the given datetimes
       const checkCoverage = (s: DateTime, e: DateTime): boolean => {
-        return Interval.fromDateTimes(s, e).length('minutes') > 1
+        return Interval.fromDateTimes(s, e).length('minutes') >= 1
       }
 
       // craft list items for each day
