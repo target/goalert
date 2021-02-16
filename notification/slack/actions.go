@@ -6,15 +6,14 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/slackevents"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
@@ -105,8 +104,8 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	var payload slack.InteractionCallback
-	err := json.NewDecoder(strings.NewReader(req.FormValue("payload"))).Decode(&payload)
+	payload, err := slackevents.ParseActionEvent(req.FormValue("payload"))
+	//err := json.NewDecoder().Decode(&payload)
 	if err != nil {
 		//toDo: handle dis error
 		panic(err)
@@ -116,7 +115,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	// 	fmt.Printf("Could not parse action response JSON: %v", err)
 	// }
 	//alertID
-	fmt.Printf("%v", payload)
+	fmt.Printf("%v", payload.Value)
 	// todo: why is p.value coming in empty
 
 	process := func(ctx context.Context) {
@@ -139,13 +138,14 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			AlertSummarySection(a.Summary),
 			AlertActionsSection(alertID, payload.ActionID == "ack", payload.ActionID == "esc", payload.ActionID == "close", payload.ActionID == "openLink"),
 		)
-
+		fmt.Println("------->attempting Update Alert Status")
 		switch payload.ActionID {
 		case "ack":
 			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 			writeHTTPErr(err)
 
 			_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.OriginalMessage.Timestamp, msg)
+			fmt.Println("------>updated slack Message")
 			if e != nil {
 				fmt.Println(e)
 			}
