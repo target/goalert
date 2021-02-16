@@ -23,7 +23,7 @@ import { parseInterval } from '../../util/shifts'
 const useStyles = makeStyles((theme) => {
   return {
     alert: {
-      margin: '8px 0 8px 0',
+      margin: '0.5rem 0 0.5rem 0',
     },
     secondaryActionWrapper: {
       display: 'flex',
@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => {
       color: styles(theme).error.color,
     },
     shiftsContainer: {
-      paddingRight: 8,
+      paddingRight: '0.5rem',
     },
   }
 })
@@ -100,8 +100,9 @@ export default function TempSchedShiftsList({
               severity='success'
               icon={<ScheduleIcon />}
             >
-              Starts at{' '}
-              {DateTime.fromISO(start).setZone(zone).toFormat('h:mm a')}
+              {`Starts at ${DateTime.fromISO(start)
+                .setZone(zone)
+                .toFormat('h:mm a')}`}
             </Alert>
           ),
         })
@@ -211,7 +212,8 @@ export default function TempSchedShiftsList({
           ),
         })
 
-        // prevents actions from rendering on each item if it's for the same shift
+        // signify that a portion of the shift is now added to the list
+        // prevents actions from rendering on subsequent list items for the same shift timespan
         s.added = true
 
         // check coverage until the next shift (if there is one) within the current day
@@ -226,8 +228,10 @@ export default function TempSchedShiftsList({
                 className={classes.alert}
                 severity='warning'
               >
-                No coverage from {s.end.setZone(zone).toFormat('h:mm a')} to{' '}
-                {dayShifts[shiftIdx + 1].start.setZone(zone).toFormat('h:mm a')}
+                {`No coverage from ${s.end.setZone(zone).toFormat('h:mm a')} to 
+                ${dayShifts[shiftIdx + 1].start
+                  .setZone(zone)
+                  .toFormat('h:mm a')}`}
               </Alert>
             ),
           })
