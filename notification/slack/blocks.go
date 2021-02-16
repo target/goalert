@@ -1,7 +1,6 @@
 package slack
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -59,27 +58,27 @@ func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {
 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
 }
 
-func example() {
-	// Shared Assets for example
-	chooseBtnText := slack.NewTextBlockObject("plain_text", "Choose", true, false)
-	chooseBtnEle := slack.NewButtonBlockElement("", "click_me_123", chooseBtnText)
-	divSection := slack.NewDividerBlock()
+// func example() {
+// 	// Shared Assets for example
+// 	chooseBtnText := slack.NewTextBlockObject("plain_text", "Choose", true, false)
+// 	chooseBtnEle := slack.NewButtonBlockElement("", "click_me_123", chooseBtnText)
+// 	divSection := slack.NewDividerBlock()
 
-	// Option 1
-	optionOneText := slack.NewTextBlockObject("mrkdwn", "*Today - 4:30-5pm*\nEveryone is available: @iris, @zelda", false, false)
-	optionOneSection := slack.NewSectionBlock(optionOneText, nil, slack.NewAccessory(chooseBtnEle))
+// 	// Option 1
+// 	optionOneText := slack.NewTextBlockObject("mrkdwn", "*Today - 4:30-5pm*\nEveryone is available: @iris, @zelda", false, false)
+// 	optionOneSection := slack.NewSectionBlock(optionOneText, nil, slack.NewAccessory(chooseBtnEle))
 
-	// Build Message with blocks created above
-	msg := slack.NewBlockMessage(
-		divSection,
-		divSection,
-		optionOneSection,
-	)
+// 	// Build Message with blocks created above
+// 	msg := slack.NewBlockMessage(
+// 		divSection,
+// 		divSection,
+// 		optionOneSection,
+// 	)
 
-	b, err := json.MarshalIndent(msg, "", "    ")
-	if err != nil {
-		fmt.Println(err)
-	}
+// 	b, err := json.MarshalIndent(msg, "", "    ")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	fmt.Println(string(b))
-}
+// 	fmt.Println(string(b))
+// }

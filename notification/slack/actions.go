@@ -26,15 +26,10 @@ type Handler struct {
 }
 
 // Payload represents the relevant payload information sent from Slack
-/*type Payload struct {
+type Payload struct {
 	ResponseURL string `json:"response_url"`
 	Actions     []Action
-	Channel     Channel
-	Message     Message
-}*/
-
-type Message struct {
-	ts string
+	Channel     slack.Channel
 }
 
 // Action represents the information given from an action event within Slack
@@ -110,56 +105,49 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	payload := req.FormValue("payload")
-	fmt.Println("payload: ", payload)
-	// todo: range over BlockActions
-	var p slack.InteractionCallback
-	err := json.NewDecoder(strings.NewReader(payload)).Decode(&p)
+	var payload slack.InteractionCallback
+	err := json.NewDecoder(strings.NewReader(req.FormValue("payload"))).Decode(&payload)
 	if err != nil {
 		//toDo: handle dis error
 		panic(err)
 	}
-	json.Unmarshal([]byte(payload), &p)
+	// err := json.Unmarshal([]byte(req.FormValue("payload")), &payload)
+	// if err != nil {
+	// 	fmt.Printf("Could not parse action response JSON: %v", err)
+	// }
+	//alertID
+	fmt.Printf("%v", payload)
+	// todo: why is p.value coming in empty
 
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
-		alertID, err := strconv.Atoi(p.ActionCallback.BlockActions[0].Value)
+		alertID, err := strconv.Atoi(payload.Value)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+			fmt.Println("Error: ", err)
 			return
 		}
 
-		a, _ := h.c.AlertStore.FindOne(ctx, alertID)
-		actionID := p.ActionCallback.BlockActions[0].ActionID
+		a, err := h.c.AlertStore.FindOne(ctx, alertID)
+		if err != nil {
+			fmt.Println("alertStore:", err)
+		}
 
-		/*blocks := slack.MsgOptionBlocks(
+		msg := slack.MsgOptionBlocks(
 			AlertIDAndStatusSection(alertID, string(a.Status)),
 			AlertSummarySection(a.Summary),
-			AlertActionsSection(alertID, actionID == "ack", actionID == "esc", actionID == "close", actionID == "openLink"),
-		)*/
-
-		var opts []slack.MsgOption
-		opts = append(opts,
-			// desktop notification text
-			slack.MsgOptionText(a.Summary, false),
-
-			// blockkit elements
-			slack.MsgOptionBlocks(
-				//AlertIDAndStatusSection(alertID, string(a.Status)),
-				AlertSummarySection(a.Summary),
-				//AlertActionsSection(alertID, actionID == "ack", actionID == "esc", actionID == "close", actionID == "openLink"),
-			),
+			AlertActionsSection(alertID, payload.ActionID == "ack", payload.ActionID == "esc", payload.ActionID == "close", payload.ActionID == "openLink"),
 		)
 
-		switch actionID {
+		switch payload.ActionID {
 		case "ack":
 			err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 			writeHTTPErr(err)
 
-			_, _, _, e := api.UpdateMessage(p.Channel.ID, p.Message.Msg.Timestamp, opts...)
+			_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.OriginalMessage.Timestamp, msg)
 			if e != nil {
-				fmt.Println("error updating slack message: ", e)
+				fmt.Println(e)
 			}
 		case "esc":
 			err := h.c.AlertStore.Escalate(ctx, alertID)

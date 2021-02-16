@@ -287,9 +287,6 @@ func buildBlocks(cfg config.Config, msg notification.Message) (string, error) {
 		return "", errors.Errorf("unsupported message type: %T", t)
 	}
 
-	fmt.Println("url: ", url)
-	fmt.Println("value (alertID): ", alertID)
-
 	blocks := fmt.Sprintf(`
 	[
 		{
@@ -358,23 +355,18 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
 
-	var summaryText, url string
+	var summaryText string
 	var alertID int
 	switch t := msg.(type) {
 	case notification.Alert:
 		summaryText = fmt.Sprintf("Alert: %s", t.Summary)
 		alertID = t.AlertID
-		url = cfg.CallbackURL("/alerts/" + strconv.Itoa(alertID))
 	// todo: handle actions on bundle items
 	case notification.AlertBundle:
 		summaryText = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
-		url = cfg.CallbackURL("/services/" + t.ServiceID + "/alerts")
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
-
-	fmt.Println("url: ", url)
-	fmt.Println("value (alertID): ", alertID)
 
 	var api = slack.New(cfg.Slack.AccessToken)
 
