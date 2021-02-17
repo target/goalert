@@ -3,6 +3,7 @@ package graphqlapp
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
@@ -76,7 +77,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 	cfg := config.FromContext(ctx)
 
 	// checks webhook url against allow list set in config
-	if input.Type == "WEBHOOK" && !cfg.ValidWebhookUrl(input.Value) {
+	if input.Type == "WEBHOOK" && !cfg.ValidWebhookURL(input.Value) {
 		return cm, validation.NewFieldError("value", "Webhook URL not whitelisted in allow list.")
 	}
 

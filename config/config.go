@@ -196,8 +196,8 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
-// ValidWebhookUrl returns true if the URL is an allowed webhook source.
-func (cfg Config) ValidWebhookUrl(whURL string) bool {
+// ValidWebhookURL returns true if the URL is an allowed webhook source.
+func (cfg Config) ValidWebhookURL(whURL string) bool {
 	if len(cfg.Webhook.AllowList) == 0 {
 		return true
 	}
