@@ -18,7 +18,7 @@ type WebhookTestingAlert struct {
 	Details   string
 }
 
-func TestNothing(t *testing.T) {
+func TestWebhookAlert(t *testing.T) {
 	t.Parallel()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
