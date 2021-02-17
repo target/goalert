@@ -16,7 +16,6 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListSubheader from '@material-ui/core/ListSubheader'
 import IconButton from '@material-ui/core/IconButton'
 import Notices from './Notices'
-import Markdown from '../util/Markdown'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 
@@ -54,6 +53,9 @@ const useStyles = makeStyles((theme) => ({
   },
   quickLinksList: {
     width: '100%',
+  },
+  userEmail: {
+    margin: '1rem 0',
   },
 }))
 
@@ -154,7 +156,9 @@ export default function DetailsPage(props) {
                   variant='subtitle1'
                   component='div'
                 >
-                  <Markdown value={details} />
+                  <Typography className={classes.userEmail}>
+                    {details}
+                  </Typography>
                 </Typography>
                 {titleFooter && (
                   <Typography
