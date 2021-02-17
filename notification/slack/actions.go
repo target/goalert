@@ -128,45 +128,10 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				fmt.Println("alertStore:", err)
 			}
 
-			var msgOpt []slack.MsgOption
-			fmt.Println(payload.ResponseURL)
-			msgOpt = append(msgOpt,
-				slack.MsgOptionReplaceOriginal(payload.ResponseURL),
-				// desktop notification text
-				slack.MsgOptionText(a.Summary, false),
-
-				slack.MsgOptionBlocks(
-					AlertIDAndStatusSection(alertID, string(a.Status)),
-					AlertSummarySection(a.Summary),
-					AlertActionsSection(alertID, action.ActionID == "ack", action.ActionID == "esc", action.ActionID == "close", action.ActionID == "openLink"),
-				),
-			)
-
-			// var msgOpt []slack.MsgOption
-			// msgOpt = append(msgOpt,
-			// 	// desktop notification text
-			// 	slack.MsgOptionText(summaryText, false),
-
-			// 	// blockkit elements
-			// 	slack.MsgOptionBlocks(
-			// 		// todo: Figure out how to retrieve alert status here (use Store?)
-			// 		AlertIDAndStatusSection(alertID, "unacknowledged"),
-			// 		AlertSummarySection(summaryText),
-			// 		AlertActionsSection(alertID, true, true, true, true),
-			// 	),
-			// )
-
 			switch action.ActionID {
 			case "ack":
 				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 				writeHTTPErr(err)
-
-				// todo: updatemessage returning invalid blocks
-				_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msgOpt...)
-				if e != nil {
-					fmt.Println(e)
-				}
-
 			case "esc":
 				err := h.c.AlertStore.Escalate(ctx, alertID)
 				writeHTTPErr(err)
@@ -176,6 +141,24 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			case "openLink":
 			}
 
+			var msgOpt []slack.MsgOption
+			fmt.Println(payload.ResponseURL)
+			msgOpt = append(msgOpt,
+				// desktop notification text
+				slack.MsgOptionText(a.Summary, false),
+
+				slack.MsgOptionBlocks(
+					AlertIDAndStatusSection(alertID, string(a.Status)),
+					AlertSummarySection(a.Summary),
+					AlertActionsOnUpdate(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID))),
+				),
+			)
+
+			// todo: may need switch statement to handle all actions
+			_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msgOpt...)
+			if e != nil {
+				fmt.Println(e)
+			}
 		}
 	}
 

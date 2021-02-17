@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/slack-go/slack"
+	"github.com/target/goalert/alert"
 )
 
 func AlertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
@@ -18,39 +19,60 @@ func AlertSummarySection(summary string) *slack.SectionBlock {
 	return slack.NewSectionBlock(summaryText, nil, nil)
 }
 
-// ack button, close button, escalate button, open in goalert button
-// +1 goal of see details button
-func AlertActionsSection(alertID int, ack, escalate, close, openLink bool) *slack.ActionBlock {
-	var ackButton, escButton, closeButton, openLinkButton *slack.ButtonBlockElement
+func ackButton(alertID string) *slack.ButtonBlockElement {
+	txt := slack.NewTextBlockObject("plain_text", "Acknowledge :eyes:", true, false)
+	return slack.NewButtonBlockElement("ack", alertID, txt)
+}
+
+func escButton(alertID string) *slack.ButtonBlockElement {
+	txt := slack.NewTextBlockObject("plain_text", "Escalate :arrow_up:", true, false)
+	return slack.NewButtonBlockElement("esc", alertID, txt)
+}
+
+func closeButton(alertID string) *slack.ButtonBlockElement {
+	txt := slack.NewTextBlockObject("plain_text", "Close :ballot_box_with_check:", true, false)
+	return slack.NewButtonBlockElement("close", alertID, txt)
+}
+
+func openLinkButton(url string) *slack.ButtonBlockElement {
+	txt := slack.NewTextBlockObject("plain_text", "Open in GoAlert :link:", true, false)
+	return slack.NewButtonBlockElement("openLink", url, txt)
+}
+
+func AlertActionsOnCreate(id int, url string) *slack.ActionBlock {
+	value := strconv.Itoa(id)
+
+	blocks := []slack.BlockElement{
+		ackButton(value),
+		escButton(value),
+		closeButton(value),
+		openLinkButton(url),
+	}
+
+	return slack.NewActionBlock("", blocks...)
+}
+
+// AlertActionsOnUpdate handles returning the block actions for an alert message
+// within Slack. The alert a parameter represents the state of the alert after
+// the action has been processed.
+func AlertActionsOnUpdate(a alert.Alert, url string) *slack.ActionBlock {
 	var buttons = make([]slack.BlockElement, 4)
-	value := strconv.Itoa(alertID)
+	alertID := strconv.Itoa(a.ID)
 
-	if ack {
-		txt := slack.NewTextBlockObject("plain_text", "Acknowledge :eyes:", true, false)
-		ackButton = slack.NewButtonBlockElement("ack", value, txt)
-		buttons = append(buttons, *ackButton)
+	if a.Status == alert.StatusTriggered {
+		buttons = append(buttons, ackButton(alertID))
+	}
+	if a.Status == alert.StatusTriggered || a.Status == alert.StatusActive {
+		buttons = append(buttons, escButton(alertID))
+	}
+	if a.Status == alert.StatusTriggered || a.Status == alert.StatusActive {
+		buttons = append(buttons, closeButton(alertID))
+	}
+	if url != "" {
+		buttons = append(buttons, openLinkButton(url))
 	}
 
-	if escalate {
-		txt := slack.NewTextBlockObject("plain_text", "Escalate :arrow_up:", true, false)
-		escButton = slack.NewButtonBlockElement("esc", value, txt)
-		buttons = append(buttons, *escButton)
-	}
-
-	if close {
-		txt := slack.NewTextBlockObject("plain_text", "Close :ballot_box_with_check:", true, false)
-		closeButton = slack.NewButtonBlockElement("close", value, txt)
-		buttons = append(buttons, *closeButton)
-	}
-
-	if openLink {
-		txt := slack.NewTextBlockObject("plain_text", "Open in GoAlert :link:", true, false)
-		openLinkButton = slack.NewButtonBlockElement("openLink", value, txt)
-		buttons = append(buttons, *openLinkButton)
-	}
-
-	return slack.NewActionBlock("", ackButton, escButton, closeButton, openLinkButton)
-
+	return slack.NewActionBlock("", buttons...)
 }
 
 func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {

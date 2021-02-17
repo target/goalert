@@ -296,10 +296,9 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 		// blockkit elements
 		slack.MsgOptionBlocks(
-			// todo: Figure out how to retrieve alert status here (use Store?)
 			AlertIDAndStatusSection(alertID, "unacknowledged"),
 			AlertSummarySection(summaryText),
-			AlertActionsSection(alertID, true, true, true, true),
+			AlertActionsOnCreate(alertID, cfg.CallbackURL("/alerts/"+strconv.Itoa(alertID))),
 		),
 	)
 
