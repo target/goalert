@@ -9,7 +9,7 @@ import ServiceRouter from '../services/ServiceRouter'
 import UserRouter from '../users/UserRouter'
 import AdminRouter from '../admin/AdminRouter'
 import WizardRouter from '../wizard/WizardRouter'
-import IntegrationKeyAPI from '../documentation/components/IntegrationKeyAPI'
+import Documentation from '../documentation/Documentation'
 
 export const getPath = (p) => (Array.isArray(p.path) ? p.path[0] : p.path)
 
@@ -146,6 +146,6 @@ export default [
     nav: false,
     title: 'Documentation',
     path: '/docs',
-    component: IntegrationKeyAPI,
+    component: Documentation,
   },
 ]
