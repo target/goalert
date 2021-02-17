@@ -128,11 +128,33 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				fmt.Println("alertStore:", err)
 			}
 
-			msg := slack.MsgOptionBlocks(
-				AlertIDAndStatusSection(alertID, string(a.Status)),
-				AlertSummarySection(a.Summary),
-				AlertActionsSection(alertID, action.ActionID == "ack", action.ActionID == "esc", action.ActionID == "close", action.ActionID == "openLink"),
+			var msgOpt []slack.MsgOption
+			fmt.Println(payload.ResponseURL)
+			msgOpt = append(msgOpt,
+				slack.MsgOptionReplaceOriginal(payload.ResponseURL),
+				// desktop notification text
+				slack.MsgOptionText(a.Summary, false),
+
+				slack.MsgOptionBlocks(
+					AlertIDAndStatusSection(alertID, string(a.Status)),
+					AlertSummarySection(a.Summary),
+					AlertActionsSection(alertID, action.ActionID == "ack", action.ActionID == "esc", action.ActionID == "close", action.ActionID == "openLink"),
+				),
 			)
+
+			// var msgOpt []slack.MsgOption
+			// msgOpt = append(msgOpt,
+			// 	// desktop notification text
+			// 	slack.MsgOptionText(summaryText, false),
+
+			// 	// blockkit elements
+			// 	slack.MsgOptionBlocks(
+			// 		// todo: Figure out how to retrieve alert status here (use Store?)
+			// 		AlertIDAndStatusSection(alertID, "unacknowledged"),
+			// 		AlertSummarySection(summaryText),
+			// 		AlertActionsSection(alertID, true, true, true, true),
+			// 	),
+			// )
 
 			switch action.ActionID {
 			case "ack":
@@ -140,7 +162,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				writeHTTPErr(err)
 
 				// todo: updatemessage returning invalid blocks
-				_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msg)
+				_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msgOpt...)
 				if e != nil {
 					fmt.Println(e)
 				}
