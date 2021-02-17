@@ -86,13 +86,13 @@ To trigger an alert using Prometheus Alertmanager, follow these steps:
 
 2. In Prometheus Alertmanager, enable a webhook by adding a webhook receiver in the alertmanager configuration file:
 
-    ```yaml
-    receivers:
-    - name: 'service'
-      webhook_configs:
-      - url: '<prometheus_alertmanager_webhook_url_from_previous_step>'
-        send_resolved: true
-    ```
+   ```yaml
+   receivers:
+     - name: 'service'
+       webhook_configs:
+         - url: '<prometheus_alertmanager_webhook_url_from_previous_step>'
+           send_resolved: true
+   ```
 
 ---
 
@@ -115,58 +115,3 @@ which would match alerts created for the same service, to the same
 `some_value_here`
 key, regardless of the subject or body.
 On the Service page, Add an Integration Key, select Email and SAVE Copy the Email address and use this with the email-based service that you want to alert on.
-
----
-
-## Webhooks
-
-Webhooks are POST requests to specified endpoint with encoding type `application/json`.  Below are example payloads:
-
-### Verification Message
-```
-{
-    "Summary": "Verification Code",
-    "Details": "283917"
-}
-```
-
-### Test Message (from profile page)
-```
-{
-   "Summary": "Test"
-}
-```
-
-### Alert
-```
-{
-    "AlertID": 79685,
-    "Summary": "Test Alert",
-    "Details": "Alert Details..."
-}
-```
-
-### Alert Bundles
-```
-{
-  "ServiceID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "ServiceName": "AAA Testing Service",
-  "Count": 6
-}
-```
-### Status Updates
-```
-{
-    "AlertID": 79694,
-    "LogEntry": "Closed via test integration (Generic API)"
-}
-```
-
-### Bundled Status Updates
-```
-{
-  "AlertID": 79696,
-  "Count": 2,
-  "LogEntry": "Closed via test integration (Generic API)"
-}
-```
