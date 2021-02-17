@@ -5,5 +5,5 @@
     "jsx": "react",
     "lib": ["es6", "dom"]
   },
-  "include": ["**/*", "../schema.d.ts"]
+  "include": ["**/*", "../schema.d.ts", "../global.d.ts"]
 }
