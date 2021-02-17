@@ -115,7 +115,7 @@ type Config struct {
 
 	Webhook struct {
 		Enable    bool     `public:"true" info:"Enables webhook as a contact method."`
-		AllowList []string `public:"true" info:"Allows webhooks only from specific domains."`
+		AllowList []string `public:"true" info:"If set, allows webhooks for these domains only."`
 	}
 
 	Feedback struct {
