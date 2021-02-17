@@ -86,13 +86,13 @@ To trigger an alert using Prometheus Alertmanager, follow these steps:
 
 2. In Prometheus Alertmanager, enable a webhook by adding a webhook receiver in the alertmanager configuration file:
 
-   ```yaml
-   receivers:
-     - name: 'service'
-       webhook_configs:
-         - url: '<prometheus_alertmanager_webhook_url_from_previous_step>'
-           send_resolved: true
-   ```
+    ```yaml
+    receivers:
+    - name: 'service'
+      webhook_configs:
+      - url: '<prometheus_alertmanager_webhook_url_from_previous_step>'
+        send_resolved: true
+    ```
 
 ---
 
