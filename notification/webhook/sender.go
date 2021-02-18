@@ -13,7 +13,7 @@ import (
 
 type Sender struct{}
 
-type WebhookAlert struct {
+type POSTData struct {
 	AlertID     int    `json:",omitempty"`
 	Type        string `json:",omitempty"`
 	Code        string `json:",omitempty"`
@@ -42,7 +42,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		return http.DefaultClient.Do(req)
 	}
 
-	var payload WebhookAlert
+	var payload POSTData
 
 	switch m := msg.(type) {
 	case notification.Test:
