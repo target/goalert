@@ -13,6 +13,7 @@ import (
 
 type Sender struct{}
 
+// POSTData is a union of all possible message attributes, will be populated accordingly
 type POSTData struct {
 	AlertID     int    `json:",omitempty"`
 	Type        string `json:",omitempty"`
