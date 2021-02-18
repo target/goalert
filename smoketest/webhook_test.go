@@ -24,10 +24,10 @@ func TestWebhookAlert(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var alert WebhookTestingAlert
 
-		jsonbytes, err := ioutil.ReadAll(r.Body)
+		data, err := ioutil.ReadAll(r.Body)
 		assert.Nil(t, err)
 
-		err = json.Unmarshal(jsonbytes, &alert)
+		err = json.Unmarshal(data, &alert)
 		assert.Nil(t, err)
 
 		assert.Equal(t, alert.Type, "Alert")

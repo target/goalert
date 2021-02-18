@@ -83,12 +83,12 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		return nil, errors.New("message type not supported")
 	}
 
-	jsonbytes, err := json.Marshal(payload)
+	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	postWithBody(string(jsonbytes))
+	postWithBody(string(data))
 
 	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent, ProviderMessageID: msg.ID()}, nil
 }
