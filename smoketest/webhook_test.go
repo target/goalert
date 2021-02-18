@@ -12,10 +12,10 @@ import (
 )
 
 type WebhookTestingAlert struct {
-	AlertID   int
-	AlertType string
-	Summary   string
-	Details   string
+	AlertID int
+	Type    string
+	Summary string
+	Details string
 }
 
 func TestWebhookAlert(t *testing.T) {
@@ -30,7 +30,7 @@ func TestWebhookAlert(t *testing.T) {
 		err = json.Unmarshal(jsonbytes, &alert)
 		assert.Nil(t, err)
 
-		assert.Equal(t, alert.AlertType, "Alert")
+		assert.Equal(t, alert.Type, "Alert")
 		assert.Equal(t, alert.Summary, "testing summary")
 		assert.Equal(t, alert.Details, "testing details")
 	}))

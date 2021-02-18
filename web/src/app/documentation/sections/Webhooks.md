@@ -6,7 +6,7 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 
 ```
 {
-    "AlertType": "Verification",
+    "Type": "Verification",
     "Summary": "Verification Message",
     "Details": "This is a verification message from GoAlert",
     "Code": "283917"
@@ -17,7 +17,7 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 
 ```
 {
-   "AlertType": "Test",
+   "Type": "Test",
    "Summary": "Test Message",
    "Details": "This is a test message from GoAlert"
 }
@@ -27,7 +27,7 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 
 ```
 {
-    "AlertType": "Alert",
+    "Type": "Alert",
     "AlertID": 79685,
     "Summary": "Example Summary",
     "Details": "Example Details..."
@@ -38,7 +38,7 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 
 ```
 {
-  "AlertType": "AlertBundle",
+  "Type": "AlertBundle",
   "ServiceID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   "ServiceName": "Example Service",
   "Count": 6
@@ -49,7 +49,7 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 
 ```
 {
-    "AlertType": "AlertStatus",
+    "Type": "AlertStatus",
     "AlertID": 79694,
     "LogEntry": "Closed via test integration (Generic API)"
 }
@@ -59,7 +59,7 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 
 ```
 {
-  "AlertType": "AlertStatusBundle",
+  "Type": "AlertStatusBundle",
   "AlertID": 79696,
   "Count": 2,
   "LogEntry": "Closed via test integration (Generic API)"
