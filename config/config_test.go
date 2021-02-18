@@ -7,15 +7,10 @@ import (
 )
 
 func TestValidWebhookURL(t *testing.T) {
-	t.Run("empty allowList", func(t *testing.T) {
+	t.Run("config allowed urls", func(t *testing.T) {
 		var cfg Config
-
 		assert.True(t, cfg.ValidWebhookURL("http://api.example.com"))
-	})
-	t.Run("checks if webhook urls are allowed", func(t *testing.T) {
-		var cfg Config
 		cfg.Webhook.AllowedURLs = append(cfg.Webhook.AllowedURLs, "http://api.example.com")
-
 		assert.True(t, cfg.ValidWebhookURL("http://api.example.com:5555/path"))
 		assert.False(t, cfg.ValidWebhookURL("http://example.com"))
 	})
