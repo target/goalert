@@ -895,6 +895,6 @@ type ConfigID =
   | 'SMTP.Username'
   | 'SMTP.Password'
   | 'Webhook.Enable'
-  | 'Webhook.AllowList'
+  | 'Webhook.AllowedURLs'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'

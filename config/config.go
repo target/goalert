@@ -114,8 +114,8 @@ type Config struct {
 	}
 
 	Webhook struct {
-		Enable    bool     `public:"true" info:"Enables webhook as a contact method."`
-		AllowList []string `public:"true" info:"If set, allows webhooks for these domains only."`
+		Enable      bool     `public:"true" info:"Enables webhook as a contact method."`
+		AllowedURLs []string `public:"true" info:"If set, allows webhooks for these domains only."`
 	}
 
 	Feedback struct {
@@ -198,10 +198,10 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 
 // ValidWebhookURL returns true if the URL is an allowed webhook source.
 func (cfg Config) ValidWebhookURL(whURL string) bool {
-	if len(cfg.Webhook.AllowList) == 0 {
+	if len(cfg.Webhook.AllowedURLs) == 0 {
 		return true
 	}
-	for _, u := range cfg.Webhook.AllowList {
+	for _, u := range cfg.Webhook.AllowedURLs {
 		if strings.HasPrefix(whURL, u) {
 			return true
 		}
@@ -384,8 +384,8 @@ func (cfg Config) Validate() error {
 		)
 	}
 
-	for i, urlStr := range cfg.Webhook.AllowList {
-		field := fmt.Sprintf("Webhook.AllowList[%d]", i)
+	for i, urlStr := range cfg.Webhook.AllowedURLs {
+		field := fmt.Sprintf("Webhook.AllowedURLs[%d]", i)
 		err = validate.Many(err, validate.AbsoluteURL(field, urlStr))
 	}
 
