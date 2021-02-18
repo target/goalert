@@ -7,8 +7,6 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 ```
 {
     "Type": "Verification",
-    "Summary": "Verification Message",
-    "Details": "This is a verification message from GoAlert",
     "Code": "283917"
 }
 ```
@@ -18,8 +16,6 @@ Webhooks are POST requests to specified endpoints with a content type of `applic
 ```
 {
    "Type": "Test",
-   "Summary": "Test Message",
-   "Details": "This is a test message from GoAlert"
 }
 ```
 

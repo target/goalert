@@ -48,13 +48,9 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	switch m := msg.(type) {
 	case notification.Test:
 		payload.Type = "Test"
-		payload.Summary = "Test Message"
-		payload.Details = "This is a test message from GoAlert"
 
 	case notification.Verification:
 		payload.Type = "Verification"
-		payload.Summary = "Verification Message"
-		payload.Details = "This is a verification message from GoAlert"
 		payload.Code = strconv.Itoa(m.Code)
 
 	case notification.Alert:
