@@ -15,7 +15,7 @@ type Sender struct{}
 
 type WebhookAlert struct {
 	AlertID     int    `json:",omitempty"`
-	AlertType   string `json:",omitempty"`
+	Type        string `json:",omitempty"`
 	Code        string `json:",omitempty"`
 	Summary     string `json:",omitempty"`
 	Details     string `json:",omitempty"`
@@ -46,35 +46,35 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 
 	switch m := msg.(type) {
 	case notification.Test:
-		payload.AlertType = "Test"
+		payload.Type = "Test"
 		payload.Summary = "Test Message"
 		payload.Details = "This is a test message from GoAlert"
 
 	case notification.Verification:
-		payload.AlertType = "Verification"
+		payload.Type = "Verification"
 		payload.Summary = "Verification Message"
 		payload.Details = "This is a verification message from GoAlert"
 		payload.Code = strconv.Itoa(m.Code)
 
 	case notification.Alert:
-		payload.AlertType = "Alert"
+		payload.Type = "Alert"
 		payload.AlertID = m.AlertID
 		payload.Summary = m.Summary
 		payload.Details = m.Details
 
 	case notification.AlertBundle:
-		payload.AlertType = "AlertBundle"
+		payload.Type = "AlertBundle"
 		payload.ServiceID = m.ServiceID
 		payload.ServiceName = m.ServiceName
 		payload.Count = m.Count
 
 	case notification.AlertStatus:
-		payload.AlertType = "AlertStatus"
+		payload.Type = "AlertStatus"
 		payload.AlertID = m.AlertID
 		payload.LogEntry = m.LogEntry
 
 	case notification.AlertStatusBundle:
-		payload.AlertType = "AlertStatusBundle"
+		payload.Type = "AlertStatusBundle"
 		payload.AlertID = m.AlertID
 		payload.Count = m.Count
 		payload.LogEntry = m.LogEntry
