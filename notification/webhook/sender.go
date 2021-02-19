@@ -33,16 +33,6 @@ func NewSender(ctx context.Context) *Sender {
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 
-	postWithBody := func(body string) (*http.Response, error) {
-		req, err := http.NewRequest("POST", msg.Destination().Value, bytes.NewBufferString(body))
-		if err != nil {
-			return nil, err
-		}
-		req = req.WithContext(ctx)
-		req.Header.Add("Content-Type", "application/json")
-		return http.DefaultClient.Do(req)
-	}
-
 	var payload POSTData
 
 	switch m := msg.(type) {
@@ -85,7 +75,17 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		return nil, err
 	}
 
-	postWithBody(string(data))
+	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	_, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
 
 	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent, ProviderMessageID: msg.ID()}, nil
 }
