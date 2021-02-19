@@ -13,17 +13,29 @@ import (
 
 type Sender struct{}
 
+// POSTDataType is the type of alert data being sent
+type POSTDataType string
+
+const (
+	TypeTest              POSTDataType = "Test"
+	TypeVerification      POSTDataType = "Verification"
+	TypeAlert             POSTDataType = "Alert"
+	TypeAlertBundle       POSTDataType = "AlertBundle"
+	TypeAlertStatus       POSTDataType = "AlertStatus"
+	TypeAlertStatusBundle POSTDataType = "AlertStatusBundle"
+)
+
 // POSTData is a union of all possible message types, should be populated accordingly
 type POSTData struct {
-	AlertID     int    `json:",omitempty"`
-	Type        string `json:",omitempty"`
-	Code        string `json:",omitempty"`
-	Summary     string `json:",omitempty"`
-	Details     string `json:",omitempty"`
-	ServiceID   string `json:",omitempty"`
-	ServiceName string `json:",omitempty"`
-	Count       int    `json:",omitempty"`
-	LogEntry    string `json:",omitempty"`
+	AlertID     int          `json:",omitempty"`
+	Type        POSTDataType `json:",omitempty"`
+	Code        string       `json:",omitempty"`
+	Summary     string       `json:",omitempty"`
+	Details     string       `json:",omitempty"`
+	ServiceID   string       `json:",omitempty"`
+	ServiceName string       `json:",omitempty"`
+	Count       int          `json:",omitempty"`
+	LogEntry    string       `json:",omitempty"`
 }
 
 func NewSender(ctx context.Context) *Sender {
@@ -38,36 +50,36 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 	switch m := msg.(type) {
 	case notification.Test:
 		payload = &POSTData{
-			Type: "Test",
+			Type: TypeTest,
 		}
 	case notification.Verification:
 		payload = &POSTData{
-			Type: "Verification",
+			Type: TypeVerification,
 			Code: strconv.Itoa(m.Code),
 		}
 	case notification.Alert:
 		payload = &POSTData{
-			Type:    "Alert",
+			Type:    TypeAlert,
 			AlertID: m.AlertID,
 			Summary: m.Summary,
 			Details: m.Details,
 		}
 	case notification.AlertBundle:
 		payload = &POSTData{
-			Type:        "AlertBundle",
+			Type:        TypeAlertBundle,
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Count:       m.Count,
 		}
 	case notification.AlertStatus:
 		payload = &POSTData{
-			Type:     "AlertStatus",
+			Type:     TypeAlertStatus,
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
 		}
 	case notification.AlertStatusBundle:
 		payload = &POSTData{
-			Type:     "AlertStatusBundle",
+			Type:     TypeAlertStatusBundle,
 			Count:    m.Count,
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
