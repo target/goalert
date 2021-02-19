@@ -21,6 +21,8 @@ type WebhookTestingAlert struct {
 func TestWebhookAlert(t *testing.T) {
 	t.Parallel()
 
+	ch := make(chan WebhookTestingAlert)
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var alert WebhookTestingAlert
 
@@ -30,9 +32,7 @@ func TestWebhookAlert(t *testing.T) {
 		err = json.Unmarshal(data, &alert)
 		assert.Nil(t, err)
 
-		assert.Equal(t, alert.Type, "Alert")
-		assert.Equal(t, alert.Summary, "testing summary")
-		assert.Equal(t, alert.Details, "testing details")
+		ch <- alert
 	}))
 
 	defer ts.Close()
@@ -70,4 +70,9 @@ func TestWebhookAlert(t *testing.T) {
 
 	h := harness.NewHarness(t, sql, "webhook-user-contact-method-type")
 	defer h.Close()
+
+	alert := <-ch
+	assert.Equal(t, alert.Type, "Alert")
+	assert.Equal(t, alert.Summary, "testing summary")
+	assert.Equal(t, alert.Details, "testing details")
 }
