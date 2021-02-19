@@ -13,7 +13,7 @@ import (
 
 type Sender struct{}
 
-// POSTData is a union of all possible message attributes, will be populated accordingly
+// POSTData is a union of all possible message types, should be populated accordingly
 type POSTData struct {
 	AlertID     int    `json:",omitempty"`
 	Type        string `json:",omitempty"`
@@ -33,38 +33,45 @@ func NewSender(ctx context.Context) *Sender {
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 
-	var payload POSTData
+	var payload *POSTData
 
 	switch m := msg.(type) {
 	case notification.Test:
-		payload.Type = "Test"
-
+		payload = &POSTData{
+			Type: "Test",
+		}
 	case notification.Verification:
-		payload.Type = "Verification"
-		payload.Code = strconv.Itoa(m.Code)
-
+		payload = &POSTData{
+			Type: "Verification",
+			Code: strconv.Itoa(m.Code),
+		}
 	case notification.Alert:
-		payload.Type = "Alert"
-		payload.AlertID = m.AlertID
-		payload.Summary = m.Summary
-		payload.Details = m.Details
-
+		payload = &POSTData{
+			Type:    "Alert",
+			AlertID: m.AlertID,
+			Summary: m.Summary,
+			Details: m.Details,
+		}
 	case notification.AlertBundle:
-		payload.Type = "AlertBundle"
-		payload.ServiceID = m.ServiceID
-		payload.ServiceName = m.ServiceName
-		payload.Count = m.Count
-
+		payload = &POSTData{
+			Type:        "AlertBundle",
+			ServiceID:   m.ServiceID,
+			ServiceName: m.ServiceName,
+			Count:       m.Count,
+		}
 	case notification.AlertStatus:
-		payload.Type = "AlertStatus"
-		payload.AlertID = m.AlertID
-		payload.LogEntry = m.LogEntry
-
+		payload = &POSTData{
+			Type:     "AlertStatus",
+			AlertID:  m.AlertID,
+			LogEntry: m.LogEntry,
+		}
 	case notification.AlertStatusBundle:
-		payload.Type = "AlertStatusBundle"
-		payload.AlertID = m.AlertID
-		payload.Count = m.Count
-		payload.LogEntry = m.LogEntry
+		payload = &POSTData{
+			Type:     "AlertStatusBundle",
+			Count:    m.Count,
+			AlertID:  m.AlertID,
+			LogEntry: m.LogEntry,
+		}
 
 	default:
 		return nil, errors.New("message type not supported")
