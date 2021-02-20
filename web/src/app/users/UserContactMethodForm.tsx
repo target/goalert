@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import { FormContainer, FormField } from '../forms'
@@ -6,15 +6,18 @@ import TelTextField from '../util/TelTextField'
 import { MenuItem, Typography } from '@material-ui/core'
 import { ContactMethodType } from '../../schema'
 import { useConfigValue } from '../util/RequireConfig'
+import { askNotificationPermission } from '../util/webpush/webpush'
+import { FieldError } from '../util/errutil'
 
 export type UserContactMethodFormProps = {
   value: { name: string; type: ContactMethodType; value: string }
   disclaimer?: string
 
-  errors?: Array<{ field: 'name' | 'type' | 'value'; message: string }>
+  errors?: FieldError[]
 
   disabled?: boolean
   edit?: boolean
+  onChange: (val: any) => void
 }
 
 function renderEmailField(edit: boolean): JSX.Element {
@@ -55,13 +58,40 @@ function renderPhoneField(edit: boolean): JSX.Element {
   )
 }
 
-function renderTypeField(type: ContactMethodType, edit: boolean): JSX.Element {
+function WebPushWidget(): JSX.Element {
+  const [perm, setPerm] = useState(window.Notification.permission)
+
+  useEffect(() => {
+    async function doAsync(): Promise<void> {
+      if (perm !== 'granted') {
+        askNotificationPermission((val) => {
+          setPerm(val)
+        })
+      }
+    }
+
+    doAsync()
+  }, [perm])
+
+  return (
+    <React.Fragment>
+      <p>permission: {perm}</p>
+    </React.Fragment>
+  )
+}
+
+function renderTypeField(
+  type: ContactMethodType,
+  edit: boolean,
+): JSX.Element | null {
   switch (type) {
     case 'SMS':
     case 'VOICE':
       return renderPhoneField(edit)
     case 'EMAIL':
       return renderEmailField(edit)
+    case 'WEBPUSH':
+      return <WebPushWidget />
     default:
   }
 
@@ -83,9 +113,10 @@ export default function UserContactMethodForm(
 ): JSX.Element {
   const { value, edit = false, disclaimer, ...other } = props
 
-  const [smsVoiceEnabled, emailEnabled] = useConfigValue(
+  const [smsVoiceEnabled, emailEnabled, webPushEnabled] = useConfigValue(
     'Twilio.Enable',
     'SMTP.Enable',
+    'WebPushNotifications.Enable',
   )
 
   return (
@@ -108,6 +139,9 @@ export default function UserContactMethodForm(
               <MenuItem value='VOICE'>VOICE</MenuItem>
             )}
             {(edit || emailEnabled) && <MenuItem value='EMAIL'>EMAIL</MenuItem>}
+            {(edit || webPushEnabled) && (
+              <MenuItem value='WEBPUSH'>WEBPUSH</MenuItem>
+            )}
           </FormField>
         </Grid>
         <Grid item xs={12}>

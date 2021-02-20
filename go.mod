@@ -8,6 +8,7 @@ require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
 	dmitri.shuralyov.com/go/generated v0.0.0-20170818220700-b1254a446363 // indirect
 	github.com/99designs/gqlgen v0.13.0
+	github.com/SherClockHolmes/webpush-go v1.1.2
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
 	github.com/agnivade/levenshtein v1.1.0 // indirect
@@ -77,7 +78,7 @@ require (
 	github.com/vbauerster/mpb/v4 v4.12.2
 	github.com/vektah/gqlparser/v2 v2.1.0
 	go.opencensus.io v0.22.5
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/net v0.0.0-20201216054612-986b41b23924
 	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5
 	golang.org/x/sys v0.0.0-20201223074533-0d417f636930

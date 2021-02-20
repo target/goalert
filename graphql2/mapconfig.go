@@ -75,6 +75,10 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "SMTP.SkipVerify", Type: ConfigTypeBoolean, Description: "Disables certificate validation for TLS/STARTTLS (insecure).", Value: fmt.Sprintf("%t", cfg.SMTP.SkipVerify)},
 		{ID: "SMTP.Username", Type: ConfigTypeString, Description: "Username for authentication.", Value: cfg.SMTP.Username},
 		{ID: "SMTP.Password", Type: ConfigTypeString, Description: "Password for authentication.", Value: cfg.SMTP.Password, Password: true},
+		{ID: "WebPushNotifications.Enable", Type: ConfigTypeBoolean, Description: "Enables web push notifications as a contact method.", Value: fmt.Sprintf("%t", cfg.WebPushNotifications.Enable)},
+		{ID: "WebPushNotifications.VAPIDPublicKey", Type: ConfigTypeString, Description: "Public key.", Value: cfg.WebPushNotifications.VAPIDPublicKey},
+		{ID: "WebPushNotifications.VAPIDPrivateKey", Type: ConfigTypeString, Description: "Private key.", Value: cfg.WebPushNotifications.VAPIDPrivateKey, Password: true},
+		{ID: "WebPushNotifications.TTL", Type: ConfigTypeInteger, Description: "TTL for notifications", Value: fmt.Sprintf("%d", cfg.WebPushNotifications.TTL)},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -102,6 +106,9 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "SMTP.Enable", Type: ConfigTypeBoolean, Description: "Enables email as a contact method.", Value: fmt.Sprintf("%t", cfg.SMTP.Enable)},
 		{ID: "SMTP.From", Type: ConfigTypeString, Description: "The email address messages should be sent from.", Value: cfg.SMTP.From},
+		{ID: "WebPushNotifications.Enable", Type: ConfigTypeBoolean, Description: "Enables web push notifications as a contact method.", Value: fmt.Sprintf("%t", cfg.WebPushNotifications.Enable)},
+		{ID: "WebPushNotifications.VAPIDPublicKey", Type: ConfigTypeString, Description: "Public key.", Value: cfg.WebPushNotifications.VAPIDPublicKey},
+		{ID: "WebPushNotifications.TTL", Type: ConfigTypeInteger, Description: "TTL for notifications", Value: fmt.Sprintf("%d", cfg.WebPushNotifications.TTL)},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -319,6 +326,22 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.SMTP.Username = v.Value
 		case "SMTP.Password":
 			cfg.SMTP.Password = v.Value
+		case "WebPushNotifications.Enable":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.WebPushNotifications.Enable = val
+		case "WebPushNotifications.VAPIDPublicKey":
+			cfg.WebPushNotifications.VAPIDPublicKey = v.Value
+		case "WebPushNotifications.VAPIDPrivateKey":
+			cfg.WebPushNotifications.VAPIDPrivateKey = v.Value
+		case "WebPushNotifications.TTL":
+			val, err := parseInt(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.WebPushNotifications.TTL = val
 		case "Feedback.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {

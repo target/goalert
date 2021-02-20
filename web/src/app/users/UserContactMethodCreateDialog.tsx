@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useMutation, useLazyQuery, gql } from '@apollo/client'
-import p from 'prop-types'
 
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
@@ -8,6 +7,11 @@ import UserContactMethodForm from './UserContactMethodForm'
 import { useConfigValue } from '../util/RequireConfig'
 import { Dialog, DialogTitle, DialogActions, Button } from '@material-ui/core'
 import DialogContentError from '../dialogs/components/DialogContentError'
+import {
+  createNotificationSubscription,
+  registerSW,
+} from '../util/webpush/webpush'
+import { ContactMethodType } from '../../schema'
 
 const createMutation = gql`
   mutation($input: CreateUserContactMethodInput!) {
@@ -28,18 +32,40 @@ const userConflictQuery = gql`
   }
 `
 
-export default function UserContactMethodCreateDialog(props) {
-  const [allowSV, allowE] = useConfigValue('Twilio.Enable', 'SMTP.Enable')
+interface UserContactMethodCreateDialogProps {
+  userID: string
+  onClose: (obj?: { contactMethodID: string }) => void
+  disclaimer: string
+  title?: string
+  subtitle?: string
+}
+
+export default function UserContactMethodCreateDialog(
+  props: UserContactMethodCreateDialogProps,
+): JSX.Element {
+  const [allowSV, allowE, allowW, vapidPublicKey] = useConfigValue(
+    'Twilio.Enable',
+    'SMTP.Enable',
+    'WebPushNotifications.Enable',
+    'WebPushNotifications.VAPIDPublicKey',
+  )
   let typeVal = ''
   if (allowSV) {
     typeVal = 'SMS'
   } else if (allowE) {
     typeVal = 'EMAIL'
   }
+  if (allowW) {
+    typeVal = 'WEBPUSH'
+  }
   // values for contact method form
-  const [CMValue, setCMValue] = useState({
+  const [CMValue, setCMValue] = useState<{
+    name: string
+    type: ContactMethodType
+    value: string
+  }>({
     name: '',
-    type: typeVal,
+    type: typeVal as ContactMethodType,
     value: '',
   })
 
@@ -56,11 +82,11 @@ export default function UserContactMethodCreateDialog(props) {
     },
   )
 
-  const [createCM, createCMStatus] = useMutation(createMutation, {
+  const [mutateCM, createCMStatus] = useMutation(createMutation, {
     onCompleted: (result) => {
       props.onClose({ contactMethodID: result.createUserContactMethod.id })
     },
-    onError: query,
+    onError: () => query(),
     variables: {
       input: {
         ...CMValue,
@@ -71,6 +97,27 @@ export default function UserContactMethodCreateDialog(props) {
       },
     },
   })
+
+  async function createCM(): Promise<void> {
+    if (
+      CMValue.type === 'WEBPUSH' &&
+      window.Notification.permission === 'granted'
+    ) {
+      // const isRegistered = await isServiceWorkerRegistered('/static/')
+      // if (!isRegistered) ...
+      const sw = await registerSW()
+      const subscription = await createNotificationSubscription(
+        sw,
+        vapidPublicKey as string,
+      )
+
+      const payload = JSON.stringify(subscription)
+      console.log(payload)
+      setCMValue({ ...CMValue, ...{ value: payload } })
+    }
+
+    mutateCM()
+  }
 
   if (!typeVal) {
     return (
@@ -113,7 +160,7 @@ export default function UserContactMethodCreateDialog(props) {
     <UserContactMethodForm
       disabled={loading}
       errors={fieldErrs}
-      onChange={(CMValue) => setCMValue(CMValue)}
+      onChange={(CMValue: any) => setCMValue(CMValue)}
       value={CMValue}
       disclaimer={props.disclaimer}
     />
@@ -132,12 +179,4 @@ export default function UserContactMethodCreateDialog(props) {
       form={form}
     />
   )
-}
-
-UserContactMethodCreateDialog.propTypes = {
-  userID: p.string.isRequired,
-  onClose: p.func,
-  disclaimer: p.string,
-  title: p.string,
-  subtitle: p.string,
 }

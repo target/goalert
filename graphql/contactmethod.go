@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"errors"
+
 	"github.com/target/goalert/user/contactmethod"
 
 	g "github.com/graphql-go/graphql"
@@ -20,10 +21,11 @@ func (h *Handler) CMFields() g.Fields {
 var contactType = g.NewEnum(g.EnumConfig{
 	Name: "ContactType",
 	Values: g.EnumValueConfigMap{
-		"VOICE": &g.EnumValueConfig{Value: contactmethod.TypeVoice},
-		"SMS":   &g.EnumValueConfig{Value: contactmethod.TypeSMS},
-		"EMAIL": &g.EnumValueConfig{Value: contactmethod.TypeEmail},
-		"PUSH":  &g.EnumValueConfig{Value: contactmethod.TypePush},
+		"VOICE":   &g.EnumValueConfig{Value: contactmethod.TypeVoice},
+		"SMS":     &g.EnumValueConfig{Value: contactmethod.TypeSMS},
+		"EMAIL":   &g.EnumValueConfig{Value: contactmethod.TypeEmail},
+		"PUSH":    &g.EnumValueConfig{Value: contactmethod.TypePush},
+		"WEBPUSH": &g.EnumValueConfig{Value: contactmethod.TypeWebPush},
 	},
 })
 

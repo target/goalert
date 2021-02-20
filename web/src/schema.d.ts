@@ -785,7 +785,7 @@ export interface UserNotificationRule {
   contactMethod?: UserContactMethod
 }
 
-export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL'
+export type ContactMethodType = 'SMS' | 'VOICE' | 'EMAIL' | 'WEBPUSH'
 
 export interface UserContactMethod {
   id: string
@@ -894,5 +894,8 @@ type ConfigID =
   | 'SMTP.SkipVerify'
   | 'SMTP.Username'
   | 'SMTP.Password'
+  | 'WebPushNotifications.Enable'
+  | 'WebPushNotifications.VAPIDPublicKey'
+  | 'WebPushNotifications.VAPIDPrivateKey'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'

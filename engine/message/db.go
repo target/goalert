@@ -428,6 +428,8 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			msg.Dest.Type = notification.DestTypeSlackChannel
 		case cmType.String == string(contactmethod.TypeEmail):
 			msg.Dest.Type = notification.DestTypeUserEmail
+		case cmType.String == string(contactmethod.TypeWebPush):
+			msg.Dest.Type = notification.DestTypeWebPush
 		default:
 			log.Debugf(ctx, "unknown message type for message %s", msg.ID)
 			continue

@@ -113,6 +113,13 @@ type Config struct {
 		Password string `password:"true" info:"Password for authentication."`
 	}
 
+	WebPushNotifications struct {
+		Enable          bool   `public:"true" info:"Enables web push notifications as a contact method."`
+		VAPIDPublicKey  string `public:"true" info:"Public key."`
+		VAPIDPrivateKey string `password:"true" info:"Private key."`
+		TTL             int    `public:"true" info:"TTL for notifications"`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`

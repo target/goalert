@@ -3027,7 +3027,9 @@ var sources = []*ast.Source{
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
 
-  calcRotationHandoffTimes(input: CalcRotationHandoffTimesInput): [ISOTimestamp!]!
+  calcRotationHandoffTimes(
+    input: CalcRotationHandoffTimesInput
+  ): [ISOTimestamp!]!
 
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
@@ -3982,6 +3984,7 @@ enum ContactMethodType {
   SMS
   VOICE
   EMAIL
+  WEBPUSH
 }
 
 # A method of contacting a user.

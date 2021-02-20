@@ -3,7 +3,11 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
+	"net/url"
 
+	"github.com/SherClockHolmes/webpush-go"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/user/contactmethod"
@@ -29,7 +33,20 @@ func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.C
 			break
 		}
 		formatted = libphonenumber.Format(num, libphonenumber.INTERNATIONAL)
+
+	case contactmethod.TypeWebPush:
+
+		sub := webpush.Subscription{}
+		err := json.Unmarshal([]byte(obj.Value), &sub)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		URLData, err := url.Parse(sub.Endpoint)
+		formatted = URLData.Host
+
 	}
+
 	return formatted, nil
 }
 
