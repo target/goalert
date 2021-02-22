@@ -84,9 +84,8 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
 		}
-
 	default:
-		return nil, errors.New("message type not supported")
+		return nil, errors.New("message type: " + string(m.Type()) + " not supported")
 	}
 
 	data, err := json.Marshal(payload)
