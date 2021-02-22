@@ -2,6 +2,7 @@ package smoketest
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -27,9 +28,11 @@ func TestWebhookAlert(t *testing.T) {
 		var alert WebhookTestingAlert
 
 		data, err := ioutil.ReadAll(r.Body)
+		require.Nil(t, err)
 		assert.Nil(t, err)
 
 		err = json.Unmarshal(data, &alert)
+		require.Nil(t, err)
 		assert.Nil(t, err)
 
 		ch <- alert
