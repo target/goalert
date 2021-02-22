@@ -25,8 +25,9 @@ const (
 	TypeAlertStatusBundle POSTDataType = "AlertStatusBundle"
 )
 
-// POSTData is a union of all possible message types, should be populated accordingly
-type POSTData struct {
+// Message is sent as JSON to webhook endpoints by a Sender.
+// See Sender.Send method for details on which fields are sent per MessageType
+type Message struct {
 	AlertID     int          `json:",omitempty"`
 	Type        POSTDataType `json:",omitempty"`
 	Code        string       `json:",omitempty"`
@@ -45,40 +46,40 @@ func NewSender(ctx context.Context) *Sender {
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 
-	var payload *POSTData
+	var payload *Message
 
 	switch m := msg.(type) {
 	case notification.Test:
-		payload = &POSTData{
+		payload = &Message{
 			Type: TypeTest,
 		}
 	case notification.Verification:
-		payload = &POSTData{
+		payload = &Message{
 			Type: TypeVerification,
 			Code: strconv.Itoa(m.Code),
 		}
 	case notification.Alert:
-		payload = &POSTData{
+		payload = &Message{
 			Type:    TypeAlert,
 			AlertID: m.AlertID,
 			Summary: m.Summary,
 			Details: m.Details,
 		}
 	case notification.AlertBundle:
-		payload = &POSTData{
+		payload = &Message{
 			Type:        TypeAlertBundle,
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Count:       m.Count,
 		}
 	case notification.AlertStatus:
-		payload = &POSTData{
+		payload = &Message{
 			Type:     TypeAlertStatus,
 			AlertID:  m.AlertID,
 			LogEntry: m.LogEntry,
 		}
 	case notification.AlertStatusBundle:
-		payload = &POSTData{
+		payload = &Message{
 			Type:     TypeAlertStatusBundle,
 			Count:    m.Count,
 			AlertID:  m.AlertID,
