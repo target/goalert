@@ -62,4 +62,9 @@ describe('safeURL', () => {
       '[example.com/bin](example.com)',
     ],
   })
+
+  checkIt('should not allow mailto protocol', {
+    true: [],
+    false: ['mailto:admin@example.com'],
+  })
 })
