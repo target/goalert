@@ -93,7 +93,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewBuffer(data))
+	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
