@@ -40,6 +40,7 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyUser, dataloader.NewUserLoader(ctx, a.UserStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyCM, dataloader.NewCMLoader(ctx, a.CMStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewNotificationMessageStatusLoader(ctx, a.NotificationStore))
+	ctx = context.WithValue(ctx, dataLoaderKeyHeartbeatMonitor, dataloader.NewHeartbeatMonitorLoader(ctx, a.HeartbeatStore))
 	return ctx
 }
 
