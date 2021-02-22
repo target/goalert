@@ -246,6 +246,7 @@ func (a *App) Handler() http.Handler {
 		}
 
 		ctx = a.registerLoaders(ctx)
+		defer a.closeLoaders(ctx)
 
 		h.ServeHTTP(w, req.WithContext(ctx))
 	})

@@ -2,6 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
+	"io"
 
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/dataloader"
@@ -20,7 +21,9 @@ import (
 type dataLoaderKey int
 
 const (
-	dataLoaderKeyAlert = dataLoaderKey(iota)
+	dataLoaderKeyUnknown = dataLoaderKey(iota)
+
+	dataLoaderKeyAlert
 	dataLoaderKeyEP
 	dataLoaderKeyRotation
 	dataLoaderKeySchedule
@@ -29,6 +32,8 @@ const (
 	dataLoaderKeyCM
 	dataLoaderKeyHeartbeatMonitor
 	dataLoaderKeyNotificationMessageStatus
+
+	dataLoaderKeyLast // always keep as last
 )
 
 func (a *App) registerLoaders(ctx context.Context) context.Context {
@@ -42,6 +47,15 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, dataLoaderKeyNotificationMessageStatus, dataloader.NewNotificationMessageStatusLoader(ctx, a.NotificationStore))
 	ctx = context.WithValue(ctx, dataLoaderKeyHeartbeatMonitor, dataloader.NewHeartbeatMonitorLoader(ctx, a.HeartbeatStore))
 	return ctx
+}
+func (a *App) closeLoaders(ctx context.Context) {
+	for key := dataLoaderKeyUnknown; key < dataLoaderKeyLast; key++ {
+		loader, ok := ctx.Value(key).(io.Closer)
+		if !ok {
+			continue
+		}
+		loader.Close()
+	}
 }
 
 func (app *App) FindOneNotificationMessageStatus(ctx context.Context, id string) (*notification.MessageStatus, error) {
