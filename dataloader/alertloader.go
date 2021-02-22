@@ -2,9 +2,10 @@ package dataloader
 
 import (
 	"context"
-	"github.com/target/goalert/alert"
 	"strconv"
 	"time"
+
+	"github.com/target/goalert/alert"
 )
 
 type AlertLoader struct {
@@ -31,6 +32,12 @@ func NewAlertLoader(ctx context.Context, store alert.Store) *AlertLoader {
 		FetchFunc: p.fetchAlertsState,
 	})
 	return p
+}
+
+func (l *AlertLoader) Close() error {
+	l.alertLoader.Close()
+	l.stateLoader.Close()
+	return nil
 }
 
 func (l *AlertLoader) FetchOneAlert(ctx context.Context, id int) (*alert.Alert, error) {

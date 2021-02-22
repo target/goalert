@@ -2,6 +2,7 @@ package dataloader
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"go.opencensus.io/trace"
@@ -29,27 +30,40 @@ type loaderEntry struct {
 	data interface{}
 }
 type loader struct {
-	ctx context.Context
+	ctx    context.Context
+	cancel func()
 
-	cfg    loaderConfig
-	cache  map[string]*loaderEntry
-	err    error
-	doneCh chan struct{}
+	cfg   loaderConfig
+	cache map[string]*loaderEntry
+	err   error
+
+	start sync.Once
 
 	reqCh chan loaderReq
 }
 
 func newLoader(ctx context.Context, cfg loaderConfig) *loader {
-	l := &loader{
-		ctx: ctx,
-		cfg: cfg,
+	l := &loader{cfg: cfg}
+	l.ctx, l.cancel = context.WithCancel(ctx)
 
-		cache:  make(map[string]*loaderEntry, cfg.Max),
-		reqCh:  make(chan loaderReq, cfg.Max),
-		doneCh: make(chan struct{}),
-	}
-	go l.loop()
 	return l
+}
+
+func (l *loader) Close() error {
+	// ensure we don't start in the future, ensure cancel is called
+	// before `start.Do` returns if it's the first call.
+	l.start.Do(l.cancel)
+
+	// always call l.cancel
+	l.cancel()
+
+	return nil
+}
+
+func (l *loader) init() {
+	l.cache = make(map[string]*loaderEntry, l.cfg.Max)
+	l.reqCh = make(chan loaderReq, l.cfg.Max)
+	go l.loop()
 }
 
 // load will perform a batch load for a list of entries
@@ -149,14 +163,6 @@ func (l *loader) loop() {
 			batch = l.load(batch)
 			timerStart = false
 		case <-l.ctx.Done():
-			// context expired, return err for all new requests
-			l.err = l.ctx.Err()
-			close(l.doneCh)
-			for _, b := range batch {
-				// return err for all pending requests
-				b.err = l.err
-				close(b.done)
-			}
 			return
 		case req = <-l.reqCh:
 			e, isNew := l.entry(req)
@@ -191,6 +197,13 @@ func (l *loader) loop() {
 }
 
 func (l *loader) FetchOne(ctx context.Context, id string) (interface{}, error) {
+	l.start.Do(l.init)
+	select {
+	case <-l.ctx.Done():
+		return nil, l.ctx.Err()
+	default:
+	}
+
 	req := loaderReq{
 		id: id,
 		// We use a buffered channel so we don't have anything block if we jump out
@@ -203,8 +216,8 @@ func (l *loader) FetchOne(ctx context.Context, id string) (interface{}, error) {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case l.reqCh <- req:
-	case <-l.doneCh:
-		return nil, l.err
+	case <-l.ctx.Done():
+		return nil, l.ctx.Err()
 	}
 
 	// Wait for context, or the loaderEntry associated with our request.
@@ -213,6 +226,8 @@ func (l *loader) FetchOne(ctx context.Context, id string) (interface{}, error) {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case resp = <-req.ch:
+	case <-l.ctx.Done():
+		return nil, l.ctx.Err()
 	}
 
 	// Wait for context, or confirmation that our entry has finished loading.
@@ -220,6 +235,8 @@ func (l *loader) FetchOne(ctx context.Context, id string) (interface{}, error) {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	case <-resp.done:
+	case <-l.ctx.Done():
+		return nil, l.ctx.Err()
 	}
 
 	return resp.data, resp.err
