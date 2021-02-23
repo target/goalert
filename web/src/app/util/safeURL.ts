@@ -4,7 +4,12 @@
 export function safeURL(url: string, label: string): boolean {
   if (url.startsWith('mailto:')) {
     const email = url.substr(7)
-    return email.includes('@') && email === label
+    return email === label && email.includes('@')
+  }
+
+  if (url.startsWith('tel:')) {
+    const phone = url.substr(4)
+    return phone === label && /^\+?[\d\- ]+$/.test(phone)
   }
 
   // handle http protocols
