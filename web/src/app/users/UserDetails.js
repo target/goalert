@@ -198,6 +198,8 @@ export default function UserDetails(props) {
       <DetailsPage
         title={user.name + (svcCount ? ' (On-Call)' : '')}
         details={user.email}
+        noMarkdown
+        detailsStyles={{ marginBottom: '1rem' }}
         icon={
           <React.Fragment>
             <UserAvatar

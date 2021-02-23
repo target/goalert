@@ -153,8 +153,9 @@ export default function DetailsPage(props) {
                   data-cy='details'
                   variant='subtitle1'
                   component='div'
+                  style={props.detailsStyles}
                 >
-                  <Markdown value={details} />
+                  {props.noMarkdown ? details : <Markdown value={details} />}
                 </Typography>
                 {titleFooter && (
                   <Typography
@@ -195,6 +196,8 @@ export default function DetailsPage(props) {
 DetailsPage.propTypes = {
   title: p.string,
   details: p.string,
+  noMarkdown: p.bool,
+  detailsStyles: p.object,
 
   notices: p.arrayOf(
     p.shape({
@@ -209,4 +212,9 @@ DetailsPage.propTypes = {
 
   titleFooter: p.any,
   pageFooter: p.any,
+}
+
+DetailsPage.defaultProps = {
+  noMarkdown: false,
+  detailsStyles: {},
 }
