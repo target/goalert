@@ -252,6 +252,7 @@ func (a *App) Handler() http.Handler {
 		}
 
 		ctx = a.registerLoaders(ctx)
+		defer a.closeLoaders(ctx)
 
 		if req.URL.Query().Get("trace") == "1" && permission.Admin(ctx) {
 			ctx = context.WithValue(ctx, hasTraceKey(1), true)
