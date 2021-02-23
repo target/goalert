@@ -196,6 +196,32 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 	return base.String()
 }
 
+//  MatchURL will compare two url strings and will return true if they match.
+func MatchURL(baseURL, testURL string) (bool, error) {
+
+	base, err := url.Parse(baseURL)
+
+	if err != nil {
+		return false, err
+	}
+
+	test, err := url.Parse(testURL)
+
+	if err != nil {
+		return false, err
+	}
+
+	// ignore auth info
+	test.User = nil
+	base.User = nil
+
+	if !strings.EqualFold(base.Scheme, test.Scheme) {
+		return false, errors.New("url schemes do not match")
+	}
+
+	return true, nil
+}
+
 // ValidWebhookURL returns true if the URL is an allowed webhook source.
 func (cfg Config) ValidWebhookURL(whURL string) bool {
 	if len(cfg.Webhook.AllowedURLs) == 0 {
