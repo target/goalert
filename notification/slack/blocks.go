@@ -9,7 +9,15 @@ import (
 )
 
 func AlertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
-	txt := fmt.Sprintf("%d: %s", id, status)
+	var s string
+	if status == "triggered" {
+		s = "Unacknowledged"
+	} else if status == "active" {
+		s = "Acknowledged"
+	} else {
+		s = "Closed"
+	}
+	txt := fmt.Sprintf("%d: %s", id, s)
 	summaryText := slack.NewTextBlockObject("plain_text", txt, false, false)
 	return slack.NewHeaderBlock(summaryText)
 }
@@ -19,9 +27,9 @@ func AlertSummarySection(summary string) *slack.SectionBlock {
 	return slack.NewSectionBlock(summaryText, nil, nil)
 }
 
-func ackButton(alertID string) *slack.ButtonBlockElement {
+func ackButton(alertID string) slack.ButtonBlockElement {
 	txt := slack.NewTextBlockObject("plain_text", "Acknowledge :eyes:", true, false)
-	return slack.NewButtonBlockElement("ack", alertID, txt)
+	return *slack.NewButtonBlockElement("ack", alertID, txt)
 }
 
 func escButton(alertID string) *slack.ButtonBlockElement {
@@ -39,40 +47,19 @@ func openLinkButton(url string) *slack.ButtonBlockElement {
 	return slack.NewButtonBlockElement("openLink", url, txt)
 }
 
-func AlertActionsOnCreate(id int, url string) *slack.ActionBlock {
-	value := strconv.Itoa(id)
-
-	blocks := []slack.BlockElement{
-		ackButton(value),
-		escButton(value),
-		closeButton(value),
-		openLinkButton(url),
-	}
-
-	return slack.NewActionBlock("", blocks...)
-}
-
 // AlertActionsOnUpdate handles returning the block actions for an alert message
 // within Slack. The alert a parameter represents the state of the alert after
 // the action has been processed.
-func AlertActionsOnUpdate(a alert.Alert, url string) *slack.ActionBlock {
-	var buttons = make([]slack.BlockElement, 4)
-	alertID := strconv.Itoa(a.ID)
+func AlertActionsOnUpdate(a int, status alert.Status, url string) *slack.ActionBlock {
+	alertID := strconv.Itoa(a)
 
-	if a.Status == alert.StatusTriggered {
-		buttons = append(buttons, ackButton(alertID))
+	if status == alert.StatusTriggered {
+		return slack.NewActionBlock("", ackButton(alertID), escButton(alertID), closeButton(alertID), openLinkButton(url))
+	} else if status == alert.StatusActive {
+		return slack.NewActionBlock("", escButton(alertID), closeButton(alertID), openLinkButton(url))
+	} else {
+		return slack.NewActionBlock("", openLinkButton(url))
 	}
-	if a.Status == alert.StatusTriggered || a.Status == alert.StatusActive {
-		buttons = append(buttons, escButton(alertID))
-	}
-	if a.Status == alert.StatusTriggered || a.Status == alert.StatusActive {
-		buttons = append(buttons, closeButton(alertID))
-	}
-	if url != "" {
-		buttons = append(buttons, openLinkButton(url))
-	}
-
-	return slack.NewActionBlock("", buttons...)
 }
 
 func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {

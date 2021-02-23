@@ -12,6 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
+	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
@@ -296,9 +297,9 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 		// blockkit elements
 		slack.MsgOptionBlocks(
-			AlertIDAndStatusSection(alertID, "unacknowledged"),
+			AlertIDAndStatusSection(alertID, "triggered"),
 			AlertSummarySection(summaryText),
-			AlertActionsOnCreate(alertID, cfg.CallbackURL("/alerts/"+strconv.Itoa(alertID))),
+			AlertActionsOnUpdate(alertID, alert.StatusTriggered, cfg.CallbackURL("/alerts/"+strconv.Itoa(alertID))),
 		),
 	)
 
