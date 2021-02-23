@@ -282,9 +282,11 @@ func (cfg Config) ValidWebhookURL(whURL string) bool {
 		return true
 	}
 	for _, u := range cfg.Webhook.AllowedURLs {
-		if strings.HasPrefix(whURL, u) {
-			return true
+		matched, err := MatchURL(whURL, u)
+		if err != nil {
+			return false
 		}
+		return matched
 	}
 	return false
 }
@@ -304,13 +306,19 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 		// just ensure ref is same host/scheme as req
 		u.Path = ""
 		u.RawQuery = ""
-		return strings.HasPrefix(ref, u.String())
+		matched, err := MatchURL(u.String(), ref)
+		if err != nil {
+			return false
+		}
+		return matched
 	}
 
 	for _, u := range cfg.Auth.RefererURLs {
-		if strings.HasPrefix(ref, u) {
-			return true
+		matched, err := MatchURL(u, ref)
+		if err != nil {
+			return false
 		}
+		return matched
 	}
 
 	return false
