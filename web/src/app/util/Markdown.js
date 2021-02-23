@@ -16,12 +16,6 @@ export default function Markdown(props) {
         if (node.type !== 'link') return true
         if (node.children[0].type !== 'text') return true // only validate text labels
         if (safeURL(node.url, node.children[0].value)) return true
-        if (node.url.startsWith('mailto:')) {
-          // do not yield native mailto link, use plain text instead
-          node.type = 'text'
-          delete node.url
-          return true
-        }
 
         // unsafe URL, or mismatched label, render as text
         node.type = 'text'
