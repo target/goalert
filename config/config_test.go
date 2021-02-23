@@ -6,6 +6,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMatchURL(t *testing.T) {
+	val, err := MatchURL("http://example.com/", "HTTP://example.COM")
+	assert.True(t, val)
+	assert.Nil(t, err)
+
+	val, err = MatchURL("http://example.com/", "HTTP://foo:bar@example.COM:80")
+	assert.True(t, val)
+	assert.Nil(t, err)
+
+	val, err = MatchURL("http://example.com/?notAllowedQueryParam=&requiredQueryParam=1", "http://example.com?requiredQueryParam=1")
+	assert.True(t, val)
+	assert.Nil(t, err)
+
+	val, err = MatchURL("http://example.com/?notAllowedQueryParam=&requiredQueryParam=1", "http://example.com")
+	assert.False(t, val)
+	assert.Error(t, err)
+
+	val, err = MatchURL("http://example.com/?notAllowedQueryParam=", "http://example.com?notAllowedQueryParam=1")
+	assert.False(t, val)
+	assert.Error(t, err)
+
+	val, err = MatchURL("https://example.com", "http://example.com")
+	assert.False(t, val)
+	assert.Error(t, err)
+
+}
+
 func TestValidWebhookURL(t *testing.T) {
 	var cfg Config
 	// tests when allowedURLs is empty
