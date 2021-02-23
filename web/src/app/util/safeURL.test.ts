@@ -63,7 +63,7 @@ describe('safeURL', () => {
     ],
   })
 
-  checkIt('should not allow mailto protocol', {
+  checkIt('should require email to match label', {
     true: ['[admin@example.com](mailto:admin@example.com)'],
     false: ['[admin@example.com](mailto:admin@malware.com)'],
   })
