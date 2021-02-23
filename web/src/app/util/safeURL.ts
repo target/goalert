@@ -3,7 +3,7 @@
 // It tries to determine if the label is misleading.
 export function safeURL(url: string, label: string): boolean {
   if (url.startsWith('mailto:')) {
-    const email = url.split(':')[1]
+    const email = url.substr(7)
     return email.includes('@') && email === label
   }
 
