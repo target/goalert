@@ -198,6 +198,15 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 
 //  MatchURL will compare two url strings and will return true if they match.
 func MatchURL(baseURL, testURL string) (bool, error) {
+	ignoreImplicitPorts := func(urlString *url.URL) bool {
+		if strings.EqualFold(urlString.Scheme, "http") && urlString.Port() == "80" {
+			return true
+		}
+		if strings.EqualFold(urlString.Scheme, "https") && urlString.Port() == "443" {
+			return true
+		}
+		return false
+	}
 
 	base, err := url.Parse(baseURL)
 
@@ -215,9 +224,26 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 	test.User = nil
 	base.User = nil
 
+	// use full host that includes port by default, i.e example.com:8080
+	baseHost := base.Host
+	testHost := test.Host
+
+	// if ignoreImplicitPorts, use host ignoring port, i.e. example.com
+	if ignoreImplicitPorts(base) {
+		baseHost = base.Hostname()
+	}
+	if ignoreImplicitPorts(test) {
+		testHost = test.Hostname()
+	}
+
 	// scheme check
 	if !strings.EqualFold(base.Scheme, test.Scheme) {
 		return false, errors.New("url schemes do not match")
+	}
+
+	// host/port check
+	if !strings.EqualFold(baseHost, testHost) {
+		return false, errors.New("url hosts/ports do not match")
 	}
 
 	// path check
