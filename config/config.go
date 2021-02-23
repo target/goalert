@@ -215,8 +215,14 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 	test.User = nil
 	base.User = nil
 
+	// scheme check
 	if !strings.EqualFold(base.Scheme, test.Scheme) {
 		return false, errors.New("url schemes do not match")
+	}
+
+	// path check
+	if len(base.Path) > 1 && !strings.HasPrefix(test.Path, base.Path) {
+		return false, errors.New("url path does not match")
 	}
 
 	return true, nil
