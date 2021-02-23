@@ -198,6 +198,18 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 
 //  MatchURL will compare two url strings and will return true if they match.
 func MatchURL(baseURL, testURL string) (bool, error) {
+	compareQueryStrings := func (queryStr1, queryStr2 url.Values) bool {
+		for query, param := range queryStr1 {
+			if len(param[0]) > 0 {
+				val, ok := queryStr2[query]
+				if !ok || param[0] != val[0] {
+					return false
+				}
+			}
+		}
+		return true
+	}
+
 	ignoreImplicitPorts := func(urlString *url.URL) bool {
 		if strings.EqualFold(urlString.Scheme, "http") && urlString.Port() == "80" {
 			return true
@@ -249,6 +261,16 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 	// path check
 	if len(base.Path) > 1 && !strings.HasPrefix(test.Path, base.Path) {
 		return false, errors.New("url path does not match")
+	}
+
+	// query check
+	if len(test.Query()) > 0 || len(base.Query()) > 0 {
+		if !compareQueryStrings(test.Query(), base.Query()) {
+			return false, errors.New("url required queries do not match")
+		}
+		if !compareQueryStrings(base.Query(), test.Query()) {
+			return false, errors.New("url required queries do not match")
+		}
 	}
 
 	return true, nil
