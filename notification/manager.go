@@ -67,6 +67,23 @@ func (m *Manager) Shutdown(context.Context) error {
 func (m *Manager) senderLoop(s *namedSender) {
 	defer m.shutdownWg.Done()
 
+	responder, _ := s.Sender.(Responder)
+	updater, _ := s.Sender.(StatusUpdater)
+	if responder == nil && updater == nil {
+		// nothing to do
+		return
+	}
+
+	var respCh <-chan *MessageResponse
+	if responder != nil {
+		respCh = responder.ListenResponse()
+	}
+
+	var statCh <-chan *MessageStatus
+	if updater != nil {
+		statCh = updater.ListenStatus()
+	}
+
 	handleResponse := func(resp *MessageResponse) {
 		ctx, sp := bgSpan(resp.Ctx, "NotificationManager.Response")
 		cpy := *resp
@@ -79,15 +96,9 @@ func (m *Manager) senderLoop(s *namedSender) {
 
 	for {
 		select {
-		case resp := <-s.ListenResponse():
+		case resp := <-respCh:
 			handleResponse(resp)
-		default:
-		}
-
-		select {
-		case resp := <-s.ListenResponse():
-			handleResponse(resp)
-		case stat := <-s.ListenStatus():
+		case stat := <-statCh:
 			ctx, sp := bgSpan(stat.Ctx, "NotificationManager.StatusUpdate")
 			m.updateStatus(ctx, stat.wrap(ctx, s))
 			sp.End()
@@ -98,15 +109,20 @@ func (m *Manager) senderLoop(s *namedSender) {
 }
 
 // Status will return the current status of a message.
-func (m *Manager) Status(ctx context.Context, id, providerMsgID string) (*MessageStatus, error) {
+func (mgr *Manager) Status(ctx context.Context, id, providerMsgID string) (*MessageStatus, error) {
 	parts := strings.SplitN(providerMsgID, ":", 2)
 	if len(parts) != 2 {
 		return nil, errors.Errorf("invalid provider message ID '%s'", providerMsgID)
 	}
 
-	provider := m.providers[parts[0]]
+	provider := mgr.providers[parts[0]]
 	if provider == nil {
 		return nil, errors.Errorf("unknown provider ID '%s'", parts[0])
+	}
+
+	checker, ok := provider.Sender.(StatusChecker)
+	if !ok {
+		return nil, errors.New("status check unsupported")
 	}
 
 	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Status")
@@ -115,7 +131,7 @@ func (m *Manager) Status(ctx context.Context, id, providerMsgID string) (*Messag
 		trace.StringAttribute("provider.message.id", parts[1]),
 	)
 	defer sp.End()
-	stat, err := provider.Status(ctx, id, parts[1])
+	stat, err := checker.Status(ctx, id, parts[1])
 	if stat != nil {
 		stat = stat.wrap(ctx, provider)
 	}
@@ -124,7 +140,7 @@ func (m *Manager) Status(ctx context.Context, id, providerMsgID string) (*Messag
 
 // RegisterSender will register a sender under a given DestType and name.
 // A sender for the same name and type will replace an existing one, if any.
-func (m *Manager) RegisterSender(t DestType, name string, s SendResponder) {
+func (m *Manager) RegisterSender(t DestType, name string, s Sender) {
 	m.mx.Lock()
 	defer m.mx.Unlock()
 
@@ -137,7 +153,7 @@ func (m *Manager) RegisterSender(t DestType, name string, s SendResponder) {
 		s = stubSender{}
 	}
 
-	n := &namedSender{name: name, SendResponder: s, destType: t}
+	n := &namedSender{name: name, Sender: s, destType: t}
 	m.providers[name] = n
 	m.searchOrder = append(m.searchOrder, n)
 	m.shutdownWg.Add(1)

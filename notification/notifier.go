@@ -31,15 +31,20 @@ type Sender interface {
 	// Send should return nil if the notification was sent successfully. It should be expected
 	// that a returned error means that the notification should be attempted again.
 	Send(context.Context, Message) (*MessageStatus, error)
-
-	Status(ctx context.Context, id, providerID string) (*MessageStatus, error)
 }
 
-// A SendResponder can send messages and provide status and responses
-type SendResponder interface {
-	Sender
+// A StatusChecker allows checking the status of a sent message.
+type StatusChecker interface {
+	Status(ctx context.Context, messageID, providerMessageID string) (*MessageStatus, error)
+}
 
+// StatusUpdater will provide status updates for messages.
+type StatusUpdater interface {
 	ListenStatus() <-chan *MessageStatus
+}
+
+// A Responder will provide message responses.
+type Responder interface {
 	ListenResponse() <-chan *MessageResponse
 }
 
