@@ -35,7 +35,6 @@ type loader struct {
 
 	cfg   loaderConfig
 	cache map[string]*loaderEntry
-	err   error
 
 	start sync.Once
 
