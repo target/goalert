@@ -14,7 +14,12 @@ import { Shift } from './sharedUtils'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import { DateTime, Interval } from 'luxon'
+import {
+  DateTime,
+  DateTimeFormatOptions,
+  Interval,
+  IntervalObject,
+} from 'luxon'
 import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
@@ -72,11 +77,20 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
+    type SortedShift = {
+      shift: Shift
+      start: DateTime
+      end: DateTime
+      added: boolean
+      interval: Interval
+      isValid: boolean
+    }
+
+    const sortedShifts: SortedShift[] = _.sortBy(_shifts, 'start').map((s) => ({
       shift: s,
-      added: false,
       start: DateTime.fromISO(s.start, { zone }),
       end: DateTime.fromISO(s.end, { zone }),
+      added: false,
       interval: Interval.fromDateTimes(
         DateTime.fromISO(s.start, { zone }),
         DateTime.fromISO(s.end, { zone }),
@@ -84,14 +98,18 @@ export default function TempSchedShiftsList({
       isValid: schedInterval.engulfs(parseInterval(s)),
     }))
 
-    const firstShift = DateTime.fromISO(sortedShifts[0].shift.start)
-    const lastShift = DateTime.fromISO(
-      sortedShifts[sortedShifts.length - 1].shift.end,
-    )
+    const firstShiftStart = sortedShifts[0].start
+
+    // get farthest out end time
+    // although shifts are sorted, the last shift may not necessarily end last
+    const lastShiftEnd = sortedShifts.reduce(
+      (result, candidate) => (candidate.end > result.end ? candidate : result),
+      sortedShifts[0],
+    ).end
 
     const displaySpan = Interval.fromDateTimes(
-      DateTime.min(schedInterval.start, firstShift).startOf('day'),
-      DateTime.max(schedInterval.end, lastShift).endOf('day'),
+      DateTime.min(schedInterval.start, firstShiftStart).startOf('day'),
+      DateTime.max(schedInterval.end, lastShiftEnd).endOf('day'),
     )
 
     const result: FlatListListItem[] = []
@@ -112,7 +130,7 @@ export default function TempSchedShiftsList({
       })
 
       let dayStart = dayInterval.start
-      if (dayIdx === 0 && firstShift.day === schedInterval.start.day) {
+      if (dayIdx === 0 && firstShiftStart.day === schedInterval.start.day) {
         dayStart = schedInterval.start
       }
 
@@ -251,7 +269,7 @@ export default function TempSchedShiftsList({
         let dayEnd = dayInterval.end
         if (
           dayIdx === days.length - 1 &&
-          lastShift.day === schedInterval.end.day
+          lastShiftEnd.day === schedInterval.end.day
         ) {
           dayEnd = schedInterval.end
         }
