@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
 import List, { ListProps } from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -177,7 +177,7 @@ export default function FlatList({
       }
       return (
         <CSSTransition
-          key={item.id}
+          key={idx}
           timeout={500}
           classNames={{
             enter: classes.slideEnter,

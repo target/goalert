@@ -122,7 +122,7 @@ export default function TempSchedShiftsList({
         result.push({
           render: () => (
             <Alert
-              key='start'
+              key={'start-' + dayStart.millisecond}
               className={classes.alert}
               severity='success'
               icon={<ScheduleIcon />}
@@ -141,7 +141,7 @@ export default function TempSchedShiftsList({
         return result.push({
           render: () => (
             <Alert
-              key={dayInterval.start.toISO() + '-no-coverage'}
+              key={dayStart.millisecond + '-no-coverage'}
               className={classes.alert}
               severity='warning'
             >
@@ -162,7 +162,7 @@ export default function TempSchedShiftsList({
           result.push({
             render: () => (
               <Alert
-                key={dayStart.toISO() + '-no-start-coverage'}
+                key={s.start.millisecond + '-no-start-coverage'}
                 className={classes.alert}
                 severity='warning'
               >
@@ -233,7 +233,7 @@ export default function TempSchedShiftsList({
           result.push({
             render: () => (
               <Alert
-                key={s.end.toISO() + '-no-middle-coverage'}
+                key={s.end.millisecond + '-no-middle-coverage'}
                 className={classes.alert}
                 severity='warning'
               >
@@ -263,7 +263,7 @@ export default function TempSchedShiftsList({
           result.push({
             render: () => (
               <Alert
-                key={dayEnd.toISO() + '-no-end-coverage'}
+                key={s.end.millisecond + '-no-end-coverage'}
                 className={classes.alert}
                 severity='warning'
               >
