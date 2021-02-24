@@ -44,7 +44,9 @@ func closeButton(alertID string) *slack.ButtonBlockElement {
 
 func openLinkButton(url string) *slack.ButtonBlockElement {
 	txt := slack.NewTextBlockObject("plain_text", "Open in GoAlert :link:", true, false)
-	return slack.NewButtonBlockElement("openLink", url, txt)
+	s := slack.NewButtonBlockElement("openLink", "", txt)
+	s.URL = url
+	return s
 }
 
 // AlertActionsOnUpdate handles returning the block actions for an alert message

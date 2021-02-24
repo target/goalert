@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/slack-go/slack"
@@ -116,49 +115,48 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		var api = slack.New(cfg.Slack.AccessToken)
 
 		for _, action := range payload.ActionCallback.BlockActions {
-			if !strings.Contains(action.Value, "https") {
+			if action.ActionID == "openLink" {
+				return
+			}
+			alertID, err := strconv.Atoi(action.Value)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+				fmt.Println("Error: ", err)
+				return
+			}
 
-				alertID, err := strconv.Atoi(action.Value)
-				if err != nil {
-					http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-					fmt.Println("Error: ", err)
-					return
-				}
+			switch action.ActionID {
+			case "ack":
+				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
+				writeHTTPErr(err)
+			case "esc":
+				err := h.c.AlertStore.Escalate(ctx, alertID)
+				writeHTTPErr(err)
+			case "close":
+				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
+				writeHTTPErr(err)
+			}
 
-				switch action.ActionID {
-				case "ack":
-					err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
-					writeHTTPErr(err)
-				case "esc":
-					err := h.c.AlertStore.Escalate(ctx, alertID)
-					writeHTTPErr(err)
-				case "close":
-					err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
-					writeHTTPErr(err)
-				case "openLink":
-				}
+			a, err := h.c.AlertStore.FindOne(ctx, alertID)
+			if err != nil {
+				fmt.Println("alertStore:", err)
+			}
 
-				a, err := h.c.AlertStore.FindOne(ctx, alertID)
-				if err != nil {
-					fmt.Println("alertStore:", err)
-				}
+			var msgOpt []slack.MsgOption
+			msgOpt = append(msgOpt,
+				// desktop notification text
+				slack.MsgOptionText(a.Summary, false),
 
-				var msgOpt []slack.MsgOption
-				msgOpt = append(msgOpt,
-					// desktop notification text
-					slack.MsgOptionText(a.Summary, false),
-
-					slack.MsgOptionBlocks(
-						AlertIDAndStatusSection(alertID, string(a.Status)),
-						AlertSummarySection(a.Summary),
-						AlertActionsOnUpdate(alertID, a.Status, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID))),
-					),
-				)
-				// todo: may need switch statement to handle all actions
-				_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msgOpt...)
-				if e != nil {
-					fmt.Println(e)
-				}
+				slack.MsgOptionBlocks(
+					AlertIDAndStatusSection(alertID, string(a.Status)),
+					AlertSummarySection(a.Summary),
+					AlertActionsOnUpdate(alertID, a.Status, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID))),
+				),
+			)
+			// todo: may need switch statement to handle all actions
+			_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msgOpt...)
+			if e != nil {
+				fmt.Println(e)
 			}
 		}
 	}
