@@ -72,33 +72,30 @@ export default function TempSchedDialog({
     key: number
   }
   function renderSlide({ index, key }: SlideRenderer): ReactNode {
-    switch (index) {
-      case 0:
-        return (
-          <TempSchedTimesStep
-            key={key}
-            stepText='STEP 1 OF 2'
-            scheduleID={scheduleID}
-            value={value}
-            edit={edit}
-          />
-        )
-      case 1:
-        return (
-          <TempSchedAddShiftsStep
-            key={key}
-            value={value.shifts}
-            onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
-            stepText={edit ? '' : 'STEP 2 OF 2'}
-            scheduleID={scheduleID}
-            start={value.start}
-            end={value.end}
-            edit={edit}
-          />
-        )
-      default:
-        return null
+    if (index === 1) {
+      return (
+        <TempSchedAddShiftsStep
+          key={key}
+          value={value.shifts}
+          onChange={(shifts: Shift[]) => setValue({ ...value, shifts })}
+          stepText={edit ? '' : 'STEP 2 OF 2'}
+          scheduleID={scheduleID}
+          start={value.start}
+          end={value.end}
+          edit={edit}
+        />
+      )
     }
+
+    return (
+      <TempSchedTimesStep
+        key={key}
+        stepText='STEP 1 OF 2'
+        scheduleID={scheduleID}
+        value={value}
+        edit={edit}
+      />
+    )
   }
 
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
