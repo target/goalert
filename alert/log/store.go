@@ -301,6 +301,10 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			switch ncType {
 			case notificationchannel.TypeSlack:
 				r.subject.classifier = "Slack"
+				var c sql.NullString
+				c.String = "Puppies!"
+				c.Valid = true
+				r.subject.channelName = c
 			}
 			r.subject.channelID.String = src.ID
 			r.subject.channelID.Valid = true

@@ -15,6 +15,7 @@ import (
 
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
+	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 )
@@ -125,10 +126,16 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				return
 			}
 
+			//channelName := payload.Channel.Name
+
 			switch action.ActionID {
 			case "ack":
 				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 				writeHTTPErr(err)
+				err = h.c.AlertLogStore.Log(ctx, alertID, alertlog.TypeAcknowledged, "")
+				if err != nil {
+					fmt.Println(err)
+				}
 			case "esc":
 				err := h.c.AlertStore.Escalate(ctx, alertID)
 				writeHTTPErr(err)
