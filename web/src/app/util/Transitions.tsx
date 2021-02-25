@@ -9,6 +9,7 @@ export const DefaultTransition = React.forwardRef(
     </Fade>
   ),
 )
+DefaultTransition.displayName = 'DefaultTransition'
 
 export const FullscreenTransition = React.forwardRef(
   ({ children, ...props }, ref) => (
@@ -17,6 +18,7 @@ export const FullscreenTransition = React.forwardRef(
     </Slide>
   ),
 )
+FullscreenTransition.displayName = 'FullscreenTransition'
 
 export const FullscreenExpansion = React.forwardRef(
   ({ children, ...props }, ref) => (
@@ -25,3 +27,4 @@ export const FullscreenExpansion = React.forwardRef(
     </Slide>
   ),
 )
+FullscreenExpansion.displayName = 'FullscreenExpansion'
