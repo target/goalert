@@ -14,12 +14,7 @@ import { Shift } from './sharedUtils'
 import FlatList, { FlatListListItem } from '../../lists/FlatList'
 import { UserAvatar } from '../../util/avatars'
 import { useUserInfo } from '../../util/useUserInfo'
-import {
-  DateTime,
-  DateTimeFormatOptions,
-  Interval,
-  IntervalObject,
-} from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import { useURLParam } from '../../actions'
 import { relativeDate } from '../../util/timeFormat'
 import { styles } from '../../styles/materialStyles'
@@ -215,7 +210,7 @@ export default function TempSchedShiftsList({
 
         result.push({
           id: s.shift.userID + dayIdx.toString(),
-          title: s.shift.user.name,
+          title: s.shift.user?.name,
           subText: shiftDetails,
           icon: <UserAvatar userID={s.shift.userID} />,
           secondaryAction: s.added ? null : (
