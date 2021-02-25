@@ -52,6 +52,7 @@ const LazyGARouteTracker = React.memo((props: { trackingID?: string }) => {
 
   return <GoogleAnalytics.RouteTracker />
 })
+LazyGARouteTracker.displayName = 'LazyGARouteTracker'
 
 ReactDOM.render(
   <MuiThemeProvider theme={theme}>
