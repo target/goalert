@@ -58,6 +58,22 @@ export default function TempSchedShiftsList({
   const schedInterval = parseInterval({ start, end })
 
   function items(): FlatListListItem[] {
+    // render helpful message if interval is invalid
+    // shouldn't ever be seen because of our validation checks, but just in case
+    if (!schedInterval.isValid) {
+      return [
+        {
+          render: () => (
+            <Alert key='no-coverage' className={classes.alert} severity='error'>
+              <AlertTitle>Invalid Start/End</AlertTitle>
+              Oops! There was a problem with the interval selected in step 1.
+              Please try again.
+            </Alert>
+          ),
+        },
+      ]
+    }
+
     // render no coverage/get started below start time if no shifts
     if (!_shifts.length) {
       return [
