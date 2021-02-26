@@ -22,6 +22,7 @@ import (
 	"github.com/target/goalert/service"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
+	"github.com/target/goalert/util/timeutil"
 )
 
 type AlertConnection struct {
@@ -272,10 +273,10 @@ type ScheduleConnection struct {
 }
 
 type ScheduleRuleInput struct {
-	ID            *string     `json:"id"`
-	Start         *rule.Clock `json:"start"`
-	End           *rule.Clock `json:"end"`
-	WeekdayFilter []bool      `json:"weekdayFilter"`
+	ID            *string         `json:"id"`
+	Start         *timeutil.Clock `json:"start"`
+	End           *timeutil.Clock `json:"end"`
+	WeekdayFilter []bool          `json:"weekdayFilter"`
 }
 
 type ScheduleSearchOptions struct {
