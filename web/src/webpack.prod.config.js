@@ -26,10 +26,7 @@ module.exports = (env) => ({
     rules: [
       {
         test: /\.(t|j)sx?$/,
-        use: [
-          'babel-loader',
-          { loader: 'ifdef-loader', options: { production: true } },
-        ],
+        use: ['babel-loader'],
         include: [APP],
       },
       {
@@ -37,7 +34,6 @@ module.exports = (env) => ({
         use: [
           'style-loader',
           { loader: 'css-loader', options: { importLoaders: 1 } },
-          'postcss-loader',
         ],
       },
       {
