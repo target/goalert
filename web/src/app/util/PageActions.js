@@ -55,7 +55,7 @@ export const PageActionProvider = (props) => {
       _pending.current = false
       debouncedSetActions.cancel()
     }
-  })
+  }, [])
 
   return (
     <PageActionsContext.Provider
@@ -85,7 +85,11 @@ const PageActionUpdater = (props) => {
       props.trackMount(false)
       props.setActions(null)
     }
-  })
+  }, [])
+
+  if (_mounted.current) {
+    props.setActions(props.children)
+  }
 
   return null
 }
