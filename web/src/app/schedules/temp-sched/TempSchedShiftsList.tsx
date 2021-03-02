@@ -88,16 +88,7 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    type SortedShift = {
-      shift: Shift
-      start: DateTime
-      end: DateTime
-      added: boolean
-      interval: Interval
-      isValid: boolean
-    }
-
-    const sortedShifts: SortedShift[] = _.sortBy(_shifts, 'start').map((s) => ({
+    const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
       shift: s,
       start: DateTime.fromISO(s.start, { zone }),
       end: DateTime.fromISO(s.end, { zone }),
@@ -166,7 +157,7 @@ export default function TempSchedShiftsList({
 
       // for temp scheds with at least 1 shift
       // render no coverage and continue if no shifts for the given day
-      if (!dayShifts.length && sortedShifts.length) {
+      if (dayShifts.length === 0 && sortedShifts.length > 0) {
         return result.push({
           render: () => (
             <Alert
