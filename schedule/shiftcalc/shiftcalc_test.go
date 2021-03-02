@@ -1,12 +1,13 @@
 package shiftcalc
 
 import (
-	"github.com/target/goalert/schedule/rotation"
-	"github.com/target/goalert/schedule/rule"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/target/goalert/schedule/rotation"
+	"github.com/target/goalert/schedule/rule"
+	"github.com/target/goalert/util/timeutil"
 )
 
 func parseDate(t *testing.T, value string) time.Time {
@@ -52,8 +53,8 @@ func TestRuleShifts(t *testing.T) {
 	end := parseDate(t, "Jul 24 11:00AM 2017")
 
 	var r rule.Rule
-	r.Start = rule.NewClock(8, 0)
-	r.End = rule.NewClock(20, 0)
+	r.Start = timeutil.NewClock(8, 0)
+	r.End = timeutil.NewClock(20, 0)
 	r.SetDay(time.Friday, true)
 	r.SetDay(time.Saturday, true)
 	r.SetDay(time.Monday, true)
@@ -82,8 +83,8 @@ func TestHistoricalShifts(t *testing.T) {
 	end := parseDate(t, "Aug 24 11:00AM 2018")
 
 	var r rule.Rule
-	r.Start = rule.NewClock(8, 0)
-	r.End = rule.NewClock(20, 0)
+	r.Start = timeutil.NewClock(8, 0)
+	r.End = timeutil.NewClock(20, 0)
 	r.SetDay(time.Sunday, true)
 	r.SetDay(time.Monday, true)
 	r.SetDay(time.Tuesday, true)
