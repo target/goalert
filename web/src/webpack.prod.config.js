@@ -26,7 +26,10 @@ module.exports = (env) => ({
     rules: [
       {
         test: /\.(t|j)sx?$/,
-        use: ['babel-loader'],
+        use: [
+          'babel-loader',
+          { loader: 'ifdef-loader', options: { production: true } },
+        ],
         include: [APP],
       },
       {
