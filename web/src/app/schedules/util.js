@@ -29,7 +29,7 @@ export function parseClock(s, zone) {
     zone,
   })
 
-  return dstWeekOffset(DateTime.utc().setZone('zone').offset, dt)
+  return dstWeekOffset(DateTime.utc().setZone(zone).offset, dt)
 }
 
 export function formatClock(dt) {
