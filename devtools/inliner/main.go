@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -155,7 +154,7 @@ func main() {
 	enc := base64.NewEncoder(base64.URLEncoding, lb)
 	w := gzip.NewWriter(enc)
 	for _, file := range m.Files {
-		data, err := ioutil.ReadFile(file.Path)
+		data, err := os.ReadFile(file.Path)
 		if err != nil {
 			log.Fatalf("read file '%s': %v", file.Path, err)
 		}
@@ -181,7 +180,7 @@ func main() {
 			log.Fatal("format:", err)
 		}
 
-		err = ioutil.WriteFile(filename, data, 0644)
+		err = os.WriteFile(filename, data, 0644)
 		if err != nil {
 			log.Fatal("save:", err)
 		}

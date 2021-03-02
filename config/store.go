@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 	"sync"
@@ -159,7 +159,7 @@ func (s *Store) ServeConfig(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	case "PUT":
-		data, err := ioutil.ReadAll(req.Body)
+		data, err := io.ReadAll(req.Body)
 		if errutil.HTTPError(ctx, w, err) {
 			return
 		}
