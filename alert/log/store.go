@@ -296,6 +296,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			var name string
 			err = txWrap(ctx, tx, db.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
 			if err != nil {
+				// error here
 				return errors.Wrap(err, "lookup contact method type for callback ID")
 			}
 

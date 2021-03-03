@@ -127,6 +127,11 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			}
 
 			//channelName := payload.Channel.Name
+			ctx = permission.SourceContext(ctx, &permission.SourceInfo{
+				Type: permission.SourceTypeNotificationChannel,
+				// to convert to UUID
+				ID: payload.Channel.ID,
+			})
 
 			switch action.ActionID {
 			case "ack":
