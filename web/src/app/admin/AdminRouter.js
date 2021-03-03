@@ -7,7 +7,7 @@ import AdminToolbox from './AdminToolbox'
 import { useSessionInfo } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
 
-export function AdminRouter() {
+function AdminRouter() {
   const { isAdmin, ready } = useSessionInfo()
   if (!ready) {
     return <Spinner />
