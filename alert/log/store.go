@@ -287,6 +287,7 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 	}
 
 	src := permission.Source(ctx)
+
 	if src != nil {
 		switch src.Type {
 		case permission.SourceTypeNotificationChannel:
