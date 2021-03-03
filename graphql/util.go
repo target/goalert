@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 
 	g "github.com/graphql-go/graphql"
 	"github.com/pkg/errors"
@@ -28,7 +28,7 @@ var HourTime = g.NewScalar(g.ScalarConfig{
 	Name:        "HourTime",
 	Description: "HourTime is a timestamp containing only the hour and minute.",
 	Serialize: func(val interface{}) interface{} {
-		return val.(rule.Clock).String()
+		return val.(timeutil.Clock).String()
 	},
 })
 
