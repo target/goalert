@@ -7,6 +7,7 @@ module.exports = {
     'import',
     'cypress',
     'jsx-a11y',
+    'react',
     'react-hooks',
     'prettier',
     '@typescript-eslint',
@@ -17,6 +18,7 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:import/typescript',
+    'plugin:react/recommended',
     'plugin:cypress/recommended',
     'plugin:jsx-a11y/recommended',
     'plugin:prettier/recommended',
@@ -29,6 +31,7 @@ module.exports = {
     'prettier/prettier': 'error',
     'react-hooks/rules-of-hooks': 'error',
     'react/jsx-fragments': ['error', 'element'],
+    'react/prop-types': 'off',
 
     // handled by prettier
     'react/jsx-curly-newline': 'off',
