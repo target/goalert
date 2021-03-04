@@ -112,6 +112,14 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	}
 
 	process := func(ctx context.Context) {
+		//check if user valid, if ID does not exist return hidden msg with URL button to auth with goalert
+		//if valid, process per usual to send to alert log
+		//toDO: make function to get userID with slackID
+		user, err := h.c.UserStore.FindOneBySlack(ctx, "")
+		if err != nil {
+			writeHTTPErr(err)
+			return
+		}
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
 
@@ -126,11 +134,16 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				return
 			}
 
+			ncID, _, err := h.c.AlertLogStore.FindByValue(ctx, nil, payload.Channel.ID)
+			if err != nil {
+				writeHTTPErr(err)
+			}
+
 			//channelName := payload.Channel.Name
 			ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 				Type: permission.SourceTypeNotificationChannel,
 				// to convert to UUID
-				ID: payload.Channel.ID,
+				ID: ncID,
 			})
 
 			switch action.ActionID {

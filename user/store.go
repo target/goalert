@@ -21,6 +21,7 @@ type Store interface {
 	Delete(context.Context, string) error
 	DeleteManyTx(context.Context, *sql.Tx, []string) error
 	FindOne(context.Context, string) (*User, error)
+	FindOneBySlack(context.Context, string) (*User, error)
 	FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bool) (*User, error)
 	FindAll(context.Context) ([]User, error)
 	FindMany(context.Context, []string) ([]User, error)
@@ -298,6 +299,11 @@ func (db *DB) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bo
 		return nil, err
 	}
 	return &u, nil
+}
+
+// FindOneBySlack implements the Store interface.
+func (db *DB) FindOneBySlack(ctx context.Context, SlackID string) (*User, error) {
+	return nil, nil
 }
 
 // FindSomeAuthSubjectsForProvider implements the Store interface. It finds all auth subjects associated with a given userID.
