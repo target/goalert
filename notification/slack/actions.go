@@ -112,16 +112,22 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 	}
 
 	process := func(ctx context.Context) {
+		cfg := config.FromContext(ctx)
+		var api = slack.New(cfg.Slack.AccessToken)
+
 		//check if user valid, if ID does not exist return hidden msg with URL button to auth with goalert
 		//if valid, process per usual to send to alert log
 		//toDO: make function to get userID with slackID
-		user, err := h.c.UserStore.FindOneBySlack(ctx, "")
+		_, err := h.c.UserStore.FindOneBySlack(ctx, "")
 		if err != nil {
-			writeHTTPErr(err)
+			// return hidden message to slack user
+			var msgOpt []slack.MsgOption
+			msgOpt = append(msgOpt, slack.MsgOptionBlocks(UserAuthMessageBlock()))
+
+			// todo: get this message to show in slack
+			api.SendMessage(payload.Channel.ID, msgOpt...)
 			return
 		}
-		cfg := config.FromContext(ctx)
-		var api = slack.New(cfg.Slack.AccessToken)
 
 		for _, action := range payload.ActionCallback.BlockActions {
 			if action.ActionID == "openLink" {
@@ -138,12 +144,9 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			if err != nil {
 				writeHTTPErr(err)
 			}
-
-			//channelName := payload.Channel.Name
 			ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 				Type: permission.SourceTypeNotificationChannel,
-				// to convert to UUID
-				ID: ncID,
+				ID:   ncID,
 			})
 
 			switch action.ActionID {

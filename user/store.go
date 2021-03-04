@@ -39,11 +39,12 @@ var _ Store = &DB{}
 type DB struct {
 	db *sql.DB
 
-	insert  *sql.Stmt
-	update  *sql.Stmt
-	delete  *sql.Stmt
-	findOne *sql.Stmt
-	findAll *sql.Stmt
+	insert           *sql.Stmt
+	update           *sql.Stmt
+	delete           *sql.Stmt
+	findOne          *sql.Stmt
+	findOneBySlackID *sql.Stmt
+	findAll          *sql.Stmt
 
 	findMany   *sql.Stmt
 	deleteMany *sql.Stmt
@@ -97,6 +98,15 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			FROM users
 			WHERE id = $1
 		`),
+
+		findOneBySlackID: p.P(`
+			SELECT 
+				id, name, email, avatar_url, role, alert_status_log_contact_method_id, su.user_id, su.slack_id
+			FROM users
+			INNER JOIN slack_users su ON id = su.user_id
+			WHERE su.slack_id = $1
+		`),
+
 		findOneForUpdate: p.P(`
 			SELECT
 				id, name, email, avatar_url, role, alert_status_log_contact_method_id
@@ -302,8 +312,20 @@ func (db *DB) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bo
 }
 
 // FindOneBySlack implements the Store interface.
-func (db *DB) FindOneBySlack(ctx context.Context, SlackID string) (*User, error) {
-	return nil, nil
+func (db *DB) FindOneBySlack(ctx context.Context, slackID string) (*User, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return nil, err
+	}
+
+	var u User
+	row := db.findOneBySlackID.QueryRowContext(ctx, slackID)
+	err = u.scanFrom(row.Scan)
+	if err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
 
 // FindSomeAuthSubjectsForProvider implements the Store interface. It finds all auth subjects associated with a given userID.

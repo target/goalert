@@ -69,6 +69,19 @@ func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {
 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
 }
 
+func UserAuthMessageBlock() *slack.SectionBlock {
+	msg := slack.NewTextBlockObject("plain_text", "Please authenticate with GoAlert before continuing", false, false)
+
+	txt := slack.NewTextBlockObject("plain_text", "Authenticate :link:", true, false)
+	btn := slack.NewButtonBlockElement("auth", "", txt)
+
+	btn.URL = "google.com" // slack oauth endpoint
+
+	accessory := slack.NewAccessory(btn)
+
+	return slack.NewSectionBlock(msg, nil, accessory)
+}
+
 // func example() {
 // 	// Shared Assets for example
 // 	chooseBtnText := slack.NewTextBlockObject("plain_text", "Choose", true, false)
