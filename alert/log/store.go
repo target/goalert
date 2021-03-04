@@ -47,11 +47,12 @@ type DB struct {
 	findAllByType *sql.Stmt
 	findOne       *sql.Stmt
 
-	lookupCallbackType *sql.Stmt
-	lookupIKeyType     *sql.Stmt
-	lookupCMType       *sql.Stmt
-	lookupNCTypeName   *sql.Stmt
-	lookupHBInterval   *sql.Stmt
+	lookupCallbackType      *sql.Stmt
+	lookupIKeyType          *sql.Stmt
+	lookupCMType            *sql.Stmt
+	lookupNCTypeName        *sql.Stmt
+	lookupNCTypeNameByValue *sql.Stmt
+	lookupHBInterval        *sql.Stmt
 }
 
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
@@ -69,7 +70,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			select "type" from user_contact_methods where id = $1
 		`),
 		lookupNCTypeName: p.P(`
-			select "type", name from notification_channels where id = $1
+			select type, name from notification_channels where id = $1
+		`),
+		lookupNCTypeNameByValue: p.P(`
+			select type, name from notification_channels where value = $1
 		`),
 		lookupHBInterval: p.P(`
 			select extract(epoch from heartbeat_interval)/60 from heartbeat_monitors where id = $1
@@ -294,10 +298,12 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			r.subject._type = SubjectTypeChannel
 			var ncType notificationchannel.Type
 			var name string
-			err = txWrap(ctx, tx, db.lookupNCTypeName).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
+			err = db.lookupNCTypeName.QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
 			if err != nil {
-				// error here
-				return errors.Wrap(err, "lookup contact method type for callback ID")
+				err = txWrap(ctx, tx, db.lookupNCTypeNameByValue).QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
+				if err != nil {
+					return errors.Wrap(err, "lookup contact method type")
+				}
 			}
 
 			switch ncType {
