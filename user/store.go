@@ -21,7 +21,7 @@ type Store interface {
 	Delete(context.Context, string) error
 	DeleteManyTx(context.Context, *sql.Tx, []string) error
 	FindOne(context.Context, string) (*User, error)
-	FindOneBySlack(context.Context, string) (*User, error)
+	FindOneBySlackUserID(context.Context, string) (*User, error)
 	FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bool) (*User, error)
 	FindAll(context.Context) ([]User, error)
 	FindMany(context.Context, []string) ([]User, error)
@@ -39,12 +39,12 @@ var _ Store = &DB{}
 type DB struct {
 	db *sql.DB
 
-	insert           *sql.Stmt
-	update           *sql.Stmt
-	delete           *sql.Stmt
-	findOne          *sql.Stmt
-	findOneBySlackID *sql.Stmt
-	findAll          *sql.Stmt
+	insert               *sql.Stmt
+	update               *sql.Stmt
+	delete               *sql.Stmt
+	findOne              *sql.Stmt
+	findOneBySlackUserID *sql.Stmt
+	findAll              *sql.Stmt
 
 	findMany   *sql.Stmt
 	deleteMany *sql.Stmt
@@ -99,7 +99,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			WHERE id = $1
 		`),
 
-		findOneBySlackID: p.P(`
+		findOneBySlackUserID: p.P(`
 			SELECT 
 				id, name, email, avatar_url, role, alert_status_log_contact_method_id, su.user_id, su.slack_id
 			FROM users
@@ -312,14 +312,14 @@ func (db *DB) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bo
 }
 
 // FindOneBySlack implements the Store interface.
-func (db *DB) FindOneBySlack(ctx context.Context, slackID string) (*User, error) {
+func (db *DB) FindOneBySlackUserID(ctx context.Context, slackUserID string) (*User, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
 		return nil, err
 	}
 
 	var u User
-	row := db.findOneBySlackID.QueryRowContext(ctx, slackID)
+	row := db.findOneBySlackUserID.QueryRowContext(ctx, slackUserID)
 	err = u.scanFrom(row.Scan)
 	if err != nil {
 		return nil, err

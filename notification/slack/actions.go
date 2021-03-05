@@ -115,20 +115,18 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
 
-		//check if user valid, if ID does not exist return hidden msg with URL button to auth with goalert
-		//if valid, process per usual to send to alert log
-		//toDO: make function to get userID with slackID
-		_, err := h.c.UserStore.FindOneBySlack(ctx, "")
+		// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
+		_, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
 		if err != nil {
-			// return hidden message to slack user
-			var msgOpt []slack.MsgOption
-			msgOpt = append(msgOpt, slack.MsgOptionBlocks(UserAuthMessageBlock()))
-
-			// todo: get this message to show in slack
-			api.SendMessage(payload.Channel.ID, msgOpt...)
+			msg := UserNeedsAuthMessage()
+			_, err := api.PostEphemeral(payload.Channel.ID, payload.User.ID, msg)
+			if err != nil {
+				writeHTTPErr(err)
+			}
 			return
 		}
 
+		// actions may come in batches, range over
 		for _, action := range payload.ActionCallback.BlockActions {
 			if action.ActionID == "openLink" {
 				return
@@ -136,10 +134,10 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			alertID, err := strconv.Atoi(action.Value)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
-				fmt.Println("Error: ", err)
 				return
 			}
 
+			// get channel uuid for context when writing to alert log
 			ncID, _, err := h.c.AlertLogStore.FindByValue(ctx, nil, payload.Channel.ID)
 			if err != nil {
 				writeHTTPErr(err)

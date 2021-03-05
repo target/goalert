@@ -69,40 +69,16 @@ func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {
 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
 }
 
-func UserAuthMessageBlock() *slack.SectionBlock {
+func UserNeedsAuthMessage() slack.MsgOption {
 	msg := slack.NewTextBlockObject("plain_text", "Please authenticate with GoAlert before continuing", false, false)
 
 	txt := slack.NewTextBlockObject("plain_text", "Authenticate :link:", true, false)
 	btn := slack.NewButtonBlockElement("auth", "", txt)
-
-	btn.URL = "google.com" // slack oauth endpoint
-
+	// btn.URL = "google.com" // slack oauth endpoint
 	accessory := slack.NewAccessory(btn)
 
-	return slack.NewSectionBlock(msg, nil, accessory)
+	// button is invalid
+	section := slack.NewSectionBlock(msg, nil, accessory)
+
+	return slack.MsgOptionBlocks(section)
 }
-
-// func example() {
-// 	// Shared Assets for example
-// 	chooseBtnText := slack.NewTextBlockObject("plain_text", "Choose", true, false)
-// 	chooseBtnEle := slack.NewButtonBlockElement("", "click_me_123", chooseBtnText)
-// 	divSection := slack.NewDividerBlock()
-
-// 	// Option 1
-// 	optionOneText := slack.NewTextBlockObject("mrkdwn", "*Today - 4:30-5pm*\nEveryone is available: @iris, @zelda", false, false)
-// 	optionOneSection := slack.NewSectionBlock(optionOneText, nil, slack.NewAccessory(chooseBtnEle))
-
-// 	// Build Message with blocks created above
-// 	msg := slack.NewBlockMessage(
-// 		divSection,
-// 		divSection,
-// 		optionOneSection,
-// 	)
-
-// 	b, err := json.MarshalIndent(msg, "", "    ")
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	fmt.Println(string(b))
-// }
