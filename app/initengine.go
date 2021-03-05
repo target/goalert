@@ -31,13 +31,13 @@ func (app *App) initEngine(ctx context.Context) error {
 	}
 
 	app.Engine, err = engine.NewEngine(ctx, app.db, &engine.Config{
-		AlertStore:         app.AlertStore,
-		AlertLogStore:      app.AlertLogStore,
-		ContactMethodStore: app.ContactMethodStore,
-		NotificationSender: app.notificationManager,
-		UserStore:          app.UserStore,
-		NotificationStore:  app.NotificationStore,
-		NCStore:            app.NCStore,
+		AlertStore:          app.AlertStore,
+		AlertLogStore:       app.AlertLogStore,
+		ContactMethodStore:  app.ContactMethodStore,
+		NotificationManager: app.notificationManager,
+		UserStore:           app.UserStore,
+		NotificationStore:   app.NotificationStore,
+		NCStore:             app.NCStore,
 
 		ConfigSource: app.ConfigStore,
 
