@@ -3789,7 +3789,7 @@ data-urls@^2.0.0:
     whatwg-mimetype "^2.3.0"
     whatwg-url "^8.0.0"
 
-date-arithmetic@^4.0.1:
+date-arithmetic@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/date-arithmetic/-/date-arithmetic-4.1.0.tgz#e5d6434e9deb71f79760a37b729e4a515e730ddf"
   integrity sha512-QWxYLR5P/6GStZcdem+V1xoto6DMadYWpMXU82ES3/RfR3Wdwr3D0+be7mgOJ+Ov0G9D5Dmb9T17sNLQYj9XOg==
@@ -8621,14 +8621,14 @@ react-beautiful-dnd@13.0.0:
     redux "^4.0.4"
     use-memo-one "^1.1.1"
 
-react-big-calendar@0.30.0:
-  version "0.30.0"
-  resolved "https://registry.yarnpkg.com/react-big-calendar/-/react-big-calendar-0.30.0.tgz#58235e078978c9440f3de877035eea0510892d7f"
-  integrity sha512-YHrdEXa/Kas4gRvyo4q6Vadp8405nksGC3EcHdzLjNqzCSdpLZ1Gv5VgvTXWOfOwCmUtDZJf1rYiqpeF/jVVBA==
+react-big-calendar@0.33.1:
+  version "0.33.1"
+  resolved "https://registry.yarnpkg.com/react-big-calendar/-/react-big-calendar-0.33.1.tgz#5a398793641750d869fea44927340c7aff174303"
+  integrity sha512-1b0gWsN38No5obZzBeFUCZj4EgM7gKEFjUpTZZcK3RUwhc1rujVt/KqhoRNrH+5RsKNyuyAu0DvXXg6sgjvGUw==
   dependencies:
     "@babel/runtime" "^7.1.5"
     clsx "^1.0.4"
-    date-arithmetic "^4.0.1"
+    date-arithmetic "^4.1.0"
     dom-helpers "^5.1.0"
     invariant "^2.2.4"
     lodash "^4.17.11"
