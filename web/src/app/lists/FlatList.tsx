@@ -59,13 +59,14 @@ export interface FlatListSub {
   subHeader: string
 }
 export interface FlatListItem {
-  title: string
+  title?: string
   highlight?: boolean
   subText?: JSX.Element | string
   icon?: JSX.Element
   secondaryAction?: JSX.Element | null
   url?: string
   id?: string
+  render?: (item: FlatListItem) => JSX.Element
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem
@@ -131,6 +132,10 @@ export default function FlatList({
   }
 
   function renderItem(item: FlatListItem, idx: number): JSX.Element {
+    if (item.render) {
+      return item.render(item)
+    }
+
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -172,7 +177,7 @@ export default function FlatList({
       }
       return (
         <CSSTransition
-          key={item.id}
+          key={idx}
           timeout={500}
           classNames={{
             enter: classes.slideEnter,

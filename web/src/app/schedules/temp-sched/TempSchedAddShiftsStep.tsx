@@ -7,7 +7,7 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import { Add as AddIcon } from '@material-ui/icons'
-import { fmt, Shift, contentText, StepContainer } from './sharedUtils'
+import { contentText, Shift, StepContainer } from './sharedUtils'
 import { FormContainer } from '../../forms'
 import _ from 'lodash'
 import TempSchedShiftsList from './TempSchedShiftsList'
@@ -16,7 +16,6 @@ import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter, isISOBefore } from '../../util/shifts'
-import { useURLParam } from '../../actions'
 
 const useStyles = makeStyles((theme) => ({
   contentText,
@@ -117,7 +116,6 @@ export default function TempSchedAddShiftsStep({
   const classes = useStyles()
   const [shift, setShift] = useState(null as Shift | null)
   const [submitted, setSubmitted] = useState(false)
-  const [zone] = useURLParam('tz', 'local')
 
   // set start equal to the temporary schedule's start
   // can't this do on mount since the step renderer puts everyone on the DOM at once
@@ -198,16 +196,10 @@ export default function TempSchedAddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              <table>
-                <tr>
-                  <td>Schedule start:</td>
-                  <td> {fmt(start, zone)}</td>
-                </tr>
-                <tr>
-                  <td>Schedule end:</td>
-                  <td> {fmt(end, zone)}</td>
-                </tr>
-              </table>
+              During a temporary schedule, all on-call shifts will be set as
+              configured here. A temporary schedule ignores all rules,
+              rotations, and overrides. On-call will be exactly as configured
+              here for the entire duration.
             </DialogContentText>
           </Grid>
           <Grid item>

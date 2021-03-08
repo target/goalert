@@ -11,6 +11,11 @@ export type Shift = {
   start: string
   end: string
   userID: string
+
+  user?: {
+    id: string
+    name: string
+  }
 }
 
 const parseInterval = (start: string, end: string): Interval =>
