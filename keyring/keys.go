@@ -16,6 +16,7 @@ func (k Keys) Encrypt(label string, data []byte) ([]byte, error) {
 	if len(k) == 0 {
 		k = Keys{[]byte{}}
 	}
+	//lint:ignore SA1019 TODO migrate off deprecated method; usage is secure for at-rest data
 	block, err := x509.EncryptPEMBlock(rand.Reader, label, data, k[0], x509.PEMCipherAES256)
 	if err != nil {
 		return nil, err
@@ -33,6 +34,7 @@ func (k Keys) Decrypt(pemData []byte) (data []byte, n int, err error) {
 	block, _ := pem.Decode(pemData)
 
 	for i, key := range k {
+		//lint:ignore SA1019 TODO migrate off deprecated method; usage is secure for at-rest data
 		data, err = x509.DecryptPEMBlock(block, key)
 		if err == nil {
 			return data, i, nil
