@@ -244,7 +244,7 @@ postgres:
 		-e POSTGRES_HOST_AUTH_METHOD=trust \
 		--name goalert-postgres \
 		-p 5432:5432 \
-		postgres:11-alpine || docker start goalert-postgres
+		postgres:13-alpine || docker start goalert-postgres
 
 regendb: bin/resetdb bin/goalert migrate/inline_data_gen.go config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000000
