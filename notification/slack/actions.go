@@ -111,6 +111,13 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		panic(err)
 	}
 
+	// don't process url buttons
+	for _, action := range payload.ActionCallback.BlockActions {
+		if action.ActionID == "openLink" || action.ActionID == "auth" {
+			return
+		}
+	}
+
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
@@ -118,7 +125,8 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
 		_, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
 		if err != nil {
-			msg := UserNeedsAuthMessage()
+			uri := cfg.General.PublicURL + "/api/v2/slack/auth"
+			msg := UserNeedsAuthMessage(cfg.Slack.ClientID, uri)
 			_, err := api.PostEphemeral(payload.Channel.ID, payload.User.ID, msg)
 			if err != nil {
 				writeHTTPErr(err)
@@ -128,9 +136,6 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 
 		// actions may come in batches, range over
 		for _, action := range payload.ActionCallback.BlockActions {
-			if action.ActionID == "openLink" {
-				return
-			}
 			alertID, err := strconv.Atoi(action.Value)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)

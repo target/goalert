@@ -69,12 +69,12 @@ func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {
 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
 }
 
-func UserNeedsAuthMessage() slack.MsgOption {
-	msg := slack.NewTextBlockObject("plain_text", "Please authenticate with GoAlert before continuing", false, false)
+func UserNeedsAuthMessage(clientID, uri string) slack.MsgOption {
+	msg := slack.NewTextBlockObject("plain_text", "Please link your GoAlert account to continue", false, false)
 
 	txt := slack.NewTextBlockObject("plain_text", "Authenticate :link:", true, false)
 	btn := slack.NewButtonBlockElement("auth", "", txt)
-	// btn.URL = "google.com" // slack oauth endpoint
+	btn.URL = "https://slack.com/oauth/v2/authorize?user_scope=identity.basic&client_id=" + clientID + "&redirect_uri=" + uri // slack oauth endpoint
 	accessory := slack.NewAccessory(btn)
 
 	// button is invalid

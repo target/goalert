@@ -206,6 +206,7 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("/api/v2/twilio/call/status", app.twilioVoice.ServeStatusCallback)
 
 	mux.HandleFunc("/api/v2/slack/actions", slack.ServeActionCallback)
+	mux.HandleFunc("/api/v2/slack/auth", slack.ServeUserAuthCallback)
 
 	// Legacy (v1) API mapping
 	mux.HandleFunc("/v1/graphql", app.graphql.ServeHTTP)
