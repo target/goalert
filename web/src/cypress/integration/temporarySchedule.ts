@@ -112,7 +112,7 @@ function testTemporarySchedule(screen: string): void {
       shifts: [{ userID: graphQLAddUser.id }],
     }).then(() => {
       cy.reload()
-      cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+      cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="edit-temp-sched"]').click()
       cy.get(addShiftsSelector).as('step2')
@@ -145,11 +145,12 @@ function testTemporarySchedule(screen: string): void {
     cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
     cy.dialogFinish('Submit')
     cy.visit('/schedules/' + schedule.id + '?start=' + start.toISO())
-    cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+    cy.get('div').contains('Temporary Schedule').click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     cy.get('button[data-cy="edit-temp-sched"]').should('be.visible')
     cy.get('button[data-cy="delete-temp-sched"]').should('be.visible')
-    cy.get('div').contains(manualAddUser.name).trigger('mouseover')
+    cy.get('body').trigger('keydown', { key: 'Escape' })
+    cy.get('div').contains(manualAddUser.name).click()
     cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
   })
 
@@ -163,7 +164,7 @@ function testTemporarySchedule(screen: string): void {
       shifts: [{ userID: graphQLAddUser.id }],
     }).then(() => {
       cy.reload()
-      cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+      cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="edit-temp-sched"]').click()
       cy.get('[data-cy="shifts-list"]').should('contain', graphQLAddUser.name)
@@ -189,7 +190,7 @@ function testTemporarySchedule(screen: string): void {
       cy.get('[data-cy="shifts-list"]').should('contain', manualAddUser.name)
       cy.dialogFinish('Submit')
       cy.reload() // ensure calendar update
-      cy.get('div').contains(manualAddUser.name).trigger('mouseover')
+      cy.get('div').contains(manualAddUser.name).click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
     })
   })
@@ -200,7 +201,7 @@ function testTemporarySchedule(screen: string): void {
       scheduleID: schedule.id,
     }).then(() => {
       cy.reload()
-      cy.get('div').contains('Temporary Schedule').trigger('mouseover')
+      cy.get('div').contains('Temporary Schedule').click()
       cy.get('div[data-cy="shift-tooltip"]').should('be.visible')
       cy.get('button[data-cy="delete-temp-sched"]').click()
       cy.dialogFinish('Confirm')
