@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -124,7 +124,7 @@ func (h *Harness) GraphQLQueryUserT(t *testing.T, userID, query string) *QLRespo
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		data, _ := ioutil.ReadAll(resp.Body)
+		data, _ := io.ReadAll(resp.Body)
 		t.Fatal("failed to make graphql request:", resp.Status, string(data))
 	}
 
