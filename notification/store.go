@@ -30,6 +30,8 @@ type Store interface {
 	Code(ctx context.Context, id string) (int, error)
 	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
 
+	InsertSlackUser(ctx context.Context, teamID, slackID, userID, accessToken string) (bool, error)
+
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
 	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
 }
@@ -48,6 +50,8 @@ type DB struct {
 	sendTestLock                 *sql.Stmt
 	findManyMessageStatuses      *sql.Stmt
 	lastMessageStatus            *sql.Stmt
+
+	insertSlackUser *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -151,6 +155,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				created_at
 			from outgoing_messages msg
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
+		`),
+
+		insertSlackUser: p.P(`
+			insert into slack_users (user_id, slack_id, team_id, access_token)
+			values ($1, $2, $3, $4)
 		`),
 	}, p.Err
 }
@@ -408,4 +417,19 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 	}
 
 	return &s, createdAt.Time, nil
+}
+
+// InsertSlackUser implements the Store interface by inserting the given User with their associated Slack information
+func (db *DB) InsertSlackUser(ctx context.Context, teamID, slackID, userID, accessToken string) (bool, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = db.insertSlackUser.ExecContext(ctx, teamID, slackID, userID, accessToken)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

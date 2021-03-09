@@ -29,8 +29,10 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 		fmt.Println(err)
 	}
 
-	// todo: store in slack_users
-	fmt.Println("Team ID: ", resp.Team.ID)
-	fmt.Println("User ID: ", resp.AuthedUser.ID)
-	fmt.Println("Access token: ", resp.AuthedUser.AccessToken)
+	// todo: get user ID to store
+	h.c.NotificationStore.InsertSlackUser(ctx, resp.Team.ID, resp.AuthedUser.ID, "", resp.AuthedUser.AccessToken)
+
+	// todo: complete action
+
+	// todo: redirect to slack:// channel somehow?
 }
