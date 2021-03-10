@@ -51,7 +51,8 @@ type DB struct {
 	findManyMessageStatuses      *sql.Stmt
 	lastMessageStatus            *sql.Stmt
 
-	insertSlackUser *sql.Stmt
+	insertSlackUser      *sql.Stmt
+	getSlackChannelValue *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -161,6 +162,16 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			insert into slack_users (team_id, slack_id, user_id, access_token)
 			values ($1, $2, $3, $4)
 		`),
+		getSlackChannelValue: p.P(`
+			select value from notification_channels 
+			where id = (
+				select sub_channel_id from alert_logs 
+				where alert_id = $1 
+					and event = 'notification_sent' 
+					and sub_type = 'channel' 
+					and sub_classifier='Slack'
+			)
+	`),
 	}, p.Err
 }
 
@@ -433,3 +444,25 @@ func (db *DB) InsertSlackUser(ctx context.Context, teamID, slackID, userID, acce
 
 	return true, nil
 }
+
+func (db *DB) UpdateAlertMessage(ctx context.Context, alertID int) (bool, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return false, err
+	}
+	// 	select sub_chanel_id from alertlog where alert_id = $1 and event = 'notification_sent' and sub_type = 'channel' and sub_classifier=Slack
+
+	// use that sub_channel_id to get the slack channelID from the notification_channels table
+	// could maybe use 1 query with an inner select?
+	// use the channelID and with the access token from the config, send an update with the new status
+	var channelID string
+	err = db.getSlackChannelValue.QueryRowContext(ctx, alertID).Scan(&channelID)
+	if err != nil {
+		return false, err
+	}
+}
+
+//79674
+
+//locate all instances where alert statuses are updated (alert store)
+//call our alertmanager update function in those instances, giving the alertID
