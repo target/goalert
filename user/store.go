@@ -101,7 +101,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		findOneBySlackUserID: p.P(`
 			SELECT 
-				id, name, email, avatar_url, role, alert_status_log_contact_method_id, su.user_id, su.slack_id
+				id, name, email, avatar_url, role, alert_status_log_contact_method_id
 			FROM users
 			INNER JOIN slack_users su ON id = su.user_id
 			WHERE su.slack_id = $1

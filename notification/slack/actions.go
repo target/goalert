@@ -125,8 +125,10 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
 		_, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
 		if err != nil {
+			fmt.Println("error finding user by slack id")
+			fmt.Println("err: ", err)
 			uri := cfg.General.PublicURL + "/api/v2/slack/auth"
-			msg := UserNeedsAuthMessage(cfg.Slack.ClientID, uri)
+			msg := UserAuthMessageOption(cfg.Slack.ClientID, uri)
 			_, err := api.PostEphemeral(payload.Channel.ID, payload.User.ID, msg)
 			if err != nil {
 				writeHTTPErr(err)

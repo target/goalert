@@ -593,8 +593,8 @@ ybn7wuu3sVfZ2A4rGhsGSZA-LqWNqbaX9KutwMblEapat3qZAC4jfN7S6jZikuEUbu0jP9cFNV--MtDs
 yMzxsiq8J0soiXyLGvm45KHkNlZ5OmrRosyLR0mOpxGRLyVhe2WMM-VUdrQTCu9Qe_O6WtuKcN-_hIvv
 8AOudBPhSC0pxYRnMOVjwvMqmjLh2YRIEckToXcEHdttcKk3MPyTcv9CR0FEKIsDbO3CR3wdgJfDgIxU
 SImW3jILNxMq9dB_4faokjkIzNooaZSKmJcwe1RFG1hmPUSCgVftyyr25Zrauo7J7Xh6-XaM5jNE_8i4
-TeUs0geenC15ixxnbM5Htkxy3AD5M4uZDcqxLdKVyOCZiLINJS6KGrEXqFx9szqGosBPi_MZCsjEAZP0
-Wv4_AAD__14c5fOPQwQA
+TeUs0geenC15ixxnbM5Htkxy3AD5sx4zG5R1W6QrIKdnasrGlEgpas1esnIZzmodigs_P85nKCATh1BS
+cPn_AAAA__9YKOOWoUMEAA==
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -610,7 +610,7 @@ Wv4_AAD__14c5fOPQwQA
 				defer r.Close()
 
 				buf := new(bytes.Buffer)
-				buf.Grow(46839)
+				buf.Grow(46843)
 
 				_, err = io.Copy(buf, r)
 				if err != nil {
@@ -827,6 +827,6 @@ Wv4_AAD__14c5fOPQwQA
 		{Data: dataRange(277505, 277874), Name: "migrations/20200922140909-session-last-access-time.sql"},
 		{Data: dataRange(277874, 278020), Name: "migrations/20201123172337-alert-cleanup-index.sql"},
 		{Data: dataRange(278020, 279007), Name: "migrations/20201209112322-alert-logs-drop-fkeys.sql"},
-		{Data: dataRange(279007, 279439), Name: "migrations/20210304115852-slack-user-auth.sql"},
+		{Data: dataRange(279007, 279457), Name: "migrations/20210304115852-slack-user-auth.sql"},
 	}
 }

@@ -1,11 +1,13 @@
 package slack
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/permission"
 )
 
 // 4. given a "code" field that expires after 10m
@@ -29,10 +31,14 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 		fmt.Println(err)
 	}
 
-	// todo: get user ID to store
-	h.c.NotificationStore.InsertSlackUser(ctx, resp.Team.ID, resp.AuthedUser.ID, "", resp.AuthedUser.AccessToken)
+	permission.SudoContext(req.Context(), func(ctx context.Context) {
+		ok, err := h.c.NotificationStore.InsertSlackUser(ctx, resp.Team.ID, resp.AuthedUser.ID, permission.UserID(ctx), resp.AuthedUser.AccessToken)
+		fmt.Println("insert user successful: ", ok)
+		if err != nil {
+			fmt.Println(err)
+		}
+	})
 
 	// todo: complete action
-
-	// todo: redirect to slack:// channel somehow?
+	// todo: redirect to slack:// channel somehow (or close browser tab)?
 }

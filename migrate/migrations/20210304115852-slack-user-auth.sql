@@ -2,8 +2,8 @@
 
 ALTER TABLE user_slack_data RENAME TO slack_users;
 ALTER TABLE slack_users RENAME COLUMN id TO user_id;
-ALTER TABLE slack_users ADD COLUMN slack_id TEXT;
-ALTER TABLE slack_users ADD COLUMN team_id TEXT;
+ALTER TABLE slack_users ADD COLUMN slack_id TEXT NOT NULL;
+ALTER TABLE slack_users ADD COLUMN team_id TEXT NOT NULL;
 
 -- +migrate Down
 
