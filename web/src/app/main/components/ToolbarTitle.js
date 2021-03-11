@@ -139,11 +139,15 @@ function ToolbarTitle() {
           to='..'
           replace
         >
-          <NameLoader
-            id={match.params.id}
-            query={query}
-            fallback={detailsText(match)}
-          />
+          {query ? (
+            <NameLoader
+              id={match.params.id}
+              query={query}
+              fallback={detailsText(match)}
+            />
+          ) : (
+            detailsText(match)
+          )}
         </Typography>
         <ChevronRight />
         {renderTitle(sub)}
