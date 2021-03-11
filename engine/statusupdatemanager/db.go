@@ -92,7 +92,59 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				log.alert_id = c.alert_id
 		`),
 		insertChannelMessages: p.P(`
-			
+			with rows as (
+				select
+					log.id,
+					log.alert_id,
+					nc.id as ncID,
+					last.notification_channel_id,
+					log.event = 'closed' is_closed,
+					coalesce(last.notification_channel_id = log.sub_channel_id, false) is_same_nc
+				from notification_channel_last_alert_log last
+				join notification_channels nc on
+					nc.id = last.notification_channel_id
+				join alert_logs log ON
+					last.alert_id = log.alert_id AND
+					log.id BETWEEN last.log_id+1 AND last.next_log_id AND
+					log.event IN ('acknowledged', 'closed')
+					--toDo: add 'escalated'^
+				where last.log_id != last.next_log_id
+				limit 100
+				for update skip locked
+			), inserted as (
+				insert into outgoing_messages (
+					message_type,
+					alert_log_id,
+					alert_id,
+					channel_id
+				)
+				select
+					'alert_status_update',
+					id,
+					alert_id,
+					ncID
+				from rows
+				where not is_same_nc
+			), any_closed as (
+				select
+					bool_or(is_closed) is_closed, notification_channel_id, alert_id
+				from rows
+				group by notification_channel_id, alert_id
+			), updated as (
+				update notification_channel_last_alert_log log
+				set log_id = next_log_id
+				from any_closed c
+				where
+					not c.is_closed and
+					log.notification_channel_id = c.notification_channel_id and
+					log.alert_id = c.alert_id
+			)
+			delete from notification_channel_last_alert_log log
+			using any_closed c
+			where
+				c.is_closed and
+				log.notification_channel_id = c.notification_channel_id and
+				log.alert_id = c.alert_id
 		`),
 	}, p.Err
 }
