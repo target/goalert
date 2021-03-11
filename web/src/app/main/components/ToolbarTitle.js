@@ -78,10 +78,9 @@ const queries = {
 }
 
 function NameLoader(props) {
-  if (!props.query || !props.id) return props.fallback
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { data } = useQuery(props.query, {
     variables: { id: props.id },
+    skip: !props.query || !props.id,
   })
   if (!data || !data.data) return props.fallback
   return data.data.name
