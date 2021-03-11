@@ -15,19 +15,29 @@ type advance struct {
 	p  int
 }
 
+type rotState struct {
+	rotation.State
+	Version int
+}
+
 // calcAdvance will calculate rotation advancement if it is required. If not, nil is returned
-func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotation.State, partCount int) *advance {
+func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotState, partCount int) *advance {
+	var mustUpdate bool
 
 	// get next shift start time
 	newStart := rot.EndTime(state.ShiftStart)
-	var mustUpdate bool
+	if state.Version == 1 {
+		newStart = calcOldEndTime(rot, state.ShiftStart)
+		mustUpdate = true
+	}
+
 	if state.Position >= partCount {
 		// deleted last participant
 		state.Position = 0
 		mustUpdate = true
 	}
 
-	if newStart.After(t) {
+	if newStart.After(t) || state.Version == 1 {
 		if mustUpdate {
 			return &advance{
 				id: rot.ID,

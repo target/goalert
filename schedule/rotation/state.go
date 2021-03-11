@@ -1,8 +1,9 @@
 package rotation
 
 import (
-	"github.com/target/goalert/validation/validate"
 	"time"
+
+	"github.com/target/goalert/validation/validate"
 )
 
 type State struct {

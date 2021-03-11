@@ -87,7 +87,7 @@ func (db *DB) calcAdvances(ctx context.Context, tx *sql.Tx, all bool, rotID *str
 	defer rows.Close()
 
 	var rot rotation.Rotation
-	var state rotation.State
+	var state rotState
 	var partCount int
 	var tzName string
 	var adv *advance
@@ -106,6 +106,7 @@ func (db *DB) calcAdvances(ctx context.Context, tx *sql.Tx, all bool, rotID *str
 			&state.ShiftStart,
 			&state.Position,
 			&partCount,
+			&state.Version,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan rotation data")
