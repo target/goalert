@@ -3,6 +3,7 @@ package statusupdatemanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -11,7 +12,8 @@ import (
 type DB struct {
 	lock *processinglock.Lock
 
-	insertMessages *sql.Stmt
+	insertUserMessages    *sql.Stmt
+	insertChannelMessages *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -31,7 +33,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		lock: lock,
 
-		insertMessages: p.P(`
+		insertUserMessages: p.P(`
 			with rows as (
 				select
 					log.id,
@@ -88,6 +90,9 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				c.is_closed and
 				log.user_id = c.user_id and
 				log.alert_id = c.alert_id
+		`),
+		insertChannelMessages: p.P(`
+			
 		`),
 	}, p.Err
 }

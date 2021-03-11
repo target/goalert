@@ -2,10 +2,8 @@ package statusupdatemanager
 
 import (
 	"context"
-	"github.com/target/goalert/permission"
-	"github.com/target/goalert/util/log"
 
-	"github.com/pkg/errors"
+	"github.com/target/goalert/permission"
 )
 
 // UpdateAll will update all schedule rules.
@@ -14,16 +12,15 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = db.update(ctx, true, nil)
-	return err
-}
 
-func (db *DB) update(ctx context.Context, all bool, alertID *int) error {
-	log.Debugf(ctx, "Processing status updates.")
-
-	_, err := db.lock.Exec(ctx, db.insertMessages)
+	err = db.updateUsers(ctx, true, nil)
 	if err != nil {
-		return errors.Wrap(err, "insert status update messages")
+		return err
+	}
+
+	err = db.updateChannels(ctx, true, nil)
+	if err != nil {
+		return err
 	}
 
 	return nil

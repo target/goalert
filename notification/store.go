@@ -31,6 +31,7 @@ type Store interface {
 	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
 
 	InsertSlackUser(ctx context.Context, teamID, slackID, userID, accessToken string) (bool, error)
+	UpdateAlertMessage(ctx context.Context, alertID int) (bool, error)
 
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
 	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
@@ -159,7 +160,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 
 		insertSlackUser: p.P(`
-			insert into slack_users (team_id, slack_id, user_id, access_token)
+			insert into user_slack_data (team_id, slack_id, user_id, access_token)
 			values ($1, $2, $3, $4)
 		`),
 		getSlackChannelValue: p.P(`
@@ -445,6 +446,7 @@ func (db *DB) InsertSlackUser(ctx context.Context, teamID, slackID, userID, acce
 	return true, nil
 }
 
+// todo: might not need this/change as needed
 func (db *DB) UpdateAlertMessage(ctx context.Context, alertID int) (bool, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
@@ -460,6 +462,8 @@ func (db *DB) UpdateAlertMessage(ctx context.Context, alertID int) (bool, error)
 	if err != nil {
 		return false, err
 	}
+
+	return true, nil
 }
 
 //79674

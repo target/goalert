@@ -6,7 +6,6 @@ import (
 	"time"
 
 	alertlog "github.com/target/goalert/alert/log"
-	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -631,9 +630,6 @@ func (db *DB) CreateOrUpdateTx(ctx context.Context, tx *sql.Tx, a *Alert) (*Aler
 	}
 	if err != nil {
 		return nil, false, err
-	}
-	if n.Status == StatusActive || n.Status == StatusClosed {
-		notification.UpdateAlertMessage(n.ID)
 	}
 	if logType != "" {
 		db.logDB.MustLogTx(ctx, tx, n.ID, logType, meta)

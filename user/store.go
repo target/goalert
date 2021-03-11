@@ -103,7 +103,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			SELECT 
 				id, name, email, avatar_url, role, alert_status_log_contact_method_id
 			FROM users
-			INNER JOIN slack_users su ON id = su.user_id
+			INNER JOIN user_slack_data su ON id = su.user_id
 			WHERE su.slack_id = $1
 		`),
 
