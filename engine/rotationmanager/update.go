@@ -61,10 +61,15 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 	for _, adv := range needsAdvance {
 		fctx := log.WithFields(ctx, log.Fields{
 			"RotationID": adv.id,
-			"Position":   adv.p,
+			"Position":   adv.newPosition,
 		})
-		log.Debugf(fctx, "Advancing rotation.")
-		_, err = updateStmt.ExecContext(fctx, adv.id, adv.p)
+
+		if adv.sameUser {
+			log.Debugf(fctx, "Updating rotation shift start.")
+		} else {
+			log.Debugf(fctx, "Advancing rotation.")
+		}
+		_, err = updateStmt.ExecContext(fctx, adv.id, adv.newPosition)
 		if err != nil {
 			return errors.Wrap(err, "advance rotation")
 		}

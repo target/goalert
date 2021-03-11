@@ -10,9 +10,10 @@ import (
 )
 
 type advance struct {
-	id string
-	t  time.Time
-	p  int
+	id          string
+	newPosition int
+
+	sameUser bool
 }
 
 type rotState struct {
@@ -23,6 +24,7 @@ type rotState struct {
 // calcAdvance will calculate rotation advancement if it is required. If not, nil is returned
 func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state rotState, partCount int) *advance {
 	var mustUpdate bool
+	origPos := state.Position
 
 	// get next shift start time
 	newStart := rot.EndTime(state.ShiftStart)
@@ -40,9 +42,10 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	if newStart.After(t) || state.Version == 1 {
 		if mustUpdate {
 			return &advance{
-				id: rot.ID,
-				t:  state.ShiftStart,
-				p:  state.Position,
+				id:          rot.ID,
+				newPosition: state.Position,
+
+				sameUser: state.Position == origPos,
 			}
 		}
 		// in the future, so nothing to do yet
@@ -71,8 +74,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	}
 
 	return &advance{
-		id: rot.ID,
-		t:  state.ShiftStart,
-		p:  state.Position,
+		id:          rot.ID,
+		newPosition: state.Position,
 	}
 }
