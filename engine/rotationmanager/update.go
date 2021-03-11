@@ -64,9 +64,7 @@ func (db *DB) update(ctx context.Context, all bool, rotID *string) error {
 			"Position":   adv.newPosition,
 		})
 
-		if adv.sameUser {
-			log.Debugf(fctx, "Updating rotation shift start.")
-		} else {
+		if !adv.silent {
 			log.Debugf(fctx, "Advancing rotation.")
 		}
 		_, err = updateStmt.ExecContext(fctx, adv.id, adv.newPosition)

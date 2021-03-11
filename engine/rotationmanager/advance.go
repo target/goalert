@@ -13,7 +13,7 @@ type advance struct {
 	id          string
 	newPosition int
 
-	sameUser bool
+	silent bool
 }
 
 type rotState struct {
@@ -45,7 +45,9 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 				id:          rot.ID,
 				newPosition: state.Position,
 
-				sameUser: state.Position == origPos,
+				// If migrating from version 1 to 2 without changing
+				// who's on-call do so silently.
+				silent: state.Version == 1 && state.Position == origPos,
 			}
 		}
 		// in the future, so nothing to do yet
