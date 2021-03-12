@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver/propagation"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/genericapi"
 	"github.com/target/goalert/grafana"
@@ -266,6 +267,8 @@ func (app *App) initHTTP(ctx context.Context) error {
 		IdleTimeout:       time.Minute * 2,
 		MaxHeaderBytes:    app.cfg.MaxReqHeaderBytes,
 	}
+	app.srv.Handler = promhttp.InstrumentHandlerInFlight(metricReqInFlight, app.srv.Handler)
+	app.srv.Handler = promhttp.InstrumentHandlerCounter(metricReqTotal, app.srv.Handler)
 
 	// Ingress/load balancer/proxy can do keep-alives, backend doesn't need it.
 	// It also makes zero downtime deploys nearly impossible; an idle connection
