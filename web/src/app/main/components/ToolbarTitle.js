@@ -80,16 +80,15 @@ const queries = {
 function NameLoader(props) {
   const { data } = useQuery(props.query, {
     variables: { id: props.id },
-    skip: !props.query || !props.id,
+    skip: !props.id,
   })
-  if (!data || !data.data) return props.fallback
-  return data.data.name
+  return data?.data?.name ?? props.fallback
 }
 
 NameLoader.propTypes = {
   fallback: p.string.isRequired,
   id: p.string,
-  query: p.object,
+  query: p.object.isRequired,
 }
 
 function ToolbarTitle() {
