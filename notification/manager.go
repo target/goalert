@@ -215,6 +215,9 @@ func (mgr *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, erro
 			continue
 		}
 		log.Logf(sendCtx, "notification sent")
+		metricSentTotal.
+			WithLabelValues(msg.Destination().Type.String(), msg.Type().String()).
+			Inc()
 		// status already wrapped via namedSender
 		return status, nil
 	}
@@ -242,6 +245,7 @@ func (mgr *Manager) receive(ctx context.Context, providerID string, resp *Messag
 	}),
 		"response received",
 	)
+	metricRecvTotal.WithLabelValues(resp.From.Type.String(), resp.Result.String()).Inc()
 
 	switch resp.Result {
 	case ResultStart:
