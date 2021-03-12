@@ -40,7 +40,7 @@
     "modernizr-esm": "^2.0.0",
     "react": "16.14.0",
     "react-beautiful-dnd": "13.0.0",
-    "react-big-calendar": "0.33.1",
+    "react-big-calendar": "0.33.2",
     "react-countdown-now": "2.1.2",
     "react-dom": "16.14.0",
     "react-ga": "3.3.0",
