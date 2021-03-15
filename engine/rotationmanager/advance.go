@@ -29,7 +29,7 @@ func calcAdvance(ctx context.Context, t time.Time, rot *rotation.Rotation, state
 	// get next shift start time
 	newStart := rot.EndTime(state.ShiftStart)
 	if state.Version == 1 {
-		newStart = calcOldEndTime(rot, state.ShiftStart)
+		newStart = calcVersion1EndTime(rot, state.ShiftStart)
 		mustUpdate = true
 	}
 
