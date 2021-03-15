@@ -108,10 +108,3 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 
 	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent, ProviderMessageID: msg.ID()}, nil
 }
-
-func (s *Sender) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
-	return nil, errors.New("notification/webhook: status not supported")
-}
-
-func (s *Sender) ListenStatus() <-chan *notification.MessageStatus     { return nil }
-func (s *Sender) ListenResponse() <-chan *notification.MessageResponse { return nil }
