@@ -28,5 +28,5 @@ func TestCalcOldEndTime(t *testing.T) {
 	assert.Equal(t, time.Date(2021, 3, 10, 10, 0, 0, 0, tzChicago).String(), rot.EndTime(shiftStart).String())
 
 	// Old code didn't always do this
-	assert.Equal(t, time.Date(2021, 3, 10, 17, 0, 0, 0, tzChicago).String(), calcOldEndTime(rot, shiftStart).String())
+	assert.Equal(t, time.Date(2021, 3, 10, 17, 0, 0, 0, tzChicago).String(), calcVersion1EndTime(rot, shiftStart).String())
 }
