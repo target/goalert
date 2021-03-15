@@ -3,6 +3,7 @@ package rotationmanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -24,7 +25,7 @@ func (db *DB) Name() string { return "Engine.RotationManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeRotation,
-		Version: 1,
+		Version: 2,
 	})
 	if err != nil {
 		return nil, err
@@ -39,7 +40,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			update rotation_state
 			set
 				shift_start = now(),
-				rotation_participant_id = (select id from rotation_participants where rotation_id = $1 and position = $2)
+				rotation_participant_id = (select id from rotation_participants where rotation_id = $1 and position = $2),
+				version = 2
 			where rotation_id = $1
 		`),
 		rotateData: p.P(`
@@ -51,7 +53,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				rot.time_zone,
 				state.shift_start,
 				state."position",
-				rot.participant_count
+				rot.participant_count,
+				state.version
 			from rotations rot
 			join rotation_state state on state.rotation_id = rot.id
 			where $1 or state.rotation_id = $2
