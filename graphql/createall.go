@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/service"
+	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
 )
@@ -222,11 +223,11 @@ func parseSchedRule(_m interface{}) (*rule.Rule, error) {
 	startStr, _ := m["start"].(string)
 	endStr, _ := m["end"].(string)
 	var err error
-	r.Start, err = rule.ParseClock(startStr)
+	r.Start, err = timeutil.ParseClock(startStr)
 	if err != nil {
 		return nil, validation.NewFieldError("start", err.Error())
 	}
-	r.End, err = rule.ParseClock(endStr)
+	r.End, err = timeutil.ParseClock(endStr)
 	if err != nil {
 		return nil, validation.NewFieldError("end", err.Error())
 	}

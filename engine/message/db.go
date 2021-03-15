@@ -486,6 +486,10 @@ func (db *DB) UpdateMessageStatus(ctx context.Context, status *notification.Mess
 	)
 }
 func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.MessageStatus) error {
+	if status == nil {
+		// nothing to do
+		return nil
+	}
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err
@@ -717,17 +721,18 @@ func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id, 
 	defer cancel()
 
 	status, err := statusFn(ctx, id, providerMsgID)
-	if err != nil {
-		res <- &notification.MessageStatus{
-			Ctx:               ctx,
-			ID:                id,
-			ProviderMessageID: providerMsgID,
-			State:             notification.MessageStateSending,
-			Details:           "failed to update status: " + err.Error(),
-			Sequence:          -1,
-		}
+	if errors.Is(err, notification.ErrStatusUnsupported) {
+		// not available
+		res <- nil
 		return
 	}
+	if err != nil {
+		// failed, log error
+		log.Log(ctx, err)
+		res <- nil
+		return
+	}
+
 	stat := *status
 	if stat.State == notification.MessageStateFailedTemp {
 		stat.State = notification.MessageStateFailedPerm

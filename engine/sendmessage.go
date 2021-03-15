@@ -118,7 +118,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		MessageID: msg.ID,
 	}
 
-	status, err := p.cfg.NotificationSender.Send(ctx, notifMsg)
+	status, err := p.cfg.NotificationManager.Send(ctx, notifMsg)
 	if err != nil {
 		return nil, err
 	}

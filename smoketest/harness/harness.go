@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	stdlog "log"
 	"net/http/httptest"
 	"net/url"
@@ -114,7 +113,7 @@ func (h *Harness) Config() config.Config {
 // NewHarness will create a new database, perform `migrateSteps` migrations, inject `initSQL` and return a new Harness bound to
 // the result. It starts a backend process pre-configured to a mock twilio server for monitoring notifications as well.
 func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
-	stdlog.SetOutput(ioutil.Discard)
+	stdlog.SetOutput(io.Discard)
 	t.Helper()
 	h := NewStoppedHarness(t, initSQL, nil, migrationName)
 	h.Start()
