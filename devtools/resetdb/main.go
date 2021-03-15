@@ -10,8 +10,8 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/migrate"
-	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -103,7 +103,7 @@ func fillDB(ctx context.Context, url string) error {
 			log.Fatal(err)
 		}
 	}
-	asTime := func(c rule.Clock) (t pgtype.Time) {
+	asTime := func(c timeutil.Clock) (t pgtype.Time) {
 		t.Status = pgtype.Present
 		t.Microseconds = time.Duration(c).Microseconds()
 		return t

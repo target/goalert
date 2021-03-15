@@ -24,6 +24,7 @@ import AppLink from '../../util/AppLink'
 import { makeStyles } from '@material-ui/core'
 import { isWidthDown } from '@material-ui/core/withWidth'
 import useWidth from '../../util/useWidth'
+import _ from 'lodash'
 
 const useStyles = makeStyles((theme) => {
   return styles(theme)
@@ -95,7 +96,7 @@ function AlertDetails(props) {
   }
 
   function renderRotations(rotations, stepID) {
-    return rotations.map((rotation, i) => {
+    return _.sortBy(rotations, 'name').map((rotation, i) => {
       const sep = i === 0 ? '' : ', '
       return (
         <span key={stepID + rotation.id}>
@@ -107,7 +108,7 @@ function AlertDetails(props) {
   }
 
   function renderSchedules(schedules, stepID) {
-    return schedules.map((schedule, i) => {
+    return _.sortBy(schedules, 'name').map((schedule, i) => {
       const sep = i === 0 ? '' : ', '
       return (
         <span key={stepID + schedule.id}>
@@ -119,7 +120,7 @@ function AlertDetails(props) {
   }
 
   function renderUsers(users, stepID) {
-    return users.map((user, i) => {
+    return _.sortBy(users, 'name').map((user, i) => {
       const sep = i === 0 ? '' : ', '
       return (
         <span key={stepID + user.id}>
