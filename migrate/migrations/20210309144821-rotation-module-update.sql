@@ -20,4 +20,4 @@ SET version = 1
 WHERE type_id = 'rotation';
 
 ALTER TABLE rotation_state
-DROP COLUMN processing_version;
+DROP COLUMN version;

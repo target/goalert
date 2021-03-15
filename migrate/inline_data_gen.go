@@ -595,7 +595,7 @@ vsM3uNJJhCO1pBTjn8GUj_HPq2jK-GcTIkUkT4DeEbRtt8GlnsDwR8r5C-0FAaEsDrC1Ax_xdAQeDgMy
 Uj4lWlrLLNxMqNRD_8LtUCWzE5i1UdIoFTEPYXaoitaxzHqIBKNWtS-r2Fe3MwT2Bxz00xyT0bFwU8dl
 jT4v60cUN9N0cY9OUVWg-jHGe55lVS_zB1QWnysUlxnOto7LjxkJMKwfM1Ss0qZQoheKf6SBRGhZoThN
 s_SlMs40RWHp88ntYMx5fU61r8EFDSrGpfAk90WJ4tUK3W_rbYnn4yor6yylla4LdJeh791VkL8AvBLy
-t-v7Hc5cRIsAoSFyizgqKK8CzHLOTv4_AAD__08MPGkLRAQA
+t-v7Hc5cRIsAoSFyizgqKK8CmL2zk_8PAAD__y7NA_cARAQA
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -828,6 +828,6 @@ t-v7Hc5cRIsAoSFyizgqKK8CzHLOTv4_AAD__08MPGkLRAQA
 		{Data: dataRange(277505, 277874), Name: "migrations/20200922140909-session-last-access-time.sql"},
 		{Data: dataRange(277874, 278020), Name: "migrations/20201123172337-alert-cleanup-index.sql"},
 		{Data: dataRange(278020, 279007), Name: "migrations/20201209112322-alert-logs-drop-fkeys.sql"},
-		{Data: dataRange(279007, 279563), Name: "migrations/20210309144821-rotation-module-update.sql"},
+		{Data: dataRange(279007, 279552), Name: "migrations/20210309144821-rotation-module-update.sql"},
 	}
 }
