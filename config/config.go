@@ -219,13 +219,11 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 		}
 		return false
 	}
-
 	base, err := url.Parse(baseURL)
 
 	if err != nil {
 		return false, err
 	}
-
 	test, err := url.Parse(testURL)
 
 	if err != nil {

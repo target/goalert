@@ -29,11 +29,9 @@ func TestWebhookAlert(t *testing.T) {
 
 		data, err := ioutil.ReadAll(r.Body)
 		require.Nil(t, err)
-		assert.Nil(t, err)
 
 		err = json.Unmarshal(data, &alert)
 		require.Nil(t, err)
-		assert.Nil(t, err)
 
 		ch <- alert
 	}))
