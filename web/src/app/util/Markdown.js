@@ -6,29 +6,19 @@ import { makeStyles } from '@material-ui/core'
 
 const useStyles = makeStyles({
   markdown: {
-    '& h1, h2, h3, h4, h5, h6, p': {
-      marginTop: 0,
-      marginBottom: '0.5rem',
-    },
-    '& hr': {
-      margin: '1.5rem 0',
-    },
-    '& th': {
+    '& td, th': {
       textAlign: 'left',
-      paddingRight: '8px',
+      padding: '0.25rem 1rem',
     },
-    '& td': {
-      paddingRight: '8px',
+    '& td:first-child, th:first-child': {
+      paddingLeft: 0,
+    },
+    '& td:last-child, th:last-child': {
+      paddingRight: 0,
     },
     '& pre': {
-      display: 'block',
-      padding: '9.5px',
-      margin: '0 0 10px',
-      fontSize: '13px',
-      lineHeight: '1.42857143',
+      padding: '0.375rem',
       color: '#333',
-      wordBreak: 'break-all',
-      wordWrap: 'break-word',
       backgroundColor: '#f5f5f5',
       border: '1px solid #ccc',
       borderRadius: '4px',
@@ -42,7 +32,6 @@ const useStyles = makeStyles({
     },
     '& pre code': {
       padding: 0,
-      fontSize: 'inherit',
       color: 'inherit',
       whiteSpace: 'pre-wrap',
       backgroundColor: 'inherit',
