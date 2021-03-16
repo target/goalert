@@ -1,6 +1,9 @@
 package oncall
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // TimeIterator will iterate between start and end at a particular step interval.
 type TimeIterator struct {
@@ -18,6 +21,8 @@ type SubIterator interface {
 	//
 	// Process should return the value of the next required timestamp if it is known otherwise 0.
 	// If the iterator has no more events to process -1 can be returned to signal complete.
+	//
+	// The value returned by Process must be -1, 0, or greater than t.
 	Process(t int64) int64
 
 	// Done will be called when the iterator is no longer needed.
@@ -62,6 +67,9 @@ func (iter *TimeIterator) Next() bool {
 	var nextStep int64
 	for _, sub := range iter.sub {
 		nextStep = sub.Process(iter.t)
+		if nextStep > 0 && nextStep <= iter.t {
+			panic(fmt.Sprintf("nextStep was not in the future; got %d; want > %d (start=%d, end=%d)\n%#v", nextStep, iter.t, iter.start, iter.end, sub))
+		}
 		if nextStep == -1 {
 			// -1 means nothing left, jump to end
 			nextStep = iter.end

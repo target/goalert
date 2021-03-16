@@ -54,7 +54,7 @@ func (act *ActiveCalculator) Init() *ActiveCalculator {
 // SetSpan is used to set an active span.
 //
 // Care should be taken so that there is no overlap between spans, and
-// no start time should equal any end time.
+// no start time should equal any end time for non-sequential calls.
 func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	if act.init {
 		panic("cannot add spans after Init")
@@ -85,6 +85,11 @@ func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 		id = act.Start().Unix()
 	}
 
+	if len(act.states) > 0 && isStart && id == act.states[len(act.states)-1].ID {
+		act.states = act.states[:len(act.states)-1]
+		return
+	}
+
 	act.states = append(act.states, activeCalcValue{ID: id, Value: isStart, OriginalID: originalID})
 }
 
@@ -104,6 +109,9 @@ func (act *ActiveCalculator) Process(t int64) int64 {
 		act.active = v
 		act.states = act.states[1:]
 		if len(act.states) > 0 {
+			// if act.states[0].ID <= t {
+			// 	panic("WAS LESS")
+			// }
 			return act.states[0].ID
 		}
 

@@ -95,6 +95,8 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	defer t.Close()
 
 	hist := t.NewUserCalculator()
+	// sort history so that overlapping spans are merged properly
+	sort.Slice(s.history, func(i, j int) bool { return s.history[i].Start.Before(s.history[j].Start) })
 	for _, s := range s.history {
 		hist.SetSpan(s.Start, s.End, s.UserID)
 	}
