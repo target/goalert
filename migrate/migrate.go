@@ -5,7 +5,6 @@ package migrate
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -261,7 +260,7 @@ func DumpMigrations(dest string) error {
 	for _, file := range Files {
 		fullPath := filepath.Join(dest, filepath.Base(file.Name))
 		os.MkdirAll(filepath.Dir(fullPath), 0755)
-		err := ioutil.WriteFile(fullPath, file.Data(), 0644)
+		err := os.WriteFile(fullPath, file.Data(), 0644)
 		if err != nil {
 			return errors.Wrapf(err, "write to %s", fullPath)
 		}

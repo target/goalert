@@ -58,55 +58,71 @@ func bgSpan(ctx context.Context, name string) (context.Context, *trace.Span) {
 }
 
 // Shutdown will stop the manager, waiting for pending background operations to finish.
-func (m *Manager) Shutdown(context.Context) error {
-	close(m.shutdownCh)
-	m.shutdownWg.Wait()
+func (mgr *Manager) Shutdown(context.Context) error {
+	close(mgr.shutdownCh)
+	mgr.shutdownWg.Wait()
 	return nil
 }
 
-func (m *Manager) senderLoop(s *namedSender) {
-	defer m.shutdownWg.Done()
+func (mgr *Manager) senderLoop(s *namedSender) {
+	defer mgr.shutdownWg.Done()
+
+	responder, _ := s.Sender.(Responder)
+	updater, _ := s.Sender.(StatusUpdater)
+	if responder == nil && updater == nil {
+		// nothing to do
+		return
+	}
+
+	var respCh <-chan *MessageResponse
+	if responder != nil {
+		respCh = responder.ListenResponse()
+	}
+
+	var statCh <-chan *MessageStatus
+	if updater != nil {
+		statCh = updater.ListenStatus()
+	}
 
 	handleResponse := func(resp *MessageResponse) {
 		ctx, sp := bgSpan(resp.Ctx, "NotificationManager.Response")
 		cpy := *resp
 		cpy.Ctx = ctx
 
-		err := m.receive(ctx, s.name, &cpy)
+		err := mgr.receive(ctx, s.name, &cpy)
 		sp.End()
 		resp.Err <- err
 	}
 
 	for {
 		select {
-		case resp := <-s.ListenResponse():
+		case resp := <-respCh:
 			handleResponse(resp)
-		default:
-		}
-
-		select {
-		case resp := <-s.ListenResponse():
-			handleResponse(resp)
-		case stat := <-s.ListenStatus():
+		case stat := <-statCh:
 			ctx, sp := bgSpan(stat.Ctx, "NotificationManager.StatusUpdate")
-			m.updateStatus(ctx, stat.wrap(ctx, s))
+			mgr.updateStatus(ctx, stat.wrap(ctx, s))
 			sp.End()
-		case <-m.shutdownCh:
+		case <-mgr.shutdownCh:
 			return
 		}
 	}
 }
 
 // Status will return the current status of a message.
-func (m *Manager) Status(ctx context.Context, id, providerMsgID string) (*MessageStatus, error) {
+func (mgr *Manager) Status(ctx context.Context, messageID, providerMsgID string) (*MessageStatus, error) {
 	parts := strings.SplitN(providerMsgID, ":", 2)
 	if len(parts) != 2 {
 		return nil, errors.Errorf("invalid provider message ID '%s'", providerMsgID)
 	}
 
-	provider := m.providers[parts[0]]
+	provider := mgr.providers[parts[0]]
 	if provider == nil {
 		return nil, errors.Errorf("unknown provider ID '%s'", parts[0])
+	}
+
+	checker, ok := provider.Sender.(StatusChecker)
+	if !ok {
+		return nil, ErrStatusUnsupported
 	}
 
 	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Status")
@@ -115,7 +131,7 @@ func (m *Manager) Status(ctx context.Context, id, providerMsgID string) (*Messag
 		trace.StringAttribute("provider.message.id", parts[1]),
 	)
 	defer sp.End()
-	stat, err := provider.Status(ctx, id, parts[1])
+	stat, err := checker.Status(ctx, messageID, parts[1])
 	if stat != nil {
 		stat = stat.wrap(ctx, provider)
 	}
@@ -124,29 +140,29 @@ func (m *Manager) Status(ctx context.Context, id, providerMsgID string) (*Messag
 
 // RegisterSender will register a sender under a given DestType and name.
 // A sender for the same name and type will replace an existing one, if any.
-func (m *Manager) RegisterSender(t DestType, name string, s SendResponder) {
-	m.mx.Lock()
-	defer m.mx.Unlock()
+func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
+	mgr.mx.Lock()
+	defer mgr.mx.Unlock()
 
-	_, ok := m.providers[name]
+	_, ok := mgr.providers[name]
 	if ok {
 		panic("name already taken")
 	}
-	if m.stubNotifiers {
+	if mgr.stubNotifiers {
 		// disable notification sending
 		s = stubSender{}
 	}
 
-	n := &namedSender{name: name, SendResponder: s, destType: t}
-	m.providers[name] = n
-	m.searchOrder = append(m.searchOrder, n)
-	m.shutdownWg.Add(1)
-	go m.senderLoop(n)
+	n := &namedSender{name: name, Sender: s, destType: t}
+	mgr.providers[name] = n
+	mgr.searchOrder = append(mgr.searchOrder, n)
+	mgr.shutdownWg.Add(1)
+	go mgr.senderLoop(n)
 }
 
 // UpdateStatus will update the status of a message.
-func (m *Manager) updateStatus(ctx context.Context, status *MessageStatus) {
-	err := m.r.UpdateStatus(ctx, status)
+func (mgr *Manager) updateStatus(ctx context.Context, status *MessageStatus) {
+	err := mgr.r.UpdateStatus(ctx, status)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "update message status"))
 	}
@@ -154,19 +170,19 @@ func (m *Manager) updateStatus(ctx context.Context, status *MessageStatus) {
 
 // RegisterReceiver will set the given Receiver as the target for all Receive() calls.
 // It will panic if called multiple times.
-func (m *Manager) RegisterReceiver(r Receiver) {
-	if m.r != nil {
+func (mgr *Manager) RegisterReceiver(r Receiver) {
+	if mgr.r != nil {
 		panic("tried to register a second Receiver")
 	}
-	m.r = r
+	mgr.r = r
 }
 
 // Send implements the Sender interface by trying all registered senders for the type given
 // in Notification. An error is returned if there are no registered senders for the type
 // or if an error is returned from all of them.
-func (m *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, error) {
-	m.mx.RLock()
-	defer m.mx.RUnlock()
+func (mgr *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, error) {
+	mgr.mx.RLock()
+	defer mgr.mx.RUnlock()
 
 	destType := msg.Destination().Type
 
@@ -179,7 +195,7 @@ func (m *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, error)
 	}
 
 	var tried bool
-	for _, s := range m.searchOrder {
+	for _, s := range mgr.searchOrder {
 		if s.destType != destType {
 			continue
 		}
@@ -209,7 +225,7 @@ func (m *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, error)
 	return nil, errors.New("all notification senders failed")
 }
 
-func (m *Manager) receive(ctx context.Context, providerID string, resp *MessageResponse) error {
+func (mgr *Manager) receive(ctx context.Context, providerID string, resp *MessageResponse) error {
 	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Receive")
 	defer sp.End()
 	sp.AddAttributes(
@@ -229,10 +245,10 @@ func (m *Manager) receive(ctx context.Context, providerID string, resp *MessageR
 
 	switch resp.Result {
 	case ResultStart:
-		return m.r.Start(ctx, resp.From)
+		return mgr.r.Start(ctx, resp.From)
 	case ResultStop:
-		return m.r.Stop(ctx, resp.From)
+		return mgr.r.Stop(ctx, resp.From)
 	default:
-		return m.r.Receive(ctx, resp.ID, resp.Result)
+		return mgr.r.Receive(ctx, resp.ID, resp.Result)
 	}
 }

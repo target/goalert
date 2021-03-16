@@ -4,6 +4,7 @@ module.exports = {
     ecmaFeatures: { legacyDecorators: true },
   },
   plugins: [
+    'import',
     'cypress',
     'jsx-a11y',
     'react',
@@ -14,6 +15,9 @@ module.exports = {
   extends: [
     'standard',
     'standard-jsx',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'plugin:import/typescript',
     'plugin:react/recommended',
     'plugin:cypress/recommended',
     'plugin:jsx-a11y/recommended',

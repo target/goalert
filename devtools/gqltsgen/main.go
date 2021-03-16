@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -17,7 +16,7 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 	var src []*ast.Source
 	for _, file := range flag.Args() {
-		data, err := ioutil.ReadFile(file)
+		data, err := os.ReadFile(file)
 		if err != nil {
 			log.Fatal("ERROR:", err)
 		}

@@ -114,7 +114,7 @@ function testSteps(): void {
         })
     })
 
-    it('should add and then remove a slack channel', () => {
+    it('should add, click, and remove a slack channel', () => {
       cy.updateConfig({ Slack: { Enable: true } })
       cy.reload()
 
@@ -133,6 +133,13 @@ function testSteps(): void {
       cy.get('body').should('contain', 'Step #1:')
       cy.get('div[data-cy=slack-chip]').should('contain', '#general')
       cy.get('div[data-cy=slack-chip]').should('contain', '#foobar')
+
+      // verify clickability
+      cy.window().then((win) => {
+        cy.stub(win, 'open').as('slackRedirect')
+      })
+      cy.get('div[data-cy=slack-chip]').first().click()
+      cy.get('@slackRedirect').should('be.called')
 
       // open edit step dialog
       cy.get('ul[data-cy=steps-list] :nth-child(1) li')
