@@ -68,6 +68,11 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	}
 
 	// Skip if the length of the span is <= 0.
+	if !end.IsZero() && !end.After(start) {
+		return
+	}
+
+	// Skip if the span starts after the calculator end time.
 	if !start.Before(act.End()) {
 		return
 	}
