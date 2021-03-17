@@ -13,12 +13,6 @@ CREATE TABLE notification_channel_last_alert_log
     PRIMARY KEY (notification_channel_id, alert_id)
 );
 
-CREATE TRIGGER trg_insert_alert_logs_notification_channel_last_alert
-AFTER INSERT ON alert_logs
-FOR EACH ROW WHEN
-    (NEW.event = 'notification_sent' AND NEW.sub_type = 'channel')
-EXECUTE PROCEDURE fn_insert_notification_channel_last_alert_log();
-
 -- +migrate StatementBegin
 CREATE FUNCTION fn_insert_notification_channel_last_alert_log() RETURNS trigger AS $$
 BEGIN
@@ -31,6 +25,12 @@ RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 -- +migrate StatementEnd
+
+CREATE TRIGGER trg_insert_alert_logs_notification_channel_last_alert
+AFTER INSERT ON alert_logs
+FOR EACH ROW WHEN
+    (NEW.event = 'notification_sent' AND NEW.sub_type = 'channel')
+EXECUTE PROCEDURE fn_insert_notification_channel_last_alert_log();
 ​
 -- +migrate StatementBegin
 CREATE FUNCTION fn_update_notification_channel_last_alert_log() RETURNS trigger AS $$
