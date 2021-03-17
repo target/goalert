@@ -107,7 +107,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					last.alert_id = log.alert_id AND
 					log.id BETWEEN last.log_id+1 AND last.next_log_id AND
 					log.event IN ('acknowledged', 'closed')
-					--toDo: add 'escalated'^
 				where last.log_id != last.next_log_id
 				limit 100
 				for update skip locked
