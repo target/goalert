@@ -108,22 +108,19 @@ func (act *ActiveCalculator) Process(t int64) int64 {
 		return -1
 	}
 
-	v := act.states[0]
-	act.changed = v.ID == t
+	val := act.states[0]
+	act.changed = val.ID == t
 	if act.changed {
-		act.active = v
+		act.active = val
 		act.states = act.states[1:]
 		if len(act.states) > 0 {
-			// if act.states[0].ID <= t {
-			// 	panic("WAS LESS")
-			// }
 			return act.states[0].ID
 		}
 
 		return -1
 	}
 
-	return v.ID
+	return val.ID
 }
 
 // Done implements the SubIterator.Done method.
