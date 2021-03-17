@@ -139,7 +139,7 @@ func (act *ActiveCalculator) Changed() bool { return act.changed }
 //
 // If Active() is false, it returns a zero value.
 func (act *ActiveCalculator) ActiveTime() time.Time {
-	if !act.active.Value {
+	if !act.Active() {
 		return time.Time{}
 	}
 
