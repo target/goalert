@@ -23,8 +23,10 @@ type ActiveCalculator struct {
 	changed bool
 }
 type activeCalcValue struct {
-	T         int64
-	IsStart   bool
+	T       int64
+	IsStart bool
+
+	// OriginalT is the original time of this value (e.g., historic start time vs. start of calculation).
 	OriginalT int64
 }
 
