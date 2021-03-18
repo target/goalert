@@ -48,7 +48,7 @@ CREATE TRIGGER trg_insert_alert_logs_notification_channel_last_alert_update
 AFTER INSERT
 ON alert_logs
 FOR EACH ROW
-WHEN (NEW.event IN ('acknowledged', 'closed') AND NEW.sub_type = 'channel')
+WHEN (NEW.event IN ('acknowledged', 'closed'))
 EXECUTE PROCEDURE fn_update_notification_channel_last_alert_log();
 
 -- +migrate Down

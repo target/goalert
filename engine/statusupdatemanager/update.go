@@ -2,7 +2,6 @@ package statusupdatemanager
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/target/goalert/permission"
 )
@@ -18,10 +17,8 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("trying to update channels!")
 	err = db.updateChannels(ctx, true, nil)
 	if err != nil {
-		fmt.Println("made it into updateChannels:", err)
 		return err
 	}
 

@@ -275,15 +275,26 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
 
-	var summaryText string
-	var alertID int
+	fmt.Println("Made it inside Send()!")
+
+	var a alert.Alert
+	var isUpdating bool
+	var sentAt time.Time
 	switch t := msg.(type) {
 	case notification.Alert:
-		summaryText = fmt.Sprintf("Alert: %s", t.Summary)
-		alertID = t.AlertID
+		a.Summary = fmt.Sprintf("Alert: %s", t.Summary)
+		a.ID = t.AlertID
+		a.Status = alert.StatusTriggered
 	// todo: handle actions on bundle items
 	case notification.AlertBundle:
-		summaryText = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
+		a.Summary = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
+	case notification.AlertStatus:
+		a.Summary = fmt.Sprintf("Alert: %s", t.Alert.Summary)
+		//toDo: handle strconv error
+		id, _ := strconv.Atoi(t.Alert.ID())
+		a.ID = id
+		isUpdating = true
+		sentAt = t.SentAt
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
@@ -293,18 +304,24 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	var msgOpt []slack.MsgOption
 	msgOpt = append(msgOpt,
 		// desktop notification text
-		slack.MsgOptionText(summaryText, false),
+		slack.MsgOptionText(a.Summary, false),
 
 		// blockkit elements
 		slack.MsgOptionBlocks(
-			AlertIDAndStatusSection(alertID, "triggered"),
-			AlertSummarySection(summaryText),
-			AlertActionsOnUpdate(alertID, alert.StatusTriggered, cfg.CallbackURL("/alerts/"+strconv.Itoa(alertID))),
+			AlertIDAndStatusSection(a.ID, string(a.Status)),
+			AlertSummarySection(a.Summary),
+			AlertActionsOnUpdate(a.ID, alert.StatusTriggered, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID))),
 		),
 	)
 
 	// send request
-	_, ts, _, err := api.SendMessage(msg.Destination().Value, msgOpt...)
+	var ts string
+	var err error
+	if isUpdating {
+		_, _, _, err = api.UpdateMessage(msg.Destination().Value, sentAt.String(), msgOpt...)
+	} else {
+		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
+	}
 	if err != nil {
 		// todo
 		fmt.Println("Error ", err)

@@ -1,10 +1,15 @@
 package notification
 
+import (
+	"time"
+)
+
 type AlertStatus struct {
 	Dest       Dest
 	CallbackID string
-	AlertID    int
 	LogEntry   string
+	Alert      Alert
+	SentAt     time.Time
 }
 
 var _ Message = &AlertStatus{}

@@ -84,15 +84,21 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Count:      len(msg.StatusAlertIDs),
 		}
 	case notification.MessageTypeAlertStatus:
+		a, err := p.am.FindOne(ctx, msg.AlertID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup alert")
+		}
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert log entry")
 		}
 		notifMsg = notification.AlertStatus{
 			Dest:       msg.Dest,
-			AlertID:    e.AlertID(),
 			CallbackID: msg.ID,
 			LogEntry:   e.String(),
+			Alert:      *a,
+			SentAt:     msg.SentAt,
+			//toDo: may need another column for timestamp
 		}
 	case notification.MessageTypeTest:
 		notifMsg = notification.Test{

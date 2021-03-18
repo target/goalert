@@ -596,9 +596,9 @@ pEJKtLSWWbiZUKmH_oXbo0qmE5i1UdIoFTE3YfaoiuZYZj1EgoFX7csq9uWbIkkyJrejyeXbER_C5gWa
 TVGz3nFllM8CkF9Nbf_A7NsyWwK5_Yq5-v0KGlUCU7qCJyHYqlItPBZJA9OgUX_HxZPiABtUic1hpyof
 6Qy7C2OyfE3fgmTSAGDGhPxRDSZ2FdCe1pCGiEzI4ZsAiyLK6X21hLVPIuNL4wgsHtTY4kJtshn8mzBF
 z9Xyf5mMtyVKZKzReTmRa_UgtTMPZpo81-TMon6G9pC1Y6V6tNGC3CXaF1lwvxtfdEgs6QMV_pNFrWay
-f5HfhsxNRDhKieo3bsUSNn_KOvLsIPdLmkMqAfCvOL_qwq24jlBbbT26hZN_rOrPi7J4KAu8nGPz4EEb
-J4vxA6-u3D6Q6JKF-xvWLTo_yspJYvpVdn_FlQNjbBbgzqHON3icdTZFJL5qhLniWsbIHjd6eDTqdVb9
-_w8AAP__1rpGhkVLBAA=
+f5HfhsxNRDhKieo3bsUSNn_KOvLsIPdLmkMqAfCvOL_qwq24jlBbbT26hZN_rOrPi7J4KAu8nGPz4IHF
+j2Ka2isdt89b66qE-xvWLTq_u8phYfrhdX-olTNh7EPvzqFOKXgodTZFJIRqRLLiWsbIHjdAeGTodeL8
+_w8AAP__LgVs1ihLBAA=
 `
 	dataRange := func(start, end int) func() []byte {
 		return func() []byte {
@@ -831,6 +831,6 @@ _w8AAP__1rpGhkVLBAA=
 		{Data: dataRange(277505, 277874), Name: "migrations/20200922140909-session-last-access-time.sql"},
 		{Data: dataRange(277874, 278020), Name: "migrations/20201123172337-alert-cleanup-index.sql"},
 		{Data: dataRange(278020, 279007), Name: "migrations/20201209112322-alert-logs-drop-fkeys.sql"},
-		{Data: dataRange(279007, 281413), Name: "migrations/20210304115852-slack-user-auth.sql"},
+		{Data: dataRange(279007, 281384), Name: "migrations/20210304115852-slack-user-auth.sql"},
 	}
 }
