@@ -198,7 +198,7 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 
 //  MatchURL will compare two url strings and will return true if they match.
 func MatchURL(baseURL, testURL string) (bool, error) {
-	compareQueryValues := func (baseVal, testVal url.Values) bool {
+	compareQueryValues := func(baseVal, testVal url.Values) bool {
 		for name := range baseVal {
 			if baseVal.Get(name) == testVal.Get(name) {
 				continue
@@ -208,14 +208,16 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 		return true
 	}
 
-	ignoreImplicitPorts := func(urlString *url.URL) bool {
-		if strings.EqualFold(urlString.Scheme, "http") && urlString.Port() == "80" {
-			return true
+	addImplicitPort := func(u *url.URL) {
+		if strings.Contains(u.Host, ":") {
+			return
 		}
-		if strings.EqualFold(urlString.Scheme, "https") && urlString.Port() == "443" {
-			return true
+		switch strings.ToLower(u.Scheme) {
+		case "http":
+			u.Host += ":80"
+		case "https":
+			u.Host += ":443"
 		}
-		return false
 	}
 	base, err := url.Parse(baseURL)
 
@@ -228,29 +230,20 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 		return false, err
 	}
 
-	// ignore auth info
-	test.User = nil
-	base.User = nil
+	addImplicitPort(base)
+	addImplicitPort(test)
 
 	// use full host that includes port by default, i.e example.com:8080
 	baseHost := base.Host
 	testHost := test.Host
 
-	// if ignoreImplicitPorts, use host ignoring port, i.e. example.com
-	if ignoreImplicitPorts(base) {
-		baseHost = base.Hostname()
-	}
-	if ignoreImplicitPorts(test) {
-		testHost = test.Hostname()
+	// host/port check
+	if !strings.EqualFold(baseHost, testHost) {
+		return false, nil
 	}
 
 	// scheme check
 	if !strings.EqualFold(base.Scheme, test.Scheme) {
-		return false, nil
-	}
-
-	// host/port check
-	if !strings.EqualFold(baseHost, testHost) {
 		return false, nil
 	}
 
