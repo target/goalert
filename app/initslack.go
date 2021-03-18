@@ -10,7 +10,9 @@ import (
 func (app *App) initSlack(ctx context.Context) error {
 	var err error
 	app.slackChan, err = slack.NewChannelSender(ctx, slack.Config{
-		BaseURL: app.cfg.SlackBaseURL,
+		BaseURL:           app.cfg.SlackBaseURL,
+		AlertStore:        app.AlertStore,
+		NotificationStore: app.NotificationStore,
 	})
 	if err != nil {
 		return err

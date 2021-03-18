@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -35,6 +36,8 @@ type Store interface {
 
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
 	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
+
+	FindSlackInitialMessage(ctx context.Context, alertID int) (string, error)
 }
 
 var _ Store = &DB{}
@@ -52,8 +55,9 @@ type DB struct {
 	findManyMessageStatuses      *sql.Stmt
 	lastMessageStatus            *sql.Stmt
 
-	insertSlackUser      *sql.Stmt
-	getSlackChannelValue *sql.Stmt
+	insertSlackUser         *sql.Stmt
+	getSlackChannelValue    *sql.Stmt
+	getInitialProviderMsgID *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -172,6 +176,16 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					and sub_type = 'channel' 
 					and sub_classifier='Slack'
 			)
+	`),
+		// todo: maybe have to handle escalations
+		getInitialProviderMsgID: p.P(`
+			select provider_msg_id from outgoing_messages o 
+			join alert_logs a 
+			on o.alert_id = a.alert_id
+			where a.alert_id = $1 
+			and a.event = 'notification_sent' 
+			and a.sub_type = 'channel'
+			and o.message_type = 'alert_notification'	
 	`),
 	}, p.Err
 }
@@ -464,6 +478,21 @@ func (db *DB) UpdateAlertMessage(ctx context.Context, alertID int) (bool, error)
 	}
 
 	return true, nil
+}
+
+func (db *DB) FindSlackInitialMessage(ctx context.Context, alertID int) (string, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return "", err
+	}
+	var providerMsgID string
+	err = db.getInitialProviderMsgID.QueryRowContext(ctx, alertID).Scan(&providerMsgID)
+	if err != nil {
+		return "", err
+	}
+
+	s := strings.Split(providerMsgID, ":")
+	return s[1], nil
 }
 
 //79674

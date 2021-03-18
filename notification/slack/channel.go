@@ -278,8 +278,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	fmt.Println("Made it inside Send()!")
 
 	var a alert.Alert
-	var isUpdating bool
-	var sentAt time.Time
+	var originalTS string
+
 	switch t := msg.(type) {
 	case notification.Alert:
 		a.Summary = fmt.Sprintf("Alert: %s", t.Summary)
@@ -289,12 +289,19 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	case notification.AlertBundle:
 		a.Summary = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
 	case notification.AlertStatus:
-		a.Summary = fmt.Sprintf("Alert: %s", t.Alert.Summary)
-		//toDo: handle strconv error
-		id, _ := strconv.Atoi(t.Alert.ID())
-		a.ID = id
-		isUpdating = true
-		sentAt = t.SentAt
+		_a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
+		if err != nil {
+			// todo
+			return nil, err
+		}
+
+		a.Summary = fmt.Sprintf("Alert: %s", _a.Summary)
+		originalTS, err = s.cfg.NotificationStore.FindSlackInitialMessage(ctx, t.AlertID)
+		if err != nil {
+			// todo
+			return nil, err
+		}
+
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
@@ -317,8 +324,9 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	// send request
 	var ts string
 	var err error
-	if isUpdating {
-		_, _, _, err = api.UpdateMessage(msg.Destination().Value, sentAt.String(), msgOpt...)
+	// todo
+	if originalTS != "" {
+		_, _, _, err = api.UpdateMessage(msg.Destination().Value, originalTS, msgOpt...)
 	} else {
 		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
 	}
