@@ -144,6 +144,11 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				return
 			}
 
+			timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
+			if err != nil {
+				writeHTTPErr(err)
+			}
+
 			// get channel uuid for context when writing to alert log
 			ncID, _, err := h.c.AlertLogStore.FindByValue(ctx, nil, payload.Channel.ID)
 			if err != nil {
@@ -175,22 +180,14 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				fmt.Println("alertStore:", err)
 			}
 
-			var msgOpt []slack.MsgOption
-			msgOpt = append(msgOpt,
-				// desktop notification text
-				slack.MsgOptionText(a.Summary, false),
-
-				slack.MsgOptionBlocks(
-					AlertIDAndStatusSection(alertID, string(a.Status)),
-					AlertSummarySection(a.Summary),
-					AlertActionsOnUpdate(alertID, a.Status, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID))),
-				),
-			)
-			// todo: may need switch statement to handle all actions
-			_, _, _, e := api.UpdateMessage(payload.Channel.ID, payload.Container.MessageTs, msgOpt...)
-			if e != nil {
-				fmt.Println(e)
+			msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
+			for _, ts := range timestamps {
+				_, _, _, e := api.UpdateMessage(payload.Channel.ID, ts, msgOpt...)
+				if e != nil {
+					fmt.Println(e)
+				}
 			}
+
 		}
 	}
 

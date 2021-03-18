@@ -82,3 +82,36 @@ func UserAuthMessageOption(clientID, uri string) slack.MsgOption {
 
 	return slack.MsgOptionBlocks(section)
 }
+
+func CraftAlertMessage(a alert.Alert, url string) []slack.MsgOption {
+	var msgOpt []slack.MsgOption
+	var actions *slack.ActionBlock
+
+	alertID := strconv.Itoa(a.ID)
+	// url := cfg.CallbackURL("/alerts/" + strconv.Itoa(a.ID))
+
+	if a.Status == alert.StatusTriggered {
+		// new message, send
+		actions = slack.NewActionBlock("", ackButton(alertID), escButton(alertID), closeButton(alertID), openLinkButton(url))
+	} else if a.Status == alert.StatusActive {
+		actions = slack.NewActionBlock("", escButton(alertID), closeButton(alertID), openLinkButton(url))
+	} else {
+		actions = slack.NewActionBlock("", openLinkButton(url))
+	}
+
+	// else : update message
+
+	msgOpt = append(msgOpt,
+		// desktop notification text
+		slack.MsgOptionText(a.Summary, false),
+
+		// blockkit elements
+		slack.MsgOptionBlocks(
+			AlertIDAndStatusSection(a.ID, string(a.Status)),
+			AlertSummarySection(a.Summary),
+			actions,
+		),
+	)
+
+	return msgOpt
+}

@@ -37,7 +37,7 @@ type Store interface {
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
 	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
 
-	FindSlackInitialMessage(ctx context.Context, alertID int) (string, error)
+	FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]string, error)
 }
 
 var _ Store = &DB{}
@@ -177,7 +177,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 					and sub_classifier='Slack'
 			)
 	`),
-		// todo: maybe have to handle escalations
 		getInitialProviderMsgID: p.P(`
 			select provider_msg_id from outgoing_messages o 
 			join alert_logs a 
@@ -185,7 +184,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			where a.alert_id = $1 
 			and a.event = 'notification_sent' 
 			and a.sub_type = 'channel'
-			and o.message_type = 'alert_notification'	
+			and o.message_type = 'alert_notification'
+			and o.provider_msg_id is not null
 	`),
 	}, p.Err
 }
@@ -480,19 +480,29 @@ func (db *DB) UpdateAlertMessage(ctx context.Context, alertID int) (bool, error)
 	return true, nil
 }
 
-func (db *DB) FindSlackInitialMessage(ctx context.Context, alertID int) (string, error) {
+func (db *DB) FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]string, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
-		return "", err
-	}
-	var providerMsgID string
-	err = db.getInitialProviderMsgID.QueryRowContext(ctx, alertID).Scan(&providerMsgID)
-	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	s := strings.Split(providerMsgID, ":")
-	return s[1], nil
+	rows, err := db.getInitialProviderMsgID.QueryContext(ctx, alertID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var providerMsgIDs []string
+	for rows.Next() {
+		var pID string
+		err = rows.Scan(&pID)
+		if err != nil {
+			return nil, err
+		}
+		providerMsgIDs = append(providerMsgIDs, strings.Split(pID, ":")[1])
+	}
+
+	return providerMsgIDs, nil
 }
 
 //79674

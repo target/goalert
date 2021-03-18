@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -278,7 +279,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	fmt.Println("Made it inside Send()!")
 
 	var a alert.Alert
-	var originalTS string
+	var timestamps []string
 
 	switch t := msg.(type) {
 	case notification.Alert:
@@ -294,51 +295,51 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			// todo
 			return nil, err
 		}
-
+		a = *_a
+		// a.ID = t.AlertID
 		a.Summary = fmt.Sprintf("Alert: %s", _a.Summary)
-		originalTS, err = s.cfg.NotificationStore.FindSlackInitialMessage(ctx, t.AlertID)
-		if err != nil {
-			// todo
-			return nil, err
-		}
+		// a.Status = _a.Status
 
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
 
 	var api = slack.New(cfg.Slack.AccessToken)
-
-	var msgOpt []slack.MsgOption
-	msgOpt = append(msgOpt,
-		// desktop notification text
-		slack.MsgOptionText(a.Summary, false),
-
-		// blockkit elements
-		slack.MsgOptionBlocks(
-			AlertIDAndStatusSection(a.ID, string(a.Status)),
-			AlertSummarySection(a.Summary),
-			AlertActionsOnUpdate(a.ID, alert.StatusTriggered, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID))),
-		),
-	)
+	msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
 
 	// send request
 	var ts string
 	var err error
-	// todo
-	if originalTS != "" {
-		_, _, _, err = api.UpdateMessage(msg.Destination().Value, originalTS, msgOpt...)
-	} else {
-		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
-	}
+
+	timestamps, err = s.cfg.NotificationStore.FindSlackAlertMsgTimestamps(ctx, a.ID)
 	if err != nil {
-		// todo
-		fmt.Println("Error ", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			// Create
+			_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
+			if err != nil {
+				return nil, err
+			}
+
+			return &notification.MessageStatus{
+				ID:                msg.ID(),
+				ProviderMessageID: ts,
+				State:             notification.MessageStateDelivered,
+			}, nil
+		} else {
+			return nil, err
+		}
 	}
 
+	// update
+	for _, ts := range timestamps {
+		_, _, _, err = api.UpdateMessage(msg.Destination().Value, ts, msgOpt...)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &notification.MessageStatus{
-		ID:                msg.ID(),
-		ProviderMessageID: ts,
-		State:             notification.MessageStateDelivered,
+		ID:    msg.ID(),
+		State: notification.MessageStateDelivered,
 	}, nil
 }
 
