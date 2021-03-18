@@ -94,7 +94,7 @@
     "postcss-loader": "5.0.0",
     "prop-types": "15.7.2",
     "redux": "4.0.5",
-    "redux-devtools-extension": "2.13.8",
+    "redux-devtools-extension": "2.13.9",
     "style-loader": "2.0.0",
     "terser-webpack-plugin": "5.1.1",
     "webpack": "5.25.1",
