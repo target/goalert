@@ -248,26 +248,26 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 
 	// scheme check
 	if !strings.EqualFold(base.Scheme, test.Scheme) {
-		return false, errors.New("url schemes do not match")
+		return false, nil
 	}
 
 	// host/port check
 	if !strings.EqualFold(baseHost, testHost) {
-		return false, errors.New("url hosts/ports do not match")
+		return false, nil
 	}
 
 	// path check
 	if len(base.Path) > 1 && !strings.HasPrefix(test.Path, base.Path) {
-		return false, errors.New("url path does not match")
+		return false, nil
 	}
 
 	// query check
 	if len(test.Query()) > 0 || len(base.Query()) > 0 {
 		if !compareQueryStrings(test.Query(), base.Query()) {
-			return false, errors.New("url required queries do not match")
+			return false, nil
 		}
 		if !compareQueryStrings(base.Query(), test.Query()) {
-			return false, errors.New("url required queries do not match")
+			return false, nil
 		}
 	}
 
