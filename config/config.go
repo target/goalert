@@ -198,14 +198,12 @@ func (cfg Config) CallbackURL(path string, mergeParams ...url.Values) string {
 
 //  MatchURL will compare two url strings and will return true if they match.
 func MatchURL(baseURL, testURL string) (bool, error) {
-	compareQueryStrings := func (queryStr1, queryStr2 url.Values) bool {
-		for query, param := range queryStr1 {
-			if len(param[0]) > 0 {
-				val, ok := queryStr2[query]
-				if !ok || param[0] != val[0] {
-					return false
-				}
+	compareQueryValues := func (baseVal, testVal url.Values) bool {
+		for name := range baseVal {
+			if baseVal.Get(name) == testVal.Get(name) {
+				continue
 			}
+			return false
 		}
 		return true
 	}
@@ -263,10 +261,7 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 
 	// query check
 	if len(test.Query()) > 0 || len(base.Query()) > 0 {
-		if !compareQueryStrings(test.Query(), base.Query()) {
-			return false, nil
-		}
-		if !compareQueryStrings(base.Query(), test.Query()) {
+		if !compareQueryValues(base.Query(), test.Query()) {
 			return false, nil
 		}
 	}

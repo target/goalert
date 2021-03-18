@@ -21,15 +21,15 @@ func TestMatchURL(t *testing.T) {
 
 	val, err = MatchURL("http://example.com/?notAllowedQueryParam=&requiredQueryParam=1", "http://example.com")
 	assert.False(t, val)
-	assert.Error(t, err)
+	assert.Nil(t, err)
 
 	val, err = MatchURL("http://example.com/?notAllowedQueryParam=", "http://example.com?notAllowedQueryParam=1")
 	assert.False(t, val)
-	assert.Error(t, err)
+	assert.Nil(t, err)
 
 	val, err = MatchURL("https://example.com", "http://example.com")
 	assert.False(t, val)
-	assert.Error(t, err)
+	assert.Nil(t, err)
 
 }
 
