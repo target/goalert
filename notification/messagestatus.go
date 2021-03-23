@@ -34,7 +34,9 @@ func (stat *MessageStatus) wrap(ctx context.Context, n *namedSender) *MessageSta
 	if ctx != nil {
 		s.Ctx = ctx
 	}
-	s.ProviderMessageID = n.name + ":" + s.ProviderMessageID
+	if s.ProviderMessageID != "" {
+		s.ProviderMessageID = n.name + ":" + s.ProviderMessageID
+	}
 	return &s
 }
 

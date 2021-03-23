@@ -2,7 +2,6 @@ package slack
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -270,13 +269,12 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
+// Send handles processing new alerts and message updates to be sent out to a Slack channel
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 	cfg := config.FromContext(ctx)
 
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
-
-	fmt.Println("Made it inside Send()!")
 
 	var a alert.Alert
 	var timestamps []string
@@ -307,40 +305,39 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	var api = slack.New(cfg.Slack.AccessToken)
 	msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
 
-	// send request
 	var ts string
 	var err error
 
 	timestamps, err = s.cfg.NotificationStore.FindSlackAlertMsgTimestamps(ctx, a.ID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			// Create
-			_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
-			if err != nil {
-				return nil, err
-			}
+		return nil, err
+	}
 
-			return &notification.MessageStatus{
-				ID:                msg.ID(),
-				ProviderMessageID: ts,
-				State:             notification.MessageStateDelivered,
-			}, nil
-		} else {
+	if len(timestamps) == 0 {
+		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	// update
 	for _, ts := range timestamps {
 		_, _, _, err = api.UpdateMessage(msg.Destination().Value, ts, msgOpt...)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return &notification.MessageStatus{
-		ID:    msg.ID(),
-		State: notification.MessageStateDelivered,
-	}, nil
+
+	msgStatus := notification.MessageStatus{
+		ID:                msg.ID(),
+		State:             notification.MessageStateDelivered,
+		ProviderMessageID: "",
+	}
+
+	if msg.Type() == notification.MessageTypeAlert {
+		msgStatus.ProviderMessageID = ts
+	}
+
+	return &msgStatus, nil
 }
 
 func (s *ChannelSender) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {

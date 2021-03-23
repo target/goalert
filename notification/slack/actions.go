@@ -15,7 +15,6 @@ import (
 
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
-	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 )
@@ -95,13 +94,7 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
-	writeHTTPErr := func(err error) {
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		}
-	}
 	if !validRequest(w, req) {
-		fmt.Println("request invalid")
 		return
 	}
 
@@ -118,6 +111,8 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		}
 	}
 
+	intrnlErr := func() { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError) }
+	clientErr := func() { http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest) }
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
@@ -125,13 +120,12 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
 		_, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
 		if err != nil {
-			fmt.Println("error finding user by slack id")
-			fmt.Println("err: ", err)
 			uri := cfg.General.PublicURL + "/api/v2/slack/auth"
 			msg := UserAuthMessageOption(cfg.Slack.ClientID, uri)
 			_, err := api.PostEphemeral(payload.Channel.ID, payload.User.ID, msg)
 			if err != nil {
-				writeHTTPErr(err)
+				clientErr()
+				return
 			}
 			return
 		}
@@ -140,54 +134,56 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		for _, action := range payload.ActionCallback.BlockActions {
 			alertID, err := strconv.Atoi(action.Value)
 			if err != nil {
-				http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+				intrnlErr()
 				return
 			}
 
-			timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
-			if err != nil {
-				writeHTTPErr(err)
-			}
-
-			// get channel uuid for context when writing to alert log
+			// add source info to ctx to write to alert log
 			ncID, _, err := h.c.AlertLogStore.FindByValue(ctx, nil, payload.Channel.ID)
 			if err != nil {
-				writeHTTPErr(err)
+				intrnlErr()
+				return
 			}
+
 			ctx = permission.SourceContext(ctx, &permission.SourceInfo{
 				Type: permission.SourceTypeNotificationChannel,
 				ID:   ncID,
 			})
 
+			// handle button clicked within Slack
+			var actionErr error
 			switch action.ActionID {
 			case "ack":
-				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
-				writeHTTPErr(err)
-				err = h.c.AlertLogStore.Log(ctx, alertID, alertlog.TypeAcknowledged, "")
-				if err != nil {
-					fmt.Println(err)
-				}
+				actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
 			case "esc":
-				err := h.c.AlertStore.Escalate(ctx, alertID)
-				writeHTTPErr(err)
+				actionErr = h.c.AlertStore.Escalate(ctx, alertID)
 			case "close":
-				err := h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
-				writeHTTPErr(err)
+				actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
+			}
+			if actionErr != nil {
+				intrnlErr()
+				return
 			}
 
 			a, err := h.c.AlertStore.FindOne(ctx, alertID)
 			if err != nil {
-				fmt.Println("alertStore:", err)
+				intrnlErr()
+				return
 			}
-
 			msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
+
+			// if escalated, each alert may have multiple of the same alert in a channel
+			timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
+			if err != nil {
+				intrnlErr()
+				return
+			}
 			for _, ts := range timestamps {
-				_, _, _, e := api.UpdateMessage(payload.Channel.ID, ts, msgOpt...)
-				if e != nil {
-					fmt.Println(e)
+				_, _, _, err := api.UpdateMessage(payload.Channel.ID, ts, msgOpt...)
+				if err != nil {
+					clientErr()
 				}
 			}
-
 		}
 	}
 
