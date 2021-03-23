@@ -7,7 +7,7 @@ import (
 	"github.com/target/goalert/smoketest/harness"
 )
 
-func TestFixedShifts(t *testing.T) {
+func TestTempSchedules(t *testing.T) {
 	t.Parallel()
 
 	sql := `
