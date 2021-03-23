@@ -1,6 +1,5 @@
 import React, { useState, ReactNode } from 'react'
-import { useMutation } from '@apollo/client'
-import gql from 'graphql-tag'
+import { useMutation, gql } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { Shift, Value } from './sharedUtils'
