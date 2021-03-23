@@ -301,7 +301,9 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 		if err != nil {
 			return false
 		}
-		return matched
+		if matched {
+			return matched
+		}
 	}
 
 	return false
