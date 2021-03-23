@@ -220,12 +220,11 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 		}
 	}
 	base, err := url.Parse(baseURL)
-
 	if err != nil {
 		return false, err
 	}
-	test, err := url.Parse(testURL)
 
+	test, err := url.Parse(testURL)
 	if err != nil {
 		return false, err
 	}
@@ -233,12 +232,8 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 	addImplicitPort(base)
 	addImplicitPort(test)
 
-	// use full host that includes port by default, i.e example.com:8080
-	baseHost := base.Host
-	testHost := test.Host
-
 	// host/port check
-	if !strings.EqualFold(baseHost, testHost) {
+	if !strings.EqualFold(base.Host, test.Host) {
 		return false, nil
 	}
 
@@ -272,7 +267,9 @@ func (cfg Config) ValidWebhookURL(whURL string) bool {
 		if err != nil {
 			return false
 		}
-		return matched
+		if matched {
+			return matched
+		}
 	}
 	return false
 }
