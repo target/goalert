@@ -5,4 +5,6 @@ declare namespace NodeJS {
     pathPrefix: string
     GOALERT_VERSION: string
   }
+
+  declare module '*.md'
 }

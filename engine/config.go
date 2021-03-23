@@ -13,13 +13,13 @@ import (
 
 // Config contains parameters for controlling how the Engine operates.
 type Config struct {
-	AlertLogStore      alertlog.Store
-	AlertStore         alert.Store
-	ContactMethodStore contactmethod.Store
-	NotificationSender notification.Sender
-	UserStore          user.Store
-	NotificationStore  notification.Store
-	NCStore            notificationchannel.Store
+	AlertLogStore       alertlog.Store
+	AlertStore          alert.Store
+	ContactMethodStore  contactmethod.Store
+	NotificationManager *notification.Manager
+	UserStore           user.Store
+	NotificationStore   notification.Store
+	NCStore             notificationchannel.Store
 
 	ConfigSource config.Source
 

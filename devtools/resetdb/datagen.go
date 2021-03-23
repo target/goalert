@@ -21,6 +21,7 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/timeutil"
 )
 
 var timeZones = []string{"America/Chicago", "Europe/Berlin", "UTC"}
@@ -186,8 +187,8 @@ func (d *datagen) NewScheduleRule(scheduleID string) {
 		ID:            gofakeit.UUID(),
 		ScheduleID:    scheduleID,
 		WeekdayFilter: filter,
-		Start:         rule.Clock(rand.Int63n(int64(24 * time.Hour))),
-		End:           rule.Clock(rand.Int63n(int64(24 * time.Hour))),
+		Start:         timeutil.Clock(rand.Int63n(int64(24 * time.Hour))),
+		End:           timeutil.Clock(rand.Int63n(int64(24 * time.Hour))),
 		Target:        tgt,
 	})
 }

@@ -35,6 +35,7 @@ import (
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/notificationrule"
+	"github.com/target/goalert/util/timeutil"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -12350,9 +12351,9 @@ func (ec *executionContext) _ScheduleRule_start(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(rule.Clock)
+	res := resTmp.(timeutil.Clock)
 	fc.Result = res
-	return ec.marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx, field.Selections, res)
+	return ec.marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ScheduleRule_end(ctx context.Context, field graphql.CollectedField, obj *rule.Rule) (ret graphql.Marshaler) {
@@ -12385,9 +12386,9 @@ func (ec *executionContext) _ScheduleRule_end(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(rule.Clock)
+	res := resTmp.(timeutil.Clock)
 	fc.Result = res
-	return ec.marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx, field.Selections, res)
+	return ec.marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ScheduleRule_weekdayFilter(ctx context.Context, field graphql.CollectedField, obj *rule.Rule) (ret graphql.Marshaler) {
@@ -17738,7 +17739,7 @@ func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start"))
-			it.Start, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx, v)
+			it.Start, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -17746,7 +17747,7 @@ func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end"))
-			it.End, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx, v)
+			it.End, err = ec.unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -22589,12 +22590,12 @@ func (ec *executionContext) unmarshalNClearTemporarySchedulesInput2githubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, v interface{}) (rule.Clock, error) {
+func (ec *executionContext) unmarshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, v interface{}) (timeutil.Clock, error) {
 	res, err := UnmarshalClockTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, sel ast.SelectionSet, v rule.Clock) graphql.Marshaler {
+func (ec *executionContext) marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, sel ast.SelectionSet, v timeutil.Clock) graphql.Marshaler {
 	res := MarshalClockTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -24856,7 +24857,7 @@ func (ec *executionContext) unmarshalOCalcRotationHandoffTimesInput2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, v interface{}) (*rule.Clock, error) {
+func (ec *executionContext) unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, v interface{}) (*timeutil.Clock, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -24864,7 +24865,7 @@ func (ec *executionContext) unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoale
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚋruleᚐClock(ctx context.Context, sel ast.SelectionSet, v *rule.Clock) graphql.Marshaler {
+func (ec *executionContext) marshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, sel ast.SelectionSet, v *timeutil.Clock) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

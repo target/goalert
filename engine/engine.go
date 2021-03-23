@@ -190,7 +190,7 @@ func (p *Engine) processMessages(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationSender.Status)
+	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationManager.Status)
 	if errors.Is(err, processinglock.ErrNoLock) {
 		return
 	}

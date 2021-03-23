@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/schedule/rule"
+	"github.com/target/goalert/util/timeutil"
 )
 
 func TestSingleRuleCalculator(t *testing.T) {
@@ -52,8 +53,8 @@ func TestSingleRuleCalculator(t *testing.T) {
 		},
 		oncall.ResolvedRule{
 			Rule: rule.Rule{
-				Start:         rule.NewClock(3, 5),
-				End:           rule.NewClock(3, 7),
+				Start:         timeutil.NewClock(3, 5),
+				End:           timeutil.NewClock(3, 7),
 				WeekdayFilter: rule.EveryDay(),
 				Target:        assignment.UserTarget("foo"),
 			},

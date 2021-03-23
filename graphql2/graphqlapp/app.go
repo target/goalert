@@ -113,17 +113,18 @@ type fieldErr struct {
 
 type apolloTracer struct {
 	apollotracing.Tracer
+	shouldTrace func(context.Context) bool
 }
 
 func (a apolloTracer) InterceptField(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
-	if !permission.Admin(ctx) {
+	if !a.shouldTrace(ctx) {
 		return next(ctx)
 	}
 
 	return a.Tracer.InterceptField(ctx, next)
 }
 func (a apolloTracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
-	if !permission.Admin(ctx) {
+	if !a.shouldTrace(ctx) {
 		return next(ctx)
 	}
 
@@ -156,7 +157,12 @@ func (a *App) Handler() http.Handler {
 	h := handler.NewDefaultServer(
 		graphql2.NewExecutableSchema(graphql2.Config{Resolvers: a}),
 	)
-	h.Use(apolloTracer{Tracer: apollotracing.Tracer{}})
+
+	type hasTraceKey int
+	h.Use(apolloTracer{Tracer: apollotracing.Tracer{}, shouldTrace: func(ctx context.Context) bool {
+		enabled, ok := ctx.Value(hasTraceKey(1)).(bool)
+		return ok && enabled
+	}})
 
 	h.AroundFields(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 		defer func() {
@@ -245,6 +251,11 @@ func (a *App) Handler() http.Handler {
 		}
 
 		ctx = a.registerLoaders(ctx)
+		defer a.closeLoaders(ctx)
+
+		if req.URL.Query().Get("trace") == "1" && permission.Admin(ctx) {
+			ctx = context.WithValue(ctx, hasTraceKey(1), true)
+		}
 
 		h.ServeHTTP(w, req.WithContext(ctx))
 	})

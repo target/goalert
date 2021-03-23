@@ -270,10 +270,6 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		ov.RemoveUserID = rem.String
 		overrides = append(overrides, ov)
 	}
-	tempScheds, err := db.schedStore.TemporarySchedules(ctx, tx, scheduleID)
-	if err != nil {
-		return nil, errors.Wrap(err, "lookup temporary schedules")
-	}
 
 	err = tx.Commit()
 	if err != nil {
@@ -285,12 +281,11 @@ func (db *DB) HistoryBySchedule(ctx context.Context, scheduleID string, start, e
 		return nil, errors.Wrap(err, "load time zone info")
 	}
 	s := state{
-		rules:      rules,
-		overrides:  overrides,
-		history:    userHistory,
-		now:        now,
-		loc:        tz,
-		tempScheds: tempScheds,
+		rules:     rules,
+		overrides: overrides,
+		history:   userHistory,
+		now:       now,
+		loc:       tz,
 	}
 
 	return s.CalculateShifts(start, end), nil
