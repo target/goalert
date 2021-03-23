@@ -10,7 +10,6 @@ import ExpandIcon from '@material-ui/icons/KeyboardArrowDown'
 import CollapseIcon from '@material-ui/icons/KeyboardArrowUp'
 import { Alert, AlertTitle, AlertProps } from '@material-ui/lab'
 import toTitleCase from '../util/toTitleCase'
-import { Notice } from '../../schema'
 
 const useStyles = makeStyles({
   alertAction: {
@@ -29,6 +28,14 @@ const useStyles = makeStyles({
     padding: '8px 0 4px 0',
   },
 })
+
+export interface Notice {
+  type: NoticeType
+  message: string
+  details: string
+}
+
+export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
 
 interface NoticesProps {
   notices?: Notice[]
