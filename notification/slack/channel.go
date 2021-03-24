@@ -279,15 +279,20 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	var a alert.Alert
 	var timestamps []string
 
+	fmt.Println("\nin channel send")
+
 	switch t := msg.(type) {
 	case notification.Alert:
+		fmt.Println("msg type: alert")
 		a.Summary = fmt.Sprintf("Alert: %s", t.Summary)
 		a.ID = t.AlertID
 		a.Status = alert.StatusTriggered
 	// todo: handle actions on bundle items
 	case notification.AlertBundle:
+		fmt.Println("msg type: alert bundle")
 		a.Summary = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
 	case notification.AlertStatus:
+		fmt.Println("msg type: alert status")
 		_a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
 		if err != nil {
 			// todo
@@ -313,18 +318,23 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		return nil, err
 	}
 
+	fmt.Println("num prev msgs: ", len(timestamps))
 	if len(timestamps) == 0 {
+		fmt.Println("attempting send")
 		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
+		fmt.Println("success!")
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for _, ts := range timestamps {
+		fmt.Println("attempting update")
 		_, _, _, err = api.UpdateMessage(msg.Destination().Value, ts, msgOpt...)
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println("success!")
 	}
 
 	msgStatus := notification.MessageStatus{
