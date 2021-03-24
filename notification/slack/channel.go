@@ -274,8 +274,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 // https://api.slack.com/methods/chat.postMessage
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 	cfg := config.FromContext(ctx)
-	var a *alert.Alert
-	var err error
+	var a alert.Alert
 	var timestamps []string
 
 	fmt.Println("in channel send")
@@ -293,18 +292,19 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		a.Summary = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
 	case notification.AlertStatus:
 		fmt.Println("msg type: alert status")
-		a, err = s.cfg.AlertStore.FindOne(ctx, t.AlertID)
+		_a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
 		if err != nil {
 			return nil, err
 		}
+		a = *_a
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
 
 	var api = slack.New(cfg.Slack.AccessToken)
-	msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
+	msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
 
-	timestamps, err = s.cfg.NotificationStore.FindSlackAlertMsgTimestamps(ctx, a.ID)
+	timestamps, err := s.cfg.NotificationStore.FindSlackAlertMsgTimestamps(ctx, a.ID)
 	if err != nil {
 		return nil, err
 	}
