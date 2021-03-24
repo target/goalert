@@ -191,7 +191,12 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-generate: node_modules
+sysapi/sysapi_grpc.pb.go: sysapi/sysapi.proto
+	protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative sysapi/sysapi.proto
+sysapi/sysapi.pb.go: sysapi/sysapi.proto
+	protoc --go_out=. --go_opt=paths=source_relative sysapi/sysapi.proto
+
+generate: node_modules sysapi/sysapi.pb.go
 	go generate ./...
 
 smoketest:
