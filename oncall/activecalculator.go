@@ -23,9 +23,11 @@ type ActiveCalculator struct {
 	changed bool
 }
 type activeCalcValue struct {
-	ID         int64
-	Value      bool
-	OriginalID int64
+	T       int64
+	IsStart bool
+
+	// OriginalT is the original time of this value (e.g., historic start time vs. start of calculation).
+	OriginalT int64
 }
 
 // NewActiveCalculator will create a new ActiveCalculator bound to the TimeIterator.
@@ -46,7 +48,7 @@ func (act *ActiveCalculator) Init() *ActiveCalculator {
 	}
 	act.init = true
 
-	sort.Slice(act.states, func(i, j int) bool { return act.states[i].ID < act.states[j].ID })
+	sort.Slice(act.states, func(i, j int) bool { return act.states[i].T < act.states[j].T })
 
 	return act
 }
@@ -54,7 +56,7 @@ func (act *ActiveCalculator) Init() *ActiveCalculator {
 // SetSpan is used to set an active span.
 //
 // Care should be taken so that there is no overlap between spans, and
-// no start time should equal any end time.
+// no start time should equal any end time for non-sequential calls.
 func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	if act.init {
 		panic("cannot add spans after Init")
@@ -68,6 +70,11 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	}
 
 	// Skip if the length of the span is <= 0.
+	if !end.IsZero() && !end.After(start) {
+		return
+	}
+
+	// Skip if the span starts after the calculator end time.
 	if !start.Before(act.End()) {
 		return
 	}
@@ -85,7 +92,12 @@ func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 		id = act.Start().Unix()
 	}
 
-	act.states = append(act.states, activeCalcValue{ID: id, Value: isStart, OriginalID: originalID})
+	if len(act.states) > 0 && isStart && id == act.states[len(act.states)-1].T {
+		act.states = act.states[:len(act.states)-1]
+		return
+	}
+
+	act.states = append(act.states, activeCalcValue{T: id, IsStart: isStart, OriginalT: originalID})
 }
 
 // Process implements the SubIterator.Process method.
@@ -98,19 +110,19 @@ func (act *ActiveCalculator) Process(t int64) int64 {
 		return -1
 	}
 
-	v := act.states[0]
-	act.changed = v.ID == t
+	val := act.states[0]
+	act.changed = val.T == t
 	if act.changed {
-		act.active = v
+		act.active = val
 		act.states = act.states[1:]
 		if len(act.states) > 0 {
-			return act.states[0].ID
+			return act.states[0].T
 		}
 
 		return -1
 	}
 
-	return v.ID
+	return val.T
 }
 
 // Done implements the SubIterator.Done method.
@@ -122,7 +134,7 @@ func (act *ActiveCalculator) Done() {
 }
 
 // Active will return true if the current timestamp is within a span.
-func (act *ActiveCalculator) Active() bool { return act.active.Value }
+func (act *ActiveCalculator) Active() bool { return act.active.IsStart }
 
 // Changed will return true if the current tick changed the Active() state.
 func (act *ActiveCalculator) Changed() bool { return act.changed }
@@ -131,9 +143,9 @@ func (act *ActiveCalculator) Changed() bool { return act.changed }
 //
 // If Active() is false, it returns a zero value.
 func (act *ActiveCalculator) ActiveTime() time.Time {
-	if !act.active.Value {
+	if !act.Active() {
 		return time.Time{}
 	}
 
-	return time.Unix(act.active.OriginalID, 0).UTC()
+	return time.Unix(act.active.OriginalT, 0).UTC()
 }

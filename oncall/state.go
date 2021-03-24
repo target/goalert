@@ -157,11 +157,8 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 			continue
 		}
 
-		// rules
-		onCall := rules.ActiveUsers()
-
 		// apply any overrides
-		setOnCall(overrides.MapUsers(onCall), nil)
+		setOnCall(overrides.MapUsers(rules.ActiveUsers()), nil)
 	}
 
 	// remaining shifts are truncated

@@ -44,6 +44,15 @@ function testMarkdownDesc(screen: ScreenFormat, cfg: Config): void {
   })
 }
 
+function testMarkdownTables(): void {
+  describe('Markdown Tables', () => {
+    it('should render tables in html', () => {
+      cy.visit('/docs')
+      cy.get('table > thead > tr > th').should('exist').contains('Name')
+    })
+  })
+}
+
 function testMarkdown(screen: ScreenFormat): void {
   ;[
     {
@@ -67,6 +76,7 @@ function testMarkdown(screen: ScreenFormat): void {
       gen: (desc: string) => cy.createService({ description: desc }),
     },
   ].forEach((cfg) => describe(cfg.test, () => testMarkdownDesc(screen, cfg)))
+  testMarkdownTables()
 }
 
 testScreen('Markdown', testMarkdown)

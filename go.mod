@@ -1,6 +1,6 @@
 module github.com/target/goalert
 
-go 1.15
+go 1.16
 
 require (
 	cloud.google.com/go v0.74.0
@@ -32,7 +32,7 @@ require (
 	github.com/gorilla/pat v1.0.1 // indirect
 	github.com/graphql-go/graphql v0.7.9
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/hashicorp/yamux v0.0.0-20200609203250-aecfd211c9ce
+	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // pinned version - see https://github.com/target/goalert/issues/1239
 	github.com/ian-kent/envconf v0.0.0-20141026121121-c19809918c02 // indirect
 	github.com/ian-kent/go-log v0.0.0-20160113211217-5731446c36ab // indirect
 	github.com/ian-kent/goose v0.0.0-20141221090059-c3541ea826ad // indirect

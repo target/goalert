@@ -1,6 +1,5 @@
 import React, { useState, ReactNode } from 'react'
-import { useMutation } from '@apollo/client'
-import gql from 'graphql-tag'
+import { useMutation, gql } from '@apollo/client'
 import { fieldErrors, nonFieldErrors } from '../../util/errutil'
 import FormDialog from '../../dialogs/FormDialog'
 import { Shift, Value } from './sharedUtils'
@@ -33,7 +32,7 @@ export default function TempSchedDialog({
 }: TempScheduleDialogProps): JSX.Element {
   const edit = Boolean(_value)
 
-  const [step, setStep] = useState(edit ? 1 : 0) // edit starting on step 2
+  const [step, setStep] = useState(edit ? 1 : 0) // edit starting on 2nd step
   const [value, setValue] = useState({
     start: _value?.start ?? '',
     end: _value?.end ?? '',
@@ -72,6 +71,18 @@ export default function TempSchedDialog({
     key: number
   }
   function renderSlide({ index, key }: SlideRenderer): ReactNode {
+    if (index === 0) {
+      return (
+        <TempSchedTimesStep
+          key={key}
+          stepText='STEP 1 OF 2'
+          scheduleID={scheduleID}
+          value={value}
+          edit={edit}
+        />
+      )
+    }
+
     if (index === 1) {
       return (
         <TempSchedAddShiftsStep
@@ -87,15 +98,8 @@ export default function TempSchedDialog({
       )
     }
 
-    return (
-      <TempSchedTimesStep
-        key={key}
-        stepText='STEP 1 OF 2'
-        scheduleID={scheduleID}
-        value={value}
-        edit={edit}
-      />
-    )
+    // fallback empty div
+    return <div />
   }
 
   const nonFieldErrs = nonFieldErrors(error).map((e) => ({
@@ -131,6 +135,7 @@ export default function TempSchedDialog({
               }
               setStep(i)
             }}
+            slideCount={2}
             slideRenderer={renderSlide}
             disabled // disables slides from changing outside of action buttons
             containerStyle={{ height: '100%' }}

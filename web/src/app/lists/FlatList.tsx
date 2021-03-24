@@ -18,12 +18,17 @@ import ListSubheader from '@material-ui/core/ListSubheader'
 import AppLink from '../util/AppLink'
 import { makeStyles } from '@material-ui/core'
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
+import { Alert, AlertTitle, Color } from '@material-ui/lab'
+import { Notice, NoticeType } from '../details/Notices'
 
 const lime = '#93ed94'
 const lightLime = '#defadf'
 const lightGrey = '#ebebeb'
 
 const useStyles = makeStyles({
+  alert: {
+    margin: '0.5rem 0 0.5rem 0',
+  },
   background: { backgroundColor: 'white' },
   highlightedItem: {
     width: '100%',
@@ -58,6 +63,11 @@ const useStyles = makeStyles({
 export interface FlatListSub {
   subHeader: string
 }
+
+export interface FlatListNotice extends Notice {
+  id?: string
+  icon?: JSX.Element
+}
 export interface FlatListItem {
   title?: string
   highlight?: boolean
@@ -69,7 +79,7 @@ export interface FlatListItem {
   render?: (item: FlatListItem) => JSX.Element
 }
 
-export type FlatListListItem = FlatListSub | FlatListItem
+export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
 
 export interface FlatListProps extends ListProps {
   items: FlatListListItem[]
@@ -90,6 +100,13 @@ export interface FlatListProps extends ListProps {
 
   // will render transition in list
   transition?: boolean
+}
+
+const severityMap: { [K in NoticeType]: Color } = {
+  INFO: 'info',
+  WARNING: 'warning',
+  ERROR: 'error',
+  OK: 'success',
 }
 
 export default function FlatList({
@@ -114,6 +131,21 @@ export default function FlatList({
     if (result.destination && onReorder) {
       onReorder(result.source.index, result.destination.index)
     }
+  }
+
+  function renderNoticeItem(item: FlatListNotice, idx: number): JSX.Element {
+    return (
+      <Alert
+        key={idx}
+        component='li'
+        className={classes.alert}
+        severity={severityMap[item.type]}
+        icon={item.icon}
+      >
+        {item.message && <AlertTitle>{item.message}</AlertTitle>}
+        {item.details}
+      </Alert>
+    )
   }
 
   function renderSubheaderItem(item: FlatListSub, idx: number): JSX.Element {
@@ -175,9 +207,25 @@ export default function FlatList({
           </CSSTransition>
         )
       }
+      if ('type' in item) {
+        return (
+          <CSSTransition
+            key={'notice_' + (item.id || idx)}
+            timeout={500}
+            classNames={{
+              enter: classes.slideEnter,
+              enterActive: classes.slideEnterActive,
+              exit: classes.slideExit,
+              exitActive: classes.slideExitActive,
+            }}
+          >
+            {renderNoticeItem(item, idx)}
+          </CSSTransition>
+        )
+      }
       return (
         <CSSTransition
-          key={idx}
+          key={'item_' + (item.id || idx)}
           timeout={500}
           classNames={{
             enter: classes.slideEnter,
@@ -211,6 +259,9 @@ export default function FlatList({
     return items.map((item: FlatListListItem, idx: number) => {
       if ('subHeader' in item) {
         return renderSubheaderItem(item, idx)
+      }
+      if ('type' in item) {
+        return renderNoticeItem(item, idx)
       }
       if (!onReorder) {
         return renderItem(item, idx)

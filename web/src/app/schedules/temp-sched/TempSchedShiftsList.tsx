@@ -3,8 +3,6 @@ import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
 import makeStyles from '@material-ui/core/styles/makeStyles'
 import Tooltip from '@material-ui/core/Tooltip/Tooltip'
-import Alert from '@material-ui/lab/Alert'
-import AlertTitle from '@material-ui/lab/AlertTitle'
 import ScheduleIcon from '@material-ui/icons/Schedule'
 import Delete from '@material-ui/icons/Delete'
 import Error from '@material-ui/icons/Error'
@@ -22,9 +20,6 @@ import { parseInterval } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => {
   return {
-    alert: {
-      margin: '0.5rem 0 0.5rem 0',
-    },
     secondaryActionWrapper: {
       display: 'flex',
       alignItems: 'center',
@@ -63,13 +58,11 @@ export default function TempSchedShiftsList({
     if (!schedInterval.isValid) {
       return [
         {
-          render: () => (
-            <Alert key='no-coverage' className={classes.alert} severity='error'>
-              <AlertTitle>Invalid Start/End</AlertTitle>
-              Oops! There was a problem with the interval selected in step 1.
-              Please try again.
-            </Alert>
-          ),
+          id: 'invalid',
+          type: 'ERROR',
+          message: 'Invalid Start/End',
+          details:
+            'Oops! There was a problem with the interval selected in step 1. Please try again.',
         },
       ]
     }
@@ -78,17 +71,16 @@ export default function TempSchedShiftsList({
     if (!_shifts.length) {
       return [
         {
-          render: () => (
-            <Alert key='no-coverage' className={classes.alert} severity='info'>
-              <AlertTitle>No coverage</AlertTitle>
-              Add a shift to get started
-            </Alert>
-          ),
+          id: 'no-coverage',
+          type: 'INFO',
+          message: 'No coverage',
+          details: 'Add a shift to get started',
         },
       ]
     }
 
     const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
+      id: s.start + s.userID,
       shift: s,
       start: DateTime.fromISO(s.start, { zone }),
       end: DateTime.fromISO(s.end, { zone }),
@@ -140,18 +132,13 @@ export default function TempSchedShiftsList({
       // for day that it will start on
       if (dayStart.day === schedInterval.start.day) {
         result.push({
-          render: () => (
-            <Alert
-              key={'start-' + dayStart.millisecond}
-              className={classes.alert}
-              severity='success'
-              icon={<ScheduleIcon />}
-            >
-              {`Starts at ${DateTime.fromISO(start)
-                .setZone(zone)
-                .toFormat('h:mm a')}`}
-            </Alert>
-          ),
+          id: 'day-start_' + start,
+          type: 'OK',
+          icon: <ScheduleIcon />,
+          message: '',
+          details: `Starts at ${DateTime.fromISO(start)
+            .setZone(zone)
+            .toFormat('h:mm a')}`,
         })
       }
 
@@ -159,15 +146,10 @@ export default function TempSchedShiftsList({
       // render no coverage and continue if no shifts for the given day
       if (dayShifts.length === 0 && sortedShifts.length > 0) {
         return result.push({
-          render: () => (
-            <Alert
-              key={dayStart.millisecond + '-no-coverage'}
-              className={classes.alert}
-              severity='warning'
-            >
-              No coverage
-            </Alert>
-          ),
+          id: 'day-no-coverage_' + start,
+          type: 'WARNING',
+          message: '',
+          details: 'No coverage',
         })
       }
 
@@ -180,15 +162,12 @@ export default function TempSchedShiftsList({
       dayShifts.forEach((s, shiftIdx) => {
         if (s.isValid && shiftIdx === 0 && checkCoverage(dayStart, s.start)) {
           result.push({
-            render: () => (
-              <Alert
-                key={s.start.millisecond + '-no-start-coverage'}
-                className={classes.alert}
-                severity='warning'
-              >
-                No coverage until {s.start.setZone(zone).toFormat('h:mm a')}
-              </Alert>
-            ),
+            id: 'no-coverage-until_' + s.start,
+            type: 'WARNING',
+            message: '',
+            details: `No coverage until ${s.start
+              .setZone(zone)
+              .toFormat('h:mm a')}`,
           })
         }
 
@@ -216,7 +195,7 @@ export default function TempSchedShiftsList({
         }
 
         result.push({
-          id: s.shift.userID + dayIdx.toString(),
+          id: s.start + s.shift.userID,
           title: s.shift.user?.name,
           subText: shiftDetails,
           icon: <UserAvatar userID={s.shift.userID} />,
@@ -251,18 +230,13 @@ export default function TempSchedShiftsList({
           checkCoverage(s.end, dayShifts[shiftIdx + 1].start)
         ) {
           result.push({
-            render: () => (
-              <Alert
-                key={s.end.millisecond + '-no-middle-coverage'}
-                className={classes.alert}
-                severity='warning'
-              >
-                {`No coverage from ${s.end.setZone(zone).toFormat('h:mm a')} to 
-                ${dayShifts[shiftIdx + 1].start
-                  .setZone(zone)
-                  .toFormat('h:mm a')}`}
-              </Alert>
-            ),
+            id: 'no-coverage-from_' + s.end,
+            type: 'WARNING',
+            message: '',
+            details: `No coverage from ${s.end
+              .setZone(zone)
+              .toFormat('h:mm a')} to 
+            ${dayShifts[shiftIdx + 1].start.setZone(zone).toFormat('h:mm a')}`,
           })
         }
 
@@ -281,15 +255,12 @@ export default function TempSchedShiftsList({
           checkCoverage(s.end, dayEnd)
         ) {
           result.push({
-            render: () => (
-              <Alert
-                key={s.end.millisecond + '-no-end-coverage'}
-                className={classes.alert}
-                severity='warning'
-              >
-                No coverage after {s.end.setZone(zone).toFormat('h:mm a')}
-              </Alert>
-            ),
+            id: 'no-coverage-after_' + s.end,
+            type: 'WARNING',
+            message: '',
+            details: `No coverage after ${s.end
+              .setZone(zone)
+              .toFormat('h:mm a')}`,
           })
         }
       })
@@ -297,16 +268,13 @@ export default function TempSchedShiftsList({
 
     // add end time of temp schedule to bottom of list
     result.push({
-      render: () => (
-        <Alert
-          key='end'
-          className={classes.alert}
-          severity='success'
-          icon={<ScheduleIcon />}
-        >
-          Ends at {DateTime.fromISO(end).setZone(zone).toFormat('h:mm a')}
-        </Alert>
-      ),
+      id: 'ends-at_' + end,
+      type: 'OK',
+      icon: <ScheduleIcon />,
+      message: '',
+      details: `Ends at ${DateTime.fromISO(end)
+        .setZone(zone)
+        .toFormat('h:mm a')}`,
     })
 
     return result

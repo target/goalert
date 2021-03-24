@@ -2,7 +2,6 @@ package app
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -67,7 +66,7 @@ func TestMuxRewrite(t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode, "Status Code")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.Nil(t, err)
 
 		assert.Equal(t, "/new/path", string(data))
@@ -89,7 +88,7 @@ func TestMuxRewrite(t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode, "Status Code")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.Nil(t, err)
 
 		assert.Equal(t, "/new/path?a=b&c=d", string(data))
@@ -111,7 +110,7 @@ func TestMuxRewrite(t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode, "Status Code")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.Nil(t, err)
 
 		assert.Equal(t, "/foobar/new/path", string(data))
@@ -133,7 +132,7 @@ func TestMuxRewrite(t *testing.T) {
 		assert.Nil(t, err)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode, "Status Code")
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		assert.Nil(t, err)
 
 		assert.Equal(t, "/foobar/new/path", string(data))

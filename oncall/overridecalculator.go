@@ -76,8 +76,7 @@ func (oCalc *OverrideCalculator) Process(int64) int64 {
 // Done implements the SubIterator.Done method.
 func (oCalc *OverrideCalculator) Done() {}
 
-// MapUsers will return a sliced of userIDs applying the current set of overrides
-// the the provided list. The provided list is not modified.
+// MapUsers will return a new slice of userIDs, taking into account any active overrides.
 //
 // It is only valid until the following Next() call and should not be modified.
 func (oCalc *OverrideCalculator) MapUsers(userIDs []string) []string {

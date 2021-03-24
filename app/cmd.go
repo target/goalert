@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -482,7 +482,7 @@ Migration: %s (#%d)
 				}()
 
 				var err error
-				data, err = ioutil.ReadAll(os.Stdin)
+				data, err = io.ReadAll(os.Stdin)
 				close(doneCh)
 				if err != nil {
 					return errors.Wrap(err, "read stdin")

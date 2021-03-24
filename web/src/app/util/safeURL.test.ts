@@ -62,4 +62,18 @@ describe('safeURL', () => {
       '[example.com/bin](example.com)',
     ],
   })
+
+  checkIt('should require email to match label', {
+    true: ['[admin@example.com](mailto:admin@example.com)'],
+    false: ['[admin@example.com](mailto:admin@malware.com)'],
+  })
+
+  checkIt('should require phone to match label', {
+    true: ['[1234567890](tel:1234567890)'],
+    false: [
+      '[123-456-7890](tel:1234567890)',
+      '[1234567890](tel:123-456-7890)',
+      '[0987654321](tel:1234567890)',
+    ],
+  })
 })
