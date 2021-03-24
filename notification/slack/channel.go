@@ -270,12 +270,10 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 }
 
 // Send handles processing new alerts and message updates to be sent out to a Slack channel
+// Parameters & URL documented here:
+// https://api.slack.com/methods/chat.postMessage
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 	cfg := config.FromContext(ctx)
-
-	// Parameters & URL documented here:
-	// https://api.slack.com/methods/chat.postMessage
-
 	var a alert.Alert
 	var timestamps []string
 
@@ -338,9 +336,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	}
 
 	msgStatus := notification.MessageStatus{
-		ID:                msg.ID(),
-		State:             notification.MessageStateDelivered,
-		ProviderMessageID: "",
+		ID:    msg.ID(),
+		State: notification.MessageStateDelivered,
 	}
 
 	if msg.Type() == notification.MessageTypeAlert {
