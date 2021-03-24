@@ -23,7 +23,7 @@ func AlertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
 }
 
 func AlertSummarySection(summary string) *slack.SectionBlock {
-	summaryText := slack.NewTextBlockObject("mrkdwn", summary, false, false)
+	summaryText := slack.NewTextBlockObject("mrkdwn", "Summary: "+summary, false, false)
 	return slack.NewSectionBlock(summaryText, nil, nil)
 }
 
@@ -77,9 +77,7 @@ func UserAuthMessageOption(clientID, uri string) slack.MsgOption {
 	btn.URL = "https://slack.com/oauth/v2/authorize?user_scope=identity.basic&client_id=" + clientID + "&redirect_uri=" + uri // slack oauth endpoint
 	accessory := slack.NewAccessory(btn)
 
-	// button is invalid
 	section := slack.NewSectionBlock(msg, nil, accessory)
-
 	return slack.MsgOptionBlocks(section)
 }
 
@@ -88,18 +86,14 @@ func CraftAlertMessage(a alert.Alert, url string) []slack.MsgOption {
 	var actions *slack.ActionBlock
 
 	alertID := strconv.Itoa(a.ID)
-	// url := cfg.CallbackURL("/alerts/" + strconv.Itoa(a.ID))
 
 	if a.Status == alert.StatusTriggered {
-		// new message, send
 		actions = slack.NewActionBlock("", ackButton(alertID), escButton(alertID), closeButton(alertID), openLinkButton(url))
 	} else if a.Status == alert.StatusActive {
 		actions = slack.NewActionBlock("", escButton(alertID), closeButton(alertID), openLinkButton(url))
 	} else {
 		actions = slack.NewActionBlock("", openLinkButton(url))
 	}
-
-	// else : update message
 
 	msgOpt = append(msgOpt,
 		// desktop notification text

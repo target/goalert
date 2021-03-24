@@ -2,6 +2,7 @@ package contactmethod
 
 import (
 	"fmt"
+
 	"github.com/target/goalert/notification"
 )
 

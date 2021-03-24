@@ -274,50 +274,46 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 // https://api.slack.com/methods/chat.postMessage
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 	cfg := config.FromContext(ctx)
-	var a alert.Alert
+	var a *alert.Alert
+	var err error
 	var timestamps []string
 
-	fmt.Println("\nin channel send")
+	fmt.Println("in channel send")
+
+	// if ts > 0 and type = notification.alert, then escalating
 
 	switch t := msg.(type) {
 	case notification.Alert:
 		fmt.Println("msg type: alert")
-		a.Summary = fmt.Sprintf("Alert: %s", t.Summary)
+		a.Summary = t.Summary
 		a.ID = t.AlertID
 		a.Status = alert.StatusTriggered
-	// todo: handle actions on bundle items
 	case notification.AlertBundle:
 		fmt.Println("msg type: alert bundle")
 		a.Summary = fmt.Sprintf("Service '%s' has %d unacknowledged alerts.", t.ServiceName, t.Count)
 	case notification.AlertStatus:
 		fmt.Println("msg type: alert status")
-		_a, err := s.cfg.AlertStore.FindOne(ctx, t.AlertID)
+		a, err = s.cfg.AlertStore.FindOne(ctx, t.AlertID)
 		if err != nil {
-			// todo
 			return nil, err
 		}
-		a = *_a
-		// a.ID = t.AlertID
-		a.Summary = fmt.Sprintf("Alert: %s", _a.Summary)
-		// a.Status = _a.Status
-
 	default:
 		return nil, errors.Errorf("unsupported message type: %T", t)
 	}
 
 	var api = slack.New(cfg.Slack.AccessToken)
-	msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
-
-	var ts string
-	var err error
+	msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
 
 	timestamps, err = s.cfg.NotificationStore.FindSlackAlertMsgTimestamps(ctx, a.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	// todo: determine if alert is being escalated
+
 	fmt.Println("num prev msgs: ", len(timestamps))
-	if len(timestamps) == 0 {
+	var ts string
+	if len(timestamps) == 0 { // or being escalated
 		fmt.Println("attempting send")
 		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
 		fmt.Println("success!")

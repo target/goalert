@@ -2,6 +2,7 @@ package notificationchannel
 
 import (
 	"fmt"
+
 	"github.com/target/goalert/notification"
 )
 
