@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"golang.org/x/net/context/ctxhttp"
 )
@@ -62,8 +63,7 @@ func (err slackError) ClientError() bool { return true }
 func wrapError(errMsg, details string) error {
 	switch errMsg {
 	case "missing_scope":
-		// happens if the ID is for a user
-		return validation.NewFieldError("ChannelID", "Only channels supported.")
+		return validation.NewFieldError("ChannelID", "Permission Denied.")
 	case "channel_not_found":
 		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
 	case "invalid_auth", "account_inactive", "token_revoked", "not_authed":
@@ -248,6 +248,9 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 		}
 
 		if !resData.OK {
+			acceptedScopes := resp.Header.Get("X-Accepted-Oauth-Scopes")
+			providedScopes := resp.Header.Get("X-Oauth-Scopes")
+			log.Log(ctx, errors.New("Slack app scopes must include one of: "+acceptedScopes+"; got: "+providedScopes))
 			return nil, wrapError(resData.Error, "list Slack channels")
 		}
 
