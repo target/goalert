@@ -250,7 +250,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 		if !resData.OK {
 			acceptedScopes := resp.Header.Get("X-Accepted-Oauth-Scopes")
 			providedScopes := resp.Header.Get("X-Oauth-Scopes")
-			log.Log(ctx, errors.New("Slack app scopes must include one of: "+acceptedScopes+"; got: "+providedScopes))
+			log.Log(ctx, errors.New("Slack app scopes must include one of: ["+acceptedScopes+"]; got: ["+providedScopes+"]"))
 			return nil, wrapError(resData.Error, "list Slack channels")
 		}
 
