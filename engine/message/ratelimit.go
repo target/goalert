@@ -15,19 +15,29 @@ var PerCMThrottle ThrottleConfig
 func init() {
 	var perCM ThrottleConfigBuilder
 
-	// all message types
-	perCM.AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
+	// All other message types minus Slack
+	perCM.
+		WithDestTypes(notification.DestTypeUnknown, notification.DestTypeVoice, notification.DestTypeSMS, notification.DestTypeUserEmail).
+		AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
 
-	// status notifications
+	// Slack messages
+	// https://api.slack.com/docs/rate-limits#rate-limits__limits-when-posting-messages
+	perCM.WithDestTypes(notification.DestTypeSlackChannel).
+		AddRules([]ThrottleRule{
+			{Count: 1, Per: time.Second},
+		})
+
+	// Status update notifications
 	perCM.
 		WithMsgTypes(notification.MessageTypeAlertStatus, notification.MessageTypeAlertStatusBundle).
+		WithDestTypes(notification.DestTypeVoice, notification.DestTypeSMS).
 		AddRules([]ThrottleRule{
 			{Count: 1, Per: 3 * time.Minute},
 			{Count: 3, Per: 20 * time.Minute},
 			{Count: 8, Per: 120 * time.Minute, Smooth: true},
 		})
 
-	// alert notifications
+	// Alert notifications
 	alertMessages := perCM.WithMsgTypes(notification.MessageTypeAlert, notification.MessageTypeAlertBundle)
 
 	alertMessages.
