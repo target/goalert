@@ -232,7 +232,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 			return nil, errors.New("non-200 response from Slack: " + resp.Status)
 		}
 
-		var resData struct {
+		var respBody struct {
 			OK       bool
 			Error    string
 			Channels []Channel
@@ -241,23 +241,23 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 			} `json:"response_metadata"`
 		}
 
-		err = json.NewDecoder(resp.Body).Decode(&resData)
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
 		resp.Body.Close()
 		if err != nil {
 			return nil, errors.Wrap(err, "parse JSON")
 		}
 
-		if !resData.OK {
-			return nil, wrapError(resData.Error, "list Slack channels")
+		if !respBody.OK {
+			return nil, wrapError(respBody.Error, "list Slack channels")
 		}
 
-		channels = append(channels, resData.Channels...)
+		channels = append(channels, respBody.Channels...)
 
-		if resData.Meta.NextCursor == "" {
+		if respBody.Meta.NextCursor == "" {
 			break
 		}
 
-		v.Set("cursor", resData.Meta.NextCursor)
+		v.Set("cursor", respBody.Meta.NextCursor)
 	}
 
 	for i := range channels {
