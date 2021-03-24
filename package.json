@@ -24,10 +24,10 @@
     ]
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "4.14.1",
+    "@typescript-eslint/eslint-plugin": "4.18.0",
     "@typescript-eslint/parser": "4.17.0",
     "babel-eslint": "10.1.0",
-    "eslint": "7.21.0",
+    "eslint": "7.22.0",
     "eslint-config-prettier": "7.2.0",
     "eslint-config-standard": "16.0.2",
     "eslint-config-standard-jsx": "10.0.0",
@@ -43,6 +43,6 @@
     "prettier": "2.2.1",
     "stylelint": "13.12.0",
     "stylelint-config-standard": "21.0.0",
-    "typescript": "4.2.2"
+    "typescript": "4.2.3"
   }
 }
