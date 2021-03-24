@@ -36,6 +36,19 @@ func (app *App) _Shutdown(ctx context.Context) error {
 		}
 	}
 
+	if app.sysAPISrv != nil {
+		waitCh := make(chan struct{})
+		go func() {
+			defer close(waitCh)
+			app.sysAPISrv.GracefulStop()
+		}()
+		select {
+		case <-ctx.Done():
+		case <-waitCh:
+		}
+		app.sysAPISrv.Stop()
+	}
+
 	// It's important to shutdown the HTTP server first
 	// so things like message responses are handled before
 	// shutting down things like the engine or notification manager

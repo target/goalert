@@ -609,6 +609,8 @@ func getConfig() (Config, error) {
 
 		TLSListenAddr: viper.GetString("listen-tls"),
 
+		SysAPIListenAddr: viper.GetString("listen-sysapi"),
+
 		HTTPPrefix: viper.GetString("http-prefix"),
 
 		SlackBaseURL:  viper.GetString("slack-base-url"),
@@ -663,6 +665,9 @@ func init() {
 	RootCmd.Flags().StringP("listen", "l", def.ListenAddr, "Listen address:port for the application.")
 
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
+
+	RootCmd.Flags().String("listen-sysapi", "", "Listen address:port for the system API (gRPC).")
+
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-cert-data", "", "Specifies a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")

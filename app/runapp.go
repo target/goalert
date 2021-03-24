@@ -32,6 +32,15 @@ func (app *App) _Run(ctx context.Context) error {
 		return err
 	}
 
+	if app.sysAPISrv != nil {
+		log.Logf(log.WithField(context.TODO(), "address", app.sysAPIL.Addr().String()), "System API server started.")
+		go func() {
+			if err := app.sysAPISrv.Serve(app.sysAPIL); err != nil {
+				log.Log(ctx, err)
+			}
+		}()
+	}
+
 	log.Logf(
 		log.WithFields(context.TODO(), log.Fields{
 			"address": app.l.Addr().String(),
