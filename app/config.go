@@ -19,6 +19,8 @@ type Config struct {
 	TLSConfig     *tls.Config
 
 	SysAPIListenAddr string
+	SysAPICertFile   string
+	SysAPIKeyFile    string
 
 	HTTPPrefix string
 

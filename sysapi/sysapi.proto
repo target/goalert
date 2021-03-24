@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option go_package = "github.com/target/goalert/sysapi";
+
+package sysapi;
+
+service SysAPI {
+    rpc Echo(EchoRequest) returns (EchoResponse){}
+
+    rpc ListUsers(ListUsersRequest) returns (ListUsersResponse){}
+
+    rpc AuthSubjects(AuthSubjectsRequest) returns (AuthSubjectsResponse){}
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse){}
+}
+
+message DeleteUserRequest {
+    bytes user_id = 1;
+}
+message DeleteUserResponse{}
+
+message AuthSubjectsRequest {
+    int32 limit =1 ;
+    string provider_id =2;
+    string after_subject_id = 3;
+}
+message AuthSubjectsResponse {
+    repeated AuthSubject subjects = 1;
+}
+message AuthSubject {
+    bytes user_id =1;
+    string provider_id=2;
+    string subject_id=3;
+}
+
+message ListUsersRequest {}
+
+message ListUsersResponse {
+    repeated UserInfo users = 1;
+}
+
+message UserInfo {
+    string id =1;
+    string name = 2;
+    string email = 3;
+}
+
+message EchoRequest {
+    string data = 1;
+}
+
+message EchoResponse {
+    string data = 1;
+}
