@@ -309,11 +309,9 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		return nil, err
 	}
 
-	// todo: determine if alert is being escalated
-
 	fmt.Println("num prev msgs: ", len(timestamps))
 	var ts string
-	if len(timestamps) == 0 { // or being escalated
+	if msg.Type() == notification.MessageTypeAlert {
 		fmt.Println("attempting send")
 		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
 		fmt.Println("success!")
