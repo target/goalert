@@ -121,7 +121,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		_, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
 		if err != nil {
 			uri := cfg.General.PublicURL + "/api/v2/slack/auth"
-			msg := UserAuthMessageOption(cfg.Slack.ClientID, uri)
+			msg := userAuthMessageOption(cfg.Slack.ClientID, uri)
 			_, err := api.PostEphemeral(payload.Channel.ID, payload.User.ID, msg)
 			if err != nil {
 				clientErr()

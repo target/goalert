@@ -8,7 +8,7 @@ import (
 	"github.com/target/goalert/alert"
 )
 
-func AlertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
+func alertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
 	var s string
 	if status == "triggered" {
 		s = "Unacknowledged"
@@ -22,7 +22,7 @@ func AlertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
 	return slack.NewHeaderBlock(summaryText)
 }
 
-func AlertSummarySection(summary string) *slack.SectionBlock {
+func alertSummarySection(summary string) *slack.SectionBlock {
 	summaryText := slack.NewTextBlockObject("mrkdwn", "Summary: "+summary, false, false)
 	return slack.NewSectionBlock(summaryText, nil, nil)
 }
@@ -49,27 +49,12 @@ func openLinkButton(url string) *slack.ButtonBlockElement {
 	return s
 }
 
-// AlertActionsOnUpdate handles returning the block actions for an alert message
-// within Slack. The alert a parameter represents the state of the alert after
-// the action has been processed.
-func AlertActionsOnUpdate(a int, status alert.Status, url string) *slack.ActionBlock {
-	alertID := strconv.Itoa(a)
+// func alertLastStatusContext(lastStatus string) *slack.ContextBlock {
+// 	lastStatusText := slack.NewTextBlockObject("plain_text", lastStatus, true, true)
+// 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
+// }
 
-	if status == alert.StatusTriggered {
-		return slack.NewActionBlock("", ackButton(alertID), escButton(alertID), closeButton(alertID), openLinkButton(url))
-	} else if status == alert.StatusActive {
-		return slack.NewActionBlock("", escButton(alertID), closeButton(alertID), openLinkButton(url))
-	} else {
-		return slack.NewActionBlock("", openLinkButton(url))
-	}
-}
-
-func AlertLastStatusContext(lastStatus string) *slack.ContextBlock {
-	lastStatusText := slack.NewTextBlockObject("plain_text", lastStatus, true, true)
-	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
-}
-
-func UserAuthMessageOption(clientID, uri string) slack.MsgOption {
+func userAuthMessageOption(clientID, uri string) slack.MsgOption {
 	msg := slack.NewTextBlockObject("plain_text", "Please link your GoAlert account to continue", false, false)
 
 	btnTxt := slack.NewTextBlockObject("plain_text", "Authenticate :link:", true, false)
@@ -101,8 +86,8 @@ func CraftAlertMessage(a alert.Alert, url string) []slack.MsgOption {
 
 		// blockkit elements
 		slack.MsgOptionBlocks(
-			AlertIDAndStatusSection(a.ID, string(a.Status)),
-			AlertSummarySection(a.Summary),
+			alertIDAndStatusSection(a.ID, string(a.Status)),
+			alertSummarySection(a.Summary),
 			actions,
 		),
 	)

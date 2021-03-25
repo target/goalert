@@ -3,8 +3,8 @@ package notification
 type AlertStatus struct {
 	Dest       Dest
 	CallbackID string
-	LogEntry   string
 	AlertID    int
+	LogEntry   string
 }
 
 var _ Message = &AlertStatus{}
