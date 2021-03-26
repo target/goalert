@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import { gql } from '@apollo/client'
 import FlatList from '../lists/FlatList'
@@ -13,7 +13,7 @@ import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { DateTime } from 'luxon'
 import { UserAvatar } from '../util/avatars'
-import { withStyles } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
 
 const rotationUsersQuery = gql`
@@ -36,68 +36,16 @@ const mutation = gql`
   }
 `
 
-const styles = (theme) => {
-  const { cardHeader } = globalStyles(theme)
+const useStyles = makeStyles((theme) => ({
+  cardHeader: globalStyles(theme),
+}))
 
-  return {
-    cardHeader,
-  }
-}
+const RotationUserList = (props) => {
+  const [deleteIndex, setDeleteIndex] = useState(null)
+  const [activeIndex, setActiveIndex] = useState(null)
+  const classes = useStyles()
 
-@withStyles(styles)
-export default class RotationUserList extends React.PureComponent {
-  static propTypes = {
-    rotationID: p.string.isRequired,
-  }
-
-  state = {
-    deleteIndex: null,
-    setActiveIndex: null,
-  }
-
-  render() {
-    const { classes } = this.props
-    return (
-      <React.Fragment>
-        <Card>
-          <CardHeader
-            className={classes.cardHeader}
-            component='h3'
-            title='Users'
-          />
-          <Query
-            query={rotationUsersQuery}
-            render={({ data }) => this.renderMutation(data)}
-            variables={{ id: this.props.rotationID }}
-          />
-        </Card>
-        {this.state.deleteIndex !== null && (
-          <RotationUserDeleteDialog
-            rotationID={this.props.rotationID}
-            userIndex={this.state.deleteIndex}
-            onClose={() => this.setState({ deleteIndex: null })}
-          />
-        )}
-        {this.state.setActiveIndex !== null && (
-          <RotationSetActiveDialog
-            rotationID={this.props.rotationID}
-            userIndex={this.state.setActiveIndex}
-            onClose={() => this.setState({ setActiveIndex: null })}
-          />
-        )}
-      </React.Fragment>
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation}>
-        {(commit) => this.renderList(data, commit)}
-      </Mutation>
-    )
-  }
-
-  renderList(data, commit) {
+  const renderList = (data, commit) => {
     const { users, activeUserIndex, nextHandoffTimes } = data.rotation
 
     // duplicate first entry
@@ -153,11 +101,11 @@ export default class RotationUserList extends React.PureComponent {
               actions={[
                 {
                   label: 'Set Active',
-                  onClick: () => this.setState({ setActiveIndex: index }),
+                  onClick: () => setActiveIndex(index),
                 },
                 {
                   label: 'Remove',
-                  onClick: () => this.setState({ deleteIndex: index }),
+                  onClick: () => setDeleteIndex(index),
                 },
               ]}
             />
@@ -169,7 +117,7 @@ export default class RotationUserList extends React.PureComponent {
             ...args,
           )
           const newActiveIndex = calcNewActiveIndex(activeUserIndex, ...args)
-          const params = { id: this.props.rotationID, userIDs: updatedUsers }
+          const params = { id: props.rotationID, userIDs: updatedUsers }
 
           if (newActiveIndex !== -1) {
             params.activeUserIndex = newActiveIndex
@@ -183,14 +131,14 @@ export default class RotationUserList extends React.PureComponent {
               }
               const data = cache.readQuery({
                 query: rotationUsersQuery,
-                variables: { id: this.props.rotationID },
+                variables: { id: props.rotationID },
               })
 
               const users = reorderList(data.rotation.users, ...args)
 
               cache.writeQuery({
                 query: rotationUsersQuery,
-                variables: { id: this.props.rotationID },
+                variables: { id: props.rotationID },
                 data: {
                   ...data,
                   rotation: {
@@ -213,4 +161,49 @@ export default class RotationUserList extends React.PureComponent {
       />
     )
   }
+
+  const renderMutation = (data) => {
+    return (
+      <Mutation mutation={mutation}>
+        {(commit) => renderList(data, commit)}
+      </Mutation>
+    )
+  }
+
+  return (
+    <React.Fragment>
+      <Card>
+        <CardHeader
+          className={classes.cardHeader}
+          component='h3'
+          title='Users'
+        />
+        <Query
+          query={rotationUsersQuery}
+          render={({ data }) => renderMutation(data)}
+          variables={{ id: props.rotationID }}
+        />
+      </Card>
+      {deleteIndex !== null && (
+        <RotationUserDeleteDialog
+          rotationID={props.rotationID}
+          userIndex={deleteIndex}
+          onClose={() => setDeleteIndex(null)}
+        />
+      )}
+      {activeIndex !== null && (
+        <RotationSetActiveDialog
+          rotationID={props.rotationID}
+          userIndex={activeIndex}
+          onClose={() => setActiveIndex(null)}
+        />
+      )}
+    </React.Fragment>
+  )
 }
+
+RotationUserList.propTypes = {
+  rotationID: p.string.isRequired,
+}
+
+export default RotationUserList

@@ -24,34 +24,10 @@ const mutation = gql`
     updateRotation(input: $input)
   }
 `
-export default class RotationUserDeleteDialog extends React.PureComponent {
-  static propTypes = {
-    rotationID: p.string.isRequired,
-    userIndex: p.number.isRequired,
-    onClose: p.func.isRequired,
-  }
-
-  render() {
-    return (
-      <Query
-        query={query}
-        variables={{ id: this.props.rotationID }}
-        render={({ data }) => this.renderMutation(data.rotation)}
-      />
-    )
-  }
-
-  renderMutation(data) {
-    return (
-      <Mutation mutation={mutation} onCompleted={this.props.onClose}>
-        {(commit) => this.renderDialog(data, commit)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(data, commit) {
+const RotationUserDeleteDialog = (props) => {
+  const renderDialog = (data, commit) => {
     const { userIDs, users } = data
-    const { rotationID, userIndex, onClose } = this.props
+    const { rotationID, userIndex, onClose } = props
 
     return (
       <FormDialog
@@ -74,4 +50,28 @@ export default class RotationUserDeleteDialog extends React.PureComponent {
       />
     )
   }
+
+  const renderMutation = (data) => {
+    return (
+      <Mutation mutation={mutation} onCompleted={props.onClose}>
+        {(commit) => renderDialog(data, commit)}
+      </Mutation>
+    )
+  }
+
+  return (
+    <Query
+      query={query}
+      variables={{ id: props.rotationID }}
+      render={({ data }) => renderMutation(data.rotation)}
+    />
+  )
 }
+
+RotationUserDeleteDialog.propTypes = {
+  rotationID: p.string.isRequired,
+  userIndex: p.number.isRequired,
+  onClose: p.func.isRequired,
+}
+
+export default RotationUserDeleteDialog

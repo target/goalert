@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { gql } from '@apollo/client'
-import { PropTypes as p } from 'prop-types'
+import p from 'prop-types'
 import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserForm from './UserForm'
@@ -12,32 +12,14 @@ const mutation = gql`
   }
 `
 
-export default class RotationAddUserDialog extends React.Component {
-  static propTypes = {
-    rotationID: p.string.isRequired,
-    userIDs: p.array.isRequired,
-    onClose: p.func.isRequired,
+const RotationAddUserDialog = (props) => {
+  const [value, setValue] = useState(null)
+
+  const defaultValue = {
+    users: [],
   }
 
-  state = {
-    value: null,
-    errors: [],
-  }
-
-  render() {
-    const defaultValue = {
-      users: [],
-    }
-
-    return (
-      <Mutation mutation={mutation}>
-        {(commit, status) => this.renderDialog(defaultValue, commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(defaultValue, commit, status) {
-    const { value } = this.state
+  const renderDialog = (defaultValue, commit, status) => {
     const { loading, error } = status
     const fieldErrs = fieldErrors(error)
 
@@ -45,33 +27,48 @@ export default class RotationAddUserDialog extends React.Component {
     const users = []
     const userIDs = (value && value.users) || defaultValue.users
 
-    this.props.userIDs.forEach((u) => users.push(u))
+    props.userIDs.forEach((u) => users.push(u))
     userIDs.forEach((u) => users.push(u))
+
     return (
       <FormDialog
         title='Add User'
         loading={loading}
         errors={nonFieldErrors(error)}
-        onClose={this.props.onClose}
+        onClose={props.onClose}
         onSubmit={() => {
           return commit({
             variables: {
               input: {
-                id: this.props.rotationID,
+                id: props.rotationID,
                 userIDs: users,
               },
             },
-          }).then(() => this.props.onClose())
+          }).then(() => props.onClose())
         }}
         form={
           <UserForm
             errors={fieldErrs}
             disabled={loading}
-            value={this.state.value || defaultValue}
-            onChange={(value) => this.setState({ value })}
+            value={value || defaultValue}
+            onChange={(value) => setValue(value)}
           />
         }
       />
     )
   }
+
+  return (
+    <Mutation mutation={mutation}>
+      {(commit, status) => renderDialog(defaultValue, commit, status)}
+    </Mutation>
+  )
 }
+
+RotationAddUserDialog.propTypes = {
+  rotationID: p.string.isRequired,
+  userIDs: p.array.isRequired,
+  onClose: p.func.isRequired,
+}
+
+export default RotationAddUserDialog
