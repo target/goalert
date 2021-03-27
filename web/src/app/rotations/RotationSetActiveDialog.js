@@ -1,6 +1,6 @@
 import React from 'react'
 import { gql } from '@apollo/client'
-import { PropTypes as p } from 'prop-types'
+import p from 'prop-types'
 import Query from '../util/Query'
 import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
