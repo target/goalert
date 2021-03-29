@@ -15,7 +15,7 @@ var PerCMThrottle ThrottleConfig
 func init() {
 	var perCM ThrottleConfigBuilder
 
-	// All other message types minus Slack
+	// All message types minus Slack
 	perCM.
 		WithDestTypes(notification.DestTypeUnknown, notification.DestTypeVoice, notification.DestTypeSMS, notification.DestTypeUserEmail).
 		AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})

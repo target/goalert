@@ -311,7 +311,7 @@ func (db *DB) FindOneTx(ctx context.Context, tx *sql.Tx, id string, forUpdate bo
 	return &u, nil
 }
 
-// FindOneBySlack implements the Store interface.
+// FindOneBySlackUserID implements the Store interface.
 func (db *DB) FindOneBySlackUserID(ctx context.Context, slackUserID string) (*User, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {

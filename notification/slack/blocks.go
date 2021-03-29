@@ -8,14 +8,17 @@ import (
 	"github.com/target/goalert/alert"
 )
 
-func alertIDAndStatusSection(id int, status string) *slack.HeaderBlock {
+func alertIDAndStatusSection(id int, status alert.Status) *slack.HeaderBlock {
 	var s string
-	if status == "triggered" {
+	switch status {
+	case alert.StatusTriggered:
 		s = "Unacknowledged"
-	} else if status == "active" {
+	case alert.StatusActive:
 		s = "Acknowledged"
-	} else {
+	case alert.StatusClosed:
 		s = "Closed"
+	default:
+		panic("alert type not supported")
 	}
 	txt := fmt.Sprintf("%d: %s", id, s)
 	summaryText := slack.NewTextBlockObject("plain_text", txt, false, false)
@@ -86,7 +89,7 @@ func CraftAlertMessage(a alert.Alert, url string) []slack.MsgOption {
 
 		// blockkit elements
 		slack.MsgOptionBlocks(
-			alertIDAndStatusSection(a.ID, string(a.Status)),
+			alertIDAndStatusSection(a.ID, a.Status),
 			alertSummarySection(a.Summary),
 			actions,
 		),

@@ -32,7 +32,7 @@ type Payload struct {
 }
 
 // Action represents the information given from an action event within Slack
-// i.e. clicking to acknowledge an alert from slack
+// e.g. clicking to acknowledge an alert from slack
 type Action struct {
 	ActionID string `json:"action_id"`
 	ActionTS string `json:"action_ts"`
@@ -111,7 +111,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		}
 	}
 
-	intrnlErr := func() { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError) }
+	serverErr := func() { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError) }
 	clientErr := func() { http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest) }
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
@@ -134,14 +134,14 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		for _, action := range payload.ActionCallback.BlockActions {
 			alertID, err := strconv.Atoi(action.Value)
 			if err != nil {
-				intrnlErr()
+				serverErr()
 				return
 			}
 
 			// add source info to ctx to write to alert log
-			ncID, _, err := h.c.AlertLogStore.FindByValue(ctx, nil, payload.Channel.ID)
+			ncID, _, err := h.c.AlertLogStore.FindNCBySlackChanID(ctx, nil, payload.Channel.ID)
 			if err != nil {
-				intrnlErr()
+				serverErr()
 				return
 			}
 
@@ -161,13 +161,13 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
 			}
 			if actionErr != nil {
-				intrnlErr()
+				serverErr()
 				return
 			}
 
 			a, err := h.c.AlertStore.FindOne(ctx, alertID)
 			if err != nil {
-				intrnlErr()
+				serverErr()
 				return
 			}
 			msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
@@ -175,7 +175,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			// if escalated, each alert may have multiple of the same alert in a channel
 			timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
 			if err != nil {
-				intrnlErr()
+				serverErr()
 				return
 			}
 			for _, ts := range timestamps {

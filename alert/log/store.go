@@ -22,7 +22,7 @@ import (
 type Store interface {
 	FindOne(ctx context.Context, logID int) (*Entry, error)
 	FindAll(ctx context.Context, alertID int) ([]Entry, error)
-	FindByValue(ctx context.Context, tx *sql.Tx, value string) (string, string, error)
+	FindNCBySlackChanID(ctx context.Context, tx *sql.Tx, slackChanID string) (string, string, error)
 	Log(ctx context.Context, alertID int, _type Type, meta interface{}) error
 	LogTx(ctx context.Context, tx *sql.Tx, alertID int, _type Type, meta interface{}) error
 	LogEPTx(ctx context.Context, tx *sql.Tx, epID string, _type Type, meta *EscalationMetaData) error
@@ -71,7 +71,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			select "type" from user_contact_methods where id = $1
 		`),
 		lookupNCTypeName: p.P(`
-			select type, name from notification_channels where id = $1
+			select "type", name from notification_channels where id = $1
 		`),
 		lookupNCIdNameByValue: p.P(`
 			select id, name from notification_channels where value = $1
@@ -265,15 +265,15 @@ func txWrap(ctx context.Context, tx *sql.Tx, stmt *sql.Stmt) *sql.Stmt {
 	}
 	return tx.StmtContext(ctx, stmt)
 }
-func (db *DB) FindByValue(ctx context.Context, tx *sql.Tx, value string) (string, string, error) {
+func (db *DB) FindNCBySlackChanID(ctx context.Context, tx *sql.Tx, slackChanID string) (string, string, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return "", "", err
 	}
 	var channelID, name string
-	err = txWrap(ctx, tx, db.lookupNCIdNameByValue).QueryRowContext(ctx, value).Scan(&channelID, &name)
+	err = txWrap(ctx, tx, db.lookupNCIdNameByValue).QueryRowContext(ctx, slackChanID).Scan(&channelID, &name)
 	if err != nil {
-		return "", "", errors.Wrap(err, "lookup contact method type for callback ID")
+		return "", "", errors.Wrap(err, "lookup notification channel by Slack channel ID")
 	}
 	return channelID, name, nil
 }
@@ -313,15 +313,11 @@ func (db *DB) logAny(ctx context.Context, tx *sql.Tx, insertStmt *sql.Stmt, id i
 			var name string
 			err = db.lookupNCTypeName.QueryRowContext(ctx, src.ID).Scan(&ncType, &name)
 			if err != nil {
-				return errors.Wrap(err, "lookup contact method type")
+				return errors.Wrap(err, "lookup notification channel type and name")
 			}
 			switch ncType {
 			case notificationchannel.TypeSlack:
 				r.subject.classifier = "Slack"
-				var c sql.NullString
-				c.String = "Puppies!"
-				c.Valid = true
-				r.subject.channelName = c
 			}
 			r.subject.channelID.String = src.ID
 			r.subject.channelID.Valid = true
