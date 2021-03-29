@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
-import { gql } from '@apollo/client'
+import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
 import { Redirect } from 'react-router'
-import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
@@ -33,52 +32,44 @@ const initialValue = {
 
 const RotationCreateDialog = (props) => {
   const [value, setValue] = useState(initialValue)
+  const [createRotationMutation, createRotationMutationStatus] = useMutation(
+    mutation,
+    {
+      variables: {
+        input: {
+          timeZone: value.timeZone,
+          ...value,
+        },
+      },
+    },
+  )
+  const { loading, data, error } = createRotationMutationStatus
 
-  const renderDialog = (commit, status) => {
-    const { loading } = status
-    if (status.data && status.data.createRotation) {
-      return (
-        <Redirect push to={`/rotations/${status.data.createRotation.id}`} />
-      )
-    }
-
-    return (
-      <FormDialog
-        title='Create Rotation'
-        loading={loading}
-        errors={nonFieldErrors(status.error)}
-        onClose={props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: {
-                timeZone: value.timeZone,
-                ...value,
-              },
-            },
-          })
-        }}
-        form={
-          <RotationForm
-            errors={fieldErrors(status.error)}
-            disabled={status.loading}
-            value={value}
-            onChange={(value) => setValue(value)}
-          />
-        }
-      />
-    )
+  if (data && data.createRotation) {
+    return <Redirect push to={`/rotations/${data.createRotation.id}`} />
   }
 
   return (
-    <Mutation mutation={mutation}>
-      {(commit, status) => renderDialog(commit, status)}
-    </Mutation>
+    <FormDialog
+      title='Create Rotation'
+      loading={loading}
+      errors={nonFieldErrors(error)}
+      onClose={props.onClose}
+      onSubmit={() => createRotationMutation()}
+      form={
+        <RotationForm
+          errors={fieldErrors(error)}
+          disabled={loading}
+          value={value}
+          onChange={(value) => setValue(value)}
+        />
+      }
+    />
   )
 }
 
 RotationCreateDialog.propTypes = {
-  onClose: p.func.isRequired,
+  onClose: p.func,
 }
 
 export default RotationCreateDialog

@@ -1,9 +1,9 @@
 import React from 'react'
-import { gql } from '@apollo/client'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import p from 'prop-types'
-import Query from '../util/Query'
-import { Mutation } from '@apollo/client/react/components'
 import FormDialog from '../dialogs/FormDialog'
+import Spinner from '../loading/components/Spinner'
+import { GenericError } from '../error-pages'
 
 const query = gql`
   query($id: ID!) {
@@ -24,43 +24,34 @@ const mutation = gql`
   }
 `
 const RotationSetActiveDialog = (props) => {
-  const renderDialog = (data, commit) => {
-    const { users } = data
-    const { rotationID, userIndex, onClose } = props
+  const { rotationID, userIndex, onClose } = props
+  const { loading, data, error } = useQuery(query, {
+    pollInterval: 0,
+    variables: {
+      id: rotationID,
+    },
+  })
+  const [setActiveMutation] = useMutation(mutation, {
+    onCompleted: onClose,
+    variables: {
+      input: {
+        id: rotationID,
+        activeUserIndex: userIndex,
+      },
+    },
+  })
 
-    return (
-      <FormDialog
-        title='Are you sure?'
-        confirm
-        subTitle={`This will set ${users[userIndex].name} active on this rotation.`}
-        onClose={onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: {
-                id: rotationID,
-                activeUserIndex: userIndex,
-              },
-            },
-          })
-        }}
-      />
-    )
-  }
-
-  const renderMutation = (data) => {
-    return (
-      <Mutation mutation={mutation} onCompleted={props.onClose}>
-        {(commit) => renderDialog(data, commit)}
-      </Mutation>
-    )
-  }
+  if (loading && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+  const { users } = data.rotation
 
   return (
-    <Query
-      query={query}
-      variables={{ id: props.rotationID }}
-      render={({ data }) => renderMutation(data.rotation)}
+    <FormDialog
+      title='Are you sure?'
+      confirm
+      subTitle={`This will set ${users[userIndex].name} active on this rotation.`}
+      onClose={onClose}
+      onSubmit={() => setActiveMutation()}
     />
   )
 }

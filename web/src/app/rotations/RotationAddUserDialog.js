@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { gql } from '@apollo/client'
+import { gql, useMutation } from '@apollo/client'
 import p from 'prop-types'
-import { Mutation } from '@apollo/client/react/components'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import UserForm from './UserForm'
 import FormDialog from '../dialogs/FormDialog'
@@ -13,55 +12,46 @@ const mutation = gql`
 `
 
 const RotationAddUserDialog = (props) => {
+  const { rotationID, onClose } = props
   const [value, setValue] = useState(null)
-
   const defaultValue = {
     users: [],
   }
+  // append to users array from selected users
+  const users = []
+  const userIDs = (value && value.users) || defaultValue.users
+  props.userIDs.forEach((u) => users.push(u))
+  userIDs.forEach((u) => users.push(u))
 
-  const renderDialog = (defaultValue, commit, status) => {
-    const { loading, error } = status
-    const fieldErrs = fieldErrors(error)
-
-    // append to users array from selected users
-    const users = []
-    const userIDs = (value && value.users) || defaultValue.users
-
-    props.userIDs.forEach((u) => users.push(u))
-    userIDs.forEach((u) => users.push(u))
-
-    return (
-      <FormDialog
-        title='Add User'
-        loading={loading}
-        errors={nonFieldErrors(error)}
-        onClose={props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: {
-                id: props.rotationID,
-                userIDs: users,
-              },
-            },
-          }).then(() => props.onClose())
-        }}
-        form={
-          <UserForm
-            errors={fieldErrs}
-            disabled={loading}
-            value={value || defaultValue}
-            onChange={(value) => setValue(value)}
-          />
-        }
-      />
-    )
-  }
+  const [updateRotationMutation, updateRotationMutationStatus] = useMutation(
+    mutation,
+    {
+      variables: {
+        input: {
+          id: rotationID,
+          userIDs: users,
+        },
+      },
+      onCompleted: onClose,
+    },
+  )
 
   return (
-    <Mutation mutation={mutation}>
-      {(commit, status) => renderDialog(defaultValue, commit, status)}
-    </Mutation>
+    <FormDialog
+      title='Add User'
+      loading={updateRotationMutationStatus.loading}
+      errors={nonFieldErrors(updateRotationMutationStatus.error)}
+      onClose={onClose}
+      onSubmit={() => updateRotationMutation()}
+      form={
+        <UserForm
+          errors={fieldErrors(updateRotationMutationStatus.error)}
+          disabled={updateRotationMutationStatus.loading}
+          value={value || defaultValue}
+          onChange={(value) => setValue(value)}
+        />
+      }
+    />
   )
 }
 
