@@ -22,15 +22,16 @@ export function ScheduleTZFilter(props) {
     variables: { id: props.scheduleID },
   })
 
-  let label, tz, short
+  let label, tz
   if (error) {
     label = 'Error: ' + (error.message || error)
   } else if (!data && loading) {
     label = 'Fetching timezone information...'
   } else {
     tz = data.schedule.timeZone
-    short = DateTime.fromObject({ zone: tz }).toFormat('ZZZZ')
-    label = props.label ? props.label(tz) : `Show times in ${tz} (${short})`
+    const short = DateTime.fromObject({ zone: tz }).toFormat('ZZZZ')
+    const tzName = tz === short ? tz : tz + ` (${short})`
+    label = props.label ? props.label(tzName) : `Show times in ${tzName}`
   }
 
   return (
