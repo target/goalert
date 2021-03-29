@@ -2,6 +2,7 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 import { FormControlLabel, Switch } from '@material-ui/core'
+import { DateTime } from 'luxon'
 
 import { useURLParam } from '../actions/hooks'
 
@@ -21,14 +22,15 @@ export function ScheduleTZFilter(props) {
     variables: { id: props.scheduleID },
   })
 
-  let label, tz
+  let label, tz, short
   if (error) {
     label = 'Error: ' + (error.message || error)
   } else if (!data && loading) {
     label = 'Fetching timezone information...'
   } else {
     tz = data.schedule.timeZone
-    label = props.label ? props.label(tz) : `Show times in ${tz}`
+    short = DateTime.fromObject({ zone: tz }).toFormat('ZZZZ')
+    label = props.label ? props.label(tz) : `Show times in ${tz} (${short})`
   }
 
   return (
