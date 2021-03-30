@@ -3,7 +3,7 @@ package graphql
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sort"
 
@@ -240,7 +240,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	data, err := ioutil.ReadAll(req.Body)
+	data, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Debug(ctx, errors.Wrap(err, "read GraphQL query"))
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)

@@ -36,6 +36,10 @@ func (app *App) _Shutdown(ctx context.Context) error {
 		}
 	}
 
+	// It's important to shutdown the HTTP server first
+	// so things like message responses are handled before
+	// shutting down things like the engine or notification manager
+	// that would still need to process them.
 	shut(app.srv, "HTTP server")
 	shut(app.Engine, "engine")
 	shut(app.events, "event listener")

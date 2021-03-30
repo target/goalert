@@ -35,7 +35,7 @@ type ChannelSender struct {
 	chanMx sync.Mutex
 }
 
-var _ notification.SendResponder = &ChannelSender{}
+var _ notification.Sender = &ChannelSender{}
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
@@ -328,10 +328,3 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	return &msgStatus, nil
 }
-
-func (s *ChannelSender) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
-	return nil, errors.New("not implemented")
-}
-
-func (s *ChannelSender) ListenStatus() <-chan *notification.MessageStatus     { return s.status }
-func (s *ChannelSender) ListenResponse() <-chan *notification.MessageResponse { return s.resp }

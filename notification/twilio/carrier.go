@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -111,7 +111,7 @@ func (c Config) FetchCarrierInfo(ctx context.Context, number string) (*CarrierIn
 		return nil, fmt.Errorf("non-200 response from Twilio: %s", resp.Status)
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
