@@ -248,10 +248,8 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 	}
 
 	// query check
-	if len(test.Query()) > 0 || len(base.Query()) > 0 {
-		if !compareQueryValues(base.Query(), test.Query()) {
-			return false, nil
-		}
+	if !compareQueryValues(base.Query(), test.Query()) {
+		return false, nil
 	}
 
 	return true, nil
@@ -268,7 +266,7 @@ func (cfg Config) ValidWebhookURL(whURL string) bool {
 			return false
 		}
 		if matched {
-			return matched
+			return true
 		}
 	}
 	return false
@@ -302,7 +300,7 @@ func (cfg Config) ValidReferer(reqURL, ref string) bool {
 			return false
 		}
 		if matched {
-			return matched
+			return true
 		}
 	}
 
