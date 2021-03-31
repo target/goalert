@@ -8,3 +8,7 @@ declare namespace NodeJS {
 
   declare module '*.md'
 }
+
+export type ElementType<
+  T extends ReadonlyArray<unknown>
+> = T extends ReadonlyArray<infer ElementType> ? ElementType : never

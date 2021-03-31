@@ -112,6 +112,7 @@ export default function MaterialSelect(
     if (multiple) return
     if (!value) setInputValue('')
     if (!inputValue && value) setInputValue(getInputLabel())
+    if (value && !multiple && !Array.isArray(value)) setInputValue(value.label)
   }, [value, multiple])
 
   // merge selected values with options to avoid annoying mui warnings
