@@ -8,15 +8,6 @@ import (
 	"github.com/target/goalert/oncall"
 )
 
-func cloneSlice(a []string) []string {
-	if len(a) == 0 {
-		return nil
-	}
-	s := make([]string, len(a))
-	copy(s, a)
-	return s
-}
-
 func TestUserCalculator(t *testing.T) {
 	type result struct {
 		Time  time.Time
