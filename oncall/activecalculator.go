@@ -64,6 +64,8 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	if act.init {
 		panic("cannot add spans after Init")
 	}
+	start = start.Truncate(act.Step())
+	end = end.Truncate(act.Step())
 
 	// Skip if the span ends before the iterator start time.
 	//
@@ -89,7 +91,7 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 }
 
 func (act *ActiveCalculator) set(t time.Time, isStart bool) {
-	id := t.Truncate(act.Step()).Unix()
+	id := t.Unix()
 
 	if len(act.states) == 0 && !isStart {
 		panic("end registered before start")

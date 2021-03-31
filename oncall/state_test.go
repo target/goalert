@@ -228,12 +228,7 @@ func TestState_CalculateShifts(t *testing.T) {
 			},
 		},
 		[]Shift{
-			{
-				Start:     time.Date(2018, 1, 1, 7, 0, 0, 0, time.UTC),
-				End:       time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC),
-				Truncated: false,
-				UserID:    "foobar",
-			},
+			// no shift is expected since it ended before/at the start time
 		},
 	)
 
