@@ -1,7 +1,7 @@
 package oncall
 
 import (
-	"sort"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -25,9 +25,6 @@ type ActiveCalculator struct {
 type activeCalcValue struct {
 	T       int64
 	IsStart bool
-
-	// OriginalT is the original time of this value (e.g., historic start time vs. start of calculation).
-	OriginalT int64
 }
 
 // NewActiveCalculator will create a new ActiveCalculator bound to the TimeIterator.
@@ -41,14 +38,20 @@ func (t *TimeIterator) NewActiveCalculator() *ActiveCalculator {
 	return act
 }
 
+func (act *ActiveCalculator) StartUnix() (start int64) {
+	if len(act.states) == 0 {
+		return 0
+	}
+
+	return act.states[0].T
+}
+
 // Init should be called after all SetSpan calls have been completed and before Next().
 func (act *ActiveCalculator) Init() *ActiveCalculator {
 	if act.init {
 		return act
 	}
 	act.init = true
-
-	sort.Slice(act.states, func(i, j int) bool { return act.states[i].T < act.states[j].T })
 
 	return act
 }
@@ -61,6 +64,8 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	if act.init {
 		panic("cannot add spans after Init")
 	}
+	start = start.Truncate(act.Step())
+	end = end.Truncate(act.Step())
 
 	// Skip if the span ends before the iterator start time.
 	//
@@ -69,8 +74,8 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 		return
 	}
 
-	// Skip if the length of the span is <= 0.
-	if !end.IsZero() && !end.After(start) {
+	// Skip if the length of the span is less than 1 minute.
+	if !end.IsZero() && end.Sub(start) < time.Minute {
 		return
 	}
 
@@ -86,18 +91,26 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 }
 
 func (act *ActiveCalculator) set(t time.Time, isStart bool) {
-	id := t.Truncate(act.Step()).Unix()
-	originalID := id
-	if isStart && t.Before(act.Start()) {
-		id = act.Start().Unix()
+	id := t.Unix()
+
+	if len(act.states) == 0 && !isStart {
+		panic("end registered before start")
+	}
+	if len(act.states) > 0 && isStart == act.states[len(act.states)-1].IsStart {
+		panic("must not overlap shifts")
 	}
 
 	if len(act.states) > 0 && isStart && id == act.states[len(act.states)-1].T {
+		// starting a shift at the same time one ends, so just delete the end marker
 		act.states = act.states[:len(act.states)-1]
 		return
 	}
 
-	act.states = append(act.states, activeCalcValue{T: id, IsStart: isStart, OriginalT: originalID})
+	if len(act.states) > 0 && id <= act.states[len(act.states)-1].T {
+		panic(fmt.Sprintf("shifts must be registered in order: got %d, want > %d in %#v", id, act.states[len(act.states)-1].T, act.states))
+	}
+
+	act.states = append(act.states, activeCalcValue{T: id, IsStart: isStart})
 }
 
 // Process implements the SubIterator.Process method.
@@ -138,14 +151,3 @@ func (act *ActiveCalculator) Active() bool { return act.active.IsStart }
 
 // Changed will return true if the current tick changed the Active() state.
 func (act *ActiveCalculator) Changed() bool { return act.changed }
-
-// ActiveTime returns the original start time of the current Active() state.
-//
-// If Active() is false, it returns a zero value.
-func (act *ActiveCalculator) ActiveTime() time.Time {
-	if !act.Active() {
-		return time.Time{}
-	}
-
-	return time.Unix(act.active.OriginalT, 0).UTC()
-}

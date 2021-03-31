@@ -108,26 +108,21 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	isOnCall := make(map[string]*Shift)
 	stillOnCall := make(map[string]bool)
 
-	setOnCall := func(userIDs []string, startTimes []time.Time) {
+	setOnCall := func(userIDs []string) {
 		// reset map
 		for id := range stillOnCall {
 			delete(stillOnCall, id)
 		}
 		now := time.Unix(t.Unix(), 0)
-		for i, id := range userIDs {
+		for _, id := range userIDs {
 			stillOnCall[id] = true
 			s := isOnCall[id]
 			if s != nil {
 				continue
 			}
-			// new user is on call
-			start := now
-			if len(startTimes) != 0 {
-				// use original start time if provided
-				start = startTimes[i]
-			}
+
 			isOnCall[id] = &Shift{
-				Start:  start,
+				Start:  now,
 				UserID: id,
 			}
 		}
@@ -146,12 +141,12 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	for t.Next() {
 		if !time.Unix(t.Unix(), 0).After(s.now) {
 			// use history if in the past
-			setOnCall(hist.ActiveUsers(), hist.ActiveTimes())
+			setOnCall(hist.ActiveUsers())
 			continue
 		}
 
 		// apply any overrides
-		setOnCall(overrides.MapUsers(rules.ActiveUsers()), nil)
+		setOnCall(overrides.MapUsers(rules.ActiveUsers()))
 	}
 
 	// remaining shifts are truncated
