@@ -67,11 +67,11 @@ func (iter *TimeIterator) Register(sub SubIterator) { iter.sub = append(iter.sub
 func (iter *TimeIterator) Next() bool {
 	if !iter.init {
 		for _, s := range iter.sub {
-			sp, ok := s.(Startable)
+			st, ok := s.(Startable)
 			if !ok {
 				continue
 			}
-			start := sp.StartUnix()
+			start := st.StartUnix()
 			start = start - start%iter.step
 			if start != 0 && start < iter.start {
 				iter.start = start
