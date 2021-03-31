@@ -97,14 +97,15 @@ func (act *ActiveCalculator) set(t time.Time, isStart bool) {
 	if len(act.states) > 0 && isStart == act.states[len(act.states)-1].IsStart {
 		panic("must not overlap shifts")
 	}
-	if len(act.states) > 0 && id <= act.states[len(act.states)-1].T {
-		panic(fmt.Sprintf("shifts must be registered in order: got %d, want > %d in %#v", id, act.states[len(act.states)-1].T, act.states))
-	}
 
 	if len(act.states) > 0 && isStart && id == act.states[len(act.states)-1].T {
 		// starting a shift at the same time one ends, so just delete the end marker
 		act.states = act.states[:len(act.states)-1]
 		return
+	}
+
+	if len(act.states) > 0 && id <= act.states[len(act.states)-1].T {
+		panic(fmt.Sprintf("shifts must be registered in order: got %d, want > %d in %#v", id, act.states[len(act.states)-1].T, act.states))
 	}
 
 	act.states = append(act.states, activeCalcValue{T: id, IsStart: isStart})
