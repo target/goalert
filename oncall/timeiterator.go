@@ -10,6 +10,7 @@ type TimeIterator struct {
 	t, start, end, step int64
 
 	nextStep int64
+	init     bool
 
 	sub []SubIterator
 }
@@ -27,6 +28,12 @@ type SubIterator interface {
 
 	// Done will be called when the iterator is no longer needed.
 	Done()
+}
+
+// Startable is a SubIterator method that allows reporting an alternate start timestamp that may extend beyond the parent TimeIterator.
+type Startable interface {
+	// StartUnix should return the earliest start time for this SubIterator. If it is unknown 0 should be returned.
+	StartUnix() int64
 }
 
 // NextFunc can be used as a SubIterator.
@@ -58,6 +65,22 @@ func (iter *TimeIterator) Register(sub SubIterator) { iter.sub = append(iter.sub
 
 // Next will return true until iteration completes.
 func (iter *TimeIterator) Next() bool {
+	if !iter.init {
+		for _, s := range iter.sub {
+			sp, ok := s.(Startable)
+			if !ok {
+				continue
+			}
+			start := sp.StartUnix()
+			start = start - start%iter.step
+			if start != 0 && start < iter.start {
+				iter.start = start
+			}
+
+		}
+		iter.nextStep = iter.start
+		iter.init = true
+	}
 	if iter.t >= iter.end {
 		return false
 	}

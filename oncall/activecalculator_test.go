@@ -33,15 +33,20 @@ func TestActiveCalculator(t *testing.T) {
 			}
 			iter.Init()
 
-			var results []result
+			var count int
 			for iter.Next() {
-				results = append(results, result{
-					Time:  time.Unix(iter.Unix(), 0).UTC(),
-					Value: iter.Active(),
-				})
+				i := count
+				count++
+				if count > len(expected) {
+					t.Errorf("unexpected result: Value=%t, Time=%d", iter.Active(), iter.Unix())
+					continue
+				}
+				assert.Equalf(t, expected[i].Value, iter.Active(), "result[%d].Value", i)
+				assert.Equalf(t, expected[i].Time.String(), time.Unix(iter.Unix(), 0).UTC().String(), "result[%d].Time", i)
 			}
-
-			assert.EqualValues(t, expected, results)
+			if count != len(expected) {
+				t.Errorf("got %d results; want %d", count, len(expected))
+			}
 		})
 	}
 	check("empty", []result{{Time: start}, {Time: end}}, nil)
@@ -60,7 +65,7 @@ func TestActiveCalculator(t *testing.T) {
 
 	check("at-start",
 		[]result{
-			{Time: start, Value: true},
+			{Time: time.Date(2000, 1, 2, 3, 3, 0, 0, time.UTC), Value: true},
 			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC)},
 			{Time: end},
 		},
@@ -78,15 +83,14 @@ func TestActiveCalculator(t *testing.T) {
 			{Time: end},
 		},
 		func(iter *oncall.ActiveCalculator) {
-			iter.SetSpan(time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC))
-			// out of order
 			iter.SetSpan(time.Date(2000, 1, 2, 3, 5, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 6, 0, 0, time.UTC))
+			iter.SetSpan(time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC), time.Date(2000, 1, 2, 3, 8, 0, 0, time.UTC))
 		},
 	)
 
 	check("full",
 		[]result{
-			{Time: start, Value: true},
+			{Value: true},
 			{Time: end, Value: true},
 		},
 		func(iter *oncall.ActiveCalculator) {
@@ -108,7 +112,6 @@ func TestActiveCalculator(t *testing.T) {
 		assert.True(t, iter.Next())
 		assert.True(t, iter.Changed())
 		assert.True(t, iter.Active())
-		assert.Equal(t, time.Date(2000, 1, 2, 3, 1, 0, 0, time.UTC).Unix(), iter.ActiveTime().Unix())
 
 	})
 
