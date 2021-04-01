@@ -7,7 +7,7 @@ import { DateTime } from 'luxon'
 import useWidth from '../util/useWidth'
 import { useURLParam } from '../actions/hooks'
 import { Query } from '../../schema'
-import { GenericError } from '../error-pages'
+import { GenericError, ObjectNotFound } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
 
 const query = gql`
@@ -62,8 +62,9 @@ function ScheduleCalendarQuery({
   })
 
   if (isMobile) return null
-  if (error) return <GenericError error={error.message} />
   if (loading && !data) return <Spinner />
+  if (error) return <GenericError error={error.message} />
+  if (!data?.schedule?.id) return <ObjectNotFound type='schedule' />
 
   return (
     <ScheduleCalendar
