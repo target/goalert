@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/target/goalert/notification"
 )
@@ -95,6 +96,8 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		return nil, err
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
