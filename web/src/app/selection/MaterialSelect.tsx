@@ -99,6 +99,7 @@ export default function MaterialSelect(
   const getInputLabel = (): string =>
     multiple || Array.isArray(value) ? '' : value?.label || ''
 
+  const [focus, setFocus] = useState(false)
   const [inputValue, _setInputValue] = useState(getInputLabel())
 
   const setInputValue = (input: string): void => {
@@ -109,11 +110,10 @@ export default function MaterialSelect(
   const multi = multiple ? { multiple: true, filterSelectedOptions: true } : {}
 
   useEffect(() => {
+    if (!focus) setInputValue(getInputLabel())
     if (multiple) return
     if (!value) setInputValue('')
-    if (!inputValue && value) setInputValue(getInputLabel())
-    if (value && !multiple && !Array.isArray(value)) setInputValue(value.label)
-  }, [value, multiple])
+  }, [value, multiple, focus])
 
   // merge selected values with options to avoid annoying mui warnings
   // https://github.com/mui-org/material-ui/issues/18514
@@ -164,7 +164,8 @@ export default function MaterialSelect(
           setInputValue('')
         }
       }}
-      onBlur={() => setInputValue(getInputLabel())}
+      onFocus={() => setFocus(true)}
+      onBlur={() => setFocus(false)}
       loading={isLoading}
       getOptionLabel={(option) => option?.label ?? ''}
       options={options}
