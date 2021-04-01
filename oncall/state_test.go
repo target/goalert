@@ -205,6 +205,33 @@ func TestState_CalculateShifts(t *testing.T) {
 		})
 	}
 
+	check("HistoryRemainder",
+		time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC), // 8:00AM
+		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
+		&state{
+			now: time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC),
+			loc: time.UTC,
+			history: []Shift{
+				{
+					UserID: "foobar",
+					Start:  time.Date(2018, 1, 1, 7, 0, 0, 0, time.UTC),
+					End:    time.Date(2018, 1, 1, 8, 0, 0, 1, time.UTC), // will be truncated to 8
+				},
+			},
+			rules: []ResolvedRule{
+				{Rule: rule.Rule{
+					WeekdayFilter: rule.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
+					Start:         timeutil.NewClock(8, 0),
+					End:           timeutil.NewClock(10, 0),
+					Target:        assignment.UserTarget("foobar"),
+				}},
+			},
+		},
+		[]Shift{
+			// no shift is expected since it ended before/at the start time
+		},
+	)
+
 	check("Simple",
 		time.Date(2018, 1, 1, 8, 0, 0, 0, time.UTC), // 8:00AM
 		time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC), // 9:00AM
