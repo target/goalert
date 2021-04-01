@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -86,7 +87,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 			LogEntry: m.LogEntry,
 		}
 	default:
-		return nil, errors.New("message type: " + string(m.Type()) + " not supported")
+		return nil, errors.New(fmt.Sprintf("message type: %d not supported", m.Type()))
 	}
 
 	data, err := json.Marshal(payload)
