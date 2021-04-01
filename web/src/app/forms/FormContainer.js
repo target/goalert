@@ -89,9 +89,12 @@ export class FormContainer extends React.PureComponent {
     const {
       mapValue,
       mapOnChangeValue,
-      value: oldValue,
+      value: _value,
       removeFalseyIdxs,
     } = this.props
+
+    // copy into a mutable object
+    const oldValue = JSON.parse(JSON.stringify(_value))
 
     let value = e
     if (e && e.target) value = e.target.value
