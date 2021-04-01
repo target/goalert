@@ -51,12 +51,6 @@ function ScheduleRuleEditDialog(
     },
   )
 
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   if (this.state !== nextState) return true
-
-  //   return false
-  // }
-
   const [mutate, { loading: mLoading, error: mError }] = useMutation<Mutation>(
     mutation,
     {
@@ -115,7 +109,7 @@ function ScheduleRuleEditDialog(
           disabled={qLoading || mLoading}
           errors={fieldErrors(qError || mError)}
           value={value || defaultValue}
-          onChange={(value: ScheduleTargetInput) => setValue(value)}
+          onChange={(val) => setValue(val)}
         />
       }
     />

@@ -149,7 +149,6 @@ function ScheduleRuleForm(props: ScheduleRuleFormProps): JSX.Element {
                 className={classes.noPadding}
                 component={Checkbox}
                 checkbox
-                // fieldName={`rules[${idx}].weekdayFilter[${dayIdx}]`}
                 name={`rules[${idx}].weekdayFilter[${dayIdx}]`}
               />
             </TableCell>
