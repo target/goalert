@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@material-ui/core'
 import { UserSelect, RotationSelect } from '../selection'
-import { startCase } from 'lodash'
+import { startCase } from 'lodash-es'
 import { Add, Trash } from '../icons'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import Query from '../util/Query'

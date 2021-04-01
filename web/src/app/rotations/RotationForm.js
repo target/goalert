@@ -9,7 +9,7 @@ import {
   Switch,
   FormControlLabel,
 } from '@material-ui/core'
-import { startCase } from 'lodash'
+import { startCase } from 'lodash-es'
 import { DateTime } from 'luxon'
 import { useQuery, gql } from '@apollo/client'
 

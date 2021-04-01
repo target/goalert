@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
 import p from 'prop-types'
-import { debounce } from 'lodash'
+import { debounce } from 'lodash-es'
 
 const PageActionsContext = React.createContext({
   actions: null,

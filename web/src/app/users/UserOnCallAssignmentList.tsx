@@ -2,7 +2,7 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { Card } from '@material-ui/core'
 import FlatList from '../lists/FlatList'
-import { sortBy, values } from 'lodash'
+import { sortBy, values } from 'lodash-es'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 

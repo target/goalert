@@ -1,6 +1,6 @@
 import React from 'react'
 import p from 'prop-types'
-import { debounce } from 'lodash'
+import { debounce } from 'lodash-es'
 
 const SearchContext = React.createContext({
   actions: null,

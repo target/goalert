@@ -1,5 +1,5 @@
 import { mapOverrideUserError, alignWeekdayFilter, mapRuleTZ } from './util'
-import _ from 'lodash'
+import _ from 'lodash-es'
 
 const fromBin = (f) => f.split('').map((f) => f === '1')
 

@@ -1,4 +1,4 @@
-import { intersection } from 'lodash'
+import { intersection } from 'lodash-es'
 
 // oneOfShape requires that one of the props defined
 // is provided.

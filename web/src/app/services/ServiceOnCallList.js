@@ -8,7 +8,7 @@ import { CircularProgress, makeStyles } from '@material-ui/core'
 import { styles as globalStyles } from '../styles/materialStyles'
 import FlatList from '../lists/FlatList'
 import { Error } from '@material-ui/icons'
-import _ from 'lodash'
+import _ from 'lodash-es'
 
 const useStyles = makeStyles((theme) => {
   const { cardHeader } = globalStyles(theme)

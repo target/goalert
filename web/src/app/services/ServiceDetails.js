@@ -3,7 +3,7 @@ import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 
 import { Redirect } from 'react-router-dom'
-import _ from 'lodash'
+import _ from 'lodash-es'
 
 import PageActions from '../util/PageActions'
 import OtherActions from '../util/OtherActions'

@@ -24,7 +24,7 @@ import AppLink from '../../util/AppLink'
 import { makeStyles } from '@material-ui/core'
 import { isWidthDown } from '@material-ui/core/withWidth'
 import useWidth from '../../util/useWidth'
-import _ from 'lodash'
+import _ from 'lodash-es'
 
 const useStyles = makeStyles((theme) => {
   return styles(theme)

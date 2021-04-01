@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { isWidthUp } from '@material-ui/core/withWidth'
 import { ChevronRight } from '@material-ui/icons'
 import { gql, useQuery } from '@apollo/client'
-import { startCase } from 'lodash'
+import { startCase } from 'lodash-es'
 import AppLink from '../../util/AppLink'
 import useWidth from '../../util/useWidth'
 

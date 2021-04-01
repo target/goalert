@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import { ApolloError } from '@apollo/client'
 
 const mapName = (name: string): string => _.camelCase(name).replace(/Id$/, 'ID')

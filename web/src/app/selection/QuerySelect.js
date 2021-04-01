@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import p from 'prop-types'
-import _, { memoize, omit } from 'lodash'
+import _, { memoize, omit } from 'lodash-es'
 import MaterialSelect from './MaterialSelect'
 import { mergeFields, fieldAlias, mapInputVars } from '../util/graphql'
 import FavoriteIcon from '@material-ui/icons/Star'
