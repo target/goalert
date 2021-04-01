@@ -89,7 +89,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
-        NODE_ENV: JSON.stringify('local'), // eslint-disable-line quote-props
+        NODE_ENV: JSON.stringify('development'), // eslint-disable-line quote-props
         GOALERT_VERSION: JSON.stringify(env.GOALERT_VERSION), // eslint-disable-line quote-props
       },
     }),
