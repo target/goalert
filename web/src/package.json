@@ -9,6 +9,10 @@
   "jest": {
     "transform": {
       "^.+\\.(j|t)sx?$": "babel-jest"
+    },
+    "moduleNameMapper": {
+      "//": "Since ESM support is experiemntal, use CJS lodash",
+      "^lodash-es$": "lodash"
     }
   },
   "repository": {
