@@ -2,9 +2,9 @@ import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { safeURL } from './safeURL'
 import gfm from 'remark-gfm'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles, Typography } from '@material-ui/core'
 
-const useStyles = makeStyles({
+export const useStyles = makeStyles({
   markdown: {
     '& td, th': {
       textAlign: 'left',
@@ -46,23 +46,25 @@ export default function Markdown(props) {
   if (!value) return null
 
   return (
-    <ReactMarkdown
-      className={classes.markdown}
-      source={value}
-      plugins={[gfm]}
-      allowNode={(node) => {
-        if (node.type !== 'link') return true
-        if (node.children[0].type !== 'text') return true // only validate text labels
-        if (safeURL(node.url, node.children[0].value)) return true
+    <Typography component='div'>
+      <ReactMarkdown
+        className={classes.markdown}
+        source={value}
+        plugins={[gfm]}
+        allowNode={(node) => {
+          if (node.type !== 'link') return true
+          if (node.children[0].type !== 'text') return true // only validate text labels
+          if (safeURL(node.url, node.children[0].value)) return true
 
-        // unsafe URL, or mismatched label, render as text
-        node.type = 'text'
-        node.children[0].value = `[${node.children[0].value}](${node.url})`
-        delete node.url
+          // unsafe URL, or mismatched label, render as text
+          node.type = 'text'
+          node.children[0].value = `[${node.children[0].value}](${node.url})`
+          delete node.url
 
-        return true
-      }}
-      {...rest}
-    />
+          return true
+        }}
+        {...rest}
+      />
+    </Typography>
   )
 }

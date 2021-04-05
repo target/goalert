@@ -331,12 +331,7 @@ function AlertDetails(props) {
             <Typography component='h3' variant='h5'>
               Details
             </Typography>
-            <Typography
-              variant='body1'
-              style={{ whiteSpace: 'pre-wrap' }}
-              component={Markdown}
-              value={details}
-            />
+            <Markdown value={details} />
             {expandTextAction}
           </CardContent>
         </Card>
