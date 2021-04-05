@@ -110,5 +110,5 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		return nil, err
 	}
 
-	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent}, nil
+	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent, ProviderMessageID: msg.ID()}, nil
 }
