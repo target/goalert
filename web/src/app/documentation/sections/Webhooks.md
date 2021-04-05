@@ -19,7 +19,7 @@ Triggered on the profile page by clicking "Send Test".
 
 ```
 {
-   "Type": "Test"
+    "Type": "Test"
 }
 ```
 
@@ -44,10 +44,10 @@ Triggered for notification of multiple alerts for a given service.
 
 ```
 {
-  "Type": "AlertBundle",
-  "ServiceID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "ServiceName": "Example Service",
-  "Count": 6
+    "Type": "AlertBundle",
+    "ServiceID": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "ServiceName": "Example Service",
+    "Count": 6
 }
 ```
 
@@ -76,9 +76,9 @@ As a convenience, an `AlertID` will be present with a corresponding `LogEntry` f
 
 ```
 {
-  "Type": "AlertStatusBundle",
-  "Count": 3,
-  "AlertID": 79696,
-  "LogEntry": "Closed via test integration (Generic API)"
+    "Type": "AlertStatusBundle",
+    "Count": 3,
+    "AlertID": 79696,
+    "LogEntry": "Closed via test integration (Generic API)"
 }
 ```
