@@ -40,6 +40,8 @@ const useStyles = makeStyles({
   },
 })
 
+// Markdown accepts plain text to transform into styled html
+// Typically it is wrapped in a <Typography component='div' /> component
 export default function Markdown(props) {
   const classes = useStyles()
   const { value, ...rest } = props
