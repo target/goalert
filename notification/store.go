@@ -5,6 +5,7 @@ import (
 	cRand "crypto/rand"
 	"database/sql"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -22,6 +23,12 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// todo: make slack store, add relevant types and functions
+type UserAuthMetaData struct {
+	Timestamp string
+	ChannelID string
+}
+
 const minTimeBetweenTests = time.Minute
 
 type Store interface {
@@ -36,6 +43,8 @@ type Store interface {
 
 	InsertSlackUser(ctx context.Context, teamID, slackID, userID, accessToken string) (bool, error)
 	FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]string, error)
+	InsertUserAuthMetaData(ctx context.Context, slackTeamID, slackUserID string, meta UserAuthMetaData) (bool, error)
+	FindUserAuthMessageData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error)
 }
 
 var _ Store = &DB{}
@@ -55,6 +64,8 @@ type DB struct {
 
 	insertSlackUser         *sql.Stmt
 	getInitialProviderMsgID *sql.Stmt
+	insertUserPreAuthData   *sql.Stmt
+	getMeta                 *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -161,8 +172,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 
 		insertSlackUser: p.P(`
-			insert into user_slack_data (team_id, slack_user_id, user_id, access_token)
-			values ($1, $2, $3, $4)
+			update user_slack_data
+			set
+				user_id = $1,
+				access_token = $2
+			where slack_user_id = $3
 		`),
 		getInitialProviderMsgID: p.P(`
 			select provider_msg_id from outgoing_messages o 
@@ -173,7 +187,16 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			and a.sub_type = 'channel'
 			and o.message_type = 'alert_notification'
 			and o.provider_msg_id is not null
-	`),
+		`),
+		insertUserPreAuthData: p.P(`
+			insert into user_slack_data (slack_user_id, team_id, meta)
+			values ($1, $2, $3)
+		`),
+		getMeta: p.P(`
+			select meta
+			from user_slack_data
+			where slack_user_id = $1 and access_token is null
+		`),
 	}, p.Err
 }
 
@@ -439,7 +462,12 @@ func (db *DB) InsertSlackUser(ctx context.Context, teamID, slackID, userID, acce
 		return false, err
 	}
 
-	_, err = db.insertSlackUser.ExecContext(ctx, teamID, slackID, userID, accessToken)
+	err = validate.UUID("User ID", userID)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = db.insertSlackUser.ExecContext(ctx, userID, accessToken, slackID)
 	if err != nil {
 		return false, err
 	}
@@ -470,4 +498,38 @@ func (db *DB) FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]s
 	}
 
 	return providerMsgIDs, nil
+}
+
+func (db *DB) InsertUserAuthMetaData(ctx context.Context, slackTeamID, slackUserID string, meta UserAuthMetaData) (bool, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return false, err
+	}
+
+	mm, err := json.Marshal(meta)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = db.insertUserPreAuthData.ExecContext(ctx, slackUserID, slackTeamID, mm)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (db *DB) FindUserAuthMessageData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	var meta UserAuthMetaData
+	err = db.getMeta.QueryRowContext(ctx, slackUserID).Scan(&meta)
+	if err != nil {
+		return nil, err
+	}
+
+	return &meta, nil
 }

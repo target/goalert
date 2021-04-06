@@ -16,6 +16,7 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 )
 
@@ -122,11 +123,15 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		if err != nil {
 			uri := cfg.General.PublicURL + "/api/v2/slack/auth"
 			msg := userAuthMessageOption(cfg.Slack.ClientID, uri)
-			_, err := api.PostEphemeral(payload.Channel.ID, payload.User.ID, msg)
+			authMessageTS, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, msg)
 			if err != nil {
 				clientErr()
 				return
 			}
+			h.c.NotificationStore.InsertUserAuthMetaData(ctx, payload.Team.ID, payload.User.ID, notification.UserAuthMetaData{
+				Timestamp: authMessageTS,
+				ChannelID: payload.Channel.ID,
+			})
 			return
 		}
 

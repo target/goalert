@@ -20,7 +20,6 @@ import (
 // notes:
 // - oath tokens do not expire
 // - provide a user_scope parameter with requested user scopes instead of, or in addition to, the scope parameter
-
 func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	cfg := config.FromContext(ctx)
@@ -28,16 +27,31 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 	uri := cfg.General.PublicURL + "/api/v2/slack/auth"
 	resp, err := slack.GetOAuthV2ResponseContext(ctx, http.DefaultClient, cfg.Slack.ClientID, cfg.Slack.ClientSecret, code, uri)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
+	userID := permission.UserID(ctx)
 	permission.SudoContext(req.Context(), func(ctx context.Context) {
-		ok, err := h.c.NotificationStore.InsertSlackUser(ctx, resp.Team.ID, resp.AuthedUser.ID, permission.UserID(ctx), resp.AuthedUser.AccessToken)
-		fmt.Println("insert user successful: ", ok)
+		_, err := h.c.NotificationStore.InsertSlackUser(ctx, resp.Team.ID, resp.AuthedUser.ID, userID, resp.AuthedUser.AccessToken)
 		if err != nil {
-			fmt.Println(err)
+			panic(err)
 		}
 	})
+
+	// attempt to delete original auth msg within slack
+	meta, err := h.c.NotificationStore.FindUserAuthMessageData(ctx, resp.AuthedUser.ID) // todo: this function always returning NoRowsInResultSet
+	if err != nil {
+		fmt.Println("FindUserAuthMessageData failing")
+		panic(err)
+	}
+	var api = slack.New(cfg.Slack.AccessToken)
+	fmt.Println("attempting to delete ephemeral message")
+	slackChan, ts, err := api.DeleteMessageContext(ctx, meta.ChannelID, meta.Timestamp)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("channel resp: ", slackChan)
+	fmt.Println("timestamp resp: ", ts)
 
 	// todo: complete action
 	// todo: redirect to slack:// channel somehow (or close browser tab)?
