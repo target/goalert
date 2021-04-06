@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func main() {
@@ -35,6 +36,33 @@ func main() {
 		getProtoC(*version, *output)
 	default:
 		log.Fatalf("unknown tool \"%s\"", *tool)
+	}
+}
+
+func extractZipFile(z *zip.Reader, src, dest string, exec bool) {
+	os.MkdirAll(filepath.Dir(dest), 0755)
+	tmpFile := dest + ".tmp"
+	outFile, err := os.Create(tmpFile)
+	if err != nil {
+		log.Fatalf(`ERROR: create output file "%s": %v`, dest, err)
+	}
+	defer outFile.Close()
+	bin, err := z.Open(src)
+	if err != nil {
+		log.Fatalf(`ERROR: find "%s" in zip: %v`, src, err)
+	}
+	defer bin.Close()
+	_, err = io.Copy(outFile, bin)
+	if err != nil {
+		log.Fatalf(`ERROR: extract "%s": %v`, src, err)
+	}
+	outFile.Close()
+	if exec {
+		os.Chmod(tmpFile, 0755)
+	}
+	err = os.Rename(tmpFile, dest)
+	if err != nil {
+		log.Fatalf(`ERROR: rename "%s" file: %v`, tmpFile, err)
 	}
 }
 
@@ -89,26 +117,17 @@ func getProtoC(version, output string) {
 		log.Fatalf("ERROR: unzip protoc: %v", err)
 	}
 
-	os.MkdirAll(filepath.Dir(output), 0755)
+	outDir := filepath.Dir(output)
+	for _, f := range z.File {
+		if strings.HasSuffix(f.Name, "/") {
+			continue
+		}
+		if !strings.HasPrefix(f.Name, "include/") {
+			continue
+		}
 
-	outFile, err := os.Create(output + ".tmp")
-	if err != nil {
-		log.Fatalf("ERROR: create output: %v", err)
+		extractZipFile(z, f.Name, filepath.Join(outDir, f.Name), false)
 	}
-	defer outFile.Close()
-	bin, err := z.Open(binFile)
-	if err != nil {
-		log.Fatalf("ERROR: find protoc binary in zip: %v", err)
-	}
-	defer bin.Close()
-	_, err = io.Copy(outFile, bin)
-	if err != nil {
-		log.Fatalf("ERROR: extract protoc binary: %v", err)
-	}
-	outFile.Close()
-	os.Chmod(output+".tmp", 0755)
-	err = os.Rename(output+".tmp", output)
-	if err != nil {
-		log.Fatalf("ERROR: rename output file: %v", err)
-	}
+
+	extractZipFile(z, binFile, output, true)
 }
