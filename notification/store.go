@@ -161,7 +161,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 
 		insertSlackUser: p.P(`
-			insert into user_slack_data (team_id, slack_id, user_id, access_token)
+			insert into user_slack_data (team_id, slack_user_id, user_id, access_token)
 			values ($1, $2, $3, $4)
 		`),
 		getInitialProviderMsgID: p.P(`
