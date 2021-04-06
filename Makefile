@@ -127,6 +127,11 @@ $(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integrati
 $(BIN_DIR)/integration.tgz: bin/integration
 	tar czvf bin/integration.tgz -C bin/integration goalert
 
+$(BIN_DIR)/tools/protoc-gen-go: go.mod
+	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/protobuf/cmd/protoc-gen-go
+$(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
+	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
@@ -191,10 +196,10 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-sysapi/sysapi_grpc.pb.go: sysapi/sysapi.proto
-	protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative sysapi/sysapi.proto
-sysapi/sysapi.pb.go: sysapi/sysapi.proto
-	protoc --go_out=. --go_opt=paths=source_relative sysapi/sysapi.proto
+sysapi/sysapi_grpc.pb.go: sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc
+	PATH=$(BIN_DIR)/tools:$(PATH) protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative sysapi/sysapi.proto
+sysapi/sysapi.pb.go: sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go
+	PATH=$(BIN_DIR)/tools:$(PATH) protoc --go_out=. --go_opt=paths=source_relative sysapi/sysapi.proto
 
 generate: node_modules sysapi/sysapi.pb.go
 	go generate ./...
