@@ -197,9 +197,9 @@ graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
 sysapi/sysapi_grpc.pb.go: sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc
-	PATH=$(BIN_DIR)/tools:$(PATH) protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative sysapi/sysapi.proto
+	PATH="$(BIN_DIR)/tools:$(PATH)" protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative sysapi/sysapi.proto
 sysapi/sysapi.pb.go: sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go
-	PATH=$(BIN_DIR)/tools:$(PATH) protoc --go_out=. --go_opt=paths=source_relative sysapi/sysapi.proto
+	PATH="$(BIN_DIR)/tools:$(PATH)" protoc --go_out=. --go_opt=paths=source_relative sysapi/sysapi.proto
 
 generate: node_modules sysapi/sysapi.pb.go
 	go generate ./...
