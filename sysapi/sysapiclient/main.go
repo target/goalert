@@ -8,7 +8,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/sysapi"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 func main() {
@@ -16,12 +15,12 @@ func main() {
 	flag.Parse()
 
 	ctx := context.Background()
-	creds, err := credentials.NewClientTLSFromFile("server-cert.pem", "localhost")
-	if err != nil {
-		panic(err)
-	}
+	// creds, err := credentials.NewClientTLSFromFile("server-cert.pem", "localhost")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(creds))
+	conn, err := grpc.Dial(*addr, grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
