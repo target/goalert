@@ -146,7 +146,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 			}
 
 			// no longer on call
-			if !now.Before(start) {
+			if now.After(start) {
 				s.End = now
 				shifts = append(shifts, *s)
 			}
