@@ -85,9 +85,7 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	}
 
 	act.set(start, true)
-	if !end.IsZero() {
-		act.set(end, false)
-	}
+	act.set(end, false)
 }
 
 func (act *ActiveCalculator) set(t time.Time, isStart bool) {

@@ -238,16 +238,16 @@ func TestState_CalculateShifts(t *testing.T) {
 		},
 		[]Shift{
 			{
-				Start:     time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
-				End:       time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC),
-				Truncated: true,
-				UserID:    "has-gap",
-			},
-			{
 				Start:     time.Date(2018, 1, 1, 6, 0, 0, 0, time.UTC),
 				End:       time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC),
 				Truncated: true,
 				UserID:    "still-active",
+			},
+			{
+				Start:     time.Date(2018, 1, 1, 8, 30, 0, 0, time.UTC),
+				End:       time.Date(2018, 1, 1, 9, 0, 0, 0, time.UTC),
+				Truncated: true,
+				UserID:    "has-gap",
 			},
 		},
 	)
