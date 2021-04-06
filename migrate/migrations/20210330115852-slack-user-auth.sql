@@ -5,6 +5,10 @@ ALTER TABLE user_slack_data ADD COLUMN slack_user_id TEXT NOT NULL;
 ALTER TABLE user_slack_data ADD COLUMN team_id TEXT NOT NULL;
 ALTER TABLE user_slack_data ADD COLUMN meta JSONB;
 
+ALTER TABLE user_slack_data
+DROP CONSTRAINT user_slack_data_pkey,
+ADD PRIMARY KEY(slack_user_id);
+
 CREATE TABLE notification_channel_last_alert_log (
     notification_channel_id UUID NOT NULL REFERENCES notification_channels(id) ON DELETE CASCADE,
     alert_id BIGINT NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
@@ -56,6 +60,10 @@ EXECUTE PROCEDURE fn_update_notification_channel_last_alert_log();
 -- +migrate Down
 DROP TRIGGER trg_insert_alert_logs_notification_channel_last_alert_update ON alert_logs;
 DROP TRIGGER trg_insert_alert_logs_notification_channel_last_alert ON alert_logs;
+
+ALTER TABLE user_slack_data
+DROP CONSTRAINT user_slack_data_pkey,
+ADD PRIMARY KEY(user_id);
 
 ALTER TABLE user_slack_data DROP COLUMN meta;
 ALTER TABLE user_slack_data DROP COLUMN team_id;
