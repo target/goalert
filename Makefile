@@ -179,9 +179,6 @@ check: generate node_modules
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 
-migrate/inline_data_gen.go: migrate/migrations migrate/migrations/*.sql $(INLINER)
-	go generate ./migrate
-
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/main.go
 	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
 
@@ -197,7 +194,7 @@ generate: node_modules
 smoketest:
 	(cd smoketest && go test -parallel 10 -timeout 20m)
 
-test-migrations: migrate/inline_data_gen.go bin/goalert
+test-migrations: bin/goalert
 	(cd smoketest && go test -run TestMigrations)
 
 tools:
@@ -246,12 +243,12 @@ postgres:
 		-p 5432:5432 \
 		postgres:13-alpine || docker start goalert-postgres
 
-regendb: bin/resetdb bin/goalert migrate/inline_data_gen.go config.json.bak
+regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000000
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000000 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
-resetdb: migrate/inline_data_gen.go config.json.bak
+resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
