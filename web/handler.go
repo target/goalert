@@ -6,9 +6,12 @@ import (
 	"embed"
 	"encoding/hex"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"path"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -22,12 +25,34 @@ var bundleFS embed.FS
 func NewHandler(urlStr, prefix string) (http.Handler, error) {
 	mux := http.NewServeMux()
 
+	etags := make(map[string]string)
+	var mx sync.Mutex
+	calcTag := func(name string, data []byte) string {
+		mx.Lock()
+		defer mx.Unlock()
+		tag, ok := etags[name]
+		if ok {
+			return tag
+		}
+		sum := sha256.Sum256(data)
+		tag = `W/"` + hex.EncodeToString(sum[:]) + `"`
+		etags[name] = tag
+		return tag
+	}
+
 	var extraScripts []string
 	if urlStr == "" {
-		fServ := http.FileServer(http.FS(bundleFS))
 		mux.HandleFunc("/static/", func(w http.ResponseWriter, req *http.Request) {
+			data, err := bundleFS.ReadFile(path.Join("src/build", req.URL.Path))
+			if errors.Is(err, fs.ErrNotExist) {
+				http.NotFound(w, req)
+				return
+			}
+
 			w.Header().Set("Cache-Control", "public; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
-			fServ.ServeHTTP(w, req)
+			w.Header().Set("ETag", calcTag(req.URL.Path, data))
+
+			http.ServeContent(w, req, req.URL.Path, time.Time{}, bytes.NewReader(data))
 		})
 	} else {
 		u, err := url.Parse(urlStr)
