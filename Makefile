@@ -5,19 +5,19 @@
 .PHONY: docker-goalert docker-all-in-one release
 .SUFFIXES:
 
-GOFILES = $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print | grep -v web/inline_data_gen.go) go.sum
+GOFILES := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print | grep -v web/inline_data_gen.go) go.sum
 INLINER = devtools/inliner/*.go
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
 
 LOG_DIR=
-GOPATH=$(shell go env GOPATH)
+GOPATH:=$(shell go env GOPATH)
 BIN_DIR=bin
 
-GIT_COMMIT=$(shell git rev-parse HEAD || echo '?')
-GIT_TREE=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
-GIT_VERSION=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
-BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+GIT_COMMIT:=$(shell git rev-parse HEAD || echo '?')
+GIT_TREE:=$(shell git diff-index --quiet HEAD -- && echo clean || echo dirty)
+GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shell date -u +"%Y%m%d%H%M%S"))
+BUILD_DATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_FLAGS=
 
 export ZONEINFO=$(shell go env GOROOT)/lib/time/zoneinfo.zip
