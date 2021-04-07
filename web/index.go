@@ -1,12 +1,44 @@
 package web
 
 import (
+	"bytes"
+	"encoding/json"
 	"html/template"
 	"strings"
 	"time"
 
 	"github.com/target/goalert/version"
 )
+
+// AppVersion returns the version string from `app.js` (if available).
+func AppVersion() string {
+	const searchStr = "var GOALERT_VERSION="
+	for _, f := range Files {
+		if f.Name != "src/build/static/app.js" {
+			continue
+		}
+		data := f.Data()
+		idx := bytes.Index(data, []byte(searchStr))
+		if idx == -1 {
+			return "err: version not found"
+		}
+		data = data[idx+len(searchStr):]
+		idx = bytes.Index(data, []byte(";"))
+		if idx == -1 {
+			return "err: version unreadable"
+		}
+		data = data[:idx]
+		var versionStr string
+		err := json.Unmarshal(data, &versionStr)
+		if err != nil {
+			// ignore failures
+			return "err: " + err.Error()
+		}
+
+		return versionStr
+	}
+	return ""
+}
 
 type renderData struct {
 	// Prefix is the URL prefix for the GoAlert application.

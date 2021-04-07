@@ -90,7 +90,6 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify('development'), // eslint-disable-line quote-props
-        GOALERT_VERSION: JSON.stringify(env.GOALERT_VERSION), // eslint-disable-line quote-props
       },
     }),
     new CopyPlugin({
@@ -104,6 +103,10 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
         from: path.resolve(APP, `./public/${filename}`),
         to: path.resolve(BUILD, `./static/${filename}`),
       })),
+    }),
+    new webpack.BannerPlugin({
+      banner: `var GOALERT_VERSION=${JSON.stringify(env.GOALERT_VERSION)};`,
+      raw: true,
     }),
   ],
 })
