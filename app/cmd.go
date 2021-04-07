@@ -114,7 +114,7 @@ var RootCmd = &cobra.Command{
 		if cfg.APIOnly {
 			err = migrate.VerifyAll(log.EnableDebug(ctx), cfg.DBURL)
 			if err != nil {
-				return errors.Wrap(err, "apply migrations")
+				return errors.Wrap(err, "verify migrations")
 			}
 		} else {
 			s := time.Now()
