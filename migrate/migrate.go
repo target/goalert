@@ -91,7 +91,6 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 		conn, err = pgx.Connect(ctx, url)
 		return err
 	},
-		retry.Log(ctx),
 		retry.Limit(12),
 		retry.FibBackoff(time.Millisecond*100),
 	)
