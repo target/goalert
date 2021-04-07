@@ -4,7 +4,9 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"html/template"
+	"io/fs"
 	"strings"
 	"time"
 
@@ -14,31 +16,33 @@ import (
 // AppVersion returns the version string from `app.js` (if available).
 func AppVersion() string {
 	const searchStr = "var GOALERT_VERSION="
-	for _, f := range Files {
-		if f.Name != "src/build/static/app.js" {
-			continue
-		}
-		data := f.Data()
-		idx := bytes.Index(data, []byte(searchStr))
-		if idx == -1 {
-			return "err: version not found"
-		}
-		data = data[idx+len(searchStr):]
-		idx = bytes.Index(data, []byte(";"))
-		if idx == -1 {
-			return "err: version unreadable"
-		}
-		data = data[:idx]
-		var versionStr string
-		err := json.Unmarshal(data, &versionStr)
-		if err != nil {
-			// ignore failures
-			return "err: " + err.Error()
-		}
-
-		return versionStr
+	data, err := bundleFS.ReadFile("src/build/static/app.js")
+	if errors.Is(err, fs.ErrNotExist) {
+		return ""
 	}
-	return ""
+	if err != nil {
+		return "err: " + err.Error()
+	}
+
+	idx := bytes.Index(data, []byte(searchStr))
+	if idx == -1 {
+		return "err: version not found"
+	}
+	data = data[idx+len(searchStr):]
+	idx = bytes.Index(data, []byte(";"))
+	if idx == -1 {
+		return "err: version unreadable"
+	}
+	data = data[:idx]
+	var versionStr string
+	err = json.Unmarshal(data, &versionStr)
+	if err != nil {
+		// ignore failures
+		return "err: " + err.Error()
+	}
+
+	return versionStr
+
 }
 
 type renderData struct {
