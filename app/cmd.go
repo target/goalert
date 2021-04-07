@@ -229,6 +229,8 @@ Migration: %s (#%d)
 		Use:   "self-test",
 		Short: "test suite to validate functionality of GoAlert environment",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			offlineOnly, _ := cmd.Flags().GetBool("offline")
+
 			var failed bool
 			result := func(name string, err error) {
 				if err != nil {
@@ -276,7 +278,7 @@ Migration: %s (#%d)
 				store.Shutdown(ctx)
 				return nil
 			}
-			if cf.DBURL != "" {
+			if cf.DBURL != "" && !offlineOnly {
 				result("DB", loadConfigDB())
 			}
 
@@ -300,6 +302,10 @@ Migration: %s (#%d)
 					url = cfg.GitHub.EnterpriseURL
 				}
 				serviceList = append(serviceList, service{name: "GitHub", baseUrl: url})
+			}
+
+			if offlineOnly {
+				serviceList = nil
 			}
 
 			for _, s := range serviceList {
@@ -345,6 +351,7 @@ Migration: %s (#%d)
 			result("DST Rules", dstCheck())
 
 			if failed {
+				cmd.SilenceUsage = true
 				return errors.New("one or more checks failed.")
 			}
 			return nil
@@ -742,6 +749,8 @@ func init() {
 
 	setConfigCmd.Flags().String("data", "", "Use data instead of reading config from stdin.")
 	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config.")
+
+	testCmd.Flags().Bool("offline", false, "Only perform offline checks.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)
