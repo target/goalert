@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -15,30 +14,41 @@ import (
 
 type Sender struct{}
 
-// POSTDataType is the type of alert data being sent
-type POSTDataType string
+// POSTDataAlert represents fields in outgoing alert notification.
+type POSTDataAlert struct {
+	AlertID int
+	Summary string
+	Details string
+}
 
-const (
-	TypeTest              POSTDataType = "Test"
-	TypeVerification      POSTDataType = "Verification"
-	TypeAlert             POSTDataType = "Alert"
-	TypeAlertBundle       POSTDataType = "AlertBundle"
-	TypeAlertStatus       POSTDataType = "AlertStatus"
-	TypeAlertStatusBundle POSTDataType = "AlertStatusBundle"
-)
+// POSTDataAlertBundle represents fields in outgoing alert bundle notification.
+type POSTDataAlertBundle struct {
+	ServiceID   string
+	ServiceName string
+	Count       int
+}
 
-// Message is sent as JSON to webhook endpoints by a Sender.
-// See Sender.Send method for details on which fields are sent per MessageType
-type Message struct {
-	AlertID     int          `json:",omitempty"`
-	Type        POSTDataType `json:",omitempty"`
-	Code        string       `json:",omitempty"`
-	Summary     string       `json:",omitempty"`
-	Details     string       `json:",omitempty"`
-	ServiceID   string       `json:",omitempty"`
-	ServiceName string       `json:",omitempty"`
-	Count       int          `json:",omitempty"`
-	LogEntry    string       `json:",omitempty"`
+// POSTDataAlertStatus represents fields in outgoing alert status notification.
+type POSTDataAlertStatus struct {
+	AlertID  int
+	LogEntry string
+}
+
+// POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
+type POSTDataAlertStatusBundle struct {
+	AlertID  int
+	LogEntry string
+	Count    int
+}
+
+// POSTDataVerification represents fields in outgoing verification notification.
+type POSTDataVerification struct {
+	Code string
+}
+
+// POSTDataTest represents fields in outgoing test notification.
+type POSTDataTest struct {
+	Details string
 }
 
 func NewSender(ctx context.Context) *Sender {
@@ -48,50 +58,32 @@ func NewSender(ctx context.Context) *Sender {
 // Send will send an alert for the provided message type
 func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 
-	var payload *Message
+	var data []byte
+	var err error
 
 	switch m := msg.(type) {
 	case notification.Test:
-		payload = &Message{
-			Type: TypeTest,
-		}
+		pdTest := POSTDataTest{Details: "This is a test message from GoAlert."}
+		data, err = json.Marshal(pdTest)
 	case notification.Verification:
-		payload = &Message{
-			Type: TypeVerification,
-			Code: strconv.Itoa(m.Code),
-		}
+		pdVerification := POSTDataVerification{Code: strconv.Itoa(m.Code)}
+		data, err = json.Marshal(pdVerification)
 	case notification.Alert:
-		payload = &Message{
-			Type:    TypeAlert,
-			AlertID: m.AlertID,
-			Summary: m.Summary,
-			Details: m.Details,
-		}
+		pdAlert := POSTDataAlert{Details: m.Details, AlertID: m.AlertID, Summary: m.Summary}
+		data, err = json.Marshal(pdAlert)
 	case notification.AlertBundle:
-		payload = &Message{
-			Type:        TypeAlertBundle,
-			ServiceID:   m.ServiceID,
-			ServiceName: m.ServiceName,
-			Count:       m.Count,
-		}
+		pdAlertBundle := POSTDataAlertBundle{ServiceID: m.ServiceID, ServiceName: m.ServiceName, Count: m.Count}
+		data, err = json.Marshal(pdAlertBundle)
 	case notification.AlertStatus:
-		payload = &Message{
-			Type:     TypeAlertStatus,
-			AlertID:  m.AlertID,
-			LogEntry: m.LogEntry,
-		}
+		pdAlertStatus := POSTDataAlertStatus{AlertID: m.AlertID, LogEntry: m.LogEntry}
+		data, err = json.Marshal(pdAlertStatus)
 	case notification.AlertStatusBundle:
-		payload = &Message{
-			Type:     TypeAlertStatusBundle,
-			Count:    m.Count,
-			AlertID:  m.AlertID,
-			LogEntry: m.LogEntry,
-		}
+		pdAlertStatusBundle := POSTDataAlertStatusBundle{Count: m.Count, AlertID: m.AlertID, LogEntry: m.LogEntry}
+		data, err = json.Marshal(pdAlertStatusBundle)
 	default:
-		return nil, errors.New(fmt.Sprintf("message type: %d not supported", m.Type()))
+		return nil, fmt.Errorf("message type: %d not supported", m.Type())
 	}
 
-	data, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
