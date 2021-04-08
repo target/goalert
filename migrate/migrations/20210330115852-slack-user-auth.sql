@@ -1,13 +1,14 @@
 -- +migrate Up
 ALTER TABLE user_slack_data RENAME COLUMN id TO user_id;
-ALTER TABLE user_slack_data ALTER COLUMN access_token DROP NOT NULL;
 ALTER TABLE user_slack_data ADD COLUMN slack_user_id TEXT NOT NULL;
 ALTER TABLE user_slack_data ADD COLUMN team_id TEXT NOT NULL;
 ALTER TABLE user_slack_data ADD COLUMN meta JSONB;
 
-ALTER TABLE user_slack_data
-DROP CONSTRAINT user_slack_data_pkey,
-ADD PRIMARY KEY(slack_user_id);
+ALTER TABLE user_slack_data DROP CONSTRAINT user_slack_data_pkey;
+ALTER TABLE user_slack_data ADD PRIMARY KEY (slack_user_id);
+
+ALTER TABLE user_slack_data ALTER COLUMN user_id DROP NOT NULL;
+ALTER TABLE user_slack_data ALTER COLUMN access_token DROP NOT NULL;
 
 CREATE TABLE notification_channel_last_alert_log (
     notification_channel_id UUID NOT NULL REFERENCES notification_channels(id) ON DELETE CASCADE,
@@ -61,14 +62,16 @@ EXECUTE PROCEDURE fn_update_notification_channel_last_alert_log();
 DROP TRIGGER trg_insert_alert_logs_notification_channel_last_alert_update ON alert_logs;
 DROP TRIGGER trg_insert_alert_logs_notification_channel_last_alert ON alert_logs;
 
-ALTER TABLE user_slack_data
-DROP CONSTRAINT user_slack_data_pkey,
-ADD PRIMARY KEY(user_id);
+ALTER TABLE user_slack_data ALTER COLUMN access_token SET NOT NULL;
+ALTER TABLE user_slack_data ALTER COLUMN user_id SET NOT NULL;
+
+ALTER TABLE user_slack_data DROP CONSTRAINT user_slack_data_pkey;
+ALTER TABLE user_slack_data ADD PRIMARY KEY (user_id);
 
 ALTER TABLE user_slack_data DROP COLUMN meta;
 ALTER TABLE user_slack_data DROP COLUMN team_id;
 ALTER TABLE user_slack_data DROP COLUMN slack_user_id;
-ALTER TABLE user_slack_data ALTER COLUMN access_token SET NOT NULL;
+
 ALTER TABLE user_slack_data RENAME COLUMN user_id TO id;
 
 DROP FUNCTION fn_update_notification_channel_last_alert_log();

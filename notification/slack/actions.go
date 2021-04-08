@@ -128,10 +128,16 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				clientErr()
 				return
 			}
-			h.c.NotificationStore.InsertUserAuthMetaData(ctx, payload.Team.ID, payload.User.ID, notification.UserAuthMetaData{
+			ok, err := h.c.NotificationStore.InsertUserAuthMetaData(ctx, payload.Team.ID, payload.User.ID, notification.UserAuthMetaData{
 				Timestamp: authMessageTS,
 				ChannelID: payload.Channel.ID,
 			})
+			fmt.Println("insert metadata successful? ", ok)
+			if err != nil {
+				fmt.Println("err: ", err.Error())
+				clientErr()
+				return
+			}
 			return
 		}
 
