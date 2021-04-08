@@ -140,7 +140,7 @@ export default function UserContactMethodList(props) {
       const { origin } = new URL(cm.formattedValue)
       return (
         <React.Fragment>
-          <React.Fragment>{`${origin} (`}</React.Fragment>
+          {`${origin} (`}
           <AppLink to='/docs'>docs</AppLink>)
         </React.Fragment>
       )
