@@ -24,7 +24,7 @@ module.exports = {
     'plugin:prettier/recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
-    'prettier/@typescript-eslint',
+    'prettier',
   ],
   rules: {
     'no-else-return': ['error', { allowElseIf: false }],
