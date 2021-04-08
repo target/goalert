@@ -83,6 +83,10 @@ module.exports = (env) => ({
         to: path.resolve(BUILD, `./static/${filename}`),
       })),
     }),
+    new webpack.BannerPlugin({
+      banner: `var GOALERT_VERSION=${JSON.stringify(env.GOALERT_VERSION)};`,
+      raw: true,
+    }),
   ],
 
   optimization: {

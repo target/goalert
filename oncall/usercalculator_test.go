@@ -8,15 +8,6 @@ import (
 	"github.com/target/goalert/oncall"
 )
 
-func cloneSlice(a []string) []string {
-	if len(a) == 0 {
-		return nil
-	}
-	s := make([]string, len(a))
-	copy(s, a)
-	return s
-}
-
 func TestUserCalculator(t *testing.T) {
 	type result struct {
 		Time  time.Time
@@ -40,15 +31,22 @@ func TestUserCalculator(t *testing.T) {
 
 			iter.Init()
 
-			var results []result
+			var count int
 			for iter.Next() {
-				results = append(results, result{
-					Time:  time.Unix(iter.Unix(), 0).UTC(),
-					Value: cloneSlice(iter.ActiveUsers()),
-				})
+				i := count
+				count++
+				if count > len(expected) {
+					t.Errorf("unexpected result: Value=%v, Time=%d", iter.ActiveUsers(), iter.Unix())
+					continue
+				}
+				if len(expected[i].Value) > 0 || len(iter.ActiveUsers()) > 0 {
+					assert.EqualValuesf(t, expected[i].Value, iter.ActiveUsers(), "result[%d].Value", i)
+				}
+				assert.Equalf(t, expected[i].Time.String(), time.Unix(iter.Unix(), 0).UTC().String(), "result[%d].Time", i)
 			}
-
-			assert.EqualValues(t, expected, results)
+			if count != len(expected) {
+				t.Errorf("got %d results; want %d", count, len(expected))
+			}
 		})
 	}
 
@@ -74,7 +72,7 @@ func TestUserCalculator(t *testing.T) {
 
 	check("at-start",
 		[]result{
-			{Time: start, Value: []string{"foo"}},
+			{Time: time.Date(2000, 1, 2, 3, 3, 0, 0, time.UTC), Value: []string{"foo"}},
 			{Time: time.Date(2000, 1, 2, 3, 7, 0, 0, time.UTC)},
 			{Time: end},
 		},

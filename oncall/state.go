@@ -93,15 +93,29 @@ func sortShifts(s []Shift) {
 }
 
 func (s *state) CalculateShifts(start, end time.Time) []Shift {
-	t := NewTimeIterator(start, end, time.Minute)
+	start = start.Truncate(time.Minute)
+	end = end.Truncate(time.Minute)
+	tiStart := start
+	if !s.now.IsZero() && s.now.Before(start) {
+		tiStart = s.now.Truncate(time.Minute)
+	}
+	historyCutoff := s.now.Truncate(time.Minute).Add(time.Minute)
+	t := NewTimeIterator(tiStart, end, time.Minute)
 	defer t.Close()
 
 	hist := t.NewUserCalculator()
 	for _, s := range s.history {
+		if s.End.IsZero() {
+			// have currently active shifts "end"
+			// at the cutoff.
+			s.End = historyCutoff
+		}
 		hist.SetSpan(s.Start, s.End, s.UserID)
 	}
 	hist.Init()
 	tempScheds := t.NewTemporaryScheduleCalculator(s.tempScheds)
+	// sort overrides so that overlapping spans are merged properly
+	sort.Slice(s.overrides, func(i, j int) bool { return s.overrides[i].Start.Before(s.overrides[j].Start) })
 	overrides := t.NewOverrideCalculator(s.overrides)
 	rules := t.NewRulesCalculator(s.loc, s.rules)
 
@@ -109,26 +123,21 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	isOnCall := make(map[string]*Shift)
 	stillOnCall := make(map[string]bool)
 
-	setOnCall := func(userIDs []string, startTimes []time.Time) {
+	setOnCall := func(userIDs []string) {
 		// reset map
 		for id := range stillOnCall {
 			delete(stillOnCall, id)
 		}
 		now := time.Unix(t.Unix(), 0)
-		for i, id := range userIDs {
+		for _, id := range userIDs {
 			stillOnCall[id] = true
 			s := isOnCall[id]
 			if s != nil {
 				continue
 			}
-			// new user is on call
-			start := now
-			if len(startTimes) != 0 {
-				// use original start time if provided
-				start = startTimes[i]
-			}
+
 			isOnCall[id] = &Shift{
-				Start:  start,
+				Start:  now,
 				UserID: id,
 			}
 		}
@@ -138,27 +147,29 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 			}
 
 			// no longer on call
-			s.End = now
-			shifts = append(shifts, *s)
+			if now.After(start) {
+				s.End = now
+				shifts = append(shifts, *s)
+			}
 			delete(isOnCall, id)
 		}
 	}
 
 	for t.Next() {
-		if !time.Unix(t.Unix(), 0).After(s.now) {
+		if time.Unix(t.Unix(), 0).Before(historyCutoff) {
 			// use history if in the past
-			setOnCall(hist.ActiveUsers(), hist.ActiveTimes())
+			setOnCall(hist.ActiveUsers())
 			continue
 		}
 
 		if tempScheds.Active() {
 			// use TemporarySchedule if one is active
-			setOnCall(tempScheds.ActiveUsers(), nil)
+			setOnCall(tempScheds.ActiveUsers())
 			continue
 		}
 
 		// apply any overrides
-		setOnCall(overrides.MapUsers(rules.ActiveUsers()), nil)
+		setOnCall(overrides.MapUsers(rules.ActiveUsers()))
 	}
 
 	// remaining shifts are truncated
