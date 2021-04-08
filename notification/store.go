@@ -25,8 +25,8 @@ import (
 
 // todo: make slack store, add relevant types and functions
 type UserAuthMetaData struct {
-	Timestamp string
-	ChannelID string
+	Timestamp string `json:"timestamp"`
+	ChannelID string `json:"channel_id"`
 }
 
 const minTimeBetweenTests = time.Minute
@@ -195,7 +195,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		getMeta: p.P(`
 			select meta
 			from user_slack_data
-			where slack_user_id = $1 and access_token is null
+			where slack_user_id = $1
 		`),
 	}, p.Err
 }
@@ -525,8 +525,14 @@ func (db *DB) FindUserAuthMessageData(ctx context.Context, slackUserID string) (
 		return nil, err
 	}
 
+	var _meta string
+	err = db.getMeta.QueryRowContext(ctx, slackUserID).Scan(&_meta)
+	if err != nil {
+		return nil, err
+	}
+
 	var meta UserAuthMetaData
-	err = db.getMeta.QueryRowContext(ctx, slackUserID).Scan(&meta)
+	err = json.Unmarshal([]byte(_meta), &meta)
 	if err != nil {
 		return nil, err
 	}
