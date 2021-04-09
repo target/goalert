@@ -53,6 +53,32 @@ func migrationID(name string) (int, string) {
 	return -1, ""
 }
 
+// VerifyAll will verify all migrations have already been applied.
+func VerifyAll(ctx context.Context, url string) error {
+	targetName := migrationName(Files[len(Files)-1].Name)
+	targetIndex, targetID := migrationID(targetName)
+	if targetIndex == -1 {
+		return errors.Errorf("unknown migration target name '%s'", targetName)
+	}
+
+	conn, err := getConn(ctx, url)
+	if err != nil {
+		return err
+	}
+	defer conn.Close(ctx)
+
+	var hasLatest bool
+	err = conn.QueryRow(ctx, `select true from gorp_migrations where id = $1`, targetID).Scan(&hasLatest)
+	if err != nil {
+		return err
+	}
+	if hasLatest {
+		return nil
+	}
+
+	return errors.Errorf("latest migration '%s' has not been applied", targetName)
+}
+
 // ApplyAll will atomically perform all UP migrations.
 func ApplyAll(ctx context.Context, url string) (int, error) {
 	return Up(ctx, url, "")
@@ -65,7 +91,6 @@ func getConn(ctx context.Context, url string) (*pgx.Conn, error) {
 		conn, err = pgx.Connect(ctx, url)
 		return err
 	},
-		retry.Log(ctx),
 		retry.Limit(12),
 		retry.FibBackoff(time.Millisecond*100),
 	)
