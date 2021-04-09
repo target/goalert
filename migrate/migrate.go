@@ -1,10 +1,10 @@
 package migrate
 
-//go:generate go run ../devtools/inliner -pkg $GOPACKAGE ./migrations/*.sql
-
 import (
 	"bytes"
 	"context"
+	"embed"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,19 +19,39 @@ import (
 	"github.com/target/goalert/util/sqlutil"
 )
 
+//go:embed migrations
+var fs embed.FS
+
+func migrationIDs() []string {
+	files, err := fs.ReadDir("migrations")
+	if err != nil {
+		panic(err)
+	}
+
+	ids := make([]string, 0, len(files))
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		ids = append(ids, strings.TrimPrefix(f.Name(), "migrations/"))
+	}
+
+	return ids
+}
+
 // Names will return all AssetNames without the timestamps and extensions
 func Names() []string {
 	uniq := make(map[string]struct{})
 	var names []string
-	// Strip off "migrations/timestamp" and ".sql" file extension
-	for _, b := range Files {
-		name := migrationName(b.Name)
+
+	for _, id := range migrationIDs() {
+		name := migrationName(id)
 		if _, ok := uniq[name]; ok {
-			panic("duplicate migation name " + name)
+			panic("duplicate migration name " + name)
 		}
 		uniq[name] = struct{}{}
 
-		names = append(names, migrationName(b.Name))
+		names = append(names, name)
 	}
 	return names
 }
@@ -45,9 +65,9 @@ func migrationName(file string) string {
 	return file
 }
 func migrationID(name string) (int, string) {
-	for i, b := range Files {
-		if migrationName(b.Name) == name {
-			return i, strings.TrimPrefix(b.Name, "migrations/")
+	for i, id := range migrationIDs() {
+		if migrationName(id) == name {
+			return i, id
 		}
 	}
 	return -1, ""
@@ -163,7 +183,8 @@ func ensureTableQuery(ctx context.Context, conn *pgx.Conn, fn func() error) erro
 // If targetName is empty, all available migrations are applied.
 func Up(ctx context.Context, url, targetName string) (int, error) {
 	if targetName == "" {
-		targetName = migrationName(Files[len(Files)-1].Name)
+		names := Names()
+		targetName = names[len(names)-1]
 	}
 	targetIndex, targetID := migrationID(targetName)
 	if targetIndex == -1 {
@@ -202,6 +223,7 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 	}
 	defer rows.Close()
 
+	ids := migrationIDs()
 	i := -1
 	for rows.Next() {
 		i++
@@ -210,8 +232,8 @@ func Up(ctx context.Context, url, targetName string) (int, error) {
 		if err != nil {
 			return 0, errors.Wrap(err, "scan applied migrations")
 		}
-		if strings.TrimPrefix(Files[i].Name, "migrations/") != id {
-			return 0, errors.Errorf("migration mismatch db has '%s' but expected '%s'", id, strings.TrimPrefix(Files[i].Name, "migrations/"))
+		if ids[i] != id {
+			return 0, errors.Errorf("migration mismatch db has '%s' but expected '%s'", id, ids[i])
 		}
 	}
 
@@ -280,12 +302,24 @@ func Down(ctx context.Context, url, targetName string) (int, error) {
 	return performMigrations(ctx, conn, false, migrations)
 }
 
+func readMigration(id string) ([]byte, error) {
+	data, err := fs.ReadFile("migrations/" + id)
+	if err != nil {
+		return nil, fmt.Errorf("read 'migrations/%s': %w", id, err)
+	}
+	return data, nil
+}
+
 // DumpMigrations will attempt to write all migration files to the specified directory
 func DumpMigrations(dest string) error {
-	for _, file := range Files {
-		fullPath := filepath.Join(dest, filepath.Base(file.Name))
+	for _, id := range migrationIDs() {
+		fullPath := filepath.Join(dest, "migrations", id)
 		os.MkdirAll(filepath.Dir(fullPath), 0755)
-		err := os.WriteFile(fullPath, file.Data(), 0644)
+		data, err := readMigration(id)
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(fullPath, data, 0644)
 		if err != nil {
 			return errors.Wrapf(err, "write to %s", fullPath)
 		}
@@ -309,11 +343,15 @@ type migrationStep struct {
 
 func parseMigrations() ([]migration, error) {
 	var migrations []migration
-	for _, file := range Files {
+	for _, id := range migrationIDs() {
 		var m migration
-		m.ID = strings.TrimPrefix(file.Name, "migrations/")
-		m.Name = migrationName(file.Name)
-		p, err := sqlparse.ParseMigration(bytes.NewReader(file.Data()))
+		m.ID = id
+		m.Name = migrationName(id)
+		data, err := readMigration(id)
+		if err != nil {
+			return nil, err
+		}
+		p, err := sqlparse.ParseMigration(bytes.NewReader(data))
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse %s", m.ID)
 		}
