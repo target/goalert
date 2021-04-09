@@ -95,6 +95,9 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
+	serverErr := func() { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError) }
+	clientErr := func() { http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest) }
+
 	if !validRequest(w, req) {
 		return
 	}
@@ -105,36 +108,35 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		panic(err)
 	}
 
-	// don't process url buttons
-	for _, action := range payload.ActionCallback.BlockActions {
-		if action.ActionID == "openLink" || action.ActionID == "auth" {
-			return
-		}
-	}
-
-	serverErr := func() { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError) }
-	clientErr := func() { http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest) }
 	process := func(ctx context.Context) {
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
+
+		// url buttons
+		for _, action := range payload.ActionCallback.BlockActions {
+			if action.ActionID == "auth" {
+				_, err = h.c.NotificationStore.InsertUserAuthMetaData(ctx, payload.Team.ID, payload.User.ID, notification.UserAuthMetaData{
+					ChannelID:   payload.Channel.ID,
+					ResponseURL: payload.ResponseURL,
+				})
+				if err != nil {
+					clientErr()
+					return
+				}
+				return
+			}
+			if action.ActionID == "openLink" {
+				return
+			}
+		}
 
 		// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
 		_, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
 		if err != nil {
 			uri := cfg.General.PublicURL + "/api/v2/slack/auth"
 			msg := userAuthMessageOption(cfg.Slack.ClientID, uri)
-			authMessageTS, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, msg)
+			_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, msg)
 			if err != nil {
-				clientErr()
-				return
-			}
-			ok, err := h.c.NotificationStore.InsertUserAuthMetaData(ctx, payload.Team.ID, payload.User.ID, notification.UserAuthMetaData{
-				Timestamp: authMessageTS,
-				ChannelID: payload.Channel.ID,
-			})
-			fmt.Println("insert metadata successful? ", ok)
-			if err != nil {
-				fmt.Println("err: ", err.Error())
 				clientErr()
 				return
 			}

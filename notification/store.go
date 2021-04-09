@@ -25,8 +25,8 @@ import (
 
 // todo: make slack store, add relevant types and functions
 type UserAuthMetaData struct {
-	Timestamp string `json:"timestamp"`
-	ChannelID string `json:"channel_id"`
+	ChannelID   string `json:"channel_id"`
+	ResponseURL string `json:"response_url"`
 }
 
 const minTimeBetweenTests = time.Minute
@@ -44,7 +44,7 @@ type Store interface {
 	InsertSlackUser(ctx context.Context, teamID, slackID, userID, accessToken string) (bool, error)
 	FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]string, error)
 	InsertUserAuthMetaData(ctx context.Context, slackTeamID, slackUserID string, meta UserAuthMetaData) (bool, error)
-	FindUserAuthMessageData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error)
+	FindUserAuthMetaData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error)
 }
 
 var _ Store = &DB{}
@@ -519,7 +519,7 @@ func (db *DB) InsertUserAuthMetaData(ctx context.Context, slackTeamID, slackUser
 	return true, nil
 }
 
-func (db *DB) FindUserAuthMessageData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error) {
+func (db *DB) FindUserAuthMetaData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
