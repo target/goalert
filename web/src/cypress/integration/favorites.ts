@@ -106,6 +106,8 @@ function testFavorites(): void {
           return cy.visit(`/escalation-policies/${e.id}`)
         })
         .pageFab()
+        .get('[data-cy="rotations-step"]')
+        .click()
         .get('input[name=rotations]'),
   )
 
@@ -123,8 +125,6 @@ function testFavorites(): void {
           return cy.visit(`/escalation-policies/${e.id}`)
         })
         .pageFab()
-        .get('[data-cy="schedules-step"]')
-        .click()
         .get('input[name=schedules]'),
   )
 }

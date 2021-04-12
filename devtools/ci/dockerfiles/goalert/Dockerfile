@@ -5,3 +5,4 @@ EXPOSE 8081
 CMD ["/usr/bin/goalert"]
 
 COPY bin/goalert-linux-amd64 /usr/bin/goalert
+RUN /usr/bin/goalert self-test

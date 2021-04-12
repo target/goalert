@@ -34,7 +34,7 @@ export default function IntegrationKeyAPI(): JSX.Element {
       {markdownDocs.map((doc, i) => (
         <Card key={i} className={classes.mBottom}>
           <CardContent>
-            <Typography variant='subtitle1' component='div'>
+            <Typography variant='body1' component='div'>
               <Markdown value={doc} />
             </Typography>
           </CardContent>

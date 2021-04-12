@@ -36,7 +36,7 @@ function login(
         },
       })
       .then((res) => {
-        return res.body
+        return res.body as string
       })
   }
 

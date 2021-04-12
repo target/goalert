@@ -2,15 +2,15 @@ import React from 'react'
 import p from 'prop-types'
 import Typography from '@material-ui/core/Typography'
 import { Switch, Route } from 'react-router-dom'
-import withWidth, { isWidthUp } from '@material-ui/core/withWidth'
+import { makeStyles } from '@material-ui/core/styles'
+import { isWidthUp } from '@material-ui/core/withWidth'
 import { ChevronRight } from '@material-ui/icons'
-import withStyles from '@material-ui/core/styles/withStyles'
-import { gql } from '@apollo/client'
-import { Query } from '@apollo/client/react/components'
+import { gql, useQuery } from '@apollo/client'
 import { startCase } from 'lodash'
 import AppLink from '../../util/AppLink'
+import useWidth from '../../util/useWidth'
 
-const styles = {
+const useStyles = makeStyles(() => ({
   backPage: {
     '&:hover': {
       cursor: 'pointer',
@@ -32,7 +32,7 @@ const styles = {
     flex: 1, // pushes toolbar actions to the right
     fontSize: '1.25rem',
   },
-}
+}))
 
 const mapSingular = {
   Schedules: 'Schedule',
@@ -77,38 +77,30 @@ const queries = {
   `,
 }
 
-class NameLoader extends React.PureComponent {
-  static propTypes = {
-    fallback: p.string.isRequired,
-    id: p.string,
-    query: p.object,
-  }
-
-  render() {
-    if (!this.props.query || !this.props.id) return this.props.fallback
-    return (
-      <Query query={this.props.query} variables={{ id: this.props.id }}>
-        {({ data }) => {
-          if (!data || !data.data) {
-            return this.props.fallback
-          }
-
-          return data.data.name
-        }}
-      </Query>
-    )
-  }
+function NameLoader(props) {
+  const { data } = useQuery(props.query, {
+    variables: { id: props.id },
+    skip: !props.id,
+  })
+  return data?.data?.name ?? props.fallback
 }
 
-@withWidth()
-@withStyles(styles)
-export default class ToolbarTitle extends React.Component {
-  renderTitle = (title) => {
+NameLoader.propTypes = {
+  fallback: p.string.isRequired,
+  id: p.string,
+  query: p.object.isRequired,
+}
+
+function ToolbarTitle() {
+  const width = useWidth()
+  const classes = useStyles()
+
+  const renderTitle = (title) => {
     document.title = `GoAlert - ${title}`
 
     return (
       <Typography
-        className={this.props.classes.title}
+        className={classes.title}
         color='inherit'
         noWrap
         component='h1'
@@ -118,39 +110,7 @@ export default class ToolbarTitle extends React.Component {
     )
   }
 
-  renderSubPageTitle = ({ match }) => {
-    const sub = startCase(match.params.sub)
-
-    if (!isWidthUp('md', this.props.width)) {
-      // mobile, only render current title
-      return this.renderTitle(sub)
-    }
-    const query = queries[match.params.type]
-
-    return (
-      <div className={this.props.classes.div}>
-        <Typography
-          component={AppLink}
-          className={this.props.classes.backPage}
-          color='inherit'
-          noWrap
-          variant='h6'
-          to='..'
-          replace
-        >
-          <NameLoader
-            id={match.params.id}
-            query={query}
-            fallback={this.detailsText(match)}
-          />
-        </Typography>
-        <ChevronRight />
-        {this.renderTitle(sub)}
-      </div>
-    )
-  }
-
-  detailsText = (match) => {
+  const detailsText = (match) => {
     const typeName = startCase(match.params.type)
     return (
       (mapSingular[typeName] || typeName) +
@@ -158,49 +118,85 @@ export default class ToolbarTitle extends React.Component {
     )
   }
 
-  renderDetailsPageTitle = ({ match }) => {
-    return this.renderTitle(this.detailsText(match))
-  }
+  const renderSubPageTitle = ({ match }) => {
+    const sub = startCase(match.params.sub)
 
-  renderTopLevelTitle = ({ match }) => {
-    return this.renderTitle(startCase(match.params.type))
-  }
+    if (!isWidthUp('md', width)) {
+      // mobile, only render current title
+      return renderTitle(sub)
+    }
+    const query = queries[match.params.type]
 
-  render() {
     return (
-      <Switch>
-        <Route
-          path='/:type(escalation-policies)/:id/:sub(services)'
-          render={this.renderSubPageTitle}
-        />
-        <Route
-          path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
-          render={this.renderSubPageTitle}
-        />
-        <Route
-          path='/:type(users)/:id/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
-          render={this.renderSubPageTitle}
-        />
-        <Route
-          path='/:type(profile)/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
-          render={this.renderSubPageTitle}
-        />
-        <Route
-          path='/:type(schedules)/:id/:sub(assignments|escalation-policies|overrides|shifts)'
-          render={this.renderSubPageTitle}
-        />
-        <Route
-          path='/:type(alerts|rotations|schedules|escalation-policies|services|users)/:id'
-          render={this.renderDetailsPageTitle}
-        />
-        <Route
-          path='/:type(alerts|rotations|schedules|escalation-policies|services|users|profile)'
-          render={this.renderTopLevelTitle}
-        />
-        <Route path='/wizard' render={() => this.renderTitle('Setup Wizard')} />
-        <Route path='/admin' render={() => this.renderTitle('Admin Page')} />
-        <Route path='/docs' render={() => this.renderTitle('Documentation')} />
-      </Switch>
+      <div className={classes.div}>
+        <Typography
+          component={AppLink}
+          className={classes.backPage}
+          color='inherit'
+          noWrap
+          variant='h6'
+          to='..'
+          replace
+        >
+          {query ? (
+            <NameLoader
+              id={match.params.id}
+              query={query}
+              fallback={detailsText(match)}
+            />
+          ) : (
+            detailsText(match)
+          )}
+        </Typography>
+        <ChevronRight />
+        {renderTitle(sub)}
+      </div>
     )
   }
+
+  const renderDetailsPageTitle = ({ match }) => {
+    return renderTitle(detailsText(match))
+  }
+
+  const renderTopLevelTitle = ({ match }) => {
+    return renderTitle(startCase(match.params.type))
+  }
+
+  return (
+    <Switch>
+      <Route
+        path='/:type(escalation-policies)/:id/:sub(services)'
+        render={renderSubPageTitle}
+      />
+      <Route
+        path='/:type(services)/:id/:sub(alerts|integration-keys|heartbeat-monitors|labels)'
+        render={renderSubPageTitle}
+      />
+      <Route
+        path='/:type(users)/:id/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
+        render={renderSubPageTitle}
+      />
+      <Route
+        path='/:type(profile)/:sub(on-call-assignments|schedule-calendar-subscriptions|sessions)'
+        render={renderSubPageTitle}
+      />
+      <Route
+        path='/:type(schedules)/:id/:sub(assignments|escalation-policies|overrides|shifts)'
+        render={renderSubPageTitle}
+      />
+      <Route
+        path='/:type(alerts|rotations|schedules|escalation-policies|services|users)/:id'
+        render={renderDetailsPageTitle}
+      />
+      <Route
+        path='/:type(alerts|rotations|schedules|escalation-policies|services|users|profile)'
+        render={renderTopLevelTitle}
+      />
+      <Route path='/wizard' render={() => renderTitle('Setup Wizard')} />
+      <Route path='/admin' render={() => renderTitle('Admin Page')} />
+      <Route path='/docs' render={() => renderTitle('Documentation')} />
+    </Switch>
+  )
 }
+
+export default ToolbarTitle

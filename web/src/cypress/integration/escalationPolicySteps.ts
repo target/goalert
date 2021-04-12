@@ -40,16 +40,15 @@ function testSteps(): void {
 
         cy.pageFab()
         cy.dialogTitle('Create Step')
-        cy.dialogForm({ rotations: [r1.name, r2.name] })
-
-        cy.get('button[data-cy="schedules-step"]').click()
         cy.dialogForm({ schedules: [s1.name, s2.name] })
 
         cy.get('button[data-cy="users-step"]').click()
-        cy.dialogForm({
-          users: [u1.name, u2.name],
-          delayMinutes: delay.toString(),
-        })
+        cy.dialogForm({ users: [u1.name, u2.name] })
+
+        cy.get('button[data-cy="rotations-step"]').click()
+        cy.dialogForm({ rotations: [r1.name, r2.name] })
+
+        cy.dialogForm({ delayMinutes: delay.toString() })
         cy.dialogFinish('Submit')
 
         // verify data integrity
@@ -97,7 +96,7 @@ function testSteps(): void {
 
           cy.dialogTitle('Edit Step')
           cy.dialogForm({
-            rotations: r1.name,
+            schedules: s1.name,
             delayMinutes: delay.toString(),
           })
 
@@ -106,7 +105,7 @@ function testSteps(): void {
           // verify data integrity
           cy.get('body').should('contain', 'Notify the following:')
           cy.get('body').should('contain', 'Step #1:')
-          cy.get('div[data-cy=rotation-chip]').should('contain', r1.name)
+          cy.get('div[data-cy=schedule-chip]').should('contain', s1.name)
           cy.get('body').should(
             'contain',
             `Go back to step #1 after ${delay.toString()} minutes`,
