@@ -2,7 +2,7 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import ScheduleCalendar from './ScheduleCalendar'
 import { isWidthDown } from '@material-ui/core/withWidth/index'
-import { getStartOfWeek } from '../util/luxon-helpers'
+import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import { DateTime } from 'luxon'
 import useWidth from '../util/useWidth'
 import { useURLParam } from '../actions/hooks'
@@ -48,9 +48,8 @@ function ScheduleCalendarQuery({
       ? getStartOfWeek().toUTC().toISO()
       : DateTime.local().startOf('month').toUTC().toISO(),
   )
-
   const end = weekly
-    ? DateTime.fromISO(start).plus({ weeks: 1 }).toUTC().toISO()
+    ? getEndOfWeek(DateTime.fromISO(start)).toUTC().toISO()
     : DateTime.fromISO(start).endOf('month').toUTC().toISO()
 
   const { data, error, loading } = useQuery<Query>(query, {
