@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/slack-go/slack"
 	"github.com/target/goalert/config"
@@ -42,4 +43,26 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 	if err != nil {
 		panic(err)
 	}
+
+	// todo: complete original action
+
+	// redirect to most recent alert msg in channel that the user authed against
+	var api = slack.New(cfg.Slack.AccessToken)
+	alertID, err := strconv.Atoi(meta.AlertID)
+	if err != nil {
+		panic(err)
+	}
+	timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
+	if err != nil {
+		panic(err)
+	}
+
+	url, err := api.GetPermalinkContext(ctx, &slack.PermalinkParameters{
+		Channel: meta.ChannelID,
+		Ts:      timestamps[len(timestamps)-1],
+	})
+	if err != nil {
+		panic(err)
+	}
+	http.Redirect(w, req, url, http.StatusPermanentRedirect)
 }

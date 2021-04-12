@@ -112,12 +112,15 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 		cfg := config.FromContext(ctx)
 		var api = slack.New(cfg.Slack.AccessToken)
 
-		// url buttons
+		// actions may come in batches, range over
 		for _, action := range payload.ActionCallback.BlockActions {
+			alertIDStr := action.Value
+
 			if action.ActionID == "auth" {
 				_, err = h.c.NotificationStore.InsertUserAuthMetaData(ctx, payload.Team.ID, payload.User.ID, notification.UserAuthMetaData{
 					ChannelID:   payload.Channel.ID,
 					ResponseURL: payload.ResponseURL,
+					AlertID:     alertIDStr,
 				})
 				if err != nil {
 					clientErr()
@@ -128,26 +131,23 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			if action.ActionID == "openLink" {
 				return
 			}
-		}
 
-		// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
-		_, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
-		if err != nil {
-			uri := cfg.General.PublicURL + "/api/v2/slack/auth"
-			msg := userAuthMessageOption(cfg.Slack.ClientID, uri)
-			_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, msg)
-			if err != nil {
-				clientErr()
-				return
-			}
-			return
-		}
-
-		// actions may come in batches, range over
-		for _, action := range payload.ActionCallback.BlockActions {
-			alertID, err := strconv.Atoi(action.Value)
+			alertID, err := strconv.Atoi(alertIDStr)
 			if err != nil {
 				serverErr()
+				return
+			}
+
+			// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
+			_, err = h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
+			if err != nil {
+				uri := cfg.General.PublicURL + "/api/v2/slack/auth"
+				msg := userAuthMessageOption(cfg.Slack.ClientID, alertIDStr, uri)
+				_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, msg)
+				if err != nil {
+					clientErr()
+					return
+				}
 				return
 			}
 

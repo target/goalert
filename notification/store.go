@@ -27,6 +27,7 @@ import (
 type UserAuthMetaData struct {
 	ChannelID   string `json:"channel_id"`
 	ResponseURL string `json:"response_url"`
+	AlertID     string `json:"alert_id"`
 }
 
 const minTimeBetweenTests = time.Minute
@@ -62,10 +63,10 @@ type DB struct {
 	findManyMessageStatuses      *sql.Stmt
 	lastMessageStatus            *sql.Stmt
 
-	insertSlackUser         *sql.Stmt
-	getInitialProviderMsgID *sql.Stmt
-	insertUserPreAuthData   *sql.Stmt
-	getMeta                 *sql.Stmt
+	insertSlackUser               *sql.Stmt
+	getChannelAlertProviderMsgIDs *sql.Stmt
+	insertUserPreAuthData         *sql.Stmt
+	getMeta                       *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -178,7 +179,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				access_token = $2
 			where slack_user_id = $3
 		`),
-		getInitialProviderMsgID: p.P(`
+		getChannelAlertProviderMsgIDs: p.P(`
 			select provider_msg_id from outgoing_messages o 
 			join alert_logs a 
 			on o.alert_id = a.alert_id
@@ -187,6 +188,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			and a.sub_type = 'channel'
 			and o.message_type = 'alert_notification'
 			and o.provider_msg_id is not null
+			order by o.sent_at asc
 		`),
 		insertUserPreAuthData: p.P(`
 			insert into user_slack_data (slack_user_id, team_id, meta)
@@ -481,7 +483,7 @@ func (db *DB) FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]s
 		return nil, err
 	}
 
-	rows, err := db.getInitialProviderMsgID.QueryContext(ctx, alertID)
+	rows, err := db.getChannelAlertProviderMsgIDs.QueryContext(ctx, alertID)
 	if err != nil {
 		return nil, err
 	}

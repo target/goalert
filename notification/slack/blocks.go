@@ -57,11 +57,11 @@ func openLinkButton(url string) *slack.ButtonBlockElement {
 // 	return slack.NewContextBlock("", []slack.MixedElement{lastStatusText}...)
 // }
 
-func userAuthMessageOption(clientID, uri string) slack.MsgOption {
+func userAuthMessageOption(clientID, alertID, uri string) slack.MsgOption {
 	msg := slack.NewTextBlockObject("plain_text", "Please link your GoAlert account to continue", false, false)
 
 	btnTxt := slack.NewTextBlockObject("plain_text", "Authenticate :link:", true, false)
-	btn := slack.NewButtonBlockElement("auth", "", btnTxt)
+	btn := slack.NewButtonBlockElement("auth", alertID, btnTxt)
 	btn.URL = "https://slack.com/oauth/v2/authorize?user_scope=identity.basic&client_id=" + clientID + "&redirect_uri=" + uri // slack oauth endpoint
 	accessory := slack.NewAccessory(btn)
 
