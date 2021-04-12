@@ -120,6 +120,7 @@ export default function TempSchedShiftsList({
 
       // render subheader for each day
       result.push({
+        id: 'header_' + dayInterval.start,
         subHeader: relativeDate(dayInterval.start),
       })
 
