@@ -48,15 +48,26 @@ function ScheduleCalendarQuery({
       ? getStartOfWeek().toUTC().toISO()
       : DateTime.local().startOf('month').toUTC().toISO(),
   )
-  const end = weekly
-    ? getEndOfWeek(DateTime.fromISO(start)).toUTC().toISO()
-    : DateTime.fromISO(start).endOf('month').toUTC().toISO()
+
+  const [queryStart, queryEnd] = weekly
+    ? [
+        getStartOfWeek(DateTime.fromISO(start)).toUTC().toISO(),
+        getEndOfWeek(DateTime.fromISO(start)).toUTC().toISO(),
+      ]
+    : [
+        getStartOfWeek(DateTime.fromISO(start).startOf('month'))
+          .toUTC()
+          .toISO(),
+        getEndOfWeek(DateTime.fromISO(start).endOf('month')).toUTC().toISO(),
+      ]
+
+  console.log(queryStart, queryEnd)
 
   const { data, error, loading } = useQuery<Query>(query, {
     variables: {
       id: scheduleID,
-      start,
-      end,
+      start: queryStart,
+      end: queryEnd,
     },
     skip: isMobile,
   })
