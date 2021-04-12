@@ -12,3 +12,4 @@ EXPOSE 8081
 CMD ["/usr/bin/goalert"]
 
 COPY --from=binaries /$TARGETPLATFORM/goalert /usr/bin/goalert
+RUN /usr/bin/goalert self-test
