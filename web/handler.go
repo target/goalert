@@ -3,27 +3,57 @@ package web
 import (
 	"bytes"
 	"crypto/sha256"
+	"embed"
 	"encoding/hex"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"path"
-	"strings"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 )
+
+//go:embed src/build
+var bundleFS embed.FS
 
 // NewHandler creates a new http.Handler that will serve UI files
 // using bundled assets or by proxying to urlStr if set.
 func NewHandler(urlStr, prefix string) (http.Handler, error) {
 	mux := http.NewServeMux()
 
+	etags := make(map[string]string)
+	var mx sync.Mutex
+	calcTag := func(name string, data []byte) string {
+		mx.Lock()
+		defer mx.Unlock()
+		tag, ok := etags[name]
+		if ok {
+			return tag
+		}
+		sum := sha256.Sum256(data)
+		tag = `W/"` + hex.EncodeToString(sum[:]) + `"`
+		etags[name] = tag
+		return tag
+	}
+
 	var extraScripts []string
 	if urlStr == "" {
-		mux.Handle("/static/", newMemoryHandler())
+		mux.HandleFunc("/static/", func(w http.ResponseWriter, req *http.Request) {
+			data, err := bundleFS.ReadFile(path.Join("src/build", req.URL.Path))
+			if errors.Is(err, fs.ErrNotExist) {
+				http.NotFound(w, req)
+				return
+			}
+
+			w.Header().Set("Cache-Control", "public; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
+			w.Header().Set("ETag", calcTag(req.URL.Path, data))
+
+			http.ServeContent(w, req, req.URL.Path, time.Time{}, bytes.NewReader(data))
+		})
 	} else {
 		u, err := url.Parse(urlStr)
 		if err != nil {
@@ -56,72 +86,4 @@ func NewHandler(urlStr, prefix string) (http.Handler, error) {
 	})
 
 	return mux, nil
-}
-
-type memoryHandler struct {
-	files map[string]*File
-}
-type memoryFile struct {
-	*bytes.Reader
-	name string
-	size int
-}
-
-func (m *memoryHandler) Open(file string) (http.File, error) {
-	if f, ok := m.files["src/build"+file]; ok {
-		return &memoryFile{Reader: bytes.NewReader(f.Data()), name: f.Name, size: len(f.Data())}, nil
-	}
-
-	return nil, os.ErrNotExist
-}
-func (m *memoryHandler) ETag(url string) string {
-	if !strings.HasPrefix(url, "/") {
-		url = "/" + url
-	}
-	url = path.Clean(url)
-
-	f, ok := m.files["src/build"+url]
-	if !ok {
-		return ""
-	}
-
-	return `"sha256-` + f.Hash256() + `"`
-}
-
-func (m *memoryFile) Close() error { return nil }
-func (m *memoryFile) Readdir(int) ([]os.FileInfo, error) {
-	return nil, errors.New("not a directory")
-}
-func (m *memoryFile) Stat() (os.FileInfo, error) {
-	return m, nil
-}
-func (m *memoryFile) Name() string      { return path.Base(m.name) }
-func (m *memoryFile) Size() int64       { return int64(m.size) }
-func (m *memoryFile) Mode() os.FileMode { return 0644 }
-func (m *memoryFile) ModTime() time.Time {
-	if strings.Contains(m.name, "/static/") {
-		return time.Time{}
-	}
-
-	return time.Now()
-}
-func (m *memoryFile) IsDir() bool      { return false }
-func (m *memoryFile) Sys() interface{} { return nil }
-
-func newMemoryHandler() http.Handler {
-	m := &memoryHandler{
-		files: make(map[string]*File, len(Files)),
-	}
-	for _, f := range Files {
-		m.files[f.Name] = f
-	}
-	fs := http.FileServer(m)
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		etag := m.ETag(req.URL.Path)
-		if etag != "" {
-			w.Header().Set("ETag", etag)
-			w.Header().Set("Cache-Control", "public; max-age=60, stale-while-revalidate=600, stale-if-error=259200")
-		}
-		fs.ServeHTTP(w, req)
-	})
 }

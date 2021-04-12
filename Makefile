@@ -5,8 +5,7 @@
 .PHONY: docker-goalert docker-all-in-one release
 .SUFFIXES:
 
-GOFILES := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print | grep -v web/inline_data_gen.go) go.sum
-INLINER = devtools/inliner/*.go
+GOFILES := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
 
@@ -45,7 +44,7 @@ export GOFLAGS=-mod=vendor
 endif
 
 ifdef BUNDLE
-	GOFILES += web/inline_data_gen.go
+	GOFILES += web/src/build/static/app.js
 endif
 
 DOCKER_IMAGE_PREFIX=docker.io/goalert
@@ -66,15 +65,15 @@ docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-
 
 $(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
+$(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-smoketest-linux-amd64: $(BIN_DIR)/goalert
 	GOOS=linux go test ./smoketest -c -o $@
-$(BIN_DIR)/goalert-linux-arm: $(BIN_DIR)/goalert web/inline_data_gen.go
+$(BIN_DIR)/goalert-linux-arm: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=linux GOARCH=arm GOARM=7 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/inline_data_gen.go
+$(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=linux GOARCH=arm64 go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
-$(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/inline_data_gen.go
+$(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=darwin go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
 $(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -name '*.go')
@@ -137,13 +136,13 @@ cy-wide: cypress
 	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
 cy-mobile: cypress
 	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 bin/runjson $(RUNJSON_ARGS) <devtools/runjson/localdev-cypress.json
-cy-wide-prod: web/inline_data_gen.go cypress
+cy-wide-prod: web/src/build/static/app.js cypress
 	CYPRESS_viewportWidth=1440 CYPRESS_viewportHeight=900 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
-cy-mobile-prod: web/inline_data_gen.go cypress
+cy-mobile-prod: web/src/build/static/app.js cypress
 	CYPRESS_viewportWidth=375 CYPRESS_viewportHeight=667 CY_ACTION=$(CY_ACTION) bin/runjson $(RUNJSON_ARGS) <$(RUNJSON_PROD_FILE)
-cy-wide-prod-run: web/inline_data_gen.go cypress
+cy-wide-prod-run: web/src/build/static/app.js cypress
 	make cy-wide-prod CY_ACTION=run
-cy-mobile-prod-run: web/inline_data_gen.go cypress
+cy-mobile-prod-run: web/src/build/static/app.js cypress
 	make cy-mobile-prod CY_ACTION=run
 
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
@@ -155,7 +154,7 @@ start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts
 	make bin/goalert BUILD_TAGS+=sql_highlight
 	GOALERT_VERSION=$(GIT_VERSION) bin/runjson <devtools/runjson/localdev.json
 
-start-prod: bin/waitfor web/inline_data_gen.go bin/runjson
+start-prod: bin/waitfor web/src/build/static/app.js bin/runjson
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
@@ -179,9 +178,6 @@ check: generate node_modules
 
 check-all: check test smoketest cy-wide-prod-run cy-mobile-prod-run
 
-migrate/inline_data_gen.go: migrate/migrations migrate/migrations/*.sql $(INLINER)
-	go generate ./migrate
-
 graphql2/mapconfig.go: $(CFGPARAMS) config/config.go graphql2/generated.go devtools/configparams/main.go
 	(cd ./graphql2 && go run ../devtools/configparams/main.go -out mapconfig.go && go run golang.org/x/tools/cmd/goimports -w ./mapconfig.go) || go generate ./graphql2
 
@@ -197,7 +193,7 @@ generate: node_modules
 smoketest:
 	(cd smoketest && go test -parallel 10 -timeout 20m)
 
-test-migrations: migrate/inline_data_gen.go bin/goalert
+test-migrations: bin/goalert
 	(cd smoketest && go test -run TestMigrations)
 
 tools:
@@ -225,9 +221,6 @@ web/src/build/static/app.js: web/src/webpack.prod.config.js node_modules $(shell
 	rm -rf web/src/build/static
 	yarn workspace goalert-web webpack --config webpack.prod.config.js --env=GOALERT_VERSION=$(GIT_VERSION)
 
-web/inline_data_gen.go: web/src/build/static/app.js web/src/webpack.prod.config.js $(CFGPARAMS) $(INLINER)
-	go generate ./web
-
 notification/desttype_string.go: notification/dest.go
 	go generate ./notification
 notification/type_string.go: notice/notice.go
@@ -246,12 +239,12 @@ postgres:
 		-p 5432:5432 \
 		postgres:13-alpine || docker start goalert-postgres
 
-regendb: bin/resetdb bin/goalert migrate/inline_data_gen.go config.json.bak
+regendb: bin/resetdb bin/goalert config.json.bak
 	./bin/resetdb -with-rand-data -admin-id=00000000-0000-0000-0000-000000000000
 	test -f config.json.bak && bin/goalert set-config --allow-empty-data-encryption-key "--db-url=$(DB_URL)" <config.json.bak || true
 	bin/goalert add-user --user-id=00000000-0000-0000-0000-000000000000 --user admin --pass admin123 "--db-url=$(DB_URL)"
 
-resetdb: migrate/inline_data_gen.go config.json.bak
+resetdb: config.json.bak
 	go run ./devtools/resetdb --no-migrate
 
 clean:
