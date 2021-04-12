@@ -112,13 +112,20 @@ var RootCmd = &cobra.Command{
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
 
-		s := time.Now()
-		n, err := migrate.ApplyAll(log.EnableDebug(ctx), cfg.DBURL)
-		if err != nil {
-			return errors.Wrap(err, "apply migrations")
-		}
-		if n > 0 {
-			log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
+		if cfg.APIOnly {
+			err = migrate.VerifyAll(log.EnableDebug(ctx), cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "verify migrations")
+			}
+		} else {
+			s := time.Now()
+			n, err := migrate.ApplyAll(log.EnableDebug(ctx), cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "apply migrations")
+			}
+			if n > 0 {
+				log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
+			}
 		}
 
 		dbc, err := wrappedDriver.OpenConnector(cfg.DBURL)
