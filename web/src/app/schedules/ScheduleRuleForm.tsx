@@ -35,27 +35,27 @@ const days = [
   'Friday',
   'Saturday',
 ] as const
-type Day = ElementType<typeof days>
+type DayName = ElementType<typeof days>
 
-// TODO extends FormContainerProps
+// extends FormContainerProps
 interface ScheduleRuleFormProps {
-  // form container props
+  // FormContainerProps
   disabled?: boolean
   errors: FieldError[]
   onChange: (value: ScheduleTargetInput) => void
   value: ScheduleTargetInput
 
-  // scedule rule form props
+  // ScheduleRuleFormProps
   targetType: TargetType
   targetDisabled?: boolean
   scheduleID: string
 }
 
 // renderDaysValue abbreviates an array of day names
-// e.g. ["Monday", "Friday"] => "Mon-Fri"
+// e.g. ["Monday", "Friday"] => "Mon, Fri"
 // e.g. ["Monday", "Tuesday", "Friday"] => "Mon-Tues, Fri"
 // TODO unit tests
-const renderDaysValue = (value: Day[]): string => {
+const renderDaysValue = (value: DayName[]): string => {
   const parts: string[] = []
   let start = ''
   let last = ''
@@ -114,7 +114,7 @@ const useStyles = makeStyles(() => {
 })
 
 function ScheduleRuleForm(props: ScheduleRuleFormProps): JSX.Element {
-  const { targetDisabled, targetType, scheduleID, ...formProps } = props
+  const { targetDisabled = false, targetType, scheduleID, ...formProps } = props
   const classes = useStyles()
   const [displayTZ] = useURLParam('tz', 'local')
 
@@ -142,7 +142,7 @@ function ScheduleRuleForm(props: ScheduleRuleFormProps): JSX.Element {
           />
         </TableCell>
         <Hidden smDown>
-          {days.map((day, dayIdx) => (
+          {days.map((_, dayIdx) => (
             <TableCell key={dayIdx} padding='checkbox'>
               <FormField
                 noError
@@ -173,7 +173,7 @@ function ScheduleRuleForm(props: ScheduleRuleFormProps): JSX.Element {
               mapValue={(value: boolean[]) =>
                 days.filter((d, idx) => value[idx])
               }
-              mapOnChangeValue={(value: Day[]) =>
+              mapOnChangeValue={(value: DayName[]) =>
                 days.map((day) => value.includes(day))
               }
             >
