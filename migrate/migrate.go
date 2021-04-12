@@ -75,11 +75,10 @@ func migrationID(name string) (int, string) {
 
 // VerifyAll will verify all migrations have already been applied.
 func VerifyAll(ctx context.Context, url string) error {
-	targetName := migrationName(Files[len(Files)-1].Name)
-	targetIndex, targetID := migrationID(targetName)
-	if targetIndex == -1 {
-		return errors.Errorf("unknown migration target name '%s'", targetName)
-	}
+	ids := migrationIDs()
+	targetIndex := len(ids) - 1
+	targetID := ids[targetIndex]
+	targetName := migrationName(targetID)
 
 	conn, err := getConn(ctx, url)
 	if err != nil {
