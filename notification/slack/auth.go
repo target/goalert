@@ -44,8 +44,6 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 		panic(err)
 	}
 
-	// todo: complete original action
-
 	// redirect to most recent alert msg in channel that the user authed against
 	var api = slack.New(cfg.Slack.AccessToken)
 	alertID, err := strconv.Atoi(meta.AlertID)
@@ -56,7 +54,6 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 	if err != nil {
 		panic(err)
 	}
-
 	url, err := api.GetPermalinkContext(ctx, &slack.PermalinkParameters{
 		Channel: meta.ChannelID,
 		Ts:      timestamps[len(timestamps)-1],

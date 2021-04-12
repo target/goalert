@@ -92,13 +92,64 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 	return hmac.Equal(signature, []byte(calculatedSignature))
 }
 
+func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, action *slack.BlockAction, alertIDStr, channelID string) error {
+	cfg := config.FromContext(ctx)
+	var api = slack.New(cfg.Slack.AccessToken)
+
+	// add source info to ctx to enable writing to alert log
+	ncID, _, err := h.c.AlertLogStore.FindNCBySlackChanID(ctx, nil, channelID)
+	if err != nil {
+		return err
+	}
+	ctx = permission.SourceContext(ctx, &permission.SourceInfo{
+		Type: permission.SourceTypeNotificationChannel,
+		ID:   ncID,
+	})
+
+	// handle button clicked within Slack
+	alertID, err := strconv.Atoi(alertIDStr)
+	if err != nil {
+		return err
+	}
+	var actionErr error
+	switch action.ActionID {
+	case "ack":
+		actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
+	case "esc":
+		actionErr = h.c.AlertStore.Escalate(ctx, alertID)
+	case "close":
+		actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
+	}
+	if actionErr != nil {
+		return err
+	}
+
+	a, err := h.c.AlertStore.FindOne(ctx, alertID)
+	if err != nil {
+		return err
+	}
+	msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+alertIDStr))
+
+	// if the alert was ever escalated, the alert may have multiple same-messages in for a given channel
+	timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
+	if err != nil {
+		return err
+	}
+	for _, ts := range timestamps {
+		_, _, _, err := api.UpdateMessage(channelID, ts, msgOpt...)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 // ServeActionCallback processes POST requests from Slack. A callback ID is provided
 // to determine which action to take.
 func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) {
-	serverErr := func() { http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError) }
-	clientErr := func() { http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest) }
-
 	if !validRequest(w, req) {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
@@ -123,18 +174,12 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 					AlertID:     alertIDStr,
 				})
 				if err != nil {
-					clientErr()
+					http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 					return
 				}
 				return
 			}
 			if action.ActionID == "openLink" {
-				return
-			}
-
-			alertID, err := strconv.Atoi(alertIDStr)
-			if err != nil {
-				serverErr()
 				return
 			}
 
@@ -145,57 +190,16 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				msg := userAuthMessageOption(cfg.Slack.ClientID, alertIDStr, uri)
 				_, err := api.PostEphemeralContext(ctx, payload.Channel.ID, payload.User.ID, msg)
 				if err != nil {
-					clientErr()
+					http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 					return
 				}
 				return
 			}
 
-			// add source info to ctx to write to alert log
-			ncID, _, err := h.c.AlertLogStore.FindNCBySlackChanID(ctx, nil, payload.Channel.ID)
+			err = h.processAction(ctx, w, action, alertIDStr, payload.Channel.ID)
 			if err != nil {
-				serverErr()
-				return
-			}
-
-			ctx = permission.SourceContext(ctx, &permission.SourceInfo{
-				Type: permission.SourceTypeNotificationChannel,
-				ID:   ncID,
-			})
-
-			// handle button clicked within Slack
-			var actionErr error
-			switch action.ActionID {
-			case "ack":
-				actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusActive)
-			case "esc":
-				actionErr = h.c.AlertStore.Escalate(ctx, alertID)
-			case "close":
-				actionErr = h.c.AlertStore.UpdateStatus(ctx, alertID, alert.StatusClosed)
-			}
-			if actionErr != nil {
-				serverErr()
-				return
-			}
-
-			a, err := h.c.AlertStore.FindOne(ctx, alertID)
-			if err != nil {
-				serverErr()
-				return
-			}
-			msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
-
-			// if escalated, each alert may have multiple of the same alert in a channel
-			timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
-			if err != nil {
-				serverErr()
-				return
-			}
-			for _, ts := range timestamps {
-				_, _, _, err := api.UpdateMessage(payload.Channel.ID, ts, msgOpt...)
-				if err != nil {
-					clientErr()
-				}
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				panic(err)
 			}
 		}
 	}
