@@ -61,8 +61,6 @@ function ScheduleCalendarQuery({
         getEndOfWeek(DateTime.fromISO(start).endOf('month')).toUTC().toISO(),
       ]
 
-  console.log(queryStart, queryEnd)
-
   const { data, error, loading } = useQuery<Query>(query, {
     variables: {
       id: scheduleID,
