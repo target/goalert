@@ -41,7 +41,7 @@ function ScheduleCalendarQuery({
   const width = useWidth()
   const isMobile = isWidthDown('sm', width)
 
-  const [weekly] = useURLParam('weekly', false)
+  const [weekly] = useURLParam<boolean>('weekly', false)
   const [start] = useURLParam(
     'start',
     weekly
@@ -49,8 +49,9 @@ function ScheduleCalendarQuery({
       : DateTime.local().startOf('month').toUTC().toISO(),
   )
 
-  const unitToAdd = weekly ? { weeks: 1 } : { months: 1 }
-  const end = DateTime.fromISO(start).plus(unitToAdd).toUTC().toISO()
+  const end = weekly
+    ? DateTime.fromISO(start).plus({ weeks: 1 }).toUTC().toISO()
+    : DateTime.fromISO(start).endOf('month').toUTC().toISO()
 
   const { data, error, loading } = useQuery<Query>(query, {
     variables: {
