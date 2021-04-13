@@ -3,6 +3,11 @@ package notificationchannel
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -25,6 +30,10 @@ type DB struct {
 	deleteMany *sql.Stmt
 }
 
+type Meta struct {
+	TeamID string `json:"team_id"`
+}
+
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
@@ -38,11 +47,34 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			select id, name, type, value from notification_channels where id = $1
 		`),
 		create: p.P(`
-			insert into notification_channels (id, name, type, value)
-			values ($1, $2, $3, $4)
+			insert into notification_channels (id, name, type, value, meta)
+			values ($1, $2, $3, $4, $5)
 		`),
 		deleteMany: p.P(`DELETE FROM notification_channels WHERE id = any($1)`),
 	}, p.Err
+}
+
+func getSlackTeamID(ctx context.Context) (*string, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://slack.com/api/auth.test", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := config.FromContext(ctx)
+	req.Header.Add("Authorization", "Bearer "+cfg.Slack.AccessToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var m Meta
+	err = json.NewDecoder(resp.Body).Decode(&m)
+	if err != nil {
+		return nil, err
+	}
+	return &m.TeamID, nil
 }
 
 func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *Channel) (*Channel, error) {
@@ -56,7 +88,18 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *Channel) (*Channel, e
 		return nil, err
 	}
 
-	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value)
+	meta := "{}"
+	var teamID *string
+
+	if n.Type == TypeSlack {
+		teamID, err = getSlackTeamID(ctx)
+		if err != nil {
+			return nil, err
+		}
+		meta = fmt.Sprintf(`{"teamID": "%s"}`, *teamID)
+	}
+
+	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value, meta)
 	if err != nil {
 		return nil, err
 	}
