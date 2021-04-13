@@ -3,11 +3,9 @@ package notificationchannel
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"net/http"
 
-	"github.com/target/goalert/config"
+	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -30,10 +28,6 @@ type DB struct {
 	deleteMany *sql.Stmt
 }
 
-type Meta struct {
-	TeamID string `json:"team_id"`
-}
-
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	p := &util.Prepare{DB: db, Ctx: ctx}
 
@@ -54,29 +48,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	}, p.Err
 }
 
-func getSlackTeamID(ctx context.Context) (*string, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://slack.com/api/auth.test", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg := config.FromContext(ctx)
-	req.Header.Add("Authorization", "Bearer "+cfg.Slack.AccessToken)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var m Meta
-	err = json.NewDecoder(resp.Body).Decode(&m)
-	if err != nil {
-		return nil, err
-	}
-	return &m.TeamID, nil
-}
-
 func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *Channel) (*Channel, error) {
 	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
 	if err != nil {
@@ -92,7 +63,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *Channel) (*Channel, e
 	var teamID *string
 
 	if n.Type == TypeSlack {
-		teamID, err = getSlackTeamID(ctx)
+		teamID, err = slack.GetTeamID(ctx)
 		if err != nil {
 			return nil, err
 		}

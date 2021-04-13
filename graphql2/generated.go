@@ -71,6 +71,7 @@ type ResolverRoot interface {
 	Schedule() ScheduleResolver
 	ScheduleRule() ScheduleRuleResolver
 	Service() ServiceResolver
+	SlackChannel() SlackChannelResolver
 	Target() TargetResolver
 	User() UserResolver
 	UserCalendarSubscription() UserCalendarSubscriptionResolver
@@ -392,8 +393,9 @@ type ComplexityRoot struct {
 	}
 
 	SlackChannel struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
+		ID     func(childComplexity int) int
+		Name   func(childComplexity int) int
+		TeamID func(childComplexity int) int
 	}
 
 	SlackChannelConnection struct {
@@ -637,6 +639,9 @@ type ServiceResolver interface {
 	IntegrationKeys(ctx context.Context, obj *service.Service) ([]integrationkey.IntegrationKey, error)
 	Labels(ctx context.Context, obj *service.Service) ([]label.Label, error)
 	HeartbeatMonitors(ctx context.Context, obj *service.Service) ([]heartbeat.Monitor, error)
+}
+type SlackChannelResolver interface {
+	TeamID(ctx context.Context, obj *slack.Channel) (*string, error)
 }
 type TargetResolver interface {
 	Name(ctx context.Context, obj *assignment.RawTarget) (*string, error)
@@ -2491,6 +2496,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SlackChannel.Name(childComplexity), true
 
+	case "SlackChannel.teamID":
+		if e.complexity.SlackChannel.TeamID == nil {
+			break
+		}
+
+		return e.complexity.SlackChannel.TeamID(childComplexity), true
+
 	case "SlackChannelConnection.nodes":
 		if e.complexity.SlackChannelConnection.Nodes == nil {
 			break
@@ -3104,6 +3116,7 @@ input SlackChannelSearchOptions {
 type SlackChannel {
   id: ID!
   name: String!
+  teamID: String
 }
 
 type SlackChannelConnection {
@@ -12911,6 +12924,38 @@ func (ec *executionContext) _SlackChannel_name(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SlackChannel_teamID(ctx context.Context, field graphql.CollectedField, obj *slack.Channel) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SlackChannel",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SlackChannel().TeamID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SlackChannelConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *SlackChannelConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20800,13 +20845,24 @@ func (ec *executionContext) _SlackChannel(ctx context.Context, sel ast.Selection
 		case "id":
 			out.Values[i] = ec._SlackChannel_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._SlackChannel_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "teamID":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SlackChannel_teamID(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

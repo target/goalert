@@ -43,6 +43,7 @@ export interface SlackChannelSearchOptions {
 export interface SlackChannel {
   id: string
   name: string
+  teamID?: string
 }
 
 export interface SlackChannelConnection {

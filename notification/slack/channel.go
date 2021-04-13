@@ -26,8 +26,9 @@ type ChannelSender struct {
 	chanTht *throttle
 	listTht *throttle
 
-	chanCache *ttlCache
-	listCache *ttlCache
+	chanCache   *ttlCache
+	listCache   *ttlCache
+	teamIDCache *ttlCache
 
 	listMx sync.Mutex
 	chanMx sync.Mutex
@@ -44,15 +45,17 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 		chanTht: newThrottle(time.Minute / 50),
 		listTht: newThrottle(time.Minute / 50),
 
-		listCache: newTTLCache(250, time.Minute),
-		chanCache: newTTLCache(1000, 15*time.Minute),
+		listCache:   newTTLCache(250, time.Minute),
+		chanCache:   newTTLCache(1000, 15*time.Minute),
+		teamIDCache: newTTLCache(1, 5*time.Minute),
 	}, nil
 }
 
 // Channel contains information about a Slack channel.
 type Channel struct {
-	ID   string
-	Name string
+	ID     string
+	Name   string
+	TeamID string
 }
 
 type slackError string
@@ -98,7 +101,17 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 }
 
 func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
+	var err error
 	cfg := config.FromContext(ctx)
+
+	teamID, ok := s.teamIDCache.Get(cfg.Slack.AccessToken)
+	if !ok {
+		teamID, err = GetTeamID(ctx)
+		if err != nil {
+			return nil, err
+		}
+		s.teamIDCache.Add(cfg.Slack.AccessToken, teamID)
+	}
 
 	v := make(url.Values)
 	// Parameters and URL documented here:
@@ -117,7 +130,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		}
 	}
 
-	err := s.chanTht.Wait(ctx)
+	err = s.chanTht.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -150,8 +163,9 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	}
 
 	return &Channel{
-		ID:   resData.Channel.ID,
-		Name: "#" + resData.Channel.Name,
+		ID:     resData.Channel.ID,
+		Name:   "#" + resData.Channel.Name,
+		TeamID: teamID.(string),
 	}, nil
 }
 
