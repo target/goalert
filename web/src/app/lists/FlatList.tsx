@@ -219,8 +219,8 @@ export default function FlatList({
           <CSSTransition
             key={'notice_' + item.id + idx}
             timeout={500}
-            exit={false || item.transition}
-            enter={false || item.transition}
+            exit={Boolean(item.transition)}
+            enter={Boolean(item.transition)}
             classNames={{
               enter: classes.slideEnter,
               enterActive: classes.slideEnterActive,
