@@ -105,7 +105,7 @@ export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
 }
 
 export function SlackChip(props: WithID<ChipProps>): JSX.Element {
-  const { id: channelID } = props
+  const { id: channelID, ...rest } = props
   return (
     <Chip
       data-cy='slack-chip'
@@ -117,7 +117,7 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
       onClick={() =>
         window.open(`https://slack.com/app_redirect?channel=${channelID}`)
       }
-      {...props}
+      {...rest}
     />
   )
 }
