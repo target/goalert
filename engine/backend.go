@@ -30,7 +30,8 @@ func newBackend(db *sql.DB) (*backend, error) {
 				id,
 				alert_id,
 				service_id,
-				contact_method_id
+				contact_method_id,
+				channel_id
 			FROM outgoing_messages
 			WHERE id = $1
 		`),
@@ -45,12 +46,14 @@ func (b *backend) FindOne(ctx context.Context, id string) (*callback, error) {
 
 	var c callback
 	var alertID sql.NullInt64
-	var serviceID sql.NullString
-	err = b.findOne.QueryRowContext(ctx, id).Scan(&c.ID, &alertID, &serviceID, &c.ContactMethodID)
+	var serviceID, cmID, chanID sql.NullString
+	err = b.findOne.QueryRowContext(ctx, id).Scan(&c.ID, &alertID, &serviceID, &cmID, &chanID)
 	if err != nil {
 		return nil, err
 	}
 	c.AlertID = int(alertID.Int64)
 	c.ServiceID = serviceID.String
+	c.ContactMethodID = cmID.String
+	c.ChannelID = chanID.String
 	return &c, nil
 }

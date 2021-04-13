@@ -323,12 +323,28 @@ func (p *Engine) Receive(ctx context.Context, callbackID string, result notifica
 
 	var usr *user.User
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, cb.ContactMethodID)
-		if serr != nil {
-			err = errors.Wrap(serr, "lookup contact method")
-			return
+		var userID string
+
+		if cb.ContactMethodID != "" {
+			cm, serr := p.cfg.ContactMethodStore.FindOne(ctx, cb.ContactMethodID)
+			if serr != nil {
+				err = errors.Wrap(serr, "lookup contact method")
+				return
+			}
+			userID = cm.UserID
+		} else if cb.ChannelID != "" {
+			cm, serr := p.cfg.NotificationStore.FindOneLinkedAccount(ctx, nil, cb.ChannelID)
+			if serr != nil {
+				err = errors.Wrap(serr, "lookup linked notification channel account")
+				return
+			}
+			userID = cm.UserID
+		} else {
+			panic("invalid callback")
 		}
-		usr, serr = p.cfg.UserStore.FindOne(ctx, cm.UserID)
+
+		var serr error
+		usr, serr = p.cfg.UserStore.FindOne(ctx, userID)
 		if serr != nil {
 			err = errors.Wrap(serr, "lookup user")
 		}
