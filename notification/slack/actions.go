@@ -22,7 +22,8 @@ import (
 
 // Handler responds to API requests from Slack
 type Handler struct {
-	c Config
+	c      Config
+	respCh chan *notification.MessageResponse
 }
 
 // Payload represents the relevant payload information sent from Slack
@@ -206,3 +207,6 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 
 	permission.SudoContext(req.Context(), process)
 }
+
+// ListenResponse will return a channel that is fed async message responses.
+func (h *Handler) ListenResponse() <-chan *notification.MessageResponse { return h.respCh }
