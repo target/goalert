@@ -11,6 +11,7 @@ import Avatar from '@material-ui/core/Avatar'
 
 import { UserAvatar, ServiceAvatar } from './avatars'
 import { SlackBW } from '../icons'
+import { Query } from '../../schema'
 
 const serviceQuery = gql`
   query service($id: ID!) {
@@ -106,6 +107,32 @@ export function ScheduleChip(props: WithID<ChipProps>): JSX.Element {
 
 export function SlackChip(props: WithID<ChipProps>): JSX.Element {
   const { id: channelID, ...rest } = props
+
+  const query = gql`
+    query($id: ID!) {
+      slackChannel(id: $id) {
+        teamID
+      }
+    }
+  `
+
+  const status = useQuery<Query>(query, { variables: { id: channelID } })
+  const teamID = status?.data?.slackChannel?.teamID
+
+  if (status.error) {
+    console.error(
+      `error querying teamID for channel ${channelID}`,
+      status.error,
+    )
+  }
+
+  if (teamID) {
+    rest.onClick = () =>
+      window.open(
+        `https://slack.com/app_redirect?channel=${channelID}&team=${teamID}`,
+      )
+  }
+
   return (
     <Chip
       data-cy='slack-chip'
@@ -113,9 +140,6 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
         <Avatar>
           <SlackBW />
         </Avatar>
-      }
-      onClick={() =>
-        window.open(`https://slack.com/app_redirect?channel=${channelID}`)
       }
       {...rest}
     />
