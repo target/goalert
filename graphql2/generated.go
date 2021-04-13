@@ -71,7 +71,6 @@ type ResolverRoot interface {
 	Schedule() ScheduleResolver
 	ScheduleRule() ScheduleRuleResolver
 	Service() ServiceResolver
-	SlackChannel() SlackChannelResolver
 	Target() TargetResolver
 	User() UserResolver
 	UserCalendarSubscription() UserCalendarSubscriptionResolver
@@ -639,9 +638,6 @@ type ServiceResolver interface {
 	IntegrationKeys(ctx context.Context, obj *service.Service) ([]integrationkey.IntegrationKey, error)
 	Labels(ctx context.Context, obj *service.Service) ([]label.Label, error)
 	HeartbeatMonitors(ctx context.Context, obj *service.Service) ([]heartbeat.Monitor, error)
-}
-type SlackChannelResolver interface {
-	TeamID(ctx context.Context, obj *slack.Channel) (*string, error)
 }
 type TargetResolver interface {
 	Name(ctx context.Context, obj *assignment.RawTarget) (*string, error)
@@ -3116,7 +3112,7 @@ input SlackChannelSearchOptions {
 type SlackChannel {
   id: ID!
   name: String!
-  teamID: String
+  teamID: String!
 }
 
 type SlackChannelConnection {
@@ -12935,25 +12931,28 @@ func (ec *executionContext) _SlackChannel_teamID(ctx context.Context, field grap
 		Object:     "SlackChannel",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.SlackChannel().TeamID(rctx, obj)
+		return obj.TeamID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SlackChannelConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *SlackChannelConnection) (ret graphql.Marshaler) {
@@ -20845,24 +20844,18 @@ func (ec *executionContext) _SlackChannel(ctx context.Context, sel ast.Selection
 		case "id":
 			out.Values[i] = ec._SlackChannel_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "name":
 			out.Values[i] = ec._SlackChannel_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "teamID":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._SlackChannel_teamID(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._SlackChannel_teamID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

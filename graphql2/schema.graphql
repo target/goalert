@@ -113,7 +113,7 @@ input SlackChannelSearchOptions {
 type SlackChannel {
   id: ID!
   name: String!
-  teamID: String
+  teamID: String!
 }
 
 type SlackChannelConnection {
