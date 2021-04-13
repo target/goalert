@@ -24,7 +24,16 @@ import (
 )
 
 // todo: make slack store, add relevant types and functions
-type UserAuthMetaData struct {
+type UserLinkedAccount struct {
+	ID        string                    `json:"id"`
+	UserID    string                    `json:"user_id"`
+	AccountID string                    `json:"account_id"`
+	Type      string                    `json:"type"`
+	Metadata  UserLinkedAccountMetaData `json:"metadata"`
+}
+
+type UserLinkedAccountMetaData struct {
+	AccessToken string `json:"access_token"`
 	ChannelID   string `json:"channel_id"`
 	ResponseURL string `json:"response_url"`
 	AlertID     string `json:"alert_id"`
@@ -42,10 +51,11 @@ type Store interface {
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
 	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
 
-	InsertSlackUser(ctx context.Context, teamID, slackID, userID, accessToken string) (bool, error)
-	FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]string, error)
-	InsertUserAuthMetaData(ctx context.Context, slackTeamID, slackUserID string, meta UserAuthMetaData) (bool, error)
-	FindUserAuthMetaData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error)
+	FindSlackAlertMsgTimestamps(ctx context.Context, tx *sql.Tx, alertID int) ([]string, error)
+	InsertUnlinkedSlackAccount(ctx context.Context, tx *sql.Tx, slackTeamID, slackUserID string, metadata UserLinkedAccountMetaData) (bool, error)
+	InsertLinkedSlackAccount(ctx context.Context, tx *sql.Tx, teamID, slackID, userID, accessToken string) (bool, error)
+	FindOneLinkedAccount(ctx context.Context, tx *sql.Tx, accountID string) (*UserLinkedAccount, error)
+	FindUserAuthMetaData(ctx context.Context, tx *sql.Tx, accountID string) (*UserLinkedAccountMetaData, error)
 }
 
 var _ Store = &DB{}
@@ -63,10 +73,11 @@ type DB struct {
 	findManyMessageStatuses      *sql.Stmt
 	lastMessageStatus            *sql.Stmt
 
-	insertSlackUser               *sql.Stmt
 	getChannelAlertProviderMsgIDs *sql.Stmt
-	insertUserPreAuthData         *sql.Stmt
-	getMeta                       *sql.Stmt
+	insertAccount                 *sql.Stmt
+	updateAccountPostAuth         *sql.Stmt
+	getAccount                    *sql.Stmt
+	getMetadata                   *sql.Stmt
 
 	rand *rand.Rand
 }
@@ -172,13 +183,6 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
 		`),
 
-		insertSlackUser: p.P(`
-			update user_slack_data
-			set
-				user_id = $1,
-				access_token = $2
-			where slack_user_id = $3
-		`),
 		getChannelAlertProviderMsgIDs: p.P(`
 			select provider_msg_id from outgoing_messages o 
 			join alert_logs a 
@@ -190,14 +194,24 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			and o.provider_msg_id is not null
 			order by o.sent_at asc
 		`),
-		insertUserPreAuthData: p.P(`
-			insert into user_slack_data (slack_user_id, team_id, meta)
-			values ($1, $2, $3)
+		insertAccount: p.P(`
+			insert into user_linked_accounts (account_id, metadata)
+			values ($1, $2)
 		`),
-		getMeta: p.P(`
-			select meta
-			from user_slack_data
-			where slack_user_id = $1
+		updateAccountPostAuth: p.P(`
+			update user_linked_accounts
+			set user_id = $1, metadata = $2
+			where account_id = $3
+		`),
+		getAccount: p.P(`
+			select id, user_id, account_id, type
+			from user_linked_accounts
+			where account_id = $1
+		`),
+		getMetadata: p.P(`
+			select metadata
+			from user_linked_accounts
+			where account_id = $1
 		`),
 	}, p.Err
 }
@@ -457,33 +471,18 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 	return &s, createdAt.Time, nil
 }
 
-// InsertSlackUser implements the Store interface by inserting the given User with their associated Slack information
-func (db *DB) InsertSlackUser(ctx context.Context, teamID, slackID, userID, accessToken string) (bool, error) {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
-	if err != nil {
-		return false, err
-	}
-
-	err = validate.UUID("User ID", userID)
-	if err != nil {
-		return false, err
-	}
-
-	_, err = db.insertSlackUser.ExecContext(ctx, userID, accessToken, slackID)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (db *DB) FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]string, error) {
+func (db *DB) FindSlackAlertMsgTimestamps(ctx context.Context, tx *sql.Tx, alertID int) ([]string, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := db.getChannelAlertProviderMsgIDs.QueryContext(ctx, alertID)
+	stmt := db.getChannelAlertProviderMsgIDs
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	rows, err := stmt.QueryContext(ctx, alertID)
 	if err != nil {
 		return nil, err
 	}
@@ -502,18 +501,26 @@ func (db *DB) FindSlackAlertMsgTimestamps(ctx context.Context, alertID int) ([]s
 	return providerMsgIDs, nil
 }
 
-func (db *DB) InsertUserAuthMetaData(ctx context.Context, slackTeamID, slackUserID string, meta UserAuthMetaData) (bool, error) {
+// InsertUnlinkedSlackAccount inserts the initial user data for a given Slack account
+// into the database, along with any relevant metadata for the auth transaction
+func (db *DB) InsertUnlinkedSlackAccount(ctx context.Context, tx *sql.Tx, slackTeamID, slackUserID string, metadata UserLinkedAccountMetaData) (bool, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return false, err
 	}
 
-	mm, err := json.Marshal(meta)
+	meta, err := json.Marshal(metadata)
 	if err != nil {
 		return false, err
 	}
 
-	_, err = db.insertUserPreAuthData.ExecContext(ctx, slackUserID, slackTeamID, mm)
+	stmt := db.insertAccount
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	accountID := slackTeamID + ":" + slackUserID
+	_, err = stmt.ExecContext(ctx, accountID, meta)
 	if err != nil {
 		return false, err
 	}
@@ -521,20 +528,91 @@ func (db *DB) InsertUserAuthMetaData(ctx context.Context, slackTeamID, slackUser
 	return true, nil
 }
 
-func (db *DB) FindUserAuthMetaData(ctx context.Context, slackUserID string) (*UserAuthMetaData, error) {
+// InsertLinkedSlackAccount updates the unlinked Slack account with the finalized OAuth resp
+func (db *DB) InsertLinkedSlackAccount(ctx context.Context, tx *sql.Tx, slackTeamID, slackUserID, userID, accessToken string) (bool, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return false, err
+	}
+
+	err = validate.UUID("User ID", userID)
+	if err != nil {
+		return false, err
+	}
+
+	stmt := db.updateAccountPostAuth
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	// update metadata jsonb with access token info
+	accountID := slackTeamID + ":" + slackUserID
+	metadata, err := db.FindUserAuthMetaData(ctx, tx, accountID)
+	if err != nil {
+		return false, err
+	}
+	metadata.AccessToken = accessToken
+	meta, err := json.Marshal(metadata)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = stmt.ExecContext(ctx, userID, meta, accountID)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (db *DB) FindOneLinkedAccount(ctx context.Context, tx *sql.Tx, accountID string) (*UserLinkedAccount, error) {
 	err := permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
 		return nil, err
 	}
 
-	var _meta string
-	err = db.getMeta.QueryRowContext(ctx, slackUserID).Scan(&_meta)
+	stmt := db.getAccount
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	var ul UserLinkedAccount
+	var metadata string
+	row := stmt.QueryRowContext(ctx, accountID)
+	err = row.Scan(&ul.ID, &ul.UserID, &ul.AccountID, &ul.Type, &metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	var meta UserAuthMetaData
-	err = json.Unmarshal([]byte(_meta), &meta)
+	var m UserLinkedAccountMetaData
+	err = json.Unmarshal([]byte(metadata), &m)
+	if err != nil {
+		return nil, err
+	}
+	ul.Metadata = m
+
+	return &ul, nil
+}
+
+func (db *DB) FindUserAuthMetaData(ctx context.Context, tx *sql.Tx, accountID string) (*UserLinkedAccountMetaData, error) {
+	err := permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	stmt := db.getMetadata
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	var metadata string
+	err = stmt.QueryRowContext(ctx, accountID).Scan(&metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	var meta UserLinkedAccountMetaData
+	err = json.Unmarshal([]byte(metadata), &meta)
 	if err != nil {
 		return nil, err
 	}

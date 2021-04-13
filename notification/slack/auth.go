@@ -25,7 +25,7 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 	// store user/slack relation
 	userID := permission.UserID(ctx)
 	permission.SudoContext(req.Context(), func(ctx context.Context) {
-		_, err := h.c.NotificationStore.InsertSlackUser(ctx, resp.Team.ID, resp.AuthedUser.ID, userID, resp.AuthedUser.AccessToken)
+		_, err := h.c.NotificationStore.InsertLinkedSlackAccount(ctx, nil, resp.Team.ID, resp.AuthedUser.ID, userID, resp.AuthedUser.AccessToken)
 		if err != nil {
 			panic(err)
 		}
@@ -33,7 +33,7 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 
 	// remove ephemeral "link to goalert" msg in slack
 	// note/todo: limit is message ts < 30min ago
-	meta, err := h.c.NotificationStore.FindUserAuthMetaData(ctx, resp.AuthedUser.ID)
+	meta, err := h.c.NotificationStore.FindUserAuthMetaData(ctx, nil, resp.AuthedUser.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +50,7 @@ func (h *Handler) ServeUserAuthCallback(w http.ResponseWriter, req *http.Request
 	if err != nil {
 		panic(err)
 	}
-	timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
+	timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, nil, alertID)
 	if err != nil {
 		panic(err)
 	}

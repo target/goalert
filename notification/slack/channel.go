@@ -297,7 +297,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	var api = slack.New(cfg.Slack.AccessToken)
 	msgOpt := CraftAlertMessage(a, cfg.CallbackURL("/alerts/"+strconv.Itoa(a.ID)))
 
-	timestamps, err := s.cfg.NotificationStore.FindSlackAlertMsgTimestamps(ctx, a.ID)
+	timestamps, err := s.cfg.NotificationStore.FindSlackAlertMsgTimestamps(ctx, nil, a.ID)
 	if err != nil {
 		return nil, err
 	}

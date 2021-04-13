@@ -1,79 +1,68 @@
 -- +migrate Up
-ALTER TABLE user_slack_data RENAME COLUMN id TO user_id;
-ALTER TABLE user_slack_data ADD COLUMN slack_user_id TEXT NOT NULL;
-ALTER TABLE user_slack_data ADD COLUMN team_id TEXT NOT NULL;
-ALTER TABLE user_slack_data ADD COLUMN meta JSONB;
+drop table user_slack_data;
 
-ALTER TABLE user_slack_data DROP CONSTRAINT user_slack_data_pkey;
-ALTER TABLE user_slack_data ADD PRIMARY KEY (slack_user_id);
+create table user_linked_accounts (
+    id uuid not null primary key,
+    account_id text not null,
+    user_id uuid references users (id) on delete cascade,
+    notification_channel_type enum_notif_channel_type not null,
+    metadata jsonb
+);
 
-ALTER TABLE user_slack_data ALTER COLUMN user_id DROP NOT NULL;
-ALTER TABLE user_slack_data ALTER COLUMN access_token DROP NOT NULL;
+create unique index idx_slack_notification_channels ON user_linked_accounts (account_id, notification_channel_type)
 
-CREATE TABLE notification_channel_last_alert_log (
-    notification_channel_id UUID NOT NULL REFERENCES notification_channels(id) ON DELETE CASCADE,
-    alert_id BIGINT NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
-    log_id BIGINT NOT NULL REFERENCES alert_logs(id) ON DELETE CASCADE,
-    next_log_id BIGINT NOT NULL REFERENCES alert_logs(id) ON DELETE CASCADE,
-    PRIMARY KEY (notification_channel_id, alert_id)
+create table notification_channel_last_alert_log (
+    notification_channel_id uuid not null references notification_channels(id) on delete cascade,
+    alert_id bigint not null references alerts(id) on delete cascade,
+    log_id bigint not null references alert_logs(id) on delete cascade,
+    next_log_id bigint not null references alert_logs(id) on delete cascade,
+    primary key (notification_channel_id, alert_id)
 );
 
 -- +migrate StatementBegin
-CREATE FUNCTION fn_insert_notification_channel_last_alert_log() RETURNS trigger AS $$
-BEGIN
-    INSERT INTO notification_channel_last_alert_log
+create function fn_insert_notification_channel_last_alert_log() returns trigger as $$
+begin
+    insert into notification_channel_last_alert_log
         (notification_channel_id, alert_id, log_id, next_log_id)
-    VALUES
-        (NEW.sub_channel_id, NEW.alert_id, NEW.id, NEW.id)
-    ON CONFLICT DO NOTHING;
-RETURN NEW;
-END;
-        $$ LANGUAGE plpgsql;
+    values
+        (new.sub_channel_id, new.alert_id, new.id, new.id)
+    on conflict do nothing;
+return new;
+end;
+$$ language plpgsql;
 -- +migrate StatementEnd
-
-CREATE TRIGGER trg_insert_alert_logs_notification_channel_last_alert
-AFTER INSERT ON
-alert_logs
-FOR EACH ROW 
-WHEN (NEW.event = 'notification_sent' AND NEW.sub_type = 'channel')
-EXECUTE PROCEDURE fn_insert_notification_channel_last_alert_log();
 
 -- +migrate StatementBegin
-CREATE FUNCTION fn_update_notification_channel_last_alert_log() RETURNS trigger AS $$
-BEGIN
-    UPDATE notification_channel_last_alert_log last
-    SET next_log_id
-    = NEW.id
-    WHERE
-        last.alert_id = NEW.alert_id AND
-        NEW.id > last.next_log_id;
-RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+create function fn_update_notification_channel_last_alert_log() returns trigger as $$
+begin
+    update notification_channel_last_alert_log last
+    set next_log_id
+    = new.id
+    where
+        last.alert_id = new.alert_id and
+        new.id > last.next_log_id;
+return new;
+end;
+$$ language plpgsql;
 -- +migrate StatementEnd
-CREATE TRIGGER trg_insert_alert_logs_notification_channel_last_alert_update
-AFTER INSERT
-ON alert_logs
-FOR EACH ROW
-WHEN (NEW.event IN ('acknowledged', 'closed'))
-EXECUTE PROCEDURE fn_update_notification_channel_last_alert_log();
+
+create trigger trg_insert_alert_logs_notification_channel_last_alert
+after insert on alert_logs for each row when (new.event = 'notification_sent' and new.sub_type = 'channel')
+execute procedure fn_insert_notification_channel_last_alert_log();
+
+create trigger trg_insert_alert_logs_notification_channel_last_alert_update
+after insert on alert_logs for each row when (new.event in ('acknowledged', 'closed'))
+execute procedure fn_update_notification_channel_last_alert_log();
 
 -- +migrate Down
-DROP TRIGGER trg_insert_alert_logs_notification_channel_last_alert_update ON alert_logs;
-DROP TRIGGER trg_insert_alert_logs_notification_channel_last_alert ON alert_logs;
+drop trigger trg_insert_alert_logs_notification_channel_last_alert_update on alert_logs;
+drop trigger trg_insert_alert_logs_notification_channel_last_alert on alert_logs;
+drop function fn_update_notification_channel_last_alert_log();
+drop function fn_insert_notification_channel_last_alert_log();
+drop table notification_channel_last_alert_log;
+drop table user_linked_accounts;
 
-ALTER TABLE user_slack_data ALTER COLUMN access_token SET NOT NULL;
-ALTER TABLE user_slack_data ALTER COLUMN user_id SET NOT NULL;
-
-ALTER TABLE user_slack_data DROP CONSTRAINT user_slack_data_pkey;
-ALTER TABLE user_slack_data ADD PRIMARY KEY (user_id);
-
-ALTER TABLE user_slack_data DROP COLUMN meta;
-ALTER TABLE user_slack_data DROP COLUMN team_id;
-ALTER TABLE user_slack_data DROP COLUMN slack_user_id;
-
-ALTER TABLE user_slack_data RENAME COLUMN user_id TO id;
-
-DROP FUNCTION fn_update_notification_channel_last_alert_log();
-DROP FUNCTION fn_insert_notification_channel_last_alert_log();
-DROP TABLE notification_channel_last_alert_log;
+create table user_slack_data (
+    id uuid not null primary key references users (id) on delete cascade,
+    access_token text not null
+);

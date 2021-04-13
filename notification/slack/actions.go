@@ -93,7 +93,7 @@ func validRequest(w http.ResponseWriter, req *http.Request) bool {
 	return hmac.Equal(signature, []byte(calculatedSignature))
 }
 
-func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, action *slack.BlockAction, alertIDStr, channelID string) error {
+func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, action *slack.BlockAction, alertIDStr, userID, channelID string) error {
 	cfg := config.FromContext(ctx)
 	var api = slack.New(cfg.Slack.AccessToken)
 
@@ -102,7 +102,7 @@ func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, acti
 	if err != nil {
 		return err
 	}
-	ctx = permission.SourceContext(ctx, &permission.SourceInfo{
+	ctx = permission.UserSourceContext(ctx, userID, permission.RoleUser, &permission.SourceInfo{
 		Type: permission.SourceTypeNotificationChannel,
 		ID:   ncID,
 	})
@@ -132,7 +132,7 @@ func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, acti
 	msgOpt := CraftAlertMessage(*a, cfg.CallbackURL("/alerts/"+alertIDStr))
 
 	// if the alert was ever escalated, the alert may have multiple same-messages in for a given channel
-	timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, alertID)
+	timestamps, err := h.c.NotificationStore.FindSlackAlertMsgTimestamps(ctx, nil, alertID)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			alertIDStr := action.Value
 
 			if action.ActionID == "auth" {
-				_, err = h.c.NotificationStore.InsertUserAuthMetaData(ctx, payload.Team.ID, payload.User.ID, notification.UserAuthMetaData{
+				_, err = h.c.NotificationStore.InsertUnlinkedSlackAccount(ctx, nil, payload.Team.ID, payload.User.ID, notification.UserLinkedAccountMetaData{
 					ChannelID:   payload.Channel.ID,
 					ResponseURL: payload.ResponseURL,
 					AlertID:     alertIDStr,
@@ -185,7 +185,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 			}
 
 			// check if user valid, if ID does not exist return ephemeral to auth with GoAlert
-			_, err = h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
+			u, err := h.c.UserStore.FindOneBySlackUserID(ctx, payload.User.ID)
 			if err != nil {
 				uri := cfg.General.PublicURL + "/api/v2/slack/auth"
 				msg := userAuthMessageOption(cfg.Slack.ClientID, alertIDStr, uri)
@@ -197,7 +197,7 @@ func (h *Handler) ServeActionCallback(w http.ResponseWriter, req *http.Request) 
 				return
 			}
 
-			err = h.processAction(ctx, w, action, alertIDStr, payload.Channel.ID)
+			err = h.processAction(ctx, w, action, alertIDStr, u.ID, payload.Channel.ID)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				panic(err)
