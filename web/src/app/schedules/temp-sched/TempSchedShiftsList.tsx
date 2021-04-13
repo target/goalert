@@ -61,6 +61,7 @@ export default function TempSchedShiftsList({
           id: 'invalid',
           type: 'ERROR',
           message: 'Invalid Start/End',
+          transition: true,
           details:
             'Oops! There was a problem with the interval selected in step 1. Please try again.',
         },
@@ -74,6 +75,7 @@ export default function TempSchedShiftsList({
           id: 'no-coverage',
           type: 'INFO',
           message: 'No coverage',
+          transition: true,
           details: 'Add a shift to get started',
         },
       ]
@@ -137,7 +139,6 @@ export default function TempSchedShiftsList({
           type: 'OK',
           icon: <ScheduleIcon />,
           message: '',
-          noTransition: true,
           details: `Starts at ${DateTime.fromISO(start)
             .setZone(zone)
             .toFormat('h:mm a')}`,
@@ -151,7 +152,6 @@ export default function TempSchedShiftsList({
           id: 'day-no-coverage_' + start,
           type: 'WARNING',
           message: '',
-          noTransition: true,
           details: 'No coverage',
         })
       }
@@ -236,7 +236,6 @@ export default function TempSchedShiftsList({
             id: 'no-coverage-from_' + s.end,
             type: 'WARNING',
             message: '',
-            noTransition: true,
             details: `No coverage from ${s.end
               .setZone(zone)
               .toFormat('h:mm a')} to 
@@ -262,7 +261,6 @@ export default function TempSchedShiftsList({
             id: 'no-coverage-after_' + s.end,
             type: 'WARNING',
             message: '',
-            noTransition: true,
             details: `No coverage after ${s.end
               .setZone(zone)
               .toFormat('h:mm a')}`,
@@ -277,7 +275,6 @@ export default function TempSchedShiftsList({
       type: 'OK',
       icon: <ScheduleIcon />,
       message: '',
-      noTransition: true,
       details: `Ends at ${DateTime.fromISO(end)
         .setZone(zone)
         .toFormat('h:mm a')}`,

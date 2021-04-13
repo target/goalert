@@ -63,12 +63,12 @@ const useStyles = makeStyles({
 export interface FlatListSub {
   id?: string
   subHeader: string
-  noTransition?: boolean
 }
 
 export interface FlatListNotice extends Notice {
   id?: string
   icon?: JSX.Element
+  transition?: boolean
 }
 export interface FlatListItem {
   title?: string
@@ -219,8 +219,8 @@ export default function FlatList({
           <CSSTransition
             key={'notice_' + item.id + idx}
             timeout={500}
-            exit={!item.noTransition}
-            enter={!item.noTransition}
+            exit={false || item.transition}
+            enter={false || item.transition}
             classNames={{
               enter: classes.slideEnter,
               enterActive: classes.slideEnterActive,
