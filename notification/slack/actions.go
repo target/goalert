@@ -137,7 +137,7 @@ func (h *Handler) processAction(ctx context.Context, w http.ResponseWriter, acti
 		return err
 	}
 	for _, ts := range timestamps {
-		_, _, _, err := api.UpdateMessage(channelID, ts, msgOpt...)
+		_, _, _, err := api.UpdateMessageContext(ctx, channelID, ts, msgOpt...)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		}

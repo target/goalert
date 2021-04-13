@@ -304,14 +304,14 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 
 	var ts string
 	if msg.Type() == notification.MessageTypeAlert {
-		_, ts, _, err = api.SendMessage(msg.Destination().Value, msgOpt...)
+		_, ts, _, err = api.SendMessageContext(ctx, msg.Destination().Value, msgOpt...)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	for _, ts := range timestamps {
-		_, _, _, err = api.UpdateMessage(msg.Destination().Value, ts, msgOpt...)
+		_, _, _, err = api.UpdateMessageContext(ctx, msg.Destination().Value, ts, msgOpt...)
 		if err != nil {
 			return nil, err
 		}
