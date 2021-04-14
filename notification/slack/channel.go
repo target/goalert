@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/groupcache/lru"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
@@ -24,15 +23,18 @@ type ChannelSender struct {
 	resp   chan *notification.MessageResponse
 	status chan *notification.MessageStatus
 
+	teamID string
+	token  string
+
 	chanTht *throttle
 	listTht *throttle
 
-	chanCache   *ttlCache
-	listCache   *ttlCache
-	teamIDCache *lru.Cache
+	chanCache *ttlCache
+	listCache *ttlCache
 
 	listMx sync.Mutex
 	chanMx sync.Mutex
+	teamMx sync.Mutex
 }
 
 var _ notification.Sender = &ChannelSender{}
@@ -46,9 +48,8 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 		chanTht: newThrottle(time.Minute / 50),
 		listTht: newThrottle(time.Minute / 50),
 
-		listCache:   newTTLCache(250, time.Minute),
-		chanCache:   newTTLCache(1000, 15*time.Minute),
-		teamIDCache: lru.New(1),
+		listCache: newTTLCache(250, time.Minute),
+		chanCache: newTTLCache(1000, 15*time.Minute),
 	}, nil
 }
 
@@ -105,14 +106,22 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	var err error
 	cfg := config.FromContext(ctx)
 
-	teamID, ok := s.teamIDCache.Get(cfg.Slack.AccessToken)
-	if !ok {
-		teamID, err = lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
+	s.teamMx.Lock()
+	if s.teamID == "" || s.token != cfg.Slack.AccessToken {
+		// teamID missing or token changed
+		id, err := lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
 		if err != nil {
+			s.teamMx.Unlock() // always unlock
 			return nil, err
 		}
-		s.teamIDCache.Add(cfg.Slack.AccessToken, teamID)
+
+		// update teamID and token after fetching succeeds
+		s.teamID = id
+		s.token = cfg.Slack.AccessToken
 	}
+
+	teamID := s.teamID
+	s.teamMx.Unlock()
 
 	v := make(url.Values)
 	// Parameters and URL documented here:
@@ -166,7 +175,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	return &Channel{
 		ID:     resData.Channel.ID,
 		Name:   "#" + resData.Channel.Name,
-		TeamID: teamID.(string),
+		TeamID: teamID,
 	}, nil
 }
 
