@@ -111,22 +111,23 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
   const query = gql`
     query($id: ID!) {
       slackChannel(id: $id) {
+        id
         teamID
       }
     }
   `
 
-  const status = useQuery<Query>(query, { variables: { id: channelID } })
-  const teamID = status?.data?.slackChannel?.teamID
+  const { data, error } = useQuery<Query>(query, {
+    variables: { id: channelID },
+    fetchPolicy: 'cache-first',
+  })
+  const teamID = data?.slackChannel?.teamID
 
-  if (status.error) {
-    console.error(
-      `error querying teamID for channel ${channelID}`,
-      status.error,
-    )
+  if (error) {
+    console.error(`Error querying slackChannel ${channelID}:`, error)
   }
 
-  if (teamID) {
+  if (channelID && teamID) {
     rest.onClick = () =>
       window.open(
         `https://slack.com/app_redirect?channel=${channelID}&team=${teamID}`,
