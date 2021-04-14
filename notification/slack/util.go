@@ -8,14 +8,14 @@ import (
 	"github.com/target/goalert/config"
 )
 
-type Meta struct {
-	TeamID string `json:"team_id"`
-}
+func lookupTeamIDForToken(ctx context.Context) (string, error) {
+	type Meta struct {
+		TeamID string `json:"team_id"`
+	}
 
-func GetTeamID(ctx context.Context) (*string, error) {
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://slack.com/api/auth.test", nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	cfg := config.FromContext(ctx)
@@ -23,14 +23,14 @@ func GetTeamID(ctx context.Context) (*string, error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	var m Meta
 	err = json.NewDecoder(resp.Body).Decode(&m)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return &m.TeamID, nil
+	return m.TeamID, nil
 }
