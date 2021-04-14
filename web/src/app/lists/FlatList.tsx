@@ -61,12 +61,14 @@ const useStyles = makeStyles({
 })
 
 export interface FlatListSub {
+  id?: string
   subHeader: string
 }
 
 export interface FlatListNotice extends Notice {
   id?: string
   icon?: JSX.Element
+  transition?: boolean
 }
 export interface FlatListItem {
   title?: string
@@ -202,7 +204,12 @@ export default function FlatList({
     return items.map((item, idx) => {
       if ('subHeader' in item) {
         return (
-          <CSSTransition key={idx} timeout={0} exit={false} enter={false}>
+          <CSSTransition
+            key={'header_' + item.id + idx}
+            timeout={0}
+            exit={false}
+            enter={false}
+          >
             {renderSubheaderItem(item, idx)}
           </CSSTransition>
         )
@@ -210,8 +217,10 @@ export default function FlatList({
       if ('type' in item) {
         return (
           <CSSTransition
-            key={'notice_' + (item.id || idx)}
+            key={'notice_' + item.id + idx}
             timeout={500}
+            exit={Boolean(item.transition)}
+            enter={Boolean(item.transition)}
             classNames={{
               enter: classes.slideEnter,
               enterActive: classes.slideEnterActive,
@@ -225,7 +234,7 @@ export default function FlatList({
       }
       return (
         <CSSTransition
-          key={'item_' + (item.id || idx)}
+          key={'item_' + item.id + idx}
           timeout={500}
           classNames={{
             enter: classes.slideEnter,

@@ -61,6 +61,7 @@ export default function TempSchedShiftsList({
           id: 'invalid',
           type: 'ERROR',
           message: 'Invalid Start/End',
+          transition: true,
           details:
             'Oops! There was a problem with the interval selected in step 1. Please try again.',
         },
@@ -74,6 +75,7 @@ export default function TempSchedShiftsList({
           id: 'no-coverage',
           type: 'INFO',
           message: 'No coverage',
+          transition: true,
           details: 'Add a shift to get started',
         },
       ]
@@ -120,6 +122,7 @@ export default function TempSchedShiftsList({
 
       // render subheader for each day
       result.push({
+        id: 'header_' + dayInterval.start,
         subHeader: relativeDate(dayInterval.start),
       })
 
