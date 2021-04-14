@@ -113,38 +113,10 @@ function PolicyStepForm(props) {
                 <Step>
                   <StepButton
                     aria-expanded={(step === 0).toString()}
-                    data-cy='rotations-step'
-                    icon={<RotationsIcon />}
-                    optional={optionalText}
-                    onClick={() => handleStepChange(0)}
-                    tabIndex='-1'
-                  >
-                    {badgeMeUpScotty(
-                      getTargetsByType('rotation')(value.targets).length,
-                      'Add Rotations',
-                    )}
-                  </StepButton>
-                  <StepContent>
-                    <FormField
-                      component={RotationSelect}
-                      disabled={disabled}
-                      fieldName='targets'
-                      fullWidth
-                      label='Select Rotation(s)'
-                      multiple
-                      name='rotations'
-                      mapValue={getTargetsByType('rotation')}
-                      mapOnChangeValue={setTargetType('rotation')}
-                    />
-                  </StepContent>
-                </Step>
-                <Step>
-                  <StepButton
-                    aria-expanded={(step === 1).toString()}
                     data-cy='schedules-step'
                     icon={<SchedulesIcon />}
                     optional={optionalText}
-                    onClick={() => handleStepChange(1)}
+                    onClick={() => handleStepChange(0)}
                     tabIndex='-1'
                   >
                     {badgeMeUpScotty(
@@ -169,11 +141,11 @@ function PolicyStepForm(props) {
                 {cfg['Slack.Enable'] && (
                   <Step>
                     <StepButton
-                      aria-expanded={(step === 2).toString()}
+                      aria-expanded={(step === 1).toString()}
                       data-cy='slack-channels-step'
                       icon={<SlackIcon />}
                       optional={optionalText}
-                      onClick={() => handleStepChange(2)}
+                      onClick={() => handleStepChange(1)}
                       tabIndex='-1'
                     >
                       {badgeMeUpScotty(
@@ -198,12 +170,14 @@ function PolicyStepForm(props) {
                 )}
                 <Step>
                   <StepButton
-                    aria-expanded={(step === 3).toString()}
+                    aria-expanded={(
+                      step === (cfg['Slack.Enable'] ? 2 : 1)
+                    ).toString()}
                     data-cy='users-step'
                     icon={<UsersIcon />}
                     optional={optionalText}
                     onClick={() =>
-                      handleStepChange(cfg['Slack.Enable'] ? 3 : 2)
+                      handleStepChange(cfg['Slack.Enable'] ? 2 : 1)
                     }
                     tabIndex='-1'
                   >
@@ -223,6 +197,38 @@ function PolicyStepForm(props) {
                       name='users'
                       mapValue={getTargetsByType('user')}
                       mapOnChangeValue={setTargetType('user')}
+                    />
+                  </StepContent>
+                </Step>
+                <Step>
+                  <StepButton
+                    aria-expanded={(
+                      step === (cfg['Slack.Enable'] ? 3 : 2)
+                    ).toString()}
+                    data-cy='rotations-step'
+                    icon={<RotationsIcon />}
+                    optional={optionalText}
+                    onClick={() =>
+                      handleStepChange(cfg['Slack.Enable'] ? 3 : 2)
+                    }
+                    tabIndex='-1'
+                  >
+                    {badgeMeUpScotty(
+                      getTargetsByType('rotation')(value.targets).length,
+                      'Add Rotations',
+                    )}
+                  </StepButton>
+                  <StepContent>
+                    <FormField
+                      component={RotationSelect}
+                      disabled={disabled}
+                      fieldName='targets'
+                      fullWidth
+                      label='Select Rotation(s)'
+                      multiple
+                      name='rotations'
+                      mapValue={getTargetsByType('rotation')}
+                      mapOnChangeValue={setTargetType('rotation')}
                     />
                   </StepContent>
                 </Step>

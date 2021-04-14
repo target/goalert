@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 PREFIX=$1
-make check test bin/goalert
+make check test bin/goalert BUNDLE=1 && ./bin/goalert self-test --offline
 VERSION=$(./bin/goalert version | head -n 1 |awk '{print $2}')
 BVERSION=$(date +%s)-$(git rev-parse --short HEAD)
 

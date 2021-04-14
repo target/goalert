@@ -32,6 +32,7 @@ import (
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/version"
+	"github.com/target/goalert/web"
 	"go.opencensus.io/trace"
 	"golang.org/x/term"
 )
@@ -111,13 +112,20 @@ var RootCmd = &cobra.Command{
 		u.RawQuery = q.Encode()
 		cfg.DBURL = u.String()
 
-		s := time.Now()
-		n, err := migrate.ApplyAll(log.EnableDebug(ctx), cfg.DBURL)
-		if err != nil {
-			return errors.Wrap(err, "apply migrations")
-		}
-		if n > 0 {
-			log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
+		if cfg.APIOnly {
+			err = migrate.VerifyAll(log.EnableDebug(ctx), cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "verify migrations")
+			}
+		} else {
+			s := time.Now()
+			n, err := migrate.ApplyAll(log.EnableDebug(ctx), cfg.DBURL)
+			if err != nil {
+				return errors.Wrap(err, "apply migrations")
+			}
+			if n > 0 {
+				log.Logf(ctx, "Applied %d migrations in %s.", n, time.Since(s))
+			}
 		}
 
 		dbc, err := wrappedDriver.OpenConnector(cfg.DBURL)
@@ -228,6 +236,8 @@ Migration: %s (#%d)
 		Use:   "self-test",
 		Short: "test suite to validate functionality of GoAlert environment",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			offlineOnly, _ := cmd.Flags().GetBool("offline")
+
 			var failed bool
 			result := func(name string, err error) {
 				if err != nil {
@@ -236,6 +246,19 @@ Migration: %s (#%d)
 					return
 				}
 				fmt.Printf("%s: OK\n", name)
+			}
+
+			// only do version check if UI is bundled
+			if web.AppVersion() != "" {
+				var err error
+				if version.GitVersion() != web.AppVersion() {
+					err = errors.Errorf(
+						"mismatch: backend version = '%s'; bundled UI version = '%s'",
+						version.GitVersion(),
+						web.AppVersion(),
+					)
+				}
+				result("Version", err)
 			}
 
 			cf, err := getConfig()
@@ -262,7 +285,7 @@ Migration: %s (#%d)
 				store.Shutdown(ctx)
 				return nil
 			}
-			if cf.DBURL != "" {
+			if cf.DBURL != "" && !offlineOnly {
 				result("DB", loadConfigDB())
 			}
 
@@ -286,6 +309,10 @@ Migration: %s (#%d)
 					url = cfg.GitHub.EnterpriseURL
 				}
 				serviceList = append(serviceList, service{name: "GitHub", baseUrl: url})
+			}
+
+			if offlineOnly {
+				serviceList = nil
 			}
 
 			for _, s := range serviceList {
@@ -331,6 +358,7 @@ Migration: %s (#%d)
 			result("DST Rules", dstCheck())
 
 			if failed {
+				cmd.SilenceUsage = true
 				return errors.New("one or more checks failed.")
 			}
 			return nil
@@ -737,6 +765,8 @@ func init() {
 
 	setConfigCmd.Flags().String("data", "", "Use data instead of reading config from stdin.")
 	setConfigCmd.Flags().Bool("allow-empty-data-encryption-key", false, "Explicitly allow an empty data-encryption-key when setting config.")
+
+	testCmd.Flags().Bool("offline", false, "Only perform offline checks.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
 	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)

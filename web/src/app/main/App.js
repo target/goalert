@@ -40,6 +40,7 @@ const useStyles = makeStyles((theme) => ({
     overflowY: 'auto',
     marginTop: '64px',
   },
+  mainContainer: { position: 'relative', height: '100%' },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
   },
@@ -119,7 +120,11 @@ export default function App() {
           <main id='content' className={classes.main} style={{ marginLeft }}>
             <ErrorBoundary>
               <LazyNewUserSetup />
-              <Grid container justify='center'>
+              <Grid
+                container
+                justify='center'
+                className={classes.mainContainer}
+              >
                 <Grid className={classes.containerClass} item>
                   <Switch>
                     {renderRoutes(routeConfig)}

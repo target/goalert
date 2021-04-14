@@ -3,7 +3,6 @@ import IconButton from '@material-ui/core/IconButton'
 import FavoriteFilledIcon from '@material-ui/icons/Star'
 import FavoriteBorderIcon from '@material-ui/icons/StarBorder'
 import Tooltip from '@material-ui/core/Tooltip'
-import Spinner from '../loading/components/Spinner'
 
 interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule'
@@ -17,11 +16,12 @@ export function SetFavoriteButton({
   isFavorite,
   loading,
   onClick,
-}: SetFavoriteButtonProps): JSX.Element {
-  let icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
+}: SetFavoriteButtonProps): JSX.Element | null {
   if (loading) {
-    icon = <Spinner />
+    return null
   }
+
+  const icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
 
   const content = (
     <form
