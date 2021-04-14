@@ -7,10 +7,6 @@ import (
 )
 
 func lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
-	type RespBody struct {
-		TeamID string `json:"team_id"`
-	}
-
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://slack.com/api/auth.test", nil)
 	if err != nil {
 		return "", err
@@ -23,7 +19,9 @@ func lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	var body RespBody
+	var body struct {
+		TeamID string `json:"team_id"`
+	}
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
 		return "", err
