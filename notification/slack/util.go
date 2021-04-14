@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	"github.com/target/goalert/config"
 )
 
-func lookupTeamIDForToken(ctx context.Context) (string, error) {
+func lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
 	type Meta struct {
 		TeamID string `json:"team_id"`
 	}
@@ -17,9 +15,7 @@ func lookupTeamIDForToken(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	cfg := config.FromContext(ctx)
-	req.Header.Add("Authorization", "Bearer "+cfg.Slack.AccessToken)
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
