@@ -157,7 +157,6 @@ export default function TempSchedShiftsList({
         })
       }
 
-      // for temp scheds with at least 1 shift
       // render no coverage and continue if no shifts for the given day
       if (dayShifts.length === 0) {
         return result.push({
