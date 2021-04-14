@@ -104,17 +104,6 @@ export default function TempSchedShiftsList({
 
     const result: FlatListListItem[] = []
 
-    // render no coverage/get started below start time if no shifts
-    if (!sortedShifts.length) {
-      result.push({
-        id: 'no-coverage',
-        type: 'INFO',
-        message: 'No coverage',
-        transition: true,
-        details: 'Add a shift to get started',
-      })
-    }
-
     const days = displaySpan.splitBy({ days: 1 })
     days.forEach((dayInterval, dayIdx) => {
       const dayShifts = sortedShifts.filter((s) =>
