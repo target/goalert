@@ -7,7 +7,7 @@ import (
 )
 
 func lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
-	type Meta struct {
+	type RespBody struct {
 		TeamID string `json:"team_id"`
 	}
 
@@ -23,10 +23,10 @@ func lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	var m Meta
-	err = json.NewDecoder(resp.Body).Decode(&m)
+	var body RespBody
+	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
 		return "", err
 	}
-	return m.TeamID, nil
+	return body.TeamID, nil
 }
