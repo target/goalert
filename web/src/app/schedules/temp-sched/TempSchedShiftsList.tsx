@@ -41,16 +41,6 @@ type TempSchedShiftsListProps = {
   end: string
 }
 
-type TempSchedShift = {
-  added: boolean
-  shift: Shift
-  isValid: boolean
-  start: DateTime
-  end: DateTime
-  interval: Interval
-  id: string
-}
-
 export default function TempSchedShiftsList({
   start,
   end,
@@ -78,21 +68,20 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    let sortedShifts: TempSchedShift[] = []
-    if (_shifts.length) {
-      sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
-        id: s.start + s.userID,
-        shift: s,
-        start: DateTime.fromISO(s.start, { zone }),
-        end: DateTime.fromISO(s.end, { zone }),
-        added: false,
-        interval: Interval.fromDateTimes(
-          DateTime.fromISO(s.start, { zone }),
-          DateTime.fromISO(s.end, { zone }),
-        ),
-        isValid: schedInterval.engulfs(parseInterval(s)),
-      }))
-    }
+    const sortedShifts = _shifts.length
+      ? _.sortBy(_shifts, 'start').map((s) => ({
+          id: s.start + s.userID,
+          shift: s,
+          start: DateTime.fromISO(s.start, { zone }),
+          end: DateTime.fromISO(s.end, { zone }),
+          added: false,
+          interval: Interval.fromDateTimes(
+            DateTime.fromISO(s.start, { zone }),
+            DateTime.fromISO(s.end, { zone }),
+          ),
+          isValid: schedInterval.engulfs(parseInterval(s)),
+        }))
+      : []
 
     const firstShiftStart = sortedShifts.length
       ? sortedShifts[0].start
