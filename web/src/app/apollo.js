@@ -5,7 +5,6 @@ import {
   createHttpLink,
 } from '@apollo/client'
 import { RetryLink } from '@apollo/client/link/retry'
-import { camelCase } from 'lodash'
 import { authLogout } from './actions'
 
 import reduxStore from './reduxStore'
@@ -89,20 +88,20 @@ const graphql2HttpLink = createHttpLink({
 const graphql2Link = ApolloLink.from([retryLink, graphql2HttpLink])
 
 const simpleCacheTypes = [
-  'Alert',
-  'Rotation',
-  'Schedule',
-  'EscalationPolicy',
-  'Service',
-  'User',
-  'SlackChannel',
-  'PhoneNumberInfo',
+  'alert',
+  'rotation',
+  'schedule',
+  'escalationPolicy',
+  'service',
+  'user',
+  'slackChannel',
+  'phoneNumberInfo',
 ]
 
 // NOTE: see https://www.apollographql.com/docs/react/caching/advanced-topics/#cache-redirects-using-field-policy-read-functions
 const typePolicyQueryFields = {}
 simpleCacheTypes.forEach((name) => {
-  typePolicyQueryFields[camelCase(name)] = {
+  typePolicyQueryFields[name] = {
     read(existingData, { args, toReference, canRead }) {
       return canRead(existingData)
         ? existingData
