@@ -3,9 +3,7 @@ package notificationchannel
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
-	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -41,8 +39,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			select id, name, type, value from notification_channels where id = $1
 		`),
 		create: p.P(`
-			insert into notification_channels (id, name, type, value, meta)
-			values ($1, $2, $3, $4, $5)
+			insert into notification_channels (id, name, type, value)
+			values ($1, $2, $3, $4)
 		`),
 		deleteMany: p.P(`DELETE FROM notification_channels WHERE id = any($1)`),
 	}, p.Err
@@ -59,18 +57,7 @@ func (db *DB) CreateTx(ctx context.Context, tx *sql.Tx, c *Channel) (*Channel, e
 		return nil, err
 	}
 
-	meta := "{}"
-	var teamID *string
-
-	if n.Type == TypeSlack {
-		teamID, err = slack.GetTeamID(ctx)
-		if err != nil {
-			return nil, err
-		}
-		meta = fmt.Sprintf(`{"teamID": "%s"}`, *teamID)
-	}
-
-	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value, meta)
+	_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, n.ID, n.Name, n.Type, n.Value)
 	if err != nil {
 		return nil, err
 	}
