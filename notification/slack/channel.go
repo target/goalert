@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/groupcache/lru"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
@@ -28,7 +29,7 @@ type ChannelSender struct {
 
 	chanCache   *ttlCache
 	listCache   *ttlCache
-	teamIDCache *ttlCache
+	teamIDCache *lru.Cache
 
 	listMx sync.Mutex
 	chanMx sync.Mutex
@@ -47,7 +48,7 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 
 		listCache:   newTTLCache(250, time.Minute),
 		chanCache:   newTTLCache(1000, 15*time.Minute),
-		teamIDCache: newTTLCache(1, 5*time.Minute),
+		teamIDCache: lru.New(1),
 	}, nil
 }
 
@@ -106,7 +107,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 
 	teamID, ok := s.teamIDCache.Get(cfg.Slack.AccessToken)
 	if !ok {
-		teamID, err = GetTeamID(ctx)
+		teamID, err = lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
 		if err != nil {
 			return nil, err
 		}
