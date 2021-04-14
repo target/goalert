@@ -163,15 +163,11 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		return nil, wrapError(resData.Error, "lookup Slack channel")
 	}
 
-	if teamIDStr, ok := teamID.(*string); !ok {
-		return nil, wrapError(resData.Error, "lookup Slack channel")
-	} else {
-		return &Channel{
-			ID:     resData.Channel.ID,
-			Name:   "#" + resData.Channel.Name,
-			TeamID: *teamIDStr,
-		}, nil
-	}
+	return &Channel{
+		ID:     resData.Channel.ID,
+		Name:   "#" + resData.Channel.Name,
+		TeamID: teamID.(string),
+	}, nil
 }
 
 // ListChannels will return a list of channels visible to the slack bot.
