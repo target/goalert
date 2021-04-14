@@ -102,16 +102,15 @@ const simpleCacheTypes = [
 // NOTE: see https://www.apollographql.com/docs/react/caching/advanced-topics/#cache-redirects-using-field-policy-read-functions
 const typePolicyQueryFields = {}
 simpleCacheTypes.forEach((name) => {
-  typePolicyQueryFields[camelCase(name)] = function (
-    existingData,
-    { args, toReference, canRead },
-  ) {
-    return canRead(existingData)
-      ? existingData
-      : toReference({
-          __typename: name,
-          id: args?.id,
-        })
+  typePolicyQueryFields[camelCase(name)] = {
+    read(existingData, { args, toReference, canRead }) {
+      return canRead(existingData)
+        ? existingData
+        : toReference({
+            __typename: name,
+            id: args?.id,
+          })
+    },
   }
 })
 
@@ -119,6 +118,56 @@ const cache = new InMemoryCache({
   typePolicies: {
     Query: {
       fields: typePolicyQueryFields,
+    },
+    EscalationPolicy: {
+      fields: {
+        steps: {
+          merge: false,
+        },
+      },
+    },
+    Rotation: {
+      fields: {
+        users: {
+          merge: false,
+        },
+      },
+    },
+    Schedule: {
+      fields: {
+        targets: {
+          merge: false,
+        },
+      },
+    },
+    Service: {
+      fields: {
+        heartbeatMonitors: {
+          merge: false,
+        },
+        integrationKeys: {
+          merge: false,
+        },
+        labels: {
+          merge: false,
+        },
+      },
+    },
+    User: {
+      fields: {
+        calendarSubscriptions: {
+          merge: false,
+        },
+        contactMethods: {
+          merge: false,
+        },
+        notificationRules: {
+          merge: false,
+        },
+        sessions: {
+          merge: false,
+        },
+      },
     },
   },
 })
