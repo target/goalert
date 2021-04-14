@@ -103,7 +103,6 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 }
 
 func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
-	var err error
 	cfg := config.FromContext(ctx)
 
 	s.teamMx.Lock()
@@ -140,7 +139,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		}
 	}
 
-	err = s.chanTht.Wait(ctx)
+	err := s.chanTht.Wait(ctx)
 	if err != nil {
 		return nil, err
 	}
