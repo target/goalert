@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@apollo/client@3.3.13":
-  version "3.3.13"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.3.13.tgz#0aadde13b80ce129d1261161413a9de2b0dec70e"
-  integrity sha512-usiVmXiOq0J/GpyIOIhlF8ItHpiPJObC7zoxLYPoOYj3G3OB0hCIcUKs3aTJ3ATW7u8QxvYgRaJg72NN7E1WOg==
+"@apollo/client@3.3.15":
+  version "3.3.15"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.3.15.tgz#bdd230894aac4beb8ade2b472a1d3c9ea6152812"
+  integrity sha512-/WQmNvLEZMA0mA3u+FkEPTXKzxZD/KhyO7WlbKcy3zKGrXKza83tAbNMzsitQE7DTcSc3DLEcIu1Z5Rc7PFq0Q==
   dependencies:
     "@graphql-typed-document-node/core" "^3.0.0"
     "@types/zen-observable" "^0.8.0"
