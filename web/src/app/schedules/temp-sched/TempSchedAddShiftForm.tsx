@@ -85,7 +85,8 @@ export default function TempSchedAddShiftForm({
                 .plus({ hours: parseFloat(nextVal) })
                 .toISO()
             }}
-            min={0.25}
+            step='1'
+            min={0}
             hint={
               <ClickableText
                 data-cy='toggle-duration-off'
