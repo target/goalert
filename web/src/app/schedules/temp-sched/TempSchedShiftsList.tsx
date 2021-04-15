@@ -68,40 +68,34 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    // render no coverage/get started below start time if no shifts
-    if (!_shifts.length) {
-      return [
-        {
-          id: 'no-coverage',
-          type: 'INFO',
-          message: 'No coverage',
-          transition: true,
-          details: 'Add a shift to get started',
-        },
-      ]
-    }
+    const sortedShifts = _shifts.length
+      ? _.sortBy(_shifts, 'start').map((s) => ({
+          id: s.start + s.userID,
+          shift: s,
+          start: DateTime.fromISO(s.start, { zone }),
+          end: DateTime.fromISO(s.end, { zone }),
+          added: false,
+          interval: Interval.fromDateTimes(
+            DateTime.fromISO(s.start, { zone }),
+            DateTime.fromISO(s.end, { zone }),
+          ),
+          isValid: schedInterval.engulfs(parseInterval(s)),
+        }))
+      : []
 
-    const sortedShifts = _.sortBy(_shifts, 'start').map((s) => ({
-      id: s.start + s.userID,
-      shift: s,
-      start: DateTime.fromISO(s.start, { zone }),
-      end: DateTime.fromISO(s.end, { zone }),
-      added: false,
-      interval: Interval.fromDateTimes(
-        DateTime.fromISO(s.start, { zone }),
-        DateTime.fromISO(s.end, { zone }),
-      ),
-      isValid: schedInterval.engulfs(parseInterval(s)),
-    }))
-
-    const firstShiftStart = sortedShifts[0].start
+    const firstShiftStart = sortedShifts.length
+      ? sortedShifts[0].start
+      : schedInterval.start
 
     // get farthest out end time
     // although shifts are sorted, the last shift may not necessarily end last
-    const lastShiftEnd = sortedShifts.reduce(
-      (result, candidate) => (candidate.end > result.end ? candidate : result),
-      sortedShifts[0],
-    ).end
+    const lastShiftEnd = sortedShifts.length
+      ? sortedShifts.reduce(
+          (result, candidate) =>
+            candidate.end > result.end ? candidate : result,
+          sortedShifts[0],
+        ).end
+      : schedInterval.end
 
     const displaySpan = Interval.fromDateTimes(
       DateTime.min(schedInterval.start, firstShiftStart).startOf('day'),
@@ -109,16 +103,12 @@ export default function TempSchedShiftsList({
     )
 
     const result: FlatListListItem[] = []
+
     const days = displaySpan.splitBy({ days: 1 })
     days.forEach((dayInterval, dayIdx) => {
       const dayShifts = sortedShifts.filter((s) =>
         dayInterval.overlaps(s.interval),
       )
-
-      // if no shifts, only render the start and end day subheaders
-      if (!sortedShifts.length && dayIdx > 0 && dayIdx < days.length - 1) {
-        return
-      }
 
       // render subheader for each day
       result.push({
@@ -145,9 +135,8 @@ export default function TempSchedShiftsList({
         })
       }
 
-      // for temp scheds with at least 1 shift
       // render no coverage and continue if no shifts for the given day
-      if (dayShifts.length === 0 && sortedShifts.length > 0) {
+      if (dayShifts.length === 0) {
         return result.push({
           id: 'day-no-coverage_' + start,
           type: 'WARNING',
