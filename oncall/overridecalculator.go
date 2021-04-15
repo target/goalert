@@ -1,6 +1,7 @@
 package oncall
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/target/goalert/override"
@@ -31,6 +32,7 @@ func (t *TimeIterator) NewOverrideCalculator(overrides []override.UserOverride) 
 		mapUsers: make([]string, 0, 20),
 	}
 
+	sort.Slice(overrides, func(i, j int) bool { return overrides[i].Start.Before(overrides[j].Start) })
 	for _, o := range overrides {
 		if o.AddUserID != "" && o.RemoveUserID != "" {
 			// We need both remove & add, so store them with a newline separator REMOVE/REPLACE

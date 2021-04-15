@@ -104,6 +104,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	defer t.Close()
 
 	hist := t.NewUserCalculator()
+	sort.Slice(s.history, func(i, j int) bool { return s.history[i].Start.Before(s.history[j].Start) })
 	for _, s := range s.history {
 		if s.End.IsZero() {
 			// have currently active shifts "end"
@@ -115,7 +116,7 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	hist.Init()
 	tempScheds := t.NewTemporaryScheduleCalculator(s.tempScheds)
 	// sort overrides so that overlapping spans are merged properly
-	sort.Slice(s.overrides, func(i, j int) bool { return s.overrides[i].Start.Before(s.overrides[j].Start) })
+
 	overrides := t.NewOverrideCalculator(s.overrides)
 	rules := t.NewRulesCalculator(s.loc, s.rules)
 
