@@ -1,7 +1,13 @@
 import { gql } from '@apollo/client'
 import { print } from 'graphql'
 
-import { queryByName, fieldAlias, mapInputVars, mergeFields } from './graphql'
+import {
+  queryByName,
+  fieldAlias,
+  mapInputVars,
+  mergeFields,
+  prefixQuery,
+} from './graphql'
 
 const expectEqual = (a, b) => expect(print(a)).toBe(print(b))
 
@@ -64,6 +70,42 @@ describe('fieldAlias', () => {
       query Test {
         bar: get {
           id
+        }
+      }
+    `,
+  )
+})
+
+describe('prefixQuery', () => {
+  const check = (name, arg, query, expected) =>
+    test(name, () =>
+      expect(print(prefixQuery(query, 'q0_'))).toBe(print(expected)),
+    )
+
+  check(
+    'should prefix query and variables',
+    {},
+    gql`
+      query($id: ID!, $id2: ID!) {
+        user(id: $id) {
+          id
+          name
+        }
+        user2: user(id: $id2) {
+          id
+          name
+        }
+      }
+    `,
+    gql`
+      query($q0_id: ID!, $q0_id2: ID!) {
+        q0_user: user(id: $q0_id) {
+          id
+          name
+        }
+        q0_user2: user(id: $q0_id2) {
+          id
+          name
         }
       }
     `,

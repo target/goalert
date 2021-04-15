@@ -36,6 +36,7 @@ export function ScheduleTZFilter(props) {
 
   return (
     <FormControlLabel
+      data-cy='tz-switch'
       control={
         <Switch
           checked={zone !== 'local'}
@@ -48,6 +49,7 @@ export function ScheduleTZFilter(props) {
     />
   )
 }
+
 ScheduleTZFilter.propTypes = {
   label: p.func,
 

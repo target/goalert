@@ -23,7 +23,7 @@ func MapDBError(err error) error {
 		switch dbErr.ConstraintName {
 		case "user_calendar_subscriptions_user_id_fkey":
 			return validation.NewFieldError("UserID", "user does not exist")
-		case "user_calendar_subscriptions_schedule_id_fkey":
+		case "user_calendar_subscriptions_schedule_id_fkey", "schedule_data_schedule_id_fkey":
 			return validation.NewFieldError("ScheduleID", "schedule does not exist")
 		case "user_overrides_add_user_id_fkey":
 			return validation.NewFieldError("AddUserID", "user does not exist")

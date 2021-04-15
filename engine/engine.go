@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/engine/cleanupmanager"
@@ -24,8 +25,6 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-
-	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
 )
 
