@@ -60,7 +60,7 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
 
         return onChange(e)
       }}
-      inputProps={{ min, max, step: step.toString() }}
+      inputProps={{ min, max, step }}
     />
   )
 }
