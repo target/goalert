@@ -148,12 +148,7 @@ export default function TempSchedAddShiftsStep({
       add('end', 'must be after shift start time')
       add('start', 'must be before shift end time')
     }
-    if (isISOBefore(shift.start, start)) {
-      add('start', 'must not be before temporary schedule start time')
-    }
-    if (isISOAfter(shift.end, end)) {
-      add('end', 'must not extend beyond temporary schedule end time')
-    }
+
     return result
   }
 
