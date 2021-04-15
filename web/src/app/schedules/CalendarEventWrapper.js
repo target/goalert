@@ -81,19 +81,23 @@ export default function CalendarEventWrapper({
             Edit
           </Button>
         </Grid>
-        <Grid item className={classes.flexGrow} />
-        <Grid item>
-          <Button
-            data-cy='delete-temp-sched'
-            size='small'
-            onClick={() => onDeleteTempSched(event.tempSched)}
-            variant='contained'
-            color='primary'
-            title='Delete this temporary schedule'
-          >
-            Delete
-          </Button>
-        </Grid>
+        {!event.isTempSchedShift && (
+          <React.Fragment>
+            <Grid item className={classes.flexGrow} />
+            <Grid item>
+              <Button
+                data-cy='delete-temp-sched'
+                size='small'
+                onClick={() => onDeleteTempSched(event.tempSched)}
+                variant='contained'
+                color='primary'
+                title='Delete this temporary schedule'
+              >
+                Delete
+              </Button>
+            </Grid>
+          </React.Fragment>
+        )}
       </React.Fragment>
     )
   }

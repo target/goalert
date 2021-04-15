@@ -244,10 +244,16 @@ export default class ScheduleCalendar extends React.PureComponent {
     }))
 
     // flat list of all fixed shifts, with `fixed` set to true
-    const fixedShifts = _.flatten(_.map(_tempScheds, 'shifts')).map((s) => ({
-      ...s,
-      fixed: true,
-    }))
+    const fixedShifts = _.flatten(
+      _tempScheds.map((sched) => {
+        return sched.shifts.map((s) => ({
+          ...s,
+          tempSched: sched,
+          fixed: true,
+          isTempSchedShift: true,
+        }))
+      }),
+    )
 
     const fixedIntervals = tempSchedules.map(parseInterval)
     let filteredShifts = [
@@ -283,8 +289,8 @@ export default class ScheduleCalendar extends React.PureComponent {
         start: new Date(shift.start),
         end: new Date(shift.end),
         fixed: shift.fixed,
+        isTempSchedShift: shift.isTempSchedShift,
         tempSched: shift.tempSched,
-        ...shifts,
       }
     })
   }

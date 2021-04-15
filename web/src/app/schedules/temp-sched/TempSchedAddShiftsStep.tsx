@@ -196,11 +196,8 @@ export default function TempSchedAddShiftsStep({
           </Grid>
           <Grid item>
             <DialogContentText className={classes.contentText}>
-              A temporary schedule allows manual configuration of on-call shifts
-              for the time frame specified in the previous step. A temporary
-              schedule ignores all rules, rotations, and overrides currently on
-              the schedule. On-call will be exactly as configured here for the
-              entire duration.
+              The schedule will be exactly as configured here for the entire
+              duration (ignoring all rules/overrides).
             </DialogContentText>
           </Grid>
           <Grid item>
