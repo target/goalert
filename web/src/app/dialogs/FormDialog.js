@@ -53,6 +53,7 @@ function FormDialog(props) {
     confirm,
     disableGutters,
     errors,
+    fullScreen,
     isUnmounting,
     loading,
     primaryActionLabel, // remove from dialogProps spread
@@ -147,10 +148,11 @@ function FormDialog(props) {
     )
   }
 
+  const fs = fullScreen || (!isWideScreen && !confirm)
   return (
     <Dialog
       disableBackdropClick={!isWideScreen || alert}
-      fullScreen={!isWideScreen && !confirm}
+      fullScreen={fs}
       maxWidth={maxWidth}
       fullWidth
       open={!isUnmounting}
@@ -162,7 +164,7 @@ function FormDialog(props) {
     >
       <Notices notices={notices} />
       <DialogTitleWrapper
-        fullScreen={!isWideScreen && !confirm}
+        fullScreen={fs}
         onClose={onClose}
         title={title}
         subTitle={subTitle}
