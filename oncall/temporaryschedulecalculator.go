@@ -1,6 +1,8 @@
 package oncall
 
 import (
+	"sort"
+
 	"github.com/target/goalert/schedule"
 )
 
@@ -20,9 +22,12 @@ func (t *TimeIterator) NewTemporaryScheduleCalculator(tempScheds []schedule.Temp
 		usr:          t.NewUserCalculator(),
 	}
 
+	sort.Slice(tempScheds, func(i, j int) bool { return tempScheds[i].Start.Before(tempScheds[j].Start) })
+
 	for _, temp := range tempScheds {
 		ts.act.SetSpan(temp.Start, temp.End)
 
+		sort.Slice(temp.Shifts, func(i, j int) bool { return temp.Shifts[i].Start.Before(temp.Shifts[j].Start) })
 		for _, s := range temp.Shifts {
 			ts.usr.SetSpan(s.Start, s.End, s.UserID)
 		}
