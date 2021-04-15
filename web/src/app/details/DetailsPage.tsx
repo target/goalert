@@ -1,5 +1,4 @@
 import React from 'react'
-import p from 'prop-types'
 import statusStyles from '../util/statusStyles'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
@@ -15,12 +14,12 @@ import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListSubheader from '@material-ui/core/ListSubheader'
 import IconButton from '@material-ui/core/IconButton'
-import Notices from './Notices'
+import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 
-function isDesktopMode(width) {
+function isDesktopMode(width: string): boolean {
   return width === 'md' || width === 'lg' || width === 'xl'
 }
 
@@ -57,7 +56,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-function DetailsLink({ url, label, status, subText }) {
+interface DetailsLinkProps {
+  url: string
+  label: string
+  status?: 'ok' | 'warn' | 'err'
+  subText?: JSX.Element
+}
+
+function DetailsLink({
+  url,
+  label,
+  status,
+  subText,
+}: DetailsLinkProps): JSX.Element {
   const classes = useLinkStyles()
   const width = useWidth()
 
@@ -79,7 +90,9 @@ function DetailsLink({ url, label, status, subText }) {
       <ListItemText
         secondary={subText}
         primary={label}
-        primaryTypographyProps={isDesktopMode(width) ? null : { variant: 'h5' }}
+        primaryTypographyProps={
+          isDesktopMode(width) ? undefined : { variant: 'h5' }
+        }
       />
       <ListItemSecondaryAction>
         <IconButton component={AppLink} to={url}>
@@ -90,14 +103,19 @@ function DetailsLink({ url, label, status, subText }) {
   )
 }
 
-DetailsLink.propTypes = {
-  label: p.string.isRequired,
-  url: p.string.isRequired,
-  status: p.oneOf(['ok', 'warn', 'err']),
-  subText: p.node,
+interface DetailsPageProps {
+  title: string
+  details?: string
+  icon?: JSX.Element
+  links?: Array<DetailsLinkProps>
+  notices?: Array<Notice>
+  titleFooter?: JSX.Element
+  pageFooter?: JSX.Element
+
+  noMarkdown?: boolean
 }
 
-export default function DetailsPage(props) {
+export default function DetailsPage(props: DetailsPageProps): JSX.Element {
   const classes = useStyles()
   const width = useWidth()
 
@@ -118,7 +136,7 @@ export default function DetailsPage(props) {
             >
               Quick Links
             </ListSubheader>
-          ) : null
+          ) : undefined
         }
       >
         {isDesktopMode(width) ? <Divider /> : null}
@@ -190,26 +208,6 @@ export default function DetailsPage(props) {
       )}
     </Grid>
   )
-}
-
-DetailsPage.propTypes = {
-  title: p.string,
-  details: p.string,
-  noMarkdown: p.bool,
-
-  notices: p.arrayOf(
-    p.shape({
-      type: p.oneOf(['WARNING', 'ERROR', 'INFO']).isRequired,
-      message: p.string.isRequired,
-      details: p.string.isRequired,
-    }),
-  ), // todo: use type Notice when converted to ts
-
-  icon: p.node,
-  links: p.arrayOf(p.shape(DetailsLink.propTypes)),
-
-  titleFooter: p.any,
-  pageFooter: p.any,
 }
 
 DetailsPage.defaultProps = {
