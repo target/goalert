@@ -3452,10 +3452,10 @@ copy-descriptor@^0.1.0:
   resolved "https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz#676f6eb3c39997c2ee1ac3a924fd6124748f578d"
   integrity sha1-Z29us8OZl8LuGsOpJP1hJHSPV40=
 
-copy-webpack-plugin@8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/copy-webpack-plugin/-/copy-webpack-plugin-8.1.0.tgz#0b53170db798ed301439536a02f2868ff63291a0"
-  integrity sha512-Soiq8kXI2AZkpw3dSp18u6oU2JonC7UKv3UdXsKOmT1A5QT46ku9+6c0Qy29JDbSavQJNN1/eKGpd3QNw+cZWg==
+copy-webpack-plugin@8.1.1:
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/copy-webpack-plugin/-/copy-webpack-plugin-8.1.1.tgz#3f697e162764925c2f0d235f380676125508fd26"
+  integrity sha512-rYM2uzRxrLRpcyPqGceRBDpxxUV8vcDqIKxAUKfcnFpcrPxT5+XvhTxv7XLjo5AvEJFPdAE3zCogG2JVahqgSQ==
   dependencies:
     fast-glob "^3.2.5"
     glob-parent "^5.1.1"
@@ -5513,10 +5513,10 @@ icss-utils@^5.0.0, icss-utils@^5.1.0:
   resolved "https://registry.yarnpkg.com/icss-utils/-/icss-utils-5.1.0.tgz#c6be6858abd013d768e98366ae47e25d5887b1ae"
   integrity sha512-soFhflCVWLfRNOPU3iv5Z9VUdT44xFRbzjLsEzSr5AQmgqPMTHdU3PMT1Cf1ssx8fLNJDA1juftYl+PUcv3MqA==
 
-ifdef-loader@2.1.5:
-  version "2.1.5"
-  resolved "https://registry.yarnpkg.com/ifdef-loader/-/ifdef-loader-2.1.5.tgz#f9c3505a7335daffb8593e6d9ecfc8dcdd59409e"
-  integrity sha512-GMUW5L8ZjsKRGABV3iXLdNFe2l7qFp9jeGYS55I6RNZLgQpicKxUfdH5oLDJ1cu+udb0hZiglwW6nX2kzgy86w==
+ifdef-loader@2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/ifdef-loader/-/ifdef-loader-2.3.0.tgz#cc8d7c52bdd83de7621bde90f00f256bdf56b7cb"
+  integrity sha512-JY3rPC1QNMzQ/h8pJlxyP6DsujlGnCYDmEYROQpMe90m1aRFVLtpTuqmN15aaq2/9vOmzByWMxWdvR1O+xNHGw==
   dependencies:
     loader-utils "^1.1.0"
 
