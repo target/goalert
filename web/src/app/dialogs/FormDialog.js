@@ -157,9 +157,7 @@ function FormDialog(props) {
       fullWidth
       open={!isUnmounting}
       onClose={onClose}
-      TransitionComponent={
-        isWideScreen || confirm ? DefaultTransition : FullscreenTransition
-      }
+      TransitionComponent={fs ? FullscreenTransition : DefaultTransition}
       {...dialogProps}
     >
       <Notices notices={notices} />
