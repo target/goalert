@@ -25,6 +25,21 @@ function isDesktopMode(width: string): boolean {
 
 const useLinkStyles = makeStyles(() => statusStyles)
 const useStyles = makeStyles((theme) => ({
+  iconContainer: {
+    [theme.breakpoints.down('sm')]: { float: 'top' },
+    [theme.breakpoints.up('md')]: { float: 'left' },
+    margin: 20,
+  },
+  linksContainer: {
+    display: 'flex',
+  },
+  linksList: {
+    width: '100%',
+  },
+  linksSubheader: {
+    margin: 0,
+    fontSize: 'larger',
+  },
   spacing: {
     '&:not(:first-child)': {
       marginTop: 8,
@@ -36,66 +51,39 @@ const useStyles = makeStyles((theme) => ({
       marginBottom: 64,
     },
   },
-  iconContainer: {
-    [theme.breakpoints.down('sm')]: { float: 'top' },
-    [theme.breakpoints.up('md')]: { float: 'left' },
-    margin: 20,
-  },
-  listSubheader: {
-    margin: 0,
-    fontSize: 'larger',
-  },
-  mainHeading: {
+  title: {
     fontSize: '1.5rem',
-  },
-  quickLinksContainer: {
-    display: 'flex',
-  },
-  quickLinksList: {
-    width: '100%',
   },
 }))
 
+type LinkStatus = 'ok' | 'warn' | 'err'
 interface DetailsLinkProps {
   url: string
   label: string
-  status?: 'ok' | 'warn' | 'err'
   subText?: JSX.Element
+  status?: LinkStatus
 }
 
-function DetailsLink({
-  url,
-  label,
-  status,
-  subText,
-}: DetailsLinkProps): JSX.Element {
+function DetailsLink(p: DetailsLinkProps): JSX.Element {
   const classes = useLinkStyles()
   const width = useWidth()
 
-  let itemClass = classes.noStatus
-  switch (status) {
-    case 'ok':
-      itemClass = classes.statusOK
-      break
-    case 'warn':
-      itemClass = classes.statusWarning
-      break
-    case 'err':
-      itemClass = classes.statusError
-      break
-  }
+  let cn = classes.noStatus
+  if (status === 'ok') cn = classes.statusOK
+  if (status === 'warn') cn = classes.statusWarning
+  if (status === 'err') cn = classes.statusError
 
   return (
-    <ListItem component={AppLink} to={url} button className={itemClass}>
+    <ListItem className={cn} component={AppLink} to={p.url} button>
       <ListItemText
-        secondary={subText}
-        primary={label}
+        primary={p.label}
         primaryTypographyProps={
           isDesktopMode(width) ? undefined : { variant: 'h5' }
         }
+        secondary={p.subText}
       />
       <ListItemSecondaryAction>
-        <IconButton component={AppLink} to={url}>
+        <IconButton component={AppLink} to={p.url}>
           <ChevronRight />
         </IconButton>
       </ListItemSecondaryAction>
@@ -115,22 +103,20 @@ interface DetailsPageProps {
   noMarkdown?: boolean
 }
 
-export default function DetailsPage(props: DetailsPageProps): JSX.Element {
+export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
   const width = useWidth()
 
-  const { title, details, icon, notices, titleFooter, pageFooter } = props
-
   let links = null
-  if (props.links && props.links.length) {
+  if (p.links?.length) {
     links = (
       <List
         data-cy='route-links'
-        className={classes.quickLinksList}
+        className={classes.linksList}
         subheader={
           isDesktopMode(width) ? (
             <ListSubheader
-              className={classes.listSubheader}
+              className={classes.linksSubheader}
               component='h2'
               color='primary'
             >
@@ -140,7 +126,7 @@ export default function DetailsPage(props: DetailsPageProps): JSX.Element {
         }
       >
         {isDesktopMode(width) ? <Divider /> : null}
-        {props.links.map((li, idx) => (
+        {p.links.map((li, idx) => (
           <DetailsLink key={idx} {...li} />
         ))}
       </List>
@@ -149,44 +135,46 @@ export default function DetailsPage(props: DetailsPageProps): JSX.Element {
 
   return (
     <Grid container>
-      {(notices?.length ?? 0) > 0 && (
-        <Grid item xs={12} className={classes.spacing}>
-          <Notices notices={notices} />
+      {(p.notices?.length ?? 0) > 0 && (
+        <Grid className={classes.spacing} item xs={12}>
+          <Notices notices={p.notices} />
         </Grid>
       )}
-      <Grid item xs={12} className={classes.spacing}>
+      <Grid className={classes.spacing} item xs={12}>
         <Card>
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={isDesktopMode(width) && links ? 8 : 12}>
-                {icon && <div className={classes.iconContainer}>{icon}</div>}
+                {p.icon && (
+                  <div className={classes.iconContainer}>{p.icon}</div>
+                )}
                 <Typography
                   data-cy='details-heading'
-                  className={classes.mainHeading}
+                  className={classes.title}
                   component='h2'
                 >
-                  {title}
+                  {p.title}
                 </Typography>
                 <Typography
                   data-cy='details'
                   variant='subtitle1'
                   component='div'
                 >
-                  {props.noMarkdown ? details : <Markdown value={details} />}
+                  {p.noMarkdown ? p.details : <Markdown value={p.details} />}
                 </Typography>
-                {titleFooter && (
+                {p.titleFooter && (
                   <Typography
                     component='div'
                     variant='subtitle1'
                     data-cy='title-footer'
                   >
-                    {titleFooter}
+                    {p.titleFooter}
                   </Typography>
                 )}
               </Grid>
               {links && (
                 <Hidden smDown>
-                  <Grid className={classes.quickLinksContainer} item xs={4}>
+                  <Grid className={classes.linksContainer} item xs={4}>
                     <Divider orientation='vertical' />
                     {links}
                   </Grid>
@@ -197,13 +185,13 @@ export default function DetailsPage(props: DetailsPageProps): JSX.Element {
         </Card>
       </Grid>
       <Hidden mdUp>
-        <Grid item xs={12} className={classes.spacing}>
+        <Grid className={classes.spacing} item xs={12}>
           <Card>{links}</Card>
         </Grid>
       </Hidden>
-      {pageFooter && (
-        <Grid item xs={12} className={classes.spacing}>
-          {pageFooter}
+      {p.pageFooter && (
+        <Grid className={classes.spacing} item xs={12}>
+          {p.pageFooter}
         </Grid>
       )}
     </Grid>
