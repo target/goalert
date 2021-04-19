@@ -118,6 +118,8 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 		s.teamID = id
 		s.token = cfg.Slack.AccessToken
 	}
+
+	teamID := s.teamID
 	s.teamMx.Unlock()
 
 	v := make(url.Values)
@@ -172,7 +174,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	return &Channel{
 		ID:     resData.Channel.ID,
 		Name:   "#" + resData.Channel.Name,
-		TeamID: s.teamID,
+		TeamID: teamID,
 	}, nil
 }
 
