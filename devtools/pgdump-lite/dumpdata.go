@@ -109,7 +109,7 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer) error {
 			orderBy = colNames
 		}
 
-		fmt.Fprintf(out, "COPY %s (%s) FROM stdin;\n", table, colNames)
+		fmt.Fprintf(out, "COPY %s (%s) FROM stdin;\n", pgx.Identifier{table}.Sanitize(), colNames)
 		rows, err := tx.Query(ctx,
 			fmt.Sprintf("select %s from %s order by %s",
 				colNames,
