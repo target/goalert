@@ -146,7 +146,6 @@ func cleanupScheduleData(data *schedule.Data, userMap map[string]struct{}, cutof
 		filtered = append(filtered, temp)
 	}
 	data.V1.TemporarySchedules = filtered
-
 }
 
 // getUsers retrieves the current set of user IDs
