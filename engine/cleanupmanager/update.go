@@ -103,8 +103,9 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	lookup := lookupMap(currentUsers)
+	schedCuttoff := now.AddDate(-1, 0, 0)
 	for _, dat := range m {
-		cleanupScheduleData(&dat.Data, lookup, now)
+		cleanupScheduleData(&dat.Data, lookup, schedCuttoff)
 		rawData, err := json.Marshal(dat.Data)
 		if err != nil {
 			return err
@@ -136,21 +137,16 @@ func lookupMap(users []string) map[string]struct{} {
 	return userLookup
 }
 
-func cleanupScheduleData(data *schedule.Data, userMap map[string]struct{}, now time.Time) {
-	for idx, temp := range data.V1.TemporarySchedules {
-		shifts := temp.Shifts
-		temp.Shifts = temp.Shifts[:0]
-		for _, shift := range shifts {
-			if _, ok := userMap[shift.UserID]; !ok {
-				continue
-			}
-			temp.Shifts = append(temp.Shifts, shift)
+func cleanupScheduleData(data *schedule.Data, userMap map[string]struct{}, cutoff time.Time) {
+	filtered := data.V1.TemporarySchedules[:0]
+	for _, temp := range data.V1.TemporarySchedules {
+		if temp.End.Before(cutoff) {
+			continue
 		}
-
-		data.V1.TemporarySchedules[idx] = temp.TrimStart(now.Truncate(time.Minute))
+		filtered = append(filtered, temp)
 	}
+	data.V1.TemporarySchedules = filtered
 
-	data.V1.TemporarySchedules = schedule.MergeTemporarySchedules(data.V1.TemporarySchedules)
 }
 
 // getUsers retrieves the current set of user IDs
