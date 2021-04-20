@@ -127,7 +127,8 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
     console.error(`Error querying slackChannel ${channelID}:`, error)
   }
 
-  if (channelID && teamID) {
+  const clickable = Boolean(channelID && teamID)
+  if (clickable) {
     rest.onClick = () =>
       window.open(
         `https://slack.com/app_redirect?channel=${channelID}&team=${teamID}`,
@@ -137,6 +138,7 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
   return (
     <Chip
       data-cy='slack-chip'
+      data-clickable={clickable}
       avatar={
         <Avatar>
           <SlackBW />
