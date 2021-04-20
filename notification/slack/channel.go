@@ -159,7 +159,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	}
 
 	if !resData.OK {
-		return nil, fmt.Errorf("lookup Slack channels: %w", &apiError{msg: resData.Error, header: resp.Header})
+		return nil, fmt.Errorf("lookup Slack channel: %w", &apiError{msg: resData.Error, header: resp.Header})
 	}
 
 	return &Channel{
