@@ -85,7 +85,7 @@ export default function TempSchedAddShiftForm({
                 .plus({ hours: parseFloat(nextVal) })
                 .toISO()
             }}
-            step={1}
+            step={0.25}
             min={0}
             hint={
               <ClickableText
