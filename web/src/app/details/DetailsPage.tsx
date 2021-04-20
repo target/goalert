@@ -1,196 +1,201 @@
-import React from 'react'
+import React, { MouseEventHandler, ReactNode } from 'react'
 import statusStyles from '../util/statusStyles'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
+import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
-import Divider from '@material-ui/core/Divider'
+import CardActions from '@material-ui/core/CardActions'
+import Button from '@material-ui/core/Button'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
 import { ChevronRight } from '@material-ui/icons'
-import Hidden from '@material-ui/core/Hidden'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
-import ListSubheader from '@material-ui/core/ListSubheader'
 import IconButton from '@material-ui/core/IconButton'
 import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 
+interface DetailsPageProps {
+  title: string
+
+  // content options
+  details?: ReactNode
+  thumbnail?: ReactNode // placement for an avatar, logo, or icon
+
+  notices?: Array<Notice>
+  links?: Array<Link>
+
+  titleFooter?: JSX.Element
+  pageFooter?: JSX.Element
+
+  primaryActions?: Array<Action | JSX.Element>
+  secondaryActions?: Array<Action | JSX.Element>
+
+  // api options
+  markdown?: boolean // enables markdown support for details. default: false
+}
+
+type LinkStatus = 'ok' | 'warn' | 'err'
+type Link = {
+  url: string
+  label: string
+  subText?: string
+  status?: LinkStatus
+}
+
+type Action = {
+  label: string
+  handleOnClick: MouseEventHandler<HTMLButtonElement>
+
+  icon?: JSX.Element // if true, adds a start icon to a button with text
+  secondary?: boolean // if true, renders right-aligned as an icon button
+}
+
 function isDesktopMode(width: string): boolean {
   return width === 'md' || width === 'lg' || width === 'xl'
 }
 
-const useLinkStyles = makeStyles(() => statusStyles)
-const useStyles = makeStyles((theme) => ({
-  iconContainer: {
-    [theme.breakpoints.down('sm')]: { float: 'top' },
-    [theme.breakpoints.up('md')]: { float: 'left' },
-    margin: 20,
+const useStyles = makeStyles({
+  ...statusStyles,
+  primaryCard: {
+    height: '100%', // align with quick links if shorter in height
+    position: 'relative', // allows card actions to remain at bottom, if height is stretched
   },
-  linksContainer: {
-    display: 'flex',
-  },
-  linksList: {
-    width: '100%',
-  },
-  linksSubheader: {
-    margin: 0,
-    fontSize: 'larger',
-  },
-  spacing: {
-    '&:not(:first-child)': {
-      marginTop: 8,
-    },
-    '&:not(:last-child)': {
-      marginBottom: 8,
-    },
-    '&:last-child': {
-      marginBottom: 64,
-    },
-  },
-  title: {
-    fontSize: '1.5rem',
-  },
-}))
+  cardActions: {
+    // height: '100%',
+    alignItems: 'flex-end', // aligns icon buttons to bottom of container
 
-type LinkStatus = 'ok' | 'warn' | 'err'
-interface DetailsLinkProps {
-  url: string
-  label: string
-  subText?: JSX.Element
-  status?: LinkStatus
-}
+    // moves card actions to bottom if height is stretched
+    position: 'absolute',
+    bottom: '0',
+    width: '-webkit-fill-available',
+  },
+})
 
-function DetailsLink(p: DetailsLinkProps): JSX.Element {
-  const classes = useLinkStyles()
-  const width = useWidth()
-
-  let cn = classes.noStatus
-  if (status === 'ok') cn = classes.statusOK
-  if (status === 'warn') cn = classes.statusWarning
-  if (status === 'err') cn = classes.statusError
-
+function Action(p: Action): JSX.Element {
+  if (p.secondary && p.icon) {
+    return <IconButton onClick={p.handleOnClick}>{p.icon}</IconButton>
+  }
   return (
-    <ListItem className={cn} component={AppLink} to={p.url} button>
-      <ListItemText
-        primary={p.label}
-        primaryTypographyProps={
-          isDesktopMode(width) ? undefined : { variant: 'h5' }
-        }
-        secondary={p.subText}
-      />
-      <ListItemSecondaryAction>
-        <IconButton component={AppLink} to={p.url}>
-          <ChevronRight />
-        </IconButton>
-      </ListItemSecondaryAction>
-    </ListItem>
+    <Button onClick={p.handleOnClick} startIcon={p.icon}>
+      {p.label}
+    </Button>
   )
-}
-
-interface DetailsPageProps {
-  title: string
-  details?: string
-  icon?: JSX.Element
-  links?: Array<DetailsLinkProps>
-  notices?: Array<Notice>
-  titleFooter?: JSX.Element
-  pageFooter?: JSX.Element
-
-  noMarkdown?: boolean
 }
 
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
   const width = useWidth()
 
-  let links = null
-  if (p.links?.length) {
-    links = (
-      <List
-        data-cy='route-links'
-        className={classes.linksList}
-        subheader={
-          isDesktopMode(width) ? (
-            <ListSubheader
-              className={classes.linksSubheader}
-              component='h2'
-              color='primary'
-            >
-              Quick Links
-            </ListSubheader>
-          ) : undefined
-        }
-      >
-        {isDesktopMode(width) ? <Divider /> : null}
-        {p.links.map((li, idx) => (
-          <DetailsLink key={idx} {...li} />
-        ))}
-      </List>
-    )
+  const linkClassName = (status?: LinkStatus): string => {
+    if (status === 'ok') return classes.statusOK
+    if (status === 'warn') return classes.statusWarning
+    if (status === 'err') return classes.statusError
+    return classes.noStatus
+  }
+
+  const action = (action: Action | JSX.Element, key: string): JSX.Element => {
+    if ('label' in action && 'handleOnClick' in action) {
+      return <Action key={key} {...action} />
+    }
+    return action
+  }
+
+  const renderActions = (): JSX.Element => {
+    let actions: Array<JSX.Element> = []
+    if (p.primaryActions) {
+      actions = p.primaryActions.map((a, i) => action(a, 'primary' + i))
+    }
+    if (p.secondaryActions) {
+      actions = [
+        ...actions,
+        <div key='actions-margin' style={{ margin: '0 auto' }} />,
+        ...p.secondaryActions.map((a, i) =>
+          action({ ...a, secondary: true }, 'secondary' + i),
+        ),
+      ]
+    }
+    return <CardActions className={classes.cardActions}>{actions}</CardActions>
   }
 
   return (
-    <Grid container>
+    <Grid container spacing={2}>
+      {/* Notices */}
       {(p.notices?.length ?? 0) > 0 && (
-        <Grid className={classes.spacing} item xs={12}>
+        <Grid item xs={12}>
           <Notices notices={p.notices} />
         </Grid>
       )}
-      <Grid className={classes.spacing} item xs={12}>
-        <Card>
-          <CardContent>
-            <Grid container spacing={2}>
-              <Grid item xs={isDesktopMode(width) && links ? 8 : 12}>
-                {p.icon && (
-                  <div className={classes.iconContainer}>{p.icon}</div>
-                )}
+
+      {/* Primary card */}
+      <Grid item xs={12} container spacing={2}>
+        <Grid item xs={isDesktopMode(width) && p.links?.length ? 8 : 12}>
+          <Card className={classes.primaryCard}>
+            <CardHeader
+              title={p.title}
+              subheader={
+                p.markdown ? <Markdown value={p.details} /> : p.details
+              }
+              avatar={p.thumbnail}
+            />
+
+            {p.titleFooter && (
+              <CardContent>
                 <Typography
-                  data-cy='details-heading'
-                  className={classes.title}
-                  component='h2'
-                >
-                  {p.title}
-                </Typography>
-                <Typography
-                  data-cy='details'
-                  variant='subtitle1'
                   component='div'
+                  variant='subtitle1'
+                  data-cy='title-footer'
                 >
-                  {p.noMarkdown ? p.details : <Markdown value={p.details} />}
+                  {p.titleFooter}
                 </Typography>
-                {p.titleFooter && (
-                  <Typography
-                    component='div'
-                    variant='subtitle1'
-                    data-cy='title-footer'
-                  >
-                    {p.titleFooter}
-                  </Typography>
-                )}
-              </Grid>
-              {links && (
-                <Hidden smDown>
-                  <Grid className={classes.linksContainer} item xs={4}>
-                    <Divider orientation='vertical' />
-                    {links}
-                  </Grid>
-                </Hidden>
-              )}
-            </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Hidden mdUp>
-        <Grid className={classes.spacing} item xs={12}>
-          <Card>{links}</Card>
+              </CardContent>
+            )}
+
+            {(p.primaryActions || p.secondaryActions) && renderActions()}
+          </Card>
         </Grid>
-      </Hidden>
+
+        {/* Quick Links */}
+        <Grid item xs={isDesktopMode(width) && p.links?.length ? 4 : 12}>
+          <Card>
+            <CardHeader title='Quick Links' />
+            {p.links?.length && (
+              <List data-cy='route-links'>
+                {p.links.map((li, idx) => (
+                  <ListItem
+                    key={idx}
+                    className={linkClassName(li.status)}
+                    component={AppLink}
+                    to={li.url}
+                    button
+                  >
+                    <ListItemText
+                      primary={li.label}
+                      primaryTypographyProps={
+                        isDesktopMode(width) ? undefined : { variant: 'h5' }
+                      }
+                      secondary={li.subText}
+                    />
+                    <ListItemSecondaryAction>
+                      <IconButton component={AppLink} to={li.url}>
+                        <ChevronRight />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Footer node */}
       {p.pageFooter && (
-        <Grid className={classes.spacing} item xs={12}>
+        <Grid item xs={12}>
           {p.pageFooter}
         </Grid>
       )}

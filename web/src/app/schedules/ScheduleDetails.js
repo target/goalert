@@ -12,7 +12,6 @@ import DetailsPage from '../details/DetailsPage'
 import { UserSelect } from '../selection'
 import FilterContainer from '../util/FilterContainer'
 import PageActions from '../util/PageActions'
-import OtherActions from '../util/OtherActions'
 import ScheduleEditDialog from './ScheduleEditDialog'
 import ScheduleDeleteDialog from './ScheduleDeleteDialog'
 import ScheduleCalendarQuery from './ScheduleCalendarQuery'
@@ -23,6 +22,7 @@ import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
+import { Edit, Delete } from '@material-ui/icons'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -65,7 +65,7 @@ export default function ScheduleDetails({ scheduleID }) {
 
   const data = _.get(_data, 'schedule', null)
 
-  if (loading && !data) return <Spinner />
+  if (loading && !data?.name) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data) {
@@ -101,7 +101,6 @@ export default function ScheduleDetails({ scheduleID }) {
         />
       )}
       <PageActions>
-        <QuerySetFavoriteButton scheduleID={scheduleID} />
         <FilterContainer onReset={resetFilter}>
           <Grid item xs={12}>
             <FormControlLabel
@@ -124,26 +123,33 @@ export default function ScheduleDetails({ scheduleID }) {
             />
           </Grid>
         </FilterContainer>
-        <OtherActions
-          actions={[
-            { label: 'Edit Schedule', onClick: () => setShowEdit(true) },
-            { label: 'Delete Schedule', onClick: () => setShowDelete(true) },
-          ]}
-        />
       </PageActions>
       <DetailsPage
         title={data.name}
         details={data.description}
-        titleFooter={
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              Time Zone: {data.timeZone || 'Loading...'}
-            </Grid>
-            <Grid item xs={12}>
-              <CalendarSubscribeButton scheduleID={scheduleID} />
-            </Grid>
-          </Grid>
-        }
+        titleFooter={`Time Zone: ${data.timeZone || 'Loading...'}`}
+        primaryActions={[
+          <CalendarSubscribeButton
+            key='primary-action-subscribe'
+            scheduleID={scheduleID}
+          />,
+        ]}
+        secondaryActions={[
+          {
+            label: 'Edit',
+            icon: <Edit />,
+            handleOnClick: () => setShowEdit(true),
+          },
+          {
+            label: 'Delete',
+            icon: <Delete />,
+            handleOnClick: () => setShowDelete(true),
+          },
+          <QuerySetFavoriteButton
+            key='secondary-action-favorite'
+            scheduleID={scheduleID}
+          />,
+        ]}
         links={[
           { label: 'Assignments', url: 'assignments' },
           { label: 'Escalation Policies', url: 'escalation-policies' },

@@ -51,7 +51,7 @@ export default function RotationDetails({ rotationID }) {
 
   const data = _.get(_data, 'rotation', null)
 
-  if (loading && !data) return <Spinner />
+  if (loading && !data?.name) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   if (!data)

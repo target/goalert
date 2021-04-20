@@ -199,7 +199,7 @@ export default function UserDetails(props) {
         title={user.name + (svcCount ? ' (On-Call)' : '')}
         details={user.email}
         noMarkdown
-        icon={
+        thumbnail={
           <React.Fragment>
             <UserAvatar
               userID={props.userID}
