@@ -22,6 +22,7 @@ a:hover {
 .rbc-time-content .rbc-current-time-indicator {
   background-color: #343434;
 }
+
 .rbc-time-content .rbc-current-time-indicator::before {
   content: '';
   display: inline-block;

@@ -131,6 +131,13 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 	return nil
 }
 
+func validateFuture(fieldName string, t time.Time) error {
+	if t.After(time.Now()) {
+		return nil
+	}
+	return validation.NewFieldError(fieldName, "must be in the future")
+}
+
 // SetTemporarySchedule will cause the schedule to use only, and exactly, the provided set of shifts between the provided start and end times.
 func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time, shifts []FixedShift) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
@@ -139,6 +146,7 @@ func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, schedu
 	}
 
 	err = validate.Many(
+		validateFuture("End", end),
 		validateTimeRange("", start, end),
 		validate.UUID("ScheduleID", scheduleID),
 		store.validateShifts(ctx, "Shifts", FixedShiftsPerTemporaryScheduleLimit, shifts, start, end),
@@ -160,11 +168,9 @@ func (store *Store) ClearTemporarySchedules(ctx context.Context, tx *sql.Tx, sch
 		return err
 	}
 
-	if !end.After(start) {
-		err = validation.NewFieldError("End", "must be after Start")
-	}
 	err = validate.Many(
-		err,
+		validateFuture("End", end),
+		validateTimeRange("", start, end),
 		validate.UUID("ScheduleID", scheduleID),
 	)
 	if err != nil {

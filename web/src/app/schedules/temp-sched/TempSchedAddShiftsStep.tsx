@@ -15,7 +15,7 @@ import TempSchedAddShiftForm from './TempSchedAddShiftForm'
 import { ScheduleTZFilter } from '../ScheduleTZFilter'
 import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
-import { isISOAfter, isISOBefore } from '../../util/shifts'
+import { isISOAfter } from '../../util/shifts'
 
 const useStyles = makeStyles((theme) => ({
   contentText,

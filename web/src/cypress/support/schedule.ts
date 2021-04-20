@@ -202,7 +202,7 @@ interface SetTemporarySchedule {
 
 function createTemporarySchedule(
   opts: Partial<SetTemporarySchedule> = {},
-): Cypress.Chainable<null> {
+): Cypress.Chainable<void> {
   const mutation = `
     mutation($input: SetTemporaryScheduleInput!) {
       setTemporarySchedule(input: $input)
@@ -257,7 +257,7 @@ function createTemporarySchedule(
       shifts,
     }
 
-    return cy.graphql(mutation, { input })
+    return cy.graphql(mutation, { input }) as void
   })
 }
 
