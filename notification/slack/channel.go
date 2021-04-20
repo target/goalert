@@ -56,20 +56,33 @@ type Channel struct {
 	Name string
 }
 
-type slackError string
+type apiError struct {
+	msg    string
+	header http.Header
+}
 
-func (err slackError) Error() string     { return string(err) }
-func (err slackError) ClientError() bool { return true }
-func wrapError(errMsg, details string) error {
-	switch errMsg {
+func (err apiError) Error() string { return err.msg }
+
+func mapError(ctx context.Context, err error) error {
+	var apiError *apiError
+	if !errors.As(err, &apiError) {
+		return err
+	}
+
+	switch apiError.msg {
 	case "missing_scope":
+		acceptedScopes := apiError.header.Get("X-Accepted-Oauth-Scopes")
+		providedScopes := apiError.header.Get("X-Oauth-Scopes")
+		log.Log(ctx, fmt.Errorf("Slack: missing_scope; need one of %v but got %v", acceptedScopes, providedScopes))
 		return validation.NewFieldError("ChannelID", "Permission Denied.")
 	case "channel_not_found":
 		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
 	case "invalid_auth", "account_inactive", "token_revoked", "not_authed":
-		return slackError("User account must be linked.")
+		log.Log(ctx, fmt.Errorf("unable to authenticate to Slack: %v", apiError.msg))
+		return validation.NewFieldError("ChannelID", "Permission Denied.")
 	}
-	return errors.Wrap(errors.New(errMsg), details)
+
+	return err
 }
 
 // Channel will lookup a single Slack channel for the bot.
@@ -85,7 +98,7 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 	if !ok {
 		ch, err := s.loadChannel(ctx, channelID)
 		if err != nil {
-			return nil, err
+			return nil, mapError(ctx, err)
 		}
 		s.chanCache.Add(channelID, ch)
 		return ch, nil
@@ -146,7 +159,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	}
 
 	if !resData.OK {
-		return nil, wrapError(resData.Error, "lookup Slack channel")
+		return nil, fmt.Errorf("lookup Slack channels: %w", &apiError{msg: resData.Error, header: resp.Header})
 	}
 
 	return &Channel{
@@ -169,7 +182,7 @@ func (s *ChannelSender) ListChannels(ctx context.Context) ([]Channel, error) {
 	if !ok {
 		chs, err := s.loadChannels(ctx)
 		if err != nil {
-			return nil, err
+			return nil, mapError(ctx, err)
 		}
 		ch2 := make([]Channel, len(chs))
 		copy(ch2, chs)
@@ -248,10 +261,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 		}
 
 		if !resData.OK {
-			acceptedScopes := resp.Header.Get("X-Accepted-Oauth-Scopes")
-			providedScopes := resp.Header.Get("X-Oauth-Scopes")
-			log.Log(ctx, errors.New("Slack app scopes must include one of: ["+acceptedScopes+"]; got: ["+providedScopes+"]"))
-			return nil, wrapError(resData.Error, "list Slack channels")
+			return nil, fmt.Errorf("list Slack channels: %w", &apiError{msg: resData.Error, header: resp.Header})
 		}
 
 		channels = append(channels, resData.Channels...)
