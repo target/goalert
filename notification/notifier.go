@@ -37,27 +37,13 @@ type Sender interface {
 	Send(context.Context, Message) (*MessageStatus, error)
 }
 
+// ReceiverSetter allows setting a Receiver and should be implemented by a Sender that
+// supports two-way interaction.
+type ReceiverSetter interface {
+	SetReceiver(Receiver)
+}
+
 // A StatusChecker allows checking the status of a sent message.
 type StatusChecker interface {
 	Status(ctx context.Context, messageID, providerMessageID string) (*MessageStatus, error)
-}
-
-// StatusUpdater will provide status updates for messages, it should never be closed.
-type StatusUpdater interface {
-	ListenStatus() <-chan *MessageStatus
-}
-
-// A Responder will provide message responses, it should never be closed.
-type Responder interface {
-	ListenResponse() <-chan *MessageResponse
-}
-
-// MessageResponse represents a received response from a user.
-type MessageResponse struct {
-	Ctx    context.Context
-	ID     string
-	From   Dest
-	Result Result
-
-	Err chan error
 }

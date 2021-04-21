@@ -18,7 +18,7 @@ type Manager struct {
 	providers   map[string]*namedSender
 	searchOrder []*namedSender
 
-	r  Receiver
+	Receiver
 	mx *sync.RWMutex
 
 	shutdownCh chan struct{}
@@ -62,50 +62,6 @@ func (mgr *Manager) Shutdown(context.Context) error {
 	close(mgr.shutdownCh)
 	mgr.shutdownWg.Wait()
 	return nil
-}
-
-func (mgr *Manager) senderLoop(s *namedSender) {
-	defer mgr.shutdownWg.Done()
-
-	responder, _ := s.Sender.(Responder)
-	updater, _ := s.Sender.(StatusUpdater)
-	if responder == nil && updater == nil {
-		// nothing to do
-		return
-	}
-
-	var respCh <-chan *MessageResponse
-	if responder != nil {
-		respCh = responder.ListenResponse()
-	}
-
-	var statCh <-chan *MessageStatus
-	if updater != nil {
-		statCh = updater.ListenStatus()
-	}
-
-	handleResponse := func(resp *MessageResponse) {
-		ctx, sp := bgSpan(resp.Ctx, "NotificationManager.Response")
-		cpy := *resp
-		cpy.Ctx = ctx
-
-		err := mgr.receive(ctx, s.name, &cpy)
-		sp.End()
-		resp.Err <- err
-	}
-
-	for {
-		select {
-		case resp := <-respCh:
-			handleResponse(resp)
-		case stat := <-statCh:
-			ctx, sp := bgSpan(stat.Ctx, "NotificationManager.StatusUpdate")
-			mgr.updateStatus(ctx, stat.wrap(ctx, s))
-			sp.End()
-		case <-mgr.shutdownCh:
-			return
-		}
-	}
 }
 
 // Status will return the current status of a message.
@@ -157,24 +113,19 @@ func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
 	mgr.providers[name] = n
 	mgr.searchOrder = append(mgr.searchOrder, n)
 	mgr.shutdownWg.Add(1)
-	go mgr.senderLoop(n)
-}
 
-// UpdateStatus will update the status of a message.
-func (mgr *Manager) updateStatus(ctx context.Context, status *MessageStatus) {
-	err := mgr.r.UpdateStatus(ctx, status)
-	if err != nil {
-		log.Log(ctx, errors.Wrap(err, "update message status"))
+	if rs, ok := s.(ReceiverSetter); ok {
+		rs.SetReceiver(mgr)
 	}
 }
 
 // RegisterReceiver will set the given Receiver as the target for all Receive() calls.
 // It will panic if called multiple times.
 func (mgr *Manager) RegisterReceiver(r Receiver) {
-	if mgr.r != nil {
+	if mgr.Receiver != nil {
 		panic("tried to register a second Receiver")
 	}
-	mgr.r = r
+	mgr.Receiver = r
 }
 
 // Send implements the Sender interface by trying all registered senders for the type given
@@ -223,32 +174,4 @@ func (mgr *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, erro
 	}
 
 	return nil, errors.New("all notification senders failed")
-}
-
-func (mgr *Manager) receive(ctx context.Context, providerID string, resp *MessageResponse) error {
-	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Receive")
-	defer sp.End()
-	sp.AddAttributes(
-		trace.StringAttribute("provider.id", providerID),
-		trace.StringAttribute("message.id", resp.ID),
-		trace.StringAttribute("dest.type", resp.From.Type.String()),
-		trace.StringAttribute("dest.value", resp.From.Value),
-		trace.StringAttribute("response", resp.Result.String()),
-	)
-	log.Debugf(log.WithFields(ctx, log.Fields{
-		"Result":     resp.Result,
-		"CallbackID": resp.ID,
-		"ProviderID": providerID,
-	}),
-		"response received",
-	)
-
-	switch resp.Result {
-	case ResultStart:
-		return mgr.r.Start(ctx, resp.From)
-	case ResultStop:
-		return mgr.r.Stop(ctx, resp.From)
-	default:
-		return mgr.r.Receive(ctx, resp.ID, resp.Result)
-	}
 }
