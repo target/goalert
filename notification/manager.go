@@ -45,18 +45,6 @@ func (mgr *Manager) SetStubNotifiers() {
 	mgr.stubNotifiers = true
 }
 
-func bgSpan(ctx context.Context, name string) (context.Context, *trace.Span) {
-	var sp *trace.Span
-	if ctx != nil {
-		sp = trace.FromContext(ctx)
-	}
-	if sp == nil {
-		return trace.StartSpan(context.Background(), name)
-	}
-
-	return trace.StartSpanWithRemoteParent(context.Background(), name, sp.SpanContext())
-}
-
 // Shutdown will stop the manager, waiting for pending background operations to finish.
 func (mgr *Manager) Shutdown(context.Context) error {
 	close(mgr.shutdownCh)
