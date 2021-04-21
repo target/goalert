@@ -60,6 +60,8 @@ export class FormField extends React.PureComponent {
 
     // disable the form helper text for errors.
     noError: p.bool,
+
+    step: p.oneOfType([p.number, p.string]),
   }
 
   static defaultProps = {
