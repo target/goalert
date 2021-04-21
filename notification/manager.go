@@ -91,7 +91,7 @@ func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
 	mgr.searchOrder = append(mgr.searchOrder, n)
 
 	if rs, ok := s.(ReceiverSetter); ok {
-		rs.SetReceiver(mgr)
+		rs.SetReceiver(&namedReceiver{ns: n, Receiver: mgr})
 	}
 }
 
