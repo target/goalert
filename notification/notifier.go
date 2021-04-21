@@ -14,8 +14,6 @@ type Result int
 const (
 	ResultAcknowledge Result = iota
 	ResultResolve
-	ResultStart
-	ResultStop
 )
 
 // ErrStatusUnsupported should be returned when a Status() check is not supported by the provider.
