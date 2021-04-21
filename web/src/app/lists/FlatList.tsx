@@ -126,7 +126,7 @@ function ScrollIntoViewListItem(
     }
   }, [scrollIntoView])
 
-  // @ts-ignore complains due to ListItem not always rendering a list item.
+  // @ts-expect-error complains due to ListItem not always rendering a list item.
   return <ListItem ref={ref} {...other} />
 }
 
