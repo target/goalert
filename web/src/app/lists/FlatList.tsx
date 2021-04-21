@@ -122,7 +122,7 @@ function ScrollIntoViewListItem(
   const ref = React.useRef<HTMLLIElement>(null)
   useLayoutEffect(() => {
     if (scrollIntoView) {
-      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      ref.current?.scrollIntoView({ block: 'center' })
     }
   }, [scrollIntoView])
 
