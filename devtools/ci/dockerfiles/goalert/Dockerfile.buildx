@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM goalert/build-env AS binaries
+FROM --platform=$BUILDPLATFORM goalert/build-env:go1.16.3-postgres13 AS binaries
 ARG BUILDPLATFORM
 COPY bin/goalert-linux-arm /linux/arm/v7/goalert
 COPY bin/goalert-linux-arm64 /linux/arm64/goalert
