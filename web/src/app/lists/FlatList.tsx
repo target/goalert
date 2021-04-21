@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useLayoutEffect } from 'react'
 import List, { ListProps } from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
+import ListItem, { ListItemProps } from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListItemText from '@material-ui/core/ListItemText'
@@ -78,7 +78,7 @@ export interface FlatListItem {
   secondaryAction?: JSX.Element | null
   url?: string
   id?: string
-  render?: (item: FlatListItem) => JSX.Element
+  scrollIntoView?: boolean
 }
 
 export type FlatListListItem = FlatListSub | FlatListItem | FlatListNotice
@@ -109,6 +109,25 @@ const severityMap: { [K in NoticeType]: Color } = {
   WARNING: 'warning',
   ERROR: 'error',
   OK: 'success',
+}
+
+interface ScrollIntoViewListItemProps extends ListItemProps {
+  scrollIntoView?: boolean
+}
+
+function ScrollIntoViewListItem(
+  props: ScrollIntoViewListItemProps,
+): JSX.Element {
+  const { scrollIntoView, ...other } = props
+  const ref = React.useRef<HTMLLIElement>(null)
+  useLayoutEffect(() => {
+    if (scrollIntoView) {
+      ref.current?.scrollIntoView({ block: 'center' })
+    }
+  }, [scrollIntoView])
+
+  // @ts-expect-error complains due to ListItem not always rendering a list item.
+  return <ListItem ref={ref} {...other} />
 }
 
 export default function FlatList({
@@ -166,10 +185,6 @@ export default function FlatList({
   }
 
   function renderItem(item: FlatListItem, idx: number): JSX.Element {
-    if (item.render) {
-      return item.render(item)
-    }
-
     let itemProps = {}
     if (item.url) {
       itemProps = {
@@ -178,8 +193,10 @@ export default function FlatList({
         button: true,
       }
     }
+
     return (
-      <ListItem
+      <ScrollIntoViewListItem
+        scrollIntoView={item.scrollIntoView}
         key={idx}
         {...itemProps}
         className={item.highlight ? classes.highlightedItem : classes.listItem}
@@ -196,7 +213,7 @@ export default function FlatList({
             {item.secondaryAction}
           </ListItemSecondaryAction>
         )}
-      </ListItem>
+      </ScrollIntoViewListItem>
     )
   }
 

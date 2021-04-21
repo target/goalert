@@ -187,6 +187,7 @@ export default function TempSchedShiftsList({
         }
 
         result.push({
+          scrollIntoView: true,
           id: s.start + s.shift.userID,
           title: s.shift.user?.name,
           subText: shiftDetails,
