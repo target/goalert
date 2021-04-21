@@ -34,9 +34,6 @@ type SMS struct {
 	b *dbSMS
 	c *Config
 
-	respCh chan *notification.MessageResponse
-	statCh chan *notification.MessageStatus
-
 	ban *dbBan
 }
 
@@ -49,10 +46,8 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 	}
 
 	s := &SMS{
-		b:      b,
-		c:      c,
-		respCh: make(chan *notification.MessageResponse),
-		statCh: make(chan *notification.MessageStatus, 10),
+		b: b,
+		c: c,
 	}
 	s.ban, err = newBanDB(ctx, db, c, "twilio_sms_errors")
 	if err != nil {
@@ -70,12 +65,6 @@ func (s *SMS) Status(ctx context.Context, id, providerID string) (*notification.
 	}
 	return msg.messageStatus(id), nil
 }
-
-// ListenStatus will return a channel that is fed async status updates.
-func (s *SMS) ListenStatus() <-chan *notification.MessageStatus { return s.statCh }
-
-// ListenResponse will return a channel that is fed async message responses.
-func (s *SMS) ListenResponse() <-chan *notification.MessageResponse { return s.respCh }
 
 // Send implements the notification.Sender interface.
 func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
