@@ -39,6 +39,7 @@ type SMS struct {
 }
 
 var _ notification.ReceiverSetter = &SMS{}
+var _ notification.Sender = &SMS{}
 
 // NewSMS performs operations like validating essential parameters, registering the Twilio client and db
 // and adding routes for successful and unsuccessful message delivery to Twilio
