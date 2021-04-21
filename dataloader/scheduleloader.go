@@ -2,16 +2,17 @@ package dataloader
 
 import (
 	"context"
-	"github.com/target/goalert/schedule"
 	"time"
+
+	"github.com/target/goalert/schedule"
 )
 
 type ScheduleLoader struct {
 	*loader
-	store schedule.Store
+	store *schedule.Store
 }
 
-func NewScheduleLoader(ctx context.Context, store schedule.Store) *ScheduleLoader {
+func NewScheduleLoader(ctx context.Context, store *schedule.Store) *ScheduleLoader {
 	p := &ScheduleLoader{
 		store: store,
 	}

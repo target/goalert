@@ -17,6 +17,9 @@ var (
 	everyDay  = WeekdayFilter([7]byte{1, 1, 1, 1, 1, 1, 1})
 )
 
+// EveryDay returns a WeekdayFilter that is permanently active.
+func EveryDay() WeekdayFilter { return everyDay }
+
 // StartTime returns midnight of the day the filter became active, from the perspective of t.
 //
 // If the filter is active every day or no days, zero time is returned.

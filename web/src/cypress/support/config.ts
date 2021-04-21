@@ -58,7 +58,7 @@ function getConfigDirect(token: string): Cypress.Chainable<Config> {
     .then((res) => {
       expect(res.status, 'status code').to.eq(200)
 
-      return JSON.parse(res.body)
+      return JSON.parse(res.body) as Config
     })
 }
 

@@ -36,7 +36,12 @@ export default function Spinner(props) {
         display: 'flex',
         alignItems: 'center',
       }
-    : { position: 'absolute', top: '50%', left: '50%' }
+    : {
+        position: 'absolute',
+        top: 'calc(50% - 20px)',
+        left: 'calc(50% - 20px)',
+        zIndex: 99999,
+      }
 
   return (
     <div style={style}>

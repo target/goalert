@@ -5,7 +5,6 @@ import { Avatar, SvgIconProps, AvatarProps } from '@material-ui/core'
 import { pathPrefix } from '../env'
 
 type IconProps = (props: SvgIconProps) => JSX.Element
-
 interface UserAvatarProps extends AvatarProps {
   userID: string
 }

@@ -1,6 +1,7 @@
 package mockslack
 
 import (
+	_ "embed"
 	"html/template"
 	"log"
 	"net/http"
@@ -8,43 +9,13 @@ import (
 	"strings"
 )
 
+//go:embed oauthauthorize.html
+var authPageHTML string
+
 var authPage = template.Must(
 	template.New("authorize").
 		Funcs(template.FuncMap{"StringsJoin": strings.Join}).
-		Parse(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<title>Mock Slack - Authorize</title>
-</head>
-<body>
-	<center>
-	<h1>Authorize</h1>
-	<h2>Logged in as: {{.UserName}}</h2>
-	<h3>Allow the application {{.AppName}} access to the following scopes:</h3>
-	<ul>
-		{{range .Scopes}}
-			<li>{{.}}</li>
-		{{end}}
-	</ul>
-	<hr>
-	<form method="POST">
-		{{- range $key, $value := .Data}}
-		<input name={{ $key }} type="hidden" value={{StringsJoin $value " "}} />
-		{{- end}}
-
-		<input id="action" type="hidden" name="action" value="confirm" />
-		<button type="submit" style="color:gray;width:20%;height:2em;font-size: 3em" onclick="document.getElementById('action').setAttribute('value', 'cancel')">Cancel</button>
-		<button type="submit" style="background-color: green;width:20%;height:2em;font-size: 3em">Authorize</button>
-	</form>
-	
-	</center>
-</body>
-</html>
-`))
+		Parse(authPageHTML))
 
 func (s *Server) ServeOAuthAuthorize(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()

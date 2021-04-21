@@ -12,13 +12,6 @@ const useStyles = makeStyles({
   itemTitle: {
     paddingBottom: 0,
   },
-  markdown: {
-    '& p': {
-      marginBlockStart: 0,
-      marginBlockEnd: 0,
-      whiteSpace: 'pre-wrap',
-    },
-  },
 })
 
 export function CreateAlertConfirm() {
@@ -39,12 +32,9 @@ export function CreateAlertConfirm() {
       <div className={classes.itemContent}>
         {children ||
           (name === 'details' ? (
-            <Typography
-              variant='body1'
-              className={classes.markdown}
-              component={Markdown}
-              value={value}
-            />
+            <Typography variant='body1' component='div'>
+              <Markdown value={value} />
+            </Typography>
           ) : (
             <Typography variant='body1' component='p'>
               {value}

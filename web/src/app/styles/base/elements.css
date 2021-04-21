@@ -1,13 +1,4 @@
-:root {
-  --color-critical: #ff324d;
-  --color-warning: #ffd602;
-  --color-ok: #8cc800;
-}
-
-html {
-  height: 100%;
-}
-
+html,
 body {
   background-color: lightgrey;
   height: 100%;
@@ -27,120 +18,21 @@ a:hover {
   text-decoration: underline;
 }
 
+/* react-big-calendar */
 .rbc-time-content .rbc-current-time-indicator {
-  background-color: #8f1022;
+  background-color: #343434;
 }
 
-.react-markdown th {
-  text-align: left;
-  padding-right: 8px;
-}
-
-.react-markdown td {
-  padding-right: 8px;
-}
-
-h1 {
-  padding-bottom: 0.25em;
-}
-
-h3 {
-  padding-top: 0.25em;
-  padding-bottom: 0.25em;
-}
-
-.footnotes {
-  -moz-column-count: 2;
-  -webkit-column-count: 2;
-  column-count: 2;
-}
-
-.footnotes-list {
-  padding-left: 2em;
-}
-
-pre {
-  display: block;
-  padding: 9.5px;
-  margin: 0 0 10px;
-  font-size: 13px;
-  line-height: 1.42857143;
-  color: #333;
-  word-break: break-all;
-  word-wrap: break-word;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-code {
-  padding: 2px 4px;
-  font-size: 90%;
-  color: #c7254e;
-  background-color: #f9f2f4;
-  border-radius: 4px;
-}
-
-pre code {
-  padding: 0;
-  font-size: inherit;
-  color: inherit;
-  white-space: pre-wrap;
-  background-color: inherit;
-  border-radius: 0;
-}
-
-tr.unacknowledged,
-div.unacknowledged {
-  border-left: 3px solid var(--color-critical);
-}
-
-tr.acknowledged,
-div.acknowledged {
-  border-left: 3px solid var(--color-warning);
-}
-
-tr.resolved,
-div.resolved {
-  border-left: 3px solid var(--color-ok);
-}
-
-.list-label {
-  font-weight: bold;
-  width: 15%;
-}
-
-.list-value {
-  width: 100%;
-}
-
-ul.no-separators li {
-  border: none;
-}
-
-.margin-top-none {
-  margin-top: 0;
-}
-
-.img-circle {
-  border-radius: 50%;
-}
-
-.hide {
-  height: 0;
-  width: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.transition-out {
-  -webkit-transition: opacity 1s;
-  transition: opacity 1s;
-  opacity: 0;
-}
-
-.transition-in {
-  -webkit-transition: opacity 1s;
-  transition: opacity 1s;
-  opacity: 1;
+.rbc-time-content .rbc-current-time-indicator::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  left: -6px;
+  top: -4.5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background-color: #343434;
+  position: absolute;
 }

@@ -22,8 +22,22 @@ import (
 )
 
 type Schedule App
+type TemporarySchedule App
 
-func (a *App) Schedule() graphql2.ScheduleResolver { return (*Schedule)(a) }
+func (a *App) Schedule() graphql2.ScheduleResolver                   { return (*Schedule)(a) }
+func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*TemporarySchedule)(a) }
+
+func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.TemporarySchedule) ([]oncall.Shift, error) {
+	result := make([]oncall.Shift, 0, len(temp.Shifts))
+	for _, s := range temp.Shifts {
+		result = append(result, oncall.Shift{
+			UserID: s.UserID,
+			Start:  s.Start,
+			End:    s.End,
+		})
+	}
+	return result, nil
+}
 
 func (q *Query) Schedule(ctx context.Context, id string) (*schedule.Schedule, error) {
 	return (*App)(q).FindOneSchedule(ctx, id)
@@ -36,6 +50,10 @@ func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, en
 		return nil, validation.NewFieldError("EndTime", "cannot be more than 50 days past StartTime")
 	}
 	return s.OnCallStore.HistoryBySchedule(ctx, raw.ID, start, end)
+}
+
+func (s *Schedule) TemporarySchedules(ctx context.Context, raw *schedule.Schedule) ([]schedule.TemporarySchedule, error) {
+	return s.ScheduleStore.TemporarySchedules(ctx, nil, raw.ID)
 }
 
 func (s *Schedule) Target(ctx context.Context, raw *schedule.Schedule, input assignment.RawTarget) (*graphql2.ScheduleTarget, error) {

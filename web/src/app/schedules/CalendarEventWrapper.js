@@ -26,9 +26,14 @@ const useStyles = makeStyles({
   },
 })
 
-export default function CalendarEventWrapper(props) {
+export default function CalendarEventWrapper({
+  children,
+  event,
+  onOverrideClick,
+  onEditTempSched,
+  onDeleteTempSched,
+}) {
   const classes = useStyles()
-  const { children, event, onOverrideClick } = props
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
   const id = open ? 'shift-popover' : undefined
@@ -61,6 +66,82 @@ export default function CalendarEventWrapper(props) {
     })
   }
 
+  function renderTempSchedButtons() {
+    return (
+      <React.Fragment>
+        <Grid item>
+          <Button
+            data-cy='edit-temp-sched'
+            size='small'
+            onClick={() => onEditTempSched(event.tempSched)}
+            variant='contained'
+            color='primary'
+            title='Edit this temporary schedule'
+          >
+            Edit
+          </Button>
+        </Grid>
+        {!event.isTempSchedShift && (
+          <React.Fragment>
+            <Grid item className={classes.flexGrow} />
+            <Grid item>
+              <Button
+                data-cy='delete-temp-sched'
+                size='small'
+                onClick={() => onDeleteTempSched(event.tempSched)}
+                variant='contained'
+                color='primary'
+                title='Delete this temporary schedule'
+              >
+                Delete
+              </Button>
+            </Grid>
+          </React.Fragment>
+        )}
+      </React.Fragment>
+    )
+  }
+
+  function renderOverrideButtons() {
+    return (
+      <React.Fragment>
+        <Grid item>
+          <Button
+            data-cy='replace-override'
+            size='small'
+            onClick={() => handleShowOverrideForm('replace')}
+            variant='contained'
+            color='primary'
+            title={`Temporarily replace ${event.title} from this schedule`}
+          >
+            Replace
+          </Button>
+        </Grid>
+        <Grid item className={classes.flexGrow} />
+        <Grid item>
+          <Button
+            data-cy='remove-override'
+            size='small'
+            onClick={() => handleShowOverrideForm('remove')}
+            variant='contained'
+            color='primary'
+            title={`Temporarily remove ${event.title} from this schedule`}
+          >
+            Remove
+          </Button>
+        </Grid>
+      </React.Fragment>
+    )
+  }
+
+  function renderButtons() {
+    if (DateTime.fromJSDate(event.end) <= DateTime.utc()) return null
+    if (event.tempSched) return renderTempSchedButtons()
+    if (event.fixed) return null
+
+    return renderOverrideButtons()
+  }
+
   /*
    * Renders an interactive tooltip when selecting
    * an event in the calendar that will show
@@ -68,55 +149,17 @@ export default function CalendarEventWrapper(props) {
    * well as the controls relevant to the event.
    */
   function renderShiftInfo() {
-    let overrideCtrls = null
-
-    if (DateTime.fromJSDate(event.end) > DateTime.utc()) {
-      overrideCtrls = (
-        <React.Fragment>
-          <Grid item className={classes.buttonContainer}>
-            <Button
-              className={classes.button}
-              data-cy='replace-override'
-              size='small'
-              onClick={() => handleShowOverrideForm('replace')}
-              variant='contained'
-              color='primary'
-              title={`Temporarily replace ${event.title} from this schedule`}
-            >
-              Replace
-            </Button>
-          </Grid>
-
-          <Grid item className={classes.flexGrow} />
-
-          <Grid item className={classes.buttonContainer}>
-            <Button
-              className={classes.button}
-              data-cy='remove-override'
-              size='small'
-              onClick={() => handleShowOverrideForm('remove')}
-              variant='contained'
-              color='primary'
-              title={`Temporarily remove ${event.title} from this schedule`}
-            >
-              Remove
-            </Button>
-          </Grid>
-        </React.Fragment>
-      )
-    }
-
-    const formatJSDate = (JSDate) =>
-      DateTime.fromJSDate(JSDate).toLocaleString(DateTime.DATETIME_FULL)
+    const fmt = (date) =>
+      DateTime.fromJSDate(date).toLocaleString(DateTime.DATETIME_FULL)
 
     return (
       <Grid container spacing={1}>
         <Grid item xs={12}>
           <Typography variant='body2'>
-            {`${formatJSDate(event.start)}  –  ${formatJSDate(event.end)}`}
+            {`${fmt(event.start)}  –  ${fmt(event.end)}`}
           </Typography>
         </Grid>
-        {overrideCtrls}
+        {renderButtons()}
       </Grid>
     )
   }
@@ -161,4 +204,6 @@ export default function CalendarEventWrapper(props) {
 CalendarEventWrapper.propTypes = {
   event: p.object.isRequired,
   onOverrideClick: p.func.isRequired,
+  onEditTempSched: p.func,
+  onDeleteTempSched: p.func,
 }

@@ -30,7 +30,6 @@ const query = gql`
     }
   }
 `
-
 const useStyles = makeStyles({
   tzNote: {
     display: 'flex',

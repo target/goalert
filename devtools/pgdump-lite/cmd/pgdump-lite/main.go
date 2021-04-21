@@ -32,6 +32,7 @@ func main() {
 	if err != nil {
 		log.Fatalln("ERROR: invalid db url:", err)
 	}
+	cfg.RuntimeParams["client_encoding"] = "UTF8"
 
 	conn, err := pgx.ConnectConfig(ctx, cfg)
 	if err != nil {

@@ -67,6 +67,12 @@ type CalcRotationHandoffTimesInput struct {
 	Count            int        `json:"count"`
 }
 
+type ClearTemporarySchedulesInput struct {
+	ScheduleID string    `json:"scheduleID"`
+	Start      time.Time `json:"start"`
+	End        time.Time `json:"end"`
+}
+
 type ConfigHint struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
@@ -328,6 +334,13 @@ type SetLabelInput struct {
 	Target *assignment.RawTarget `json:"target"`
 	Key    string                `json:"key"`
 	Value  string                `json:"value"`
+}
+
+type SetTemporaryScheduleInput struct {
+	ScheduleID string                `json:"scheduleID"`
+	Start      time.Time             `json:"start"`
+	End        time.Time             `json:"end"`
+	Shifts     []schedule.FixedShift `json:"shifts"`
 }
 
 type SlackChannelConnection struct {
