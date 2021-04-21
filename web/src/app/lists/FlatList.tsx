@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useLayoutEffect } from 'react'
 import List, { ListProps } from '@material-ui/core/List'
 import ListItem, { ListItemProps } from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -115,14 +115,18 @@ interface ScrollIntoViewListItemProps extends ListItemProps {
   scrollIntoView?: boolean
 }
 
-function ScrollIntoViewListItem(props: ScrollIntoViewListItemProps) {
+function ScrollIntoViewListItem(
+  props: ScrollIntoViewListItemProps,
+): JSX.Element {
   const { scrollIntoView, ...other } = props
-  const ref = React.useRef<HTMLElement>(null)
-  useEffect(() => {
+  const ref = React.useRef<HTMLLIElement>(null)
+  useLayoutEffect(() => {
     if (scrollIntoView) {
       ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }, [scrollIntoView])
+
+  // @ts-ignore complains due to ListItem not always rendering a list item.
   return <ListItem ref={ref} {...other} />
 }
 
