@@ -21,9 +21,6 @@ type Manager struct {
 	Receiver
 	mx *sync.RWMutex
 
-	shutdownCh chan struct{}
-	shutdownWg sync.WaitGroup
-
 	stubNotifiers bool
 }
 
@@ -32,9 +29,8 @@ var _ Sender = &Manager{}
 // NewManager initializes a new Manager.
 func NewManager() *Manager {
 	return &Manager{
-		mx:         new(sync.RWMutex),
-		shutdownCh: make(chan struct{}),
-		providers:  make(map[string]*namedSender),
+		mx:        new(sync.RWMutex),
+		providers: make(map[string]*namedSender),
 	}
 }
 
@@ -43,13 +39,6 @@ func NewManager() *Manager {
 // This causes all notifications to be marked as delivered, but not actually sent.
 func (mgr *Manager) SetStubNotifiers() {
 	mgr.stubNotifiers = true
-}
-
-// Shutdown will stop the manager, waiting for pending background operations to finish.
-func (mgr *Manager) Shutdown(context.Context) error {
-	close(mgr.shutdownCh)
-	mgr.shutdownWg.Wait()
-	return nil
 }
 
 // Status will return the current status of a message.
@@ -100,7 +89,6 @@ func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
 	n := &namedSender{name: name, Sender: s, destType: t}
 	mgr.providers[name] = n
 	mgr.searchOrder = append(mgr.searchOrder, n)
-	mgr.shutdownWg.Add(1)
 
 	if rs, ok := s.(ReceiverSetter); ok {
 		rs.SetReceiver(mgr)
