@@ -1,8 +1,13 @@
 import React, { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
-import { Button, Grid, makeStyles, Typography } from '@material-ui/core/index'
-import CalendarIcon from 'mdi-material-ui/Calendar'
+import Button from '@material-ui/core/Button'
+import Grid from '@material-ui/core/Grid'
+import Tooltip from '@material-ui/core/Tooltip'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import InfoIcon from '@material-ui/icons/Info'
+
 import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
@@ -54,38 +59,36 @@ export default function CalendarSubscribeButton(props) {
 
   return (
     <React.Fragment>
-      <Grid className={classes.container} container spacing={1}>
-        <Grid item xs={12}>
-          <Button
-            data-cy='subscribe-btn'
-            aria-label='Subscribe to this schedule'
-            color='primary'
-            disabled={creationDisabled}
-            onClick={() => setShowDialog(true)}
-            variant='contained'
-          >
-            <CalendarIcon className={classes.calIcon} />
-            Create Subscription
-          </Button>
-        </Grid>
-        <Grid item xs={12} className={classes.captionContainer}>
-          <Typography
-            data-cy='subscribe-btn-txt'
-            variant='caption'
-            color='textSecondary'
-          >
-            {caption}
-          </Typography>
-          <Typography variant='caption'>
-            <AppLink
-              data-cy='manage-subscriptions-link'
-              to='/profile/schedule-calendar-subscriptions'
-            >
-              Manage subscriptions
-            </AppLink>
-          </Typography>
-        </Grid>
-      </Grid>
+      <div className={classes.container}>
+        <Button
+          data-cy='subscribe-btn'
+          aria-label='Subscribe to this schedule'
+          color='primary'
+          disabled={creationDisabled}
+          onClick={() => setShowDialog(true)}
+          variant='outlined'
+        >
+          Create Subscription
+        </Button>
+        <Tooltip
+          title={
+            <Typography variant='caption'>
+              {caption}
+              <AppLink
+                data-cy='manage-subscriptions-link'
+                to='/profile/schedule-calendar-subscriptions'
+              >
+                Manage subscriptions
+              </AppLink>
+            </Typography>
+          }
+          placement='top'
+          interactive
+        >
+          <InfoIcon color='primary' />
+        </Tooltip>
+      </div>
+
       {showDialog && (
         <CalendarSubscribeCreateDialog
           onClose={() => setShowDialog(false)}
