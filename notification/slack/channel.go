@@ -108,7 +108,7 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	s.teamMx.Lock()
 	if s.teamID == "" || s.token != cfg.Slack.AccessToken {
 		// teamID missing or token changed
-		id, err := lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
+		id, err := s.lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
 		if err != nil {
 			s.teamMx.Unlock() // always unlock
 			return nil, err
@@ -334,4 +334,27 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		ProviderMessageID: resData.TS,
 		State:             notification.MessageStateDelivered,
 	}, nil
+}
+
+func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.url("/api/auth.test"), nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var body struct {
+		TeamID string `json:"team_id"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return "", err
+	}
+	return body.TeamID, nil
 }
