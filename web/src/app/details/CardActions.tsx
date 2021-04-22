@@ -21,11 +21,6 @@ export type Action = {
 const useStyles = makeStyles({
   cardActions: {
     alignItems: 'flex-end', // aligns icon buttons to bottom of container
-
-    // moves card actions to bottom if height is stretched
-    position: 'absolute',
-    bottom: '0',
-    width: '-webkit-fill-available',
   },
 })
 

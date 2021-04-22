@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react'
-import statusStyles from '../util/statusStyles'
 import { makeStyles } from '@material-ui/core/styles'
 import Avatar from '@material-ui/core/Avatar'
 import Card from '@material-ui/core/Card'
@@ -15,10 +14,11 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import IconButton from '@material-ui/core/IconButton'
 
 import Notices, { Notice } from './Notices'
+import CardActions, { Action } from './CardActions'
 import Markdown from '../util/Markdown'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
-import CardActions, { Action } from './CardActions'
+import statusStyles from '../util/statusStyles'
 
 interface DetailsPageProps {
   title: string
@@ -56,7 +56,9 @@ const useStyles = makeStyles((theme) => ({
   ...statusStyles,
   primaryCard: {
     height: '100%', // align with quick links if shorter in height
-    position: 'relative', // allows card actions to remain at bottom, if height is stretched
+  },
+  flexHeight: {
+    flexGrow: 1,
   },
   thumbnail: {
     height: theme.spacing(6.5),
@@ -91,85 +93,102 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       )}
 
       {/* Header card */}
-      <Grid item xs={12} container spacing={2}>
-        <Grid item xs={isDesktopMode(width) && p.links?.length ? 8 : 12}>
-          <Card className={classes.primaryCard}>
-            <CardHeader
-              title={p.title}
-              subheader={
-                p.markdown ? <Markdown value={p.details} /> : p.details
-              }
-              avatar={
-                <Avatar className={classes.thumbnail}>{p.thumbnail}</Avatar>
-              }
-              titleTypographyProps={{
-                variant: 'h5',
-                component: 'h2',
-              }}
-              subheaderTypographyProps={{
-                variant: 'body1',
-              }}
-            />
-
-            {p.headerContent && (
-              <CardContent className={classes.titleFooterContent}>
-                <Typography
-                  component='div'
-                  variant='subtitle1'
-                  color='textSecondary'
-                  data-cy='title-footer'
-                >
-                  {p.headerContent}
-                </Typography>
-              </CardContent>
-            )}
-
-            <CardActions
-              primaryActions={p.primaryActions}
-              secondaryActions={p.secondaryActions}
-            />
-          </Card>
-        </Grid>
-
-        {/* Quick Links */}
-        {p.links?.length && (
-          <Grid item xs={isDesktopMode(width) && p.links?.length ? 4 : 12}>
-            <Card>
+      <Grid item xs={12} lg={isDesktopMode(width) && p.links?.length ? 8 : 12}>
+        <Card className={classes.primaryCard}>
+          <Grid
+            className={classes.primaryCard}
+            item
+            xs
+            container
+            direction='column'
+          >
+            <Grid item>
               <CardHeader
-                title='Quick Links'
+                title={p.title}
+                subheader={
+                  p.markdown ? <Markdown value={p.details} /> : p.details
+                }
+                avatar={
+                  <Avatar className={classes.thumbnail}>{p.thumbnail}</Avatar>
+                }
                 titleTypographyProps={{
                   variant: 'h5',
                   component: 'h2',
                 }}
+                subheaderTypographyProps={{
+                  variant: 'body1',
+                }}
               />
-              <List data-cy='route-links' className={classes.quickLinks}>
-                {p.links.map((li, idx) => (
-                  <ListItem
-                    key={idx}
-                    className={linkClassName(li.status)}
-                    component={AppLink}
-                    to={li.url}
-                    button
+            </Grid>
+
+            <Grid item>
+              {p.headerContent && (
+                <CardContent className={classes.titleFooterContent}>
+                  <Typography
+                    component='div'
+                    variant='subtitle1'
+                    color='textSecondary'
+                    data-cy='title-footer'
                   >
-                    <ListItemText
-                      primary={li.label}
-                      primaryTypographyProps={
-                        isDesktopMode(width) ? undefined : { variant: 'h5' }
-                      }
-                      secondary={li.subText}
-                    />
-                    <ListItemSecondaryAction>
-                      <IconButton component={AppLink} to={li.url}>
-                        <ChevronRight />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            </Card>
+                    {p.headerContent}
+                  </Typography>
+                </CardContent>
+              )}
+            </Grid>
+
+            <Grid className={classes.flexHeight} item />
+            <Grid item>
+              <CardActions
+                primaryActions={p.primaryActions}
+                secondaryActions={p.secondaryActions}
+              />
+            </Grid>
           </Grid>
-        )}
+        </Card>
       </Grid>
+
+      {/* Quick Links */}
+      {p.links?.length && (
+        <Grid
+          item
+          xs={12}
+          lg={isDesktopMode(width) && p.links?.length ? 4 : 12}
+        >
+          <Card>
+            <CardHeader
+              title='Quick Links'
+              titleTypographyProps={{
+                variant: 'h5',
+                component: 'h2',
+              }}
+            />
+            <List data-cy='route-links' className={classes.quickLinks}>
+              {p.links.map((li, idx) => (
+                <ListItem
+                  key={idx}
+                  className={linkClassName(li.status)}
+                  component={AppLink}
+                  to={li.url}
+                  button
+                >
+                  <ListItemText
+                    primary={li.label}
+                    primaryTypographyProps={
+                      isDesktopMode(width) ? undefined : { variant: 'h5' }
+                    }
+                    secondary={li.subText}
+                  />
+                  <ListItemSecondaryAction>
+                    <IconButton component={AppLink} to={li.url}>
+                      <ChevronRight />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
+            </List>
+          </Card>
+        </Grid>
+      )}
 
       {/* Primary Content */}
       {p.primaryContent && (

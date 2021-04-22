@@ -2,17 +2,13 @@ import React, { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
-import Grid from '@material-ui/core/Grid'
 import Tooltip from '@material-ui/core/Tooltip'
-import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
-import InfoIcon from '@material-ui/icons/Info'
 
 import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash'
-import AppLink from '../../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({
   container: {
