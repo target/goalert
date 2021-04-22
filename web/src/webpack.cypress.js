@@ -22,6 +22,7 @@ module.exports = {
   // Loaders for processing different file types
   module: {
     rules: [
+      { test: /lodash/, loader: 'strict-loader' },
       {
         test: /\.json$/,
         loader: 'json-loader',
