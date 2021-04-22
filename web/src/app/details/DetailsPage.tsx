@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react'
 import statusStyles from '../util/statusStyles'
 import { makeStyles } from '@material-ui/core/styles'
+import Avatar from '@material-ui/core/Avatar'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
@@ -51,11 +52,15 @@ function isDesktopMode(width: string): boolean {
   return width === 'md' || width === 'lg' || width === 'xl'
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   ...statusStyles,
   primaryCard: {
     height: '100%', // align with quick links if shorter in height
     position: 'relative', // allows card actions to remain at bottom, if height is stretched
+  },
+  thumbnail: {
+    height: theme.spacing(6.5),
+    width: theme.spacing(6.5),
   },
   titleFooterContent: {
     paddingTop: 0,
@@ -91,7 +96,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
               subheader={
                 p.markdown ? <Markdown value={p.details} /> : p.details
               }
-              avatar={p.thumbnail}
+              avatar={
+                <Avatar className={classes.thumbnail}>{p.thumbnail}</Avatar>
+              }
               titleTypographyProps={{
                 variant: 'h5',
                 component: 'h2',
