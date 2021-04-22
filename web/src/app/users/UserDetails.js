@@ -186,10 +186,15 @@ export default function UserDetails(props) {
         noMarkdown
         avatar={<UserAvatar userID={props.userID} />}
         links={links}
-        headerContent={
-          props.readOnly ? null : (
-            <StatusUpdateNotification userID={props.userID} />
-          )
+        primaryActions={
+          props.readOnly
+            ? undefined
+            : [
+                <StatusUpdateNotification
+                  key='primary-action-status-updates'
+                  userID={props.userID}
+                />,
+              ]
         }
         primaryContent={
           <Grid container spacing={2}>
