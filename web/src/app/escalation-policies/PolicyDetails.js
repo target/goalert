@@ -3,10 +3,9 @@ import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
+import { Edit, Delete } from '@material-ui/icons'
 
-import PageActions from '../util/PageActions'
 import PolicyStepsQuery from './PolicyStepsQuery'
-import OtherActions from '../util/OtherActions'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
@@ -15,6 +14,7 @@ import PolicyEditDialog from './PolicyEditDialog'
 import { useResetURLParams, useURLParam } from '../actions'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
+import { EPAvatar } from '../util/avatars'
 
 const query = gql`
   query($id: ID!) {
@@ -61,23 +61,10 @@ export default function PolicyDetails(props) {
 
   return (
     <React.Fragment>
-      <PageActions>
-        <OtherActions
-          actions={[
-            {
-              label: 'Edit Escalation Policy',
-              onClick: () => setShowEditDialog(true),
-            },
-            {
-              label: 'Delete Escalation Policy',
-              onClick: () => setShowDeleteDialog(true),
-            },
-          ]}
-        />
-      </PageActions>
       <DetailsPage
         title={data.name}
         details={data.description}
+        avatar={<EPAvatar />}
         notices={data.notices}
         links={[
           {
@@ -87,6 +74,18 @@ export default function PolicyDetails(props) {
           },
         ]}
         primaryContent={<PolicyStepsQuery escalationPolicyID={data.id} />}
+        secondaryActions={[
+          {
+            label: 'Edit',
+            icon: <Edit />,
+            handleOnClick: () => setShowEditDialog(true),
+          },
+          {
+            label: 'Delete',
+            icon: <Delete />,
+            handleOnClick: () => setShowDeleteDialog(true),
+          },
+        ]}
       />
       <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       {createStep && (

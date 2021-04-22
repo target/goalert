@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
 import _ from 'lodash'
+import { Redirect } from 'react-router-dom'
+import { Edit, Delete } from '@material-ui/icons'
 
-import PageActions from '../util/PageActions'
-import OtherActions from '../util/OtherActions'
 import CreateFAB from '../lists/CreateFAB'
 import { handoffSummary } from './util'
 import DetailsPage from '../details/DetailsPage'
@@ -13,10 +13,9 @@ import RotationDeleteDialog from './RotationDeleteDialog'
 import RotationUserList from './RotationUserList'
 import RotationAddUserDialog from './RotationAddUserDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
-import { Redirect } from 'react-router-dom'
-
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
+import { RotationAvatar } from '../util/avatars'
 
 const query = gql`
   fragment RotationTitleQuery on Rotation {
@@ -79,20 +78,28 @@ export default function RotationDetails({ rotationID }) {
           onClose={() => setShowDelete(false)}
         />
       )}
-      <PageActions>
-        <QuerySetFavoriteButton rotationID={rotationID} />
-        <OtherActions
-          actions={[
-            { label: 'Edit Rotation', onClick: () => setShowEdit(true) },
-            { label: 'Delete Rotation', onClick: () => setShowDelete(true) },
-          ]}
-        />
-      </PageActions>
       <DetailsPage
         title={data.name}
         details={data.description}
+        avatar={<RotationAvatar />}
         headerContent={handoffSummary(data)}
         primaryContent={<RotationUserList rotationID={rotationID} />}
+        secondaryActions={[
+          {
+            label: 'Edit',
+            icon: <Edit />,
+            handleOnClick: () => setShowEdit(true),
+          },
+          {
+            label: 'Delete',
+            icon: <Delete />,
+            handleOnClick: () => setShowDelete(true),
+          },
+          <QuerySetFavoriteButton
+            key='secondary-action-favorite'
+            rotationID={rotationID}
+          />,
+        ]}
       />
     </React.Fragment>
   )

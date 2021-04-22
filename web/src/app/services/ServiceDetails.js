@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-
+import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
+import { Edit, Delete } from '@material-ui/icons'
 
-import PageActions from '../util/PageActions'
-import OtherActions from '../util/OtherActions'
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
@@ -15,6 +13,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
+import { ServiceAvatar } from '../util/avatars'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -87,24 +86,10 @@ export default function ServiceDetails({ serviceID }) {
 
   return (
     <React.Fragment>
-      <PageActions>
-        <QuerySetFavoriteButton serviceID={serviceID} />
-        <OtherActions
-          actions={[
-            {
-              label: 'Edit Service',
-              onClick: () => setShowEdit(true),
-            },
-            {
-              label: 'Delete Service',
-              onClick: () => setShowDelete(true),
-            },
-          ]}
-        />
-      </PageActions>
       <DetailsPage
         title={data.service.name}
         details={data.service.description}
+        avatar={<ServiceAvatar />}
         headerContent={
           <div>
             Escalation Policy:{' '}
@@ -117,6 +102,22 @@ export default function ServiceDetails({ serviceID }) {
             )}
           </div>
         }
+        secondaryActions={[
+          {
+            label: 'Edit',
+            icon: <Edit />,
+            handleOnClick: () => setShowEdit(true),
+          },
+          {
+            label: 'Delete',
+            icon: <Delete />,
+            handleOnClick: () => setShowDelete(true),
+          },
+          <QuerySetFavoriteButton
+            key='secondary-action-favorite'
+            serviceID={serviceID}
+          />,
+        ]}
         links={[
           {
             label: 'Alerts',

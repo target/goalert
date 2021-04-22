@@ -11,14 +11,11 @@ import UserNotificationRuleList from './UserNotificationRuleList'
 import { Grid } from '@material-ui/core'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles } from '@material-ui/core/styles'
 import UserContactMethodVerificationDialog from './UserContactMethodVerificationDialog'
 import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
-import AppLink from '../util/AppLink'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -69,19 +66,6 @@ const profileQuery = gql`
   }
 `
 
-const useStyles = makeStyles({
-  gravatarText: {
-    textAlign: 'center',
-    paddingTop: '0.5em',
-    display: 'block',
-  },
-  profileImage: {
-    width: 128,
-    height: 128,
-    margin: 'auto',
-  },
-})
-
 function serviceCount(onCallSteps = []) {
   const svcs = {}
   ;(onCallSteps || []).forEach((s) =>
@@ -94,8 +78,6 @@ function serviceCount(onCallSteps = []) {
 }
 
 export default function UserDetails(props) {
-  const classes = useStyles()
-
   const {
     userID: currentUserID,
     isAdmin,
@@ -202,20 +184,7 @@ export default function UserDetails(props) {
         title={user.name + (svcCount ? ' (On-Call)' : '')}
         details={user.email}
         noMarkdown
-        thumbnail={
-          <React.Fragment>
-            <UserAvatar
-              userID={props.userID}
-              className={classes.profileImage}
-            />
-            <Typography variant='caption' className={classes.gravatarText}>
-              Provided by{' '}
-              <AppLink to='https://gravatar.com' newTab>
-                Gravatar
-              </AppLink>
-            </Typography>
-          </React.Fragment>
-        }
+        avatar={<UserAvatar userID={props.userID} />}
         links={links}
         headerContent={
           props.readOnly ? null : (

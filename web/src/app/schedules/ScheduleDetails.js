@@ -3,7 +3,7 @@ import p from 'prop-types'
 import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
-import { Edit, Delete, Today as SchedulesIcon } from '@material-ui/icons'
+import { Edit, Delete } from '@material-ui/icons'
 
 import DetailsPage from '../details/DetailsPage'
 import ScheduleEditDialog from './ScheduleEditDialog'
@@ -15,6 +15,7 @@ import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
+import { ScheduleAvatar } from '../util/avatars'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -85,7 +86,7 @@ export default function ScheduleDetails({ scheduleID }) {
       <DetailsPage
         title={data.name}
         details={data.description}
-        thumbnail={<SchedulesIcon color='primary' />}
+        avatar={<ScheduleAvatar />}
         headerContent={`Time Zone: ${data.timeZone || 'Loading...'}`}
         primaryActions={[
           <CalendarSubscribeButton
