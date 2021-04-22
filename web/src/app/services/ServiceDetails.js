@@ -105,7 +105,7 @@ export default function ServiceDetails({ serviceID }) {
       <DetailsPage
         title={data.service.name}
         details={data.service.description}
-        titleFooter={
+        headerContent={
           <div>
             Escalation Policy:{' '}
             {_.get(data, 'service.ep') ? (
@@ -131,7 +131,7 @@ export default function ServiceDetails({ serviceID }) {
           { label: 'Integration Keys', url: 'integration-keys' },
           { label: 'Labels', url: 'labels' },
         ]}
-        pageFooter={<ServiceOnCallList serviceID={serviceID} />}
+        primaryContent={<ServiceOnCallList serviceID={serviceID} />}
       />
       {showEdit && (
         <ServiceEditDialog

@@ -29,8 +29,8 @@ interface DetailsPageProps {
   notices?: Array<Notice>
   links?: Array<Link>
 
-  titleFooter?: string | JSX.Element
-  pageFooter?: JSX.Element
+  headerContent?: string | JSX.Element
+  primaryContent?: JSX.Element
 
   primaryActions?: Array<Action | JSX.Element>
   secondaryActions?: Array<Action | JSX.Element>
@@ -82,7 +82,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
         </Grid>
       )}
 
-      {/* Primary card */}
+      {/* Header card */}
       <Grid item xs={12} container spacing={2}>
         <Grid item xs={isDesktopMode(width) && p.links?.length ? 8 : 12}>
           <Card className={classes.primaryCard}>
@@ -101,7 +101,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
               }}
             />
 
-            {p.titleFooter && (
+            {p.headerContent && (
               <CardContent className={classes.titleFooterContent}>
                 <Typography
                   component='div'
@@ -109,7 +109,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                   color='textSecondary'
                   data-cy='title-footer'
                 >
-                  {p.titleFooter}
+                  {p.headerContent}
                 </Typography>
               </CardContent>
             )}
@@ -155,10 +155,10 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
         </Grid>
       </Grid>
 
-      {/* Footer node */}
-      {p.pageFooter && (
+      {/* Primary Content */}
+      {p.primaryContent && (
         <Grid item xs={12}>
-          {p.pageFooter}
+          {p.primaryContent}
         </Grid>
       )}
     </Grid>

@@ -214,12 +214,12 @@ export default function UserDetails(props) {
           </React.Fragment>
         }
         links={links}
-        titleFooter={
+        headerContent={
           props.readOnly ? null : (
             <StatusUpdateNotification userID={props.userID} />
           )
         }
-        pageFooter={
+        primaryContent={
           <Grid container spacing={2}>
             <UserContactMethodList
               userID={props.userID}

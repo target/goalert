@@ -133,7 +133,7 @@ export default function ScheduleDetails({ scheduleID }) {
             <SchedulesIcon color='primary' />
           </Avatar>
         }
-        titleFooter={`Time Zone: ${data.timeZone || 'Loading...'}`}
+        headerContent={`Time Zone: ${data.timeZone || 'Loading...'}`}
         primaryActions={[
           <CalendarSubscribeButton
             key='primary-action-subscribe'
@@ -166,7 +166,7 @@ export default function ScheduleDetails({ scheduleID }) {
           },
           { label: 'Shifts', url: 'shifts' },
         ]}
-        pageFooter={
+        primaryContent={
           <ScheduleCalendarQuery
             scheduleID={scheduleID}
             onNewTempSched={onNewTempSched}

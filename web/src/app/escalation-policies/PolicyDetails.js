@@ -85,7 +85,7 @@ export default function PolicyDetails(props) {
             url: 'services',
           },
         ]}
-        pageFooter={<PolicyStepsQuery escalationPolicyID={data.id} />}
+        primaryContent={<PolicyStepsQuery escalationPolicyID={data.id} />}
       />
       <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       {createStep && (

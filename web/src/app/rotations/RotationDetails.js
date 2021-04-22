@@ -91,8 +91,8 @@ export default function RotationDetails({ rotationID }) {
       <DetailsPage
         title={data.name}
         details={data.description}
-        titleFooter={handoffSummary(data)}
-        pageFooter={<RotationUserList rotationID={rotationID} />}
+        headerContent={handoffSummary(data)}
+        primaryContent={<RotationUserList rotationID={rotationID} />}
       />
     </React.Fragment>
   )
