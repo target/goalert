@@ -52,6 +52,7 @@ func (app *App) _Run(ctx context.Context) error {
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return errors.Wrap(err, "serve HTTP")
 	}
+	app.hSrv.Resume()
 
 	select {
 	case <-eventDoneCh:

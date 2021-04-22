@@ -84,7 +84,7 @@ require (
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	golang.org/x/tools v0.1.0
 	google.golang.org/api v0.42.0 // indirect
-	google.golang.org/grpc v1.36.0 // indirect
+	google.golang.org/grpc v1.37.0 // indirect
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df

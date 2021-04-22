@@ -43,6 +43,7 @@ import (
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
 )
 
 // App represents an instance of the GoAlert application.
@@ -60,6 +61,7 @@ type App struct {
 
 	sysAPIL   net.Listener
 	sysAPISrv *grpc.Server
+	hSrv      *health.Server
 
 	srv         *http.Server
 	requestLock *contextLocker

@@ -8,6 +8,9 @@ import (
 	"github.com/target/goalert/sysapi/sysapiapp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 )
 
 func (app *App) initSysAPI(ctx context.Context) error {
@@ -30,10 +33,12 @@ func (app *App) initSysAPI(ctx context.Context) error {
 	}
 
 	srv := grpc.NewServer(opts...)
+	reflection.Register(srv)
 	sysapi.RegisterSysAPIServer(srv, &sysapiapp.Server{UserStore: app.UserStore})
+	app.hSrv = health.NewServer()
+	grpc_health_v1.RegisterHealthServer(srv, app.hSrv)
 
 	app.sysAPISrv = srv
 	app.sysAPIL = lis
-
 	return nil
 }
