@@ -110,14 +110,26 @@ export default function ScheduleDetails({ scheduleID }) {
           />,
         ]}
         links={[
-          { label: 'Assignments', url: 'assignments' },
-          { label: 'Escalation Policies', url: 'escalation-policies' },
+          {
+            label: 'Assignments',
+            url: 'assignments',
+            subText: 'Rotations and users linked to this schedule',
+          },
+          {
+            label: 'Escalation Policies',
+            url: 'escalation-policies',
+            subText: 'Escalation policies this schedule is linked to',
+          },
           {
             label: 'Overrides',
             url: 'overrides',
             subText: 'Temporary changes made to this schedule',
           },
-          { label: 'Shifts', url: 'shifts' },
+          {
+            label: 'Shifts',
+            url: 'shifts',
+            subText: 'A list view of all shifts for this schedule',
+          },
         ]}
         primaryContent={
           <ScheduleCalendarQuery

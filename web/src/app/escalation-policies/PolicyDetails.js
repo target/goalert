@@ -83,6 +83,7 @@ export default function PolicyDetails(props) {
           {
             label: 'Services',
             url: 'services',
+            subText: 'Services this escalation policiy is linked to',
           },
         ]}
         primaryContent={<PolicyStepsQuery escalationPolicyID={data.id} />}

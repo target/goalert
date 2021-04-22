@@ -140,6 +140,7 @@ export default function UserDetails(props) {
     links.push({
       label: 'Schedule Calendar Subscriptions',
       url: 'schedule-calendar-subscriptions',
+      subText: 'Schedules you have opted to externally subscribe to',
     })
   }
 
@@ -147,7 +148,9 @@ export default function UserDetails(props) {
     links.push({
       label: 'Active Sessions',
       url: 'sessions',
-      subText: `${sessCount} active session${sessCount === 1 ? '' : 's'}`,
+      subText: `${sessCount || 'No'} active session${
+        sessCount === 1 ? '' : 's'
+      }`,
     })
   }
 
