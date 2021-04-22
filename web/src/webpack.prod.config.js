@@ -24,6 +24,7 @@ module.exports = (env) => ({
   },
   module: {
     rules: [
+      { test: /lodash/, loader: 'strict-loader' },
       {
         test: /\.(t|j)sx?$/,
         use: [
