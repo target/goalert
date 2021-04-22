@@ -47,7 +47,7 @@ export default function CalendarSubscribeButton(props) {
   ).length
 
   let caption =
-    'Subscribe to your shifts on this calendar from your preferred calendar app'
+    'Subscribe to your personal shifts from your preferred external calendar app'
   if (!error && numSubs > 0) {
     caption = `You have ${numSubs} active subscription${
       numSubs > 1 ? 's' : ''
@@ -60,32 +60,17 @@ export default function CalendarSubscribeButton(props) {
   return (
     <React.Fragment>
       <div className={classes.container}>
-        <Button
-          data-cy='subscribe-btn'
-          aria-label='Subscribe to this schedule'
-          color='primary'
-          disabled={creationDisabled}
-          onClick={() => setShowDialog(true)}
-          variant='outlined'
-        >
-          Create Subscription
-        </Button>
-        <Tooltip
-          title={
-            <Typography variant='caption'>
-              {caption}
-              <AppLink
-                data-cy='manage-subscriptions-link'
-                to='/profile/schedule-calendar-subscriptions'
-              >
-                Manage subscriptions
-              </AppLink>
-            </Typography>
-          }
-          placement='top'
-          interactive
-        >
-          <InfoIcon color='primary' />
+        <Tooltip title={caption} placement='top-start' interactive>
+          <Button
+            data-cy='subscribe-btn'
+            aria-label='Subscribe to this schedule'
+            color='primary'
+            disabled={creationDisabled}
+            onClick={() => setShowDialog(true)}
+            variant='contained'
+          >
+            Subscribe
+          </Button>
         </Tooltip>
       </div>
 
