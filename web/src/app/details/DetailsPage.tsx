@@ -29,7 +29,7 @@ interface DetailsPageProps {
   notices?: Array<Notice>
   links?: Array<Link>
 
-  titleFooter?: JSX.Element
+  titleFooter?: string | JSX.Element
   pageFooter?: JSX.Element
 
   primaryActions?: Array<Action | JSX.Element>
@@ -73,6 +73,8 @@ const useStyles = makeStyles({
     position: 'absolute',
     bottom: '0',
     width: '-webkit-fill-available',
+  titleFooterContent: {
+    paddingTop: 0,
   },
 })
 
@@ -141,13 +143,21 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 p.markdown ? <Markdown value={p.details} /> : p.details
               }
               avatar={p.thumbnail}
+              titleTypographyProps={{
+                variant: 'h5',
+                component: 'h2',
+              }}
+              subheaderTypographyProps={{
+                variant: 'body1',
+              }}
             />
 
             {p.titleFooter && (
-              <CardContent>
+              <CardContent className={classes.titleFooterContent}>
                 <Typography
                   component='div'
                   variant='subtitle1'
+                  color='textSecondary'
                   data-cy='title-footer'
                 >
                   {p.titleFooter}
