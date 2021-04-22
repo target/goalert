@@ -78,7 +78,7 @@ func mapError(ctx context.Context, err error) error {
 	case "channel_not_found":
 		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
 	case "invalid_auth", "account_inactive", "token_revoked", "not_authed":
-		log.Log(ctx, fmt.Errorf("unable to authenticate to Slack: %v", apiError.msg))
+		log.Log(ctx, err)
 		return validation.NewFieldError("ChannelID", "Permission Denied.")
 	}
 
