@@ -1,6 +1,5 @@
-import React, { ReactNode } from 'react'
+import React, { cloneElement, ReactNode } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import Avatar from '@material-ui/core/Avatar'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
@@ -25,7 +24,7 @@ interface DetailsPageProps {
 
   // content options
   details?: ReactNode
-  thumbnail?: ReactNode // placement for an icon or image
+  avatar?: JSX.Element // placement for an icon or image
 
   notices?: Array<Notice>
   links?: Array<Link>
@@ -52,17 +51,13 @@ function isDesktopMode(width: string): boolean {
   return width === 'md' || width === 'lg' || width === 'xl'
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
   ...statusStyles,
-  primaryCard: {
-    height: '100%', // align with quick links if shorter in height
+  headerCard: {
+    height: '100%', // align height of header cards together
   },
   flexHeight: {
     flexGrow: 1,
-  },
-  thumbnail: {
-    height: theme.spacing(6.5),
-    width: theme.spacing(6.5),
   },
   titleFooterContent: {
     paddingTop: 0,
@@ -70,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
   quickLinks: {
     paddingBottom: 8,
   },
-}))
+})
 
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
@@ -81,6 +76,13 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
     if (status === 'warn') return classes.statusWarning
     if (status === 'err') return classes.statusError
     return classes.noStatus
+  }
+
+  const avatar = (): JSX.Element | undefined => {
+    if (!p.avatar) return undefined
+    return cloneElement(p.avatar, {
+      style: { width: 56, height: 56 },
+    })
   }
 
   return (
@@ -94,9 +96,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
 
       {/* Header card */}
       <Grid item xs={12} lg={isDesktopMode(width) && p.links?.length ? 8 : 12}>
-        <Card className={classes.primaryCard}>
+        <Card className={classes.headerCard}>
           <Grid
-            className={classes.primaryCard}
+            className={classes.headerCard}
             item
             xs
             container
@@ -108,9 +110,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 subheader={
                   p.markdown ? <Markdown value={p.details} /> : p.details
                 }
-                avatar={
-                  <Avatar className={classes.thumbnail}>{p.thumbnail}</Avatar>
-                }
+                avatar={avatar()}
                 titleTypographyProps={{
                   variant: 'h5',
                   component: 'h2',
@@ -154,7 +154,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
           xs={12}
           lg={isDesktopMode(width) && p.links?.length ? 4 : 12}
         >
-          <Card>
+          <Card className={classes.headerCard}>
             <CardHeader
               title='Quick Links'
               titleTypographyProps={{
@@ -162,7 +162,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 component: 'h2',
               }}
             />
-            <List data-cy='route-links' className={classes.quickLinks}>
+            <List data-cy='route-links' className={classes.quickLinks} dense>
               {p.links.map((li, idx) => (
                 <ListItem
                   key={idx}
