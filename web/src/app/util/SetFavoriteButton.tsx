@@ -1,8 +1,9 @@
 import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
-import FavoriteFilledIcon from '@material-ui/icons/Star'
-import FavoriteBorderIcon from '@material-ui/icons/StarBorder'
+import FavoriteIcon from '@material-ui/icons/Favorite'
+import NotFavoriteIcon from '@material-ui/icons/FavoriteBorder'
 import Tooltip from '@material-ui/core/Tooltip'
+import { makeStyles } from '@material-ui/core/styles'
 
 interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule'
@@ -11,17 +12,28 @@ interface SetFavoriteButtonProps {
   onClick: (event: React.FormEvent<HTMLFormElement>) => void
 }
 
+const useStyles = makeStyles({
+  favorited: {
+    color: 'rgb(205, 24, 49)',
+  },
+  notFavorited: {
+    color: 'inherit',
+  },
+})
+
 export function SetFavoriteButton({
   typeName,
   isFavorite,
   loading,
   onClick,
 }: SetFavoriteButtonProps): JSX.Element | null {
+  const classes = useStyles()
+
   if (loading) {
     return null
   }
 
-  const icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
+  const icon = isFavorite ? <FavoriteIcon /> : <NotFavoriteIcon />
 
   const content = (
     <form
@@ -31,13 +43,13 @@ export function SetFavoriteButton({
       }}
     >
       <IconButton
+        className={isFavorite ? classes.favorited : classes.notFavorited}
         aria-label={
           isFavorite
             ? `Unset as a Favorite ${typeName}`
             : `Set as a Favorite ${typeName}`
         }
         type='submit'
-        color='inherit'
         data-cy='set-fav'
       >
         {icon}
