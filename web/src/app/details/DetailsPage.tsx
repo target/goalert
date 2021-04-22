@@ -24,7 +24,7 @@ interface DetailsPageProps {
 
   // content options
   details?: ReactNode
-  thumbnail?: ReactNode // placement for an avatar, logo, or icon
+  thumbnail?: ReactNode // placement for an icon or image
 
   notices?: Array<Notice>
   links?: Array<Link>
