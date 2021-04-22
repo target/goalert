@@ -45,20 +45,9 @@ export function SetFavoriteButton({
     </form>
   )
 
-  switch (typeName) {
-    case 'service':
-      return (
-        <Tooltip
-          title={
-            isFavorite
-              ? 'Unfavorite this service to stop seeing its alerts on your homepage'
-              : 'Favorite this service to always see its alerts on your homepage'
-          }
-        >
-          {content}
-        </Tooltip>
-      )
-    default:
-      return content
-  }
+  return (
+    <Tooltip title={isFavorite ? 'Unfavorite' : 'Favorite'} placement='top'>
+      {content}
+    </Tooltip>
+  )
 }
