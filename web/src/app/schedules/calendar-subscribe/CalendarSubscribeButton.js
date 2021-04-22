@@ -10,6 +10,9 @@ import _ from 'lodash'
 import AppLink from '../../util/AppLink'
 
 const useStyles = makeStyles((theme) => ({
+  container: {
+    padding: 8,
+  },
   calIcon: {
     marginRight: theme.spacing(1),
   },
@@ -51,7 +54,7 @@ export default function CalendarSubscribeButton(props) {
 
   return (
     <React.Fragment>
-      <Grid container spacing={1}>
+      <Grid className={classes.container} container spacing={1}>
         <Grid item xs={12}>
           <Button
             data-cy='subscribe-btn'
