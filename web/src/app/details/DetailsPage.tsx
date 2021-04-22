@@ -122,10 +122,10 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
         </Grid>
 
         {/* Quick Links */}
-        <Grid item xs={isDesktopMode(width) && p.links?.length ? 4 : 12}>
-          <Card>
-            <CardHeader title='Quick Links' />
-            {p.links?.length && (
+        {p.links?.length && (
+          <Grid item xs={isDesktopMode(width) && p.links?.length ? 4 : 12}>
+            <Card>
+              <CardHeader title='Quick Links' />
               <List data-cy='route-links'>
                 {p.links.map((li, idx) => (
                   <ListItem
@@ -150,9 +150,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                   </ListItem>
                 ))}
               </List>
-            )}
-          </Card>
-        </Grid>
+            </Card>
+          </Grid>
+        )}
       </Grid>
 
       {/* Primary Content */}
