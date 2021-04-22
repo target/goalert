@@ -65,7 +65,10 @@ const useStyles = makeStyles((theme) => ({
   titleFooterContent: {
     paddingTop: 0,
   },
-})
+  quickLinks: {
+    paddingBottom: 8,
+  },
+}))
 
 export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   const classes = useStyles()
@@ -132,8 +135,14 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
         {p.links?.length && (
           <Grid item xs={isDesktopMode(width) && p.links?.length ? 4 : 12}>
             <Card>
-              <CardHeader title='Quick Links' />
-              <List data-cy='route-links'>
+              <CardHeader
+                title='Quick Links'
+                titleTypographyProps={{
+                  variant: 'h5',
+                  component: 'h2',
+                }}
+              />
+              <List data-cy='route-links' className={classes.quickLinks}>
                 {p.links.map((li, idx) => (
                   <ListItem
                     key={idx}
