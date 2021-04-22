@@ -1,20 +1,27 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import { useSelector } from 'react-redux'
-import {
-  Button,
-  ButtonGroup,
-  Grid,
-  makeStyles,
-  Typography,
-} from '@material-ui/core'
-import { DateTime } from 'luxon'
-import { urlParamSelector } from '../selectors'
+import Button from '@material-ui/core/Button'
+import ButtonGroup from '@material-ui/core/ButtonGroup'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Grid from '@material-ui/core/Grid'
+import Switch from '@material-ui/core/Switch'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
 import GroupAdd from '@material-ui/icons/GroupAdd'
 
+import { DateTime } from 'luxon'
+import { useURLParam, useResetURLParams } from '../actions'
+import { urlParamSelector } from '../selectors'
+import FilterContainer from '../util/FilterContainer'
+import { UserSelect } from '../selection'
+
 const useStyles = makeStyles((theme) => ({
+  filterBtn: {
+    marginRight: 14,
+  },
   tempSchedBtn: {
-    marginLeft: theme.spacing(1),
+    marginLeft: 14,
   },
   container: {
     paddingBottom: '1em',
@@ -51,6 +58,16 @@ export default function CalendarToolbar(props) {
   const urlParams = useSelector(urlParamSelector)
   const weekly = urlParams('weekly', false)
 
+  const [userFilter, setUserFilter] = useURLParam('userFilter', [])
+  const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
+  const resetFilter = useResetURLParams(
+    'userFilter',
+    'start',
+    'activeOnly',
+    'tz',
+    'duration',
+  )
+
   const handleTodayClick = (e) => {
     props.onNavigate(e, DateTime.local().toJSDate())
   }
@@ -80,6 +97,31 @@ export default function CalendarToolbar(props) {
   return (
     <Grid container spacing={2} className={classes.container}>
       <Grid item xs={12} lg={4} className={classes.primaryNavBtnGroup}>
+        <FilterContainer
+          onReset={resetFilter}
+          iconButtonProps={{ size: 'small', className: classes.filterBtn }}
+        >
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={activeOnly}
+                  onChange={(e) => setActiveOnly(e.target.checked)}
+                  value='activeOnly'
+                />
+              }
+              label='Active shifts only'
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <UserSelect
+              label='Filter users...'
+              multiple
+              value={userFilter}
+              onChange={setUserFilter}
+            />
+          </Grid>
+        </FilterContainer>
         <ButtonGroup color='primary' aria-label='Calendar Navigation'>
           <Button data-cy='show-today' onClick={handleTodayClick}>
             Today

@@ -1,29 +1,20 @@
 import React, { useState, useCallback } from 'react'
-import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-
+import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
-import FormControlLabel from '@material-ui/core/FormControlLabel'
-import Grid from '@material-ui/core/Grid'
-import Switch from '@material-ui/core/Switch'
 import _ from 'lodash'
+import { Edit, Delete, Today as SchedulesIcon } from '@material-ui/icons'
 
 import DetailsPage from '../details/DetailsPage'
-import { UserSelect } from '../selection'
-import FilterContainer from '../util/FilterContainer'
-import PageActions from '../util/PageActions'
 import ScheduleEditDialog from './ScheduleEditDialog'
 import ScheduleDeleteDialog from './ScheduleDeleteDialog'
 import ScheduleCalendarQuery from './ScheduleCalendarQuery'
-import { useURLParam, useResetURLParams } from '../actions'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import Spinner from '../loading/components/Spinner'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
 import TempSchedDeleteConfirmation from './temp-sched/TempSchedDeleteConfirmation'
-import { Edit, Delete, Today as SchedulesIcon } from '@material-ui/icons'
-import { Avatar } from '@material-ui/core'
 
 const query = gql`
   fragment ScheduleTitleQuery on Schedule {
@@ -40,8 +31,6 @@ const query = gql`
 `
 
 export default function ScheduleDetails({ scheduleID }) {
-  const [userFilter, setUserFilter] = useURLParam('userFilter', [])
-  const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [configTempSchedule, setConfigTempSchedule] = useState(null)
@@ -50,14 +39,6 @@ export default function ScheduleDetails({ scheduleID }) {
   const onNewTempSched = useCallback(() => setConfigTempSchedule(true), [])
   const onEditTempSched = useCallback(setConfigTempSchedule, [])
   const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
-
-  const resetFilter = useResetURLParams(
-    'userFilter',
-    'start',
-    'activeOnly',
-    'tz',
-    'duration',
-  )
 
   const { data: _data, loading, error } = useQuery(query, {
     variables: { id: scheduleID },
@@ -101,38 +82,10 @@ export default function ScheduleDetails({ scheduleID }) {
           scheduleID={scheduleID}
         />
       )}
-      <PageActions>
-        <FilterContainer onReset={resetFilter}>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={activeOnly}
-                  onChange={(e) => setActiveOnly(e.target.checked)}
-                  value='activeOnly'
-                />
-              }
-              label='Active shifts only'
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <UserSelect
-              label='Filter users...'
-              multiple
-              value={userFilter}
-              onChange={setUserFilter}
-            />
-          </Grid>
-        </FilterContainer>
-      </PageActions>
       <DetailsPage
         title={data.name}
         details={data.description}
-        thumbnail={
-          <Avatar>
-            <SchedulesIcon color='primary' />
-          </Avatar>
-        }
+        thumbnail={<SchedulesIcon color='primary' />}
         headerContent={`Time Zone: ${data.timeZone || 'Loading...'}`}
         primaryActions={[
           <CalendarSubscribeButton
