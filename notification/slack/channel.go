@@ -61,7 +61,14 @@ type apiError struct {
 	header http.Header
 }
 
-func (err apiError) Error() string { return err.msg }
+func (err apiError) Error() string {
+	if err.msg == "missing_scope" {
+		acceptedScopes := err.header.Get("X-Accepted-Oauth-Scopes")
+		providedScopes := err.header.Get("X-Oauth-Scopes")
+		return fmt.Sprintf("missing_scope; need one of %v but got %v", acceptedScopes, providedScopes)
+	}
+	return err.msg
+}
 
 func mapError(ctx context.Context, err error) error {
 	var apiError *apiError
@@ -70,14 +77,9 @@ func mapError(ctx context.Context, err error) error {
 	}
 
 	switch apiError.msg {
-	case "missing_scope":
-		acceptedScopes := apiError.header.Get("X-Accepted-Oauth-Scopes")
-		providedScopes := apiError.header.Get("X-Oauth-Scopes")
-		log.Log(ctx, fmt.Errorf("Slack: missing_scope; need one of %v but got %v", acceptedScopes, providedScopes))
-		return validation.NewFieldError("ChannelID", "Permission Denied.")
 	case "channel_not_found":
 		return validation.NewFieldError("ChannelID", "Invalid Slack channel ID.")
-	case "invalid_auth", "account_inactive", "token_revoked", "not_authed":
+	case "missing_scope", "invalid_auth", "account_inactive", "token_revoked", "not_authed":
 		log.Log(ctx, err)
 		return validation.NewFieldError("ChannelID", "Permission Denied.")
 	}
