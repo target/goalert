@@ -2,7 +2,6 @@ import React, { ReactNode, useState, ReactElement, forwardRef } from 'react'
 import { isWidthUp } from '@material-ui/core/withWidth'
 
 import Avatar from '@material-ui/core/Avatar'
-import FavoriteIcon from '@material-ui/icons/Favorite'
 import Card from '@material-ui/core/Card'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Grid from '@material-ui/core/Grid'
@@ -16,6 +15,7 @@ import LeftIcon from '@material-ui/icons/ChevronLeft'
 import RightIcon from '@material-ui/icons/ChevronRight'
 import useWidth from '../util/useWidth'
 
+import { FavoriteIcon } from '../util/SetFavoriteButton'
 import { ITEMS_PER_PAGE } from '../config'
 import ListItemAvatar from '@material-ui/core/ListItemAvatar'
 import { makeStyles } from '@material-ui/core'
@@ -269,7 +269,7 @@ export function PaginatedList(props: PaginatedListProps): JSX.Element {
       favIcon = (
         <div className={classes.itemAction}>
           <Avatar className={classes.favoriteIcon}>
-            <FavoriteIcon data-cy='fav-icon' />
+            <FavoriteIcon />
           </Avatar>
         </div>
       )

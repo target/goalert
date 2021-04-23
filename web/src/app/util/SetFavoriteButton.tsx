@@ -1,15 +1,15 @@
 import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
-import FavoriteIcon from '@material-ui/icons/Favorite'
+import MUIFavoriteIcon from '@material-ui/icons/Favorite'
 import NotFavoriteIcon from '@material-ui/icons/FavoriteBorder'
 import Tooltip from '@material-ui/core/Tooltip'
 import { makeStyles } from '@material-ui/core/styles'
 
 interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule'
-  isFavorite?: boolean
-  loading: boolean
   onClick: (event: React.FormEvent<HTMLFormElement>) => void
+  isFavorite?: boolean
+  loading?: boolean
 }
 
 const useStyles = makeStyles({
@@ -21,11 +21,16 @@ const useStyles = makeStyles({
   },
 })
 
+export function FavoriteIcon(): JSX.Element {
+  const classes = useStyles()
+  return <MUIFavoriteIcon data-cy='fav-icon' className={classes.favorited} />
+}
+
 export function SetFavoriteButton({
   typeName,
+  onClick,
   isFavorite,
   loading,
-  onClick,
 }: SetFavoriteButtonProps): JSX.Element | null {
   const classes = useStyles()
 
@@ -33,7 +38,11 @@ export function SetFavoriteButton({
     return null
   }
 
-  const icon = isFavorite ? <FavoriteIcon /> : <NotFavoriteIcon />
+  const icon = isFavorite ? (
+    <FavoriteIcon />
+  ) : (
+    <NotFavoriteIcon className={classes.notFavorited} />
+  )
 
   const content = (
     <form
@@ -43,7 +52,6 @@ export function SetFavoriteButton({
       }}
     >
       <IconButton
-        className={isFavorite ? classes.favorited : classes.notFavorited}
         aria-label={
           isFavorite
             ? `Unset as a Favorite ${typeName}`
