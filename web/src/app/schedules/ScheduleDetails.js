@@ -84,10 +84,18 @@ export default function ScheduleDetails({ scheduleID }) {
         />
       )}
       <DetailsPage
+        avatar={<ScheduleAvatar />}
         title={data.name}
         details={data.description}
-        avatar={<ScheduleAvatar />}
         headerContent={`Time Zone: ${data.timeZone || 'Loading...'}`}
+        pageContent={
+          <ScheduleCalendarQuery
+            scheduleID={scheduleID}
+            onNewTempSched={onNewTempSched}
+            onEditTempSched={onEditTempSched}
+            onDeleteTempSched={onDeleteTempSched}
+          />
+        }
         primaryActions={[
           <CalendarSubscribeButton
             key='primary-action-subscribe'
@@ -132,14 +140,6 @@ export default function ScheduleDetails({ scheduleID }) {
             subText: 'A list view of all shifts for this schedule',
           },
         ]}
-        pageContent={
-          <ScheduleCalendarQuery
-            scheduleID={scheduleID}
-            onNewTempSched={onNewTempSched}
-            onEditTempSched={onEditTempSched}
-            onDeleteTempSched={onDeleteTempSched}
-          />
-        }
       />
     </React.Fragment>
   )

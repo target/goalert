@@ -55,7 +55,7 @@ const useStyles = makeStyles({
   flexHeight: {
     flexGrow: 1,
   },
-  titleFooterContent: {
+  headerContent: {
     paddingTop: 0,
   },
   quickLinks: {
@@ -119,7 +119,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
 
             <Grid item>
               {p.headerContent && (
-                <CardContent className={classes.titleFooterContent}>
+                <CardContent className={classes.headerContent}>
                   <Typography
                     component='div'
                     variant='subtitle1'

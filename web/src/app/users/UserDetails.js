@@ -181,20 +181,9 @@ export default function UserDetails(props) {
         />
       )}
       <DetailsPage
+        avatar={<UserAvatar userID={props.userID} />}
         title={user.name + (svcCount ? ' (On-Call)' : '')}
         details={user.email}
-        avatar={<UserAvatar userID={props.userID} />}
-        links={links}
-        primaryActions={
-          props.readOnly
-            ? undefined
-            : [
-                <StatusUpdateNotification
-                  key='primary-action-status-updates'
-                  userID={props.userID}
-                />,
-              ]
-        }
         pageContent={
           <Grid container spacing={2}>
             <UserContactMethodList
@@ -207,6 +196,17 @@ export default function UserDetails(props) {
             />
           </Grid>
         }
+        primaryActions={
+          props.readOnly
+            ? undefined
+            : [
+                <StatusUpdateNotification
+                  key='primary-action-status-updates'
+                  userID={props.userID}
+                />,
+              ]
+        }
+        links={links}
       />
     </React.Fragment>
   )

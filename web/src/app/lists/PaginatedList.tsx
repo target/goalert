@@ -50,7 +50,6 @@ const useStyles = makeStyles((theme) => ({
   },
   favoriteIcon: {
     backgroundColor: 'transparent',
-    color: 'rgb(205, 24, 49)',
   },
   headerNote: {
     fontStyle: 'italic',

@@ -62,17 +62,10 @@ export default function PolicyDetails(props) {
   return (
     <React.Fragment>
       <DetailsPage
+        notices={data.notices}
+        avatar={<EPAvatar />}
         title={data.name}
         details={data.description}
-        avatar={<EPAvatar />}
-        notices={data.notices}
-        links={[
-          {
-            label: 'Services',
-            url: 'services',
-            subText: 'Services this escalation policiy is linked to',
-          },
-        ]}
         pageContent={<PolicyStepsQuery escalationPolicyID={data.id} />}
         secondaryActions={[
           {
@@ -84,6 +77,13 @@ export default function PolicyDetails(props) {
             label: 'Delete',
             icon: <Delete />,
             handleOnClick: () => setShowDeleteDialog(true),
+          },
+        ]}
+        links={[
+          {
+            label: 'Services',
+            url: 'services',
+            subText: 'Services this escalation policiy is linked to',
           },
         ]}
       />

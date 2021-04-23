@@ -87,9 +87,9 @@ export default function ServiceDetails({ serviceID }) {
   return (
     <React.Fragment>
       <DetailsPage
+        avatar={<ServiceAvatar />}
         title={data.service.name}
         details={data.service.description}
-        avatar={<ServiceAvatar />}
         headerContent={
           <div>
             Escalation Policy:{' '}
@@ -102,6 +102,7 @@ export default function ServiceDetails({ serviceID }) {
             )}
           </div>
         }
+        pageContent={<ServiceOnCallList serviceID={serviceID} />}
         secondaryActions={[
           {
             label: 'Edit',
@@ -142,7 +143,6 @@ export default function ServiceDetails({ serviceID }) {
             subText: 'Labels for grouping with other services',
           },
         ]}
-        pageContent={<ServiceOnCallList serviceID={serviceID} />}
       />
       {showEdit && (
         <ServiceEditDialog
