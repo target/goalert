@@ -703,6 +703,7 @@ func init() {
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 
 	RootCmd.Flags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
+	monitorCmd.Flags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
 
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")
