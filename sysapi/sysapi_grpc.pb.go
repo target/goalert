@@ -34,7 +34,7 @@ func NewSysAPIClient(cc grpc.ClientConnInterface) SysAPIClient {
 
 func (c *sysAPIClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
 	out := new(EchoResponse)
-	err := c.cc.Invoke(ctx, "/sysapi.SysAPI/Echo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/goalert.SysAPI/Echo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (c *sysAPIClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.C
 
 func (c *sysAPIClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
 	out := new(ListUsersResponse)
-	err := c.cc.Invoke(ctx, "/sysapi.SysAPI/ListUsers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/goalert.SysAPI/ListUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (c *sysAPIClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts
 
 func (c *sysAPIClient) AuthSubjects(ctx context.Context, in *AuthSubjectsRequest, opts ...grpc.CallOption) (*AuthSubjectsResponse, error) {
 	out := new(AuthSubjectsResponse)
-	err := c.cc.Invoke(ctx, "/sysapi.SysAPI/AuthSubjects", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/goalert.SysAPI/AuthSubjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (c *sysAPIClient) AuthSubjects(ctx context.Context, in *AuthSubjectsRequest
 
 func (c *sysAPIClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
 	out := new(DeleteUserResponse)
-	err := c.cc.Invoke(ctx, "/sysapi.SysAPI/DeleteUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/goalert.SysAPI/DeleteUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func _SysAPI_Echo_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/sysapi.SysAPI/Echo",
+		FullMethod: "/goalert.SysAPI/Echo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SysAPIServer).Echo(ctx, req.(*EchoRequest))
@@ -136,7 +136,7 @@ func _SysAPI_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/sysapi.SysAPI/ListUsers",
+		FullMethod: "/goalert.SysAPI/ListUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SysAPIServer).ListUsers(ctx, req.(*ListUsersRequest))
@@ -154,7 +154,7 @@ func _SysAPI_AuthSubjects_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/sysapi.SysAPI/AuthSubjects",
+		FullMethod: "/goalert.SysAPI/AuthSubjects",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SysAPIServer).AuthSubjects(ctx, req.(*AuthSubjectsRequest))
@@ -172,7 +172,7 @@ func _SysAPI_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/sysapi.SysAPI/DeleteUser",
+		FullMethod: "/goalert.SysAPI/DeleteUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SysAPIServer).DeleteUser(ctx, req.(*DeleteUserRequest))
@@ -184,7 +184,7 @@ func _SysAPI_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SysAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "sysapi.SysAPI",
+	ServiceName: "goalert.SysAPI",
 	HandlerType: (*SysAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "github.com/target/goalert/sysapi";
 
-package sysapi;
+package goalert;
 
 service SysAPI {
     rpc Echo(EchoRequest) returns (EchoResponse){}
