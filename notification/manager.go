@@ -142,6 +142,9 @@ func (mgr *Manager) Send(ctx context.Context, msg Message) (*MessageStatus, erro
 			continue
 		}
 		log.Logf(sendCtx, "notification sent")
+		metricSentTotal.
+			WithLabelValues(msg.Destination().Type.String(), msg.Type().String()).
+			Inc()
 		// status already wrapped via namedSender
 		return status, nil
 	}
