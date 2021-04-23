@@ -202,7 +202,7 @@ interface SetTemporarySchedule {
 
 function createTemporarySchedule(
   opts: Partial<SetTemporarySchedule> = {},
-): Cypress.Chainable<null> {
+): Cypress.Chainable<void> {
   const mutation = `
     mutation($input: SetTemporaryScheduleInput!) {
       setTemporarySchedule(input: $input)
