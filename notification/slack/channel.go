@@ -19,9 +19,7 @@ import (
 )
 
 type ChannelSender struct {
-	cfg    Config
-	resp   chan *notification.MessageResponse
-	status chan *notification.MessageStatus
+	cfg Config
 
 	chanTht *throttle
 	listTht *throttle
@@ -37,9 +35,7 @@ var _ notification.Sender = &ChannelSender{}
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 	return &ChannelSender{
-		cfg:    cfg,
-		resp:   make(chan *notification.MessageResponse),
-		status: make(chan *notification.MessageStatus),
+		cfg: cfg,
 
 		chanTht: newThrottle(time.Minute / 50),
 		listTht: newThrottle(time.Minute / 50),
