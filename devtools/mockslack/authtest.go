@@ -11,6 +11,6 @@ func (s *Server) ServeAuthTest(w http.ResponseWriter, req *http.Request) {
 	var respData struct {
 		TeamID string `json:"team_id"`
 	}
-	respData.TeamID = genID(idChars, 9)
+	respData.TeamID = s.state.teamID
 	respondWith(w, respData)
 }
