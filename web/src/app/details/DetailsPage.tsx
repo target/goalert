@@ -14,7 +14,6 @@ import IconButton from '@material-ui/core/IconButton'
 
 import Notices, { Notice } from './Notices'
 import CardActions, { Action } from './CardActions'
-import Markdown from '../util/Markdown'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
@@ -34,9 +33,6 @@ interface DetailsPageProps {
 
   primaryActions?: Array<Action | JSX.Element>
   secondaryActions?: Array<Action | JSX.Element>
-
-  // api options
-  markdown?: boolean // enables markdown support for details. default: false
 }
 
 type LinkStatus = 'ok' | 'warn' | 'err'
@@ -107,15 +103,15 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
             <Grid item>
               <CardHeader
                 title={p.title}
-                subheader={
-                  p.markdown ? <Markdown value={p.details} /> : p.details
-                }
+                subheader={p.details}
                 avatar={avatar()}
                 titleTypographyProps={{
+                  'data-cy': 'title',
                   variant: 'h5',
                   component: 'h2',
                 }}
                 subheaderTypographyProps={{
+                  'data-cy': 'details',
                   variant: 'body1',
                 }}
               />
@@ -128,7 +124,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                     component='div'
                     variant='subtitle1'
                     color='textSecondary'
-                    data-cy='title-footer'
+                    data-cy='header-content'
                   >
                     {p.headerContent}
                   </Typography>
@@ -198,8 +194,4 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
       )}
     </Grid>
   )
-}
-
-DetailsPage.defaultProps = {
-  noMarkdown: false,
 }

@@ -183,7 +183,6 @@ export default function UserDetails(props) {
       <DetailsPage
         title={user.name + (svcCount ? ' (On-Call)' : '')}
         details={user.email}
-        noMarkdown
         avatar={<UserAvatar userID={props.userID} />}
         links={links}
         primaryActions={
