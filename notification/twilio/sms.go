@@ -33,12 +33,13 @@ var (
 type SMS struct {
 	b *dbSMS
 	c *Config
-
-	respCh chan *notification.MessageResponse
-	statCh chan *notification.MessageStatus
+	r notification.Receiver
 
 	ban *dbBan
 }
+
+var _ notification.ReceiverSetter = &SMS{}
+var _ notification.Sender = &SMS{}
 
 // NewSMS performs operations like validating essential parameters, registering the Twilio client and db
 // and adding routes for successful and unsuccessful message delivery to Twilio
@@ -49,10 +50,8 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 	}
 
 	s := &SMS{
-		b:      b,
-		c:      c,
-		respCh: make(chan *notification.MessageResponse),
-		statCh: make(chan *notification.MessageStatus, 10),
+		b: b,
+		c: c,
 	}
 	s.ban, err = newBanDB(ctx, db, c, "twilio_sms_errors")
 	if err != nil {
@@ -62,6 +61,9 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 	return s, nil
 }
 
+// SetReceiver sets the notification.Receiver for incoming messages and status updates.
+func (s *SMS) SetReceiver(r notification.Receiver) { s.r = r }
+
 // Status provides the current status of a message.
 func (s *SMS) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
 	msg, err := s.c.GetSMS(ctx, providerID)
@@ -70,12 +72,6 @@ func (s *SMS) Status(ctx context.Context, id, providerID string) (*notification.
 	}
 	return msg.messageStatus(id), nil
 }
-
-// ListenStatus will return a channel that is fed async status updates.
-func (s *SMS) ListenStatus() <-chan *notification.MessageStatus { return s.statCh }
-
-// ListenResponse will return a channel that is fed async message responses.
-func (s *SMS) ListenResponse() <-chan *notification.MessageResponse { return s.respCh }
 
 // Send implements the notification.Sender interface.
 func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
@@ -200,14 +196,18 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 
 	log.Debugf(ctx, "Got Twilio SMS status callback.")
 
-	s.statCh <- msg.messageStatus(req.URL.Query().Get(msgParamID))
+	err := s.r.UpdateStatus(ctx, msg.messageStatus(req.URL.Query().Get(msgParamID)))
+	if err != nil {
+		// log and continue
+		log.Log(ctx, err)
+	}
 
 	if status != MessageStatusFailed {
 		// ignore other types
 		return
 	}
 
-	err := s.ban.RecordError(context.Background(), number, true, "send failed")
+	err = s.ban.RecordError(context.Background(), number, true, "send failed")
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "record error"))
 	}
@@ -269,14 +269,16 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 	var banned bool
 	var err error
-	err = retry.DoTemporaryError(func(int) error {
-		banned, err = s.ban.IsBanned(ctx, from, false)
-		return errors.Wrap(err, "look up ban status")
-	},
+	retryOpts := []retry.Option{
 		retry.Log(ctx),
 		retry.Limit(10),
 		retry.FibBackoff(time.Second),
-	)
+	}
+
+	err = retry.DoTemporaryError(func(int) error {
+		banned, err = s.ban.IsBanned(ctx, from, false)
+		return errors.Wrap(err, "look up ban status")
+	}, retryOpts...)
 	if err != nil {
 		log.Log(ctx, err)
 		respond("", "System error. Visit the dashboard to manage alerts.")
@@ -289,32 +291,19 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 
 	// handle start and stop codes from user
 	body := req.FormValue("Body")
-	if isStartMessage(body) || isStopMessage(body) {
-		r := notification.ResultStart
-		msg := "process START message"
-		if isStopMessage(body) {
-			r = notification.ResultStop
-			msg = "process STOP message"
-		}
-
-		err := retry.DoTemporaryError(func(int) error {
-			errCh := make(chan error, 1)
-			s.respCh <- &notification.MessageResponse{
-				Ctx:    ctx,
-				From:   notification.Dest{Type: notification.DestTypeSMS, Value: from},
-				Result: r,
-				Err:    errCh,
-			}
-			return errors.Wrap(<-errCh, msg)
-		},
-			retry.Log(ctx),
-			retry.Limit(10),
-			retry.FibBackoff(time.Second),
-		)
+	dest := notification.Dest{Type: notification.DestTypeSMS, Value: from}
+	if isStartMessage(body) {
+		err := retry.DoTemporaryError(func(int) error { return s.r.Start(ctx, dest) }, retryOpts...)
 		if err != nil {
-			log.Log(ctx, err)
+			log.Log(ctx, fmt.Errorf("process START message: %w", err))
 		}
-
+		return
+	}
+	if isStopMessage(body) {
+		err := retry.DoTemporaryError(func(int) error { return s.r.Stop(ctx, dest) }, retryOpts...)
+		if err != nil {
+			log.Log(ctx, fmt.Errorf("process STOP message: %w", err))
+		}
 		return
 	}
 
@@ -399,20 +388,12 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 			return errors.Wrap(err, "lookup code")
 		}
 
-		errCh := make(chan error, 1)
-		s.respCh <- &notification.MessageResponse{
-			Ctx:    ctx,
-			ID:     info.CallbackID,
-			From:   notification.Dest{Type: notification.DestTypeSMS, Value: from},
-			Result: result,
-			Err:    errCh,
+		err = s.r.Receive(ctx, info.CallbackID, result)
+		if err != nil {
+			return fmt.Errorf("process notification response: %w", err)
 		}
-		return errors.Wrap(<-errCh, "process notification response")
-	},
-		retry.Log(ctx),
-		retry.Limit(10),
-		retry.FibBackoff(time.Second),
-	)
+		return nil
+	}, retryOpts...)
 
 	if errors.Is(err, sql.ErrNoRows) || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0) {
 		respond("unknown callbackID", "Unknown reply code for this action. Visit the dashboard to manage alerts.")

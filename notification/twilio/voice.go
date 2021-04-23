@@ -62,11 +62,12 @@ var pRx = regexp.MustCompile(`\((.*?)\)`)
 // Voice implements a notification.Sender for Twilio voice calls.
 type Voice struct {
 	c   *Config
+	r   notification.Receiver
 	ban *dbBan
-
-	respCh chan *notification.MessageResponse
-	statCh chan *notification.MessageStatus
 }
+
+var _ notification.ReceiverSetter = &Voice{}
+var _ notification.Sender = &Voice{}
 
 type gather struct {
 	XMLName   xml.Name `xml:"Gather,omitempty"`
@@ -138,9 +139,6 @@ func voiceErrorMessage(ctx context.Context, err error) (string, error) {
 func NewVoice(ctx context.Context, db *sql.DB, c *Config) (*Voice, error) {
 	v := &Voice{
 		c: c,
-
-		respCh: make(chan *notification.MessageResponse),
-		statCh: make(chan *notification.MessageStatus, 10),
 	}
 
 	var err error
@@ -151,6 +149,9 @@ func NewVoice(ctx context.Context, db *sql.DB, c *Config) (*Voice, error) {
 
 	return v, nil
 }
+
+// SetReceiver sets the notification.Receiver for incoming calls and status updates.
+func (v *Voice) SetReceiver(r notification.Receiver) { v.r = r }
 
 func (v *Voice) ServeCall(w http.ResponseWriter, req *http.Request) {
 	if disabled(w, req) {
@@ -180,12 +181,6 @@ func (v *Voice) Status(ctx context.Context, id, providerID string) (*notificatio
 	}
 	return call.messageStatus(id), nil
 }
-
-// ListenStatus will return a channel that is fed async status updates.
-func (v *Voice) ListenStatus() <-chan *notification.MessageStatus { return v.statCh }
-
-// ListenResponse will return a channel that is fed async message responses.
-func (v *Voice) ListenResponse() <-chan *notification.MessageResponse { return v.respCh }
 
 // callbackURL returns an absolute URL pointing to the named callback.
 // If params is nil, default values from the BaseURL are used.
@@ -330,7 +325,11 @@ func (v *Voice) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		callState.SequenceNumber = &seq
 	}
 
-	v.statCh <- callState.messageStatus(req.URL.Query().Get(msgParamID))
+	err = v.r.UpdateStatus(ctx, callState.messageStatus(req.URL.Query().Get(msgParamID)))
+	if err != nil {
+		// log and continue
+		log.Log(ctx, err)
+	}
 
 	// Only update current call we are on, except for failed call
 	if status != CallStatusFailed {
@@ -357,19 +356,33 @@ type call struct {
 	msgBody      string
 }
 
-func (v *Voice) handleResponse(resp notification.MessageResponse) error {
+// doDeadline will ensure a return within 5 seconds, and log
+// the original error in the event of a timeout.
+func doDeadline(ctx context.Context, fn func() error) error {
 	errCh := make(chan error, 1)
-	resp.Err = errCh
-	v.respCh <- &resp
-	var err error
-	t := time.NewTicker(5 * time.Second)
+	timeoutCh := make(chan struct{})
+	go func() {
+		err := fn()
+		errCh <- err
+		select {
+		case errCh <- nil:
+			// error consumed, nothing to do
+		case <-timeoutCh:
+			// log if error (other than context canceled)
+			if err != nil && !errors.Is(err, context.Canceled) {
+				log.Log(ctx, err)
+			}
+		}
+	}()
+	t := time.NewTimer(5 * time.Second)
 	defer t.Stop()
 	select {
-	case err = <-errCh:
+	case err := <-errCh:
+		return err
 	case <-t.C:
-		err = errVoiceTimeout
+		close(timeoutCh)
+		return errVoiceTimeout
 	}
-	return err
 }
 
 func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
@@ -401,10 +414,8 @@ func (v *Voice) ServeStop(w http.ResponseWriter, req *http.Request) {
 		})
 
 	case digitConfirm:
-		err := v.handleResponse(notification.MessageResponse{
-			Ctx:    ctx,
-			From:   notification.Dest{Type: notification.DestTypeVoice, Value: call.Number},
-			Result: notification.ResultStop,
+		err := doDeadline(ctx, func() error {
+			return v.r.Stop(ctx, notification.Dest{Type: notification.DestTypeVoice, Value: call.Number})
 		})
 
 		if errResp(false, errors.Wrap(err, "process STOP response"), "") {
@@ -719,11 +730,8 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 		} else {
 			msg += ". Goodbye."
 		}
-		err := v.handleResponse(notification.MessageResponse{
-			Ctx:    ctx,
-			ID:     call.msgID,
-			From:   notification.Dest{Type: notification.DestTypeVoice, Value: call.Number},
-			Result: result,
+		err := doDeadline(ctx, func() error {
+			return v.r.Receive(ctx, call.msgID, result)
 		})
 		if err != nil {
 			msg, err = voiceErrorMessage(ctx, err)

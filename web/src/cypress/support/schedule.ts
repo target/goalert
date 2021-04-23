@@ -257,7 +257,7 @@ function createTemporarySchedule(
       shifts,
     }
 
-    return cy.graphql(mutation, { input })
+    return cy.graphql(mutation, { input }) as void
   })
 }
 

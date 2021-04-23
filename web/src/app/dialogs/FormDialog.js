@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import { isWidthUp } from '@material-ui/core/withWidth/index'
 
-import { DefaultTransition, FullscreenTransition } from '../util/Transitions'
+import { FadeTransition, SlideTransition } from '../util/Transitions'
 import LoadingButton from '../loading/components/LoadingButton'
 import DialogTitleWrapper from './components/DialogTitleWrapper'
 import DialogContentError from './components/DialogContentError'
@@ -157,7 +157,9 @@ function FormDialog(props) {
       fullWidth
       open={!isUnmounting}
       onClose={onClose}
-      TransitionComponent={fs ? FullscreenTransition : DefaultTransition}
+      TransitionComponent={
+        isWideScreen || confirm ? FadeTransition : SlideTransition
+      }
       {...dialogProps}
     >
       <Notices notices={notices} />

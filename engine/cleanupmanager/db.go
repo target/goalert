@@ -60,7 +60,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		schedData: p.P(`
 			select schedule_id, data from schedule_data
-			where data notnull and (last_cleanup_at isnull or last_cleanup_at <= now() - '1 day'::interval)
+			where data notnull and (last_cleanup_at isnull or last_cleanup_at <= now() - '1 month'::interval)
 			order by last_cleanup_at asc nulls first
 			for update
 			limit 100

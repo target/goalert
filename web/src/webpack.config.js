@@ -28,6 +28,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
   // Loaders for processing different file types
   module: {
     rules: [
+      { test: /lodash/, loader: 'strict-loader' },
       {
         test: /\.(t|j)sx?$/,
         use: [

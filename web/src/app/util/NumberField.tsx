@@ -6,6 +6,7 @@ type NumberFieldProps = TextFieldProps & {
   float?: boolean
   min?: number
   max?: number
+  step?: number | 'any'
   value: string
   onChange: (
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
@@ -13,7 +14,7 @@ type NumberFieldProps = TextFieldProps & {
 }
 
 export default function NumberField(props: NumberFieldProps): JSX.Element {
-  const { float, min, max, onChange, value, ...rest } = props
+  const { float, min, max, step = 'any', onChange, value, ...rest } = props
 
   const [inputValue, setInputValue] = useState(value)
 
@@ -59,7 +60,7 @@ export default function NumberField(props: NumberFieldProps): JSX.Element {
 
         return onChange(e)
       }}
-      inputProps={{ min, max, step: 'any' }}
+      inputProps={{ min, max, step }}
     />
   )
 }

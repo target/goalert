@@ -28,7 +28,7 @@ func (db *DB) Name() string { return "Engine.ScheduleManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeSchedule,
-		Version: 2,
+		Version: 3,
 	})
 	if err != nil {
 		return nil, err

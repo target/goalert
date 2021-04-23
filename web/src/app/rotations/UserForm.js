@@ -24,7 +24,7 @@ export default function UserForm(props) {
   )
 }
 
-UserForm.PropTypes = {
+UserForm.propTypes = {
   errors: p.array,
   onChange: p.func,
   disabled: p.bool,

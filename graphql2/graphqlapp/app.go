@@ -3,8 +3,10 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
@@ -179,7 +181,17 @@ func (a *App) Handler() http.Handler {
 			trace.StringAttribute("graphql.object", fieldCtx.Object),
 			trace.StringAttribute("graphql.field.name", fieldCtx.Field.Name),
 		)
+		start := time.Now()
 		res, err = next(ctx)
+		errVal := "0"
+		if err != nil {
+			errVal = "1"
+		}
+		if fieldCtx.IsMethod {
+			metricResolverHist.
+				WithLabelValues(fmt.Sprintf("%s.%s", fieldCtx.Object, fieldCtx.Field.Name), errVal).
+				Observe(time.Since(start).Seconds())
+		}
 		if err != nil {
 			sp.Annotate([]trace.Attribute{
 				trace.BoolAttribute("error", true),
