@@ -17,6 +17,7 @@ import CardActions, { Action } from './CardActions'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
+import { isWidthDown } from '@material-ui/core'
 
 interface DetailsPageProps {
   title: string
@@ -60,6 +61,9 @@ const useStyles = makeStyles({
   },
   quickLinks: {
     paddingBottom: 8,
+  },
+  smPageBottom: {
+    marginBottom: 64,
   },
 })
 
@@ -188,7 +192,13 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
 
       {/* Primary Page Content */}
       {p.pageContent && (
-        <Grid item xs={12}>
+        <Grid
+          className={
+            isWidthDown('sm', width) ? classes.smPageBottom : undefined
+          }
+          item
+          xs={12}
+        >
           {p.pageContent}
         </Grid>
       )}
