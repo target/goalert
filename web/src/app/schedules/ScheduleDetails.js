@@ -132,7 +132,7 @@ export default function ScheduleDetails({ scheduleID }) {
             subText: 'A list view of all shifts for this schedule',
           },
         ]}
-        primaryContent={
+        pageContent={
           <ScheduleCalendarQuery
             scheduleID={scheduleID}
             onNewTempSched={onNewTempSched}

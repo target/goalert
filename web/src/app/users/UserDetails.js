@@ -196,7 +196,7 @@ export default function UserDetails(props) {
                 />,
               ]
         }
-        primaryContent={
+        pageContent={
           <Grid container spacing={2}>
             <UserContactMethodList
               userID={props.userID}

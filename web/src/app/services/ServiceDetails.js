@@ -142,7 +142,7 @@ export default function ServiceDetails({ serviceID }) {
             subText: 'Labels for grouping with other services',
           },
         ]}
-        primaryContent={<ServiceOnCallList serviceID={serviceID} />}
+        pageContent={<ServiceOnCallList serviceID={serviceID} />}
       />
       {showEdit && (
         <ServiceEditDialog

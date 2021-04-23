@@ -83,7 +83,7 @@ export default function RotationDetails({ rotationID }) {
         details={data.description}
         avatar={<RotationAvatar />}
         headerContent={handoffSummary(data)}
-        primaryContent={<RotationUserList rotationID={rotationID} />}
+        pageContent={<RotationUserList rotationID={rotationID} />}
         secondaryActions={[
           {
             label: 'Edit',

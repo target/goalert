@@ -1,4 +1,4 @@
-import React, { cloneElement, ReactNode } from 'react'
+import React, { cloneElement } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
@@ -23,14 +23,14 @@ interface DetailsPageProps {
   title: string
 
   // content options
-  details?: ReactNode
+  details?: string
   avatar?: JSX.Element // placement for an icon or image
 
   notices?: Array<Notice>
   links?: Array<Link>
 
   headerContent?: string | JSX.Element
-  primaryContent?: JSX.Element
+  pageContent?: JSX.Element
 
   primaryActions?: Array<Action | JSX.Element>
   secondaryActions?: Array<Action | JSX.Element>
@@ -190,10 +190,10 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
         </Grid>
       )}
 
-      {/* Primary Content */}
-      {p.primaryContent && (
+      {/* Primary Page Content */}
+      {p.pageContent && (
         <Grid item xs={12}>
-          {p.primaryContent}
+          {p.pageContent}
         </Grid>
       )}
     </Grid>
