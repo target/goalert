@@ -83,7 +83,7 @@ export default function PolicyDetails(props) {
           {
             label: 'Services',
             url: 'services',
-            subText: 'Services this escalation policiy is linked to',
+            subText: 'Services this escalation policy is linked to',
           },
         ]}
       />
