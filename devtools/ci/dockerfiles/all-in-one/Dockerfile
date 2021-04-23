@@ -1,4 +1,4 @@
-FROM goalert/build-env AS build
+FROM goalert/build-env:go1.16.3-postgres13 AS build
 
 COPY Makefile /goalert/Makefile
 COPY yarn.lock package.json /goalert/

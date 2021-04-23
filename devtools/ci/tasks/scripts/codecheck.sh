@@ -20,6 +20,33 @@ if [ "$PKG_JSON_VER" != "$DOCKERFILE_VER" ]; then
   exit 1
 fi
 
+# assert build-env versions are identical
+BUILD_ENV_VER=go1.16.3-postgres13
+for file in $(find devtools -name 'Dockerfile*')
+do
+  if ! grep -q "goalert/build-env" "$file"; then
+    continue
+  fi
+  if ! grep -q "goalert/build-env:$BUILD_ENV_VER" "$file"; then
+    echo "build-env version mismatch, expected $BUILD_ENV_VER"
+    echo "  $file:"
+    echo "  $(grep goalert/build-env "$file")"
+    exit 1
+  fi
+done
+for file in $(find devtools -name '*.yml')
+do
+  if ! grep -q "goalert/build-env" "$file"; then
+    continue
+  fi
+  if ! grep -q "goalert/build-env, tag: $BUILD_ENV_VER" "$file"; then
+    echo "build-env version mismatch, expected $BUILD_ENV_VER"
+    echo "  $file:"
+    echo "  $(grep goalert/build-env "$file")"
+    exit 1
+  fi
+done
+
 # taskfile contains quotes
 if [ "'$PKG_JSON_VER'" != "$TASKFILE_VER" ]; then
   echo "Cypress versions do not match:"
