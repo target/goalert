@@ -49,7 +49,9 @@ export default function CardActions(p: CardActionProps): JSX.Element {
   }
 
   return (
-    <MUICardActions className={classes.cardActions}>{actions}</MUICardActions>
+    <MUICardActions data-cy='card-actions' className={classes.cardActions}>
+      {actions}
+    </MUICardActions>
   )
 }
 

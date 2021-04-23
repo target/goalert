@@ -42,21 +42,28 @@ export default function CalendarSubscribeButton(props) {
     (cs) => cs.scheduleID === props.scheduleID && !cs.disabled,
   ).length
 
-  let caption =
+  let context =
     'Subscribe to your personal shifts from your preferred external calendar app'
   if (!error && numSubs > 0) {
-    caption = `You have ${numSubs} active subscription${
+    context = `You have ${numSubs} active subscription${
       numSubs > 1 ? 's' : ''
     } for this schedule`
   } else if (creationDisabled) {
-    caption =
+    context =
       'Creating subscriptions is currently disabled by your administrator'
   }
 
   return (
     <React.Fragment>
       <div className={classes.container}>
-        <Tooltip title={caption} placement='top-start' interactive>
+        <Tooltip
+          title={context}
+          placement='top-start'
+          interactive
+          PopperProps={{
+            'data-cy': 'subscribe-btn-context',
+          }}
+        >
           <Button
             data-cy='subscribe-btn'
             aria-label='Subscribe to this schedule'

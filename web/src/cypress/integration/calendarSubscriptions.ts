@@ -20,11 +20,14 @@ function testSubs(screen: ScreenFormat): void {
     it('should create a subscription from a schedule', () => {
       const name = c.word({ length: 5 })
       const defaultCptn =
-        'Subscribe to your shifts on this calendar from your preferred calendar app'
+        'Subscribe to your personal shifts from your preferred external calendar app'
 
       cy.visit(`/schedules/${sched.id}`)
 
-      cy.get('body').should('contain', defaultCptn)
+      cy.get('[data-cy="subscribe-btn"]')
+        .trigger('mouseover')
+        .get('[data-cy="subscribe-btn-context"]')
+        .should('contain', defaultCptn)
       cy.get('body').should('not.contain', 'You have 1 active subscription')
 
       // fill form out and submit
@@ -77,41 +80,37 @@ function testSubs(screen: ScreenFormat): void {
       })
     })
 
-    it('should go to the profile subscriptions list from a schedule', () => {
-      const flatListHeader =
-        'Showing your current on-call subscriptions for all schedules'
-
-      cy.get('body').should('not.contain', flatListHeader)
-      cy.get('[data-cy="manage-subscriptions-link"]')
-        .should('contain', 'Manage subscriptions')
-        .click()
-      cy.get('body').should('contain', flatListHeader)
-    })
-
     it('should update button caption text after a subscription is created', () => {
       const defaultCptn =
-        'Subscribe to your shifts on this calendar from your preferred calendar app'
+        'Subscribe to your personal shifts from your preferred external calendar app'
       const oneSubCptn = 'You have 1 active subscription for this schedule'
       const multipleSubsCptn =
         'You have 2 active subscriptions for this schedule'
 
-      const caption = '[data-cy="subscribe-btn-txt"]'
+      const subsribeBtn = '[data-cy="subscribe-btn"]'
+      const context = '[data-cy="subscribe-btn-context"]'
 
-      cy.get(caption)
+      cy.get(subsribeBtn)
+        .trigger('mouseover')
+        .get(context)
         .should('contain', defaultCptn)
         .should('not.contain', oneSubCptn)
         .should('not.contain', multipleSubsCptn)
 
       cy.createCalendarSubscription({ scheduleID: sched.id })
 
-      cy.get(caption)
+      cy.get(subsribeBtn)
+        .trigger('mouseover')
+        .get(context)
         .should('not.contain', defaultCptn)
         .should('contain', oneSubCptn)
         .should('not.contain', multipleSubsCptn)
 
       cy.createCalendarSubscription({ scheduleID: sched.id })
 
-      cy.get(caption)
+      cy.get(subsribeBtn)
+        .trigger('mouseover')
+        .get(context)
         .should('not.contain', defaultCptn)
         .should('not.contain', oneSubCptn)
         .should('contain', multipleSubsCptn)

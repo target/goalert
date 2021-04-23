@@ -52,7 +52,7 @@ function PolicyEditDialog(props) {
   })
   const fieldErrs = fieldErrors(editDialogMutationStatus.error)
 
-  if (loading && !data.escalationPolicy) return null
+  if (loading && !data?.escalationPolicy) return null
 
   return (
     <FormDialog

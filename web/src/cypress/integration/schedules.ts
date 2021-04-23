@@ -18,7 +18,7 @@ function testSchedules(screen: ScreenFormat): void {
       cy.dialogFinish('Submit')
 
       // verify on details by content headers
-      cy.get('[data-cy=details-heading]').should('contain', name)
+      cy.get('[data-cy=title]').should('contain', name)
       cy.get('[data-cy=details]').should('contain', description)
     })
   })
@@ -52,7 +52,7 @@ function testSchedules(screen: ScreenFormat): void {
     })
 
     it('should delete a schedule', () => {
-      cy.pageAction('Delete Schedule')
+      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
@@ -69,16 +69,16 @@ function testSchedules(screen: ScreenFormat): void {
       const newDesc = c.word({ length: 5 })
       const newTz = 'Africa/Accra'
 
-      cy.pageAction('Edit Schedule')
+      cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
       cy.dialogTitle('Edit Schedule')
       cy.dialogForm({ name: newName, description: newDesc, 'time-zone': newTz })
       cy.dialogFinish('Submit')
 
       // verify changes occurred
       cy.reload()
-      cy.get('[data-cy=details-heading]').should('contain', newName)
+      cy.get('[data-cy=title]').should('contain', newName)
       cy.get('[data-cy=details]').should('contain', newDesc)
-      cy.get('[data-cy=title-footer]').should('contain', newTz)
+      cy.get('[data-cy=header-content]').should('contain', newTz)
     })
 
     it('should navigate to and from assignments', () => {
