@@ -137,7 +137,7 @@ function testSteps(): void {
       cy.window().then((win) => {
         cy.stub(win, 'open').as('slackRedirect')
       })
-      cy.get('div[data-cy=slack-chip]').first().click()
+      cy.get('div[data-cy=slack-chip][data-clickable=true]').first().click()
       cy.get('@slackRedirect').should('be.called')
 
       // open edit step dialog

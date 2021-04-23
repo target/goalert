@@ -22,6 +22,9 @@ import (
 type ChannelSender struct {
 	cfg Config
 
+	teamID string
+	token  string
+
 	chanTht *throttle
 	listTht *throttle
 
@@ -30,6 +33,7 @@ type ChannelSender struct {
 
 	listMx sync.Mutex
 	chanMx sync.Mutex
+	teamMx sync.Mutex
 }
 
 var _ notification.Sender = &ChannelSender{}
@@ -48,8 +52,9 @@ func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
 
 // Channel contains information about a Slack channel.
 type Channel struct {
-	ID   string
-	Name string
+	ID     string
+	Name   string
+	TeamID string
 }
 
 type apiError struct {
@@ -111,6 +116,23 @@ func (s *ChannelSender) Channel(ctx context.Context, channelID string) (*Channel
 func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Channel, error) {
 	cfg := config.FromContext(ctx)
 
+	s.teamMx.Lock()
+	if s.teamID == "" || s.token != cfg.Slack.AccessToken {
+		// teamID missing or token changed
+		id, err := s.lookupTeamIDForToken(ctx, cfg.Slack.AccessToken)
+		if err != nil {
+			s.teamMx.Unlock() // always unlock
+			return nil, err
+		}
+
+		// update teamID and token after fetching succeeds
+		s.teamID = id
+		s.token = cfg.Slack.AccessToken
+	}
+
+	teamID := s.teamID
+	s.teamMx.Unlock()
+
 	v := make(url.Values)
 	// Parameters and URL documented here:
 	// https://api.slack.com/methods/conversations.info
@@ -161,8 +183,9 @@ func (s *ChannelSender) loadChannel(ctx context.Context, channelID string) (*Cha
 	}
 
 	return &Channel{
-		ID:   resData.Channel.ID,
-		Name: "#" + resData.Channel.Name,
+		ID:     resData.Channel.ID,
+		Name:   "#" + resData.Channel.Name,
+		TeamID: teamID,
 	}, nil
 }
 
@@ -322,4 +345,27 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 		ProviderMessageID: resData.TS,
 		State:             notification.MessageStateDelivered,
 	}, nil
+}
+
+func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.url("/api/auth.test"), nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var body struct {
+		TeamID string `json:"team_id"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return "", err
+	}
+	return body.TeamID, nil
 }
