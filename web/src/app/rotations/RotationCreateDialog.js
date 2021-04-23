@@ -1,7 +1,7 @@
-import React from 'react'
-import { gql } from '@apollo/client'
+import React, { useState } from 'react'
+import { gql, useMutation } from '@apollo/client'
+import p from 'prop-types'
 import { Redirect } from 'react-router'
-import { Mutation } from '@apollo/client/react/components'
 import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import RotationForm from './RotationForm'
@@ -20,61 +20,56 @@ const mutation = gql`
     }
   }
 `
-
-export default class RotationCreateDialog extends React.PureComponent {
-  state = {
-    value: {
-      name: '',
-      description: '',
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      type: 'daily',
-      start: DateTime.local().plus({ hours: 1 }).startOf('hour').toISO(),
-      shiftLength: 1,
-      favorite: true,
-    },
-  }
-
-  render() {
-    return (
-      <Mutation mutation={mutation}>
-        {(commit, status) => this.renderDialog(commit, status)}
-      </Mutation>
-    )
-  }
-
-  renderDialog(commit, status) {
-    const { loading } = status
-    if (status.data && status.data.createRotation) {
-      return (
-        <Redirect push to={`/rotations/${status.data.createRotation.id}`} />
-      )
-    }
-
-    return (
-      <FormDialog
-        title='Create Rotation'
-        loading={loading}
-        errors={nonFieldErrors(status.error)}
-        onClose={this.props.onClose}
-        onSubmit={() => {
-          return commit({
-            variables: {
-              input: {
-                timeZone: this.state.value.timeZone,
-                ...this.state.value,
-              },
-            },
-          })
-        }}
-        form={
-          <RotationForm
-            errors={fieldErrors(status.error)}
-            disabled={status.loading}
-            value={this.state.value}
-            onChange={(value) => this.setState({ value })}
-          />
-        }
-      />
-    )
-  }
+const initialValue = {
+  name: '',
+  description: '',
+  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  type: 'daily',
+  start: DateTime.local().plus({ hours: 1 }).startOf('hour').toISO(),
+  shiftLength: 1,
+  favorite: true,
 }
+
+const RotationCreateDialog = (props) => {
+  const [value, setValue] = useState(initialValue)
+  const [createRotationMutation, createRotationMutationStatus] = useMutation(
+    mutation,
+    {
+      variables: {
+        input: {
+          timeZone: value.timeZone,
+          ...value,
+        },
+      },
+    },
+  )
+  const { loading, data, error } = createRotationMutationStatus
+
+  if (data && data.createRotation) {
+    return <Redirect push to={`/rotations/${data.createRotation.id}`} />
+  }
+
+  return (
+    <FormDialog
+      title='Create Rotation'
+      loading={loading}
+      errors={nonFieldErrors(error)}
+      onClose={props.onClose}
+      onSubmit={() => createRotationMutation()}
+      form={
+        <RotationForm
+          errors={fieldErrors(error)}
+          disabled={loading}
+          value={value}
+          onChange={(value) => setValue(value)}
+        />
+      }
+    />
+  )
+}
+
+RotationCreateDialog.propTypes = {
+  onClose: p.func,
+}
+
+export default RotationCreateDialog
