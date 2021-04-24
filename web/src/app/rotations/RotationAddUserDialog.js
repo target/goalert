@@ -57,7 +57,7 @@ const RotationAddUserDialog = (props) => {
 
 RotationAddUserDialog.propTypes = {
   rotationID: p.string.isRequired,
-  userIDs: p.array.isRequired,
+  userIDs: p.arrayOf(p.string).isRequired,
   onClose: p.func.isRequired,
 }
 
