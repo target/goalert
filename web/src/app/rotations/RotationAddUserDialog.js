@@ -12,42 +12,38 @@ const mutation = gql`
 `
 
 const RotationAddUserDialog = (props) => {
-  const { rotationID, onClose } = props
-  const [value, setValue] = useState(null)
-  const defaultValue = {
+  const { rotationID, userIDs, onClose } = props
+  const [value, setValue] = useState({
     users: [],
-  }
+  })
   // append to users array from selected users
   const users = []
-  const userIDs = (value && value.users) || defaultValue.users
-  props.userIDs.forEach((u) => users.push(u))
+  const uIDs = value.users
   userIDs.forEach((u) => users.push(u))
+  uIDs.forEach((u) => users.push(u))
 
-  const [updateRotationMutation, updateRotationMutationStatus] = useMutation(
-    mutation,
-    {
-      variables: {
-        input: {
-          id: rotationID,
-          userIDs: users,
-        },
+  const [updateRotationMutation, { loading, error }] = useMutation(mutation, {
+    variables: {
+      input: {
+        id: rotationID,
+        userIDs: users,
       },
-      onCompleted: onClose,
     },
-  )
+    onCompleted: onClose,
+  })
 
   return (
     <FormDialog
       title='Add User'
-      loading={updateRotationMutationStatus.loading}
-      errors={nonFieldErrors(updateRotationMutationStatus.error)}
+      loading={loading}
+      errors={nonFieldErrors(error)}
       onClose={onClose}
       onSubmit={() => updateRotationMutation()}
       form={
         <UserForm
-          errors={fieldErrors(updateRotationMutationStatus.error)}
-          disabled={updateRotationMutationStatus.loading}
-          value={value || defaultValue}
+          errors={fieldErrors(error)}
+          disabled={loading}
+          value={value}
           onChange={(value) => setValue(value)}
         />
       }
