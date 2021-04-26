@@ -50,21 +50,22 @@ export default function Markdown(props) {
   return (
     <ReactMarkdown
       className={classes.markdown}
-      source={value}
       plugins={[gfm]}
-      allowNode={(node) => {
-        if (node.type !== 'link') return true
-        if (node.children[0].type !== 'text') return true // only validate text labels
-        if (safeURL(node.url, node.children[0].value)) return true
+      allowElement={(element) => {
+        if (element.type !== 'link') return true
+        if (element.children[0].type !== 'text') return true // only validate text labels
+        if (safeURL(element.url, element.children[0].value)) return true
 
         // unsafe URL, or mismatched label, render as text
-        node.type = 'text'
-        node.children[0].value = `[${node.children[0].value}](${node.url})`
-        delete node.url
+        element.type = 'text'
+        element.children[0].value = `[${element.children[0].value}](${element.url})`
+        delete element.url
 
         return true
       }}
       {...rest}
-    />
+    >
+      {value}
+    </ReactMarkdown>
   )
 }
