@@ -32,20 +32,18 @@ const initialValue = {
 
 const RotationCreateDialog = (props) => {
   const [value, setValue] = useState(initialValue)
-  const [createRotationMutation, createRotationMutationStatus] = useMutation(
+  const [createRotationMutation, { loading, data, error }] = useMutation(
     mutation,
     {
       variables: {
         input: {
-          timeZone: value.timeZone,
           ...value,
         },
       },
     },
   )
-  const { loading, data, error } = createRotationMutationStatus
 
-  if (data && data.createRotation) {
+  if (data?.createRotation) {
     return <Redirect push to={`/rotations/${data.createRotation.id}`} />
   }
 
@@ -69,7 +67,7 @@ const RotationCreateDialog = (props) => {
 }
 
 RotationCreateDialog.propTypes = {
-  onClose: p.func,
+  onClose: p.func.isRequired,
 }
 
 export default RotationCreateDialog
