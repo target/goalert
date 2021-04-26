@@ -43,7 +43,7 @@ export default function CalendarSubscribeButton(props) {
   ).length
 
   let context =
-    'Subscribe to your personal shifts from your preferred external calendar app'
+    'Subscribe to your personal shifts from your preferred calendar app'
   if (!error && numSubs > 0) {
     context = `You have ${numSubs} active subscription${
       numSubs > 1 ? 's' : ''
