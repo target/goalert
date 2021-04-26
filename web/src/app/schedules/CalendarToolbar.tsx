@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { MouseEvent } from 'react'
 import {
   Button,
   ButtonGroup,
@@ -56,40 +56,41 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   const classes = useStyles()
   const weekly = props.view === 'week'
 
+  const handleTodayClick = (e: MouseEvent): void => {
+    props.onNavigate(e, DateTime.local().toJSDate())
+  }
+
+  const handleNextClick = (e: MouseEvent): void => {
+    const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+    const nextDate = DateTime.fromJSDate(props.date).plus(timeUnit).toJSDate()
+    props.onNavigate(e, nextDate)
+  }
+
+  const handleBackClick = (e: MouseEvent): void => {
+    const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
+    const nextDate = DateTime.fromJSDate(props.date).minus(timeUnit).toJSDate()
+    props.onNavigate(e, nextDate)
+  }
+
+  const handleMonthViewClick = (): void => {
+    props.onView('month')
+  }
+
+  const handleWeekViewClick = (): void => {
+    props.onView('week')
+  }
+
   return (
     <Grid container spacing={2} className={classes.container}>
       <Grid item xs={12} lg={4} className={classes.primaryNavBtnGroup}>
         <ButtonGroup color='primary' aria-label='Calendar Navigation'>
-          <Button
-            data-cy='show-today'
-            onClick={(e) => props.onNavigate(e, DateTime.local().toJSDate())}
-          >
+          <Button data-cy='show-today' onClick={handleTodayClick}>
             Today
           </Button>
-          <Button
-            data-cy='back'
-            onClick={(e) => {
-              const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-              const nextDate = DateTime.fromJSDate(props.date)
-                .minus(timeUnit)
-                .toJSDate()
-
-              props.onNavigate(e, nextDate)
-            }}
-          >
+          <Button data-cy='back' onClick={handleBackClick}>
             Back
           </Button>
-          <Button
-            data-cy='next'
-            onClick={(e) => {
-              const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-              const nextDate = DateTime.fromJSDate(props.date)
-                .plus(timeUnit)
-                .toJSDate()
-
-              props.onNavigate(e, nextDate)
-            }}
-          >
+          <Button data-cy='next' onClick={handleNextClick}>
             Next
           </Button>
         </ButtonGroup>
@@ -109,14 +110,14 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
           <Button
             data-cy='show-month'
             disabled={props.view === 'month'}
-            onClick={() => props.onView('month')}
+            onClick={handleMonthViewClick}
           >
             Month
           </Button>
           <Button
             data-cy='show-week'
             disabled={props.view === 'week'}
-            onClick={() => props.onView('week')}
+            onClick={handleWeekViewClick}
           >
             Week
           </Button>
