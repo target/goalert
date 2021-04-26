@@ -1,6 +1,6 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import Card from '@material-ui/core/Card'
+import { Card, Button } from '@material-ui/core'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
@@ -17,17 +17,21 @@ import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import LuxonLocalizer from '../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../util/shifts'
 import _ from 'lodash'
+import GroupAdd from '@material-ui/icons/GroupAdd'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
-const styles = {
+const styles = (theme) => ({
   calendarContainer: {
     padding: '1em',
   },
   card: {
     marginTop: 4,
   },
-}
+  tempSchedBtn: {
+    marginLeft: theme.spacing(1),
+  },
+})
 
 const mapStateToProps = (state) => {
   // false: monthly, true: weekly
@@ -215,7 +219,27 @@ export default class ScheduleCalendar extends React.PureComponent {
                   />
                 ),
                 toolbar: (props) => (
-                  <CalendarToolbar onNewTempSched={onNewTempSched} {...props} />
+                  <CalendarToolbar
+                    date={props.date}
+                    label={props.label}
+                    onNavigate={props.onNavigate}
+                    onView={props.onView}
+                    view={props.view}
+                    endAdornment={
+                      <Button
+                        variant='contained'
+                        size='small'
+                        color='primary'
+                        data-cy='new-temp-sched'
+                        onClick={onNewTempSched}
+                        className={classes.tempSchedBtn}
+                        startIcon={<GroupAdd />}
+                        title='Make temporary change to this schedule'
+                      >
+                        Temp Sched
+                      </Button>
+                    }
+                  />
                 ),
               }}
             />
