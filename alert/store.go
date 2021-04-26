@@ -542,6 +542,7 @@ func (db *DB) Create(ctx context.Context, a *Alert) (*Alert, error) {
 	)
 	ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
 	log.Logf(ctx, "Alert created.")
+	metricCreatedTotal.Inc()
 
 	return n, nil
 }
@@ -677,6 +678,7 @@ func (db *DB) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, error) {
 		)
 		ctx = log.WithFields(ctx, log.Fields{"AlertID": n.ID, "ServiceID": n.ServiceID})
 		log.Logf(ctx, "Alert created.")
+		metricCreatedTotal.Inc()
 	}
 
 	return n, nil
