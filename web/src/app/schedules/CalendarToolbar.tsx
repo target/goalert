@@ -2,7 +2,6 @@ import React, { MouseEvent } from 'react'
 import {
   Button,
   ButtonGroup,
-  ButtonProps,
   Grid,
   makeStyles,
   Typography,
@@ -37,9 +36,6 @@ const useStyles = makeStyles((theme) => ({
       order: 3,
     },
   },
-  actionBtn: {
-    marginLeft: theme.spacing(1),
-  },
 }))
 
 type ViewType = 'month' | 'week'
@@ -49,7 +45,8 @@ interface CalendarToolbarProps {
   onNavigate: (e: React.MouseEvent, date: Date) => void
   onView: (view: ViewType) => void
   view: ViewType
-  actionButtonProps?: ButtonProps
+  startAdornment?: React.ReactNode
+  endAdornment?: React.ReactNode
 }
 
 function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
@@ -83,6 +80,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   return (
     <Grid container spacing={2} className={classes.container}>
       <Grid item xs={12} lg={4} className={classes.primaryNavBtnGroup}>
+        {props.startAdornment}
         <ButtonGroup color='primary' aria-label='Calendar Navigation'>
           <Button data-cy='show-today' onClick={handleTodayClick}>
             Today
@@ -122,15 +120,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
             Week
           </Button>
         </ButtonGroup>
-        {props.actionButtonProps && (
-          <Button
-            variant='contained'
-            size='small'
-            color='primary'
-            className={classes.actionBtn}
-            {...props.actionButtonProps}
-          />
-        )}
+        {props.endAdornment}
       </Grid>
     </Grid>
   )

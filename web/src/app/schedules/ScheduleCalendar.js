@@ -1,6 +1,6 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
-import Card from '@material-ui/core/Card'
+import { Card, Button } from '@material-ui/core'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
@@ -21,14 +21,17 @@ import GroupAdd from '@material-ui/icons/GroupAdd'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
-const styles = {
+const styles = (theme) => ({
   calendarContainer: {
     padding: '1em',
   },
   card: {
     marginTop: 4,
   },
-}
+  tempSchedBtn: {
+    marginLeft: theme.spacing(1),
+  },
+})
 
 const mapStateToProps = (state) => {
   // false: monthly, true: weekly
@@ -222,13 +225,20 @@ export default class ScheduleCalendar extends React.PureComponent {
                     onNavigate={props.onNavigate}
                     onView={props.onView}
                     view={props.view}
-                    actionButtonProps={{
-                      'data-cy': 'new-temp-sched',
-                      onClick: onNewTempSched,
-                      startIcon: <GroupAdd />,
-                      title: 'Make temporary change to this schedule',
-                      children: 'Temp',
-                    }}
+                    endAdornment={
+                      <Button
+                        variant='contained'
+                        size='small'
+                        color='primary'
+                        data-cy='new-temp-sched'
+                        onClick={onNewTempSched}
+                        className={classes.tempSchedBtn}
+                        startIcon={<GroupAdd />}
+                        title='Make temporary change to this schedule'
+                      >
+                        Temp Sched
+                      </Button>
+                    }
                   />
                 ),
               }}
