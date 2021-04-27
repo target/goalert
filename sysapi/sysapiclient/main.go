@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
+	"io"
 	"log"
 
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/sysapi"
 	"google.golang.org/grpc"
 )
@@ -31,9 +32,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	for _, sub := range resp.Subjects {
-		log.Println(sub.ProviderId, sub.SubjectId, uuid.FromBytesOrNil(sub.UserId).String())
+	for {
+		sub, err := resp.Recv()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			panic(err)
+		}
+		log.Println(sub.ProviderId, sub.SubjectId, sub.UserId)
 	}
 
 }

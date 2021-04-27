@@ -18,9 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SysAPIClient interface {
-	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
-	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
-	AuthSubjects(ctx context.Context, in *AuthSubjectsRequest, opts ...grpc.CallOption) (*AuthSubjectsResponse, error)
+	AuthSubjects(ctx context.Context, in *AuthSubjectsRequest, opts ...grpc.CallOption) (SysAPI_AuthSubjectsClient, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 }
 
@@ -32,36 +30,41 @@ func NewSysAPIClient(cc grpc.ClientConnInterface) SysAPIClient {
 	return &sysAPIClient{cc}
 }
 
-func (c *sysAPIClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
-	out := new(EchoResponse)
-	err := c.cc.Invoke(ctx, "/goalert.SysAPI/Echo", in, out, opts...)
+func (c *sysAPIClient) AuthSubjects(ctx context.Context, in *AuthSubjectsRequest, opts ...grpc.CallOption) (SysAPI_AuthSubjectsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SysAPI_ServiceDesc.Streams[0], "/goalert.v1.SysAPI/AuthSubjects", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &sysAPIAuthSubjectsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
 }
 
-func (c *sysAPIClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
-	out := new(ListUsersResponse)
-	err := c.cc.Invoke(ctx, "/goalert.SysAPI/ListUsers", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+type SysAPI_AuthSubjectsClient interface {
+	Recv() (*AuthSubject, error)
+	grpc.ClientStream
 }
 
-func (c *sysAPIClient) AuthSubjects(ctx context.Context, in *AuthSubjectsRequest, opts ...grpc.CallOption) (*AuthSubjectsResponse, error) {
-	out := new(AuthSubjectsResponse)
-	err := c.cc.Invoke(ctx, "/goalert.SysAPI/AuthSubjects", in, out, opts...)
-	if err != nil {
+type sysAPIAuthSubjectsClient struct {
+	grpc.ClientStream
+}
+
+func (x *sysAPIAuthSubjectsClient) Recv() (*AuthSubject, error) {
+	m := new(AuthSubject)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	return out, nil
+	return m, nil
 }
 
 func (c *sysAPIClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
 	out := new(DeleteUserResponse)
-	err := c.cc.Invoke(ctx, "/goalert.SysAPI/DeleteUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/goalert.v1.SysAPI/DeleteUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +75,7 @@ func (c *sysAPIClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, op
 // All implementations must embed UnimplementedSysAPIServer
 // for forward compatibility
 type SysAPIServer interface {
-	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
-	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
-	AuthSubjects(context.Context, *AuthSubjectsRequest) (*AuthSubjectsResponse, error)
+	AuthSubjects(*AuthSubjectsRequest, SysAPI_AuthSubjectsServer) error
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	mustEmbedUnimplementedSysAPIServer()
 }
@@ -83,14 +84,8 @@ type SysAPIServer interface {
 type UnimplementedSysAPIServer struct {
 }
 
-func (UnimplementedSysAPIServer) Echo(context.Context, *EchoRequest) (*EchoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
-}
-func (UnimplementedSysAPIServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
-}
-func (UnimplementedSysAPIServer) AuthSubjects(context.Context, *AuthSubjectsRequest) (*AuthSubjectsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AuthSubjects not implemented")
+func (UnimplementedSysAPIServer) AuthSubjects(*AuthSubjectsRequest, SysAPI_AuthSubjectsServer) error {
+	return status.Errorf(codes.Unimplemented, "method AuthSubjects not implemented")
 }
 func (UnimplementedSysAPIServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
@@ -108,58 +103,25 @@ func RegisterSysAPIServer(s grpc.ServiceRegistrar, srv SysAPIServer) {
 	s.RegisterService(&SysAPI_ServiceDesc, srv)
 }
 
-func _SysAPI_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EchoRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _SysAPI_AuthSubjects_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(AuthSubjectsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(SysAPIServer).Echo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/goalert.SysAPI/Echo",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SysAPIServer).Echo(ctx, req.(*EchoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(SysAPIServer).AuthSubjects(m, &sysAPIAuthSubjectsServer{stream})
 }
 
-func _SysAPI_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListUsersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SysAPIServer).ListUsers(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/goalert.SysAPI/ListUsers",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SysAPIServer).ListUsers(ctx, req.(*ListUsersRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+type SysAPI_AuthSubjectsServer interface {
+	Send(*AuthSubject) error
+	grpc.ServerStream
 }
 
-func _SysAPI_AuthSubjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthSubjectsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SysAPIServer).AuthSubjects(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/goalert.SysAPI/AuthSubjects",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SysAPIServer).AuthSubjects(ctx, req.(*AuthSubjectsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+type sysAPIAuthSubjectsServer struct {
+	grpc.ServerStream
+}
+
+func (x *sysAPIAuthSubjectsServer) Send(m *AuthSubject) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _SysAPI_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -172,7 +134,7 @@ func _SysAPI_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/goalert.SysAPI/DeleteUser",
+		FullMethod: "/goalert.v1.SysAPI/DeleteUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SysAPIServer).DeleteUser(ctx, req.(*DeleteUserRequest))
@@ -184,26 +146,20 @@ func _SysAPI_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SysAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "goalert.SysAPI",
+	ServiceName: "goalert.v1.SysAPI",
 	HandlerType: (*SysAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Echo",
-			Handler:    _SysAPI_Echo_Handler,
-		},
-		{
-			MethodName: "ListUsers",
-			Handler:    _SysAPI_ListUsers_Handler,
-		},
-		{
-			MethodName: "AuthSubjects",
-			Handler:    _SysAPI_AuthSubjects_Handler,
-		},
 		{
 			MethodName: "DeleteUser",
 			Handler:    _SysAPI_DeleteUser_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "AuthSubjects",
+			Handler:       _SysAPI_AuthSubjects_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "sysapi/sysapi.proto",
 }

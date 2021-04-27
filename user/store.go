@@ -34,6 +34,7 @@ type Store interface {
 	AddAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	DeleteAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error)
+	StreamAuthSubjects(ctx context.Context, providerID, userID string, eachFn func(AuthSubject) error) error
 	FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, afterSubjectID, providerID string) ([]AuthSubject, error)
 }
 
@@ -60,6 +61,8 @@ type DB struct {
 	deleteUserAuthSubject *sql.Stmt
 
 	findAuthSubjectsByUser *sql.Stmt
+
+	findAuthSubjects *sql.Stmt
 
 	grp *groupcache.Group
 
@@ -98,6 +101,14 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		delete: p.P(`
 			DELETE FROM users
 			WHERE id = $1
+		`),
+
+		findAuthSubjects: p.P(`
+			select subject_id, user_id, provider_id
+			from auth_subjects
+			where
+				(provider_id = $1 or $1 isnull) and
+				(user_id = $2 or $2 isnull)
 		`),
 
 		findMany: p.P(`
@@ -159,6 +170,53 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	store.grp = groupcache.NewGroup(fmt.Sprintf("user.store[%d]", atomic.AddInt64(&grpN, 1)), 1024*1024, groupcache.GetterFunc(store.cacheGet))
 
 	return store, nil
+}
+
+func (db *DB) StreamAuthSubjects(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {
+	err := permission.LimitCheckAny(ctx, permission.System)
+	if err != nil {
+		return err
+	}
+	if providerID != "" {
+		err = validate.SubjectID("ProviderID", providerID)
+	}
+	if userID != "" {
+		err = validate.Many(err, validate.UUID("UserID", userID))
+	}
+	if err != nil {
+		return err
+	}
+
+	pID := sql.NullString{
+		String: providerID,
+		Valid:  providerID != "",
+	}
+	uID := sql.NullString{
+		String: userID,
+		Valid:  userID != "",
+	}
+
+	rows, err := db.findAuthSubjects.QueryContext(ctx, pID, uID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sub AuthSubject
+		err = rows.Scan(&sub.SubjectID, &sub.UserID, &sub.ProviderID)
+		if err != nil {
+			return err
+		}
+		err = forEachFn(sub)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
