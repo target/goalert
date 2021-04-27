@@ -10,6 +10,7 @@ import SwipeableViews from 'react-swipeable-views'
 import TempSchedAddShiftsStep from './TempSchedAddShiftsStep'
 import TempSchedTimesStep from './TempSchedTimesStep'
 import { parseInterval } from '../../util/shifts'
+import { DateTime } from 'luxon'
 // allows changing the index programatically
 const VirtualizeAnimatedViews = virtualize(SwipeableViews)
 
@@ -118,6 +119,19 @@ export default function TempSchedDialog({
       onClose={onClose}
       loading={loading}
       errors={errs}
+      notices={
+        !value.start ||
+        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 })
+          ? []
+          : [
+              {
+                type: 'WARNING',
+                message: 'Start time occurs in the past',
+                details:
+                  'Any shifts or changes made to shifts in the past will be ignored when submitting.',
+              },
+            ]
+      }
       form={
         <FormContainer
           optionalLabels
