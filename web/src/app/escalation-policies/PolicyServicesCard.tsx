@@ -23,7 +23,7 @@ function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
       url: `/services/${service.id}`,
     }))
 
-    return _.sortBy(items, 'name')
+    return _.sortBy(items, 'title')
   }
 
   return (
