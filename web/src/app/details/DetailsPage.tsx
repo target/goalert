@@ -88,7 +88,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
   return (
     <Grid container spacing={2}>
       {/* Notices */}
-      {(p.notices?.length ?? 0) > 0 && (
+      {Boolean(p.notices?.length) && (
         <Grid item xs={12}>
           <Notices notices={p.notices} />
         </Grid>

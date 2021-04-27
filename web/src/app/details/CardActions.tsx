@@ -22,6 +22,12 @@ const useStyles = makeStyles({
   cardActions: {
     alignItems: 'flex-end', // aligns icon buttons to bottom of container
   },
+  primaryActionsContainer: {
+    padding: 8,
+  },
+  autoExpandWidth: {
+    margin: '0 auto',
+  },
 })
 
 export default function CardActions(p: CardActionProps): JSX.Element {
@@ -36,12 +42,19 @@ export default function CardActions(p: CardActionProps): JSX.Element {
 
   let actions: Array<JSX.Element> = []
   if (p.primaryActions) {
-    actions = p.primaryActions.map((a, i) => action(a, 'primary' + i))
+    actions = [
+      <div
+        key='primary-actions-container'
+        className={classes.primaryActionsContainer}
+      >
+        {p.primaryActions.map((a, i) => action(a, 'primary' + i))}
+      </div>,
+    ]
   }
   if (p.secondaryActions) {
     actions = [
       ...actions,
-      <div key='actions-margin' style={{ margin: '0 auto' }} />,
+      <div key='actions-margin' className={classes.autoExpandWidth} />,
       ...p.secondaryActions.map((a, i) =>
         action({ ...a, secondary: true }, 'secondary' + i),
       ),

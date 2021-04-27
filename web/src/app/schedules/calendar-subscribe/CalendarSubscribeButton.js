@@ -3,24 +3,11 @@ import { useQuery } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
 import Tooltip from '@material-ui/core/Tooltip'
-import { makeStyles } from '@material-ui/core/styles'
 
 import CalendarSubscribeCreateDialog from './CalendarSubscribeCreateDialog'
 import { calendarSubscriptionsQuery } from '../../users/UserCalendarSubscriptionList'
 import { useConfigValue, useSessionInfo } from '../../util/RequireConfig'
 import _ from 'lodash'
-
-const useStyles = makeStyles((theme) => ({
-  container: {
-    padding: 8,
-  },
-  calIcon: {
-    marginRight: theme.spacing(1),
-  },
-  captionContainer: {
-    display: 'grid',
-  },
-}))
 
 export default function CalendarSubscribeButton(props) {
   const [creationDisabled] = useConfigValue(
@@ -28,7 +15,6 @@ export default function CalendarSubscribeButton(props) {
   )
 
   const [showDialog, setShowDialog] = useState(false)
-  const classes = useStyles()
   const { userID, ready } = useSessionInfo()
 
   const { data, error } = useQuery(calendarSubscriptionsQuery, {
@@ -55,27 +41,25 @@ export default function CalendarSubscribeButton(props) {
 
   return (
     <React.Fragment>
-      <div className={classes.container}>
-        <Tooltip
-          title={context}
-          placement='top-start'
-          interactive
-          PopperProps={{
-            'data-cy': 'subscribe-btn-context',
-          }}
+      <Tooltip
+        title={context}
+        placement='top-start'
+        interactive
+        PopperProps={{
+          'data-cy': 'subscribe-btn-context',
+        }}
+      >
+        <Button
+          data-cy='subscribe-btn'
+          aria-label='Subscribe to this schedule'
+          color='primary'
+          disabled={creationDisabled}
+          onClick={() => setShowDialog(true)}
+          variant='contained'
         >
-          <Button
-            data-cy='subscribe-btn'
-            aria-label='Subscribe to this schedule'
-            color='primary'
-            disabled={creationDisabled}
-            onClick={() => setShowDialog(true)}
-            variant='contained'
-          >
-            Subscribe
-          </Button>
-        </Tooltip>
-      </div>
+          Subscribe
+        </Button>
+      </Tooltip>
 
       {showDialog && (
         <CalendarSubscribeCreateDialog
