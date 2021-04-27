@@ -131,6 +131,13 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 	return nil
 }
 
+func validateRecent(fieldName string, t time.Time) error {
+	if time.Since(t) >= 24*time.Hour {
+		return nil
+	}
+	return validation.NewFieldError(fieldName, "too far in the past")
+}
+
 func validateFuture(fieldName string, t time.Time) error {
 	if t.After(time.Now()) {
 		return nil
@@ -144,8 +151,15 @@ func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, schedu
 	if err != nil {
 		return err
 	}
+	start = start.Truncate(time.Minute)
+	end = end.Truncate(time.Minute)
+	for i := range shifts {
+		shifts[i].Start = shifts[i].Start.Truncate(time.Minute)
+		shifts[i].End = shifts[i].End.Truncate(time.Minute)
+	}
 
 	err = validate.Many(
+		validateRecent("Start", start),
 		validateFuture("End", end),
 		validateTimeRange("", start, end),
 		validate.UUID("ScheduleID", scheduleID),
