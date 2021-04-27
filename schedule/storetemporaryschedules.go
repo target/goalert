@@ -66,6 +66,8 @@ func (store *Store) TemporarySchedules(ctx context.Context, tx *sql.Tx, schedule
 		data.V1.TemporarySchedules[i] = tmp
 	}
 
+	data.V1.TemporarySchedules = MergeTemporarySchedules(data.V1.TemporarySchedules)
+
 	return data.V1.TemporarySchedules, nil
 }
 
