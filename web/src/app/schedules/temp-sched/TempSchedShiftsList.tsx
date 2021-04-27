@@ -39,16 +39,19 @@ type TempSchedShiftsListProps = {
 
   start: string
   end: string
+
+  edit?: boolean
 }
 
 export default function TempSchedShiftsList({
+  edit,
   start,
   end,
   value,
   onRemove,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
-  const _shifts = useUserInfo(value)
+  let shifts = useUserInfo(value)
   const [zone] = useURLParam('tz', 'local')
   const schedInterval = parseInterval({ start, end })
 
@@ -68,8 +71,13 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    const sortedShifts = _shifts.length
-      ? _.sortBy(_shifts, 'start').map((s) => ({
+    // purge historical shifts if editing
+    if (edit) {
+      shifts = shifts.filter((s) => DateTime.fromISO(s.end) > DateTime.utc())
+    }
+
+    const sortedShifts = shifts.length
+      ? _.sortBy(shifts, 'start').map((s) => ({
           id: s.start + s.userID,
           shift: s,
           start: DateTime.fromISO(s.start, { zone }),
@@ -124,19 +132,31 @@ export default function TempSchedShiftsList({
       // add start time of temp schedule to top of list
       // for day that it will start on
       if (dayStart.day === schedInterval.start.day) {
+        let details = `Starts at ${DateTime.fromISO(start)
+          .setZone(zone)
+          .toFormat('h:mm a')}`
+        let message = ''
+
+        if (edit && DateTime.fromISO(start) < DateTime.utc()) {
+          message = 'Currently active'
+          details = 'Historical shifts will not be displayed'
+        }
+
         result.push({
           id: 'day-start_' + start,
           type: 'OK',
           icon: <ScheduleIcon />,
-          message: '',
-          details: `Starts at ${DateTime.fromISO(start)
-            .setZone(zone)
-            .toFormat('h:mm a')}`,
+          message,
+          details,
         })
       }
 
       // render no coverage and continue if no shifts for the given day
       if (dayShifts.length === 0) {
+        if (edit && dayInterval.end < DateTime.utc()) {
+          return
+        }
+
         return result.push({
           id: 'day-no-coverage_' + start,
           type: 'WARNING',
