@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/schedule/rule"
 )
@@ -23,11 +24,12 @@ type ResolvedRotation struct {
 }
 
 type state struct {
-	rules     []ResolvedRule
-	overrides []override.UserOverride
-	history   []Shift
-	now       time.Time
-	loc       *time.Location
+	tempScheds []schedule.TemporarySchedule
+	rules      []ResolvedRule
+	overrides  []override.UserOverride
+	history    []Shift
+	now        time.Time
+	loc        *time.Location
 }
 
 func (r *ResolvedRotation) UserID(t time.Time) string {
@@ -102,7 +104,6 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	defer t.Close()
 
 	hist := t.NewUserCalculator()
-	// sort history so that overlapping spans are merged properly
 	sort.Slice(s.history, func(i, j int) bool { return s.history[i].Start.Before(s.history[j].Start) })
 	for _, s := range s.history {
 		if s.End.IsZero() {
@@ -113,8 +114,9 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		hist.SetSpan(s.Start, s.End, s.UserID)
 	}
 	hist.Init()
+	tempScheds := t.NewTemporaryScheduleCalculator(s.tempScheds)
 	// sort overrides so that overlapping spans are merged properly
-	sort.Slice(s.overrides, func(i, j int) bool { return s.overrides[i].Start.Before(s.overrides[j].Start) })
+
 	overrides := t.NewOverrideCalculator(s.overrides)
 	rules := t.NewRulesCalculator(s.loc, s.rules)
 
@@ -158,6 +160,12 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 		if time.Unix(t.Unix(), 0).Before(historyCutoff) {
 			// use history if in the past
 			setOnCall(hist.ActiveUsers())
+			continue
+		}
+
+		if tempScheds.Active() {
+			// use TemporarySchedule if one is active
+			setOnCall(tempScheds.ActiveUsers())
 			continue
 		}
 

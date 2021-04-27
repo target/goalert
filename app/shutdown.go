@@ -57,7 +57,6 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.srv, "HTTP server")
 	shut(app.Engine, "engine")
 	shut(app.events, "event listener")
-	shut(app.notificationManager, "notification manager")
 	shut(app.SessionKeyring, "session keyring")
 	shut(app.OAuthKeyring, "oauth keyring")
 	shut(app.APIKeyring, "API keyring")

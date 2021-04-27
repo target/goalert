@@ -29,6 +29,11 @@ func sortColumns(columns []string) {
 		return ci < cj
 	})
 }
+func quoteNames(names []string) {
+	for i, n := range names {
+		names[i] = pgx.Identifier{n}.Sanitize()
+	}
+}
 
 func queryStrings(ctx context.Context, tx pgx.Tx, sql string, args ...interface{}) ([]string, error) {
 	rows, err := tx.Query(ctx, sql, args...)
@@ -79,6 +84,7 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("read columns for '%s': %w", table, err)
 		}
+		quoteNames(columns)
 
 		primaryCols, err := queryStrings(ctx, tx, `
 			select col.column_name
@@ -95,6 +101,7 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer) error {
 			return fmt.Errorf("read primary key for '%s': %w", table, err)
 		}
 		sortColumns(primaryCols)
+		quoteNames(primaryCols)
 
 		colNames := strings.Join(columns, ", ")
 		orderBy := strings.Join(primaryCols, ",")
@@ -102,7 +109,7 @@ func DumpData(ctx context.Context, conn *pgx.Conn, out io.Writer) error {
 			orderBy = colNames
 		}
 
-		fmt.Fprintf(out, "COPY %s (%s) FROM stdin;\n", table, colNames)
+		fmt.Fprintf(out, "COPY %s (%s) FROM stdin;\n", pgx.Identifier{table}.Sanitize(), colNames)
 		rows, err := tx.Query(ctx,
 			fmt.Sprintf("select %s from %s order by %s",
 				colNames,

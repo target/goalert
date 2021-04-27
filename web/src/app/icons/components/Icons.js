@@ -21,12 +21,11 @@ const useStyles = makeStyles({
 
 export function Trash() {
   const classes = useStyles()
-
   return <TrashIcon className={classes.trashIcon} />
 }
 
 export function Warning(props) {
-  const { message } = props
+  const { message, placement } = props
   const classes = useStyles()
 
   const warningIcon = (
@@ -38,7 +37,7 @@ export function Warning(props) {
   }
 
   return (
-    <Tooltip title={message} placement='right'>
+    <Tooltip title={message} placement={placement || 'right'}>
       {warningIcon}
     </Tooltip>
   )
@@ -58,4 +57,5 @@ export function SlackBW() {
 
 Warning.propTypes = {
   message: p.string,
+  placement: p.string,
 }

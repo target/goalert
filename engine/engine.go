@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/engine/cleanupmanager"
@@ -24,8 +25,6 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-
-	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
 )
 
@@ -397,7 +396,9 @@ func (p *Engine) processAll(ctx context.Context) bool {
 			return true
 		}
 		ctx, sp := trace.StartSpan(ctx, m.Name())
+		start := time.Now()
 		p.processModule(ctx, m)
+		metricModuleDuration.WithLabelValues(m.Name()).Observe(time.Since(start).Seconds())
 		sp.End()
 	}
 	return false
@@ -428,13 +429,18 @@ passSignals:
 	log.Logf(ctx, "Engine cycle start.")
 	defer log.Logf(ctx, "Engine cycle end.")
 
+	startAll := time.Now()
 	aborted := p.processAll(ctx)
 	if aborted || p.mgr.IsPausing() {
 		sp.Annotate([]trace.Attribute{trace.BoolAttribute("cycle.abort", true)}, "Cycle aborted.")
 		log.Logf(ctx, "Engine cycle aborted (paused or shutting down).")
 		return
 	}
+	startMsg := time.Now()
 	p.processMessages(ctx)
+	metricModuleDuration.WithLabelValues("Engine.Message").Observe(time.Since(startMsg).Seconds())
+	metricModuleDuration.WithLabelValues("Engine").Observe(time.Since(startAll).Seconds())
+	metricCycleTotal.Inc()
 }
 func (p *Engine) handlePause(ctx context.Context, respCh chan error) {
 	// nothing special to do currently

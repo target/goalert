@@ -43,6 +43,7 @@ export interface SlackChannelSearchOptions {
 export interface SlackChannel {
   id: string
   name: string
+  teamID: string
 }
 
 export interface SlackChannelConnection {
@@ -182,7 +183,34 @@ export interface DebugSendSMSInfo {
   providerURL: string
 }
 
+export interface TemporarySchedule {
+  start: ISOTimestamp
+  end: ISOTimestamp
+  shifts: OnCallShift[]
+}
+
+export interface ClearTemporarySchedulesInput {
+  scheduleID: string
+  start: ISOTimestamp
+  end: ISOTimestamp
+}
+
+export interface SetTemporaryScheduleInput {
+  scheduleID: string
+  start: ISOTimestamp
+  end: ISOTimestamp
+  shifts: SetScheduleShiftInput[]
+}
+
+export interface SetScheduleShiftInput {
+  userID: string
+  start: ISOTimestamp
+  end: ISOTimestamp
+}
+
 export interface Mutation {
+  setTemporarySchedule: boolean
+  clearTemporarySchedules: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
@@ -419,6 +447,7 @@ export interface Schedule {
   targets: ScheduleTarget[]
   target?: ScheduleTarget
   isFavorite: boolean
+  temporarySchedules: TemporarySchedule[]
 }
 
 export interface OnCallShift {

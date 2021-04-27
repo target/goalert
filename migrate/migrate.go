@@ -88,7 +88,7 @@ func VerifyAll(ctx context.Context, url string) error {
 
 	var hasLatest bool
 	err = conn.QueryRow(ctx, `select true from gorp_migrations where id = $1`, targetID).Scan(&hasLatest)
-	if err != nil {
+	if !errors.Is(err, pgx.ErrNoRows) && err != nil {
 		return err
 	}
 	if hasLatest {

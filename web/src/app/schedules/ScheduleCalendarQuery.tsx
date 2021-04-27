@@ -19,6 +19,7 @@ const query = gql`
     schedule(id: $id) {
       id
       shifts(start: $start, end: $end) {
+        userID
         user {
           id
           name
@@ -27,16 +28,35 @@ const query = gql`
         end
         truncated
       }
+
+      temporarySchedules {
+        start
+        end
+        shifts {
+          userID
+          user {
+            id
+            name
+          }
+          start
+          end
+          truncated
+        }
+      }
     }
   }
 `
 
 interface ScheduleCalendarQueryProps {
   scheduleID: string
+  onNewTempSched: () => void
+  onEditTempSched: () => void
+  onDeleteTempSched: () => void
 }
 
 function ScheduleCalendarQuery({
   scheduleID,
+  ...other
 }: ScheduleCalendarQueryProps): JSX.Element | null {
   const width = useWidth()
   const isMobile = isWidthDown('sm', width)
@@ -79,6 +99,8 @@ function ScheduleCalendarQuery({
     <ScheduleCalendar
       scheduleID={scheduleID}
       shifts={data?.schedule?.shifts ?? []}
+      temporarySchedules={data.schedule.temporarySchedules}
+      {...other}
     />
   )
 }

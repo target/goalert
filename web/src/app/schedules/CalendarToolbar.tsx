@@ -1,6 +1,4 @@
-import React from 'react'
-import { PropTypes as p } from 'prop-types'
-import { useSelector } from 'react-redux'
+import React, { MouseEvent } from 'react'
 import {
   Button,
   ButtonGroup,
@@ -9,13 +7,8 @@ import {
   Typography,
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import { urlParamSelector } from '../selectors'
-import PersonAddIcon from '@material-ui/icons/PersonAdd'
 
 const useStyles = makeStyles((theme) => ({
-  addOverrideGridItem: {
-    marginLeft: theme.spacing(1),
-  },
   container: {
     paddingBottom: '1em',
   },
@@ -45,42 +38,49 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-export default function CalendarToolbar(props) {
-  const { date, onOverrideClick: handleAddOverrideClick, view } = props
+type ViewType = 'month' | 'week'
+interface CalendarToolbarProps {
+  date: Date
+  label: string
+  onNavigate: (e: React.MouseEvent, date: Date) => void
+  onView: (view: ViewType) => void
+  view: ViewType
+  startAdornment?: React.ReactNode
+  endAdornment?: React.ReactNode
+}
 
+function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   const classes = useStyles()
-  const urlParams = useSelector(urlParamSelector)
-  const weekly = urlParams('weekly', false)
+  const weekly = props.view === 'week'
 
-  const handleTodayClick = (e) => {
+  const handleTodayClick = (e: MouseEvent): void => {
     props.onNavigate(e, DateTime.local().toJSDate())
   }
 
-  const handleBackClick = (e) => {
+  const handleNextClick = (e: MouseEvent): void => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromJSDate(date).minus(timeUnit).toJSDate()
-
+    const nextDate = DateTime.fromJSDate(props.date).plus(timeUnit).toJSDate()
     props.onNavigate(e, nextDate)
   }
 
-  const handleNextClick = (e) => {
+  const handleBackClick = (e: MouseEvent): void => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromJSDate(date).plus(timeUnit).toJSDate()
-
+    const nextDate = DateTime.fromJSDate(props.date).minus(timeUnit).toJSDate()
     props.onNavigate(e, nextDate)
   }
 
-  const handleMonthViewClick = () => {
+  const handleMonthViewClick = (): void => {
     props.onView('month')
   }
 
-  const handleWeekViewClick = () => {
+  const handleWeekViewClick = (): void => {
     props.onView('week')
   }
 
   return (
     <Grid container spacing={2} className={classes.container}>
       <Grid item xs={12} lg={4} className={classes.primaryNavBtnGroup}>
+        {props.startAdornment}
         <ButtonGroup color='primary' aria-label='Calendar Navigation'>
           <Button data-cy='show-today' onClick={handleTodayClick}>
             Today
@@ -96,7 +96,6 @@ export default function CalendarToolbar(props) {
 
       <Grid item xs={12} lg={4} className={classes.labelGridItem}>
         <Typography component='p' data-cy='calendar-header' variant='subtitle1'>
-          {/* label is passed from react-big-calendar in <ScheduleCalendar> */}
           {props.label}
         </Typography>
       </Grid>
@@ -108,41 +107,23 @@ export default function CalendarToolbar(props) {
         >
           <Button
             data-cy='show-month'
-            disabled={view === 'month'}
+            disabled={props.view === 'month'}
             onClick={handleMonthViewClick}
           >
             Month
           </Button>
           <Button
             data-cy='show-week'
-            disabled={view === 'week'}
+            disabled={props.view === 'week'}
             onClick={handleWeekViewClick}
           >
             Week
           </Button>
         </ButtonGroup>
-        <Button
-          data-cy='add-override'
-          variant='contained'
-          size='small'
-          color='primary'
-          className={classes.addOverrideGridItem}
-          onClick={() => handleAddOverrideClick()}
-          startIcon={<PersonAddIcon />}
-          title='Temporarily add a user to this schedule'
-        >
-          Temp Add
-        </Button>
+        {props.endAdornment}
       </Grid>
     </Grid>
   )
 }
 
-CalendarToolbar.propTypes = {
-  date: p.instanceOf(Date).isRequired,
-  label: p.string.isRequired,
-  onNavigate: p.func.isRequired,
-  onOverrideClick: p.func.isRequired,
-  onView: p.func.isRequired,
-  view: p.string.isRequired,
-}
+export default CalendarToolbar

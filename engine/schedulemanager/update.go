@@ -3,17 +3,18 @@ package schedulemanager
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-
-	"github.com/pkg/errors"
 )
 
 // UpdateAll will update all schedule rules.
@@ -40,7 +41,30 @@ func (db *DB) update(ctx context.Context) error {
 		return errors.Wrap(err, "get DB time")
 	}
 
-	rows, err := tx.Stmt(db.overrides).QueryContext(ctx)
+	scheduleData := make(map[string]*schedule.Data)
+	rows, err := tx.StmtContext(ctx, db.data).QueryContext(ctx)
+	if err != nil {
+		return errors.Wrap(err, "get schedule data")
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id string
+		var data json.RawMessage
+		err = rows.Scan(&id, &data)
+		if err != nil {
+			return errors.Wrap(err, "scan schedule data")
+		}
+
+		var sData schedule.Data
+		err = json.Unmarshal(data, &sData)
+		if err != nil {
+			log.Log(log.WithField(ctx, "ScheduleID", id), errors.Wrap(err, "unmarshal schedule data"))
+			continue
+		}
+		scheduleData[id] = &sData
+	}
+
+	rows, err = tx.Stmt(db.overrides).QueryContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get active overrides")
 	}
@@ -120,14 +144,37 @@ func (db *DB) update(ctx context.Context) error {
 		oldOnCall[oc] = true
 	}
 
+	// Calculate new state
 	newOnCall := make(map[onCall]bool, len(rules))
+
+	tempSched := make(map[string]struct{})
+	for id, data := range scheduleData {
+		ok, users := data.TempOnCall(now)
+		if !ok {
+			continue
+		}
+
+		for _, uid := range users {
+			newOnCall[onCall{ScheduleID: id, UserID: uid}] = true
+		}
+		tempSched[id] = struct{}{}
+	}
+
 	for _, r := range rules {
+		if _, ok := tempSched[r.ScheduleID]; ok {
+			// temp schedule active for this ID, skip
+			continue
+		}
 		if r.IsActive(now.In(tz[r.ScheduleID])) {
 			newOnCall[onCall{ScheduleID: r.ScheduleID, UserID: r.UserID}] = true
 		}
 	}
 
 	for _, o := range overrides {
+		if _, ok := tempSched[o.Target.TargetID()]; ok {
+			// temp schedule active for this ID, skip
+			continue
+		}
 		if o.AddUserID != "" && o.RemoveUserID == "" {
 			// ADD override
 			newOnCall[onCall{ScheduleID: o.Target.TargetID(), UserID: o.AddUserID}] = true

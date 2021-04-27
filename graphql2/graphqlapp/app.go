@@ -3,10 +3,10 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
-
-	"github.com/target/goalert/notice"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
@@ -24,6 +24,7 @@ import (
 	"github.com/target/goalert/integrationkey"
 	"github.com/target/goalert/label"
 	"github.com/target/goalert/limit"
+	"github.com/target/goalert/notice"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notification/twilio"
@@ -58,7 +59,7 @@ type App struct {
 	ServiceStore   service.Store
 	FavoriteStore  favorite.Store
 	PolicyStore    escalation.Store
-	ScheduleStore  schedule.Store
+	ScheduleStore  *schedule.Store
 	CalSubStore    *calendarsubscription.Store
 	RotationStore  rotation.Store
 	OnCallStore    oncall.Store
@@ -180,7 +181,17 @@ func (a *App) Handler() http.Handler {
 			trace.StringAttribute("graphql.object", fieldCtx.Object),
 			trace.StringAttribute("graphql.field.name", fieldCtx.Field.Name),
 		)
+		start := time.Now()
 		res, err = next(ctx)
+		errVal := "0"
+		if err != nil {
+			errVal = "1"
+		}
+		if fieldCtx.IsMethod {
+			metricResolverHist.
+				WithLabelValues(fmt.Sprintf("%s.%s", fieldCtx.Object, fieldCtx.Field.Name), errVal).
+				Observe(time.Since(start).Seconds())
+		}
 		if err != nil {
 			sp.Annotate([]trace.Attribute{
 				trace.BoolAttribute("error", true),

@@ -94,7 +94,7 @@ type App struct {
 	IntegrationKeyStore integrationkey.Store
 	ScheduleRuleStore   rule.Store
 	NotificationStore   notification.Store
-	ScheduleStore       schedule.Store
+	ScheduleStore       *schedule.Store
 	RotationStore       rotation.Store
 
 	CalSubStore    *calendarsubscription.Store

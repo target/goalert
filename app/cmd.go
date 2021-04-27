@@ -74,6 +74,11 @@ var RootCmd = &cobra.Command{
 			return errors.Wrap(err, "read config")
 		}
 
+		err = initPromServer()
+		if err != nil {
+			return err
+		}
+
 		ctx := context.Background()
 		cfg, err := getConfig()
 		if err != nil {
@@ -402,6 +407,11 @@ Migration: %s (#%d)
 				return err
 			}
 
+			err = initPromServer()
+			if err != nil {
+				return err
+			}
+
 			mon, err := remotemonitor.NewMonitor(cfg)
 			if err != nil {
 				return err
@@ -699,6 +709,7 @@ func init() {
 	RootCmd.Flags().String("listen-sysapi", "", "Listen address:port for the system API (gRPC).")
 	RootCmd.Flags().String("sysapi-cert-file", "", "Specifies a path to a PEM-encoded certificate to authenticate clients.")
 	RootCmd.Flags().String("sysapi-key-file", "", "Specifies a path to a PEM-encoded private key file to authenticate clients.")
+	RootCmd.PersistentFlags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
 
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")
 	RootCmd.Flags().String("tls-key-file", "", "Specifies a path to a PEM-encoded private key file.  Has no effect if --listen-tls is unset.")

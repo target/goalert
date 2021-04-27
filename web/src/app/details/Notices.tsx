@@ -10,7 +10,6 @@ import ExpandIcon from '@material-ui/icons/KeyboardArrowDown'
 import CollapseIcon from '@material-ui/icons/KeyboardArrowUp'
 import { Alert, AlertTitle, AlertProps } from '@material-ui/lab'
 import toTitleCase from '../util/toTitleCase'
-import { Notice } from '../../schema'
 
 const useStyles = makeStyles({
   alertAction: {
@@ -30,21 +29,34 @@ const useStyles = makeStyles({
   },
 })
 
-interface NoticesProps {
-  notices: Notice[] // checks against .length are safe as notices is required
+export interface Notice {
+  type: NoticeType
+  message: string
+  details: string
 }
 
-export default function Notices(props: NoticesProps): JSX.Element {
+export type NoticeType = 'WARNING' | 'ERROR' | 'INFO' | 'OK'
+
+interface NoticesProps {
+  notices?: Notice[]
+}
+
+export default function Notices({
+  notices = [],
+}: NoticesProps): JSX.Element | null {
   const classes = useStyles()
   const [noticesExpanded, setNoticesExpanded] = useState(false)
 
-  function renderShowAllToggle(): ReactNode {
-    if (props.notices.length <= 1) return null
+  if (!notices.length) {
+    return null
+  }
 
+  function renderShowAllToggle(): ReactNode {
+    if (notices.length <= 1) return null
     return (
       <Badge
         color='primary'
-        badgeContent={props.notices.length - 1}
+        badgeContent={notices.length - 1}
         invisible={noticesExpanded}
       >
         <IconButton onClick={() => setNoticesExpanded(!noticesExpanded)}>
@@ -64,7 +76,7 @@ export default function Notices(props: NoticesProps): JSX.Element {
         return ''
       case 1:
         return classes.secondGridItem
-      case props.notices.length - 1:
+      case notices.length - 1:
         return classes.lastGridItem
       default:
         return classes.gridItem
@@ -94,11 +106,11 @@ export default function Notices(props: NoticesProps): JSX.Element {
 
   return (
     <Grid container>
-      {renderNotice(props.notices[0], 0)}
+      {renderNotice(notices[0], 0)}
       <Grid item xs={12}>
         <Collapse in={noticesExpanded}>
           <Grid container>
-            {props.notices.slice(1).map((n, i) => renderNotice(n, i + 1))}
+            {notices.slice(1).map((n, i) => renderNotice(n, i + 1))}
           </Grid>
         </Collapse>
       </Grid>
