@@ -2,7 +2,6 @@ import React from 'react'
 import Card from '@material-ui/core/Card'
 import { makeStyles } from '@material-ui/core/styles'
 import FlatList, { FlatListListItem } from '../lists/FlatList'
-import { Target } from '../../schema'
 import _ from 'lodash'
 
 const useStyles = makeStyles(() => ({
@@ -12,7 +11,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 interface PolicyServicesCardProps {
-  services: Partial<Target>[]
+  services: { id: string; name: string }[]
 }
 
 function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
