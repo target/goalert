@@ -780,7 +780,8 @@ func init() {
 	testCmd.Flags().Bool("offline", false, "Only perform offline checks.")
 
 	monitorCmd.Flags().StringP("config-file", "f", "", "Configuration file for monitoring (required).")
-	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd)
+	initCertCommands()
+	RootCmd.AddCommand(versionCmd, testCmd, migrateCmd, exportCmd, monitorCmd, switchCmd, addUserCmd, getConfigCmd, setConfigCmd, genCerts)
 
 	err := viper.BindPFlags(RootCmd.Flags())
 	if err != nil {
