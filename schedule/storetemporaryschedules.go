@@ -131,46 +131,40 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 	return nil
 }
 
-func validateRecent(fieldName string, t time.Time) error {
-	if time.Since(t) < 24*time.Hour {
-		return nil
-	}
-	return validation.NewFieldError(fieldName, "too far in the past")
-}
-
 func validateFuture(fieldName string, t time.Time) error {
-	if t.After(time.Now()) {
+	if time.Until(t) > 5*time.Minute {
 		return nil
 	}
-	return validation.NewFieldError(fieldName, "must be in the future")
+	return validation.NewFieldError(fieldName, "must be at least 5 min the future")
 }
 
 // SetTemporarySchedule will cause the schedule to use only, and exactly, the provided set of shifts between the provided start and end times.
-func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID string, start, end time.Time, shifts []FixedShift) error {
+func (store *Store) SetTemporarySchedule(ctx context.Context, tx *sql.Tx, scheduleID string, temp TemporarySchedule) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
 	}
-	start = start.Truncate(time.Minute)
-	end = end.Truncate(time.Minute)
-	for i := range shifts {
-		shifts[i].Start = shifts[i].Start.Truncate(time.Minute)
-		shifts[i].End = shifts[i].End.Truncate(time.Minute)
+	temp.Start = temp.Start.Truncate(time.Minute)
+	temp.End = temp.End.Truncate(time.Minute)
+	for i := range temp.Shifts {
+		temp.Shifts[i].Start = temp.Shifts[i].Start.Truncate(time.Minute)
+		temp.Shifts[i].End = temp.Shifts[i].End.Truncate(time.Minute)
 	}
 
 	err = validate.Many(
-		validateRecent("Start", start),
-		validateFuture("End", end),
-		validateTimeRange("", start, end),
+		validateFuture("End", temp.End),
+		validateTimeRange("", temp.Start, temp.End),
 		validate.UUID("ScheduleID", scheduleID),
-		store.validateShifts(ctx, "Shifts", FixedShiftsPerTemporaryScheduleLimit, shifts, start, end),
+		store.validateShifts(ctx, "Shifts", FixedShiftsPerTemporaryScheduleLimit, temp.Shifts, temp.Start, temp.End),
 	)
 	if err != nil {
 		return err
 	}
 
+	// truncate to current timestamp
+	temp.TrimStart(time.Now())
 	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *Data) error {
-		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, start, end, shifts)
+		data.V1.TemporarySchedules = setFixedShifts(data.V1.TemporarySchedules, temp)
 		return nil
 	})
 }
@@ -189,6 +183,9 @@ func (store *Store) ClearTemporarySchedules(ctx context.Context, tx *sql.Tx, sch
 	)
 	if err != nil {
 		return err
+	}
+	if time.Since(start) > 0 {
+		start = time.Now()
 	}
 
 	return store.updateFixedShifts(ctx, tx, scheduleID, func(data *Data) error {
