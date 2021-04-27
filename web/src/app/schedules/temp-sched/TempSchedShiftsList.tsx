@@ -51,7 +51,7 @@ export default function TempSchedShiftsList({
   onRemove,
 }: TempSchedShiftsListProps): JSX.Element {
   const classes = useStyles()
-  let shifts = useUserInfo(value)
+  const _shifts = useUserInfo(value)
   const [zone] = useURLParam('tz', 'local')
   const schedInterval = parseInterval({ start, end })
 
@@ -71,13 +71,8 @@ export default function TempSchedShiftsList({
       ]
     }
 
-    // purge historical shifts if editing
-    if (edit) {
-      shifts = shifts.filter((s) => DateTime.fromISO(s.end) > DateTime.utc())
-    }
-
-    const sortedShifts = shifts.length
-      ? _.sortBy(shifts, 'start').map((s) => ({
+    const sortedShifts = _shifts.length
+      ? _.sortBy(_shifts, 'start').map((s) => ({
           id: s.start + s.userID,
           shift: s,
           start: DateTime.fromISO(s.start, { zone }),
@@ -159,10 +154,6 @@ export default function TempSchedShiftsList({
 
       // render no coverage and continue if no shifts for the given day
       if (dayShifts.length === 0) {
-        if (edit && dayInterval.end < DateTime.utc()) {
-          return
-        }
-
         return result.push({
           id: 'day-no-coverage_' + start,
           type: 'WARNING',
