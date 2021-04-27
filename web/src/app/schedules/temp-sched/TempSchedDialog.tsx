@@ -121,7 +121,8 @@ export default function TempSchedDialog({
       errors={errs}
       notices={
         !value.start ||
-        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 })
+        DateTime.fromISO(value.start) > DateTime.utc().minus({ hour: 1 }) ||
+        edit
           ? []
           : [
               {

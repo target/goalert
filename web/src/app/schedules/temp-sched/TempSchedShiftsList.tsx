@@ -105,8 +105,14 @@ export default function TempSchedShiftsList({
         ).end
       : schedInterval.end
 
+    let spanStart = DateTime.min(schedInterval.start, firstShiftStart).startOf(
+      'day',
+    )
+    if (edit)
+      spanStart = DateTime.max(spanStart, DateTime.utc().startOf('hour'))
+
     const displaySpan = Interval.fromDateTimes(
-      DateTime.min(schedInterval.start, firstShiftStart).startOf('day'),
+      spanStart,
       DateTime.max(schedInterval.end, lastShiftEnd).endOf('day'),
     )
 
