@@ -132,7 +132,7 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 }
 
 func validateRecent(fieldName string, t time.Time) error {
-	if time.Since(t) >= 24*time.Hour {
+	if time.Since(t) < 24*time.Hour {
 		return nil
 	}
 	return validation.NewFieldError(fieldName, "too far in the past")
