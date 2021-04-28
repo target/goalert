@@ -67,19 +67,17 @@ func (act *ActiveCalculator) SetSpan(start, end time.Time) {
 	start = start.Truncate(act.Step())
 	end = end.Truncate(act.Step())
 
-	// Skip if the span ends before the iterator start time.
-	//
-	// A zero end time indicates infinity (e.g. current shift from history).
-	if !end.After(act.Start()) && !end.IsZero() {
+	// Skip if the span is < 1 step (after truncation).
+	if !end.After(start) {
 		return
 	}
 
-	// Skip if the length of the span is less than 1 minute.
-	if !end.IsZero() && end.Sub(start) < time.Minute {
+	// Skip if the span ends before or at the iterator start time.
+	if !end.After(act.Start()) {
 		return
 	}
 
-	// Skip if the span starts after the calculator end time.
+	// Skip if the span starts at or after the calculator end time.
 	if !start.Before(act.End()) {
 		return
 	}
