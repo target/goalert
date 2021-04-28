@@ -13,6 +13,7 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import IconButton from '@material-ui/core/IconButton'
 
 import Notices, { Notice } from './Notices'
+import Markdown from '../util/Markdown'
 import CardActions, { Action } from './CardActions'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
@@ -22,18 +23,18 @@ import { isWidthDown } from '@material-ui/core'
 interface DetailsPageProps {
   title: string
 
-  // content options
+  // optional content
   details?: string
   avatar?: JSX.Element // placement for an icon or image
-
   notices?: Array<Notice>
   links?: Array<Link>
-
   headerContent?: string | JSX.Element
   pageContent?: JSX.Element
-
   primaryActions?: Array<Action | JSX.Element>
   secondaryActions?: Array<Action | JSX.Element>
+
+  // api options
+  noMarkdown?: boolean // disables processing details as markdown
 }
 
 type LinkStatus = 'ok' | 'warn' | 'err'
@@ -107,7 +108,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
             <Grid item>
               <CardHeader
                 title={p.title}
-                subheader={p.details}
+                subheader={
+                  p.noMarkdown ? p.details : <Markdown>{p.details}</Markdown>
+                }
                 avatar={avatar()}
                 titleTypographyProps={{
                   'data-cy': 'title',
@@ -117,6 +120,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 subheaderTypographyProps={{
                   'data-cy': 'details',
                   variant: 'body1',
+                  component: p.noMarkdown ? 'span' : 'div',
                 }}
               />
             </Grid>

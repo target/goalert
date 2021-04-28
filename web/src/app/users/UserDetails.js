@@ -184,6 +184,7 @@ export default function UserDetails(props) {
         avatar={<UserAvatar userID={props.userID} />}
         title={user.name + (svcCount ? ' (On-Call)' : '')}
         details={user.email}
+        noMarkdown
         pageContent={
           <Grid container spacing={2}>
             <UserContactMethodList
