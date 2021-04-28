@@ -7114,10 +7114,10 @@ mdast-util-to-string@^2.0.0:
   resolved "https://registry.yarnpkg.com/mdast-util-to-string/-/mdast-util-to-string-2.0.0.tgz#b8cfe6a713e1091cb5b728fc48885a4767f8b97b"
   integrity sha512-AW4DRS3QbBayY/jJmD8437V1Gombjf8RSOUCMFBuo5iHi58AGEgVCKQ+ezHkZZDpAQS75hcBMpLqjpJTjtUL7w==
 
-mdi-material-ui@6.22.0:
-  version "6.22.0"
-  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-6.22.0.tgz#0b323909fc9ed38b707463bec716e57000af97c7"
-  integrity sha512-cztRUMEiR8JGmEw9GUZWFnJ1WsNTE5tn6vqDMTOequCE6UxMIhBEhbQHW4Z0JyWSs3mTkvjzOLTYoBy3efIV3g==
+mdi-material-ui@6.22.1:
+  version "6.22.1"
+  resolved "https://registry.yarnpkg.com/mdi-material-ui/-/mdi-material-ui-6.22.1.tgz#f4cd3fdd24103b87204a5d7fe1096c20b93f8d49"
+  integrity sha512-wndaFXJhoFr9g5kPw31TZajTa9uf/21jb2jD1rJ5Vi+sj2GZYnZz2BYbrfp1qFgd7tZz8XAcnpsSNMdLbe+dtw==
 
 mdn-data@2.0.14:
   version "2.0.14"
