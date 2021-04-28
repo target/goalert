@@ -24,7 +24,7 @@ function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
     }))
 
     // case-insensitive sort
-    return _.sortBy(items, (i) => i.title.toLowerCase())
+    return _.sortBy(items, (i) => i.title.toLowerCase(), ['title'])
   }
 
   return (
