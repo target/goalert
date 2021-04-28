@@ -136,6 +136,29 @@ $(BIN_DIR)/tools/protoc-gen-go: go.mod
 $(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
+system.ca.pem:
+	go run ./cmd/goalert gen-cert ca
+system.ca.key:
+	go run ./cmd/goalert gen-cert ca
+plugin.ca.pem:
+	go run ./cmd/goalert gen-cert ca
+plugin.ca.key:
+	go run ./cmd/goalert gen-cert ca
+
+goalert-server.pem: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+goalert-server.key: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+goalert-server.ca.pem: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+
+goalert-client.pem: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
