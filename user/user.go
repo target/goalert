@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
 
@@ -73,6 +74,7 @@ func (u *User) userUpdateFields() []interface{} {
 		u.ID,
 		u.Name,
 		u.Email,
+		u.Role,
 		statusCM,
 	}
 }
