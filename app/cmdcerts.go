@@ -143,7 +143,7 @@ func genCertFiles(t certType, extra ...certType) error {
 	case certTypeServer:
 		certFile = _certServerCertFile
 		keyFile = _certServerKeyFile
-		parentCert, parentKey, err = loadPair(_certPluginCACertFile, _certPluginCAKeyFile)
+		parentCert, parentKey, err = loadPair(_certSystemCACertFile, _certSystemCAKeyFile)
 		if err != nil {
 			return fmt.Errorf("load keypair: %w", err)
 		}
@@ -154,7 +154,7 @@ func genCertFiles(t certType, extra ...certType) error {
 	case certTypeClient:
 		certFile = _certClientCertFile
 		keyFile = _certClientKeyFile
-		parentCert, parentKey, err = loadPair(_certSystemCACertFile, _certSystemCAKeyFile)
+		parentCert, parentKey, err = loadPair(_certPluginCACertFile, _certPluginCAKeyFile)
 		if err != nil {
 			return fmt.Errorf("load keypair: %w", err)
 		}

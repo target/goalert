@@ -21,6 +21,7 @@ type Config struct {
 	SysAPIListenAddr string
 	SysAPICertFile   string
 	SysAPIKeyFile    string
+	SysAPICAFile     string
 
 	HTTPPrefix string
 

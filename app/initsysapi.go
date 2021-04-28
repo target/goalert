@@ -28,27 +28,31 @@ func (app *App) initSysAPI(ctx context.Context) error {
 
 	var opts []grpc.ServerOption
 	if app.cfg.SysAPICertFile+app.cfg.SysAPIKeyFile != "" {
+		tlsCfg := &tls.Config{ServerName: "GoAlert"}
+
 		cert, err := tls.LoadX509KeyPair(app.cfg.SysAPICertFile, app.cfg.SysAPIKeyFile)
 		if err != nil {
 			return err
 		}
 
-		caBytes, err := os.ReadFile("ca.crt")
-		if err != nil {
-			return err
+		tlsCfg.Certificates = append(tlsCfg.Certificates, cert)
+
+		if app.cfg.SysAPICAFile != "" {
+			// If CA file is specified, require client auth
+			caBytes, err := os.ReadFile(app.cfg.SysAPICAFile)
+			if err != nil {
+				return err
+			}
+
+			pool := x509.NewCertPool()
+			pool.AppendCertsFromPEM(caBytes)
+
+			tlsCfg.ClientAuth = tls.RequireAndVerifyClientCert
+			tlsCfg.RootCAs = pool
+			tlsCfg.ClientCAs = pool
 		}
 
-		pool := x509.NewCertPool()
-		pool.AppendCertsFromPEM(caBytes)
-
-		opts = append(opts, grpc.Creds(credentials.NewTLS(&tls.Config{
-			ServerName:   "GoAlert",
-			Certificates: []tls.Certificate{cert},
-
-			ClientAuth: tls.RequireAndVerifyClientCert,
-			RootCAs:    pool,
-			ClientCAs:  pool,
-		})))
+		opts = append(opts, grpc.Creds(credentials.NewTLS(tlsCfg)))
 	}
 
 	srv := grpc.NewServer(opts...)

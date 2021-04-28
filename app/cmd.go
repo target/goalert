@@ -650,6 +650,7 @@ func getConfig() (Config, error) {
 		SysAPIListenAddr: viper.GetString("listen-sysapi"),
 		SysAPICertFile:   viper.GetString("sysapi-cert-file"),
 		SysAPIKeyFile:    viper.GetString("sysapi-key-file"),
+		SysAPICAFile:     viper.GetString("sysapi-ca-file"),
 
 		HTTPPrefix: viper.GetString("http-prefix"),
 
