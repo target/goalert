@@ -4,6 +4,8 @@ import p from 'prop-types'
 import DetailsPage from '../details/DetailsPage'
 import StatusUpdateNotification from './UserStatusUpdatePreference'
 import { UserAvatar } from '../util/avatars'
+import PageActions from '../util/PageActions'
+import OtherActions from '../util/OtherActions'
 import UserContactMethodList from './UserContactMethodList'
 import { AddAlarm, SettingsPhone } from '@material-ui/icons'
 import SpeedDial from '../util/SpeedDial'
@@ -19,6 +21,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
+import UserEditDialog from './UserEditDialog'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -104,6 +107,7 @@ export default function UserDetails(props) {
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
 
   const { data, loading: isQueryLoading, error } = useQuery(
@@ -201,6 +205,16 @@ export default function UserDetails(props) {
         noMarkdown
         icon={
           <React.Fragment>
+            <PageActions>
+            <OtherActions
+          actions={[
+            {
+              label: 'Edit User',
+              onClick: () => setShowEdit(true),
+            },
+          ]}
+        />
+            </PageActions>
             <UserAvatar
               userID={props.userID}
               className={classes.profileImage}
@@ -232,6 +246,13 @@ export default function UserDetails(props) {
           </Grid>
         }
       />
+      {showEdit && (
+        <UserEditDialog
+          onClose={() => setShowEdit(false)}
+          userID={props.userID}
+          isAdmin={props.isAdmin}
+        />
+        )}
     </React.Fragment>
   )
 }
