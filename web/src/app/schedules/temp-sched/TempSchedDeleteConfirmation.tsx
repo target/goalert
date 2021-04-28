@@ -2,6 +2,7 @@ import React from 'react'
 import { useMutation, gql } from '@apollo/client'
 import FormDialog from '../../dialogs/FormDialog'
 import { fmt, Value } from './sharedUtils'
+import { DateTime } from 'luxon'
 
 const mutation = gql`
   mutation($input: ClearTemporarySchedulesInput!) {
@@ -25,18 +26,23 @@ export default function TempSchedDeleteConfirmation({
     variables: {
       input: {
         scheduleID: scheduleID,
-        start: value.start,
+        start: value.start, // actual truncation will be handled by backend
         end: value.end,
       },
     },
   })
+
+  const start = DateTime.max(
+    DateTime.fromISO(value.start),
+    DateTime.utc(),
+  ).toISO()
 
   return (
     <FormDialog
       title='Are you sure?'
       confirm
       subTitle={`This will clear all temporary schedule data from ${fmt(
-        value.start,
+        start,
       )} to ${fmt(value.end)}.`}
       loading={loading}
       errors={error ? [error] : []}

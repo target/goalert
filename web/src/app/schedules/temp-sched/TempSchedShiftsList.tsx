@@ -39,9 +39,12 @@ type TempSchedShiftsListProps = {
 
   start: string
   end: string
+
+  edit?: boolean
 }
 
 export default function TempSchedShiftsList({
+  edit,
   start,
   end,
   value,
@@ -97,8 +100,14 @@ export default function TempSchedShiftsList({
         ).end
       : schedInterval.end
 
+    let spanStart = DateTime.min(schedInterval.start, firstShiftStart).startOf(
+      'day',
+    )
+    if (edit)
+      spanStart = DateTime.max(spanStart, DateTime.utc().startOf('hour'))
+
     const displaySpan = Interval.fromDateTimes(
-      DateTime.min(schedInterval.start, firstShiftStart).startOf('day'),
+      spanStart,
       DateTime.max(schedInterval.end, lastShiftEnd).endOf('day'),
     )
 
@@ -124,14 +133,22 @@ export default function TempSchedShiftsList({
       // add start time of temp schedule to top of list
       // for day that it will start on
       if (dayStart.day === schedInterval.start.day) {
+        let details = `Starts at ${DateTime.fromISO(start)
+          .setZone(zone)
+          .toFormat('h:mm a')}`
+        let message = ''
+
+        if (edit && DateTime.fromISO(start) < DateTime.utc()) {
+          message = 'Currently active'
+          details = 'Historical shifts will not be displayed'
+        }
+
         result.push({
           id: 'day-start_' + start,
           type: 'OK',
           icon: <ScheduleIcon />,
-          message: '',
-          details: `Starts at ${DateTime.fromISO(start)
-            .setZone(zone)
-            .toFormat('h:mm a')}`,
+          message,
+          details,
         })
       }
 
