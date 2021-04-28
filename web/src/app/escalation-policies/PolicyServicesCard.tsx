@@ -23,7 +23,8 @@ function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
       url: `/services/${service.id}`,
     }))
 
-    return _.sortBy(items, 'title')
+    // case-insensitive sort
+    return _.sortBy(items, (i) => i.title.toLowerCase())
   }
 
   return (
