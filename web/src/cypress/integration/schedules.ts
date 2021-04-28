@@ -77,8 +77,8 @@ function testSchedules(screen: ScreenFormat): void {
       // verify changes occurred
       cy.reload()
       cy.get('[data-cy=title]').should('contain', newName)
+      cy.get('[data-cy=subheader]').should('contain', newTz)
       cy.get('[data-cy=details]').should('contain', newDesc)
-      cy.get('[data-cy=header-content]').should('contain', newTz)
     })
 
     it('should navigate to and from assignments', () => {

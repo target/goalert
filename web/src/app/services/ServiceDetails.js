@@ -89,9 +89,8 @@ export default function ServiceDetails({ serviceID }) {
       <DetailsPage
         avatar={<ServiceAvatar />}
         title={data.service.name}
-        details={data.service.description}
-        headerContent={
-          <div>
+        subheader={
+          <React.Fragment>
             Escalation Policy:{' '}
             {_.get(data, 'service.ep') ? (
               <AppLink to={`/escalation-policies/${data.service.ep.id}`}>
@@ -100,8 +99,9 @@ export default function ServiceDetails({ serviceID }) {
             ) : (
               <Spinner text='Looking up policy...' />
             )}
-          </div>
+          </React.Fragment>
         }
+        details={data.service.description}
         pageContent={<ServiceOnCallList serviceID={serviceID} />}
         secondaryActions={[
           {

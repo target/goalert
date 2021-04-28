@@ -81,8 +81,8 @@ export default function RotationDetails({ rotationID }) {
       <DetailsPage
         avatar={<RotationAvatar />}
         title={data.name}
+        subheader={handoffSummary(data)}
         details={data.description}
-        headerContent={handoffSummary(data)}
         pageContent={<RotationUserList rotationID={rotationID} />}
         secondaryActions={[
           {

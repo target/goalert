@@ -86,8 +86,8 @@ export default function ScheduleDetails({ scheduleID }) {
       <DetailsPage
         avatar={<ScheduleAvatar />}
         title={data.name}
+        subheader={`Time Zone: ${data.timeZone || 'Loading...'}`}
         details={data.description}
-        headerContent={`Time Zone: ${data.timeZone || 'Loading...'}`}
         pageContent={
           <ScheduleCalendarQuery
             scheduleID={scheduleID}

@@ -24,17 +24,14 @@ interface DetailsPageProps {
   title: string
 
   // optional content
-  details?: string
   avatar?: JSX.Element // placement for an icon or image
+  subheader?: string | JSX.Element
+  details?: string
   notices?: Array<Notice>
   links?: Array<Link>
-  headerContent?: string | JSX.Element
   pageContent?: JSX.Element
   primaryActions?: Array<Action | JSX.Element>
   secondaryActions?: Array<Action | JSX.Element>
-
-  // api options
-  noMarkdown?: boolean // disables processing details as markdown
 }
 
 type LinkStatus = 'ok' | 'warn' | 'err'
@@ -108,9 +105,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
             <Grid item>
               <CardHeader
                 title={p.title}
-                subheader={
-                  p.noMarkdown ? p.details : <Markdown>{p.details}</Markdown>
-                }
+                subheader={p.subheader}
                 avatar={avatar()}
                 titleTypographyProps={{
                   'data-cy': 'title',
@@ -120,25 +115,24 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                 subheaderTypographyProps={{
                   'data-cy': 'details',
                   variant: 'body1',
-                  component: p.noMarkdown ? 'span' : 'div',
                 }}
               />
             </Grid>
 
-            <Grid item>
-              {p.headerContent && (
+            {p.details && (
+              <Grid item>
                 <CardContent className={classes.headerContent}>
                   <Typography
                     component='div'
                     variant='subtitle1'
                     color='textSecondary'
-                    data-cy='header-content'
+                    data-cy='details'
                   >
-                    {p.headerContent}
+                    <Markdown value={p.details} />
                   </Typography>
                 </CardContent>
-              )}
-            </Grid>
+              </Grid>
+            )}
 
             <Grid className={classes.flexHeight} item />
             <Grid item>
