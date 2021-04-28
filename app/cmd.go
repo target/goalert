@@ -706,9 +706,11 @@ func init() {
 
 	RootCmd.Flags().StringP("listen-tls", "t", def.TLSListenAddr, "HTTPS listen address:port for the application.  Requires setting --tls-cert-data and --tls-key-data OR --tls-cert-file and --tls-key-file.")
 
-	RootCmd.Flags().String("listen-sysapi", "", "Listen address:port for the system API (gRPC).")
-	RootCmd.Flags().String("sysapi-cert-file", "", "Specifies a path to a PEM-encoded certificate to authenticate clients.")
-	RootCmd.Flags().String("sysapi-key-file", "", "Specifies a path to a PEM-encoded private key file to authenticate clients.")
+	RootCmd.Flags().String("listen-sysapi", "", "(Experimental) Listen address:port for the system API (gRPC).")
+	RootCmd.Flags().String("sysapi-cert-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate to use when connecting to plugin services.")
+	RootCmd.Flags().String("sysapi-key-file", "", "(Experimental) Specifies a path to a PEM-encoded private key file use when connecting to plugin services.")
+	RootCmd.Flags().String("sysapi-ca-file", "", "(Experimental) Specifies a path to a PEM-encoded certificate(s) to authorize connections from plugin services.")
+
 	RootCmd.PersistentFlags().StringP("listen-prometheus", "p", "", "Bind address for Prometheus metrics.")
 
 	RootCmd.Flags().String("tls-cert-file", "", "Specifies a path to a PEM-encoded certificate.  Has no effect if --listen-tls is unset.")

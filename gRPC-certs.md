@@ -22,14 +22,15 @@ Run `goalert gen-cert ca` to generate the CA files:
 - `plugin.ca.pem`
 - `plugin.ca.key`
 
-Keep these files secure, as they are only used to generate the deployment cert files.
+Keep these files secure (esp. the `.key` files), as they are only used to generate the deployment cert files.
 
 ### 2. Generating the Server Certificates
 
 Run `goalert gen-cert server` to generate the server files:
 
-- `goalert-server.pem`
-- `goalert-server.key`
+- `goalert-server.ca.pem` (gets passed to `--sysapi-ca-file`)
+- `goalert-server.pem` (gets passed to `--sysapi-cert-file`)
+- `goalert-server.key` (gets passed to `--sysapi-key-file`)
 
 These files should be deployed/provided to GoAlert itself.
 
@@ -37,6 +38,7 @@ These files should be deployed/provided to GoAlert itself.
 
 Run `goalert gen-cert client` to generate the client files:
 
+- `goalert-client.ca.pem`
 - `goalert-client.pem`
 - `goalert-client.key`
 
