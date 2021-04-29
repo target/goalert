@@ -144,7 +144,7 @@ export default class RotationUserList extends React.PureComponent {
         }
         items={users.map((u, index) => ({
           title: u.name,
-          id: u.id,
+          id: String(index),
           highlight: index === activeUserIndex,
           icon: <UserAvatar userID={u.id} />,
           subText: handoff[index],
