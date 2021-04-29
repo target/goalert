@@ -1,21 +1,18 @@
 import React from 'react'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
-import { Checkbox, Hidden, Table, TableCell, TableHead, TableRow, TableBody, MenuItem } from '@material-ui/core'
+import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Hidden } from '@material-ui/core'
 import { FormContainer, FormField } from '../forms'
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 const roles = [
-    'user',
     'admin',
-    'unknown'
+    'user',
 ]
 
 interface Value {
   name: string
   role: string
-  isAdmin: boolean
+ // isAdmin: boolean
 }
 
 interface UserFormProps {
@@ -35,24 +32,14 @@ interface UserFormProps {
 
 export default function UserForm(props: UserFormProps): JSX.Element {
     const [state, setState] = React.useState({
-    checkedUser: !props.value.isAdmin,
-    checkedAdmin: props.value.isAdmin,
+   // checkedUser: !props.value.isAdmin,
+   // checkedAdmin: props.value.isAdmin,
     });
     const { ...containerProps } = props
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    /*const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({ ...state, [event.target.name]: event.target.checked });
-    };
-    
-    /*if (props.value.role == 'admin') {
-        //setState({ ...state, checkedAdmin: true })
-        state.checkedAdmin = true
-        //setState({ checkedAdmin: true, checkedUser: false })
-    }
-    if (props.value.role == 'user') {
-        //setState({ checkedAdmin: false, checkedUser: true})
-         state.checkedUser = true
-    }*/
+    };*/
 
   return (
     <FormContainer {...containerProps}>
@@ -67,32 +54,39 @@ export default function UserForm(props: UserFormProps): JSX.Element {
           />
         </Grid>
         <Grid item xs={12}>
-        <FormControlLabel
-            control={
-            <Checkbox
-            checked={state.checkedAdmin}
-            onChange={handleChange}
-            //onChange={(newValue) => setState(newValue)}
-            // onChange={(value) => this.setState({ value })}
-            name="checkedAdmin"
-            color="primary"
+        <Table data-cy='user-roles'>
+        <TableHead>
+        <TableRow>             
+        {roles.map((r) => (
+        <TableCell key={r} padding='checkbox'>
+            {r}
+        </TableCell>
+        ))}    
+        </TableRow>
+        </TableHead>
+        <TableBody>
+        <Hidden smDown>
+        {roles.map((role, rIdx) => (
+        <TableCell key={rIdx} padding='checkbox'>
+            <FormField
+             noError
+             component={Checkbox}
+             checkbox
+             fieldName={role}
+             name={role}
+             // mapValue={() => roles.filter(r => r === props.value.role)}
+              mapValue={() => {
+              if (role === props.value.role) return true
+              return false
+            }}       
             />
-            }
-            label="Admin"
-        /> 
-        <FormControlLabel
-            control={
-            <Checkbox
-            checked={state.checkedUser}
-            onChange={handleChange}
-            name="checkedUser"
-            color="primary"
-          />
-        }
-        label="User"
-        />
+        </TableCell>    
+        ))}                      
+        </Hidden>
+        </TableBody>              
+        </Table>              
         </Grid>
       </Grid>
     </FormContainer>
-  )  
+  )
 }
