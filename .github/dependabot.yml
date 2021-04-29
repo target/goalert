@@ -1,35 +1,24 @@
 version: 2
 updates:
-- package-ecosystem: npm
-  directory: "/"
-  schedule:
-    interval: daily
-    time: "11:00"
-  open-pull-requests-limit: 3
-  ignore:
-  - dependency-name: "@date-io/luxon"
-    versions:
-    - "<=3.0.0"
-  - dependency-name: "@hot-loader/react-dom"
-    versions:
-    - ">= 0"
-  - dependency-name: react
-    versions:
-    - ">= 0"
-  - dependency-name: react-dom
-    versions:
-    - ">= 0"
-  - dependency-name: webpack
-    versions:
-    - 5.24.2
-    - 5.25.0
-    - 5.33.2
-  - dependency-name: "@babel/preset-env"
-    versions:
-    - 7.13.10
-  - dependency-name: "@date-io/core"
-    versions:
-    - 2.10.7
-  - dependency-name: "@apollo/client"
-    versions:
-    - 3.3.8
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: daily
+      time: '11:00'
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: '@date-io/luxon'
+        versions:
+          - '<=3.0.0'
+      - dependency-name: '@hot-loader/react-dom'
+        versions:
+          - '>= 0'
+      - dependency-name: 'react'
+        versions:
+          - '>= 0'
+      - dependency-name: 'react-dom'
+        versions:
+          - '>= 0'
+      - dependency-name: '@date-io/core'
+        versions:
+          - 2.10.7
