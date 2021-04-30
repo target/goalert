@@ -122,22 +122,22 @@ export default function ScheduleDetails({ scheduleID }) {
           {
             label: 'Assignments',
             url: 'assignments',
-            subText: 'Rotations and users linked to this schedule',
+            subText: 'Manage rules for rotations and users',
           },
           {
             label: 'Escalation Policies',
             url: 'escalation-policies',
-            subText: 'Escalation policies this schedule is linked to',
+            subText: 'Find escalation policies that link to this schedule',
           },
           {
             label: 'Overrides',
             url: 'overrides',
-            subText: 'Temporary changes made to this schedule',
+            subText: 'Add, remove, or replace a user temporarily',
           },
           {
             label: 'Shifts',
             url: 'shifts',
-            subText: 'A list view of all shifts for this schedule',
+            subText: 'Review a list of past and future on-call shifts',
           },
         ]}
       />

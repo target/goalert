@@ -122,7 +122,7 @@ export default function UserDetails(props) {
     links.push({
       label: 'Schedule Calendar Subscriptions',
       url: 'schedule-calendar-subscriptions',
-      subText: 'Schedules you have opted to externally subscribe to',
+      subText: 'Manage schedules you have subscribed to',
     })
   }
 
