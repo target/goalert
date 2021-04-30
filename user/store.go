@@ -109,12 +109,8 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			WHERE id = any($1)
 		`),
 
-		deleteOne: p.P(`DELETE FROM users WHERE id = $1`),
-		userRotations: p.P(`
-			SELECT DISTINCT rotation_id
-			FROM rotation_state state
-			WHERE EXISTS (SELECT 1 FROM rotation_participants WHERE rotation_id = state.rotation_id AND user_id = $1)
-		`),
+		deleteOne:          p.P(`DELETE FROM users WHERE id = $1`),
+		userRotations:      p.P(`SELECT DISTINCT rotation_id FROM rotation_participants WHERE user_id = $1`),
 		rotationParts:      p.P(`SELECT id, user_id FROM rotation_participants WHERE rotation_id = $1 ORDER BY position`),
 		updateRotationPart: p.P(`UPDATE rotation_participants SET user_id = $2 WHERE id = $1`),
 		deleteRotationPart: p.P(`DELETE FROM rotation_participants WHERE id = $1`),
