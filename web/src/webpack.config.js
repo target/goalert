@@ -31,10 +31,7 @@ module.exports = (env = { GOALERT_VERSION: 'dev' }) => ({
       { test: /lodash/, loader: 'strict-loader' },
       {
         test: /\.(t|j)sx?$/,
-        use: [
-          'babel-loader',
-          { loader: 'ifdef-loader', options: { production: false } },
-        ],
+        use: ['babel-loader'],
         include: [APP],
       },
       {
