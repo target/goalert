@@ -8,7 +8,7 @@ import UserContactMethodList from './UserContactMethodList'
 import { AddAlarm, SettingsPhone } from '@material-ui/icons'
 import SpeedDial from '../util/SpeedDial'
 import UserNotificationRuleList from './UserNotificationRuleList'
-import { Button, Grid } from '@material-ui/core'
+import { Grid } from '@material-ui/core'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
 import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog'
 import Typography from '@material-ui/core/Typography'
@@ -21,6 +21,7 @@ import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
 import PageActions from '../util/PageActions'
 import UserDeleteDialog from './UserDeleteDialog'
+import OtherActions from '../util/OtherActions'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -158,13 +159,14 @@ export default function UserDetails(props) {
     <React.Fragment>
       {isAdmin && (
         <PageActions>
-          <Button
-            color='inherit'
-            data-cy='delete-user'
-            onClick={() => setShowUserDeleteDialog(true)}
-          >
-            Delete
-          </Button>
+          <OtherActions
+            actions={[
+              {
+                label: 'Delete User',
+                onClick: () => setShowUserDeleteDialog(true),
+              },
+            ]}
+          />
         </PageActions>
       )}
       {showUserDeleteDialog && (
