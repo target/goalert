@@ -117,12 +117,8 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 		return err
 	}
 
-	if len(rawData) > 0 {
-		// preserve unknown fields
-		rawData, err = jsonutil.Apply(rawData, data)
-	} else {
-		rawData, err = json.Marshal(data)
-	}
+	// preserve unknown fields
+	rawData, err = jsonutil.Apply(rawData, data)
 	if err != nil {
 		return err
 	}
