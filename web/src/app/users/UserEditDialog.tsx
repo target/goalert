@@ -29,22 +29,15 @@ const mutation = gql`
   }
 `
 
-interface Value {
-  name: string
-  role: string
-}
-
 interface UserEditDialogProps {
   userID: string
   onClose: () => void
-  value: Value
-  // onChange: (val: Value) => void
 }
 
 
 
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
-  const { userID: currentUserID, ready: isSessionReady } = useSessionInfo()
+  const { ready: isSessionReady } = useSessionInfo()
 
   const { data, loading: qLoading } = useQuery(query, {
     variables: { id: props.userID },
@@ -99,12 +92,14 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
              if (role === data?.user?.role) return true
              return false
              }}
-             //mapOnChangeValue={(value:string) => roles.map((role) => role === value)}
-             mapOnChangeValue={(value: string, formValue: Value) => {
+             mapOnChangeValue={() => {
+             return true
+             }}
+             /*mapOnChangeValue={(value: string, formValue: Value) => {
                  if (formValue.role != data?.user?.role){
                       return formValue.role
                   }
-             }}
+             }}*/
             />
         </TableCell>    
         ))}                      
