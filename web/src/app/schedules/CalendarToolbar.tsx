@@ -116,34 +116,28 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
     }
   }
 
-  const onNavigate = (nextDate: Date): void => {
+  const onNavigate = (next: DateTime): void => {
     if (weekly) {
-      setStart(getStartOfWeek(DateTime.fromJSDate(nextDate)).toUTC().toISO())
+      setStart(getStartOfWeek(next).toUTC().toISO())
     } else {
-      setStart(
-        DateTime.fromJSDate(nextDate)
-          .toLocal()
-          .startOf('month')
-          .toUTC()
-          .toISO(),
-      )
+      setStart(next.toLocal().startOf('month').toUTC().toISO())
     }
   }
 
   const handleTodayClick = (): void => {
-    onNavigate(new Date())
+    onNavigate(DateTime.local())
   }
 
   const handleNextClick = (): void => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromISO(start).plus(timeUnit).toJSDate()
-    onNavigate(nextDate)
+    const next = DateTime.fromISO(start).plus(timeUnit)
+    onNavigate(next)
   }
 
   const handleBackClick = (): void => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromISO(start).minus(timeUnit).toJSDate()
-    onNavigate(nextDate)
+    const next = DateTime.fromISO(start).minus(timeUnit)
+    onNavigate(next)
   }
 
   return (
