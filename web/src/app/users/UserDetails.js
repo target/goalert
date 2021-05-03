@@ -250,7 +250,6 @@ export default function UserDetails(props) {
         <UserEditDialog
           onClose={() => setShowEdit(false)}
           userID={props.userID}
-          isAdmin={props.isAdmin}
         />
         )}
     </React.Fragment>

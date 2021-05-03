@@ -36,7 +36,7 @@ export default function UserEditDialog({ userID, onClose, isAdmin }) {
    const defaults = {
     // default value is the user name & role
      ..._.chain(data).get('user').pick(['name', 'role']).value(),
-     isAdmin: isAdmin,
+    // isAdmin: isAdmin,
   }
 
   const fieldErrs = fieldErrors(saveStatus.error)
@@ -68,5 +68,4 @@ export default function UserEditDialog({ userID, onClose, isAdmin }) {
 UserEditDialog.propTypes = {
   userID: p.string.isRequired,
   onClose: p.func,
-  isAdmin: p.bool,
 }

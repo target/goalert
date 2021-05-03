@@ -37,9 +37,9 @@ export default function UserForm(props: UserFormProps): JSX.Element {
     });
     const { ...containerProps } = props
 
-    /*const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setState({ ...state, [event.target.name]: event.target.checked });
-    };*/
+    };
 
   return (
     <FormContainer {...containerProps}>
@@ -75,10 +75,16 @@ export default function UserForm(props: UserFormProps): JSX.Element {
              fieldName={role}
              name={role}
              // mapValue={() => roles.filter(r => r === props.value.role)}
-              mapValue={() => {
-              if (role === props.value.role) return true
-              return false
-            }}       
+             mapValue={() => {
+             if (role === props.value.role) return true
+             return false
+             }}
+             //mapOnChangeValue={(value) => roles.map((role) => value === role)}
+             mapOnChangeValue={(value: boolean) => {
+                 if (value) {
+                  return role 
+                } 
+             }}
             />
         </TableCell>    
         ))}                      
