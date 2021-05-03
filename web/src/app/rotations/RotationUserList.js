@@ -53,6 +53,7 @@ export default class RotationUserList extends React.PureComponent {
   state = {
     deleteIndex: null,
     setActiveIndex: null,
+    lastSwap: [],
   }
 
   render() {
@@ -135,6 +136,11 @@ export default class RotationUserList extends React.PureComponent {
       )
     })
 
+    let listIDs = users.map((_, idx) => idx)
+    this.state.lastSwap.forEach((s) => {
+      listIDs = reorderList(listIDs, s.oldIndex, s.newIndex)
+    })
+
     return (
       <FlatList
         data-cy='users'
@@ -144,7 +150,7 @@ export default class RotationUserList extends React.PureComponent {
         }
         items={users.map((u, index) => ({
           title: u.name,
-          id: String(index),
+          id: String(listIDs[index]),
           highlight: index === activeUserIndex,
           icon: <UserAvatar userID={u.id} />,
           subText: handoff[index],
@@ -163,12 +169,20 @@ export default class RotationUserList extends React.PureComponent {
             />
           ),
         }))}
-        onReorder={(...args) => {
+        onReorder={(oldIndex, newIndex) => {
+          this.setState({
+            lastSwap: [...this.state.lastSwap, { oldIndex, newIndex }],
+          })
           const updatedUsers = reorderList(
             users.map((u) => u.id),
-            ...args,
+            oldIndex,
+            newIndex,
           )
-          const newActiveIndex = calcNewActiveIndex(activeUserIndex, ...args)
+          const newActiveIndex = calcNewActiveIndex(
+            activeUserIndex,
+            oldIndex,
+            newIndex,
+          )
           const params = { id: this.props.rotationID, userIDs: updatedUsers }
 
           if (newActiveIndex !== -1) {
@@ -186,7 +200,7 @@ export default class RotationUserList extends React.PureComponent {
                 variables: { id: this.props.rotationID },
               })
 
-              const users = reorderList(data.rotation.users, ...args)
+              const users = reorderList(data.rotation.users, oldIndex, newIndex)
 
               cache.writeQuery({
                 query: rotationUsersQuery,
