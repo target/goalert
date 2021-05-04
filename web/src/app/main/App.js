@@ -42,6 +42,7 @@ const useStyles = makeStyles((theme) => ({
   },
   mainContainer: { position: 'relative', height: '100%' },
   appBar: {
+    width: 'calc(100% - 220px)',
     zIndex: theme.zIndex.drawer + 1,
   },
   toolbar: theme.mixins.toolbar,
@@ -91,7 +92,6 @@ export default function App() {
 
           <Hidden smDown>
             <LazyWideSideBar>
-              <div className={classes.toolbar} />
               <LazySideBarDrawerList
                 closeMobileSidebar={() => setShowMobile(false)}
               />

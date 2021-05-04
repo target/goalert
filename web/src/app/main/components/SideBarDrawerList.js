@@ -30,6 +30,7 @@ import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 
+import logo from '../../public/goalert-alt-logo-scaled.png'
 import AppLink from '../../util/AppLink'
 
 const navIcons = {
@@ -48,9 +49,8 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     display: 'flex',
     justifyContent: 'center',
-  },
-  logo: {
     padding: '0.5em',
+    height: theme.mixins.toolbar.lineHeight,
   },
   navIcon: {
     width: '1em',
@@ -133,56 +133,62 @@ export default function SideBarDrawerList(props) {
   }
 
   return (
-    <nav>
-      <List role='navigation' className={classes.list} data-cy='nav-list'>
-        {routeConfig
-          .filter((cfg) => cfg.nav !== false)
-          .map((cfg, idx) => {
-            if (cfg.subRoutes) {
-              return (
-                <NavSubMenu
-                  key={idx}
-                  parentIcon={navIcons[cfg.title]}
-                  parentTitle={cfg.title}
-                  path={getPath(cfg)}
-                  subMenuRoutes={cfg.subRoutes}
-                >
-                  {renderSidebarItem(navIcons[cfg.title], cfg.title)}
-                </NavSubMenu>
+    <React.Fragment>
+      <div aria-hidden className={classes.logoDiv}>
+        <img height={32} src={logo} alt='GoAlert Logo' />
+      </div>
+      <Divider />
+      <nav>
+        <List role='navigation' className={classes.list} data-cy='nav-list'>
+          {routeConfig
+            .filter((cfg) => cfg.nav !== false)
+            .map((cfg, idx) => {
+              if (cfg.subRoutes) {
+                return (
+                  <NavSubMenu
+                    key={idx}
+                    parentIcon={navIcons[cfg.title]}
+                    parentTitle={cfg.title}
+                    path={getPath(cfg)}
+                    subMenuRoutes={cfg.subRoutes}
+                  >
+                    {renderSidebarItem(navIcons[cfg.title], cfg.title)}
+                  </NavSubMenu>
+                )
+              }
+              return renderSidebarNavLink(
+                navIcons[cfg.title],
+                getPath(cfg),
+                cfg.title,
+                idx,
+              )
+            })}
+          <RequireConfig isAdmin>
+            <Divider aria-hidden />
+            {renderAdmin()}
+          </RequireConfig>
+
+          <Divider aria-hidden />
+          {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
+          <Config>
+            {(cfg) =>
+              cfg['Feedback.Enable'] &&
+              renderFeedback(
+                cfg['Feedback.OverrideURL'] ||
+                  'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
               )
             }
-            return renderSidebarNavLink(
-              navIcons[cfg.title],
-              getPath(cfg),
-              cfg.title,
-              idx,
-            )
+          </Config>
+          {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
+            onClick: (e) => {
+              e.preventDefault()
+              logout()
+            },
           })}
-        <RequireConfig isAdmin>
-          <Divider aria-hidden />
-          {renderAdmin()}
-        </RequireConfig>
-
-        <Divider aria-hidden />
-        {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
-        <Config>
-          {(cfg) =>
-            cfg['Feedback.Enable'] &&
-            renderFeedback(
-              cfg['Feedback.OverrideURL'] ||
-                'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
-            )
-          }
-        </Config>
-        {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
-          onClick: (e) => {
-            e.preventDefault()
-            logout()
-          },
-        })}
-        {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
-      </List>
-    </nav>
+          {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
+        </List>
+      </nav>
+    </React.Fragment>
   )
 }
 
