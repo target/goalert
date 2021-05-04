@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
   },
   mainContainer: { position: 'relative', height: '100%' },
   appBar: {
-    width: 'calc(100% - 220px)',
+    [theme.breakpoints.up('md')]: { width: 'calc(100% - 220px)' },
     zIndex: theme.zIndex.drawer + 1,
   },
   containerClass: {
