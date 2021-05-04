@@ -45,11 +45,6 @@ const useStyles = makeStyles((theme) => ({
     width: 'calc(100% - 220px)',
     zIndex: theme.zIndex.drawer + 1,
   },
-  icon: {
-    marginRight: '0.25em',
-    color: theme.palette.primary['500'],
-  },
-  toolbar: theme.mixins.toolbar,
   containerClass: {
     padding: '1em',
     [theme.breakpoints.up('md')]: { width: '75%' },
@@ -82,7 +77,7 @@ export default function App() {
             data-cy-format={cyFormat}
           >
             <SkipToContentLink />
-            <Toolbar className={classes.toolbar}>
+            <Toolbar>
               <ToolbarAction
                 showMobileSidebar={showMobile}
                 openMobileSidebar={() => setShowMobile(true)}

@@ -86,7 +86,8 @@ export const styles = (theme) => ({
     textDecoration: 'none',
     display: 'block',
     '& p, span': {
-      color: theme.palette.text.primary,
+      lineHeight: '1.375rem',
+      color: theme.palette.text.secondary, // todo: use text.primary with baseline mui palette
     },
     '&:focus': {
       backgroundColor: 'rgba(0, 0, 0, 0.12)',
