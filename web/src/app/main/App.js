@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
     zIndex: 1,
     position: 'relative',
     display: 'flex',
-    backgroundColor: 'lightgrey',
+    backgroundColor: 'white',
     height: '100%',
   },
   main: {
