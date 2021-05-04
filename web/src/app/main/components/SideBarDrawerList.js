@@ -30,7 +30,6 @@ import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
 
-import logo from '../../public/goalert-alt-logo-scaled.png'
 import AppLink from '../../util/AppLink'
 
 const navIcons = {
@@ -134,67 +133,56 @@ export default function SideBarDrawerList(props) {
   }
 
   return (
-    <React.Fragment>
-      <div aria-hidden className={classes.logoDiv}>
-        <img
-          className={classes.logo}
-          height={32}
-          src={logo}
-          alt='GoAlert Logo'
-        />
-      </div>
-      <Divider />
-      <nav>
-        <List role='navigation' className={classes.list} data-cy='nav-list'>
-          {routeConfig
-            .filter((cfg) => cfg.nav !== false)
-            .map((cfg, idx) => {
-              if (cfg.subRoutes) {
-                return (
-                  <NavSubMenu
-                    key={idx}
-                    parentIcon={navIcons[cfg.title]}
-                    parentTitle={cfg.title}
-                    path={getPath(cfg)}
-                    subMenuRoutes={cfg.subRoutes}
-                  >
-                    {renderSidebarItem(navIcons[cfg.title], cfg.title)}
-                  </NavSubMenu>
-                )
-              }
-              return renderSidebarNavLink(
-                navIcons[cfg.title],
-                getPath(cfg),
-                cfg.title,
-                idx,
-              )
-            })}
-          <RequireConfig isAdmin>
-            <Divider aria-hidden />
-            {renderAdmin()}
-          </RequireConfig>
-
-          <Divider aria-hidden />
-          {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
-          <Config>
-            {(cfg) =>
-              cfg['Feedback.Enable'] &&
-              renderFeedback(
-                cfg['Feedback.OverrideURL'] ||
-                  'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
+    <nav>
+      <List role='navigation' className={classes.list} data-cy='nav-list'>
+        {routeConfig
+          .filter((cfg) => cfg.nav !== false)
+          .map((cfg, idx) => {
+            if (cfg.subRoutes) {
+              return (
+                <NavSubMenu
+                  key={idx}
+                  parentIcon={navIcons[cfg.title]}
+                  parentTitle={cfg.title}
+                  path={getPath(cfg)}
+                  subMenuRoutes={cfg.subRoutes}
+                >
+                  {renderSidebarItem(navIcons[cfg.title], cfg.title)}
+                </NavSubMenu>
               )
             }
-          </Config>
-          {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
-            onClick: (e) => {
-              e.preventDefault()
-              logout()
-            },
+            return renderSidebarNavLink(
+              navIcons[cfg.title],
+              getPath(cfg),
+              cfg.title,
+              idx,
+            )
           })}
-          {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
-        </List>
-      </nav>
-    </React.Fragment>
+        <RequireConfig isAdmin>
+          <Divider aria-hidden />
+          {renderAdmin()}
+        </RequireConfig>
+
+        <Divider aria-hidden />
+        {renderSidebarNavLink(WizardIcon, '/wizard', 'Wizard')}
+        <Config>
+          {(cfg) =>
+            cfg['Feedback.Enable'] &&
+            renderFeedback(
+              cfg['Feedback.OverrideURL'] ||
+                'https://www.surveygizmo.com/s3/4106900/GoAlert-Feedback',
+            )
+          }
+        </Config>
+        {renderSidebarLink(LogoutIcon, '/api/v2/identity/logout', 'Logout', {
+          onClick: (e) => {
+            e.preventDefault()
+            logout()
+          },
+        })}
+        {renderSidebarNavLink(CurrentUserAvatar, '/profile', 'Profile')}
+      </List>
+    </nav>
   )
 }
 
