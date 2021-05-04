@@ -86,15 +86,21 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
              noError
              component={Checkbox}
              checkbox
-             name={role} // name expects a string
-             // mapValue={() => roles_array[rIdx]}
-             mapValue={() => {
-             if (role === data?.user?.role) return true
-             return false
+             name={role} // name expects a string  
+             // mapValue={() => roles_array[rIdx]}       
+                mapValue={(value: boolean, changed: boolean) => {
+                console.log('Changed :',changed)
+                if (changed === true){ return value} // if value has come from mapOnChangeValue
+                if (role === data?.user?.role) { value = true }
+                else { value = false }
+                return value
              }}
-             mapOnChangeValue={() => {
-             return true
-             }}
+             mapOnChangeValue={(value: boolean, changed: boolean) => {
+                console.log(value)
+                changed = true 
+                return !value
+             }}    
+                    
              /*mapOnChangeValue={(value: string, formValue: Value) => {
                  if (formValue.role != data?.user?.role){
                       return formValue.role
