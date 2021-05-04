@@ -29,7 +29,7 @@ import { authLogout } from '../../actions'
 import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
-
+import logo from '../../public/goalert-alt-logo.png'
 import AppLink from '../../util/AppLink'
 
 const navIcons = {
@@ -51,6 +51,12 @@ const useStyles = makeStyles((theme) => ({
   },
   list: {
     padding: 0,
+  },
+  logoDiv: {
+    ...theme.mixins.toolbar,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }))
 
@@ -126,6 +132,9 @@ export default function SideBarDrawerList(props) {
 
   return (
     <React.Fragment>
+      <div aria-hidden className={classes.logoDiv}>
+        <img height={38} src={logo} alt='GoAlert Logo' />
+      </div>
       <Divider />
       <nav>
         <List role='navigation' className={classes.list} data-cy='nav-list'>
