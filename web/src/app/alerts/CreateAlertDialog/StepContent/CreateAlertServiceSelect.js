@@ -42,7 +42,6 @@ const query = gql`
 
 const useStyles = makeStyles((theme) => ({
   addAll: {
-    backgroundColor: theme.palette.primary['400'],
     marginRight: '0.25em',
   },
   chipContainer: {
@@ -186,17 +185,18 @@ export function CreateAlertServiceSelect(props) {
           ),
           endAdornment: (
             <span className={classes.endAdornment}>
-              {searchResults.length > 0 && value.length < CREATE_ALERT_LIMIT && (
-                <Chip
-                  className={classes.addAll}
-                  color='primary' // for white text
-                  component='button'
-                  label='Add All'
-                  size='small'
-                  icon={<AddIcon fontSize='small' />}
-                  onClick={addAll}
-                />
-              )}
+              {searchResults.length > 0 &&
+                value.length < CREATE_ALERT_LIMIT && (
+                  <Chip
+                    className={classes.addAll}
+                    color='secondary'
+                    component='button'
+                    label='Add All'
+                    size='small'
+                    icon={<AddIcon fontSize='small' />}
+                    onClick={addAll}
+                  />
+                )}
               <ServiceLabelFilterContainer
                 value={{ labelKey, labelValue }}
                 onChange={({ labelKey, labelValue }) =>
