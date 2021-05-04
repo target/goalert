@@ -70,6 +70,7 @@ export const styles = (theme) => ({
     textDecoration: 'none',
     display: 'block',
     '& p, span': {
+      lineHeight: '1.375rem',
       color: theme.palette.text.primary,
     },
     '&:focus': {
