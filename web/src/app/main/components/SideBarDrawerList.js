@@ -44,6 +44,12 @@ const navIcons = {
 
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
+  logoDiv: {
+    ...theme.mixins.toolbar,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   navIcon: {
     width: '1em',
     height: '1em',
@@ -51,12 +57,6 @@ const useStyles = makeStyles((theme) => ({
   },
   list: {
     padding: 0,
-  },
-  logoDiv: {
-    ...theme.mixins.toolbar,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 }))
 
