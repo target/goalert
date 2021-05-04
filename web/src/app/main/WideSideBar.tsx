@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import Drawer from '@material-ui/core/Drawer'
 import { makeStyles } from '@material-ui/core'
-import logo from '../public/goalert-alt-logo-scaled.png'
+import logo from '../public/goalert-alt-logo.png'
 
 const useStyles = makeStyles((theme) => ({
   logoDiv: {
@@ -36,7 +36,7 @@ function WideSideBar(props: WideSideBarProps): JSX.Element {
       }}
     >
       <div aria-hidden className={classes.logoDiv}>
-        <img height={32} src={logo} alt='GoAlert Logo' />
+        <img height={38} src={logo} alt='GoAlert Logo' />
       </div>
       {props.children}
     </Drawer>
