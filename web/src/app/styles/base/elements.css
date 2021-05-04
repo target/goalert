@@ -1,6 +1,5 @@
 html,
 body {
-  background-color: lightgrey;
   height: 100%;
   margin: 0;
 }
@@ -11,7 +10,6 @@ body {
 
 a {
   text-decoration: none;
-  color: #cd1831;
 }
 
 a:hover {

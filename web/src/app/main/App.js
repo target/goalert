@@ -44,10 +44,6 @@ const useStyles = makeStyles((theme) => ({
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
   },
-  icon: {
-    marginRight: '0.25em',
-    color: theme.palette.primary['500'],
-  },
   toolbar: theme.mixins.toolbar,
   containerClass: {
     padding: '1em',

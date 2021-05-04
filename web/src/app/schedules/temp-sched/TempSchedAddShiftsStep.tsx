@@ -17,7 +17,7 @@ import { DateTime, Interval } from 'luxon'
 import { FieldError } from '../../util/errutil'
 import { isISOAfter } from '../../util/shifts'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
   contentText,
   addButton: {
     boxShadow: 'none',
@@ -26,9 +26,6 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  avatar: {
-    backgroundColor: theme.palette.primary.main,
   },
   listOuterContainer: {
     position: 'relative',
@@ -44,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
   shiftFormContainer: {
     maxHeight: '100%',
   },
-}))
+})
 
 type AddShiftsStepProps = {
   value: Shift[]

@@ -59,11 +59,7 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '24px',
   },
   list: {
-    color: theme.palette.primary['500'],
     padding: 0,
-  },
-  listItemText: {
-    color: theme.palette.primary['500'],
   },
 }))
 
@@ -82,11 +78,7 @@ export default function SideBarDrawerList(props) {
         <ListItemText
           disableTypography
           primary={
-            <Typography
-              variant='subtitle1'
-              component='p'
-              className={classes.listItemText}
-            >
+            <Typography variant='subtitle1' component='p'>
               {label}
             </Typography>
           }

@@ -14,10 +14,10 @@ const icon = {
 
 const useStyles = makeStyles((theme) => ({
   success: {
-    backgroundColor: 'green',
+    backgroundColor: theme.palette.success,
   },
   error: {
-    backgroundColor: theme.palette.error.dark,
+    backgroundColor: theme.palette.error,
   },
   closeIcon: {
     ...icon,
