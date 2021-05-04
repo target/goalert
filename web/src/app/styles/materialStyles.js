@@ -3,16 +3,6 @@ export const styles = (theme) => ({
   card: {
     width: '75%',
   },
-  // used on details pages on mobile
-  cardFull: {
-    width: '100%',
-  },
-  // used on details pages that contain cards (grid items or divs)
-  cardContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
   // Used to reduce padding between header and content
   cardHeader: {
     paddingBottom: 0,
@@ -57,14 +47,8 @@ export const styles = (theme) => ({
   paper: {
     padding: '0.5em',
   },
-  tableCardContent: {
-    padding: 0,
-  },
-  highlightRow: {
-    backgroundColor: theme.palette.primary['100'],
-  },
   error: {
-    color: theme.palette.error['700'],
+    color: theme.palette.error,
   },
   selectedOption: {
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
@@ -81,7 +65,6 @@ export const styles = (theme) => ({
   },
   // used for react-router Link components
   nav: {
-    color: theme.palette.primary['500'],
     textDecoration: 'none',
     display: 'block',
     '&:hover': {
@@ -90,7 +73,7 @@ export const styles = (theme) => ({
   },
   navSelected: {
     backgroundColor: '#ebebeb',
-    borderRight: '3px solid ' + theme.palette.primary['500'],
+    borderRight: '4px solid',
   },
   // parent container must have position: relative
   topRightActions: {

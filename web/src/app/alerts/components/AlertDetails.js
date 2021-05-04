@@ -26,9 +26,24 @@ import { isWidthDown } from '@material-ui/core/withWidth'
 import useWidth from '../../util/useWidth'
 import _ from 'lodash'
 
-const useStyles = makeStyles((theme) => {
-  return styles(theme)
-})
+const useStyles = makeStyles((theme) => ({
+  activeRow: {
+    ...styles(theme).navSelected,
+    borderRightWidth: 8,
+  },
+  card: styles(theme).card,
+  cardContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  cardFull: {
+    width: '100%',
+  },
+  tableCardContent: {
+    padding: 0,
+  },
+}))
 
 const localStorage = window.localStorage
 const exactTimesKey = 'show_exact_times'
@@ -224,13 +239,13 @@ function AlertDetails(props) {
         usersRender = <div>Users: {renderUsers(users, id)}</div>
       }
 
-      let className
+      let classIsActive
       if (status !== 'closed' && currentLevel % steps.length === index) {
-        className = classes.highlightRow
+        classIsActive = classes.activeRow
       }
 
       return (
-        <TableRow key={index} className={className}>
+        <TableRow key={index} className={classIsActive}>
           <TableCell>Step #{index + 1}</TableCell>
           <TableCell>
             {!targets.length && <Typography>&mdash;</Typography>}
