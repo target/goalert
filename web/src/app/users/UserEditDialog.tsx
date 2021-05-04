@@ -7,13 +7,14 @@ import { FormContainer, FormField } from '../forms'
 import Grid from '@material-ui/core/Grid'
 import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Hidden } from '@material-ui/core'
 import _ from 'lodash'
+import { nonFieldErrors } from '../util/errutil'
+import { UserRole } from '../../schema'
+import { Props } from 'react-infinite-scroll-component'
 
 const roles = [
     'admin',
     'user',
 ]
-
-// const roles_array = [true, false]
 
 const query = gql`
   query($id: ID!) {
@@ -24,17 +25,15 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation updateUser($input: UpdateUserInput!) {
+  mutation($input: UpdateUserInput!) {
     updateUser(input: $input)
   }
 `
 
 interface UserEditDialogProps {
   userID: string
-  onClose: () => void
+  onClose: () => void 
 }
-
-
 
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const { ready: isSessionReady } = useSessionInfo()
@@ -42,28 +41,37 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const { data, loading: qLoading } = useQuery(query, {
     variables: { id: props.userID },
   })
-  const [editUser, { loading: mLoading, error }] = useMutation(mutation, {
-    variables: {
-      input: [
-        {
-          id: props.userID,
-          type: 'user',
-        },
-      ],
-    },
+  const [editUser, editUserStatus] = useMutation(mutation, {
+  onCompleted: props.onComplete,
   })
+    
+  var uRole = data?.user?.role
 
-  if (!isSessionReady || (!data && qLoading)) return <Spinner />
+ if (!isSessionReady || (!data && qLoading)) return <Spinner />
+ 
+ var userRoles = [false, true]
+ if (data?.user?.role === 'admin') {
+    userRoles = [true,false]
+ }
 
-  return (
+  return ( 
     <FormDialog
       title='Edit User Role'
       confirm
       subTitle={`This will edit this user's role: ${data?.user?.name}`}
-      loading={mLoading}
-      errors={error ? [error] : []}
+      errors={nonFieldErrors(editUserStatus.error)}
       onClose={props.onClose}
-      onSubmit={() => editUser()}
+      onSubmit={() =>
+        editUser({
+          variables: {
+          input: {
+            id: props.userID,
+            // TODO  
+            role: uRole,
+          },
+        },
+        })
+      }     
       form={
         <FormContainer>
         <Grid container spacing={2}>
@@ -86,26 +94,29 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
              noError
              component={Checkbox}
              checkbox
-             name={role} // name expects a string  
+            //name={`userRoles[${rIdx}]`.toString()} // name expects a string
+             name={role }
+             mapValue={(value: boolean) => {
+             console.log('In mapValue: ', value)
+             if (!value) {
+                return userRoles[rIdx]
+             }
+             return value
+             }}
              // mapValue={() => roles_array[rIdx]}       
-                mapValue={(value: boolean, changed: boolean) => {
-                console.log('Changed :',changed)
-                if (changed === true){ return value} // if value has come from mapOnChangeValue
+             /*mapValue={(value: boolean) => {
+                //if (changed === true){ return value} // if value has come from mapOnChangeValue
                 if (role === data?.user?.role) { value = true }
                 else { value = false }
                 return value
-             }}
-             mapOnChangeValue={(value: boolean, changed: boolean) => {
-                console.log(value)
-                changed = true 
-                return !value
-             }}    
-                    
-             /*mapOnChangeValue={(value: string, formValue: Value) => {
-                 if (formValue.role != data?.user?.role){
-                      return formValue.role
-                  }
              }}*/
+             mapOnChangeValue={(value: boolean) => {
+                 userRoles[rIdx] = !value
+                 if (!value == true) {
+                     uRole = role
+                 }
+                return !value
+             }}
             />
         </TableCell>    
         ))}                      
@@ -115,8 +126,8 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
         </Grid>
       </Grid>
     </FormContainer>
-      }
-    /> 
+      }   
+    />     
   )
 }
 
