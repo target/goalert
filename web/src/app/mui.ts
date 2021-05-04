@@ -12,6 +12,12 @@ if (isCypress) {
 }
 
 export const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: '#6200ee',
+    },
+  },
+
   // override default props
   props: {
     MuiList: {
