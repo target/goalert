@@ -42,7 +42,6 @@ function testUsers(screen: ScreenFormat): void {
       cy.fixture('users').then((users) => {
         cy.visit(`/users/${users[0].id}`)
 
-        // cy.adminLogin()
         cy.pageAction('Delete')
         cy.dialogTitle('Are you sure?')
         cy.dialogFinish('Confirm')
