@@ -220,12 +220,12 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-sysapi/sysapi_grpc.pb.go: sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
-	PATH="$(BIN_DIR)/tools" protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative sysapi/sysapi.proto
-sysapi/sysapi.pb.go: sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
-	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative sysapi/sysapi.proto
+pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/sysapi/sysapi.proto
+pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
 
-generate: node_modules sysapi/sysapi.pb.go
+generate: node_modules pkg/sysapi/sysapi.pb.go
 	go generate ./...
 
 smoketest:

@@ -1,10 +1,10 @@
-package sysapiapp
+package sysapiserver
 
 import (
 	"context"
 
 	"github.com/target/goalert/permission"
-	"github.com/target/goalert/sysapi"
+	"github.com/target/goalert/pkg/sysapi"
 	"github.com/target/goalert/user"
 )
 

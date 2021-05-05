@@ -161,5 +161,5 @@ var SysAPI_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "sysapi/sysapi.proto",
+	Metadata: "pkg/sysapi/sysapi.proto",
 }
