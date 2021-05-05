@@ -34,7 +34,7 @@ type Store interface {
 	AddAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	DeleteAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error)
-	StreamAuthSubjects(ctx context.Context, providerID, userID string, eachFn func(AuthSubject) error) error
+	AuthSubjectsFunc(ctx context.Context, providerID, userID string, f func(AuthSubject) error) error
 	FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, afterSubjectID, providerID string) ([]AuthSubject, error)
 }
 
@@ -172,7 +172,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return store, nil
 }
 
-func (db *DB) StreamAuthSubjects(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {
+func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
 	if err != nil {
 		return err

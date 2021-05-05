@@ -16,7 +16,7 @@ type Server struct {
 func (srv *Server) AuthSubjects(req *sysapi.AuthSubjectsRequest, rSrv sysapi.SysAPI_AuthSubjectsServer) error {
 	ctx := permission.SystemContext(rSrv.Context(), "SystemAPI")
 
-	return srv.UserStore.StreamAuthSubjects(ctx, req.ProviderId, req.UserId, func(s user.AuthSubject) error {
+	return srv.UserStore.AuthSubjectsFunc(ctx, req.ProviderId, req.UserId, func(s user.AuthSubject) error {
 		return rSrv.Send(&sysapi.AuthSubject{
 			ProviderId: s.ProviderID,
 			SubjectId:  s.SubjectID,
