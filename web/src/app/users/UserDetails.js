@@ -27,6 +27,7 @@ const userQuery = gql`
   query userInfo($id: ID!) {
     user(id: $id) {
       id
+      role
       name
       email
       contactMethods {
@@ -50,6 +51,7 @@ const profileQuery = gql`
   query profileInfo($id: ID!) {
     user(id: $id) {
       id
+      role
       name
       email
       contactMethods {
@@ -250,6 +252,7 @@ export default function UserDetails(props) {
         <UserEditDialog
           onClose={() => setShowEdit(false)}
           userID={props.userID}
+          role={user.role}
         />
         )}
     </React.Fragment>
