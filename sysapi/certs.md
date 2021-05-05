@@ -1,6 +1,6 @@
 # Generating Certs to Secure gRPC
 
-Something something plugin stuff, services
+GoAlert can use x509 certificates to serve as authorization for sysapi access.
 
 ## Using GoAlert's Built-In Tools
 
