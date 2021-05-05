@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -116,7 +117,8 @@ func (store *Store) updateFixedShifts(ctx context.Context, tx *sql.Tx, scheduleI
 		return err
 	}
 
-	rawData, err = json.Marshal(data)
+	// preserve unknown fields
+	rawData, err = jsonutil.Apply(rawData, data)
 	if err != nil {
 		return err
 	}

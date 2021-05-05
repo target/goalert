@@ -67,7 +67,7 @@ const RotationCreateDialog = (props) => {
 }
 
 RotationCreateDialog.propTypes = {
-  onClose: p.func.isRequired,
+  onClose: p.func,
 }
 
 export default RotationCreateDialog
