@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import p from 'prop-types'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import { DateTime } from 'luxon'
@@ -56,6 +56,10 @@ function RotationUserList({ rotationID }) {
   })
 
   const [updateRotation, { error: mError }] = useMutation(mutation)
+
+  useEffect(() => {
+    setLastSwap([])
+  }, [data?.rotation?.users?.length])
 
   if (qLoading && !data) return <Spinner />
   if (data && !data.rotation) return <ObjectNotFound type='rotation' />
@@ -155,7 +159,7 @@ function RotationUserList({ rotationID }) {
             ),
           }))}
           onReorder={(oldIndex, newIndex) => {
-            setLastSwap([...lastSwap, { oldIndex, newIndex }])
+            setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
 
             const updatedUsers = reorderList(
               users.map((u) => u.id),
