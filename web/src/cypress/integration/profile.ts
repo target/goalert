@@ -330,14 +330,6 @@ function testProfile(): void {
       cy.get('body').should('contain', 'No notification rules')
     })
   })
-
-  describe('Page Actions', () => {
-    it('should delete a user', () => {
-      cy.adminLogin()
-      cy.pageAction('Delete')
-      cy.dialogTitle('Are you sure?')
-    })
-  })
 }
 
 testScreen('Profile', testProfile)
