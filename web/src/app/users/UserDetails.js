@@ -23,8 +23,6 @@ import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
 import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
-import PageActions from '../util/PageActions'
-import OtherActions from '../util/OtherActions'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
