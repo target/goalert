@@ -22,6 +22,7 @@ import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 import AppLink from '../util/AppLink'
 import UserEditDialog from './UserEditDialog'
+import UserDeleteDialog from './UserDeleteDialog'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -111,6 +112,7 @@ export default function UserDetails(props) {
   const [createNR, setCreateNR] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
+  const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
 
   const { data, loading: isQueryLoading, error } = useQuery(
     isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
@@ -159,6 +161,28 @@ export default function UserDetails(props) {
 
   return (
     <React.Fragment>
+        {isAdmin && (
+        <PageActions>
+          <OtherActions
+            actions={[
+              {
+                label: 'Delete User',
+                onClick: () => setShowUserDeleteDialog(true),
+              },
+              {
+                label: 'Edit User',
+                onClick: () => setShowEdit(true),
+              },
+            ]}
+          />
+        </PageActions>
+      )}
+      {showUserDeleteDialog && (
+        <UserDeleteDialog
+          userID={props.userID}
+          onClose={() => setShowUserDeleteDialog(false)}
+        />
+      )}
       {props.readOnly ? null : (
         <SpeedDial
           label='Add Items'
@@ -207,16 +231,6 @@ export default function UserDetails(props) {
         noMarkdown
         icon={
           <React.Fragment>
-            <PageActions>
-            <OtherActions
-          actions={[
-            {
-              label: 'Edit User',
-              onClick: () => setShowEdit(true),
-            },
-          ]}
-        />
-            </PageActions>
             <UserAvatar
               userID={props.userID}
               className={classes.profileImage}
