@@ -63,7 +63,8 @@ function RotationUserList({ rotationID }) {
 
   if (qLoading && !data) return <Spinner />
   if (data && !data.rotation) return <ObjectNotFound type='rotation' />
-  if (qError || mError) return <GenericError error={qError || mError} />
+  if (qError || mError)
+    return <GenericError error={qError.message || mError.message} />
 
   const { users, activeUserIndex, nextHandoffTimes } = data.rotation
 
