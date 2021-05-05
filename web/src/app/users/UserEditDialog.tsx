@@ -8,13 +8,8 @@ import Grid from '@material-ui/core/Grid'
 import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Hidden } from '@material-ui/core'
 import _ from 'lodash'
 import { nonFieldErrors } from '../util/errutil'
-import { UserRole } from '../../schema'
-import { Props } from 'react-infinite-scroll-component'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 
-const roles = [
-    'admin',
-    'user',
-]
 
 const query = gql`
   query($id: ID!) {
@@ -25,34 +20,41 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: UpdateUserInput!) {
-    updateUser(input: $input)
+  mutation($input: SetUserRoleInput!) {
+    setUserRole(input: $input)
   }
 `
 
 interface UserEditDialogProps {
   userID: string
-  onClose: () => void 
+  onClose: () => void  
 }
 
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const { ready: isSessionReady } = useSessionInfo()
-
+    
   const { data, loading: qLoading } = useQuery(query, {
     variables: { id: props.userID },
   })
+    
+  const [state, setState] = React.useState({
+    isAdmin: data?.user?.role === 'admin'?true:false,
+   });
+  
   const [editUser, editUserStatus] = useMutation(mutation, {
-  onCompleted: props.onComplete,
+   onCompleted: props.onClose,
   })
     
-  var uRole = data?.user?.role
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({ ...state, [event.target.name]: event.target.checked });
+  };
 
  if (!isSessionReady || (!data && qLoading)) return <Spinner />
- 
- var userRoles = [false, true]
+ // state.isAdmin = data?.user?.role === 'admin'?true:false
+ /*var admin = false
  if (data?.user?.role === 'admin') {
-    userRoles = [true,false]
- }
+    admin = true       
+ }*/
 
   return ( 
     <FormDialog
@@ -66,60 +68,44 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
           variables: {
           input: {
             id: props.userID,
-            // TODO  
-            role: uRole,
+            role: state.isAdmin? 'admin':'user',
           },
         },
         })
-      }     
+      }
+     notices={
+        state.isAdmin === false
+          ? [
+              {
+                type: 'WARNING',
+                message: 'The user role is USER',
+              },
+            ]
+          : []
+     }    
       form={
         <FormContainer>
         <Grid container spacing={2}>
         <Grid item xs={12}>
         <Table data-cy='user-roles'>
         <TableHead>
-        <TableRow>             
-        {roles.map((r) => (
-        <TableCell key={r} padding='checkbox'>
-            {r}
-        </TableCell>
-        ))}    
+        <TableRow>
+        <TableCell padding='checkbox'>
+            admin
+        </TableCell>                          
         </TableRow>
         </TableHead>
         <TableBody>
         <Hidden smDown>
-        {roles.map((role, rIdx) => (
-        <TableCell key={rIdx} padding='checkbox'>
-            <FormField
-             noError
-             component={Checkbox}
-             checkbox
-            //name={`userRoles[${rIdx}]`.toString()} // name expects a string
-             name={role }
-             mapValue={(value: boolean) => {
-             console.log('In mapValue: ', value)
-             if (!value) {
-                return userRoles[rIdx]
-             }
-             return value
-             }}
-             // mapValue={() => roles_array[rIdx]}       
-             /*mapValue={(value: boolean) => {
-                //if (changed === true){ return value} // if value has come from mapOnChangeValue
-                if (role === data?.user?.role) { value = true }
-                else { value = false }
-                return value
-             }}*/
-             mapOnChangeValue={(value: boolean) => {
-                 userRoles[rIdx] = !value
-                 if (!value == true) {
-                     uRole = role
-                 }
-                return !value
-             }}
-            />
-        </TableCell>    
-        ))}                      
+        <TableCell padding='checkbox'>
+            
+         <Checkbox
+            checked={state.isAdmin}
+            onChange={ handleChange }
+            name='isAdmin'
+          />                                                       
+         
+        </TableCell>                       
         </Hidden>
         </TableBody>              
         </Table>              
