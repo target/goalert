@@ -96,9 +96,9 @@ func MergeTemporarySchedules(tempScheds []TemporarySchedule) []TemporarySchedule
 	return result
 }
 
-func setFixedShifts(tempScheds []TemporarySchedule, start, end time.Time, shifts []FixedShift) []TemporarySchedule {
-	tempScheds = deleteFixedShifts(tempScheds, start, end)
-	tempScheds = append(tempScheds, TemporarySchedule{Start: start, End: end, Shifts: shifts})
+func setFixedShifts(tempScheds []TemporarySchedule, newSched TemporarySchedule) []TemporarySchedule {
+	tempScheds = deleteFixedShifts(tempScheds, newSched.Start, newSched.End)
+	tempScheds = append(tempScheds, newSched)
 	return MergeTemporarySchedules(tempScheds)
 }
 

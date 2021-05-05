@@ -1,8 +1,8 @@
 import React from 'react'
-import { PropTypes as p } from 'prop-types'
 import Card from '@material-ui/core/Card'
 import { makeStyles } from '@material-ui/core/styles'
-import FlatList from '../lists/FlatList'
+import FlatList, { FlatListListItem } from '../lists/FlatList'
+import _ from 'lodash'
 
 const useStyles = makeStyles(() => ({
   card: {
@@ -10,15 +10,23 @@ const useStyles = makeStyles(() => ({
   },
 }))
 
-function PolicyServicesCard(props) {
+interface PolicyServicesCardProps {
+  services: { id: string; name: string }[]
+}
+
+function PolicyServicesCard(props: PolicyServicesCardProps): JSX.Element {
   const classes = useStyles()
 
-  function getServicesItems() {
-    return props.services.map((service) => ({
+  function getServicesItems(): FlatListListItem[] {
+    const items = props.services.map((service) => ({
       title: service.name,
       url: `/services/${service.id}`,
     }))
+
+    // case-insensitive sort
+    return _.sortBy(items, (i) => i.title.toLowerCase())
   }
+
   return (
     <Card className={classes.card}>
       <FlatList
@@ -27,15 +35,6 @@ function PolicyServicesCard(props) {
       />
     </Card>
   )
-}
-
-PolicyServicesCard.propTypes = {
-  services: p.arrayOf(
-    p.shape({
-      id: p.string.isRequired,
-      name: p.string.isRequired,
-    }),
-  ).isRequired,
 }
 
 export default PolicyServicesCard

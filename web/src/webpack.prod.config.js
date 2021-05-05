@@ -27,10 +27,7 @@ module.exports = (env) => ({
       { test: /lodash/, loader: 'strict-loader' },
       {
         test: /\.(t|j)sx?$/,
-        use: [
-          'babel-loader',
-          { loader: 'ifdef-loader', options: { production: true } },
-        ],
+        use: ['babel-loader'],
         include: [APP],
       },
       {

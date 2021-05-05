@@ -12,6 +12,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
+	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/log"
 )
 
@@ -79,16 +80,16 @@ func (db *DB) update(ctx context.Context) error {
 	type schedData struct {
 		ID   string
 		Data schedule.Data
+		Raw  json.RawMessage
 	}
 	var m []schedData
 	for rows.Next() {
 		var data schedData
-		var rawData json.RawMessage
-		err = rows.Scan(&data.ID, &rawData)
+		err = rows.Scan(&data.ID, &data.Raw)
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(rawData, &data.Data)
+		err = json.Unmarshal(data.Raw, &data.Data)
 		if err != nil {
 			return err
 		}
@@ -106,7 +107,7 @@ func (db *DB) update(ctx context.Context) error {
 	schedCuttoff := now.AddDate(-1, 0, 0)
 	for _, dat := range m {
 		cleanupScheduleData(&dat.Data, lookup, schedCuttoff)
-		rawData, err := json.Marshal(dat.Data)
+		rawData, err := jsonutil.Apply(dat.Raw, dat.Data)
 		if err != nil {
 			return err
 		}

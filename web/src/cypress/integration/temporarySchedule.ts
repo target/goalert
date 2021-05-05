@@ -197,7 +197,7 @@ function testTemporarySchedule(screen: string): void {
 
   it('should delete a temporary schedule', () => {
     cy.createTemporarySchedule({
-      start: DateTime.utc().toISO(),
+      start: DateTime.utc().plus({ hour: 1 }).toISO(),
       scheduleID: schedule.id,
     }).then(() => {
       cy.reload()

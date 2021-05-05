@@ -236,6 +236,7 @@ export default function TempSchedAddShiftsStep({
                 setShift(shift)
                 onChange(value.filter((s) => !shiftEquals(shift, s)))
               }}
+              edit={edit}
             />
           </div>
         </Grid>

@@ -67,6 +67,10 @@ export default function CalendarEventWrapper({
   }
 
   function renderTempSchedButtons() {
+    if (DateTime.fromISO(event.end) <= DateTime.utc()) {
+      // no actions on past events
+      return
+    }
     return (
       <React.Fragment>
         <Grid item>
