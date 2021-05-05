@@ -49,6 +49,7 @@ function RotationUserList({ rotationID }) {
   const classes = useStyles()
   const [deleteIndex, setDeleteIndex] = useState(null)
   const [setActiveIndex, setSetActiveIndex] = useState(null)
+  const [lastSwap, setLastSwap] = useState([])
 
   const { data, loading: qLoading, error: qError } = useQuery(query, {
     variables: { id: rotationID },
@@ -98,6 +99,11 @@ function RotationUserList({ rotationID }) {
     )
   })
 
+  let listIDs = users.map((_, idx) => idx)
+  lastSwap.forEach((s) => {
+    listIDs = reorderList(listIDs, s.oldIndex, s.newIndex)
+  })
+
   return (
     <React.Fragment>
       {deleteIndex !== null && (
@@ -129,7 +135,7 @@ function RotationUserList({ rotationID }) {
           }
           items={users.map((u, index) => ({
             title: u.name,
-            id: u.id,
+            id: String(listIDs[index]),
             highlight: index === activeUserIndex,
             icon: <UserAvatar userID={u.id} />,
             subText: handoff[index],
@@ -149,6 +155,8 @@ function RotationUserList({ rotationID }) {
             ),
           }))}
           onReorder={(oldIndex, newIndex) => {
+            setLastSwap([...lastSwap, { oldIndex, newIndex }])
+
             const updatedUsers = reorderList(
               users.map((u) => u.id),
               oldIndex,
