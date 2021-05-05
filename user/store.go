@@ -21,6 +21,7 @@ type Store interface {
 	InsertTx(context.Context, *sql.Tx, *User) (*User, error)
 	Update(context.Context, *User) error
 	UpdateTx(context.Context, *sql.Tx, *User) error
+	SetUserRoleTx(ctx context.Context, tx *sql.Tx, u *User) error
 	Delete(context.Context, string) error
 	DeleteManyTx(context.Context, *sql.Tx, []string) error
 	FindOne(context.Context, string) (*User, error)
@@ -45,11 +46,12 @@ type DB struct {
 
 	ids *sql.Stmt
 
-	insert  *sql.Stmt
-	update  *sql.Stmt
-	delete  *sql.Stmt
-	findOne *sql.Stmt
-	findAll *sql.Stmt
+	insert      *sql.Stmt
+	update      *sql.Stmt
+	setUserRole *sql.Stmt
+	delete      *sql.Stmt
+	findOne     *sql.Stmt
+	findAll     *sql.Stmt
 
 	findMany   *sql.Stmt
 	deleteMany *sql.Stmt
@@ -93,6 +95,13 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				email = $3,
 				role = $4,
 				alert_status_log_contact_method_id = $5
+			WHERE id = $1
+		`),
+
+		setUserRole: p.P(`
+			UPDATE users
+			SET
+				role = $2
 			WHERE id = $1
 		`),
 
@@ -261,6 +270,24 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, u *User) error {
 		update = tx.StmtContext(ctx, update)
 	}
 	_, err = update.ExecContext(ctx, n.userUpdateFields()...)
+	return err
+}
+
+func (db *DB) SetUserRoleTx(ctx context.Context, tx *sql.Tx, u *User) error {
+	n, err := u.Normalize()
+	if err != nil {
+		return err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return err
+	}
+	s := db.setUserRole
+	if tx != nil {
+		s = tx.StmtContext(ctx, s)
+	}
+	_, err = s.ExecContext(ctx, n.ID, n.Role)
 	return err
 }
 

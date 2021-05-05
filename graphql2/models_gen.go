@@ -343,6 +343,11 @@ type SetTemporaryScheduleInput struct {
 	Shifts     []schedule.FixedShift `json:"shifts"`
 }
 
+type SetUserRoleInput struct {
+	ID   string    `json:"id"`
+	Role *UserRole `json:"role"`
+}
+
 type SlackChannelConnection struct {
 	Nodes    []slack.Channel `json:"nodes"`
 	PageInfo *PageInfo       `json:"pageInfo"`

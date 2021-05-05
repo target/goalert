@@ -217,6 +217,7 @@ export interface Mutation {
   deleteAuthSubject: boolean
   endAllAuthSessionsByCurrentUser: boolean
   updateUser: boolean
+  setUserRole: boolean
   testContactMethod: boolean
   updateAlerts?: Alert[]
   updateRotation: boolean
@@ -775,6 +776,11 @@ export interface UpdateUserInput {
   email?: string
   role?: UserRole
   statusUpdateContactMethodID?: string
+}
+
+export interface SetUserRoleInput {
+  id: string
+  role?: UserRole
 }
 
 export interface AuthSubjectInput {
