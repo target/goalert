@@ -18,7 +18,9 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	defer close(app.doneCh)
 	defer app.db.Close()
 	var errs []error
-	app.hSrv.Shutdown()
+	if app.hSrv != nil {
+		app.hSrv.Shutdown()
+	}
 
 	if app.cooldown != nil {
 		// wait for the cooldown (since last req closed)
