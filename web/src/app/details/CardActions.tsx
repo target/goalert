@@ -10,12 +10,16 @@ interface CardActionProps {
   secondaryActions?: Array<Action | JSX.Element>
 }
 
+interface ActionProps {
+  action: Action
+  secondary?: boolean // if true, renders right-aligned as an icon button
+}
+
 export type Action = {
   label: string // primary button text, use for a tooltip if secondary action
   handleOnClick: MouseEventHandler<HTMLButtonElement>
 
   icon?: JSX.Element // if true, adds a start icon to a button with text
-  secondary?: boolean // if true, renders right-aligned as an icon button
 }
 
 const useStyles = makeStyles({
@@ -33,9 +37,13 @@ const useStyles = makeStyles({
 export default function CardActions(p: CardActionProps): JSX.Element {
   const classes = useStyles()
 
-  const action = (action: Action | JSX.Element, key: string): JSX.Element => {
+  const action = (
+    action: Action | JSX.Element,
+    key: string,
+    secondary?: boolean,
+  ): JSX.Element => {
     if ('label' in action && 'handleOnClick' in action) {
-      return <Action key={key} {...action} />
+      return <Action key={key} action={action} secondary={secondary} />
     }
     return action
   }
@@ -55,9 +63,7 @@ export default function CardActions(p: CardActionProps): JSX.Element {
     actions = [
       ...actions,
       <div key='actions-margin' className={classes.autoExpandWidth} />,
-      ...p.secondaryActions.map((a, i) =>
-        action({ ...a, secondary: true }, 'secondary' + i),
-      ),
+      ...p.secondaryActions.map((a, i) => action(a, 'secondary' + i, true)),
     ]
   }
 
@@ -68,17 +74,18 @@ export default function CardActions(p: CardActionProps): JSX.Element {
   )
 }
 
-function Action(p: Action): JSX.Element {
-  if (p.secondary && p.icon) {
+function Action(p: ActionProps): JSX.Element {
+  const { action, secondary } = p
+  if (secondary && action.icon) {
     return (
-      <Tooltip title={p.label} placement='top'>
-        <IconButton onClick={p.handleOnClick}>{p.icon}</IconButton>
+      <Tooltip title={action.label} placement='top'>
+        <IconButton onClick={action.handleOnClick}>{action.icon}</IconButton>
       </Tooltip>
     )
   }
   return (
-    <Button onClick={p.handleOnClick} startIcon={p.icon}>
-      {p.label}
+    <Button onClick={action.handleOnClick} startIcon={action.icon}>
+      {action.label}
     </Button>
   )
 }

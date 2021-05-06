@@ -1,5 +1,6 @@
 import React, { cloneElement } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
+import { isWidthDown } from '@material-ui/core'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
 import CardContent from '@material-ui/core/CardContent'
@@ -11,6 +12,7 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import IconButton from '@material-ui/core/IconButton'
+import { ReactNode } from 'react-markdown'
 
 import Notices, { Notice } from './Notices'
 import Markdown from '../util/Markdown'
@@ -18,7 +20,6 @@ import CardActions, { Action } from './CardActions'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
-import { isWidthDown } from '@material-ui/core'
 
 interface DetailsPageProps {
   title: string
@@ -48,11 +49,11 @@ function isDesktopMode(width: string): boolean {
 
 const useStyles = makeStyles({
   ...statusStyles,
-  headerCard: {
-    height: '100%', // align height of header cards together
-  },
   flexHeight: {
     flexGrow: 1,
+  },
+  fullHeight: {
+    height: '100%', // align height of the first row of cards together
   },
   headerContent: {
     paddingTop: 0,
@@ -76,8 +77,8 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
     return classes.noStatus
   }
 
-  const avatar = (): JSX.Element | undefined => {
-    if (!p.avatar) return undefined
+  const avatar = (): ReactNode => {
+    if (!p.avatar) return null
     return cloneElement(p.avatar, {
       style: { width: 56, height: 56 },
     })
@@ -94,9 +95,9 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
 
       {/* Header card */}
       <Grid item xs={12} lg={isDesktopMode(width) && p.links?.length ? 8 : 12}>
-        <Card className={classes.headerCard}>
+        <Card className={classes.fullHeight}>
           <Grid
-            className={classes.headerCard}
+            className={classes.fullHeight}
             item
             xs
             container
@@ -152,7 +153,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
           xs={12}
           lg={isDesktopMode(width) && p.links?.length ? 4 : 12}
         >
-          <Card className={classes.headerCard}>
+          <Card className={classes.fullHeight}>
             <CardHeader
               title='Quick Links'
               titleTypographyProps={{
