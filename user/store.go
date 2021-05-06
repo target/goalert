@@ -23,7 +23,7 @@ type Store interface {
 	InsertTx(context.Context, *sql.Tx, *User) (*User, error)
 	Update(context.Context, *User) error
 	UpdateTx(context.Context, *sql.Tx, *User) error
-	SetUserRoleTx(ctx context.Context, tx *sql.Tx, u *User) error
+	SetUserRoleTx(ctx context.Context, tx *sql.Tx, id string, role permission.Role) error
 	Delete(context.Context, string) error
 	DeleteManyTx(context.Context, *sql.Tx, []string) error
 	FindOne(context.Context, string) (*User, error)
@@ -103,12 +103,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			WHERE id = $1
 		`),
 
-		setUserRole: p.P(`
-			UPDATE users
-			SET
-				role = $2
-			WHERE id = $1
-		`),
+		setUserRole: p.P(`UPDATE users SET role = $2 WHERE id = $1`),
 
 		findMany: p.P(`
 			SELECT
@@ -418,13 +413,16 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, u *User) error {
 	return err
 }
 
-func (db *DB) SetUserRoleTx(ctx context.Context, tx *sql.Tx, u *User) error {
-	n, err := u.Normalize()
+func (db *DB) SetUserRoleTx(ctx context.Context, tx *sql.Tx, id string, role permission.Role) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
 	if err != nil {
 		return err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	err = validate.Many(
+		validate.UUID("UserID", id),
+		validate.OneOf("Role", role, permission.RoleAdmin, permission.RoleUser),
+	)
 	if err != nil {
 		return err
 	}
@@ -432,7 +430,7 @@ func (db *DB) SetUserRoleTx(ctx context.Context, tx *sql.Tx, u *User) error {
 	if tx != nil {
 		s = tx.StmtContext(ctx, s)
 	}
-	_, err = s.ExecContext(ctx, n.ID, n.Role)
+	_, err = s.ExecContext(ctx, id, role)
 	return err
 }
 

@@ -3,16 +3,9 @@ import { gql, useMutation } from '@apollo/client'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useSessionInfo } from '../util/RequireConfig'
-import { FormContainer } from '../forms'
-import Grid from '@material-ui/core/Grid'
 import {
   Checkbox,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Hidden,
+  FormControlLabel,
 } from '@material-ui/core'
 import { nonFieldErrors } from '../util/errutil'
 
@@ -29,7 +22,8 @@ interface UserEditDialogProps {
 }
 
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
-  const { ready: isSessionReady } = useSessionInfo()
+  const { ready: isSessionReady, userID: currentUserID,
+ } = useSessionInfo()
 
   const [state, setState] = React.useState({
     isAdmin: props.role === 'admin',
@@ -62,7 +56,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
         })
       }
       notices={
-        props.role === 'admin' && state.isAdmin === false
+        props.role === 'admin' && state.isAdmin === false && props.userID === currentUserID
           ? [
               {
                 type: 'WARNING',
@@ -74,30 +68,16 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
           : []
       }
       form={
-        <FormContainer>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Table data-cy='user-roles'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell padding='checkbox'>admin</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <Hidden smDown>
-                    <TableCell padding='checkbox'>
-                      <Checkbox
-                        checked={state.isAdmin}
-                        onChange={handleChange}
-                        name='isAdmin'
-                      />
-                    </TableCell>
-                  </Hidden>
-                </TableBody>
-              </Table>
-            </Grid>
-          </Grid>
-        </FormContainer>
+          <FormControlLabel
+            label='admin'
+            control={
+              <Checkbox
+                checked={state.isAdmin}
+                onChange={handleChange}
+                name='isAdmin'
+              />
+            }
+          />
       }
     />
   )

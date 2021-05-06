@@ -235,7 +235,6 @@ type ComplexityRoot struct {
 		SetLabel                        func(childComplexity int, input SetLabelInput) int
 		SetSystemLimits                 func(childComplexity int, input []SystemLimitInput) int
 		SetTemporarySchedule            func(childComplexity int, input SetTemporaryScheduleInput) int
-		SetUserRole                     func(childComplexity int, input SetUserRoleInput) int
 		TestContactMethod               func(childComplexity int, id string) int
 		UpdateAlerts                    func(childComplexity int, input UpdateAlertsInput) int
 		UpdateAlertsByService           func(childComplexity int, input UpdateAlertsByServiceInput) int
@@ -553,7 +552,6 @@ type MutationResolver interface {
 	DeleteAuthSubject(ctx context.Context, input user.AuthSubject) (bool, error)
 	EndAllAuthSessionsByCurrentUser(ctx context.Context) (bool, error)
 	UpdateUser(ctx context.Context, input UpdateUserInput) (bool, error)
-	SetUserRole(ctx context.Context, input SetUserRoleInput) (bool, error)
 	TestContactMethod(ctx context.Context, id string) (bool, error)
 	UpdateAlerts(ctx context.Context, input UpdateAlertsInput) ([]alert.Alert, error)
 	UpdateRotation(ctx context.Context, input UpdateRotationInput) (bool, error)
@@ -1505,18 +1503,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SetTemporarySchedule(childComplexity, args["input"].(SetTemporaryScheduleInput)), true
-
-	case "Mutation.setUserRole":
-		if e.complexity.Mutation.SetUserRole == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setUserRole_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetUserRole(childComplexity, args["input"].(SetUserRoleInput)), true
 
 	case "Mutation.testContactMethod":
 		if e.complexity.Mutation.TestContactMethod == nil {
@@ -3377,7 +3363,6 @@ type Mutation {
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
   endAllAuthSessionsByCurrentUser: Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
-  setUserRole(input: SetUserRoleInput!): Boolean!
 
   testContactMethod(id: ID!): Boolean!
 
@@ -4054,11 +4039,6 @@ input UpdateUserInput {
   statusUpdateContactMethodID: ID
 }
 
-input SetUserRoleInput {
-  id: ID!
-  role: UserRole!
-}
-
 input AuthSubjectInput {
   userID: ID!
   providerID: ID!
@@ -4570,21 +4550,6 @@ func (ec *executionContext) field_Mutation_setTemporarySchedule_args(ctx context
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNSetTemporaryScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetTemporaryScheduleInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_setUserRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 SetUserRoleInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSetUserRoleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetUserRoleInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8107,48 +8072,6 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().UpdateUser(rctx, args["input"].(UpdateUserInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_setUserRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_setUserRole_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetUserRole(rctx, args["input"].(SetUserRoleInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18224,34 +18147,6 @@ func (ec *executionContext) unmarshalInputSetTemporaryScheduleInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSetUserRoleInput(ctx context.Context, obj interface{}) (SetUserRoleInput, error) {
-	var it SetUserRoleInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "role":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-			it.Role, err = ec.unmarshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputSlackChannelSearchOptions(ctx context.Context, obj interface{}) (SlackChannelSearchOptions, error) {
 	var it SlackChannelSearchOptions
 	var asMap = obj.(map[string]interface{})
@@ -20047,11 +19942,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateUser":
 			out.Values[i] = ec._Mutation_updateUser(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "setUserRole":
-			out.Values[i] = ec._Mutation_setUserRole(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -23845,11 +23735,6 @@ func (ec *executionContext) unmarshalNSetScheduleShiftInput2ᚕgithubᚗcomᚋta
 
 func (ec *executionContext) unmarshalNSetTemporaryScheduleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetTemporaryScheduleInput(ctx context.Context, v interface{}) (SetTemporaryScheduleInput, error) {
 	res, err := ec.unmarshalInputSetTemporaryScheduleInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNSetUserRoleInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐSetUserRoleInput(ctx context.Context, v interface{}) (SetUserRoleInput, error) {
-	res, err := ec.unmarshalInputSetUserRoleInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

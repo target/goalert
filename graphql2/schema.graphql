@@ -296,7 +296,6 @@ type Mutation {
   deleteAuthSubject(input: AuthSubjectInput!): Boolean!
   endAllAuthSessionsByCurrentUser: Boolean!
   updateUser(input: UpdateUserInput!): Boolean!
-  setUserRole(input: SetUserRoleInput!): Boolean!
 
   testContactMethod(id: ID!): Boolean!
 
@@ -971,11 +970,6 @@ input UpdateUserInput {
   role: UserRole
 
   statusUpdateContactMethodID: ID
-}
-
-input SetUserRoleInput {
-  id: ID!
-  role: UserRole!
 }
 
 input AuthSubjectInput {

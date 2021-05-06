@@ -73,11 +73,14 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 		if err != nil {
 			return err
 		}
-		if input.Name != nil {
-			usr.Name = *input.Name
-		}
+
 		if input.Role != nil {
 			usr.Role = permission.Role(*input.Role)
+			return a.UserStore.SetUserRoleTx(ctx, tx, usr.ID, usr.Role)
+		}
+
+		if input.Name != nil {
+			usr.Name = *input.Name
 		}
 		if input.Email != nil {
 			usr.Email = *input.Email
@@ -86,18 +89,6 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 			usr.AlertStatusCMID = *input.StatusUpdateContactMethodID
 		}
 		return a.UserStore.UpdateTx(ctx, tx, usr)
-	})
-	return err == nil, err
-}
-
-func (a *Mutation) SetUserRole(ctx context.Context, input graphql2.SetUserRoleInput) (bool, error) {
-	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
-		usr, err := a.UserStore.FindOneTx(ctx, tx, input.ID, true)
-		if err != nil {
-			return err
-		}
-		usr.Role = permission.Role(input.Role)
-		return a.UserStore.SetUserRoleTx(ctx, tx, usr)
 	})
 	return err == nil, err
 }
