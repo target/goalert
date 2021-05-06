@@ -63,7 +63,6 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
         .toFormat('LLLL d')
       const end = getEndOfWeek(DateTime.fromISO(start))
         .toLocal()
-        .plus({ days: 6 })
         .toFormat('LLLL d')
       return `${begin} — ${end}`
     }
