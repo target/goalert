@@ -20,7 +20,7 @@ function testSubs(screen: ScreenFormat): void {
     it('should create a subscription from a schedule', () => {
       const name = c.word({ length: 5 })
       const defaultCptn =
-        'Subscribe to your personal shifts from your preferred external calendar app'
+        'Subscribe to your personal shifts from your preferred calendar app'
 
       cy.visit(`/schedules/${sched.id}`)
 
@@ -82,7 +82,7 @@ function testSubs(screen: ScreenFormat): void {
 
     it('should update button caption text after a subscription is created', () => {
       const defaultCptn =
-        'Subscribe to your personal shifts from your preferred external calendar app'
+        'Subscribe to your personal shifts from your preferred calendar app'
       const oneSubCptn = 'You have 1 active subscription for this schedule'
       const multipleSubsCptn =
         'You have 2 active subscriptions for this schedule'
