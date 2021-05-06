@@ -50,6 +50,20 @@ function testUsers(screen: ScreenFormat): void {
       })
     })
   })
+
+  describe('Page Actions', () => {
+    it('should edit a user role', () => {
+      cy.adminLogin()
+
+      cy.fixture('users').then((users) => {
+        cy.visit(`/users/${users[0].id}`)
+
+        cy.pageAction('Edit')
+        cy.get('[type="checkbox"]').check() 
+        cy.dialogFinish('Confirm')
+      })
+    })
+  })
 }
 
 testScreen('Users', testUsers)

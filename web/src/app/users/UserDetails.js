@@ -161,7 +161,7 @@ export default function UserDetails(props) {
 
   return (
     <React.Fragment>
-        {isAdmin && (
+      {isAdmin && (
         <PageActions>
           <OtherActions
             actions={[
@@ -268,7 +268,7 @@ export default function UserDetails(props) {
           userID={props.userID}
           role={user.role}
         />
-        )}
+      )}
     </React.Fragment>
   )
 }
