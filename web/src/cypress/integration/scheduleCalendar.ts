@@ -11,10 +11,7 @@ const weekHeaderFormat = (t: DateTime): string => {
 
   const end = t.endOf('week').minus({ day: 1 })
 
-  return (
-    start.toFormat('MMMM dd — ') +
-    end.toFormat(end.month === start.month ? 'dd' : 'MMMM dd')
-  )
+  return start.toFormat('MMMM d — ') + end.toFormat('MMMM d')
 }
 
 const weekSpansTwoMonths = (t: DateTime): boolean => {
