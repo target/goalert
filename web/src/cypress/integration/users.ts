@@ -42,7 +42,9 @@ function testUsers(screen: ScreenFormat): void {
       cy.fixture('users').then((users) => {
         cy.visit(`/users/${users[0].id}`)
 
-        cy.pageAction('Delete')
+        cy.get('[data-cy="card-actions"]')
+          .find('button[title="Delete"]')
+          .click()
         cy.dialogTitle('Are you sure?')
         cy.dialogFinish('Confirm')
 
