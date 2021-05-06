@@ -780,7 +780,7 @@ export interface UpdateUserInput {
 
 export interface SetUserRoleInput {
   id: string
-  role?: UserRole
+  role: UserRole
 }
 
 export interface AuthSubjectInput {

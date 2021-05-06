@@ -975,7 +975,7 @@ input UpdateUserInput {
 
 input SetUserRoleInput {
   id: ID!
-  role: UserRole
+  role: UserRole!
 }
 
 input AuthSubjectInput {

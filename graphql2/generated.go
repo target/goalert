@@ -4056,7 +4056,7 @@ input UpdateUserInput {
 
 input SetUserRoleInput {
   id: ID!
-  role: UserRole
+  role: UserRole!
 }
 
 input AuthSubjectInput {
@@ -18242,7 +18242,7 @@ func (ec *executionContext) unmarshalInputSetUserRoleInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-			it.Role, err = ec.unmarshalOUserRole2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
+			it.Role, err = ec.unmarshalNUserRole2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
 			if err != nil {
 				return it, err
 			}

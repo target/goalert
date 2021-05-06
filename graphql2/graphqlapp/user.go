@@ -96,9 +96,7 @@ func (a *Mutation) SetUserRole(ctx context.Context, input graphql2.SetUserRoleIn
 		if err != nil {
 			return err
 		}
-		if input.Role != nil {
-			usr.Role = permission.Role(*input.Role)
-		}
+		usr.Role = permission.Role(input.Role)
 		return a.UserStore.SetUserRoleTx(ctx, tx, usr)
 	})
 	return err == nil, err
