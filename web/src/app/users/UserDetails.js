@@ -220,7 +220,7 @@ export default function UserDetails(props) {
         }
         primaryActions={
           props.readOnly
-            ? undefined
+            ? []
             : [
                 <StatusUpdateNotification
                   key='primary-action-status-updates'

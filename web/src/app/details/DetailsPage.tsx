@@ -136,12 +136,14 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
             )}
 
             <Grid className={classes.flexHeight} item />
-            <Grid item>
-              <CardActions
-                primaryActions={p.primaryActions}
-                secondaryActions={p.secondaryActions}
-              />
-            </Grid>
+            {(p.primaryActions?.length || p.secondaryActions?.length) && (
+              <Grid item>
+                <CardActions
+                  primaryActions={p.primaryActions}
+                  secondaryActions={p.secondaryActions}
+                />
+              </Grid>
+            )}
           </Grid>
         </Card>
       </Grid>
