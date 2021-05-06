@@ -59,7 +59,7 @@ function testUsers(screen: ScreenFormat): void {
         cy.visit(`/users/${users[0].id}`)
 
         cy.pageAction('Edit')
-        cy.get('[type="checkbox"]').check() 
+        cy.get('[type="checkbox"]').check()
         cy.dialogFinish('Confirm')
       })
     })
