@@ -113,7 +113,7 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
                   component: 'h2',
                 }}
                 subheaderTypographyProps={{
-                  'data-cy': 'details',
+                  'data-cy': 'subheader',
                   variant: 'body1',
                 }}
               />
