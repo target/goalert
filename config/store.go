@@ -17,6 +17,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/errutil"
+	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/log"
 
 	"github.com/pkg/errors"
@@ -302,12 +303,7 @@ func (s *Store) updateConfigTx(ctx context.Context, tx *sql.Tx, fn func(Config) 
 		return 0, err
 	}
 
-	data, err := json.Marshal(newCfg)
-	if err != nil {
-		return 0, errors.Wrap(err, "marshal config")
-	}
-
-	data, err = mergeJSON(cfg.data, data)
+	data, err := jsonutil.Apply(cfg.data, newCfg)
 	if err != nil {
 		return 0, errors.Wrap(err, "merge config")
 	}

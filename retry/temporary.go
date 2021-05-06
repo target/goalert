@@ -14,6 +14,21 @@ type clientErr interface {
 	ClientError() bool
 }
 
+type tempErr interface {
+	Temporary() bool
+}
+
+// TemporaryError returns an error that will always be classified as temporary.
+func TemporaryError(err error) error {
+	return tempErrWrap{error: err}
+}
+
+type tempErrWrap struct {
+	error
+}
+
+func (e tempErrWrap) Temporary() bool { return true }
+
 // IsTemporaryError will determine if an error is temporary, and thus
 // the action can/should be retried.
 func IsTemporaryError(err error) bool {
@@ -29,6 +44,12 @@ func IsTemporaryError(err error) bool {
 	if errors.As(err, &netErr) {
 		return true
 	}
+
+	var tempErr tempErr
+	if errors.As(err, &tempErr) && tempErr.Temporary() {
+		return true
+	}
+
 	if errors.Is(err, sql.ErrConnDone) {
 		return true
 	}

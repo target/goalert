@@ -1,4 +1,4 @@
-package config
+package jsonutil
 
 import (
 	"encoding/json"
@@ -7,7 +7,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func mergeJSON(dst, src []byte) ([]byte, error) {
+// Merge will recursively merge a src JSON document into the dst JSON document.
+func Merge(dst, src []byte) ([]byte, error) {
 	var dstM, srcM map[string]interface{}
 	if len(dst) == 0 {
 		dstM = make(map[string]interface{})

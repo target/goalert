@@ -54,7 +54,11 @@ export default function RotationDetails({ rotationID }) {
   if (error) return <GenericError error={error.message} />
 
   if (!data)
-    return showDelete ? <Redirect to='/rotations' push /> : <ObjectNotFound />
+    return showDelete ? (
+      <Redirect to='/rotations' push />
+    ) : (
+      <ObjectNotFound type='rotation' />
+    )
 
   return (
     <React.Fragment>
