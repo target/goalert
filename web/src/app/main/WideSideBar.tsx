@@ -2,9 +2,11 @@ import React, { ReactNode } from 'react'
 import Drawer from '@material-ui/core/Drawer'
 import { makeStyles } from '@material-ui/core'
 
+export const drawerWidth = '220px'
+
 const useStyles = makeStyles((theme) => ({
   sidebarPaper: {
-    width: 220,
+    width: drawerWidth,
     position: 'fixed',
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
