@@ -120,6 +120,22 @@ export default class ScheduleCalendar extends React.PureComponent {
         </Typography>
         <Card className={classes.card} {...CardProps}>
           <div data-cy='calendar' className={classes.calendarContainer}>
+            <CalendarToolbar
+              endAdornment={
+                <Button
+                  variant='contained'
+                  size='small'
+                  color='primary'
+                  data-cy='new-temp-sched'
+                  onClick={onNewTempSched}
+                  className={classes.tempSchedBtn}
+                  startIcon={<GroupAdd />}
+                  title='Make temporary change to this schedule'
+                >
+                  Temp Sched
+                </Button>
+              }
+            />
             <Calendar
               date={new Date(start)}
               localizer={localizer}
@@ -147,24 +163,7 @@ export default class ScheduleCalendar extends React.PureComponent {
                     {...props}
                   />
                 ),
-                toolbar: () => (
-                  <CalendarToolbar
-                    endAdornment={
-                      <Button
-                        variant='contained'
-                        size='small'
-                        color='primary'
-                        data-cy='new-temp-sched'
-                        onClick={onNewTempSched}
-                        className={classes.tempSchedBtn}
-                        startIcon={<GroupAdd />}
-                        title='Make temporary change to this schedule'
-                      >
-                        Temp Sched
-                      </Button>
-                    }
-                  />
-                ),
+                toolbar: () => null,
               }}
             />
           </div>
