@@ -10,15 +10,6 @@ updates:
       - dependency-name: '@date-io/luxon'
         versions:
           - '<=3.0.0'
-      - dependency-name: '@hot-loader/react-dom'
-        versions:
-          - '>= 0'
-      - dependency-name: 'react'
-        versions:
-          - '>= 0'
-      - dependency-name: 'react-dom'
-        versions:
-          - '>= 0'
       - dependency-name: '@date-io/core'
         versions:
           - 2.10.7
