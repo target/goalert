@@ -68,7 +68,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
                 type: 'WARNING',
                 message: 'Updating role to User',
                 details:
-                  'This user is currently an Admin, changing the role will set the role to User instead.',
+                  'If you remove your admin privileges you will need to log in as a different admin to restore them.', 
               },
             ]
           : []
