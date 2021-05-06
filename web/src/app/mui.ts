@@ -23,6 +23,9 @@ export const theme = createMuiTheme({
     MuiList: {
       disablePadding: true,
     },
+    MuiCard: {
+      variant: 'outlined',
+    },
   },
 
   ...testOverrides,
