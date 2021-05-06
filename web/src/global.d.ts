@@ -7,4 +7,5 @@ declare namespace NodeJS {
   }
 
   declare module '*.md'
+  declare module '*.png'
 }
