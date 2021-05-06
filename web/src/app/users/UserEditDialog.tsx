@@ -7,8 +7,8 @@ import { Checkbox, FormControlLabel } from '@material-ui/core'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
-  mutation($input: SetUserRoleInput!) {
-    setUserRole(input: $input)
+  mutation($input: UpdateUserInput!) {
+    updateUser(input: $input)
   }
 `
 
