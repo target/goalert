@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
+import Delete from '@material-ui/icons/Delete'
 import DetailsPage from '../details/DetailsPage'
 import StatusUpdateNotification from './UserStatusUpdatePreference'
 import { UserAvatar } from '../util/avatars'
@@ -16,9 +17,7 @@ import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
-import PageActions from '../util/PageActions'
 import UserDeleteDialog from './UserDeleteDialog'
-import OtherActions from '../util/OtherActions'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
@@ -142,18 +141,6 @@ export default function UserDetails(props) {
 
   return (
     <React.Fragment>
-      {isAdmin && (
-        <PageActions>
-          <OtherActions
-            actions={[
-              {
-                label: 'Delete User',
-                onClick: () => setShowUserDeleteDialog(true),
-              },
-            ]}
-          />
-        </PageActions>
-      )}
       {showUserDeleteDialog && (
         <UserDeleteDialog
           userID={props.userID}
@@ -227,6 +214,17 @@ export default function UserDetails(props) {
                   userID={props.userID}
                 />,
               ]
+        }
+        secondaryActions={
+          isAdmin
+            ? [
+                {
+                  label: 'Delete',
+                  icon: <Delete />,
+                  handleOnClick: () => setShowUserDeleteDialog(true),
+                },
+              ]
+            : []
         }
         links={links}
       />
