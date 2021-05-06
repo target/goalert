@@ -51,7 +51,6 @@ type DB struct {
 	insert      *sql.Stmt
 	update      *sql.Stmt
 	setUserRole *sql.Stmt
-	delete      *sql.Stmt
 	findOne     *sql.Stmt
 	findAll     *sql.Stmt
 
