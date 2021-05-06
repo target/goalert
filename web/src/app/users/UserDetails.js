@@ -166,12 +166,12 @@ export default function UserDetails(props) {
           <OtherActions
             actions={[
               {
-                label: 'Delete User',
-                onClick: () => setShowUserDeleteDialog(true),
-              },
-              {
                 label: 'Edit User',
                 onClick: () => setShowEdit(true),
+              },
+              {
+                label: 'Delete User',
+                onClick: () => setShowUserDeleteDialog(true),
               },
             ]}
           />

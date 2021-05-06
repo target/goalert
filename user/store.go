@@ -100,8 +100,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			SET
 				name = $2,
 				email = $3,
-				role = $4,
-				alert_status_log_contact_method_id = $5
+				alert_status_log_contact_method_id = $4
 			WHERE id = $1
 		`),
 

@@ -74,7 +74,6 @@ func (u *User) userUpdateFields() []interface{} {
 		u.ID,
 		u.Name,
 		u.Email,
-		u.Role,
 		statusCM,
 	}
 }
