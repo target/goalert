@@ -19,7 +19,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
-import FavoriteIcon from '@material-ui/icons/Star'
+import { FavoriteIcon } from '../../../util/SetFavoriteButton'
 import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
 import _ from 'lodash'

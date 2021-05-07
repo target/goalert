@@ -1,6 +1,9 @@
 import React from 'react'
 import { PropTypes as p } from 'prop-types'
 import { Card, Button } from '@material-ui/core'
+import Grid from '@material-ui/core/Grid'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Switch from '@material-ui/core/Switch'
 import Typography from '@material-ui/core/Typography'
 import withStyles from '@material-ui/core/styles/withStyles'
 import { connect } from 'react-redux'
@@ -18,6 +21,8 @@ import LuxonLocalizer from '../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../util/shifts'
 import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
+import FilterContainer from '../util/FilterContainer'
+import { UserSelect } from '../selection'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -28,8 +33,11 @@ const styles = (theme) => ({
   card: {
     marginTop: 4,
   },
+  filterBtn: {
+    marginRight: theme.spacing(1.75),
+  },
   tempSchedBtn: {
-    marginLeft: theme.spacing(1),
+    marginLeft: theme.spacing(1.75),
   },
 })
 
@@ -60,9 +68,11 @@ const mapDispatchToProps = (dispatch) => {
   return {
     setWeekly: (value) => dispatch(setURLParam('weekly', value)),
     setStart: (value) => dispatch(setURLParam('start', value)),
-    resetFilter: () =>
+    handleSetActiveOnly: (value) => dispatch(setURLParam('activeOnly', value)),
+    handleSetUserFilter: (value) => dispatch(setURLParam('userFilter', value)),
+    handleResetFilter: () =>
       dispatch(
-        resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'weekly'),
+        resetURLParams('userFilter', 'start', 'activeOnly', 'tz', 'duration'),
       ),
   }
 }
@@ -108,6 +118,11 @@ export default class ScheduleCalendar extends React.PureComponent {
       onNewTempSched,
       onEditTempSched,
       onDeleteTempSched,
+      activeOnly,
+      handleSetActiveOnly,
+      userFilter,
+      handleSetUserFilter,
+      handleResetFilter,
     } = this.props
 
     return (
@@ -121,6 +136,38 @@ export default class ScheduleCalendar extends React.PureComponent {
         <Card className={classes.card} {...CardProps}>
           <div data-cy='calendar' className={classes.calendarContainer}>
             <CalendarToolbar
+              startAdornment={
+                <FilterContainer
+                  onReset={handleResetFilter}
+                  iconButtonProps={{
+                    size: 'small',
+                    className: classes.filterBtn,
+                  }}
+                >
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={activeOnly}
+                          onChange={(e) =>
+                            handleSetActiveOnly(e.target.checked)
+                          }
+                          value='activeOnly'
+                        />
+                      }
+                      label='Active shifts only'
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <UserSelect
+                      label='Filter users...'
+                      multiple
+                      value={userFilter}
+                      onChange={handleSetUserFilter}
+                    />
+                  </Grid>
+                </FilterContainer>
+              }
               endAdornment={
                 <Button
                   variant='contained'

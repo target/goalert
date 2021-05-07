@@ -1,27 +1,48 @@
 import React from 'react'
 import IconButton from '@material-ui/core/IconButton'
-import FavoriteFilledIcon from '@material-ui/icons/Star'
-import FavoriteBorderIcon from '@material-ui/icons/StarBorder'
+import MUIFavoriteIcon from '@material-ui/icons/Favorite'
+import NotFavoriteIcon from '@material-ui/icons/FavoriteBorder'
 import Tooltip from '@material-ui/core/Tooltip'
+import { makeStyles } from '@material-ui/core/styles'
 
 interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule'
-  isFavorite?: boolean
-  loading: boolean
   onClick: (event: React.FormEvent<HTMLFormElement>) => void
+  isFavorite?: boolean
+  loading?: boolean
+}
+
+const useStyles = makeStyles({
+  favorited: {
+    color: 'rgb(205, 24, 49)',
+  },
+  notFavorited: {
+    color: 'inherit',
+  },
+})
+
+export function FavoriteIcon(): JSX.Element {
+  const classes = useStyles()
+  return <MUIFavoriteIcon data-cy='fav-icon' className={classes.favorited} />
 }
 
 export function SetFavoriteButton({
   typeName,
+  onClick,
   isFavorite,
   loading,
-  onClick,
 }: SetFavoriteButtonProps): JSX.Element | null {
+  const classes = useStyles()
+
   if (loading) {
     return null
   }
 
-  const icon = isFavorite ? <FavoriteFilledIcon /> : <FavoriteBorderIcon />
+  const icon = isFavorite ? (
+    <FavoriteIcon />
+  ) : (
+    <NotFavoriteIcon className={classes.notFavorited} />
+  )
 
   const content = (
     <form
@@ -37,7 +58,6 @@ export function SetFavoriteButton({
             : `Set as a Favorite ${typeName}`
         }
         type='submit'
-        color='inherit'
         data-cy='set-fav'
       >
         {icon}
@@ -45,20 +65,9 @@ export function SetFavoriteButton({
     </form>
   )
 
-  switch (typeName) {
-    case 'service':
-      return (
-        <Tooltip
-          title={
-            isFavorite
-              ? 'Unfavorite this service to stop seeing its alerts on your homepage'
-              : 'Favorite this service to always see its alerts on your homepage'
-          }
-        >
-          {content}
-        </Tooltip>
-      )
-    default:
-      return content
-  }
+  return (
+    <Tooltip title={isFavorite ? 'Unfavorite' : 'Favorite'} placement='top'>
+      {content}
+    </Tooltip>
+  )
 }
