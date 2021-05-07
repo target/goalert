@@ -81,14 +81,6 @@ export default function FilterContainer(props) {
           }}
           open={!!anchorEl}
           onClose={() => setAnchorEl(null)}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
         >
           {renderContent()}
         </Popover>
