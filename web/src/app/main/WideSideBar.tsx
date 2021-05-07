@@ -3,6 +3,8 @@ import Drawer from '@material-ui/core/Drawer'
 import { makeStyles } from '@material-ui/core'
 import logo from '../public/goalert-alt-logo-scaled.png'
 
+export const drawerWidth = '220px'
+
 const useStyles = makeStyles((theme) => ({
   logoDiv: {
     ...theme.mixins.toolbar,

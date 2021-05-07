@@ -14,7 +14,7 @@ import { PageActionContainer, PageActionProvider } from '../util/PageActions'
 import { PageNotFound as LazyPageNotFound } from '../error-pages/Errors'
 import LazySideBarDrawerList from './components/SideBarDrawerList'
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
-import LazyWideSideBar from './WideSideBar'
+import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
@@ -23,8 +23,6 @@ import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import { isWidthDown, makeStyles } from '@material-ui/core'
 import useWidth from '../util/useWidth'
 import { isIOS } from '../util/browsers'
-
-const drawerWidth = '12em'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
   },
   mainContainer: { position: 'relative', height: '100%' },
   appBar: {
-    width: 'calc(100% - 220px)',
+    [theme.breakpoints.up('md')]: { width: `calc(100% - ${drawerWidth})` },
     zIndex: theme.zIndex.drawer + 1,
   },
   containerClass: {

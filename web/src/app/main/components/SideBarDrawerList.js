@@ -6,7 +6,6 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core'
-import { styles as globalStyles } from '../../styles/materialStyles'
 import {
   Build as WizardIcon,
   Feedback as FeedbackIcon,
@@ -21,7 +20,7 @@ import {
 } from '@material-ui/icons'
 
 import routeConfig, { getPath } from '../routes'
-
+import { styles as globalStyles } from '../../styles/materialStyles'
 import { NavLink } from 'react-router-dom'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import { CurrentUserAvatar } from '../../util/avatars'
@@ -29,7 +28,7 @@ import { authLogout } from '../../actions'
 import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
-
+import logo from '../../public/goalert-alt-logo.png'
 import AppLink from '../../util/AppLink'
 
 const navIcons = {
@@ -44,6 +43,12 @@ const navIcons = {
 
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
+  logoDiv: {
+    ...theme.mixins.toolbar,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   navIcon: {
     width: '1em',
     height: '1em',
@@ -126,6 +131,9 @@ export default function SideBarDrawerList(props) {
 
   return (
     <React.Fragment>
+      <div aria-hidden className={classes.logoDiv}>
+        <img height={38} src={logo} alt='GoAlert Logo' />
+      </div>
       <Divider />
       <nav>
         <List role='navigation' className={classes.list} data-cy='nav-list'>
