@@ -57,6 +57,7 @@ function RotationUserList({ rotationID }) {
 
   const [updateRotation, { error: mError }] = useMutation(mutation)
 
+  // reset swap history on add/remove participant
   useEffect(() => {
     setLastSwap([])
   }, [data?.rotation?.users?.length])
@@ -104,6 +105,7 @@ function RotationUserList({ rotationID }) {
     )
   })
 
+  // re-enact swap history to get unique identier per list item
   let listIDs = users.map((_, idx) => idx)
   lastSwap.forEach((s) => {
     listIDs = reorderList(listIDs, s.oldIndex, s.newIndex)
