@@ -1,4 +1,4 @@
-import React, { MouseEvent } from 'react'
+import React from 'react'
 import {
   Button,
   ButtonGroup,
@@ -7,6 +7,8 @@ import {
   Typography,
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
+import { useURLParam } from '../actions'
+import { getEndOfWeek, getStartOfWeek } from '../util/luxon-helpers'
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -40,41 +42,101 @@ const useStyles = makeStyles((theme) => ({
 
 type ViewType = 'month' | 'week'
 interface CalendarToolbarProps {
-  date: Date
-  label: string
-  onNavigate: (e: React.MouseEvent, date: Date) => void
-  onView: (view: ViewType) => void
-  view: ViewType
   startAdornment?: React.ReactNode
   endAdornment?: React.ReactNode
 }
 
 function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   const classes = useStyles()
-  const weekly = props.view === 'week'
+  const [weekly, setWeekly] = useURLParam<boolean>('weekly', false)
+  const [start, setStart] = useURLParam(
+    'start',
+    weekly
+      ? getStartOfWeek().toUTC().toISO()
+      : DateTime.local().startOf('month').toUTC().toISO(),
+  )
 
-  const handleTodayClick = (e: MouseEvent): void => {
-    props.onNavigate(e, DateTime.local().toJSDate())
+  const getLabel = (): string => {
+    if (weekly) {
+      const begin = getStartOfWeek(DateTime.fromISO(start))
+        .toLocal()
+        .toFormat('LLLL d')
+      const end = getEndOfWeek(DateTime.fromISO(start))
+        .toLocal()
+        .toFormat('LLLL d')
+      return `${begin} — ${end}`
+    }
+
+    return DateTime.fromISO(start).toLocal().toFormat('LLLL yyyy')
   }
 
-  const handleNextClick = (e: MouseEvent): void => {
+  /*
+   * Resets the start date to the beginning of the month
+   * when switching views.
+   *
+   * e.g. Monthly: February -> Weekly: Start at the week
+   * of February 1st
+   *
+   * e.g. Weekly: February 17-23 -> Monthly: Start at the
+   * beginning of February
+   *
+   * If viewing the current month however, show the current
+   * week.
+   */
+  const onView = (nextView: ViewType): void => {
+    const prevStartMonth = DateTime.fromISO(start).toLocal().month
+    const currMonth = DateTime.local().month
+
+    // if viewing the current month, show the current week
+    if (nextView === 'week' && prevStartMonth === currMonth) {
+      setWeekly(true)
+      setStart(getStartOfWeek().toUTC().toISO())
+
+      // if not on the current month, show the first week of the month
+    } else if (nextView === 'week' && prevStartMonth !== currMonth) {
+      setWeekly(true)
+      setStart(
+        DateTime.fromISO(start).toLocal().startOf('month').toUTC().toISO(),
+      )
+
+      // go from week to monthly view
+      // e.g. if navigating to an overlap of two months such as
+      // Jan 27 - Feb 2, show the latter month (February)
+    } else {
+      setWeekly(false)
+
+      setStart(
+        getEndOfWeek(DateTime.fromISO(start))
+          .toLocal()
+          .startOf('month')
+          .toUTC()
+          .toISO(),
+      )
+    }
+  }
+
+  const onNavigate = (next: DateTime): void => {
+    if (weekly) {
+      setStart(getStartOfWeek(next).toUTC().toISO())
+    } else {
+      setStart(next.toLocal().startOf('month').toUTC().toISO())
+    }
+  }
+
+  const handleTodayClick = (): void => {
+    onNavigate(DateTime.local())
+  }
+
+  const handleNextClick = (): void => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromJSDate(props.date).plus(timeUnit).toJSDate()
-    props.onNavigate(e, nextDate)
+    const next = DateTime.fromISO(start).plus(timeUnit)
+    onNavigate(next)
   }
 
-  const handleBackClick = (e: MouseEvent): void => {
+  const handleBackClick = (): void => {
     const timeUnit = weekly ? { weeks: 1 } : { months: 1 }
-    const nextDate = DateTime.fromJSDate(props.date).minus(timeUnit).toJSDate()
-    props.onNavigate(e, nextDate)
-  }
-
-  const handleMonthViewClick = (): void => {
-    props.onView('month')
-  }
-
-  const handleWeekViewClick = (): void => {
-    props.onView('week')
+    const next = DateTime.fromISO(start).minus(timeUnit)
+    onNavigate(next)
   }
 
   return (
@@ -96,7 +158,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
 
       <Grid item xs={12} lg={4} className={classes.labelGridItem}>
         <Typography component='p' data-cy='calendar-header' variant='subtitle1'>
-          {props.label}
+          {getLabel()}
         </Typography>
       </Grid>
 
@@ -107,15 +169,15 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
         >
           <Button
             data-cy='show-month'
-            disabled={props.view === 'month'}
-            onClick={handleMonthViewClick}
+            disabled={!weekly}
+            onClick={() => onView('month')}
           >
             Month
           </Button>
           <Button
             data-cy='show-week'
-            disabled={props.view === 'week'}
-            onClick={handleWeekViewClick}
+            disabled={weekly}
+            onClick={() => onView('week')}
           >
             Week
           </Button>

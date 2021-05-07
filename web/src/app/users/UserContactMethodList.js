@@ -15,7 +15,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles'
 import { styles as globalStyles } from '../styles/materialStyles'
 import useWidth from '../util/useWidth'
 import Spinner from '../loading/components/Spinner'
-import { GenericError } from '../error-pages'
+import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 
 const query = gql`
@@ -63,6 +63,7 @@ export default function UserContactMethodList(props) {
   })
 
   if (loading && !data) return <Spinner />
+  if (!data.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
   const contactMethods = data.user.contactMethods
