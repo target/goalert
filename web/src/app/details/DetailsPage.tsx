@@ -1,38 +1,26 @@
-import React, { cloneElement } from 'react'
+import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { isWidthDown } from '@material-ui/core'
 import Card from '@material-ui/core/Card'
 import CardHeader from '@material-ui/core/CardHeader'
-import CardContent from '@material-ui/core/CardContent'
 import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
 import { ChevronRight } from '@material-ui/icons'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import IconButton from '@material-ui/core/IconButton'
-import { ReactNode } from 'react-markdown'
 
 import Notices, { Notice } from './Notices'
-import Markdown from '../util/Markdown'
-import CardActions, { Action } from './CardActions'
 import AppLink from '../util/AppLink'
 import useWidth from '../util/useWidth'
 import statusStyles from '../util/statusStyles'
+import DataCard, { DataCardProps } from '../lists/DataCard'
 
-interface DetailsPageProps {
-  title: string
-
-  // optional content
-  avatar?: JSX.Element // placement for an icon or image
-  subheader?: string | JSX.Element
-  details?: string
+interface DetailsPageProps extends DataCardProps {
   notices?: Array<Notice>
   links?: Array<Link>
   pageContent?: JSX.Element
-  primaryActions?: Array<Action | JSX.Element>
-  secondaryActions?: Array<Action | JSX.Element>
 }
 
 type LinkStatus = 'ok' | 'warn' | 'err'
@@ -49,14 +37,8 @@ function isDesktopMode(width: string): boolean {
 
 const useStyles = makeStyles({
   ...statusStyles,
-  flexHeight: {
-    flexGrow: 1,
-  },
   fullHeight: {
     height: '100%', // align height of the first row of cards together
-  },
-  headerContent: {
-    paddingTop: 0,
   },
   quickLinks: {
     paddingBottom: 8,
@@ -77,13 +59,6 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
     return classes.noStatus
   }
 
-  const avatar = (): ReactNode => {
-    if (!p.avatar) return null
-    return cloneElement(p.avatar, {
-      style: { width: 56, height: 56 },
-    })
-  }
-
   return (
     <Grid container spacing={2}>
       {/* Notices */}
@@ -95,57 +70,14 @@ export default function DetailsPage(p: DetailsPageProps): JSX.Element {
 
       {/* Header card */}
       <Grid item xs={12} lg={isDesktopMode(width) && p.links?.length ? 8 : 12}>
-        <Card className={classes.fullHeight}>
-          <Grid
-            className={classes.fullHeight}
-            item
-            xs
-            container
-            direction='column'
-          >
-            <Grid item>
-              <CardHeader
-                title={p.title}
-                subheader={p.subheader}
-                avatar={avatar()}
-                titleTypographyProps={{
-                  'data-cy': 'title',
-                  variant: 'h5',
-                  component: 'h2',
-                }}
-                subheaderTypographyProps={{
-                  'data-cy': 'subheader',
-                  variant: 'body1',
-                }}
-              />
-            </Grid>
-
-            {p.details && (
-              <Grid item>
-                <CardContent className={classes.headerContent}>
-                  <Typography
-                    component='div'
-                    variant='subtitle1'
-                    color='textSecondary'
-                    data-cy='details'
-                  >
-                    <Markdown value={p.details} />
-                  </Typography>
-                </CardContent>
-              </Grid>
-            )}
-
-            <Grid className={classes.flexHeight} item />
-            {(p.primaryActions?.length || p.secondaryActions?.length) && (
-              <Grid item>
-                <CardActions
-                  primaryActions={p.primaryActions}
-                  secondaryActions={p.secondaryActions}
-                />
-              </Grid>
-            )}
-          </Grid>
-        </Card>
+        <DataCard
+          title={p.title}
+          avatar={p.avatar}
+          subheader={p.subheader}
+          details={p.details}
+          primaryActions={p.primaryActions}
+          secondaryActions={p.secondaryActions}
+        />
       </Grid>
 
       {/* Quick Links */}
