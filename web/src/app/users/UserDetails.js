@@ -160,11 +160,12 @@ export default function UserDetails(props) {
           />
         </PageActions>
       )}
+      {showUserDeleteDialog && (
         <UserDeleteDialog
           userID={props.userID}
           onClose={() => setShowUserDeleteDialog(false)}
         />
-      )
+      )}
       {props.readOnly ? null : (
         <SpeedDial
           label='Add Items'
