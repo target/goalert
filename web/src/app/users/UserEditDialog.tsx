@@ -21,7 +21,7 @@ interface UserEditDialogProps {
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const { ready: isSessionReady, userID: currentUserID } = useSessionInfo()
 
-  const [adminChecked, setAdminChecked] = React.useState(isAdmin)
+  const [adminChecked, setAdminChecked] = React.useState(props.role === 'admin')
 
   const [editUser, editUserStatus] = useMutation(mutation, {
     onCompleted: props.onClose,
@@ -44,14 +44,14 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
           variables: {
             input: {
               id: props.userID,
-              role: state.isAdmin ? 'admin' : 'user',
+              role: adminChecked ? 'admin' : 'user',
             },
           },
         })
       }
       notices={
         props.role === 'admin' &&
-        state.isAdmin === false &&
+        adminChecked === false &&
         props.userID === currentUserID
           ? [
               {
@@ -68,7 +68,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
           label='admin'
           control={
             <Checkbox
-              checked={state.isAdmin}
+              checked={adminChecked}
               onChange={handleChange}
               name='isAdmin'
             />

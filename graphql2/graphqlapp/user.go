@@ -75,7 +75,10 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 		}
 
 		if input.Role != nil {
-			return a.UserStore.SetUserRoleTx(ctx, tx, input.ID, permission.Role(*input.Role))
+			err = a.UserStore.SetUserRoleTx(ctx, tx, input.ID, permission.Role(*input.Role))
+			if err != nil {
+				return err
+			}
 		}
 
 		if input.Name != nil {
