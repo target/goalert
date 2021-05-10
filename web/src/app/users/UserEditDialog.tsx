@@ -21,9 +21,7 @@ interface UserEditDialogProps {
 function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   const { ready: isSessionReady, userID: currentUserID } = useSessionInfo()
 
-  const [state, setState] = React.useState({
-    isAdmin: props.role === 'admin',
-  })
+  const [adminChecked, setAdminChecked] = React.useState(isAdmin)
 
   const [editUser, editUserStatus] = useMutation(mutation, {
     onCompleted: props.onClose,
