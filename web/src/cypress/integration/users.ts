@@ -35,7 +35,22 @@ function testUsers(screen: ScreenFormat): void {
     })
   })
 
-  describe('Page Actions', () => {
+   describe('Page Actions', () => {
+    it('should edit a user role', () => {
+      cy.adminLogin()
+
+      cy.fixture('users').then((users) => {
+        cy.visit(`/users/${users[0].id}`)
+
+        cy.pageAction('Edit')
+        cy.get('[type="checkbox"]').check()
+        cy.dialogFinish('Confirm')
+
+        cy.pageAction('Edit')
+        cy.get('[type="checkbox"]').should('be.checked')
+      })
+    })
+     
     it('should delete a user', () => {
       cy.adminLogin()
 
@@ -47,20 +62,6 @@ function testUsers(screen: ScreenFormat): void {
         cy.dialogFinish('Confirm')
 
         cy.get('[data-cy=apollo-list]').should('not.contain', users[0].name)
-      })
-    })
-  })
-
-  describe('Page Actions', () => {
-    it('should edit a user role', () => {
-      cy.adminLogin()
-
-      cy.fixture('users').then((users) => {
-        cy.visit(`/users/${users[0].id}`)
-
-        cy.pageAction('Edit')
-        cy.get('[type="checkbox"]').check()
-        cy.dialogFinish('Confirm')
       })
     })
   })

@@ -65,7 +65,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
       }
       form={
         <FormControlLabel
-          label='admin'
+          label='Admin'
           control={
             <Checkbox
               checked={adminChecked}
