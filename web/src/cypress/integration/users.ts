@@ -35,7 +35,7 @@ function testUsers(screen: ScreenFormat): void {
     })
   })
 
-   describe('Page Actions', () => {
+  describe('Page Actions', () => {
     it('should edit a user role', () => {
       cy.adminLogin()
 
@@ -50,7 +50,7 @@ function testUsers(screen: ScreenFormat): void {
         cy.get('[type="checkbox"]').should('be.checked')
       })
     })
-     
+
     it('should delete a user', () => {
       cy.adminLogin()
 
