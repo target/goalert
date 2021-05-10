@@ -19,8 +19,6 @@ GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shel
 BUILD_DATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_FLAGS=
 
-PROTOC_VERSION=$(shell cat protoc.version)
-
 export ZONEINFO=$(shell go env GOROOT)/lib/time/zoneinfo.zip
 
 LD_FLAGS+=-X github.com/target/goalert/version.gitCommit=$(GIT_COMMIT)
@@ -129,7 +127,10 @@ $(BIN_DIR)/integration.tgz: bin/integration
 	tar czvf bin/integration.tgz -C bin/integration goalert
 
 $(BIN_DIR)/tools/protoc: protoc.version
-	go run ./devtools/gettool -t protoc -v $(PROTOC_VERSION) -o $@
+	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
+
+$(BIN_DIR)/tools/prometheus: prometheus.version
+	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
 
 $(BIN_DIR)/tools/protoc-gen-go: go.mod
 	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/protobuf/cmd/protoc-gen-go
@@ -181,13 +182,13 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts
+start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
 	GOALERT_VERSION=$(GIT_VERSION) bin/runjson <devtools/runjson/localdev.json
 
-start-prod: bin/waitfor web/src/build/static/app.js bin/runjson
+start-prod: bin/waitfor web/src/build/static/app.js bin/runjson $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
