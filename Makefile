@@ -19,6 +19,8 @@ GIT_VERSION:=$(shell git describe --tags --dirty --match 'v*' || echo dev-$(shel
 BUILD_DATE:=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_FLAGS=
 
+PROTOC_VERSION=$(shell cat protoc.version)
+
 export ZONEINFO=$(shell go env GOROOT)/lib/time/zoneinfo.zip
 
 LD_FLAGS+=-X github.com/target/goalert/version.gitCommit=$(GIT_COMMIT)
@@ -126,6 +128,37 @@ $(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integrati
 $(BIN_DIR)/integration.tgz: bin/integration
 	tar czvf bin/integration.tgz -C bin/integration goalert
 
+$(BIN_DIR)/tools/protoc: protoc.version
+	go run ./devtools/gettool -t protoc -v $(PROTOC_VERSION) -o $@
+
+$(BIN_DIR)/tools/protoc-gen-go: go.mod
+	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/protobuf/cmd/protoc-gen-go
+$(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
+	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+
+system.ca.pem:
+	go run ./cmd/goalert gen-cert ca
+system.ca.key:
+	go run ./cmd/goalert gen-cert ca
+plugin.ca.pem:
+	go run ./cmd/goalert gen-cert ca
+plugin.ca.key:
+	go run ./cmd/goalert gen-cert ca
+
+goalert-server.pem: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+goalert-server.key: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+goalert-server.ca.pem: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+
+goalert-client.pem: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
@@ -187,7 +220,12 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-generate: node_modules
+pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/sysapi/sysapi.proto
+pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
+
+generate: node_modules pkg/sysapi/sysapi.pb.go
 	go generate ./...
 
 smoketest:

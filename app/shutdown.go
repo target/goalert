@@ -18,6 +18,9 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	defer close(app.doneCh)
 	defer app.db.Close()
 	var errs []error
+	if app.hSrv != nil {
+		app.hSrv.Shutdown()
+	}
 
 	if app.cooldown != nil {
 		// wait for the cooldown (since last req closed)
@@ -34,6 +37,19 @@ func (app *App) _Shutdown(ctx context.Context) error {
 		if err != nil {
 			errs = append(errs, errors.Wrap(err, msg))
 		}
+	}
+
+	if app.sysAPISrv != nil {
+		waitCh := make(chan struct{})
+		go func() {
+			defer close(waitCh)
+			app.sysAPISrv.GracefulStop()
+		}()
+		select {
+		case <-ctx.Done():
+		case <-waitCh:
+		}
+		app.sysAPISrv.Stop()
 	}
 
 	// It's important to shutdown the HTTP server first
