@@ -30,7 +30,7 @@ function UserEditDialog(props: UserEditDialogProps): JSX.Element {
   })
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    setState({ ...state, [e.target.name]: e.target.checked })
+    setAdminChecked(e.target.checked)
   }
 
   if (!isSessionReady) return <Spinner />
