@@ -1,9 +1,9 @@
 import React from 'react'
 import { gql, useMutation } from '@apollo/client'
+import { Checkbox, FormControlLabel } from '@material-ui/core'
 import Spinner from '../loading/components/Spinner'
 import FormDialog from '../dialogs/FormDialog'
 import { useSessionInfo } from '../util/RequireConfig'
-import { Checkbox, FormControlLabel } from '@material-ui/core'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
