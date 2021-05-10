@@ -156,15 +156,11 @@ export default function UserDetails(props) {
                 label: 'Edit User',
                 onClick: () => setShowEdit(true),
               },
-              {
-                label: 'Delete User',
-                onClick: () => setShowUserDeleteDialog(true),
-              },
             ]}
           />
         </PageActions>
       )}
-      {showUserDeleteDialog && (
+       {showUserDeleteDialog && (
         <UserDeleteDialog
           userID={props.userID}
           onClose={() => setShowUserDeleteDialog(false)}
