@@ -2,7 +2,8 @@ import React, { ReactNode } from 'react'
 import Drawer from '@material-ui/core/Drawer'
 import { makeStyles } from '@material-ui/core'
 
-const drawerWidth = '12em'
+export const drawerWidth = '220px'
+
 const useStyles = makeStyles((theme) => ({
   sidebarPaper: {
     width: drawerWidth,

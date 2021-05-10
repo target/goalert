@@ -2,6 +2,10 @@ FROM golang:1.16.2-alpine3.12
 
 ENV PGDATA=/var/lib/postgresql/data PGUSER=postgres DB_URL=postgresql://postgres@
 RUN apk --no-cache add git nodejs yarn make postgresql postgresql-contrib
+RUN wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.33-r0/glibc-2.33-r0.apk && \
+    apk add glibc-2.33-r0.apk && \
+    rm glibc-2.33-r0.apk
 RUN mkdir -p ${PGDATA} /run/postgresql /var/log/postgresql &&\
     chown postgres ${PGDATA} /run/postgresql /var/log/postgresql &&\
     su postgres -c "initdb $PGDATA" &&\

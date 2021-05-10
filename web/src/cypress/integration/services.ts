@@ -247,7 +247,7 @@ function testServices(screen: ScreenFormat): void {
     })
 
     it('should allow deleting the service', () => {
-      cy.pageAction('Delete')
+      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
       cy.dialogFinish('Confirm')
       cy.url().should('eq', Cypress.config().baseUrl + '/services')
       cy.pageSearch(svc.name)
@@ -259,7 +259,7 @@ function testServices(screen: ScreenFormat): void {
       const description = c.word({ length: 10 })
 
       cy.createEP().then((ep: EP) => {
-        cy.pageAction('Edit')
+        cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
 
         cy.dialogForm({ name, description, 'escalation-policy': ep.name })
         cy.dialogFinish('Submit')
