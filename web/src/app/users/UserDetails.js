@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import Delete from '@material-ui/icons/Delete'
+import EditIcon from '@material-ui/icons/Edit';
 import DetailsPage from '../details/DetailsPage'
 import StatusUpdateNotification from './UserStatusUpdatePreference'
 import { UserAvatar } from '../util/avatars'
@@ -147,17 +148,12 @@ export default function UserDetails(props) {
 
   return (
     <React.Fragment>
-      {isAdmin && (
-        <PageActions>
-          <OtherActions
-            actions={[
-              {
-                label: 'Edit User',
-                onClick: () => setShowEdit(true),
-              },
-            ]}
-          />
-        </PageActions>
+      {showEdit && (
+        <UserEditDialog
+          onClose={() => setShowEdit(false)}
+          userID={props.userID}
+          role={user.role}
+        />
       )}
       {showUserDeleteDialog && (
         <UserDeleteDialog
@@ -241,18 +237,16 @@ export default function UserDetails(props) {
                   icon: <Delete />,
                   handleOnClick: () => setShowUserDeleteDialog(true),
                 },
+                {
+                  label: 'Edit',
+                  icon: <EditIcon />,
+                  handleOnClick: () => setShowEdit(true),
+                },
               ]
             : []
         }
         links={links}
       />
-      {showEdit && (
-        <UserEditDialog
-          onClose={() => setShowEdit(false)}
-          userID={props.userID}
-          role={user.role}
-        />
-      )}
     </React.Fragment>
   )
 }
