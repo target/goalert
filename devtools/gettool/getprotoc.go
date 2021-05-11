@@ -9,7 +9,6 @@ import (
 )
 
 func getProtoC(version, output string) error {
-
 	var variant string
 	binFile := "bin/protoc"
 	switch runtime.GOOS + "-" + runtime.GOARCH {
