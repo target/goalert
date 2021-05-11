@@ -46,6 +46,7 @@ function testUsers(screen: ScreenFormat): void {
         cy.get('[type="checkbox"]').check()
         cy.dialogFinish('Confirm')
 
+        cy.reload()
         cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
         cy.get('[type="checkbox"]').should('be.checked')
       })
