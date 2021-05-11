@@ -1,5 +1,8 @@
 import { testScreen } from '../support'
 import { User } from '../../schema'
+import { Chance } from 'chance'
+
+const c = new Chance()
 
 function testUsers(screen: ScreenFormat): void {
   describe('List Page', () => {
@@ -56,6 +59,82 @@ function testUsers(screen: ScreenFormat): void {
       cy.dialogFinish('Confirm')
 
       cy.get('[data-cy=apollo-list]').should('not.contain', usr.name)
+    })
+  })
+
+  describe('User Subpages', () => {
+    it('should navigate to and from its on-call assignments', () => {
+      cy.createUser().then((user: User) => {
+        cy.visit(`users/${user.id}`)
+
+        cy.navigateToAndFrom(
+          screen,
+          'User Details',
+          user.name,
+          'On-Call Assignments',
+          `${user.id}/on-call-assignments`,
+        )
+      })
+    })
+
+    it('should see no on-call assignments text', () => {
+      cy.createUser().then((user: User) => {
+        cy.visit(`users/${user.id}`)
+
+        cy.get('[data-cy=route-links]').contains('On-Call Assignments').click()
+        cy.get('body').should(
+          'contain',
+          `${user.name} is not currently on-call.`,
+        )
+      })
+    })
+
+    it('should see on-call assigment list', () => {
+      const name = 'SVC ' + c.word({ length: 8 })
+      cy.createUser().then((user: User) => {
+        cy.visit(`users/${user.id}`)
+
+        return cy
+          .createService({ name })
+          .then((svc: Service) => {
+            return cy
+              .fixture('users')
+              .then(() => {
+                return cy.createEPStep({
+                  epID: svc.epID,
+                  targets: [{ type: 'user', id: user.id }],
+                })
+              })
+              .task('engine:trigger')
+              .then(() => svc.id)
+          })
+          .then((svcID: string) => {
+            cy.get('[data-cy=route-links]')
+              .contains('On-Call Assignments')
+              .click()
+            cy.get('body').contains('a', name).click()
+            cy.url().should(
+              'eq',
+              Cypress.config().baseUrl + '/services/' + svcID,
+            )
+          })
+      })
+    })
+
+    // admin only
+    it('should navigate to and from its active sessions', () => {
+      cy.createUser().then((user: User) => {
+        cy.adminLogin()
+        cy.visit(`users/${user.id}`)
+
+        cy.navigateToAndFrom(
+          screen,
+          'User Details',
+          user.name,
+          'Sessions',
+          `${user.id}/sessions`,
+        )
+      })
     })
   })
 }
