@@ -13,13 +13,13 @@ import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import { useResetURLParams, useURLParam } from '../actions'
 import { DateTime, Interval } from 'luxon'
 import { theme } from '../mui'
-import { getStartOfWeek } from '../util/luxon-helpers'
 import LuxonLocalizer from '../util/LuxonLocalizer'
 import { parseInterval, trimSpans } from '../util/shifts'
 import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
+import { useCalendarNavigation } from './hooks'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -40,13 +40,8 @@ const useStyles = makeStyles((theme) => ({
 
 function ScheduleCalendar(props) {
   const classes = useStyles()
-  const [weekly] = useURLParam('weekly', false)
-  const [start] = useURLParam(
-    'start',
-    weekly
-      ? getStartOfWeek().toUTC().toISO()
-      : DateTime.local().startOf('month').toUTC().toISO(),
-  )
+  const { weekly, start } = useCalendarNavigation()
+
   const [overrideDialog, setOverrideDialog] = useState(null)
   const [activeOnly, setActiveOnly] = useURLParam('activeOnly', false)
   const [userFilter, setUserFilter] = useURLParam('userFilter', [])
