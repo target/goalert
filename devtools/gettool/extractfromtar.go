@@ -11,13 +11,13 @@ import (
 
 // extractFromTar will extract a file matching `glob` to `out`.
 // If `exec` is set, the file will be marked executable.
-func extractFromTar(r *tar.Reader, src, dest string, exec bool) error {
-	err := os.MkdirAll(filepath.Dir(dest), 0755)
+func extractFromTar(r *tar.Reader, glob, out string, exec bool) error {
+	err := os.MkdirAll(filepath.Dir(out), 0755)
 	if err != nil {
-		return fmt.Errorf("make output dir '%s': %w", filepath.Dir(dest), err)
+		return fmt.Errorf("make output dir '%s': %w", filepath.Dir(out), err)
 	}
 
-	tmpFile := dest + ".tmp"
+	tmpFile := out + ".tmp"
 	mode := fs.FileMode(0666)
 	if exec {
 		mode = 0755
@@ -32,11 +32,11 @@ func extractFromTar(r *tar.Reader, src, dest string, exec bool) error {
 	for {
 		hdr, err := r.Next()
 		if err != nil {
-			return fmt.Errorf("find '%s' in tgz: %w", src, err)
+			return fmt.Errorf("find '%s' in tgz: %w", glob, err)
 		}
-		ok, err := filepath.Match(src, hdr.Name)
+		ok, err := filepath.Match(glob, hdr.Name)
 		if err != nil {
-			return fmt.Errorf("invalid pattern '%s': %w", src, err)
+			return fmt.Errorf("invalid pattern '%s': %w", glob, err)
 		}
 		if !ok {
 			continue
@@ -56,9 +56,9 @@ func extractFromTar(r *tar.Reader, src, dest string, exec bool) error {
 		return fmt.Errorf("close '%s': %w", tmpFile, err)
 	}
 
-	err = os.Rename(tmpFile, dest)
+	err = os.Rename(tmpFile, out)
 	if err != nil {
-		return fmt.Errorf("rename '%s' to '%s': %w", tmpFile, dest, err)
+		return fmt.Errorf("rename '%s' to '%s': %w", tmpFile, out, err)
 	}
 
 	return nil
