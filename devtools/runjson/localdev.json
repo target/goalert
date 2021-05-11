@@ -11,7 +11,8 @@
     "Command": [
       "bin/tools/prometheus",
       "--config.file=devtools/prometheus/prometheus.yml",
-      "--storage.tsdb.path=bin/prom-data/"
+      "--storage.tsdb.path=bin/prom-data/",
+      "--web.listen-address=localhost:9090"
     ]
   },
   {
