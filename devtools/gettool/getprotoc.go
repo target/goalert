@@ -17,8 +17,10 @@ func getProtoC(version, output string) error {
 	case "linux-386":
 		variant = "linux-x86_32"
 	case "linux-arm64":
-		variant = "linux-"
+		variant = "linux-aarch_64"
 	case "darwin-amd64", "darwin-arm64":
+		// TODO: use arm64 variant if/when supported by protoc.
+		// M1 will work with `x86_64` for now.
 		variant = "osx-x86_64"
 	case "windows-amd64":
 		variant = "win64"
