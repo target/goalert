@@ -46,7 +46,6 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if count == 0 {
 			// already acked/closed, don't send bundled notification
 			return &notification.MessageStatus{
-				Ctx:     ctx,
 				ID:      msg.ID,
 				Details: "alerts acked/closed before message sent",
 				State:   notification.MessageStateFailedPerm,
