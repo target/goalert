@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	alertlog "github.com/target/goalert/alert/log"
@@ -64,12 +65,22 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert")
 		}
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest)
+		if err != nil {
+			return nil, fmt.Errorf("lookup original message: %w", err)
+		}
+		if stat != nil && stat.ID == msg.ID {
+			// set to nil if it's the current message
+			stat = nil
+		}
 		notifMsg = notification.Alert{
 			Dest:       msg.Dest,
 			AlertID:    msg.AlertID,
 			Summary:    a.Summary,
 			Details:    a.Details,
 			CallbackID: msg.ID,
+
+			OriginalStatus: stat,
 		}
 	case notification.MessageTypeAlertStatusBundle:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
