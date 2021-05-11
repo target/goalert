@@ -1,4 +1,5 @@
 import { testScreen } from '../support'
+import { User } from '../../schema'
 
 function testUsers(screen: ScreenFormat): void {
   describe('List Page', () => {
@@ -35,21 +36,26 @@ function testUsers(screen: ScreenFormat): void {
     })
   })
 
-  describe('Page Actions', () => {
+  describe('Details Page', () => {
+    let usr: User
+    beforeEach(() =>
+      cy.createUser().then((u: User) => {
+        usr = u
+        cy.adminLogin()
+        return cy.visit(`/users/${usr.id}`)
+      }),
+    )
+
+    it('should display correct information', () => {
+      cy.get('body').should('contain', usr.name).should('contain', usr.email)
+    })
+
     it('should delete a user', () => {
-      cy.adminLogin()
+      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
+      cy.dialogTitle('Are you sure?')
+      cy.dialogFinish('Confirm')
 
-      cy.fixture('users').then((users) => {
-        cy.visit(`/users/${users[0].id}`)
-
-        cy.get('[data-cy="card-actions"]')
-          .find('button[title="Delete"]')
-          .click()
-        cy.dialogTitle('Are you sure?')
-        cy.dialogFinish('Confirm')
-
-        cy.get('[data-cy=apollo-list]').should('not.contain', users[0].name)
-      })
+      cy.get('[data-cy=apollo-list]').should('not.contain', usr.name)
     })
   })
 }
