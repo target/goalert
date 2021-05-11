@@ -26,15 +26,6 @@
     "IgnoreErrors": true
   },
   {
-    "Name": "Prometheus",
-    "Command": [
-      "bin/tools/prometheus",
-      "--config.file=devtools/prometheus/prometheus.yml",
-      "--storage.tsdb.path=bin/prom-data/",
-      "--web.listen-address=localhost:9090"
-    ]
-  },
-  {
     "Name": "Backend",
     "Command": [
       "bin/goalert",
@@ -46,5 +37,14 @@
     "Restart": true,
     "IgnoreErrors": true,
     "Watch": true
+  },
+  {
+    "Name": "Prometheus",
+    "Command": [
+      "bin/tools/prometheus",
+      "--config.file=devtools/prometheus/prometheus.yml",
+      "--storage.tsdb.path=bin/prom-data/",
+      "--web.listen-address=localhost:9090"
+    ]
   }
 ]
