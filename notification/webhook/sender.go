@@ -39,6 +39,7 @@ type POSTDataAlertStatus struct {
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
 type POSTDataAlertStatusBundle struct {
+	Type     string
 	AlertID  int
 	LogEntry string
 	Count    int
@@ -82,7 +83,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		pdAlertStatus := POSTDataAlertStatus{Type: "AlertStatus", AlertID: m.AlertID, LogEntry: m.LogEntry}
 		data, err = json.Marshal(pdAlertStatus)
 	case notification.AlertStatusBundle:
-		pdAlertStatusBundle := POSTDataAlertStatusBundle{Count: m.Count, AlertID: m.AlertID, LogEntry: m.LogEntry}
+		pdAlertStatusBundle := POSTDataAlertStatusBundle{Type: "AlertStatusBundle", Count: m.Count, AlertID: m.AlertID, LogEntry: m.LogEntry}
 		data, err = json.Marshal(pdAlertStatusBundle)
 	default:
 		return nil, fmt.Errorf("message type: %d not supported", m.Type())
