@@ -7,7 +7,7 @@ import { DateTime } from 'luxon'
 import { useURLParam } from '../actions/hooks'
 
 const tzQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     schedule(id: $id) {
       id
       timeZone

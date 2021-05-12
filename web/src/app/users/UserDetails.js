@@ -96,7 +96,11 @@ export default function UserDetails(props) {
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
 
-  const { data, loading: isQueryLoading, error } = useQuery(
+  const {
+    data,
+    loading: isQueryLoading,
+    error,
+  } = useQuery(
     isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
     {
       variables: { id: props.userID },

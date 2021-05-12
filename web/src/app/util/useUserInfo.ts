@@ -14,7 +14,7 @@ export interface WithUserInfo {
 }
 
 const infoQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     user(id: $id) {
       id
       name
@@ -26,9 +26,9 @@ const infoQuery = gql`
 export function useUserInfo<T extends HasUserID>(
   items: T[],
 ): (T & WithUserInfo)[] {
-  const variables = _.uniq(
-    items.map((item) => item.userID).sort(),
-  ).map((id) => ({ id }))
+  const variables = _.uniq(items.map((item) => item.userID).sort()).map(
+    (id) => ({ id }),
+  )
 
   const { data, loading, error } = useMultiQuery(infoQuery, {
     variables,

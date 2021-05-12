@@ -9,28 +9,26 @@ export interface AppLinkProps extends LinkProps {
   newTab?: boolean
 }
 
-const AppLink: ForwardRefRenderFunction<
-  HTMLAnchorElement,
-  AppLinkProps
-> = function AppLink(props, ref): JSX.Element {
-  const { to: _to, newTab, ...other } = props
-  const path = useSelector(urlPathSelector)
+const AppLink: ForwardRefRenderFunction<HTMLAnchorElement, AppLinkProps> =
+  function AppLink(props, ref): JSX.Element {
+    const { to: _to, newTab, ...other } = props
+    const path = useSelector(urlPathSelector)
 
-  if (newTab) {
-    other.target = '_blank'
-    other.rel = 'noopener noreferrer'
+    if (newTab) {
+      other.target = '_blank'
+      other.rel = 'noopener noreferrer'
+    }
+
+    if (/^(mailto:|https?:\/\/)/.test(_to)) {
+      return (
+        <a href={_to} ref={ref} {...other}>
+          {other.children}
+        </a>
+      )
+    }
+
+    const to = _to.startsWith('/') ? _to : joinURL(path, _to)
+    return <Link to={to} ref={ref} {...other} />
   }
-
-  if (/^(mailto:|https?:\/\/)/.test(_to)) {
-    return (
-      <a href={_to} ref={ref} {...other}>
-        {other.children}
-      </a>
-    )
-  }
-
-  const to = _to.startsWith('/') ? _to : joinURL(path, _to)
-  return <Link to={to} ref={ref} {...other} />
-}
 
 export default forwardRef(AppLink)

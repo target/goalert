@@ -20,7 +20,7 @@ const verifyContactMethodMutation = gql`
  * Get cm data so this component isn't dependent on parent props
  */
 const contactMethodQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     userContactMethod(id: $id) {
       id
       type

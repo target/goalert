@@ -27,7 +27,7 @@ import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
 
 const mutation = gql`
-  mutation($input: CreateServiceInput!) {
+  mutation ($input: CreateServiceInput!) {
     createService(input: $input) {
       id
       name

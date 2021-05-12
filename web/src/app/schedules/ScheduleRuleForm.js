@@ -93,7 +93,7 @@ const styles = () => {
 }
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     schedule(id: $id) {
       id
       timeZone

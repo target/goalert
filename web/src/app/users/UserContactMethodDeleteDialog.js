@@ -5,7 +5,7 @@ import FormDialog from '../dialogs/FormDialog'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
-  mutation($id: ID!) {
+  mutation ($id: ID!) {
     deleteAll(input: [{ id: $id, type: contactMethod }])
   }
 `

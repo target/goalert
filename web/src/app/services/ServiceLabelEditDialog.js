@@ -10,12 +10,12 @@ import FormDialog from '../dialogs/FormDialog'
 import ServiceLabelForm from './ServiceLabelForm'
 
 const mutation = gql`
-  mutation($input: SetLabelInput!) {
+  mutation ($input: SetLabelInput!) {
     setLabel(input: $input)
   }
 `
 const query = gql`
-  query($serviceID: ID!) {
+  query ($serviceID: ID!) {
     service(id: $serviceID) {
       id
       labels {

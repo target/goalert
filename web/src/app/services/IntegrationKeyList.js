@@ -19,7 +19,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError } from '../error-pages'
 
 const query = gql`
-  query($serviceID: ID!) {
+  query ($serviceID: ID!) {
     service(id: $serviceID) {
       id # need to tie the result to the correct record
       integrationKeys {

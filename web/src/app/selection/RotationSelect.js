@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
-  query($input: RotationSearchOptions) {
+  query ($input: RotationSearchOptions) {
     rotations(input: $input) {
       nodes {
         id
@@ -14,7 +14,7 @@ const query = gql`
 `
 
 const valueQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     rotation(id: $id) {
       id
       name

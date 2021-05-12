@@ -10,12 +10,12 @@ import { DateTime } from 'luxon'
 import { isoToGQLClockTime } from './util'
 
 const mutation = gql`
-  mutation($input: ScheduleTargetInput!) {
+  mutation ($input: ScheduleTargetInput!) {
     updateScheduleTarget(input: $input)
   }
 `
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     schedule(id: $id) {
       id
       timeZone

@@ -21,7 +21,7 @@ import { DateTime } from 'luxon'
 import { ContactMethodType } from '../../schema'
 
 const query = gql`
-  query($id: ID!, $number: String!) {
+  query ($id: ID!, $number: String!) {
     userContactMethod(id: $id) {
       id
       type
@@ -39,7 +39,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation($id: ID!) {
+  mutation ($id: ID!) {
     testContactMethod(id: $id)
   }
 `

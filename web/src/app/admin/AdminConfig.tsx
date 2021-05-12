@@ -39,7 +39,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: [ConfigValueInput!]) {
+  mutation ($input: [ConfigValueInput!]) {
     setConfig(input: $input)
   }
 `
