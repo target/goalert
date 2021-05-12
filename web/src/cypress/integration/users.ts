@@ -40,17 +40,27 @@ function testUsers(screen: ScreenFormat): void {
   })
 
   describe('Details Page', () => {
-    let usr: User
+    let user: User
     beforeEach(() =>
       cy.createUser().then((u: User) => {
-        usr = u
+        user = u
         cy.adminLogin()
-        return cy.visit(`/users/${usr.id}`)
+        return cy.visit(`/users/${user.id}`)
       }),
     )
 
     it('should display correct information', () => {
-      cy.get('body').should('contain', usr.name).should('contain', usr.email)
+      cy.get('body').should('contain', user.name).should('contain', user.email)
+    })
+
+    it('should edit a user role', () => {
+      cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+      cy.get('[type="checkbox"]').check()
+      cy.dialogFinish('Confirm')
+
+      cy.reload()
+      cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+      cy.get('[type="checkbox"]').should('be.checked')
     })
 
     it('should delete a user', () => {
@@ -58,7 +68,7 @@ function testUsers(screen: ScreenFormat): void {
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
 
-      cy.get('[data-cy=apollo-list]').should('not.contain', usr.name)
+      cy.get('[data-cy=apollo-list]').should('not.contain', user.name)
     })
   })
 

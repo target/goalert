@@ -4,9 +4,6 @@ import "context"
 
 // MessageStatus represents the state of an outgoing message.
 type MessageStatus struct {
-	// Ctx is the context of this status update (used for tracing if provided).
-	Ctx context.Context
-
 	// ID is the GoAlert message ID.
 	ID string
 
@@ -31,9 +28,6 @@ func (stat *MessageStatus) wrap(ctx context.Context, n *namedSender) *MessageSta
 	}
 
 	s := *stat
-	if ctx != nil {
-		s.Ctx = ctx
-	}
 	s.ProviderMessageID = n.name + ":" + s.ProviderMessageID
 	return &s
 }
