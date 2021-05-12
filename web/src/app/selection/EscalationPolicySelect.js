@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
-  query($input: EscalationPolicySearchOptions) {
+  query ($input: EscalationPolicySearchOptions) {
     escalationPolicies(input: $input) {
       nodes {
         id
@@ -13,7 +13,7 @@ const query = gql`
 `
 
 const valueQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     escalationPolicy(id: $id) {
       id
       name

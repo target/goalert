@@ -24,7 +24,7 @@ export default function useMultiQuery(
   options: MultiQueryHookOptions,
 ): MultiQueryResult {
   let variables: OperationVariables = {}
-  let multiQuery: DocumentNode = (null as unknown) as DocumentNode
+  let multiQuery: DocumentNode = null as unknown as DocumentNode
 
   // TODO: for cache-first, try cache-only query before joining
 

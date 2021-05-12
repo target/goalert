@@ -9,7 +9,7 @@ import FormDialog from '../dialogs/FormDialog'
 import UserNotificationRuleForm from './UserNotificationRuleForm'
 
 const createMutation = gql`
-  mutation($input: CreateUserNotificationRuleInput!) {
+  mutation ($input: CreateUserNotificationRuleInput!) {
     createUserNotificationRule(input: $input) {
       id
     }

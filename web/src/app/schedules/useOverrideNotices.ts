@@ -5,7 +5,7 @@ import _ from 'lodash'
 import { Interval } from 'luxon'
 
 const scheduleQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     schedule(id: $id) {
       id
       name

@@ -7,7 +7,7 @@ import { useSessionInfo } from '../util/RequireConfig'
 import { GenericError } from '../error-pages'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     user(id: $id) {
       id
       name
@@ -15,7 +15,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: [TargetInput!]!) {
+  mutation ($input: [TargetInput!]!) {
     deleteAll(input: $input)
   }
 `
@@ -29,7 +29,11 @@ function UserDeleteDialog(props: RotationDeleteDialogProps): JSX.Element {
   const { userID: currentUserID, ready: isSessionReady } = useSessionInfo()
   const history = useHistory()
 
-  const { data, loading: qLoading, error: qError } = useQuery(query, {
+  const {
+    data,
+    loading: qLoading,
+    error: qError,
+  } = useQuery(query, {
     variables: { id: props.userID },
   })
 

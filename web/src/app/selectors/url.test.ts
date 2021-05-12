@@ -6,25 +6,26 @@ import {
 } from './url'
 
 describe('urlParamSelector', () => {
-  ;([
-    { search: '?search=foo', expected: { search: 'foo' } },
-    { search: '', expected: {} },
-    { search: '?&search=foo', expected: { search: 'foo' } },
-    { search: '?search=foo&&&', expected: { search: 'foo' } },
-    { search: '?foo=bar&bin=baz', expected: { foo: 'bar', bin: 'baz' } },
-    { search: '?search=asdf%26%3D', expected: { search: 'asdf&=' } },
-  ] as { search: string; expected: { [index: string]: string } }[]).forEach(
-    (cfg) =>
-      test(cfg.search || '(empty)', () => {
-        const res = urlParamSelector({
-          router: {
-            location: { search: cfg.search },
-          },
-        } as ReduxState)
-        for (const key in cfg.expected) {
-          expect(res(key)).toBe(cfg.expected[key])
-        }
-      }),
+  ;(
+    [
+      { search: '?search=foo', expected: { search: 'foo' } },
+      { search: '', expected: {} },
+      { search: '?&search=foo', expected: { search: 'foo' } },
+      { search: '?search=foo&&&', expected: { search: 'foo' } },
+      { search: '?foo=bar&bin=baz', expected: { foo: 'bar', bin: 'baz' } },
+      { search: '?search=asdf%26%3D', expected: { search: 'asdf&=' } },
+    ] as { search: string; expected: { [index: string]: string } }[]
+  ).forEach((cfg) =>
+    test(cfg.search || '(empty)', () => {
+      const res = urlParamSelector({
+        router: {
+          location: { search: cfg.search },
+        },
+      } as ReduxState)
+      for (const key in cfg.expected) {
+        expect(res(key)).toBe(cfg.expected[key])
+      }
+    }),
   )
 })
 

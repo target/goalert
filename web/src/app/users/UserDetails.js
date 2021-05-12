@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import Delete from '@material-ui/icons/Delete'
+import EditIcon from '@material-ui/icons/Edit'
 import DetailsPage from '../details/DetailsPage'
 import StatusUpdateNotification from './UserStatusUpdatePreference'
 import { UserAvatar } from '../util/avatars'
@@ -17,12 +18,14 @@ import _ from 'lodash'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
+import UserEditDialog from './UserEditDialog'
 import UserDeleteDialog from './UserDeleteDialog'
 
 const userQuery = gql`
   query userInfo($id: ID!) {
     user(id: $id) {
       id
+      role
       name
       email
       contactMethods {
@@ -46,6 +49,7 @@ const profileQuery = gql`
   query profileInfo($id: ID!) {
     user(id: $id) {
       id
+      role
       name
       email
       contactMethods {
@@ -88,10 +92,15 @@ export default function UserDetails(props) {
   const [disclaimer] = useConfigValue('General.NotificationDisclaimer')
   const [createCM, setCreateCM] = useState(false)
   const [createNR, setCreateNR] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
   const [showVerifyDialogByID, setShowVerifyDialogByID] = useState(null)
   const [showUserDeleteDialog, setShowUserDeleteDialog] = useState(false)
 
-  const { data, loading: isQueryLoading, error } = useQuery(
+  const {
+    data,
+    loading: isQueryLoading,
+    error,
+  } = useQuery(
     isAdmin || props.userID === currentUserID ? profileQuery : userQuery,
     {
       variables: { id: props.userID },
@@ -141,6 +150,13 @@ export default function UserDetails(props) {
 
   return (
     <React.Fragment>
+      {showEdit && (
+        <UserEditDialog
+          onClose={() => setShowEdit(false)}
+          userID={props.userID}
+          role={user.role}
+        />
+      )}
       {showUserDeleteDialog && (
         <UserDeleteDialog
           userID={props.userID}
@@ -222,6 +238,11 @@ export default function UserDetails(props) {
                   label: 'Delete',
                   icon: <Delete />,
                   handleOnClick: () => setShowUserDeleteDialog(true),
+                },
+                {
+                  label: 'Edit',
+                  icon: <EditIcon />,
+                  handleOnClick: () => setShowEdit(true),
                 },
               ]
             : []

@@ -212,10 +212,8 @@ export function makeQuerySelect(displayName, options) {
     const [searchInput, setSearchInput] = useState('')
     const [optionCache] = useState({})
     const [selectValue] = useValues(value)
-    const [
-      selectOptions,
-      { loading: optionsLoading, error: optionsError },
-    ] = useOptions(value, search, extraVars)
+    const [selectOptions, { loading: optionsLoading, error: optionsError }] =
+      useOptions(value, search, extraVars)
 
     if (
       _onCreate &&

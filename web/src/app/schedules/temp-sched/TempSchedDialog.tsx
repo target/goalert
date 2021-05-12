@@ -15,7 +15,7 @@ import { DateTime } from 'luxon'
 const VirtualizeAnimatedViews = virtualize(SwipeableViews)
 
 const mutation = gql`
-  mutation($input: SetTemporaryScheduleInput!) {
+  mutation ($input: SetTemporaryScheduleInput!) {
     setTemporarySchedule(input: $input)
   }
 `

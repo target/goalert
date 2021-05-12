@@ -11,23 +11,20 @@ import useOverrideNotices from './useOverrideNotices'
 const copyText = {
   add: {
     title: 'Temporarily Add a User',
-    desc:
-      'This will add a new shift for the selected user, while the override is active. Existing shifts will remain unaffected.',
+    desc: 'This will add a new shift for the selected user, while the override is active. Existing shifts will remain unaffected.',
   },
   remove: {
     title: 'Temporarily Remove a User',
-    desc:
-      'This will remove (or split/shorten) shifts belonging to the selected user, while the override is active.',
+    desc: 'This will remove (or split/shorten) shifts belonging to the selected user, while the override is active.',
   },
   replace: {
     title: 'Temporarily Replace a User',
-    desc:
-      'This will replace the selected user with another during any existing shifts, while the override is active. No new shifts will be created, only who is on-call will be changed.',
+    desc: 'This will replace the selected user with another during any existing shifts, while the override is active. No new shifts will be created, only who is on-call will be changed.',
   },
 }
 
 const mutation = gql`
-  mutation($input: CreateUserOverrideInput!) {
+  mutation ($input: CreateUserOverrideInput!) {
     createUserOverride(input: $input) {
       id
     }

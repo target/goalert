@@ -23,6 +23,7 @@ type Store interface {
 	InsertTx(context.Context, *sql.Tx, *User) (*User, error)
 	Update(context.Context, *User) error
 	UpdateTx(context.Context, *sql.Tx, *User) error
+	SetUserRoleTx(ctx context.Context, tx *sql.Tx, id string, role permission.Role) error
 	Delete(context.Context, string) error
 	DeleteManyTx(context.Context, *sql.Tx, []string) error
 	FindOne(context.Context, string) (*User, error)
@@ -48,11 +49,11 @@ type DB struct {
 
 	ids *sql.Stmt
 
-	insert *sql.Stmt
-	update *sql.Stmt
-
-	findOne *sql.Stmt
-	findAll *sql.Stmt
+	insert      *sql.Stmt
+	update      *sql.Stmt
+	setUserRole *sql.Stmt
+	findOne     *sql.Stmt
+	findAll     *sql.Stmt
 
 	findMany *sql.Stmt
 
@@ -105,6 +106,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			WHERE id = $1
 		`),
 
+		setUserRole: p.P(`UPDATE users SET role = $2 WHERE id = $1`),
 		findAuthSubjects: p.P(`
 			select subject_id, user_id, provider_id
 			from auth_subjects
@@ -465,6 +467,27 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, u *User) error {
 		update = tx.StmtContext(ctx, update)
 	}
 	_, err = update.ExecContext(ctx, n.userUpdateFields()...)
+	return err
+}
+
+func (db *DB) SetUserRoleTx(ctx context.Context, tx *sql.Tx, id string, role permission.Role) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return err
+	}
+
+	err = validate.Many(
+		validate.UUID("UserID", id),
+		validate.OneOf("Role", role, permission.RoleAdmin, permission.RoleUser),
+	)
+	if err != nil {
+		return err
+	}
+	s := db.setUserRole
+	if tx != nil {
+		s = tx.StmtContext(ctx, s)
+	}
+	_, err = s.ExecContext(ctx, id, role)
 	return err
 }
 

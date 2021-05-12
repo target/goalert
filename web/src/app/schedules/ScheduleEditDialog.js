@@ -8,7 +8,7 @@ import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     schedule(id: $id) {
       id
       name
@@ -19,7 +19,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation($input: UpdateScheduleInput!) {
+  mutation ($input: UpdateScheduleInput!) {
     updateSchedule(input: $input)
   }
 `

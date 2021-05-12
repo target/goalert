@@ -36,6 +36,22 @@ function testUsers(screen: ScreenFormat): void {
   })
 
   describe('Page Actions', () => {
+    it('should edit a user role', () => {
+      cy.adminLogin()
+
+      cy.fixture('users').then((users) => {
+        cy.visit(`/users/${users[0].id}`)
+
+        cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+        cy.get('[type="checkbox"]').check()
+        cy.dialogFinish('Confirm')
+
+        cy.reload()
+        cy.get('[data-cy="card-actions"]').find('button[title="Edit"]').click()
+        cy.get('[type="checkbox"]').should('be.checked')
+      })
+    })
+
     it('should delete a user', () => {
       cy.adminLogin()
 
