@@ -5,7 +5,7 @@
 .PHONY: docker-goalert docker-all-in-one release
 .SUFFIXES:
 
-GOFILES := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
+GOALERT_DEPS := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
 CFGPARAMS = devtools/configparams/*.go
 DB_URL = postgres://goalert@localhost:5432/goalert?sslmode=disable
 
@@ -44,7 +44,7 @@ export GOFLAGS=-mod=vendor
 endif
 
 ifdef BUNDLE
-	GOFILES += web/src/build/static/app.js
+	GOALERT_DEPS += web/src/build/static/app.js
 endif
 
 DOCKER_IMAGE_PREFIX=docker.io/goalert
@@ -53,7 +53,9 @@ DOCKER_TAG=$(GIT_VERSION)
 ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
-GOFILES += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
+
+GOALERT_DEPS += migrate/migrations/*.sql
+GOALERT_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
 
@@ -63,7 +65,7 @@ docker-all-in-one: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-lin
 docker-goalert: bin/goalert-linux-amd64 bin/goalert-linux-arm bin/goalert-linux-arm64
 	docker buildx build $(PUSH_FLAG) --platform linux/amd64,linux/arm,linux/arm64 -t $(DOCKER_IMAGE_PREFIX)/goalert:$(DOCKER_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile.buildx .
 
-$(BIN_DIR)/goalert: go.sum $(GOFILES) graphql2/mapconfig.go
+$(BIN_DIR)/goalert: go.sum $(GOALERT_DEPS) graphql2/mapconfig.go
 	go build $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 $(BIN_DIR)/goalert-linux-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=linux go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
@@ -76,11 +78,11 @@ $(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/src/build/static/app.js
 $(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=darwin go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
-$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -name '*.go')
+$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -name '*.go')
+$(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
 	GOOS=linux GOARCH=arm go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -name '*.go')
+$(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
 	GOOS=linux GOARCH=arm64 go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
 $(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
@@ -89,7 +91,7 @@ $(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
 	cp $(BIN_DIR)/goalert-$* $(BIN_DIR)/$*/goalert/bin/goalert
 	tar czvf $@ -C $(BIN_DIR)/$* goalert
 
-$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -name '*.go')
+$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
 	go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
 $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
@@ -160,7 +162,7 @@ goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
 goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
 	go run ./cmd/goalert gen-cert client
 
-install: $(GOFILES)
+install: $(GOALERT_DEPS)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
 cypress: bin/runjson bin/waitfor bin/procwrap bin/simpleproxy bin/mockslack bin/goalert bin/psql-lite node_modules web/src/schema.d.ts
@@ -291,7 +293,7 @@ clean:
 
 build-docker: bin/goalert bin/mockslack
 
-lint: $(GOFILES)
+lint: $(GOALERT_DEPS)
 	go run github.com/golang/lint/golint $(shell go list ./...)
 
 new-migration:
