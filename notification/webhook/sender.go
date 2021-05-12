@@ -43,6 +43,7 @@ type POSTDataAlertStatusBundle struct {
 
 // POSTDataVerification represents fields in outgoing verification notification.
 type POSTDataVerification struct {
+	Type string
 	Code string
 }
 
@@ -66,7 +67,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		pdTest := POSTDataTest{Details: "This is a test message from GoAlert."}
 		data, err = json.Marshal(pdTest)
 	case notification.Verification:
-		pdVerification := POSTDataVerification{Code: strconv.Itoa(m.Code)}
+		pdVerification := POSTDataVerification{Type: "Verification", Code: strconv.Itoa(m.Code)}
 		data, err = json.Marshal(pdVerification)
 	case notification.Alert:
 		pdAlert := POSTDataAlert{Details: m.Details, AlertID: m.AlertID, Summary: m.Summary}
