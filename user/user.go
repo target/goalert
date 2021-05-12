@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
 
