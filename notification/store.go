@@ -185,6 +185,11 @@ func (db *DB) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) 
 		return nil, err
 	}
 
+	err = validate.UUID("Dest.ID", dst.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	var cmID, chanID sql.NullString
 	if dst.Type.IsUserCM() {
 		cmID.String, cmID.Valid = dst.ID, true
