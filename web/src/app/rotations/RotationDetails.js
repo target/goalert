@@ -43,7 +43,11 @@ export default function RotationDetails({ rotationID }) {
   const [showDelete, setShowDelete] = useState(false)
   const [showAddUser, setShowAddUser] = useState(false)
 
-  const { data: _data, loading, error } = useQuery(query, {
+  const {
+    data: _data,
+    loading,
+    error,
+  } = useQuery(query, {
     variables: { id: rotationID },
     returnPartialData: true,
   })

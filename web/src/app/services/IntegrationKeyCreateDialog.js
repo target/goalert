@@ -9,7 +9,7 @@ import FormDialog from '../dialogs/FormDialog'
 import IntegrationKeyForm from './IntegrationKeyForm'
 
 const mutation = gql`
-  mutation($input: CreateIntegrationKeyInput!) {
+  mutation ($input: CreateIntegrationKeyInput!) {
     createIntegrationKey(input: $input) {
       id
       name
@@ -19,7 +19,7 @@ const mutation = gql`
   }
 `
 const query = gql`
-  query($serviceID: ID!) {
+  query ($serviceID: ID!) {
     service(id: $serviceID) {
       id
       integrationKeys {

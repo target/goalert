@@ -51,7 +51,11 @@ function RotationUserList({ rotationID }) {
   const [setActiveIndex, setSetActiveIndex] = useState(null)
   const [lastSwap, setLastSwap] = useState([])
 
-  const { data, loading: qLoading, error: qError } = useQuery(query, {
+  const {
+    data,
+    loading: qLoading,
+    error: qError,
+  } = useQuery(query, {
     variables: { id: rotationID },
   })
 

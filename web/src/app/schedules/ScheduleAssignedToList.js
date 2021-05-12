@@ -6,7 +6,7 @@ import FlatList from '../lists/FlatList'
 import Card from '@material-ui/core/Card'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     schedule(id: $id) {
       id
       assignedTo {

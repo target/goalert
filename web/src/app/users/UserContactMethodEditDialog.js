@@ -9,7 +9,7 @@ import Query from '../util/Query'
 import { pick } from 'lodash'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     userContactMethod(id: $id) {
       id
       name
@@ -20,7 +20,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation($input: UpdateUserContactMethodInput!) {
+  mutation ($input: UpdateUserContactMethodInput!) {
     updateUserContactMethod(input: $input)
   }
 `

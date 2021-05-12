@@ -24,18 +24,19 @@ export const urlSearchParamsSelector = createSelector(
 
 export const urlParamSelector = createSelector(
   urlSearchParamsSelector,
-  (params) => (
-    name: string,
-    _default: string | boolean | number | string[] | null = null,
-  ) => {
-    if (!params.has(name)) return _default
+  (params) =>
+    (
+      name: string,
+      _default: string | boolean | number | string[] | null = null,
+    ) => {
+      if (!params.has(name)) return _default
 
-    if (Array.isArray(_default)) return params.getAll(name)
-    if (typeof _default === 'boolean') return Boolean(params.get(name))
-    if (typeof _default === 'number') return +(params.get(name) as string) // already checked .has()
+      if (Array.isArray(_default)) return params.getAll(name)
+      if (typeof _default === 'boolean') return Boolean(params.get(name))
+      if (typeof _default === 'number') return +(params.get(name) as string) // already checked .has()
 
-    return params.get(name)
-  },
+      return params.get(name)
+    },
 )
 
 export const searchSelector = createSelector(urlParamSelector, (params) =>

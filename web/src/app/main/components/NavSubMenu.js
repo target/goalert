@@ -42,13 +42,8 @@ const useStyles = makeStyles((theme) => {
 })
 
 export default function NavSubMenu(props) {
-  const {
-    parentIcon,
-    parentTitle,
-    path,
-    subMenuRoutes,
-    closeMobileSidebar,
-  } = props
+  const { parentIcon, parentTitle, path, subMenuRoutes, closeMobileSidebar } =
+    props
   const classes = useStyles()
   const pathname = useSelector(urlPathSelector)
   const isRoute = pathname.startsWith(path)

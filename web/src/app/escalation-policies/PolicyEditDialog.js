@@ -6,7 +6,7 @@ import FormDialog from '../dialogs/FormDialog'
 import PolicyForm from './PolicyForm'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     escalationPolicy(id: $id) {
       id
       name
@@ -17,7 +17,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation($input: UpdateEscalationPolicyInput!) {
+  mutation ($input: UpdateEscalationPolicyInput!) {
     updateEscalationPolicy(input: $input)
   }
 `

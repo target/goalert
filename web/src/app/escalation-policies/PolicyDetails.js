@@ -17,7 +17,7 @@ import Spinner from '../loading/components/Spinner'
 import { EPAvatar } from '../util/avatars'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     escalationPolicy(id: $id) {
       id
       name
@@ -40,7 +40,11 @@ export default function PolicyDetails(props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
 
-  const { loading, error, data: _data } = useQuery(query, {
+  const {
+    loading,
+    error,
+    data: _data,
+  } = useQuery(query, {
     variables: {
       id: props.escalationPolicyID,
     },
