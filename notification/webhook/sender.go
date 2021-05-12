@@ -24,6 +24,7 @@ type POSTDataAlert struct {
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
 type POSTDataAlertBundle struct {
+	Type        string
 	ServiceID   string
 	ServiceName string
 	Count       int
@@ -74,7 +75,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		pdAlert := POSTDataAlert{Type: "Alert", Details: m.Details, AlertID: m.AlertID, Summary: m.Summary}
 		data, err = json.Marshal(pdAlert)
 	case notification.AlertBundle:
-		pdAlertBundle := POSTDataAlertBundle{ServiceID: m.ServiceID, ServiceName: m.ServiceName, Count: m.Count}
+		pdAlertBundle := POSTDataAlertBundle{Type: "AlertBundle", ServiceID: m.ServiceID, ServiceName: m.ServiceName, Count: m.Count}
 		data, err = json.Marshal(pdAlertBundle)
 	case notification.AlertStatus:
 		pdAlertStatus := POSTDataAlertStatus{AlertID: m.AlertID, LogEntry: m.LogEntry}
