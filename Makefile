@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test test-long install install-race
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
-.PHONY: docker-goalert docker-all-in-one release
+.PHONY: docker-goalert docker-all-in-one release force-yarn
 .SUFFIXES:
 
 GOFILES := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
@@ -200,7 +200,10 @@ jest: node_modules
 test: node_modules jest
 	go test -short ./...
 
-check: generate node_modules
+force-yarn:
+	yarn install --no-progress --silent --frozen-lockfile --check-files
+
+check: force-yarn generate node_modules
 	# go run devtools/ordermigrations/main.go -check
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign .
