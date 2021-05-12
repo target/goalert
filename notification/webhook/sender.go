@@ -49,7 +49,7 @@ type POSTDataVerification struct {
 
 // POSTDataTest represents fields in outgoing test notification.
 type POSTDataTest struct {
-	Details string
+	Type string
 }
 
 func NewSender(ctx context.Context) *Sender {
@@ -64,7 +64,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 
 	switch m := msg.(type) {
 	case notification.Test:
-		pdTest := POSTDataTest{Details: "This is a test message from GoAlert."}
+		pdTest := POSTDataTest{Type: "Test"}
 		data, err = json.Marshal(pdTest)
 	case notification.Verification:
 		pdVerification := POSTDataVerification{Type: "Verification", Code: strconv.Itoa(m.Code)}
