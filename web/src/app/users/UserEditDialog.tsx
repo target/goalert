@@ -7,7 +7,7 @@ import { useSessionInfo } from '../util/RequireConfig'
 import { nonFieldErrors } from '../util/errutil'
 
 const mutation = gql`
-  mutation($input: UpdateUserInput!) {
+  mutation ($input: UpdateUserInput!) {
     updateUser(input: $input)
   }
 `

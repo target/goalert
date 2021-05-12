@@ -5,7 +5,7 @@ import { fmt, Value } from './sharedUtils'
 import { DateTime } from 'luxon'
 
 const mutation = gql`
-  mutation($input: ClearTemporarySchedulesInput!) {
+  mutation ($input: ClearTemporarySchedulesInput!) {
     clearTemporarySchedules(input: $input)
   }
 `

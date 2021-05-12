@@ -187,14 +187,8 @@ export class FormField extends React.PureComponent {
   }
 
   renderContent(props) {
-    const {
-      checkbox,
-      component,
-      formLabel,
-      label,
-      noError,
-      render,
-    } = this.props
+    const { checkbox, component, formLabel, label, noError, render } =
+      this.props
 
     if (render) return render(props)
     const Component = component

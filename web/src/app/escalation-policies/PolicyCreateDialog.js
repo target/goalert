@@ -7,7 +7,7 @@ import FormDialog from '../dialogs/FormDialog'
 import PolicyForm from './PolicyForm'
 
 const mutation = gql`
-  mutation($input: CreateEscalationPolicyInput!) {
+  mutation ($input: CreateEscalationPolicyInput!) {
     createEscalationPolicy(input: $input) {
       id
     }

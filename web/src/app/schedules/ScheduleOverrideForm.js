@@ -14,7 +14,7 @@ import _ from 'lodash'
 import { ISODateTimePicker } from '../util/ISOPickers'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     userOverride(id: $id) {
       id
       addUser {

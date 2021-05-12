@@ -15,7 +15,7 @@ import ServiceLabelEditDialog from './ServiceLabelEditDialog'
 import ServiceLabelDeleteDialog from './ServiceLabelDeleteDialog'
 
 const query = gql`
-  query($serviceID: ID!) {
+  query ($serviceID: ID!) {
     service(id: $serviceID) {
       id # need to tie the result to the correct record
       labels {

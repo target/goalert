@@ -41,7 +41,11 @@ export default function ScheduleDetails({ scheduleID }) {
   const onEditTempSched = useCallback(setConfigTempSchedule, [])
   const onDeleteTempSched = useCallback(setDeleteTempSchedule, [])
 
-  const { data: _data, loading, error } = useQuery(query, {
+  const {
+    data: _data,
+    loading,
+    error,
+  } = useQuery(query, {
     variables: { id: scheduleID },
     returnPartialData: true,
   })

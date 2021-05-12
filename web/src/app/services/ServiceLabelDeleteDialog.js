@@ -8,7 +8,7 @@ import { nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 
 const updateQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     service(id: $id) {
       id
       labels {
@@ -20,7 +20,7 @@ const updateQuery = gql`
 `
 
 const mutation = gql`
-  mutation($input: SetLabelInput!) {
+  mutation ($input: SetLabelInput!) {
     setLabel(input: $input)
   }
 `

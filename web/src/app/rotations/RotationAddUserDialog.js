@@ -6,7 +6,7 @@ import UserForm from './UserForm'
 import FormDialog from '../dialogs/FormDialog'
 
 const mutation = gql`
-  mutation($input: UpdateRotationInput!) {
+  mutation ($input: UpdateRotationInput!) {
     updateRotation(input: $input)
   }
 `

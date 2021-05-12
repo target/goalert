@@ -23,7 +23,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: [SystemLimitInput!]!) {
+  mutation ($input: [SystemLimitInput!]!) {
     setSystemLimits(input: $input)
   }
 `

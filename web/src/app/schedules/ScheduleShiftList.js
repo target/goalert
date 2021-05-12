@@ -75,10 +75,10 @@ function ScheduleShiftList({ scheduleID }) {
     [zone],
   )
   const [_start, setStart] = useURLParam('start', defaultStart)
-  const start = useMemo(() => (activeOnly ? DateTime.utc().toISO() : _start), [
-    activeOnly,
-    _start,
-  ])
+  const start = useMemo(
+    () => (activeOnly ? DateTime.utc().toISO() : _start),
+    [activeOnly, _start],
+  )
 
   const end = DateTime.fromISO(start, { zone })
     .plus(Duration.fromISO(duration))

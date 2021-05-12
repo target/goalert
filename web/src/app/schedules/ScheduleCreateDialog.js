@@ -7,7 +7,7 @@ import { nonFieldErrors, fieldErrors } from '../util/errutil'
 import { Redirect } from 'react-router'
 
 const mutation = gql`
-  mutation($input: CreateScheduleInput!) {
+  mutation ($input: CreateScheduleInput!) {
     createSchedule(input: $input) {
       id
       name
