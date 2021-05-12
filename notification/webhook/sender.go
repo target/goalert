@@ -16,6 +16,7 @@ type Sender struct{}
 
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
+	Type    string
 	AlertID int
 	Summary string
 	Details string
@@ -70,7 +71,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		pdVerification := POSTDataVerification{Type: "Verification", Code: strconv.Itoa(m.Code)}
 		data, err = json.Marshal(pdVerification)
 	case notification.Alert:
-		pdAlert := POSTDataAlert{Details: m.Details, AlertID: m.AlertID, Summary: m.Summary}
+		pdAlert := POSTDataAlert{Type: "Alert", Details: m.Details, AlertID: m.AlertID, Summary: m.Summary}
 		data, err = json.Marshal(pdAlert)
 	case notification.AlertBundle:
 		pdAlertBundle := POSTDataAlertBundle{ServiceID: m.ServiceID, ServiceName: m.ServiceName, Count: m.Count}
