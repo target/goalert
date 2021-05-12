@@ -32,6 +32,7 @@ type POSTDataAlertBundle struct {
 
 // POSTDataAlertStatus represents fields in outgoing alert status notification.
 type POSTDataAlertStatus struct {
+	Type     string
 	AlertID  int
 	LogEntry string
 }
@@ -78,7 +79,7 @@ func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notificat
 		pdAlertBundle := POSTDataAlertBundle{Type: "AlertBundle", ServiceID: m.ServiceID, ServiceName: m.ServiceName, Count: m.Count}
 		data, err = json.Marshal(pdAlertBundle)
 	case notification.AlertStatus:
-		pdAlertStatus := POSTDataAlertStatus{AlertID: m.AlertID, LogEntry: m.LogEntry}
+		pdAlertStatus := POSTDataAlertStatus{Type: "AlertStatus", AlertID: m.AlertID, LogEntry: m.LogEntry}
 		data, err = json.Marshal(pdAlertStatus)
 	case notification.AlertStatusBundle:
 		pdAlertStatusBundle := POSTDataAlertStatusBundle{Count: m.Count, AlertID: m.AlertID, LogEntry: m.LogEntry}
