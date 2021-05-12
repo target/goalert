@@ -11,10 +11,7 @@ const weekHeaderFormat = (t: DateTime): string => {
 
   const end = t.endOf('week').minus({ day: 1 })
 
-  return (
-    start.toFormat('MMMM dd — ') +
-    end.toFormat(end.month === start.month ? 'dd' : 'MMMM dd')
-  )
+  return start.toFormat('MMMM d — ') + end.toFormat('MMMM d')
 }
 
 const weekSpansTwoMonths = (t: DateTime): boolean => {
@@ -158,15 +155,6 @@ function testCalendar(screen: ScreenFormat): void {
       'contain',
       weekHeaderFormat(now),
     )
-  })
-
-  it('should add an override from the calendar', () => {
-    cy.fixture('users').then((users) => {
-      cy.get('button[data-cy="add-override"]').click()
-      cy.dialogTitle('Add a User')
-      cy.dialogForm({ addUserID: users[0].name })
-      cy.dialogFinish('Submit')
-    })
   })
 
   it('should create a replace override from a shift tooltip', () => {

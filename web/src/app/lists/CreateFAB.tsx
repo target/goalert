@@ -17,9 +17,10 @@ export default function CreateFAB(props: CreateFabProps): JSX.Element {
         data-cy='page-fab'
         color='primary'
         style={{
+          zIndex: 9001,
           position: 'fixed',
-          bottom: '2em',
-          right: '2em',
+          bottom: '1em',
+          right: '1em',
         }}
         onClick={onClick}
       >

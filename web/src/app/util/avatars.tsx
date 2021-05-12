@@ -5,7 +5,6 @@ import { Avatar, SvgIconProps, AvatarProps } from '@material-ui/core'
 import { pathPrefix } from '../env'
 
 type IconProps = (props: SvgIconProps) => JSX.Element
-
 interface UserAvatarProps extends AvatarProps {
   userID: string
 }
@@ -42,10 +41,11 @@ function useAvatar(
       data-cy={validImage ? null : 'avatar-fallback'}
       {...otherProps}
     >
-      {validImage ? null : <Fallback fontSize='small' />}
+      {validImage ? null : <Fallback color='primary' />}
     </Avatar>
   )
 }
+
 export function UserAvatar(props: UserAvatarProps): JSX.Element {
   const { userID, ...otherProps } = props
   return useAvatar(
@@ -73,9 +73,11 @@ export function ServiceAvatar(props: AvatarProps): JSX.Element {
 export function EPAvatar(props: AvatarProps): JSX.Element {
   return useAvatar(Layers, props)
 }
+
 export function RotationAvatar(props: AvatarProps): JSX.Element {
   return useAvatar(RotateRight, props)
 }
+
 export function ScheduleAvatar(props: AvatarProps): JSX.Element {
   return useAvatar(Today, props)
 }

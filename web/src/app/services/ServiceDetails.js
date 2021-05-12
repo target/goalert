@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
-import { gql, useQuery } from '@apollo/client'
 import p from 'prop-types'
-
+import { gql, useQuery } from '@apollo/client'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
+import { Edit, Delete } from '@material-ui/icons'
 
-import PageActions from '../util/PageActions'
-import OtherActions from '../util/OtherActions'
 import DetailsPage from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
@@ -15,6 +13,7 @@ import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
 import AppLink from '../util/AppLink'
+import { ServiceAvatar } from '../util/avatars'
 
 const query = gql`
   fragment ServiceTitleQuery on Service {
@@ -87,26 +86,11 @@ export default function ServiceDetails({ serviceID }) {
 
   return (
     <React.Fragment>
-      <PageActions>
-        <QuerySetFavoriteButton serviceID={serviceID} />
-        <OtherActions
-          actions={[
-            {
-              label: 'Edit Service',
-              onClick: () => setShowEdit(true),
-            },
-            {
-              label: 'Delete Service',
-              onClick: () => setShowDelete(true),
-            },
-          ]}
-        />
-      </PageActions>
       <DetailsPage
+        avatar={<ServiceAvatar />}
         title={data.service.name}
-        details={data.service.description}
-        titleFooter={
-          <div>
+        subheader={
+          <React.Fragment>
             Escalation Policy:{' '}
             {_.get(data, 'service.ep') ? (
               <AppLink to={`/escalation-policies/${data.service.ep.id}`}>
@@ -115,23 +99,50 @@ export default function ServiceDetails({ serviceID }) {
             ) : (
               <Spinner text='Looking up policy...' />
             )}
-          </div>
+          </React.Fragment>
         }
+        details={data.service.description}
+        pageContent={<ServiceOnCallList serviceID={serviceID} />}
+        secondaryActions={[
+          {
+            label: 'Edit',
+            icon: <Edit />,
+            handleOnClick: () => setShowEdit(true),
+          },
+          {
+            label: 'Delete',
+            icon: <Delete />,
+            handleOnClick: () => setShowDelete(true),
+          },
+          <QuerySetFavoriteButton
+            key='secondary-action-favorite'
+            serviceID={serviceID}
+          />,
+        ]}
         links={[
           {
             label: 'Alerts',
             status: alertStatus(_.get(data, 'alerts.nodes')),
             url: 'alerts',
+            subText: 'Manage alerts specific to this service',
           },
           {
             label: 'Heartbeat Monitors',
             url: 'heartbeat-monitors',
             status: hbStatus(_.get(data, 'service.heartbeatMonitors')),
+            subText: 'Manage endpoints monitored for you',
           },
-          { label: 'Integration Keys', url: 'integration-keys' },
-          { label: 'Labels', url: 'labels' },
+          {
+            label: 'Integration Keys',
+            url: 'integration-keys',
+            subText: 'Manage keys used to create alerts',
+          },
+          {
+            label: 'Labels',
+            url: 'labels',
+            subText: 'Group together services',
+          },
         ]}
-        pageFooter={<ServiceOnCallList serviceID={serviceID} />}
       />
       {showEdit && (
         <ServiceEditDialog

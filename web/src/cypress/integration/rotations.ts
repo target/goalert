@@ -160,7 +160,7 @@ function testRotations(): void {
     })
 
     it('should allow deleting the rotation', () => {
-      cy.pageAction('Delete')
+      cy.get('[data-cy="card-actions"]').find('button[title="Delete"]').click()
 
       cy.dialogTitle('Are you sure?')
       cy.dialogFinish('Confirm')
@@ -169,31 +169,35 @@ function testRotations(): void {
       cy.pageSearch(rot.name)
       cy.get('body').should('contain', 'No results')
     })
-  })
 
-  it('should allow editing a rotation', () => {
-    cy.createRotation({ shiftLength: 3, type: 'daily' }).then((r: Rotation) => {
-      const newName = c.word({ length: 15 })
-      const newDesc = c.sentence({ words: 3 })
-      const newTz = 'Africa/Accra'
+    it('should allow editing a rotation', () => {
+      cy.createRotation({ shiftLength: 3, type: 'daily' }).then(
+        (r: Rotation) => {
+          const newName = c.word({ length: 15 })
+          const newDesc = c.sentence({ words: 3 })
+          const newTz = 'Africa/Accra'
 
-      cy.visit(`/rotations/${r.id}`)
-      cy.pageAction('Edit Rotation')
+          cy.visit(`/rotations/${r.id}`)
+          cy.get('[data-cy="card-actions"]')
+            .find('button[title="Edit"]')
+            .click()
 
-      cy.dialogTitle('Edit Rotation')
-      cy.dialogForm({
-        name: newName,
-        description: newDesc,
-        timeZone: newTz,
-        type: 'Weekly',
-        shiftLength: '5',
-      })
-      cy.dialogFinish('Submit')
+          cy.dialogTitle('Edit Rotation')
+          cy.dialogForm({
+            name: newName,
+            description: newDesc,
+            timeZone: newTz,
+            type: 'Weekly',
+            shiftLength: '5',
+          })
+          cy.dialogFinish('Submit')
 
-      cy.get('body')
-        .should('contain', newName)
-        .should('contain', newDesc)
-        .should('contain', newTz)
+          cy.get('body')
+            .should('contain', newName)
+            .should('contain', newDesc)
+            .should('contain', newTz)
+        },
+      )
     })
   })
 }

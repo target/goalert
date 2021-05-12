@@ -7,12 +7,12 @@ import FormDialog from '../dialogs/FormDialog'
 import HeartbeatMonitorForm from './HeartbeatMonitorForm'
 
 const mutation = gql`
-  mutation($input: UpdateHeartbeatMonitorInput!) {
+  mutation ($input: UpdateHeartbeatMonitorInput!) {
     updateHeartbeatMonitor(input: $input)
   }
 `
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     heartbeatMonitor(id: $id) {
       id
       name

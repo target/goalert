@@ -738,7 +738,6 @@ func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id, 
 		stat.State = notification.MessageStateFailedPerm
 	}
 	stat.Sequence = -1
-	stat.Ctx = ctx
 	res <- &stat
 }
 func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) error {

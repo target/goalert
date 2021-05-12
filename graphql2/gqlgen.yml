@@ -81,3 +81,7 @@ models:
     model: github.com/target/goalert/notice.Notice
   NoticeType:
     model: github.com/target/goalert/notice.Type
+  SetScheduleShiftInput:
+    model: github.com/target/goalert/schedule.FixedShift
+  TemporarySchedule:
+    model: github.com/target/goalert/schedule.TemporarySchedule

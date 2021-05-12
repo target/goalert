@@ -3,12 +3,12 @@ import p from 'prop-types'
 import _, { memoize, omit } from 'lodash'
 import MaterialSelect from './MaterialSelect'
 import { mergeFields, fieldAlias, mapInputVars } from '../util/graphql'
-import FavoriteIcon from '@material-ui/icons/Star'
 import { DEBOUNCE_DELAY } from '../config'
 import { useQuery } from '@apollo/client'
 import { Typography, makeStyles } from '@material-ui/core'
 import { Error } from '@material-ui/icons'
 import { styles } from '../styles/materialStyles'
+import { FavoriteIcon } from '../util/SetFavoriteButton'
 
 const useStyles = makeStyles((theme) => {
   return {
@@ -212,10 +212,8 @@ export function makeQuerySelect(displayName, options) {
     const [searchInput, setSearchInput] = useState('')
     const [optionCache] = useState({})
     const [selectValue] = useValues(value)
-    const [
-      selectOptions,
-      { loading: optionsLoading, error: optionsError },
-    ] = useOptions(value, search, extraVars)
+    const [selectOptions, { loading: optionsLoading, error: optionsError }] =
+      useOptions(value, search, extraVars)
 
     if (
       _onCreate &&

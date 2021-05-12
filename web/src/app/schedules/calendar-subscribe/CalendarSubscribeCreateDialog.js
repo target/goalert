@@ -9,7 +9,7 @@ import { CheckCircleOutline as SuccessIcon } from '@material-ui/icons'
 import CalenderSuccessForm from './CalendarSuccessForm'
 
 const mutation = gql`
-  mutation($input: CreateUserCalendarSubscriptionInput!) {
+  mutation ($input: CreateUserCalendarSubscriptionInput!) {
     createUserCalendarSubscription(input: $input) {
       id
       url

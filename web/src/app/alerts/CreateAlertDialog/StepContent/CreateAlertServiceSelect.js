@@ -19,7 +19,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles'
 import ServiceLabelFilterContainer from '../../../services/ServiceLabelFilterContainer'
 import { Search as SearchIcon } from '@material-ui/icons'
-import FavoriteIcon from '@material-ui/icons/Star'
+import { FavoriteIcon } from '../../../util/SetFavoriteButton'
 import { ServiceChip } from '../../../util/Chips'
 import AddIcon from '@material-ui/icons/Add'
 import _ from 'lodash'
@@ -29,7 +29,7 @@ import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 import { allErrors } from '../../../util/errutil'
 
 const query = gql`
-  query($input: ServiceSearchOptions) {
+  query ($input: ServiceSearchOptions) {
     services(input: $input) {
       nodes {
         id
@@ -74,7 +74,11 @@ export function CreateAlertServiceSelect(props) {
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
 
-  const { data, error: queryError, loading } = useQuery(query, {
+  const {
+    data,
+    error: queryError,
+    loading,
+  } = useQuery(query, {
     variables: {
       input: {
         search: searchQueryInput,

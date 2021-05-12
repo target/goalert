@@ -29,8 +29,7 @@ import { authLogout } from '../../actions'
 import { useDispatch } from 'react-redux'
 import RequireConfig, { Config } from '../../util/RequireConfig'
 import NavSubMenu from './NavSubMenu'
-
-import logo from '../../public/goalert-alt-logo-scaled.png'
+import logo from '../../public/goalert-alt-logo.png'
 import AppLink from '../../util/AppLink'
 
 const navIcons = {
@@ -46,12 +45,10 @@ const navIcons = {
 const useStyles = makeStyles((theme) => ({
   ...globalStyles(theme),
   logoDiv: {
-    width: '100%',
+    ...theme.mixins.toolbar,
     display: 'flex',
     justifyContent: 'center',
-  },
-  logo: {
-    padding: '0.5em',
+    alignItems: 'center',
   },
   navIcon: {
     width: '1em',
@@ -59,11 +56,7 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '24px',
   },
   list: {
-    color: theme.palette.primary['500'],
     padding: 0,
-  },
-  listItemText: {
-    color: theme.palette.primary['500'],
   },
 }))
 
@@ -82,11 +75,7 @@ export default function SideBarDrawerList(props) {
         <ListItemText
           disableTypography
           primary={
-            <Typography
-              variant='subtitle1'
-              component='p'
-              className={classes.listItemText}
-            >
+            <Typography variant='subtitle1' component='p'>
               {label}
             </Typography>
           }
@@ -144,12 +133,7 @@ export default function SideBarDrawerList(props) {
   return (
     <React.Fragment>
       <div aria-hidden className={classes.logoDiv}>
-        <img
-          className={classes.logo}
-          height={32}
-          src={logo}
-          alt='GoAlert Logo'
-        />
+        <img height={38} src={logo} alt='GoAlert Logo' />
       </div>
       <Divider />
       <nav>

@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
-  query($input: UserSearchOptions) {
+  query ($input: UserSearchOptions) {
     users(input: $input) {
       nodes {
         id
@@ -13,7 +13,7 @@ const query = gql`
 `
 
 const valueQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     user(id: $id) {
       id
       name

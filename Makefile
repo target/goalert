@@ -2,7 +2,7 @@
 .PHONY: smoketest generate check all test test-long install install-race
 .PHONY: cy-wide cy-mobile cy-wide-prod cy-mobile-prod cypress postgres
 .PHONY: config.json.bak jest new-migration check-all cy-wide-prod-run cy-mobile-prod-run
-.PHONY: docker-goalert docker-all-in-one release
+.PHONY: docker-goalert docker-all-in-one release force-yarn
 .SUFFIXES:
 
 GOFILES := $(shell find . -path ./web/src -prune -o -path ./vendor -prune -o -path ./.git -prune -o -type f -name "*.go" -print) go.sum
@@ -126,6 +126,40 @@ $(BIN_DIR)/integration: $(BIN_DIR)/integration/goalert/.git $(BIN_DIR)/integrati
 $(BIN_DIR)/integration.tgz: bin/integration
 	tar czvf bin/integration.tgz -C bin/integration goalert
 
+$(BIN_DIR)/tools/protoc: protoc.version
+	go run ./devtools/gettool -t protoc -v $(shell cat protoc.version) -o $@
+
+$(BIN_DIR)/tools/prometheus: prometheus.version
+	go run ./devtools/gettool -t prometheus -v $(shell cat prometheus.version) -o $@
+
+$(BIN_DIR)/tools/protoc-gen-go: go.mod
+	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/protobuf/cmd/protoc-gen-go
+$(BIN_DIR)/tools/protoc-gen-go-grpc: go.mod
+	GOBIN=$(abspath $(BIN_DIR))/tools go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
+
+system.ca.pem:
+	go run ./cmd/goalert gen-cert ca
+system.ca.key:
+	go run ./cmd/goalert gen-cert ca
+plugin.ca.pem:
+	go run ./cmd/goalert gen-cert ca
+plugin.ca.key:
+	go run ./cmd/goalert gen-cert ca
+
+goalert-server.pem: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+goalert-server.key: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+goalert-server.ca.pem: system.ca.pem system.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert server
+
+goalert-client.pem: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+goalert-client.key: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+goalert-client.ca.pem: system.ca.pem plugin.ca.key plugin.ca.pem
+	go run ./cmd/goalert gen-cert client
+
 install: $(GOFILES)
 	go install $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" ./cmd/goalert
 
@@ -148,13 +182,13 @@ cy-mobile-prod-run: web/src/build/static/app.js cypress
 web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
 	go generate ./web/src
 
-start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts
+start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight
 	GOALERT_VERSION=$(GIT_VERSION) bin/runjson <devtools/runjson/localdev.json
 
-start-prod: bin/waitfor web/src/build/static/app.js bin/runjson
+start-prod: bin/waitfor web/src/build/static/app.js bin/runjson $(BIN_DIR)/tools/prometheus
 	# force rebuild to ensure build-flags are set
 	touch cmd/goalert/main.go
 	make bin/goalert BUILD_TAGS+=sql_highlight BUNDLE=1
@@ -166,7 +200,10 @@ jest: node_modules
 test: node_modules jest
 	go test -short ./...
 
-check: generate node_modules
+force-yarn:
+	yarn install --no-progress --silent --frozen-lockfile --check-files
+
+check: force-yarn generate node_modules
 	# go run devtools/ordermigrations/main.go -check
 	go vet ./...
 	go run github.com/gordonklaus/ineffassign .
@@ -187,7 +224,12 @@ graphql2/maplimit.go: $(CFGPARAMS) limit/id.go graphql2/generated.go devtools/li
 graphql2/generated.go: graphql2/schema.graphql graphql2/gqlgen.yml go.mod
 	go generate ./graphql2
 
-generate: node_modules
+pkg/sysapi/sysapi_grpc.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go-grpc $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/sysapi/sysapi.proto
+pkg/sysapi/sysapi.pb.go: pkg/sysapi/sysapi.proto $(BIN_DIR)/tools/protoc-gen-go $(BIN_DIR)/tools/protoc
+	PATH="$(BIN_DIR)/tools" protoc --go_out=. --go_opt=paths=source_relative pkg/sysapi/sysapi.proto
+
+generate: node_modules pkg/sysapi/sysapi.pb.go
 	go generate ./...
 
 smoketest:

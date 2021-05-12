@@ -7,7 +7,7 @@ import FormDialog from '../dialogs/FormDialog'
 import { useURLParam } from '../actions'
 
 const mutation = gql`
-  mutation($input: UpdateEscalationPolicyStepInput!) {
+  mutation ($input: UpdateEscalationPolicyStepInput!) {
     updateEscalationPolicyStep(input: $input)
   }
 `

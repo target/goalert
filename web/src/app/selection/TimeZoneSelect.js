@@ -2,7 +2,7 @@ import { gql } from '@apollo/client'
 import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
-  query($input: TimeZoneSearchOptions) {
+  query ($input: TimeZoneSearchOptions) {
     timeZones(input: $input) {
       nodes {
         id

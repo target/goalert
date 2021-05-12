@@ -14,7 +14,7 @@ import { PageActionContainer, PageActionProvider } from '../util/PageActions'
 import { PageNotFound as LazyPageNotFound } from '../error-pages/Errors'
 import LazySideBarDrawerList from './components/SideBarDrawerList'
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
-import LazyWideSideBar from './WideSideBar'
+import LazyWideSideBar, { drawerWidth } from './WideSideBar'
 import LazyNewUserSetup from './components/NewUserSetup'
 import Login from './components/Login'
 import URLErrorDialog from './URLErrorDialog'
@@ -23,8 +23,6 @@ import { SearchContainer, SearchProvider } from '../util/AppBarSearchContainer'
 import { isWidthDown, makeStyles } from '@material-ui/core'
 import useWidth from '../util/useWidth'
 import { isIOS } from '../util/browsers'
-
-const drawerWidth = '12em'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,13 +40,9 @@ const useStyles = makeStyles((theme) => ({
   },
   mainContainer: { position: 'relative', height: '100%' },
   appBar: {
+    [theme.breakpoints.up('md')]: { width: `calc(100% - ${drawerWidth})` },
     zIndex: theme.zIndex.drawer + 1,
   },
-  icon: {
-    marginRight: '0.25em',
-    color: theme.palette.primary['500'],
-  },
-  toolbar: theme.mixins.toolbar,
   containerClass: {
     padding: '1em',
     [theme.breakpoints.up('md')]: { width: '75%' },
@@ -81,7 +75,7 @@ export default function App() {
             data-cy-format={cyFormat}
           >
             <SkipToContentLink />
-            <Toolbar className={classes.toolbar}>
+            <Toolbar>
               <ToolbarAction
                 showMobileSidebar={showMobile}
                 openMobileSidebar={() => setShowMobile(true)}
@@ -95,7 +89,6 @@ export default function App() {
 
           <Hidden smDown>
             <LazyWideSideBar>
-              <div className={classes.toolbar} />
               <LazySideBarDrawerList
                 closeMobileSidebar={() => setShowMobile(false)}
               />

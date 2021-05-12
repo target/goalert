@@ -18,6 +18,9 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	defer close(app.doneCh)
 	defer app.db.Close()
 	var errs []error
+	if app.hSrv != nil {
+		app.hSrv.Shutdown()
+	}
 
 	if app.cooldown != nil {
 		// wait for the cooldown (since last req closed)
@@ -36,6 +39,19 @@ func (app *App) _Shutdown(ctx context.Context) error {
 		}
 	}
 
+	if app.sysAPISrv != nil {
+		waitCh := make(chan struct{})
+		go func() {
+			defer close(waitCh)
+			app.sysAPISrv.GracefulStop()
+		}()
+		select {
+		case <-ctx.Done():
+		case <-waitCh:
+		}
+		app.sysAPISrv.Stop()
+	}
+
 	// It's important to shutdown the HTTP server first
 	// so things like message responses are handled before
 	// shutting down things like the engine or notification manager
@@ -43,7 +59,6 @@ func (app *App) _Shutdown(ctx context.Context) error {
 	shut(app.srv, "HTTP server")
 	shut(app.Engine, "engine")
 	shut(app.events, "event listener")
-	shut(app.notificationManager, "notification manager")
 	shut(app.SessionKeyring, "session keyring")
 	shut(app.OAuthKeyring, "oauth keyring")
 	shut(app.APIKeyring, "API keyring")

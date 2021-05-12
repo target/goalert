@@ -18,6 +18,11 @@ type Config struct {
 	TLSListenAddr string
 	TLSConfig     *tls.Config
 
+	SysAPIListenAddr string
+	SysAPICertFile   string
+	SysAPIKeyFile    string
+	SysAPICAFile     string
+
 	HTTPPrefix string
 
 	DBMaxOpen int

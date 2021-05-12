@@ -7,7 +7,7 @@ import Query from '../util/Query'
 import FormDialog from '../dialogs/FormDialog'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     heartbeatMonitor(id: $id) {
       id
       name
@@ -15,7 +15,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($id: ID!) {
+  mutation ($id: ID!) {
     deleteAll(input: [{ type: heartbeatMonitor, id: $id }])
   }
 `

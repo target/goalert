@@ -33,9 +33,9 @@ export function parseClock(s, zone) {
 }
 
 export function formatClock(dt) {
-  return `${dt.hour
+  return `${dt.hour.toString().padStart(2, '0')}:${dt.minute
     .toString()
-    .padStart(2, '0')}:${dt.minute.toString().padStart(2, '0')}`
+    .padStart(2, '0')}`
 }
 
 // Shifts a weekdayFilter so that it matches the luxon day n

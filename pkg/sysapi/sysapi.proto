@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "github.com/target/goalert/pkg/sysapi";
+
+package goalert.v1;
+
+service SysAPI {
+    rpc AuthSubjects(AuthSubjectsRequest) returns (stream AuthSubject){}
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse){}
+}
+
+message DeleteUserRequest {
+    string user_id = 1;
+}
+message DeleteUserResponse{}
+
+message AuthSubjectsRequest {
+    string provider_id = 1;
+    string user_id = 2;
+}
+message AuthSubject {
+    string user_id = 1;
+    string provider_id = 2;
+    string subject_id = 3;
+}

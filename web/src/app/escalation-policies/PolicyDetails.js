@@ -3,10 +3,9 @@ import { useQuery, gql } from '@apollo/client'
 import p from 'prop-types'
 import { Redirect } from 'react-router-dom'
 import _ from 'lodash'
+import { Edit, Delete } from '@material-ui/icons'
 
-import PageActions from '../util/PageActions'
 import PolicyStepsQuery from './PolicyStepsQuery'
-import OtherActions from '../util/OtherActions'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
@@ -15,9 +14,10 @@ import PolicyEditDialog from './PolicyEditDialog'
 import { useResetURLParams, useURLParam } from '../actions'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import Spinner from '../loading/components/Spinner'
+import { EPAvatar } from '../util/avatars'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     escalationPolicy(id: $id) {
       id
       name
@@ -40,7 +40,11 @@ export default function PolicyDetails(props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
 
-  const { loading, error, data: _data } = useQuery(query, {
+  const {
+    loading,
+    error,
+    data: _data,
+  } = useQuery(query, {
     variables: {
       id: props.escalationPolicyID,
     },
@@ -61,31 +65,31 @@ export default function PolicyDetails(props) {
 
   return (
     <React.Fragment>
-      <PageActions>
-        <OtherActions
-          actions={[
-            {
-              label: 'Edit Escalation Policy',
-              onClick: () => setShowEditDialog(true),
-            },
-            {
-              label: 'Delete Escalation Policy',
-              onClick: () => setShowDeleteDialog(true),
-            },
-          ]}
-        />
-      </PageActions>
       <DetailsPage
+        notices={data.notices}
+        avatar={<EPAvatar />}
         title={data.name}
         details={data.description}
-        notices={data.notices}
+        pageContent={<PolicyStepsQuery escalationPolicyID={data.id} />}
+        secondaryActions={[
+          {
+            label: 'Edit',
+            icon: <Edit />,
+            handleOnClick: () => setShowEditDialog(true),
+          },
+          {
+            label: 'Delete',
+            icon: <Delete />,
+            handleOnClick: () => setShowDeleteDialog(true),
+          },
+        ]}
         links={[
           {
             label: 'Services',
             url: 'services',
+            subText: 'Find services that link to this policy',
           },
         ]}
-        pageFooter={<PolicyStepsQuery escalationPolicyID={data.id} />}
       />
       <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       {createStep && (

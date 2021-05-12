@@ -2,10 +2,12 @@ package graphqlapp
 
 import (
 	context "context"
+	"database/sql"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/permission"
+	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/user"
 	"github.com/target/goalert/validation"
 
@@ -28,6 +30,24 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 		return false, err
 	}
 	return true, nil
+}
+func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetTemporaryScheduleInput) (bool, error) {
+	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.ScheduleStore.SetTemporarySchedule(ctx, tx, input.ScheduleID, schedule.TemporarySchedule{
+			Start:  input.Start,
+			End:    input.End,
+			Shifts: input.Shifts,
+		})
+	})
+
+	return err == nil, err
+}
+func (a *Mutation) ClearTemporarySchedules(ctx context.Context, input graphql2.ClearTemporarySchedulesInput) (bool, error) {
+	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.ScheduleStore.ClearTemporarySchedules(ctx, tx, input.ScheduleID, input.Start, input.End)
+	})
+
+	return err == nil, err
 }
 
 func (a *Mutation) TestContactMethod(ctx context.Context, id string) (bool, error) {

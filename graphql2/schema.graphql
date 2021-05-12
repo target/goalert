@@ -37,7 +37,9 @@ type Query {
   # Returns a paginated list of rotations.
   rotations(input: RotationSearchOptions): RotationConnection!
 
-  calcRotationHandoffTimes(input: CalcRotationHandoffTimesInput): [ISOTimestamp!]!
+  calcRotationHandoffTimes(
+    input: CalcRotationHandoffTimesInput
+  ): [ISOTimestamp!]!
 
   # Returns a single schedule with the given ID.
   schedule(id: ID!): Schedule
@@ -111,6 +113,7 @@ input SlackChannelSearchOptions {
 type SlackChannel {
   id: ID!
   name: String!
+  teamID: String!
 }
 
 type SlackChannelConnection {
@@ -256,7 +259,37 @@ type DebugSendSMSInfo {
   providerURL: String!
 }
 
+type TemporarySchedule {
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  shifts: [OnCallShift!]!
+}
+
+input ClearTemporarySchedulesInput {
+  scheduleID: ID!
+
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+}
+input SetTemporaryScheduleInput {
+  scheduleID: ID!
+
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+
+  shifts: [SetScheduleShiftInput!]!
+}
+input SetScheduleShiftInput {
+  userID: ID!
+  start: ISOTimestamp!
+  end: ISOTimestamp!
+}
+
 type Mutation {
+  setTemporarySchedule(input: SetTemporaryScheduleInput!): Boolean!
+  clearTemporarySchedules(input: ClearTemporarySchedulesInput!): Boolean!
+
   debugCarrierInfo(input: DebugCarrierInfoInput!): DebugCarrierInfo!
   debugSendSMS(input: DebugSendSMSInput!): DebugSendSMSInfo
   addAuthSubject(input: AuthSubjectInput!): Boolean!
@@ -545,6 +578,8 @@ type Schedule {
   targets: [ScheduleTarget!]!
   target(input: TargetInput!): ScheduleTarget
   isFavorite: Boolean!
+
+  temporarySchedules: [TemporarySchedule!]!
 }
 
 type OnCallShift {

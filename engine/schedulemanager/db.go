@@ -3,6 +3,7 @@ package schedulemanager
 import (
 	"context"
 	"database/sql"
+
 	"github.com/target/goalert/engine/processinglock"
 	"github.com/target/goalert/util"
 )
@@ -17,6 +18,7 @@ type DB struct {
 	getOnCall   *sql.Stmt
 	endOnCall   *sql.Stmt
 	startOnCall *sql.Stmt
+	data        *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -26,7 +28,7 @@ func (db *DB) Name() string { return "Engine.ScheduleManager" }
 func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeSchedule,
-		Version: 2,
+		Version: 3,
 	})
 	if err != nil {
 		return nil, err
@@ -44,6 +46,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			from user_overrides
 			where now() between start_time and end_time
 		`),
+		data: p.P(`select schedule_id, data from schedule_data where data notnull`),
 		rules: p.P(`
 			select
 				rule.schedule_id,
@@ -75,7 +78,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		`),
 		startOnCall: p.P(`
 			insert into schedule_on_call_users (schedule_id, start_time, user_id)
-			values ($1, now(), $2)
+			select $1, now(), $2 from users where id = $2
 		`),
 		endOnCall: p.P(`
 			update schedule_on_call_users

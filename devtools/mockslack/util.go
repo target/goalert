@@ -35,6 +35,10 @@ func genID(s string, n int) string {
 	return string(buf)
 }
 
+func genTeamID() string {
+	return "T" + genID(idChars, 8)
+}
+
 func genHex(n int) string {
 	buf := make([]byte, n)
 	rand.Read(buf)

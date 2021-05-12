@@ -2,7 +2,7 @@ import React from 'react'
 import { gql, useQuery } from '@apollo/client'
 import ScheduleCalendar from './ScheduleCalendar'
 import { isWidthDown } from '@material-ui/core/withWidth/index'
-import { getStartOfWeek } from '../util/luxon-helpers'
+import { getStartOfWeek, getEndOfWeek } from '../util/luxon-helpers'
 import { DateTime } from 'luxon'
 import useWidth from '../util/useWidth'
 import { useURLParam } from '../actions/hooks'
@@ -19,6 +19,7 @@ const query = gql`
     schedule(id: $id) {
       id
       shifts(start: $start, end: $end) {
+        userID
         user {
           id
           name
@@ -27,21 +28,40 @@ const query = gql`
         end
         truncated
       }
+
+      temporarySchedules {
+        start
+        end
+        shifts {
+          userID
+          user {
+            id
+            name
+          }
+          start
+          end
+          truncated
+        }
+      }
     }
   }
 `
 
 interface ScheduleCalendarQueryProps {
   scheduleID: string
+  onNewTempSched: () => void
+  onEditTempSched: () => void
+  onDeleteTempSched: () => void
 }
 
 function ScheduleCalendarQuery({
   scheduleID,
+  ...other
 }: ScheduleCalendarQueryProps): JSX.Element | null {
   const width = useWidth()
   const isMobile = isWidthDown('sm', width)
 
-  const [weekly] = useURLParam('weekly', false)
+  const [weekly] = useURLParam<boolean>('weekly', false)
   const [start] = useURLParam(
     'start',
     weekly
@@ -49,14 +69,23 @@ function ScheduleCalendarQuery({
       : DateTime.local().startOf('month').toUTC().toISO(),
   )
 
-  const unitToAdd = weekly ? { weeks: 1 } : { months: 1 }
-  const end = DateTime.fromISO(start).plus(unitToAdd).toUTC().toISO()
+  const [queryStart, queryEnd] = weekly
+    ? [
+        getStartOfWeek(DateTime.fromISO(start)).toUTC().toISO(),
+        getEndOfWeek(DateTime.fromISO(start)).toUTC().toISO(),
+      ]
+    : [
+        getStartOfWeek(DateTime.fromISO(start).startOf('month'))
+          .toUTC()
+          .toISO(),
+        getEndOfWeek(DateTime.fromISO(start).endOf('month')).toUTC().toISO(),
+      ]
 
   const { data, error, loading } = useQuery<Query>(query, {
     variables: {
       id: scheduleID,
-      start,
-      end,
+      start: queryStart,
+      end: queryEnd,
     },
     skip: isMobile,
   })
@@ -70,6 +99,8 @@ function ScheduleCalendarQuery({
     <ScheduleCalendar
       scheduleID={scheduleID}
       shifts={data?.schedule?.shifts ?? []}
+      temporarySchedules={data.schedule.temporarySchedules}
+      {...other}
     />
   )
 }
