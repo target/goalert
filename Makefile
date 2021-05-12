@@ -54,7 +54,7 @@ ifeq ($(PUSH), 1)
 PUSH_FLAG=--push
 endif
 
-GOALERT_DEPS += migrate/migrations/*.sql
+GOALERT_DEPS += migrate/migrations/*.sql graphql2/graphqlapp/playground.html web/index.html
 GOALERT_DEPS += graphql2/mapconfig.go graphql2/maplimit.go graphql2/generated.go graphql2/models_gen.go
 
 all: test install
@@ -78,11 +78,11 @@ $(BIN_DIR)/goalert-linux-arm64: $(BIN_DIR)/goalert web/src/build/static/app.js
 $(BIN_DIR)/goalert-darwin-amd64: $(BIN_DIR)/goalert web/src/build/static/app.js
 	GOOS=darwin go build -trimpath $(BUILD_FLAGS) -tags "$(BUILD_TAGS)" -ldflags "$(LD_FLAGS)" -o $@ ./cmd/goalert
 
-$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
+$(BIN_DIR)/%-linux-amd64: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/*.sql
 	GOOS=linux go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
+$(BIN_DIR)/%-linux-arm: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/*.sql
 	GOOS=linux GOARCH=arm go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
-$(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
+$(BIN_DIR)/%-linux-arm64: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/*.sql
 	GOOS=linux GOARCH=arm64 go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
 $(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
@@ -91,7 +91,7 @@ $(BIN_DIR)/goalert-%.tgz: $(BIN_DIR)/goalert-%
 	cp $(BIN_DIR)/goalert-$* $(BIN_DIR)/$*/goalert/bin/goalert
 	tar czvf $@ -C $(BIN_DIR)/$* goalert
 
-$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -name '*.go') migrate/*.go migrate/migrations/*.sql
+$(BIN_DIR)/%: go.mod go.sum $(shell find ./devtools -type f) migrate/*.go migrate/migrations/*.sql
 	go build $(BUILD_FLAGS) -o $@ $(shell find ./devtools -type d -name $* | grep cmd || find ./devtools -type d -name $*)
 
 $(BIN_DIR)/integration/goalert/cypress.json: web/src/cypress.json
