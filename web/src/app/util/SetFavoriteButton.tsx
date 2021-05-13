@@ -6,7 +6,7 @@ import Tooltip from '@material-ui/core/Tooltip'
 import { makeStyles } from '@material-ui/core/styles'
 
 interface SetFavoriteButtonProps {
-  typeName: 'rotation' | 'service' | 'schedule'
+  typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy'
   onClick: (event: React.FormEvent<HTMLFormElement>) => void
   isFavorite?: boolean
   loading?: boolean

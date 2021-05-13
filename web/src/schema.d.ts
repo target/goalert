@@ -711,6 +711,7 @@ export interface EscalationPolicy {
   name: string
   description: string
   repeat: number
+  isFavorite: boolean
   assignedTo: Target[]
   steps: EscalationPolicyStep[]
   notices: Notice[]

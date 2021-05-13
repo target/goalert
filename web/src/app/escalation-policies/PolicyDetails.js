@@ -7,6 +7,7 @@ import { Edit, Delete } from '@material-ui/icons'
 
 import PolicyStepsQuery from './PolicyStepsQuery'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
+import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
 import CreateFAB from '../lists/CreateFAB'
 import PolicyStepCreateDialog from './PolicyStepCreateDialog'
 import DetailsPage from '../details/DetailsPage'
@@ -17,7 +18,7 @@ import Spinner from '../loading/components/Spinner'
 import { EPAvatar } from '../util/avatars'
 
 const query = gql`
-  query ($id: ID!) {
+  query($id: ID!) {
     escalationPolicy(id: $id) {
       id
       name
@@ -40,11 +41,7 @@ export default function PolicyDetails(props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
 
-  const {
-    loading,
-    error,
-    data: _data,
-  } = useQuery(query, {
+  const { loading, error, data: _data } = useQuery(query, {
     variables: {
       id: props.escalationPolicyID,
     },
@@ -82,6 +79,10 @@ export default function PolicyDetails(props) {
             icon: <Delete />,
             handleOnClick: () => setShowDeleteDialog(true),
           },
+          <QuerySetFavoriteButton
+            key='secondary-action-favorite'
+            escalationPolicyID={data.id}
+          />,
         ]}
         links={[
           {

@@ -161,6 +161,7 @@ type ComplexityRoot struct {
 		AssignedTo  func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
+		IsFavorite  func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Notices     func(childComplexity int) int
 		Repeat      func(childComplexity int) int
@@ -525,6 +526,7 @@ type AlertLogEntryResolver interface {
 	State(ctx context.Context, obj *alertlog.Entry) (*NotificationState, error)
 }
 type EscalationPolicyResolver interface {
+	IsFavorite(ctx context.Context, obj *escalation.Policy) (bool, error)
 	AssignedTo(ctx context.Context, obj *escalation.Policy) ([]assignment.RawTarget, error)
 	Steps(ctx context.Context, obj *escalation.Policy) ([]escalation.Step, error)
 	Notices(ctx context.Context, obj *escalation.Policy) ([]notice.Notice, error)
@@ -1007,6 +1009,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EscalationPolicy.ID(childComplexity), true
+
+	case "EscalationPolicy.isFavorite":
+		if e.complexity.EscalationPolicy.IsFavorite == nil {
+			break
+		}
+
+		return e.complexity.EscalationPolicy.IsFavorite(childComplexity), true
 
 	case "EscalationPolicy.name":
 		if e.complexity.EscalationPolicy.Name == nil {
@@ -3967,6 +3976,7 @@ type EscalationPolicy {
   name: String!
   description: String!
   repeat: Int!
+  isFavorite: Boolean!
 
   assignedTo: [Target!]!
   steps: [EscalationPolicyStep!]!
@@ -6856,6 +6866,41 @@ func (ec *executionContext) _EscalationPolicy_repeat(ctx context.Context, field 
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EscalationPolicy_isFavorite(ctx context.Context, field graphql.CollectedField, obj *escalation.Policy) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EscalationPolicy",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.EscalationPolicy().IsFavorite(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EscalationPolicy_assignedTo(ctx context.Context, field graphql.CollectedField, obj *escalation.Policy) (ret graphql.Marshaler) {
@@ -19545,6 +19590,20 @@ func (ec *executionContext) _EscalationPolicy(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "isFavorite":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EscalationPolicy_isFavorite(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "assignedTo":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

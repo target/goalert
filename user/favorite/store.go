@@ -43,9 +43,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			INSERT INTO user_favorites (
 				user_id, tgt_service_id,
 				tgt_schedule_id,
-				tgt_rotation_id
+				tgt_rotation_id, 
+				tgt_escalation_policy_id
 			)
-			VALUES ($1, $2, $3, $4)
+			VALUES ($1, $2, $3, $4, $5)
 			ON CONFLICT DO NOTHING
 		`),
 		delete: p.P(`
@@ -54,19 +55,22 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				user_id = $1 AND
 				tgt_service_id = $2 OR
 				tgt_schedule_id = $3 OR
-				tgt_rotation_id = $4
+				tgt_rotation_id = $4 OR
+				tgt_escalation_policy_id = $5
 		`),
 		findAll: p.P(`
 			SELECT
 				tgt_service_id,
 				tgt_schedule_id,
-				tgt_rotation_id
+				tgt_rotation_id, 
+				tgt_escalation_policy_id
 			FROM user_favorites
 			WHERE user_id = $1
 				AND (
 					(tgt_service_id NOTNULL AND $2) OR
 					(tgt_schedule_id NOTNULL AND $3) OR
-					(tgt_rotation_id NOTNULL AND $4)
+					(tgt_rotation_id NOTNULL AND $4) OR
+					(tgt_escalation_policy_id NOTNULL AND $5)
 				)
 		`),
 	}, p.Err
@@ -87,7 +91,7 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
 		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,
-			assignment.TargetTypeSchedule, assignment.TargetTypeRotation),
+			assignment.TargetTypeSchedule, assignment.TargetTypeRotation, assignment.TargetTypeEscalationPolicy),
 	)
 	if err != nil {
 		return err
@@ -97,7 +101,7 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 		stmt = tx.StmtContext(ctx, stmt)
 	}
 
-	var serviceID, scheduleID, rotationID sql.NullString
+	var serviceID, scheduleID, rotationID, epID sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeService:
 		serviceID.Valid = true
@@ -108,8 +112,11 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 	case assignment.TargetTypeRotation:
 		rotationID.Valid = true
 		rotationID.String = tgt.TargetID()
+	case assignment.TargetTypeEscalationPolicy:
+		epID.Valid = true
+		epID.String = tgt.TargetID()
 	}
-	_, err = stmt.ExecContext(ctx, userID, serviceID, scheduleID, rotationID)
+	_, err = stmt.ExecContext(ctx, userID, serviceID, scheduleID, rotationID, epID)
 	if err != nil {
 		return errors.Wrap(err, "set favorite")
 	}
@@ -128,12 +135,12 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 		validate.UUID("TargetID", tgt.TargetID()),
 		validate.UUID("UserID", userID),
 		validate.OneOf("TargetType", tgt.TargetType(), assignment.TargetTypeService,
-			assignment.TargetTypeSchedule, assignment.TargetTypeRotation),
+			assignment.TargetTypeSchedule, assignment.TargetTypeRotation, assignment.TargetTypeEscalationPolicy),
 	)
 	if err != nil {
 		return err
 	}
-	var serviceID, scheduleID, rotationID sql.NullString
+	var serviceID, scheduleID, rotationID, epID sql.NullString
 	switch tgt.TargetType() {
 	case assignment.TargetTypeService:
 		serviceID.Valid = true
@@ -144,8 +151,11 @@ func (db *DB) Unset(ctx context.Context, userID string, tgt assignment.Target) e
 	case assignment.TargetTypeRotation:
 		rotationID.Valid = true
 		rotationID.String = tgt.TargetID()
+	case assignment.TargetTypeEscalationPolicy:
+		epID.Valid = true
+		epID.String = tgt.TargetID()
 	}
-	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID, rotationID)
+	_, err = db.delete.ExecContext(ctx, userID, serviceID, scheduleID, rotationID, epID)
 	if errors.Is(err, sql.ErrNoRows) {
 		// ignoring since it is safe to unset favorite (with retries)
 		err = nil
@@ -171,7 +181,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 		return nil, err
 	}
 
-	var allowServices, allowSchedules, allowRotations bool
+	var allowServices, allowSchedules, allowRotations, allowEscalationPolicies bool
 	if len(filter) == 0 {
 		allowServices = true
 	} else {
@@ -183,11 +193,13 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 				allowSchedules = true
 			case assignment.TargetTypeRotation:
 				allowRotations = true
+			case assignment.TargetTypeEscalationPolicy:
+				allowEscalationPolicies = true
 			}
 		}
 	}
 
-	rows, err := db.findAll.QueryContext(ctx, userID, allowServices, allowSchedules, allowRotations)
+	rows, err := db.findAll.QueryContext(ctx, userID, allowServices, allowSchedules, allowRotations, allowEscalationPolicies)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -199,7 +211,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 	var targets []assignment.Target
 
 	for rows.Next() {
-		var svc, sched, rot sql.NullString
+		var svc, sched, rot, escpolicy sql.NullString
 		err = rows.Scan(&svc, &sched, &rot)
 		if err != nil {
 			return nil, err
@@ -211,6 +223,8 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 			targets = append(targets, assignment.ScheduleTarget(sched.String))
 		case rot.Valid:
 			targets = append(targets, assignment.RotationTarget(rot.String))
+		case escpolicy.Valid:
+			targets = append(targets, assignment.EscalationPolicyTarget(escpolicy.String))
 		}
 	}
 	return targets, nil

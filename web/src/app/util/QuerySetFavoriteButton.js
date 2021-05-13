@@ -32,6 +32,14 @@ const queries = {
       }
     }
   `,
+  escalationPolicy: gql`
+    query escalationPolicyFavQuery($id: ID!) {
+      data: escalationPolicy(id: $id) {
+        id
+        isFavorite
+      }
+    }
+  `,
 }
 
 const mutation = gql`
@@ -51,6 +59,9 @@ export function QuerySetFavoriteButton(props) {
   } else if (props.scheduleID) {
     typeName = 'schedule'
     id = props.scheduleID
+  } else if (props.escalationPolicyID) {
+    typeName = 'escalationPolicy'
+    id = props.escalationPolicyID
   } else {
     throw new Error('unknown type')
   }
@@ -63,7 +74,12 @@ export function QuerySetFavoriteButton(props) {
     variables: {
       input: { target: { id, type: typeName }, favorite: !isFavorite },
     },
-    onError: () => setShowMutationErrorDialog(true),
+    //onError: () => setShowMutationErrorDialog(true),
+    onError: (error) => {
+      console.log(error)
+      console.log(props.escalationPolicyID)
+      setShowMutationErrorDialog(true)
+    },
   })
 
   return (
@@ -101,5 +117,6 @@ QuerySetFavoriteButton.propTypes = {
     serviceID: p.string,
     rotationID: p.string,
     scheduleID: p.string,
+    escalationPolicyID: p.string,
   }),
 }
