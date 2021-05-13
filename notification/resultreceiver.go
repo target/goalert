@@ -4,8 +4,8 @@ import (
 	"context"
 )
 
-// A Processor processes notification responses.
-type Processor interface {
+// A ResultReceiver processes notification responses.
+type ResultReceiver interface {
 	SetSendResult(ctx context.Context, res *SendResult) error
 
 	Receive(ctx context.Context, callbackID string, result Result) error

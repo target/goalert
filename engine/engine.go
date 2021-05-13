@@ -57,7 +57,7 @@ type Engine struct {
 	triggerPauseCh chan *pauseReq
 }
 
-var _ notification.Processor = &Engine{}
+var _ notification.ResultReceiver = &Engine{}
 
 type pauseReq struct {
 	ch  chan error

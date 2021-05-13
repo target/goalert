@@ -20,7 +20,8 @@ type SendResult struct {
 	// ID is the GoAlert message ID.
 	ID string
 
-	// ProviderMessageID is an identifier that represents the provider-specific ID of the message (e.g. Twilio SID).
+	// ProviderMessageID is an identifier that represents the provider-specific ID
+	// of the message (e.g. Twilio SID).
 	ProviderMessageID ProviderMessageID
 
 	Status
