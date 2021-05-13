@@ -334,6 +334,8 @@ type Mutation {
 
   createSchedule(input: CreateScheduleInput!): Schedule
 
+  createUser(input: CreateUserInput!): User
+
   createUserCalendarSubscription(
     input: CreateUserCalendarSubscriptionInput!
   ): UserCalendarSubscription!
@@ -376,6 +378,13 @@ input CreateAlertInput {
   details: String
   serviceID: ID!
   sanitize: Boolean
+}
+
+input CreateUserInput {
+  username: String!
+  password: String!
+  email: String
+  role: UserRole
 }
 
 input CreateUserCalendarSubscriptionInput {

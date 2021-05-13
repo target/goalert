@@ -60,6 +60,76 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 	return a.PolicyStore.FindAllOnCallStepsForUserTx(ctx, nil, obj.ID)
 }
 
+func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
+	// var newUser *user.User
+
+	// err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+	// 	usr := &user.User{
+	// 		Name: input.Username,
+	// 		Role: permission.RoleUser,
+	// 	}
+
+	// 	if input.Email != nil {
+	// 		usr.Email = *input.Email
+	// 	}
+
+	// 	if input.Role != nil {
+	// 		usr.Role = permission.Role(*input.Role)
+	// 	}
+
+	// 	newUser, err := a.UserStore.InsertTx(ctx, tx, usr)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+
+	// 	return a.BasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
+	// })
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return newUser, err
+
+	var newUser *user.User
+
+	usr := &user.User{
+		Name: input.Username,
+		Role: permission.RoleUser,
+	}
+
+	if input.Email != nil {
+		usr.Email = *input.Email
+	}
+
+	if input.Role != nil {
+		usr.Role = permission.Role(*input.Role)
+	}
+
+	tx, err := a.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	newUser, err = a.UserStore.InsertTx(ctx, tx, usr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.BasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return newUser, nil
+}
+
 func (a *Mutation) DeleteUser(ctx context.Context, id string) (bool, error) {
 	err := a.UserStore.Delete(ctx, id)
 	if err != nil {

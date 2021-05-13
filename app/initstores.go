@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
@@ -133,6 +134,13 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 	if err != nil {
 		return errors.Wrap(err, "init service store")
+	}
+
+	if app.BasicStore == nil {
+		app.BasicStore, err = basic.NewStore(ctx, app.db)
+	}
+	if err != nil {
+		return errors.Wrap(err, "init basic auth store")
 	}
 
 	if app.UserStore == nil {

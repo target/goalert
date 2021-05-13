@@ -12,6 +12,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
@@ -84,6 +85,7 @@ type App struct {
 	AlertStore    alert.Store
 	AlertLogStore alertlog.Store
 
+	BasicStore            *basic.Store
 	UserStore             user.Store
 	ContactMethodStore    contactmethod.Store
 	NotificationRuleStore notificationrule.Store
