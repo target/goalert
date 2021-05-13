@@ -4,7 +4,7 @@ import { Redirect } from 'react-router'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'
-import { Grid, TextField } from '@material-ui/core'
+import { Checkbox, FormControlLabel, Grid, TextField } from '@material-ui/core'
 import { useConfigValue } from '../util/RequireConfig'
 
 const mutation = gql`
@@ -18,6 +18,7 @@ const initialValue = {
   username: '',
   password: '',
   email: '',
+  isAdmin: false,
 }
 
 interface UserCreateDialogProps {
@@ -29,7 +30,12 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
   const [createUser, { loading, data, error }] = useMutation(mutation, {
     variables: {
-      input: value,
+      input: {
+        username: value.username,
+        password: value.password,
+        email: value.email,
+        role: value.isAdmin ? 'admin' : 'user',
+      },
     },
   })
 
@@ -88,6 +94,15 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
                 label='Email'
                 name='email'
                 type='email'
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <FormField component={Checkbox} checkbox name='isAdmin' />
+                }
+                label='Admin'
+                labelPlacement='end'
               />
             </Grid>
           </Grid>
