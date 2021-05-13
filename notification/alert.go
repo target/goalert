@@ -7,6 +7,9 @@ type Alert struct {
 	AlertID    int    // The global alert number
 	Summary    string
 	Details    string
+
+	// OriginalStatus is the status of the first Alert notification to this Dest for this AlertID.
+	OriginalStatus *MessageStatus
 }
 
 var _ Message = &Alert{}
