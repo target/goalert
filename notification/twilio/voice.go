@@ -174,12 +174,12 @@ func (v *Voice) ServeCall(w http.ResponseWriter, req *http.Request) {
 }
 
 // Status provides the current status of a message.
-func (v *Voice) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
+func (v *Voice) Status(ctx context.Context, id, providerID string) (*notification.Status, error) {
 	call, err := v.c.GetVoice(ctx, providerID)
 	if err != nil {
 		return nil, err
 	}
-	return call.messageStatus(id), nil
+	return call.messageStatus(), nil
 }
 
 // callbackURL returns an absolute URL pointing to the named callback.
@@ -198,15 +198,15 @@ func spellNumber(n int) string {
 }
 
 // Send implements the notification.Sender interface.
-func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
+func (v *Voice) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
-		return nil, errors.New("Twilio provider is disabled")
+		return "", nil, errors.New("Twilio provider is disabled")
 	}
 	toNumber := msg.Destination().Value
 
 	if toNumber == cfg.Twilio.FromNumber {
-		return nil, errors.New("refusing to make outgoing call to FromNumber")
+		return "", nil, errors.New("refusing to make outgoing call to FromNumber")
 	}
 	ctx = log.WithFields(ctx, log.Fields{
 		"Number": toNumber,
@@ -214,10 +214,10 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	})
 	b, err := v.ban.IsBanned(ctx, toNumber, true)
 	if err != nil {
-		return nil, errors.Wrap(err, "check ban status")
+		return "", nil, errors.Wrap(err, "check ban status")
 	}
 	if b {
-		return nil, errors.New("number had too many outgoing errors recently")
+		return "", nil, errors.New("number had too many outgoing errors recently")
 	}
 
 	opts := &VoiceOptions{
@@ -256,7 +256,7 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 		message = "This is a message from GoAlert to verify your voice contact method. Your verification code is: " + spellNumber(t.Code) + ". Again, your verification code is: " + spellNumber(t.Code)
 		opts.CallType = CallTypeVerify
 	default:
-		return nil, errors.Errorf("unhandled message type: %T", t)
+		return "", nil, errors.Errorf("unhandled message type: %T", t)
 	}
 
 	if message == "" {
@@ -272,10 +272,10 @@ func (v *Voice) Send(ctx context.Context, msg notification.Message) (*notificati
 	voiceResponse, err := v.c.StartVoice(ctx, toNumber, opts)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "call user"))
-		return nil, err
+		return "", nil, err
 	}
 
-	return voiceResponse.messageStatus(msg.ID()), nil
+	return voiceResponse.SID, voiceResponse.messageStatus(), nil
 }
 
 func disabled(w http.ResponseWriter, req *http.Request) bool {
@@ -325,7 +325,7 @@ func (v *Voice) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 		callState.SequenceNumber = &seq
 	}
 
-	err = v.r.UpdateStatus(ctx, callState.messageStatus(req.URL.Query().Get(msgParamID)))
+	err = v.r.SetMessageStatus(ctx, sid, callState.messageStatus())
 	if err != nil {
 		// log and continue
 		log.Log(ctx, err)

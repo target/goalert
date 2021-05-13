@@ -65,26 +65,26 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 func (s *SMS) SetReceiver(r notification.Receiver) { s.r = r }
 
 // Status provides the current status of a message.
-func (s *SMS) Status(ctx context.Context, id, providerID string) (*notification.MessageStatus, error) {
-	msg, err := s.c.GetSMS(ctx, providerID)
+func (s *SMS) Status(ctx context.Context, id, externalID string) (*notification.Status, error) {
+	msg, err := s.c.GetSMS(ctx, externalID)
 	if err != nil {
 		return nil, err
 	}
-	return msg.messageStatus(id), nil
+	return msg.messageStatus(), nil
 }
 
 // Send implements the notification.Sender interface.
-func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
+func (s *SMS) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
 	cfg := config.FromContext(ctx)
 	if !cfg.Twilio.Enable {
-		return nil, errors.New("Twilio provider is disabled")
+		return "", nil, errors.New("Twilio provider is disabled")
 	}
 	if msg.Destination().Type != notification.DestTypeSMS {
-		return nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
+		return "", nil, errors.Errorf("unsupported destination type %s; expected SMS", msg.Destination().Type)
 	}
 	destNumber := msg.Destination().Value
 	if destNumber == cfg.Twilio.FromNumber {
-		return nil, errors.New("refusing to send outgoing SMS to FromNumber")
+		return "", nil, errors.New("refusing to send outgoing SMS to FromNumber")
 	}
 
 	ctx = log.WithFields(ctx, log.Fields{
@@ -94,10 +94,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 
 	b, err := s.ban.IsBanned(ctx, destNumber, true)
 	if err != nil {
-		return nil, errors.Wrap(err, "check ban status")
+		return "", nil, errors.Wrap(err, "check ban status")
 	}
 	if b {
-		return nil, errors.New("number had too many outgoing errors recently")
+		return "", nil, errors.New("number had too many outgoing errors recently")
 	}
 
 	makeSMSCode := func(alertID int, serviceID string) int {
@@ -153,10 +153,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	case notification.Verification:
 		message = fmt.Sprintf("GoAlert verification code: %d", t.Code)
 	default:
-		return nil, errors.Errorf("unhandled message type %T", t)
+		return "", nil, errors.Errorf("unhandled message type %T", t)
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "render message")
+		return "", nil, errors.Wrap(err, "render message")
 	}
 
 	opts := &SMSOptions{
@@ -167,10 +167,10 @@ func (s *SMS) Send(ctx context.Context, msg notification.Message) (*notification
 	// Actually send notification to end user & receive Message Status
 	resp, err := s.c.SendSMS(ctx, destNumber, message, opts)
 	if err != nil {
-		return nil, errors.Wrap(err, "send message")
+		return "", nil, errors.Wrap(err, "send message")
 	}
 
-	return resp.messageStatus(msg.ID()), nil
+	return resp.SID, resp.messageStatus(), nil
 }
 
 func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
@@ -196,7 +196,7 @@ func (s *SMS) ServeStatusCallback(w http.ResponseWriter, req *http.Request) {
 
 	log.Debugf(ctx, "Got Twilio SMS status callback.")
 
-	err := s.r.UpdateStatus(ctx, msg.messageStatus(req.URL.Query().Get(msgParamID)))
+	err := s.r.SetMessageStatus(ctx, sid, msg.messageStatus())
 	if err != nil {
 		// log and continue
 		log.Log(ctx, err)

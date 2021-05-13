@@ -47,7 +47,7 @@ func (a *ContactMethod) LastTestMessageState(ctx context.Context, obj *contactme
 		return nil, nil
 	}
 
-	return notificationStateFromStatus(*status), nil
+	return notificationStateFromStatus(status.Status), nil
 }
 func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contactmethod.ContactMethod) (*graphql2.NotificationState, error) {
 	t := obj.LastTestVerifyAt()
@@ -63,7 +63,7 @@ func (a *ContactMethod) LastVerifyMessageState(ctx context.Context, obj *contact
 		return nil, nil
 	}
 
-	return notificationStateFromStatus(*status), nil
+	return notificationStateFromStatus(status.Status), nil
 }
 
 func (q *Query) UserContactMethod(ctx context.Context, id string) (*contactmethod.ContactMethod, error) {

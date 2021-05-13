@@ -13,7 +13,7 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.MessageStatus, error) {
+func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.SendResult, error) {
 	ctx, sp := trace.StartSpan(ctx, "Engine.SendMessage")
 	defer sp.End()
 	sp.AddAttributes(
@@ -46,10 +46,12 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 		if count == 0 {
 			// already acked/closed, don't send bundled notification
-			return &notification.MessageStatus{
-				ID:      msg.ID,
-				Details: "alerts acked/closed before message sent",
-				State:   notification.MessageStateFailedPerm,
+			return &notification.SendResult{
+				ID: msg.ID,
+				Status: notification.Status{
+					Details: "alerts acked/closed before message sent",
+					State:   notification.StateFailedPerm,
+				},
 			}, nil
 		}
 		notifMsg = notification.AlertBundle{
@@ -121,14 +123,14 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
-		return &notification.MessageStatus{State: notification.MessageStateFailedPerm}, nil
+		return &notification.SendResult{ID: msg.ID, Status: notification.Status{State: notification.StateFailedPerm}}, nil
 	}
 
 	meta := alertlog.NotificationMetaData{
 		MessageID: msg.ID,
 	}
 
-	status, err := p.cfg.NotificationManager.Send(ctx, notifMsg)
+	res, err := p.cfg.NotificationManager.SendMessage(ctx, notifMsg)
 	if err != nil {
 		return nil, err
 	}
@@ -143,5 +145,5 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	}
 
-	return status, nil
+	return res, nil
 }

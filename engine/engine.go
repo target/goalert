@@ -57,6 +57,8 @@ type Engine struct {
 	triggerPauseCh chan *pauseReq
 }
 
+var _ notification.Processor = &Engine{}
+
 type pauseReq struct {
 	ch  chan error
 	ctx context.Context
@@ -190,7 +192,7 @@ func (p *Engine) processMessages(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationManager.Status)
+	err := p.msg.SendMessages(ctx, p.sendMessage, p.cfg.NotificationManager.MessageStatus)
 	if errors.Is(err, processinglock.ErrNoLock) {
 		return
 	}
@@ -296,11 +298,11 @@ func (p *Engine) _shutdown(ctx context.Context) error {
 	return nil
 }
 
-// UpdateStatus will update the status of a message.
-func (p *Engine) UpdateStatus(ctx context.Context, status *notification.MessageStatus) error {
+// SetSendResult will update the status of a message.
+func (p *Engine) SetSendResult(ctx context.Context, res *notification.SendResult) error {
 	var err error
 	permission.SudoContext(ctx, func(ctx context.Context) {
-		err = p.msg.UpdateMessageStatus(ctx, status)
+		err = p.msg.UpdateMessageStatus(ctx, res)
 	})
 	return err
 }
