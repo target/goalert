@@ -7,7 +7,7 @@ import { FormContainer, FormField } from '../forms'
 import { Grid, TextField } from '@material-ui/core'
 
 const mutation = gql`
-  mutation($input: CreateUserInput!) {
+  mutation ($input: CreateUserInput!) {
     createUser(input: $input) {
       id
     }
