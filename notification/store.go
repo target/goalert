@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/target/goalert/permission"
@@ -465,11 +464,4 @@ func scanStatus(row *sql.Row) (*SendResult, time.Time, error) {
 	}
 
 	return &s, createdAt.Time, nil
-}
-
-func stripProviderIDType(s string) string {
-	if !strings.Contains(s, ":") {
-		return s
-	}
-	return strings.SplitN(s, ":", 2)[1]
 }
