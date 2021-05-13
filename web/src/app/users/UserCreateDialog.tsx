@@ -5,6 +5,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'
 import { Grid, TextField } from '@material-ui/core'
+import { useConfigValue } from '../util/RequireConfig'
 
 const mutation = gql`
   mutation ($input: CreateUserInput!) {
@@ -25,6 +26,7 @@ interface UserCreateDialogProps {
 
 function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
   const [value, setValue] = useState(initialValue)
+  const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
   const [createUser, { loading, data, error }] = useMutation(mutation, {
     variables: {
       input: value,
@@ -42,6 +44,18 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
       errors={nonFieldErrors(error)}
       onClose={props.onClose}
       onSubmit={() => createUser()}
+      notices={
+        authDisableBasic
+          ? [
+              {
+                type: 'WARNING',
+                message: 'Basic Auth is Disabled',
+                details:
+                  'This user will be unable to log in until basic auth is enabled.',
+              },
+            ]
+          : []
+      }
       form={
         <FormContainer
           value={value}
