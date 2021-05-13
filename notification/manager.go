@@ -17,11 +17,13 @@ type Manager struct {
 	providers   map[string]*namedSender
 	searchOrder []*namedSender
 
-	p  Processor
+	Processor
 	mx *sync.RWMutex
 
 	stubNotifiers bool
 }
+
+var _ Processor = Manager{}
 
 // NewManager initializes a new Manager.
 func NewManager() *Manager {
@@ -80,17 +82,17 @@ func (mgr *Manager) RegisterSender(t DestType, name string, s Sender) {
 	mgr.searchOrder = append(mgr.searchOrder, n)
 
 	if rs, ok := s.(ReceiverSetter); ok {
-		rs.SetReceiver(&namedReceiver{ns: n, p: mgr.p})
+		rs.SetReceiver(&namedReceiver{ns: n, p: mgr})
 	}
 }
 
 // RegisterEngine will set the Engine as the target for all Receive() calls.
 // It will panic if called multiple times.
 func (mgr *Manager) RegisterProcessor(p Processor) {
-	if mgr.p != nil {
+	if mgr.Processor != nil {
 		panic("tried to register a second Processor instance")
 	}
-	mgr.p = p
+	mgr.Processor = p
 }
 
 // SendMessage tries all registered senders for the type given
