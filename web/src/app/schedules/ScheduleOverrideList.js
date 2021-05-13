@@ -1,6 +1,5 @@
 import React from 'react'
 import p from 'prop-types'
-import PageActions from '../util/PageActions'
 import { Grid, FormControlLabel, Switch } from '@material-ui/core'
 import QueryList from '../lists/QueryList'
 import { gql } from '@apollo/client'
@@ -101,36 +100,9 @@ export default class ScheduleOverrideList extends React.PureComponent {
 
     return (
       <React.Fragment>
-        <PageActions>
-          <FilterContainer onReset={() => this.props.resetFilter()}>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={this.props.showPast}
-                    onChange={(e) => this.props.setShowPast(e.target.checked)}
-                    value='showPast'
-                  />
-                }
-                label='Show past overrides'
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <ScheduleTZFilter scheduleID={this.props.scheduleID} />
-            </Grid>
-            <Grid item xs={12}>
-              <UserSelect
-                label='Filter users...'
-                multiple
-                value={this.props.userFilter}
-                onChange={(value) => this.props.setUserFilter(value)}
-              />
-            </Grid>
-          </FilterContainer>
-          <ScheduleNewOverrideFAB
-            onClick={(variant) => this.setState({ create: variant })}
-          />
-        </PageActions>
+        <ScheduleNewOverrideFAB
+          onClick={(variant) => this.setState({ create: variant })}
+        />
         <QueryList
           headerNote={note}
           noSearch
@@ -164,6 +136,33 @@ export default class ScheduleOverrideList extends React.PureComponent {
               filterAnyUserID: this.props.userFilter,
             },
           }}
+          headerAction={
+            <FilterContainer onReset={() => this.props.resetFilter()}>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={this.props.showPast}
+                      onChange={(e) => this.props.setShowPast(e.target.checked)}
+                      value='showPast'
+                    />
+                  }
+                  label='Show past overrides'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <ScheduleTZFilter scheduleID={this.props.scheduleID} />
+              </Grid>
+              <Grid item xs={12}>
+                <UserSelect
+                  label='Filter users...'
+                  multiple
+                  value={this.props.userFilter}
+                  onChange={(value) => this.props.setUserFilter(value)}
+                />
+              </Grid>
+            </FilterContainer>
+          }
         />
         {this.state.create && (
           <ScheduleOverrideCreateDialog
