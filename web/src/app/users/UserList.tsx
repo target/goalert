@@ -6,7 +6,7 @@ import QueryList from '../lists/QueryList'
 import UserPhoneNumberFilterContainer from './UserPhoneNumberFilterContainer'
 import CreateFAB from '../lists/CreateFAB'
 import UserCreateDialog from './UserCreateDialog'
-import { useSessionInfo } from '../util/RequireConfig'
+import { useConfigValue, useSessionInfo } from '../util/RequireConfig'
 
 const query = gql`
   query usersQuery($input: UserSearchOptions) {
@@ -27,6 +27,7 @@ const query = gql`
 function UserList(): JSX.Element {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const { isAdmin, ready } = useSessionInfo()
+  const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
 
   return (
     <React.Fragment>
@@ -47,7 +48,7 @@ function UserList(): JSX.Element {
         }}
         searchAdornment={<UserPhoneNumberFilterContainer />}
       />
-      {ready && isAdmin && (
+      {ready && isAdmin && !authDisableBasic && (
         <CreateFAB
           onClick={() => setShowCreateDialog(true)}
           title='Create User'
