@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react'
-import { useQuery, OperationVariables, QueryResult } from '@apollo/client'
+import {
+  useQuery,
+  OperationVariables,
+  QueryResult,
+  DocumentNode,
+} from '@apollo/client'
 import { useSelector } from 'react-redux'
 import { Grid } from '@material-ui/core'
 import { once } from 'lodash'
@@ -49,7 +54,7 @@ const buildFetchMore = (
   })
 }
 
-export interface QueryListProps extends ControlledPaginatedListProps {
+export interface _QueryListProps extends ControlledPaginatedListProps {
   /*
    * query must provide a single field that returns nodes
    *
@@ -66,7 +71,7 @@ export interface QueryListProps extends ControlledPaginatedListProps {
    *   }
    *  ```
    */
-  query: Record<string, unknown>
+  query: DocumentNode
 
   // mapDataNode should map the struct from each node in `nodes` to the struct required by a PaginatedList item
   mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
@@ -78,6 +83,8 @@ export interface QueryListProps extends ControlledPaginatedListProps {
   // mapVariables transforms query variables just before submission
   mapVariables?: (vars: OperationVariables) => OperationVariables
 }
+
+export type QueryListProps = Omit<_QueryListProps, 'items'>
 
 export default function QueryList(props: QueryListProps): JSX.Element {
   const {
