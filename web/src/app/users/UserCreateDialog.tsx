@@ -35,8 +35,6 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
     return <Redirect push to={`/users/${data.createUser.id}`} />
   }
 
-  console.log(fieldErrors(error))
-
   return (
     <FormDialog
       title='Create User'
