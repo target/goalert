@@ -66,7 +66,7 @@
     "@babel/preset-env": "7.14.2",
     "@babel/preset-react": "7.13.13",
     "@babel/preset-typescript": "7.13.0",
-    "@cypress/webpack-preprocessor": "5.7.0",
+    "@cypress/webpack-preprocessor": "5.8.0",
     "@material-ui/pickers": "3.3.10",
     "@types/chance": "1.1.1",
     "@types/classnames": "2.3.1",
