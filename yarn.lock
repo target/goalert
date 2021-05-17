@@ -1207,10 +1207,10 @@
     tunnel-agent "^0.6.0"
     uuid "^3.3.2"
 
-"@cypress/webpack-preprocessor@5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-5.7.0.tgz#653c92662fe885260f176f5a1bd630dfd2cee8ca"
-  integrity sha512-E60lsdMoIJFR36t7J2yjcAH3vrxF1WecoTIz4PL7Km/LrIEx1/qafEeyGuHTBynr/RBd4kCaS2XLJW75hOeLSw==
+"@cypress/webpack-preprocessor@5.8.0":
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/@cypress/webpack-preprocessor/-/webpack-preprocessor-5.8.0.tgz#ae89775c0833d6d3c00fe9349ded270043cc6843"
+  integrity sha512-8R0EIWTPsOQQx1yGuQf6QFkaPxH3WtLbmIezeC4nWs8ITBTRASTTIhiXtbrntVphqFQX0Hm0eCiYEEwzBgVbog==
   dependencies:
     bluebird "^3.7.1"
     debug "4.3.2"
