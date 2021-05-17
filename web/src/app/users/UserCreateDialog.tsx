@@ -20,11 +20,13 @@ interface UserCreateDialogProps {
 
 function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
   const [value, setValue] = useState({
-  username: '',
-  password: '',
-  email: '',
-  isAdmin: false,
-})
+    username: '',
+    password: '',
+    password2: '',
+    email: '',
+    isAdmin: false,
+  })
+
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
   const [createUser, { loading, data, error }] = useMutation(mutation, {
     variables: {
@@ -81,7 +83,25 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
                 fullWidth
                 component={TextField}
                 name='password'
+                type='password'
+                autoComplete='new-password'
                 required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                name='password2'
+                label='Confirm Password'
+                type='password'
+                autoComplete='new-password'
+                required
+                validate={() => {
+                  if (value.password !== value.password2) {
+                    return new Error('Passwords do not match')
+                  }
+                }}
               />
             </Grid>
             <Grid item xs={12}>
