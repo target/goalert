@@ -141,6 +141,7 @@ export default function UserSessionList(
 
       <Card>
         <FlatList
+          emptyMessage='No active sessions'
           items={sessions.map((s) => ({
             title: friendlyUAString(s.userAgent),
             highlight: s.current,
