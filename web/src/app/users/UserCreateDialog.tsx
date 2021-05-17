@@ -79,7 +79,6 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
               <FormField
                 fullWidth
                 component={TextField}
-                label='Password'
                 name='password'
                 required
               />
