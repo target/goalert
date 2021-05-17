@@ -320,6 +320,10 @@ func (step *EscalationPolicyStep) EscalationPolicy(ctx context.Context, raw *esc
 	return (*App)(step).FindOnePolicy(ctx, raw.PolicyID)
 }
 
+func (step *EscalationPolicy) IsFavorite(ctx context.Context, raw *escalation.Policy) (bool, error) {
+	return raw.IsUserFavorite(), nil
+}
+
 func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) ([]escalation.Step, error) {
 	return ep.PolicyStore.FindAllSteps(ctx, raw.ID)
 }

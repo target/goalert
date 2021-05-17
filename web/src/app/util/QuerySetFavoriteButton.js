@@ -74,12 +74,7 @@ export function QuerySetFavoriteButton(props) {
     variables: {
       input: { target: { id, type: typeName }, favorite: !isFavorite },
     },
-    //onError: () => setShowMutationErrorDialog(true),
-    onError: (error) => {
-      console.log(error)
-      console.log(props.escalationPolicyID)
-      setShowMutationErrorDialog(true)
-    },
+    onError: () => setShowMutationErrorDialog(true),
   })
 
   return (
