@@ -10,7 +10,7 @@ type Receiver interface {
 	// Receive records a response to a previously sent message.
 	Receive(ctx context.Context, callbackID string, result Result) error
 
-	// Stop indicates a user has opted-in for notifications to this contact method.
+	// Start indicates a user has opted-in for notifications to this contact method.
 	Start(context.Context, Dest) error
 
 	// Stop indicates a user has opted-out of notifications from a contact method.
