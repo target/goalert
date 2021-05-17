@@ -11,7 +11,7 @@ type Sender interface {
 	// Send should return nil error if the notification was sent successfully. It should be expected
 	// that a returned error means that the notification should be attempted again.
 	//
-	// If the sent message can have it's status tracked, a unique externalID should be returned.
+	// If the sent message can have its status tracked, a unique externalID should be returned.
 	Send(context.Context, Message) (externalID string, status *Status, err error)
 }
 
