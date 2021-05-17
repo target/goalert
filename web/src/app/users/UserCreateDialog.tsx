@@ -89,7 +89,6 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
               <FormField
                 fullWidth
                 component={TextField}
-                label='Email'
                 name='email'
                 type='email'
               />
