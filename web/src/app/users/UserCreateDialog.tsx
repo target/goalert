@@ -65,6 +65,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
           value={value}
           errors={fieldErrors(error)}
           onChange={(val: typeof value) => setValue(val)}
+          optionalLabels
         >
           <Grid container spacing={2}>
             <Grid item xs={12}>
