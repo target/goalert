@@ -303,6 +303,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 	cfg := config.FromContext(ctx)
+
 	vals := make(url.Values)
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
