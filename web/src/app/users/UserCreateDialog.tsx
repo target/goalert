@@ -37,7 +37,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
     },
   })
 
-  if (data?.createUser) {
+  if (!loading && data?.createUser) {
     return <Redirect push to={`/users/${data.createUser.id}`} />
   }
 
