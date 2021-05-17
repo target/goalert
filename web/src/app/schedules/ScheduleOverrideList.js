@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import p from 'prop-types'
 import { Grid, FormControlLabel, Switch } from '@material-ui/core'
 import QueryList from '../lists/QueryList'
@@ -7,9 +7,7 @@ import { UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
-import { connect } from 'react-redux'
-import { setURLParam, resetURLParams } from '../actions'
-import { urlParamSelector } from '../selectors'
+import { useURLParam, useResetURLParams } from '../actions'
 import { ScheduleTZFilter } from './ScheduleTZFilter'
 import ScheduleOverrideCreateDialog from './ScheduleOverrideCreateDialog'
 import ScheduleNewOverrideFAB from './ScheduleNewOverrideFAB'
@@ -43,147 +41,127 @@ const query = gql`
   }
 `
 
-const mapStateToProps = (state) => {
-  return {
-    userFilter: urlParamSelector(state)('userFilter', []),
-    showPast: urlParamSelector(state)('showPast', false),
-    zone: urlParamSelector(state)('tz', 'local'),
-  }
-}
-const mapDispatchToProps = (dispatch) => {
-  return {
-    setZone: (value) => dispatch(setURLParam('tz', value, 'local')),
-    setUserFilter: (value) => dispatch(setURLParam('userFilter', value)),
-    setShowPast: (value) => dispatch(setURLParam('showPast', value)),
-    resetFilter: () => dispatch(resetURLParams('userFilter', 'showPast', 'tz')),
-  }
-}
+export default function ScheduleOverrideList(props) {
+  const [editID, setEditID] = useState(null)
+  const [deleteID, setDeleteID] = useState(null)
+  const [create, setCreate] = useState(null)
 
-@connect(mapStateToProps, mapDispatchToProps)
-export default class ScheduleOverrideList extends React.PureComponent {
-  static propTypes = {
-    scheduleID: p.string.isRequired,
-  }
+  const [userFilter, setUserFilter] = useURLParam('userFilter', [])
+  const [showPast, setShowPast] = useURLParam('showPast', false)
+  const [zone] = useURLParam('tz', 'local')
+  const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
-  state = {
-    editID: null,
-    deleteID: null,
-    create: null,
-  }
-
-  render() {
-    const { zone } = this.props
-
-    const subText = (n) => {
-      const timeStr = formatOverrideTime(n.start, n.end, zone)
-      if (n.addUser && n.removeUser) {
-        // replace
-        return `Replaces ${n.removeUser.name} from ${timeStr}`
-      }
-      if (n.addUser) {
-        // add
-        return `Added from ${timeStr}`
-      }
-      // remove
-      return `Removed from ${timeStr}`
+  const subText = (n) => {
+    const timeStr = formatOverrideTime(n.start, n.end, props.zone)
+    if (n.addUser && n.removeUser) {
+      // replace
+      return `Replaces ${n.removeUser.name} from ${timeStr}`
     }
-
-    const zoneText = zone === 'local' ? 'local time' : zone
-    const hasUsers = Boolean(this.props.userFilter.length)
-    const note = this.props.showPast
-      ? `Showing all overrides${
-          hasUsers ? ' for selected users' : ''
-        } in ${zoneText}.`
-      : `Showing active and future overrides${
-          hasUsers ? ' for selected users' : ''
-        } in ${zoneText}.`
-
-    return (
-      <React.Fragment>
-        <ScheduleNewOverrideFAB
-          onClick={(variant) => this.setState({ create: variant })}
-        />
-        <QueryList
-          headerNote={note}
-          noSearch
-          noPlaceholder
-          query={query}
-          mapDataNode={(n) => ({
-            title: n.addUser ? n.addUser.name : n.removeUser.name,
-            subText: subText(n),
-            icon: (
-              <UserAvatar userID={n.addUser ? n.addUser.id : n.removeUser.id} />
-            ),
-            action: (
-              <OtherActions
-                actions={[
-                  {
-                    label: 'Edit',
-                    onClick: () => this.setState({ editID: n.id }),
-                  },
-                  {
-                    label: 'Delete',
-                    onClick: () => this.setState({ deleteID: n.id }),
-                  },
-                ]}
-              />
-            ),
-          })}
-          variables={{
-            input: {
-              scheduleID: this.props.scheduleID,
-              start: this.props.showPast ? null : new Date().toISOString(),
-              filterAnyUserID: this.props.userFilter,
-            },
-          }}
-          headerAction={
-            <FilterContainer onReset={() => this.props.resetFilter()}>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={this.props.showPast}
-                      onChange={(e) => this.props.setShowPast(e.target.checked)}
-                      value='showPast'
-                    />
-                  }
-                  label='Show past overrides'
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <ScheduleTZFilter scheduleID={this.props.scheduleID} />
-              </Grid>
-              <Grid item xs={12}>
-                <UserSelect
-                  label='Filter users...'
-                  multiple
-                  value={this.props.userFilter}
-                  onChange={(value) => this.props.setUserFilter(value)}
-                />
-              </Grid>
-            </FilterContainer>
-          }
-        />
-        {this.state.create && (
-          <ScheduleOverrideCreateDialog
-            scheduleID={this.props.scheduleID}
-            variant={this.state.create}
-            onClose={() => this.setState({ create: null })}
-          />
-        )}
-        {this.state.deleteID && (
-          <ScheduleOverrideDeleteDialog
-            overrideID={this.state.deleteID}
-            onClose={() => this.setState({ deleteID: null })}
-          />
-        )}
-        {this.state.editID && (
-          <ScheduleOverrideEditDialog
-            overrideID={this.state.editID}
-            onClose={() => this.setState({ editID: null })}
-          />
-        )}
-      </React.Fragment>
-    )
+    if (n.addUser) {
+      // add
+      return `Added from ${timeStr}`
+    }
+    // remove
+    return `Removed from ${timeStr}`
   }
+
+  const zoneText = zone === 'local' ? 'local time' : zone
+  const hasUsers = Boolean(userFilter.length)
+  const note = showPast
+    ? `Showing all overrides${
+        hasUsers ? ' for selected users' : ''
+      } in ${zoneText}.`
+    : `Showing active and future overrides${
+        hasUsers ? ' for selected users' : ''
+      } in ${zoneText}.`
+
+  return (
+    <React.Fragment>
+      <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
+      <QueryList
+        headerNote={note}
+        noSearch
+        noPlaceholder
+        query={query}
+        mapDataNode={(n) => ({
+          title: n.addUser ? n.addUser.name : n.removeUser.name,
+          subText: subText(n),
+          icon: (
+            <UserAvatar userID={n.addUser ? n.addUser.id : n.removeUser.id} />
+          ),
+          action: (
+            <OtherActions
+              actions={[
+                {
+                  label: 'Edit',
+                  onClick: () => setEditID(n.id),
+                },
+                {
+                  label: 'Delete',
+                  onClick: () => setDeleteID(n.id),
+                },
+              ]}
+            />
+          ),
+        })}
+        variables={{
+          input: {
+            scheduleID: props.scheduleID,
+            start: showPast ? null : new Date().toISOString(),
+            filterAnyUserID: userFilter,
+          },
+        }}
+        renderHeaderAction={() => (
+          <FilterContainer onReset={() => resetFilter()}>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showPast}
+                    onChange={(e) => setShowPast(e.target.checked)}
+                    value='showPast'
+                  />
+                }
+                label='Show past overrides'
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <ScheduleTZFilter scheduleID={props.scheduleID} />
+            </Grid>
+            <Grid item xs={12}>
+              <UserSelect
+                label='Filter users...'
+                multiple
+                value={userFilter}
+                onChange={(value) => setUserFilter(value)}
+              />
+            </Grid>
+          </FilterContainer>
+        )}
+      />
+      {create && (
+        <ScheduleOverrideCreateDialog
+          scheduleID={props.scheduleID}
+          variant={create}
+          onClose={() => setCreate(null)}
+        />
+      )}
+      {deleteID && (
+        <ScheduleOverrideDeleteDialog
+          overrideID={deleteID}
+          onClose={() => setDeleteID(null)}
+        />
+      )}
+      {editID && (
+        <ScheduleOverrideEditDialog
+          overrideID={editID}
+          onClose={() => setEditID(null)}
+        />
+      )}
+    </React.Fragment>
+  )
+}
+
+ScheduleOverrideList.propTypes = {
+  scheduleID: p.string.isRequired,
 }
