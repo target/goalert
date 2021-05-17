@@ -22,8 +22,8 @@ func (s *namedSender) Send(ctx context.Context, msg Message) (*SendResult, error
 	if status != nil {
 		res.Status = *status
 	}
-	res.ProviderMessageID.Provider = s.name
-	res.ProviderMessageID.ID = externalID
+	res.ProviderMessageID.ProviderName = s.name
+	res.ProviderMessageID.ExternalID = externalID
 
 	return res, err
 }

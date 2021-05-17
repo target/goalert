@@ -9,12 +9,12 @@ type namedReceiver struct {
 
 var _ Receiver = &namedReceiver{}
 
-// UpdateStatus calls the underlying UpdateStatus method after wrapping the status for the
+// SetMessageStatus calls the underlying ResultReceiver's SetSendResult method after wrapping the status for the
 // namedSender.
 func (nr *namedReceiver) SetMessageStatus(ctx context.Context, externalID string, status *Status) error {
 	res := &SendResult{Status: *status}
-	res.ProviderMessageID.Provider = nr.ns.name
-	res.ProviderMessageID.ID = externalID
+	res.ProviderMessageID.ProviderName = nr.ns.name
+	res.ProviderMessageID.ExternalID = externalID
 	return nr.r.SetSendResult(ctx, res)
 }
 

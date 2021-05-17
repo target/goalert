@@ -43,9 +43,9 @@ func (mgr *Manager) SetStubNotifiers() {
 // MessageStatus will return the current status of a message.
 func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, providerMsgID ProviderMessageID) (*Status, error) {
 
-	provider := mgr.providers[providerMsgID.Provider]
+	provider := mgr.providers[providerMsgID.ProviderName]
 	if provider == nil {
-		return nil, errors.Errorf("unknown provider ID '%s'", providerMsgID.Provider)
+		return nil, errors.Errorf("unknown provider ID '%s'", providerMsgID.ProviderName)
 	}
 
 	checker, ok := provider.Sender.(StatusChecker)
@@ -55,11 +55,11 @@ func (mgr *Manager) MessageStatus(ctx context.Context, messageID string, provide
 
 	ctx, sp := trace.StartSpan(ctx, "NotificationManager.Status")
 	sp.AddAttributes(
-		trace.StringAttribute("provider.id", providerMsgID.ID),
-		trace.StringAttribute("provider.message.id", providerMsgID.Provider),
+		trace.StringAttribute("provider.id", providerMsgID.ExternalID),
+		trace.StringAttribute("provider.message.id", providerMsgID.ProviderName),
 	)
 	defer sp.End()
-	return checker.Status(ctx, providerMsgID.ID)
+	return checker.Status(ctx, providerMsgID.ExternalID)
 }
 
 // RegisterSender will register a sender under a given DestType and name.
