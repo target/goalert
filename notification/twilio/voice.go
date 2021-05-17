@@ -68,6 +68,7 @@ type Voice struct {
 
 var _ notification.ReceiverSetter = &Voice{}
 var _ notification.Sender = &Voice{}
+var _ notification.StatusChecker = &Voice{}
 
 type gather struct {
 	XMLName   xml.Name `xml:"Gather,omitempty"`
@@ -174,8 +175,8 @@ func (v *Voice) ServeCall(w http.ResponseWriter, req *http.Request) {
 }
 
 // Status provides the current status of a message.
-func (v *Voice) Status(ctx context.Context, id, providerID string) (*notification.Status, error) {
-	call, err := v.c.GetVoice(ctx, providerID)
+func (v *Voice) Status(ctx context.Context, externalID string) (*notification.Status, error) {
+	call, err := v.c.GetVoice(ctx, externalID)
 	if err != nil {
 		return nil, err
 	}

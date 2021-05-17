@@ -40,6 +40,7 @@ type SMS struct {
 
 var _ notification.ReceiverSetter = &SMS{}
 var _ notification.Sender = &SMS{}
+var _ notification.StatusChecker = &SMS{}
 
 // NewSMS performs operations like validating essential parameters, registering the Twilio client and db
 // and adding routes for successful and unsuccessful message delivery to Twilio
@@ -65,7 +66,7 @@ func NewSMS(ctx context.Context, db *sql.DB, c *Config) (*SMS, error) {
 func (s *SMS) SetReceiver(r notification.Receiver) { s.r = r }
 
 // Status provides the current status of a message.
-func (s *SMS) Status(ctx context.Context, id, externalID string) (*notification.Status, error) {
+func (s *SMS) Status(ctx context.Context, externalID string) (*notification.Status, error) {
 	msg, err := s.c.GetSMS(ctx, externalID)
 	if err != nil {
 		return nil, err
