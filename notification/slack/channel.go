@@ -303,7 +303,6 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 
 func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
 	cfg := config.FromContext(ctx)
-
 	vals := make(url.Values)
 	// Parameters & URL documented here:
 	// https://api.slack.com/methods/chat.postMessage
@@ -311,6 +310,10 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	switch t := msg.(type) {
 	case notification.Alert:
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
+		if t.OriginalStatus != nil {
+			// escalated alert
+			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID)
+		}
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	default:
