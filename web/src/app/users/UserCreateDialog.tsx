@@ -14,19 +14,17 @@ const mutation = gql`
     }
   }
 `
-const initialValue = {
-  username: '',
-  password: '',
-  email: '',
-  isAdmin: false,
-}
-
 interface UserCreateDialogProps {
   onClose: () => void
 }
 
 function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState({
+  username: '',
+  password: '',
+  email: '',
+  isAdmin: false,
+})
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
   const [createUser, { loading, data, error }] = useMutation(mutation, {
     variables: {
