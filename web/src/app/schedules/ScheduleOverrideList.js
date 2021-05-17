@@ -111,7 +111,7 @@ export default function ScheduleOverrideList(props) {
             filterAnyUserID: userFilter,
           },
         }}
-        renderHeaderAction={() => (
+        headerAction={
           <FilterContainer onReset={() => resetFilter()}>
             <Grid item xs={12}>
               <FormControlLabel
@@ -137,7 +137,7 @@ export default function ScheduleOverrideList(props) {
               />
             </Grid>
           </FilterContainer>
-        )}
+        }
       />
       {create && (
         <ScheduleOverrideCreateDialog
