@@ -3,7 +3,6 @@ package graphqlapp
 import (
 	context "context"
 	"database/sql"
-	"fmt"
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
@@ -21,7 +20,6 @@ func (a *App) Mutation() graphql2.MutationResolver { return (*Mutation)(a) }
 
 func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteInput) (bool, error) {
 	var err error
-	fmt.Println(input.Favorite)
 	if input.Favorite {
 		err = a.FavoriteStore.Set(ctx, permission.UserID(ctx), input.Target)
 	} else {

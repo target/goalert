@@ -360,6 +360,7 @@ func (q *Query) EscalationPolicies(ctx context.Context, opts *graphql2.Escalatio
 	}
 
 	var searchOpts escalation.SearchOptions
+	searchOpts.FavoritesUserID = permission.UserID(ctx)
 	if opts.Search != nil {
 		searchOpts.Search = *opts.Search
 	}
@@ -369,6 +370,12 @@ func (q *Query) EscalationPolicies(ctx context.Context, opts *graphql2.Escalatio
 		if err != nil {
 			return nil, err
 		}
+	}
+	if opts.FavoritesOnly != nil {
+		searchOpts.FavoritesOnly = *opts.FavoritesOnly
+	}
+	if opts.FavoritesFirst != nil {
+		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	if opts.First != nil {
 		searchOpts.Limit = *opts.First

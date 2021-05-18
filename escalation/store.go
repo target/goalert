@@ -165,8 +165,20 @@ func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 			WHERE e.id = $1
 		`),
 		findOnePolicyForUpdate: p.P(`SELECT id, name, description, repeat FROM escalation_policies WHERE id = $1 FOR UPDATE`),
-		findManyPolicies:       p.P(`SELECT id, name, description, repeat FROM escalation_policies WHERE id = any($1)`),
-
+		//findManyPolicies:       p.P(`SELECT id, name, description, repeat FROM escalation_policies WHERE id = any($1)`),
+		findManyPolicies: p.P(`
+            SELECT
+                e.id,
+                e.name,
+                e.description,
+                e.repeat,
+                fav is distinct from null
+            FROM
+                escalation_policies e
+            LEFT JOIN user_favorites fav ON
+                fav.tgt_escalation_policy_id = e.id AND fav.user_id = $2
+            WHERE e.id = any($1)
+        `),
 		findAllPolicies: p.P(`SELECT id, name, description, repeat FROM escalation_policies`),
 		findAllPoliciesBySchedule: p.P(`
 			SELECT DISTINCT
@@ -349,8 +361,8 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 	if err != nil {
 		return nil, err
 	}
-
-	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids))
+	userID := permission.UserID(ctx)
+	rows, err := db.findManyPolicies.QueryContext(ctx, sqlutil.UUIDArray(ids), userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -362,7 +374,7 @@ func (db *DB) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, err
 	var result []Policy
 	var p Policy
 	for rows.Next() {
-		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.Repeat)
+		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.Repeat, &p.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}

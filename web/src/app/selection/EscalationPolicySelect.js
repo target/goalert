@@ -7,6 +7,7 @@ const query = gql`
       nodes {
         id
         name
+        isFavforite
       }
     }
   }
@@ -17,11 +18,17 @@ const valueQuery = gql`
     escalationPolicy(id: $id) {
       id
       name
+      isFavorite
     }
   }
 `
 
 export const EscalationPolicySelect = makeQuerySelect(
   'EscalationPolicySelect',
-  { query, valueQuery },
+  {
+    variables: { favoritesFirst: true },
+    defaultQueryVariables: { favoritesFirst: true },
+    query,
+    valueQuery,
+  },
 )

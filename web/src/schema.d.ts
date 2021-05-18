@@ -545,6 +545,8 @@ export interface EscalationPolicySearchOptions {
   after?: string
   search?: string
   omit?: string[]
+  favoritesOnly?: boolean
+  favoritesFirst?: boolean
 }
 
 export interface ScheduleSearchOptions {

@@ -18,6 +18,15 @@ type SearchOptions struct {
 	Search string       `json:"s,omitempty"`
 	After  SearchCursor `json:"a,omitempty"`
 
+	// FavoritesUserID specifies the UserID whose favorite escalation policies want to be displayed.
+	FavoritesUserID string `json:"u,omitempty"`
+
+	// FavoritesOnly controls filtering the results to those marked as favorites by FavoritesUserID.
+	FavoritesOnly bool `json:"g,omitempty"`
+
+	// FavoritesFirst indicates that escalation policy marked as favorite (by FavoritesUserID) should be returned first (before any non-favorites).
+	FavoritesFirst bool `json:"f,omitempty"`
+
 	// Omit specifies a list of policy IDs to exclude from the results.
 	Omit []string `json:"o,omitempty"`
 
@@ -26,28 +35,50 @@ type SearchOptions struct {
 
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
-	Name string `json:"n,omitempty"`
+	Name       string `json:"n,omitempty"`
+	IsFavorite bool   `json:"f"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`
 	SELECT
-		id, name, description, repeat
+		pol.id,
+		pol.name,
+		pol.description,
+		pol.repeat,
+		fav IS DISTINCT FROM NULL
 	FROM escalation_policies pol
+	{{if not .FavoritesOnly }}
+		LEFT {{end}}JOIN user_favorites fav ON pol.id = fav.tgt_escalation_policy_id
+			AND {{if .FavoritesUserID}}fav.user_id = :favUserID{{else}}false{{end}}
 	WHERE true
 	{{if .Omit}}
-		AND not id = any(:omit)
+		AND NOT pol.id = any(:omit)
 	{{end}}
 	{{if .SearchStr}}
 		AND (pol.name ILIKE :search OR pol.description ILIKE :search)
 	{{end}}
 	{{if .After.Name}}
-		AND lower(pol.name) > lower(:afterName)
+		AND
+		{{if not .FavoritesFirst}}
+			lower(pol.name) > lower(:afterName)
+		{{else if .After.IsFavorite}}
+			((fav IS DISTINCT FROM NULL AND lower(pol.name) > lower(:afterName)) OR fav isnull)
+		{{else}}
+			(fav isnull AND lower(pol.name) > lower(:afterName))
+		{{end}}
 	{{end}}
-	ORDER BY lower(pol.name)
+	ORDER BY {{ .OrderBy }}
 	LIMIT {{.Limit}}
 `))
 
 type renderData SearchOptions
+
+func (opts renderData) OrderBy() string {
+	if opts.FavoritesFirst {
+		return "fav isnull, lower(pol.name)"
+	}
+	return "lower(pol.name)"
+}
 
 func (opts renderData) SearchStr() string {
 	if opts.Search == "" {
@@ -70,6 +101,12 @@ func (opts renderData) Normalize() (*renderData, error) {
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
 	}
+	if opts.FavoritesOnly || opts.FavoritesFirst || opts.FavoritesUserID != "" {
+		err = validate.Many(err, validate.UUID("FavoritesUserID", opts.FavoritesUserID))
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	return &opts, err
 }
@@ -79,6 +116,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchStr()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("favUserID", opts.FavoritesUserID),
 	}
 }
 
@@ -89,6 +127,14 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Policy, error)
 	}
 	if opts == nil {
 		opts = &SearchOptions{}
+	}
+	userCheck := permission.User
+	if opts.FavoritesUserID != "" {
+		userCheck = permission.MatchUser(opts.FavoritesUserID)
+	}
+	err = permission.LimitCheckAny(ctx, permission.System, userCheck)
+	if err != nil {
+		return nil, err
 	}
 	data, err := (*renderData)(opts).Normalize()
 	if err != nil {
@@ -111,7 +157,7 @@ func (db *DB) Search(ctx context.Context, opts *SearchOptions) ([]Policy, error)
 	var result []Policy
 	var p Policy
 	for rows.Next() {
-		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.Repeat)
+		err = rows.Scan(&p.ID, &p.Name, &p.Description, &p.Repeat, &p.isUserFavorite)
 		if err != nil {
 			return nil, err
 		}

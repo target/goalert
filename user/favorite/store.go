@@ -3,7 +3,6 @@ package favorite
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
@@ -114,7 +113,6 @@ func (db *DB) SetTx(ctx context.Context, tx *sql.Tx, userID string, tgt assignme
 		rotationID.Valid = true
 		rotationID.String = tgt.TargetID()
 	case assignment.TargetTypeEscalationPolicy:
-		fmt.Println(tgt.TargetID())
 		epID.Valid = true
 		epID.String = tgt.TargetID()
 	}
@@ -214,7 +212,7 @@ func (db *DB) FindAll(ctx context.Context, userID string, filter []assignment.Ta
 
 	for rows.Next() {
 		var svc, sched, rot, escpolicy sql.NullString
-		err = rows.Scan(&svc, &sched, &rot)
+		err = rows.Scan(&svc, &sched, &rot, &escpolicy)
 		if err != nil {
 			return nil, err
 		}
