@@ -20,8 +20,8 @@ func TestStatusInProgress(t *testing.T) {
 			({{uuid "c1"}}, {{uuid "u1"}}, 'personal', 'SMS', {{phone "1"}});
 
 		update users
-			set alert_status_log_contact_method_id = {{uuid "c1"}}
-			where id = {{uuid "u1"}};
+		set alert_status_log_contact_method_id = {{uuid "c1"}}
+		where id = {{uuid "u1"}};
 
 		insert into escalation_policies (id, name, repeat) 
 		values
