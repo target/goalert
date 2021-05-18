@@ -31,9 +31,9 @@ func TestStatusInProgress(t *testing.T) {
 		values
 			({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 
-		insert into alerts (id, service_id, summary, dedup_key) 
+		insert into alerts (id, service_id, status, summary) 
 		values
-			(1, {{uuid "sid"}}, 'test', 'auto:1:foobar');
+			(1, {{uuid "sid"}}, 'closed', 'test');
 
 		insert into alert_logs (id, alert_id, event, sub_user_id, sub_type, message)
 		values
