@@ -61,9 +61,7 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 }
 
 func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
-	var newUser *user.User
-
-	// user with default values
+	// user default values
 	usr := &user.User{
 		Name: input.Username,
 		Role: permission.RoleUser,
@@ -87,7 +85,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 	}
 	defer tx.Rollback()
 
-	newUser, err = a.UserStore.InsertTx(ctx, tx, usr)
+	newUser, err := a.UserStore.InsertTx(ctx, tx, usr)
 	if err != nil {
 		return nil, err
 	}
