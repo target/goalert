@@ -76,7 +76,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 	cfg := config.FromContext(ctx)
 
 	if input.Type == contactmethod.TypeWebhook && !cfg.ValidWebhookURL(input.Value) {
-		return nil, validation.NewFieldError("value", "URL disallowed by administrator")
+		return nil, validation.NewFieldError("value", "URL not allowed by administrator")
 	}
 
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
