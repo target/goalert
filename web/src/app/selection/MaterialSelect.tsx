@@ -28,9 +28,6 @@ const useStyles = makeStyles({
     wordBreak: 'break-word',
     whiteSpace: 'pre-wrap',
   },
-  option: {
-    padding: 0,
-  },
   clearIndicator: {
     display: 'none',
   },
@@ -134,7 +131,7 @@ export default function MaterialSelect(
   }
 
   const customCSS: Record<string, string> = {
-    option: classes.option,
+    option: classes.padding0,
     clearIndicator: classes.clearIndicator,
   }
 
