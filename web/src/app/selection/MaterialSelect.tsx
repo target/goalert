@@ -139,7 +139,7 @@ export default function MaterialSelect(
   }
 
   if (noOptionsError) {
-    // customCSS.noOptions = classes.padding0
+    customCSS.noOptions = classes.padding0
   }
 
   return (
