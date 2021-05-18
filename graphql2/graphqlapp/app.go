@@ -51,7 +51,7 @@ import (
 
 type App struct {
 	DB             *sql.DB
-	BasicStore     basic.Store
+	AuthBasicStore basic.Store
 	UserStore      user.Store
 	CMStore        contactmethod.Store
 	NRStore        notificationrule.Store

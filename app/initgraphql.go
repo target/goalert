@@ -19,7 +19,7 @@ func (app *App) initGraphQL(ctx context.Context) error {
 
 	app.graphql2 = &graphqlapp.App{
 		DB:                app.db,
-		BasicStore:        *app.BasicStore,
+		AuthBasicStore:    *app.AuthBasicStore,
 		UserStore:         app.UserStore,
 		CMStore:           app.ContactMethodStore,
 		NRStore:           app.NotificationRuleStore,

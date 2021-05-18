@@ -90,7 +90,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 		return nil, err
 	}
 
-	err = a.BasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
+	err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
 	if err != nil {
 		return nil, err
 	}

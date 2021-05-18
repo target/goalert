@@ -136,8 +136,8 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init service store")
 	}
 
-	if app.BasicStore == nil {
-		app.BasicStore, err = basic.NewStore(ctx, app.db)
+	if app.AuthBasicStore == nil {
+		app.AuthBasicStore, err = basic.NewStore(ctx, app.db)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init basic auth store")
