@@ -25,6 +25,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
     password2: '',
     email: '',
     isAdmin: false,
+    name: '',
   })
 
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
@@ -33,6 +34,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
       input: {
         username: value.username,
         password: value.password,
+        name: value.name ? value.name : null,
         email: value.email,
         role: value.isAdmin ? 'admin' : 'user',
       },
@@ -102,6 +104,14 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
                     return new Error('Passwords do not match')
                   }
                 }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormField
+                fullWidth
+                component={TextField}
+                name='name'
+                label='Display Name'
               />
             </Grid>
             <Grid item xs={12}>

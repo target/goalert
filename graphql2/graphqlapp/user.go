@@ -63,9 +63,14 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
 	var newUser *user.User
 
+	// user with default values
 	usr := &user.User{
 		Name: input.Username,
 		Role: permission.RoleUser,
+	}
+
+	if input.Name != nil {
+		usr.Name = *input.Name
 	}
 
 	if input.Email != nil {

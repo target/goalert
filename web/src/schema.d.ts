@@ -268,6 +268,7 @@ export interface CreateAlertInput {
 export interface CreateUserInput {
   username: string
   password: string
+  name?: string
   email?: string
   role?: UserRole
 }
