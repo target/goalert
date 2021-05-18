@@ -110,7 +110,7 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       result = data.data.nodes.map(mapNode)
     }
 
-    return [result, { loading: !data && loading, error }]
+    return [result, { loading, error }]
   }
 }
 
