@@ -476,7 +476,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 }
 
 // UpdateMessageStatus will update the state of a message.
-func (db *DB) UpdateMessageStatus(ctx context.Context, status *notification.MessageStatus) error {
+func (db *DB) UpdateMessageStatus(ctx context.Context, status *notification.SendResult) error {
 	return retry.DoTemporaryError(func(int) error {
 		return db._UpdateMessageStatus(ctx, status)
 	},
@@ -485,7 +485,7 @@ func (db *DB) UpdateMessageStatus(ctx context.Context, status *notification.Mess
 		retry.FibBackoff(time.Millisecond*100),
 	)
 }
-func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.MessageStatus) error {
+func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.SendResult) error {
 	if status == nil {
 		// nothing to do
 		return nil
@@ -494,47 +494,43 @@ func (db *DB) _UpdateMessageStatus(ctx context.Context, status *notification.Mes
 	if err != nil {
 		return err
 	}
-	var cbID, pID sql.NullString
+	var cbID sql.NullString
 	if status.ID != "" {
 		cbID.Valid = true
 		cbID.String = status.ID
 	}
-	if status.ProviderMessageID != "" {
-		pID.Valid = true
-		pID.String = status.ProviderMessageID
-	}
 
-	if status.State == notification.MessageStateFailedTemp {
-		_, err = db.tempFail.ExecContext(ctx, cbID, pID, status.Details)
+	if status.State == notification.StateFailedTemp {
+		_, err = db.tempFail.ExecContext(ctx, cbID, status.ProviderMessageID, status.Details)
 		return err
 	}
-	if status.State == notification.MessageStateFailedPerm {
-		_, err = db.permFail.ExecContext(ctx, cbID, pID, status.Details)
+	if status.State == notification.StateFailedPerm {
+		_, err = db.permFail.ExecContext(ctx, cbID, status.ProviderMessageID, status.Details)
 		return err
 	}
 
 	var s Status
 	switch status.State {
-	case notification.MessageStateSending:
+	case notification.StateSending:
 		s = StatusQueuedRemotely
-	case notification.MessageStateSent:
+	case notification.StateSent:
 		s = StatusSent
-	case notification.MessageStateDelivered:
+	case notification.StateDelivered:
 		s = StatusDelivered
 	}
 
-	_, err = db.updateStatus.ExecContext(ctx, cbID, pID, status.Sequence, s, status.Details)
+	_, err = db.updateStatus.ExecContext(ctx, cbID, status.ProviderMessageID, status.Sequence, s, status.Details)
 	return err
 }
 
 // SendFunc defines a function that sends messages.
-type SendFunc func(context.Context, *Message) (*notification.MessageStatus, error)
+type SendFunc func(context.Context, *Message) (*notification.SendResult, error)
 
 // ErrAbort is returned when an early-abort is returned due to pause.
 var ErrAbort = errors.New("aborted due to pause")
 
 // StatusFunc is used to fetch the latest status of a message.
-type StatusFunc func(ctx context.Context, id, providerMsgID string) (*notification.MessageStatus, error)
+type StatusFunc func(ctx context.Context, id string, providerID notification.ProviderMessageID) (*notification.Status, error)
 
 // SendMessages will send notifications using SendFunc.
 func (db *DB) SendMessages(ctx context.Context, send SendFunc, status StatusFunc) error {
@@ -716,11 +712,11 @@ func (db *DB) _SendMessages(ctx context.Context, send SendFunc, status StatusFun
 	return db.updateStuckMessages(ctx, status)
 }
 
-func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id, providerMsgID string, res chan *notification.MessageStatus) {
+func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id string, providerID notification.ProviderMessageID, res chan *notification.SendResult) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	status, err := statusFn(ctx, id, providerMsgID)
+	status, err := statusFn(ctx, id, providerID)
 	if errors.Is(err, notification.ErrStatusUnsupported) {
 		// not available
 		res <- nil
@@ -734,12 +730,13 @@ func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id, 
 	}
 
 	stat := *status
-	if stat.State == notification.MessageStateFailedTemp {
-		stat.State = notification.MessageStateFailedPerm
+	if stat.State == notification.StateFailedTemp {
+		stat.State = notification.StateFailedPerm
 	}
 	stat.Sequence = -1
-	res <- &stat
+	res <- &notification.SendResult{Status: stat, ID: id, ProviderMessageID: providerID}
 }
+
 func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) error {
 	tx, err := db.lock.BeginTx(ctx, nil)
 	if err != nil {
@@ -753,11 +750,14 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 	}
 	defer rows.Close()
 
-	type msg struct{ id, pID string }
+	type msg struct {
+		id         string
+		providerID notification.ProviderMessageID
+	}
 	var toCheck []msg
 	for rows.Next() {
 		var m msg
-		err = rows.Scan(&m.id, &m.pID)
+		err = rows.Scan(&m.id, &m.providerID)
 		if err != nil {
 			return err
 		}
@@ -769,9 +769,9 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 		return err
 	}
 
-	ch := make(chan *notification.MessageStatus, len(toCheck))
+	ch := make(chan *notification.SendResult, len(toCheck))
 	for _, m := range toCheck {
-		go db.refreshMessageState(ctx, statusFn, m.id, m.pID, ch)
+		go db.refreshMessageState(ctx, statusFn, m.id, m.providerID, ch)
 	}
 
 	for range toCheck {
@@ -841,7 +841,7 @@ func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send 
 		return false, err
 	}
 	sCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	var status *notification.MessageStatus
+	var status *notification.SendResult
 	err = retry.DoTemporaryError(func(int) error {
 		status, err = send(sCtx, m)
 		return err
@@ -852,10 +852,9 @@ func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send 
 	)
 	cancel()
 
-	var pID sql.NullString
-	if status != nil && status.ProviderMessageID != "" {
-		pID.Valid = true
-		pID.String = status.ProviderMessageID
+	var pID notification.ProviderMessageID
+	if status != nil {
+		pID = status.ProviderMessageID
 	}
 
 	retryExec := func(s *sql.Stmt, args ...interface{}) error {
@@ -874,11 +873,11 @@ func (db *DB) sendMessage(ctx context.Context, cLock *processinglock.Conn, send 
 		return false, errors.Wrap(err, "mark failed message")
 	}
 
-	if status.State == notification.MessageStateFailedTemp {
+	if status.State == notification.StateFailedTemp {
 		err = retryExec(db.tempFail, m.ID, pID, status.Details)
 		return false, errors.Wrap(err, "mark failed message (temp)")
 	}
-	if status.State == notification.MessageStateFailedPerm {
+	if status.State == notification.StateFailedPerm {
 		err = retryExec(db.permFail, m.ID, pID, status.Details)
 		return false, errors.Wrap(err, "mark failed message (perm)")
 	}
