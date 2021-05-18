@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 )
 
@@ -61,51 +62,77 @@ func NewSender(ctx context.Context) *Sender {
 }
 
 // Send will send an alert for the provided message type
-func (s *Sender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
-
-	var data []byte
-	var err error
-
+func (s *Sender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
+	var payload interface{}
 	switch m := msg.(type) {
 	case notification.Test:
-		pdTest := POSTDataTest{Type: "Test"}
-		data, err = json.Marshal(pdTest)
+		payload = POSTDataTest{
+			Type: "Test",
+		}
 	case notification.Verification:
-		pdVerification := POSTDataVerification{Type: "Verification", Code: strconv.Itoa(m.Code)}
-		data, err = json.Marshal(pdVerification)
+		payload = POSTDataVerification{
+			Type: "Verification",
+			Code: strconv.Itoa(m.Code),
+		}
 	case notification.Alert:
-		pdAlert := POSTDataAlert{Type: "Alert", Details: m.Details, AlertID: m.AlertID, Summary: m.Summary}
-		data, err = json.Marshal(pdAlert)
+		payload = POSTDataAlert{
+			Type:    "Alert",
+			Details: m.Details,
+			AlertID: m.AlertID,
+			Summary: m.Summary,
+		}
 	case notification.AlertBundle:
-		pdAlertBundle := POSTDataAlertBundle{Type: "AlertBundle", ServiceID: m.ServiceID, ServiceName: m.ServiceName, Count: m.Count}
-		data, err = json.Marshal(pdAlertBundle)
+		payload = POSTDataAlertBundle{
+			Type:        "AlertBundle",
+			ServiceID:   m.ServiceID,
+			ServiceName: m.ServiceName,
+			Count:       m.Count,
+		}
 	case notification.AlertStatus:
-		pdAlertStatus := POSTDataAlertStatus{Type: "AlertStatus", AlertID: m.AlertID, LogEntry: m.LogEntry}
-		data, err = json.Marshal(pdAlertStatus)
+		payload = POSTDataAlertStatus{
+			Type:     "AlertStatus",
+			AlertID:  m.AlertID,
+			LogEntry: m.LogEntry,
+		}
 	case notification.AlertStatusBundle:
-		pdAlertStatusBundle := POSTDataAlertStatusBundle{Type: "AlertStatusBundle", Count: m.Count, AlertID: m.AlertID, LogEntry: m.LogEntry}
-		data, err = json.Marshal(pdAlertStatusBundle)
+		payload = POSTDataAlertStatusBundle{
+			Type:     "AlertStatusBundle",
+			Count:    m.Count,
+			AlertID:  m.AlertID,
+			LogEntry: m.LogEntry,
+		}
 	default:
-		return nil, fmt.Errorf("message type: %d not supported", m.Type())
+		return "", nil, fmt.Errorf("message type '%s' not supported", m.Type().String())
 	}
 
+	data, err := json.Marshal(payload)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
+
+	cfg := config.FromContext(ctx)
+	if !cfg.ValidWebhookURL(msg.Destination().Value) {
+		// fail permanently if the URL is not currently valid/allowed
+		return "", &notification.Status{
+			State:   notification.StateFailedPerm,
+			Details: "invalid or not allowed URL",
+		}, nil
+	}
+
 	req, err := http.NewRequestWithContext(ctx, "POST", msg.Destination().Value, bytes.NewReader(data))
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	return &notification.MessageStatus{ID: msg.ID(), State: notification.MessageStateSent, ProviderMessageID: msg.ID()}, nil
+	return "", &notification.Status{State: notification.StateSent}, nil
 }
