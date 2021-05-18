@@ -61,6 +61,8 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 }
 
 func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
+	var newUser *user.User
+
 	// user default values
 	usr := &user.User{
 		Name: input.Username,
@@ -79,28 +81,20 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 		usr.Role = permission.Role(*input.Role)
 	}
 
-	tx, err := a.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
+	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		newUser, err = a.UserStore.InsertTx(ctx, tx, usr)
+		if err != nil {
+			return err
+		}
+		err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
-	newUser, err := a.UserStore.InsertTx(ctx, tx, usr)
-	if err != nil {
-		return nil, err
-	}
-
-	err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return newUser, nil
+	return newUser, err
 }
 
 func (a *Mutation) DeleteUser(ctx context.Context, id string) (bool, error) {
