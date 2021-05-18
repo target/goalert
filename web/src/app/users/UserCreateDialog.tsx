@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
-import { Redirect } from 'react-router'
+import { useHistory } from 'react-router'
 import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import FormDialog from '../dialogs/FormDialog'
 import { FormContainer, FormField } from '../forms'
@@ -19,6 +19,7 @@ interface UserCreateDialogProps {
 }
 
 function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
+  const history = useHistory()
   const [value, setValue] = useState({
     username: '',
     password: '',
@@ -29,7 +30,7 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
   })
 
   const [authDisableBasic] = useConfigValue('Auth.DisableBasic')
-  const [createUser, { loading, data, error }] = useMutation(mutation, {
+  const [createUser, { loading, error }] = useMutation(mutation, {
     variables: {
       input: {
         username: value.username,
@@ -39,11 +40,8 @@ function UserCreateDialog(props: UserCreateDialogProps): JSX.Element {
         role: value.isAdmin ? 'admin' : 'user',
       },
     },
+    onCompleted: (data) => history.push(`/users/${data.createUser.id}`),
   })
-
-  if (!loading && data?.createUser) {
-    return <Redirect push to={`/users/${data.createUser.id}`} />
-  }
 
   return (
     <FormDialog
