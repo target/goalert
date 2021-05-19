@@ -312,7 +312,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	case notification.Alert:
 		if t.OriginalStatus != nil {
 			// Reply in thread if we already sent a message for this alert.
-			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID)
+			vals.Set("thread_ts", string(t.OriginalStatus.ProviderMessageID))
 			vals.Set("text", "Escalated.")
 			break
 		}
