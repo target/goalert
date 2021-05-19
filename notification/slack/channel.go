@@ -314,6 +314,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			// Reply in thread if we already sent a message for this alert.
 			vals.Set("thread_ts", string(t.OriginalStatus.ProviderMessageID))
 			vals.Set("text", "Escalated.")
+			vals.Set("reply_broadcast", "true")
 			break
 		}
 
