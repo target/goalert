@@ -39,7 +39,7 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	ctx := req.Context()
 
 	username, password := userPass(req)
-	err := validate.UserName("Username", username)
+	err := validate.Username("Username", username)
 	if err != nil {
 		return nil, auth.Error("invalid username")
 	}

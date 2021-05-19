@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/escalation"
@@ -63,6 +64,13 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
 	var newUser *user.User
 
+	// NOTE input.username must be validated before input.name
+	// user's name defaults to input.username and a user must be created before an auth_basic_user
+	err := validate.Username("Username", input.Username)
+	if err != nil {
+		return nil, err
+	}
+
 	// user default values
 	usr := &user.User{
 		Name: input.Username,
@@ -81,7 +89,7 @@ func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInpu
 		usr.Role = permission.Role(*input.Role)
 	}
 
-	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		newUser, err = a.UserStore.InsertTx(ctx, tx, usr)
 		if err != nil {
