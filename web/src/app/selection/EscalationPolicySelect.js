@@ -7,7 +7,7 @@ const query = gql`
       nodes {
         id
         name
-        isFavforite
+        isFavorite
       }
     }
   }
