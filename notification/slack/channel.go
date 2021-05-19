@@ -314,7 +314,7 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 			// escalated alert
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID)
 			// updating text to simple text since the original alert will have all alert details, and this will be a thread reply message.
-			vals.Set("text", fmt.Sprint("Escalated."))
+			vals.Set("text", "Escalated.")
 		} else {
 			vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 		}
