@@ -310,10 +310,13 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	vals.Set("channel", msg.Destination().Value)
 	switch t := msg.(type) {
 	case notification.Alert:
-		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 		if t.OriginalStatus != nil {
 			// escalated alert
 			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID)
+			// updating text to simple text since the original alert will have all alert details, and this will be a thread reply message.
+			vals.Set("text", fmt.Sprint("Escalated."))
+		} else {
+			vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 		}
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
