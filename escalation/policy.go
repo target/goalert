@@ -25,7 +25,7 @@ func (p Policy) Normalize() (*Policy, error) {
 	return &p, nil
 }
 
-// IsUserFavorite returns a boolean value based on if the escalation policy is a user favorite
+// IsUserFavorite returns true if this policy is a favorite of the current user.
 func (p Policy) IsUserFavorite() bool {
 	return p.isUserFavorite
 }

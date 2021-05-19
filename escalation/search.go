@@ -36,7 +36,7 @@ type SearchOptions struct {
 // SearchCursor is used to indicate a position in a paginated list.
 type SearchCursor struct {
 	Name       string `json:"n,omitempty"`
-	IsFavorite bool   `json:"f"`
+	IsFavorite bool   `json:"f,omitempty"`
 }
 
 var searchTemplate = template.Must(template.New("search").Parse(`

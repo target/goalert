@@ -148,17 +148,6 @@ func (h *Handler) escalationPolicyFields() g.Fields {
 		"name":        &g.Field{Type: g.String},
 		"description": &g.Field{Type: g.String},
 		"repeat":      &g.Field{Type: g.Int},
-		"is_user_favorite": &g.Field{
-			Type:        g.Boolean,
-			Description: "Indicates this esclation policy has been marked as a favorite by the user.",
-			Resolve: func(p g.ResolveParams) (interface{}, error) {
-				ep, err := getPolicy(p.Source)
-				if err != nil {
-					return nil, err
-				}
-				return ep.IsUserFavorite(), nil
-			},
-		},
 		"target_type": targetTypeField(assignment.TargetTypeEscalationPolicy),
 		"services": &g.Field{
 			Type:        g.NewList(h.service),
