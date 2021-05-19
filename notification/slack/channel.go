@@ -310,6 +310,14 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 	vals.Set("channel", msg.Destination().Value)
 	switch t := msg.(type) {
 	case notification.Alert:
+		if t.OriginalStatus != nil {
+			// Reply in thread if we already sent a message for this alert.
+			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+			vals.Set("text", "Escalated.")
+			vals.Set("reply_broadcast", "true")
+			break
+		}
+
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
