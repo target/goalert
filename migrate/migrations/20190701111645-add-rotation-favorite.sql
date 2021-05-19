@@ -9,3 +9,5 @@ ALTER TABLE user_favorites
     DROP CONSTRAINT user_favorites_user_id_tgt_rotation_id_key,
     DROP COLUMN tgt_rotation_id,
     ALTER COLUMN tgt_service_id SET NOT NULL;
+
+    
