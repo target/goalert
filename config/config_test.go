@@ -40,8 +40,24 @@ func TestValidWebhookURL(t *testing.T) {
 
 	cfg.Webhook.AllowedURLs = append(cfg.Webhook.AllowedURLs, "http://api.example.com")
 	// tests when allowedURLs has been set
-	assert.True(t, cfg.ValidWebhookURL("http://api.example.com:5555/path"))
+
+	// ports must match
+	assert.False(t, cfg.ValidWebhookURL("http://api.example.com:5555"))
+
+	// path must match
+	assert.False(t, cfg.ValidWebhookURL("http://api.example.com/path"))
+
+	// host must match
 	assert.False(t, cfg.ValidWebhookURL("http://example.com"))
+
+	// scheme must match
+	assert.False(t, cfg.ValidWebhookURL("https://api.example.com"))
+
+	// query must match
+	assert.False(t, cfg.ValidWebhookURL("http://api.example.com?QueryParam=1"))
+
+	// implicit ports match (i.e. http :80, https :443)
+	assert.True(t, cfg.ValidWebhookURL("http://api.example.com:80"))
 }
 
 func TestValidReferer(t *testing.T) {
