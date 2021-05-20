@@ -33,7 +33,7 @@ const profileQuery = gql`
 `
 
 const byUserQuery = gql`
-  query($userID: ID!) {
+  query ($userID: ID!) {
     user(id: $userID) {
       id
       sessions {
@@ -48,7 +48,7 @@ const byUserQuery = gql`
 `
 
 const mutationLogoutOne = gql`
-  mutation($id: ID!) {
+  mutation ($id: ID!) {
     deleteAll(input: [{ id: $id, type: userSession }])
   }
 `
@@ -141,6 +141,7 @@ export default function UserSessionList(
 
       <Card>
         <FlatList
+          emptyMessage='No active sessions'
           items={sessions.map((s) => ({
             title: friendlyUAString(s.userAgent),
             highlight: s.current,

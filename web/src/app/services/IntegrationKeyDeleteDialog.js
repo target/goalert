@@ -9,7 +9,7 @@ import { GenericError } from '../error-pages'
 import FormDialog from '../dialogs/FormDialog'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     integrationKey(id: $id) {
       id
       name
@@ -19,7 +19,7 @@ const query = gql`
 `
 
 const updateQuery = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     service(id: $id) {
       id
       integrationKeys {
@@ -31,7 +31,7 @@ const updateQuery = gql`
 `
 
 const mutation = gql`
-  mutation($input: [TargetInput!]!) {
+  mutation ($input: [TargetInput!]!) {
     deleteAll(input: $input)
   }
 `

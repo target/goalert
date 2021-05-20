@@ -72,6 +72,7 @@ func (app *App) startup(ctx context.Context) error {
 	app.initStartup(ctx, "Startup.GraphQL", app.initGraphQL)
 
 	app.initStartup(ctx, "Startup.HTTPServer", app.initHTTP)
+	app.initStartup(ctx, "Startup.SysAPI", app.initSysAPI)
 
 	if app.startupErr != nil {
 		return app.startupErr

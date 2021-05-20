@@ -8,7 +8,7 @@ import { fieldErrors, nonFieldErrors } from '../util/errutil'
 import Query from '../util/Query'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     userOverride(id: $id) {
       id
       start
@@ -26,7 +26,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($input: UpdateUserOverrideInput!) {
+  mutation ($input: UpdateUserOverrideInput!) {
     updateUserOverride(input: $input)
   }
 `

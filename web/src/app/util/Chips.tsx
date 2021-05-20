@@ -109,7 +109,7 @@ export function SlackChip(props: WithID<ChipProps>): JSX.Element {
   const { id: channelID, ...rest } = props
 
   const query = gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       slackChannel(id: $id) {
         id
         teamID

@@ -171,6 +171,14 @@ type CreateUserContactMethodInput struct {
 	NewUserNotificationRule *CreateUserNotificationRuleInput `json:"newUserNotificationRule"`
 }
 
+type CreateUserInput struct {
+	Username string    `json:"username"`
+	Password string    `json:"password"`
+	Name     *string   `json:"name"`
+	Email    *string   `json:"email"`
+	Role     *UserRole `json:"role"`
+}
+
 type CreateUserNotificationRuleInput struct {
 	UserID          *string `json:"userID"`
 	ContactMethodID *string `json:"contactMethodID"`

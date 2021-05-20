@@ -42,26 +42,26 @@ func (a *AlertLogEntry) Message(ctx context.Context, obj *alertlog.Entry) (strin
 	return e.String(), nil
 }
 
-func notificationStateFromStatus(s notification.MessageStatus) *graphql2.NotificationState {
+func notificationStateFromStatus(s notification.Status) *graphql2.NotificationState {
 	var status graphql2.NotificationStatus
 	switch s.State {
-	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
+	case notification.StateFailedTemp, notification.StateFailedPerm:
 		status = "ERROR"
-	case notification.MessageStateSent, notification.MessageStateDelivered:
+	case notification.StateSent, notification.StateDelivered:
 		status = "OK"
 	}
 
 	var prefix string
 	switch s.State {
-	case notification.MessageStatePending:
+	case notification.StatePending:
 		prefix = "Pending"
-	case notification.MessageStateSending:
+	case notification.StateSending:
 		prefix = "Sending"
-	case notification.MessageStateSent:
+	case notification.StateSent:
 		prefix = "Sent"
-	case notification.MessageStateDelivered:
+	case notification.StateDelivered:
 		prefix = "Delivered"
-	case notification.MessageStateFailedTemp, notification.MessageStateFailedPerm:
+	case notification.StateFailedTemp, notification.StateFailedPerm:
 		prefix = "Failed"
 	default:
 		prefix = "Unknown"

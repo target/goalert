@@ -6,6 +6,7 @@ import (
 
 	"github.com/target/goalert/auth"
 	"github.com/target/goalert/calendarsubscription"
+	"github.com/target/goalert/validation/validate"
 
 	"github.com/pkg/errors"
 	"github.com/target/goalert/escalation"
@@ -60,6 +61,50 @@ func (a *User) OnCallSteps(ctx context.Context, obj *user.User) ([]escalation.St
 	return a.PolicyStore.FindAllOnCallStepsForUserTx(ctx, nil, obj.ID)
 }
 
+func (a *Mutation) CreateUser(ctx context.Context, input graphql2.CreateUserInput) (*user.User, error) {
+	var newUser *user.User
+
+	// NOTE input.username must be validated before input.name
+	// user's name defaults to input.username and a user must be created before an auth_basic_user
+	err := validate.Username("Username", input.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	// user default values
+	usr := &user.User{
+		Name: input.Username,
+		Role: permission.RoleUser,
+	}
+
+	if input.Name != nil {
+		usr.Name = *input.Name
+	}
+
+	if input.Email != nil {
+		usr.Email = *input.Email
+	}
+
+	if input.Role != nil {
+		usr.Role = permission.Role(*input.Role)
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		var err error
+		newUser, err = a.UserStore.InsertTx(ctx, tx, usr)
+		if err != nil {
+			return err
+		}
+		err = a.AuthBasicStore.CreateTx(ctx, tx, newUser.ID, input.Username, input.Password)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	return newUser, err
+}
+
 func (a *Mutation) DeleteUser(ctx context.Context, id string) (bool, error) {
 	err := a.UserStore.Delete(ctx, id)
 	if err != nil {
@@ -73,11 +118,16 @@ func (a *Mutation) UpdateUser(ctx context.Context, input graphql2.UpdateUserInpu
 		if err != nil {
 			return err
 		}
+
+		if input.Role != nil {
+			err = a.UserStore.SetUserRoleTx(ctx, tx, input.ID, permission.Role(*input.Role))
+			if err != nil {
+				return err
+			}
+		}
+
 		if input.Name != nil {
 			usr.Name = *input.Name
-		}
-		if input.Role != nil {
-			usr.Role = permission.Role(*input.Role)
 		}
 		if input.Email != nil {
 			usr.Email = *input.Email

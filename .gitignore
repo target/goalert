@@ -3,6 +3,9 @@
 /setup.pid
 /config.json.bak
 
+*.pem
+*.key
+
 *.tgz
 
 # Created by .ignore support plugin (hsz.mobi)

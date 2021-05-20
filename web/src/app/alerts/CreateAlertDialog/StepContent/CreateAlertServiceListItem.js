@@ -34,7 +34,11 @@ export default function CreateAlertServiceListItem(props) {
 
   const classes = useStyles()
 
-  const { data, loading, error: queryError } = useQuery(serviceQuery, {
+  const {
+    data,
+    loading,
+    error: queryError,
+  } = useQuery(serviceQuery, {
     variables: {
       id,
     },

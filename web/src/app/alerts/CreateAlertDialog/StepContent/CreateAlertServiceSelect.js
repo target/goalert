@@ -29,7 +29,7 @@ import { CREATE_ALERT_LIMIT, DEBOUNCE_DELAY } from '../../../config'
 import { allErrors } from '../../../util/errutil'
 
 const query = gql`
-  query($input: ServiceSearchOptions) {
+  query ($input: ServiceSearchOptions) {
     services(input: $input) {
       nodes {
         id
@@ -73,7 +73,11 @@ export function CreateAlertServiceSelect(props) {
   const [searchQueryInput, setSearchQueryInput] = useState('')
   const [searchUserInput, setSearchUserInput] = useState('')
 
-  const { data, error: queryError, loading } = useQuery(query, {
+  const {
+    data,
+    error: queryError,
+    loading,
+  } = useQuery(query, {
     variables: {
       input: {
         search: searchQueryInput,

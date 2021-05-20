@@ -301,7 +301,7 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	return channels, nil
 }
 
-func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*notification.MessageStatus, error) {
+func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (string, *notification.Status, error) {
 	cfg := config.FromContext(ctx)
 
 	vals := make(url.Values)
@@ -310,21 +310,29 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	vals.Set("channel", msg.Destination().Value)
 	switch t := msg.(type) {
 	case notification.Alert:
+		if t.OriginalStatus != nil {
+			// Reply in thread if we already sent a message for this alert.
+			vals.Set("thread_ts", t.OriginalStatus.ProviderMessageID.ExternalID)
+			vals.Set("text", "Escalated.")
+			vals.Set("reply_broadcast", "true")
+			break
+		}
+
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	default:
-		return nil, errors.Errorf("unsupported message type: %T", t)
+		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}
 	vals.Set("token", cfg.Slack.AccessToken)
 
 	resp, err := http.PostForm(s.cfg.url("/api/chat.postMessage"), vals)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return nil, errors.Errorf("non-200 response: %s", resp.Status)
+		return "", nil, errors.Errorf("non-200 response: %s", resp.Status)
 	}
 
 	var resData struct {
@@ -334,17 +342,13 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (*no
 	}
 	err = json.NewDecoder(resp.Body).Decode(&resData)
 	if err != nil {
-		return nil, errors.Wrap(err, "decode response")
+		return "", nil, errors.Wrap(err, "decode response")
 	}
 	if !resData.OK {
-		return nil, errors.Errorf("Slack error: %s", resData.Error)
+		return "", nil, errors.Errorf("Slack error: %s", resData.Error)
 	}
 
-	return &notification.MessageStatus{
-		ID:                msg.ID(),
-		ProviderMessageID: resData.TS,
-		State:             notification.MessageStateDelivered,
-	}, nil
+	return resData.TS, &notification.Status{State: notification.StateDelivered}, nil
 }
 
 func (s *ChannelSender) lookupTeamIDForToken(ctx context.Context, token string) (string, error) {

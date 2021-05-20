@@ -15,7 +15,7 @@ import {
   Chip,
   InputProps,
 } from '@material-ui/core'
-import { Autocomplete } from '@material-ui/lab'
+import { Alert, Autocomplete } from '@material-ui/lab'
 
 const useStyles = makeStyles({
   listItemIcon: {
@@ -28,11 +28,11 @@ const useStyles = makeStyles({
     wordBreak: 'break-word',
     whiteSpace: 'pre-wrap',
   },
-  option: {
-    padding: 0,
-  },
   clearIndicator: {
     display: 'none',
+  },
+  padding0: {
+    padding: 0,
   },
 })
 
@@ -53,6 +53,7 @@ interface CommonSelectProps {
   isLoading?: boolean
   label?: string
   noOptionsText?: ReactNode
+  noOptionsError?: Error
   name?: string
   required?: boolean
   onInputChange?: (value: string) => void
@@ -84,6 +85,7 @@ export default function MaterialSelect(
     multiple,
     name,
     noOptionsText,
+    noOptionsError,
     onChange,
     onInputChange = () => {},
     options: _options,
@@ -128,21 +130,33 @@ export default function MaterialSelect(
     options = [value, ...options]
   }
 
+  const customCSS: Record<string, string> = {
+    option: classes.padding0,
+    clearIndicator: classes.clearIndicator,
+  }
+
+  if (noOptionsError) {
+    customCSS.noOptions = classes.padding0
+  }
+
   return (
     <Autocomplete
       data-cy='material-select'
       data-cy-ready={!isLoading}
-      classes={{
-        option: classes.option,
-        clearIndicator: classes.clearIndicator,
-      }}
+      classes={customCSS}
       {...multi}
       value={value}
       inputValue={inputValue}
       disableClearable={required}
       disabled={disabled}
       getOptionSelected={(opt, val) => opt.value === val.value}
-      noOptionsText={noOptionsText}
+      noOptionsText={
+        noOptionsError ? (
+          <Alert severity='error'>{noOptionsError.message}</Alert>
+        ) : (
+          noOptionsText
+        )
+      }
       onChange={(
         event: ChangeEvent<Record<string, unknown>>,
         selected: SelectOption | SelectOption[] | null,

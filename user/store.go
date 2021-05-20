@@ -23,6 +23,7 @@ type Store interface {
 	InsertTx(context.Context, *sql.Tx, *User) (*User, error)
 	Update(context.Context, *User) error
 	UpdateTx(context.Context, *sql.Tx, *User) error
+	SetUserRoleTx(ctx context.Context, tx *sql.Tx, id string, role permission.Role) error
 	Delete(context.Context, string) error
 	DeleteManyTx(context.Context, *sql.Tx, []string) error
 	FindOne(context.Context, string) (*User, error)
@@ -36,6 +37,7 @@ type Store interface {
 	AddAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	DeleteAuthSubjectTx(ctx context.Context, tx *sql.Tx, a *AuthSubject) error
 	FindAllAuthSubjectsForUser(ctx context.Context, userID string) ([]AuthSubject, error)
+	AuthSubjectsFunc(ctx context.Context, providerID, userID string, f func(AuthSubject) error) error
 	FindSomeAuthSubjectsForProvider(ctx context.Context, limit int, afterSubjectID, providerID string) ([]AuthSubject, error)
 }
 
@@ -47,11 +49,11 @@ type DB struct {
 
 	ids *sql.Stmt
 
-	insert *sql.Stmt
-	update *sql.Stmt
-
-	findOne *sql.Stmt
-	findAll *sql.Stmt
+	insert      *sql.Stmt
+	update      *sql.Stmt
+	setUserRole *sql.Stmt
+	findOne     *sql.Stmt
+	findAll     *sql.Stmt
 
 	findMany *sql.Stmt
 
@@ -67,6 +69,8 @@ type DB struct {
 	deleteUserAuthSubject *sql.Stmt
 
 	findAuthSubjectsByUser *sql.Stmt
+
+	findAuthSubjects *sql.Stmt
 
 	grp *groupcache.Group
 
@@ -100,6 +104,15 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				email = $3,
 				alert_status_log_contact_method_id = $4
 			WHERE id = $1
+		`),
+
+		setUserRole: p.P(`UPDATE users SET role = $2 WHERE id = $1`),
+		findAuthSubjects: p.P(`
+			select subject_id, user_id, provider_id
+			from auth_subjects
+			where
+				(provider_id = $1 or $1 isnull) and
+				(user_id = $2 or $2 isnull)
 		`),
 
 		findMany: p.P(`
@@ -166,6 +179,53 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	store.grp = groupcache.NewGroup(fmt.Sprintf("user.store[%d]", atomic.AddInt64(&grpN, 1)), 1024*1024, groupcache.GetterFunc(store.cacheGet))
 
 	return store, nil
+}
+
+func (db *DB) AuthSubjectsFunc(ctx context.Context, providerID, userID string, forEachFn func(AuthSubject) error) error {
+	err := permission.LimitCheckAny(ctx, permission.System)
+	if err != nil {
+		return err
+	}
+	if providerID != "" {
+		err = validate.SubjectID("ProviderID", providerID)
+	}
+	if userID != "" {
+		err = validate.Many(err, validate.UUID("UserID", userID))
+	}
+	if err != nil {
+		return err
+	}
+
+	pID := sql.NullString{
+		String: providerID,
+		Valid:  providerID != "",
+	}
+	uID := sql.NullString{
+		String: userID,
+		Valid:  userID != "",
+	}
+
+	rows, err := db.findAuthSubjects.QueryContext(ctx, pID, uID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sub AuthSubject
+		err = rows.Scan(&sub.SubjectID, &sub.UserID, &sub.ProviderID)
+		if err != nil {
+			return err
+		}
+		err = forEachFn(sub)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (db *DB) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
@@ -407,6 +467,27 @@ func (db *DB) UpdateTx(ctx context.Context, tx *sql.Tx, u *User) error {
 		update = tx.StmtContext(ctx, update)
 	}
 	_, err = update.ExecContext(ctx, n.userUpdateFields()...)
+	return err
+}
+
+func (db *DB) SetUserRoleTx(ctx context.Context, tx *sql.Tx, id string, role permission.Role) error {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.Admin)
+	if err != nil {
+		return err
+	}
+
+	err = validate.Many(
+		validate.UUID("UserID", id),
+		validate.OneOf("Role", role, permission.RoleAdmin, permission.RoleUser),
+	)
+	if err != nil {
+		return err
+	}
+	s := db.setUserRole
+	if tx != nil {
+		s = tx.StmtContext(ctx, s)
+	}
+	_, err = s.ExecContext(ctx, id, role)
 	return err
 }
 

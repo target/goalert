@@ -1,0 +1,6 @@
+global:
+  scrape_interval: 3s
+scrape_configs:
+  - job_name: goalert
+    static_configs:
+      - targets: [localhost:2112]

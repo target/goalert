@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	alertlog "github.com/target/goalert/alert/log"
@@ -12,7 +13,7 @@ import (
 	"go.opencensus.io/trace"
 )
 
-func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.MessageStatus, error) {
+func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notification.SendResult, error) {
 	ctx, sp := trace.StartSpan(ctx, "Engine.SendMessage")
 	defer sp.End()
 	sp.AddAttributes(
@@ -45,11 +46,12 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 		if count == 0 {
 			// already acked/closed, don't send bundled notification
-			return &notification.MessageStatus{
-				Ctx:     ctx,
-				ID:      msg.ID,
-				Details: "alerts acked/closed before message sent",
-				State:   notification.MessageStateFailedPerm,
+			return &notification.SendResult{
+				ID: msg.ID,
+				Status: notification.Status{
+					Details: "alerts acked/closed before message sent",
+					State:   notification.StateFailedPerm,
+				},
 			}, nil
 		}
 		notifMsg = notification.AlertBundle{
@@ -64,12 +66,22 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup alert")
 		}
+		stat, err := p.cfg.NotificationStore.OriginalMessageStatus(ctx, msg.AlertID, msg.Dest)
+		if err != nil {
+			return nil, fmt.Errorf("lookup original message: %w", err)
+		}
+		if stat != nil && stat.ID == msg.ID {
+			// set to nil if it's the current message
+			stat = nil
+		}
 		notifMsg = notification.Alert{
 			Dest:       msg.Dest,
 			AlertID:    msg.AlertID,
 			Summary:    a.Summary,
 			Details:    a.Details,
 			CallbackID: msg.ID,
+
+			OriginalStatus: stat,
 		}
 	case notification.MessageTypeAlertStatusBundle:
 		e, err := p.cfg.AlertLogStore.FindOne(ctx, msg.AlertLogID)
@@ -111,14 +123,14 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
-		return &notification.MessageStatus{State: notification.MessageStateFailedPerm}, nil
+		return &notification.SendResult{ID: msg.ID, Status: notification.Status{State: notification.StateFailedPerm}}, nil
 	}
 
 	meta := alertlog.NotificationMetaData{
 		MessageID: msg.ID,
 	}
 
-	status, err := p.cfg.NotificationManager.Send(ctx, notifMsg)
+	res, err := p.cfg.NotificationManager.SendMessage(ctx, notifMsg)
 	if err != nil {
 		return nil, err
 	}
@@ -133,5 +145,5 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		}
 	}
 
-	return status, nil
+	return res, nil
 }

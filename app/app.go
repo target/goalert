@@ -12,6 +12,7 @@ import (
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/auth/nonce"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
@@ -42,6 +43,8 @@ import (
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/sqlutil"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
 )
 
 // App represents an instance of the GoAlert application.
@@ -56,6 +59,10 @@ type App struct {
 
 	cooldown *cooldown
 	doneCh   chan struct{}
+
+	sysAPIL   net.Listener
+	sysAPISrv *grpc.Server
+	hSrv      *health.Server
 
 	srv         *http.Server
 	requestLock *contextLocker
@@ -78,6 +85,7 @@ type App struct {
 	AlertStore    alert.Store
 	AlertLogStore alertlog.Store
 
+	AuthBasicStore        *basic.Store
 	UserStore             user.Store
 	ContactMethodStore    contactmethod.Store
 	NotificationRuleStore notificationrule.Store

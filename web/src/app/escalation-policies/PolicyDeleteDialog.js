@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux'
 import FormDialog from '../dialogs/FormDialog'
 
 const mutation = gql`
-  mutation($input: [TargetInput!]!) {
+  mutation ($input: [TargetInput!]!) {
     deleteAll(input: $input)
   }
 `

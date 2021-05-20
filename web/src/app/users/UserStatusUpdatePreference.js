@@ -14,7 +14,7 @@ const query = gql`
   }
 `
 const mutation = gql`
-  mutation($id: ID!, $cmID: ID!) {
+  mutation ($id: ID!, $cmID: ID!) {
     updateUser(input: { id: $id, statusUpdateContactMethodID: $cmID })
   }
 `
