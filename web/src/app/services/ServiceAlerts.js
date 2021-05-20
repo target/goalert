@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
+import Button from '@material-ui/core/Button'
+import Grid from '@material-ui/core/Grid'
+import { makeStyles } from '@material-ui/core/styles'
 
 import AlertsList from '../alerts/AlertsList'
-import PageActions from '../util/PageActions'
 import FormDialog from '../dialogs/FormDialog'
-import OtherActions from '../util/OtherActions'
+import AlertsListFilter from '../alerts/components/AlertsListFilter'
 
 const mutation = gql`
   mutation UpdateAlertsByServiceMutation($input: UpdateAlertsByServiceInput!) {
@@ -13,8 +15,15 @@ const mutation = gql`
   }
 `
 
+const useStyles = makeStyles({
+  filter: {
+    width: 'fit-content',
+  },
+})
+
 export default function ServiceAlerts(props) {
   const { serviceID } = props
+  const classes = useStyles()
 
   const [alertStatus, setAlertStatus] = useState('')
   const [showDialog, setShowDialog] = useState(false)
@@ -48,24 +57,30 @@ export default function ServiceAlerts(props) {
     return 'close'
   }
 
-  const getMenuOptions = () => {
-    return [
-      {
-        label: 'Acknowledge All Alerts',
-        onClick: handleClickAckAll,
-      },
-      {
-        label: 'Close All Alerts',
-        onClick: handleClickCloseAll,
-      },
-    ]
-  }
+  const filter = (
+    <Grid className={classes.filter} container spacing={2} alignItems='center'>
+      <Grid item>
+        <Button variant='outlined' color='primary' onClick={handleClickAckAll}>
+          Acknowledge All Alerts
+        </Button>
+      </Grid>
+      <Grid item>
+        <Button
+          variant='outlined'
+          color='secondary'
+          onClick={handleClickCloseAll}
+        >
+          Close All Alerts
+        </Button>
+      </Grid>
+      <Grid item>
+        <AlertsListFilter serviceID={serviceID} />
+      </Grid>
+    </Grid>
+  )
 
   return (
     <React.Fragment>
-      <PageActions key='actions'>
-        <OtherActions actions={getMenuOptions()} />
-      </PageActions>
       {showDialog && (
         <FormDialog
           title='Are you sure?'
@@ -77,7 +92,7 @@ export default function ServiceAlerts(props) {
           onClose={() => setShowDialog(false)}
         />
       )}
-      <AlertsList serviceID={serviceID} />
+      <AlertsList serviceID={serviceID} filter={filter} />
     </React.Fragment>
   )
 }

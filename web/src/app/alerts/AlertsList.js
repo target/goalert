@@ -279,7 +279,9 @@ export default function AlertsList(props) {
           selectable: a.status !== 'StatusClosed',
         })}
         variables={variables}
-        filter={<AlertsListFilter serviceID={props.serviceID} />}
+        filter={
+          props?.filter ?? <AlertsListFilter serviceID={props.serviceID} />
+        }
         cardHeader={
           <Hidden mdDown>
             <AlertsListControls />
@@ -306,4 +308,5 @@ export default function AlertsList(props) {
 
 AlertsList.propTypes = {
   serviceID: p.string,
+  filter: p.node,
 }
