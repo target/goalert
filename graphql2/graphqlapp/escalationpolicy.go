@@ -131,6 +131,12 @@ func (m *Mutation) CreateEscalationPolicy(ctx context.Context, input graphql2.Cr
 		if err != nil {
 			return err
 		}
+		if input.Favorite != nil && *input.Favorite {
+			err = m.FavoriteStore.SetTx(ctx, tx, permission.UserID(ctx), assignment.EscalationPolicyTarget(pol.ID))
+			if err != nil {
+				return err
+			}
+		}
 
 		for i, step := range input.Steps {
 			step.EscalationPolicyID = &pol.ID

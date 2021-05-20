@@ -102,6 +102,7 @@ type CreateEscalationPolicyInput struct {
 	Name        string                            `json:"name"`
 	Description *string                           `json:"description"`
 	Repeat      *int                              `json:"repeat"`
+	Favorite    *bool                             `json:"favorite"`
 	Steps       []CreateEscalationPolicyStepInput `json:"steps"`
 }
 
