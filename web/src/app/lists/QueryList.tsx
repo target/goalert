@@ -139,7 +139,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     )
   }
 
-  if (Boolean(props.checkboxActions) || !props.noSearch) {
+  if (props.checkboxActions?.length || props.filter || !props.noSearch) {
     return (
       <Grid container spacing={2}>
         <ControlledPaginatedList
@@ -148,6 +148,7 @@ export default function QueryList(props: QueryListProps): JSX.Element {
           itemsPerPage={queryVariables.input.first}
           loadMore={loadMore}
           isLoading={!data && loading}
+          noSearch={noSearch}
         />
       </Grid>
     )
