@@ -4,60 +4,67 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMatchURL(t *testing.T) {
-	val, err := MatchURL("http://example.com/", "HTTP://example.COM")
-	assert.True(t, val)
-	assert.Nil(t, err)
+	check := func(valid bool, base, test string) {
+		t.Helper()
+		result, err := MatchURL(base, test)
+		require.Nil(t, err)
+		assert.Equalf(t, valid, result, "'%s' should return %t for base URL '%s'", test, valid, base)
+	}
 
-	val, err = MatchURL("http://example.com/", "HTTP://foo:bar@example.COM:80")
-	assert.True(t, val)
-	assert.Nil(t, err)
+	check(true, "http://example.com/", "HTTP://example.COM")
+	check(true, "http://example.com", "HTTP://example.COM")
+	check(true, "http://example.com", "HTTP://example.COM/child")
+	check(true, "http://example.com/", "HTTP://example.COM/child")
+	check(true, "http://example.com/", "HTTP://foo:bar@example.COM:80")
+	check(true, "http://example.com/?notAllowedQueryParam=&requiredQueryParam=1", "http://example.com?requiredQueryParam=1")
 
-	val, err = MatchURL("http://example.com/?notAllowedQueryParam=&requiredQueryParam=1", "http://example.com?requiredQueryParam=1")
-	assert.True(t, val)
-	assert.Nil(t, err)
-
-	val, err = MatchURL("http://example.com/?notAllowedQueryParam=&requiredQueryParam=1", "http://example.com")
-	assert.False(t, val)
-	assert.Nil(t, err)
-
-	val, err = MatchURL("http://example.com/?notAllowedQueryParam=", "http://example.com?notAllowedQueryParam=1")
-	assert.False(t, val)
-	assert.Nil(t, err)
-
-	val, err = MatchURL("https://example.com", "http://example.com")
-	assert.False(t, val)
-	assert.Nil(t, err)
-
+	check(false, "http://example.com/otherchild", "HTTP://example.COM/child")
+	check(false, "http://example.com/?notAllowedQueryParam=&requiredQueryParam=1", "http://example.com")
+	check(false, "http://example.com/?notAllowedQueryParam=", "http://example.com?notAllowedQueryParam=1")
+	check(false, "https://example.com", "http://example.com")
 }
 
 func TestValidWebhookURL(t *testing.T) {
 	var cfg Config
-	// tests when allowedURLs is empty
-	assert.True(t, cfg.ValidWebhookURL("http://api.example.com"))
 
-	cfg.Webhook.AllowedURLs = append(cfg.Webhook.AllowedURLs, "http://api.example.com")
-	// tests when allowedURLs has been set
+	check := func(valid bool, url string) {
+		t.Helper()
+		assert.Equalf(t, valid, cfg.ValidWebhookURL(url), "'%s' should return %t for config %v", url, valid, cfg.Webhook.AllowedURLs)
+	}
+
+	// tests when allowedURLs is empty
+	check(true, "http://api.example.com")
+
+	cfg.Webhook.AllowedURLs = append(cfg.Webhook.AllowedURLs, "http://api.example.com", "http://subpath.example.com/subpath", "http://reqquery.example.com?req=1")
 
 	// ports must match
-	assert.False(t, cfg.ValidWebhookURL("http://api.example.com:5555"))
+	check(false, "http://api.example.com:5555")
 
-	// path must match
-	assert.False(t, cfg.ValidWebhookURL("http://api.example.com/path"))
+	// path must be a subpath match
+	check(true, "http://api.example.com/path")
+	check(false, "http://subpath.example.com")
+	check(false, "http://subpath.example.com/otherpath")
+	check(true, "http://subpath.example.com/subpath")
+	check(true, "http://subpath.example.com/subpath/2")
 
 	// host must match
-	assert.False(t, cfg.ValidWebhookURL("http://example.com"))
+	check(false, "http://example.com")
 
 	// scheme must match
-	assert.False(t, cfg.ValidWebhookURL("https://api.example.com"))
+	check(false, "https://api.example.com")
 
 	// query must match
-	assert.False(t, cfg.ValidWebhookURL("http://api.example.com?QueryParam=1"))
+	check(true, "http://api.example.com?QueryParam=1")
+	check(false, "http://reqquery.example.com")
+	check(false, "http://reqquery.example.com?req=2")
+	check(true, "http://reqquery.example.com?req=1")
 
 	// implicit ports match (i.e. http :80, https :443)
-	assert.True(t, cfg.ValidWebhookURL("http://api.example.com:80"))
+	check(true, "http://api.example.com:80")
 }
 
 func TestValidReferer(t *testing.T) {
