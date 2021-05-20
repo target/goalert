@@ -256,12 +256,12 @@ func MatchURL(baseURL, testURL string) (bool, error) {
 }
 
 // ValidWebhookURL returns true if the URL is an allowed webhook source.
-func (cfg Config) ValidWebhookURL(whURL string) bool {
+func (cfg Config) ValidWebhookURL(testURL string) bool {
 	if len(cfg.Webhook.AllowedURLs) == 0 {
 		return true
 	}
-	for _, u := range cfg.Webhook.AllowedURLs {
-		matched, err := MatchURL(whURL, u)
+	for _, baseU := range cfg.Webhook.AllowedURLs {
+		matched, err := MatchURL(baseU, testURL)
 		if err != nil {
 			return false
 		}
