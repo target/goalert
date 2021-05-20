@@ -3573,6 +3573,8 @@ input CreateEscalationPolicyInput {
   description: String = ""
   repeat: Int = 3
 
+  favorite: Boolean
+
   steps: [CreateEscalationPolicyStepInput!]
 }
 
@@ -16949,6 +16951,14 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyInput(ctx contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("repeat"))
 			it.Repeat, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "favorite":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favorite"))
+			it.Favorite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

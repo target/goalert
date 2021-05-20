@@ -370,6 +370,7 @@ export interface CreateEscalationPolicyInput {
   name: string
   description?: string
   repeat?: number
+  favorite?: boolean
   steps?: CreateEscalationPolicyStepInput[]
 }
 

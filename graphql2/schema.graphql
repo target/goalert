@@ -497,6 +497,8 @@ input CreateEscalationPolicyInput {
   description: String = ""
   repeat: Int = 3
 
+  favorite: Boolean
+
   steps: [CreateEscalationPolicyStepInput!]
 }
 
