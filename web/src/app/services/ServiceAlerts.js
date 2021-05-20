@@ -61,7 +61,7 @@ export default function ServiceAlerts(props) {
     <Grid className={classes.filter} container spacing={2} alignItems='center'>
       <Grid item>
         <Button variant='outlined' color='primary' onClick={handleClickAckAll}>
-          Acknowledge All Alerts
+          Acknowledge All
         </Button>
       </Grid>
       <Grid item>
@@ -70,7 +70,7 @@ export default function ServiceAlerts(props) {
           color='secondary'
           onClick={handleClickCloseAll}
         >
-          Close All Alerts
+          Close All
         </Button>
       </Grid>
       <Grid item>

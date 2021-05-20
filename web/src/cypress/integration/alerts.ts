@@ -352,18 +352,18 @@ function testAlerts(screen: ScreenFormat): void {
 
     it('should allow the user to take action', () => {
       // ack
-      cy.pageAction('Acknowledge')
+      cy.get('button[title=Acknowledge]').click()
 
       cy.get('body').should('contain', 'ACKNOWLEDGED')
       cy.get('body').should('not.contain', 'UNACKNOWLEDGED')
       cy.get('body').should('contain', 'Acknowledged by Cypress User')
 
       // escalate
-      cy.pageAction('Escalate')
+      cy.get('button[title=Escalate]').click()
       cy.get('body').should('contain', 'Escalation requested by Cypress User')
 
       // close
-      cy.pageAction('Close')
+      cy.get('button[title=Close]').click()
       cy.get('body').should('contain', 'Closed by Cypress User')
       cy.get('body').should('contain', 'CLOSED')
     })
