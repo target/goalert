@@ -5,33 +5,7 @@ import MaterialSelect from './MaterialSelect'
 import { mergeFields, fieldAlias, mapInputVars } from '../util/graphql'
 import { DEBOUNCE_DELAY } from '../config'
 import { useQuery } from '@apollo/client'
-import { Typography, makeStyles } from '@material-ui/core'
-import { Error } from '@material-ui/icons'
-import { styles } from '../styles/materialStyles'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
-
-const useStyles = makeStyles((theme) => {
-  return {
-    error: styles(theme).error,
-  }
-})
-
-function ErrorMessage({ value }) {
-  const classes = useStyles()
-  return (
-    <React.Fragment>
-      <Typography
-        component='span'
-        variant='subtitle1'
-        style={{ display: 'flex' }}
-      >
-        <Error className={classes.error} />
-        &nbsp;
-        <span className={classes.error}>{value}</span>
-      </Typography>
-    </React.Fragment>
-  )
-}
 
 // valueCheck ensures the type is `arrayOf(p.string)` if `multiple` is set
 // and `p.string` otherwise.
@@ -136,7 +110,7 @@ function makeUseOptions(query, mapNode, vars, defaultVars) {
       result = data.data.nodes.map(mapNode)
     }
 
-    return [result, { loading: !data && loading, error }]
+    return [result, { loading, error }]
   }
 }
 
@@ -212,10 +186,8 @@ export function makeQuerySelect(displayName, options) {
     const [searchInput, setSearchInput] = useState('')
     const [optionCache] = useState({})
     const [selectValue] = useValues(value)
-    const [
-      selectOptions,
-      { loading: optionsLoading, error: optionsError },
-    ] = useOptions(value, search, extraVars)
+    const [selectOptions, { loading: optionsLoading, error: optionsError }] =
+      useOptions(value, search, extraVars)
 
     if (
       _onCreate &&
@@ -250,19 +222,14 @@ export function makeQuerySelect(displayName, options) {
       else onChange((newVal && newVal.value) || null)
     }
 
-    let noOptionsText = 'No options'
-    if (optionsError) {
-      noOptionsText = (
-        <ErrorMessage value={optionsError.message || optionsError} />
-      )
-    } else if (!searchInput && !selectOptions.length) {
-      noOptionsText = 'Start typing...'
-    }
+    const noOptionsText =
+      searchInput || selectOptions.length ? 'No options' : 'Start typing...'
 
     return (
       <MaterialSelect
         isLoading={search !== searchInput || optionsLoading}
         noOptionsText={noOptionsText}
+        noOptionsError={optionsError}
         onInputChange={(val) => setSearchInput(val)}
         value={multiple ? asArray(selectValue) : selectValue}
         multiple={multiple}

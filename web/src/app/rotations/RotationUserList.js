@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import p from 'prop-types'
 import { gql, useMutation, useQuery } from '@apollo/client'
 import { DateTime } from 'luxon'
@@ -49,16 +49,27 @@ function RotationUserList({ rotationID }) {
   const classes = useStyles()
   const [deleteIndex, setDeleteIndex] = useState(null)
   const [setActiveIndex, setSetActiveIndex] = useState(null)
+  const [lastSwap, setLastSwap] = useState([])
 
-  const { data, loading: qLoading, error: qError } = useQuery(query, {
+  const {
+    data,
+    loading: qLoading,
+    error: qError,
+  } = useQuery(query, {
     variables: { id: rotationID },
   })
 
   const [updateRotation, { error: mError }] = useMutation(mutation)
 
+  // reset swap history on add/remove participant
+  useEffect(() => {
+    setLastSwap([])
+  }, [data?.rotation?.users?.length])
+
   if (qLoading && !data) return <Spinner />
   if (data && !data.rotation) return <ObjectNotFound type='rotation' />
-  if (qError || mError) return <GenericError error={qError || mError} />
+  if (qError || mError)
+    return <GenericError error={qError.message || mError.message} />
 
   const { users, activeUserIndex, nextHandoffTimes } = data.rotation
 
@@ -98,6 +109,12 @@ function RotationUserList({ rotationID }) {
     )
   })
 
+  // re-enact swap history to get unique identier per list item
+  let listIDs = users.map((_, idx) => idx)
+  lastSwap.forEach((s) => {
+    listIDs = reorderList(listIDs, s.oldIndex, s.newIndex)
+  })
+
   return (
     <React.Fragment>
       {deleteIndex !== null && (
@@ -129,7 +146,7 @@ function RotationUserList({ rotationID }) {
           }
           items={users.map((u, index) => ({
             title: u.name,
-            id: u.id,
+            id: String(listIDs[index]),
             highlight: index === activeUserIndex,
             icon: <UserAvatar userID={u.id} />,
             subText: handoff[index],
@@ -149,6 +166,8 @@ function RotationUserList({ rotationID }) {
             ),
           }))}
           onReorder={(oldIndex, newIndex) => {
+            setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
+
             const updatedUsers = reorderList(
               users.map((u) => u.id),
               oldIndex,

@@ -24,7 +24,7 @@ import DialogContentError from '../dialogs/components/DialogContentError'
 import { PhoneNumberInfo, DebugCarrierInfo } from '../../schema'
 
 const carrierInfoMut = gql`
-  mutation($number: String!) {
+  mutation ($number: String!) {
     debugCarrierInfo(input: { number: $number }) {
       name
       type
@@ -35,7 +35,7 @@ const carrierInfoMut = gql`
 `
 
 const numInfoQuery = gql`
-  query($number: String!) {
+  query ($number: String!) {
     phoneNumberInfo(number: $number) {
       id
       valid

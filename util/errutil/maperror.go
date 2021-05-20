@@ -37,7 +37,10 @@ func MapDBError(err error) error {
 			return validation.NewFieldError("TargetID", "user does not exist")
 		}
 	case "23505": // unique constraint
-		if strings.HasPrefix(dbErr.ConstraintName, dbErr.TableName+"_name") || dbErr.ConstraintName == "auth_basic_users_username_key" {
+		if dbErr.ConstraintName == "auth_basic_users_username_key" {
+			return validation.NewFieldError("Username", "already in use")
+		}
+		if strings.HasPrefix(dbErr.ConstraintName, dbErr.TableName+"_name") {
 			return validation.NewFieldError("Name", "already in use")
 		}
 		if dbErr.ConstraintName == "user_contact_methods_type_value_key" {

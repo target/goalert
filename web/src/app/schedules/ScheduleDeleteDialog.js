@@ -6,7 +6,7 @@ import FormDialog from '../dialogs/FormDialog'
 import Spinner from '../loading/components/Spinner'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     schedule(id: $id) {
       id
       name

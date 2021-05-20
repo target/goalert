@@ -28,10 +28,13 @@ type Store interface {
 	SendContactMethodVerification(ctx context.Context, cmID string) error
 	VerifyContactMethod(ctx context.Context, cmID string, code int) error
 	Code(ctx context.Context, id string) (int, error)
-	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error)
+	FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error)
 
 	// LastMessageStatus will return the MessageStatus and creation time of the most recent message of the requested type for the provided contact method ID, if one was created from the provided from time.
-	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error)
+	LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error)
+
+	// OriginalMessageStatus will return the status of the first alert notification sent to `dest` for the given `alertID`.
+	OriginalMessageStatus(ctx context.Context, alertID int, dest Dest) (*SendResult, error)
 }
 
 var _ Store = &DB{}
@@ -49,6 +52,8 @@ type DB struct {
 	findManyMessageStatuses      *sql.Stmt
 	lastMessageStatus            *sql.Stmt
 
+	origAlertMessage *sql.Stmt
+
 	rand *rand.Rand
 }
 
@@ -65,6 +70,24 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		db: db,
 
 		rand: rand.New(rand.NewSource(seed)),
+
+		origAlertMessage: p.P(`
+			select
+				id,
+				last_status,
+				status_details,
+				provider_msg_id,
+				provider_seq,
+				next_retry_at notnull,
+				created_at
+			from outgoing_messages
+			where
+				message_type = 'alert_notification' and
+				alert_id = $1 and
+				(contact_method_id = $2 or channel_id = $3)
+			order by sent_at
+			limit 1
+		`),
 
 		getCMUserID: p.P(`select user_id from user_contact_methods where id = $1`),
 
@@ -153,6 +176,36 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			where message_type = $1 and contact_method_id = $2 and created_at >= $3
 		`),
 	}, p.Err
+}
+
+func (db *DB) OriginalMessageStatus(ctx context.Context, alertID int, dst Dest) (*SendResult, error) {
+	err := permission.LimitCheckAny(ctx, permission.System)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.UUID("Dest.ID", dst.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var cmID, chanID sql.NullString
+	if dst.Type.IsUserCM() {
+		cmID.String, cmID.Valid = dst.ID, true
+	} else {
+		chanID.String, chanID.Valid = dst.ID, true
+	}
+
+	row := db.origAlertMessage.QueryRowContext(ctx, alertID, cmID, chanID)
+	s, _, err := scanStatus(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 func (db *DB) cmUserID(ctx context.Context, id string) (string, error) {
@@ -313,29 +366,29 @@ func (db *DB) VerifyContactMethod(ctx context.Context, cmID string, code int) er
 	return nil
 }
 
-func messageStateFromStatus(lastStatus string, hasNextRetry bool) (MessageState, error) {
+func messageStateFromStatus(lastStatus string, hasNextRetry bool) (State, error) {
 	switch lastStatus {
 	case "queued_remotely", "sending":
-		return MessageStateSending, nil
+		return StateSending, nil
 	case "pending":
-		return MessageStatePending, nil
+		return StatePending, nil
 	case "sent":
-		return MessageStateSent, nil
+		return StateSent, nil
 	case "delivered":
-		return MessageStateDelivered, nil
+		return StateDelivered, nil
 	case "failed", "bundled": // bundled message was not sent (replaced) and should never be re-sent
 		// temporary if retry
 		if hasNextRetry {
-			return MessageStateFailedTemp, nil
+			return StateFailedTemp, nil
 		} else {
-			return MessageStateFailedPerm, nil
+			return StateFailedPerm, nil
 		}
 	default:
 		return -1, fmt.Errorf("unknown last_status %s", lastStatus)
 	}
 }
 
-func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]MessageStatus, error) {
+func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]SendResult, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
@@ -355,17 +408,15 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	}
 	defer rows.Close()
 
-	var result []MessageStatus
-	var s MessageStatus
+	var result []SendResult
+	var s SendResult
 	for rows.Next() {
 		var lastStatus string
 		var hasNextRetry bool
-		var providerMsgID sql.NullString
-		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry)
+		err = rows.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry)
 		if err != nil {
 			return nil, err
 		}
-		s.ProviderMessageID = providerMsgID.String
 		s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
 		if err != nil {
 			return nil, err
@@ -377,7 +428,7 @@ func (db *DB) FindManyMessageStatuses(ctx context.Context, ids ...string) ([]Mes
 	return result, nil
 }
 
-func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*MessageStatus, time.Time, error) {
+func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID string, from time.Time) (*SendResult, time.Time, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, time.Time{}, err
@@ -388,20 +439,25 @@ func (db *DB) LastMessageStatus(ctx context.Context, typ MessageType, cmID strin
 		return nil, time.Time{}, err
 	}
 
-	var s MessageStatus
+	s, createdAt, err := scanStatus(db.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from))
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
+	return s, createdAt, nil
+}
+func scanStatus(row *sql.Row) (*SendResult, time.Time, error) {
+	var s SendResult
 	var lastStatus string
 	var hasNextRetry bool
-	var providerMsgID sql.NullString
 	var createdAt sql.NullTime
-	row := db.lastMessageStatus.QueryRowContext(ctx, typ, cmID, from)
-	err = row.Scan(&s.ID, &lastStatus, &s.Details, &providerMsgID, &s.Sequence, &hasNextRetry, &createdAt)
+	err := row.Scan(&s.ID, &lastStatus, &s.Details, &s.ProviderMessageID, &s.Sequence, &hasNextRetry, &createdAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, time.Time{}, nil
 	}
 	if err != nil {
 		return nil, time.Time{}, err
 	}
-	s.ProviderMessageID = providerMsgID.String
 	s.State, err = messageStateFromStatus(lastStatus, hasNextRetry)
 	if err != nil {
 		return nil, time.Time{}, err

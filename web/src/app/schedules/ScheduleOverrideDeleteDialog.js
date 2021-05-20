@@ -12,7 +12,7 @@ import { urlParamSelector } from '../selectors'
 import { formatOverrideTime } from './util'
 
 const query = gql`
-  query($id: ID!) {
+  query ($id: ID!) {
     userOverride(id: $id) {
       id
       start
@@ -30,7 +30,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation($id: ID!) {
+  mutation ($id: ID!) {
     deleteAll(input: [{ type: userOverride, id: $id }])
   }
 `

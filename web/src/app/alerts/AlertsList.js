@@ -108,7 +108,7 @@ export default function AlertsList(props) {
   // query for current service name if props.serviceID is provided
   const serviceNameQuery = useQuery(
     gql`
-      query($id: ID!) {
+      query ($id: ID!) {
         service(id: $id) {
           id
           name

@@ -10,7 +10,7 @@ import Query from '../util/Query'
 import { gqlClockTimeToISO, isoToGQLClockTime } from './util'
 
 const query = gql`
-  query($id: ID!, $tgt: TargetInput!) {
+  query ($id: ID!, $tgt: TargetInput!) {
     schedule(id: $id) {
       id
       timeZone
@@ -27,7 +27,7 @@ const query = gql`
 `
 
 const mutation = gql`
-  mutation($input: ScheduleTargetInput!) {
+  mutation ($input: ScheduleTargetInput!) {
     updateScheduleTarget(input: $input)
   }
 `

@@ -3,7 +3,7 @@ import p from 'prop-types'
 import { makeQuerySelect } from './QuerySelect'
 
 const query = gql`
-  query($input: LabelValueSearchOptions) {
+  query ($input: LabelValueSearchOptions) {
     labelValues(input: $input) {
       nodes
     }

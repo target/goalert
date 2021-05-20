@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/validation/validate"
 
@@ -93,7 +94,6 @@ func (u *User) fields() []interface{} {
 }
 
 // Normalize will produce a normalized/validated User struct.
-// Will only do the validate if email is not empty
 func (u User) Normalize() (*User, error) {
 	var err error
 	if u.ID == "" {
