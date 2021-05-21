@@ -35,7 +35,7 @@
     "graphql": "15.5.0",
     "history": "4.10.1",
     "lodash": "4.17.21",
-    "luxon": "1.26.0",
+    "luxon": "1.27.0",
     "mdi-material-ui": "6.22.1",
     "modernizr-esm": "^2.0.0",
     "react": "17.0.2",
@@ -57,7 +57,7 @@
     "strict-loader": "1.2.0"
   },
   "devDependencies": {
-    "@babel/cli": "7.13.16",
+    "@babel/cli": "7.14.3",
     "@babel/core": "7.14.3",
     "@babel/plugin-proposal-class-properties": "7.13.0",
     "@babel/plugin-proposal-decorators": "7.14.2",
@@ -95,7 +95,7 @@
     "cypress": "7.3.0",
     "jest": "26.6.3",
     "json-loader": "0.5.7",
-    "postcss": "8.2.14",
+    "postcss": "8.2.15",
     "postcss-loader": "5.3.0",
     "prop-types": "15.7.2",
     "react-swipeable-views-utils": "0.13.9",

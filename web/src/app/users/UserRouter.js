@@ -1,8 +1,5 @@
 import React from 'react'
-import { gql } from '@apollo/client'
 import { Switch, Route } from 'react-router-dom'
-import { UserAvatar } from '../util/avatars'
-import QueryList from '../lists/QueryList'
 import UserDetails from './UserDetails'
 import { PageNotFound } from '../error-pages/Errors'
 import { useSessionInfo } from '../util/RequireConfig'
@@ -10,45 +7,7 @@ import UserOnCallAssignmentList from './UserOnCallAssignmentList'
 import Spinner from '../loading/components/Spinner'
 import UserCalendarSubscriptionList from './UserCalendarSubscriptionList'
 import UserSessionList from './UserSessionList'
-import UserPhoneNumberFilterContainer from './UserPhoneNumberFilterContainer'
-
-const query = gql`
-  query usersQuery($input: UserSearchOptions) {
-    data: users(input: $input) {
-      nodes {
-        id
-        name
-        email
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`
-
-function UserList() {
-  return (
-    <QueryList
-      query={query}
-      mapDataNode={(n) => ({
-        title: n.name,
-        subText: n.email,
-        url: n.id,
-        icon: <UserAvatar userID={n.id} />,
-      })}
-      mapVariables={(vars) => {
-        if (vars?.input.search.startsWith('phone=')) {
-          vars.input.CMValue = vars.input.search.replace(/^phone=/, '')
-          vars.input.search = ''
-        }
-        return vars
-      }}
-      searchAdornment={<UserPhoneNumberFilterContainer />}
-    />
-  )
-}
+import UserList from './UserList'
 
 function UserProfile() {
   const { userID, ready } = useSessionInfo()

@@ -94,7 +94,6 @@ func (u *User) fields() []interface{} {
 }
 
 // Normalize will produce a normalized/validated User struct.
-// Will only do the validate if email is not empty
 func (u User) Normalize() (*User, error) {
 	var err error
 	if u.ID == "" {

@@ -235,6 +235,7 @@ export interface Mutation {
   createHeartbeatMonitor?: HeartbeatMonitor
   setLabel: boolean
   createSchedule?: Schedule
+  createUser?: User
   createUserCalendarSubscription: UserCalendarSubscription
   updateUserCalendarSubscription: boolean
   updateScheduleTarget: boolean
@@ -262,6 +263,14 @@ export interface CreateAlertInput {
   details?: string
   serviceID: string
   sanitize?: boolean
+}
+
+export interface CreateUserInput {
+  username: string
+  password: string
+  name?: string
+  email?: string
+  role?: UserRole
 }
 
 export interface CreateUserCalendarSubscriptionInput {

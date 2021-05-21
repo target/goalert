@@ -220,6 +220,7 @@ type ComplexityRoot struct {
 		CreateRotation                  func(childComplexity int, input CreateRotationInput) int
 		CreateSchedule                  func(childComplexity int, input CreateScheduleInput) int
 		CreateService                   func(childComplexity int, input CreateServiceInput) int
+		CreateUser                      func(childComplexity int, input CreateUserInput) int
 		CreateUserCalendarSubscription  func(childComplexity int, input CreateUserCalendarSubscriptionInput) int
 		CreateUserContactMethod         func(childComplexity int, input CreateUserContactMethodInput) int
 		CreateUserNotificationRule      func(childComplexity int, input CreateUserNotificationRuleInput) int
@@ -572,6 +573,7 @@ type MutationResolver interface {
 	CreateHeartbeatMonitor(ctx context.Context, input CreateHeartbeatMonitorInput) (*heartbeat.Monitor, error)
 	SetLabel(ctx context.Context, input SetLabelInput) (bool, error)
 	CreateSchedule(ctx context.Context, input CreateScheduleInput) (*schedule.Schedule, error)
+	CreateUser(ctx context.Context, input CreateUserInput) (*user.User, error)
 	CreateUserCalendarSubscription(ctx context.Context, input CreateUserCalendarSubscriptionInput) (*calendarsubscription.CalendarSubscription, error)
 	UpdateUserCalendarSubscription(ctx context.Context, input UpdateUserCalendarSubscriptionInput) (bool, error)
 	UpdateScheduleTarget(ctx context.Context, input ScheduleTargetInput) (bool, error)
@@ -1325,6 +1327,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateService(childComplexity, args["input"].(CreateServiceInput)), true
+
+	case "Mutation.createUser":
+		if e.complexity.Mutation.CreateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(CreateUserInput)), true
 
 	case "Mutation.createUserCalendarSubscription":
 		if e.complexity.Mutation.CreateUserCalendarSubscription == nil {
@@ -3410,6 +3424,8 @@ type Mutation {
 
   createSchedule(input: CreateScheduleInput!): Schedule
 
+  createUser(input: CreateUserInput!): User
+
   createUserCalendarSubscription(
     input: CreateUserCalendarSubscriptionInput!
   ): UserCalendarSubscription!
@@ -3452,6 +3468,14 @@ input CreateAlertInput {
   details: String
   serviceID: ID!
   sanitize: Boolean
+}
+
+input CreateUserInput {
+  username: String!
+  password: String!
+  name: String
+  email: String
+  role: UserRole
 }
 
 input CreateUserCalendarSubscriptionInput {
@@ -4403,6 +4427,21 @@ func (ec *executionContext) field_Mutation_createUserOverride_args(ctx context.C
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateUserOverrideInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserOverrideInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 CreateUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateUserInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8865,6 +8904,45 @@ func (ec *executionContext) _Mutation_createSchedule(ctx context.Context, field 
 	res := resTmp.(*schedule.Schedule)
 	fc.Result = res
 	return ec.marshalOSchedule2ᚖgithubᚗcomᚋtargetᚋgoalertᚋscheduleᚐSchedule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateUser(rctx, args["input"].(CreateUserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*user.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋtargetᚋgoalertᚋuserᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createUserCalendarSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17412,6 +17490,58 @@ func (ec *executionContext) unmarshalInputCreateUserContactMethodInput(ctx conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateUserInput(ctx context.Context, obj interface{}) (CreateUserInput, error) {
+	var it CreateUserInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "username":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			it.Username, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			it.Role, err = ec.unmarshalOUserRole2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐUserRole(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx context.Context, obj interface{}) (CreateUserNotificationRuleInput, error) {
 	var it CreateUserNotificationRuleInput
 	var asMap = obj.(map[string]interface{})
@@ -20096,6 +20226,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createSchedule":
 			out.Values[i] = ec._Mutation_createSchedule(ctx, field)
+		case "createUser":
+			out.Values[i] = ec._Mutation_createUser(ctx, field)
 		case "createUserCalendarSubscription":
 			out.Values[i] = ec._Mutation_createUserCalendarSubscription(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -22906,6 +23038,11 @@ func (ec *executionContext) unmarshalNCreateUserCalendarSubscriptionInput2github
 
 func (ec *executionContext) unmarshalNCreateUserContactMethodInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserContactMethodInput(ctx context.Context, v interface{}) (CreateUserContactMethodInput, error) {
 	res, err := ec.unmarshalInputCreateUserContactMethodInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateUserInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐCreateUserInput(ctx context.Context, v interface{}) (CreateUserInput, error) {
+	res, err := ec.unmarshalInputCreateUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

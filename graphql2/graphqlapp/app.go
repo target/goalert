@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/alert"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/auth"
+	"github.com/target/goalert/auth/basic"
 	"github.com/target/goalert/calendarsubscription"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/escalation"
@@ -50,6 +51,7 @@ import (
 
 type App struct {
 	DB             *sql.DB
+	AuthBasicStore *basic.Store
 	UserStore      user.Store
 	CMStore        contactmethod.Store
 	NRStore        notificationrule.Store
