@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-interface CreateFabProps extends FabProps {
+interface CreateFabProps extends Omit<FabProps, 'children'> {
   title: string
   transition?: boolean
 }
