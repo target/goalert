@@ -93,7 +93,8 @@ function getStatusFilter(s) {
 export default function AlertsList(props) {
   const classes = useStyles()
   const width = useWidth()
-  const isMobileScreenSize = isWidthDown('xs', width)
+  // transition fab above snackbar when snackbar width overlaps fab placement
+  const isXs = isWidthDown('xs', width)
 
   const [checkedCount, setCheckedCount] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
@@ -292,7 +293,7 @@ export default function AlertsList(props) {
 
       <CreateFAB
         title='Create Alert'
-        transition={isMobileScreenSize && showAlertActionSnackbar}
+        transition={isXs && showAlertActionSnackbar}
         onClick={() => setShowCreate(true)}
       />
       {showCreate && (
