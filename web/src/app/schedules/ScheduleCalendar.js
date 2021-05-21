@@ -23,6 +23,7 @@ import _ from 'lodash'
 import GroupAdd from '@material-ui/icons/GroupAdd'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
+import SpinContainer from '../loading/components/SpinContainer'
 
 const localizer = LuxonLocalizer(DateTime, { firstDayOfWeek: 0 })
 
@@ -85,6 +86,7 @@ export default class ScheduleCalendar extends React.PureComponent {
     shifts: p.array.isRequired,
     temporarySchedules: p.array,
     CardProps: p.object, // todo: use CardProps from types once TS
+    loading: p.bool,
   }
 
   state = {
@@ -183,36 +185,38 @@ export default class ScheduleCalendar extends React.PureComponent {
                 </Button>
               }
             />
-            <Calendar
-              date={new Date(start)}
-              localizer={localizer}
-              events={this.getCalEvents(shifts, temporarySchedules)}
-              style={{
-                height: weekly ? '100%' : '45rem',
-                fontFamily: theme.typography.body2.fontFamily,
-                fontSize: theme.typography.body2.fontSize,
-              }}
-              tooltipAccessor={() => null}
-              views={['month', 'week']}
-              view={weekly ? 'week' : 'month'}
-              showAllEvents
-              eventPropGetter={this.eventStyleGetter}
-              onNavigate={() => {}} // stub to hide false console err
-              onView={() => {}} // stub to hide false console err
-              components={{
-                eventWrapper: (props) => (
-                  <CalendarEventWrapper
-                    onOverrideClick={(overrideDialog) =>
-                      this.setState({ overrideDialog })
-                    }
-                    onEditTempSched={onEditTempSched}
-                    onDeleteTempSched={onDeleteTempSched}
-                    {...props}
-                  />
-                ),
-                toolbar: () => null,
-              }}
-            />
+            <SpinContainer loading={this.props.loading}>
+              <Calendar
+                date={new Date(start)}
+                localizer={localizer}
+                events={this.getCalEvents(shifts, temporarySchedules)}
+                style={{
+                  height: weekly ? '100%' : '45rem',
+                  fontFamily: theme.typography.body2.fontFamily,
+                  fontSize: theme.typography.body2.fontSize,
+                }}
+                tooltipAccessor={() => null}
+                views={['month', 'week']}
+                view={weekly ? 'week' : 'month'}
+                showAllEvents
+                eventPropGetter={this.eventStyleGetter}
+                onNavigate={() => {}} // stub to hide false console err
+                onView={() => {}} // stub to hide false console err
+                components={{
+                  eventWrapper: (props) => (
+                    <CalendarEventWrapper
+                      onOverrideClick={(overrideDialog) =>
+                        this.setState({ overrideDialog })
+                      }
+                      onEditTempSched={onEditTempSched}
+                      onDeleteTempSched={onDeleteTempSched}
+                      {...props}
+                    />
+                  ),
+                  toolbar: () => null,
+                }}
+              />
+            </SpinContainer>
           </div>
         </Card>
         {Boolean(this.state.overrideDialog) && (

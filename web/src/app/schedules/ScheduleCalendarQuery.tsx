@@ -91,15 +91,15 @@ function ScheduleCalendarQuery({
   })
 
   if (isMobile) return null
-  if (loading && !data) return <Spinner />
   if (error) return <GenericError error={error.message} />
-  if (!data?.schedule?.id) return <ObjectNotFound type='schedule' />
+  if (!loading && !data?.schedule?.id) return <ObjectNotFound type='schedule' />
 
   return (
     <ScheduleCalendar
       scheduleID={scheduleID}
+      loading={loading && !data}
       shifts={data?.schedule?.shifts ?? []}
-      temporarySchedules={data.schedule.temporarySchedules}
+      temporarySchedules={data?.schedule?.temporarySchedules ?? []}
       {...other}
     />
   )
