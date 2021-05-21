@@ -85,3 +85,10 @@ models:
     model: github.com/target/goalert/schedule.FixedShift
   TemporarySchedule:
     model: github.com/target/goalert/schedule.TemporarySchedule
+  WeekdayFilter:
+    model: github.com/target/goalert/util/timeutil.WeekdayFilter
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/satori/go.uuid.UUID

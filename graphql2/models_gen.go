@@ -287,10 +287,10 @@ type ScheduleConnection struct {
 }
 
 type ScheduleRuleInput struct {
-	ID            *string         `json:"id"`
-	Start         *timeutil.Clock `json:"start"`
-	End           *timeutil.Clock `json:"end"`
-	WeekdayFilter []bool          `json:"weekdayFilter"`
+	ID            *string                 `json:"id"`
+	Start         *timeutil.Clock         `json:"start"`
+	End           *timeutil.Clock         `json:"end"`
+	WeekdayFilter *timeutil.WeekdayFilter `json:"weekdayFilter"`
 }
 
 type ScheduleSearchOptions struct {

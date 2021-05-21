@@ -2,6 +2,7 @@ package timeutil
 
 import (
 	"database/sql/driver"
+	"encoding"
 	"fmt"
 	"io"
 	"sort"
@@ -101,6 +102,9 @@ func (c Clock) LastOfDay(t time.Time) time.Time {
 // Clock represents wall-clock time. It is a duration since midnight.
 type Clock time.Duration
 
+var _ encoding.TextMarshaler = Clock(0)
+var _ encoding.TextUnmarshaler = new(Clock)
+
 // ParseClock will return a new Clock value given a value in the format of '15:04' or '15:04:05'.
 // The resulting value will be truncated to the minute.
 func ParseClock(value string) (Clock, error) {
@@ -139,6 +143,15 @@ func (c Clock) Is(t time.Time) bool {
 // String returns a string representation of the format '15:04'.
 func (c Clock) String() string {
 	return fmt.Sprintf("%02d:%02d", c.Hour(), c.Minute())
+}
+
+func (c Clock) MarshalText() ([]byte, error) {
+	return []byte(c.String()), nil
+}
+func (c *Clock) UnmarshalText(data []byte) error {
+	var err error
+	*c, err = ParseClock(string(data))
+	return err
 }
 
 // NewClock returns a Clock value equal to the provided 24-hour value and minute.
