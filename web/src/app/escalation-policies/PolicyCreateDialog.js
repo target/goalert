@@ -28,6 +28,7 @@ function PolicyCreateDialog(props) {
         name: (value && value.name) || defaultValue.name,
         description: (value && value.description) || defaultValue.description,
         repeat: (value && value.repeat.value) || defaultValue.repeat.value,
+        favorite: true,
       },
     },
     onCompleted: props.onClose,
