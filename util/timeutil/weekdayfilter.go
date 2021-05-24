@@ -18,6 +18,8 @@ type WeekdayFilter [7]byte
 
 var _ encoding.TextMarshaler = WeekdayFilter{}
 var _ encoding.TextUnmarshaler = &WeekdayFilter{}
+var _ graphql.Marshaler = WeekdayFilter{}
+var _ graphql.Unmarshaler = &WeekdayFilter{}
 
 var (
 	neverDays = WeekdayFilter([7]byte{})
