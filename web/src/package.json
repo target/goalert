@@ -68,7 +68,7 @@
     "@babel/preset-typescript": "7.13.0",
     "@cypress/webpack-preprocessor": "5.8.0",
     "@material-ui/pickers": "3.3.10",
-    "@types/chance": "1.1.1",
+    "@types/chance": "1.1.2",
     "@types/classnames": "2.3.1",
     "@types/diff": "5.0.0",
     "@types/history": "4.7.8",
