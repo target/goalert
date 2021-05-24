@@ -173,7 +173,7 @@ func (d *datagen) NewSchedule() {
 
 // NewScheduleRule will generate a random schedule rule for the provided schedule ID.
 func (d *datagen) NewScheduleRule(scheduleID string) {
-	var filter rule.WeekdayFilter
+	var filter timeutil.WeekdayFilter
 	for i := range filter {
 		filter.SetDay(time.Weekday(i), gofakeit.Bool())
 	}
