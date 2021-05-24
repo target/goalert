@@ -27,7 +27,7 @@ export default function ScheduleOnCallNotificationDeleteDialog(
   if (error) return <GenericError error={error.message} />
 
   let name = ''
-  const rulesAfterDelete = data.schedule.notificationRules.filter((nr) => {
+  const rulesAfterDelete = data.schedule.notificationRules.filter((nr: any) => {
     if (nr.id === p.id) {
       name = nr.channel
       return true
