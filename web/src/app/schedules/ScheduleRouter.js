@@ -10,6 +10,7 @@ import ScheduleShiftList from './ScheduleShiftList'
 import { PageNotFound } from '../error-pages/Errors'
 import ScheduleRuleList from './ScheduleRuleList'
 import SimpleListPage from '../lists/SimpleListPage'
+import ScheduleOnCallNotifications from './on-call-notifications/ScheduleOnCallNotifications'
 
 const query = gql`
   query schedulesQuery($input: ScheduleSearchOptions) {
@@ -63,6 +64,12 @@ export default class ScheduleRouter extends React.PureComponent {
           path='/schedules/:scheduleID/assignments'
           render={({ match }) => (
             <ScheduleRuleList scheduleID={match.params.scheduleID} />
+          )}
+        />
+        <Route
+          path='/schedules/:scheduleID/on-call-notifications'
+          render={({ match }) => (
+            <ScheduleOnCallNotifications scheduleID={match.params.scheduleID} />
           )}
         />
         <Route
