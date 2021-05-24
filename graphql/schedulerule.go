@@ -118,7 +118,7 @@ func (h *Handler) createScheduleRuleField() *g.Field {
 				return nil, err
 			}
 
-			var asnTarget assignment.RawTarget
+			var asnTarget RawTarget
 			asnTarget.Type, _ = m["target_type"].(assignment.TargetType)
 			asnTarget.ID, _ = m["target_id"].(string)
 			err = validate.UUID("target_id", asnTarget.ID)
