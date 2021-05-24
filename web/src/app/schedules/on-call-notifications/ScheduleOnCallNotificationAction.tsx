@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import OtherActions from '../../util/OtherActions'
-import ScheduleOnCallNotificationEditDialog from './ScheduleOnCallNotificationEditDialog'
+import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFormDialog'
 import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotificationDeleteDialog'
 
 interface ScheduleOnCallNotificationActionProps {
@@ -25,13 +25,13 @@ export default function ScheduleOnCallNotificationAction(
           { label: 'Delete', onClick: () => setShowDelete(true) },
         ]}
       />
-      {/* {showEdit && (
-        <ScheduleOnCallNotificationEditDialog
+      {showEdit && (
+        <ScheduleOnCallNotificationFormDialog
           id={p.id}
           scheduleID={p.scheduleID}
           onClose={() => setShowEdit(false)}
         />
-      )} */}
+      )}
       {showDelete && (
         <ScheduleOnCallNotificationDeleteDialog
           id={p.id}
