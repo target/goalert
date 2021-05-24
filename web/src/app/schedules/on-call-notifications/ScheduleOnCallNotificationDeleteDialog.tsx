@@ -26,9 +26,14 @@ export default function ScheduleOnCallNotificationDeleteDialog(
   if (loading && !data?.schedule) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  const rulesAfterDelete = data.schedule.notificationRules.filter(
-    (nr) => nr.id === p.id,
-  )
+  let name = ''
+  const rulesAfterDelete = data.schedule.notificationRules.filter((nr) => {
+    if (nr.id === p.id) {
+      name = nr.channel
+      return true
+    }
+    return false
+  })
 
   return (
     <FormDialog
@@ -36,7 +41,7 @@ export default function ScheduleOnCallNotificationDeleteDialog(
       confirm
       loading={mutationStatus.loading}
       errors={nonFieldErrors(mutationStatus.error as ApolloError)}
-      subTitle='XXX will no longer be notified of on-call updates.'
+      subTitle={name + ' will no longer be notified of on-call updates.'}
       onSubmit={() =>
         mutate({
           variables: {
