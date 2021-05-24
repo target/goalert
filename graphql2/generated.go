@@ -22737,18 +22737,13 @@ func (ec *executionContext) unmarshalNClearTemporarySchedulesInput2githubᚗcom�
 }
 
 func (ec *executionContext) unmarshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, v interface{}) (timeutil.Clock, error) {
-	res, err := UnmarshalClockTime(v)
+	var res timeutil.Clock
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, sel ast.SelectionSet, v timeutil.Clock) graphql.Marshaler {
-	res := MarshalClockTime(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNConfigHint2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHint(ctx context.Context, sel ast.SelectionSet, v ConfigHint) graphql.Marshaler {
@@ -24986,15 +24981,16 @@ func (ec *executionContext) unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoale
 	if v == nil {
 		return nil, nil
 	}
-	res, err := UnmarshalClockTime(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var res = new(timeutil.Clock)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, sel ast.SelectionSet, v *timeutil.Clock) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return MarshalClockTime(*v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOConfigValueInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigValueInputᚄ(ctx context.Context, v interface{}) ([]ConfigValueInput, error) {

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
 )
 
@@ -152,6 +153,18 @@ func (c *Clock) UnmarshalText(data []byte) error {
 	var err error
 	*c, err = ParseClock(string(data))
 	return err
+}
+
+func (c Clock) MarshalGQL(w io.Writer) {
+	s, _ := c.MarshalText()
+	graphql.MarshalString(string(s)).MarshalGQL(w)
+}
+func (c *Clock) UnmarshalGQL(v interface{}) error {
+	s, err := graphql.UnmarshalString(v)
+	if err != nil {
+		return err
+	}
+	return c.UnmarshalText([]byte(s))
 }
 
 // NewClock returns a Clock value equal to the provided 24-hour value and minute.
