@@ -1,7 +1,9 @@
 import React from 'react'
 import { gql } from '@apollo/client'
 import QueryList from '../../lists/QueryList'
-import ScheduleOnCallNotificationAction from './ScheduleOnCallNotificationAction'
+import ScheduleOnCallNotificationAction, {
+  Rule,
+} from './ScheduleOnCallNotificationAction'
 import ScheduleOnCallNotificationCreateFab from './ScheduleOnCallNotificationCreateFab'
 
 interface ScheduleOnCallNotificationsProps {
@@ -12,12 +14,11 @@ export const query = gql`
   query scheduleCalendarShifts($id: ID!) {
     schedule(id: $id) {
       id
-      notificationRules {
+      onCallNotificationRules {
         id
-        channel
-        filter
-        time
-        allChanges
+        target # TargetInput
+        time # ClockTime
+        weekdayFilter # WeekdayFilter
       }
     }
   }
@@ -25,7 +26,7 @@ export const query = gql`
 
 export const setMutation = gql`
   mutation ($input: [SetScheduleNotificationsInput!]) {
-    setScheduleNotifications(input: $input)
+    setScheduleOnCallNotificationRules(input: $input)
   }
 `
 
@@ -39,12 +40,12 @@ export default function ScheduleOnCallNotifications(
         variables={{ id: p.scheduleID }}
         headerNote='Configure notifications for on-call updates'
         noSearch
-        mapDataNode={(n) => ({
-          id: n.id,
-          title: n.channel,
+        mapDataNode={(nr) => ({
+          id: nr.id,
+          title: nr.target.name,
           action: (
             <ScheduleOnCallNotificationAction
-              id={n.id}
+              rule={nr as Rule}
               scheduleID={p.scheduleID}
             />
           ),

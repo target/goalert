@@ -4,8 +4,19 @@ import ScheduleOnCallNotificationFormDialog from './ScheduleOnCallNotificationFo
 import ScheduleOnCallNotificationDeleteDialog from './ScheduleOnCallNotificationDeleteDialog'
 
 interface ScheduleOnCallNotificationActionProps {
-  id: string
+  rule: Rule
   scheduleID: string
+}
+
+export type Rule = {
+  id: string
+  target: {
+    id: string
+    type: string
+    name: string
+  }
+  time: string
+  weekdayFilter: string
 }
 
 export default function ScheduleOnCallNotificationAction(
@@ -33,7 +44,7 @@ export default function ScheduleOnCallNotificationAction(
       )}
       {showDelete && (
         <ScheduleOnCallNotificationDeleteDialog
-          id={p.id}
+          id={p.rule.id}
           scheduleID={p.scheduleID}
           onClose={() => setShowDelete(false)}
         />

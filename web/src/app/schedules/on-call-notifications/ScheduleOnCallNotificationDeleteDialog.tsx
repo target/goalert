@@ -5,6 +5,7 @@ import { nonFieldErrors } from '../../util/errutil'
 import { query, setMutation } from './ScheduleOnCallNotifications'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
+import { Rule } from './ScheduleOnCallNotificationAction'
 
 interface ScheduleOnCallNotificationDeleteDialogProps {
   id: string
@@ -27,13 +28,15 @@ export default function ScheduleOnCallNotificationDeleteDialog(
   if (error) return <GenericError error={error.message} />
 
   let name = ''
-  const rulesAfterDelete = data.schedule.notificationRules.filter((nr: any) => {
-    if (nr.id === p.id) {
-      name = nr.channel
-      return true
-    }
-    return false
-  })
+  const rulesAfterDelete = data.schedule.notificationRules.filter(
+    (nr: Rule) => {
+      if (nr.id === p.id) {
+        name = nr.target.name
+        return true
+      }
+      return false
+    },
+  )
 
   return (
     <FormDialog
