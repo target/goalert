@@ -31,9 +31,28 @@ func (a *Mutation) SetFavorite(ctx context.Context, input graphql2.SetFavoriteIn
 	}
 	return true, nil
 }
+
+func (a *Mutation) SetScheduleOnCallNotificationRules(ctx context.Context, input graphql2.SetScheduleOnCallNotificationRulesInput) (bool, error) {
+	schedID, err := parseUUID("ScheduleID", input.ScheduleID)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.ScheduleStore.SetOnCallNotificationRules(ctx, tx, schedID, input.Rules)
+	})
+
+	return err == nil, err
+}
+
 func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetTemporaryScheduleInput) (bool, error) {
-	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
-		return a.ScheduleStore.SetTemporarySchedule(ctx, tx, input.ScheduleID, schedule.TemporarySchedule{
+	schedID, err := parseUUID("ScheduleID", input.ScheduleID)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.ScheduleStore.SetTemporarySchedule(ctx, tx, schedID, schedule.TemporarySchedule{
 			Start:  input.Start,
 			End:    input.End,
 			Shifts: input.Shifts,
@@ -43,8 +62,13 @@ func (a *Mutation) SetTemporarySchedule(ctx context.Context, input graphql2.SetT
 	return err == nil, err
 }
 func (a *Mutation) ClearTemporarySchedules(ctx context.Context, input graphql2.ClearTemporarySchedulesInput) (bool, error) {
-	err := withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
-		return a.ScheduleStore.ClearTemporarySchedules(ctx, tx, input.ScheduleID, input.Start, input.End)
+	schedID, err := parseUUID("ScheduleID", input.ScheduleID)
+	if err != nil {
+		return false, err
+	}
+
+	err = withContextTx(ctx, a.DB, func(ctx context.Context, tx *sql.Tx) error {
+		return a.ScheduleStore.ClearTemporarySchedules(ctx, tx, schedID, input.Start, input.End)
 	})
 
 	return err == nil, err

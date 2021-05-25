@@ -211,6 +211,7 @@ export interface SetScheduleShiftInput {
 export interface Mutation {
   setTemporarySchedule: boolean
   clearTemporarySchedules: boolean
+  setScheduleOnCallNotificationRules: boolean
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: DebugSendSMSInfo
   addAuthSubject: boolean
@@ -457,6 +458,26 @@ export interface Schedule {
   target?: ScheduleTarget
   isFavorite: boolean
   temporarySchedules: TemporarySchedule[]
+  onCallNotificationRules: OnCallNotificationRule[]
+}
+
+export interface SetScheduleOnCallNotificationRulesInput {
+  scheduleID: string
+  rules: OnCallNotificationRuleInput[]
+}
+
+export interface OnCallNotificationRuleInput {
+  id?: string
+  target: TargetInput
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
+}
+
+export interface OnCallNotificationRule {
+  id: string
+  target: Target
+  time?: ClockTime
+  weekdayFilter?: WeekdayFilter
 }
 
 export interface OnCallShift {

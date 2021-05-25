@@ -85,9 +85,14 @@ models:
     model: github.com/target/goalert/schedule.FixedShift
   TemporarySchedule:
     model: github.com/target/goalert/schedule.TemporarySchedule
+  OnCallNotificationRuleInput:
+    model: github.com/target/goalert/schedule.OnCallNotificationRule
+  OnCallNotificationRule:
+    model: github.com/target/goalert/schedule.OnCallNotificationRule
   WeekdayFilter:
     model: github.com/target/goalert/util/timeutil.WeekdayFilter
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
       - github.com/satori/go.uuid.UUID
+      - github.com/target/goalert/schedule.RuleID

@@ -344,6 +344,11 @@ type SetLabelInput struct {
 	Value  string                `json:"value"`
 }
 
+type SetScheduleOnCallNotificationRulesInput struct {
+	ScheduleID string                            `json:"scheduleID"`
+	Rules      []schedule.OnCallNotificationRule `json:"rules"`
+}
+
 type SetTemporaryScheduleInput struct {
 	ScheduleID string                `json:"scheduleID"`
 	Start      time.Time             `json:"start"`
