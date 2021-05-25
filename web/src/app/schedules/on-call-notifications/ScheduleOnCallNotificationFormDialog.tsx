@@ -15,6 +15,7 @@ import { ISOTimePicker } from '../../util/ISOPickers'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 import MaterialSelect from '../../selection/MaterialSelect'
+import { OnCallNotificationRuleInput, WeekdayFilter } from '../../../schema'
 
 interface ScheduleOnCallNotificationFormProps {
   scheduleID: string
@@ -23,18 +24,42 @@ interface ScheduleOnCallNotificationFormProps {
 }
 
 type Value = {
-  target: {
-    type: 'slackChannel'
-    id: string
-  }
+  target: string
   time?: string
-  weekdayFilter?: string
+  weekdayFilter?: Array<number>
+}
+
+// Set weekdayFilter
+// e.g. ['Monday', 'Wednesday', 'Saturday']
+// -> [true, false, true, false, false, false, true]
+function getWeekdayFilter(days: Array<number>): WeekdayFilter {
+  const d = Array.apply(null, Array(7)).map(Boolean.prototype.valueOf, false) as WeekdayFilter
+  days.forEach((day) => {
+    d[day] = true
+  })
+  return d
+}
+
+// e.g. [false, true, true, false, false, true, false]
+// -> [1, 2, 5]
+function getSelectedDays(weekdayFilter: WeekdayFilter): Array<number> {
+  return weekdayFilter.map((day, idx) => day ? idx : -1).filter((day) => day < 0)
 }
 
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const [value, setValue] = useState<Value>(p?.rule as Value)
+
+  let initialVal: Value | null = null
+  if (p.rule) {
+    initialVal = {
+      target: p.rule.target.id,
+      time: p.rule.time,
+      weekdayFilter: getSelectedDays(p?.rule?.weekdayFilter)
+    }
+  }
+
+  const [value, setValue] = useState<Value | null>(initialVal)
   const [notifyOnUpdate, setNotifyOnUpdate] = useState(true)
 
   // load all rules if editing
@@ -49,10 +74,20 @@ export default function ScheduleOnCallNotificationFormDialog(
   // add form value to rules
   let rules = data?.schedule?.notificationRules ?? []
   if (value) {
-    if (notifyOnUpdate) {
-      delete value.time
-      delete value.weekdayFilter
+    let newRule: OnCallNotificationRuleInput = {
+      target: {
+        id: value.target,
+        type: 'slackChannel',
+      },
+      time: value.time,
+      weekdayFilter: getWeekdayFilter(value?.weekdayFilter ?? [])
     }
+
+    if (notifyOnUpdate) {
+      delete newRule.time
+      delete newRule.weekdayFilter
+    }
+
     rules = [...rules, value]
   }
 
@@ -126,31 +161,31 @@ export default function ScheduleOnCallNotificationFormDialog(
                   options={[
                     {
                       label: 'Sunday',
-                      value: 'sunday',
+                      value: 0,
                     },
                     {
                       label: 'Monday',
-                      value: 'monday',
+                      value: 1,
                     },
                     {
                       label: 'Tuesday',
-                      value: 'tuesday',
+                      value: 2,
                     },
                     {
                       label: 'Wednesday',
-                      value: 'wednesday',
+                      value: 3,
                     },
                     {
                       label: 'Thursday',
-                      value: 'thursday',
+                      value: 4,
                     },
                     {
                       label: 'Friday',
-                      value: 'friday',
+                      value: 5,
                     },
                     {
                       label: 'Saturday',
-                      value: 'saturday',
+                      value: 6,
                     },
                   ]}
                 />
