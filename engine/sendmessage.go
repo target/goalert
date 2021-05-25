@@ -121,6 +121,11 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			CallbackID: msg.ID,
 			Code:       code,
 		}
+	case notification.MessageTypeScheduleOnCallStatus:
+		notifMsg = notification.ScheduleOnCallStatus{
+			Dest:       msg.Dest,
+			CallbackID: msg.ID,
+		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))
 		return &notification.SendResult{ID: msg.ID, Status: notification.Status{State: notification.StateFailedPerm}}, nil

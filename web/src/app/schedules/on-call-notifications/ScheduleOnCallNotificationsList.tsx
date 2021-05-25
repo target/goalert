@@ -16,16 +16,20 @@ export const query = gql`
       id
       onCallNotificationRules {
         id
-        target # TargetInput
-        time # ClockTime
-        weekdayFilter # WeekdayFilter
+        target {
+          id
+          type
+          name
+        }
+        time
+        weekdayFilter
       }
     }
   }
 `
 
 export const setMutation = gql`
-  mutation ($input: [SetScheduleNotificationsInput!]) {
+  mutation ($input: [SetScheduleOnCallNotificationRulesInput!]) {
     setScheduleOnCallNotificationRules(input: $input)
   }
 `
