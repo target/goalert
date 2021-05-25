@@ -17,7 +17,7 @@ func (u NullUUID) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	return u.UUID, nil
+	return u.UUID.Bytes(), nil
 }
 
 func (u *NullUUID) Scan(src interface{}) (err error) {

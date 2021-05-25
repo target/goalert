@@ -3,6 +3,8 @@ package notificationchannel
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/permission"
@@ -55,7 +57,7 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 
 		// Lock the table so only one tx can insert/update at a time, but allows the above SELECT FOR UPDATE to run
 		// so only required changes block.
-		lock: p.P(`LOCK notification_tables IN SHARE ROW EXCLUSIVE MODE`),
+		lock: p.P(`LOCK notification_channels IN SHARE ROW EXCLUSIVE MODE`),
 	}, p.Err
 }
 
@@ -80,8 +82,11 @@ func (db *DB) MapToID(ctx context.Context, tx *sql.Tx, c *Channel) (uuid.UUID, e
 	var id sqlutil.NullUUID
 	var name sql.NullString
 	err = stmt(ctx, tx, db.findByValue).QueryRowContext(ctx, n.Type, n.Value).Scan(&id, &name)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	if err != nil {
-		return uuid.UUID{}, err
+		return uuid.UUID{}, fmt.Errorf("lookup existing entry: %w", err)
 	}
 
 	if id.Valid && name.String == c.Name {
@@ -94,20 +99,23 @@ func (db *DB) MapToID(ctx context.Context, tx *sql.Tx, c *Channel) (uuid.UUID, e
 		ownTx = true
 		tx, err = db.db.BeginTx(ctx, nil)
 		if err != nil {
-			return uuid.UUID{}, err
+			return uuid.UUID{}, fmt.Errorf("start tx: %w", err)
 		}
 		defer tx.Rollback()
 	}
 
 	_, err = tx.StmtContext(ctx, db.lock).ExecContext(ctx)
 	if err != nil {
-		return uuid.UUID{}, err
+		return uuid.UUID{}, fmt.Errorf("aqcuire lock: %w", err)
 	}
 
 	// try again after exclusive lock
 	err = tx.StmtContext(ctx, db.findByValue).QueryRowContext(ctx, n.Type, n.Value).Scan(&id, &name)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
 	if err != nil {
-		return uuid.UUID{}, err
+		return uuid.UUID{}, fmt.Errorf("lookup existing entry exclusively: %w", err)
 	}
 	if id.Valid && name.String == c.Name {
 		// short-circuit if it already exists and is up-to-date.
@@ -118,12 +126,15 @@ func (db *DB) MapToID(ctx context.Context, tx *sql.Tx, c *Channel) (uuid.UUID, e
 		id.Valid = true
 		id.UUID = uuid.NewV4()
 		_, err = tx.StmtContext(ctx, db.create).ExecContext(ctx, id, n.Name, n.Type, n.Value)
+		if err != nil {
+			return uuid.UUID{}, fmt.Errorf("create new NC: %w", err)
+		}
 	} else {
 		// update existing name
 		_, err = tx.StmtContext(ctx, db.updateName).ExecContext(ctx, id, n.Name)
-	}
-	if err != nil {
-		return uuid.UUID{}, err
+		if err != nil {
+			return uuid.UUID{}, fmt.Errorf("update NC name: %w", err)
+		}
 	}
 
 	if ownTx {
