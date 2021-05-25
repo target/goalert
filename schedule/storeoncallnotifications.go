@@ -11,25 +11,26 @@ import (
 	"github.com/target/goalert/validation/validate"
 )
 
+const onCallNotificationRuleLimit = 50
+
 func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, rules []OnCallNotificationRule) error {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return err
 	}
 
-	err = validate.Range("Rules", len(rules), 0, 50)
+	err = validate.Range("Rules", len(rules), 0, onCallNotificationRuleLimit)
 	if err != nil {
 		return err
 	}
 
-	count := len(rules)
-	ids := make([]bool, count)
+	ids := make([]bool, onCallNotificationRuleLimit)
 	for i, r := range rules {
 		if !r.ID.Valid {
 			continue
 		}
 		fieldName := fmt.Sprintf("Rules[%d].ID", i)
-		err = validate.Range(fieldName, r.ID.ID, 0, count-1)
+		err = validate.Range(fieldName, r.ID.ID, 0, onCallNotificationRuleLimit)
 		if err != nil {
 			return err
 		}

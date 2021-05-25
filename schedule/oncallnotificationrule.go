@@ -85,6 +85,7 @@ func (r *RuleID) UnmarshalText(data []byte) error {
 		return err
 	}
 	r.ID = int(i)
+	r.Valid = true
 
 	return nil
 }
