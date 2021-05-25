@@ -30,7 +30,7 @@ export const setMutation = gql`
   }
 `
 
-export default function ScheduleOnCallNotifications(
+export default function ScheduleOnCallNotificationsList(
   p: ScheduleOnCallNotificationsProps,
 ): JSX.Element {
   return (

@@ -5,7 +5,7 @@ import Grid from '@material-ui/core/Grid'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
 
-import { query, setMutation } from './ScheduleOnCallNotifications'
+import { query, setMutation } from './ScheduleOnCallNotificationsList'
 import { Rule } from './ScheduleOnCallNotificationAction'
 import FormDialog from '../../dialogs/FormDialog'
 import { nonFieldErrors } from '../../util/errutil'
@@ -46,6 +46,7 @@ export default function ScheduleOnCallNotificationFormDialog(
     skip: !p.rule,
   })
 
+  // add form value to rules
   let rules = data?.schedule?.notificationRules ?? []
   if (value) {
     if (notifyOnUpdate) {
