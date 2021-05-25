@@ -242,7 +242,7 @@ func parseTarget(_m interface{}) assignment.Target {
 	if !ok {
 		return nil
 	}
-	var raw assignment.RawTarget
+	var raw RawTarget
 	raw.ID, _ = m["target_id"].(string)
 	raw.Type, _ = m["target_type"].(assignment.TargetType)
 
