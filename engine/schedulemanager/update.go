@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/override"
 	"github.com/target/goalert/permission"
@@ -195,9 +196,11 @@ func (db *DB) update(ctx context.Context) error {
 
 	start := tx.Stmt(db.startOnCall)
 
+	changedSchedules := make(map[string]struct{})
 	for oc := range newOnCall {
 		// not on call in DB, but are now
 		if !oldOnCall[oc] {
+			changedSchedules[oc.ScheduleID] = struct{}{}
 			_, err = start.ExecContext(ctx, oc.ScheduleID, oc.UserID)
 			if err != nil && !isScheduleDeleted(err) {
 				return errors.Wrap(err, "record shift start")
@@ -208,9 +211,33 @@ func (db *DB) update(ctx context.Context) error {
 	for oc := range oldOnCall {
 		// on call in DB, but no longer
 		if !newOnCall[oc] {
+			changedSchedules[oc.ScheduleID] = struct{}{}
 			_, err = end.ExecContext(ctx, oc.ScheduleID, oc.UserID)
 			if err != nil {
 				return errors.Wrap(err, "record shift end")
+			}
+		}
+	}
+
+	// Notify changed schedules
+	insertOnCall := tx.StmtContext(ctx, db.scheduleOnCallNotification)
+	for schedID := range changedSchedules {
+		data := scheduleData[schedID]
+		if data == nil {
+			continue
+		}
+		for _, r := range data.V1.OnCallNotificationRules {
+			if r.Time != nil {
+				// TODO: check outgoing messages and track in memory otherwise
+				continue
+			}
+			if r.WeekdayFilter != nil && !r.WeekdayFilter.Day(now.In(tz[schedID]).Weekday()) {
+				continue
+			}
+
+			_, err = insertOnCall.ExecContext(ctx, uuid.NewV4(), r.ChannelID)
+			if err != nil {
+				return err
 			}
 		}
 	}

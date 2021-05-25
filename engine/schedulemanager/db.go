@@ -19,6 +19,8 @@ type DB struct {
 	endOnCall   *sql.Stmt
 	startOnCall *sql.Stmt
 	data        *sql.Stmt
+
+	scheduleOnCallNotification *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -87,6 +89,11 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				schedule_id = $1 and
 				user_id = $2 and
 				end_time isnull
+		`),
+
+		// TODO: add schedule_id
+		scheduleOnCallNotification: p.P(`
+			insert into outgoing_messages (id, message_type, channel_id) values ($1, 'schedule_on_call_status', $2)
 		`),
 
 		currentTime: p.P(`select now()`),
