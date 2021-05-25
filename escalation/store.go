@@ -385,7 +385,7 @@ func (db *DB) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID strin
 		return nil, err
 	}
 
-	notifCh, err := db.ncStore.CreateTx(ctx, tx, &notificationchannel.Channel{
+	notifID, err := db.ncStore.MapToID(ctx, tx, &notificationchannel.Channel{
 		Type:  notificationchannel.TypeSlack,
 		Name:  ch.Name,
 		Value: ch.ID,
@@ -394,7 +394,7 @@ func (db *DB) newSlackChannel(ctx context.Context, tx *sql.Tx, slackChanID strin
 		return nil, err
 	}
 
-	return assignment.NotificationChannelTarget(notifCh.ID), nil
+	return assignment.NotificationChannelTarget(notifID.String()), nil
 }
 func (db *DB) lookupSlackChannel(ctx context.Context, tx *sql.Tx, stepID, slackChanID string) (assignment.Target, error) {
 	var notifChanID string
