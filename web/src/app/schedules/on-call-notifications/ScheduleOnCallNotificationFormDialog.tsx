@@ -22,10 +22,19 @@ interface ScheduleOnCallNotificationFormProps {
   onClose: () => void
 }
 
+type Value = {
+  target: {
+    type: 'slackChannel'
+    id: string
+  }
+  time?: string
+  weekdayFilter?: string
+}
+
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const [value, setValue] = useState<Rule | undefined>(p?.rule)
+  const [value, setValue] = useState<Value>(p?.rule as Value)
   const [notifyOnUpdate, setNotifyOnUpdate] = useState(true)
 
   // load all rules if editing
@@ -39,8 +48,10 @@ export default function ScheduleOnCallNotificationFormDialog(
 
   let rules = data?.schedule?.notificationRules ?? []
   if (value) {
-    // todo: format rule in state for mutation schema
-    // todo: delete time vals if notifyOnUpdate is true
+    if (notifyOnUpdate) {
+      delete value.time
+      delete value.weekdayFilter
+    }
     rules = [...rules, value]
   }
 
@@ -67,7 +78,7 @@ export default function ScheduleOnCallNotificationFormDialog(
       form={
         <FormContainer
           value={value}
-          onChange={(value: Rule) => setValue(value)}
+          onChange={(value: Value) => setValue(value)}
           errors={mutationStatus.error}
         >
           <Grid container spacing={2} direction='column'>
@@ -106,7 +117,7 @@ export default function ScheduleOnCallNotificationFormDialog(
                 <FormField
                   component={MaterialSelect}
                   name='weekdayFilter'
-                  label='Weekday'
+                  label='Select Days'
                   required
                   multiple
                   fullWidth
