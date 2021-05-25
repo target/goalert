@@ -321,6 +321,8 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 		vals.Set("text", fmt.Sprintf("Alert: %s\n\n<%s>", t.Summary, cfg.CallbackURL("/alerts/"+strconv.Itoa(t.AlertID))))
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
+	case notification.ScheduleOnCallStatus:
+		vals.Set("text", "TODO new schedule on call status")
 	default:
 		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}
