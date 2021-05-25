@@ -143,6 +143,11 @@ export default function ScheduleDetails({ scheduleID }) {
             url: 'shifts',
             subText: 'Review a list of past and future on-call shifts',
           },
+          {
+            label: 'On-Call Notifications',
+            url: 'on-call-notifications',
+            subText: 'Get notified when on-call shifts to the next user',
+          },
         ]}
       />
     </React.Fragment>
