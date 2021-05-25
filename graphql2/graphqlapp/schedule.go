@@ -11,6 +11,7 @@ import (
 
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/notificationchannel"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -23,9 +24,31 @@ import (
 
 type Schedule App
 type TemporarySchedule App
+type OnCallNotificationRule App
 
 func (a *App) Schedule() graphql2.ScheduleResolver                   { return (*Schedule)(a) }
 func (a *App) TemporarySchedule() graphql2.TemporaryScheduleResolver { return (*TemporarySchedule)(a) }
+func (a *App) OnCallNotificationRule() graphql2.OnCallNotificationRuleResolver {
+	return (*OnCallNotificationRule)(a)
+}
+
+func (a *OnCallNotificationRule) Target(ctx context.Context, raw *schedule.OnCallNotificationRule) (*assignment.RawTarget, error) {
+	ch, err := a.NCStore.FindOne(ctx, raw.ChannelID)
+	if err != nil {
+		return nil, err
+	}
+
+	if ch.Type == notificationchannel.TypeSlack {
+
+		return &assignment.RawTarget{
+			Type: assignment.TargetTypeSlackChannel,
+			ID:   ch.Value,
+			Name: ch.Name,
+		}, nil
+	}
+
+	return &assignment.RawTarget{Type: assignment.TargetTypeNotificationChannel, ID: ch.ID}, nil
+}
 
 func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.TemporarySchedule) ([]oncall.Shift, error) {
 	result := make([]oncall.Shift, 0, len(temp.Shifts))

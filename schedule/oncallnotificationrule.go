@@ -8,7 +8,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	uuid "github.com/satori/go.uuid"
-	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
 )
@@ -16,7 +15,8 @@ import (
 type OnCallNotificationRule struct {
 	ID RuleID
 
-	Target assignment.RawTarget
+	// ChannelID is the notification channel ID for notifications.
+	ChannelID uuid.UUID
 
 	Time          *timeutil.Clock
 	WeekdayFilter *timeutil.WeekdayFilter
