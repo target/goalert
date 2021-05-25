@@ -29,7 +29,7 @@ export const query = gql`
 `
 
 export const setMutation = gql`
-  mutation ($input: [SetScheduleOnCallNotificationRulesInput!]) {
+  mutation ($input: SetScheduleOnCallNotificationRulesInput!) {
     setScheduleOnCallNotificationRules(input: $input)
   }
 `

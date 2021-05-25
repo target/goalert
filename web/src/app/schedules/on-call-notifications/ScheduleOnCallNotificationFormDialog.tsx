@@ -29,7 +29,8 @@ type Value = {
   weekdayFilter?: Array<number>
 }
 
-// Set weekdayFilter
+// getWeekdayFilter takes the selected days and returns a full
+// week represented as booleans.
 // e.g. ['Monday', 'Wednesday', 'Saturday']
 // -> [true, false, true, false, false, false, true]
 function getWeekdayFilter(days: Array<number>): WeekdayFilter {
@@ -40,6 +41,8 @@ function getWeekdayFilter(days: Array<number>): WeekdayFilter {
   return d
 }
 
+// getSelectedDays takes WeekdayFilter and returns the included truthy days
+// as their given day-index in a week
 // e.g. [false, true, true, false, false, true, false]
 // -> [1, 2, 5]
 function getSelectedDays(weekdayFilter: WeekdayFilter): Array<number> {
@@ -93,8 +96,10 @@ export default function ScheduleOnCallNotificationFormDialog(
 
   const [mutate, mutationStatus] = useMutation(setMutation, {
     variables: {
-      scheduleID: p.scheduleID,
-      rules,
+      input: {
+        scheduleID: p.scheduleID,
+        rules,
+      }
     },
   })
 
@@ -154,38 +159,39 @@ export default function ScheduleOnCallNotificationFormDialog(
                   component={MaterialSelect}
                   name='weekdayFilter'
                   label='Select Days'
-                  required
                   multiple
                   fullWidth
                   disabled={notifyOnUpdate}
+                  mapOnChangeValue={(value: string) => parseInt(value, 10)}
+                  mapValue={(value: number) => value?.toString()}
                   options={[
                     {
                       label: 'Sunday',
-                      value: 0,
+                      value: '0',
                     },
                     {
                       label: 'Monday',
-                      value: 1,
+                      value: '1',
                     },
                     {
                       label: 'Tuesday',
-                      value: 2,
+                      value: '2',
                     },
                     {
                       label: 'Wednesday',
-                      value: 3,
+                      value: '3',
                     },
                     {
                       label: 'Thursday',
-                      value: 4,
+                      value: '4',
                     },
                     {
                       label: 'Friday',
-                      value: 5,
+                      value: '5',
                     },
                     {
                       label: 'Saturday',
-                      value: 6,
+                      value: '6',
                     },
                   ]}
                 />
