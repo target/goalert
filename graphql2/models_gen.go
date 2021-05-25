@@ -35,6 +35,11 @@ type AlertLogEntryConnection struct {
 	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
+type AlertPendingNotification struct {
+	TargetType assignment.TargetType `json:"targetType"`
+	TargetName string                `json:"targetName"`
+}
+
 type AlertRecentEventsOptions struct {
 	Limit *int    `json:"limit"`
 	After *string `json:"after"`

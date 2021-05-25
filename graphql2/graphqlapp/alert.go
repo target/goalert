@@ -375,6 +375,23 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	return conn, err
 }
 
+func (a *Alert) PendingNotifications(ctx context.Context, obj *alert.Alert) ([]graphql2.AlertPendingNotification, error) {
+	var result []graphql2.AlertPendingNotification
+	rows, err := a.AlertStore.FindPendingNotifications(ctx, obj.ID, obj.ServiceID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, val := range rows {
+		result = append(result, graphql2.AlertPendingNotification{
+			TargetName: val.TargetName,
+			TargetType: 1, //TODO targetTypeEnum.Get(val.TargetType),
+		})
+	}
+
+	return result, nil
+}
+
 func (m *Mutation) EscalateAlerts(ctx context.Context, ids []int) ([]alert.Alert, error) {
 	ids, err := m.AlertStore.EscalateMany(ctx, ids)
 	if err != nil {

@@ -7,7 +7,7 @@ import { FormContainer, FormField } from '../forms'
 interface Value {
   name: string
   description: string
-  escalationPolicyID: string
+  escalationPolicyID?: string
 }
 
 interface ServiceFormProps {
@@ -20,9 +20,9 @@ interface ServiceFormProps {
 
   onChange: (val: Value) => void
 
-  disabled: boolean
+  disabled?: boolean
 
-  epRequired: boolean
+  epRequired?: boolean
 }
 
 export default function ServiceForm(props: ServiceFormProps): JSX.Element {

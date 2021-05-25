@@ -27,6 +27,11 @@ type Alert struct {
 	Dedup     *DedupID  `json:"dedup"`
 }
 
+type AlertPendingNotification struct {
+	TargetName string `json:"targetName"`
+	TargetType string `json:"targetType"`
+}
+
 // DedupKey will return the de-duplication key for the alert.
 // The Dedup prop is used if non-nil, otherwise one is generated
 // using the Description of the Alert.

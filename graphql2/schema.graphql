@@ -793,6 +793,13 @@ type Alert {
 
   # Recent log entries for the alert.
   recentEvents(input: AlertRecentEventsOptions): AlertLogEntryConnection!
+
+  pendingNotifications: [AlertPendingNotification!]!
+}
+
+type AlertPendingNotification {
+  targetType: TargetType!
+  targetName: String! # e.g. slack channel name, user name
 }
 
 input AlertRecentEventsOptions {

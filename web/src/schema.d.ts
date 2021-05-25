@@ -614,6 +614,12 @@ export interface Alert {
   service?: Service
   state?: AlertState
   recentEvents: AlertLogEntryConnection
+  pendingNotifications: AlertPendingNotification[]
+}
+
+export interface AlertPendingNotification {
+  targetType: TargetType
+  targetName: string
 }
 
 export interface AlertRecentEventsOptions {
