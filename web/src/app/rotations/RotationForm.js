@@ -64,11 +64,6 @@ export default function RotationForm(props) {
   const [configInZone, setConfigInZone] = useState(false)
   const configZone = configInZone ? value.timeZone : 'local'
 
-  const [minStart, maxStart] = useMemo(() => [
-    DateTime.local().minus({ year: 1 }),
-    DateTime.local().plus({ year: 1 }),
-  ])
-
   const { data, loading, error } = useQuery(query, {
     variables: {
       input: {
@@ -176,8 +171,6 @@ export default function RotationForm(props) {
             timeZone={configZone}
             label='Handoff Time'
             name='start'
-            min={minStart.toISO()}
-            max={maxStart.toISO()}
             required
           />
         </Grid>
