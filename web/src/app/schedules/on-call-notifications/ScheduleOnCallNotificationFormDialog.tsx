@@ -34,7 +34,7 @@ type Value = {
 // e.g. ['Monday', 'Wednesday', 'Saturday']
 // -> [true, false, true, false, false, false, true]
 function getWeekdayFilter(days: Array<number>): WeekdayFilter {
-  const d = Array.apply(null, Array(7)).map(Boolean.prototype.valueOf, false) as WeekdayFilter
+  const d: WeekdayFilter = [false, false, false, false, false, false, false]
   days.forEach((day) => {
     d[day] = true
   })
@@ -46,24 +46,25 @@ function getWeekdayFilter(days: Array<number>): WeekdayFilter {
 // e.g. [false, true, true, false, false, true, false]
 // -> [1, 2, 5]
 function getSelectedDays(weekdayFilter: WeekdayFilter): Array<number> {
-  return weekdayFilter.map((day, idx) => day ? idx : -1).filter((day) => day < 0)
+  return weekdayFilter
+    .map((day, idx) => (day ? idx : -1))
+    .filter((day) => day < 0)
 }
 
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-
-  let initialVal: Value | null = null
-  if (p.rule) {
-    initialVal = {
-      target: p.rule.target.id,
-      time: p.rule.time,
-      weekdayFilter: getSelectedDays(p?.rule?.weekdayFilter)
-    }
-  }
-
-  const [value, setValue] = useState<Value | null>(initialVal)
+  const [value, setValue] = useState<Value | null>(
+    p.rule
+      ? {
+          target: p.rule.target.id,
+          time: p.rule.time,
+          weekdayFilter: getSelectedDays(p?.rule?.weekdayFilter),
+        }
+      : null,
+  )
   const [notifyOnUpdate, setNotifyOnUpdate] = useState(true)
+  const [mutate, mutationStatus] = useMutation(setMutation)
 
   // load all rules if editing
   const { loading, error, data } = useQuery(query, {
@@ -74,34 +75,37 @@ export default function ScheduleOnCallNotificationFormDialog(
     skip: !p.rule,
   })
 
-  // add form value to rules
-  let rules = data?.schedule?.notificationRules ?? []
-  if (value) {
-    let newRule: OnCallNotificationRuleInput = {
-      target: {
-        id: value.target,
-        type: 'slackChannel',
+  function handleOnSubmit(): void {
+    // add form value to rules
+    let rules = data?.schedule?.notificationRules ?? []
+    if (value) {
+      const newRule: OnCallNotificationRuleInput = {
+        target: {
+          id: value.target,
+          type: 'slackChannel',
+        },
+        time: value.time,
+        weekdayFilter: getWeekdayFilter(value?.weekdayFilter ?? []),
+      }
+
+      if (notifyOnUpdate) {
+        delete newRule.time
+        delete newRule.weekdayFilter
+      }
+
+      rules = [...rules, value]
+    }
+
+    mutate({
+      variables: {
+        input: {
+          scheduleID: p.scheduleID,
+          rules,
+        },
       },
-      time: value.time,
-      weekdayFilter: getWeekdayFilter(value?.weekdayFilter ?? [])
-    }
-
-    if (notifyOnUpdate) {
-      delete newRule.time
-      delete newRule.weekdayFilter
-    }
-
-    rules = [...rules, value]
+    })
   }
 
-  const [mutate, mutationStatus] = useMutation(setMutation, {
-    variables: {
-      input: {
-        scheduleID: p.scheduleID,
-        rules,
-      }
-    },
-  })
 
   if (loading && !data?.schedule) return <Spinner />
   if (error) return <GenericError error={error.message} />
@@ -115,7 +119,7 @@ export default function ScheduleOnCallNotificationFormDialog(
       title={(p.rule ? 'Edit ' : 'Create ') + 'Notification Rule'}
       errors={nonFieldErrors(mutationStatus.error)}
       onClose={() => p.onClose()}
-      onSubmit={() => mutate()}
+      onSubmit={() => handleOnSubmit()}
       form={
         <FormContainer
           value={value}
