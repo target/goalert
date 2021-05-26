@@ -181,7 +181,7 @@ cy-wide-prod-run: web/src/build/static/app.js cypress
 cy-mobile-prod-run: web/src/build/static/app.js cypress
 	make cy-mobile-prod CY_ACTION=run
 
-web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go
+web/src/schema.d.ts: graphql2/schema.graphql node_modules web/src/genschema.go devtools/gqlgen/*
 	go generate ./web/src
 
 start: bin/waitfor node_modules bin/runjson web/src/schema.d.ts $(BIN_DIR)/tools/prometheus

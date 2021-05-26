@@ -55,7 +55,7 @@ func TestSingleRuleCalculator(t *testing.T) {
 			Rule: rule.Rule{
 				Start:         timeutil.NewClock(3, 5),
 				End:           timeutil.NewClock(3, 7),
-				WeekdayFilter: rule.EveryDay(),
+				WeekdayFilter: timeutil.EveryDay(),
 				Target:        assignment.UserTarget("foo"),
 			},
 		},
