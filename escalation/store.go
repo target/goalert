@@ -148,7 +148,7 @@ func NewDB(ctx context.Context, db *sql.DB, cfg Config) (*DB, error) {
 			JOIN escalation_policy_actions act ON
 				act.escalation_policy_step_id = $1 AND
 				act.channel_id = chan.id
-			WHERE chan.value = $2
+			WHERE chan.value = $2 and chan.type = 'SLACK'
 		`),
 
 		findOnePolicy:          p.P(`SELECT id, name, description, repeat FROM escalation_policies WHERE id = $1`),

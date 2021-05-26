@@ -26,21 +26,21 @@ func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, 
 
 	ids := make([]bool, onCallNotificationRuleLimit)
 	for i, r := range rules {
-		if !r.ID.Valid {
+		if !r.ID.valid {
 			continue
 		}
 		fieldName := fmt.Sprintf("Rules[%d].ID", i)
-		err = validate.Range(fieldName, r.ID.ID, 0, onCallNotificationRuleLimit)
+		err = validate.Range(fieldName, r.ID.id, 0, onCallNotificationRuleLimit)
 		if err != nil {
 			return err
 		}
-		if r.ID.ScheduleID != scheduleID {
+		if r.ID.scheduleID != scheduleID {
 			return validation.NewFieldError(fieldName, "wrong schedule ID")
 		}
-		if ids[r.ID.ID] {
+		if ids[r.ID.id] {
 			return validation.NewFieldError(fieldName, "duplicate ID value not allowed")
 		}
-		ids[r.ID.ID] = true
+		ids[r.ID.id] = true
 	}
 	nextID := func() int {
 		for i, used := range ids {
@@ -56,13 +56,13 @@ func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, 
 	}
 
 	for i, r := range rules {
-		if r.ID.Valid {
+		if r.ID.valid {
 			continue
 		}
 
-		rules[i].ID.ScheduleID = scheduleID
-		rules[i].ID.Valid = true
-		rules[i].ID.ID = nextID()
+		rules[i].ID.scheduleID = scheduleID
+		rules[i].ID.valid = true
+		rules[i].ID.id = nextID()
 	}
 
 	return store.updateScheduleData(ctx, tx, scheduleID, func(data *Data) error {
