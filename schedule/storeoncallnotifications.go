@@ -72,13 +72,13 @@ func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, 
 	})
 }
 
-func (store *Store) OnCallNotificationRules(ctx context.Context, tx *sql.Tx, id uuid.UUID) ([]OnCallNotificationRule, error) {
+func (store *Store) OnCallNotificationRules(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID) ([]OnCallNotificationRule, error) {
 	err := permission.LimitCheckAny(ctx, permission.User)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := store.scheduleData(ctx, tx, id)
+	data, err := store.scheduleData(ctx, tx, scheduleID)
 	if err != nil {
 		return nil, err
 	}
