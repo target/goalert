@@ -26,15 +26,25 @@ interface ScheduleOnCallNotificationFormProps {
 type Value = {
   target: string
   time?: string
-  weekdayFilter?: Array<number>
+  weekdayFilter?: Array<number> | null
 }
+
+const defaultWeekdayFilter: WeekdayFilter = [
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+]
 
 // getWeekdayFilter takes the selected days and returns a full
 // week represented as booleans.
 // e.g. ['Monday', 'Wednesday', 'Saturday']
 // -> [true, false, true, false, false, false, true]
 function getWeekdayFilter(days: Array<number>): WeekdayFilter {
-  const d: WeekdayFilter = [false, false, false, false, false, false, false]
+  const d: WeekdayFilter = defaultWeekdayFilter
   days.forEach((day) => {
     d[day] = true
   })
@@ -45,24 +55,24 @@ function getWeekdayFilter(days: Array<number>): WeekdayFilter {
 // as their given day-index in a week
 // e.g. [false, true, true, false, false, true, false]
 // -> [1, 2, 5]
-function getSelectedDays(weekdayFilter: WeekdayFilter): Array<number> {
+function getSelectedDays(weekdayFilter?: WeekdayFilter): Array<number> | null {
+  if (!weekdayFilter) {
+    return null
+  }
   return weekdayFilter
     .map((day, idx) => (day ? idx : -1))
-    .filter((day) => day < 0)
+    .filter((day) => day > 0)
 }
 
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
-  const [value, setValue] = useState<Value | null>(
-    p.rule
-      ? {
-          target: p.rule.target.id,
-          time: p.rule.time,
-          weekdayFilter: getSelectedDays(p?.rule?.weekdayFilter),
-        }
-      : null,
-  )
+  const [value, setValue] = useState<Value>({
+    target: p.rule?.target.id ?? '',
+    time: p.rule?.time ?? '',
+    weekdayFilter: getSelectedDays(p.rule?.weekdayFilter),
+  })
+
   const [notifyOnUpdate, setNotifyOnUpdate] = useState(true)
   const [mutate, mutationStatus] = useMutation(setMutation)
 
@@ -106,12 +116,15 @@ export default function ScheduleOnCallNotificationFormDialog(
     })
   }
 
-
   if (loading && !data?.schedule) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
   function handleRadioOnChange(event: ChangeEvent<HTMLInputElement>): void {
     setNotifyOnUpdate(event?.target?.value === 'true')
+  }
+
+  function handleOnChange(value: Value): void {
+    setValue(value)
   }
 
   return (
@@ -123,7 +136,7 @@ export default function ScheduleOnCallNotificationFormDialog(
       form={
         <FormContainer
           value={value}
-          onChange={(value: Value) => setValue(value)}
+          onChange={(value: Value) => handleOnChange(value)}
           errors={mutationStatus.error}
         >
           <Grid container spacing={2} direction='column'>
@@ -166,8 +179,6 @@ export default function ScheduleOnCallNotificationFormDialog(
                   multiple
                   fullWidth
                   disabled={notifyOnUpdate}
-                  mapOnChangeValue={(value: string) => parseInt(value, 10)}
-                  mapValue={(value: number) => value?.toString()}
                   options={[
                     {
                       label: 'Sunday',
