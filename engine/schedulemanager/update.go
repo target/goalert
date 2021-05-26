@@ -235,7 +235,7 @@ func (db *DB) update(ctx context.Context) error {
 				continue
 			}
 
-			_, err = insertOnCall.ExecContext(ctx, uuid.NewV4(), r.ChannelID, r.ID.ScheduleID)
+			_, err = insertOnCall.ExecContext(ctx, uuid.NewV4(), r.ChannelID, schedID)
 			if err != nil {
 				return err
 			}
