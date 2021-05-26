@@ -63,6 +63,8 @@ type DB struct {
 	insertAlertBundle  *sql.Stmt
 	insertStatusBundle *sql.Stmt
 
+	deleteAny *sql.Stmt
+
 	lastSent     time.Time
 	sentMessages map[string]Message
 }
@@ -358,6 +360,9 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				sent_at >= $1 or
 				last_status = 'pending' and
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
+		`),
+		deleteAny: p.P(`
+			delete from outgoing_messages where id = ANY($1)
 		`),
 	}, p.Err
 }

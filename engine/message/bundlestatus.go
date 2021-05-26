@@ -75,3 +75,37 @@ func bundleStatusMessages(messages []Message, bundleFunc func(Message, []string)
 
 	return filtered, nil
 }
+
+// returns newest message only
+// to send, to delete -> return values
+func dedupStatusMessages(messages []Message) ([]Message, []string) {
+	// if multiple status updates for same channel and same alert, dedup
+	sort.Slice(messages, func(i, j int) bool { return messages[i].AlertLogID > messages[j].AlertLogID })
+	filter := messages[:0]
+
+	type msgKey struct {
+		alertID int
+		dest    notification.Dest
+	}
+
+	m := make(map[msgKey]struct{})
+	var toDelete []string
+
+	for _, msg := range messages {
+		if msg.Type != notification.MessageTypeAlertStatus {
+			filter = append(filter, msg)
+			continue
+		}
+		key := msgKey{alertID: msg.AlertID, dest: msg.Dest}
+		if _, ok := m[key]; ok {
+			toDelete = append(toDelete, msg.ID)
+			continue
+		}
+
+		// put into map
+		m[key] = struct{}{}
+
+		filter = append(filter, msg)
+	}
+	return filter, toDelete
+}

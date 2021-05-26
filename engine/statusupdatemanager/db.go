@@ -44,9 +44,15 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 			limit 100
 			for update skip locked
 		`),
-		insertMessage: p.P(`insert into outgoing_messages ...`),
-		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
-		cleanupClosed: p.P(`delete from alert_status_subscriptions where id = $1`),
+		insertMessage: p.P(`insert into outgoing_messages(
+					channel_id,
+					contact_method_id,
+					alert_id,
+					last_status) 
+					values ($1, $2, $3, $4, $5)`),
+
+		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where alert_id = $1`),
+		cleanupClosed: p.P(`delete from alert_status_subscriptions where alert_id = $1 and last_alert_status='closed'`),
 
 		// - get a subset of last_status != current_status
 		// - insert messages for each
