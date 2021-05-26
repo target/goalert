@@ -55,9 +55,9 @@ function getWeekdayFilter(days: Array<number>): WeekdayFilter {
 // as their given day-index in a week
 // e.g. [false, true, true, false, false, true, false]
 // -> [1, 2, 5]
-function getSelectedDays(weekdayFilter?: WeekdayFilter): Array<number> | null {
+function getSelectedDays(weekdayFilter?: WeekdayFilter): Array<number> {
   if (!weekdayFilter) {
-    return null
+    return []
   }
   return weekdayFilter
     .map((day, idx) => (day ? idx : -1))
