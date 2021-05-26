@@ -103,7 +103,7 @@ export default function ScheduleOnCallNotificationFormDialog(
         delete newRule.weekdayFilter
       }
 
-      rules = [...rules, value]
+      rules = [...rules, newRule]
     }
 
     mutate({
