@@ -13,6 +13,7 @@ import (
 )
 
 type OnCallNotificationRule struct {
+	// ID is a persistent value for UI or other systems to track rule additions/deletions/edits.
 	ID RuleID
 
 	// ChannelID is the notification channel ID for notifications.
@@ -23,9 +24,9 @@ type OnCallNotificationRule struct {
 }
 
 type RuleID struct {
-	ScheduleID uuid.UUID
-	ID         int
-	Valid      bool
+	scheduleID uuid.UUID
+	id         int
+	valid      bool
 }
 
 var _ encoding.TextMarshaler = RuleID{}
@@ -49,14 +50,14 @@ func (r *RuleID) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 func (r RuleID) String() string {
-	if !r.Valid {
+	if !r.valid {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%d", r.ScheduleID.String(), r.ID)
+	return fmt.Sprintf("%s:%d", r.scheduleID.String(), r.id)
 }
 func (r RuleID) MarshalText() ([]byte, error) {
-	if !r.Valid {
+	if !r.valid {
 		return nil, nil
 	}
 
@@ -66,9 +67,9 @@ func (r RuleID) MarshalText() ([]byte, error) {
 func (r *RuleID) UnmarshalText(data []byte) error {
 	s := string(data)
 	if s == "" {
-		r.Valid = false
-		r.ID = 0
-		r.ScheduleID = uuid.UUID{}
+		r.valid = false
+		r.id = 0
+		r.scheduleID = uuid.UUID{}
 		return nil
 	}
 	if len(s) < 38 {
@@ -76,7 +77,7 @@ func (r *RuleID) UnmarshalText(data []byte) error {
 	}
 
 	var err error
-	r.ScheduleID, err = uuid.FromString(s[:36])
+	r.scheduleID, err = uuid.FromString(s[:36])
 	if err != nil {
 		return err
 	}
@@ -84,8 +85,8 @@ func (r *RuleID) UnmarshalText(data []byte) error {
 	if err != nil {
 		return err
 	}
-	r.ID = int(i)
-	r.Valid = true
+	r.id = int(i)
+	r.valid = true
 
 	return nil
 }
