@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -322,7 +323,19 @@ func (s *ChannelSender) Send(ctx context.Context, msg notification.Message) (str
 	case notification.AlertBundle:
 		vals.Set("text", fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", t.ServiceName, t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")))
 	case notification.ScheduleOnCallStatus:
-		vals.Set("text", "TODO new schedule on call status")
+		var userStr string
+		if len(t.Users) == 0 {
+			userStr = "No users"
+		} else {
+
+			var userLinks []string
+			for _, u := range t.Users {
+				userLinks = append(userLinks, getSlackLink(u.URL, u.Name))
+			}
+			userStr = "Users: " + strings.Join(userLinks, ", ")
+		}
+
+		vals.Set("text", fmt.Sprintf("%s are on call for Schedule: %s", userStr, getSlackLink(t.Schedule.URL, t.Schedule.Name)))
 	default:
 		return "", nil, errors.Errorf("unsupported message type: %T", t)
 	}
