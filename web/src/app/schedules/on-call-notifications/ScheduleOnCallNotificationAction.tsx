@@ -16,8 +16,8 @@ export type Rule = {
     type: string
     name: string
   }
-  time: string
-  weekdayFilter: WeekdayFilter
+  time?: string
+  weekdayFilter?: WeekdayFilter
 }
 
 export default function ScheduleOnCallNotificationAction(
