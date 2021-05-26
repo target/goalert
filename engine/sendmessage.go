@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/pkg/errors"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/message"
@@ -125,6 +127,23 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 		notifMsg = notification.ScheduleOnCallStatus{
 			Dest:       msg.Dest,
 			CallbackID: msg.ID,
+			Schedule: notification.Schedule{
+				Name: "My Schedule",
+				URL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID.String()),
+				ID:   msg.ScheduleID,
+			},
+			Users: []notification.User{
+				{
+					Name: "Alice",
+					ID:   uuid.Nil,
+					URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + uuid.Nil.String()),
+				},
+				{
+					Name: "Bob",
+					ID:   uuid.Nil,
+					URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + uuid.Nil.String()),
+				},
+			},
 		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))

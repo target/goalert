@@ -3,6 +3,7 @@ package message
 import (
 	"time"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/notification"
 )
 
@@ -15,10 +16,11 @@ type Message struct {
 	AlertLogID int
 	VerifyID   string
 
-	UserID    string
-	ServiceID string
-	CreatedAt time.Time
-	SentAt    time.Time
+	UserID     string
+	ServiceID  string
+	ScheduleID uuid.UUID
+	CreatedAt  time.Time
+	SentAt     time.Time
 
 	StatusAlertIDs []int
 }
