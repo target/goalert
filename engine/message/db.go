@@ -361,9 +361,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				last_status = 'pending' and
 				(msg.contact_method_id isnull or msg.message_type = 'verification_message' or not cm.disabled)
 		`),
-		deleteAny: p.P(`
-			delete from outgoing_messages where id = ANY($1)
-		`),
+
+		deleteAny: p.P(`delete from outgoing_messages where id = any($1)`),
 	}, p.Err
 }
 
