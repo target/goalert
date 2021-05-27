@@ -76,7 +76,7 @@ interface ConfigValues {
 function formatHeading(s = ''): string {
   return startCase(s)
     .replace(/\bTwo Way\b/, 'Two-Way')
-    .replace('Disable V 1 Graph QL', 'Disable V1 GraphQL')
+    .replace('Enable V 1 Graph QL', 'Enable V1 GraphQL')
     .replace('Git Hub', 'GitHub')
     .replace(/R Ls\b/, 'RLs') // fix usages of `URLs`
 }
