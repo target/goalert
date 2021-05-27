@@ -39,6 +39,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		NotificationStore:   app.NotificationStore,
 		NCStore:             app.NCStore,
 		OnCallStore:         app.OnCallStore,
+		ScheduleStore:       app.ScheduleStore,
 
 		ConfigSource: app.ConfigStore,
 

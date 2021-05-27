@@ -122,17 +122,21 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Code:       code,
 		}
 	case notification.MessageTypeScheduleOnCallStatus:
-		rows, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)
+		users, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)
 		if err != nil {
 			return nil, errors.Wrap(err, "lookup on call users by schedule")
 		}
+		schedName, err := p.cfg.ScheduleStore.FindName(ctx, msg.ScheduleID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup schedule by id")
+		}
 
 		var onCallUsers []notification.User
-		for _, row := range rows {
+		for _, u := range users {
 			onCallUsers = append(onCallUsers, notification.User{
-				Name: row.Name,
-				ID:   row.ID,
-				URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + row.ID),
+				Name: u.Name,
+				ID:   u.ID,
+				URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + u.ID),
 			})
 		}
 
@@ -140,7 +144,7 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Dest:       msg.Dest,
 			CallbackID: msg.ID,
 			Schedule: notification.Schedule{
-				Name: "My Schedule",
+				Name: schedName,
 				URL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
 				ID:   msg.ScheduleID,
 			},
