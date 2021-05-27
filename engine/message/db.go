@@ -446,14 +446,15 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	db.lastSent = now
 
 	cfg := config.FromContext(ctx)
-	if cfg.General.MessageBundles {
-		result, err = bundleStatusMessages(result, func(msg Message, ids []string) error {
-			_, err := tx.StmtContext(ctx, db.insertStatusBundle).ExecContext(ctx, msg.ID, msg.CreatedAt, msg.Dest.ID, msg.UserID, msg.AlertLogID, sqlutil.IntArray(msg.StatusAlertIDs), sqlutil.UUIDArray(ids))
-			return errors.Wrap(err, "insert status bundle")
-		})
+	result, toDelete := dedupStatusMessages(result)
+	if len(toDelete) > 0 {
+		_, err = tx.StmtContext(ctx, db.deleteAny).ExecContext(ctx, sqlutil.UUIDArray(toDelete))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("delete duplicate status updates: %w", err)
 		}
+	}
+
+	if cfg.General.MessageBundles {
 		result, err = bundleAlertMessages(result, func(msg Message, ids []string) error {
 			var cmID, chanID, userID sql.NullString
 			if msg.UserID != "" {
