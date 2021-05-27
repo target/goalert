@@ -514,6 +514,7 @@ type ComplexityRoot struct {
 }
 
 type AlertResolver interface {
+	ID(ctx context.Context, obj *alert.Alert) (string, error)
 	AlertID(ctx context.Context, obj *alert.Alert) (int, error)
 	Status(ctx context.Context, obj *alert.Alert) (AlertStatus, error)
 
@@ -643,7 +644,6 @@ type ScheduleResolver interface {
 	TemporarySchedules(ctx context.Context, obj *schedule.Schedule) ([]schedule.TemporarySchedule, error)
 }
 type ScheduleRuleResolver interface {
-	WeekdayFilter(ctx context.Context, obj *rule.Rule) ([]bool, error)
 	Target(ctx context.Context, obj *rule.Rule) (*assignment.RawTarget, error)
 }
 type ServiceResolver interface {
@@ -3543,7 +3543,7 @@ input ScheduleRuleInput {
 
   # weekdayFilter is a 7-item array that indicates if the rule
   # is active on each weekday, starting with Sunday.
-  weekdayFilter: [Boolean!]
+  weekdayFilter: WeekdayFilter
 }
 
 input SetLabelInput {
@@ -3696,7 +3696,7 @@ type ScheduleRule {
 
   # weekdayFilter is a 7-item array that indicates if the rule
   # is active on each weekday, starting with Sunday.
-  weekdayFilter: [Boolean!]!
+  weekdayFilter: WeekdayFilter!
 
   target: Target!
 }
@@ -3856,8 +3856,11 @@ enum AlertSearchSort {
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp
 
-# ClockTime is a 24-hour time in the format 00:00
+# ClockTime is a 24-hour time in the format 00:00.
 scalar ClockTime
+
+# WeekdayFilter is an array of 7 true/false values representing days of the week.
+scalar WeekdayFilter
 
 type Alert {
   id: ID!
@@ -5405,14 +5408,14 @@ func (ec *executionContext) _Alert_id(ctx context.Context, field graphql.Collect
 		Object:     "Alert",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return ec.resolvers.Alert().ID(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5424,9 +5427,9 @@ func (ec *executionContext) _Alert_id(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Alert_alertID(ctx context.Context, field graphql.CollectedField, obj *alert.Alert) (ret graphql.Marshaler) {
@@ -12491,14 +12494,14 @@ func (ec *executionContext) _ScheduleRule_weekdayFilter(ctx context.Context, fie
 		Object:     "ScheduleRule",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ScheduleRule().WeekdayFilter(rctx, obj)
+		return obj.WeekdayFilter, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12510,9 +12513,9 @@ func (ec *executionContext) _ScheduleRule_weekdayFilter(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]bool)
+	res := resTmp.(timeutil.WeekdayFilter)
 	fc.Result = res
-	return ec.marshalNBoolean2ᚕboolᚄ(ctx, field.Selections, res)
+	return ec.marshalNWeekdayFilter2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ScheduleRule_target(ctx context.Context, field graphql.CollectedField, obj *rule.Rule) (ret graphql.Marshaler) {
@@ -17931,7 +17934,7 @@ func (ec *executionContext) unmarshalInputScheduleRuleInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("weekdayFilter"))
-			it.WeekdayFilter, err = ec.unmarshalOBoolean2ᚕboolᚄ(ctx, v)
+			it.WeekdayFilter, err = ec.unmarshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19165,10 +19168,19 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Alert")
 		case "id":
-			out.Values[i] = ec._Alert_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Alert_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "alertID":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -21189,19 +21201,10 @@ func (ec *executionContext) _ScheduleRule(ctx context.Context, sel ast.Selection
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "weekdayFilter":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ScheduleRule_weekdayFilter(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._ScheduleRule_weekdayFilter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "target":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -22738,54 +22741,19 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNBoolean2ᚕboolᚄ(ctx context.Context, v interface{}) ([]bool, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]bool, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNBoolean2bool(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNBoolean2ᚕboolᚄ(ctx context.Context, sel ast.SelectionSet, v []bool) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNBoolean2bool(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNClearTemporarySchedulesInput2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐClearTemporarySchedulesInput(ctx context.Context, v interface{}) (ClearTemporarySchedulesInput, error) {
 	res, err := ec.unmarshalInputClearTemporarySchedulesInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, v interface{}) (timeutil.Clock, error) {
-	res, err := UnmarshalClockTime(v)
+	var res timeutil.Clock
+	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNClockTime2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, sel ast.SelectionSet, v timeutil.Clock) graphql.Marshaler {
-	res := MarshalClockTime(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNConfigHint2githubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigHint(ctx context.Context, sel ast.SelectionSet, v ConfigHint) graphql.Marshaler {
@@ -23134,21 +23102,6 @@ func (ec *executionContext) unmarshalNHeartbeatMonitorState2githubᚗcomᚋtarge
 
 func (ec *executionContext) marshalNHeartbeatMonitorState2githubᚗcomᚋtargetᚋgoalertᚋheartbeatᚐState(ctx context.Context, sel ast.SelectionSet, v heartbeat.State) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalIntID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalIntID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -24598,6 +24551,16 @@ func (ec *executionContext) unmarshalNVerifyContactMethodInput2githubᚗcomᚋta
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNWeekdayFilter2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx context.Context, v interface{}) (timeutil.WeekdayFilter, error) {
+	var res timeutil.WeekdayFilter
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNWeekdayFilter2githubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx context.Context, sel ast.SelectionSet, v timeutil.WeekdayFilter) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -24986,42 +24949,6 @@ func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.Se
 	return graphql.MarshalBoolean(v)
 }
 
-func (ec *executionContext) unmarshalOBoolean2ᚕboolᚄ(ctx context.Context, v interface{}) ([]bool, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]bool, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNBoolean2bool(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOBoolean2ᚕboolᚄ(ctx context.Context, sel ast.SelectionSet, v []bool) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNBoolean2bool(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v interface{}) (*bool, error) {
 	if v == nil {
 		return nil, nil
@@ -25049,15 +24976,16 @@ func (ec *executionContext) unmarshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoale
 	if v == nil {
 		return nil, nil
 	}
-	res, err := UnmarshalClockTime(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	var res = new(timeutil.Clock)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOClockTime2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐClock(ctx context.Context, sel ast.SelectionSet, v *timeutil.Clock) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return MarshalClockTime(*v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOConfigValueInput2ᚕgithubᚗcomᚋtargetᚋgoalertᚋgraphql2ᚐConfigValueInputᚄ(ctx context.Context, v interface{}) ([]ConfigValueInput, error) {
@@ -25755,6 +25683,22 @@ func (ec *executionContext) unmarshalOUserSearchOptions2ᚖgithubᚗcomᚋtarget
 	}
 	res, err := ec.unmarshalInputUserSearchOptions(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx context.Context, v interface{}) (*timeutil.WeekdayFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(timeutil.WeekdayFilter)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOWeekdayFilter2ᚖgithubᚗcomᚋtargetᚋgoalertᚋutilᚋtimeutilᚐWeekdayFilter(ctx context.Context, sel ast.SelectionSet, v *timeutil.WeekdayFilter) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

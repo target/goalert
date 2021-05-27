@@ -11,8 +11,8 @@ import { makeStyles } from '@material-ui/styles'
 const useStyles = makeStyles({
   speedDial: {
     position: 'fixed',
-    bottom: '2em',
-    right: '2em',
+    bottom: '16px',
+    right: '16px',
     zIndex: 9001,
   },
   staticTooltipLabel: {

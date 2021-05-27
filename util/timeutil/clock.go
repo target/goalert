@@ -2,13 +2,52 @@ package timeutil
 
 import (
 	"database/sql/driver"
+	"encoding"
 	"fmt"
 	"io"
 	"sort"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
 )
+
+// Clock represents wall-clock time. It is a duration since midnight.
+type Clock time.Duration
+
+var _ encoding.TextMarshaler = Clock(0)
+var _ encoding.TextUnmarshaler = new(Clock)
+var _ graphql.Marshaler = Clock(0)
+var _ graphql.Unmarshaler = new(Clock)
+
+// ParseClock will return a new Clock value given a value in the format of '15:04' or '15:04:05'.
+// The resulting value will be truncated to the minute.
+func ParseClock(value string) (Clock, error) {
+	var h, m int
+	var s float64
+	n, err := fmt.Sscanf(value, "%d:%d:%f", &h, &m, &s)
+	if n == 2 && errors.Is(err, io.ErrUnexpectedEOF) {
+		err = nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	if n < 2 {
+		return 0, errors.New("invalid time format")
+	}
+	if n == 3 && (s < 0 || s >= 60) {
+		return 0, errors.New("invalid seconds value")
+	}
+
+	if h < 0 || h > 23 {
+		return 0, errors.New("invalid hours value")
+	}
+	if m < 0 || m > 59 {
+		return 0, errors.New("invalid minutes value")
+	}
+
+	return NewClock(h, m), nil
+}
 
 // IsDST will return true if there is a DST change within 24-hours AFTER t.
 //
@@ -98,38 +137,6 @@ func (c Clock) LastOfDay(t time.Time) time.Time {
 	return t.Add(time.Duration(c + -dstChange))
 }
 
-// Clock represents wall-clock time. It is a duration since midnight.
-type Clock time.Duration
-
-// ParseClock will return a new Clock value given a value in the format of '15:04' or '15:04:05'.
-// The resulting value will be truncated to the minute.
-func ParseClock(value string) (Clock, error) {
-	var h, m int
-	var s float64
-	n, err := fmt.Sscanf(value, "%d:%d:%f", &h, &m, &s)
-	if n == 2 && errors.Is(err, io.ErrUnexpectedEOF) {
-		err = nil
-	}
-	if err != nil {
-		return 0, err
-	}
-	if n < 2 {
-		return 0, errors.New("invalid time format")
-	}
-	if n == 3 && (s < 0 || s >= 60) {
-		return 0, errors.New("invalid seconds value")
-	}
-
-	if h < 0 || h > 23 {
-		return 0, errors.New("invalid hours value")
-	}
-	if m < 0 || m > 59 {
-		return 0, errors.New("invalid minutes value")
-	}
-
-	return NewClock(h, m), nil
-}
-
 // Is returns true if t represents the same clock time.
 func (c Clock) Is(t time.Time) bool {
 	h, m, _ := t.Clock()
@@ -139,6 +146,27 @@ func (c Clock) Is(t time.Time) bool {
 // String returns a string representation of the format '15:04'.
 func (c Clock) String() string {
 	return fmt.Sprintf("%02d:%02d", c.Hour(), c.Minute())
+}
+
+func (c Clock) MarshalText() ([]byte, error) {
+	return []byte(c.String()), nil
+}
+func (c *Clock) UnmarshalText(data []byte) error {
+	var err error
+	*c, err = ParseClock(string(data))
+	return err
+}
+
+func (c Clock) MarshalGQL(w io.Writer) {
+	s, _ := c.MarshalText()
+	graphql.MarshalString(string(s)).MarshalGQL(w)
+}
+func (c *Clock) UnmarshalGQL(v interface{}) error {
+	s, err := graphql.UnmarshalString(v)
+	if err != nil {
+		return err
+	}
+	return c.UnmarshalText([]byte(s))
 }
 
 // NewClock returns a Clock value equal to the provided 24-hour value and minute.
