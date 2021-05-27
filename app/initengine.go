@@ -38,6 +38,7 @@ func (app *App) initEngine(ctx context.Context) error {
 		UserStore:           app.UserStore,
 		NotificationStore:   app.NotificationStore,
 		NCStore:             app.NCStore,
+		OnCallStore:         app.OnCallStore,
 
 		ConfigSource: app.ConfigStore,
 

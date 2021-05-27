@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	uuid "github.com/satori/go.uuid"
-
 	"github.com/pkg/errors"
 	alertlog "github.com/target/goalert/alert/log"
 	"github.com/target/goalert/engine/message"
@@ -124,26 +122,29 @@ func (p *Engine) sendMessage(ctx context.Context, msg *message.Message) (*notifi
 			Code:       code,
 		}
 	case notification.MessageTypeScheduleOnCallStatus:
+		rows, err := p.cfg.OnCallStore.OnCallUsersBySchedule(ctx, msg.ScheduleID)
+		if err != nil {
+			return nil, errors.Wrap(err, "lookup on call users by schedule")
+		}
+
+		var onCallUsers []notification.User
+		for _, row := range rows {
+			onCallUsers = append(onCallUsers, notification.User{
+				Name: row.Name,
+				ID:   row.ID,
+				URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + row.ID),
+			})
+		}
+
 		notifMsg = notification.ScheduleOnCallStatus{
 			Dest:       msg.Dest,
 			CallbackID: msg.ID,
 			Schedule: notification.Schedule{
 				Name: "My Schedule",
-				URL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID.String()),
+				URL:  p.cfg.ConfigSource.Config().CallbackURL("/schedules/" + msg.ScheduleID),
 				ID:   msg.ScheduleID,
 			},
-			Users: []notification.User{
-				{
-					Name: "Alice",
-					ID:   uuid.Nil,
-					URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + uuid.Nil.String()),
-				},
-				{
-					Name: "Bob",
-					ID:   uuid.Nil,
-					URL:  p.cfg.ConfigSource.Config().CallbackURL("/users/" + uuid.Nil.String()),
-				},
-			},
+			Users: onCallUsers,
 		}
 	default:
 		log.Log(ctx, errors.New("SEND NOT IMPLEMENTED FOR MESSAGE TYPE"))

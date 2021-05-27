@@ -350,7 +350,8 @@ func NewDB(ctx context.Context, db *sql.DB, a alertlog.Store, pausable lifecycle
 				msg.service_id,
 				msg.created_at,
 				msg.sent_at,
-				msg.status_alert_ids
+				msg.status_alert_ids,
+				msg.schedule_id
 			from outgoing_messages msg
 			left join user_contact_methods cm on cm.id = msg.contact_method_id
 			left join notification_channels chan on chan.id = msg.channel_id
@@ -386,7 +387,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 
 	for rows.Next() {
 		var msg Message
-		var destID, destValue, verifyID, userID, serviceID, cmType, chanType sql.NullString
+		var destID, destValue, verifyID, userID, serviceID, cmType, chanType, ScheduleID sql.NullString
 		var alertID, logID sql.NullInt64
 		var statusAlertIDs sqlutil.IntArray
 		var createdAt, sentAt sql.NullTime
@@ -405,6 +406,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 			&createdAt,
 			&sentAt,
 			&statusAlertIDs,
+			&ScheduleID,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "scan row")
@@ -419,6 +421,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		msg.Dest.ID = destID.String
 		msg.Dest.Value = destValue.String
 		msg.StatusAlertIDs = statusAlertIDs
+		msg.ScheduleID = ScheduleID.String
 		switch {
 		case cmType.String == string(contactmethod.TypeSMS):
 			msg.Dest.Type = notification.DestTypeSMS

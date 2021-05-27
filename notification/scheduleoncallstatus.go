@@ -1,17 +1,15 @@
 package notification
 
-import uuid "github.com/satori/go.uuid"
-
 // ScheduleOnCallStatus represents notification of an on-call assignment
 
 type Schedule struct {
-	ID   uuid.UUID
+	ID   string
 	Name string
 	URL  string
 }
 
 type User struct {
-	ID   uuid.UUID
+	ID   string
 	Name string
 	URL  string
 }

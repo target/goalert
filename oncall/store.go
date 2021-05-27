@@ -21,7 +21,13 @@ import (
 // Store allows retrieving and calculating on-call information.
 type Store interface {
 	OnCallUsersByService(ctx context.Context, serviceID string) ([]ServiceOnCallUser, error)
+	OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]ScheduleOnCallUser, error)
 	HistoryBySchedule(ctx context.Context, scheduleID string, start, end time.Time) ([]Shift, error)
+}
+
+type ScheduleOnCallUser struct {
+	ID   string
+	Name string
 }
 
 // ServiceOnCallUser represents a currently on-call user for a service.
@@ -46,8 +52,9 @@ type Shift struct {
 type DB struct {
 	db *sql.DB
 
-	onCallUsersSvc *sql.Stmt
-	schedOverrides *sql.Stmt
+	onCallUsersSvc      *sql.Stmt
+	onCallUsersSchedule *sql.Stmt
+	schedOverrides      *sql.Stmt
 
 	schedOnCall *sql.Stmt
 	schedTZ     *sql.Stmt
@@ -89,7 +96,14 @@ func NewDB(ctx context.Context, db *sql.DB, ruleStore rule.Store, schedStore *sc
 			where svc.id = $1
 			order by step.step_number, oc.start_time
 		`),
-
+		onCallUsersSchedule: p.P(`
+			SELECT u.id, u.name
+			FROM users u
+			JOIN schedule_on_call_users socu
+			ON socu.user_id = u.id
+			WHERE socu.schedule_id = $1
+			AND socu.end_time IS NULL
+		`),
 		schedOnCall: p.P(`
 			select
 				user_id,
@@ -154,6 +168,34 @@ func (db *DB) OnCallUsersByService(ctx context.Context, serviceID string) ([]Ser
 		onCall = append(onCall, u)
 	}
 	return onCall, nil
+}
+
+func (db *DB) OnCallUsersBySchedule(ctx context.Context, scheduleID string) ([]ScheduleOnCallUser, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+	err = validate.UUID("ScheduleID", scheduleID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.onCallUsersSchedule.QueryContext(ctx, scheduleID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	var result []ScheduleOnCallUser
+	for rows.Next() {
+		var u ScheduleOnCallUser
+		err = rows.Scan(&u.ID, &u.Name)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, u)
+
+	}
+	return result, nil
 }
 
 // HistoryBySchedule will return the list of shifts that overlap the start and end time for the given schedule.

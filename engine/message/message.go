@@ -3,7 +3,6 @@ package message
 import (
 	"time"
 
-	uuid "github.com/satori/go.uuid"
 	"github.com/target/goalert/notification"
 )
 
@@ -18,7 +17,7 @@ type Message struct {
 
 	UserID     string
 	ServiceID  string
-	ScheduleID uuid.UUID
+	ScheduleID string
 	CreatedAt  time.Time
 	SentAt     time.Time
 
