@@ -76,7 +76,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
   // path specifies the location of the data nodes to be rendered, default "nodes"
   path?: string
 
-  // mapDataToItem maps the data found at the given `path` to the struct required by a FlatList item
+  // mapDataNode maps the data found at the given `path` to the struct required by a FlatList item
   mapDataNode?: (n: ObjectMap) => PaginatedListItemProps
 
   // variables will be added to the initial query. Useful for things like `favoritesFirst` or alert filters
