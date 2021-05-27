@@ -65,6 +65,16 @@ function getSelectedDays(weekdayFilter?: WeekdayFilter): Array<number> {
     .filter((day) => day > 0)
 }
 
+export function mapDataToInput(
+  rules: Array<Rule> = [],
+): Array<OnCallNotificationRuleInput> {
+  return rules.map((nr: Rule) => {
+    const n = _.pick(nr, 'id', 'target', 'time', 'weekdayFilter')
+    n.target = _.pick(n.target, 'id', 'type')
+    return n
+  }) as Array<OnCallNotificationRuleInput>
+}
+
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
@@ -86,14 +96,7 @@ export default function ScheduleOnCallNotificationFormDialog(
   })
 
   function handleOnSubmit(): void {
-    const rules = (data?.schedule?.onCallNotificationRules ?? []).map(
-      (nr: Rule) => {
-        const n = _.pick(nr, 'id', 'target', 'time', 'weekdayFilter')
-        n.target = _.pick(n.target, 'id', 'type')
-        return n
-      },
-    )
-
+    const rules = mapDataToInput(data?.schedule?.onCallNotificationRules)
     const newRule: OnCallNotificationRuleInput = {
       target: {
         id: value.target,

@@ -6,6 +6,7 @@ import { query, setMutation } from './ScheduleOnCallNotificationsList'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
 import { Rule } from './ScheduleOnCallNotificationAction'
+import { mapDataToInput } from './ScheduleOnCallNotificationFormDialog'
 
 interface ScheduleOnCallNotificationDeleteDialogProps {
   rule: Rule
@@ -32,11 +33,14 @@ export default function ScheduleOnCallNotificationDeleteDialog(
       variables: {
         input: {
           scheduleID: p.scheduleID,
-          rules: data.schedule.onCallNotificationRules.filter(
-            (nr: Rule) => nr.id !== p.rule.id,
+          rules: mapDataToInput(
+            data.schedule.onCallNotificationRules.filter(
+              (nr: Rule) => nr.id !== p.rule.id,
+            ),
           ),
         },
       },
+      optimisticResponse: () => p.onClose(),
     })
   }
 
