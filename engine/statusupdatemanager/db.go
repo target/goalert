@@ -38,13 +38,14 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 		lock: lock,
 
 		cmWantsUpdates: p.P(`
-			select u.alert_status_log_contact_method_id = $1 from user_contact_methods cm
+			select coalesce(u.alert_status_log_contact_method_id = $1, false), u.id
+			from user_contact_methods cm
 			join users u on u.id = cm.user_id
-			where cm.id = $1
+			where cm.id = $1 and not cm.disabled
 		`),
 
 		needsUpdate: p.P(`
-			select id, channel_id, contact_method_id, alert_id, a.status
+			select sub.id, channel_id, contact_method_id, alert_id, a.status
 			from alert_status_subscriptions sub
 			join alerts a on a.id = sub.alert_id and a.status != sub.last_alert_status
 			limit 1
@@ -57,9 +58,10 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 				message_type,
 				channel_id,
 				contact_method_id,
+				user_id,
 				alert_id,
 				alert_log_id
-			) values ($1, 'alert_status_update', $2, $3, $4, $5)
+			) values ($1, 'alert_status_update', $2, $3, $4, $5, $6)
 		`),
 
 		latestLogEntry: p.P(`

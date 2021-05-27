@@ -30,8 +30,8 @@ type SendResult struct {
 // State represents the current state of an outgoing message.
 type State int
 
-// IsOK returns true if the message has passed sucessfuly to a remote system (StateSent or StateDelivered).
-func (s State) IsOK() bool { return s == StateSent || s == StateDelivered }
+// IsOK returns true if the message has passed sucessfuly to a remote system (StateSending, StateSent, or StateDelivered).
+func (s State) IsOK() bool { return s == StateSending || s == StateSent || s == StateDelivered }
 
 const (
 	// StateSending should be specified when a message is sending but has not been sent.

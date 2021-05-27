@@ -30,11 +30,11 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 		}
 
 		if err != nil {
-			return fmt.Errorf("engine: status updates: %w", err)
+			return err
 		}
 	}
 
-	return err
+	return nil
 }
 
 var errDone = errors.New("done")
@@ -58,14 +58,15 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	isSubscribed := chanID.Valid
+	var userID sql.NullString
 	if cmID.Valid {
-		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&isSubscribed)
+		err = tx.StmtContext(ctx, db.cmWantsUpdates).QueryRowContext(ctx, cmID).Scan(&isSubscribed, &userID)
 		if errors.Is(err, sql.ErrNoRows) {
 			isSubscribed = false
 			err = nil
 		}
 		if err != nil {
-			return fmt.Errorf("check contact method status updates id='%s': %w", cmID.String, err)
+			return fmt.Errorf("check contact method status update config id='%s': %w", cmID.String, err)
 		}
 	}
 
@@ -88,7 +89,7 @@ func (db *DB) update(ctx context.Context) error {
 			return fmt.Errorf("lookup latest log entry of '%s' for alert #%d: %w", event, alertID, err)
 		}
 
-		_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.NewV4(), chanID, cmID, alertID, logID)
+		_, err = tx.StmtContext(ctx, db.insertMessage).ExecContext(ctx, uuid.NewV4(), chanID, cmID, userID, alertID, logID)
 		if err != nil {
 			return fmt.Errorf("insert status update message for id=%d: %w", id, err)
 		}
@@ -99,12 +100,17 @@ func (db *DB) update(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("delete subscription for closed alert #%d (id=%d): %w", alertID, id, err)
 		}
-		return nil
+	} else {
+
+		_, err = tx.StmtContext(ctx, db.updateStatus).ExecContext(ctx, id)
+		if err != nil {
+			return fmt.Errorf("update status for alert #%d to '%s' (id=%d): %w", alertID, newStatus, id, err)
+		}
 	}
 
-	_, err = tx.StmtContext(ctx, db.updateStatus).ExecContext(ctx, id)
+	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("update status for alert #%d to '%s' (id=%d): %w", alertID, newStatus, id, err)
+		return fmt.Errorf("commit tx: %w", err)
 	}
 
 	return nil
