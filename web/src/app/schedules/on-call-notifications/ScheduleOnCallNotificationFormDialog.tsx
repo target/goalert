@@ -4,6 +4,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
+import { makeStyles } from '@material-ui/core/styles'
 import _ from 'lodash'
 
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
@@ -39,6 +40,22 @@ const defaultWeekdayFilter: WeekdayFilter = [
   false,
   false,
 ]
+
+const useStyles = makeStyles({
+  timeFields: {
+    display: 'flex',
+  },
+  timeField: {
+    paddingLeft: '2.5rem',
+    paddingRight: 8,
+    width: 'fit-content',
+  },
+  weekdayFilterField: {
+    paddingRight: '2.5rem',
+    paddingLeft: 8,
+    width: '100%',
+  },
+})
 
 // getWeekdayFilter takes the selected days and returns a full
 // week represented as booleans.
@@ -78,6 +95,7 @@ export function mapDataToInput(
 export default function ScheduleOnCallNotificationFormDialog(
   p: ScheduleOnCallNotificationFormProps,
 ): JSX.Element {
+  const classes = useStyles()
   const [value, setValue] = useState<Value>({
     target: p.rule?.target.id ?? '',
     time: p.rule?.time ?? '',
@@ -168,16 +186,16 @@ export default function ScheduleOnCallNotificationFormDialog(
                 />
               </RadioGroup>
             </Grid>
-            <Grid item container spacing={2}>
-              <Grid item>
+            <Grid className={classes.timeFields} item>
+              <div className={classes.timeField}>
                 <FormField
                   component={ISOTimePicker}
                   label='Time'
                   name='time'
                   disabled={notifyOnUpdate}
                 />
-              </Grid>
-              <Grid item>
+              </div>
+              <div className={classes.weekdayFilterField}>
                 <FormField
                   component={MaterialSelect}
                   name='weekdayFilter'
@@ -216,7 +234,7 @@ export default function ScheduleOnCallNotificationFormDialog(
                     },
                   ]}
                 />
-              </Grid>
+              </div>
             </Grid>
           </Grid>
         </FormContainer>
