@@ -12,12 +12,12 @@ import (
 type DB struct {
 	lock *processinglock.Lock
 
-	insertMessages *sql.Stmt
-
-	needsUpdate   *sql.Stmt
-	insertMessage *sql.Stmt
-	updateStatus  *sql.Stmt
-	cleanupClosed *sql.Stmt
+	latestLogEntry *sql.Stmt
+	needsUpdate    *sql.Stmt
+	insertMessage  *sql.Stmt
+	updateStatus   *sql.Stmt
+	cleanupClosed  *sql.Stmt
+	cmWantsUpdates *sql.Stmt
 }
 
 // Name returns the name of the module.
@@ -37,22 +37,40 @@ func NewDB(ctx context.Context, db *sql.DB) (*DB, error) {
 	return &DB{
 		lock: lock,
 
+		cmWantsUpdates: p.P(`
+			select u.alert_status_log_contact_method_id = $1 from user_contact_methods cm
+			join users u on u.id = cm.user_id
+			where cm.id = $1
+		`),
+
 		needsUpdate: p.P(`
 			select id, channel_id, contact_method_id, alert_id, a.status
 			from alert_status_subscriptions sub
 			join alerts a on a.id = sub.alert_id and a.status != sub.last_alert_status
-			limit 100
+			limit 1
 			for update skip locked
 		`),
-		insertMessage: p.P(`insert into outgoing_messages(
-					channel_id,
-					contact_method_id,
-					alert_id,
-					last_status) 
-					values ($1, $2, $3, $4, $5)`),
 
-		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where alert_id = $1`),
-		cleanupClosed: p.P(`delete from alert_status_subscriptions where alert_id = $1 and last_alert_status='closed'`),
+		insertMessage: p.P(`
+			insert into outgoing_messages(
+				id,
+				message_type,
+				channel_id,
+				contact_method_id,
+				alert_id,
+				alert_log_id
+			) values ($1, 'alert_status_update', $2, $3, $4, $5)
+		`),
+
+		latestLogEntry: p.P(`
+			select id from alert_logs
+			where alert_id = $1 and event = $2
+			order by id desc
+			limit 1
+		`),
+
+		updateStatus:  p.P(`update alert_status_subscriptions set last_alert_status = $2 where id = $1`),
+		cleanupClosed: p.P(`delete from alert_status_subscriptions where id = $1`),
 
 		// - get a subset of last_status != current_status
 		// - insert messages for each
