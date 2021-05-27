@@ -8,7 +8,7 @@ import { GenericError } from '../../error-pages'
 import { Rule } from './ScheduleOnCallNotificationAction'
 
 interface ScheduleOnCallNotificationDeleteDialogProps {
-  id: string
+  rule: Rule
   scheduleID: string
   onClose: () => void
 }
@@ -27,16 +27,18 @@ export default function ScheduleOnCallNotificationDeleteDialog(
   if (loading && !data?.schedule) return <Spinner />
   if (error) return <GenericError error={error.message} />
 
-  let name = ''
-  const rulesAfterDelete = data.schedule.notificationRules.filter(
-    (nr: Rule) => {
-      if (nr.id === p.id) {
-        name = nr.target.name
-        return true
-      }
-      return false
-    },
-  )
+  function handleOnSubmit(): void {
+    mutate({
+      variables: {
+        input: {
+          scheduleID: p.scheduleID,
+          rules: data.schedule.onCallNotificationRules.filter(
+            (nr: Rule) => nr.id !== p.rule.id,
+          ),
+        },
+      },
+    })
+  }
 
   return (
     <FormDialog
@@ -44,17 +46,10 @@ export default function ScheduleOnCallNotificationDeleteDialog(
       confirm
       loading={mutationStatus.loading}
       errors={nonFieldErrors(mutationStatus.error as ApolloError)}
-      subTitle={name + ' will no longer be notified of on-call updates.'}
-      onSubmit={() =>
-        mutate({
-          variables: {
-            input: {
-              scheduleID: p.scheduleID,
-              rules: rulesAfterDelete,
-            },
-          },
-        })
+      subTitle={
+        p.rule.target.name + ' will no longer be notified of on-call updates.'
       }
+      onSubmit={() => handleOnSubmit()}
       onClose={() => p.onClose()}
     />
   )

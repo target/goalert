@@ -14,7 +14,7 @@ export type Rule = {
   target: {
     id: string
     type: string
-    name: string
+    name?: string
   }
   time?: string
   weekdayFilter?: WeekdayFilter
@@ -45,7 +45,7 @@ export default function ScheduleOnCallNotificationAction(
       )}
       {showDelete && (
         <ScheduleOnCallNotificationDeleteDialog
-          id={p.rule.id}
+          rule={p.rule}
           scheduleID={p.scheduleID}
           onClose={() => setShowDelete(false)}
         />

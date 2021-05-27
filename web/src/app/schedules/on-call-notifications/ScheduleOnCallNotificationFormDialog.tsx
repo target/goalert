@@ -4,6 +4,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel'
 import Grid from '@material-ui/core/Grid'
 import RadioGroup from '@material-ui/core/RadioGroup'
 import Radio from '@material-ui/core/Radio'
+import _ from 'lodash'
 
 import { query, setMutation } from './ScheduleOnCallNotificationsList'
 import { Rule } from './ScheduleOnCallNotificationAction'
@@ -82,37 +83,39 @@ export default function ScheduleOnCallNotificationFormDialog(
       id: p.scheduleID,
     },
     nextFetchPolicy: 'cache-first',
-    skip: !p.rule,
   })
 
   function handleOnSubmit(): void {
-    // add form value to rules
-    let rules = data?.schedule?.notificationRules ?? []
-    if (value) {
-      const newRule: OnCallNotificationRuleInput = {
-        target: {
-          id: value.target,
-          type: 'slackChannel',
-        },
-        time: value.time,
-        weekdayFilter: getWeekdayFilter(value?.weekdayFilter ?? []),
-      }
+    const rules = (data?.schedule?.onCallNotificationRules ?? []).map(
+      (nr: Rule) => {
+        const n = _.pick(nr, 'id', 'target', 'time', 'weekdayFilter')
+        n.target = _.pick(n.target, 'id', 'type')
+        return n
+      },
+    )
 
-      if (notifyOnUpdate) {
-        delete newRule.time
-        delete newRule.weekdayFilter
-      }
+    const newRule: OnCallNotificationRuleInput = {
+      target: {
+        id: value.target,
+        type: 'slackChannel',
+      },
+      time: value.time,
+      weekdayFilter: getWeekdayFilter(value?.weekdayFilter ?? []),
+    }
 
-      rules = [...rules, newRule]
+    if (notifyOnUpdate) {
+      delete newRule.time
+      delete newRule.weekdayFilter
     }
 
     mutate({
       variables: {
         input: {
           scheduleID: p.scheduleID,
-          rules,
+          rules: [...rules, newRule],
         },
       },
+      optimisticResponse: () => p.onClose(),
     })
   }
 
