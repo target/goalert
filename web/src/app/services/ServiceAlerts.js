@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { gql, useMutation } from '@apollo/client'
 import { PropTypes as p } from 'prop-types'
 import Button from '@material-ui/core/Button'
+import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Grid from '@material-ui/core/Grid'
 import { makeStyles } from '@material-ui/core/styles'
 
@@ -57,21 +58,13 @@ export default function ServiceAlerts(props) {
     return 'close'
   }
 
-  const filter = (
+  const secondaryActions = (
     <Grid className={classes.filter} container spacing={2} alignItems='center'>
       <Grid item>
-        <Button variant='outlined' color='primary' onClick={handleClickAckAll}>
-          Acknowledge All
-        </Button>
-      </Grid>
-      <Grid item>
-        <Button
-          variant='outlined'
-          color='secondary'
-          onClick={handleClickCloseAll}
-        >
-          Close All
-        </Button>
+        <ButtonGroup color='secondary' variant='outlined'>
+          <Button onClick={handleClickAckAll}>Acknowledge All</Button>
+          <Button onClick={handleClickCloseAll}>Close All</Button>
+        </ButtonGroup>
       </Grid>
       <Grid item>
         <AlertsListFilter serviceID={serviceID} />
@@ -92,7 +85,7 @@ export default function ServiceAlerts(props) {
           onClose={() => setShowDialog(false)}
         />
       )}
-      <AlertsList serviceID={serviceID} filter={filter} />
+      <AlertsList serviceID={serviceID} secondaryActions={secondaryActions} />
     </React.Fragment>
   )
 }

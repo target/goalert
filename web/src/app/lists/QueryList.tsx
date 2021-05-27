@@ -139,7 +139,11 @@ export default function QueryList(props: QueryListProps): JSX.Element {
     )
   }
 
-  if (props.checkboxActions?.length || props.filter || !props.noSearch) {
+  if (
+    props.checkboxActions?.length ||
+    props.secondaryActions ||
+    !props.noSearch
+  ) {
     return (
       <Grid container spacing={2}>
         <ControlledPaginatedList

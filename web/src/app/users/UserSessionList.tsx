@@ -7,7 +7,7 @@ import {
   ApolloError,
   gql,
 } from '@apollo/client'
-import { Button, Card, CardActions, IconButton } from '@material-ui/core'
+import { Button, Card, Grid, IconButton } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete'
 import { UserSession } from '../../schema'
 import Bowser from 'bowser'
@@ -118,40 +118,45 @@ export default function UserSessionList(
 
   return (
     <React.Fragment>
-      <Card>
-        <FlatList
-          emptyMessage='No active sessions'
-          items={sessions.map((s) => ({
-            title: friendlyUAString(s.userAgent),
-            highlight: s.current,
-            secondaryAction: s.current ? null : (
-              <IconButton
-                color='primary'
-                onClick={() =>
-                  setEndSession({
-                    id: s.id,
-                    userAgent: s.userAgent,
-                  })
-                }
-              >
-                <DeleteIcon />
-              </IconButton>
-            ),
-            subText: `Last access: ${formatTimeSince(s.lastAccessAt)}`,
-          }))}
-        />
+      <Grid container spacing={2}>
         {!userID && (
-          <CardActions>
+          <Grid item xs={12} container justify='flex-end'>
             <Button
               color='primary'
-              variant='contained'
+              variant='outlined'
+              data-cy='reset'
               onClick={() => setEndSession('all')}
             >
               Log Out Other Sessions
             </Button>
-          </CardActions>
+          </Grid>
         )}
-      </Card>
+        <Grid item xs={12}>
+          <Card>
+            <FlatList
+              emptyMessage='No active sessions'
+              items={sessions.map((s) => ({
+                title: friendlyUAString(s.userAgent),
+                highlight: s.current,
+                secondaryAction: s.current ? null : (
+                  <IconButton
+                    color='primary'
+                    onClick={() =>
+                      setEndSession({
+                        id: s.id,
+                        userAgent: s.userAgent,
+                      })
+                    }
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                ),
+                subText: `Last access: ${formatTimeSince(s.lastAccessAt)}`,
+              }))}
+            />
+          </Card>
+        </Grid>
+      </Grid>
 
       {endSession === 'all' && (
         <FormDialog
