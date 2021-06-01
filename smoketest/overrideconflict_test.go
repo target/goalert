@@ -69,6 +69,7 @@ func TestOverrideConflict(t *testing.T) {
 
 		errCh <- tx2.Commit()
 	}()
+	time.Sleep(3 * time.Second)
 	require.NoError(t, tx1.Commit())
 	require.Error(t, <-errCh)
 }
