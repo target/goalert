@@ -54,8 +54,8 @@ export function SetFavoriteButton({
       <IconButton
         aria-label={
           isFavorite
-            ? `Unset as a Favorite ${typeName}`
-            : `Set as a Favorite ${typeName}`
+            ? `Unset as a Favorite ${typeName.toLowerCase()}`
+            : `Set as a Favorite ${typeName.toLowerCase()}`
         }
         type='submit'
         data-cy='set-fav'
