@@ -139,8 +139,8 @@ function testFavorites(): void {
         .then((service: Service) => {
           return cy.visit(`/services/${service.id}`)
         })
-        .pageFab()
-        .get('input[name=schedules]'),
+        .get('button[title=Edit]').click()
+        .get('input[name=escalation-policy]'),
   )
 }
 
