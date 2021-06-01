@@ -8761,10 +8761,10 @@ react-beautiful-dnd@13.1.0:
     redux "^4.0.4"
     use-memo-one "^1.1.1"
 
-react-big-calendar@0.33.3:
-  version "0.33.3"
-  resolved "https://registry.yarnpkg.com/react-big-calendar/-/react-big-calendar-0.33.3.tgz#908f602944bee9cdcb1afcf44b05c75dc2790c16"
-  integrity sha512-hk2tbyjoyZlvoaB5EnDYyPx0NRr7UuWeN1W9CbU62+PQ5K/j6e+q3RpzSmL9/w7SYB//HJO7Zd1d41fDtUj6Dg==
+react-big-calendar@0.33.5:
+  version "0.33.5"
+  resolved "https://registry.yarnpkg.com/react-big-calendar/-/react-big-calendar-0.33.5.tgz#821afb7b71b43158113d12e815b264208ea15e8b"
+  integrity sha512-Srr1WvzbthX4suM/fordG3WOLgAl8Qc1cjACIJLSki6dUwxrRjTdGVnfH6VHoE4zMw3y1vydYMdjv9+wH22oLw==
   dependencies:
     "@babel/runtime" "^7.1.5"
     clsx "^1.0.4"
