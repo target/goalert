@@ -4,8 +4,9 @@
 CREATE OR REPLACE FUNCTION fn_enforce_user_overide_no_conflict() RETURNS trigger AS $$
 DECLARE
     conflict UUID := NULL;
+    _lock INT := NULL;
 BEGIN
-    EXECUTE 'LOCK user_overrides IN EXCLUSIVE MODE';
+    SELECT 1 INTO _lock FROM schedules WHERE id = NEW.tgt_schedule_id FOR UPDATE;
 
     SELECT id INTO conflict
     FROM user_overrides
@@ -17,7 +18,6 @@ BEGIN
             remove_user_id in (NEW.remove_user_id, NEW.add_user_id)
         ) AND
         (start_time, end_time) OVERLAPS (NEW.start_time, NEW.end_time)
-    FOR UPDATE
     LIMIT 1;
   
     IF conflict NOTNULL THEN
