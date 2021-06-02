@@ -462,7 +462,7 @@ input ScheduleRuleInput {
 
   # weekdayFilter is a 7-item array that indicates if the rule
   # is active on each weekday, starting with Sunday.
-  weekdayFilter: [Boolean!]
+  weekdayFilter: WeekdayFilter
 }
 
 input SetLabelInput {
@@ -617,7 +617,7 @@ type ScheduleRule {
 
   # weekdayFilter is a 7-item array that indicates if the rule
   # is active on each weekday, starting with Sunday.
-  weekdayFilter: [Boolean!]!
+  weekdayFilter: WeekdayFilter!
 
   target: Target!
 }
@@ -783,8 +783,11 @@ enum AlertSearchSort {
 # An ISOTimestamp is an RFC3339-formatted timestamp string.
 scalar ISOTimestamp
 
-# ClockTime is a 24-hour time in the format 00:00
+# ClockTime is a 24-hour time in the format 00:00.
 scalar ClockTime
+
+# WeekdayFilter is an array of 7 true/false values representing days of the week.
+scalar WeekdayFilter
 
 type Alert {
   id: ID!

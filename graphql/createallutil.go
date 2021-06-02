@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/heartbeat"
@@ -56,7 +57,7 @@ func (c *Config) createAll(ctx context.Context, data *createAllData) (*createAll
 	getTarget := func(tgt assignment.Target) assignment.Target {
 		id, ok := ids[tgt.TargetID()]
 		if ok {
-			return &assignment.RawTarget{
+			return &RawTarget{
 				ID:   id,
 				Type: tgt.TargetType(),
 			}

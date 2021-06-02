@@ -350,7 +350,7 @@ func (h *Handler) addEscalationPolicyStepTargetField() *g.Field {
 			if !ok {
 				return nil, errors.New("invalid input type")
 			}
-			var tgt assignment.RawTarget
+			var tgt RawTarget
 			tgt.ID, _ = m["target_id"].(string)
 			tgt.Type, _ = m["target_type"].(assignment.TargetType)
 			stepID, _ := m["step_id"].(string)
@@ -391,7 +391,7 @@ func (h *Handler) deleteEscalationPolicyStepTargetField() *g.Field {
 			if !ok {
 				return nil, errors.New("invalid input type")
 			}
-			var tgt assignment.RawTarget
+			var tgt RawTarget
 			tgt.ID, _ = m["target_id"].(string)
 			tgt.Type, _ = m["target_type"].(assignment.TargetType)
 			stepID, _ := m["step_id"].(string)
@@ -481,9 +481,9 @@ func (h *Handler) createOrUpdateEscalationPolicyStepField() *g.Field {
 				return scrub(nil, err)
 			}
 
-			added := make(map[assignment.RawTarget]bool, len(asn))
+			added := make(map[RawTarget]bool, len(asn))
 			for _, tgt := range asn {
-				added[assignment.RawTarget{Type: tgt.TargetType(), ID: tgt.TargetID()}] = true
+				added[RawTarget{Type: tgt.TargetType(), ID: tgt.TargetID()}] = true
 				err = h.c.EscalationStore.AddStepTarget(p.Context, r.S.ID, tgt)
 				if err != nil {
 					return scrub(nil, err)
@@ -491,7 +491,7 @@ func (h *Handler) createOrUpdateEscalationPolicyStepField() *g.Field {
 			}
 
 			for _, tgt := range old {
-				if added[assignment.RawTarget{Type: tgt.TargetType(), ID: tgt.TargetID()}] {
+				if added[RawTarget{Type: tgt.TargetType(), ID: tgt.TargetID()}] {
 					continue
 				}
 				if tgt.TargetType() == assignment.TargetTypeRotation {

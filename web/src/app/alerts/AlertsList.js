@@ -17,13 +17,14 @@ import { DateTime } from 'luxon'
 
 import AlertsListFilter from './components/AlertsListFilter'
 import AlertsListControls from './components/AlertsListControls'
-import CreateAlertFab from './CreateAlertFab'
 import UpdateAlertsSnackbar from './components/UpdateAlertsSnackbar'
 
 import { formatTimeSince } from '../util/timeFormat'
 import { urlParamSelector } from '../selectors'
 import QueryList from '../lists/QueryList'
 import useWidth from '../util/useWidth'
+import CreateFAB from '../lists/CreateFAB'
+import CreateAlertDialog from './CreateAlertDialog/CreateAlertDialog'
 
 export const alertsListQuery = gql`
   query alertsList($input: AlertSearchOptions) {
@@ -92,9 +93,11 @@ function getStatusFilter(s) {
 export default function AlertsList(props) {
   const classes = useStyles()
   const width = useWidth()
-  const isMobileScreenSize = isWidthDown('md', width)
+  // transition fab above snackbar when snackbar width overlaps fab placement
+  const isXs = isWidthDown('xs', width)
 
   const [checkedCount, setCheckedCount] = useState(0)
+  const [showCreate, setShowCreate] = useState(false)
 
   // used if user dismisses snackbar before the auto-close timer finishes
   const [actionCompleteDismissed, setActionCompleteDismissed] = useState(true)
@@ -288,10 +291,17 @@ export default function AlertsList(props) {
         checkboxActions={getActions()}
       />
 
-      <CreateAlertFab
-        serviceID={props.serviceID}
-        transition={isMobileScreenSize && showAlertActionSnackbar}
+      <CreateFAB
+        title='Create Alert'
+        transition={isXs && showAlertActionSnackbar}
+        onClick={() => setShowCreate(true)}
       />
+      {showCreate && (
+        <CreateAlertDialog
+          onClose={() => setShowCreate(false)}
+          serviceID={props.serviceID}
+        />
+      )}
 
       {/* Update message after using checkbox actions */}
       <UpdateAlertsSnackbar

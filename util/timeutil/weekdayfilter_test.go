@@ -1,4 +1,4 @@
-package rule
+package timeutil
 
 import (
 	"fmt"

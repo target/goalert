@@ -64,7 +64,7 @@ func TestGraphQLCreateScheduleWithDefaultRotation(t *testing.T) {
 						rules: {
 							start: "01:00"
 							end: "23:00"
-							weekdayFilter: [true, true, true, true, true]
+							weekdayFilter: [true, true, true, true, true, false, false]
 						}
 					}
 				}
