@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
+	"github.com/target/goalert/util/jsonutil"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 )
@@ -43,6 +44,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	scheduleData := make(map[string]*schedule.Data)
+	rawScheduleData := make(map[string]json.RawMessage)
 	rows, err := tx.StmtContext(ctx, db.data).QueryContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get schedule data")
@@ -55,6 +57,7 @@ func (db *DB) update(ctx context.Context) error {
 		if err != nil {
 			return errors.Wrap(err, "scan schedule data")
 		}
+		rawScheduleData[id] = data
 
 		var sData schedule.Data
 		err = json.Unmarshal(data, &sData)
@@ -220,7 +223,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 
 	// Notify changed schedules
-	insertOnCall := tx.StmtContext(ctx, db.scheduleOnCallNotification)
+	needsOnCallNotification := make(map[string]uuid.UUID)
 	for schedID := range changedSchedules {
 		data := scheduleData[schedID]
 		if data == nil {
@@ -228,21 +231,92 @@ func (db *DB) update(ctx context.Context) error {
 		}
 		for _, r := range data.V1.OnCallNotificationRules {
 			if r.Time != nil {
-				// TODO: check outgoing messages and track in memory otherwise
 				continue
 			}
 			if r.WeekdayFilter != nil && !r.WeekdayFilter.Day(now.In(tz[schedID]).Weekday()) {
 				continue
 			}
 
-			_, err = tx.StmtContext(ctx, insertOnCall).ExecContext(ctx, uuid.NewV4(), r.ChannelID, schedID)
-			if err != nil {
-				return err
+			needsOnCallNotification[schedID] = r.ChannelID
+		}
+	}
+
+	for schedID, data := range scheduleData {
+		var hadChange bool
+		for i, r := range data.V1.OnCallNotificationRules {
+			if r.NextNotification != nil && !r.NextNotification.After(now) {
+				needsOnCallNotification[schedID] = r.ChannelID
 			}
+
+			newTime := nextOnCallNotification(now.In(tz[schedID]), r)
+			if equalTimePtr(data.V1.State.NextOnCallNotification, newTime) {
+				continue
+			}
+			hadChange = true
+			data.V1.OnCallNotificationRules[i].NextNotification = newTime
+		}
+		if !hadChange {
+			continue
+		}
+
+		jsonData, err := jsonutil.Apply(rawScheduleData[schedID], data)
+		if err != nil {
+			return err
+		}
+		_, err = tx.StmtContext(ctx, db.updateData).ExecContext(ctx, schedID, jsonData)
+		if err != nil {
+			return err
+		}
+	}
+
+	for schedID, chanID := range needsOnCallNotification {
+		_, err = tx.StmtContext(ctx, db.scheduleOnCallNotification).ExecContext(ctx, uuid.NewV4(), chanID, schedID)
+		if err != nil {
+			return err
 		}
 	}
 
 	return tx.Commit()
+}
+
+func equalTimePtr(a, b *time.Time) bool {
+	if (a == nil) != (b == nil) {
+		return false
+	}
+	if a == nil {
+		return true
+	}
+
+	return a.Equal(*b)
+}
+
+func nextOnCallNotification(nowInZone time.Time, rule schedule.OnCallNotificationRule) *time.Time {
+	if rule.Time == nil {
+		return nil
+	}
+	if rule.WeekdayFilter == nil || rule.WeekdayFilter.IsAlways() {
+		// TODO: schedule time zone
+		newTime := rule.Time.FirstOfDay(nowInZone)
+		if !newTime.After(nowInZone) {
+			// add a day
+			y, m, d := nowInZone.Date()
+			nowInZone = time.Date(y, m, d+1, 0, 0, 0, 0, nowInZone.Location())
+			newTime = rule.Time.FirstOfDay(nowInZone)
+		}
+
+		return &newTime
+	}
+
+	if rule.WeekdayFilter.IsNever() {
+		return nil
+	}
+
+	newTime := rule.Time.FirstOfDay(rule.WeekdayFilter.NextActive(nowInZone))
+	if !newTime.After(nowInZone) {
+		newTime = rule.Time.FirstOfDay(rule.WeekdayFilter.NextActive(newTime))
+	}
+
+	return &newTime
 }
 
 func isScheduleDeleted(err error) bool {

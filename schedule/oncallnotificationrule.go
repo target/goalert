@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	uuid "github.com/satori/go.uuid"
@@ -21,6 +22,8 @@ type OnCallNotificationRule struct {
 
 	Time          *timeutil.Clock
 	WeekdayFilter *timeutil.WeekdayFilter
+
+	NextNotification *time.Time
 }
 
 type RuleID struct {
