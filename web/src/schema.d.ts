@@ -339,7 +339,7 @@ export interface ScheduleRuleInput {
   id?: string
   start?: ClockTime
   end?: ClockTime
-  weekdayFilter?: boolean[]
+  weekdayFilter?: WeekdayFilter
 }
 
 export interface SetLabelInput {
@@ -478,7 +478,7 @@ export interface ScheduleRule {
   scheduleID: string
   start: ClockTime
   end: ClockTime
-  weekdayFilter: boolean[]
+  weekdayFilter: WeekdayFilter
   target: Target
 }
 
@@ -602,6 +602,16 @@ export type AlertSearchSort = 'statusID' | 'dateID' | 'dateIDReverse'
 export type ISOTimestamp = string
 
 export type ClockTime = string
+
+export type WeekdayFilter = [
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+  boolean,
+]
 
 export interface Alert {
   id: string
@@ -895,7 +905,7 @@ type ConfigID =
   | 'General.DisableSMSLinks'
   | 'General.DisableLabelCreation'
   | 'General.DisableCalendarSubscriptions'
-  | 'General.DisableV1GraphQL'
+  | 'General.EnableV1GraphQL'
   | 'Maintenance.AlertCleanupDays'
   | 'Maintenance.APIKeyExpireDays'
   | 'Auth.RefererURLs'

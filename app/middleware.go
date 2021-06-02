@@ -36,7 +36,7 @@ func graphQLV1DeprecationMiddleware() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			cfg := config.FromContext(ctx)
-			if cfg.General.DisableV1GraphQL && strings.HasPrefix(r.URL.Path, "/v1/graphql") {
+			if !cfg.General.EnableV1GraphQL && strings.HasPrefix(r.URL.Path, "/v1/graphql") {
 				http.NotFound(w, r)
 				return
 			}

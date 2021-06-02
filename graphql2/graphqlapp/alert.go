@@ -2,7 +2,7 @@ package graphqlapp
 
 import (
 	context "context"
-	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -283,7 +283,7 @@ func (q *Query) Alerts(ctx context.Context, opts *graphql2.AlertSearchOptions) (
 }
 
 func (a *Alert) ID(ctx context.Context, raw *alert.Alert) (string, error) {
-	return fmt.Sprintf("Alert(%d)", raw.ID), nil
+	return strconv.Itoa(raw.ID), nil
 }
 func (a *Alert) Status(ctx context.Context, raw *alert.Alert) (graphql2.AlertStatus, error) {
 	switch raw.Status {
