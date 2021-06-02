@@ -120,6 +120,8 @@ func NewHarness(t *testing.T, initSQL, migrationName string) *Harness {
 	return h
 }
 
+func (h *Harness) App() *app.App { return h.backend }
+
 func NewHarnessWithData(t *testing.T, initSQL string, sqlData interface{}, migrationName string) *Harness {
 	t.Helper()
 	h := NewStoppedHarness(t, initSQL, sqlData, migrationName)
