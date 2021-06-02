@@ -10,6 +10,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/validation"
 )
 
 // Clock represents wall-clock time. It is a duration since midnight.
@@ -23,6 +24,9 @@ var _ graphql.Unmarshaler = new(Clock)
 // ParseClock will return a new Clock value given a value in the format of '15:04' or '15:04:05'.
 // The resulting value will be truncated to the minute.
 func ParseClock(value string) (Clock, error) {
+	if value == "" {
+		return 0, errors.New("invalid time format")
+	}
 	var h, m int
 	var s float64
 	n, err := fmt.Sscanf(value, "%d:%d:%f", &h, &m, &s)
@@ -166,7 +170,13 @@ func (c *Clock) UnmarshalGQL(v interface{}) error {
 	if err != nil {
 		return err
 	}
-	return c.UnmarshalText([]byte(s))
+
+	err = c.UnmarshalText([]byte(s))
+	if err != nil {
+		return validation.WrapError(err)
+	}
+
+	return nil
 }
 
 // NewClock returns a Clock value equal to the provided 24-hour value and minute.
