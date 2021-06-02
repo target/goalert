@@ -4,6 +4,7 @@ import MUIFavoriteIcon from '@material-ui/icons/Favorite'
 import NotFavoriteIcon from '@material-ui/icons/FavoriteBorder'
 import Tooltip from '@material-ui/core/Tooltip'
 import { makeStyles } from '@material-ui/core/styles'
+import _ from 'lodash'
 
 interface SetFavoriteButtonProps {
   typeName: 'rotation' | 'service' | 'schedule' | 'escalationPolicy'
@@ -54,8 +55,8 @@ export function SetFavoriteButton({
       <IconButton
         aria-label={
           isFavorite
-            ? `Unset as a Favorite ${typeName.toLowerCase()}`
-            : `Set as a Favorite ${typeName.toLowerCase()}`
+            ? `Unset as a Favorite ${_.startCase(typeName).toLowerCase()}`
+            : `Set as a Favorite ${_.startCase(typeName).toLowerCase()}`
         }
         type='submit'
         data-cy='set-fav'

@@ -129,7 +129,7 @@ function testFavorites(): void {
   )
 
   check(
-    'EscalationPolicy',
+    'Escalation Policy',
     'escalation-policies',
     (name: string, favorite: boolean) =>
       cy.createEP({ name, favorite }).then((ep: EP) => ep.id),
