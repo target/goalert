@@ -361,6 +361,7 @@ function testAlerts(screen: ScreenFormat): void {
       // escalate
       cy.get('button[title=Escalate]').click()
       cy.get('body').should('contain', 'Escalation requested by Cypress User')
+      cy.reload() // allows time for escalation request to process
 
       // close
       cy.get('button[title=Close]').click()
