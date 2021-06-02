@@ -52,7 +52,7 @@ export default function ScheduleOverrideList(props) {
   const resetFilter = useResetURLParams('userFilter', 'showPast', 'tz')
 
   const subText = (n) => {
-    const timeStr = formatOverrideTime(n.start, n.end, props.zone)
+    const timeStr = formatOverrideTime(n.start, n.end, zone)
     if (n.addUser && n.removeUser) {
       // replace
       return `Replaces ${n.removeUser.name} from ${timeStr}`
