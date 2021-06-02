@@ -152,10 +152,6 @@ func (c Clock) MarshalText() ([]byte, error) {
 	return []byte(c.String()), nil
 }
 func (c *Clock) UnmarshalText(data []byte) error {
-	if len(data) == 0 {
-		*c = 0
-		return nil
-	}
 	var err error
 	*c, err = ParseClock(string(data))
 	return err
