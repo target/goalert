@@ -249,7 +249,7 @@ func (db *DB) update(ctx context.Context) error {
 			}
 
 			newTime := nextOnCallNotification(now.In(tz[schedID]), r)
-			if equalTimePtr(data.V1.State.NextOnCallNotification, newTime) {
+			if equalTimePtr(r.NextNotification, newTime) {
 				continue
 			}
 			hadChange = true
