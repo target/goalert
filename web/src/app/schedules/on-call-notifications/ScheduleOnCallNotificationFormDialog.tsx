@@ -105,7 +105,7 @@ export default function ScheduleOnCallNotificationFormDialog(
   const [notifyOnUpdate, setNotifyOnUpdate] = useState(true)
   const [mutate, mutationStatus] = useMutation(setMutation)
 
-  // load all rules if editing
+  // load all rules to set
   const { loading, error, data } = useQuery(query, {
     variables: {
       id: p.scheduleID,
@@ -129,13 +129,23 @@ export default function ScheduleOnCallNotificationFormDialog(
       delete newRule.weekdayFilter
     }
 
-    console.log(newRule)
+    // handle editing vs creating
+    const newRules = rules
+    if (p.rule) {
+      const idx = _.findIndex(rules, ['id', p.rule.id])
+      newRules[idx] = {
+        ...rules[idx],
+        ...newRule,
+      }
+    } else {
+      newRules.push(newRule)
+    }
 
     mutate({
       variables: {
         input: {
           scheduleID: p.scheduleID,
-          rules: [...rules, newRule],
+          rules: newRules,
         },
       },
       optimisticResponse: () => p.onClose(),
