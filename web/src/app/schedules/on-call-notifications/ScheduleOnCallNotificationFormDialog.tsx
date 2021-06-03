@@ -22,8 +22,10 @@ import { isoToGQLClockTime, days } from '../util'
 
 interface ScheduleOnCallNotificationFormProps {
   scheduleID: string
-  rule?: Rule
   onClose: () => void
+
+  // if set, the form will default with these values
+  rule?: Rule
 }
 
 type Value = {
@@ -66,7 +68,9 @@ function getWeekdayFilter(days: Array<SelectOption>): WeekdayFilter {
 // as their given day-index in a week
 // e.g. [false, true, true, false, false, true, false]
 // -> [{ label: 'Monday', value: '1' }, { label: 'Wednesday', value: '3' }]
-function getSelectedDays(weekdayFilter?: WeekdayFilter): Array<SelectOption> {
+export function getSelectedDays(
+  weekdayFilter?: WeekdayFilter,
+): Array<SelectOption> {
   if (!weekdayFilter) {
     return []
   }
@@ -173,7 +177,7 @@ export default function ScheduleOnCallNotificationFormDialog(
             <Grid item>
               <RadioGroup onChange={handleRadioOnChange}>
                 <FormControlLabel
-                  label='Notify when a on-call hands off to a new user'
+                  label='Notify when on-call hands off to a new user'
                   value='true'
                   control={<Radio />}
                 />

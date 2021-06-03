@@ -5,6 +5,9 @@ import ScheduleOnCallNotificationAction, {
   Rule,
 } from './ScheduleOnCallNotificationAction'
 import ScheduleOnCallNotificationCreateFab from './ScheduleOnCallNotificationCreateFab'
+import { SlackBW } from '../../icons/components/Icons'
+
+import Avatar from '@material-ui/core/Avatar'
 
 interface ScheduleOnCallNotificationsProps {
   scheduleID: string
@@ -34,6 +37,12 @@ export const setMutation = gql`
   }
 `
 
+function subText(rule: Rule): string {
+  // todo: return with getSelectedDays: 'Notifies at xx:xx on Mondays and Wednesdays'
+
+  return 'Notifies when on-call hands off'
+}
+
 export default function ScheduleOnCallNotificationsList(
   p: ScheduleOnCallNotificationsProps,
 ): JSX.Element {
@@ -47,7 +56,13 @@ export default function ScheduleOnCallNotificationsList(
         path='onCallNotificationRules'
         mapDataNode={(nr) => ({
           id: nr.id,
+          icon: (
+            <Avatar>
+              <SlackBW />
+            </Avatar>
+          ),
           title: nr.target.name,
+          subText: subText(nr as Rule),
           action: (
             <ScheduleOnCallNotificationAction
               rule={nr as Rule}

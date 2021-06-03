@@ -41,6 +41,7 @@ export default function ScheduleOnCallNotificationAction(
         <ScheduleOnCallNotificationFormDialog
           scheduleID={p.scheduleID}
           onClose={() => setShowEdit(false)}
+          rule={p.rule}
         />
       )}
       {showDelete && (
