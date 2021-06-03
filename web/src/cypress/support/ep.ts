@@ -36,7 +36,7 @@ function createEP(ep?: EPOptions): Cypress.Chainable<EP> {
         name: ep.name || 'SM EP ' + c.word({ length: 8 }),
         description: ep.description || c.sentence(),
         repeat: ep.repeat || c.integer({ min: 1, max: 5 }),
-        favorite: ep.favorite ?? c.bool(),
+        favorite: ep.favorite || false,
       },
     })
     .then((res: GraphQLResponse) => res.createEscalationPolicy)
