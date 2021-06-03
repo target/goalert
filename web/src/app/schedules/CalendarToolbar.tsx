@@ -12,7 +12,7 @@ import { useCalendarNavigation } from './hooks'
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    paddingBottom: '1em',
+    paddingBottom: theme.spacing(2),
   },
   labelGridItem: {
     alignItems: 'center',
