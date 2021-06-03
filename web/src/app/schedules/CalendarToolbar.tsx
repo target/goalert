@@ -7,8 +7,8 @@ import {
   Typography,
 } from '@material-ui/core'
 import { DateTime } from 'luxon'
-import { useURLParam } from '../actions'
 import { getEndOfWeek, getStartOfWeek } from '../util/luxon-helpers'
+import { useCalendarNavigation } from './hooks'
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -48,13 +48,7 @@ interface CalendarToolbarProps {
 
 function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
   const classes = useStyles()
-  const [weekly, setWeekly] = useURLParam<boolean>('weekly', false)
-  const [start, setStart] = useURLParam(
-    'start',
-    weekly
-      ? getStartOfWeek().toUTC().toISO()
-      : DateTime.local().startOf('month').toUTC().toISO(),
-  )
+  const { weekly, setWeekly, start, setStart } = useCalendarNavigation()
 
   const getLabel = (): string => {
     if (weekly) {
