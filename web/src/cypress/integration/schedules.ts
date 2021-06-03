@@ -392,6 +392,36 @@ function testSchedules(screen: ScreenFormat): void {
       })
     })
   })
+
+  describe('Schedule On-Call Notifications', () => {
+    let sched: Schedule
+    beforeEach(() => {
+      cy.createSchedule().then((s: Schedule) => {
+        sched = s
+        return cy.visit('/schedules/' + sched.id + '/on-call-notifications')
+      })
+    })
+
+    it.only('should create and view a notification rule', () => {
+      cy.pageFab('Create Notification Rule')
+      cy.dialogTitle('Create Notification Rule')
+      cy.get('[data-cy="notify-on-change"]').click()
+      cy.dialogForm({
+        target: 'general',
+        time: '18:44',
+        weekdayFilter: {
+          label: 'Tuesday',
+          value: 2,
+        },
+      })
+      cy.dialogFinish('Submit')
+      cy.get('body').should('contain', '#general')
+      cy.get('body').should('contain', 'Mondays at 6:44 PM')
+    })
+
+    it('should edit a notification rule', () => {})
+    it('should delete a notification rule', () => {})
+  })
 }
 
 testScreen('Schedules', testSchedules)

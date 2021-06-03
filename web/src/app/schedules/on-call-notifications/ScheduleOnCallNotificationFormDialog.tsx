@@ -187,11 +187,13 @@ export default function ScheduleOnCallNotificationFormDialog(
             <Grid item>
               <RadioGroup onChange={handleRadioOnChange}>
                 <FormControlLabel
+                  data-cy='notify-on-change'
                   label='Notify when on-call hands off to a new user'
                   value='true'
                   control={<Radio />}
                 />
                 <FormControlLabel
+                  data-cy='notify-at-time'
                   label='Notify at a specific day and time every week'
                   value='false'
                   control={<Radio />}
