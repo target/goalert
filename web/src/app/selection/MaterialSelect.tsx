@@ -40,7 +40,7 @@ interface AutocompleteInputProps extends InputProps {
   'data-cy': string
 }
 
-interface SelectOption {
+export interface SelectOption {
   icon?: ReactElement
   isCreate?: boolean
   label: string

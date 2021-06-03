@@ -16,8 +16,9 @@ import { SlackChannelSelect } from '../../selection'
 import { ISOTimePicker } from '../../util/ISOPickers'
 import Spinner from '../../loading/components/Spinner'
 import { GenericError } from '../../error-pages'
-import MaterialSelect from '../../selection/MaterialSelect'
+import MaterialSelect, { SelectOption } from '../../selection/MaterialSelect'
 import { OnCallNotificationRuleInput, WeekdayFilter } from '../../../schema'
+import { isoToGQLClockTime, days } from '../util'
 
 interface ScheduleOnCallNotificationFormProps {
   scheduleID: string
@@ -28,18 +29,8 @@ interface ScheduleOnCallNotificationFormProps {
 type Value = {
   target: string
   time?: string
-  weekdayFilter?: Array<number> | null
+  weekdayFilter?: Array<SelectOption> | null
 }
-
-const defaultWeekdayFilter: WeekdayFilter = [
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
-]
 
 const useStyles = makeStyles({
   timeFields: {
@@ -59,27 +50,32 @@ const useStyles = makeStyles({
 
 // getWeekdayFilter takes the selected days and returns a full
 // week represented as booleans.
-// e.g. ['Monday', 'Wednesday', 'Saturday']
+// e.g. [{ label: 'Monday', value: '1' }, { label: 'Wednesday', value: '3' }]
 // -> [true, false, true, false, false, false, true]
-function getWeekdayFilter(days: Array<number>): WeekdayFilter {
-  const d: WeekdayFilter = defaultWeekdayFilter
+function getWeekdayFilter(days: Array<SelectOption>): WeekdayFilter {
+  const res = new Array(7).fill(false) as WeekdayFilter
+
   days.forEach((day) => {
-    d[day] = true
+    res[parseInt(day.value, 10)] = true
   })
-  return d
+
+  return res
 }
 
 // getSelectedDays takes WeekdayFilter and returns the included truthy days
 // as their given day-index in a week
 // e.g. [false, true, true, false, false, true, false]
-// -> [1, 2, 5]
-function getSelectedDays(weekdayFilter?: WeekdayFilter): Array<number> {
+// -> [{ label: 'Monday', value: '1' }, { label: 'Wednesday', value: '3' }]
+function getSelectedDays(weekdayFilter?: WeekdayFilter): Array<SelectOption> {
   if (!weekdayFilter) {
     return []
   }
   return weekdayFilter
-    .map((day, idx) => (day ? idx : -1))
-    .filter((day) => day > 0)
+    .map((dayVal, idx) => ({
+      label: days[idx],
+      value: dayVal ? idx.toString() : '-1',
+    }))
+    .filter((dayVal) => dayVal.value !== '-1')
 }
 
 export function mapDataToInput(
@@ -120,7 +116,7 @@ export default function ScheduleOnCallNotificationFormDialog(
         id: value.target,
         type: 'slackChannel',
       },
-      time: value.time,
+      time: isoToGQLClockTime(value.time),
       weekdayFilter: getWeekdayFilter(value?.weekdayFilter ?? []),
     }
 
@@ -128,6 +124,8 @@ export default function ScheduleOnCallNotificationFormDialog(
       delete newRule.time
       delete newRule.weekdayFilter
     }
+
+    console.log(newRule)
 
     mutate({
       variables: {
