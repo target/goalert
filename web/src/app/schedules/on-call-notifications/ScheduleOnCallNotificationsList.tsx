@@ -8,6 +8,7 @@ import ScheduleOnCallNotificationCreateFab from './ScheduleOnCallNotificationCre
 import { SlackBW } from '../../icons/components/Icons'
 
 import Avatar from '@material-ui/core/Avatar'
+import { getSelectedDays } from './ScheduleOnCallNotificationFormDialog'
 
 interface ScheduleOnCallNotificationsProps {
   scheduleID: string
@@ -38,7 +39,18 @@ export const setMutation = gql`
 `
 
 function subText(rule: Rule): string {
-  // todo: return with getSelectedDays: 'Notifies at xx:xx on Mondays and Wednesdays'
+  if (rule.time && rule.weekdayFilter) {
+    const days = getSelectedDays(rule.weekdayFilter).map((d) => d.label + 's')
+    const lastDay = days.length > 1 ? days.pop() : ''
+
+    return (
+      'Notifies on ' +
+      days.join(', ') +
+      (lastDay && ' and ' + lastDay) +
+      ' at ' +
+      rule.time
+    )
+  }
 
   return 'Notifies when on-call hands off'
 }
