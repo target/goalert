@@ -6,6 +6,7 @@ import (
 	"time"
 
 	alertlog "github.com/target/goalert/alert/log"
+	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
@@ -300,7 +301,7 @@ func (db *DB) FindPendingNotifications(ctx context.Context, alertID int, service
 
 	result := make([]AlertPendingNotification, 0)
 	for rows.Next() {
-		var tgtType string
+		var tgtType assignment.TargetType
 		var tgtName string
 		err := rows.Scan(&tgtType, &tgtName)
 		if err != nil {

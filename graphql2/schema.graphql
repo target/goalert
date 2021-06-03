@@ -801,8 +801,8 @@ type Alert {
 }
 
 type AlertPendingNotification {
-  targetType: TargetType!
-  targetName: String! # e.g. slack channel name, user name
+  destType: DestType: # SMS, VOICE, slackChannel, email # cm.type nc.type
+  destName: String! # e.g. slack channel name, user name
 }
 
 input AlertRecentEventsOptions {
