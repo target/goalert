@@ -14,7 +14,6 @@ import {
   makeStyles,
 } from '@material-ui/core'
 import { UserAvatar } from '../util/avatars'
-import PageActions from '../util/PageActions'
 import FilterContainer from '../util/FilterContainer'
 import { UserSelect } from '../selection'
 import { useURLParam, useResetURLParams } from '../actions'
@@ -243,54 +242,57 @@ function ScheduleShiftList({ scheduleID }) {
       ).toLocaleString()} in ${zoneText}.`
   return (
     <React.Fragment>
-      <PageActions>
-        <FilterContainer
-          onReset={() => {
-            handleFilterReset()
-            setSpecifyDuration(false)
-          }}
-        >
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={activeOnly}
-                  onChange={(e) => setActiveOnly(e.target.checked)}
-                  value='activeOnly'
-                />
-              }
-              label='Active shifts only'
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <ScheduleTZFilter scheduleID={scheduleID} />
-          </Grid>
-          <Grid item xs={12}>
-            <ISODatePicker
-              className={classes.datePicker}
-              disabled={activeOnly}
-              label='Start Date'
-              name='filterStart'
-              value={start}
-              onChange={(v) => setStart(v)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            {renderDurationSelector()}
-          </Grid>
-          <Grid item xs={12}>
-            <UserSelect
-              label='Filter users...'
-              multiple
-              value={userFilter}
-              onChange={setUserFilter}
-            />
-          </Grid>
-        </FilterContainer>
-        <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
-      </PageActions>
+      <ScheduleNewOverrideFAB onClick={(variant) => setCreate(variant)} />
       <Card style={{ width: '100%' }}>
-        <FlatList headerNote={note} items={items()} />
+        <FlatList
+          headerNote={note}
+          items={items()}
+          headerAction={
+            <FilterContainer
+              onReset={() => {
+                handleFilterReset()
+                setSpecifyDuration(false)
+              }}
+            >
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={activeOnly}
+                      onChange={(e) => setActiveOnly(e.target.checked)}
+                      value='activeOnly'
+                    />
+                  }
+                  label='Active shifts only'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <ScheduleTZFilter scheduleID={scheduleID} />
+              </Grid>
+              <Grid item xs={12}>
+                <ISODatePicker
+                  className={classes.datePicker}
+                  disabled={activeOnly}
+                  label='Start Date'
+                  name='filterStart'
+                  value={start}
+                  onChange={(v) => setStart(v)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                {renderDurationSelector()}
+              </Grid>
+              <Grid item xs={12}>
+                <UserSelect
+                  label='Filter users...'
+                  multiple
+                  value={userFilter}
+                  onChange={setUserFilter}
+                />
+              </Grid>
+            </FilterContainer>
+          }
+        />
       </Card>
       {create && (
         <ScheduleOverrideCreateDialog

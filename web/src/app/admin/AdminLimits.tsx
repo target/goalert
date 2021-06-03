@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
 import { useQuery, gql } from '@apollo/client'
 import Button from '@material-ui/core/Button'
+import ButtonGroup from '@material-ui/core/ButtonGroup'
 import Card from '@material-ui/core/Card'
 import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import { startCase, isEmpty } from 'lodash'
 import AdminDialog from './AdminDialog'
-import PageActions from '../util/PageActions'
 import { Form } from '../forms'
 import AdminSection from './AdminSection'
 import Spinner from '../loading/components/Spinner'
@@ -29,12 +28,11 @@ const mutation = gql`
 `
 
 const useStyles = makeStyles((theme) => ({
-  gridContainer: {
-    [theme.breakpoints.up('md')]: {
-      justifyContent: 'center',
-    },
+  actionsContainer: {
+    display: 'flex',
+    justifyContent: 'flex-end',
   },
-  gridItem: {
+  gridContainer: {
     [theme.breakpoints.up('md')]: {
       maxWidth: '65%',
     },
@@ -42,8 +40,9 @@ const useStyles = makeStyles((theme) => ({
   groupTitle: {
     fontSize: '1.1rem',
   },
-  saveDisabled: {
-    color: 'rgba(255, 255, 255, 0.5)',
+  pageContainer: {
+    display: 'flex',
+    justifyContent: 'center',
   },
 }))
 
@@ -78,93 +77,65 @@ export default function AdminLimits(): JSX.Element {
     setValues(newVal)
   }
 
-  const renderPageActions = (): JSX.Element => {
-    return (
-      <PageActions>
-        <Button
-          color='inherit'
-          data-cy='reset'
-          disabled={isEmpty(values)}
-          onClick={() => setValues({})}
-          classes={{
-            label: isEmpty(values) ? classes.saveDisabled : undefined,
-          }}
-        >
-          Reset
-        </Button>
-        <Button
-          color='inherit'
-          data-cy='save'
-          disabled={isEmpty(values)}
-          onClick={() => setConfirm(true)}
-          classes={{
-            label: isEmpty(values) ? classes.saveDisabled : undefined,
-          }}
-        >
-          Save
-        </Button>
-      </PageActions>
-    )
-  }
-
   return (
-    <div>
+    <div className={classes.pageContainer}>
       <Grid container spacing={2} className={classes.gridContainer}>
-        <Grid item xs={12} className={classes.gridItem}>
-          <Grid item xs={12}>
-            <Typography
-              component='h2'
-              variant='subtitle1'
-              color='textSecondary'
-              classes={{ subtitle1: classes.groupTitle }}
+        <Grid item xs={12} className={classes.actionsContainer}>
+          <ButtonGroup color='primary' variant='outlined'>
+            <Button
+              data-cy='reset'
+              disabled={isEmpty(values)}
+              onClick={() => setValues({})}
             >
-              System Limits
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Form>
-              <Card>
-                <AdminSection
-                  value={values}
-                  onChange={(id: string, value: null | string) =>
-                    updateValue(id, value)
-                  }
-                  headerNote='Set limits to -1 to disable.'
-                  fields={data.systemLimits.map(
-                    (f: {
-                      id: string
-                      description: string
-                      value: number
-                    }) => ({
-                      id: f.id,
-                      type: 'integer',
-                      description: f.description,
-                      value: f.value.toString(),
-                      label: startCase(
-                        f.id.replace(/([a-z])([A-Z])/g, '$1 $2'),
-                      ),
-                      password: false,
-                    }),
-                  )}
-                />
-              </Card>
-            </Form>
-          </Grid>
+              Reset
+            </Button>
+            <Button
+              data-cy='save'
+              disabled={isEmpty(values)}
+              onClick={() => setConfirm(true)}
+            >
+              Save
+            </Button>
+          </ButtonGroup>
+        </Grid>
+
+        {confirm && (
+          <AdminDialog
+            mutation={mutation}
+            values={data.systemLimits}
+            fieldValues={values}
+            onClose={() => setConfirm(false)}
+            onComplete={() => {
+              setValues({})
+              setConfirm(false)
+            }}
+          />
+        )}
+
+        <Grid item xs={12}>
+          <Form>
+            <Card>
+              <AdminSection
+                value={values}
+                onChange={(id: string, value: null | string) =>
+                  updateValue(id, value)
+                }
+                headerNote='Set limits to -1 to disable.'
+                fields={data.systemLimits.map(
+                  (f: { id: string; description: string; value: number }) => ({
+                    id: f.id,
+                    type: 'integer',
+                    description: f.description,
+                    value: f.value.toString(),
+                    label: startCase(f.id.replace(/([a-z])([A-Z])/g, '$1 $2')),
+                    password: false,
+                  }),
+                )}
+              />
+            </Card>
+          </Form>
         </Grid>
       </Grid>
-      {renderPageActions()}
-      {confirm && (
-        <AdminDialog
-          mutation={mutation}
-          values={data.systemLimits}
-          fieldValues={values}
-          onClose={() => setConfirm(false)}
-          onComplete={() => {
-            setValues({})
-            setConfirm(false)
-          }}
-        />
-      )}
     </div>
   )
 }
