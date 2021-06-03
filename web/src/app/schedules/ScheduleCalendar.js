@@ -133,7 +133,7 @@ function ScheduleCalendar(props) {
       </Typography>
       <Card className={classes.card} data-cy='calendar'>
         <CalendarToolbar
-          startAdornment={
+          filter={
             <FilterContainer
               onReset={resetFilter}
               iconButtonProps={{
@@ -166,7 +166,6 @@ function ScheduleCalendar(props) {
           endAdornment={
             <Button
               variant='contained'
-              size='small'
               color='primary'
               data-cy='new-temp-sched'
               onClick={onNewTempSched}
