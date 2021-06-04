@@ -173,6 +173,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
               data-cy='show-month'
               disabled={!weekly}
               onClick={() => onView('month')}
+              title='Month view'
             >
               Month
             </Button>
@@ -180,6 +181,7 @@ function CalendarToolbar(props: CalendarToolbarProps): JSX.Element {
               data-cy='show-week'
               disabled={weekly}
               onClick={() => onView('week')}
+              title='Week view'
             >
               Week
             </Button>
